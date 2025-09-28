@@ -12,7 +12,7 @@ We're in need of developers. Please join our chat below or DM a developer if you
 
 This repo is currently based on Eden with the code being "evolved" from the core upward to combat legal and performance related concerns.
 
-Our only website is suyu.dev so please be cautious when using other sites offering downloads for builds relating to suyu and other emulators.
+Our only website is https://suyu-emu.github.io/ so please be cautious when using other sites offering downloads for builds relating to suyu and other emulators.
 
 <hr />
 
