@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_executable(tests
+    common/assert.cpp
     common/bit_field.cpp
     common/cityhash.cpp
     common/container_hash.cpp
@@ -13,6 +14,7 @@ add_executable(tests
     common/scratch_buffer.cpp
     common/unique_function.cpp
     core/core_timing.cpp
+    core/crypto/test_sha_util.cpp
     core/internal_network/network.cpp
     precompiled_headers.h
     video_core/memory_tracker.cpp
