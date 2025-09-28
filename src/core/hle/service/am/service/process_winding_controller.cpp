@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,12 +18,12 @@ IProcessWindingController::IProcessWindingController(Core::System& system_,
     static const FunctionInfo functions[] = {
         {0, D<&IProcessWindingController::GetLaunchReason>, "GetLaunchReason"},
         {11, D<&IProcessWindingController::OpenCallingLibraryApplet>, "OpenCallingLibraryApplet"},
-        {21, nullptr, "PushContext"},
-        {22, nullptr, "PopContext"},
-        {23, nullptr, "CancelWindingReservation"},
-        {30, nullptr, "WindAndDoReserved"},
-        {40, nullptr, "ReserveToStartAndWaitAndUnwindThis"},
-        {41, nullptr, "ReserveToStartAndWait"},
+        {21, D<&IProcessWindingController::PushContext>, "PushContext"},
+        {22, D<&IProcessWindingController::PopContext>, "PopContext"},
+        {23, D<&IProcessWindingController::CancelWindingReservation>, "CancelWindingReservation"},
+        {30, D<&IProcessWindingController::WindAndDoReserved>, "WindAndDoReserved"},
+        {40, D<&IProcessWindingController::ReserveToStartAndWaitAndUnwindThis>, "ReserveToStartAndWaitAndUnwindThis"},
+        {41, D<&IProcessWindingController::ReserveToStartAndWait>, "ReserveToStartAndWait"},
     };
     // clang-format on
 
@@ -48,6 +51,45 @@ Result IProcessWindingController::OpenCallingLibraryApplet(
 
     *out_calling_library_applet = std::make_shared<ILibraryAppletAccessor>(
         system, m_applet->caller_applet_broker, caller_applet);
+    R_SUCCEED();
+}
+
+Result IProcessWindingController::PushContext(SharedPointer<IStorage> context) {
+    LOG_INFO(Service_AM, "called");
+    m_applet->context_stack.push(context);
+    R_SUCCEED();
+}
+
+Result IProcessWindingController::PopContext(Out<SharedPointer<IStorage>> out_context) {
+    LOG_INFO(Service_AM, "called");
+
+    if (m_applet->context_stack.empty()) {
+        LOG_ERROR(Service_AM, "Context stack is empty");
+        R_THROW(ResultUnknown);
+    }
+
+    *out_context = m_applet->context_stack.top();
+    m_applet->context_stack.pop();
+    R_SUCCEED();
+}
+
+Result IProcessWindingController::CancelWindingReservation() {
+    LOG_WARNING(Service_AM, "STUBBED");
+    R_SUCCEED();
+}
+
+Result IProcessWindingController::WindAndDoReserved() {
+    LOG_WARNING(Service_AM, "STUBBED");
+    R_SUCCEED();
+}
+
+Result IProcessWindingController::ReserveToStartAndWaitAndUnwindThis() {
+    LOG_WARNING(Service_AM, "STUBBED");
+    R_SUCCEED();
+}
+
+Result IProcessWindingController::ReserveToStartAndWait() {
+    LOG_WARNING(Service_AM, "STUBBED");
     R_SUCCEED();
 }
 
