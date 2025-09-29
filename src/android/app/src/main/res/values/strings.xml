@@ -855,6 +855,7 @@
     <string name="touchscreen">Touchscreen</string>
     <string name="lock_drawer">Lock drawer</string>
     <string name="unlock_drawer">Unlock drawer</string>
+    <string name="reset">Reset</string>
 
     <string name="load_settings">Loading settings…</string>
 

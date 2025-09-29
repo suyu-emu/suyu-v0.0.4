@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.overlay
 
@@ -13,6 +13,8 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.VectorDrawable
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
@@ -51,6 +53,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     private var buttonBeingConfigured: InputOverlayDrawableButton? = null
     private var dpadBeingConfigured: InputOverlayDrawableDpad? = null
     private var joystickBeingConfigured: InputOverlayDrawableJoystick? = null
+
+    private var scaleDialog: OverlayScaleDialog? = null
+    private var touchStartX = 0f
+    private var touchStartY = 0f
+    private var hasMoved = false
+    private val moveThreshold = 20f
 
     private lateinit var windowInsets: WindowInsets
 
@@ -254,23 +262,44 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     ) {
                         buttonBeingConfigured = button
                         buttonBeingConfigured!!.onConfigureTouch(event)
+                        touchStartX = event.getX(pointerIndex)
+                        touchStartY = event.getY(pointerIndex)
+                        hasMoved = false
                     }
 
                 MotionEvent.ACTION_MOVE -> if (buttonBeingConfigured != null) {
-                    buttonBeingConfigured!!.onConfigureTouch(event)
-                    invalidate()
-                    return true
+                    val moveDistance = kotlin.math.sqrt(
+                        (event.getX(pointerIndex) - touchStartX).let { it * it } +
+                                (event.getY(pointerIndex) - touchStartY).let { it * it }
+                    )
+
+                    if (moveDistance > moveThreshold) {
+                        hasMoved = true
+                        buttonBeingConfigured!!.onConfigureTouch(event)
+                        invalidate()
+                        return true
+                    }
                 }
 
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_POINTER_UP -> if (buttonBeingConfigured === button) {
-                    // Persist button position by saving new place.
-                    saveControlPosition(
-                        buttonBeingConfigured!!.overlayControlData.id,
-                        buttonBeingConfigured!!.bounds.centerX(),
-                        buttonBeingConfigured!!.bounds.centerY(),
-                        layout
-                    )
+                    if (!hasMoved) {
+                        showScaleDialog(
+                            buttonBeingConfigured,
+                            null,
+                            null,
+                            fingerPositionX,
+                            fingerPositionY
+                        )
+                    } else {
+                        saveControlPosition(
+                            buttonBeingConfigured!!.overlayControlData.id,
+                            buttonBeingConfigured!!.bounds.centerX(),
+                            buttonBeingConfigured!!.bounds.centerY(),
+                            individuaScale = buttonBeingConfigured!!.overlayControlData.individualScale,
+                            layout
+                        )
+                    }
                     buttonBeingConfigured = null
                 }
             }
@@ -287,23 +316,46 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     ) {
                         dpadBeingConfigured = dpad
                         dpadBeingConfigured!!.onConfigureTouch(event)
+                        touchStartX = event.getX(pointerIndex)
+                        touchStartY = event.getY(pointerIndex)
+                        hasMoved = false
                     }
 
                 MotionEvent.ACTION_MOVE -> if (dpadBeingConfigured != null) {
-                    dpadBeingConfigured!!.onConfigureTouch(event)
-                    invalidate()
-                    return true
+                    val moveDistance = kotlin.math.sqrt(
+                        (event.getX(pointerIndex) - touchStartX).let { it * it } +
+                                (event.getY(pointerIndex) - touchStartY).let { it * it }
+                    )
+
+                    if (moveDistance > moveThreshold) {
+                        hasMoved = true
+                        dpadBeingConfigured!!.onConfigureTouch(event)
+                        invalidate()
+                        return true
+                    }
                 }
 
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_POINTER_UP -> if (dpadBeingConfigured === dpad) {
-                    // Persist button position by saving new place.
-                    saveControlPosition(
-                        OverlayControl.COMBINED_DPAD.id,
-                        dpadBeingConfigured!!.bounds.centerX(),
-                        dpadBeingConfigured!!.bounds.centerY(),
-                        layout
-                    )
+                    if (!hasMoved) {
+                        // This was a click, show scale dialog for dpad
+                        showScaleDialog(
+                            null,
+                            dpadBeingConfigured,
+                            null,
+                            fingerPositionX,
+                            fingerPositionY
+                        )
+                    } else {
+                        // This was a move, save position
+                        saveControlPosition(
+                            OverlayControl.COMBINED_DPAD.id,
+                            dpadBeingConfigured!!.bounds.centerX(),
+                            dpadBeingConfigured!!.bounds.centerY(),
+                            individuaScale = dpadBeingConfigured!!.individualScale,
+                            layout
+                        )
+                    }
                     dpadBeingConfigured = null
                 }
             }
@@ -317,21 +369,43 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 ) {
                     joystickBeingConfigured = joystick
                     joystickBeingConfigured!!.onConfigureTouch(event)
+                    touchStartX = event.getX(pointerIndex)
+                    touchStartY = event.getY(pointerIndex)
+                    hasMoved = false
                 }
 
                 MotionEvent.ACTION_MOVE -> if (joystickBeingConfigured != null) {
-                    joystickBeingConfigured!!.onConfigureTouch(event)
-                    invalidate()
+                    val moveDistance = kotlin.math.sqrt(
+                        (event.getX(pointerIndex) - touchStartX).let { it * it } +
+                                (event.getY(pointerIndex) - touchStartY).let { it * it }
+                    )
+
+                    if (moveDistance > moveThreshold) {
+                        hasMoved = true
+                        joystickBeingConfigured!!.onConfigureTouch(event)
+                        invalidate()
+                    }
                 }
 
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_POINTER_UP -> if (joystickBeingConfigured != null) {
-                    saveControlPosition(
-                        joystickBeingConfigured!!.prefId,
-                        joystickBeingConfigured!!.bounds.centerX(),
-                        joystickBeingConfigured!!.bounds.centerY(),
-                        layout
-                    )
+                    if (!hasMoved) {
+                        showScaleDialog(
+                            null,
+                            null,
+                            joystickBeingConfigured,
+                            fingerPositionX,
+                            fingerPositionY
+                        )
+                    } else {
+                        saveControlPosition(
+                            joystickBeingConfigured!!.prefId,
+                            joystickBeingConfigured!!.bounds.centerX(),
+                            joystickBeingConfigured!!.bounds.centerY(),
+                            individuaScale = joystickBeingConfigured!!.individualScale,
+                            layout
+                        )
+                    }
                     joystickBeingConfigured = null
                 }
             }
@@ -607,24 +681,116 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         invalidate()
     }
 
-    private fun saveControlPosition(id: String, x: Int, y: Int, layout: OverlayLayout) {
+    private fun saveControlPosition(
+        id: String,
+        x: Int,
+        y: Int,
+        individuaScale: Float,
+        layout: OverlayLayout
+    ) {
         val windowSize = getSafeScreenSize(context, Pair(measuredWidth, measuredHeight))
         val min = windowSize.first
         val max = windowSize.second
         val overlayControlData = NativeConfig.getOverlayControlData()
         val data = overlayControlData.firstOrNull { it.id == id }
         val newPosition = Pair((x - min.x).toDouble() / max.x, (y - min.y).toDouble() / max.y)
+
         when (layout) {
             OverlayLayout.Landscape -> data?.landscapePosition = newPosition
             OverlayLayout.Portrait -> data?.portraitPosition = newPosition
             OverlayLayout.Foldable -> data?.foldablePosition = newPosition
+
         }
+
+        data?.individualScale = individuaScale
+
         NativeConfig.setOverlayControlData(overlayControlData)
     }
 
     fun setIsInEditMode(editMode: Boolean) {
         inEditMode = editMode
+        if (!editMode) {
+            scaleDialog?.dismiss()
+            scaleDialog = null
+        }
     }
+
+    private fun showScaleDialog(
+        button: InputOverlayDrawableButton?,
+        dpad: InputOverlayDrawableDpad?,
+        joystick: InputOverlayDrawableJoystick?,
+        x: Int, y: Int
+    ) {
+        val overlayControlData = NativeConfig.getOverlayControlData()
+        // prevent dialog from being spam opened
+        scaleDialog?.dismiss()
+
+
+        when {
+            button != null -> {
+                val buttonData =
+                    overlayControlData.firstOrNull { it.id == button.overlayControlData.id }
+                if (buttonData != null) {
+                    scaleDialog =
+                        OverlayScaleDialog(context, button.overlayControlData) { newScale ->
+                            saveControlPosition(
+                                button.overlayControlData.id,
+                                button.bounds.centerX(),
+                                button.bounds.centerY(),
+                                individuaScale = newScale,
+                                layout
+                            )
+                            refreshControls()
+                        }
+
+                    scaleDialog?.showDialog(x,y, button.bounds.width(), button.bounds.height())
+
+                }
+            }
+
+            dpad != null -> {
+                val dpadData =
+                    overlayControlData.firstOrNull { it.id == OverlayControl.COMBINED_DPAD.id }
+                if (dpadData != null) {
+                    scaleDialog = OverlayScaleDialog(context, dpadData) { newScale ->
+                        saveControlPosition(
+                            OverlayControl.COMBINED_DPAD.id,
+                            dpad.bounds.centerX(),
+                            dpad.bounds.centerY(),
+                            newScale,
+                            layout
+                        )
+
+                        refreshControls()
+                    }
+
+                    scaleDialog?.showDialog(x,y, dpad.bounds.width(), dpad.bounds.height())
+
+                }
+            }
+
+            joystick != null -> {
+                val joystickData = overlayControlData.firstOrNull { it.id == joystick.prefId }
+                if (joystickData != null) {
+                    scaleDialog = OverlayScaleDialog(context, joystickData) { newScale ->
+                        saveControlPosition(
+                            joystick.prefId,
+                            joystick.bounds.centerX(),
+                            joystick.bounds.centerY(),
+                            individuaScale = newScale,
+                            layout
+                        )
+
+                        refreshControls()
+                    }
+
+                    scaleDialog?.showDialog(x,y, joystick.bounds.width(), joystick.bounds.height())
+
+                }
+            }
+        }
+    }
+
 
     /**
      * Applies and saves all default values for the overlay
@@ -664,9 +830,21 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         val overlayControlData = NativeConfig.getOverlayControlData()
         overlayControlData.forEach {
             it.enabled = OverlayControl.from(it.id)?.defaultVisibility == true
+            it.individualScale = OverlayControl.from(it.id)?.defaultIndividualScaleResource!!
         }
         NativeConfig.setOverlayControlData(overlayControlData)
 
+        refreshControls()
+    }
+
+    fun resetIndividualControlScale() {
+        val overlayControlData = NativeConfig.getOverlayControlData()
+        overlayControlData.forEach { data ->
+            val defaultControlData = OverlayControl.from(data.id) ?: return@forEach
+            data.individualScale = defaultControlData.defaultIndividualScaleResource
+        }
+        NativeConfig.setOverlayControlData(overlayControlData)
+        NativeConfig.saveGlobalConfig()
         refreshControls()
     }
 
@@ -860,6 +1038,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             scale *= (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat()
             scale /= 100f
 
+            // Apply individual scale
+            scale *= overlayControlData.individualScale
+
             // Initialize the InputOverlayDrawableButton.
             val defaultStateBitmap = getBitmap(context, defaultResId, scale)
             val pressedStateBitmap = getBitmap(context, pressedResId, scale)
@@ -922,10 +1103,19 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
 
+            // Get the dpad control data for individual scale
+            val overlayControlData = NativeConfig.getOverlayControlData()
+            val dpadData = overlayControlData.firstOrNull { it.id == OverlayControl.COMBINED_DPAD.id }
+
             // Decide scale based on button ID and user preference
             var scale = 0.25f
             scale *= (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat()
             scale /= 100f
+
+            // Apply individual scale
+            if (dpadData != null) {
+                scale *= dpadData.individualScale
+            }
 
             // Initialize the InputOverlayDrawableDpad.
             val defaultStateBitmap =
@@ -999,6 +1189,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             var scale = 0.3f
             scale *= (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat()
             scale /= 100f
+
+            // Apply individual scale
+            scale *= overlayControlData.individualScale
 
             // Initialize the InputOverlayDrawableJoystick.
             val bitmapOuter = getBitmap(context, resOuter, scale)

@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <string>
 
@@ -369,7 +369,9 @@ jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getOverlayControlData(JN
             env->NewObject(Common::Android::GetOverlayControlDataClass(),
                            Common::Android::GetOverlayControlDataConstructor(),
                            Common::Android::ToJString(env, control_data.id), control_data.enabled,
-                           jlandscapePosition, jportraitPosition, jfoldablePosition);
+                           jlandscapePosition, jportraitPosition, jfoldablePosition,
+                           control_data.individual_scale);
+
         env->SetObjectArrayElement(joverlayControlDataArray, i, jcontrolData);
     }
     return joverlayControlDataArray;
@@ -418,9 +420,12 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setOverlayControlData(
                 env,
                 env->GetObjectField(jfoldablePosition, Common::Android::GetPairSecondField())));
 
+        float individual_scale = static_cast<float>(env->GetFloatField(
+            joverlayControlData, Common::Android::GetOverlayControlDataIndividualScaleField()));
+
         AndroidSettings::values.overlay_control_data.push_back(AndroidSettings::OverlayControlData{
             Common::Android::GetJString(env, jidString), enabled, landscape_position,
-            portrait_position, foldable_position});
+            portrait_position, foldable_position, individual_scale});
     }
 }
 

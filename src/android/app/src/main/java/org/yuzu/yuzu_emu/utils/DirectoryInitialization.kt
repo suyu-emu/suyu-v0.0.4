@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.utils
 
@@ -170,7 +170,8 @@ object DirectoryInitialization {
                     buttonEnabled,
                     Pair(landscapeXPosition, landscapeYPosition),
                     Pair(portraitXPosition, portraitYPosition),
-                    Pair(foldableXPosition, foldableYPosition)
+                    Pair(foldableXPosition, foldableYPosition),
+                    OverlayControl.map[buttonId]?.defaultIndividualScaleResource ?: 1.0f
                 )
                 overlayControlDataMap[buttonId] = controlData
                 setOverlayData = true

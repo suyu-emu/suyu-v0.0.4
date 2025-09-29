@@ -24,6 +24,7 @@ namespace AndroidSettings {
         std::pair<double, double> landscape_position;
         std::pair<double, double> portrait_position;
         std::pair<double, double> foldable_position;
+        float individual_scale;
     };
 
     struct Values {

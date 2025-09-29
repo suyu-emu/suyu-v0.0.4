@@ -924,6 +924,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         IntSetting.OVERLAY_OPACITY.reset()
         binding.surfaceInputOverlay.post {
             binding.surfaceInputOverlay.resetLayoutVisibilityAndPlacement()
+            binding.surfaceInputOverlay.resetIndividualControlScale()
         }
     }
 
@@ -1546,6 +1547,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             .setNeutralButton(R.string.slider_default) { _: DialogInterface?, _: Int ->
                 setControlScale(50)
                 setControlOpacity(100)
+                binding.surfaceInputOverlay.resetIndividualControlScale()
             }
             .show()
     }

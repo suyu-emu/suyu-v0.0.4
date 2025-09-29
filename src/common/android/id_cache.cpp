@@ -1,7 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <jni.h>
@@ -49,6 +46,7 @@ static jclass s_overlay_control_data_class;
 static jmethodID s_overlay_control_data_constructor;
 static jfieldID s_overlay_control_data_id_field;
 static jfieldID s_overlay_control_data_enabled_field;
+static jfieldID s_overlay_control_data_individual_scale_field;
 static jfieldID s_overlay_control_data_landscape_position_field;
 static jfieldID s_overlay_control_data_portrait_position_field;
 static jfieldID s_overlay_control_data_foldable_position_field;
@@ -242,6 +240,10 @@ namespace Common::Android {
 
     jfieldID GetOverlayControlDataEnabledField() {
         return s_overlay_control_data_enabled_field;
+    }
+
+    jfieldID GetOverlayControlDataIndividualScaleField() {
+        return s_overlay_control_data_individual_scale_field;
     }
 
     jfieldID GetOverlayControlDataLandscapePositionField() {
@@ -494,7 +496,7 @@ namespace Common::Android {
                 reinterpret_cast<jclass>(env->NewGlobalRef(overlay_control_data_class));
         s_overlay_control_data_constructor =
                 env->GetMethodID(overlay_control_data_class, "<init>",
-                                 "(Ljava/lang/String;ZLkotlin/Pair;Lkotlin/Pair;Lkotlin/Pair;)V");
+                                 "(Ljava/lang/String;ZLkotlin/Pair;Lkotlin/Pair;Lkotlin/Pair;F)V");
         s_overlay_control_data_id_field =
                 env->GetFieldID(overlay_control_data_class, "id", "Ljava/lang/String;");
         s_overlay_control_data_enabled_field =
@@ -505,6 +507,8 @@ namespace Common::Android {
                 env->GetFieldID(overlay_control_data_class, "portraitPosition", "Lkotlin/Pair;");
         s_overlay_control_data_foldable_position_field =
                 env->GetFieldID(overlay_control_data_class, "foldablePosition", "Lkotlin/Pair;");
+        s_overlay_control_data_individual_scale_field =
+                env->GetFieldID(overlay_control_data_class, "individualScale", "F");
         env->DeleteLocalRef(overlay_control_data_class);
 
         const jclass patch_class = env->FindClass("org/yuzu/yuzu_emu/model/Patch");
