@@ -49,5 +49,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
     <string>True</string>
+    <key>UIDesignRequiresCompatibility</key>
+    <true/> <!-- https://bugreports.qt.io/browse/QTBUG-138942 -->
 </dict>
 </plist>
