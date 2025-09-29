@@ -55,6 +55,8 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     FRAME_INTERPOLATION("frame_interpolation"),
 //    FRAME_SKIPPING("frame_skipping"),
 
+    ENABLE_INPUT_OVERLAY_AUTO_HIDE("enable_input_overlay_auto_hide"),
+
     PERF_OVERLAY_BACKGROUND("perf_overlay_background"),
     SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),
 

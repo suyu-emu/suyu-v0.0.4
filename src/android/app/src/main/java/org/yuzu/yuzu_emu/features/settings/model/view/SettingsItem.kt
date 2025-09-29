@@ -96,6 +96,7 @@ abstract class SettingsItem(
         const val TYPE_INT_SINGLE_CHOICE = 9
         const val TYPE_INPUT_PROFILE = 10
         const val TYPE_STRING_INPUT = 11
+        const val TYPE_SPINBOX = 12
 
         const val FASTMEM_COMBINED = "fastmem_combined"
 
@@ -383,6 +384,22 @@ abstract class SettingsItem(
                     valuesId = R.array.rendererResolutionValues,
                     warnChoices = (5..7).toList(),
                     warningMessage = R.string.warning_resolution
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE,
+                    titleId = R.string.enable_input_overlay_auto_hide,
+                )
+            )
+            put(
+                SpinBoxSetting(
+                    IntSetting.INPUT_OVERLAY_AUTO_HIDE,
+                    titleId = R.string.overlay_auto_hide,
+                    descriptionId = R.string.overlay_auto_hide_description,
+                    min = 1,
+                    max = 999,
+                    valueHint = R.string.seconds
                 )
             )
 

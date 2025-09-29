@@ -96,6 +96,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var perfStatsUpdater: (() -> Unit)? = null
     private var socUpdater: (() -> Unit)? = null
 
+    val handler = Handler(Looper.getMainLooper())
+    private var isOverlayVisible = true
+
     private var _binding: FragmentEmulationBinding? = null
 
     private val binding get() = _binding!!
@@ -452,7 +455,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     /**
      * Ask user if they want to launch with default settings when custom settings fail
      */
-    private suspend fun askUserToLaunchWithDefaultSettings(gameTitle: String, errorMessage: String): Boolean {
+    private suspend fun askUserToLaunchWithDefaultSettings(
+        gameTitle: String,
+        errorMessage: String
+    ): Boolean {
         return suspendCoroutine { continuation ->
             requireActivity().runOnUiThread {
                 MaterialAlertDialogBuilder(requireContext())
@@ -728,6 +734,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 updateShowStatsOverlay()
                 updateSocOverlay()
 
+                initializeOverlayAutoHide()
+
                 // Re update binding when the specs values get initialized properly
                 binding.inGameMenu.getHeaderView(0).apply {
                     val titleView = findViewById<TextView>(R.id.text_game_title)
@@ -917,6 +925,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 updatePauseMenuEntry(emulationState.isPaused)
             }
         }
+
+        // if the overlay auto-hide setting is changed while paused,
+        // we need to reinitialize the auto-hide timer
+        initializeOverlayAutoHide()
+
     }
 
     private fun resetInputOverlay() {
@@ -1035,7 +1048,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         val status = batteryIntent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
                         val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                            status == BatteryManager.BATTERY_STATUS_FULL
+                                status == BatteryManager.BATTERY_STATUS_FULL
 
                         if (isCharging) {
                             sb.append(" ${getString(R.string.charging)}")
@@ -1727,5 +1740,62 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     companion object {
         private val perfStatsUpdateHandler = Handler(Looper.myLooper()!!)
         private val socUpdateHandler = Handler(Looper.myLooper()!!)
+    }
+
+    private fun startOverlayAutoHideTimer(seconds: Int) {
+        handler.removeCallbacksAndMessages(null)
+
+        handler.postDelayed({
+            if (isOverlayVisible) {
+                hideOverlay()
+            }
+        }, seconds * 1000L)
+    }
+
+    fun handleScreenTap(isLongTap: Boolean) {
+        val autoHideSeconds = IntSetting.INPUT_OVERLAY_AUTO_HIDE.getInt()
+        val shouldProceed = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean() && BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean()
+
+        if (!shouldProceed) {
+            return
+        }
+
+        // failsafe
+        if (autoHideSeconds == 0) {
+            showOverlay()
+            return
+        }
+
+        if (!isOverlayVisible && !isLongTap) {
+            showOverlay()
+        }
+
+        startOverlayAutoHideTimer(autoHideSeconds)
+    }
+
+    private fun initializeOverlayAutoHide() {
+        val autoHideSeconds = IntSetting.INPUT_OVERLAY_AUTO_HIDE.getInt()
+        val autoHideEnabled = BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean()
+        val showOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
+
+        if (autoHideEnabled && showOverlay) {
+            showOverlay()
+            startOverlayAutoHideTimer(autoHideSeconds)
+        }
+    }
+
+
+    fun showOverlay() {
+        if (!isOverlayVisible) {
+            isOverlayVisible = true
+            ViewUtils.showView(binding.surfaceInputOverlay, 500)
+        }
+    }
+
+    private fun hideOverlay() {
+        if (isOverlayVisible) {
+            isOverlayVisible = false
+            ViewUtils.hideView(binding.surfaceInputOverlay, 500)
+        }
     }
 }

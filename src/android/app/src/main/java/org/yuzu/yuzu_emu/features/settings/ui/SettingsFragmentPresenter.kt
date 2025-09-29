@@ -97,6 +97,7 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_RENDERER -> addGraphicsSettings(sl)
             MenuTag.SECTION_PERFORMANCE_STATS -> addPerformanceOverlaySettings(sl)
             MenuTag.SECTION_SOC_OVERLAY -> addSocOverlaySettings(sl)
+            MenuTag.SECTION_INPUT_OVERLAY -> addInputOverlaySettings(sl)
             MenuTag.SECTION_AUDIO -> addAudioSettings(sl)
             MenuTag.SECTION_INPUT -> addInputSettings(sl)
             MenuTag.SECTION_INPUT_PLAYER_ONE -> addInputPlayer(sl, 0)
@@ -154,6 +155,14 @@ class SettingsFragmentPresenter(
                         descriptionId = R.string.soc_overlay_options_description,
                         iconId = R.drawable.ic_system,
                         menuKey = MenuTag.SECTION_SOC_OVERLAY
+                    )
+                )
+                add(
+                    SubmenuSetting(
+                        titleId = R.string.input_overlay_options,
+                        iconId = R.drawable.ic_controller,
+                        descriptionId = R.string.input_overlay_options_description,
+                        menuKey = MenuTag.SECTION_INPUT_OVERLAY
                     )
                 )
             }
@@ -261,6 +270,13 @@ class SettingsFragmentPresenter(
             add(IntSetting.BAT_TEMPERATURE_UNIT.key)
             add(BooleanSetting.SHOW_POWER_INFO.key)
             add(BooleanSetting.SHOW_SHADERS_BUILDING.key)
+        }
+    }
+
+    private fun addInputOverlaySettings(sl: ArrayList<SettingsItem>) {
+        sl.apply {
+            add(BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.key)
+            add(IntSetting.INPUT_OVERLAY_AUTO_HIDE.key)
         }
     }
 

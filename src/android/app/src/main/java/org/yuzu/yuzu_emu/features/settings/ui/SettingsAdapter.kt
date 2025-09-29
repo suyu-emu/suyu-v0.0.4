@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
@@ -59,6 +59,10 @@ class SettingsAdapter(
 
             SettingsItem.TYPE_SLIDER -> {
                 SliderViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
+
+            SettingsItem.TYPE_SPINBOX -> {
+                SpinBoxViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
 
             SettingsItem.TYPE_SUBMENU -> {
@@ -188,6 +192,14 @@ class SettingsAdapter(
             settingsViewModel,
             item,
             SettingsItem.TYPE_SLIDER,
+            position
+        ).show(fragment.childFragmentManager, SettingsDialogFragment.TAG)
+    }
+    fun onSpinBoxClick(item: SpinBoxSetting, position: Int) {
+        SettingsDialogFragment.newInstance(
+            settingsViewModel,
+            item,
+            SettingsItem.TYPE_SPINBOX,
             position
         ).show(fragment.childFragmentManager, SettingsDialogFragment.TAG)
     }

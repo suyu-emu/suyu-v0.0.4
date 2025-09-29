@@ -12,6 +12,24 @@
     <string name="app_notification_channel_id" translatable="false">Eden</string>
     <string name="app_notification_channel_description">Eden Switch emulator notifications</string>
     <string name="app_notification_running">Eden is Running</string>
+    <string name="seconds">Seconds</string>
+
+    <!-- Spinbox strings -->
+    <string name="increment">Increment</string>
+    <string name="decrement">Decrement</string>
+    <string name="value">Value</string>
+    <string name="value_too_low">Value must be at least %1$d</string>
+    <string name="value_too_high">Value must be at most %1$d</string>
+    <string name="invalid_value">Invalid value</string>
+
+
+    <!-- Input Overlay -->
+    <string name="overlay_auto_hide">Overlay Auto Hide</string>
+    <string name="overlay_auto_hide_description">Automatically hide the touch controls overlay after the specified time of inactivity.</string>
+    <string name="enable_input_overlay_auto_hide">Enable Overlay Auto Hide</string>
+
+    <string name="input_overlay_options">Input Overlay</string>
+    <string name="input_overlay_options_description">Configure on-screen controls</string>
 
 
     <!-- Stats Overlay settings -->

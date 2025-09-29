@@ -12,6 +12,7 @@ object Settings {
         SECTION_SYSTEM(R.string.preferences_system),
         SECTION_RENDERER(R.string.preferences_graphics),
         SECTION_PERFORMANCE_STATS(R.string.stats_overlay_options),
+        SECTION_INPUT_OVERLAY(R.string.input_overlay_options),
         SECTION_SOC_OVERLAY(R.string.soc_overlay_options),
         SECTION_AUDIO(R.string.preferences_audio),
         SECTION_INPUT(R.string.preferences_controls),

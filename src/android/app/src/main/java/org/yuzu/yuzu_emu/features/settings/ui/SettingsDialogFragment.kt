@@ -14,6 +14,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
@@ -22,6 +23,7 @@ import com.google.android.material.slider.Slider
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogEditTextBinding
 import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
+import org.yuzu.yuzu_emu.databinding.DialogSpinboxBinding
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.input.model.AnalogDirection
 import org.yuzu.yuzu_emu.features.settings.model.view.AnalogInputSetting
@@ -30,6 +32,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.IntSingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.model.view.SingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SliderSetting
+import org.yuzu.yuzu_emu.features.settings.model.view.SpinBoxSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.StringInputSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.StringSingleChoiceSetting
 import org.yuzu.yuzu_emu.utils.ParamPackage
@@ -46,6 +49,7 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
 
     private lateinit var sliderBinding: DialogSliderBinding
     private lateinit var stringInputBinding: DialogEditTextBinding
+    private lateinit var spinboxBinding: DialogSpinboxBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -140,6 +144,76 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     .setPositiveButton(android.R.string.ok, this)
                     .setNegativeButton(android.R.string.cancel, defaultCancelListener)
                     .create()
+            }
+
+            SettingsItem.TYPE_SPINBOX -> {
+                spinboxBinding = DialogSpinboxBinding.inflate(layoutInflater)
+                val item = settingsViewModel.clickedItem as SpinBoxSetting
+
+                val currentValue = item.getSelectedValue()
+                spinboxBinding.editValue.setText(currentValue.toString())
+                spinboxBinding.textInputLayout.hint = getString(item.valueHint)
+
+                val dialog = MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(item.title)
+                    .setView(spinboxBinding.root)
+                    .setPositiveButton(android.R.string.ok, this)
+                    .setNegativeButton(android.R.string.cancel, defaultCancelListener)
+                    .create()
+
+                val updateButtonState = { enabled: Boolean ->
+                    dialog.setOnShowListener { dialogInterface ->
+                        (dialogInterface as AlertDialog).getButton(DialogInterface.BUTTON_POSITIVE)?.isEnabled = enabled
+                    }
+                    if (dialog.isShowing) {
+                        dialog.getButton(DialogInterface.BUTTON_POSITIVE)?.isEnabled = enabled
+                    }
+                }
+
+                val updateValidity = { value: Int ->
+                    val isValid = value in item.min..item.max
+                    if (isValid) {
+                        spinboxBinding.textInputLayout.error = null
+                    } else {
+                        spinboxBinding.textInputLayout.error = getString(
+                            if (value < item.min) R.string.value_too_low else R.string.value_too_high,
+                            if (value < item.min) item.min else item.max
+                        )
+                    }
+                    updateButtonState(isValid)
+                }
+
+                spinboxBinding.buttonDecrement.setOnClickListener {
+                    val current = spinboxBinding.editValue.text.toString().toIntOrNull() ?: currentValue
+                    val newValue = current - 1
+                    spinboxBinding.editValue.setText(newValue.toString())
+                    updateValidity(newValue)
+                }
+
+                spinboxBinding.buttonIncrement.setOnClickListener {
+                    val current = spinboxBinding.editValue.text.toString().toIntOrNull() ?: currentValue
+                    val newValue = current + 1
+                    spinboxBinding.editValue.setText(newValue.toString())
+                    updateValidity(newValue)
+                }
+
+                spinboxBinding.editValue.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                    override fun afterTextChanged(s: Editable?) {
+                        val value = s.toString().toIntOrNull()
+                        if (value != null) {
+                            updateValidity(value)
+                        } else {
+                            spinboxBinding.textInputLayout.error = getString(R.string.invalid_value)
+                            updateButtonState(false)
+                        }
+                    }
+                })
+
+                updateValidity(currentValue)
+
+                dialog
             }
 
             SettingsItem.TYPE_STRING_INPUT -> {
@@ -279,6 +353,14 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
             is SliderSetting -> {
                 val sliderSetting = settingsViewModel.clickedItem as SliderSetting
                 sliderSetting.setSelectedValue(settingsViewModel.sliderProgress.value)
+            }
+
+            is SpinBoxSetting -> {
+                val spinBoxSetting = settingsViewModel.clickedItem as SpinBoxSetting
+                val value = spinboxBinding.editValue.text.toString().toIntOrNull()
+                if (value != null && value in spinBoxSetting.min..spinBoxSetting.max) {
+                    spinBoxSetting.setSelectedValue(value)
+                }
             }
 
             is StringInputSetting -> {

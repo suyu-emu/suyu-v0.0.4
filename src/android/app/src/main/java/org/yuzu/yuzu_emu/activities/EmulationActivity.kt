@@ -68,6 +68,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     var isActivityRecreated = false
     private lateinit var nfcReader: NfcReader
 
+    private var touchDownTime: Long = 0
+    private val maxTapDuration = 500L
+
     private val gyro = FloatArray(3)
     private val accel = FloatArray(3)
     private var motionTimestamp: Long = 0
@@ -487,6 +490,38 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
                 BooleanSetting.AUDIO_MUTED.setBoolean(false)
             }
         }
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
+        val emulationFragment = navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
+
+        emulationFragment?.let { fragment ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    touchDownTime = System.currentTimeMillis()
+                    // show overlay immediately on touch and cancel timer
+                    if (!emulationViewModel.drawerOpen.value) {
+                        fragment.handler.removeCallbacksAndMessages(null)
+                        fragment.showOverlay()
+                    }
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (!emulationViewModel.drawerOpen.value) {
+                        val touchDuration = System.currentTimeMillis() - touchDownTime
+
+                        if (touchDuration <= maxTapDuration) {
+                            fragment.handleScreenTap(false)
+                        } else {
+                            // just start the auto-hide timer without toggling visibility
+                            fragment.handleScreenTap(true)
+                        }
+                    }
+                }
+            }
+        }
+
+        return super.dispatchTouchEvent(event)
     }
 
     fun onEmulationStarted() {
