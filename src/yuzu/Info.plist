@@ -45,6 +45,26 @@ SPDX-License-Identifier: GPL-2.0-or-later
     <true/>
     <key>NSHumanReadableCopyright</key>
     <string></string>
+    <!-- Fixed -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.games</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>nsp</string>
+                <string>xci</string>
+                <string>nro</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Switch File</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Default</string>
+        </dict>
+    </array>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
