@@ -895,13 +895,13 @@ if (MSVC AND CXX_CLANG)
 endif()
 
 if (YUZU_USE_FASTER_LD)
+    # fallback if everything fails (bfd)
+    set(LINKER bfd)
     # clang should always use lld
     find_program(LLD lld)
-
     if (LLD)
         set(LINKER lld)
     endif()
-
     # GNU appears to work better with mold
     # TODO: mold has been slow lately, see if better options exist (search for gold?)
     if (CXX_GCC)
@@ -910,7 +910,6 @@ if (YUZU_USE_FASTER_LD)
             set(LINKER mold)
         endif()
     endif()
-
     message(NOTICE "Selecting ${LINKER} as linker")
     add_link_options("-fuse-ld=${LINKER}")
 endif()
