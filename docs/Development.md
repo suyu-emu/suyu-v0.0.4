@@ -36,6 +36,28 @@ Pull requests are only to be merged by core developers when properly tested and 
 - Maintainers are permitted to change namespaces at will.
 - Commits within PRs are not required to be namespaced, but it is highly recommended.
 
+## Adding new settings
+
+When adding new settings, use `tr("Setting:")` if the setting is meant to be a field, otherwise use `tr("Setting")` if the setting is meant to be a Yes/No or checkmark type of setting, see [this short style guide](https://learn.microsoft.com/en-us/style-guide/punctuation/colons#in-ui).
+
+- The majority of software must work with the default option selected for such setting. Unless the setting significantly degrades performance.
+- Debug settings must never be turned on by default.
+- Provide reasonable bounds (for example, a setting controlling the amount of VRAM should never be 0).
+- The description of the setting must be short and concise, if the setting "does a lot of things" consider splitting the setting into multiple if possible.
+- Try to avoid excessive/redundant explainations "recommended for most users and games" can just be "(recommended)".
+- Try to not write "slow/fast" options unless it clearly degrades/increases performance for a given case, as most options may modify behaviour that result in different metrics accross different systems. If for example the option is an "accuracy" option, writing "High" is sufficient to imply "Slow". No need to write "High (Slow)".
+
+Some examples:
+- "[...] negatively affecting image quality", "[...] degrading image quality": Same wording but with less filler.
+- "[...] this may cause some glitches or crashes in some games", "[...] this may cause soft-crashes": Crashes implies there may be glitches (as crashes are technically a form of a fatal glitch). The entire sentence is structured as "may cause [...] on some games", which is redundant, because "may cause [...] in games" has the same semantic meaning ("may" is a chance that it will occur on "some" given set).
+- "FIFO Relaxed is similar to FIFO [...]", "FIFO Relaxed [...]": The name already implies similarity.
+- "[...] but may also reduce performance in some cases", "[...] but may degrade performance": Again, "some cases" and "may" implies there is a probability.
+- "[...] it can [...] in some cases", "[...] it can [...]": Implied probability.
+
+Before adding a new setting, consider:
+- Does the piece of code that the setting pertains to, make a significant difference if it's on/off?
+- Can it be auto-detected?
+
 # IDE setup
 
 ## VSCode

@@ -865,12 +865,12 @@
     <string name="abort_button">Abort</string>
     <string name="continue_button">Continue</string>
     <string name="system_archive_not_found">System Archive Not Found</string>
-    <string name="system_archive_not_found_message">%s is missing. Please dump your system archives.\nContinuing emulation may result in crashes and bugs.</string>
+    <string name="system_archive_not_found_message">%s is missing. Please dump your system archives.\nContinuing emulation may result in crashes.</string>
     <string name="system_archive_general">A system archive</string>
     <string name="save_load_error">Save/Load Error</string>
     <string name="fatal_error">Fatal Error</string>
-    <string name="fatal_error_message">A fatal error occurred. Check the log for details.\nContinuing emulation may result in crashes and bugs.</string>
-    <string name="performance_warning">Turning off this setting will significantly reduce emulation performance! For the best experience, it is recommended that you leave this setting enabled.</string>
+    <string name="fatal_error_message">A fatal error occurred. Check the log for details.\nContinuing emulation may result in crashes.</string>
+    <string name="performance_warning">Turning off this setting will significantly degrade performance. It's recommended that you leave this setting enabled.</string>
     <string name="device_memory_inadequate">Device RAM: %1$s\nRecommended: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">No bootable game present!</string>
@@ -941,12 +941,12 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">High</string>
-    <string name="renderer_accuracy_extreme">Extreme (Slow)</string>
+    <string name="renderer_accuracy_extreme">Extreme</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Default</string>
-    <string name="dma_accuracy_unsafe">Unsafe (fast)</string>
-    <string name="dma_accuracy_safe">Safe (stable)</string>
+    <string name="dma_accuracy_unsafe">Unsafe</string>
+    <string name="dma_accuracy_safe">Safe</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC Decoding Method</string>
@@ -992,7 +992,9 @@
     <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
     <string name="scaling_filter_bilinear">Bilinear</string>
     <string name="scaling_filter_bicubic">Bicubic</string>
+    <string name="scaling_filter_spline1">Spline-1</string>
     <string name="scaling_filter_gaussian">Gaussian</string>
+    <string name="scaling_filter_lanczos">Lanczos</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <string name="scaling_filter_area">Area</string>

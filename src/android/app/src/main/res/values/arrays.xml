@@ -251,7 +251,9 @@
         <item>@string/scaling_filter_nearest_neighbor</item>
         <item>@string/scaling_filter_bilinear</item>
         <item>@string/scaling_filter_bicubic</item>
+        <item>@string/scaling_filter_spline1</item>
         <item>@string/scaling_filter_gaussian</item>
+        <item>@string/scaling_filter_lanczos</item>
         <item>@string/scaling_filter_scale_force</item>
         <item>@string/scaling_filter_fsr</item>
         <item>@string/scaling_filter_area</item>
@@ -265,6 +267,8 @@
         <item>4</item>
         <item>5</item>
         <item>6</item>
+        <item>7</item>
+        <item>8</item>
     </integer-array>
 
     <string-array name="rendererAntiAliasingNames">
