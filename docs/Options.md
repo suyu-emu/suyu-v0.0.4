@@ -31,7 +31,7 @@ Notes:
   * Currently, build fails without this
 - `YUZU_USE_FASTER_LD` (ON) Check if a faster linker is available
   * Only available on UNIX
-- `USE_SYSTEM_MOLTENVK` (OFF, macOS only) Use the system MoltenVK lib (instead of the bundled one)
+- `YUZU_APPLE_USE_BUNDLED_MONTENVK` (ON, macOS only) Download bundled MoltenVK lib)
 - `YUZU_TZDB_PATH` (string) Path to a pre-downloaded timezone database (useful for nixOS)
 - `ENABLE_OPENSSL` (ON for Linux and *BSD) Enable OpenSSL backend for the ssl service
   * Always enabled if the web service is enabled

@@ -10,6 +10,7 @@ function(download_bundled_external remote_path lib_name cpm_key prefix_var versi
     set(package_base_url "https://github.com/eden-emulator/")
     set(package_repo "no_platform")
     set(package_extension "no_platform")
+    set(CACHE_KEY "")
 
     # TODO(crueter): Need to convert ffmpeg to a CI.
     if (WIN32 OR FORCE_WIN_ARCHIVES)
@@ -33,8 +34,9 @@ function(download_bundled_external remote_path lib_name cpm_key prefix_var versi
     else()
         message(FATAL_ERROR "No package available for this platform")
     endif()
-    set(package_url "${package_base_url}${package_repo}")
-    set(full_url ${package_url}${remote_path}${lib_name}${package_extension})
+    string(CONCAT package_url "${package_base_url}" "${package_repo}")
+    string(CONCAT full_url "${package_url}" "${remote_path}" "${lib_name}" "${package_extension}")
+    message(STATUS "Resolved bundled URL: ${full_url}")
 
     # TODO(crueter): DELETE THIS ENTIRELY, GLORY BE TO THE CI!
     AddPackage(
@@ -47,26 +49,12 @@ function(download_bundled_external remote_path lib_name cpm_key prefix_var versi
         # TODO(crueter): hash
     )
 
-    set(${prefix_var} "${${cpm_key}_SOURCE_DIR}" PARENT_SCOPE)
-    message(STATUS "Using bundled binaries at ${${cpm_key}_SOURCE_DIR}")
-endfunction()
-
-function(download_moltenvk_external platform version)
-    set(MOLTENVK_DIR "${CMAKE_BINARY_DIR}/externals/MoltenVK")
-    set(MOLTENVK_TAR "${CMAKE_BINARY_DIR}/externals/MoltenVK.tar")
-    if (NOT EXISTS ${MOLTENVK_DIR})
-        if (NOT EXISTS ${MOLTENVK_TAR})
-            file(DOWNLOAD https://github.com/KhronosGroup/MoltenVK/releases/download/${version}/MoltenVK-${platform}.tar
-                ${MOLTENVK_TAR} SHOW_PROGRESS)
-        endif()
-
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${MOLTENVK_TAR}"
-            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
+    if (DEFINED ${cpm_key}_SOURCE_DIR)
+        set(${prefix_var} "${${cpm_key}_SOURCE_DIR}" PARENT_SCOPE)
+        message(STATUS "Using bundled binaries at ${${cpm_key}_SOURCE_DIR}")
+    else()
+        message(FATAL_ERROR "AddPackage did not set ${cpm_key}_SOURCE_DIR")
     endif()
-
-    # Add the MoltenVK library path to the prefix so find_library can locate it.
-    list(APPEND CMAKE_PREFIX_PATH "${MOLTENVK_DIR}/MoltenVK/dylib/${platform}")
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
 endfunction()
 
 # Determine installation parameters for OS, architecture, and compiler
@@ -108,7 +96,7 @@ function(determine_qt_parameters target host_out type_out arch_out arch_path_out
         set(host "linux")
         set(type "desktop")
         set(arch "linux_gcc_64")
-        set(arch_path "linux")
+        set(arch_path "gcc_64")
     endif()
 
     set(${host_out} "${host}" PARENT_SCOPE)
@@ -143,56 +131,79 @@ function(download_qt_configuration prefix_out target host type arch arch_path ba
     set(install_args -c "${CURRENT_MODULE_DIR}/aqt_config.ini")
     if (tool)
         set(prefix "${base_path}/Tools")
-        set(install_args ${install_args} install-tool --outputdir ${base_path} ${host} desktop ${target})
+        list(APPEND install_args install-tool --outputdir "${base_path}" "${host}" desktop "${target}")
     else()
         set(prefix "${base_path}/${target}/${arch_path}")
-        set(install_args ${install_args} install-qt --outputdir ${base_path} ${host} ${type} ${target} ${arch} -m qt_base)
+        list(APPEND install_args install-qt --outputdir "${base_path}" "${host}" "${type}" "${target}" "${arch}" -m qt_base)
 
         if (YUZU_USE_QT_MULTIMEDIA)
-            set(install_args ${install_args} qtmultimedia)
+            list(APPEND install_args qtmultimedia)
         endif()
 
         if (YUZU_USE_QT_WEB_ENGINE)
-            set(install_args ${install_args} qtpositioning qtwebchannel qtwebengine)
+            list(APPEND install_args qtpositioning qtwebchannel qtwebengine)
         endif()
 
-        if (NOT ${YUZU_QT_MIRROR} STREQUAL "")
+        if (NOT "${YUZU_QT_MIRROR}" STREQUAL "")
             message(STATUS "Using Qt mirror ${YUZU_QT_MIRROR}")
-            set(install_args ${install_args} -b ${YUZU_QT_MIRROR})
+            list(APPEND install_args -b "${YUZU_QT_MIRROR}")
         endif()
     endif()
 
-    message(STATUS "Install Args ${install_args}")
+    message(STATUS "Install Args: ${install_args}")
+
     if (NOT EXISTS "${prefix}")
         message(STATUS "Downloading Qt binaries for ${target}:${host}:${type}:${arch}:${arch_path}")
         set(AQT_PREBUILD_BASE_URL "https://github.com/miurahr/aqtinstall/releases/download/v3.3.0")
         if (WIN32)
             set(aqt_path "${base_path}/aqt.exe")
             if (NOT EXISTS "${aqt_path}")
-                file(DOWNLOAD
-                        ${AQT_PREBUILD_BASE_URL}/aqt.exe
-                        ${aqt_path} SHOW_PROGRESS)
+                file(DOWNLOAD "${AQT_PREBUILD_BASE_URL}/aqt.exe" "${aqt_path}" SHOW_PROGRESS)
             endif()
-            execute_process(COMMAND ${aqt_path} ${install_args}
-                    WORKING_DIRECTORY ${base_path})
+            execute_process(COMMAND "${aqt_path}" ${install_args}
+                WORKING_DIRECTORY "${base_path}"
+                RESULT_VARIABLE aqt_res
+                OUTPUT_VARIABLE aqt_out
+                ERROR_VARIABLE aqt_err)
+            if (NOT aqt_res EQUAL 0)
+                message(FATAL_ERROR "aqt.exe failed: ${aqt_err}")
+            endif()
         elseif (APPLE)
             set(aqt_path "${base_path}/aqt-macos")
             if (NOT EXISTS "${aqt_path}")
-                file(DOWNLOAD
-                        ${AQT_PREBUILD_BASE_URL}/aqt-macos
-                        ${aqt_path} SHOW_PROGRESS)
+                file(DOWNLOAD "${AQT_PREBUILD_BASE_URL}/aqt-macos" "${aqt_path}" SHOW_PROGRESS)
             endif()
-            execute_process(COMMAND chmod +x ${aqt_path})
-            execute_process(COMMAND ${aqt_path} ${install_args}
-                    WORKING_DIRECTORY ${base_path})
+            execute_process(COMMAND chmod +x "${aqt_path}")
+            execute_process(COMMAND "${aqt_path}" ${install_args}
+                WORKING_DIRECTORY "${base_path}"
+                RESULT_VARIABLE aqt_res
+                ERROR_VARIABLE aqt_err)
+            if (NOT aqt_res EQUAL 0)
+                message(FATAL_ERROR "aqt-macos failed: ${aqt_err}")
+            endif()
         else()
+            find_program(PYTHON3_EXECUTABLE python3)
+            if (NOT PYTHON3_EXECUTABLE)
+                message(FATAL_ERROR "python3 is required to install Qt using aqt (pip mode).")
+            endif()
             set(aqt_install_path "${base_path}/aqt")
             file(MAKE_DIRECTORY "${aqt_install_path}")
 
-            execute_process(COMMAND python3 -m pip install --target=${aqt_install_path} aqtinstall
-                    WORKING_DIRECTORY ${base_path})
-            execute_process(COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${aqt_install_path} python3 -m aqt ${install_args}
-                    WORKING_DIRECTORY ${base_path})
+            execute_process(COMMAND "${PYTHON3_EXECUTABLE}" -m pip install --target="${aqt_install_path}" aqtinstall
+                WORKING_DIRECTORY "${base_path}"
+                RESULT_VARIABLE pip_res
+                ERROR_VARIABLE pip_err)
+            if (NOT pip_res EQUAL 0)
+                message(FATAL_ERROR "pip install aqtinstall failed: ${pip_err}")
+            endif()
+
+            execute_process(COMMAND "${CMAKE_COMMAND}" -E env PYTHONPATH="${aqt_install_path}" "${PYTHON3_EXECUTABLE}" -m aqt ${install_args}
+                WORKING_DIRECTORY "${base_path}"
+                RESULT_VARIABLE aqt_res
+                ERROR_VARIABLE aqt_err)
+            if (NOT aqt_res EQUAL 0)
+                message(FATAL_ERROR "aqt (python) failed: ${aqt_err}")
+            endif()
         endif()
 
         message(STATUS "Downloaded Qt binaries for ${target}:${host}:${type}:${arch}:${arch_path} to ${prefix}")
@@ -210,7 +221,7 @@ endfunction()
 function(download_qt target)
     determine_qt_parameters("${target}" host type arch arch_path host_type host_arch host_arch_path)
 
-    get_external_prefix(qt base_path)
+    set(base_path "${CMAKE_BINARY_DIR}/externals/qt")
     file(MAKE_DIRECTORY "${base_path}")
 
     download_qt_configuration(prefix "${target}" "${host}" "${type}" "${arch}" "${arch_path}" "${base_path}")
@@ -227,26 +238,34 @@ function(download_qt target)
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
 endfunction()
 
-function(download_moltenvk)
-set(MOLTENVK_PLATFORM "macOS")
+function(download_moltenvk version platform)
+    if(NOT version)
+        message(FATAL_ERROR "download_moltenvk: version argument is required")
+    endif()
+    if(NOT platform)
+        message(FATAL_ERROR "download_moltenvk: platform argument is required")
+    endif()
 
-set(MOLTENVK_DIR "${CMAKE_BINARY_DIR}/externals/MoltenVK")
-set(MOLTENVK_TAR "${CMAKE_BINARY_DIR}/externals/MoltenVK.tar")
-if (NOT EXISTS ${MOLTENVK_DIR})
-if (NOT EXISTS ${MOLTENVK_TAR})
-    file(DOWNLOAD https://github.com/KhronosGroup/MoltenVK/releases/download/v1.2.10-rc2/MoltenVK-all.tar
-    ${MOLTENVK_TAR} SHOW_PROGRESS)
-endif()
+    set(MOLTENVK_DIR "${CMAKE_BINARY_DIR}/externals/MoltenVK")
+    set(MOLTENVK_TAR "${CMAKE_BINARY_DIR}/externals/MoltenVK.tar")
 
-execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${MOLTENVK_TAR}"
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
-endif()
+    if(NOT EXISTS "${MOLTENVK_DIR}")
+        if(NOT EXISTS "${MOLTENVK_TAR}")
+            file(DOWNLOAD "https://github.com/KhronosGroup/MoltenVK/releases/download/${version}/MoltenVK-${platform}.tar"
+                          "${MOLTENVK_TAR}" SHOW_PROGRESS)
+        endif()
 
-# Add the MoltenVK library path to the prefix so find_library can locate it.
-list(APPEND CMAKE_PREFIX_PATH "${MOLTENVK_DIR}/MoltenVK/dylib/${MOLTENVK_PLATFORM}")
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xf "${MOLTENVK_TAR}"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals"
+            RESULT_VARIABLE tar_res
+            ERROR_VARIABLE tar_err
+        )
+        if(NOT tar_res EQUAL 0)
+            message(FATAL_ERROR "Extracting MoltenVK failed: ${tar_err}")
+        endif()
+    endif()
+    list(APPEND CMAKE_PREFIX_PATH "${MOLTENVK_DIR}/MoltenVK/dylib/${platform}")
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
 endfunction()
 
-function(get_external_prefix lib_name prefix_var)
-    set(${prefix_var} "${CMAKE_BINARY_DIR}/externals/${lib_name}" PARENT_SCOPE)
-endfunction()

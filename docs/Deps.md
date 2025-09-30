@@ -101,7 +101,7 @@ sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glsl
 <summary>Ubuntu, Debian, Mint Linux</summary>
 
 ```sh
-sudo apt-get install autoconf cmake g++ gcc git glslang-tools libasound2 libboost-context-dev libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev libzydis-dev zydis-tools libzycore-dev
+sudo apt-get install autoconf cmake g++ gcc git glslang-tools libasound2t64 libboost-context-dev libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev libzydis-dev zydis-tools libzycore-dev vulkan-utility-libraries-dev libvulkan-dev spirv-tools spirv-headers libusb-1.0-0-dev libxbyak-dev
 ```
 
 * Ubuntu 22.04, Linux Mint 20, or Debian 12 or later is required.
