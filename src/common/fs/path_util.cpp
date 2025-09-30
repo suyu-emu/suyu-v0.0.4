@@ -9,6 +9,7 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "common/assert.h"
 #include "common/fs/fs.h"
 #ifdef ANDROID
 #include "common/fs/fs_android.h"

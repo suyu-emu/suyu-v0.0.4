@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "common/assert.h"
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #ifdef ANDROID
