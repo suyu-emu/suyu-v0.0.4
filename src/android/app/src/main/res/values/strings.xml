@@ -889,7 +889,7 @@
     <string name="save_load_error">Save/Load Error</string>
     <string name="fatal_error">Fatal Error</string>
     <string name="fatal_error_message">A fatal error occurred. Check the log for details.\nContinuing emulation may result in crashes.</string>
-    <string name="performance_warning">Turning off this setting will significantly degrade performance. It's recommended that you leave this setting enabled.</string>
+    <string name="performance_warning">Turning off this setting will significantly degrade performance. It&quot;s recommended that you leave this setting enabled.</string>
     <string name="device_memory_inadequate">Device RAM: %1$s\nRecommended: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">No bootable game present!</string>
