@@ -19,6 +19,7 @@ import org.yuzu.yuzu_emu.adapters.GameAdapter
 import androidx.core.view.doOnNextLayout
 import org.yuzu.yuzu_emu.YuzuApplication
 import androidx.preference.PreferenceManager
+import androidx.core.view.WindowInsetsCompat
 
 /**
  * CarouselRecyclerView encapsulates all carousel logic for the games UI.
@@ -205,8 +206,8 @@ class CarouselRecyclerView @JvmOverloads constructor(
         if (enabled) {
             useCustomDrawingOrder = true
 
-            val insets = rootWindowInsets
-            val bottomInset = insets?.getInsets(android.view.WindowInsets.Type.systemBars())?.bottom ?: 0
+            val insets = rootWindowInsets?.let { WindowInsetsCompat.toWindowInsetsCompat(it, this) }
+            val bottomInset = insets?.getInsets(WindowInsetsCompat.Type.systemBars())?.bottom ?: 0
             val internalFactor = resources.getFraction(R.fraction.carousel_card_size_factor, 1, 1)
             val userFactor = preferences.getFloat(CAROUSEL_CARD_SIZE_FACTOR, internalFactor).coerceIn(
                 0f,

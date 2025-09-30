@@ -56,6 +56,16 @@
 #include "common/host_memory.h"
 #include "common/logging/log.h"
 
+#if defined(__ANDROID__) && __ANDROID_API__ < 30
+#include <sys/syscall.h>
+#ifndef MFD_CLOEXEC
+#define MFD_CLOEXEC 0x0001U
+#endif
+static int memfd_create(const char* name, unsigned int flags) {
+    return syscall(__NR_memfd_create, name, flags);
+}
+#endif
+
 namespace Common {
 
 constexpr size_t PageAlignment = 0x1000;
