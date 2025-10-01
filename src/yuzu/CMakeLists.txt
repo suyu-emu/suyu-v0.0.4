@@ -366,7 +366,7 @@ if (APPLE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE TRUE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 
-    if (YUZU_APPLE_USE_BUNDLED_MONTENVK)
+    if (YUZU_USE_BUNDLED_MOLTENVK)
         set(MOLTENVK_PLATFORM "macOS")
         set(MOLTENVK_VERSION "v1.3.0")
         download_moltenvk(${MOLTENVK_PLATFORM} ${MOLTENVK_VERSION})

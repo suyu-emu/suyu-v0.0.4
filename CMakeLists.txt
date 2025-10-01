@@ -224,7 +224,7 @@ set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
 
 cmake_dependent_option(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "LINUX" OFF)
 
-cmake_dependent_option(YUZU_APPLE_USE_BUNDLED_MONTENVK "Download bundled MoltenVK lib" ON "APPLE" OFF)
+cmake_dependent_option(YUZU_USE_BUNDLED_MOLTENVK "Download bundled MoltenVK lib" ON "APPLE" OFF)
 
 option(YUZU_DISABLE_LLVM "Disable LLVM (useful for CI)" OFF)
 
