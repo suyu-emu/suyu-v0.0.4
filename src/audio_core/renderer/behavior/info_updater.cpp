@@ -165,12 +165,6 @@ Result InfoUpdater::UpdateEffectsVersion1(EffectContext& effect_context, const b
         reinterpret_cast<EffectInfoBase::OutStatusVersion1*>(output), effect_count};
 
     for (u32 i = 0; i < effect_count; i++) {
-#ifdef _WIN32
-        // There's a bug in Windows where using this effect causes extreme noise. So let's skip it.
-        if (in_params[i].type == EffectInfoBase::Type::Reverb) {
-            continue;
-        }
-#endif
         auto effect_info{&effect_context.GetInfo(i)};
         if (effect_info->GetType() != in_params[i].type) {
             effect_info->ForceUnmapBuffers(pool_mapper);
@@ -218,12 +212,6 @@ Result InfoUpdater::UpdateEffectsVersion2(EffectContext& effect_context, const b
         reinterpret_cast<EffectInfoBase::OutStatusVersion2*>(output), effect_count};
 
     for (u32 i = 0; i < effect_count; i++) {
-#ifdef _WIN32
-        // There's a bug in Windows where using this effect causes extreme noise. So let's skip it.
-        if (in_params[i].type == EffectInfoBase::Type::Reverb) {
-            continue;
-        }
-#endif
         auto effect_info{&effect_context.GetInfo(i)};
         if (effect_info->GetType() != in_params[i].type) {
             effect_info->ForceUnmapBuffers(pool_mapper);

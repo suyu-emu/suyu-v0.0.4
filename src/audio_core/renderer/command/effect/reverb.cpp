@@ -191,8 +191,6 @@ static void InitializeReverbEffect(const ReverbInfo::ParameterVersion2& params,
     const auto center_delay_time{(5 * delay).to_uint_floor()};
     state.center_delay_line.Initialize(center_delay_time, 1.0f);
 
-    UpdateReverbEffectParameter(params, state);
-
     for (u32 i = 0; i < ReverbInfo::MaxDelayLines; i++) {
         std::ranges::fill(state.fdn_delay_lines[i].buffer, 0);
         std::ranges::fill(state.decay_delay_lines[i].buffer, 0);
