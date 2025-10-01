@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,22 +12,20 @@ namespace Common::Log {
 namespace {
 template <typename It>
 Level GetLevelByName(const It begin, const It end) {
-    for (u8 i = 0; i < static_cast<u8>(Level::Count); ++i) {
-        const char* level_name = GetLevelName(static_cast<Level>(i));
-        if (Common::ComparePartialString(begin, end, level_name)) {
-            return static_cast<Level>(i);
-        }
+    for (u32 i = 0; i < u32(Level::Count); ++i) {
+        const char* level_name = GetLevelName(Level(i));
+        if (Common::ComparePartialString(begin, end, level_name))
+            return Level(i);
     }
     return Level::Count;
 }
 
 template <typename It>
 Class GetClassByName(const It begin, const It end) {
-    for (u8 i = 0; i < static_cast<u8>(Class::Count); ++i) {
-        const char* level_name = GetLogClassName(static_cast<Class>(i));
-        if (Common::ComparePartialString(begin, end, level_name)) {
-            return static_cast<Class>(i);
-        }
+    for (u32 i = 0; i < u32(Class::Count); ++i) {
+        const char* level_name = GetLogClassName(Class(i));
+        if (Common::ComparePartialString(begin, end, level_name))
+            return Class(i);
     }
     return Class::Count;
 }
@@ -229,13 +230,12 @@ void Filter::ParseFilterString(std::string_view filter_view) {
 }
 
 bool Filter::CheckMessage(Class log_class, Level level) const {
-    return static_cast<u8>(level) >=
-           static_cast<u8>(class_levels[static_cast<std::size_t>(log_class)]);
+    return u8(level) >= u8(class_levels[std::size_t(log_class)]);
 }
 
 bool Filter::IsDebug() const {
     return std::any_of(class_levels.begin(), class_levels.end(), [](const Level& l) {
-        return static_cast<u8>(l) <= static_cast<u8>(Level::Debug);
+        return u8(l) <= u8(Level::Debug);
     });
 }
 

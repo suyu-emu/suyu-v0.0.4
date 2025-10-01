@@ -39,9 +39,17 @@ namespace Common::Log {
 
 namespace {
 
-/**
- * Interface for logging backends.
- */
+/// @brief Trims up to and including the last of ../, ..\, src/, src\ in a string
+/// do not be fooled this isn't generating new strings on .rodata :)
+constexpr const char* TrimSourcePath(std::string_view source) {
+    const auto rfind = [source](const std::string_view match) {
+        return source.rfind(match) == source.npos ? 0 : (source.rfind(match) + match.size());
+    };
+    auto idx = (std::max)({rfind("src/"), rfind("src\\"), rfind("../"), rfind("..\\")});
+    return source.data() + idx;
+}
+
+/// @brief Interface for logging backends.
 class Backend {
 public:
     virtual ~Backend() = default;
@@ -53,9 +61,7 @@ public:
     virtual void Flush() = 0;
 };
 
-/**
- * Backend that writes to stderr and with color
- */
+/// @brief Backend that writes to stderr and with color
 class ColorConsoleBackend final : public Backend {
 public:
     explicit ColorConsoleBackend() = default;
@@ -84,9 +90,7 @@ private:
     std::atomic_bool enabled{false};
 };
 
-/**
- * Backend that writes to a file passed into the constructor
- */
+/// @brief Backend that writes to a file passed into the constructor
 class FileBackend final : public Backend {
 public:
     explicit FileBackend(const std::filesystem::path& filename) {
@@ -248,13 +252,14 @@ public:
         color_console_backend.SetEnabled(enabled);
     }
 
+    bool CanPushEntry(Class log_class, Level log_level) const noexcept {
+        return filter.CheckMessage(log_class, log_level);
+    }
+
     void PushEntry(Class log_class, Level log_level, const char* filename, unsigned int line_num,
-                   const char* function, std::string&& message) {
-        if (!filter.CheckMessage(log_class, log_level)) {
-            return;
-        }
+                   const char* function, std::string&& message) noexcept {
         message_queue.EmplaceWait(
-            CreateEntry(log_class, log_level, filename, line_num, function, std::move(message)));
+            CreateEntry(log_class, log_level, TrimSourcePath(filename), line_num, function, std::move(message)));
     }
 
 private:
@@ -368,8 +373,9 @@ void FmtLogMessageImpl(Class log_class, Level log_level, const char* filename,
                        unsigned int line_num, const char* function, fmt::string_view format,
                        const fmt::format_args& args) {
     if (!initialization_in_progress_suppress_logging) {
-        Impl::Instance().PushEntry(log_class, log_level, filename, line_num, function,
-                                   fmt::vformat(format, args));
+        auto& instance = Impl::Instance();
+        if (instance.CanPushEntry(log_class, log_level))
+            instance.PushEntry(log_class, log_level, filename, line_num, function, fmt::vformat(format, args));
     }
 }
 } // namespace Common::Log

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -286,7 +289,7 @@ Result CheckOpenSSLErrors() {
             msg.append(data);
         }
         Common::Log::FmtLogMessage(Common::Log::Class::Service_SSL, Common::Log::Level::Error,
-                                   Common::Log::TrimSourcePath(file), line, func, "OpenSSL: {}",
+                                   file, line, func, "OpenSSL: {}",
                                    msg);
     }
     return ResultInternalError;
