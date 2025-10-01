@@ -208,7 +208,7 @@ void MasterSemaphore::WaitThread(std::stop_token token) {
         vk::Fence fence;
         {
             std::unique_lock lock{wait_mutex};
-            Common::CondvarWait(wait_cv, lock, token, [this] { return !wait_queue.empty(); });
+            wait_cv.wait(lock, token, [this] { return !wait_queue.empty(); });
             if (token.stop_requested()) {
                 return;
             }

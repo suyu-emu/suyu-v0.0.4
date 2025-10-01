@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -224,7 +227,7 @@ void TurboMode::Run(std::stop_token stop_token) {
 #endif
         // Wait for the next graphics queue submission if necessary.
         std::unique_lock lk{m_submission_lock};
-        Common::CondvarWait(m_submission_cv, lk, stop_token, [this] {
+        m_submission_cv.wait(lk, stop_token, [this] {
             return (std::chrono::steady_clock::now() - m_submission_time) <=
                    std::chrono::milliseconds{100};
         });

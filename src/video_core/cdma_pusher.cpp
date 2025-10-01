@@ -39,8 +39,8 @@ void CDmaPusher::ProcessEntries(std::stop_token stop_token) {
     while (!stop_token.stop_requested()) {
         {
             std::unique_lock l{command_mutex};
-            Common::CondvarWait(command_cv, l, stop_token,
-                                [this]() { return command_lists.size() > 0; });
+            command_cv.wait(l, stop_token,
+                            [this]() { return command_lists.size() > 0; });
             if (stop_token.stop_requested()) {
                 return;
             }

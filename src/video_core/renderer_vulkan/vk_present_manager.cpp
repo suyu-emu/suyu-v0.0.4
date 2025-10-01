@@ -279,7 +279,7 @@ void PresentManager::PresentThread(std::stop_token token) {
         std::unique_lock lock{queue_mutex};
 
         // Wait for presentation frames
-        Common::CondvarWait(frame_cv, lock, token, [this] { return !present_queue.empty(); });
+        frame_cv.wait(lock, token, [this] { return !present_queue.empty(); });
         if (token.stop_requested()) {
             return;
         }

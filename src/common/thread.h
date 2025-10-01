@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -80,7 +83,7 @@ public:
             condvar.notify_all();
             return true;
         } else {
-            CondvarWait(condvar, lk, token,
+            condvar.wait(lk, token,
                         [this, current_generation] { return current_generation != generation; });
             return !token.stop_requested();
         }

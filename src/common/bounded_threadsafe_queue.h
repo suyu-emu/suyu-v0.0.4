@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -123,7 +126,7 @@ private:
         } else if constexpr (Mode == PopMode::WaitWithStopToken) {
             // Wait until the queue is not empty.
             std::unique_lock lock{consumer_cv_mutex};
-            Common::CondvarWait(consumer_cv, lock, stop_token, [this, read_index] {
+            consumer_cv.wait(lock, stop_token, [this, read_index] {
                 return read_index != m_write_index.load(std::memory_order::acquire);
             });
             if (stop_token.stop_requested()) {

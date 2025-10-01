@@ -116,7 +116,7 @@ u64 ThreadManager::PushCommand(CommandData&& command_data, bool block) {
     state.queue.EmplaceWait(std::move(command_data), fence, block);
 
     if (block) {
-        Common::CondvarWait(state.cv, lk, thread.get_stop_token(), [this, fence] {
+        state.cv.wait(lk, thread.get_stop_token(), [this, fence] {
             return fence <= state.signaled_fence.load(std::memory_order_relaxed);
         });
     }

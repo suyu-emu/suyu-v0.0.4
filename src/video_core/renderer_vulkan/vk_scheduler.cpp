@@ -166,7 +166,7 @@ void Scheduler::WorkerThread(std::stop_token stop_token) {
             std::unique_lock lk{queue_mutex};
 
             // Wait for work.
-            Common::CondvarWait(event_cv, lk, stop_token, [&] { return TryPopQueue(work); });
+            event_cv.wait(lk, stop_token, [&] { return TryPopQueue(work); });
 
             // If we've been asked to stop, we're done.
             if (stop_token.stop_requested()) {
