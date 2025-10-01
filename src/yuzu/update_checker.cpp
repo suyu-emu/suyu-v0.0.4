@@ -58,7 +58,7 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
 
 std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prereleases)
 {
-    constexpr auto update_check_url = std::string{Common::g_build_auto_update_api};
+    const auto update_check_url = std::string{Common::g_build_auto_update_api};
     std::string update_check_path = fmt::format("/repos/{}", std::string{Common::g_build_auto_update_repo});
     try {
         if (include_prereleases) { // This can return either a prerelease or a stable release,
