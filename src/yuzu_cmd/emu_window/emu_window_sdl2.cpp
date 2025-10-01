@@ -229,7 +229,7 @@ void EmuWindow_SDL2::WaitEvent() {
     const u32 current_time = SDL_GetTicks();
     if (current_time > last_time + 2000) {
         const auto results = system.GetAndResetPerfStats();
-        const auto title = fmt::format("Eden {} | {}-{} | FPS: {:.0f} ({:.0f}%)",
+        const auto title = fmt::format("{} | {}-{} | FPS: {:.0f} ({:.0f}%)",
                                        Common::g_build_fullname,
                                        Common::g_scm_branch,
                                        Common::g_scm_desc,

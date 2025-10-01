@@ -4192,23 +4192,25 @@ void GMainWindow::OnEmulatorUpdateAvailable() {
     update_prompt.addButton(QMessageBox::Yes);
     update_prompt.addButton(QMessageBox::Ignore);
     update_prompt.setText(
-        tr("Update %1 for Eden is available.\nWould you like to download it?").arg(version_string));
+        tr("Download the %1 update?").arg(version_string));
     update_prompt.exec();
     if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
-        QDesktopServices::openUrl(
-            QUrl(QString::fromStdString("https://github.com/eden-emulator/Releases/releases/tag/") +
-                 version_string));
+        auto const full_url = fmt::format("{}/{}/releases/tag/",
+            std::string{Common::g_build_auto_update_website},
+            std::string{Common::g_build_auto_update_repo}
+        );
+        QDesktopServices::openUrl(QUrl(QString::fromStdString(full_url) + version_string));
     }
 }
 #endif
 
 void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_view title_version,
                                     std::string_view gpu_vendor) {
-    static const std::string description = std::string{Common::g_build_version};
-    static const std::string build_id = std::string{Common::g_build_id};
-    static const std::string compiler = std::string{Common::g_compiler_id};
-
-    static const std::string yuzu_title = fmt::format("Eden | {} | {}", description, compiler);
+    static const std::string yuzu_title = fmt::format("{} | {} | {}",
+        std::string{Common::g_build_name},
+        std::string{Common::g_build_version},
+        std::string{Common::g_compiler_id}
+    );
 
     const auto override_title =
         fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);

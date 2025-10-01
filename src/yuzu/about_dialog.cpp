@@ -14,11 +14,12 @@ AboutDialog::AboutDialog(QWidget* parent)
     : QDialog(parent)
     , ui{std::make_unique<Ui::AboutDialog>()}
 {
-    static const std::string description = std::string{Common::g_build_version};
     static const std::string build_id = std::string{Common::g_build_id};
-    static const std::string compiler = std::string{Common::g_compiler_id};
-
-    static const std::string yuzu_build = fmt::format("Eden | {} | {}", description, compiler);
+    static const std::string yuzu_build = fmt::format("{} | {} | {}",
+        std::string{Common::g_build_name},
+        std::string{Common::g_build_version},
+        std::string{Common::g_compiler_id}
+    );
 
     const auto override_build = fmt::format(fmt::runtime(
                                                 std::string(Common::g_title_bar_format_idle)),

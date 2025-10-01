@@ -31,7 +31,11 @@ set(GIT_DESC ${BUILD_VERSION})
 set(REPO_NAME "Eden")
 set(BUILD_ID ${GIT_REFSPEC})
 set(BUILD_FULLNAME "${REPO_NAME} ${BUILD_VERSION} ")
-
 set(CXX_COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+
+# Auto-updater metadata! Must somewhat mirror GitHub API endpoint
+set(BUILD_AUTO_UPDATE_WEBSITE "https://github.com")
+set(BUILD_AUTO_UPDATE_API "http://api.github.com")
+set(BUILD_AUTO_UPDATE_REPO "eden-emulator/Releases")
 
 configure_file(scm_rev.cpp.in scm_rev.cpp @ONLY)

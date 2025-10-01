@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
@@ -12,6 +15,7 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
+#include "common/scm_rev.h"
 
 std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::string path)
 {
@@ -54,8 +58,8 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
 
 std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prereleases)
 {
-    constexpr auto update_check_url = "http://api.github.com";
-    std::string update_check_path = "/repos/eden-emulator/Releases";
+    constexpr auto update_check_url = std::string{Common::g_build_auto_update_api};
+    std::string update_check_path = fmt::format("/repos/{}", std::string{Common::g_build_auto_update_repo});
     try {
         if (include_prereleases) { // This can return either a prerelease or a stable release,
             // whichever is more recent.
