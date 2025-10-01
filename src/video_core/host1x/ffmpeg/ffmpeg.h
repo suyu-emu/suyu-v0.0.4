@@ -194,7 +194,7 @@ public:
 private:
     const Decoder& m_decoder;
     AVCodecContext* m_codec_context{};
-    std::shared_ptr<Frame> m_temp_frame{};
+    std::shared_ptr<Frame> m_final_frame{};
     bool m_decode_order{};
 };
 

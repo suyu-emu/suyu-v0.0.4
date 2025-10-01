@@ -135,8 +135,8 @@ NvResult nvhost_nvdec_common::GetSyncpoint(IoctlGetSyncpoint& params) {
 }
 
 NvResult nvhost_nvdec_common::GetWaitbase(IoctlGetWaitbase& params) {
-    LOG_CRITICAL(Service_NVDRV, "called WAITBASE");
-    params.value = 0; // Seems to be hard coded at 0
+    LOG_DEBUG(Service_NVDRV, "called WAITBASE");
+    params.value = 0;
     return NvResult::Success;
 }
 

@@ -233,7 +233,7 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 }
 
 bool DecoderContext::SendPacket(const Packet& packet) {
-	if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0 && ret != AVERROR_EOF) {
+	if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) {
 		LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
 		return false;
 	}
@@ -242,31 +242,31 @@ bool DecoderContext::SendPacket(const Packet& packet) {
 }
 
 std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
-	auto ReceiveImpl = [&](AVFrame* frame) -> bool {
-		if (const int ret = avcodec_receive_frame(m_codec_context, frame); ret < 0 && ret != AVERROR_EOF) {
+	auto ReceiveImpl = [&](AVFrame* frame) -> int {
+        const int ret = avcodec_receive_frame(m_codec_context, frame);
+		if (ret < 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) {
 			LOG_ERROR(HW_GPU, "avcodec_receive_frame error: {}", AVError(ret));
-			return false;
 		}
-		return true;
+		return ret;
 	};
 
 	std::shared_ptr<Frame> intermediate_frame = std::make_shared<Frame>();
-	if (!ReceiveImpl(intermediate_frame->GetFrame())) {
+	if (ReceiveImpl(intermediate_frame->GetFrame()) < 0) {
 		return {};
 	}
 
-	m_temp_frame = std::make_shared<Frame>();
+	m_final_frame = std::make_shared<Frame>();
 	if (m_codec_context->hw_device_ctx) {
-		m_temp_frame->SetFormat(PreferredGpuFormat);
-		if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
+		m_final_frame->SetFormat(PreferredGpuFormat);
+		if (const int ret = av_hwframe_transfer_data(m_final_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
 			LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
 			return {};
 		}
 	} else {
-		m_temp_frame = std::move(intermediate_frame);
+		m_final_frame = std::move(intermediate_frame);
 	}
 
-	return std::move(m_temp_frame);
+	return std::move(m_final_frame);
 }
 
 void DecodeApi::Reset() {
