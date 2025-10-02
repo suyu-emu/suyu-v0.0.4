@@ -1770,16 +1770,25 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
 
 void GMainWindow::SetupPrepareForSleep() {
 #ifdef __unix__
-    auto bus = QDBusConnection::systemBus();
-    if (bus.isConnected()) {
+    if (auto bus = QDBusConnection::systemBus(); bus.isConnected()) {
+        // See https://github.com/ConsoleKit2/ConsoleKit2/issues/150
+#ifdef __linux__
+        const auto dbus_logind_service = QStringLiteral("org.freedesktop.login1");
+        const auto dbus_logind_path = QStringLiteral("/org/freedesktop/login1");
+        const auto dbus_logind_manager_if = QStringLiteral("org.freedesktop.login1.Manager");
+        //const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.login1.Session");
+#else
+        const auto dbus_logind_service = QStringLiteral("org.freedesktop.ConsoleKit");
+        const auto dbus_logind_path = QStringLiteral("/org/freedesktop/ConsoleKit/Manager");
+        const auto dbus_logind_manager_if = QStringLiteral("org.freedesktop.ConsoleKit.Manager");
+        //const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.ConsoleKit.Session");
+#endif
         const bool success = bus.connect(
-            QStringLiteral("org.freedesktop.login1"), QStringLiteral("/org/freedesktop/login1"),
-            QStringLiteral("org.freedesktop.login1.Manager"), QStringLiteral("PrepareForSleep"),
+            dbus_logind_service, dbus_logind_path,
+            dbus_logind_manager_if, QStringLiteral("PrepareForSleep"),
             QStringLiteral("b"), this, SLOT(OnPrepareForSleep(bool)));
-
-        if (!success) {
+        if (!success)
             LOG_WARNING(Frontend, "Couldn't register PrepareForSleep signal");
-        }
     } else {
         LOG_WARNING(Frontend, "QDBusConnection system bus is not connected");
     }
