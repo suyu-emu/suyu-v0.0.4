@@ -38,9 +38,6 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
 
     reader = std::make_shared<NcaReader>();
     if (Result rc = reader->Initialize(file, GetCryptoConfiguration(), GetNcaCompressionConfiguration()); R_FAILED(rc)) {
-        if (rc != ResultInvalidNcaSignature) {
-            LOG_ERROR(Loader, "File reader errored out during header read: {:#x}", rc.GetInnerValue());
-        }
         status = Loader::ResultStatus::ErrorBadNCAHeader;
         return;
     }
@@ -85,7 +82,6 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
     for (s32 i = 0; i < fs_count; i++) {
         NcaFsHeaderReader header_reader;
         if (Result rc = fs.OpenStorage(&filesystems[i], &header_reader, i); R_FAILED(rc)) {
-            LOG_DEBUG(Loader, "File reader errored out during read of section {}: {:#x}", i, rc.GetInnerValue());
             status = Loader::ResultStatus::ErrorBadNCAHeader;
             return;
         }
