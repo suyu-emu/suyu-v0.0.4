@@ -64,7 +64,6 @@ void MaxwellDMA::Launch() {
     // TODO(Subv): Perform more research and implement all features of this engine.
     const LaunchDMA& launch = regs.launch_dma;
     ASSERT(launch.interrupt_type == LaunchDMA::InterruptType::NONE);
-    ASSERT(launch.data_transfer_type == LaunchDMA::DataTransferType::NON_PIPELINED);
 
     if (launch.multi_line_enable) {
         const bool is_src_pitch = launch.src_memory_layout == LaunchDMA::MemoryLayout::PITCH;
@@ -157,8 +156,6 @@ void MaxwellDMA::Launch() {
 }
 
 void MaxwellDMA::CopyBlockLinearToPitch() {
-    UNIMPLEMENTED_IF(regs.launch_dma.remap_enable != 0);
-
     u32 bytes_per_pixel = 1;
     DMA::ImageOperand src_operand;
     src_operand.bytes_per_pixel = bytes_per_pixel;
