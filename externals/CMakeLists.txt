@@ -39,6 +39,144 @@ if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
     AddJsonPackage(oaknut)
 endif()
 
+# enet
+AddJsonPackage(enet)
+
+if (enet_ADDED)
+    target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
+endif()
+
+if (NOT TARGET enet::enet)
+    add_library(enet::enet ALIAS enet)
+endif()
+
+# mbedtls
+AddJsonPackage(mbedtls)
+
+# VulkanUtilityHeaders - pulls in headers and utility libs
+AddJsonPackage(vulkan-utility-headers)
+
+# small hack
+if (NOT VulkanUtilityLibraries_ADDED)
+    find_package(VulkanHeaders 1.3.274 REQUIRED)
+endif()
+
+# DiscordRPC
+if (USE_DISCORD_PRESENCE)
+    if (ARCHITECTURE_arm64)
+        add_compile_definitions(RAPIDJSON_ENDIAN=RAPIDJSON_LITTLEENDIAN)
+    endif()
+
+    AddJsonPackage(discord-rpc)
+
+    if (DiscordRPC_ADDED)
+        target_include_directories(discord-rpc INTERFACE ${DiscordRPC_SOURCE_DIR}/include)
+        add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
+    endif()
+endif()
+
+# SimpleIni
+AddJsonPackage(simpleini)
+
+# Most linux distros don't package cubeb, so enable regardless of cpm settings
+if(ENABLE_CUBEB)
+    AddJsonPackage(cubeb)
+
+    if (cubeb_ADDED)
+        if (NOT MSVC)
+            if (TARGET speex)
+                target_compile_options(speex PRIVATE -Wno-sign-compare)
+            endif()
+
+            set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
+            target_compile_options(cubeb INTERFACE
+                -Wno-implicit-const-int-float-conversion
+                -Wno-shadow
+                -Wno-missing-declarations
+                -Wno-return-type
+                -Wno-uninitialized
+            )
+        else()
+            target_compile_options(cubeb PRIVATE
+                /wd4456
+                /wd4458
+            )
+        endif()
+    endif()
+
+    if (NOT TARGET cubeb::cubeb)
+        add_library(cubeb::cubeb ALIAS cubeb)
+    endif()
+endif()
+
+# find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
+if (ENABLE_SDL2)
+    if (YUZU_USE_EXTERNAL_SDL2)
+        message(STATUS "Using SDL2 from externals.")
+        if (NOT WIN32)
+            # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
+            # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
+            # Yuzu-cmd also needs: Video (depends on Loadso/Dlopen)
+            # CPUinfo also required for SDL Audio, at least until 2.28.0 (see https://github.com/libsdl-org/SDL/issues/7809)
+            set(SDL_UNUSED_SUBSYSTEMS
+                File Filesystem
+                Locale Power Render)
+            foreach(_SUB ${SDL_UNUSED_SUBSYSTEMS})
+              string(TOUPPER ${_SUB} _OPT)
+              set(SDL_${_OPT} OFF)
+            endforeach()
+
+            set(HIDAPI ON)
+        endif()
+
+        if (APPLE)
+            set(SDL_FILE ON)
+        endif()
+
+        if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
+            set(SDL_PIPEWIRE OFF) # build errors out with this on
+            AddJsonPackage("sdl2_steamdeck")
+        else()
+            AddJsonPackage("sdl2_generic")
+        endif()
+    elseif (YUZU_USE_BUNDLED_SDL2)
+        message(STATUS "Using bundled SDL2")
+        AddJsonPackage(sdl2)
+    endif()
+
+    find_package(SDL2 2.26.4 REQUIRED)
+endif()
+
+# SPIRV Headers
+# We only need SPIRV-Headers iff spirv-tools is bundled
+if (SPIRV-Tools_FORCE_BUNDLED OR CPMUTIL_FORCE_BUNDLED)
+    set(NEED_SPIRV_HEADERS ON)
+else()
+    find_package(SPIRV-Tools MODULE QUIET)
+    if (NOT SPIRV-Tools_FOUND)
+        set(NEED_SPIRV_HEADERS ON)
+    else()
+        set(NEED_SPIRV_HEADERS OFF)
+    endif()
+endif()
+
+if (NEED_SPIRV_HEADERS)
+    AddJsonPackage(spirv-headers)
+endif()
+
+# SPIRV Tools
+AddJsonPackage(spirv-tools)
+
+if (SPIRV-Tools_ADDED)
+    add_library(SPIRV-Tools::SPIRV-Tools ALIAS SPIRV-Tools-static)
+    target_link_libraries(SPIRV-Tools-static PRIVATE SPIRV-Tools-opt SPIRV-Tools-link)
+endif()
+
+# Catch2
+if (YUZU_TESTS OR DYNARMIC_TESTS)
+    AddJsonPackage(catch2)
+endif()
+
 # getopt
 if (MSVC)
     add_subdirectory(getopt)
@@ -68,15 +206,18 @@ if (VulkanMemoryAllocator_ADDED)
 endif()
 
 # Sirit
-AddJsonPackage(sirit)
-
-if(MSVC AND USE_CCACHE AND sirit_ADDED)
-    get_target_property(_opts sirit COMPILE_OPTIONS)
-    list(FILTER _opts EXCLUDE REGEX "/Zi")
-    list(APPEND _opts "/Z7")
-    set_target_properties(sirit PROPERTIES COMPILE_OPTIONS "${_opts}")
-elseif(MSVC AND CXX_CLANG)
-    target_compile_options(sirit PRIVATE -Wno-error=unused-command-line-argument)
+if (YUZU_USE_BUNDLED_SIRIT)
+    AddJsonPackage(sirit-ci)
+else()
+    AddJsonPackage(sirit)
+    if(MSVC AND USE_CCACHE AND sirit_ADDED)
+        get_target_property(_opts sirit COMPILE_OPTIONS)
+        list(FILTER _opts EXCLUDE REGEX "/Zi")
+        list(APPEND _opts "/Z7")
+        set_target_properties(siritobj PROPERTIES COMPILE_OPTIONS "${_opts}")
+    elseif(MSVC AND CXX_CLANG)
+        target_compile_options(siritobj PRIVATE -Wno-error=unused-command-line-argument)
+    endif()
 endif()
 
 # httplib

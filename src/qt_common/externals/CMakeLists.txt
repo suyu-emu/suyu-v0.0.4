@@ -17,4 +17,4 @@ AddJsonPackage(quazip)
 
 # frozen
 # TODO(crueter): Qt String Lookup
-AddJsonPackage(frozen)
+# AddJsonPackage(frozen)

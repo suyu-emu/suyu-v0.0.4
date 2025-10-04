@@ -84,7 +84,7 @@ ci_package() {
 
   echo "-- CI package $PACKAGE"
 
-  for platform in windows-amd64 windows-arm64 android solaris freebsd linux linux-aarch64; do
+  for platform in windows-amd64 windows-arm64 android solaris-amd64 freebsd-amd64 linux-amd64 linux-aarch64 macos-universal; do
     echo "-- * platform $platform"
 
     case $DISABLED in
@@ -227,7 +227,7 @@ do
       HASH_URL="${DOWNLOAD}.${HASH_SUFFIX}"
     fi
 
-    HASH=$(curl "$HASH_URL" -L -o -)
+    HASH=$(curl "$HASH_URL" -sS -L -o -)
   fi
 
   download_package

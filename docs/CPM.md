@@ -108,7 +108,9 @@ All dependencies must be identifiable in some way for usage in the dependency vi
 URLs:
 
 - `GIT_URL`
-- `REPO` as a GitHub repository
+- `REPO` as a Git repository
+  * You may optionally specify `GIT_HOST` to use a custom host, e.g. `GIT_HOST git.crueter.xyz`. Note that the git host MUST be GitHub-like in its artifact/archive downloads, e.g. Forgejo
+  * If `GIT_HOST` is unspecified, defaults to `github.com`
 - `URL`
 
 Versions (bundled):
@@ -135,11 +137,11 @@ Adds a package that follows crueter's CI repository spec.
   * `windows-amd64`
   * `windows-arm64`
   * `android`
-  * `solaris`
-  * `freebsd`
-  * `linux`
+  * `solaris-amd64`
+  * `freebsd-amd64`
+  * `linux-amd64`
   * `linux-aarch64`
-- `CMAKE_FILENAME`: Custom CMake filename, relative to the package root (default `${PACKAGE_ROOT}/${NAME}.cmake`)
+  * `macos-universal`
 
 ### AddJsonPackage
 
@@ -155,10 +157,17 @@ The cpmfile is an object of objects, with each sub-object being named according 
 If `ci` is `false`:
 
 - `hash` -> `HASH`
+- `hash_suffix` -> `HASH_SUFFIX`
 - `sha` -> `SHA`
+- `key` -> `KEY`
 - `tag` -> `TAG`
+  * If the tag contains `%VERSION%`, that part will be replaced by the `git_version`, OR `version` if `git_version` is not specified
+- `url` -> `URL`
 - `artifact` -> `ARTIFACT`
+  * If the artifact contains `%VERSION%`, that part will be replaced by the `git_version`, OR `version` if `git_version` is not specified
+  * If the artifact contains `%TAG%`, that part will be replaced by the `tag` (with its replacement already done)
 - `git_version` -> `GIT_VERSION`
+- `git_host` -> `GIT_HOST`
 - `source_subdir` -> `SOURCE_SUBDIR`
 - `bundled` -> `BUNDLED_PACKAGE`
 - `find_args` -> `FIND_PACKAGE_ARGUMENTS`
@@ -172,7 +181,6 @@ If `ci` is `true`:
 - `name` -> `NAME`, defaults to the object key
 - `extension` -> `EXTENSION`, defaults to `tar.zst`
 - `min_version` -> `MIN_VERSION`
-- `cmake_filename` -> `CMAKE_FILENAME`
 - `extension` -> `EXTENSION`
 
 ### Examples
@@ -192,8 +200,8 @@ In order: OpenSSL CI, Boost (tag + artifact), Opus (options + find_args), discor
     "boost": {
         "package": "Boost",
         "repo": "boostorg/boost",
-        "tag": "boost-1.88.0",
-        "artifact": "boost-1.88.0-cmake.7z",
+        "tag": "boost-%VERSION%",
+        "artifact": "%TAG%-cmake.7z",
         "hash": "e5b049e5b61964480ca816395f63f95621e66cb9bcf616a8b10e441e0e69f129e22443acb11e77bc1e8170f8e4171b9b7719891efc43699782bfcd4b3a365f01",
         "git_version": "1.88.0",
         "version": "1.57"

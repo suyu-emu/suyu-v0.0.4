@@ -147,6 +147,7 @@ if (ENABLE_SDL2)
     option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
 endif()
 
+# qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
 option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
@@ -163,8 +164,12 @@ if (MSVC OR ANDROID)
 endif()
 option(YUZU_USE_CPM "Use CPM to fetch system dependencies (fmt, boost, etc) if needed. Externals will still be fetched." ${EXT_DEFAULT})
 
+# ffmpeg
 option(YUZU_USE_BUNDLED_FFMPEG "Download bundled FFmpeg" ${EXT_DEFAULT})
-cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from source" OFF "NOT WIN32 AND NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from source" "${PLATFORM_SUN}" "NOT WIN32 AND NOT ANDROID" OFF)
+
+# sirit
+option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${EXT_DEFAULT})
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
@@ -312,7 +317,6 @@ endif()
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
     add_compile_definitions(HAS_NCE=1)
-    find_package(oaknut 2.0.1)
 endif()
 
 if (YUZU_ROOM)
@@ -452,22 +456,6 @@ if (YUZU_USE_CPM)
         add_library(zstd::zstd ALIAS libzstd_static)
     endif()
 
-    # Catch2
-    if (YUZU_TESTS OR DYNARMIC_TESTS)
-        AddJsonPackage(catch2)
-    endif()
-
-    # ENet
-    AddJsonPackage(enet)
-
-    if (enet_ADDED)
-        target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
-    endif()
-
-    if (NOT TARGET enet::enet)
-        add_library(enet::enet ALIAS enet)
-    endif()
-
     # Opus
     AddJsonPackage(opus)
 
@@ -482,31 +470,10 @@ if (YUZU_USE_CPM)
     if (NOT TARGET Opus::opus)
         add_library(Opus::opus ALIAS opus)
     endif()
-
-    # VulkanUtilityHeaders - pulls in headers and utility libs
-    AddJsonPackage(vulkan-utility-headers)
-
-    # small hack
-    if (NOT VulkanUtilityLibraries_ADDED)
-        find_package(VulkanHeaders 1.3.274 REQUIRED)
-    endif()
-
-    # SPIRV Headers
-    AddJsonPackage(spirv-headers)
-
-    # SPIRV Tools
-    AddJsonPackage(spirv-tools)
-
-    if (SPIRV-Tools_ADDED)
-        add_library(SPIRV-Tools::SPIRV-Tools ALIAS SPIRV-Tools-static)
-        target_link_libraries(SPIRV-Tools-static PRIVATE SPIRV-Tools-opt SPIRV-Tools-link)
-    endif()
-
-    # mbedtls
-    AddJsonPackage(mbedtls)
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
+
     if (NOT YUZU_DISABLE_LLVM)
         find_package(LLVM MODULE COMPONENTS Demangle)
     endif()
@@ -515,7 +482,7 @@ else()
     find_package(lz4 REQUIRED)
     find_package(RenderDoc MODULE)
     find_package(stb MODULE)
-    find_package(enet 1.3 MODULE REQUIRED)
+
     find_package(Opus 1.3 MODULE REQUIRED)
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED MODULE)
@@ -525,29 +492,6 @@ else()
         find_package(Boost 1.57.0 REQUIRED headers context system fiber)
     else()
         find_package(Boost 1.57.0 REQUIRED)
-    endif()
-
-    # OpenBSD does not package mbedtls3 (only 2)
-    if (PLATFORM_OPENBSD)
-        AddJsonPackage(mbedtls)
-    else()
-        find_package(MbedTLS 3 REQUIRED)
-    endif()
-
-    find_package(VulkanUtilityLibraries REQUIRED)
-    find_package(VulkanHeaders 1.3.274 REQUIRED)
-
-    # FreeBSD does not package spirv-headers
-    if (PLATFORM_FREEBSD)
-        AddJsonPackage(spirv-headers)
-    else()
-        find_package(SPIRV-Headers 1.3.274 REQUIRED)
-    endif()
-
-    find_package(SPIRV-Tools MODULE REQUIRED)
-
-    if (YUZU_TESTS)
-        find_package(Catch2 3.0.1 REQUIRED)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
@@ -561,90 +505,6 @@ endif()
 
 if(NOT TARGET Boost::headers)
     AddJsonPackage(boost_headers)
-endif()
-
-# DiscordRPC
-if (USE_DISCORD_PRESENCE)
-    if (ARCHITECTURE_arm64)
-        add_compile_definitions(RAPIDJSON_ENDIAN=RAPIDJSON_LITTLEENDIAN)
-    endif()
-
-    AddJsonPackage(discord-rpc)
-
-    target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
-    add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
-endif()
-
-# SimpleIni
-AddJsonPackage(simpleini)
-
-# Most linux distros don't package cubeb, so enable regardless of cpm settings
-if(ENABLE_CUBEB)
-    AddJsonPackage(cubeb)
-
-    if (cubeb_ADDED)
-        if (NOT MSVC)
-            if (TARGET speex)
-                target_compile_options(speex PRIVATE -Wno-sign-compare)
-            endif()
-
-            set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
-            target_compile_options(cubeb INTERFACE
-                -Wno-implicit-const-int-float-conversion
-                -Wno-shadow
-                -Wno-missing-declarations
-                -Wno-return-type
-                -Wno-uninitialized
-            )
-        else()
-            target_compile_options(cubeb PRIVATE
-                /wd4456
-                /wd4458
-            )
-        endif()
-    endif()
-
-    if (NOT TARGET cubeb::cubeb)
-        add_library(cubeb::cubeb ALIAS cubeb)
-    endif()
-endif()
-
-# find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
-if (ENABLE_SDL2)
-    if (YUZU_USE_EXTERNAL_SDL2)
-        message(STATUS "Using SDL2 from externals.")
-        if (NOT WIN32)
-            # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
-            # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
-            # Yuzu-cmd also needs: Video (depends on Loadso/Dlopen)
-            # CPUinfo also required for SDL Audio, at least until 2.28.0 (see https://github.com/libsdl-org/SDL/issues/7809)
-            set(SDL_UNUSED_SUBSYSTEMS
-                File Filesystem
-                Locale Power Render)
-            foreach(_SUB ${SDL_UNUSED_SUBSYSTEMS})
-              string(TOUPPER ${_SUB} _OPT)
-              set(SDL_${_OPT} OFF)
-            endforeach()
-
-            set(HIDAPI ON)
-        endif()
-
-        if (APPLE)
-            set(SDL_FILE ON)
-        endif()
-
-        if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
-            set(SDL_PIPEWIRE OFF) # build errors out with this on
-            AddJsonPackage("sdl2_steamdeck")
-        else()
-            AddJsonPackage("sdl2_generic")
-        endif()
-    elseif (YUZU_USE_BUNDLED_SDL2)
-        message(STATUS "Using bundled SDL2")
-        AddJsonPackage(sdl2)
-    endif()
-
-    find_package(SDL2 2.26.4 REQUIRED)
 endif()
 
 # List of all FFmpeg components required
@@ -677,6 +537,11 @@ add_subdirectory(externals)
 # pass targets from externals
 find_package(libusb)
 find_package(VulkanMemoryAllocator)
+find_package(enet)
+find_package(MbedTLS)
+find_package(VulkanUtilityLibraries)
+find_package(SimpleIni)
+find_package(SPIRV-Tools)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
@@ -688,6 +553,26 @@ endif()
 
 if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
     find_package(cpp-jwt)
+endif()
+
+if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
+    find_package(oaknut)
+endif()
+
+if (ENABLE_SDL2)
+    find_package(SDL2)
+endif()
+
+if (USE_DISCORD_PRESENCE)
+    find_package(DiscordRPC)
+endif()
+
+if (ENABLE_CUBEB)
+    find_package(cubeb)
+endif()
+
+if (YUZU_TESTS OR DYNARMIC_TESTS)
+    find_package(Catch2)
 endif()
 
 if (ENABLE_QT)

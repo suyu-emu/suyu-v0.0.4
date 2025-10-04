@@ -107,7 +107,6 @@ function(AddJsonPackage)
         get_json_element("${object}" name name "${JSON_NAME}")
         get_json_element("${object}" extension extension "tar.zst")
         get_json_element("${object}" min_version min_version "")
-        get_json_element("${object}" cmake_filename cmake_filename "")
         get_json_element("${object}" raw_disabled disabled_platforms "")
 
         if (raw_disabled)
@@ -124,7 +123,6 @@ function(AddJsonPackage)
             EXTENSION ${extension}
             MIN_VERSION ${min_version}
             DISABLED_PLATFORMS ${disabled_platforms}
-            CMAKE_FILENAME ${cmake_filename}
         )
 
         # pass stuff to parent scope
@@ -139,6 +137,7 @@ function(AddJsonPackage)
     endif()
 
     get_json_element("${object}" hash hash "")
+    get_json_element("${object}" hash_suffix hash_suffix "")
     get_json_element("${object}" sha sha "")
     get_json_element("${object}" url url "")
     get_json_element("${object}" key key "")
@@ -208,6 +207,7 @@ function(AddJsonPackage)
         VERSION "${version}"
         URL "${url}"
         HASH "${hash}"
+        HASH_SUFFIX "${hash_suffix}"
         SHA "${sha}"
         REPO "${repo}"
         KEY "${key}"
@@ -533,7 +533,6 @@ function(AddCIPackage)
         EXTENSION
         MIN_VERSION
         DISABLED_PLATFORMS
-        CMAKE_FILENAME
     )
 
     cmake_parse_arguments(PKG_ARGS "" "${oneValueArgs}" "" ${ARGN})
@@ -589,25 +588,28 @@ function(AddCIPackage)
         add_ci_package(android)
     endif()
 
-    if(PLATFORM_SUN AND NOT "solaris" IN_LIST DISABLED_PLATFORMS)
-        add_ci_package(solaris)
+    if(PLATFORM_SUN AND NOT "solaris-amd64" IN_LIST DISABLED_PLATFORMS)
+        add_ci_package(solaris-amd64)
     endif()
 
-    if(PLATFORM_FREEBSD AND NOT "freebsd" IN_LIST DISABLED_PLATFORMS)
-        add_ci_package(freebsd)
+    if(PLATFORM_FREEBSD AND NOT "freebsd-amd64" IN_LIST DISABLED_PLATFORMS)
+        add_ci_package(freebsd-amd64)
     endif()
 
-    if((PLATFORM_LINUX AND ARCHITECTURE_x86_64) AND NOT "linux" IN_LIST DISABLED_PLATFORMS)
-        add_ci_package(linux)
+    if((PLATFORM_LINUX AND ARCHITECTURE_x86_64) AND NOT "linux-amd64" IN_LIST DISABLED_PLATFORMS)
+        add_ci_package(linux-amd64)
     endif()
 
     if((PLATFORM_LINUX AND ARCHITECTURE_arm64) AND NOT "linux-aarch64" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(linux-aarch64)
     endif()
 
-    if (DEFINED ARTIFACT_DIR)
-        include(${ARTIFACT_DIR}/${ARTIFACT_CMAKE}.cmake)
+    # TODO(crueter): macOS amd64/aarch64 split mayhaps
+    if (APPLE AND NOT "macos-universal" IN_LIST DISABLED_PLATFORMS)
+        add_ci_package(macos-universal)
+    endif()
 
+    if (DEFINED ARTIFACT_DIR)
         set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
         set(${ARTIFACT_PACKAGE}_SOURCE_DIR "${ARTIFACT_DIR}" PARENT_SCOPE)
     else()
