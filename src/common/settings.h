@@ -320,11 +320,19 @@ struct Values {
                                                                 linkage, true, "cpuopt_unsafe_ignore_global_monitor", Category::CpuUnsafe};
 
     // Renderer
-    SwitchableSetting<RendererBackend, true> renderer_backend{
-                                                              linkage, RendererBackend::Vulkan,
+    SwitchableSetting<RendererBackend, true> renderer_backend{linkage,
+#if defined(__sun__) || defined(__managarm__)
+                                                              RendererBackend::OpenGL,
+#else
+                                                              RendererBackend::Vulkan,
+#endif
                                                               "backend", Category::Renderer};
-    SwitchableSetting<ShaderBackend, true> shader_backend{
-                                                          linkage, ShaderBackend::SpirV,
+    SwitchableSetting<ShaderBackend, true> shader_backend{linkage,
+#if defined(__sun__) || defined(__managarm__)
+                                                          ShaderBackend::Glsl,
+#else
+                                                          ShaderBackend::SpirV,
+#endif
                                                           "shader_backend", Category::Renderer,  Specialization::RuntimeList};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
                                          Specialization::RuntimeList};
