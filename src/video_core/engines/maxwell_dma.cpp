@@ -156,6 +156,8 @@ void MaxwellDMA::Launch() {
 }
 
 void MaxwellDMA::CopyBlockLinearToPitch() {
+   
+
     u32 bytes_per_pixel = 1;
     DMA::ImageOperand src_operand;
     src_operand.bytes_per_pixel = bytes_per_pixel;

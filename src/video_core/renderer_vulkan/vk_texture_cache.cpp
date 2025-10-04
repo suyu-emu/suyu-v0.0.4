@@ -1086,8 +1086,8 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
         return;
     }
     if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT && !is_src_msaa && !is_dst_msaa) {
-        blit_image_helper.BlitColor(dst_framebuffer, src.Handle(Shader::TextureType::Color2D),
-                                    dst_region, src_region, filter, operation);
+        blit_image_helper.BlitColor(dst_framebuffer, src, dst_region, src_region, filter,
+                                    operation);
         return;
     }
     ASSERT(src.format == dst.format);
@@ -1106,8 +1106,8 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
         }();
         if (!can_blit_depth_stencil) {
             UNIMPLEMENTED_IF(is_src_msaa || is_dst_msaa);
-            blit_image_helper.BlitDepthStencil(dst_framebuffer, src.DepthView(), src.StencilView(),
-                                               dst_region, src_region, filter, operation);
+            blit_image_helper.BlitDepthStencil(dst_framebuffer, src, dst_region, src_region,
+                                               filter, operation);
             return;
         }
     }
@@ -1968,18 +1968,17 @@ bool Image::BlitScaleHelper(bool scale_up) {
             blit_framebuffer =
                 std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent, scale_up);
         }
-        const auto color_view = blit_view->Handle(Shader::TextureType::Color2D);
 
-        runtime->blit_image_helper.BlitColor(blit_framebuffer.get(), color_view, dst_region,
+        runtime->blit_image_helper.BlitColor(blit_framebuffer.get(), *blit_view, dst_region,
                                              src_region, operation, BLIT_OPERATION);
     } else if (aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
         if (!blit_framebuffer) {
             blit_framebuffer =
                 std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent, scale_up);
         }
-        runtime->blit_image_helper.BlitDepthStencil(blit_framebuffer.get(), blit_view->DepthView(),
-                                                    blit_view->StencilView(), dst_region,
-                                                    src_region, operation, BLIT_OPERATION);
+        runtime->blit_image_helper.BlitDepthStencil(blit_framebuffer.get(), *blit_view,
+                                                    dst_region, src_region, operation,
+                                                    BLIT_OPERATION);
     } else {
         // TODO: Use helper blits where applicable
         flags &= ~ImageFlagBits::Rescaled;

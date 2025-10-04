@@ -1,4 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -43,7 +46,7 @@ public:
                              StateTracker& state_tracker, DescriptorPool& descriptor_pool);
     ~BlitImageHelper();
 
-    void BlitColor(const Framebuffer* dst_framebuffer, VkImageView src_image_view,
+    void BlitColor(const Framebuffer* dst_framebuffer, const ImageView& src_image_view,
                    const Region2D& dst_region, const Region2D& src_region,
                    Tegra::Engines::Fermi2D::Filter filter,
                    Tegra::Engines::Fermi2D::Operation operation);
@@ -52,9 +55,9 @@ public:
                    VkImage src_image, VkSampler src_sampler, const Region2D& dst_region,
                    const Region2D& src_region, const Extent3D& src_size);
 
-    void BlitDepthStencil(const Framebuffer* dst_framebuffer, VkImageView src_depth_view,
-                          VkImageView src_stencil_view, const Region2D& dst_region,
-                          const Region2D& src_region, Tegra::Engines::Fermi2D::Filter filter,
+    void BlitDepthStencil(const Framebuffer* dst_framebuffer, ImageView& src_image_view,
+                          const Region2D& dst_region, const Region2D& src_region,
+                          Tegra::Engines::Fermi2D::Filter filter,
                           Tegra::Engines::Fermi2D::Operation operation);
 
     void ConvertD32ToR32(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
