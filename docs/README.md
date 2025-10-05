@@ -7,4 +7,4 @@ This contains documentation created by developers. This contains build instructi
 - **[Dependencies](Deps.md)**
 - **[CPM - CMake Package Manager](CPMUtil.md)**
 - **[Platform-Specific Caveats](Caveats.md)**
-- **[User Directory Handling](User.md)**
+- **[User Handbook](User.md)**

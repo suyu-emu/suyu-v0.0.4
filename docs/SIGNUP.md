@@ -27,6 +27,7 @@ The following are not valid reasons to sign up:
   * To download and use Eden, see our [Releases page](https://github.com/eden-emulator/Releases/releases)!
 - I want to see the source code.
   * To see Eden's source code, go [here](https://git.eden-emu.dev/eden-emu/eden).
+
 ## Other Information
 
 Requests that appear suspicious, automated, OR blank will generally be automatically filtered. In cases of suspicion, or any of the invalid reasons listed above, you may receive an email back asking for clarification.
