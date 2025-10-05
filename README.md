@@ -48,6 +48,8 @@ A list of supported games will be available in future. Please be patient.
 
 Check out our [website](https://eden-emu.dev) for the latest news on exciting features, monthly progress reports, and more!
 
+[![Packaging status](https://repology.org/badge/vertical-allrepos/eden-emulator.svg)](https://repology.org/project/eden-emulator/versions)
+
 ## Development
 
 Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please join us on [Discord](https://discord.gg/kXAmGCXBGD) or [Revolt](https://rvlt.gg/qKgFEAbH).
