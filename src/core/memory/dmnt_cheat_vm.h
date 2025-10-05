@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,6 +8,8 @@
 
 #include <variant>
 #include <vector>
+#include <memory>
+
 #include <fmt/printf.h>
 #include "common/common_types.h"
 #include "core/memory/dmnt_cheat_types.h"

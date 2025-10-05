@@ -5,6 +5,6 @@ This contains documentation created by developers. This contains build instructi
 - **[General Build Instructions](Build.md)**
 - **[Development Guidelines](Development.md)**
 - **[Dependencies](Deps.md)**
-- **[CPM - CMake Package Manager](CPM.md)**
+- **[CPM - CMake Package Manager](CPMUtil.md)**
 - **[Platform-Specific Caveats](Caveats.md)**
 - **[User Directory Handling](User.md)**

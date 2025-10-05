@@ -148,20 +148,21 @@ if (ENABLE_SDL2)
 endif()
 
 # SPIRV Headers
-# We only need SPIRV-Headers iff spirv-tools is bundled
-if (SPIRV-Tools_FORCE_BUNDLED OR CPMUTIL_FORCE_BUNDLED)
-    set(NEED_SPIRV_HEADERS ON)
-else()
-    find_package(SPIRV-Tools MODULE QUIET)
-    if (NOT SPIRV-Tools_FOUND)
-        set(NEED_SPIRV_HEADERS ON)
-    else()
-        set(NEED_SPIRV_HEADERS OFF)
-    endif()
-endif()
+AddJsonPackage(spirv-headers)
 
-if (NEED_SPIRV_HEADERS)
-    AddJsonPackage(spirv-headers)
+# Sirit
+if (YUZU_USE_BUNDLED_SIRIT)
+    AddJsonPackage(sirit-ci)
+else()
+    AddJsonPackage(sirit)
+    if(MSVC AND USE_CCACHE AND sirit_ADDED)
+        get_target_property(_opts sirit COMPILE_OPTIONS)
+        list(FILTER _opts EXCLUDE REGEX "/Zi")
+        list(APPEND _opts "/Z7")
+        set_target_properties(siritobj PROPERTIES COMPILE_OPTIONS "${_opts}")
+    elseif(MSVC AND CXX_CLANG)
+        target_compile_options(siritobj PRIVATE -Wno-error=unused-command-line-argument)
+    endif()
 endif()
 
 # SPIRV Tools
@@ -202,21 +203,6 @@ if (VulkanMemoryAllocator_ADDED)
         target_compile_options(VulkanMemoryAllocator INTERFACE
             /wd4189
         )
-    endif()
-endif()
-
-# Sirit
-if (YUZU_USE_BUNDLED_SIRIT)
-    AddJsonPackage(sirit-ci)
-else()
-    AddJsonPackage(sirit)
-    if(MSVC AND USE_CCACHE AND sirit_ADDED)
-        get_target_property(_opts sirit COMPILE_OPTIONS)
-        list(FILTER _opts EXCLUDE REGEX "/Zi")
-        list(APPEND _opts "/Z7")
-        set_target_properties(siritobj PROPERTIES COMPILE_OPTIONS "${_opts}")
-    elseif(MSVC AND CXX_CLANG)
-        target_compile_options(siritobj PRIVATE -Wno-error=unused-command-line-argument)
     endif()
 endif()
 

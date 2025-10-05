@@ -32,10 +32,20 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
+
+# NB: this does not account for SPARC
+# If you get Eden working on SPARC, please shoot crueter@crueter.xyz multiple emails
+# and you will be hailed for eternity
 if (PLATFORM_SUN)
     # Terrific Solaris pkg shenanigans
     list(APPEND CMAKE_PREFIX_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
     list(APPEND CMAKE_MODULE_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
+
+    # amazing
+    # absolutely incredible
+    list(APPEND CMAKE_PREFIX_PATH "/usr/lib/amd64/cmake")
+    list(APPEND CMAKE_MODULE_PATH "/usr/lib/amd64/cmake")
+
     # For some mighty reason, doing a normal release build sometimes may not trigger
     # the proper -O3 switch to materialize
     if (CMAKE_BUILD_TYPE MATCHES "Release")
@@ -454,6 +464,7 @@ if (YUZU_USE_CPM)
 
     if (zstd_ADDED)
         add_library(zstd::zstd ALIAS libzstd_static)
+        add_library(zstd::libzstd ALIAS libzstd_static)
     endif()
 
     # Opus
@@ -489,9 +500,9 @@ else()
 
     # wow
     if (PLATFORM_LINUX)
-        find_package(Boost 1.57.0 REQUIRED headers context system fiber)
+        find_package(Boost 1.57.0 CONFIG REQUIRED headers context system fiber)
     else()
-        find_package(Boost 1.57.0 REQUIRED)
+        find_package(Boost 1.57.0 CONFIG REQUIRED)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
@@ -542,6 +553,7 @@ find_package(MbedTLS)
 find_package(VulkanUtilityLibraries)
 find_package(SimpleIni)
 find_package(SPIRV-Tools)
+find_package(sirit)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
@@ -593,6 +605,8 @@ if (ENABLE_QT)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        # yes Qt, we get it
+        set(QT_NO_PRIVATE_MODULE_WARNING ON)
         find_package(Qt6 REQUIRED COMPONENTS DBus OPTIONAL_COMPONENTS GuiPrivate)
     elseif (UNIX AND NOT APPLE)
         find_package(Qt6 REQUIRED COMPONENTS DBus Gui)

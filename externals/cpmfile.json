@@ -2,29 +2,34 @@
     "vulkan-memory-allocator": {
         "package": "VulkanMemoryAllocator",
         "repo": "GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
-        "sha": "1076b348ab",
-        "hash": "a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772",
-        "find_args": "CONFIG"
+        "tag": "v%VERSION%",
+        "hash": "deb5902ef8db0e329fbd5f3f4385eb0e26bdd9f14f3a2334823fb3fe18f36bc5d235d620d6e5f6fe3551ec3ea7038638899db8778c09f6d5c278f5ff95c3344b",
+        "find_args": "CONFIG",
+        "git_version": "3.3.0"
     },
     "sirit": {
         "repo": "eden-emulator/sirit",
-        "version": "1.0.1",
+        "git_version": "1.0.2",
         "tag": "v%VERSION%",
         "artifact": "sirit-source-%VERSION%.tar.zst",
         "hash_suffix": "sha512sum",
-        "find_args": "CONFIG"
+        "find_args": "CONFIG",
+        "options": [
+            "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
+        ]
     },
     "sirit-ci": {
         "ci": true,
         "package": "sirit",
         "name": "sirit",
         "repo": "eden-emulator/sirit",
-        "version": "1.0.0"
+        "version": "1.0.2"
     },
     "httplib": {
         "repo": "yhirose/cpp-httplib",
-        "sha": "a609330e4c",
-        "hash": "dd3fd0572f8367d8549e1319fd98368b3e75801a293b0c3ac9b4adb806473a4506a484b3d389dc5bee5acc460cb90af7a20e5df705a1696b56496b30b9ce7ed2"
+        "tag": "v%VERSION%",
+        "hash": "b364500f76e2ecb0fe21b032d831272e3f1dfeea71af74e325f8fc4ce9dcdb3c941b97a5b422bdeafb9facd058597b90f8bfc284fb9afe3c33fefa15dd5a010b",
+        "git_version": "0.26.0"
     },
     "cpp-jwt": {
         "version": "1.4",
@@ -39,22 +44,26 @@
     "xbyak_sun": {
         "package": "xbyak",
         "repo": "herumi/xbyak",
-        "sha": "9bb219333a",
-        "hash": "303165d45c8c19387ec49d9fda7d7a4e0d86d4c0153898c23f25ce2d58ece567f44c0bbbfe348239b933edb6e1a1e34f4bc1c0ab3a285bee5da0e548879387b0",
-        "bundled": true
+        "tag": "v%VERSION%",
+        "hash": "e84992c65ad62c577e2746ec5180132fd2875166d1e6b1521a0ff619787e1645792fe5f6a858fe94ed66f297912b6a6b89a509b5d5f5e81a2db1dd7e6790b1f5",
+        "bundled": true,
+        "git_version": "7.30"
     },
     "xbyak": {
         "package": "xbyak",
         "repo": "herumi/xbyak",
-        "sha": "4e44f4614d",
-        "hash": "5824e92159e07fa36a774aedd3b3ef3541d0241371d522cffa4ab3e1f215fa5097b1b77865b47b2481376c704fa079875557ea463ca63d0a7fd6a8a20a589e70",
-        "bundled": true
+        "tag": "v%VERSION%",
+        "hash": "1042090405c426e339506c179d53e91d4d545ce9c9f53d8f797caa092d589f913a9bcb9c8f31c4c60870acb954c556e305fb6732c66bc3c8f1cd924f9172def9",
+        "git_version": "7.22",
+        "bundled": true,
+        "skip_updates": true
     },
     "oaknut": {
+        "repo": "eden-emulator/oaknut",
         "version": "2.0.1",
-        "repo": "merryhime/oaknut",
-        "sha": "94c726ce03",
-        "hash": "d8d082242fa1881abce3c82f8dafa002c4e561e66a69e7fc038af67faa5eff2630f082d3d19579c88c4c9f9488e54552accc8cb90e7ce743efe043b6230c08ac"
+        "git_version": "2.0.3",
+        "tag": "v%VERSION%",
+        "hash": "9697e80a7d5d9bcb3ce51051a9a24962fb90ca79d215f1f03ae6b58da8ba13a63b5dda1b4dde3d26ac6445029696b8ef2883f4e5a777b342bba01283ed293856"
     },
     "libadrenotools": {
         "repo": "bylaws/libadrenotools",
@@ -66,16 +75,18 @@
     },
     "oboe": {
         "repo": "google/oboe",
-        "sha": "2bc873e53c",
-        "hash": "02329058a7f9cf7d5039afaae5ab170d9f42f60f4c01e21eaf4f46073886922b057a9ae30eeac040b3ac182f51b9c1bfe9fe1050a2c9f6ce567a1a9a0ec2c768",
+        "tag": "%VERSION%",
+        "hash": "ce4011afe7345370d4ead3b891cd69a5ef224b129535783586c0ca75051d303ed446e6c7f10bde8da31fff58d6e307f1732a3ffd03b249f9ef1fd48fd4132715",
+        "git_version": "1.10.0",
         "bundled": true
     },
     "unordered-dense": {
         "package": "unordered_dense",
         "repo": "martinus/unordered_dense",
-        "sha": "73f3cbb237",
-        "hash": "c08c03063938339d61392b687562909c1a92615b6ef39ec8df19ea472aa6b6478e70d7d5e33d4a27b5d23f7806daf57fe1bacb8124c8a945c918c7663a9e8532",
-        "find_args": "CONFIG"
+        "tag": "v%VERSION%",
+        "hash": "f9c819e28e1c1a387acfee09277d6af5e366597a0d39acf1c687acf0608a941ba966af8aaebdb8fba0126c7360269c4a51754ef4cab17c35c01a30215f953368",
+        "find_args": "CONFIG",
+        "git_version": "4.5.0"
     },
     "mbedtls": {
         "package": "MbedTLS",
@@ -84,29 +95,32 @@
         "hash": "6671fb8fcaa832e5b115dfdce8f78baa6a4aea71f5c89a640583634cdee27aefe3bf4be075744da91f7c3ae5ea4e0c765c8fc3937b5cfd9ea73d87ef496524da",
         "version": "3",
         "git_version": "3.6.4",
-        "artifact": "%TAG%.tar.bz2"
+        "artifact": "%TAG%.tar.bz2",
+        "skip_updates": true
     },
     "enet": {
         "repo": "lsalzman/enet",
-        "sha": "2662c0de09",
-        "hash": "3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd",
+        "tag": "v%VERSION%",
+        "hash": "a0d2fa8c957704dd49e00a726284ac5ca034b50b00d2b20a94fa1bbfbb80841467834bfdc84aa0ed0d6aab894608fd6c86c3b94eee46343f0e6d9c22e391dbf9",
         "version": "1.3",
+        "git_version": "1.3.18",
         "find_args": "MODULE"
     },
     "vulkan-utility-headers": {
         "package": "VulkanUtilityLibraries",
         "repo": "scripts/VulkanUtilityHeaders",
-        "tag": "1.4.326",
+        "tag": "%VERSION%",
+        "git_version": "1.4.328",
         "artifact": "VulkanUtilityHeaders.tar.zst",
         "git_host": "git.crueter.xyz",
-        "hash": "5924629755cb1605c4aa4eee20ef7957a9dd8d61e4df548be656d98054f2730c4109693c1bd35811f401f4705d2ccff9fc849be32b0d8480bc3f73541a5e0964"
+        "hash": "9922217b39faf73cd4fc1510f2fdba14a49aa5c0d77f9ee24ee0512cef16b234d0cabc83c1fec861fa5df1d43e7f086ca9b6501753899119f39c5ca530cb0dae"
     },
-        "spirv-tools": {
+    "spirv-tools": {
         "package": "SPIRV-Tools",
         "repo": "KhronosGroup/SPIRV-Tools",
-        "sha": "40eb301f32",
-        "hash": "58d0fb1047d69373cf24c73e6f78c73a72a6cca3b4df1d9f083b9dcc0962745ef154abf3dbe9b3623b835be20c6ec769431cf11733349f45e7568b3525f707aa",
-        "find_args": "MODULE",
+        "tag": "v%VERSION%",
+        "hash": "b17940433ced72e004c5eeffd7dd411b6afcc6a52ee31de6427d88edceb8172369be8ec8bf5b65708a78bf41fdae264d554aa7750b2209831679ab36bc867567",
+        "git_version": "2025.4",
         "options": [
             "SPIRV_SKIP_EXECUTABLES ON"
         ]
@@ -114,8 +128,8 @@
     "spirv-headers": {
         "package": "SPIRV-Headers",
         "repo": "KhronosGroup/SPIRV-Headers",
-        "sha": "4e209d3d7e",
-        "hash": "f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4",
+        "sha": "01e0577914",
+        "hash": "d0f905311faf7d743de686fdf241dc4cb0a4f08e2184f5a3b3b2946e680db3cd89eeb72954eafe6fa457f93550e27d516575c8709cb134d8aecc0b43064636ce",
         "options": [
             "SPIRV_WERROR OFF"
         ]
@@ -132,35 +146,6 @@
             "BUNDLE_SPEEX ON"
         ]
     },
-    "discord-rpc": {
-        "package": "DiscordRPC",
-        "repo": "eden-emulator/discord-rpc",
-        "sha": "1cf7772bb6",
-        "hash": "e9b35e6f2c075823257bcd59f06fe7bb2ccce1976f44818d2e28810435ef79c712a3c4f20f40da41f691342a4058cf86b078eb7f9d9e4dae83c0547c21ec4f97"
-    },
-    "simpleini": {
-        "package": "SimpleIni",
-        "repo": "brofield/simpleini",
-        "sha": "09c21bda1d",
-        "hash": "99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c",
-        "find_args": "MODULE"
-    },
-    "sdl2_generic": {
-        "package": "SDL2",
-        "repo": "libsdl-org/SDL",
-        "sha": "54772f345a",
-        "hash": "2a68a0e01c390043aa9d9df63d8a20a52076c88bb460ac4e0f33194ca7d9bc8fadbbcc04e7506872ac4b6354a73fbc267c036f82200da59465789b87c7d9e3a4",
-        "key": "generic",
-        "bundled": true
-    },
-    "sdl2_steamdeck": {
-        "package": "SDL2",
-        "repo": "libsdl-org/SDL",
-        "sha": "cc016b0046",
-        "hash": "34d5ef58da6a4f9efa6689c82f67badcbd741f5a4f562a9c2c30828fa839830fb07681c5dc6a7851520e261c8405a416ac0a2c2513b51984fb3b4fa4dcb3e20b",
-        "key": "steamdeck",
-        "bundled": true
-    },
     "sdl2": {
         "ci": true,
         "package": "SDL2",
@@ -175,8 +160,43 @@
     "catch2": {
         "package": "Catch2",
         "repo": "catchorg/Catch2",
-        "sha": "644821ce28",
-        "hash": "f8795f98acf2c02c0db8e734cc866d5caebab4b4a306e93598b97cb3c0c728dafe8283dce27ffe8d42460e5ae7302f3f32e7e274a7f991b73511ac88eef21b1f",
-        "version": "3.0.1"
+        "tag": "v%VERSION%",
+        "hash": "a95495142f915d6e9c2a23e80fe360343e9097680066a2f9d3037a070ba5f81ee5559a0407cc9e972dc2afae325873f1fc7ea07a64012c0f01aac6e549f03e3f",
+        "version": "3.0.1",
+        "git_version": "3.11.0"
+    },
+    "discord-rpc": {
+        "package": "DiscordRPC",
+        "repo": "eden-emulator/discord-rpc",
+        "sha": "1cf7772bb6",
+        "hash": "e9b35e6f2c075823257bcd59f06fe7bb2ccce1976f44818d2e28810435ef79c712a3c4f20f40da41f691342a4058cf86b078eb7f9d9e4dae83c0547c21ec4f97",
+        "find_args": "MODULE"
+    },
+    "simpleini": {
+        "package": "SimpleIni",
+        "repo": "brofield/simpleini",
+        "tag": "v%VERSION%",
+        "hash": "6c198636816a0018adbf7f735d402c64245c6fcd540b7360d4388d46f007f3a520686cdaec4705cb8cb31401b2cb4797a80b42ea5d08a6a5807c0848386f7ca1",
+        "find_args": "MODULE",
+        "git_version": "4.22"
+    },
+    "sdl2_generic": {
+        "package": "SDL2",
+        "repo": "libsdl-org/SDL",
+        "tag": "release-%VERSION%",
+        "hash": "d5622d6bb7266f7942a7b8ad43e8a22524893bf0c2ea1af91204838d9b78d32768843f6faa248757427b8404b8c6443776d4afa6b672cd8571a4e0c03a829383",
+        "key": "generic",
+        "bundled": true,
+        "git_version": "2.32.10",
+        "skip_updates": true
+    },
+    "sdl2_steamdeck": {
+        "package": "SDL2",
+        "repo": "libsdl-org/SDL",
+        "sha": "cc016b0046",
+        "hash": "34d5ef58da6a4f9efa6689c82f67badcbd741f5a4f562a9c2c30828fa839830fb07681c5dc6a7851520e261c8405a416ac0a2c2513b51984fb3b4fa4dcb3e20b",
+        "key": "steamdeck",
+        "bundled": true,
+        "skip_updates": "true"
     }
 }

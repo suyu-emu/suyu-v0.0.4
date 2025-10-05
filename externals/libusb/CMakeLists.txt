@@ -6,18 +6,7 @@
 
 include(CPMUtil)
 
-# we love our libraries don't we folks
-if (PLATFORM_SUN)
-    set(libusb_bundled ON)
-else()
-    set(libusb_bundled OFF)
-endif()
-
-# TODO(crueter): Fix on Solaris
-AddJsonPackage(
-    NAME libusb
-    BUNDLED_PACKAGE ${libusb_bundled}
-)
+AddJsonPackage(libusb)
 
 if (NOT libusb_ADDED)
     return()

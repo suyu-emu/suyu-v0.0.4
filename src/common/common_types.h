@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2012 Gekko Emulator
 // SPDX-FileContributor: ShizZy <shizzy247@gmail.com>
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -30,7 +33,6 @@
 
 #include <array>
 #include <cstdint>
-#include <memory>
 
 using u8 = std::uint8_t;   ///< 8-bit unsigned byte
 using u16 = std::uint16_t; ///< 16-bit unsigned short

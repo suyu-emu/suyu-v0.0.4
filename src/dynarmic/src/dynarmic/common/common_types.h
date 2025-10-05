@@ -1,9 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// TODO(crueter): This is identical to root common_types.h
+
 #pragma once
 
 #include <cstdint>
+#include <cstdlib>
 #include <array>
 
 using u8 = std::uint8_t;   ///< 8-bit unsigned byte

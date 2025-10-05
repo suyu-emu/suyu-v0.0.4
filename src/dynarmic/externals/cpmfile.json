@@ -1,9 +1,10 @@
 {
     "biscuit": {
-        "version": "0.9.1",
         "repo": "lioncash/biscuit",
-        "sha": "76b0be8dae",
-        "hash": "47d55ed02d032d6cf3dc107c6c0a9aea686d5f25aefb81d1af91db027b6815bd5add1755505e19d76625feeb17aa2db6cd1668fe0dad2e6a411519bde6ca4489"
+        "tag": "v%VERSION%",
+        "hash": "1229f345b014f7ca544dedb4edb3311e41ba736f9aa9a67f88b5f26f3c983288c6bb6cdedcfb0b8a02c63088a37e6a0d7ba97d9c2a4d721b213916327cffe28a",
+        "version": "0.9.1",
+        "git_version": "0.19.0"
     },
     "mcl": {
         "version": "0.1.12",

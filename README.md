@@ -63,6 +63,8 @@ Alternatively, if you wish to add translations, go to the [Eden project on Trans
 
 See the [General Build Guide](docs/Build.md)
 
+For information on provided development tooling, see the [Tools directory](./tools)
+
 ## Download
 
 You can download the latest releases from [here](https://github.com/eden-emulator/Releases/releases).

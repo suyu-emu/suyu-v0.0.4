@@ -277,6 +277,7 @@ function(AddPackage)
 
         KEY
         BUNDLED_PACKAGE
+        FORCE_BUNDLED_PACKAGE
         FIND_PACKAGE_ARGUMENTS
     )
 
@@ -426,7 +427,9 @@ function(AddPackage)
         - BUNDLED_PACKAGE
         - default to allow local
     ]]#
-    if (${PKG_ARGS_NAME}_FORCE_SYSTEM)
+    if (PKG_ARGS_FORCE_BUNDLED_PACKAGE)
+        set_precedence(OFF OFF)
+    elseif (${PKG_ARGS_NAME}_FORCE_SYSTEM)
         set_precedence(ON ON)
     elseif (${PKG_ARGS_NAME}_FORCE_BUNDLED)
         set_precedence(OFF OFF)
@@ -446,9 +449,14 @@ function(AddPackage)
         set_precedence(ON OFF)
     endif()
 
+    if (DEFINED PKG_ARGS_VERSION)
+        list(APPEND EXTRA_ARGS
+            VERSION ${PKG_ARGS_VERSION}
+        )
+    endif()
+
     CPMAddPackage(
         NAME ${PKG_ARGS_NAME}
-        VERSION ${PKG_ARGS_VERSION}
         URL ${pkg_url}
         URL_HASH ${pkg_hash}
         CUSTOM_CACHE_KEY ${pkg_key}
@@ -458,6 +466,8 @@ function(AddPackage)
         OPTIONS ${PKG_ARGS_OPTIONS}
         PATCHES ${PKG_ARGS_PATCHES}
         EXCLUDE_FROM_ALL ON
+
+        ${EXTRA_ARGS}
 
         ${PKG_ARGS_UNPARSED_ARGUMENTS}
     )
@@ -511,12 +521,12 @@ function(add_ci_package key)
         NAME ${ARTIFACT_PACKAGE}
         REPO ${ARTIFACT_REPO}
         TAG v${ARTIFACT_VERSION}
-        VERSION ${ARTIFACT_VERSION}
+        GIT_VERSION ${ARTIFACT_VERSION}
         ARTIFACT ${ARTIFACT}
 
-        KEY ${key}
+        KEY ${key}-${ARTIFACT_VERSION}
         HASH_SUFFIX sha512sum
-        BUNDLED_PACKAGE ON
+        FORCE_BUNDLED_PACKAGE ON
     )
 
     set(ARTIFACT_DIR ${${ARTIFACT_PACKAGE}_SOURCE_DIR} PARENT_SCOPE)

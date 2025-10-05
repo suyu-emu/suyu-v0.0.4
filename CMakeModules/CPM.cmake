@@ -743,9 +743,11 @@ function(CPMAddPackage)
     if(NOT DEFINED CPM_ARGS_NAME)
       set(CPM_ARGS_NAME ${nameFromUrl})
     endif()
-    if(NOT DEFINED CPM_ARGS_VERSION)
-      set(CPM_ARGS_VERSION ${verFromUrl})
-    endif()
+
+    # this is dumb and should not be done
+    # if(NOT DEFINED CPM_ARGS_VERSION)
+    #   set(CPM_ARGS_VERSION ${verFromUrl})
+    # endif()
 
     list(APPEND CPM_ARGS_UNPARSED_ARGUMENTS URL "${CPM_ARGS_URL}")
   endif()

@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/sh -e
 
 # SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -6,6 +6,12 @@
 # SPDX-FileCopyrightText: 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-LIBS=$(find . src -maxdepth 3 -name cpmfile.json -exec jq -j 'keys_unsorted | join(" ")' {} \; -printf " ")
+# provided for workflow compat
 
-tools/cpm-fetch.sh $LIBS
+# shellcheck disable=SC1091
+. tools/cpm/common.sh
+
+chmod +x tools/cpm/fetch.sh
+
+# shellcheck disable=SC2086
+tools/cpm/fetch.sh $LIBS

@@ -63,6 +63,7 @@ Certain other dependencies will be fetched by CPM regardless. System packages *c
 * [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
 * [sirit](https://github.com/eden-emulator/sirit)
 * [httplib](https://github.com/yhirose/cpp-httplib) - if `ENABLE_QT_UPDATE_CHECKER` or `ENABLE_WEB_SERVICE` are on
+  - This package is known to be broken on the AUR.
 * [cpp-jwt](https://github.com/arun11299/cpp-jwt) 1.4+ - if `ENABLE_WEB_SERVICE` is on
 * [unordered-dense](https://github.com/martinus/unordered_dense)
 * [mcl](https://github.com/azahar-emu/mcl) - subject to removal
@@ -194,7 +195,7 @@ Run the usual update + install of essential toolings: `sudo pkg update && sudo p
 - **gcc**: `sudo pkg install developer/gcc-14`.
 - **clang**: Version 20 is broken, use `sudo pkg install developer/clang-19`.
 
-Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/lz4 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt`.
+Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/lz4 libusb-1 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt`.
 </details>
 
 <details>

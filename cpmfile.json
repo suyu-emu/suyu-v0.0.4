@@ -18,6 +18,7 @@
         "hash": "4fb7f6fde92762305aad8754d7643cd918dd1f3f67e104e9ab385b18c73178d72a17321354eb203b790b6702f2cf6d725a5d6e2dfbc63b1e35f9eb59fb42ece9",
         "git_version": "1.89.0",
         "version": "1.57",
+        "find_args": "CONFIG",
         "patches": [
             "0001-clang-cl.patch",
             "0002-use-marmasm.patch",
@@ -26,12 +27,10 @@
     },
     "fmt": {
         "repo": "fmtlib/fmt",
-        "sha": "40626af88b",
-        "hash": "d59f06c24339f223de4ec2afeba1c67b5835a0f350a1ffa86242a72fc3e616a6b8b21798355428d4200c75287308b66634619ffa0b52ba5bd74cc01772ea1a8a",
+        "tag": "%VERSION%",
+        "hash": "c4ab814c20fbad7e3f0ae169125a4988a2795631194703251481dc36b18da65c886c4faa9acd046b0a295005217b3689eb0126108a9ba5aac2ca909aae263c2f",
         "version": "8",
-        "options": [
-            "FMT_INSTALL OFF"
-        ]
+        "git_version": "12.0.0"
     },
     "lz4": {
         "name": "lz4",
@@ -43,16 +42,18 @@
     "nlohmann": {
         "package": "nlohmann_json",
         "repo": "nlohmann/json",
-        "sha": "55f93686c0",
-        "hash": "b739749b066800e21154506ea150d2c5cbce8a45344177f46f884547a1399d26753166fd0df8135269ce28cf223552b1b65cd625b88c844d54753f2434900486",
-        "version": "3.8"
+        "tag": "v%VERSION%",
+        "hash": "6cc1e86261f8fac21cc17a33da3b6b3c3cd5c116755651642af3c9e99bb3538fd42c1bd50397a77c8fb6821bc62d90e6b91bcdde77a78f58f2416c62fc53b97d",
+        "version": "3.8",
+        "git_version": "3.12.0"
     },
     "zlib": {
         "package": "ZLIB",
         "repo": "madler/zlib",
-        "sha": "51b7f2abda",
-        "hash": "16eaf1f3752489d12fd9ce30f7b5f7cbd5cb8ff53d617005a9847ae72d937f65e01e68be747f62d7ac19fd0c9aeba9956e60f16d6b465c5fdc2f3d08b4db2e6c",
+        "tag": "v%VERSION%",
+        "hash": "8c9642495bafd6fad4ab9fb67f09b268c69ff9af0f4f20cf15dfc18852ff1f312bd8ca41de761b3f8d8e90e77d79f2ccacd3d4c5b19e475ecf09d021fdfe9088",
         "version": "1.2",
+        "git_version": "1.3.1",
         "options": [
             "ZLIB_BUILD_SHARED OFF",
             "ZLIB_INSTALL OFF"
@@ -60,8 +61,8 @@
     },
     "zstd": {
         "repo": "facebook/zstd",
-        "sha": "f8745da6ff",
-        "hash": "3037007f990040fe32573b46f9bef8762fd5dbeeb07ffffcbfeba51ec98167edae39bb9c87f9299efcd61c4e467c5e84f7c19f0df7799bc1fc04864a278792ee",
+        "sha": "b8d6101fba",
+        "hash": "a6c8e5272214fd3e65e03ae4fc375f452bd2f646623886664ee23e239e35751cfc842db4d34a84a8039d89fc8f76556121f2a4ae350d017bdff5e22150f9c3de",
         "version": "1.5",
         "source_subdir": "build/cmake",
         "find_args": "MODULE",
@@ -89,7 +90,7 @@
     "llvm-mingw": {
         "repo": "misc/llvm-mingw",
         "git_host": "git.crueter.xyz",
-        "tag": "20250828",
+        "tag": "%VERSION%",
         "version": "20250828",
         "artifact": "clang-rt-builtins.tar.zst",
         "hash": "d902392caf94e84f223766e2cc51ca5fab6cae36ab8dc6ef9ef6a683ab1c483bfcfe291ef0bd38ab16a4ecc4078344fa8af72da2f225ab4c378dee23f6186181"

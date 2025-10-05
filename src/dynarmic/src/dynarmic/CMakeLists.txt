@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 include(TargetArchitectureSpecificSources)
 
-add_library(dynarmic
+add_library(dynarmic STATIC
     backend/block_range_information.cpp
     backend/block_range_information.h
     backend/exception_handler.h

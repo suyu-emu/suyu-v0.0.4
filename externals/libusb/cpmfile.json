@@ -1,8 +1,9 @@
 {
-	"libusb": {
-		"repo": "libusb/libusb",
-		"sha": "c060e9ce30",
-		"hash": "44647357ba1179020cfa6674d809fc35cf6f89bff1c57252fe3a610110f5013ad678fc6eb5918e751d4384c30e2fe678868dbffc5f85736157e546cb9d10accc",
-		"find_args": "MODULE"
-	}
+    "libusb": {
+        "repo": "libusb/libusb",
+        "tag": "v%VERSION%",
+        "hash": "98c5f7940ff06b25c9aa65aa98e23de4c79a4c1067595f4c73cc145af23a1c286639e1ba11185cd91bab702081f307b973f08a4c9746576dc8d01b3620a3aeb5",
+        "find_args": "MODULE",
+        "git_version": "1.0.29"
+    }
 }

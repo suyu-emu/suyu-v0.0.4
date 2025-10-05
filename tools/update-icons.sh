@@ -1,8 +1,11 @@
 #!/bin/sh -e
+
 # SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 # Updates main icons for eden
-which png2icns || [ which yay && yay libicns ] || exit
+
+which png2icns || (which yay && yay libicns) || exit
 which magick || exit
 
 export EDEN_SVG_ICO="dist/dev.eden_emu.eden.svg"
