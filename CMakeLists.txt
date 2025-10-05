@@ -227,6 +227,8 @@ endif()
 # TODO(crueter): CI this?
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
+option(YUZU_LEGACY "Apply patches that improve compatibility with older GPUs (e.g. Snapdragon 865) at the cost of performance" OFF)
+
 cmake_dependent_option(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 cmake_dependent_option(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
 
@@ -322,6 +324,11 @@ endif()
 
 if (UNIX)
     add_compile_definitions(YUZU_UNIX=1)
+endif()
+
+if (YUZU_LEGACY)
+    message(WARNING "Making legacy build. Performance may suffer.")
+    add_compile_definitions(YUZU_LEGACY)
 endif()
 
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))

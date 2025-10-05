@@ -57,8 +57,8 @@ android {
     }
 
     defaultConfig {
-        // TODO If this is ever modified, change application_id in strings.xml
         applicationId = "dev.eden.eden_emulator"
+
         minSdk = 28
         targetSdk = 36
         versionName = getGitVersion()
@@ -72,7 +72,29 @@ android {
 
         buildConfigField("String", "GIT_HASH", "\"${getGitHash()}\"")
         buildConfigField("String", "BRANCH", "\"${getBranch()}\"")
+
+        externalNativeBuild {
+            cmake {
+                arguments.addAll(listOf(
+                    "-DENABLE_QT=0", // Don't use QT
+                    "-DENABLE_SDL2=0", // Don't use SDL
+                    "-DENABLE_WEB_SERVICE=1", // Enable web service
+                    "-DENABLE_OPENSSL=ON",
+                    "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
+                    "-DYUZU_USE_CPM=ON",
+                    "-DCPMUTIL_FORCE_BUNDLED=ON",
+                    "-DYUZU_USE_BUNDLED_FFMPEG=ON",
+                    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+                    "-DBUILD_TESTING=OFF",
+                    "-DYUZU_TESTS=OFF",
+                    "-DDYNARMIC_TESTS=OFF"
+                ))
+
+                abiFilters("arm64-v8a")
+            }
+        }
     }
+
 
     val keystoreFile = System.getenv("ANDROID_KEYSTORE_FILE")
     signingConfigs {
@@ -94,7 +116,6 @@ android {
 
     // Define build types, which are orthogonal to product flavors.
     buildTypes {
-
         // Signed by release key, allowing for upload to Play Store.
         release {
             signingConfig = if (keystoreFile != null) {
@@ -103,7 +124,6 @@ android {
                 signingConfigs.getByName("default")
             }
 
-            resValue("string", "app_name_suffixed", "Eden")
             isMinifyEnabled = true
             isDebuggable = false
             proguardFiles(
@@ -116,7 +136,6 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         register("relWithDebInfo") {
             isDefault = true
-            resValue("string", "app_name_suffixed", "Eden Debug Release")
             signingConfig = signingConfigs.getByName("default")
             isDebuggable = true
             proguardFiles(
@@ -132,11 +151,35 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
             signingConfig = signingConfigs.getByName("default")
-            resValue("string", "app_name_suffixed", "Eden Debug")
             isDebuggable = true
             isJniDebuggable = true
             versionNameSuffix = "-debug"
             applicationIdSuffix = ".debug"
+        }
+    }
+
+        // this is really annoying but idk any other ways to fix this behavior
+    applicationVariants.all {
+        val variant = this
+        when {
+            variant.flavorName == "legacy" && variant.buildType.name == "debug" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Legacy Debug")
+            }
+            variant.flavorName == "mainline" && variant.buildType.name == "debug" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Debug")
+            }
+            variant.flavorName == "genshinSpoof" && variant.buildType.name == "debug" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Optimized Debug")
+            }
+            variant.flavorName == "legacy" && variant.buildType.name == "relWithDebInfo" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Legacy Debug Release")
+            }
+            variant.flavorName == "mainline" && variant.buildType.name == "relWithDebInfo" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Debug Release")
+            }
+            variant.flavorName == "genshinSpoof" && variant.buildType.name == "relWithDebInfo" -> {
+                variant.resValue("string", "app_name_suffixed", "Eden Optimized Debug Release")
+            }
         }
     }
 
@@ -145,13 +188,31 @@ android {
         productFlavors {
             create("mainline") {
                 dimension = "version"
-                // No need to set applicationId here
+                resValue("string", "app_name_suffixed", "Eden")
             }
 
             create("genshinSpoof") {
                 dimension = "version"
-                resValue("string", "app_name_suffixed", "Eden Optimised")
+                resValue("string", "app_name_suffixed", "Eden Optimized")
                 applicationId = "com.miHoYo.Yuanshen"
+            }
+
+            create("legacy") {
+                dimension = "version"
+                resValue("string", "app_name_suffixed", "Eden Legacy")
+                applicationId = "dev.legacy.eden_emulator"
+
+                externalNativeBuild {
+                    cmake {
+                        arguments.add("-DYUZU_LEGACY=ON")
+                    }
+                }
+
+                sourceSets {
+                    getByName("legacy") {
+                        res.srcDirs("src/main/legacy")
+                    }
+                }
             }
         }
     }
@@ -160,29 +221,6 @@ android {
         cmake {
             version = "3.22.1"
             path = file("../../../CMakeLists.txt")
-        }
-    }
-
-    defaultConfig {
-        externalNativeBuild {
-            cmake {
-                arguments(
-                    "-DENABLE_QT=0", // Don't use QT
-                    "-DENABLE_SDL2=0", // Don't use SDL
-                    "-DENABLE_WEB_SERVICE=1", // Enable web service
-                    "-DENABLE_OPENSSL=ON",
-                    "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
-                    "-DYUZU_USE_CPM=ON",
-                    "-DCPMUTIL_FORCE_BUNDLED=ON",
-                    "-DYUZU_USE_BUNDLED_FFMPEG=ON",
-                    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-                    "-DBUILD_TESTING=OFF",
-                    "-DYUZU_TESTS=OFF",
-                    "-DDYNARMIC_TESTS=OFF"
-                )
-
-                abiFilters("arm64-v8a")
-            }
         }
     }
 }
