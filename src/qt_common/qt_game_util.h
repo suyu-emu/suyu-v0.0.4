@@ -52,6 +52,7 @@ bool MakeShortcutIcoPath(const u64 program_id,
 void OpenEdenFolder(const Common::FS::EdenPath &path);
 void OpenRootDataFolder();
 void OpenNANDFolder();
+void OpenSaveFolder();
 void OpenSDMCFolder();
 void OpenModFolder();
 void OpenLogFolder();
@@ -67,7 +68,7 @@ void RemoveCustomConfiguration(u64 program_id, const std::string& game_path);
 void RemoveCacheStorage(u64 program_id);
 
 // Metadata //
-void ResetMetadata();
+void ResetMetadata(bool show_message = true);
 
 // Shortcuts //
 void CreateShortcut(const std::string& game_path,

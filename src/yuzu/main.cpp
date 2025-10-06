@@ -545,6 +545,9 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     // Gen keys if necessary
     OnCheckFirmwareDecryption();
 
+    // Check for orphaned profiles and reset profile data if necessary
+    QtCommon::Content::FixProfiles();
+
     game_list->LoadCompatibilityList();
     // force reload on first load to ensure add-ons get updated
     game_list->PopulateAsync(UISettings::values.game_dirs);
@@ -3947,7 +3950,7 @@ void GMainWindow::OnToggleStatusBar() {
 void GMainWindow::OnGameListRefresh()
 {
     // Resets metadata cache and reloads
-    QtCommon::Game::ResetMetadata();
+    QtCommon::Game::ResetMetadata(false);
     game_list->RefreshGameDirectory();
     SetFirmwareVersion();
 }

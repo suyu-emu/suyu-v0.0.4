@@ -178,6 +178,12 @@ void OpenNANDFolder()
     OpenEdenFolder(Common::FS::EdenPath::NANDDir);
 }
 
+void OpenSaveFolder()
+{
+    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "user/save/0000000000000000";
+    QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(path.string())));
+}
+
 void OpenSDMCFolder()
 {
     OpenEdenFolder(Common::FS::EdenPath::SDMCDir);
@@ -379,21 +385,21 @@ void RemoveCacheStorage(u64 program_id)
 }
 
 // Metadata //
-void ResetMetadata()
+void ResetMetadata(bool show_message)
 {
     const QString title = tr("Reset Metadata Cache");
 
     if (!Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir)
                             / "game_list/")) {
-        QtCommon::Frontend::Warning(rootObject, title, tr("The metadata cache is already empty."));
+        if (show_message) QtCommon::Frontend::Warning(rootObject, title, tr("The metadata cache is already empty."));
     } else if (Common::FS::RemoveDirRecursively(
                    Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
-        QtCommon::Frontend::Information(rootObject,
+        if (show_message) QtCommon::Frontend::Information(rootObject,
                                         title,
                                         tr("The operation completed successfully."));
         UISettings::values.is_game_list_reload_pending.exchange(true);
     } else {
-        QtCommon::Frontend::Warning(
+        if (show_message) QtCommon::Frontend::Warning(
             rootObject,
             title,
             tr("The metadata cache couldn't be deleted. It might be in use or non-existent."));
@@ -572,6 +578,5 @@ void CreateHomeMenuShortcut(ShortcutTarget target) {
     // TODO(crueter): Make this use the Eden icon
     CreateShortcut(game_path, QLaunchId, "Switch Home Menu", target, "-qlaunch", false);
 }
-
 
 } // namespace QtCommon::Game

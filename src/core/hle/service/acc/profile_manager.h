@@ -103,10 +103,15 @@ public:
 
     void WriteUserSaveFile();
 
+    void ResetUserSaveFile();
+
+    std::vector<std::string> FindOrphanedProfiles();
+
 private:
     void ParseUserSaveFile();
     std::optional<std::size_t> AddToProfiles(const ProfileInfo& profile);
     bool RemoveProfileAtIndex(std::size_t index);
+    void RemoveAllProfiles();
 
     bool is_save_needed{};
     std::array<ProfileInfo, MAX_USERS> profiles{};

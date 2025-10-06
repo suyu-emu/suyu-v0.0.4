@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <memory>
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
@@ -128,10 +127,6 @@ std::string SaveDataFactory::GetFullPath(ProgramId program_id, VirtualDir dir,
     }
 
     std::string out = GetSaveDataSpaceIdPath(space);
-
-    LOG_INFO(Common_Filesystem, "Save ID: {:016X}", save_id);
-    LOG_INFO(Common_Filesystem, "User ID[1]: {:016X}", user_id[1]);
-    LOG_INFO(Common_Filesystem, "User ID[0]: {:016X}", user_id[0]);
 
     switch (type) {
     case SaveDataType::System:

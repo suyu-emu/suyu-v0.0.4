@@ -45,5 +45,8 @@ void InstallKeys();
 // Content //
 void VerifyGameContents(const std::string &game_path);
 void VerifyInstalledContents();
+
+// Profiles //
+void FixProfiles();
 }
 #endif // QT_CONTENT_UTIL_H

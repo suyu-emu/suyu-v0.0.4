@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "qt_common/qt_game_util.h"
 #include "qt_content_util.h"
 #include "common/fs/fs.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "frontend_common/content_manager.h"
 #include "frontend_common/firmware_manager.h"
 #include "qt_common/qt_common.h"
@@ -308,6 +310,42 @@ void VerifyInstalledContents() {
             tr("Integrity verification failed!"),
             tr("Verification failed for the following files:\n\n%1").arg(failed_names));
     }
+}
+
+void FixProfiles()
+{
+    // Reset user save files after config is initialized and migration is done.
+    // Doing it at init time causes profiles to read from the wrong place entirely if NAND dir is not default
+    // TODO: better solution
+    system->GetProfileManager().ResetUserSaveFile();
+    std::vector<std::string> orphaned = system->GetProfileManager().FindOrphanedProfiles();
+
+    // no orphaned dirs--all good :)
+    if (orphaned.empty())
+        return;
+
+    // otherwise, let the user know
+    QString qorphaned;
+
+    // max. of 8 orphaned profiles is fair, I think
+    // 33 = 32 (UUID) + 1 (\n)
+    qorphaned.reserve(8 * 33);
+
+    for (const std::string& s : orphaned) {
+        qorphaned += "\n" + QString::fromStdString(s);
+    }
+
+    QtCommon::Frontend::Critical(
+        tr("Orphaned Profiles Detected!"),
+        tr("UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON'T READ THIS!\n"
+           "Eden has detected the following save directories with no attached profile:\n"
+           "%1\n\n"
+           "Click \"OK\" to open your save folder and fix up your profiles.\n"
+           "Hint: copy the contents of the largest or last-modified folder  elsewhere, "
+           "delete all orphaned profiles, and move your copied contents to the good profile.")
+            .arg(qorphaned));
+
+    QtCommon::Game::OpenSaveFolder();
 }
 
 } // namespace QtCommon::Content

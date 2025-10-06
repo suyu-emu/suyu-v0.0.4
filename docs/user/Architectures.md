@@ -63,6 +63,8 @@ While all modern Linux distributions are supported (Fedora >40, Ubuntu >24.04, D
 
 Intel and Nvidia GPU support is limited. AMD (RADV) drivers receive first-class testing and are known to provide the most stable Eden experience possible.
 
+Wayland is not recommended. Testing has shown significantly worse performance on most Wayland compositors compared to X11, alongside mysterious bugs and compatibility errors. For now, set `QT_QPA_PLATFORM=xcb` when running Eden, or pass `-platform xcb` to the launch arguments.
+
 ## Windows
 
 Windows 10 and 11 are supported. Support for Windows 8.x is unknown, and Windows 7 support is unlikely to ever be added.

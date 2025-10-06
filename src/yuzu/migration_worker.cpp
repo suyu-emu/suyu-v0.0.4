@@ -7,7 +7,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <filesystem>
-#include <qdebug.h>
 
 #include "common/fs/path_util.h"
 
