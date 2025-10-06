@@ -13,8 +13,8 @@ fi
 cd src/android
 chmod +x ./gradlew
 
-./gradlew assembleRelease
-./gradlew bundleRelease
+./gradlew assembleMainlineRelease
+./gradlew bundleMainlineRelease
 
 if [ ! -z "${ANDROID_KEYSTORE_B64}" ]; then
     rm "${ANDROID_KEYSTORE_FILE}"

@@ -117,9 +117,9 @@
     },
     "spirv-tools": {
         "package": "SPIRV-Tools",
-        "repo": "KhronosGroup/SPIRV-Tools",
-        "tag": "v%VERSION%",
-        "hash": "b17940433ced72e004c5eeffd7dd411b6afcc6a52ee31de6427d88edceb8172369be8ec8bf5b65708a78bf41fdae264d554aa7750b2209831679ab36bc867567",
+        "repo": "crueter/SPIRV-Tools",
+        "sha": "2fa2d44485",
+        "hash": "45b198be1d09974ccb2438e8bfa5683f23a0421b058297c28eacfd77e454ec2cf87e77850eddd202efff34b004d8d6b4d12e9615e59bd72be904c196f5eb2169",
         "git_version": "2025.4",
         "options": [
             "SPIRV_SKIP_EXECUTABLES ON"
