@@ -540,6 +540,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
              PAIR(ResolutionSetup, Res1_2X, tr("0.5X (360p/540p) [EXPERIMENTAL]")),
              PAIR(ResolutionSetup, Res3_4X, tr("0.75X (540p/810p) [EXPERIMENTAL]")),
              PAIR(ResolutionSetup, Res1X, tr("1X (720p/1080p)")),
+             PAIR(ResolutionSetup, Res5_4X, tr("1.25X (900p/1350p) [EXPERIMENTAL]")),
              PAIR(ResolutionSetup, Res3_2X, tr("1.5X (1080p/1620p) [EXPERIMENTAL]")),
              PAIR(ResolutionSetup, Res2X, tr("2X (1440p/2160p)")),
              PAIR(ResolutionSetup, Res3X, tr("3X (2160p/3240p)")),

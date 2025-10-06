@@ -996,6 +996,7 @@
     <string name="resolution_half">0.5X (360p/540p)</string>
     <string name="resolution_three_quarter">0.75X (540p/810p)</string>
     <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
     <string name="resolution_three_half">1.5X (1080p/1620p)</string>
     <string name="resolution_two">2X (1440p/2160p) (Slow)</string>
     <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
