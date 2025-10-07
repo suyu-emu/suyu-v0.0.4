@@ -75,6 +75,8 @@ android {
 
         externalNativeBuild {
             cmake {
+                val extraCMakeArgs = (project.findProperty("YUZU_ANDROID_ARGS") as String?)?.split("\\s+".toRegex()) ?: emptyList()
+
                 arguments.addAll(listOf(
                     "-DENABLE_QT=0", // Don't use QT
                     "-DENABLE_SDL2=0", // Don't use SDL
@@ -87,7 +89,8 @@ android {
                     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
                     "-DBUILD_TESTING=OFF",
                     "-DYUZU_TESTS=OFF",
-                    "-DDYNARMIC_TESTS=OFF"
+                    "-DDYNARMIC_TESTS=OFF",
+                    *extraCMakeArgs.toTypedArray()
                 ))
 
                 abiFilters("arm64-v8a")

@@ -25,11 +25,7 @@ option(DYNARMIC_IGNORE_ASSERTS "Ignore asserts" OFF)
 option(DYNARMIC_TESTS_USE_UNICORN "Enable fuzzing tests against unicorn" OFF)
 CMAKE_DEPENDENT_OPTION(DYNARMIC_USE_LLVM "Support disassembly of jitted x86_64 code using LLVM" OFF "NOT YUZU_DISABLE_LLVM" OFF)
 
-if (PLATFORM_OPENBSD)
-    option(DYNARMIC_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
-else()
-    option(DYNARMIC_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
-endif()
+option(DYNARMIC_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
 
 option(DYNARMIC_INSTALL "Install dynarmic headers and CMake files" OFF)
 option(DYNARMIC_USE_BUNDLED_EXTERNALS "Use all bundled externals (useful when e.g. cross-compiling)" OFF)
@@ -81,7 +77,6 @@ if (MSVC)
         /wd4592 # Symbol will be dynamically initialized (implementation limitation)
         /permissive- # Stricter C++ standards conformance
         /MP
-        /Zi
         /Zo
         /EHsc
         /Zc:externConstexpr # Allows external linkage for variables declared "extern constexpr", as the standard permits.
@@ -90,6 +85,11 @@ if (MSVC)
         /volatile:iso       # Use strict standard-abiding volatile semantics
         /bigobj             # Increase number of sections in .obj files
         /DNOMINMAX)
+
+    if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
+        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+   endif()
 
     if (DYNARMIC_WARNINGS_AS_ERRORS)
         list(APPEND DYNARMIC_CXX_FLAGS

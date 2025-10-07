@@ -33,6 +33,7 @@ Eden by default will be cloned into -
 4. Navigate to `eden/src/android`.
 5. Then Build with `./gradlew assembleRelWithDebInfo`.
 6. To build the optimised build use `./gradlew assembleGenshinSpoofRelWithDebInfo`.
+7. You can pass extra variables to cmake via `-PYUZU_ANDROID_ARGS="-D..."`
 
 ### Script
 A convenience script for building is provided in `.ci/android/build.sh`. The built APK can be put into an `artifacts` directory via `.ci/android/package.sh`. On Windows, these must be done in the Git Bash or MinGW terminal.

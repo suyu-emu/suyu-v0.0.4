@@ -101,15 +101,9 @@ if (MSVC AND NOT CXX_CLANG)
         )
     endif()
 
-    if (USE_CCACHE OR YUZU_USE_PRECOMPILED_HEADERS)
-        # when caching, we need to use /Z7 to downgrade debug info to use an older but more cacheable format
-        # Precompiled headers are deleted if not using /Z7. See https://github.com/nanoant/CMakePCHCompiler/issues/21
-        add_compile_options(/Z7)
-        # Avoid D9025 warning
-        string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-        string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-    else()
-        add_compile_options(/Zi)
+    if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
+        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
     endif()
 
     if (ARCHITECTURE_x86_64)

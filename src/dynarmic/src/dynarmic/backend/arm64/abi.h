@@ -14,6 +14,7 @@
 
 #include <mcl/mp/metavalue/lift_value.hpp>
 #include "dynarmic/common/common_types.h"
+#include "dynarmic/common/assert.h"
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/common/always_false.h"

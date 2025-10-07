@@ -23,6 +23,12 @@ template<typename... Ts>
         }                                                                                          \
     }())
 #endif
+#ifndef ASSERT_FALSE
+#define ASSERT_FALSE(...)                                                     \
+    ([&]() {                                                                  \
+        assert_terminate("false", __VA_ARGS__);                               \
+    }())
+#endif
 
 #ifndef ASSERT
 #define ASSERT(_a_) ASSERT_MSG(_a_, "")
