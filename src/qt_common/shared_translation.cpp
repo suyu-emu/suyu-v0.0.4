@@ -555,12 +555,16 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(ScalingFilter, NearestNeighbor, tr("Nearest Neighbor")),
                               PAIR(ScalingFilter, Bilinear, tr("Bilinear")),
                               PAIR(ScalingFilter, Bicubic, tr("Bicubic")),
+                              PAIR(ScalingFilter, ZeroTangent, tr("Zero-Tangent")),
+                              PAIR(ScalingFilter, BSpline, tr("B-Spline")),
+                              PAIR(ScalingFilter, Mitchell, tr("Mitchell")),
                               PAIR(ScalingFilter, Spline1, tr("Spline-1")),
                               PAIR(ScalingFilter, Gaussian, tr("Gaussian")),
                               PAIR(ScalingFilter, Lanczos, tr("Lanczos")),
                               PAIR(ScalingFilter, ScaleForce, tr("ScaleForce")),
                               PAIR(ScalingFilter, Fsr, tr("AMD FidelityFX™️ Super Resolution")),
                               PAIR(ScalingFilter, Area, tr("Area")),
+                              PAIR(ScalingFilter, Mmpx, tr("MMPX")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::AntiAliasing>::Index(),
                           {

@@ -1018,6 +1018,10 @@
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <string name="scaling_filter_area">Area</string>
+    <string name="scaling_filter_zero_tangent">Zero-Tangent</string>
+    <string name="scaling_filter_bspline">B-Spline</string>
+    <string name="scaling_filter_mitchell">Mitchell</string>
+    <string name="scaling_filter_mmpx">MMPX</string>
 
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">None</string>

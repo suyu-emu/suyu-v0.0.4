@@ -1,7 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
 #version 460 core
 layout (location = 0) in vec2 frag_tex_coord;
 layout (location = 0) out vec4 color;
@@ -10,11 +8,11 @@ vec4 cubic(float x) {
     float x2 = x * x;
     float x3 = x2 * x;
     return vec4(1.0, x, x2, x3) * transpose(mat4x4(
-         0.0,   2.0,  0.0,  0.0,
-        -1.0,   0.0,  1.0,  0.0,
-         2.0,  -5.0,  4.0, -1.0,
-        -1.0,   3.0, -3.0,  1.0
-    ) * (1.0 / 2.0));
+         1.0,  16.0,   1.0,  0.0,
+        -9.0,   0.0,   9.0,  0.0,
+        15.0, -36.0,  27.0, -6.0,
+        -7.0,  21.0, -21.0,  7.0
+    ) * (1.0 / 18.0));
 }
 vec4 textureBicubic(sampler2D samp, vec2 uv) {
     vec2 tex_size = vec2(textureSize(samp, 0));

@@ -89,7 +89,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
-    EXTENSION(EXT, FILTER_CUBIC, filter_cubic)
+    EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
+    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
 
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -556,6 +557,11 @@ public:
     /// Returns true if the device supports VK_EXT_filter_cubic
     bool IsExtFilterCubicSupported() const {
         return extensions.filter_cubic;
+    }
+
+    /// Returns true if the device supports VK_QCOM_filter_cubic_weights
+    bool IsQcomFilterCubicWeightsSupported() const {
+        return extensions.filter_cubic_weights;
     }
 
     /// Returns true if the device supports VK_EXT_line_rasterization.

@@ -38,6 +38,9 @@ static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map
     {Settings::ScalingFilter::Bilinear,
      QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Bilinear"))},
     {Settings::ScalingFilter::Bicubic, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Bicubic"))},
+    {Settings::ScalingFilter::ZeroTangent, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Zero-Tangent"))},
+    {Settings::ScalingFilter::BSpline, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "B-Spline"))},
+    {Settings::ScalingFilter::Mitchell, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Mitchell"))},
      {Settings::ScalingFilter::Spline1,
      QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Spline-1"))},
     {Settings::ScalingFilter::Gaussian,
@@ -48,6 +51,7 @@ static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map
      QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "ScaleForce"))},
     {Settings::ScalingFilter::Fsr, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "FSR"))},
     {Settings::ScalingFilter::Area, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Area"))},
+    {Settings::ScalingFilter::Mmpx, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "MMPX"))},
 };
 
 static const std::map<Settings::ConsoleMode, QString> use_docked_mode_texts_map = {

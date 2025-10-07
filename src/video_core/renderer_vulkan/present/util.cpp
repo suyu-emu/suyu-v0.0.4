@@ -624,8 +624,8 @@ vk::Sampler CreateNearestNeighborSampler(const Device& device) {
     return device.GetLogical().CreateSampler(ci_nn);
 }
 
-vk::Sampler CreateCubicSampler(const Device& device) {
-    const VkSamplerCreateInfo ci_nn{
+vk::Sampler CreateCubicSampler(const Device& device, VkCubicFilterWeightsQCOM qcom_weights) {
+    VkSamplerCreateInfo ci_nn{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -645,7 +645,14 @@ vk::Sampler CreateCubicSampler(const Device& device) {
         .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
         .unnormalizedCoordinates = VK_FALSE,
     };
-
+    const VkSamplerCubicWeightsCreateInfoQCOM ci_qcom_nn{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CUBIC_WEIGHTS_CREATE_INFO_QCOM,
+        .pNext = nullptr,
+        .cubicWeights = qcom_weights
+    };
+    // If not specified, assume Catmull-Rom
+    if (qcom_weights != VK_CUBIC_FILTER_WEIGHTS_CATMULL_ROM_QCOM)
+        ci_nn.pNext = &ci_qcom_nn;
     return device.GetLogical().CreateSampler(ci_nn);
 }
 

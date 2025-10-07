@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "video_core/present.h"
 #include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
@@ -86,6 +87,15 @@ void BlitScreen::CreateWindowAdapt() {
     case Settings::ScalingFilter::Bicubic:
         window_adapt = MakeBicubic(device);
         break;
+    case Settings::ScalingFilter::ZeroTangent:
+        window_adapt = MakeZeroTangent(device);
+        break;
+    case Settings::ScalingFilter::BSpline:
+        window_adapt = MakeBSpline(device);
+        break;
+    case Settings::ScalingFilter::Mitchell:
+        window_adapt = MakeMitchell(device);
+        break;
     case Settings::ScalingFilter::Gaussian:
         window_adapt = MakeGaussian(device);
         break;
@@ -100,6 +110,9 @@ void BlitScreen::CreateWindowAdapt() {
         break;
     case Settings::ScalingFilter::Area:
         window_adapt = MakeArea(device);
+        break;
+    case Settings::ScalingFilter::Mmpx:
+        window_adapt = MakeMmpx(device);
         break;
     case Settings::ScalingFilter::Fsr:
     case Settings::ScalingFilter::Bilinear:
