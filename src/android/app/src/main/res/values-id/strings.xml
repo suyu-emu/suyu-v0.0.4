@@ -65,8 +65,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">Ekstensi GPU</string>
     <string name="veil_renderer">Renderer</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">Metode manajemen sumber daya otomatis di Vulkan yang memastikan pelepasan sumber daya yang tepat ketika tidak lagi diperlukan, tetapi dapat menyebabkan crash pada game yang dibundel.</string>
     <string name="veil_misc">CPU dan Memori</string>
     <string name="eden_veil">Eden\'s Veil</string>
     <string name="eden_veil_description">Pengaturan eksperimental untuk meningkatkan kinerja dan kemampuan. Pengaturan ini dapat menyebabkan layar hitam atau masalah game lainnya.</string>

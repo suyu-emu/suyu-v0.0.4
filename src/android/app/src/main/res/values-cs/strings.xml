@@ -64,8 +64,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">Rozšíření GPU</string>
     <string name="veil_renderer">Renderer</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">Metoda automatické správy prostředků ve Vulkanu, která zajišťuje správné uvolnění prostředků, když již nejsou potřeba, ale může způsobit pády v balených hrách.</string>
     <string name="veil_misc">CPU a paměť</string>
     <string name="eden_veil">Edenův závoj</string>
     <string name="eden_veil_description">Experimentální nastavení pro zlepšení výkonu a schopností. Tato nastavení mohou způsobit černé obrazovky nebo další herní problémy.</string>

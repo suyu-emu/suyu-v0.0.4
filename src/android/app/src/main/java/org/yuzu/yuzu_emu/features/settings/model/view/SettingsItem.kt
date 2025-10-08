@@ -231,13 +231,6 @@ abstract class SettingsItem(
             }
             put(
                 SwitchSetting(
-                    BooleanSetting.ENABLE_RAII,
-                    titleId = R.string.enable_raii,
-                    descriptionId = R.string.enable_raii_description
-                )
-            )
-            put(
-                SwitchSetting(
                     BooleanSetting.FRAME_INTERPOLATION,
                     titleId = R.string.frame_interpolation,
                     descriptionId = R.string.frame_interpolation_description
@@ -833,3 +826,4 @@ abstract class SettingsItem(
         }
     }
 }
+

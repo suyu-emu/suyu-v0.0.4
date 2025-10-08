@@ -81,8 +81,6 @@
     <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
 
     <string name="veil_renderer">Рендерер</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">Метод аутоматског управљања ресурсима у Vulkan-у који осигурава правилно ослобађање ресурса када више нису потребни, али може изазвати падове у пакованим играма.</string>
     <string name="frame_interpolation">Побољшани оквирни пејсинг</string>
     <string name="frame_interpolation_description">Осигурава глатку и доследан испоруку оквира синхронизацијом времена између оквира, смањење муцања и неуједначене анимације. Идеално за игре које доживљавају временски оквир нестабилност или микро-штитнике током играња.</string>
     <string name="renderer_early_release_fences">Ranije oslobađanje ograda</string>

@@ -65,8 +65,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">Estensioni GPU</string>
     <string name="veil_renderer">Renderer</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">Un metodo di gestione automatica delle risorse in Vulkan che garantisce il corretto rilascio delle risorse quando non sono più necessarie, ma può causare crash nei giochi in bundle.</string>
     <string name="veil_misc">CPU e Memoria</string>
     <string name="eden_veil">Velo di Eden</string>
     <string name="eden_veil_description">Impostazioni sperimentali per migliorare prestazioni e capacità. Queste impostazioni possono causare schermate nere o altri problemi di gioco.</string>

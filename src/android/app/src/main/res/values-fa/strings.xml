@@ -65,8 +65,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">افزونه‌های GPU</string>
     <string name="veil_renderer">رندرر</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">روشی برای مدیریت خودکار منابع در ولکان که تضمین می‌کند منابع به درستی آزاد شوند وقتی دیگر مورد نیاز نیستند، اما ممکن است باعث کرش شدن بازی‌های بسته‌بندی شده شود.</string>
     <string name="veil_misc">پردازنده و حافظه</string>
     <string name="eden_veil">پرده عدن</string>
     <string name="eden_veil_description">تنظیمات آزمایشی برای بهبود عملکرد و قابلیت. این تنظیمات ممکن است باعث نمایش صفحه سیاه یا سایر مشکلات بازی شود.</string>

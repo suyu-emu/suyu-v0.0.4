@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,7 +23,6 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-#include "video_core/vulkan_common/vulkan_raii.h"
 
 namespace Core::Memory {
 class Memory;
@@ -78,16 +80,10 @@ private:
 
     // Keep original handles for compatibility with existing code
     vk::Instance instance;
-    // RAII wrapper for instance
-    ManagedInstance managed_instance;
 
     vk::DebugUtilsMessenger debug_messenger;
-    // RAII wrapper for debug messenger
-    ManagedDebugUtilsMessenger managed_debug_messenger;
 
     vk::SurfaceKHR surface;
-    // RAII wrapper for surface
-    ManagedSurface managed_surface;
 
     Device device;
     MemoryAllocator memory_allocator;

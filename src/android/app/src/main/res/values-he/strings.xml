@@ -65,8 +65,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">הרחבות GPU</string>
     <string name="veil_renderer">רנדרר</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">שיטה לניהול אוטומטי של משאבים ב-Vulkan המבטיחה שחרור נכון של משאבים כאשר הם כבר לא נחוצים, אך עלולה לגרום לקריסות במשחקים מאוגדים.</string>
     <string name="veil_misc">מעבד וזיכרון</string>
     <string name="eden_veil">עדן וייל</string>
     <string name="eden_veil_description">הגדרות ניסיוניות לשיפור ביצועים ויכולות. הגדרות אלו עלולות לגרום למסכים שחורים או לבעיות אחרות במשחק.</string>

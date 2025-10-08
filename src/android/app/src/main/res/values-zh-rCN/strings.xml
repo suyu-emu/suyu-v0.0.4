@@ -65,8 +65,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">GPU扩展</string>
     <string name="veil_renderer">渲染器</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">Vulkan中的一种自动资源管理方法，确保在不再需要时正确释放资源，但可能导致捆绑游戏崩溃。</string>
     <string name="veil_misc">CPU和内存</string>
     <string name="eden_veil">伊甸之幕</string>
     <string name="eden_veil_description">实验性设置以提高性能和能力。这些设置可能会导致黑屏或其他游戏问题。</string>

@@ -65,8 +65,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">Tiện ích mở rộng GPU</string>
     <string name="veil_renderer">Trình kết xuất</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">Phương pháp quản lý tài nguyên tự động trong Vulkan đảm bảo giải phóng tài nguyên đúng cách khi không còn cần thiết, nhưng có thể gây ra sự cố trong các trò chơi được đóng gói.</string>
     <string name="veil_misc">CPU và Bộ nhớ</string>
     <string name="eden_veil">Mành che của Eden</string>
     <string name="eden_veil_description">Cài đặt thử nghiệm để cải thiện hiệu suất và khả năng. Những cài đặt này có thể gây ra màn hình đen hoặc các vấn đề khác trong trò chơi.</string>

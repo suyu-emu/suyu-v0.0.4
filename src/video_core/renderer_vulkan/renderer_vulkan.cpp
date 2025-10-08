@@ -164,15 +164,6 @@ try
                   PresentFiltersForAppletCapture)
     , rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker, scheduler) {
 
-    // Initialize RAII wrappers after creating the main objects
-    if (Settings::values.enable_raii.GetValue()) {
-        managed_instance = MakeManagedInstance(instance, dld);
-        if (Settings::values.renderer_debug) {
-            managed_debug_messenger = MakeManagedDebugUtilsMessenger(debug_messenger, instance, dld);
-        }
-        managed_surface = MakeManagedSurface(surface, instance, dld);
-    }
-
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });

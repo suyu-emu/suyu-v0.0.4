@@ -64,8 +64,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">امتدادات GPU</string>
     <string name="veil_renderer">العارض</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">طريقة لإدارة الموارد تلقائيًا في فولكان تضمن الإفراج الصحيح عن الموارد عندما لا تكون هناك حاجة إليها، ولكن قد تسبب تعطل الألعاب المجمعة.</string>
     <string name="veil_misc">وحدة المعالجة المركزية والذاكرة</string>
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">إعدادات تجريبية لتحسين الأداء والقدرة. قد تسبب هذه الإعدادات شاشات سوداء أو مشاكل أخرى في اللعبة.</string>

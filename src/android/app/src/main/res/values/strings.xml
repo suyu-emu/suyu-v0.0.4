@@ -109,8 +109,6 @@
     <string name="sample_shading_fraction_description">The intensity of the sample shading pass. Higher values improve quality more but also reduce performance to a greater extent.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">A method of automatic resource management in Vulkan that ensures proper release of resources when they are no longer needed, but may cause crashes in bundled games.</string>
     <string name="frame_interpolation">Enhanced Frame Pacing</string>
     <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
     <string name="renderer_early_release_fences">Release Fences Early</string>

@@ -65,8 +65,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">پاشکۆکانی GPU</string>
     <string name="veil_renderer">رێندرەر</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">ڕێگایەکی بەڕێوەبردنی سەرچاوەکان بە خۆکار لە ڤولکان کە دڵنیای دەکاتەوە لە ئازادکردنی گونجاوی سەرچاوەکان کاتێک کە چیتر پێویستیان نییە، بەڵام لەوانەیە ببێتە هۆی کەوتنی یارییە کۆکراوەکان.</string>
     <string name="veil_misc">CPU و بیرگە</string>
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">ڕێکخستنە تاقیکارییەکان بۆ باشترکردنی کارایی و توانا. ئەم ڕێکخستنانە لەوانەیە ببێتە هۆی شاشە ڕەشەکان یان کێشەیتری یاری.</string>

@@ -321,12 +321,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
 
     // Renderer (Extensions)
     INSERT(Settings,
-           enable_raii,
-           tr("RAII"),
-           tr("A method of automatic resource management in Vulkan "
-              "that ensures proper release of resources "
-              "when they are no longer needed, but may cause crashes in bundled games."));
-    INSERT(Settings,
            dyna_state,
            tr("Extended Dynamic State"),
            tr("Controls the number of features that can be used in Extended Dynamic State.\nHigher numbers allow for more features and can increase performance, but may cause issues.\nThe default value is per-system."));
@@ -721,3 +715,4 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
     return translations;
 }
 } // namespace ConfigurationShared
+

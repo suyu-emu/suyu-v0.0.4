@@ -65,8 +65,6 @@
     <!-- Eden\'s Veil -->
     <string name="veil_extensions">GPU kiterjesztések</string>
     <string name="veil_renderer">Megjelenítő</string>
-    <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">A Vulkan erőforrás-kezelési módszere, amely biztosítja az erőforrások megfelelő felszabadítását, ha már nincs rájuk szükség, de csomagolt játékok összeomlását okozhatja.</string>
     <string name="veil_misc">CPU és memória</string>
     <string name="eden_veil">Eden Fátyla</string>
     <string name="eden_veil_description">Kísérleti beállítások a teljesítmény és képesség javításához. Ezek a beállítások fekete képernyőket vagy más játékproblémákat okozhatnak.</string>

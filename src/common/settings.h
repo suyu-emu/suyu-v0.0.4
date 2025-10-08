@@ -336,7 +336,6 @@ struct Values {
                                                           "shader_backend", Category::Renderer,  Specialization::RuntimeList};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
                                          Specialization::RuntimeList};
-    SwitchableSetting<bool> enable_raii{linkage, false, "enable_raii", Category::Renderer};
 #ifdef __ANDROID__
     SwitchableSetting<bool> frame_interpolation{linkage, true, "frame_interpolation", Category::Renderer,
                                                 Specialization::RuntimeList};
