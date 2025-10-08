@@ -143,7 +143,7 @@ ENUM(ConfirmStop, Ask_Always, Ask_Based_On_Game, Ask_Never);
 ENUM(FullscreenMode, Borderless, Exclusive);
 ENUM(NvdecEmulation, Off, Cpu, Gpu);
 ENUM(ResolutionSetup, Res1_4X, Res1_2X, Res3_4X, Res1X, Res5_4X, Res3_2X, Res2X, Res3X, Res4X, Res5X, Res6X, Res7X, Res8X);
-ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, ZeroTangent, BSpline, Mitchell, Spline1, Gaussian, Lanczos, ScaleForce, Fsr, Area, Mmpx, MaxEnum);
+ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, Lanczos, ScaleForce, Fsr, Area, ZeroTangent, BSpline, Mitchell, Spline1, Mmpx, MaxEnum);
 ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
 ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 ENUM(ConsoleMode, Handheld, Docked);
