@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -466,6 +469,29 @@ void DeviceMemoryManager<Traits>::ReadBlockUnsafe(DAddr address, void* dest_poin
             dest_pointer = static_cast<u8*>(dest_pointer) + copy_amount;
         });
 }
+
+#ifdef YUZU_DEBUG
+template <typename Traits>
+bool DeviceMemoryManager<Traits>::ReadBlockFastChecked(DAddr address, void* dest_pointer,
+                                                       size_t size) {
+    bool success = true;
+    WalkBlock(
+        address, size,
+        [&](size_t copy_amount, DAddr current_vaddr) {
+            LOG_CRITICAL(Render, "DeviceMemory OOB/unmapped: addr=0x{:x} size={}", current_vaddr,
+                         size);
+            std::memset(dest_pointer, 0, copy_amount);
+            success = false;
+        },
+        [&](size_t copy_amount, const u8* const src_ptr) {
+            std::memcpy(dest_pointer, src_ptr, copy_amount);
+        },
+        [&](const std::size_t copy_amount) {
+            dest_pointer = static_cast<u8*>(dest_pointer) + copy_amount;
+        });
+    return success;
+}
+#endif
 
 template <typename Traits>
 void DeviceMemoryManager<Traits>::WriteBlockUnsafe(DAddr address, const void* src_pointer,

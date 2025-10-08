@@ -25,12 +25,12 @@ namespace {
 
 using namespace Common::Literals;
 
-// Maximum potential alignment of a Vulkan buffer
-constexpr VkDeviceSize MAX_ALIGNMENT = 256;
+// Minimum alignment we want to enforce for the streaming ring
+constexpr VkDeviceSize MIN_STREAM_ALIGNMENT = 256;
 // Stream buffer size in bytes
 constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 128_MiB;
 
-size_t GetStreamBufferSize(const Device& device) {
+size_t GetStreamBufferSize(const Device& device, VkDeviceSize alignment) {
     VkDeviceSize size{0};
     if (device.HasDebuggingToolAttached()) {
         bool found_heap = false;
@@ -53,8 +53,9 @@ size_t GetStreamBufferSize(const Device& device) {
 
     // Clamp to the configured maximum, align up for safety, and ensure a sane minimum so
     // region_size (stream_buffer_size / NUM_SYNCS) never becomes zero.
-    const VkDeviceSize aligned = (std::min)(Common::AlignUp(size, MAX_ALIGNMENT), MAX_STREAM_BUFFER_SIZE);
-    const VkDeviceSize min_size = MAX_ALIGNMENT * StagingBufferPool::NUM_SYNCS;
+    const VkDeviceSize aligned =
+        (std::min)(Common::AlignUp(size, alignment), MAX_STREAM_BUFFER_SIZE);
+    const VkDeviceSize min_size = alignment * StagingBufferPool::NUM_SYNCS;
     return static_cast<size_t>((std::max)(aligned, min_size));
 }
 } // Anonymous namespace
@@ -62,8 +63,10 @@ size_t GetStreamBufferSize(const Device& device) {
 StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& memory_allocator_,
                                      Scheduler& scheduler_)
     : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_},
-      stream_buffer_size{GetStreamBufferSize(device)}, region_size{stream_buffer_size /
-                                                                   StagingBufferPool::NUM_SYNCS} {
+      stream_alignment{std::max<VkDeviceSize>(device_.GetUniformBufferAlignment(),
+                                              MIN_STREAM_ALIGNMENT)},
+      stream_buffer_size{GetStreamBufferSize(device_, stream_alignment)},
+      region_size{stream_buffer_size / StagingBufferPool::NUM_SYNCS} {
     VkBufferCreateInfo stream_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
@@ -116,10 +119,11 @@ void StagingBufferPool::TickFrame() {
 }
 
 StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
-    const size_t aligned_size = Common::AlignUp(size, MAX_ALIGNMENT);
+    const size_t alignment = static_cast<size_t>(stream_alignment);
+    const size_t aligned_size = Common::AlignUp(size, alignment);
     const bool wraps = iterator + size >= stream_buffer_size;
     const size_t new_iterator =
-        wraps ? aligned_size : Common::AlignUp(iterator + size, MAX_ALIGNMENT);
+        wraps ? aligned_size : Common::AlignUp(iterator + size, alignment);
     const size_t begin_region = wraps ? 0 : Region(iterator);
     const size_t last_byte = new_iterator == 0 ? 0 : new_iterator - 1;
     const size_t end_region = (std::min)(Region(last_byte) + 1, NUM_SYNCS);
@@ -145,7 +149,7 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
                   current_tick);
         used_iterator = 0;
         iterator = 0;
-        free_iterator = size;
+        free_iterator = aligned_size;
         const size_t head_last_byte = aligned_size == 0 ? 0 : aligned_size - 1;
         const size_t head_end_region = (std::min)(Region(head_last_byte) + 1, NUM_SYNCS);
         if (AreRegionsActive(0, head_end_region)) {
@@ -160,7 +164,7 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
     iterator = new_iterator;
 
     if (!wraps) {
-        free_iterator = (std::max)(free_iterator, offset + size);
+        free_iterator = (std::max)(free_iterator, offset + aligned_size);
     }
 
     return StagingBufferRef{
