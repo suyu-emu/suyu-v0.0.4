@@ -33,29 +33,19 @@ constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 128_MiB;
 size_t GetStreamBufferSize(const Device& device) {
     VkDeviceSize size{0};
     if (device.HasDebuggingToolAttached()) {
-        bool found_heap = false;
-        ForEachDeviceLocalHostVisibleHeap(device, [&size, &found_heap](size_t /*index*/, VkMemoryHeap& heap) {
+        ForEachDeviceLocalHostVisibleHeap(device, [&size](size_t index, VkMemoryHeap& heap) {
             size = (std::max)(size, heap.size);
-            found_heap = true;
         });
-        // If no suitable heap was found fall back to the default cap to avoid creating a zero-sized stream buffer.
-        if (!found_heap) {
-            size = MAX_STREAM_BUFFER_SIZE;
-        } else if (size <= 256_MiB) {
-            // If rebar is not supported, cut the max heap size to 40%. This will allow 2 captures to be
-            // loaded at the same time in RenderDoc. If rebar is supported, this shouldn't be an issue
-            // as the heap will be much larger.
+        // If rebar is not supported, cut the max heap size to 40%. This will allow 2 captures to be
+        // loaded at the same time in RenderDoc. If rebar is supported, this shouldn't be an issue
+        // as the heap will be much larger.
+        if (size <= 256_MiB) {
             size = size * 40 / 100;
         }
     } else {
         size = MAX_STREAM_BUFFER_SIZE;
     }
-
-    // Clamp to the configured maximum, align up for safety, and ensure a sane minimum so
-    // region_size (stream_buffer_size / NUM_SYNCS) never becomes zero.
-    const VkDeviceSize aligned = (std::min)(Common::AlignUp(size, MAX_ALIGNMENT), MAX_STREAM_BUFFER_SIZE);
-    const VkDeviceSize min_size = MAX_ALIGNMENT * StagingBufferPool::NUM_SYNCS;
-    return static_cast<size_t>((std::max)(aligned, min_size));
+    return (std::min)(Common::AlignUp(size, MAX_ALIGNMENT), MAX_STREAM_BUFFER_SIZE);
 }
 } // Anonymous namespace
 
@@ -116,53 +106,31 @@ void StagingBufferPool::TickFrame() {
 }
 
 StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
-    const size_t aligned_size = Common::AlignUp(size, MAX_ALIGNMENT);
-    const bool wraps = iterator + size >= stream_buffer_size;
-    const size_t new_iterator =
-        wraps ? aligned_size : Common::AlignUp(iterator + size, MAX_ALIGNMENT);
-    const size_t begin_region = wraps ? 0 : Region(iterator);
-    const size_t last_byte = new_iterator == 0 ? 0 : new_iterator - 1;
-    const size_t end_region = (std::min)(Region(last_byte) + 1, NUM_SYNCS);
-    const size_t guard_begin = (std::min)(Region(free_iterator) + 1, NUM_SYNCS);
-
-    if (!wraps) {
-        if (guard_begin < end_region && AreRegionsActive(guard_begin, end_region)) {
-            // Avoid waiting for the previous usages to be free
-            return GetStagingBuffer(size, MemoryUsage::Upload);
-        }
-    } else if (guard_begin < NUM_SYNCS && AreRegionsActive(guard_begin, NUM_SYNCS)) {
+    if (AreRegionsActive(Region(free_iterator) + 1,
+                         (std::min)(Region(iterator + size) + 1, NUM_SYNCS))) {
         // Avoid waiting for the previous usages to be free
         return GetStagingBuffer(size, MemoryUsage::Upload);
     }
-
     const u64 current_tick = scheduler.CurrentTick();
     std::fill(sync_ticks.begin() + Region(used_iterator), sync_ticks.begin() + Region(iterator),
               current_tick);
     used_iterator = iterator;
+    free_iterator = (std::max)(free_iterator, iterator + size);
 
-    if (wraps) {
+    if (iterator + size >= stream_buffer_size) {
         std::fill(sync_ticks.begin() + Region(used_iterator), sync_ticks.begin() + NUM_SYNCS,
                   current_tick);
         used_iterator = 0;
         iterator = 0;
         free_iterator = size;
-        const size_t head_last_byte = aligned_size == 0 ? 0 : aligned_size - 1;
-        const size_t head_end_region = (std::min)(Region(head_last_byte) + 1, NUM_SYNCS);
-        if (AreRegionsActive(0, head_end_region)) {
+
+        if (AreRegionsActive(0, Region(size) + 1)) {
             // Avoid waiting for the previous usages to be free
             return GetStagingBuffer(size, MemoryUsage::Upload);
         }
     }
-
-    std::fill(sync_ticks.begin() + begin_region, sync_ticks.begin() + end_region, current_tick);
-
-    const size_t offset = wraps ? 0 : iterator;
-    iterator = new_iterator;
-
-    if (!wraps) {
-        free_iterator = (std::max)(free_iterator, offset + size);
-    }
-
+    const size_t offset = iterator;
+    iterator = Common::AlignUp(iterator + size, MAX_ALIGNMENT);
     return StagingBufferRef{
         .buffer = *stream_buffer,
         .offset = static_cast<VkDeviceSize>(offset),
