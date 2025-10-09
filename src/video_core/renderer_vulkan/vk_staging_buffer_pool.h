@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -105,7 +102,6 @@ private:
     MemoryAllocator& memory_allocator;
     Scheduler& scheduler;
 
-    VkDeviceSize stream_alignment;
     vk::Buffer stream_buffer;
     std::span<u8> stream_pointer;
     VkDeviceSize stream_buffer_size;
