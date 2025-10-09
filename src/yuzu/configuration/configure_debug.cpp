@@ -83,8 +83,7 @@ void ConfigureDebug::SetConfiguration() {
 #ifdef YUZU_USE_QT_WEB_ENGINE
     ui->disable_web_applet->setChecked(UISettings::values.disable_web_applet.GetValue());
 #else
-    ui->disable_web_applet->setEnabled(false);
-    ui->disable_web_applet->setText(tr("Web applet not compiled"));
+    ui->disable_web_applet->setVisible(false);
 #endif
 }
 
