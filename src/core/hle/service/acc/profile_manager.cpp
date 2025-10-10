@@ -509,6 +509,9 @@ std::vector<std::string> ProfileManager::FindOrphanedProfiles()
         good_uuids.emplace_back(uuid_string);
     }
 
+    // used for acnh, etc
+    good_uuids.emplace_back("00000000000000000000000000000000");
+
     // TODO: fetch save_id programmatically
     const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
                       / "user/save/0000000000000000";
