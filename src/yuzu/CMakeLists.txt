@@ -393,16 +393,8 @@ target_link_libraries(yuzu PRIVATE common core input_common frontend_common netw
 target_link_libraries(yuzu PRIVATE Boost::headers glad Qt6::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
-if (NOT WIN32)
-    target_include_directories(yuzu PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
-endif()
-
 if (UNIX AND NOT APPLE)
     target_link_libraries(yuzu PRIVATE Qt6::DBus)
-
-    if (TARGET Qt6::GuiPrivate)
-        target_link_libraries(yuzu PRIVATE Qt6::GuiPrivate)
-    endif()
 endif()
 
 target_compile_definitions(yuzu PRIVATE
