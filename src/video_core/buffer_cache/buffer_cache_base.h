@@ -54,6 +54,8 @@ constexpr u32 NUM_STORAGE_BUFFERS = 16;
 constexpr u32 NUM_TEXTURE_BUFFERS = 32;
 constexpr u32 NUM_STAGES = 5;
 
+static_assert(NUM_GRAPHICS_UNIFORM_BUFFERS <= 32, "fast bitmask must fit u32");
+
 using UniformBufferSizes = std::array<std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES>;
 using ComputeUniformBufferSizes = std::array<u32, NUM_COMPUTE_UNIFORM_BUFFERS>;
 
@@ -137,8 +139,8 @@ public:
     u32 written_compute_texture_buffers = 0;
     u32 image_compute_texture_buffers = 0;
 
-    std::array<u32, 16> uniform_cache_hits{};
-    std::array<u32, 16> uniform_cache_shots{};
+    std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS> uniform_cache_hits{};
+    std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS> uniform_cache_shots{};
 
     u32 uniform_buffer_skip_cache_size = DEFAULT_SKIP_CACHE_SIZE;
 

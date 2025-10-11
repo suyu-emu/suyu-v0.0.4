@@ -386,11 +386,9 @@ void BufferCache<P>::BindHostComputeBuffers() {
 template <class P>
 void BufferCache<P>::SetUniformBuffersState(const std::array<u32, NUM_STAGES>& mask,
                                             const UniformBufferSizes* sizes) {
-    if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
-        if (channel_state->enabled_uniform_buffer_masks != mask) {
-            if constexpr (IS_OPENGL) {
-                channel_state->fast_bound_uniform_buffers.fill(0);
-            }
+    if (channel_state->enabled_uniform_buffer_masks != mask) {
+        channel_state->fast_bound_uniform_buffers.fill(0);
+        if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
             channel_state->dirty_uniform_buffers.fill(~u32{0});
             channel_state->uniform_buffer_binding_sizes.fill({});
         }
@@ -806,7 +804,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
                     channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
                 if (should_fast_bind) {
                     // We only have to bind when the currently bound buffer is not the fast version
-                    channel_state->fast_bound_uniform_buffers[stage] |= 1U << binding_index;
+                    channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
                     channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
                     runtime.BindFastUniformBuffer(stage, binding_index, size);
                 }
@@ -815,10 +813,8 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
                 return;
             }
         }
-        if constexpr (IS_OPENGL) {
-            channel_state->fast_bound_uniform_buffers[stage] |= 1U << binding_index;
-            channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
-        }
+        channel_state->fast_bound_uniform_buffers[stage] |= 1u << binding_index;
+        channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
         // Stream buffer path to avoid stalling on non-Nvidia drivers or Vulkan
         const std::span<u8> span = runtime.BindMappedUniformBuffer(stage, binding_index, size);
         device_memory.ReadBlockUnsafe(device_addr, span.data(), size);
@@ -839,9 +835,6 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     }
     const u32 offset = buffer.Offset(device_addr);
     if constexpr (IS_OPENGL) {
-        // Fast buffer will be unbound
-        channel_state->fast_bound_uniform_buffers[stage] &= ~(1U << binding_index);
-
         // Mark the index as dirty if offset doesn't match
         const bool is_copy_bind = offset != 0 && !runtime.SupportsNonZeroUniformOffset();
         channel_state->dirty_uniform_buffers[stage] |= (is_copy_bind ? 1U : 0U) << index;
@@ -855,6 +848,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     } else {
         runtime.BindUniformBuffer(buffer, offset, size);
     }
+    channel_state->fast_bound_uniform_buffers[stage] &= ~(1u << binding_index);
 }
 
 template <class P>
@@ -1789,12 +1783,7 @@ std::span<u8> BufferCache<P>::ImmediateBuffer(size_t wanted_capacity) {
 
 template <class P>
 bool BufferCache<P>::HasFastUniformBufferBound(size_t stage, u32 binding_index) const noexcept {
-    if constexpr (IS_OPENGL) {
-        return ((channel_state->fast_bound_uniform_buffers[stage] >> binding_index) & 1) != 0;
-    } else {
-        // Only OpenGL has fast uniform buffers
-        return false;
-    }
+    return ((channel_state->fast_bound_uniform_buffers[stage] >> binding_index) & 1u) != 0;
 }
 
 template <class P>
