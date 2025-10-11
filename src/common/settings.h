@@ -161,7 +161,7 @@ struct Values {
                                          Category::LibraryApplet};
     Setting<AppletMode> photo_viewer_applet_mode{
                                                  linkage, AppletMode::LLE, "photo_viewer_applet_mode", Category::LibraryApplet};
-    Setting<AppletMode> offline_web_applet_mode{linkage, AppletMode::HLE, "offline_web_applet_mode",
+    Setting<AppletMode> offline_web_applet_mode{linkage, AppletMode::LLE, "offline_web_applet_mode",
                                                 Category::LibraryApplet};
     Setting<AppletMode> login_share_applet_mode{linkage, AppletMode::HLE, "login_share_applet_mode",
                                                 Category::LibraryApplet};
