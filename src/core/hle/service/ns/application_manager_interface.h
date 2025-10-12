@@ -55,6 +55,12 @@ public:
     Result GetApplicationTerminateResult(Out<Result> out_result, u64 application_id);
     Result Unknown4022(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result Unknown4023(Out<u64> out_result);
+    Result Unknown4053();
+
+    Result RequestDownloadApplicationControlDataInBackground(u64 unk,
+                                                             u64 application_id);
+    Result Unknown1706(OutBuffer<BufferAttr_HipcAutoSelect> out_buffer_58,
+                       InBuffer<BufferAttr_HipcMapAlias> in_buffer_8);
 
 private:
     KernelHelpers::ServiceContext service_context;

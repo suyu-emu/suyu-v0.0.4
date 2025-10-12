@@ -128,6 +128,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {406, nullptr, "GetApplicationControlProperty"},
         {407, nullptr, "ListApplicationTitle"},
         {408, nullptr, "ListApplicationIcon"},
+        {419, D<&IApplicationManagerInterface::RequestDownloadApplicationControlDataInBackground>, "RequestDownloadApplicationControlDataInBackground"},
         {502, nullptr, "RequestCheckGameCardRegistration"},
         {503, nullptr, "RequestGameCardRegistrationGoldPoint"},
         {504, nullptr, "RequestRegisterGameCard"},
@@ -210,6 +211,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {1703, nullptr, "GetApplicationViewDownloadErrorContext"},
         {1704, D<&IApplicationManagerInterface::GetApplicationViewWithPromotionInfo>, "GetApplicationViewWithPromotionInfo"},
         {1705, nullptr, "IsPatchAutoDeletableApplication"},
+        {1706, D<&IApplicationManagerInterface::Unknown1706>, "Unknown1706"},
         {1800, nullptr, "IsNotificationSetupCompleted"},
         {1801, nullptr, "GetLastNotificationInfoCount"},
         {1802, nullptr, "ListLastNotificationInfo"},
@@ -309,6 +311,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {4022, D<&IApplicationManagerInterface::Unknown4022>, "Unknown4022"},
         {4023, D<&IApplicationManagerInterface::Unknown4023>, "Unknown4023"},
         {4088, D<&IApplicationManagerInterface::Unknown4022>, "Unknown4088"},
+        {4053, D<&IApplicationManagerInterface::Unknown4053>, "Unknown4053"},
         {9999, nullptr, "GetApplicationCertificate"},
     };
     // clang-format on
@@ -526,6 +529,37 @@ Result IApplicationManagerInterface::GetApplicationTerminateResult(Out<Result> o
     R_SUCCEED();
 }
 
+Result IApplicationManagerInterface::RequestDownloadApplicationControlDataInBackground(
+    u64 unk, u64 application_id) {
+    LOG_WARNING(Service_NS, "(STUBBED), app={:016X} unk={}", application_id, unk);
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::Unknown1706(
+    OutBuffer<BufferAttr_HipcAutoSelect> out_buffer_58,
+    InBuffer<BufferAttr_HipcMapAlias> in_buffer_8) {
+    LOG_WARNING(Service_NS, "(STUBBED) Unknown1706 called: out_size={} in_size={}",
+                out_buffer_58.size(), in_buffer_8.size());
+
+    if (out_buffer_58.size() < 0x58 || in_buffer_8.size() < 0x8) {
+        R_THROW(ResultUnknown);
+    }
+
+    u64 application_id = 0;
+    std::memcpy(&application_id, in_buffer_8.data(), sizeof(u64));
+
+    ApplicationView view{};
+    view.application_id = application_id;
+    view.unk = 0x70000;
+    view.flags = 0x401f17;
+
+    std::memset(out_buffer_58.data(), 0, out_buffer_58.size());
+    std::memcpy(out_buffer_58.data(), &view, sizeof(ApplicationView));
+
+
+    R_SUCCEED();
+}
+
 Result IApplicationManagerInterface::Unknown4022(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_NS, "(STUBBED) called");
@@ -536,6 +570,11 @@ Result IApplicationManagerInterface::Unknown4022(
 Result IApplicationManagerInterface::Unknown4023(Out<u64> out_result) {
     LOG_WARNING(Service_NS, "(STUBBED) called.");
     *out_result = 0;
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::Unknown4053() {
+    LOG_WARNING(Service_NS, "(STUBBED) called.");
     R_SUCCEED();
 }
 

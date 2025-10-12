@@ -237,6 +237,13 @@ void CommandBuffer::GenerateBiquadFilterCommand(const s32 node_id, VoiceInfo& vo
 
     cmd.biquad = voice_info.biquads[biquad_index];
 
+    if (voice_info.use_float_biquads) {
+        cmd.biquad_float = voice_info.biquads_float[biquad_index];
+        cmd.use_float_coefficients = true;
+    } else {
+        cmd.use_float_coefficients = false;
+    }
+
     cmd.state = memory_pool->Translate(CpuAddr(voice_state.biquad_states[biquad_index].data()),
                                        MaxBiquadFilters * sizeof(VoiceState::BiquadFilterState));
 
@@ -262,6 +269,9 @@ void CommandBuffer::GenerateBiquadFilterCommand(const s32 node_id, EffectInfoBas
 
     cmd.biquad.b = parameter.b;
     cmd.biquad.a = parameter.a;
+
+    // Effects use legacy fixed-point format
+    cmd.use_float_coefficients = false;
 
     cmd.state = memory_pool->Translate(CpuAddr(state),
                                        MaxBiquadFilters * sizeof(VoiceState::BiquadFilterState));
@@ -657,6 +667,13 @@ void CommandBuffer::GenerateMultitapBiquadFilterCommand(const s32 node_id, Voice
     cmd.input = buffer_count + channel;
     cmd.output = buffer_count + channel;
     cmd.biquads = voice_info.biquads;
+
+    if (voice_info.use_float_biquads) {
+        cmd.biquads_float = voice_info.biquads_float;
+        cmd.use_float_coefficients = true;
+    } else {
+        cmd.use_float_coefficients = false;
+    }
 
     cmd.states[0] =
         memory_pool->Translate(CpuAddr(voice_state.biquad_states[0].data()),

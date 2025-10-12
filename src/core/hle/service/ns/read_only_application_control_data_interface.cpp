@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,6 +10,7 @@
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ns/language.h"
+#include "core/hle/service/ns/ns_types.h"
 #include "core/hle/service/ns/ns_results.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/hle/service/set/settings_server.h"
@@ -23,6 +27,7 @@ IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterfa
         {2, D<&IReadOnlyApplicationControlDataInterface::ConvertApplicationLanguageToLanguageCode>, "ConvertApplicationLanguageToLanguageCode"},
         {3, nullptr, "ConvertLanguageCodeToApplicationLanguage"},
         {4, nullptr, "SelectApplicationDesiredLanguage"},
+        {5, D<&IReadOnlyApplicationControlDataInterface::GetApplicationDisplayData>, "GetApplicationDisplayData"},
     };
     // clang-format on
 
@@ -116,6 +121,35 @@ Result IReadOnlyApplicationControlDataInterface::ConvertApplicationLanguageToLan
     }
 
     *out_language_code = static_cast<u64>(*language_code);
+    R_SUCCEED();
+}
+
+Result IReadOnlyApplicationControlDataInterface::GetApplicationDisplayData(
+    OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u64> out_size, u64 language_code,
+    u64 application_id) {
+    LOG_INFO(Service_NS, "called with application_id={:016X}, language_code={:016X}",
+             application_id, language_code);
+
+    constexpr u64 payload_size = sizeof(ApplicationDisplayData);
+
+    if (out_buffer.size() < payload_size) {
+        LOG_ERROR(Service_NS, "output buffer is too small! (actual={}, expected_min={})",
+                  out_buffer.size(), payload_size);
+        R_THROW(ResultUnknown);
+    }
+
+    const FileSys::PatchManager pm{application_id, system.GetFileSystemController(),
+                                   system.GetContentProvider()};
+    const auto control = pm.GetControlMetadata();
+
+    ApplicationDisplayData display_data{};
+
+    std::memset(display_data.application_name.data(), 0, display_data.application_name.size());
+    std::memset(display_data.developer_name.data(), 0, display_data.developer_name.size());
+
+    std::memcpy(out_buffer.data(), &display_data, payload_size);
+    *out_size = payload_size;
+
     R_SUCCEED();
 }
 

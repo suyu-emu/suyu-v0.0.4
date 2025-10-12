@@ -193,4 +193,20 @@ bool BehaviorInfo::IsI3dl2ReverbChannelMappingChanged() const {
     return CheckFeatureSupported(SupportTags::I3dl2ReverbChannelMappingChange, user_revision);
 }
 
+bool BehaviorInfo::IsSplitterPrevVolumeResetSupported() const {
+    return CheckFeatureSupported(SupportTags::SplitterPrevVolumeReset, user_revision);
+}
+
+bool BehaviorInfo::IsSplitterDestinationV2bSupported() const {
+    return CheckFeatureSupported(SupportTags::SplitterDestinationV2b, user_revision);
+}
+
+bool BehaviorInfo::IsVoiceInParameterV2Supported() const {
+    return CheckFeatureSupported(SupportTags::VoiceInParameterV2, user_revision);
+}
+
+bool BehaviorInfo::IsBiquadFilterParameterForSplitterEnabled() const {
+    return CheckFeatureSupported(SupportTags::SplitterBiquadFilterParameter, user_revision);
+}
+
 } // namespace AudioCore::Renderer
