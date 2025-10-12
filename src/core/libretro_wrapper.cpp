@@ -5,6 +5,8 @@
 #include <cstring>
 #include <iostream>
 
+#include "common/logging/log.h"
+
 namespace Core {
 
 LibretroWrapper::LibretroWrapper() : core_handle(nullptr), nintendo_library(std::make_unique<Nintendo::Library>()) {}
@@ -16,14 +18,14 @@ LibretroWrapper::~LibretroWrapper() {
 bool LibretroWrapper::LoadCore(const std::string& core_path) {
     core_handle = dlopen(core_path.c_str(), RTLD_LAZY);
     if (!core_handle) {
-        std::cerr << "Failed to load libretro core: " << dlerror() << std::endl;
+        LOG_ERROR(Core, "Failed to load libretro core: {}", dlerror());
         return false;
     }
 
     // Load libretro core functions
     #define LOAD_SYMBOL(S) S = reinterpret_cast<decltype(S)>(dlsym(core_handle, #S)); \
     if (!S) { \
-        std::cerr << "Failed to load symbol " #S ": " << dlerror() << std::endl; \
+        LOG_ERROR(Core, "Failed to load symbol {}: {}", #S, dlerror()); \
         Unload(); \
         return false; \
     }
@@ -50,19 +52,14 @@ bool LibretroWrapper::LoadCore(const std::string& core_path) {
 
     #undef LOAD_SYMBOL
 
-    if (!nintendo_library->Initialize()) {
-        std::cerr << "Failed to initialize Nintendo Library" << std::endl;
-        Unload();
-        return false;
-    }
-
     retro_init();
+    LOG_INFO(Core, "Libretro core loaded successfully: {}", core_path);
     return true;
 }
 
 bool LibretroWrapper::LoadGame(const std::string& game_path) {
     if (!core_handle) {
-        std::cerr << "Libretro core not loaded" << std::endl;
+        LOG_ERROR(Core, "Libretro core not loaded");
         return false;
     }
 
@@ -72,15 +69,11 @@ bool LibretroWrapper::LoadGame(const std::string& game_path) {
     game_info.meta = nullptr;
 
     if (!retro_load_game(&game_info)) {
-        std::cerr << "Failed to load game through libretro" << std::endl;
+        LOG_ERROR(Core, "Failed to load game through libretro: {}", game_path);
         return false;
     }
 
-    if (!nintendo_library->LoadROM(game_path)) {
-        std::cerr << "Failed to load ROM through Nintendo Library" << std::endl;
-        return false;
-    }
-
+    LOG_INFO(Core, "Game loaded successfully: {}", game_path);
     return true;
 }
 

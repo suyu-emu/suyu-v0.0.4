@@ -22,6 +22,11 @@ public:
     void Run();
     void Reset();
     void Unload();
+    
+    // Nintendo Library integration
+    bool InitializeNintendoLibrary();
+    bool AuthenticateNintendoAccount(const std::string& username, const std::string& password);
+    std::vector<std::string> GetNintendoGameTitles();
 
 private:
     void* core_handle;
