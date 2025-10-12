@@ -1,47 +1,75 @@
 
 #pragma once
 
+#include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace Nintendo {
+
+enum class AuthenticationState {
+    NotAuthenticated,
+    InProgress,
+    Authenticated,
+    Failed
+};
+
+enum class LibraryError {
+    None,
+    NetworkError,
+    AuthenticationFailed,
+    ParseError,
+    InvalidCredentials,
+    ServiceUnavailable
+};
+
+struct GameInfo {
+    std::string title_id;
+    std::string title_name;
+    std::string platform;
+    std::string purchase_date;
+    std::string image_url;
+    bool is_digital;
+};
 
 class Library {
 public:
     Library();
     ~Library();
 
+    // Core lifecycle
     bool Initialize();
     void Shutdown();
 
-    // Add methods for Nintendo-specific functionality
-    bool LoadROM(const std::string& rom_path);
-    bool RunFrame();
-    void SetVideoBuffer(void* buffer, int width, int height);
-    void SetAudioBuffer(void* buffer, int size);
-
-    struct GameInfo
-    {
-        std::string titleId;
-        std::string titleName;
-    };
-
-    // Authentication and purchase-history APIs
+    // Authentication management
     bool StartAuthentication(const std::string& username, const std::string& password);
-    bool CompleteAuthentication(const std::string& twoFactorToken);
+    bool IsAuthenticationInProgress() const;
+    AuthenticationState GetAuthenticationState() const;
+    LibraryError GetLastError() const;
+    
+    // Game library management
     std::vector<GameInfo> GetGameList();
-
-    // Add more methods as needed
+    bool RefreshGameList();
+    void ClearCache();
+    
+    // Configuration
+    void SetCacheDirectory(const std::string& cache_dir);
+    void SetUserAgent(const std::string& user_agent);
+    
+    // Status and diagnostics
+    bool IsInitialized() const;
+    std::string GetStatusMessage() const;
 
 private:
-    // Authentication state
-    std::string authToken;
-    std::string cookieJarPath;
-
-    // Add private members for internal state
-    bool initialized;
-    std::string current_rom;
-    // Add more members as needed
+    class Impl;
+    std::unique_ptr<Impl> impl;
+    
+    // Private helper methods
+    void PerformAuthentication();
+    std::string ExtractCSRFToken(const std::string& html);
+    std::string UrlEncode(const std::string& value);
+    std::vector<GameInfo> ParsePurchaseHistory(const std::string& html);
 };
 
 } // namespace Nintendo

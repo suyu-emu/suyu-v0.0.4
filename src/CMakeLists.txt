@@ -185,6 +185,7 @@ else()
 endif()
 
 add_subdirectory(common)
+add_subdirectory(nintendo_library)
 add_subdirectory(core)
 add_subdirectory(audio_core)
 add_subdirectory(video_core)
