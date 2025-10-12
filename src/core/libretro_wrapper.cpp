@@ -80,17 +80,18 @@ bool LibretroWrapper::LoadGame(const std::string& game_path) {
 void LibretroWrapper::Run() {
     if (core_handle) {
         retro_run();
+        nintendo_library->RunFrame();
     } else {
-        LOG_ERROR(Core, "Cannot run: Libretro core not loaded");
+        std::cerr << "Cannot run: Libretro core not loaded" << std::endl;
     }
 }
 
 void LibretroWrapper::Reset() {
     if (core_handle) {
         retro_reset();
-        LOG_INFO(Core, "Libretro core reset");
+        // Add any necessary reset logic for Nintendo Library
     } else {
-        LOG_ERROR(Core, "Cannot reset: Libretro core not loaded");
+        std::cerr << "Cannot reset: Libretro core not loaded" << std::endl;
     }
 }
 
@@ -100,60 +101,10 @@ void LibretroWrapper::Unload() {
         retro_deinit();
         dlclose(core_handle);
         core_handle = nullptr;
-        LOG_INFO(Core, "Libretro core unloaded");
     }
-    
-    if (nintendo_library) {
-        nintendo_library->Shutdown();
-    }
+    nintendo_library->Shutdown();
 }
 
-bool LibretroWrapper::InitializeNintendoLibrary() {
-    if (!nintendo_library) {
-        nintendo_library = std::make_unique<Nintendo::Library>();
-    }
-    
-    if (!nintendo_library->Initialize()) {
-        LOG_ERROR(Core, "Failed to initialize Nintendo Library: {}", nintendo_library->GetStatusMessage());
-        return false;
-    }
-    
-    LOG_INFO(Core, "Nintendo Library initialized successfully");
-    return true;
-}
-
-bool LibretroWrapper::AuthenticateNintendoAccount(const std::string& username, const std::string& password) {
-    if (!nintendo_library || !nintendo_library->IsInitialized()) {
-        LOG_ERROR(Core, "Nintendo Library not initialized");
-        return false;
-    }
-    
-    if (!nintendo_library->StartAuthentication(username, password)) {
-        LOG_ERROR(Core, "Failed to start Nintendo authentication: {}", nintendo_library->GetStatusMessage());
-        return false;
-    }
-    
-    LOG_INFO(Core, "Nintendo authentication started for user: {}", username);
-    return true;
-}
-
-std::vector<std::string> LibretroWrapper::GetNintendoGameTitles() {
-    std::vector<std::string> titles;
-    
-    if (!nintendo_library || !nintendo_library->IsInitialized()) {
-        LOG_ERROR(Core, "Nintendo Library not initialized");
-        return titles;
-    }
-    
-    auto games = nintendo_library->GetGameList();
-    titles.reserve(games.size());
-    
-    for (const auto& game : games) {
-        titles.push_back(game.title_name);
-    }
-    
-    LOG_INFO(Core, "Retrieved {} Nintendo game titles", titles.size());
-    return titles;
-}
+// Add implementations for other libretro functions as needed
 
 } // namespace Core
