@@ -11,7 +11,7 @@
 #include "suyu/debugger/console.h"
 #include "suyu/uisettings.h"
 
-namespace DebuggerYuzu {
+namespace DebuggerSuyu {
 void ToggleConsole() {
     static bool console_shown = false;
     if (console_shown == UISettings::values.show_console.GetValue()) {
@@ -46,4 +46,4 @@ void ToggleConsole() {
     SetColorConsoleBackendEnabled(UISettings::values.show_console.GetValue());
 #endif
 }
-} // namespace DebuggerYuzu
+} // namespace DebuggerSuyu

@@ -3,11 +3,11 @@
 
 #pragma once
 
-namespace DebuggerYuzu {
+namespace DebuggerSuyu {
 
 /**
  * Uses the WINAPI to hide or show the stderr console. This function is a placeholder until we can
  * get a real qt logging window which would work for all platforms.
  */
 void ToggleConsole();
-} // namespace DebuggerYuzu
+} // namespace DebuggerSuyu
