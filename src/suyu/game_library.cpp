@@ -68,9 +68,11 @@ GameLibrary::GameLibrary(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
     connect(worker, &GameLibraryWorker::Finished, this, &GameLibrary::OnPopulationCompleted);
     connect(this, &GameLibrary::ShouldCancelWorker, worker, [this]() {
         if (worker) {
-            worker->stop_processing = true;
+            worker->stop_processing.store(true, std::memory_order_relaxed);
         }
     });
+    connect(worker_thread, &QThread::finished, worker, &QObject::deleteLater);
+    connect(worker_thread, &QThread::finished, worker_thread, &QObject::deleteLater);
 
     // Setup search timer
     search_timer = new QTimer(this);
