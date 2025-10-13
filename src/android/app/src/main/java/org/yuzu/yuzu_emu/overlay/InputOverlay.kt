@@ -1039,7 +1039,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             scale /= 100f
 
             // Apply individual scale
-            scale *= overlayControlData.individualScale
+            scale *= overlayControlData.individualScale.let { if (it > 0f) it else 1f }
 
             // Initialize the InputOverlayDrawableButton.
             val defaultStateBitmap = getBitmap(context, defaultResId, scale)
@@ -1114,7 +1114,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
             // Apply individual scale
             if (dpadData != null) {
-                scale *= dpadData.individualScale
+                scale *= dpadData.individualScale.let { if (it > 0f) it else 1f }
             }
 
             // Initialize the InputOverlayDrawableDpad.
@@ -1191,7 +1191,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             scale /= 100f
 
             // Apply individual scale
-            scale *= overlayControlData.individualScale
+            scale *= overlayControlData.individualScale.let { if (it > 0f) it else 1f }
 
             // Initialize the InputOverlayDrawableJoystick.
             val bitmapOuter = getBitmap(context, resOuter, scale)
