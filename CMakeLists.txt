@@ -573,11 +573,11 @@ if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
 endif()
 
-if (ENABLE_WEB_SERVICE)
+if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
     find_package(httplib)
 endif()
 
-if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
+if (ENABLE_WEB_SERVICE)
     find_package(cpp-jwt)
 endif()
 
