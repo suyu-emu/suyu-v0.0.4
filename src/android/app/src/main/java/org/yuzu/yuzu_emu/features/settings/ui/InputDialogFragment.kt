@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -149,7 +152,9 @@ class InputDialogFragment : DialogFragment() {
 
     private fun onKeyEvent(event: KeyEvent): Boolean {
         if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD
+            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD &&
+            event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
+            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
         ) {
             return false
         }
@@ -173,7 +178,9 @@ class InputDialogFragment : DialogFragment() {
 
     private fun onMotionEvent(event: MotionEvent): Boolean {
         if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD
+            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD &&
+            event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
+            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
         ) {
             return false
         }
