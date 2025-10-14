@@ -9,6 +9,7 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
@@ -71,6 +72,42 @@ std::string ResolveURL(const std::string& url) {
     return url.substr(0, index) + "lp1" + url.substr(index + 1);
 }
 
+WebArgInputTLVMap ReadWebArgs(const std::vector<u8>& web_arg, WebArgHeader& web_arg_header) {
+    std::memcpy(&web_arg_header, web_arg.data(), sizeof(WebArgHeader));
+
+    if (web_arg.size() == sizeof(WebArgHeader)) {
+        return {};
+    }
+
+    WebArgInputTLVMap input_tlv_map;
+
+    u64 current_offset = sizeof(WebArgHeader);
+
+    for (std::size_t i = 0; i < web_arg_header.total_tlv_entries; ++i) {
+        if (web_arg.size() < current_offset + sizeof(WebArgInputTLV)) {
+            return input_tlv_map;
+        }
+
+        WebArgInputTLV input_tlv;
+        std::memcpy(&input_tlv, web_arg.data() + current_offset, sizeof(WebArgInputTLV));
+
+        current_offset += sizeof(WebArgInputTLV);
+
+        if (web_arg.size() < current_offset + input_tlv.arg_data_size) {
+            return input_tlv_map;
+        }
+
+        std::vector<u8> data(input_tlv.arg_data_size);
+        std::memcpy(data.data(), web_arg.data() + current_offset, input_tlv.arg_data_size);
+
+        current_offset += input_tlv.arg_data_size;
+
+        input_tlv_map.insert_or_assign(input_tlv.input_tlv_type, std::move(data));
+    }
+
+    return input_tlv_map;
+}
+
 FileSys::VirtualFile GetOfflineRomFS(Core::System& system, u64 title_id,
                                      FileSys::ContentRecordType nca_type) {
     if (nca_type == FileSys::ContentRecordType::Data) {
@@ -109,43 +146,6 @@ FileSys::VirtualFile GetOfflineRomFS(Core::System& system, u64 title_id,
 
         return pm.PatchRomFS(nca.get(), nca->GetRomFS(), nca_type);
     }
-}
-
-#ifdef YUZU_USE_QT_WEB_ENGINE
-WebArgInputTLVMap ReadWebArgs(const std::vector<u8>& web_arg, WebArgHeader& web_arg_header) {
-    std::memcpy(&web_arg_header, web_arg.data(), sizeof(WebArgHeader));
-
-    if (web_arg.size() == sizeof(WebArgHeader)) {
-        return {};
-    }
-
-    WebArgInputTLVMap input_tlv_map;
-
-    u64 current_offset = sizeof(WebArgHeader);
-
-    for (std::size_t i = 0; i < web_arg_header.total_tlv_entries; ++i) {
-        if (web_arg.size() < current_offset + sizeof(WebArgInputTLV)) {
-            return input_tlv_map;
-        }
-
-        WebArgInputTLV input_tlv;
-        std::memcpy(&input_tlv, web_arg.data() + current_offset, sizeof(WebArgInputTLV));
-
-        current_offset += sizeof(WebArgInputTLV);
-
-        if (web_arg.size() < current_offset + input_tlv.arg_data_size) {
-            return input_tlv_map;
-        }
-
-        std::vector<u8> data(input_tlv.arg_data_size);
-        std::memcpy(data.data(), web_arg.data() + current_offset, input_tlv.arg_data_size);
-
-        current_offset += input_tlv.arg_data_size;
-
-        input_tlv_map.insert_or_assign(input_tlv.input_tlv_type, std::move(data));
-    }
-
-    return input_tlv_map;
 }
 
 void ExtractSharedFonts(Core::System& system) {
@@ -225,7 +225,6 @@ void ExtractSharedFonts(Core::System& system) {
         FileSys::VfsRawCopy(decrypted_font, out_file);
     }
 }
-#endif
 
 } // namespace
 
@@ -237,7 +236,11 @@ WebBrowser::WebBrowser(Core::System& system_, std::shared_ptr<Applet> applet_,
 WebBrowser::~WebBrowser() = default;
 
 void WebBrowser::Initialize() {
-#ifdef YUZU_USE_QT_WEB_ENGINE
+    if (Settings::values.disable_web_applet) {
+        LOG_INFO(Service_AM, "Web Browser Applet disabled, skipping.");
+        return;
+    }
+
     FrontendApplet::Initialize();
 
     LOG_INFO(Service_AM, "Initializing Web Browser Applet.");
@@ -290,7 +293,6 @@ void WebBrowser::Initialize() {
         ASSERT_MSG(false, "Invalid ShimKind={}", web_arg_header.shim_kind);
         break;
     }
-#endif
 }
 
 Result WebBrowser::GetStatus() const {
@@ -302,7 +304,11 @@ void WebBrowser::ExecuteInteractive() {
 }
 
 void WebBrowser::Execute() {
-#ifdef YUZU_USE_QT_WEB_ENGINE
+    if (Settings::values.disable_web_applet) {
+        WebBrowserExit(WebExitReason::EndButtonPressed);
+        return;
+    }
+
     switch (web_arg_header.shim_kind) {
     case ShimKind::Shop:
         ExecuteShop();
@@ -330,10 +336,6 @@ void WebBrowser::Execute() {
         WebBrowserExit(WebExitReason::EndButtonPressed);
         break;
     }
-#else
-    LOG_INFO(Service_AM, "Web Browser Applet disabled, skipping.");
-    WebBrowserExit(WebExitReason::EndButtonPressed);
-#endif
 }
 
 void WebBrowser::ExtractOfflineRomFS() {

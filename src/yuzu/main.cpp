@@ -934,7 +934,7 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
 #ifdef YUZU_USE_QT_WEB_ENGINE
 
     // Raw input breaks with the web applet, Disable web applets if enabled
-    if (UISettings::values.disable_web_applet || Settings::values.enable_raw_input) {
+    if (Settings::values.disable_web_applet || Settings::values.enable_raw_input) {
         emit WebBrowserClosed(Service::AM::Frontend::WebExitReason::WindowClosed,
                               "http://localhost/");
         return;
@@ -1007,7 +1007,7 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
                "applet?\n(This can be re-enabled in the Debug settings.)"),
             QMessageBox::Yes | QMessageBox::No);
         if (result == QMessageBox::Yes) {
-            UISettings::values.disable_web_applet = true;
+            Settings::values.disable_web_applet = true;
             web_applet->SetFinished(true);
         }
     });

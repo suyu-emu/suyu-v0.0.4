@@ -81,7 +81,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
 
 #ifdef YUZU_USE_QT_WEB_ENGINE
-    ui->disable_web_applet->setChecked(UISettings::values.disable_web_applet.GetValue());
+    ui->disable_web_applet->setChecked(Settings::values.disable_web_applet.GetValue());
 #else
     ui->disable_web_applet->setVisible(false);
 #endif
@@ -116,7 +116,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.disable_macro_hle = ui->disable_macro_hle->isChecked();
     Settings::values.extended_logging = ui->extended_logging->isChecked();
     Settings::values.perform_vulkan_check = ui->perform_vulkan_check->isChecked();
-    UISettings::values.disable_web_applet = ui->disable_web_applet->isChecked();
+    Settings::values.disable_web_applet = ui->disable_web_applet->isChecked();
     Debugger::ToggleConsole();
     Common::Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter.GetValue());

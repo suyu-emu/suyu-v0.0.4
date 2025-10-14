@@ -735,6 +735,7 @@ struct Values {
     Setting<bool> enable_all_controllers{linkage, false, "enable_all_controllers",
                                          Category::Debugging};
     Setting<bool> perform_vulkan_check{linkage, true, "perform_vulkan_check", Category::Debugging};
+    Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Debugging};
 
     // Miscellaneous
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
