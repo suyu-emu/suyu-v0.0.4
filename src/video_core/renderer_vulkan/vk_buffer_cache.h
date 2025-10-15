@@ -172,7 +172,7 @@ private:
         u32 align = 256;
         size_t current_frame = 0;
 
-        void Init(const Device& device, MemoryAllocator& alloc, u64 bytes, u32 alignment);
+        void Init(MemoryAllocator& alloc, u32 alignment, u64 bytes);
         void BeginFrame() {
             current_frame = (current_frame + 1) % NUM_FRAMES;
             head = 0;

@@ -341,7 +341,7 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
             device.GetUniformBufferAlignment() //check if the device has it
     );
     // add the ability to change the size in settings in future
-    uniform_ring.Init(device, memory_allocator, 8 * 1024 * 1024 /* 8 MiB */, ubo_align ? ubo_align : 256);
+    uniform_ring.Init(memory_allocator, 8 * 1024 * 1024 /* 8 MiB */, ubo_align ? ubo_align : 256);
     quad_array_index_buffer = std::make_shared<QuadArrayIndexBuffer>(device_, memory_allocator_,
                                                                      scheduler_, staging_pool_);
     quad_strip_index_buffer = std::make_shared<QuadStripIndexBuffer>(device_, memory_allocator_,
@@ -360,9 +360,8 @@ void BufferCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
     staging_pool.FreeDeferred(ref);
 }
 
-void BufferCacheRuntime::UniformRing::Init(const Device& device,
-                                           MemoryAllocator& alloc,
-                                           u64 bytes, u32 alignment) {
+void BufferCacheRuntime::UniformRing::Init(MemoryAllocator& alloc, u32 alignment, u64 bytes)
+{
     for (size_t i = 0; i < NUM_FRAMES; ++i) {
         VkBufferCreateInfo ci{
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,

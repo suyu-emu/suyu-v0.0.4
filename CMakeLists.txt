@@ -574,7 +574,8 @@ if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
 endif()
 
 if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
-    find_package(httplib)
+    # Workaround: httplib will kill itself if you attempt to do a find_package propagation
+    # find_package(httplib CONFIG)
 endif()
 
 if (ENABLE_WEB_SERVICE)
