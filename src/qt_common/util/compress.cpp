@@ -5,13 +5,14 @@
 #include "quazipfileinfo.h"
 
 #include <QDirIterator>
+#include <quazipfile.h>
 
 /** This is a modified version of JlCompress **/
 namespace QtCommon::Compress {
 
 bool compressDir(QString fileCompressed,
                  QString dir,
-                 const JlCompress::Options &options,
+                 const Options &options,
                  QtCommon::QtProgressCallback callback)
 {
     // Create zip
@@ -56,7 +57,7 @@ bool compressDir(QString fileCompressed,
 bool compressSubDir(QuaZip *zip,
                     QString dir,
                     QString origDir,
-                    const JlCompress::Options &options,
+                    const Options &options,
                     std::size_t total,
                     std::size_t &progress,
                     QtProgressCallback callback)
@@ -129,7 +130,7 @@ bool compressSubDir(QuaZip *zip,
 bool compressFile(QuaZip *zip,
                   QString fileName,
                   QString fileDest,
-                  const JlCompress::Options &options,
+                  const Options &options,
                   std::size_t total,
                   std::size_t &progress,
                   QtCommon::QtProgressCallback callback)

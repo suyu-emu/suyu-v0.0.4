@@ -425,7 +425,7 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
     QFuture<bool> future = QtConcurrent::run([=]() {
         return QtCommon::Compress::compressDir(zip_dump_location,
                                                QString::fromStdString(dir),
-                                               JlCompress::Options(),
+                                               QtCommon::Compress::Options(),
                                                progress_callback);
     });
 
