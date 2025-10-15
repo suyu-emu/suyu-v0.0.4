@@ -16,7 +16,7 @@
 #include <QMetaType>
 #include <QTime>
 #include <QUrl>
-#include <QtConcurrent/QtConcurrentRun>
+#include <QtConcurrentRun>
 #include "common/logging/log.h"
 #include "network/announce_multiplayer_session.h"
 #include "ui_chat_room.h"

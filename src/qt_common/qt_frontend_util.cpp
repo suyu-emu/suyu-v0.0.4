@@ -32,4 +32,15 @@ const QString GetOpenFileName(const QString &title,
 #endif
 }
 
+const QString GetSaveFileName(const QString &title,
+                              const QString &dir,
+                              const QString &filter,
+                              QString *selectedFilter,
+                              Options options)
+{
+#ifdef YUZU_QT_WIDGETS
+    return QFileDialog::getSaveFileName((QWidget *) rootObject, title, dir, filter, selectedFilter, options);
+#endif
+}
+
 } // namespace QtCommon::Frontend

@@ -156,6 +156,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/debugger/console.h"
 #include "yuzu/debugger/controller.h"
 #include "yuzu/debugger/wait_tree.h"
+#include "yuzu/data_dialog.h"
 #include "yuzu/deps_dialog.h"
 #include "yuzu/discord.h"
 #include "yuzu/game_list.h"
@@ -1705,6 +1706,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Install_Keys, &GMainWindow::OnInstallDecryptionKeys);
     connect_menu(ui->action_About, &GMainWindow::OnAbout);
     connect_menu(ui->action_Eden_Dependencies, &GMainWindow::OnEdenDependencies);
+    connect_menu(ui->action_Data_Manager, &GMainWindow::OnDataDialog);
 }
 
 void GMainWindow::UpdateMenuState() {
@@ -2406,7 +2408,6 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
 
     ASSERT_MSG(has_user_save != has_device_save, "Game uses both user and device savedata?");
 
-    // TODO(alekpop): It returns the wrong user
     switch (target) {
     case GameListOpenTarget::SaveData: {
         open_target = tr("Save Data");
@@ -2792,6 +2793,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
 }
 
 void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
+    // TODO(crueter): QtCommon
     std::filesystem::path fs_path;
     if (directory == QStringLiteral("SDMC")) {
         fs_path =
@@ -3934,6 +3936,15 @@ void GMainWindow::OnEdenDependencies() {
     depsDialog.exec();
 }
 
+void GMainWindow::OnDataDialog() {
+    DataDialog dataDialog(this);
+    dataDialog.exec();
+
+    // refresh stuff in case it was cleared
+    OnGameListRefresh();
+
+}
+
 void GMainWindow::OnToggleFilterBar() {
     game_list->SetFilterVisible(ui->action_Show_Filter_Bar->isChecked());
     if (ui->action_Show_Filter_Bar->isChecked()) {
@@ -4474,11 +4485,15 @@ void GMainWindow::SetFirmwareVersion() {
 
     if (result.IsError() || !CheckFirmwarePresence()) {
         LOG_INFO(Frontend, "Installed firmware: No firmware available");
+        ui->menu_Applets->setEnabled(false);
+        ui->menu_Create_Shortcuts->setEnabled(false);
         firmware_label->setVisible(false);
         return;
     }
 
     firmware_label->setVisible(true);
+    ui->menu_Applets->setEnabled(true);
+    ui->menu_Create_Shortcuts->setEnabled(true);
 
     const std::string display_version(firmware_data.display_version.data());
     const std::string display_title(firmware_data.display_title.data());

@@ -97,10 +97,10 @@ Q_ENUM_NS(Icon)
 
 // TODO(crueter) widgets-less impl, choices et al.
 StandardButton ShowMessage(Icon icon,
-                                        const QString &title,
-                                        const QString &text,
-                                        StandardButtons buttons = StandardButton::NoButton,
-                                        QObject *parent = nullptr);
+                           const QString &title,
+                           const QString &text,
+                           StandardButtons buttons = StandardButton::NoButton,
+                           QObject *parent = nullptr);
 
 #define UTIL_OVERRIDES(level) \
     inline StandardButton level(QObject *parent, \
@@ -109,21 +109,6 @@ StandardButton ShowMessage(Icon icon,
                                              StandardButtons buttons = StandardButton::Ok) \
     { \
         return ShowMessage(Icon::level, title, text, buttons, parent); \
-    } \
-    inline StandardButton level(QObject *parent, \
-                                             const char *title, \
-                                             const char *text, \
-                                             StandardButtons buttons \
-                                             = StandardButton::Ok) \
-    { \
-        return ShowMessage(Icon::level, tr(title), tr(text), buttons, parent); \
-    } \
-    inline StandardButton level(const char *title, \
-                                             const char *text, \
-                                             StandardButtons buttons \
-                                             = StandardButton::Ok) \
-    { \
-        return ShowMessage(Icon::level, tr(title), tr(text), buttons, rootObject); \
     } \
     inline StandardButton level(const QString title, \
                                              const QString &text, \
@@ -139,6 +124,12 @@ UTIL_OVERRIDES(Critical)
 UTIL_OVERRIDES(Question)
 
 const QString GetOpenFileName(const QString &title,
+                              const QString &dir,
+                              const QString &filter,
+                              QString *selectedFilter = nullptr,
+                              Options options = Options());
+
+const QString GetSaveFileName(const QString &title,
                               const QString &dir,
                               const QString &filter,
                               QString *selectedFilter = nullptr,

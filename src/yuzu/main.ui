@@ -158,12 +158,22 @@
     </property>
     <widget class="QMenu" name="menu_cabinet_applet">
      <property name="title">
-      <string>&amp;Amiibo</string>
+      <string>Am&amp;iibo</string>
      </property>
      <addaction name="action_Load_Cabinet_Nickname_Owner"/>
      <addaction name="action_Load_Cabinet_Eraser"/>
      <addaction name="action_Load_Cabinet_Restorer"/>
      <addaction name="action_Load_Cabinet_Formatter"/>
+    </widget>
+    <widget class="QMenu" name="menu_Applets">
+     <property name="title">
+      <string>&amp;Applets</string>
+     </property>
+     <addaction name="action_Load_Home_Menu"/>
+     <addaction name="action_Load_Album"/>
+     <addaction name="action_Load_Mii_Edit"/>
+     <addaction name="action_Open_Controller_Menu"/>
+     <addaction name="action_Open_Setup"/>
     </widget>
     <widget class="QMenu" name="menuTAS">
      <property name="title">
@@ -184,7 +194,7 @@
     </widget>
     <widget class="QMenu" name="menuInstall_Firmware">
      <property name="title">
-      <string>Install Firmware</string>
+      <string>Install &amp;Firmware</string>
      </property>
      <addaction name="action_Firmware_From_Folder"/>
      <addaction name="action_Firmware_From_ZIP"/>
@@ -192,13 +202,10 @@
     <addaction name="action_Install_Keys"/>
     <addaction name="menuInstall_Firmware"/>
     <addaction name="action_Verify_installed_contents"/>
+    <addaction name="action_Data_Manager"/>
     <addaction name="separator"/>
     <addaction name="menu_cabinet_applet"/>
-    <addaction name="action_Load_Album"/>
-    <addaction name="action_Load_Mii_Edit"/>
-    <addaction name="action_Open_Controller_Menu"/>
-    <addaction name="action_Load_Home_Menu"/>
-    <addaction name="action_Open_Setup"/>
+    <addaction name="menu_Applets"/>
     <addaction name="menu_Create_Shortcuts"/>
     <addaction name="separator"/>
     <addaction name="action_Capture_Screenshot"/>
@@ -497,12 +504,12 @@
   </action>
   <action name="action_Install_Keys">
    <property name="text">
-    <string>Install Decryption Keys</string>
+    <string>Install Decryption &amp;Keys</string>
    </property>
   </action>
   <action name="action_Load_Home_Menu">
    <property name="text">
-    <string>Open Home Menu</string>
+    <string>Open &amp;Home Menu</string>
    </property>
   </action>
   <action name="action_Discord">
@@ -591,6 +598,11 @@
   <action name="action_Eden_Dependencies">
    <property name="text">
     <string>&amp;Eden Dependencies</string>
+   </property>
+  </action>
+  <action name="action_Data_Manager">
+   <property name="text">
+    <string>&amp;Data Manager</string>
    </property>
   </action>
  </widget>

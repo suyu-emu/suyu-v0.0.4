@@ -14,7 +14,7 @@
 #include <QRegExpValidator>
 #endif
 
-#include <QtConcurrent/QtConcurrentRun>
+#include <QtConcurrentRun>
 #include "common/settings.h"
 #include "ui_configure_web.h"
 #include "qt_common/uisettings.h"

@@ -13,12 +13,13 @@ Copyright: yuzu Emulator Project
 License: GPL-2.0-or-later
 
 Files: dist/qt_themes/default/icons/256x256/eden.png
+       dist/qt_themes/default/icons/256x256/eden_named.png
        dist/yuzu.bmp
-       dist/yuzu.icns
+       dist/eden.icns
        dist/eden.ico
-       dist/eden.svg
-Copyright: yuzu Emulator Project
-License: GPL-2.0-or-later
+       dist/dev.eden_emu.eden.svg
+Copyright: 2025 Eden Emulator Project
+License: GPL-3.0-or-later
 
 Files: dist/qt_themes/qdarkstyle*/LICENSE.*
        dist/qt_themes/qdarkstyle*/style.qrc
@@ -155,3 +156,39 @@ License: BSD-3-Clause
 Files: src/android/app/debug.keystore
 Copyright: 2023 yuzu Emulator Project
 License: GPL-3.0-or-later
+
+Files: dist/qt_themes/colorful/icons/48x48/user-trash.png
+       dist/qt_themes/colorful/icons/48x48/upload.png
+       dist/qt_themes/colorful/icons/48x48/download.png
+Copyright: 2014 Uri Herrera
+           1996-2025 KDE Software Foundation
+License: LGPL-2.0-or-later
+
+Files: dist/qt_themes/default/icons/48x48/user-trash.png
+       dist/qt_themes/default/icons/48x48/upload.png
+       dist/qt_themes/default/icons/48x48/download.png
+       dist/qt_themes/default_dark/icons/48x48/user-trash.png
+       dist/qt_themes/default_dark/icons/48x48/upload.png
+       dist/qt_themes/default_dark/icons/48x48/download.png
+Copyright: 2025 Fonticons, Inc.
+License: CC-BY-4.0
+Comment: All of these icons have been modified by crueter <crueter@crueter.xyz>
+
+Files: CMakeModules/CPM.cmake
+Copyright: 2019-2023 Lars Melchior
+License: MIT
+
+Files: CMakeModules/CPMUtil.cmake
+       CMakeModules/CPM.cmake
+       CMakeModules/GetSCMRev.cmake
+       CMakeModules/DetectArchitecture.cmake
+       tools/cpm/*
+       tools/update-cpm.sh
+       tools/shellcheck.sh
+       docs/CPMUtil.md
+       **cpmfile.json
+Copyright: 2025 crueter <crueter@crueter.xyz>
+License: GPL-3.0-or-later
+Comment: CPM.cmake has had additional modifications from crueter to better work with CPMUtil
+         https://git.crueter.xyz/CMake/CPMUtil
+         https://git.crueter.xyz/CMake/Modules

@@ -220,8 +220,8 @@ void RemoveBaseContent(u64 program_id, InstalledEntryType type)
                                                        program_id);
     if (res) {
         QtCommon::Frontend::Information(rootObject,
-                                        "Successfully Removed",
-                                        "Successfully removed the installed base game.");
+                                        tr("Successfully Removed"),
+                                        tr("Successfully removed the installed base game."));
     } else {
         QtCommon::Frontend::Warning(
             rootObject,
@@ -235,8 +235,8 @@ void RemoveUpdateContent(u64 program_id, InstalledEntryType type)
     const auto res = ContentManager::RemoveUpdate(system->GetFileSystemController(), program_id);
     if (res) {
         QtCommon::Frontend::Information(rootObject,
-                                        "Successfully Removed",
-                                        "Successfully removed the installed update.");
+                                        tr("Successfully Removed"),
+                                        tr("Successfully removed the installed update."));
     } else {
         QtCommon::Frontend::Warning(rootObject,
                                     GetGameListErrorRemoving(type),

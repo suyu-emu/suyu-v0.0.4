@@ -10,7 +10,7 @@
 #include <QLocale>
 #include <QMetaType>
 #include <QTime>
-#include <QtConcurrent/QtConcurrentRun>
+#include <QtConcurrentRun>
 #include "common/logging/log.h"
 #include "network/announce_multiplayer_session.h"
 #include "ui_client_room.h"

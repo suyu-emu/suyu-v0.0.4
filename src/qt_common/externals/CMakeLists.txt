@@ -16,5 +16,4 @@ set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 AddJsonPackage(quazip)
 
 # frozen
-# TODO(crueter): Qt String Lookup
-# AddJsonPackage(frozen)
+AddJsonPackage(frozen)

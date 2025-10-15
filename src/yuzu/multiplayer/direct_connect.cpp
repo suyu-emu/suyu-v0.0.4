@@ -9,7 +9,7 @@
 #include <QIntValidator>
 #include <QRegularExpressionValidator>
 #include <QString>
-#include <QtConcurrent/QtConcurrentRun>
+#include <QtConcurrentRun>
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/internal_network/network_interface.h"

@@ -387,6 +387,7 @@ private slots:
     void OnInstallDecryptionKeys();
     void OnAbout();
     void OnEdenDependencies();
+    void OnDataDialog();
     void OnToggleFilterBar();
     void OnToggleStatusBar();
     void OnGameListRefresh();

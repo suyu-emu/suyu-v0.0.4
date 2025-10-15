@@ -234,6 +234,9 @@ add_executable(yuzu
     deps_dialog.cpp
     deps_dialog.h
     deps_dialog.ui
+
+    data_dialog.h data_dialog.cpp data_dialog.ui
+    data_widget.ui
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
@@ -390,31 +393,12 @@ endif()
 
 target_link_libraries(yuzu PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(yuzu PRIVATE common core input_common frontend_common network video_core qt_common)
-target_link_libraries(yuzu PRIVATE Boost::headers glad Qt6::Widgets)
+target_link_libraries(yuzu PRIVATE Boost::headers glad Qt6::Widgets Qt6::Concurrent)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 if (UNIX AND NOT APPLE)
     target_link_libraries(yuzu PRIVATE Qt6::DBus)
 endif()
-
-target_compile_definitions(yuzu PRIVATE
-    # Use QStringBuilder for string concatenation to reduce
-    # the overall number of temporary strings created.
-    QT_USE_QSTRINGBUILDER
-
-    # Disable implicit conversions from/to C strings
-    QT_NO_CAST_FROM_ASCII
-    QT_NO_CAST_TO_ASCII
-
-    # Disable implicit type narrowing in signal/slot connect() calls.
-    QT_NO_NARROWING_CONVERSIONS_IN_CONNECT
-
-    # Disable unsafe overloads of QProcess' start() function.
-    QT_NO_PROCESS_COMBINED_ARGUMENT_START
-
-    # Disable implicit QString->QUrl conversions to enforce use of proper resolving functions.
-    QT_NO_URL_CAST_FROM_STRING
-)
 
 if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
     target_compile_definitions(yuzu PRIVATE YUZU_ENABLE_COMPATIBILITY_REPORTING)

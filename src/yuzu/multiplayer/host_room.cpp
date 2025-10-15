@@ -12,7 +12,7 @@
 #include <QMessageBox>
 #include <QMetaType>
 #include <QTime>
-#include <QtConcurrent/QtConcurrentRun>
+#include <QtConcurrentRun>
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/core.h"

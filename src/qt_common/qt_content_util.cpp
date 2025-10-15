@@ -1,17 +1,22 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "qt_common/qt_game_util.h"
 #include "qt_content_util.h"
 #include "common/fs/fs.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "frontend_common/content_manager.h"
+#include "frontend_common/data_manager.h"
 #include "frontend_common/firmware_manager.h"
 #include "qt_common/qt_common.h"
+#include "qt_common/qt_compress.h"
+#include "qt_common/qt_game_util.h"
 #include "qt_common/qt_progress_dialog.h"
 #include "qt_frontend_util.h"
 
+#include <QFuture>
+#include <QtConcurrentRun>
 #include <JlCompress.h>
+#include <qfuturewatcher.h>
 
 namespace QtCommon::Content {
 
@@ -21,10 +26,10 @@ bool CheckGameFirmware(u64 program_id, QObject* parent)
         && !FirmwareManager::CheckFirmwarePresence(*system)) {
         auto result = QtCommon::Frontend::ShowMessage(
             QMessageBox::Warning,
-            "Game Requires Firmware",
-            "The game you are trying to launch requires firmware to boot or to get past the "
-            "opening menu. Please <a href='https://yuzu-mirror.github.io/help/quickstart'>"
-            "dump and install firmware</a>, or press \"OK\" to launch anyways.",
+            tr("Game Requires Firmware"),
+            tr("The game you are trying to launch requires firmware to boot or to get past the "
+               "opening menu. Please <a href='https://yuzu-mirror.github.io/help/quickstart'>"
+               "dump and install firmware</a>, or press \"OK\" to launch anyways."),
             QMessageBox::Ok | QMessageBox::Cancel,
             parent);
 
@@ -60,8 +65,8 @@ void InstallFirmware(const QString& location, bool recursive)
 
     const auto ShowMessage = [&]() {
         QtCommon::Frontend::ShowMessage(icon,
-                                        failedTitle,
-                                        GetFirmwareInstallResultString(result));
+                                        tr(failedTitle),
+                                        tr(GetFirmwareInstallResultString(result)));
     };
 
     LOG_INFO(Frontend, "Installing firmware from {}", location.toStdString());
@@ -125,8 +130,8 @@ void InstallFirmware(const QString& location, bool recursive)
         i++;
         auto firmware_src_vfile = vfs->OpenFile(firmware_src_path.generic_string(),
                                                 FileSys::OpenMode::Read);
-        auto firmware_dst_vfile = firmware_vdir
-                                      ->CreateFileRelative(firmware_src_path.filename().string());
+        auto firmware_dst_vfile = firmware_vdir->CreateFileRelative(
+            firmware_src_path.filename().string());
 
         if (!VfsRawCopy(firmware_src_vfile, firmware_dst_vfile)) {
             LOG_ERROR(Frontend,
@@ -168,9 +173,9 @@ void InstallFirmware(const QString& location, bool recursive)
         const auto failed_names = QString::fromStdString(
             fmt::format("{}", fmt::join(results, "\n")));
         progress.close();
-        QtCommon::Frontend::Critical(tr("Firmware integrity verification failed!"),
-                                     tr("Verification failed for the following files:\n\n%1")
-                                         .arg(failed_names));
+        QtCommon::Frontend::Critical(
+            tr("Firmware integrity verification failed!"),
+            tr("Verification failed for the following files:\n\n%1").arg(failed_names));
         return;
     }
 
@@ -181,10 +186,10 @@ void InstallFirmware(const QString& location, bool recursive)
     const std::string display_version(firmware_data.display_version.data());
 
     result = FirmwareInstallResult::Success;
-    QtCommon::Frontend::Information(rootObject,
-                                    tr(successTitle),
-                                    tr(GetFirmwareInstallResultString(result))
-                                        .arg(QString::fromStdString(display_version)));
+    QtCommon::Frontend::Information(
+        rootObject,
+        tr(successTitle),
+        tr(GetFirmwareInstallResultString(result)).arg(QString::fromStdString(display_version)));
 }
 
 QString UnzipFirmwareToTmp(const QString& location)
@@ -193,7 +198,7 @@ QString UnzipFirmwareToTmp(const QString& location)
     fs::path tmp{fs::temp_directory_path()};
 
     if (!fs::create_directories(tmp / "eden" / "firmware")) {
-        return "";
+        return QString();
     }
 
     tmp /= "eden";
@@ -205,7 +210,7 @@ QString UnzipFirmwareToTmp(const QString& location)
 
     QStringList result = JlCompress::extractDir(&zip, qCacheDir);
     if (result.isEmpty()) {
-        return "";
+        return QString();
     }
 
     return qCacheDir;
@@ -264,9 +269,8 @@ void InstallKeys()
         return;
     }
 
-    FirmwareManager::KeyInstallResult result = FirmwareManager::InstallKeys(key_source_location
-                                                                                .toStdString(),
-                                                                            "keys");
+    FirmwareManager::KeyInstallResult result
+        = FirmwareManager::InstallKeys(key_source_location.toStdString(), "keys");
 
     system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
 
@@ -282,9 +286,14 @@ void InstallKeys()
     }
 }
 
-void VerifyInstalledContents() {
+void VerifyInstalledContents()
+{
     // Initialize a progress dialog.
-    QtCommon::Frontend::QtProgressDialog progress(tr("Verifying integrity..."), tr("Cancel"), 0, 100, QtCommon::rootObject);
+    QtCommon::Frontend::QtProgressDialog progress(tr("Verifying integrity..."),
+                                                  tr("Cancel"),
+                                                  0,
+                                                  100,
+                                                  QtCommon::rootObject);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
     progress.setAutoClose(false);
@@ -296,16 +305,17 @@ void VerifyInstalledContents() {
         return progress.wasCanceled();
     };
 
-    const std::vector<std::string> result =
-        ContentManager::VerifyInstalledContents(*QtCommon::system, *QtCommon::provider, QtProgressCallback);
+    const std::vector<std::string> result
+        = ContentManager::VerifyInstalledContents(*QtCommon::system,
+                                                  *QtCommon::provider,
+                                                  QtProgressCallback);
     progress.close();
 
     if (result.empty()) {
         QtCommon::Frontend::Information(tr("Integrity verification succeeded!"),
                                         tr("The operation completed successfully."));
     } else {
-        const auto failed_names =
-            QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
+        const auto failed_names = QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
         QtCommon::Frontend::Critical(
             tr("Integrity verification failed!"),
             tr("Verification failed for the following files:\n\n%1").arg(failed_names));
@@ -332,7 +342,7 @@ void FixProfiles()
     qorphaned.reserve(8 * 33);
 
     for (const std::string& s : orphaned) {
-        qorphaned += "\n" + QString::fromStdString(s);
+        qorphaned = qorphaned % QStringLiteral("\n") % QString::fromStdString(s);
     }
 
     QtCommon::Frontend::Critical(
@@ -346,6 +356,186 @@ void FixProfiles()
             .arg(qorphaned));
 
     QtCommon::Game::OpenSaveFolder();
+}
+
+void ClearDataDir(FrontendCommon::DataManager::DataDir dir, const std::string& user_id)
+{
+    auto result = QtCommon::Frontend::Warning(tr("Really clear data?"),
+                                              tr("Important data may be lost!"),
+                                              QMessageBox::Yes | QMessageBox::No);
+
+    if (result != QMessageBox::Yes)
+        return;
+
+    result = QtCommon::Frontend::Warning(
+        tr("Are you REALLY sure?"),
+        tr("Once deleted, your data will NOT come back!\n"
+           "Only do this if you're 100% sure you want to delete this data."),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (result != QMessageBox::Yes)
+        return;
+
+    QtCommon::Frontend::QtProgressDialog dialog(tr("Clearing..."), QString(), 0, 0);
+    dialog.show();
+
+    FrontendCommon::DataManager::ClearDir(dir, user_id);
+
+    dialog.close();
+}
+
+void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
+                   const std::string& user_id,
+                   const QString& name,
+                   std::function<void()> callback)
+{
+    using namespace QtCommon::Frontend;
+    const std::string dir = FrontendCommon::DataManager::GetDataDir(data_dir, user_id);
+
+    const QString zip_dump_location = GetSaveFileName(tr("Select Export Location"),
+                                                      tr("%1.zip").arg(name),
+                                                      tr("Zipped Archives (*.zip)"));
+
+    if (zip_dump_location.isEmpty())
+        return;
+
+    QtProgressDialog* progress = new QtProgressDialog(
+        tr("Exporting data. This may take a while..."), tr("Cancel"), 0, 100, rootObject);
+
+    progress->setWindowTitle(tr("Exporting"));
+    progress->setWindowModality(Qt::WindowModal);
+    progress->setMinimumDuration(100);
+    progress->setAutoClose(false);
+    progress->setAutoReset(false);
+    progress->show();
+
+    QGuiApplication::processEvents();
+
+    auto progress_callback = [=](size_t total_size, size_t processed_size) {
+        QMetaObject::invokeMethod(progress,
+                                  &QtProgressDialog::setValue,
+                                  static_cast<int>((processed_size * 100) / total_size));
+
+        return !progress->wasCanceled();
+    };
+
+    QFuture<bool> future = QtConcurrent::run([=]() {
+        return QtCommon::Compress::compressDir(zip_dump_location,
+                                               QString::fromStdString(dir),
+                                               JlCompress::Options(),
+                                               progress_callback);
+    });
+
+    QFutureWatcher<bool>* watcher = new QFutureWatcher<bool>(rootObject);
+
+    QObject::connect(watcher, &QFutureWatcher<bool>::finished, rootObject, [=]() {
+        progress->close();
+
+        if (watcher->result()) {
+            Information(tr("Exported Successfully"), tr("Data was exported successfully."));
+        } else if (progress->wasCanceled()) {
+            Information(tr("Export Cancelled"), tr("Export was cancelled by the user."));
+        } else {
+            Critical(
+                tr("Export Failed"),
+                tr("Ensure you have write permissions on the targeted directory and try again."));
+        }
+
+        progress->deleteLater();
+        watcher->deleteLater();
+        if (callback)
+            callback();
+    });
+
+    watcher->setFuture(future);
+}
+
+void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir,
+                   const std::string& user_id,
+                   std::function<void()> callback)
+{
+    const std::string dir = FrontendCommon::DataManager::GetDataDir(data_dir, user_id);
+
+    using namespace QtCommon::Frontend;
+
+    const QString zip_dump_location = GetOpenFileName(tr("Select Import Location"),
+                                                      {},
+                                                      tr("Zipped Archives (*.zip)"));
+
+    if (zip_dump_location.isEmpty())
+        return;
+
+    StandardButton button = Warning(
+        tr("Import Warning"),
+        tr("All previous data in this directory will be deleted. Are you sure you wish to "
+           "proceed?"),
+        StandardButton::Yes | StandardButton::No);
+
+    if (button != QMessageBox::Yes)
+        return;
+
+    QtProgressDialog* progress = new QtProgressDialog(
+        tr("Importing data. This may take a while..."), tr("Cancel"), 0, 100, rootObject);
+
+    progress->setWindowTitle(tr("Importing"));
+    progress->setWindowModality(Qt::WindowModal);
+    progress->setMinimumDuration(100);
+    progress->setAutoClose(false);
+    progress->setAutoReset(false);
+    progress->show();
+    progress->setValue(0);
+
+    QGuiApplication::processEvents();
+
+    // to prevent GUI mangling we have to run this in a thread as well
+    QFuture<bool> delete_future = QtConcurrent::run([=]() {
+        FrontendCommon::DataManager::ClearDir(data_dir, user_id);
+        return !progress->wasCanceled();
+    });
+
+    QFutureWatcher<bool>* delete_watcher = new QFutureWatcher<bool>(rootObject);
+    delete_watcher->setFuture(delete_future);
+
+    QObject::connect(delete_watcher, &QFutureWatcher<bool>::finished, rootObject, [=]() {
+        auto progress_callback = [=](size_t total_size, size_t processed_size) {
+            QMetaObject::invokeMethod(progress,
+                                      &QtProgressDialog::setValue,
+                                      static_cast<int>((processed_size * 100) / total_size));
+
+            return !progress->wasCanceled();
+        };
+
+        QFuture<bool> future = QtConcurrent::run([=]() {
+            return !QtCommon::Compress::extractDir(zip_dump_location,
+                                                   QString::fromStdString(dir),
+                                                   progress_callback)
+                        .empty();
+        });
+
+        QFutureWatcher<bool>* watcher = new QFutureWatcher<bool>(rootObject);
+
+        QObject::connect(watcher, &QFutureWatcher<bool>::finished, rootObject, [=]() {
+            progress->close();
+
+            // this sucks
+            if (watcher->result()) {
+                Information(tr("Imported Successfully"), tr("Data was imported successfully."));
+            } else if (progress->wasCanceled()) {
+                Information(tr("Import Cancelled"), tr("Import was cancelled by the user."));
+            } else {
+                Critical(tr("Import Failed"),
+                         tr("Ensure you have read permissions on the targeted directory and try "
+                            "again."));
+            }
+
+            progress->deleteLater();
+            watcher->deleteLater();
+            if (callback)
+                callback();
+        });
+
+        watcher->setFuture(future);
+    });
 }
 
 } // namespace QtCommon::Content

@@ -11,6 +11,9 @@ SPDX-License-Identifier: GPL-2.0-or-later
         <file alias="48x48/bad_folder.png">../colorful/icons/48x48/bad_folder.png</file>
         <file alias="48x48/chip.png">../colorful/icons/48x48/chip.png</file>
         <file alias="48x48/folder.png">../colorful/icons/48x48/folder.png</file>
+        <file alias="48x48/user-trash.png">../colorful/icons/48x48/user-trash.png</file>
+        <file alias="48x48/download.png">../colorful/icons/48x48/download.png</file>
+        <file alias="48x48/upload.png">../colorful/icons/48x48/upload.png</file>
         <file alias="48x48/list-add.png">../colorful/icons/48x48/list-add.png</file>
         <file alias="48x48/sd_card.png">../colorful/icons/48x48/sd_card.png</file>
         <file alias="256x256/plus_folder.png">../colorful/icons/256x256/plus_folder.png</file>
