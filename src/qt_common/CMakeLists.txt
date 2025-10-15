@@ -1,35 +1,44 @@
 # SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 add_library(qt_common STATIC
     qt_common.h
     qt_common.cpp
 
-    uisettings.cpp
-    uisettings.h
+    config/uisettings.cpp
+    config/uisettings.h
+    config/qt_config.cpp
+    config/qt_config.h
+    config/shared_translation.cpp
+    config/shared_translation.h
 
-    qt_config.cpp
-    qt_config.h
+    util/path.h util/path.cpp
+    util/game.h util/game.cpp
+    util/meta.h util/meta.cpp
+    util/content.h util/content.cpp
+    util/rom.h util/rom.cpp
+    util/applet.h util/applet.cpp
+    util/compress.h util/compress.cpp
 
-    shared_translation.cpp
-    shared_translation.h
-    qt_path_util.h qt_path_util.cpp
-    qt_game_util.h qt_game_util.cpp
-    qt_frontend_util.h qt_frontend_util.cpp
-    qt_meta.h qt_meta.cpp
-    qt_content_util.h qt_content_util.cpp
-    qt_rom_util.h qt_rom_util.cpp
-    qt_applet_util.h qt_applet_util.cpp
-    qt_progress_dialog.h qt_progress_dialog.cpp
+    abstract/qt_frontend_util.h abstract/qt_frontend_util.cpp
+    abstract/qt_progress_dialog.h abstract/qt_progress_dialog.cpp
+
     qt_string_lookup.h
-    qt_compress.h qt_compress.cpp
+    qt_compat.h
 
+    discord/discord.h
 )
 
 create_target_directory_groups(qt_common)
+
+if (USE_DISCORD_PRESENCE)
+    target_sources(qt_common PRIVATE
+        discord/discord_impl.cpp
+        discord/discord_impl.h
+    )
+    target_link_libraries(qt_common PUBLIC DiscordRPC::discord-rpc Qt6::Network)
+    target_compile_definitions(qt_common PUBLIC USE_DISCORD_PRESENCE)
+endif()
 
 # TODO(crueter)
 if (ENABLE_QT)

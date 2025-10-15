@@ -24,7 +24,7 @@
 #include "ui_configure_per_game_addons.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_per_game_addons.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 
 ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigurePerGameAddons>()}, system{system_} {

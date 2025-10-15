@@ -41,7 +41,7 @@
 #include "yuzu/configuration/configure_per_game.h"
 #include "yuzu/configuration/configure_per_game_addons.h"
 #include "yuzu/configuration/configure_system.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 #include "yuzu/util/util.h"
 #include "yuzu/vk_device_info.h"
 

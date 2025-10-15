@@ -11,7 +11,7 @@
 #include <QListWidget>
 #include <QVBoxLayout>
 #include "yuzu/install_dialog.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 
 InstallDialog::InstallDialog(QWidget* parent, const QStringList& files) : QDialog(parent) {
     file_list = new QListWidget(this);

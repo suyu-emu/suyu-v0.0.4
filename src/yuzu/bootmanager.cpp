@@ -12,7 +12,7 @@
 
 #include <QtCore/qglobal.h>
 #include "common/settings_enums.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
 #include <QCamera>
 #include <QCameraImageCapture>

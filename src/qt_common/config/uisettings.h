@@ -17,7 +17,7 @@
 #include "common/common_types.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
-#include "qt_common/qt_config.h"
+#include "qt_common/config/qt_config.h"
 
 using Settings::Category;
 using Settings::ConfirmStop;

@@ -14,7 +14,7 @@
 #include "ui_configure_graphics_extensions.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics_extensions.h"
-#include "qt_common/shared_translation.h"
+#include "qt_common/config/shared_translation.h"
 #include "yuzu/configuration/shared_widget.h"
 
 ConfigureGraphicsExtensions::ConfigureGraphicsExtensions(

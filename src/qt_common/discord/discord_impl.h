@@ -1,9 +1,14 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include "yuzu/discord.h"
+#include "discord.h"
+
+#include <string>
 
 namespace Core {
 class System;

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,6 +18,7 @@
 #include "hid_core/hid_types.h"
 #include "hid_core/resources/npad/npad.h"
 #include "ui_qt_controller.h"
+#include "qt_common/qt_compat.h"
 #include "yuzu/applets/qt_controller.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_input_profile_dialog.h"
@@ -184,7 +188,7 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
                     CheckIfParametersMet();
                 });
 
-        connect(connected_controller_checkboxes[i], &QCheckBox::stateChanged, [this, i](int state) {
+        connect(connected_controller_checkboxes[i], &QCheckBox::STATE_CHANGED, [this, i](int state) {
             player_groupboxes[i]->setChecked(state == Qt::Checked);
             UpdateControllerIcon(i);
             UpdateControllerState(i);

@@ -18,6 +18,7 @@
 #include "ui_configure_input.h"
 #include "ui_configure_input_advanced.h"
 #include "ui_configure_input_player.h"
+#include "qt_common/qt_compat.h"
 #include "yuzu/configuration/configure_camera.h"
 #include "yuzu/configuration/configure_debug_controller.h"
 #include "yuzu/configuration/configure_input.h"
@@ -124,7 +125,7 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
                 &ConfigureInput::UpdateAllInputDevices);
         connect(player_controllers[i], &ConfigureInputPlayer::RefreshInputProfiles, this,
                 &ConfigureInput::UpdateAllInputProfiles, Qt::QueuedConnection);
-        connect(connected_controller_checkboxes[i], &QCheckBox::stateChanged, [this, i](int state) {
+        connect(connected_controller_checkboxes[i], &QCheckBox::STATE_CHANGED, [this, i](int state) {
             // Keep activated controllers synced with the "Connected Controllers" checkboxes
             player_controllers[i]->ConnectPlayer(state == Qt::Checked);
         });

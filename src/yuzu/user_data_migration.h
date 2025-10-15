@@ -8,7 +8,7 @@
 #pragma once
 
 #include <QMainWindow>
-#include "migration_worker.h"
+#include "../yuzu/migration_worker.h"
 
 // TODO(crueter): Quick implementation
 class UserDataMigrator {

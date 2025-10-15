@@ -158,7 +158,7 @@ add_executable(yuzu
     debugger/controller.h
     debugger/wait_tree.cpp
     debugger/wait_tree.h
-    discord.h
+
     game_list.cpp
     game_list.h
     game_list_p.h
@@ -402,15 +402,6 @@ endif()
 
 if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
     target_compile_definitions(yuzu PRIVATE YUZU_ENABLE_COMPATIBILITY_REPORTING)
-endif()
-
-if (USE_DISCORD_PRESENCE)
-    target_sources(yuzu PUBLIC
-        discord_impl.cpp
-        discord_impl.h
-    )
-    target_link_libraries(yuzu PRIVATE DiscordRPC::discord-rpc Qt6::Network)
-    target_compile_definitions(yuzu PRIVATE USE_DISCORD_PRESENCE)
 endif()
 
 if (ENABLE_WEB_SERVICE)

@@ -6,10 +6,10 @@
 #include "core/tools/renderdoc.h"
 #include "frontend_common/firmware_manager.h"
 #include "qt_common/qt_common.h"
-#include "qt_common/qt_content_util.h"
-#include "qt_common/qt_game_util.h"
-#include "qt_common/qt_meta.h"
-#include "qt_common/qt_path_util.h"
+#include "qt_common/util/content.h"
+#include "qt_common/util/game.h"
+#include "qt_common/util/meta.h"
+#include "qt_common/util/path.h"
 #include <clocale>
 #include <cmath>
 #include <memory>
@@ -143,7 +143,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "input_common/drivers/virtual_amiibo.h"
 #include "input_common/main.h"
 #include "ui_main.h"
-#include "util/overlay_dialog.h"
+#include "yuzu/util/overlay_dialog.h"
 #include "video_core/gpu.h"
 #include "video_core/renderer_base.h"
 #include "video_core/shader_notify.h"
@@ -152,13 +152,13 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/compatibility_list.h"
 #include "yuzu/configuration/configure_dialog.h"
 #include "yuzu/configuration/configure_input_per_game.h"
-#include "qt_common/qt_config.h"
+#include "qt_common/config/qt_config.h"
 #include "yuzu/debugger/console.h"
 #include "yuzu/debugger/controller.h"
 #include "yuzu/debugger/wait_tree.h"
 #include "yuzu/data_dialog.h"
 #include "yuzu/deps_dialog.h"
-#include "yuzu/discord.h"
+#include "qt_common/discord/discord.h"
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/install_dialog.h"
@@ -166,7 +166,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/main.h"
 #include "yuzu/play_time_manager.h"
 #include "yuzu/startup_checks.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 #include "yuzu/util/clickable_label.h"
 #include "yuzu/vk_device_info.h"
 
@@ -264,7 +264,7 @@ static void RemoveTitlebarFilter() {
 using namespace Common::Literals;
 
 #ifdef USE_DISCORD_PRESENCE
-#include "yuzu/discord_impl.h"
+#include "qt_common/discord/discord_impl.h"
 #endif
 
 #ifdef QT_STATICPLUGIN

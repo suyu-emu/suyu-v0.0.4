@@ -5,7 +5,7 @@
 #include "core/hle/service/acc/profile_manager.h"
 #include "frontend_common/data_manager.h"
 #include "qt_common/qt_common.h"
-#include "qt_common/qt_content_util.h"
+#include "qt_common/util/content.h"
 #include "qt_common/qt_string_lookup.h"
 #include "ui_data_dialog.h"
 

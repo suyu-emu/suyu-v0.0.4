@@ -15,7 +15,7 @@
 #include <QWidget>
 #include <QObject>
 #include <qobjectdefs.h>
-#include "qt_common/shared_translation.h"
+#include "qt_common/config/shared_translation.h"
 
 class QCheckBox;
 class QComboBox;

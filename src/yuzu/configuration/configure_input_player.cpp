@@ -14,7 +14,7 @@
 #include <QTimer>
 #include "common/assert.h"
 #include "common/param_package.h"
-#include "qt_common/qt_config.h"
+#include "qt_common/config/qt_config.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"

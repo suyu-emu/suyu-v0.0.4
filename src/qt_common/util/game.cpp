@@ -1,15 +1,16 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "qt_game_util.h"
+#include "qt_common/util/game.h"
+
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/service/am/am_types.h"
 #include "frontend_common/content_manager.h"
-#include "qt_common.h"
-#include "qt_common/uisettings.h"
-#include "qt_frontend_util.h"
+#include "qt_common/qt_common.h"
+#include "qt_common/config/uisettings.h"
+#include "qt_common/abstract/qt_frontend_util.h"
 #include "yuzu/util/util.h"
 
 #include <QDesktopServices>

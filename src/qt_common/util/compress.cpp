@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "qt_compress.h"
+#include "compress.h"
 #include "quazipfileinfo.h"
 
 #include <QDirIterator>
@@ -24,7 +24,7 @@ bool compressDir(QString fileCompressed,
 
     // See how big the overall fs structure is
     // good approx. of total progress
-    // TODO(crueter): QDirListing impl
+    // TODO(crueter): QDirListing impl... or fs::recursive_dir_iterator
     QDirIterator iter(dir,
                       QDir::NoDotAndDotDot | QDir::Hidden | QDir::Files,
                       QDirIterator::Subdirectories);

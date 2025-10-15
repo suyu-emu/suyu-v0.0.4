@@ -30,7 +30,7 @@
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 
 namespace {
 

@@ -45,7 +45,8 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_common.h"
-#include "qt_common/shared_translation.h"
+#include "qt_common/qt_compat.h"
+#include "qt_common/config/shared_translation.h"
 
 namespace ConfigurationShared {
 
@@ -700,7 +701,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
                 restore_func();
             }
         };
-        connect(checkbox, &QCheckBox::stateChanged, reset);
+        connect(checkbox, &QCheckBox::STATE_CHANGED, reset);
         reset(checkbox->checkState());
     }
 }

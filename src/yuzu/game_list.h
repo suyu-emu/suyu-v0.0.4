@@ -20,8 +20,8 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
-#include "qt_common/uisettings.h"
-#include "qt_common/qt_game_util.h"
+#include "qt_common/config/uisettings.h"
+#include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/play_time_manager.h"
 

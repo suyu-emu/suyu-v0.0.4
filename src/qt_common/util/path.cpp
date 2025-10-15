@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "qt_path_util.h"
+#include "qt_common/util/path.h"
 #include <QDesktopServices>
 #include <QString>
 #include <QUrl>
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "qt_common/qt_frontend_util.h"
+#include "qt_common/abstract/qt_frontend_util.h"
 #include <fmt/format.h>
 
 namespace QtCommon::Path {

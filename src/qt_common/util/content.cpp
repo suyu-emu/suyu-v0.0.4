@@ -1,22 +1,24 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "qt_content_util.h"
+#include "qt_common/util/content.h"
+#include "qt_common/util/game.h"
+
 #include "common/fs/fs.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "frontend_common/content_manager.h"
 #include "frontend_common/data_manager.h"
 #include "frontend_common/firmware_manager.h"
+
 #include "qt_common/qt_common.h"
-#include "qt_common/qt_compress.h"
-#include "qt_common/qt_game_util.h"
-#include "qt_common/qt_progress_dialog.h"
-#include "qt_frontend_util.h"
+#include "compress.h"
+#include "qt_common/abstract/qt_progress_dialog.h"
+#include "qt_common/abstract/qt_frontend_util.h"
 
 #include <QFuture>
 #include <QtConcurrentRun>
 #include <JlCompress.h>
-#include <qfuturewatcher.h>
+#include <QFutureWatcher>
 
 namespace QtCommon::Content {
 
@@ -208,6 +210,7 @@ QString UnzipFirmwareToTmp(const QString& location)
 
     QFile zip(location);
 
+    // TODO(crueter): use QtCompress
     QStringList result = JlCompress::extractDir(&zip, qCacheDir);
     if (result.isEmpty()) {
         return QString();

@@ -22,7 +22,7 @@
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "yuzu/play_time_manager.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 #include "yuzu/util/util.h"
 
 enum class GameListItemType {

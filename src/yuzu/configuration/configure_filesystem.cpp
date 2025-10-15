@@ -10,9 +10,9 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/settings.h"
-#include "qt_common/qt_common.h"
-#include "qt_common/qt_game_util.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/qt_compat.h"
+#include "qt_common/util/game.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_configure_filesystem.h"
 
 ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
@@ -34,9 +34,9 @@ ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
     connect(ui->reset_game_list_cache, &QPushButton::pressed, this,
             &ConfigureFilesystem::ResetMetadata);
 
-    connect(ui->gamecard_inserted, &QCheckBox::stateChanged, this,
+    connect(ui->gamecard_inserted, &QCheckBox::STATE_CHANGED, this,
             &ConfigureFilesystem::UpdateEnabledControls);
-    connect(ui->gamecard_current_game, &QCheckBox::stateChanged, this,
+    connect(ui->gamecard_current_game, &QCheckBox::STATE_CHANGED, this,
             &ConfigureFilesystem::UpdateEnabledControls);
 }
 

@@ -18,7 +18,7 @@
 
 #include "common/thread.h"
 #include "core/file_sys/registered_cache.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/play_time_manager.h"
 

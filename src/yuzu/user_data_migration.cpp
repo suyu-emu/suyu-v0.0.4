@@ -11,10 +11,10 @@
 #include <QString>
 #include <QTranslator>
 #include "common/fs/path_util.h"
-#include "migration_dialog.h"
+#include "../yuzu/migration_dialog.h"
 
 // Needs to be included at the end due to https://bugreports.qt.io/browse/QTBUG-73263
-#include <QApplication>
+#include <QGuiApplication>
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QProgressDialog>

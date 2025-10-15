@@ -11,7 +11,7 @@
 #include <QTimer>
 #include <fmt/ranges.h>
 
-#include "qt_common/qt_config.h"
+#include "qt_common/config/qt_config.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "input_common/drivers/keyboard.h"

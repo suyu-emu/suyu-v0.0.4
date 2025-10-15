@@ -18,7 +18,7 @@
 #include <vulkan/vulkan_core.h>
 #include "common/common_types.h"
 #include "common/settings_enums.h"
-#include "qt_common/shared_translation.h"
+#include "qt_common/config/shared_translation.h"
 #include "vk_device_info.h"
 #include "yuzu/configuration/configuration_shared.h"
 

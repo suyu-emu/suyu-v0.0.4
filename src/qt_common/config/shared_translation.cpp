@@ -14,7 +14,7 @@
 #include "common/settings_enums.h"
 #include "common/settings_setting.h"
 #include "common/time_zone.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 #include <map>
 #include <memory>
 #include <utility>

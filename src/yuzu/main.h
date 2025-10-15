@@ -19,9 +19,9 @@
 #include "common/common_types.h"
 #include "frontend_common/content_manager.h"
 #include "input_common/drivers/tas_input.h"
-#include "qt_common/qt_config.h"
-#include "qt_common/qt_game_util.h"
-#include "user_data_migration.h"
+#include "qt_common/config/qt_config.h"
+#include "qt_common/util/game.h"
+#include "yuzu/user_data_migration.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
 

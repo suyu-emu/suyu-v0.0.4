@@ -11,7 +11,7 @@
 
 #include "hid_core/frontend/emulated_controller.h"
 #include "yuzu/hotkeys.h"
-#include "qt_common/uisettings.h"
+#include "qt_common/config/uisettings.h"
 
 HotkeyRegistry::HotkeyRegistry() = default;
 HotkeyRegistry::~HotkeyRegistry() = default;
