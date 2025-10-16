@@ -114,11 +114,8 @@ VkResult MasterSemaphore::SubmitQueue(vk::CommandBuffer& cmdbuf, vk::CommandBuff
     }
 }
 
-// Use precise wait stages instead of ALL_COMMANDS to avoid pipeline-wide stalls.
-// First entry is used for external acquire waits; we wait at transfer and color output stages
-// because this submit contains an upload cmd buffer and a render cmd buffer.
 static constexpr std::array<VkPipelineStageFlags, 2> wait_stage_masks{
-    VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
     VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 };
 
