@@ -763,14 +763,11 @@ void EmulatedController::StartMotionCalibration() {
     }
 }
 
-void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback, std::size_t index, Common::UUID uuid) {
-    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
-    const auto& player = Settings::values.players.GetValue()[player_index];
-	
+void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback, std::size_t index,
+                                   Common::UUID uuid) {
 	if (index >= controller.button_values.size()) {
         return;
     }
-	
     std::unique_lock lock{mutex};
     bool value_changed = false;
     const auto new_status = TransformToButton(callback);
@@ -923,9 +920,12 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
 
     lock.unlock();
 
-    if (player.connected) {
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
+    if (!is_connected && !controller_connected[player_index]) {
         Connect();
+        controller_connected[player_index] = true;
     }
+
     TriggerOnChange(ControllerTriggerType::Button, true);
 }
 
