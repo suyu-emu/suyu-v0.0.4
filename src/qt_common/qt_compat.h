@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <QtVersionChecks>
+#include <QtGlobal>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 9, 0)
 #define STATE_CHANGED stateChanged

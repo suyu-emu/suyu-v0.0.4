@@ -415,10 +415,8 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
     QGuiApplication::processEvents();
 
     auto progress_callback = [=](size_t total_size, size_t processed_size) {
-        QMetaObject::invokeMethod(progress,
-                                  &QtProgressDialog::setValue,
-                                  static_cast<int>((processed_size * 100) / total_size));
-
+        QMetaObject::invokeMethod(progress, "setValue", Qt::DirectConnection,
+                                  Q_ARG(int, static_cast<int>((processed_size * 100) / total_size)));
         return !progress->wasCanceled();
     };
 
@@ -501,9 +499,8 @@ void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir,
 
     QObject::connect(delete_watcher, &QFutureWatcher<bool>::finished, rootObject, [=]() {
         auto progress_callback = [=](size_t total_size, size_t processed_size) {
-            QMetaObject::invokeMethod(progress,
-                                      &QtProgressDialog::setValue,
-                                      static_cast<int>((processed_size * 100) / total_size));
+            QMetaObject::invokeMethod(progress, "setValue", Qt::DirectConnection,
+                                      Q_ARG(int, static_cast<int>((processed_size * 100) / total_size)));
 
             return !progress->wasCanceled();
         };

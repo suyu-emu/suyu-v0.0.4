@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 #include <QString>
+#include <QObject>
 #include "common/common_types.h"
 #include "common/settings_enums.h"
 

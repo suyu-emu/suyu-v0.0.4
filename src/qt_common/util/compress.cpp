@@ -82,16 +82,9 @@ bool compressSubDir(QuaZip *zip,
     if (dir != origDir) {
         QuaZipFile dirZipFile(zip);
         std::unique_ptr<QuaZipNewInfo> qzni;
-        if (options.getDateTime().isNull()) {
-            qzni = std::make_unique<QuaZipNewInfo>(origDirectory.relativeFilePath(dir)
-                                                       + QLatin1String("/"),
-                                                   dir);
-        } else {
-            qzni = std::make_unique<QuaZipNewInfo>(origDirectory.relativeFilePath(dir)
-                                                       + QLatin1String("/"),
-                                                   dir,
-                                                   options.getDateTime());
-        }
+        qzni = std::make_unique<QuaZipNewInfo>(origDirectory.relativeFilePath(dir)
+                                                   + QLatin1String("/"),
+                                               dir);
         if (!dirZipFile.open(QIODevice::WriteOnly, *qzni, nullptr, 0, 0)) {
             return false;
         }
@@ -156,7 +149,7 @@ bool compressFile(QuaZip *zip,
             return false;
     } else {
         if (!outFile.open(QIODevice::WriteOnly,
-                          QuaZipNewInfo(fileDest, fileName, options.getDateTime()),
+                          QuaZipNewInfo(fileDest, fileName),
                           nullptr,
                           0,
                           options.getCompressionMethod(),

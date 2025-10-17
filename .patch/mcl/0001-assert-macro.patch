@@ -1,0 +1,55 @@
+diff --git a/include/mcl/assert.hpp b/include/mcl/assert.hpp
+index f77dbe7..9ec0b9c 100644
+--- a/include/mcl/assert.hpp
++++ b/include/mcl/assert.hpp
+@@ -23,8 +23,11 @@ template<typename... Ts>
+
+ }  // namespace mcl::detail
+
++#ifndef UNREACHABLE
+ #define UNREACHABLE() ASSERT_FALSE("Unreachable code!")
++#endif
+
++#ifndef ASSERT
+ #define ASSERT(expr)                                                     \
+     [&] {                                                                \
+         if (std::is_constant_evaluated()) {                              \
+@@ -37,7 +40,9 @@ template<typename... Ts>
+             }                                                            \
+         }                                                                \
+     }()
++#endif
+
++#ifndef ASSERT_MSG
+ #define ASSERT_MSG(expr, ...)                                                \
+     [&] {                                                                    \
+         if (std::is_constant_evaluated()) {                                  \
+@@ -50,13 +55,24 @@ template<typename... Ts>
+             }                                                                \
+         }                                                                    \
+     }()
++#endif
+
++#ifndef ASSERT_FALSE
+ #define ASSERT_FALSE(...) ::mcl::detail::assert_terminate("false", __VA_ARGS__)
++#endif
+
+ #if defined(NDEBUG) || defined(MCL_IGNORE_ASSERTS)
+-#    define DEBUG_ASSERT(expr) ASSUME(expr)
+-#    define DEBUG_ASSERT_MSG(expr, ...) ASSUME(expr)
++#    ifndef DEBUG_ASSERT
++#        define DEBUG_ASSERT(expr) ASSUME(expr)
++#    endif
++#    ifndef DEBUG_ASSERT_MSG
++#        define DEBUG_ASSERT_MSG(expr, ...) ASSUME(expr)
++#    endif
+ #else
+-#    define DEBUG_ASSERT(expr) ASSERT(expr)
+-#    define DEBUG_ASSERT_MSG(expr, ...) ASSERT_MSG(expr, __VA_ARGS__)
++#    ifndef DEBUG_ASSERT
++#        define DEBUG_ASSERT(expr) ASSERT(expr)
++#    endif
++#    ifndef DEBUG_ASSERT_MSG
++#        define DEBUG_ASSERT_MSG(expr, ...) ASSERT_MSG(expr, __VA_ARGS__)
++#    endif
+ #endif
