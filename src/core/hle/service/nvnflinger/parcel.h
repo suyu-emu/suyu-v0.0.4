@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -180,7 +183,11 @@ private:
 private:
     boost::container::small_vector<u8, 0x1B0> m_data_buffer;
     boost::container::small_vector<u8, 0x40> m_object_buffer;
+#if BOOST_VERSION >= 108100 || __GNUC__ > 12
     boost::container::small_vector<u8, 0x200> m_output_buffer;
+#else //TODO: debian stable
+    std::vector<u8> m_output_buffer;
+#endif
 };
 
 } // namespace Service::android

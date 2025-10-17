@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <random>
+#include <utility>
 #include <boost/asio.hpp>
 #include <fmt/ranges.h>
 

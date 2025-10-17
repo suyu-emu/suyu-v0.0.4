@@ -12,12 +12,14 @@
 #include "core/core.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
+#include "memory_manager.h"
 #include "video_core/guest_memory.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/invalidation_accumulator.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
+#include "video_core/texture_cache/util.h"
 
 namespace Tegra {
 using Tegra::Memory::GuestMemoryFlags;
@@ -760,7 +762,7 @@ void MemoryManager::FlushCaching() {
     accumulator->Callback([this](GPUVAddr addr, size_t size) {
         GetSubmappedRangeImpl<false>(addr, size, page_stash2);
     });
-    rasterizer->InnerInvalidation(page_stash2);
+    rasterizer->InnerInvalidation(VideoCommon::FixSmallVectorADL(page_stash2));
     page_stash2.clear();
     accumulator->Clear();
 }

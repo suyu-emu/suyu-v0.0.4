@@ -12,6 +12,7 @@
 #include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
+#include "video_core/texture_cache/util.h"
 
 namespace Tegra {
 
@@ -59,7 +60,7 @@ bool DmaPusher::Step() {
 
     if (command_list.prefetch_command_list.size()) {
         // Prefetched command list from nvdrv, used for things like synchronization
-        ProcessCommands(command_list.prefetch_command_list);
+        ProcessCommands(VideoCommon::FixSmallVectorADL(command_list.prefetch_command_list));
         dma_pushbuffer.pop();
     } else {
         const CommandListHeader command_list_header{

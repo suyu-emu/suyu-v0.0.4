@@ -14,6 +14,7 @@
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/guest_memory.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
+#include "video_core/texture_cache/util.h"
 
 namespace VideoCommon {
 
@@ -1373,7 +1374,7 @@ void BufferCache<P>::JoinOverlap(BufferId new_buffer_id, BufferId overlap_id,
         .size = overlap.SizeBytes(),
     });
     new_buffer.MarkUsage(copies[0].dst_offset, copies[0].size);
-    runtime.CopyBuffer(new_buffer, overlap, copies, true);
+    runtime.CopyBuffer(new_buffer, overlap, FixSmallVectorADL(copies), true);
 #ifdef YUZU_LEGACY
     if (immediately_free)
         runtime.Finish();

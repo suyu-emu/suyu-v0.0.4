@@ -32,7 +32,10 @@ struct SlotId {
 };
 
 template <class T>
+// TODO: More "stable" debian fixes... wohoo
+#if __GNUC__ > 12
     requires std::is_nothrow_move_assignable_v<T> && std::is_nothrow_move_constructible_v<T>
+#endif
 class SlotVector {
 public:
     class Iterator {
