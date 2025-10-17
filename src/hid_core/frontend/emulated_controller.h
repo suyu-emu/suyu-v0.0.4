@@ -589,7 +589,7 @@ private:
     std::array<VibrationValue, 2> last_vibration_value{DEFAULT_VIBRATION_VALUE,
                                                        DEFAULT_VIBRATION_VALUE};
     std::array<std::chrono::steady_clock::time_point, 2> last_vibration_timepoint{};
-    std::array<bool, HIDCore::available_controllers - 2> controller_connected{};
+    std::array<bool, HIDCore::available_controllers> controller_connected{};
 
     // Temporary values to avoid doing changes while the controller is in configuring mode
     NpadStyleIndex tmp_npad_type{NpadStyleIndex::None};

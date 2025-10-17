@@ -924,10 +924,20 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
 
     lock.unlock();
 
-    if (!is_connected && !controller_connected[player_index]) {
-        if (player.connected) {
-            Connect();
-            controller_connected[player_index] = true;
+    if (!is_connected) {
+        if (npad_type == NpadStyleIndex::Handheld) {
+            if (npad_id_type == NpadIdType::Handheld) {
+                Connect();
+                controller_connected[player_index] = true;
+            }
+        } else if (npad_type != NpadStyleIndex::Handheld) {
+            if (npad_id_type == NpadIdType::Player1) {
+                Connect();
+                controller_connected[player_index] = true;
+            } else if (player.connected && !controller_connected[player_index]) {
+                Connect();
+                controller_connected[player_index] = true;
+            }
         }
     }
 
