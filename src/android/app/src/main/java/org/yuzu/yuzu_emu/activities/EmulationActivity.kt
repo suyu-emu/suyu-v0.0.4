@@ -203,6 +203,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     override fun onDestroy() {
         super.onDestroy()
         stopForegroundService(this)
+        NativeLibrary.playTimeManagerStop()
 
     }
 
@@ -326,11 +327,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor, i: Int) {}
-
-    override fun onDestroy() {
-        super.onDestroy()
-        NativeLibrary.playTimeManagerStop()
-    }
 
     private fun enableFullscreenImmersive() {
         WindowCompat.setDecorFitsSystemWindows(window, false)

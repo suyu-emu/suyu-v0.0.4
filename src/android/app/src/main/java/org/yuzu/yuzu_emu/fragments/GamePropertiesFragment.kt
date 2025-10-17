@@ -239,6 +239,7 @@ class GamePropertiesFragment : Fragment() {
 
         dialog.show()
     }
+
     private fun reloadList() {
         _binding ?: return
 
@@ -432,24 +433,25 @@ class GamePropertiesFragment : Fragment() {
                         SubmenuProperty(
                             R.string.reset_playtime,
                             R.string.reset_playtime_description,
-                            R.drawable.ic_delete
-                        ) {
-                            MessageDialogFragment.newInstance(
-                                requireActivity(),
-                                titleId = R.string.reset_playtime,
-                                descriptionId = R.string.reset_playtime_warning_description,
-                                positiveAction = {
-                                    NativeLibrary.playTimeManagerResetProgramPlayTime( args.game.programId)
-                                    Toast.makeText(
-                                        YuzuApplication.appContext,
-                                        R.string.playtime_reset_successfully,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    getPlayTime()
-                                    homeViewModel.reloadPropertiesList(true)
-                                }
-                            ).show(parentFragmentManager, MessageDialogFragment.TAG)
-                        }
+                            R.drawable.ic_delete,
+                            action = {
+                                MessageDialogFragment.newInstance(
+                                    requireActivity(),
+                                    titleId = R.string.reset_playtime,
+                                    descriptionId = R.string.reset_playtime_warning_description,
+                                    positiveAction = {
+                                        NativeLibrary.playTimeManagerResetProgramPlayTime(args.game.programId)
+                                        Toast.makeText(
+                                            YuzuApplication.appContext,
+                                            R.string.playtime_reset_successfully,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        getPlayTime()
+                                        homeViewModel.reloadPropertiesList(true)
+                                    }
+                                ).show(parentFragmentManager, MessageDialogFragment.TAG)
+                            }
+                        )
                     )
                 }
             }
@@ -619,19 +621,19 @@ class GamePropertiesFragment : Fragment() {
                 DirectoryInitialization.userDirectory + "/config/custom/",
             destinationFilename = args.game.settingsName + ".ini"
         )
-            if (iniResult?.exists() == true) {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.import_success),
-                    Toast.LENGTH_SHORT
-                ).show()
-                homeViewModel.reloadPropertiesList(true)
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.import_failed),
-                    Toast.LENGTH_SHORT
-                ).show()
+        if (iniResult?.exists() == true) {
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.import_success),
+                Toast.LENGTH_SHORT
+            ).show()
+            homeViewModel.reloadPropertiesList(true)
+        } else {
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.import_failed),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -686,7 +688,5 @@ class GamePropertiesFragment : Fragment() {
                 Toast.LENGTH_SHORT
             ).show()
         }
-
     }
-
 }
