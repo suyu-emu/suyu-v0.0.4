@@ -22,12 +22,12 @@ IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterfa
     : ServiceFramework{system_, "IReadOnlyApplicationControlDataInterface"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlData>, "GetApplicationControlData"},
+        {0, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlDataOld>, "GetApplicationControlDataOld"},
         {1, D<&IReadOnlyApplicationControlDataInterface::GetApplicationDesiredLanguage>, "GetApplicationDesiredLanguage"},
         {2, D<&IReadOnlyApplicationControlDataInterface::ConvertApplicationLanguageToLanguageCode>, "ConvertApplicationLanguageToLanguageCode"},
         {3, nullptr, "ConvertLanguageCodeToApplicationLanguage"},
         {4, nullptr, "SelectApplicationDesiredLanguage"},
-        {5, D<&IReadOnlyApplicationControlDataInterface::GetApplicationDisplayData>, "GetApplicationDisplayData"},
+        {5, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithIconSize>, "GetApplicationControlDataWithIconSize"},
     };
     // clang-format on
 
@@ -36,7 +36,7 @@ IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterfa
 
 IReadOnlyApplicationControlDataInterface::~IReadOnlyApplicationControlDataInterface() = default;
 
-Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData(
+Result IReadOnlyApplicationControlDataInterface::GetApplicationControlDataOld(
     OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_actual_size,
     ApplicationControlSource application_control_source, u64 application_id) {
     LOG_INFO(Service_NS, "called with control_source={}, application_id={:016X}",
@@ -124,32 +124,87 @@ Result IReadOnlyApplicationControlDataInterface::ConvertApplicationLanguageToLan
     R_SUCCEED();
 }
 
-Result IReadOnlyApplicationControlDataInterface::GetApplicationDisplayData(
-    OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u64> out_size, u64 language_code,
-    u64 application_id) {
-    LOG_INFO(Service_NS, "called with application_id={:016X}, language_code={:016X}",
-             application_id, language_code);
-
-    constexpr u64 payload_size = sizeof(ApplicationDisplayData);
-
-    if (out_buffer.size() < payload_size) {
-        LOG_ERROR(Service_NS, "output buffer is too small! (actual={}, expected_min={})",
-                  out_buffer.size(), payload_size);
-        R_THROW(ResultUnknown);
-    }
+Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData(
+    OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_actual_size,
+    ApplicationControlSource application_control_source, u64 application_id) {
+    LOG_INFO(Service_NS, "called with control_source={}, application_id={:016X}",
+             application_control_source, application_id);
 
     const FileSys::PatchManager pm{application_id, system.GetFileSystemController(),
                                    system.GetContentProvider()};
     const auto control = pm.GetControlMetadata();
+    const auto size = out_buffer.size();
 
-    ApplicationDisplayData display_data{};
+    const auto icon_size = control.second ? control.second->GetSize() : 0;
+    const auto total_size = sizeof(FileSys::RawNACP) + icon_size;
 
-    std::memset(display_data.application_name.data(), 0, display_data.application_name.size());
-    std::memset(display_data.developer_name.data(), 0, display_data.developer_name.size());
+    if (size < total_size) {
+        LOG_ERROR(Service_NS, "output buffer is too small! (actual={:016X}, expected_min=0x4000)",
+                  size);
+        R_THROW(ResultUnknown);
+    }
 
-    std::memcpy(out_buffer.data(), &display_data, payload_size);
-    *out_size = payload_size;
+    if (control.first != nullptr) {
+        const auto bytes = control.first->GetRawBytes();
+        std::memcpy(out_buffer.data(), bytes.data(), bytes.size());
+    } else {
+        LOG_WARNING(Service_NS, "missing NACP data for application_id={:016X}, defaulting to zero",
+                    application_id);
+        std::memset(out_buffer.data(), 0, sizeof(FileSys::RawNACP));
+    }
 
+    if (control.second != nullptr) {
+        control.second->Read(out_buffer.data() + sizeof(FileSys::RawNACP), icon_size);
+    } else {
+        LOG_WARNING(Service_NS, "missing icon data for application_id={:016X}", application_id);
+    }
+
+    *out_actual_size = static_cast<u32>(total_size);
+    R_SUCCEED();
+}
+
+Result IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithIconSize(
+    OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+    Out<u64> out_total_size,
+    ApplicationControlSource application_control_source,
+    u64 application_id) {
+    LOG_INFO(Service_NS, "called with control_source={}, application_id={:016X}",
+             application_control_source, application_id);
+
+    constexpr size_t kExpectedBufferSize = 0x14000;
+    constexpr size_t kNACPSize = sizeof(FileSys::RawNACP);
+    constexpr size_t kMaxIconSize = kExpectedBufferSize - kNACPSize;
+
+    const FileSys::PatchManager pm{application_id, system.GetFileSystemController(),
+                                   system.GetContentProvider()};
+    const auto control = pm.GetControlMetadata();
+    const auto size = out_buffer.size();
+
+    if (size < kExpectedBufferSize) {
+        LOG_ERROR(Service_NS, "output buffer is too small! (actual={:016X}, required={:016X})", size, kExpectedBufferSize);
+        R_THROW(ResultUnknown);
+    }
+
+    // Copy NACP
+    if (control.first != nullptr) {
+        const auto bytes = control.first->GetRawBytes();
+        std::memcpy(out_buffer.data(), bytes.data(), bytes.size());
+    } else {
+        std::memset(out_buffer.data(), 0, kNACPSize);
+    }
+
+    // Copy icon, pad with zeros if needed
+    size_t icon_size = control.second ? control.second->GetSize() : 0;
+    if (icon_size > kMaxIconSize) {
+        icon_size = kMaxIconSize; // Truncate if too large
+    }
+    if (control.second != nullptr && icon_size > 0) {
+        control.second->Read(out_buffer.data() + kNACPSize, icon_size);
+    } else {
+        std::memset(out_buffer.data() + kNACPSize, 0, kMaxIconSize);
+    }
+
+    *out_total_size = kExpectedBufferSize;
     R_SUCCEED();
 }
 

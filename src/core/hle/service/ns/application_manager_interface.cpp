@@ -206,12 +206,12 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {1600, nullptr, "GetSystemSeedForPseudoDeviceId"},
         {1601, nullptr, "ResetSystemSeedForPseudoDeviceId"},
         {1700, nullptr, "ListApplicationDownloadingContentMeta"},
-        {1701, D<&IApplicationManagerInterface::GetApplicationView>, "GetApplicationView"},
+        {1701, D<&IApplicationManagerInterface::GetApplicationViewDeprecated>, "GetApplicationViewDeprecated"},
         {1702, nullptr, "GetApplicationDownloadTaskStatus"},
         {1703, nullptr, "GetApplicationViewDownloadErrorContext"},
         {1704, D<&IApplicationManagerInterface::GetApplicationViewWithPromotionInfo>, "GetApplicationViewWithPromotionInfo"},
         {1705, nullptr, "IsPatchAutoDeletableApplication"},
-        {1706, D<&IApplicationManagerInterface::Unknown1706>, "Unknown1706"},
+        {1706, D<&IApplicationManagerInterface::GetApplicationView>, "GetApplicationView"},
         {1800, nullptr, "IsNotificationSetupCompleted"},
         {1801, nullptr, "GetLastNotificationInfoCount"},
         {1802, nullptr, "ListLastNotificationInfo"},
@@ -329,7 +329,7 @@ Result IApplicationManagerInterface::GetApplicationControlData(
     OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_actual_size,
     ApplicationControlSource application_control_source, u64 application_id) {
     LOG_DEBUG(Service_NS, "called");
-    R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationControlData(
+    R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationControlDataOld(
         out_buffer, out_actual_size, application_control_source, application_id));
 }
 
@@ -410,7 +410,7 @@ Result IApplicationManagerInterface::IsAnyApplicationEntityInstalled(
     R_SUCCEED();
 }
 
-Result IApplicationManagerInterface::GetApplicationView(
+Result IApplicationManagerInterface::GetApplicationViewDeprecated(
     OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
     InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
     const auto size = (std::min)(out_application_views.size(), application_ids.size());
@@ -419,7 +419,7 @@ Result IApplicationManagerInterface::GetApplicationView(
     for (size_t i = 0; i < size; i++) {
         ApplicationView view{};
         view.application_id = application_ids[i];
-        view.unk = 0x70000;
+        view.version = 0x70000;
         view.flags = 0x401f17;
 
         out_application_views[i] = view;
@@ -437,9 +437,27 @@ Result IApplicationManagerInterface::GetApplicationViewWithPromotionInfo(
     for (size_t i = 0; i < size; i++) {
         ApplicationViewWithPromotionInfo view{};
         view.view.application_id = application_ids[i];
-        view.view.unk = 0x70000;
+        view.view.version = 0x70000;
         view.view.flags = 0x401f17;
         view.promotion = {};
+
+        out_application_views[i] = view;
+    }
+
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::GetApplicationView(
+    OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
+    InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
+    const auto size = (std::min)(out_application_views.size(), application_ids.size());
+    LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
+
+    for (size_t i = 0; i < size; i++) {
+        ApplicationView view{};
+        view.application_id = application_ids[i];
+        view.version = 0x70000;
+        view.flags = 0x401f17;
 
         out_application_views[i] = view;
     }
@@ -532,31 +550,6 @@ Result IApplicationManagerInterface::GetApplicationTerminateResult(Out<Result> o
 Result IApplicationManagerInterface::RequestDownloadApplicationControlDataInBackground(
     u64 unk, u64 application_id) {
     LOG_WARNING(Service_NS, "(STUBBED), app={:016X} unk={}", application_id, unk);
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::Unknown1706(
-    OutBuffer<BufferAttr_HipcAutoSelect> out_buffer_58,
-    InBuffer<BufferAttr_HipcMapAlias> in_buffer_8) {
-    LOG_WARNING(Service_NS, "(STUBBED) Unknown1706 called: out_size={} in_size={}",
-                out_buffer_58.size(), in_buffer_8.size());
-
-    if (out_buffer_58.size() < 0x58 || in_buffer_8.size() < 0x8) {
-        R_THROW(ResultUnknown);
-    }
-
-    u64 application_id = 0;
-    std::memcpy(&application_id, in_buffer_8.data(), sizeof(u64));
-
-    ApplicationView view{};
-    view.application_id = application_id;
-    view.unk = 0x70000;
-    view.flags = 0x401f17;
-
-    std::memset(out_buffer_58.data(), 0, out_buffer_58.size());
-    std::memcpy(out_buffer_58.data(), &view, sizeof(ApplicationView));
-
-
     R_SUCCEED();
 }
 

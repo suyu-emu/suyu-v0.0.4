@@ -42,20 +42,26 @@ struct ApplicationRecord {
 };
 static_assert(sizeof(ApplicationRecord) == 0x18, "ApplicationRecord has incorrect size.");
 
+/// ApplicationDownloadState
+struct ApplicationDownloadState {
+    u64 downloaded_size;
+    u64 total_size;
+    u32 unk_x10;
+    u8 state;
+    u8 unk_x19;
+    std::array<u8, 0x2> unk_x1a;
+    u64 unk_x20;
+};
+static_assert(sizeof(ApplicationDownloadState) == 0x20,
+              "ApplicationDownloadState has incorrect size.");
+
 /// ApplicationView
 struct ApplicationView {
-    u64 application_id;           ///< ApplicationId.
-    u32 unk;                      ///< Unknown.
-    u32 flags;                    ///< Flags.
-    std::array<u8, 0x10> unk_x10; ///< Unknown.
-    u32 unk_x20;                  ///< Unknown.
-    u16 unk_x24;                  ///< Unknown.
-    std::array<u8, 0x2> unk_x26;  ///< Unknown.
-    std::array<u8, 0x8> unk_x28;  ///< Unknown.
-    std::array<u8, 0x10> unk_x30; ///< Unknown.
-    u32 unk_x40;                  ///< Unknown.
-    u8 unk_x44;                   ///< Unknown.
-    std::array<u8, 0xb> unk_x45;  ///< Unknown.
+    u64 application_id;                         ///< ApplicationId.
+    u32 version;                                ///< Application Version(?)
+    u32 flags;                                  ///< Flags.
+    ApplicationDownloadState download_state;    ///< \ref ApplicationDownloadState
+    ApplicationDownloadState download_progress; ///< \ref ApplicationDownloadState
 };
 static_assert(sizeof(ApplicationView) == 0x50, "ApplicationView has incorrect size.");
 
@@ -82,13 +88,13 @@ struct PromotionInfo {
 };
 static_assert(sizeof(PromotionInfo) == 0x20, "PromotionInfo has incorrect size.");
 
+// TODO(Maufeat): NsApplicationViewWithPromotionInfo is on SDK20+ 0x78 bytes
 /// NsApplicationViewWithPromotionInfo
 struct ApplicationViewWithPromotionInfo {
     ApplicationView view;           ///< \ref NsApplicationView
     PromotionInfo promotion;        ///< \ref NsPromotionInfo
-    std::array<u8, 0x8> padding{};  ///< Extra padding for newer HOS versions
 };
-static_assert(sizeof(ApplicationViewWithPromotionInfo) == 0x78,
+static_assert(sizeof(ApplicationViewWithPromotionInfo) == 0x70,
               "ApplicationViewWithPromotionInfo has incorrect size.");
 
 struct ApplicationOccupiedSizeEntity {

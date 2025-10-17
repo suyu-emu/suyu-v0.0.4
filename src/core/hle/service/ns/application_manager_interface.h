@@ -33,11 +33,14 @@ public:
     Result GetApplicationRecordUpdateSystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetGameCardMountFailureEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result IsAnyApplicationEntityInstalled(Out<bool> out_is_any_application_entity_installed);
-    Result GetApplicationView(
+    Result GetApplicationViewDeprecated(
         OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
         InArray<u64, BufferAttr_HipcMapAlias> application_ids);
     Result GetApplicationViewWithPromotionInfo(
         OutArray<ApplicationViewWithPromotionInfo, BufferAttr_HipcMapAlias> out_application_views,
+        InArray<u64, BufferAttr_HipcMapAlias> application_ids);
+    Result GetApplicationView(
+        OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
         InArray<u64, BufferAttr_HipcMapAlias> application_ids);
     Result GetApplicationRightsOnClient(
         OutArray<ApplicationRightsOnClient, BufferAttr_HipcMapAlias> out_rights, Out<u32> out_count,
@@ -59,8 +62,6 @@ public:
 
     Result RequestDownloadApplicationControlDataInBackground(u64 unk,
                                                              u64 application_id);
-    Result Unknown1706(OutBuffer<BufferAttr_HipcAutoSelect> out_buffer_58,
-                       InBuffer<BufferAttr_HipcMapAlias> in_buffer_8);
 
 private:
     KernelHelpers::ServiceContext service_context;
