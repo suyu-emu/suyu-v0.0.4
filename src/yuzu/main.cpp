@@ -1145,6 +1145,7 @@ void GMainWindow::InitializeWidgets() {
     firmware_label = new QLabel();
     firmware_label->setObjectName(QStringLiteral("FirmwareLabel"));
     firmware_label->setVisible(false);
+    firmware_label->setContentsMargins(4, 0, 4, 0);
     firmware_label->setFocusPolicy(Qt::NoFocus);
     statusBar()->addPermanentWidget(firmware_label);
 
