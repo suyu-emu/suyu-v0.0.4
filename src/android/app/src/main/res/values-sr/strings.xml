@@ -502,8 +502,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">ЦПУ</string>
-    <string name="cpu_debug_mode">ЦПУ уклањање погрешака</string>
-    <string name="cpu_debug_mode_description">Ставља ЦПУ у спор режим уклањања погрешака.</string>
 
     <string name="gpu">ГПУ</string>
     <string name="renderer_api">АПИ</string>

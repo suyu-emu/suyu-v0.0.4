@@ -533,8 +533,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">Налагодження CPU</string>
-    <string name="cpu_debug_mode_description">Уповільнює CPU для налагодження.</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Налагодження графіки</string>

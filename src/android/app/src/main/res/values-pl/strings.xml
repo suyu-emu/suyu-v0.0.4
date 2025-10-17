@@ -520,8 +520,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">Debugowanie CPU</string>
-    <string name="cpu_debug_mode_description">Włącza wolny tryb debugowania.</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">Interfejs graficzny</string>
     <string name="renderer_debug">Debugowanie grafiki</string>

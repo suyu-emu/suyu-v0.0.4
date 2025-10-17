@@ -540,8 +540,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">Depuración de CPU</string>
-    <string name="cpu_debug_mode_description">Pone la CPU en un modo de depuración lento.</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Depuración de gráficos</string>

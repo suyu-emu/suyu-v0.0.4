@@ -536,8 +536,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">Debugging CPU</string>
-    <string name="cpu_debug_mode_description">Menempatkan CPU dalam mode debugging lambat</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Debugging Grafis</string>

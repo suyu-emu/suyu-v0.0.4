@@ -542,8 +542,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">מעבד</string>
-    <string name="cpu_debug_mode">דיבאגינג למעבד</string>
-    <string name="cpu_debug_mode_description">מכניס את המעבד למצב דיבאג איטי</string>
     <string name="gpu">מעבד גרפי</string>
     <string name="renderer_api">ממשק תוכנה</string>
     <string name="renderer_debug">דיבאגינג בגרפיקה</string>

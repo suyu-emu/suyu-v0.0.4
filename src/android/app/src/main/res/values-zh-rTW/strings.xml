@@ -539,8 +539,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">CPU 偵錯</string>
-    <string name="cpu_debug_mode_description">將 CPU 設定為慢速偵錯模式。</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">圖形偵錯</string>

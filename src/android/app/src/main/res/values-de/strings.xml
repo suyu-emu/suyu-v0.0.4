@@ -520,8 +520,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">CPU-Debugging</string>
-    <string name="cpu_debug_mode_description">Aktiviert den langsamen Debug-Modus.</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Grafik-Debugging</string>

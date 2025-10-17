@@ -535,8 +535,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">CPU hibakeresés</string>
-    <string name="cpu_debug_mode_description">Lassú hibakereső módba állítja a CPU-t.</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Grafikai hibakeresés</string>

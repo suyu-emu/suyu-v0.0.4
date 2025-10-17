@@ -539,8 +539,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">Debug della CPU</string>
-    <string name="cpu_debug_mode_description">Imposta la CPU in modalità Debug (Più lento)</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Debug GPU</string>

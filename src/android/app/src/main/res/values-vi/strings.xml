@@ -514,8 +514,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">Chế độ gỡ lỗi CPU</string>
-    <string name="cpu_debug_mode_description">Đặt CPU vào chế độ gỡ lỗi chậm.</string>
 
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>

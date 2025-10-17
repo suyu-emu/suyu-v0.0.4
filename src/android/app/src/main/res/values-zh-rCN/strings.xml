@@ -534,8 +534,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">CPU 调试</string>
-    <string name="cpu_debug_mode_description">将 CPU 设置为较慢的调试模式。</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">图形调试</string>

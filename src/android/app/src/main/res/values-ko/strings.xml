@@ -533,8 +533,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">CPU 디버깅</string>
-    <string name="cpu_debug_mode_description">CPU를 느린 디버깅 모드로 설정합니다.</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">그래픽 디버깅</string>

@@ -538,8 +538,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">پردازنده</string>
-    <string name="cpu_debug_mode">اشکال‌زدایی پردازنده</string>
-    <string name="cpu_debug_mode_description">پردازنده را در حالت اشکال‌زدایی کندتر قرار می‌دهد.</string>
     <string name="gpu">پردازنده گرافیکی</string>
     <string name="renderer_api">رابط برنامه‌نویسی</string>
     <string name="renderer_debug">اشکال‌زدایی پردازنده گرافیکی</string>

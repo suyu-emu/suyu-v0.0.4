@@ -540,8 +540,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">وحدة المعالج المركزية</string>
-    <string name="cpu_debug_mode">تصحيح أخطاء وحدة المعالجة المركزية</string>
-    <string name="cpu_debug_mode_description">يضع وحدة المعالجة المركزية في وضع التصحيح البطيء.</string>
     <string name="gpu">وحدة معالجة الرسومات</string>
     <string name="renderer_api">واجهة برمجة التطبيقات</string>
     <string name="renderer_debug">تصحيح الأخطاء الرسومية</string>

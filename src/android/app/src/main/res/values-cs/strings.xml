@@ -496,8 +496,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">Ladění CPU</string>
-    <string name="cpu_debug_mode_description">Pomalý ladící režim</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Ladění grafiky</string>
