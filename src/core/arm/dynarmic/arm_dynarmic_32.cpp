@@ -229,7 +229,8 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
     }
 
     // Safe optimizations
-    if (Settings::values.cpu_debug_mode) {
+    switch (Settings::values.cpu_accuracy.GetValue()) {
+    case Settings::CpuAccuracy::Debugging:
         if (!Settings::values.cpuopt_page_tables) {
             config.page_table = nullptr;
         }
@@ -267,51 +268,51 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
         if (!Settings::values.cpuopt_ignore_memory_aborts) {
             config.check_halt_on_memory_access = true;
         }
-    } else {
-        // Unsafe optimizations
-        if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
-            config.unsafe_optimizations = true;
-            if (!Settings::values.cpuopt_unsafe_host_mmu) {
-                config.fastmem_pointer = std::nullopt;
-                config.fastmem_exclusive_access = false;
-            }
-            if (Settings::values.cpuopt_unsafe_unfuse_fma) {
-                config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
-            }
-            if (Settings::values.cpuopt_unsafe_reduce_fp_error) {
-                config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_ReducedErrorFP;
-            }
-            if (Settings::values.cpuopt_unsafe_ignore_standard_fpcr) {
-                config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
-            }
-            if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
-                config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
-            }
-            if (Settings::values.cpuopt_unsafe_ignore_global_monitor) {
-                config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
-            }
-        }
-
-        // Curated optimizations
-        if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Auto) {
-            config.unsafe_optimizations = true;
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+        break;
+    // Unsafe optimizations
+    case Settings::CpuAccuracy::Unsafe:
+        config.unsafe_optimizations = true;
+        if (!Settings::values.cpuopt_unsafe_host_mmu) {
             config.fastmem_pointer = std::nullopt;
             config.fastmem_exclusive_access = false;
-#endif
+        }
+        if (Settings::values.cpuopt_unsafe_unfuse_fma) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
+        }
+        if (Settings::values.cpuopt_unsafe_reduce_fp_error) {
+            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_ReducedErrorFP;
+        }
+        if (Settings::values.cpuopt_unsafe_ignore_standard_fpcr) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
+        }
+        if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
+        }
+        if (Settings::values.cpuopt_unsafe_ignore_global_monitor) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
         }
-
-        // Paranoia mode for debugging optimizations
-        if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Paranoid) {
-            config.unsafe_optimizations = false;
-            config.optimizations = Dynarmic::no_optimizations;
-        }
+        break;
+    // Curated optimizations
+    case Settings::CpuAccuracy::Auto:
+        config.unsafe_optimizations = true;
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+        config.fastmem_pointer = std::nullopt;
+        config.fastmem_exclusive_access = false;
+#endif
+        config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
+        config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
+        config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
+        config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
+        break;
+    // Paranoia mode for debugging optimizations
+    case Settings::CpuAccuracy::Paranoid:
+        config.unsafe_optimizations = false;
+        config.optimizations = Dynarmic::no_optimizations;
+        break;
+    case Settings::CpuAccuracy::Accurate:
+    default:
+        break;
     }
-
     return std::make_unique<Dynarmic::A32::Jit>(config);
 }
 

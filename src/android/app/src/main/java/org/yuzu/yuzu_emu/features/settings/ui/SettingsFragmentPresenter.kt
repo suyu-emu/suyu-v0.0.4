@@ -1158,7 +1158,6 @@ class SettingsFragmentPresenter(
             add(IntSetting.CPU_BACKEND.key)
             add(IntSetting.CPU_ACCURACY.key)
             add(BooleanSetting.USE_AUTO_STUB.key)
-            add(BooleanSetting.CPU_DEBUG_MODE.key)
             add(SettingsItem.FASTMEM_COMBINED)
 
             add(HeaderSetting(R.string.log))

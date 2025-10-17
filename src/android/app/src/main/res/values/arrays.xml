@@ -333,6 +333,7 @@
         <item>@string/cpu_accuracy_accurate</item>
         <item>@string/cpu_accuracy_unsafe</item>
         <item>@string/cpu_accuracy_paranoid</item>
+        <item>@string/cpu_accuracy_debugging</item>
     </string-array>
 
     <integer-array name="cpuAccuracyValues">
@@ -340,6 +341,7 @@
         <item>1</item>
         <item>2</item>
         <item>3</item>
+        <item>4</item>
     </integer-array>
 
     <string-array name="gamepadButtons">

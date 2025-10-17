@@ -543,8 +543,6 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">CPU Debugging</string>
-    <string name="cpu_debug_mode_description">Puts the CPU in a slow debugging mode.</string>
     <string name="use_auto_stub">Use Auto Stub</string>
     <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
 
@@ -1050,6 +1048,7 @@
     <string name="cpu_accuracy_accurate">Accurate</string>
     <string name="cpu_accuracy_unsafe">Unsafe</string>
     <string name="cpu_accuracy_paranoid">Paranoid</string>
+    <string name="cpu_accuracy_debugging">Debugging</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>

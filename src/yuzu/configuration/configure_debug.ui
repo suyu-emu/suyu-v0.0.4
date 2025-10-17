@@ -435,13 +435,6 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="enable_cpu_debugging">
-           <property name="text">
-            <string>Enable CPU Debugging</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="0">
           <widget class="QCheckBox" name="use_debug_asserts">
            <property name="text">
@@ -582,7 +575,6 @@
   <tabstop>fs_access_log</tabstop>
   <tabstop>reporting_services</tabstop>
   <tabstop>quest_flag</tabstop>
-  <tabstop>enable_cpu_debugging</tabstop>
   <tabstop>use_debug_asserts</tabstop>
  </tabstops>
  <resources/>

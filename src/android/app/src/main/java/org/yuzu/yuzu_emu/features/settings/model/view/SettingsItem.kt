@@ -764,13 +764,6 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_auto_stub_description
                 )
             )
-            put(
-                SwitchSetting(
-                    BooleanSetting.CPU_DEBUG_MODE,
-                    titleId = R.string.cpu_debug_mode,
-                    descriptionId = R.string.cpu_debug_mode_description
-                )
-            )
 
             val fastmem = object : AbstractBooleanSetting {
                 override fun getBoolean(needsGlobal: Boolean): Boolean =
@@ -784,7 +777,6 @@ abstract class SettingsItem(
 
                 override val key: String = FASTMEM_COMBINED
                 override val isRuntimeModifiable: Boolean = false
-                override val pairedSettingKey = BooleanSetting.CPU_DEBUG_MODE.key
                 override val defaultValue: Boolean = true
                 override val isSwitchable: Boolean = true
                 override var global: Boolean

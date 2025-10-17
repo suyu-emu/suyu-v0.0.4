@@ -163,11 +163,11 @@ bool IsDMALevelSafe() {
 }
 
 bool IsFastmemEnabled() {
-    if (values.cpu_debug_mode) {
-        return static_cast<bool>(values.cpuopt_fastmem);
+    if (values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Debugging) {
+        return bool(values.cpuopt_fastmem);
     }
     if (values.cpu_accuracy.GetValue() == CpuAccuracy::Unsafe) {
-        return static_cast<bool>(values.cpuopt_unsafe_host_mmu);
+        return bool(values.cpuopt_unsafe_host_mmu);
     }
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
     return false;
