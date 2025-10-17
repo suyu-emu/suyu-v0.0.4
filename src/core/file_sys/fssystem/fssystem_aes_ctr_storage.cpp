@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <boost/container/static_vector.hpp>
 #include "common/alignment.h"
 #include "common/swap.h"
 #include "core/file_sys/fssystem/fssystem_aes_ctr_storage.h"
@@ -83,32 +84,24 @@ size_t AesCtrStorage::Write(const u8* buffer, size_t size, size_t offset) {
     std::memcpy(ctr.data(), m_iv.data(), IvSize);
     AddCounter(ctr.data(), IvSize, offset / BlockSize);
 
-    // Loop until all data is written.
-    size_t remaining = size;
-    s64 cur_offset = 0;
-
-    // Get a pooled buffer.
-    std::vector<char> pooled_buffer(BlockSize);
-    while (remaining > 0) {
+    // Loop until all data is written using a pooled buffer residing on the stack (blocksize = 0x10)
+    boost::container::static_vector<u8, BlockSize> pooled_buffer;
+    for (size_t remaining = size; remaining > 0; ) {
         // Determine data we're writing and where.
-        const size_t write_size = std::min(pooled_buffer.size(), remaining);
-        u8* write_buf = reinterpret_cast<u8*>(pooled_buffer.data());
+        auto const write_size = (std::min)(pooled_buffer.size(), remaining);
+        u8* write_buf = pooled_buffer.data();
 
-        // Encrypt the data.
+        // Encrypt the data and then write it.
         m_cipher->SetIV(ctr);
         m_cipher->Transcode(buffer, write_size, write_buf, Core::Crypto::Op::Encrypt);
+        m_base_storage->Write(write_buf, write_size, offset);
 
-        // Write the encrypted data.
-        m_base_storage->Write(write_buf, write_size, offset + cur_offset);
-
-        // Advance.
-        cur_offset += write_size;
+        // Advance next write chunk
+        offset += write_size;
         remaining -= write_size;
-        if (remaining > 0) {
+        if (remaining > 0)
             AddCounter(ctr.data(), IvSize, write_size / BlockSize);
-        }
     }
-
     return size;
 }
 

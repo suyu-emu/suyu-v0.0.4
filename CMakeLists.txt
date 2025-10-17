@@ -52,6 +52,10 @@ if (PLATFORM_SUN)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
     endif()
+    if (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+    endif()
 endif()
 
 # Needed for FFmpeg w/ VAAPI and DRM

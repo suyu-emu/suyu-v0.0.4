@@ -97,7 +97,11 @@
         "version": "3",
         "git_version": "3.6.4",
         "artifact": "%TAG%.tar.bz2",
-        "skip_updates": true
+        "skip_updates": true,
+        "patches": [
+            "0002-aesni-fix.patch",
+            "0003-aesni-fix.patch"
+        ]
     },
     "enet": {
         "repo": "lsalzman/enet",

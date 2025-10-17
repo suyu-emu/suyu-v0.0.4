@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,26 +18,36 @@ std::size_t CTREncryptionLayer::Read(u8* data, std::size_t length, std::size_t o
     if (length == 0)
         return 0;
 
-    const auto sector_offset = offset & 0xF;
-    if (sector_offset == 0) {
+    std::size_t total_read = 0;
+    // Handle an initial misaligned portion if needed.
+    if (auto const sector_offset = offset & 0xF; sector_offset != 0) {
+        const std::size_t aligned_off = offset - sector_offset;
+        std::array<u8, 0x10> block{};
+        if (auto const got = base->Read(block.data(), block.size(), aligned_off); got != 0) {
+            UpdateIV(base_offset + aligned_off);
+            cipher.Transcode(block.data(), got, block.data(), Op::Decrypt);
+            auto const to_copy = std::min<std::size_t>(length, got > sector_offset ? got - sector_offset : 0);
+            if (to_copy > 0) {
+                std::memcpy(data, block.data() + sector_offset, to_copy);
+                data += to_copy;
+                offset += to_copy;
+                length -= to_copy;
+                total_read += to_copy;
+            }
+        } else {
+            return 0;
+        }
+    }
+    if (length > 0) {
+        // Now aligned to 0x10
         UpdateIV(base_offset + offset);
-        std::vector<u8> raw = base->ReadBytes(length, offset);
-        cipher.Transcode(raw.data(), raw.size(), data, Op::Decrypt);
-        return length;
+        const std::size_t got = base->Read(data, length, offset);
+        if (got > 0) {
+            cipher.Transcode(data, got, data, Op::Decrypt);
+            total_read += got;
+        }
     }
-
-    // offset does not fall on block boundary (0x10)
-    std::vector<u8> block = base->ReadBytes(0x10, offset - sector_offset);
-    UpdateIV(base_offset + offset - sector_offset);
-    cipher.Transcode(block.data(), block.size(), block.data(), Op::Decrypt);
-    std::size_t read = 0x10 - sector_offset;
-
-    if (length + sector_offset < 0x10) {
-        std::memcpy(data, block.data() + sector_offset, std::min<u64>(length, read));
-        return std::min<u64>(length, read);
-    }
-    std::memcpy(data, block.data() + sector_offset, read);
-    return read + Read(data + read, length - read, offset + read);
+    return total_read;
 }
 
 void CTREncryptionLayer::SetIV(const IVData& iv_) {

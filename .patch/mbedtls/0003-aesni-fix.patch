@@ -1,0 +1,22 @@
+diff --git a/library/aesni.c b/library/aesni.c
+index 2857068..3e104ab 100644
+--- a/library/aesni.c
++++ b/library/aesni.c
+@@ -31,16 +31,14 @@
+ #include <immintrin.h>
+ #endif
+ 
+-#if defined(MBEDTLS_ARCH_IS_X86)
+ #if defined(MBEDTLS_COMPILER_IS_GCC)
+ #pragma GCC push_options
+ #pragma GCC target ("pclmul,sse2,aes")
+ #define MBEDTLS_POP_TARGET_PRAGMA
+-#elif defined(__clang__) && (__clang_major__ >= 5)
++#elif defined(__clang__)
+ #pragma clang attribute push (__attribute__((target("pclmul,sse2,aes"))), apply_to=function)
+ #define MBEDTLS_POP_TARGET_PRAGMA
+ #endif
+-#endif
+ 
+ #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+ /*

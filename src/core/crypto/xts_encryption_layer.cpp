@@ -5,12 +5,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include "core/crypto/xts_encryption_layer.h"
 
 namespace Core::Crypto {
 
-constexpr u64 XTS_SECTOR_SIZE = 0x4000;
+constexpr std::size_t XTS_SECTOR_SIZE = 0x4000;
 
 XTSEncryptionLayer::XTSEncryptionLayer(FileSys::VirtualFile base_, Key256 key_)
     : EncryptionLayer(std::move(base_)), cipher(key_, Mode::XTS) {}
@@ -19,41 +20,67 @@ std::size_t XTSEncryptionLayer::Read(u8* data, std::size_t length, std::size_t o
     if (length == 0)
         return 0;
 
-    const auto sector_offset = offset & 0x3FFF;
-    if (sector_offset == 0) {
-        if (length % XTS_SECTOR_SIZE == 0) {
-            std::vector<u8> raw = base->ReadBytes(length, offset);
-            cipher.XTSTranscode(raw.data(), raw.size(), data, offset / XTS_SECTOR_SIZE,
+    std::size_t total_read = 0;
+    // Handle initial unaligned part within a sector.
+    if (auto const sector_offset = offset % XTS_SECTOR_SIZE; sector_offset != 0) {
+        const std::size_t aligned_off = offset - sector_offset;
+        std::array<u8, XTS_SECTOR_SIZE> block{};
+        if (auto const got = base->Read(block.data(), XTS_SECTOR_SIZE, aligned_off); got > 0) {
+            if (got < XTS_SECTOR_SIZE)
+                std::memset(block.data() + got, 0, XTS_SECTOR_SIZE - got);
+            cipher.XTSTranscode(block.data(), XTS_SECTOR_SIZE, block.data(), aligned_off / XTS_SECTOR_SIZE,
                                 XTS_SECTOR_SIZE, Op::Decrypt);
-            return raw.size();
+
+            auto const to_copy = std::min<std::size_t>(length, got > sector_offset ? got - sector_offset : 0);
+            if (to_copy > 0) {
+                std::memcpy(data, block.data() + sector_offset, to_copy);
+                data += to_copy;
+                offset += to_copy;
+                length -= to_copy;
+                total_read += to_copy;
+            }
+        } else {
+            return 0;
         }
-        if (length > XTS_SECTOR_SIZE) {
-            const auto rem = length % XTS_SECTOR_SIZE;
-            const auto read = length - rem;
-            return Read(data, read, offset) + Read(data + read, rem, offset + read);
-        }
-        std::vector<u8> buffer = base->ReadBytes(XTS_SECTOR_SIZE, offset);
-        if (buffer.size() < XTS_SECTOR_SIZE)
-            buffer.resize(XTS_SECTOR_SIZE);
-        cipher.XTSTranscode(buffer.data(), buffer.size(), buffer.data(), offset / XTS_SECTOR_SIZE,
-                            XTS_SECTOR_SIZE, Op::Decrypt);
-        std::memcpy(data, buffer.data(), (std::min)(buffer.size(), length));
-        return (std::min)(buffer.size(), length);
     }
 
-    // offset does not fall on block boundary (0x4000)
-    std::vector<u8> block = base->ReadBytes(0x4000, offset - sector_offset);
-    if (block.size() < XTS_SECTOR_SIZE)
-        block.resize(XTS_SECTOR_SIZE);
-    cipher.XTSTranscode(block.data(), block.size(), block.data(),
-                        (offset - sector_offset) / XTS_SECTOR_SIZE, XTS_SECTOR_SIZE, Op::Decrypt);
-    const std::size_t read = XTS_SECTOR_SIZE - sector_offset;
-
-    if (length + sector_offset < XTS_SECTOR_SIZE) {
-        std::memcpy(data, block.data() + sector_offset, std::min<u64>(length, read));
-        return std::min<u64>(length, read);
+    if (length > 0) {
+        // Process aligned middle inplace, in sector sized multiples.
+        while (length >= XTS_SECTOR_SIZE) {
+            const std::size_t req = (length / XTS_SECTOR_SIZE) * XTS_SECTOR_SIZE;
+            const std::size_t got = base->Read(data, req, offset);
+            if (got == 0) {
+                return total_read;
+            }
+            const std::size_t got_rounded = got - (got % XTS_SECTOR_SIZE);
+            if (got_rounded > 0) {
+                cipher.XTSTranscode(data, got_rounded, data, offset / XTS_SECTOR_SIZE, XTS_SECTOR_SIZE, Op::Decrypt);
+                data += got_rounded;
+                offset += got_rounded;
+                length -= got_rounded;
+                total_read += got_rounded;
+            }
+            // If we didn't get a full sector next, break to handle tail.
+            if (got_rounded != got) {
+                break;
+            }
+        }
+        // Handle tail within a sector, if any.
+        if (length > 0) {
+            std::array<u8, XTS_SECTOR_SIZE> block{};
+            const std::size_t got = base->Read(block.data(), XTS_SECTOR_SIZE, offset);
+            if (got > 0) {
+                if (got < XTS_SECTOR_SIZE) {
+                    std::memset(block.data() + got, 0, XTS_SECTOR_SIZE - got);
+                }
+                cipher.XTSTranscode(block.data(), XTS_SECTOR_SIZE, block.data(),
+                                    offset / XTS_SECTOR_SIZE, XTS_SECTOR_SIZE, Op::Decrypt);
+                const std::size_t to_copy = std::min<std::size_t>(length, got);
+                std::memcpy(data, block.data(), to_copy);
+                total_read += to_copy;
+            }
+        }
     }
-    std::memcpy(data, block.data() + sector_offset, read);
-    return read + Read(data + read, length - read, offset + read);
+    return total_read;
 }
 } // namespace Core::Crypto

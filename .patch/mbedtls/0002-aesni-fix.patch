@@ -1,0 +1,13 @@
+diff --git a/library/aesni.h b/library/aesni.h
+index 754c984c79..59e27afd3e 100644
+--- a/library/aesni.h
++++ b/library/aesni.h
+@@ -35,7 +35,7 @@
+ /* GCC-like compilers: currently, we only support intrinsics if the requisite
+  * target flag is enabled when building the library (e.g. `gcc -mpclmul -msse2`
+  * or `clang -maes -mpclmul`). */
+-#if (defined(__GNUC__) || defined(__clang__)) && defined(__AES__) && defined(__PCLMUL__)
++#if defined(__GNUC__) || defined(__clang__)
+ #define MBEDTLS_AESNI_HAVE_INTRINSICS
+ #endif
+ /* For 32-bit, we only support intrinsics */

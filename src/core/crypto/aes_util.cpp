@@ -1,7 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
+#include <vector>
 #include <mbedtls/cipher.h>
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -71,37 +75,37 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* des
 
     mbedtls_cipher_reset(context);
 
+    // Only ECB strictly requires block sized chunks.
     std::size_t written = 0;
-    if (mbedtls_cipher_get_cipher_mode(context) == MBEDTLS_MODE_XTS) {
+    if (mbedtls_cipher_get_cipher_mode(context) != MBEDTLS_MODE_ECB) {
         mbedtls_cipher_update(context, src, size, dest, &written);
-        if (written != size) {
-            LOG_WARNING(Crypto, "Not all data was decrypted requested={:016X}, actual={:016X}.",
-                        size, written);
-        }
-    } else {
-        const auto block_size = mbedtls_cipher_get_block_size(context);
-        if (size < block_size) {
-            std::vector<u8> block(block_size);
-            std::memcpy(block.data(), src, size);
-            Transcode(block.data(), block.size(), block.data(), op);
-            std::memcpy(dest, block.data(), size);
-            return;
-        }
+        if (written != size)
+            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.", size, written);
+        return;
+    }
 
-        for (std::size_t offset = 0; offset < size; offset += block_size) {
-            auto length = std::min<std::size_t>(block_size, size - offset);
-            mbedtls_cipher_update(context, src + offset, length, dest + offset, &written);
-            if (written != length) {
-                if (length < block_size) {
-                    std::vector<u8> block(block_size);
-                    std::memcpy(block.data(), src + offset, length);
-                    Transcode(block.data(), block.size(), block.data(), op);
-                    std::memcpy(dest + offset, block.data(), length);
-                    return;
-                }
-                LOG_WARNING(Crypto, "Not all data was decrypted requested={:016X}, actual={:016X}.",
-                            length, written);
+    // ECB path: operate in block sized chunks and mirror previous behavior.
+    const auto block_size = mbedtls_cipher_get_block_size(context);
+    if (size < block_size) {
+        std::vector<u8> block(block_size);
+        std::memcpy(block.data(), src, size);
+        Transcode(block.data(), block.size(), block.data(), op);
+        std::memcpy(dest, block.data(), size);
+        return;
+    }
+
+    for (std::size_t offset = 0; offset < size; offset += block_size) {
+        const auto length = std::min<std::size_t>(block_size, size - offset);
+        mbedtls_cipher_update(context, src + offset, length, dest + offset, &written);
+        if (written != length) {
+            if (length < block_size) {
+                std::vector<u8> block(block_size);
+                std::memcpy(block.data(), src + offset, length);
+                Transcode(block.data(), block.size(), block.data(), op);
+                std::memcpy(dest + offset, block.data(), length);
+                return;
             }
+            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.", length, written);
         }
     }
 }
