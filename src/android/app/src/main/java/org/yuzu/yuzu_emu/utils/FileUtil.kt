@@ -18,6 +18,7 @@ import java.net.URLDecoder
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 import org.yuzu.yuzu_emu.model.TaskState
 import java.io.BufferedOutputStream
@@ -290,6 +291,39 @@ object FileUtil {
         } catch (e: NullPointerException) {
             null
         }
+
+    /**
+     * Copies a file from internal appdata storage to an external Uri.
+     */
+    fun copyToExternalStorage(
+        sourcePath: String,
+        destUri: Uri,
+        progressCallback: (max: Long, progress: Long) -> Boolean = { _, _ -> false }
+    ): TaskState {
+        try {
+            val totalBytes = getFileSize(sourcePath)
+            var progressBytes = 0L
+            val inputStream = getInputStream(sourcePath)
+            BufferedInputStream(inputStream).use { bis ->
+                context.contentResolver.openOutputStream(destUri, "wt")?.use { outputStream ->
+                    val buffer = ByteArray(1024 * 4)
+                    var len: Int
+                    while (bis.read(buffer).also { len = it } != -1) {
+                        if (progressCallback.invoke(totalBytes, progressBytes)) {
+                            return TaskState.Cancelled
+                        }
+                        outputStream.write(buffer, 0, len)
+                        progressBytes += len
+                    }
+                    outputStream.flush()
+                } ?: return TaskState.Failed
+            }
+        } catch (e: Exception) {
+            Log.error("[FileUtil] Failed exporting file - ${e.message}")
+            return TaskState.Failed
+        }
+        return TaskState.Completed
+    }
 
     /**
      * Extracts the given zip file into the given directory.

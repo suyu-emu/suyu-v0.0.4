@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -82,6 +85,34 @@ class GamePropertiesAdapter(
                 submenuProperty.detailsFlow.collect(viewLifecycle) { binding.details.text = it }
             } else {
                 binding.details.setVisible(false)
+            }
+
+
+            val hasVisibleActions = submenuProperty.secondaryActions?.any { it.isShown } == true
+
+            if (hasVisibleActions) {
+                binding.dividerSecondaryActions.setVisible(true)
+                binding.layoutSecondaryActions.setVisible(true)
+
+                submenuProperty.secondaryActions!!.forEach { secondaryAction ->
+                    if (secondaryAction.isShown) {
+                        val button = com.google.android.material.button.MaterialButton(
+                            binding.root.context,
+                            null,
+                            com.google.android.material.R.attr.materialButtonOutlinedStyle
+                        ).apply {
+                            setIconResource(secondaryAction.iconId)
+                            iconSize = (18 * binding.root.context.resources.displayMetrics.density).toInt()
+                            text = binding.root.context.getString(secondaryAction.descriptionId)
+                            contentDescription = binding.root.context.getString(secondaryAction.descriptionId)
+                            setOnClickListener { secondaryAction.action.invoke() }
+                        }
+                        binding.layoutSecondaryActions.addView(button)
+                    }
+                }
+            } else {
+                binding.dividerSecondaryActions.setVisible(false)
+                binding.layoutSecondaryActions.setVisible(false)
             }
         }
     }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,8 +27,16 @@ data class SubmenuProperty(
     override val iconId: Int,
     val details: (() -> String)? = null,
     val detailsFlow: StateFlow<String>? = null,
-    val action: () -> Unit
+    val action: () -> Unit,
+    val secondaryActions: List<SubMenuPropertySecondaryAction>? = null
 ) : GameProperty
+
+data class SubMenuPropertySecondaryAction(
+    val isShown : Boolean,
+    val descriptionId: Int,
+    val iconId: Int,
+    val action: () -> Unit
+)
 
 data class InstallableProperty(
     override val titleId: Int,

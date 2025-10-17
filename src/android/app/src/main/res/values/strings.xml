@@ -675,6 +675,7 @@
     <string name="fetch">Fetch</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
+    <string name="import_success">Imported successfully</string>
     <string name="export_success">Exported successfully</string>
     <string name="start">Start</string>
     <string name="clear">Clear</string>
@@ -789,6 +790,10 @@
     <string name="verify_no_result">Integrity verification couldn\'t be performed</string>
     <string name="verify_no_result_description">File contents were not checked for validity</string>
     <string name="verification_failed_for">Verification failed for the following files:\n%1$s</string>
+    <string name="share_game_settings">Share Config</string>
+    <string name="import_config">Import Config</string>
+    <string name="export_config">Export Config</string>
+    <string name="share_config_failed">Failed to share configuration file</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>
