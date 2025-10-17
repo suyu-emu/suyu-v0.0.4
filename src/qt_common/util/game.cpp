@@ -542,7 +542,8 @@ void CreateShortcut(const std::string& game_path,
                               qgame_title);
 }
 
-constexpr std::string GetShortcutPath(ShortcutTarget target) {
+// TODO: You want this to be constexpr? Well too bad, clang19 doesn't believe this is a string literal
+std::string GetShortcutPath(ShortcutTarget target) {
     {
         std::string shortcut_path{};
         if (target == ShortcutTarget::Desktop) {

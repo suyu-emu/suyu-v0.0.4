@@ -54,6 +54,7 @@ The vast majority of Eden's testing is done on Windows, Linux, and Android. Howe
 
 - FreeBSD
 - OpenBSD
+- NetBSD
 - OpenIndiana (Solaris)
 - macOS
 
@@ -127,6 +128,6 @@ AMD GPU support on these platforms is limited or nonexistent.
 
 ## VMs
 
-Eden "can" run in a VM, but only with the software renderer, *unless* you create a hardware-accelerated KVM with GPU passthrough. If you *really* want to do this and don't have a spare GPU lying around, RX 570 and 580 GPUs are extremely cheap on the black market and are powerful enough to run most commercial games at 60fps.
+Eden "can" run in a VM, but only with the software renderer, *unless* you create a hardware-accelerated KVM with GPU passthrough. If you *really* want to do this and don't have a spare GPU lying around, RX 570 and 580 GPUs are extremely cheap on the black market and are powerful enough to run most commercial games at 60 FPS.
 
 Some users and developers have had success using a pure OpenGL-accelerated KVM on Linux with a Windows VM, but this is ridiculously tedious to set up. You're probably better off dual-booting.

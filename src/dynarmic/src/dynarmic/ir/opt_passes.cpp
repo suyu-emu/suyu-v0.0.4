@@ -86,7 +86,7 @@ static void ConstantMemoryReads(IR::Block& block, A32::UserCallbacks* cb) {
 }
 
 static void FlagsPass(IR::Block& block) {
-    using Iterator = std::reverse_iterator<IR::Block::iterator>;
+    using Iterator = typename std::reverse_iterator<IR::Block::iterator>;
 
     struct FlagInfo {
         bool set_not_required = false;

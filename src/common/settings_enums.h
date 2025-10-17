@@ -21,8 +21,8 @@ template <typename T>
 struct EnumMetadata {
     static std::vector<std::pair<std::string_view, T>> Canonicalizations();
     static u32 Index();
-    static constexpr T GetFirst();
-    static constexpr T GetLast();
+    static T GetFirst();
+    static T GetLast();
 };
 
 #define PAIR_45(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_46(N, __VA_ARGS__))
@@ -82,10 +82,10 @@ struct EnumMetadata {
     template<> inline u32 EnumMetadata<NAME>::Index() { \
         return __COUNTER__; \
     } \
-    template<> inline constexpr NAME EnumMetadata<NAME>::GetFirst() { \
+    template<> inline NAME EnumMetadata<NAME>::GetFirst() { \
         return NAME::PP_HEAD(__VA_ARGS__); \
     } \
-    template<> inline constexpr NAME EnumMetadata<NAME>::GetLast() { \
+    template<> inline NAME EnumMetadata<NAME>::GetLast() { \
         return (std::vector<std::pair<std::string_view, NAME>>{PAIR(NAME, __VA_ARGS__)}).back().second; \
     }
 
@@ -106,17 +106,17 @@ inline u32 EnumMetadata<AudioEngine>::Index() {
     return 100;
 }
 template<>
-inline constexpr AudioEngine EnumMetadata<AudioEngine>::GetFirst() {
+inline AudioEngine EnumMetadata<AudioEngine>::GetFirst() {
     return AudioEngine::Auto;
 }
 template<>
-inline constexpr AudioEngine EnumMetadata<AudioEngine>::GetLast() {
+inline AudioEngine EnumMetadata<AudioEngine>::GetLast() {
     return AudioEngine::Oboe;
 }
 
 ENUM(AudioMode, Mono, Stereo, Surround);
-static_assert(EnumMetadata<AudioMode>::GetFirst() == AudioMode::Mono);
-static_assert(EnumMetadata<AudioMode>::GetLast() == AudioMode::Surround);
+//static_assert(EnumMetadata<AudioMode>::GetFirst() == AudioMode::Mono);
+//static_assert(EnumMetadata<AudioMode>::GetLast() == AudioMode::Surround);
 
 ENUM(Language, Japanese, EnglishAmerican, French, German, Italian, Spanish, Chinese, Korean, Dutch,
      Portuguese, Russian, Taiwanese, EnglishBritish, FrenchCanadian, SpanishLatin,

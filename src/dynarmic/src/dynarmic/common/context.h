@@ -12,7 +12,22 @@
 #        include <ucontext.h>
 #    endif
 #    ifdef __sun__
+// Thanks C macros for exisitng in Solaris headers, thanks a lot
+// We really needed to define FOR EVERY SINGLE REGISTER didn't we?
 #        include <sys/regset.h>
+#        undef EAX
+#        undef EBX
+#        undef ECX
+#        undef EDX
+#        undef ESP
+#        undef EBP
+#        undef ESI
+#        undef EDI
+#        undef ERR
+#        undef SS
+#        undef CS
+#        undef ES
+#        undef DS
 #    endif
 #    ifdef __linux__
 #       include <sys/syscall.h>

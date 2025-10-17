@@ -46,9 +46,10 @@
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "hash": "e84992c65ad62c577e2746ec5180132fd2875166d1e6b1521a0ff619787e1645792fe5f6a858fe94ed66f297912b6a6b89a509b5d5f5e81a2db1dd7e6790b1f5",
+        "hash": "b40dade90fb0e46a2bd52934f7ce461e37be931b571e58cbe2203bc08ed5b54c7ff1a29026c74c7f9805e4e3f6c9636deca528e6b4a8093ce7eae145218599f1",
+        "git_version": "7.29",
         "bundled": true,
-        "git_version": "7.30"
+        "skip_updates": true
     },
     "xbyak": {
         "package": "xbyak",
@@ -128,6 +129,9 @@
         "git_version": "2025.4",
         "options": [
             "SPIRV_SKIP_EXECUTABLES ON"
+        ],
+        "patches": [
+            "0001-netbsd-fix.patch"
         ]
     },
     "spirv-headers": {
@@ -168,7 +172,10 @@
         "tag": "v%VERSION%",
         "hash": "a95495142f915d6e9c2a23e80fe360343e9097680066a2f9d3037a070ba5f81ee5559a0407cc9e972dc2afae325873f1fc7ea07a64012c0f01aac6e549f03e3f",
         "version": "3.0.1",
-        "git_version": "3.11.0"
+        "git_version": "3.11.0",
+        "patches": [
+            "0001-solaris-isnan-fix.patch"
+        ]
     },
     "discord-rpc": {
         "package": "DiscordRPC",

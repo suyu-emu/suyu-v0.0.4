@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <cstdint>
@@ -13,10 +16,10 @@ namespace Dynarmic {
         using const_pointer = const value_type*;
         using reference = value_type&;
         using const_reference = const value_type&;
-        using iterator = std::deque<value_type>::iterator;
-        using const_iterator = std::deque<value_type>::const_iterator;
-        using reverse_iterator = std::reverse_iterator<iterator>;
-        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+        using iterator = typename std::deque<value_type>::iterator;
+        using const_iterator = typename std::deque<value_type>::const_iterator;
+        using reverse_iterator = typename std::reverse_iterator<iterator>;
+        using const_reverse_iterator = typename std::reverse_iterator<const_iterator>;
 
         inline bool empty() const noexcept { return list.empty(); }
         inline size_type size() const noexcept { return list.size(); }

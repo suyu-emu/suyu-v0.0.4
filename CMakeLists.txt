@@ -11,6 +11,8 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     set(PLATFORM_FREEBSD ON)
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
     set(PLATFORM_OPENBSD ON)
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
+    set(PLATFORM_NETBSD ON)
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(PLATFORM_LINUX ON)
 endif()
@@ -41,8 +43,7 @@ if (PLATFORM_SUN)
     list(APPEND CMAKE_PREFIX_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
     list(APPEND CMAKE_MODULE_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
 
-    # amazing
-    # absolutely incredible
+    # Amazing - absolutely incredible
     list(APPEND CMAKE_PREFIX_PATH "/usr/lib/amd64/cmake")
     list(APPEND CMAKE_MODULE_PATH "/usr/lib/amd64/cmake")
 
@@ -63,6 +64,15 @@ if (PLATFORM_OPENBSD)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I/usr/X11R6/include")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/X11R6/include")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/X11R6/lib")
+elseif (PLATFORM_NETBSD)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I/usr/X11R7/include")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/X11R7/include")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/X11R7/lib")
+endif()
+
+# NetBSD: Fun for the whole family!
+if (PLATFORM_NETBSD)
+    set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
 # Detect current compilation architecture and create standard definitions
@@ -149,6 +159,7 @@ endif()
 
 if (PLATFORM_FREEBSD)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
+
 endif()
 
 # Set bundled sdl2/qt as dependent options.
@@ -264,7 +275,11 @@ if (ENABLE_WEB_SERVICE)
 endif()
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 if (ENABLE_OPENSSL)
-    cmake_dependent_option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" "${MSVC}" "NOT ANDROID" ON)
+    set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
+    if (EXT_DEFAULT OR PLATFORM_SUN)
+        set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
+    endif()
+    option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL})
 endif()
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
@@ -351,7 +366,7 @@ if (YUZU_ROOM)
     add_compile_definitions(YUZU_ROOM)
 endif()
 
-if (ANDROID OR PLATFORM_FREEBSD OR PLATFORM_OPENBSD OR PLATFORM_SUN OR APPLE)
+if ((ANDROID OR APPLE OR UNIX) AND (NOT PLATFORM_LINUX OR ANDROID) AND NOT WIN32)
     if(CXX_APPLE OR CXX_CLANG)
         # libc++ has stop_token and jthread as experimental
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")

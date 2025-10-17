@@ -78,7 +78,7 @@ void CreateShortcut(const std::string& game_path,
                     std::string arguments_,
                     const bool needs_title);
 
-constexpr std::string GetShortcutPath(ShortcutTarget target);
+std::string GetShortcutPath(ShortcutTarget target);
 void CreateHomeMenuShortcut(ShortcutTarget target);
 
 }

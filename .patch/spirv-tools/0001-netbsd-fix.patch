@@ -1,0 +1,14 @@
+diff --git a/external/CMakeLists.txt b/external/CMakeLists.txt
+index eb4e69e..3155805 100644
+--- a/external/CMakeLists.txt
++++ b/external/CMakeLists.txt
+@@ -72,7 +72,8 @@ if (SPIRV_TOOLS_USE_MIMALLOC)
+   pop_variable(MI_BUILD_TESTS)
+ endif()
+ 
+-if (DEFINED SPIRV-Headers_SOURCE_DIR)
++# NetBSD doesn't have SPIRV-Headers readily available on system
++if (DEFINED SPIRV-Headers_SOURCE_DIR AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
+   # This allows flexible position of the SPIRV-Headers repo.
+   set(SPIRV_HEADER_DIR ${SPIRV-Headers_SOURCE_DIR})
+ else()

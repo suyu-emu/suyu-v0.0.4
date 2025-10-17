@@ -102,7 +102,7 @@ sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glsl
 <summary>Ubuntu, Debian, Mint Linux</summary>
 
 ```sh
-sudo apt-get install autoconf cmake g++ gcc git glslang-tools libasound2t64 libboost-context-dev libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev libzydis-dev zydis-tools libzycore-dev vulkan-utility-libraries-dev libvulkan-dev spirv-tools spirv-headers libusb-1.0-0-dev libxbyak-dev
+sudo apt-get install autoconf cmake g++ gcc git glslang-tools libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev libzydis-dev zydis-tools libzycore-dev libvulkan-dev spirv-tools spirv-headers libusb-1.0-0-dev libxbyak-dev libboost-dev libboost-fiber-dev libboost-context-dev libsdl2-dev libopus-dev libasound2t64 vulkan-utility-libraries-dev
 ```
 
 * Ubuntu 22.04, Linux Mint 20, or Debian 12 or later is required.
@@ -110,18 +110,28 @@ sudo apt-get install autoconf cmake g++ gcc git glslang-tools libasound2t64 libb
 </details>
 
 <details>
-<summary>Fedora Linux</summary>
+<summary>AlmaLinux, Fedora, Red Hat Linux</summary>
 
+Fedora:
 ```sh
-sudo dnf install autoconf ccache cmake fmt-devel gcc{,-c++} glslang hidapi-devel json-devel libtool libusb1-devel libzstd-devel lz4-devel nasm ninja-build openssl-devel pulseaudio-libs-devel qt6-linguist qt6-qtbase{-private,}-devel qt6-qtwebengine-devel qt6-qtmultimedia-devel speexdsp-devel wayland-devel zlib-devel ffmpeg-devel libXext-devel
+sudo dnf install autoconf cmake fmt-devel gcc{,-c++} glslang hidapi-devel json-devel libtool libusb1-devel libzstd-devel lz4-devel nasm ninja-build openssl-devel pulseaudio-libs-devel qt6-linguist qt6-qtbase{-private,}-devel qt6-qtwebengine-devel qt6-qtmultimedia-devel speexdsp-devel wayland-devel zlib-devel ffmpeg-devel libXext-devel boost jq
 ```
 
-* Force system libraries via CMake arguments:
-  * SDL2: `-DYUZU_USE_BUNDLED_SDL2=OFF -DYUZU_USE_EXTERNAL_SDL2=OFF`
-  * FFmpeg: `-DYUZU_USE_EXTERNAL_FFMPEG=OFF`
-* [RPM Fusion](https://rpmfusion.org/) is required for `ffmpeg-devel`
+AlmaLinux (use `YUZU_USE_CPM=ON`):
+```sh
+# vvv - Only if RPMfusion is not installed or EPEL isn't either
+sudo dnf install epel-release dnf-utils
+# (run rpmfusion installation afterwards)
+# vvv - This will work for most systems
+sudo dnf install autoconf cmake libtool libudev cmake gcc gcc-c++ qt6-qtbase-devel zlib-devel openssl-devel boost SDL2 ffmpeg-devel libdrm glslang jq patch
+# Qt6 private GUI must be taken from CRB repos
+sudo dnf config-manager --enable crb
+sudo dnf install qt6-qtbase-private-devel
+```
+
+* [RPM Fusion](https://rpmfusion.org/Configuration) is required for `ffmpeg-devel`
 * Fedora 32 or later is required.
-* Fedora 36+ users with GCC 12 need Clang and should configure CMake with:
+* Fedora 36+ users with GCC 12 need Clang and should configure CMake with: `cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -B build`
 </details>
 
 <details>
@@ -145,35 +155,33 @@ brew install molten-vk vulkan-loader
 <details>
 <summary>FreeBSD</summary>
 
-```
-devel/cmake
-devel/sdl20
-devel/boost-libs
-devel/catch2
-devel/libfmt
-devel/nlohmann-json
-devel/ninja
-devel/nasm
-devel/autoconf
-devel/pkgconf
-devel/qt6-base
-
-net/enet
-
-multimedia/ffnvcodec-headers
-multimedia/ffmpeg
-
-audio/opus
-
-archivers/liblz4
-
-lang/gcc12
-
-graphics/glslang
-graphics/vulkan-utility-libraries
-```
+As root run: `pkg install devel/cmake devel/sdl20 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/jwt-cpp devel/unordered-dense devel/zydis`
 
 If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
+</details>
+
+<details>
+<summary>NetBSD</summary>
+
+Install `pkgin` if not already `pkg_add pkgin`, see also the general [pkgsrc guide](https://www.netbsd.org/docs/pkgsrc/using.html). For NetBSD 10.1 provide `cat 'PKG_PATH="https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2025Q3/All/"' >/etc/pkg_install.conf`. If `pkgin` is taking too much time consider adding the following to `/etc/rc.conf`:
+```
+ip6addrctl=YES
+ip6addrctl_policy=ipv4_prefer
+```
+
+For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers ffmpeg7 libva nlohmann-json jq libopus qt6 mbedtls3 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1`.
+
+glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
+```sh
+pkgin python313
+git clone https://github.com/KhronosGroup/glslang.git
+cd glslang
+python3.13 ./update_glslang_sources.py
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -- -j`nproc`
+cmake --install build
+```
+
 </details>
 
 <details>
@@ -181,8 +189,9 @@ If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 
 ```sh
 pkg_add -u
-pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2 libusb1.1.0.27
+pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2 libusb1-1.0.27
 ```
+
 </details>
 
 <details>
@@ -208,6 +217,16 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
   * `echo 'PATH=/mingw64/bin:$PATH' >> ~/.bashrc`
 * Add VulkanSDK to the PATH:
   * `echo 'PATH=$(readlink -e /c/VulkanSDK/*/Bin/):$PATH' >> ~/.bashrc`
+</details>
+
+<details>
+<summary>RedoxOS</summary>
+
+```sh
+sudo pkg update && sudo pkg install git cmake
+sudo pkg install ffmpeg6 sdl2 zlib llvm18
+```
+
 </details>
 
 ## All Done
