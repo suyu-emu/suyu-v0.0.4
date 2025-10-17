@@ -345,6 +345,7 @@ private slots:
     void OnGameListRemoveFile(u64 program_id, QtCommon::Game::GameListRemoveTarget target,
                               const std::string& game_path);
     void OnGameListRemovePlayTimeData(u64 program_id);
+    void OnGameListSetPlayTime(u64 program_id);
     void OnGameListDumpRomFS(u64 program_id, const std::string& game_path, DumpRomFSTarget target);
     void OnGameListVerifyIntegrity(const std::string& game_path);
     void OnGameListCopyTID(u64 program_id);

@@ -53,6 +53,7 @@ class YuzuApplication : Application() {
         application = this
         documentsTree = DocumentsTree()
         DirectoryInitialization.start()
+        NativeLibrary.playTimeManagerInit()
         GpuDriverHelper.initializeDriverParameters()
         NativeInput.reloadInputDevices()
         NativeLibrary.logDeviceInfo()

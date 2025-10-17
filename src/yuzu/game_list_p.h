@@ -21,7 +21,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
-#include "yuzu/play_time_manager.h"
+#include "frontend_common/play_time_manager.h"
 #include "qt_common/config/uisettings.h"
 #include "yuzu/util/util.h"
 
@@ -241,7 +241,7 @@ public:
 
     void setData(const QVariant& value, int role) override {
         qulonglong time_seconds = value.toULongLong();
-        GameListItem::setData(PlayTime::ReadablePlayTime(time_seconds), Qt::DisplayRole);
+        GameListItem::setData(QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(time_seconds)), Qt::DisplayRole);
         GameListItem::setData(value, PlayTimeRole);
     }
 

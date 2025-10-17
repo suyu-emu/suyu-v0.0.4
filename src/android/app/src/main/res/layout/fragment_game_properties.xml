@@ -74,11 +74,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="2dp"
                 android:layout_marginHorizontal="16dp"
                 android:requiresFadingEdge="horizontal"
                 android:textAlignment="center"
                 tools:text="deko_basic" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/playtime"
+                style="?attr/textAppearanceBodyMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textAlignment="center"
+                tools:text="Game Playtime" />
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/list_properties"

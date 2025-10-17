@@ -11,7 +11,10 @@
 #include "common/settings.h"
 #include "common/thread.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "yuzu/play_time_manager.h"
+#include "play_time_manager.h"
+
+#include <fmt/format.h>
+#include <algorithm>
 
 namespace PlayTime {
 
@@ -22,19 +25,13 @@ struct PlayTimeElement {
     PlayTime play_time;
 };
 
-std::optional<std::filesystem::path> GetCurrentUserPlayTimePath(
-    const Service::Account::ProfileManager& manager) {
-    const auto uuid = manager.GetUser(static_cast<s32>(Settings::values.current_user));
-    if (!uuid.has_value()) {
-        return std::nullopt;
-    }
+std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
     return Common::FS::GetEdenPath(Common::FS::EdenPath::PlayTimeDir) /
-           uuid->RawString().append(".bin");
+           "playtime.bin";
 }
 
-[[nodiscard]] bool ReadPlayTimeFile(PlayTimeDatabase& out_play_time_db,
-                                    const Service::Account::ProfileManager& manager) {
-    const auto filename = GetCurrentUserPlayTimePath(manager);
+[[nodiscard]] bool ReadPlayTimeFile(PlayTimeDatabase& out_play_time_db) {
+    const auto filename = GetCurrentUserPlayTimePath();
 
     if (!filename.has_value()) {
         LOG_ERROR(Frontend, "Failed to get current user path");
@@ -69,9 +66,8 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath(
     return true;
 }
 
-[[nodiscard]] bool WritePlayTimeFile(const PlayTimeDatabase& play_time_db,
-                                     const Service::Account::ProfileManager& manager) {
-    const auto filename = GetCurrentUserPlayTimePath(manager);
+[[nodiscard]] bool WritePlayTimeFile(const PlayTimeDatabase& play_time_db) {
+    const auto filename = GetCurrentUserPlayTimePath();
 
     if (!filename.has_value()) {
         LOG_ERROR(Frontend, "Failed to get current user path");
@@ -100,9 +96,9 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath(
 
 } // namespace
 
-PlayTimeManager::PlayTimeManager(Service::Account::ProfileManager& profile_manager)
-    : manager{profile_manager} {
-    if (!ReadPlayTimeFile(database, manager)) {
+PlayTimeManager::PlayTimeManager()
+    : running_program_id() {
+    if (!ReadPlayTimeFile(database)) {
         LOG_ERROR(Frontend, "Failed to read play time database! Resetting to default.");
     }
 }
@@ -147,7 +143,7 @@ void PlayTimeManager::AutoTimestamp(std::stop_token stop_token) {
 }
 
 void PlayTimeManager::Save() {
-    if (!WritePlayTimeFile(database, manager)) {
+    if (!WritePlayTimeFile(database)) {
         LOG_ERROR(Frontend, "Failed to update play time database!");
     }
 }
@@ -161,24 +157,47 @@ u64 PlayTimeManager::GetPlayTime(u64 program_id) const {
     }
 }
 
+void PlayTimeManager::SetPlayTime(u64 program_id, u64 play_time) {
+    database[program_id] = play_time;
+    Save();
+}
+
 void PlayTimeManager::ResetProgramPlayTime(u64 program_id) {
     database.erase(program_id);
     Save();
 }
 
-QString ReadablePlayTime(qulonglong time_seconds) {
+std::string PlayTimeManager::GetReadablePlayTime(u64 time_seconds) {
     if (time_seconds == 0) {
         return {};
     }
-    const auto time_minutes = (std::max)(static_cast<double>(time_seconds) / 60, 1.0);
-    const auto time_hours = static_cast<double>(time_seconds) / 3600;
-    const bool is_minutes = time_minutes < 60;
-    const char* unit = is_minutes ? "m" : "h";
-    const auto value = is_minutes ? time_minutes : time_hours;
 
-    return QStringLiteral("%L1 %2")
-        .arg(value, 0, 'f', !is_minutes && time_seconds % 60 != 0)
-        .arg(QString::fromUtf8(unit));
+    const auto time_minutes = std::max(static_cast<double>(time_seconds) / 60.0, 1.0);
+    const auto time_hours = static_cast<double>(time_seconds) / 3600.0;
+    const bool is_minutes = time_minutes < 60.0;
+
+    if (is_minutes) {
+        return fmt::format("{:.0f} m", time_minutes);
+    } else {
+        const bool has_remainder = time_seconds % 60 != 0;
+        if (has_remainder) {
+            return fmt::format("{:.1f} h", time_hours);
+        } else {
+            return fmt::format("{:.0f} h", time_hours);
+        }
+    }
+}
+
+std::string PlayTimeManager::GetPlayTimeHours(u64 time_seconds) {
+    return fmt::format("{}", time_seconds / 3600);
+}
+
+std::string PlayTimeManager::GetPlayTimeMinutes(u64 time_seconds) {
+    return fmt::format("{}", (time_seconds % 3600) / 60);
+}
+
+std::string PlayTimeManager::GetPlayTimeSeconds(u64 time_seconds) {
+    return fmt::format("{}", time_seconds % 60);
 }
 
 } // namespace PlayTime

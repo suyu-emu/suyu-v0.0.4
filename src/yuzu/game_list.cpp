@@ -557,13 +557,15 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     QAction* remove_update = remove_menu->addAction(tr("Remove Installed Update"));
     QAction* remove_dlc = remove_menu->addAction(tr("Remove All Installed DLC"));
     QAction* remove_custom_config = remove_menu->addAction(tr("Remove Custom Configuration"));
-    QAction* remove_play_time_data = remove_menu->addAction(tr("Remove Play Time Data"));
     QAction* remove_cache_storage = remove_menu->addAction(tr("Remove Cache Storage"));
     QAction* remove_gl_shader_cache = remove_menu->addAction(tr("Remove OpenGL Pipeline Cache"));
     QAction* remove_vk_shader_cache = remove_menu->addAction(tr("Remove Vulkan Pipeline Cache"));
     remove_menu->addSeparator();
     QAction* remove_shader_cache = remove_menu->addAction(tr("Remove All Pipeline Caches"));
     QAction* remove_all_content = remove_menu->addAction(tr("Remove All Installed Contents"));
+    QMenu* play_time_menu = context_menu.addMenu(tr("Manage Play Time"));
+    QAction* set_play_time = play_time_menu->addAction(tr("Edit Play Time Data"));
+    QAction* remove_play_time_data = play_time_menu->addAction(tr("Remove Play Time Data"));
     QMenu* dump_romfs_menu = context_menu.addMenu(tr("Dump RomFS"));
     QAction* dump_romfs = dump_romfs_menu->addAction(tr("Dump RomFS"));
     QAction* dump_romfs_sdmc = dump_romfs_menu->addAction(tr("Dump RomFS to SDMC"));
@@ -629,6 +631,8 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     connect(remove_custom_config, &QAction::triggered, [this, program_id, path]() {
         emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CustomConfiguration, path);
     });
+    connect(set_play_time, &QAction::triggered,
+            [this, program_id]() { emit SetPlayTimeRequested(program_id); });
     connect(remove_play_time_data, &QAction::triggered,
             [this, program_id]() { emit RemovePlayTimeRequested(program_id); });
     connect(remove_cache_storage, &QAction::triggered, [this, program_id, path] {

@@ -61,6 +61,7 @@ import org.yuzu.yuzu_emu.utils.ThemeHelper
 import java.text.NumberFormat
 import kotlin.math.roundToInt
 import org.yuzu.yuzu_emu.utils.ForegroundService
+import androidx.core.os.BundleCompat
 
 class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var binding: ActivityEmulationBinding
@@ -326,6 +327,11 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor, i: Int) {}
 
+    override fun onDestroy() {
+        super.onDestroy()
+        NativeLibrary.playTimeManagerStop()
+    }
+
     private fun enableFullscreenImmersive() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -530,6 +536,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     fun onEmulationStarted() {
         emulationViewModel.setEmulationStarted(true)
+        NativeLibrary.playTimeManagerStart()
+
     }
 
     fun onEmulationStopped(status: Int) {

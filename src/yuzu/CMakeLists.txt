@@ -198,11 +198,11 @@ add_executable(yuzu
     multiplayer/state.cpp
     multiplayer/state.h
     multiplayer/validation.h
-    play_time_manager.cpp
-    play_time_manager.h
     precompiled_headers.h
     startup_checks.cpp
     startup_checks.h
+    set_play_time_dialog.cpp
+    set_play_time_dialog.h
     util/clickable_label.cpp
     util/clickable_label.h
     util/controller_navigation.cpp

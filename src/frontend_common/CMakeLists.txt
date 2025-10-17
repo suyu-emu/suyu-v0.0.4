@@ -11,6 +11,8 @@ add_library(frontend_common STATIC
     firmware_manager.h
     firmware_manager.cpp
     data_manager.h data_manager.cpp
+    play_time_manager.cpp
+    play_time_manager.h
 )
 
 create_target_directory_groups(frontend_common)

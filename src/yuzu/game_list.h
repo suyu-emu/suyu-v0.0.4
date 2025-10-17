@@ -23,7 +23,7 @@
 #include "qt_common/config/uisettings.h"
 #include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
-#include "yuzu/play_time_manager.h"
+#include "frontend_common/play_time_manager.h"
 
 namespace Core {
 class System;
@@ -104,6 +104,7 @@ signals:
     void RemoveFileRequested(u64 program_id, QtCommon::Game::GameListRemoveTarget target,
                              const std::string& game_path);
     void RemovePlayTimeRequested(u64 program_id);
+    void SetPlayTimeRequested(u64 program_id);
     void DumpRomFSRequested(u64 program_id, const std::string& game_path, DumpRomFSTarget target);
     void VerifyIntegrityRequested(const std::string& game_path);
     void CopyTIDRequested(u64 program_id);

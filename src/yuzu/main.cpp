@@ -15,6 +15,8 @@
 #include <memory>
 #include <thread>
 
+#include "set_play_time_dialog.h"
+
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
 #endif
@@ -164,7 +166,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/install_dialog.h"
 #include "yuzu/loading_screen.h"
 #include "yuzu/main.h"
-#include "yuzu/play_time_manager.h"
+#include "frontend_common/play_time_manager.h"
 #include "yuzu/startup_checks.h"
 #include "qt_common/config/uisettings.h"
 #include "yuzu/util/clickable_label.h"
@@ -448,7 +450,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     discord_rpc->Update();
 
-    play_time_manager = std::make_unique<PlayTime::PlayTimeManager>(QtCommon::system->GetProfileManager());
+    play_time_manager = std::make_unique<PlayTime::PlayTimeManager>();
 
     Network::Init();
 
@@ -1576,6 +1578,8 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::RemoveFileRequested, this, &GMainWindow::OnGameListRemoveFile);
     connect(game_list, &GameList::RemovePlayTimeRequested, this,
             &GMainWindow::OnGameListRemovePlayTimeData);
+    connect(game_list, &GameList::SetPlayTimeRequested, this,
+            &GMainWindow::OnGameListSetPlayTime);
     connect(game_list, &GameList::DumpRomFSRequested, this, &GMainWindow::OnGameListDumpRomFS);
     connect(game_list, &GameList::VerifyIntegrityRequested, this,
             &GMainWindow::OnGameListVerifyIntegrity);
@@ -2635,6 +2639,19 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, QtCommon::Game::GameListR
         break;
     }
 }
+
+void GMainWindow::OnGameListSetPlayTime(u64 program_id) {
+    const u64 current_play_time = play_time_manager->GetPlayTime(program_id);
+
+    SetPlayTimeDialog dialog(this, current_play_time);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        const u64 total_seconds = dialog.GetTotalSeconds();
+        play_time_manager->SetPlayTime(program_id, total_seconds);
+        game_list->PopulateAsync(UISettings::values.game_dirs);
+    }
+}
+
 
 void GMainWindow::OnGameListRemovePlayTimeData(u64 program_id) {
     if (QMessageBox::question(this, tr("Remove Play Time Data"), tr("Reset play time?"),
