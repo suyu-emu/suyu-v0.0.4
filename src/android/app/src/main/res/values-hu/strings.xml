@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Ez a szoftver Nintendo Switch játékkonzolhoz készült játékokat futtat. Nem tartalmaz játékokat vagy kulcsokat. .&lt;br /&gt;&lt;br /&gt;Mielőtt hozzákezdenél, kérjük, válaszd ki a <![CDATA[<b>prod.keys</b>]]> fájl helyét a készülék tárhelyén&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Tudj meg többet</a>]]></string>
     <string name="notice_notification_channel_name">Megjegyzések és hibák</string>
     <string name="notice_notification_channel_description">Értesítések megjelenítése, ha valami rosszul sül el.</string>
     <string name="notification_permission_not_granted">Nincs engedély az értesítés megjelenítéséhez!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Továbbfejlesztett)</string>
     <string name="process_ram">Processz RAM: %1$d MB</string>
     <string name="shaders_prefix">Shader(ek)</string>
     <string name="shaders_suffix">fordítása</string>
     <string name="charging">(Töltés alatt)</string>
+
     <string name="system_info_label">Rendszer:</string>
     <string name="show_stats_overlay">Teljesítmény statisztikák megjelenítése</string>
     <string name="stats_overlay_customization">Testreszabás</string>
@@ -34,6 +33,8 @@
     <string name="bat_temperature_unit">Akkumulátor hőmérséklet egységek</string>
     <string name="show_power_info">Akkumulátor információk</string>
     <string name="show_power_info_description">Jelenlegi energiafelhasználás és remaining kapacitás megjelenítése</string>
+    <string name="show_shaders_building">Shader-építés megjelenítése</string>
+    <string name="show_shaders_building_description">Megjeleníti az éppen épülő shaderek aktuális számát</string>
     <string name="overlay_position">Overlay pozíció</string>
     <string name="overlay_position_description">Az overlay helyének kiválasztása</string>
     <string name="overlay_position_top_left">Bal fent</string>
@@ -44,8 +45,6 @@
     <string name="overlay_position_center_bottom">Középen lent</string>
     <string name="perf_overlay_background">Overlay háttér</string>
     <string name="perf_overlay_background_description">Háttér hozzáadása az overlayhez</string>
-    <string name="show_shaders_building">Shader-építés megjelenítése</string>
-    <string name="show_shaders_building_description">Megjeleníti az éppen épülő shaderek aktuális számát</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">Eszköz információk megjelenítése</string>
@@ -63,15 +62,25 @@
     <string name="show_fw_version_description">A telepített firmver verziójának megjelenítése</string>
 
     <!-- Eden\'s Veil -->
-    <string name="veil_extensions">GPU kiterjesztések</string>
-    <string name="veil_renderer">Megjelenítő</string>
-    <string name="veil_misc">CPU és memória</string>
     <string name="eden_veil">Eden Fátyla</string>
     <string name="eden_veil_description">Kísérleti beállítások a teljesítmény és képesség javításához. Ezek a beállítások fekete képernyőket vagy más játékproblémákat okozhatnak.</string>
     <string name="eden_veil_warning_title">Kísérleti beállítások</string>
     <string name="eden_veil_warning_description">Az Eden Fátyla beállításai nagyon kísérleti jellegűek, és problémákat okozhatnak. Ha a játék nem indul el, kérjük, tiltsa le az összes kiterjesztést.</string>
-    <string name="frame_skipping">Folyamatban: Képkihagyás</string>
-    <string name="frame_skipping_description">Kapcsolja be a képkihagyást a teljesítmény javításához a renderelt képkockák számának csökkentésével. Ez a funkció még fejlesztés alatt áll, és a jövőbeli kiadásokban lesz elérhető.</string>
+
+    <string name="veil_extensions">GPU kiterjesztések</string>
+    <string name="dyna_state">Kiterjesztett Dinamikus Állapot</string>
+    <string name="dyna_state_description">Szabályozza a Kiterjesztett Dynamikus Állapotban használható funkciók számát. A magasabb értékek több funkciót tesznek lehetővé és növelhetik a teljesítményt, de problémákat okozhatnak egyes meghajtókkal és gyártókkal. Az alapértelmezett érték eltérő lehet a rendszertől és a hardverképességektől függően. Ez az érték módosítható, amíg el nem éri a stabilitást és a jobb vizuális minőséget.</string>
+    <string name="disabled">Letiltva</string>
+    <string name="provoking_vertex">Provokáló csúcs</string>
+    <string name="provoking_vertex_description">Javítja a világítást és a csúcskezelést bizonyos játékokban. Csak Vulkan 1.0+ GPU-kon támogatott.</string>
+    <string name="descriptor_indexing">Deskriptor Indexelés</string>
+    <string name="descriptor_indexing_description">Javítja a textúrák és pufferek kezelését, valamint a Maxwell fordítási réteget. Néhány Vulkan 1.1 GPU és minden Vulkan 1.2+ GPU támogatja.</string>
+    <string name="sample_shading">Mintavételezés árnyékolás</string>
+    <string name="sample_shading_description">Lehetővé teszi, hogy a fragment shader mintánként fusson egy többmintás fragmentben a fragmentenkénti futtatás helyett. Javítja a grafikai minőséget a teljesítmény rovására. Csak Vulkan 1.1+ eszközök támogatják ezt a kiterjesztést.</string>
+    <string name="sample_shading_fraction">Mintavételezés árnyékolási hányad</string>
+    <string name="sample_shading_fraction_description">A mintavételezés árnyékolási lépés intenzitása. A magasabb értékek jobb minőséget eredményeznek, de nagyobb mértékben csökkentik a teljesítményt.</string>
+
+    <string name="veil_renderer">Megjelenítő</string>
     <string name="frame_interpolation">Továbbfejlesztett Képkocka-időzítés</string>
     <string name="frame_interpolation_description">Biztosítja a képkockák sima és egyenletes kézbesítését azok időzítésének szinkronizálásával, csökkentve a megakadásokat és egyenetlen animációkat. Ideális azokhoz a játékokhoz, amelyek képkocka-időzítési instabilitást vagy mikro-reccsenést tapasztalnak játék közben.</string>
     <string name="renderer_early_release_fences">Korai kerítés-felszabadítás</string>
@@ -80,45 +89,14 @@
     <string name="sync_memory_operations_description">Biztosítja az adatok konzisztenciáját a számítási és memória-műveletek között. Ez az opciónak javítania kell néhány játékban előforduló problémát, de bizonyos esetekben csökkentheti a teljesítményt. Az Unreal Engine 4-et használó játékok látszanak a legérintettebbek.</string>
     <string name="buffer_reorder_disable">Puffer újrarendezés letiltása</string>
     <string name="buffer_reorder_disable_description">Ha be van jelölve, letiltja a leképezett memória feltöltéseinek újrarendezését, lehetővé téve a feltöltések összerendelését konkrét rajzolásokkal. Bizonyos esetekben csökkentheti a teljesítményt.</string>
-    <string name="use_lru_cache">LRU gyorsítótár engedélyezése</string>
-    <string name="use_lru_cache_description">Engedélyezi vagy letiltja az LRU gyorsítótárat, növelve a teljesítményt a CPU használat csökkentésével. Néhány játéknak (különösen a TotK 1.2.1-nek) problémája lehet vele - tiltsa le, ha a játék nem indul el vagy véletlenszerűen összeomlik.</string>
-    <string name="dyna_state">Kiterjesztett Dinamikus Állapot</string>
-    <string name="dyna_state_description">Szabályozza a Kiterjesztett Dynamikus Állapotban használható funkciók számát. A magasabb értékek több funkciót tesznek lehetővé és növelhetik a teljesítményt, de problémákat okozhatnak egyes meghajtókkal és gyártókkal. Az alapértelmezett érték eltérő lehet a rendszertől és a hardverképességektől függően. Ez az érték módosítható, amíg el nem éri a stabilitást és a jobb vizuális minőséget.</string>
-    <string name="disabled">Letiltva</string>
+
+    <string name="veil_misc">CPU és memória</string>
     <string name="use_sync_core">Magsebesség szinkronizálása</string>
     <string name="use_sync_core_description">A mag sebességének szinkronizálása a maximális sebesség százalékával a teljesítmény javítása érdekében a játék tényleges sebességének megváltoztatása nélkül.</string>
-    <string name="use_auto_stub">Automatikus Stub használata</string>
-    <string name="use_auto_stub_description">Automatusan kiegészíti a hiányzó szolgáltatásokat és funkciókat. Növelheti a kompatibilitást, de összeomlásokat és stabilitási problémákat okozhat.</string>
-    <string name="uninstall_firmware">Firmware eltávolítása</string>
-    <string name="uninstall_firmware_description">A firmware eltávolítása törli azt az eszközről, és befolyásolhatja a játékok kompatibilitását.</string>
-    <string name="firmware_uninstalling">Firmware eltávolítása...</string>
-    <string name="firmware_uninstalled_success">A firmware sikeresen eltávolítva</string>
-    <string name="provoking_vertex">Provokáló csúcs</string>
-    <string name="provoking_vertex_description">Javítja a világítást és a csúcskezelést bizonyos játékokban. Csak Vulkan 1.0+ GPU-kon támogatott.</string>
-    <string name="descriptor_indexing">Deskriptor Indexelés</string>
-    <string name="descriptor_indexing_description">Javítja a textúrák és pufferek kezelését, valamint a Maxwell fordítási réteget. Néhány Vulkan 1.1 GPU és minden Vulkan 1.2+ GPU támogatja.</string>
-    <string name="use_fast_gpu_time">Gyors GPU idő használata</string>
-    <string name="use_fast_gpu_time_description">A legtöbb játékot a natív felbontásukon futtatja. Ez az opció instabil és problémákat okozhat.</string>
-    <string name="fast_gpu_time">GPU túlóra faktor</string>
-    <string name="fast_gpu_time_description">Használj 128-at a maximális teljesítményért és 512-t a maximális grafikai minőségért.</string>
-    <string name="gpu_low">Alacsony (128)</string>
-    <string name="gpu_medium">Közepes (256)</string>
-    <string name="gpu_high">Magas (512)</string>
-
-    <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
-
+    <string name="use_lru_cache">LRU gyorsítótár engedélyezése</string>
+    <string name="use_lru_cache_description">Engedélyezi vagy letiltja az LRU gyorsítótárat, növelve a teljesítményt a CPU használat csökkentésével. Néhány játéknak (különösen a TotK 1.2.1-nek) problémája lehet vele - tiltsa le, ha a játék nem indul el vagy véletlenszerűen összeomlik.</string>
     <string name="use_fast_cpu_time">Gyors CPU idő</string>
     <string name="use_fast_cpu_time_description">Kényszeríti az emulált CPU-t, hogy magasabb órajelen fusson, csökkentve bizonyos FPS korlátozókat. Ez az opció instabil és problémákat okozhat, és gyengébb CPU-k csökkentett teljesítményt tapasztalhatnak.</string>
-    <string name="fast_cpu_time">CPU órajel</string>
-    <string name="fast_cpu_time_description">Használd a Boost (1700MHz) opciót a Switch legmagasabb natív órajelén való futáshoz, vagy a Fast (2000MHz) opciót a dupla órajelen való futáshoz.</string>
-    <string name="memory_layout">Memórialayout</string>
-    <string name="memory_layout_description">(KÍSÉRLETI) Megváltoztatja az emulált memórialayoutot. Ez a beállítás nem növeli a teljesítményt, de segíthet a magas felbontást használó játékokban modok segítségével. Ne használd 8GB RAM vagy kevesebb rendelkező telefonokon.</string>
-    <string name="sample_shading">Mintavételezés árnyékolás</string>
-    <string name="sample_shading_description">Lehetővé teszi, hogy a fragment shader mintánként fusson egy többmintás fragmentben a fragmentenkénti futtatás helyett. Javítja a grafikai minőséget a teljesítmény rovására. Csak Vulkan 1.1+ eszközök támogatják ezt a kiterjesztést.</string>
-    <string name="sample_shading_fraction">Mintavételezés árnyékolási hányad</string>
-    <string name="sample_shading_fraction_description">A mintavételezés árnyékolási lépés intenzitása. A magasabb értékek jobb minőséget eredményeznek, de nagyobb mértékben csökkentik a teljesítményt.</string>
     <string name="custom_cpu_ticks">Egyéni CPU tick-ek</string>
     <string name="custom_cpu_ticks_description">Egyéni CPU tick érték beállítása. A magasabb értékek növelhetik a teljesítményt, de a játék befagyását is okozhatják. 77–21000 közötti tartomány ajánlott.</string>
     <string name="cpu_ticks">Tick-ek</string>
@@ -126,36 +104,12 @@
     <string name="skip_cpu_inner_invalidation_description">Kihagy néhány CPU-oldali gyorsítótár-érvénytelenítést memóriafrissítések közben, csökkentve a CPU használatát és javítva a teljesítményt. Néhány játékban hibákat vagy összeomlást okozhat.</string>
     <string name="cpuopt_unsafe_host_mmu">Gazda MMU emuláció engedélyezése</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ez az optimalizáció gyorsítja a vendégprogram memória-hozzáférését. Engedélyezése esetén a vendég memóriaolvasási/írási műveletei közvetlenül a memóriában történnek, és kihasználják a gazda MMU-ját. Letiltás esetén minden memória-hozzáférés a szoftveres MMU emulációt használja.</string>
+    <string name="fast_cpu_time">CPU órajel</string>
+    <string name="fast_cpu_time_description">Használd a Boost (1700MHz) opciót a Switch legmagasabb natív órajelén való futáshoz, vagy a Fast (2000MHz) opciót a dupla órajelen való futáshoz.</string>
+    <string name="memory_layout">Memórialayout</string>
+    <string name="memory_layout_description">(KÍSÉRLETI) Megváltoztatja az emulált memórialayoutot. Ez a beállítás nem növeli a teljesítményt, de segíthet a magas felbontást használó játékokban modok segítségével. Ne használd 8GB RAM vagy kevesebb rendelkező telefonokon.</string>
     <string name="dma_accuracy">DMA pontosság</string>
     <string name="dma_accuracy_description">Szabályozza a DMA pontosságát. A biztonságos pontosság megoldhat néhány játék problémáit, de bizonyos esetekben befolyásolhatja a teljesítményt. Ha bizonytalan, hagyja Alapértelmezett beállításon.</string>
-
-    <string name="memory_4gb">4GB (Ajánlott)</string>
-    <string name="memory_6gb">6GB (Nem biztonságos)</string>
-    <string name="memory_8gb">8GB (Nem biztonságos)</string>
-
-    <string name="clock_base">Alap (1000MHz)</string>
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Gyors (2000MHz)</string>
-
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC dekódolási módszer</string>
-    <string name="accelerate_astc_description">Válassza ki, hogyan legyenek dekódolva az ASTC tömörített textúrák a rendereléshez: CPU (lassú, biztonságos), GPU (gyors, ajánlott) vagy CPU Async (nincs megakadás, de problémákat okozhat)</string>
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU aszinkron</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC újratömörítési módszer</string>
-    <string name="astc_recompression_description">Válassza ki, hogyan történik az ASTC textúrák újratömörítése a kompatibilitás és a teljesítmény javításáért. Ez az opció VRAM-ot takarít meg, de csökkentheti a textúra minőségét.</string>
-    <string name="astc_recompression_uncompressed">Tömörítetlen</string>
-    <string name="astc_recompression_bc1">BC1 (alacsony minőség)</string>
-    <string name="astc_recompression_bc3">BC3 (közepes minőség)</string>
-
-    <!-- VRAM Usage Mode -->
-    <string name="vram_usage_mode">VRAM használati mód</string>
-    <string name="vram_usage_mode_description">GPU memória kezelésének módja</string>
-    <string name="vram_usage_conservative">Konzervatív</string>
-    <string name="vram_usage_aggressive">Aggresszív</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Shader backend</string>
@@ -172,8 +126,6 @@
     <string name="nvdec_emulation_none">Nincs</string>
 
     <!-- Optimize Spir-V output -->
-    <string name="renderer_optimize_spirv_output">Spir-V optimalizálás</string>
-    <string name="renderer_optimize_spirv_output_description">Optimalizálja a lefordított shadert a GPU hatékonyságának javításáért.</string>
     <string name="never">Soha</string>
     <string name="on_load">Betöltéskor</string>
     <string name="always">Mindig</string>
@@ -261,35 +213,23 @@
     <string name="emulation_multiplayer">Többjátékos</string>
     <string name="multiplayer_game_name">Kedvenc játékok</string>
     <string name="multiplayer_preferred_game_name">Kedvenc játék</string>
+    <string name="multiplayer_lobby_type">Lobby típusa</string>
     <string name="multiplayer_no_game">Nincs játék</string>
     <string name="multiplayer_preferred_game_name_invalid">Válassz kedvenc játékot a szoba létrehozásához</string>
     <string name="multiplayer_room_name_error">3-20 karakter kell</string>
     <string name="multiplayer_required">Kötelező</string>
+    <string name="multiplayer_token_required">Web token szükséges, lépj a Speciális beállítások -> Rendszer -> Hálózat menüpontba</string>
     <string name="multiplayer_ip_error">Érvénytelen IP formátum</string>
     <string name="multiplayer_username_error">4-20 karakter hosszú legyen, és csak betűket, számokat, pontokat, kötőjeleket, aláhúzásjeleket és szóközöket tartalmazzon</string>
     <string name="multiplayer_nickname_invalid">Érvénytelen felhasználónév, ellenőrizze a Rendszer → Hálózat menüpontban</string>
-    <string name="multiplayer_port_error">1-65535 között legyen</string>
     <string name="multiplayer_token_error">48 karakter hosszú lehet, és csak kisbetűket (a-z) tartalmazhat</string>
-    <string name="multiplayer_lobby_type">Lobby típusa</string>
-    <string name="multiplayer_public_visibility">Nyilvános</string>
-    <string name="multiplayer_unlisted_visibility">Nem nyilvános</string>
+    <string name="multiplayer_port_error">1-65535 között legyen</string>
     <string name="cancel">Mégse</string>
     <string name="ok">OK</string>
     <string name="refresh">Frissítés</string>
     <string name="room_list">Szobalista</string>
-    <string name="multiplayer_token_required">Web token szükséges, lépj a Speciális beállítások -> Rendszer -> Hálózat menüpontba</string>
-
-    <!-- Static Themes -->
-    <string name="static_theme_color">Téma színe</string>
-    <string name="violet">Lila (Alapértelmezett)</string>
-    <string name="blue">Kék</string>
-    <string name="cyan">Cián</string>
-    <string name="red">Piros</string>
-    <string name="green">Zöld</string>
-    <string name="yellow">Sárga</string>
-    <string name="orange">Narancs</string>
-    <string name="pink">Rózsaszín</string>
-    <string name="gray">Szürke</string>
+    <string name="multiplayer_public_visibility">Nyilvános</string>
+    <string name="multiplayer_unlisted_visibility">Nem nyilvános</string>
 
     <!-- Setup strings -->
     <string name="welcome">Üdvözöljük!</string>
@@ -299,12 +239,10 @@
     <string name="keys_description">Válaszd ki a &lt;b>prod.keys&lt;/b> fájlodat az alábbi gombbal.</string>
     <string name="select_keys">Kulcsok kiválasztása</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Válaszd ki a <b>firmware.zip</b> fájlod az alábbi gombbal.\nAz Eden jelenleg a <b>19.0.1</b> vagy régebbi verziót igényli.</string>
     <string name="select_firmware">Firmware kiválasztása</string>
     <string name="games">Játékok</string>
     <string name="games_description">Válaszd ki a &lt;b>Játékok&lt;/b> mappát az alábbi gombbal.</string>
     <string name="done">Kész</string>
-    <string name="done_description">Minden kész.\nJó szórakozást!</string>
     <string name="text_continue">Folytatás</string>
     <string name="next">Következő</string>
     <string name="back">Vissza</string>
@@ -315,6 +253,7 @@
     <string name="bluetooth_permissions_denied">Bluetooth engedélyek megtagadva. A kontroller támogatás korlátozott lehet.</string>
 
     <!-- Home strings -->
+
     <string name="alphabetical">ABC sorrend</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Rács</string>
@@ -324,7 +263,6 @@
     <string name="pre_alpha_warning_description">FIGYELMEZTETÉS: Ez a verzió nem nyilvános. A szoftver pre-alpha állapotban van, hibákat és hiányos funkciókat tartalmazhat.</string>
     <string name="dont_show_again">Ne mutassa újra</string>
     <string name="pre_alpha_warning">PRE-ALPHA SZOFTVER; NEM NYILVÁNOS HASZNÁLATRA</string>
-    <string name="add_directory_success">Játék mappa sikeresen hozzáadva</string>
     <string name="home_games">Játékok</string>
     <string name="home_search">Keresés</string>
     <string name="home_settings">Beállítások</string>
@@ -359,6 +297,7 @@
     <string name="install_amiibo_keys">Amiibo kulcsok telepítése</string>
     <string name="install_amiibo_keys_description">Amiibo használata szükséges a játékhoz</string>
     <string name="install_amiibo_keys_failure_extension_description">Győződj meg róla, hogy a titkosító fájlod .bin kiterjesztéssel rendelkezik, majd próbáld újra.</string>
+    <string name="gpu_driver_fetcher">GPU illesztőprogram letöltő</string>
     <string name="gpu_driver_manager">GPU illesztőprogram-kezelő</string>
     <string name="install_gpu_driver">GPU illesztőprogram telepítése</string>
     <string name="install_gpu_driver_description">Alternatív illesztőprogramok telepítése az esetlegesen elérhető teljesítmény és pontosság érdekében</string>
@@ -407,7 +346,6 @@
     <string name="install_game_content_success_install">%1$d sikeresen telepítve</string>
     <string name="install_game_content_success_overwrite">%1$d sikeresen felülírva</string>
     <string name="custom_driver_not_supported">Egyéni illesztőprogramok nem támogatottak</string>
-    <string name="custom_driver_not_supported_description">Egyéni illesztőprogram telepítése jelenleg nem támogatott ezen az eszközön.\nNézz vissza később, hátha hozzáadtuk a támogatását!</string>
     <string name="manage_yuzu_data">Eden adatok kezelése</string>
     <string name="manage_yuzu_data_description">Firmware, kulcsok, felhasználói adatok és egyebek importálása/exportálása</string>
     <string name="share_save_file">Mentési fájl megosztása</string>
@@ -428,8 +366,14 @@
     <string name="no_save_data_found">Nem található mentett adat</string>
     <string name="verify_installed_content">Telepített tartalom ellenőrzése</string>
     <string name="verify_installed_content_description">A telepített tartalom épségét ellenőrzi</string>
+
     <string name="keys_missing">Hiányzó titkosítókulcsok</string>
     <string name="keys_missing_description">A Firmware és a kiskereskedelmi (retail) játékok nem dekódolhatók</string>
+    <string name="uninstall_firmware">Firmware eltávolítása</string>
+    <string name="uninstall_firmware_description">A firmware eltávolítása törli azt az eszközről, és befolyásolhatja a játékok kompatibilitását.</string>
+    <string name="firmware_uninstalling">Firmware eltávolítása...</string>
+    <string name="firmware_uninstalled_success">A firmware sikeresen eltávolítva</string>
+
     <string name="firmware_invalid">Érvénytelen firmware</string>
     <string name="error_firmware_missing">A firmware szükséges egyes játékok és alkalmazások futtatásához. Az Eden csak 19.0.1 vagy régebbi firmware-ekkel működik.</string>
     <string name="error_firmware_corrupted">A firmware jelen van, de nem olvasható. Ellenőrizze a visszafejtési kulcsokat és szükség esetén dumpolja újra a firmware-t.</string>
@@ -468,7 +412,6 @@
     <string name="contributors_description">\u2764 által készítve a Eden csapattól</string>
     <string name="licenses_description">Projektek, amik nélkül a Eden nem jöhetett volna létre Androidra</string>
     <string name="user_data">Felhasználói adatok</string>
-    <string name="user_data_description">Az összes alkalmazásadat importálása/exportálása.\n\nA felhasználói adatok importálásakor az összes meglévő felhasználói adat törlődik!</string>
     <string name="exporting_user_data">Felhasználói adatok exportálása...</string>
     <string name="importing_user_data">Felhasználói adatok importálása...</string>
     <string name="import_user_data">Felhasználói adatok importálása</string>
@@ -477,7 +420,6 @@
     <string name="user_data_import_success">Felhasználói adatok sikeresen importálva</string>
     <string name="user_data_export_cancelled">Exportálás megszakítva</string>
     <string name="user_data_import_failed_description">Ellenőrizd, hogy a felhasználói adatok mappái a zip mappa gyökerében vannak, és tartalmaznak egy konfig fájlt a config/config.ini címen, majd próbáld meg újra.</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Sebességkorlát</string>
     <string name="frame_limit_enable_description">Korlátozza az emuláció sebességét a normál sebesség adott százalékára.</string>
@@ -499,18 +441,22 @@
     <string name="use_custom_rtc_description">Megadhatsz egy valós idejű órát, amely eltér a rendszer által használt órától.</string>
     <string name="set_custom_rtc">Egyéni RTC beállítása</string>
 
-    <!-- Network settings strings -->
     <string name="generate">Generálás</string>
-    <string name="web_username">Webes felhasználónév</string>
-    <string name="web_username_description">A többjátékos szobákban megjelenítendő felhasználónév. 4-20 karakter hosszú legyen, és csak betűket, számokat, kötőjeleket, pontokat, aláhúzásjeleket és szóközöket tartalmazzon.</string>
+
+    <!-- Network settings strings -->
     <string name="web_token">Web token</string>
     <string name="web_token_description">Web token nyilvános termek létrehozásához. Ez egy 48 karakter hosszú sztring, amely csak kisbetűket (a-z) tartalmaz.</string>
+    <string name="web_username">Webes felhasználónév</string>
+    <string name="web_username_description">A többjátékos szobákban megjelenítendő felhasználónév. 4-20 karakter hosszú legyen, és csak betűket, számokat, kötőjeleket, pontokat, aláhúzásjeleket és szóközöket tartalmazzon.</string>
     <string name="network">Hálózat</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">Backend</string>
     <string name="display">Kijelző</string>
     <string name="processing">Utófeldolgozás</string>
+
+    <string name="frame_skipping">Folyamatban: Képkihagyás</string>
+    <string name="frame_skipping_description">Kapcsolja be a képkihagyást a teljesítmény javításához a renderelt képkockák számának csökkentésével. Ez a funkció még fejlesztés alatt áll, és a jövőbeli kiadásokban lesz elérhető.</string>
     <string name="renderer_accuracy">Pontosság szintje</string>
     <string name="renderer_resolution">Felbontás (Kézi/Dockolt)</string>
     <string name="renderer_vsync">VSync mód</string>
@@ -522,8 +468,14 @@
     <string name="renderer_anti_aliasing">Élsimítási módszer</string>
     <string name="renderer_force_max_clock">Maximum órajel kényszerítése (csak Adreno)</string>
     <string name="renderer_force_max_clock_description">Kényszeríti a GPU-t a lehető legnagyobb órajelen működésre (a hőmérséklet korlátozások továbbra is érvényben maradnak).</string>
+    <string name="renderer_optimize_spirv_output">Spir-V optimalizálás</string>
+    <string name="renderer_optimize_spirv_output_description">Optimalizálja a lefordított shadert a GPU hatékonyságának javításáért.</string>
     <string name="renderer_asynchronous_shaders">Aszinkron árnyékolók használata</string>
     <string name="renderer_asynchronous_shaders_description">A shaderek aszinkron fordítása. Csökkentheti a belassulásokat, de hibákat is okozhat.</string>
+    <string name="use_fast_gpu_time">Gyors GPU idő használata</string>
+    <string name="use_fast_gpu_time_description">A legtöbb játékot a natív felbontásukon futtatja. Ez az opció instabil és problémákat okozhat.</string>
+    <string name="fast_gpu_time">GPU túlóra faktor</string>
+    <string name="fast_gpu_time_description">Használj 128-at a maximális teljesítményért és 512-t a maximális grafikai minőségért.</string>
     <string name="renderer_reactive_flushing">Reaktív ürítés használata</string>
     <string name="renderer_reactive_flushing_description">Javítja a renderelési pontosságot néhány játékban a teljesítmény rovására.</string>
     <string name="use_disk_shader_cache">Lemez árnyékoló gyorsítótár</string>
@@ -535,11 +487,13 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="use_auto_stub">Automatikus Stub használata</string>
+    <string name="use_auto_stub_description">Automatusan kiegészíti a hiányzó szolgáltatásokat és funkciókat. Növelheti a kompatibilitást, de összeomlásokat és stabilitási problémákat okozhat.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Grafikai hibakeresés</string>
     <string name="renderer_debug_description">Lassú hibakereső módba állítja a grafikus API-t .</string>
-
     <string name="log">Naplózás</string>
     <string name="flush_by_line">Hibakeresési naplók soronkénti kiürítése</string>
     <string name="flush_by_line_description">Kiüríti a hibakeresési naplókat minden írt sor után, megkönnyítve a hibakeresést összeomlás vagy fagyás esetén.</string>
@@ -657,6 +611,7 @@
     <string name="import_failed">Importálás sikertelen</string>
     <string name="cancelling">Megszakítás</string>
     <string name="install">Telepítés</string>
+    <string name="fetch">Letöltés</string>
     <string name="delete">Törlés</string>
     <string name="edit">Szerkesztés</string>
     <string name="export_success">Sikeresen exportálva</string>
@@ -686,8 +641,6 @@
     <string name="installing_driver">Illesztőprogram telepítése...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="gpu_driver_fetcher">GPU illesztőprogram letöltő</string>
-    <string name="fetch">Letöltés</string>
     <string name="fetch_error">Hiba a letöltés közben</string>
     <string name="check_connection">Ellenőrizd az internetkapcsolatod és próbáld újra.</string>
     <string name="show_releases">Verziók megjelenítése</string>
@@ -763,7 +716,6 @@
     <string name="addon_installed_successfully">Kiegészítő sikeresen telepítve</string>
     <string name="verifying_content">Tartalom ellenőrzése...</string>
     <string name="content_install_notice">Tartalom telepítési értesítés</string>
-    <string name="content_install_notice_description">A kiválasztott tartalom nem ehhez a játékhoz tartozik.\nÍgy is telepíted?</string>
     <string name="confirm_uninstall">Eltávolítás megerősítése</string>
     <string name="confirm_uninstall_description">Biztosan törölni szeretnéd ezt a kiegészítőt?</string>
     <string name="verify_integrity">Integritás ellenőrzése</string>
@@ -773,8 +725,6 @@
     <string name="verify_failure_description">A fájl tartalma sérült lehet</string>
     <string name="verify_no_result">Az integritás ellenőrzését nem lehetett elvégezni</string>
     <string name="verify_no_result_description">A fájltartalom érvényessége nem lett ellenőrizve</string>
-    <string name="verification_failed_for">Az alábbi fájlok ellenőrzése sikertelen volt:\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM titkosítva</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Kérjük, kövesse az útmutatót a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">játékkártyák</a> vagy <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">digitális címek</a> újradumpolásához.]]></string>
@@ -783,6 +733,7 @@
     <string name="loader_error_video_core_description">Ezt általában egy nem kompatibilis GPU illesztő okozza. Egyéni GPU illesztőprogram telepítése megoldhatja a problémát.</string>
     <string name="loader_error_invalid_format">Nem sikerült betölteni a ROM-ot</string>
     <string name="loader_error_file_not_found">ROM fájl nem létezik</string>
+
     <string name="loader_requires_firmware">A játék firmware-t igényel</string>
     <string name="loader_requires_firmware_description"><![CDATA[A játék, amelyet el szeretne indítani, firmware-t igényel a bootoláshoz vagy a kezdőmenü átlépéséhez. Kérjük, <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dumpolja és telepítse a firmware-t</a>, vagy nyomja meg az \"OK\" gombot a folytatáshoz.]]></string>
 
@@ -806,7 +757,6 @@
     <string name="config_write_failed">A konfigurációs fájl írása sikertelen</string>
     <string name="config_apply_failed">A konfiguráció alkalmazása sikertelen</string>
     <string name="config_already_exists_title">A konfiguráció már létezik</string>
-    <string name="config_already_exists_message">Már léteznek egyéni beállítások a(z) %1$s számára.\n\nSzeretné felülírni a meglévő konfigurációt?\n\nEzt a műveletet nem lehet visszavonni.</string>
     <string name="config_exists_prompt">Létező konfiguráció keresése...</string>
     <string name="overwrite_cancelled">A felülírás megszakítva</string>
     <string name="checking_driver">Egyéni illesztőprogram ellenőrzése: %1$s</string>
@@ -826,7 +776,6 @@
     <string name="invalid_driver_file">Érvénytelen illesztőprogramfájl: %s</string>
     <string name="network_unavailable">Nincs hálózati kapcsolat. Kérjük, ellenőrizze az internetkapcsolatát, és próbálja újra.</string>
     <string name="driver_missing_title">GPU illesztőprogram szükséges</string>
-    <string name="driver_missing_message">A játék konfigurációja \"%s\" GPU illesztőprogramot igényel, amely nincs telepítve az eszközén.\n\nSzeretné most letölteni és telepíteni?</string>
     <string name="driver_download_cancelled">Az illesztőprogram letöltése megszakítva. A játék nem indítható el a szükséges illesztőprogram nélkül.</string>
     <string name="download">Letöltés</string>
 
@@ -852,7 +801,6 @@
     <string name="touchscreen">Érintőképernyő</string>
     <string name="lock_drawer">Fiók bezárása</string>
     <string name="unlock_drawer">Fiók kinyitása</string>
-
     <string name="load_settings">Beállítások betöltése...</string>
 
     <!-- Software keyboard -->
@@ -862,13 +810,9 @@
     <string name="abort_button">Megszakítás</string>
     <string name="continue_button">Folytatás</string>
     <string name="system_archive_not_found">Nem található rendszerarchívum</string>
-    <string name="system_archive_not_found_message">%s hiányzik. Kérjük, mentsd ki a rendszerarchívumaidat.\nAz emuláció folytatása összeomlásokhoz és hibákhoz vezethet.</string>
     <string name="system_archive_general">Egy rendszerarchívum</string>
     <string name="save_load_error">Mentési/betöltési hiba</string>
     <string name="fatal_error">Végzetes hiba</string>
-    <string name="fatal_error_message">Végzetes hiba történt. Ellenőrizd a logot a részletekért.\nAz emuláció folytatása összeomlást és hibákat eredményzhet.</string>
-    <string name="performance_warning">Ennek a beállításnak a kikapcsolása jelentős mértékben csökkenti a teljesítményt! A legjobb élmény érdekében javasolt a beállítás bekapcsolva tartása.</string>
-    <string name="device_memory_inadequate">Eszköz RAM: %1$s\nAjánlott: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Nincs indítható játék!</string>
 
@@ -880,6 +824,25 @@
     <string name="region_china">Kína</string>
     <string name="region_korea">Korea</string>
     <string name="region_taiwan">Tajvan</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (Ajánlott)</string>
+    <string name="memory_6gb">6GB (Nem biztonságos)</string>
+    <string name="memory_8gb">8GB (Nem biztonságos)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">Alap (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Gyors (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">Alacsony (128)</string>
+    <string name="gpu_medium">Közepes (256)</string>
+    <string name="gpu_high">Magas (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Bájt</string>
@@ -898,12 +861,31 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normál</string>
     <string name="renderer_accuracy_high">Magas</string>
-    <string name="renderer_accuracy_extreme">Extrém (Lassú)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Alapértelmezett</string>
-    <string name="dma_accuracy_unsafe">Nem biztonságos (gyors)</string>
-    <string name="dma_accuracy_safe">Biztonságos (stabil)</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTC dekódolási módszer</string>
+    <string name="accelerate_astc_description">Válassza ki, hogyan legyenek dekódolva az ASTC tömörített textúrák a rendereléshez: CPU (lassú, biztonságos), GPU (gyors, ajánlott) vagy CPU Async (nincs megakadás, de problémákat okozhat)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU aszinkron</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC újratömörítési módszer</string>
+    <string name="astc_recompression_description">Válassza ki, hogyan történik az ASTC textúrák újratömörítése a kompatibilitás és a teljesítmény javításáért. Ez az opció VRAM-ot takarít meg, de csökkentheti a textúra minőségét.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Tömörítetlen</string>
+    <string name="astc_recompression_bc1">BC1 (alacsony minőség)</string>
+    <string name="astc_recompression_bc3">BC3 (közepes minőség)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">VRAM használati mód</string>
+    <string name="vram_usage_mode_description">GPU memória kezelésének módja</string>
+    <string name="vram_usage_conservative">Konzervatív</string>
+    <string name="vram_usage_aggressive">Aggresszív</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
@@ -928,7 +910,6 @@
     <string name="scaling_filter_gaussian">Gauss-féle</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Nincs</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -956,7 +937,6 @@
     <string name="cpu_accuracy_accurate">Pontos</string>
     <string name="cpu_accuracy_unsafe">Nem biztonságos</string>
     <string name="cpu_accuracy_paranoid">Paranoid</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">Bal kar</string>
@@ -990,6 +970,18 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Fekete háttér</string>
     <string name="use_black_backgrounds_description">Sötét téma használatakor fekete háttér használata.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Téma színe</string>
+    <string name="violet">Lila (Alapértelmezett)</string>
+    <string name="blue">Kék</string>
+    <string name="cyan">Cián</string>
+    <string name="red">Piros</string>
+    <string name="green">Zöld</string>
+    <string name="yellow">Sárga</string>
+    <string name="orange">Narancs</string>
+    <string name="pink">Rózsaszín</string>
+    <string name="gray">Szürke</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">Kép a képben</string>

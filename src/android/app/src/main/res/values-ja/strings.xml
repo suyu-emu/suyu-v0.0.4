@@ -1,26 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">このソフトウェアでは、Nintendo Switchのゲームを実行できます。 ゲームソフトやキーは含まれません。&lt;br /&gt;&lt;br /&gt;事前に、 <![CDATA[<b> prod.keys </b>]]> ファイルをストレージに配置しておいてください。&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">詳細</a>]]></string>
     <string name="notice_notification_channel_name">通知とエラー</string>
     <string name="notice_notification_channel_description">問題の発生時に通知を表示します。</string>
     <string name="notification_permission_not_granted">通知が許可されていません!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(強化)</string>
     <string name="process_ram">プロセスRAM: %1$d MB</string>
     <string name="shaders_prefix">シェーダー</string>
     <string name="shaders_suffix">を構築中</string>
     <string name="charging">(充電中)</string>
+
     <string name="system_info_label">システム:</string>
     <string name="show_stats_overlay">パフォーマンス統計オーバーレイを表示</string>
     <string name="stats_overlay_customization">カスタマイズ</string>
     <string name="stats_overlay_items">表示項目</string>
-    <string name="stats_overlay_options">オーバーレイ</string>
+    <string name="stats_overlay_options">パーフォーマンスオーバーレイ</string>
     <string name="enable_stats_overlay_">パフォーマンス統計オーバーレイを有効化</string>
-    <string name="stats_overlay_options_description">オーバーレイに表示する情報を設定</string>
+    <string name="stats_overlay_options_description">オーバーレイ統計に表示される情報を設定</string>
     <string name="show_fps">FPS表示</string>
-    <string name="show_fps_description">現在のフレームレートを表示</string>
+    <string name="show_fps_description">現在のFPSを表示</string>
     <string name="show_frametime">フレーム時間表示</string>
     <string name="show_frametime_description">現在のフレーム時間を表示</string>
     <string name="show_speed">速度表示</string>
@@ -34,6 +33,8 @@
     <string name="bat_temperature_unit">バッテリー温度単位</string>
     <string name="show_power_info">バッテリー情報を表示</string>
     <string name="show_power_info_description">現在の電力消費量とバッテリー残量を表示</string>
+    <string name="show_shaders_building">シェーダー構築を表示</string>
+    <string name="show_shaders_building_description">現在構築中のシェーダー数を表示</string>
     <string name="overlay_position">オーバーレイ位置</string>
     <string name="overlay_position_description">オーバーレイの表示位置を設定</string>
     <string name="overlay_position_top_left">左上</string>
@@ -43,15 +44,13 @@
     <string name="overlay_position_center_top">中央上</string>
     <string name="overlay_position_center_bottom">中央下</string>
     <string name="perf_overlay_background">オーバーレイ背景</string>
-    <string name="perf_overlay_background_description">オーバーレイの背景を表示</string>
-    <string name="show_shaders_building">シェーダーのビルドを表示</string>
-    <string name="show_shaders_building_description">現在ビルド中のシェーダー数を表示</string>
+    <string name="perf_overlay_background_description">より読みやすくするために、オーバーレイに背景を追加</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">デバイス情報オーバーレイを表示</string>
     <string name="enable_soc_overlay">デバイスオーバーレイを有効化</string>
     <string name="soc_overlay_options">デバイスオーバーレイ</string>
-    <string name="soc_overlay_options_description">デバイスオーバーレイに表示する情報を設定</string>
+    <string name="soc_overlay_options_description">デバイスオーバーレイに表示される情報を設定</string>
 
     <string name="show_device_model">デバイスモデルを表示</string>
     <string name="show_device_model_description">ホストデバイスのモデルを表示</string>
@@ -60,18 +59,28 @@
     <string name="show_soc_model">SoCモデルを表示</string>
     <string name="show_soc_model_description">ホストSoCのモデルを表示</string>
     <string name="show_fw_version">ファームウェアバージョンを表示</string>
-    <string name="show_fw_version_description">インストールされているファームウェアのバージョンを表示します</string>
+    <string name="show_fw_version_description">インストールされているファームウェアのバージョンを表示</string>
 
     <!-- Eden\'s Veil -->
-    <string name="veil_extensions">GPU拡張機能</string>
-    <string name="veil_renderer">レンダラー</string>
-    <string name="veil_misc">CPUとメモリ</string>
     <string name="eden_veil">エデンのベール</string>
-    <string name="eden_veil_description">パフォーマンスと機能を向上させる実験的な設定。これらの設定は黒画面やその他のゲームの問題を引き起こす可能性があります。</string>
-    <string name="eden_veil_warning_title">実験的設定</string>
+    <string name="eden_veil_description">パフォーマンスと機能を向上させる実験的な設定。この設定は黒画面やその他のゲームの問題を引き起こす可能性があります。</string>
+    <string name="eden_veil_warning_title">実験的な設定</string>
     <string name="eden_veil_warning_description">エデンのベールに含まれる設定は非常に実験的であり、問題を引き起こす可能性があります。ゲームが起動しない場合は、拡張機能を無効にしてください。</string>
-    <string name="frame_skipping">WIP: フレームスキップ</string>
-    <string name="frame_skipping_description">フレームスキップを切り替えて、レンダリングされるフレーム数を減らしパフォーマンスを向上させます。この機能は開発中であり、今後のリリースで有効になります。</string>
+
+    <string name="veil_extensions">GPU拡張機能</string>
+    <string name="dyna_state">拡張ダイナミックステート</string>
+    <string name="dyna_state_description">拡張ダイナミックステートで使用できる機能の数を制御します。数値が高いほどより多くの機能が使用可能になり、パフォーマンスが向上する可能性がありますが、一部のドライバーやベンダーで問題が発生する可能性があります。デフォルト値は、お使いのシステムとハードウェアの機能によって異なります。安定性とより良い画質が得られるまでこの値を変更できます。</string>
+    <string name="disabled">無効</string>
+    <string name="provoking_vertex">プロボーキング頂点</string>
+    <string name="provoking_vertex_description">特定のゲームで照明と頂点処理を改善します。Vulkan 1.0+ GPUでのみサポートされています。</string>
+    <string name="descriptor_indexing">ディスクリプタインデキシング</string>
+    <string name="descriptor_indexing_description">テクスチャとバッファの処理、およびMaxwell翻訳レイヤーを改善します。一部のVulkan 1.1 GPUとすべてのVulkan 1.2+ GPUでサポートされています。</string>
+    <string name="sample_shading">サンプルシェーディング</string>
+    <string name="sample_shading_description">マルチサンプルフラグメントでフラグメントシェーダーをフラグメントごとではなくサンプルごとに実行できるようにします。パフォーマンスを犠牲にしてグラフィック品質を向上させます。Vulkan 1.1+デバイスのみがこの拡張機能をサポートしています。</string>
+    <string name="sample_shading_fraction">サンプルシェーディング率</string>
+    <string name="sample_shading_fraction_description">サンプルシェーディング処理の強度。高い値ほど品質は向上しますが、パフォーマンスも大きく低下します。</string>
+
+    <string name="veil_renderer">レンダラー</string>
     <string name="frame_interpolation">高度なフレーム同期</string>
     <string name="frame_interpolation_description">フレーム間のタイミングを同期させることで、スムーズで一貫したフレーム配信を確保し、カクつきや不均一なアニメーションを軽減します。フレームタイミングの不安定さやマイクロスタッターが発生するゲームに最適です。</string>
     <string name="renderer_early_release_fences">フェンスを早期に解放</string>
@@ -80,45 +89,14 @@
     <string name="sync_memory_operations_description">計算処理とメモリ操作間のデータ一貫性を保証します。 このオプションは一部のゲームの問題を修正しますが、場合によってはパフォーマンスが低下する可能性があります。 Unreal Engine 4のゲームが最も影響を受けるようです。</string>
     <string name="buffer_reorder_disable">バッファの再並べ替えを無効化</string>
     <string name="buffer_reorder_disable_description">チェック時、マップされたメモリのアップロードの再並べ替えを無効化し、特定の描画に関連付けることができます。場合によってはパフォーマンスが低下する可能性があります。</string>
-    <string name="use_lru_cache">LRUキャッシュを有効化</string>
-    <string name="use_lru_cache_description">LRUキャッシュを有効/無効にし、CPUプロセスの使用を節約してパフォーマンスを向上させます。TotK 1.2.1など一部のゲームで問題が発生する可能性があるため、ゲームが起動しない場合やランダムにクラッシュする場合は無効にしてください。</string>
-    <string name="dyna_state">拡張ダイナミックステート</string>
-    <string name="dyna_state_description">拡張ダイナミックステートで使用できる機能の数を制御します。数値が高いほどより多くの機能が使用可能になり、パフォーマンスが向上する可能性がありますが、一部のドライバーやベンダーで問題が発生する可能性があります。デフォルト値は、お使いのシステムとハードウェアの機能によって異なります。安定性とより良い画質が得られるまでこの値を変更できます。</string>
-    <string name="disabled">無効</string>
+
+    <string name="veil_misc">CPUとメモリ</string>
     <string name="use_sync_core">コア速度の同期</string>
     <string name="use_sync_core_description">コアの速度を最大速度パーセンテージに同期させ、ゲームの実際の速度を変えずにパフォーマンスを向上させます。</string>
-    <string name="use_auto_stub">自動スタブを使用</string>
-    <string name="use_auto_stub_description">不足しているサービスや機能を自動的にスタブします。互換性が向上する可能性がありますが、クラッシュや安定性の問題を引き起こす可能性があります。</string>
-    <string name="uninstall_firmware">ファームウェアをアンインストール</string>
-    <string name="uninstall_firmware_description">ファームウェアをアンインストールするとデバイスから削除され、ゲームの互換性に影響する可能性があります。</string>
-    <string name="firmware_uninstalling">ファームウェアをアンインストール中...</string>
-    <string name="firmware_uninstalled_success">ファームウェアのアンインストールが成功しました</string>
-    <string name="provoking_vertex">プロボーキング頂点</string>
-    <string name="provoking_vertex_description">特定のゲームで照明と頂点処理を改善します。Vulkan 1.0+ GPUでのみサポートされています。</string>
-    <string name="descriptor_indexing">ディスクリプタインデキシング</string>
-    <string name="descriptor_indexing_description">テクスチャとバッファの処理、およびMaxwell翻訳レイヤーを改善します。一部のVulkan 1.1 GPUとすべてのVulkan 1.2+ GPUでサポートされています。</string>
-    <string name="use_fast_gpu_time">高速GPU時間を使用</string>
-    <string name="use_fast_gpu_time_description">ほとんどのゲームを最高のネイティブ解像度で強制的に実行します。このオプションは不安定で問題を引き起こす可能性があります。</string>
-    <string name="fast_gpu_time">GPUオーバークロック係数</string>
-    <string name="fast_gpu_time_description">最大パフォーマンスには128、最大グラフィック忠実度には512を使用します。</string>
-    <string name="gpu_low">低 (128)</string>
-    <string name="gpu_medium">中 (256)</string>
-    <string name="gpu_high">高 (512)</string>
-
-    <!-- Temperature Units -->
-    <string name="temperature_celsius">摂氏</string>
-    <string name="temperature_fahrenheit">華氏</string>
-
+    <string name="use_lru_cache">LRUキャッシュを有効化</string>
+    <string name="use_lru_cache_description">LRUキャッシュを有効/無効にし、CPUプロセスの使用を節約してパフォーマンスを向上させます。TotK 1.2.1など一部のゲームで問題が発生する可能性があるため、ゲームが起動しない場合やランダムにクラッシュする場合は無効にしてください。</string>
     <string name="use_fast_cpu_time">高速CPU時間</string>
     <string name="use_fast_cpu_time_description">エミュレートされたCPUをより高いクロックで動作させ、特定のFPSリミッターを削減します。このオプションは不安定で問題を引き起こす可能性があり、弱いCPUではパフォーマンスが低下する可能性があります。</string>
-    <string name="fast_cpu_time">CPUクロック</string>
-    <string name="fast_cpu_time_description">Boost (1700MHz)を使用してSwitchの最高ネイティブクロックで動作させるか、Fast (2000MHz)を使用して2倍のクロックで動作させます。</string>
-    <string name="memory_layout">メモリレイアウト</string>
-    <string name="memory_layout_description">(実験的) エミュレートされたメモリレイアウトを変更します。この設定はパフォーマンスを向上させませんが、modを介して高解像度を利用するゲームに役立つ場合があります。8GB以下のRAMを搭載した電話では使用しないでください。</string>
-    <string name="sample_shading">サンプルシェーディング</string>
-    <string name="sample_shading_description">マルチサンプルフラグメントでフラグメントシェーダーをフラグメントごとではなくサンプルごとに実行できるようにします。パフォーマンスを犠牲にしてグラフィック品質を向上させます。Vulkan 1.1+デバイスのみがこの拡張機能をサポートしています。</string>
-    <string name="sample_shading_fraction">サンプルシェーディング率</string>
-    <string name="sample_shading_fraction_description">サンプルシェーディング処理の強度。高い値ほど品質は向上しますが、パフォーマンスも大きく低下します。</string>
     <string name="custom_cpu_ticks">カスタムCPUティック</string>
     <string name="custom_cpu_ticks_description">CPUティックのカスタム値を設定します。高い値はパフォーマンスを向上させる可能性がありますが、ゲームがフリーズする可能性もあります。77〜21000の範囲が推奨されます。</string>
     <string name="cpu_ticks">ティック</string>
@@ -126,36 +104,12 @@
     <string name="skip_cpu_inner_invalidation_description">メモリ更新時のCPU側キャッシュ無効化をスキップし、CPU使用率を減らして性能を向上させます。一部のゲームで不具合やクラッシュが発生する可能性があります。</string>
     <string name="cpuopt_unsafe_host_mmu">ホストMMUエミュレーションを有効化</string>
     <string name="cpuopt_unsafe_host_mmu_description">この最適化により、ゲストプログラムによるメモリアクセスが高速化されます。有効にすると、ゲストのメモリ読み書きが直接メモリ内で実行され、ホストのMMUを利用します。無効にすると、すべてのメモリアクセスでソフトウェアMMUエミュレーションが使用されます。</string>
+    <string name="fast_cpu_time">CPUクロック</string>
+    <string name="fast_cpu_time_description">Boost (1700MHz)を使用してSwitchの最高ネイティブクロックで動作させるか、Fast (2000MHz)を使用して2倍のクロックで動作させます。</string>
+    <string name="memory_layout">メモリレイアウト</string>
+    <string name="memory_layout_description">(実験的) エミュレートされたメモリレイアウトを変更します。この設定はパフォーマンスを向上させませんが、modを介して高解像度を利用するゲームに役立つ場合があります。8GB以下のRAMを搭載した電話では使用しないでください。</string>
     <string name="dma_accuracy">DMA精度</string>
     <string name="dma_accuracy_description">DMAの精度を制御します。安全な精度は一部のゲームの問題を修正できる場合がありますが、場合によってはパフォーマンスに影響を与える可能性もあります。不明な場合は、これをデフォルトのままにしてください。</string>
-
-    <string name="memory_4gb">4GB (推奨)</string>
-    <string name="memory_6gb">6GB (安全でない)</string>
-    <string name="memory_8gb">8GB (安全でない)</string>
-
-    <string name="clock_base">基本 (1000MHz)</string>
-    <string name="clock_boost">ブースト (1700MHz)</string>
-    <string name="clock_fast">高速 (2000MHz)</string>
-
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTCデコード方法</string>
-    <string name="accelerate_astc_description">ASTC圧縮テクスチャのデコード方法を選択: CPU (低速、安全)、GPU (高速、推奨)、またはCPU非同期 (カクつきなし、問題が発生する可能性あり)</string>
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU非同期</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC再圧縮方法</string>
-    <string name="astc_recompression_description">ASTCテクスチャの再圧縮方法を選択して互換性とパフォーマンスを向上させます。このオプションを有効にするとVRAMを節約できますが、テクスチャ品質が低下する可能性があります。</string>
-    <string name="astc_recompression_uncompressed">非圧縮</string>
-    <string name="astc_recompression_bc1">BC1（低品質）</string>
-    <string name="astc_recompression_bc3">BC3（中品質）</string>
-
-    <!-- VRAM Usage Mode -->
-    <string name="vram_usage_mode">VRAM使用モード</string>
-    <string name="vram_usage_mode_description">VRAMの使用効率を設定</string>
-    <string name="vram_usage_conservative">保守的</string>
-    <string name="vram_usage_aggressive">積極的</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">シェーダーバックエンド</string>
@@ -172,8 +126,6 @@
     <string name="nvdec_emulation_none">無効</string>
 
     <!-- Optimize Spir-V output -->
-    <string name="renderer_optimize_spirv_output">Spir-V最適化</string>
-    <string name="renderer_optimize_spirv_output_description">コンパイル済みシェーダーを最適化し、GPUの効率を向上させます。</string>
     <string name="never">無効</string>
     <string name="on_load">ロード時</string>
     <string name="always">常に</string>
@@ -261,35 +213,23 @@
     <string name="emulation_multiplayer">マルチプレイヤー</string>
     <string name="multiplayer_game_name">優先ゲーム</string>
     <string name="multiplayer_preferred_game_name">優先ゲーム</string>
+    <string name="multiplayer_lobby_type">ロビータイプ</string>
     <string name="multiplayer_no_game">ゲームが見つかりません</string>
     <string name="multiplayer_preferred_game_name_invalid">ルームをホストするには優先ゲームを選択する必要があります</string>
     <string name="multiplayer_room_name_error">3〜20文字で入力してください</string>
     <string name="multiplayer_required">必須</string>
+    <string name="multiplayer_token_required">ウェブトークンが必要です。詳細設定 -> システム -> ネットワークに移動してください</string>
     <string name="multiplayer_ip_error">無効なIP形式</string>
     <string name="multiplayer_username_error">4～20文字の英数字、ピリオド、ハイフン、アンダースコア、スペースのみ使用可能</string>
     <string name="multiplayer_nickname_invalid">無効なユーザー名です。システム→ネットワークで正しく設定されていることを確認してください</string>
-    <string name="multiplayer_port_error">1〜65535の間で入力してください</string>
     <string name="multiplayer_token_error">48文字で、小文字のa-zのみ使用可能</string>
-    <string name="multiplayer_lobby_type">ロビータイプ</string>
-    <string name="multiplayer_public_visibility">公開</string>
-    <string name="multiplayer_unlisted_visibility">非公開</string>
+    <string name="multiplayer_port_error">1〜65535の間で入力してください</string>
     <string name="cancel">キャンセル</string>
     <string name="ok">OK</string>
     <string name="refresh">更新</string>
     <string name="room_list">ルーム一覧</string>
-    <string name="multiplayer_token_required">ウェブトークンが必要です。詳細設定 -> システム -> ネットワークに移動してください</string>
-
-    <!-- Static Themes -->
-    <string name="static_theme_color">テーマカラー</string>
-    <string name="violet">紫（デフォルト）</string>
-    <string name="blue">青</string>
-    <string name="cyan">シアン</string>
-    <string name="red">赤</string>
-    <string name="green">緑</string>
-    <string name="yellow">黄</string>
-    <string name="orange">オレンジ</string>
-    <string name="pink">ピンク</string>
-    <string name="gray">グレー</string>
+    <string name="multiplayer_public_visibility">公開</string>
+    <string name="multiplayer_unlisted_visibility">非公開</string>
 
     <!-- Setup strings -->
     <string name="welcome">ようこそ!</string>
@@ -299,12 +239,10 @@
     <string name="keys_description">下のボタンから &lt;b>prod.keys&lt;/b> ファイルを選択してください。</string>
     <string name="select_keys">キーを選択</string>
     <string name="firmware">ファームウェア</string>
-    <string name="firmware_description">下のボタンで<b>firmware.zip</b>ファイルを選択してください。\n現在Edenは<b>19.0.1</b>以下のバージョンが必要です。</string>
     <string name="select_firmware">ファームウェアを選択</string>
     <string name="games">ゲーム</string>
     <string name="games_description">下のボタンから&lt;b>ゲーム&lt;/b>のあるフォルダを選択してください。</string>
     <string name="done">完了</string>
-    <string name="done_description">準備が完了しました。\nゲームをお楽しみください!</string>
     <string name="text_continue">続行</string>
     <string name="next">次へ</string>
     <string name="back">戻る</string>
@@ -315,29 +253,32 @@
     <string name="bluetooth_permissions_denied">Bluetoothの権限が拒否されました。コントローラーのサポートが制限される可能性があります。</string>
 
     <!-- Home strings -->
+
     <string name="alphabetical">アルファベット順</string>
     <string name="view_list">リスト表示</string>
     <string name="view_grid">グリッド表示</string>
+    <string name="view_grid_compact">コンパクトグリッド</string>
     <string name="view_carousel">カルーセル</string>
+    <string name="game_image_desc"> のスクリーンショット  %1$s</string>
     <string name="folder">フォルダ</string>
     <string name="pre_alpha_warning_title">プレアルファ版</string>
     <string name="pre_alpha_warning_description">警告: このビルドは公開用ではありません。プレアルファ段階でバグや未実装機能が含まれます。\n不正に入手した場合は直ちにアンインストールしてください</string>
     <string name="dont_show_again">再表示しない</string>
     <string name="pre_alpha_warning">プレアルファ版 - 一般公開用ではありません</string>
-    <string name="add_directory_success">ゲームディレクトリを追加しました</string>
     <string name="home_games">ゲーム</string>
     <string name="home_search">検索</string>
     <string name="home_settings">設定</string>
     <string name="empty_gamelist">ファイルが存在しないかゲームフォルダが選択されていません。</string>
     <string name="search_and_filter_games">ゲームの検索と絞り込み</string>
     <string name="select_games_folder">ゲームフォルダ</string>
+    <string name="manage_game_folders">ゲームフォルダの管理</string>
     <string name="select_games_folder_description">ゲームをEdenのゲームリストに追加します</string>
     <string name="add_games_warning">ゲームフォルダの選択をスキップしますか?</string>
     <string name="add_games_warning_description">フォルダを選択しないと、ゲームがリストに表示されません。</string>
     <string name="home_search_games">ゲームを検索</string>
     <string name="search_settings">設定を検索</string>
     <string name="games_dir_selected">フォルダを選択しました</string>
-    <string name="install_prod_keys">prod.keys</string>
+    <string name="install_prod_keys">プロッドキーをインストール</string>
     <string name="install_prod_keys_description">製品版ゲームの復号化に必要です</string>
     <string name="install_prod_keys_warning">キーの追加をスキップしますか？</string>
     <string name="install_prod_keys_warning_description">製品版ゲームのエミュレーションには、有効なキーが必要です。続行すると自作アプリしか機能しません。</string>
@@ -359,6 +300,7 @@
     <string name="install_amiibo_keys">Amiibo</string>
     <string name="install_amiibo_keys_description">ゲーム内での Amiibo の使用に必要です</string>
     <string name="install_amiibo_keys_failure_extension_description">キーの拡張子が.binであることを確認し、再度お試しください。</string>
+    <string name="gpu_driver_fetcher">GPUドライバーフェッチャー</string>
     <string name="gpu_driver_manager">GPUドライバーの管理</string>
     <string name="install_gpu_driver">GPUドライバー</string>
     <string name="install_gpu_driver_description">代替ドライバーをインストールしてパフォーマンスや精度を向上させます</string>
@@ -378,24 +320,31 @@
     <string name="manage_save_data">セーブデータ</string>
     <string name="manage_save_data_description">セーブデータが見つかりました。操作を選択してください。</string>
     <string name="import_save_warning">セーブデータをインポート</string>
+    <string name="import_save_warning_description">警告：選択したファイルで全てのセーブファイルを上書きします。そのまま続きましょうか？</string>
     <string name="import_export_saves_description">セーブファイルをインポート/エクスポート</string>
     <string name="save_files_importing">セーブファイルをインポート中...</string>
+    <string name="save_files_exporting">セーブファイルを エクスポート </string>
     <string name="save_file_imported_success">インポートが完了しました</string>
     <string name="save_file_invalid_zip_structure">セーブデータのディレクトリ構造が無効</string>
     <string name="save_file_invalid_zip_structure_description">最初のサブフォルダ名は、ゲームのタイトルIDである必要があります。</string>
     <string name="import_saves">インポート</string>
     <string name="export_saves">エクスポート</string>
     <string name="install_firmware">ファームウェア</string>
-    <string name="install_firmware_description">ファームウェアはZIPアーカイブである必要があり、一部のゲームを起動するのに必要です</string>
+    <string name="install_firmware_description">ファームウェアは必ずzipの中にある事を確認してください。数々のゲームを起動させるために不可欠だ。</string>
     <string name="firmware_installing">ファームウェアをインストール中</string>
     <string name="firmware_installed_success">インストールが完了しました</string>
     <string name="firmware_installed_failure">インストール失敗</string>
-    <string name="share_log">デバッグログ</string>
+    <string name="firmware_installed_failure_description">ファームウェアのncaだけはzipの中にある事を確認して機能を再び行ってください</string>
+    <string name="firmware_uninstalled_failure">ファームウェアのアンインストールで失敗しました</string>
+    <string name="share_log">デバッグログを共有</string>
     <string name="share_log_description">Edenのログファイルを共有して問題をデバッグします</string>
     <string name="share_log_missing">ログが見つかりません</string>
     <string name="install_game_content">追加コンテンツ</string>
     <string name="install_game_content_description">更新データやDLCをインストールします</string>
     <string name="installing_game_content">コンテンツをインストール中...</string>
+    <string name="install_game_content_failure">ファイルをNANDにインストール出来なかった</string>
+    <string name="install_game_content_failure_description">内容は有効だと確認してプロッドキーをインストールしてください</string>
+    <string name="install_game_content_failure_base">問題が発生しないように、ベースゲームはインストール禁止</string>
     <string name="install_game_content_failure_file_extension">NSPとXCI形式のコンテンツのみサポートされています。ゲームコンテンツが有効なものであるかご確認ください。</string>
     <string name="install_game_content_failed_count">%1$d のインストールエラー</string>
     <string name="install_game_content_success">ゲームコンテンツのインストールに成功しました</string>
@@ -403,6 +352,7 @@
     <string name="install_game_content_success_overwrite">%1$d の上書きに成功しました</string>
     <string name="custom_driver_not_supported">カスタムドライバはサポートされていません</string>
     <string name="manage_yuzu_data">Eden データを管理</string>
+    <string name="manage_yuzu_data_description">ファームウェア、キー、ユーザデータなどのインポート・エクスポート</string>
     <string name="share_save_file">セーブファイルを共有</string>
     <string name="export_save_failed">セーブのエクスポート失敗</string>
     <string name="game_folders">ゲームフォルダ</string>
@@ -419,8 +369,14 @@
     <string name="no_save_data_found">セーブデータが見つかりません</string>
     <string name="verify_installed_content">インストール済みコンテンツを検証</string>
     <string name="verify_installed_content_description">すべてのインストール済みコンテンツの整合性を確認</string>
+
     <string name="keys_missing">暗号化キーが不足</string>
     <string name="keys_missing_description">ファームウェアと製品版ゲームを復号化できません</string>
+    <string name="uninstall_firmware">ファームウェアをアンインストール</string>
+    <string name="uninstall_firmware_description">ファームウェアをアンインストールするとデバイスから削除され、ゲームの互換性に影響する可能性があります。</string>
+    <string name="firmware_uninstalling">ファームウェアをアンインストール中...</string>
+    <string name="firmware_uninstalled_success">ファームウェアのアンインストールが成功しました</string>
+
     <string name="firmware_invalid">ファームウェアが無効</string>
     <string name="error_firmware_missing">一部のゲームとアプリケーションを実行するにはファームウェアが必要です。Edenは19.0.1以前のファームウェアでのみ動作します。</string>
     <string name="error_firmware_corrupted">ファームウェアは存在しますが読み取れません。復号キーを確認し、必要に応じてファームウェアを再ダンプしてください。</string>
@@ -463,10 +419,10 @@
     <string name="exporting_user_data">ユーザデータをエクスポート中...</string>
     <string name="importing_user_data">ユーザデータをインポート中...</string>
     <string name="import_user_data">ユーザデータをインポート</string>
+    <string name="invalid_yuzu_backup">Edenのバックアップは無効</string>
     <string name="user_data_export_success">ユーザデータのエクスポートに成功しました</string>
     <string name="user_data_import_success">ユーザデータのインポートに成功しました</string>
     <string name="user_data_export_cancelled">エクスポートをキャンセルしました</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">エミュレーション速度を制限</string>
     <string name="frame_limit_enable_description">エミュレーション速度を指定した割合に制限します。</string>
@@ -474,7 +430,6 @@
     <string name="frame_limit_slider_description">エミュレーション速度を制限するパーセンテージを指定します。100%は通常速度です。値の増減で速度も増減します。</string>
     <string name="cpu_backend">CPUバックエンド</string>
     <string name="cpu_accuracy">CPU精度</string>
-
     <!-- System settings strings -->
     <string name="device_name">デバイス名</string>
     <string name="use_docked_mode">TVモード</string>
@@ -487,18 +442,22 @@
     <string name="use_custom_rtc_description">現在のシステム時間とは別に、任意のリアルタイムクロックを設定できます。</string>
     <string name="set_custom_rtc">カスタムRTCを設定</string>
 
-    <!-- Network settings strings -->
     <string name="generate">生成</string>
-    <string name="web_username">ウェブユーザー名</string>
-    <string name="web_username_description">マルチプレイヤールームに表示されるユーザー名。4～20文字の英数字、ハイフン、ピリオド、アンダースコア、スペースのみ使用可能。</string>
+
+    <!-- Network settings strings -->
     <string name="web_token">ウェブトークン</string>
     <string name="web_token_description">公開ルームを作成するために使用されるウェブトークン。a-zの小文字のみを含む48文字の文字列です。</string>
+    <string name="web_username">ウェブユーザー名</string>
+    <string name="web_username_description">マルチプレイヤールームに表示されるユーザー名。4～20文字の英数字、ハイフン、ピリオド、アンダースコア、スペースのみ使用可能。</string>
     <string name="network">ネットワーク</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">バックエンド</string>
     <string name="display">ディスプレイ</string>
     <string name="processing">後処理</string>
+
+    <string name="frame_skipping">WIP: フレームスキップ</string>
+    <string name="frame_skipping_description">フレームスキップを切り替えて、レンダリングされるフレーム数を減らしパフォーマンスを向上させます。この機能は開発中であり、今後のリリースで有効になります。</string>
     <string name="renderer_accuracy">精度</string>
     <string name="renderer_resolution">解像度（携帯モード/TVモード）</string>
     <string name="renderer_vsync">垂直同期モード</string>
@@ -508,8 +467,14 @@
     <string name="renderer_anti_aliasing">アンチエイリアス方式</string>
     <string name="renderer_force_max_clock">最大クロックを強制 (Adrenoのみ)</string>
     <string name="renderer_force_max_clock_description">GPUを最大限可能な周波数で動作させます (過熱制限は引き続き適用されます)。</string>
+    <string name="renderer_optimize_spirv_output">Spir-V最適化</string>
+    <string name="renderer_optimize_spirv_output_description">コンパイル済みシェーダーを最適化し、GPUの効率を向上させます。</string>
     <string name="renderer_asynchronous_shaders">非同期シェーダー</string>
     <string name="renderer_asynchronous_shaders_description">シェーダーを非同期でコンパイルします。これによりカクつきが減る可能性がありますが、グラフィックの不具合が発生する場合もあります。</string>
+    <string name="use_fast_gpu_time">高速GPU時間を使用</string>
+    <string name="use_fast_gpu_time_description">ほとんどのゲームを最高のネイティブ解像度で強制的に実行します。このオプションは不安定で問題を引き起こす可能性があります。</string>
+    <string name="fast_gpu_time">GPUオーバークロック係数</string>
+    <string name="fast_gpu_time_description">最大パフォーマンスには128、最大グラフィック忠実度には512を使用します。</string>
     <string name="renderer_reactive_flushing">即時書き込み</string>
     <string name="renderer_reactive_flushing_description">一部のゲームにおいて、パフォーマンスを犠牲にしながらも、レンダリング精度を向上させます。</string>
     <string name="use_disk_shader_cache">ディスクシェーダーキャッシュ</string>
@@ -521,6 +486,9 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="use_auto_stub">自動スタブを使用</string>
+    <string name="use_auto_stub_description">不足しているサービスや機能を自動的にスタブします。互換性が向上する可能性がありますが、クラッシュや安定性の問題を引き起こす可能性があります。</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">グラフィックデバッグ</string>
@@ -600,6 +568,7 @@
     <string name="import_failed">インポート失敗</string>
     <string name="cancelling">キャンセル中</string>
     <string name="install">インストール</string>
+    <string name="fetch">取得</string>
     <string name="delete">削除</string>
     <string name="start">開始</string>
     <string name="clear">クリア</string>
@@ -616,8 +585,6 @@
     <string name="installing_driver">インストール中…</string>
 
     <!-- GPU driver fetcher -->
-    <string name="gpu_driver_fetcher">GPUドライバーフェッチャー</string>
-    <string name="fetch">取得</string>
     <string name="fetch_error">取得中にエラーが発生しました</string>
     <string name="check_connection">接続を確認して再試行してください。</string>
     <string name="show_releases">リリースを表示</string>
@@ -668,6 +635,7 @@
     <string name="loader_error_video_core_description">これは通常、互換性のないGPUドライバーが原因で発生します。 カスタムGPUドライバーをインストールすると、問題が解決する可能性があります。</string>
     <string name="loader_error_invalid_format">ROMの読み込みに失敗しました</string>
     <string name="loader_error_file_not_found">ROMファイルが存在しません</string>
+
     <string name="loader_requires_firmware">ゲームにはファームウェアが必要です</string>
     <string name="loader_requires_firmware_description"><![CDATA[起動しようとしているゲームは、起動または開始メニューを通過するためにファームウェアが必要です。<a href=\"https://yuzu-mirror.github.io/help/quickstart\"> ファームウェアをダンプしてインストール</a>するか、\"OK\"を押して続行してください。]]></string>
 
@@ -691,7 +659,6 @@
     <string name="config_write_failed">設定ファイルの書き込みに失敗しました</string>
     <string name="config_apply_failed">設定の適用に失敗しました</string>
     <string name="config_already_exists_title">設定が既に存在します</string>
-    <string name="config_already_exists_message">%1$s のカスタム設定は既に存在します。\n\n既存の設定を上書きしますか？\n\nこの操作は元に戻せません。</string>
     <string name="config_exists_prompt">既存の設定を確認中...</string>
     <string name="overwrite_cancelled">上書きがキャンセルされました</string>
     <string name="checking_driver">カスタムドライバーを確認中: %1$s</string>
@@ -711,7 +678,6 @@
     <string name="invalid_driver_file">無効なドライバーファイル: %s</string>
     <string name="network_unavailable">ネットワーク接続が利用できません。インターネット接続を確認してからもう一度お試しください。</string>
     <string name="driver_missing_title">GPUドライバーが必要です</string>
-    <string name="driver_missing_message">ゲーム設定にはGPUドライバー \"%s\" が必要ですが、お使いのデバイスにインストールされていません。\n\n今すぐダウンロードしてインストールしますか？</string>
     <string name="driver_download_cancelled">ドライバーのダウンロードがキャンセルされました。必要なドライバーがないとゲームを起動できません。</string>
     <string name="download">ダウンロード</string>
 
@@ -744,13 +710,9 @@
     <string name="abort_button">中断</string>
     <string name="continue_button">続行</string>
     <string name="system_archive_not_found">システムアーカイブが見つかりません</string>
-    <string name="system_archive_not_found_message">%s が見つかりません。システムアーカイブをダンプしてください。\nエミュレーションを続行すると、クラッシュやバグが発生する可能性があります。</string>
     <string name="system_archive_general">システムアーカイブ</string>
     <string name="save_load_error">セーブ/ロードエラー</string>
     <string name="fatal_error">致命的なエラー</string>
-    <string name="fatal_error_message">致命的なエラーが発生しました。詳細はログを確認してください。\nエミュレーションを続行するとクラッシュやバグが発生する可能性があります。</string>
-    <string name="performance_warning">この設定をオフにすると、エミュレーションのパフォーマンスが著しく低下します！最高の体験を得るためには、この設定を有効にしておくことを推奨します。</string>
-    <string name="device_memory_inadequate">デバイス RAM: %1$s\n推奨: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">起動できるゲームがありません!</string>
 
@@ -762,6 +724,25 @@
     <string name="region_china">中国</string>
     <string name="region_korea">韓国</string>
     <string name="region_taiwan">台湾</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (推奨)</string>
+    <string name="memory_6gb">6GB (安全でない)</string>
+    <string name="memory_8gb">8GB (安全でない)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">基本 (1000MHz)</string>
+    <string name="clock_boost">ブースト (1700MHz)</string>
+    <string name="clock_fast">高速 (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">低 (128)</string>
+    <string name="gpu_medium">中 (256)</string>
+    <string name="gpu_high">高 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">摂氏</string>
+    <string name="temperature_fahrenheit">華氏</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
@@ -780,12 +761,31 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">標準</string>
     <string name="renderer_accuracy_high">高</string>
-    <string name="renderer_accuracy_extreme">最高 (低速)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">デフォルト</string>
-    <string name="dma_accuracy_unsafe">安全でない（高速）</string>
-    <string name="dma_accuracy_safe">安全（安定）</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTCデコード方法</string>
+    <string name="accelerate_astc_description">ASTC圧縮テクスチャのデコード方法を選択: CPU (低速、安全)、GPU (高速、推奨)、またはCPU非同期 (カクつきなし、問題が発生する可能性あり)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU非同期</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC再圧縮方法</string>
+    <string name="astc_recompression_description">ASTCテクスチャの再圧縮方法を選択して互換性とパフォーマンスを向上させます。このオプションを有効にするとVRAMを節約できますが、テクスチャ品質が低下する可能性があります。</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">非圧縮</string>
+    <string name="astc_recompression_bc1">BC1（低品質）</string>
+    <string name="astc_recompression_bc3">BC3（中品質）</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">VRAM使用モード</string>
+    <string name="vram_usage_mode_description">VRAMの使用効率を設定</string>
+    <string name="vram_usage_conservative">保守的</string>
+    <string name="vram_usage_aggressive">積極的</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
@@ -810,7 +810,6 @@
     <string name="scaling_filter_gaussian">Gaussian</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">なし</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -835,7 +834,6 @@
     <string name="cpu_accuracy_accurate">正確</string>
     <string name="cpu_accuracy_unsafe">不安定</string>
     <string name="cpu_accuracy_paranoid">パラノイド</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">方向ボタン</string>
     <string name="gamepad_left_stick">Lスティック</string>
@@ -871,6 +869,18 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">完全な黒を使用</string>
     <string name="use_black_backgrounds_description">ダークテーマの背景色に黒が適用されます。</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">テーマカラー</string>
+    <string name="violet">紫（デフォルト）</string>
+    <string name="blue">青</string>
+    <string name="cyan">シアン</string>
+    <string name="red">赤</string>
+    <string name="green">緑</string>
+    <string name="yellow">黄</string>
+    <string name="orange">オレンジ</string>
+    <string name="pink">ピンク</string>
+    <string name="gray">グレー</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">ピクチャーインピクチャー</string>

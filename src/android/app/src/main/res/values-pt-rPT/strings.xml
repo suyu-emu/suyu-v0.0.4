@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Este software corre jogos para a consola Nintendo Switch. Não estão incluídas nem jogos ou chaves. &lt;br /&gt;&lt;br /&gt;Antes de começares, por favor localiza o ficheiro <![CDATA[1 prod.keys 1]]> no armazenamento do teu dispositivo.&lt;br /&gt;&lt;br /&gt;<![CDATA[2Learn more2]]></string>
     <string name="notice_notification_channel_name">Notificações e erros</string>
     <string name="notice_notification_channel_description">Mostra notificações quendo algo corre mal.</string>
     <string name="notification_permission_not_granted">Permissões de notificação não permitidas </string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Melhorado)</string>
     <string name="process_ram">RAM do processo: %1$d MB</string>
     <string name="shaders_prefix">A compilar</string>
     <string name="shaders_suffix">shader(s)</string>
     <string name="charging">(A carregar)</string>
+
     <string name="system_info_label">Sistema:</string>
     <string name="show_stats_overlay">Mostrar Overlay de Desempenho</string>
     <string name="stats_overlay_customization">Personalização</string>
@@ -34,6 +33,8 @@
     <string name="bat_temperature_unit">Unidades de temperatura da bateria</string>
     <string name="show_power_info">Mostrar informações da bateria</string>
     <string name="show_power_info_description">Mostrar consumo atual de energia e capacidade restante da bateria</string>
+    <string name="show_shaders_building">Mostrar construção de shaders</string>
+    <string name="show_shaders_building_description">Mostra o número atual de shaders a serem construídos</string>
     <string name="overlay_position">Posição do Overlay</string>
     <string name="overlay_position_description">Escolher posição do overlay na tela</string>
     <string name="overlay_position_top_left">Canto Superior Esquerdo</string>
@@ -44,8 +45,6 @@
     <string name="overlay_position_center_bottom">Centro Inferior</string>
     <string name="perf_overlay_background">Fundo do Overlay</string>
     <string name="perf_overlay_background_description">Adiciona fundo para melhor legibilidade</string>
-    <string name="show_shaders_building">Mostrar construção de shaders</string>
-    <string name="show_shaders_building_description">Mostra o número atual de shaders a serem construídos</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">Mostrar sobreposição de informações do dispositivo</string>
@@ -63,15 +62,25 @@
     <string name="show_fw_version_description">Mostra a versão do firmware instalado</string>
 
     <!-- Eden\'s Veil -->
-    <string name="veil_extensions">Extensões da GPU</string>
-    <string name="veil_renderer">Renderizador</string>
-    <string name="veil_misc">CPU e Memória</string>
     <string name="eden_veil">Véu do Éden</string>
     <string name="eden_veil_description">Definições experimentais para melhorar o desempenho e capacidade. Estas definições podem causar ecrãs pretos ou outros problemas no jogo.</string>
     <string name="eden_veil_warning_title">Definições experimentais</string>
     <string name="eden_veil_warning_description">As configurações no Véu do Éden são altamente experimentais e podem causar problemas. Se o jogo não iniciar, desative todas as extensões.</string>
-    <string name="frame_skipping">WIP: Saltar frames</string>
-    <string name="frame_skipping_description">Ative ou desative o salto de frames para melhorar o desempenho reduzindo o número de frames renderizados. Esta funcionalidade ainda está em desenvolvimento e será ativada em versões futuras.</string>
+
+    <string name="veil_extensions">Extensões da GPU</string>
+    <string name="dyna_state">Estado Dinâmico Estendido</string>
+    <string name="dyna_state_description">Controla o número de funcionalidades que podem ser utilizadas no Estado Dinâmico Alargado. Valores mais elevados permitem mais funcionalidades e podem aumentar o desempenho, mas podem causar problemas com alguns controladores e fabricantes. O valor predefinido pode variar consoante o seu sistema e capacidades de hardware. Este valor pode ser alterado até ser alcançada a estabilidade e uma melhor qualidade visual.</string>
+    <string name="disabled">Desativado</string>
+    <string name="provoking_vertex">Vértice provocante</string>
+    <string name="provoking_vertex_description">Melhora a iluminação e o tratamento de vértices em certos jogos. Suportado apenas em GPUs Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Indexação de descritores</string>
+    <string name="descriptor_indexing_description">Melhora o tratamento de texturas e buffers, assim como a camada de tradução Maxwell. Suportado por algumas GPUs Vulkan 1.1 e todas Vulkan 1.2+.</string>
+    <string name="sample_shading">Amostragem de sombreamento</string>
+    <string name="sample_shading_description">Permite que o fragment shader seja executado por amostra num fragmento multi-amostrado em vez de uma vez por fragmento. Melhora a qualidade gráfica à custa de desempenho. Apenas dispositivos Vulkan 1.1+ suportam esta extensão.</string>
+    <string name="sample_shading_fraction">Fração de Sombreamento de Amostra</string>
+    <string name="sample_shading_fraction_description">A intensidade da passagem de sombreamento de amostra. Valores mais elevados melhoram a qualidade, mas também reduzem o desempenho numa maior medida.</string>
+
+    <string name="veil_renderer">Renderizador</string>
     <string name="frame_interpolation">Sincronização avançada de frames</string>
     <string name="frame_interpolation_description">Garante uma entrega suave e consistente de frames sincronizando o seu tempo, reduzindo engasgadelas e animações irregulares. Ideal para jogos que experienciam instabilidade no tempo de frames ou micro-engasgadelas durante o jogo.</string>
     <string name="renderer_early_release_fences">Libertar barreiras antecipadamente</string>
@@ -80,45 +89,14 @@
     <string name="sync_memory_operations_description">Garante a consistência dos dados entre operações de computação e memória. Esta opção deve corrigir problemas em alguns jogos, mas pode reduzir o desempenho nalguns casos. Os jogos com Unreal Engine 4 parecem ser os mais afectados.</string>
     <string name="buffer_reorder_disable">Desativar reordenação de buffer</string>
     <string name="buffer_reorder_disable_description">Quando assinalado, desativa a reordenação de carregamentos de memória mapeada, permitindo associar carregamentos a desenhos específicos. Pode reduzir o desempenho nalguns casos.</string>
-    <string name="use_lru_cache">Ativar cache LRU</string>
-    <string name="use_lru_cache_description">Ative ou desative a cache LRU para melhorar desempenho poupando uso do processador. Alguns jogos como TotK 1.2.1 têm problemas - desative se o jogo não iniciar ou falhar aleatoriamente.</string>
-    <string name="dyna_state">Estado Dinâmico Estendido</string>
-    <string name="dyna_state_description">Controla o número de funcionalidades que podem ser utilizadas no Estado Dinâmico Alargado. Valores mais elevados permitem mais funcionalidades e podem aumentar o desempenho, mas podem causar problemas com alguns controladores e fabricantes. O valor predefinido pode variar consoante o seu sistema e capacidades de hardware. Este valor pode ser alterado até ser alcançada a estabilidade e uma melhor qualidade visual.</string>
-    <string name="disabled">Desativado</string>
+
+    <string name="veil_misc">CPU e Memória</string>
     <string name="use_sync_core">Sincronizar velocidade do núcleo</string>
     <string name="use_sync_core_description">Sincroniza a velocidade do núcleo com a percentagem máxima de velocidade para melhorar o desempenho sem alterar a velocidade real do jogo.</string>
-    <string name="use_auto_stub">Usar Auto Stub</string>
-    <string name="use_auto_stub_description">Preenche automaticamente serviços e funções em falta. Pode melhorar a compatibilidade mas causar crashes e problemas de estabilidade.</string>
-    <string name="uninstall_firmware">Desinstalar firmware</string>
-    <string name="uninstall_firmware_description">Desinstalar o firmware irá removê-lo do dispositivo e pode afetar a compatibilidade de jogos.</string>
-    <string name="firmware_uninstalling">A desinstalar firmware...</string>
-    <string name="firmware_uninstalled_success">Firmware desinstalado com sucesso</string>
-    <string name="provoking_vertex">Vértice provocante</string>
-    <string name="provoking_vertex_description">Melhora a iluminação e o tratamento de vértices em certos jogos. Suportado apenas em GPUs Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Indexação de descritores</string>
-    <string name="descriptor_indexing_description">Melhora o tratamento de texturas e buffers, assim como a camada de tradução Maxwell. Suportado por algumas GPUs Vulkan 1.1 e todas Vulkan 1.2+.</string>
-    <string name="use_fast_gpu_time">Usar tempo rápido de GPU</string>
-    <string name="use_fast_gpu_time_description">Força a maioria dos jogos a executar na sua resolução nativa mais alta. Esta opção é instável e pode causar problemas.</string>
-    <string name="fast_gpu_time">Fator de overclock da GPU</string>
-    <string name="fast_gpu_time_description">Use 128 para desempenho máximo e 512 para fidelidade gráfica máxima.</string>
-    <string name="gpu_low">Baixo (128)</string>
-    <string name="gpu_medium">Médio (256)</string>
-    <string name="gpu_high">Alto (512)</string>
-
-    <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
-
+    <string name="use_lru_cache">Ativar cache LRU</string>
+    <string name="use_lru_cache_description">Ative ou desative a cache LRU para melhorar desempenho poupando uso do processador. Alguns jogos como TotK 1.2.1 têm problemas - desative se o jogo não iniciar ou falhar aleatoriamente.</string>
     <string name="use_fast_cpu_time">Tempo de CPU rápido</string>
     <string name="use_fast_cpu_time_description">Força a CPU emulada a funcionar a uma velocidade de relógio mais alta, reduzindo certos limitadores de FPS. Esta opção é instável e pode causar problemas, e CPUs mais fracas podem ter desempenho reduzido.</string>
-    <string name="fast_cpu_time">Velocidade do CPU</string>
-    <string name="fast_cpu_time_description">Use Boost (1700MHz) para funcionar à velocidade nativa mais alta do Switch, ou Fast (2000MHz) para funcionar ao dobro da velocidade.</string>
-    <string name="memory_layout">Disposição de memória</string>
-    <string name="memory_layout_description">(EXPERIMENTAL) Altera a disposição de memória emulada. Esta definição não aumenta o desempenho, mas pode ajudar em jogos que utilizam altas resoluções via mods. Não use em telemóveis com 8GB de RAM ou menos.</string>
-    <string name="sample_shading">Amostragem de sombreamento</string>
-    <string name="sample_shading_description">Permite que o fragment shader seja executado por amostra num fragmento multi-amostrado em vez de uma vez por fragmento. Melhora a qualidade gráfica à custa de desempenho. Apenas dispositivos Vulkan 1.1+ suportam esta extensão.</string>
-    <string name="sample_shading_fraction">Fração de Sombreamento de Amostra</string>
-    <string name="sample_shading_fraction_description">A intensidade da passagem de sombreamento de amostra. Valores mais elevados melhoram a qualidade, mas também reduzem o desempenho numa maior medida.</string>
     <string name="custom_cpu_ticks">Ticks de CPU personalizados</string>
     <string name="custom_cpu_ticks_description">Defina um valor personalizado para ticks de CPU. Valores mais altos podem aumentar o desempenho, mas também podem causar bloqueios no jogo. Um intervalo de 77–21000 é recomendado.</string>
     <string name="cpu_ticks">Ticks</string>
@@ -126,36 +104,12 @@
     <string name="skip_cpu_inner_invalidation_description">Ignora algumas invalidações de cache do lado da CPU durante atualizações de memória, reduzindo a utilização da CPU e melhorando o desempenho. Pode causar falhas ou crashes em alguns jogos.</string>
     <string name="cpuopt_unsafe_host_mmu">Ativar Emulação de MMU do Anfitrião</string>
     <string name="cpuopt_unsafe_host_mmu_description">Esta otimização acelera os acessos à memória pelo programa convidado. Ativar faz com que as leituras/escritas de memória do convidado sejam efetuadas diretamente na memória e utilizem a MMU do Anfitrião. Desativar força todos os acessos à memória a usar a Emulação de MMU por Software.</string>
+    <string name="fast_cpu_time">Velocidade do CPU</string>
+    <string name="fast_cpu_time_description">Use Boost (1700MHz) para funcionar à velocidade nativa mais alta do Switch, ou Fast (2000MHz) para funcionar ao dobro da velocidade.</string>
+    <string name="memory_layout">Disposição de memória</string>
+    <string name="memory_layout_description">(EXPERIMENTAL) Altera a disposição de memória emulada. Esta definição não aumenta o desempenho, mas pode ajudar em jogos que utilizam altas resoluções via mods. Não use em telemóveis com 8GB de RAM ou menos.</string>
     <string name="dma_accuracy">Precisão da DMA</string>
     <string name="dma_accuracy_description">Controla a precisão da DMA. A precisão segura pode resolver problemas em alguns jogos, mas também pode afetar o desempenho nalguns casos. Se não tiver a certeza, deixe esta opção em Predefinido.</string>
-
-    <string name="memory_4gb">4GB (Recomendado)</string>
-    <string name="memory_6gb">6GB (Inseguro)</string>
-    <string name="memory_8gb">8GB (Inseguro)</string>
-
-    <string name="clock_base">Base (1000MHz)</string>
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Rápido (2000MHz)</string>
-
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">Método ASTC</string>
-    <string name="accelerate_astc_description">Escolha como as texturas comprimidas em ASTC são descodificadas para renderização: CPU (lento, seguro), GPU (rápido, recomendado) ou CPU Async (sem engasgos, pode causar problemas)</string>
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU Assíncrono</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">Recompressão ASTC</string>
-    <string name="astc_recompression_description">Escolha como as texturas ASTC são recomprimidas para melhorar a compatibilidade e o desempenho. Ativar esta opção poupa VRAM, mas pode reduzir a qualidade da textura.</string>
-    <string name="astc_recompression_uncompressed">Não Comprimido</string>
-    <string name="astc_recompression_bc1">BC1 (Baixa Qualidade)</string>
-    <string name="astc_recompression_bc3">BC3 (Média Qualidade)</string>
-
-    <!-- VRAM Usage Mode -->
-    <string name="vram_usage_mode">Modo de VRAM</string>
-    <string name="vram_usage_mode_description">Controla alocação de memória GPU.</string>
-    <string name="vram_usage_conservative">Conservador</string>
-    <string name="vram_usage_aggressive">Agressivo</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Backend de Shader</string>
@@ -172,8 +126,6 @@
     <string name="nvdec_emulation_none">Nenhum</string>
 
     <!-- Optimize Spir-V output -->
-    <string name="renderer_optimize_spirv_output">Otimizar Spir-V</string>
-    <string name="renderer_optimize_spirv_output_description">Otimiza o shader compilado para melhorar a eficiência da GPU.</string>
     <string name="never">Nunca</string>
     <string name="on_load">Ao Carregar</string>
     <string name="always">Sempre</string>
@@ -261,35 +213,23 @@
     <string name="emulation_multiplayer">Multijogador</string>
     <string name="multiplayer_game_name">Jogos preferidos</string>
     <string name="multiplayer_preferred_game_name">Jogo preferido</string>
+    <string name="multiplayer_lobby_type">Tipo de lobby</string>
     <string name="multiplayer_no_game">Nenhum jogo encontrado</string>
     <string name="multiplayer_preferred_game_name_invalid">Selecione um jogo preferido</string>
     <string name="multiplayer_room_name_error">3-20 caracteres necessários</string>
     <string name="multiplayer_required">Obrigatório</string>
+    <string name="multiplayer_token_required">Token web necessário, vá para Definições avançadas -> Sistema -> Rede</string>
     <string name="multiplayer_ip_error">Formato de IP inválido</string>
     <string name="multiplayer_username_error">Deve ter 4-20 caracteres (apenas alfanuméricos, pontos, hífens, underscores e espaços)</string>
     <string name="multiplayer_nickname_invalid">Nome de utilizador inválido, verifique em Sistema → Rede</string>
-    <string name="multiplayer_port_error">Deve ser entre 1-65535</string>
     <string name="multiplayer_token_error">Deve ter 48 caracteres e apenas letras minúsculas a-z</string>
-    <string name="multiplayer_lobby_type">Tipo de lobby</string>
-    <string name="multiplayer_public_visibility">Público</string>
-    <string name="multiplayer_unlisted_visibility">Não listado</string>
+    <string name="multiplayer_port_error">Deve ser entre 1-65535</string>
     <string name="cancel">Cancelar</string>
     <string name="ok">OK</string>
     <string name="refresh">Atualizar</string>
     <string name="room_list">Lista de salas</string>
-    <string name="multiplayer_token_required">Token web necessário, vá para Definições avançadas -> Sistema -> Rede</string>
-
-    <!-- Static Themes -->
-    <string name="static_theme_color">Cor do tema</string>
-    <string name="violet">Roxo (Predefinido)</string>
-    <string name="blue">Azul</string>
-    <string name="cyan">Ciano</string>
-    <string name="red">Vermelho</string>
-    <string name="green">Verde</string>
-    <string name="yellow">Amarelo</string>
-    <string name="orange">Laranja</string>
-    <string name="pink">Rosa</string>
-    <string name="gray">Cinzento</string>
+    <string name="multiplayer_public_visibility">Público</string>
+    <string name="multiplayer_unlisted_visibility">Não listado</string>
 
     <!-- Setup strings -->
     <string name="welcome">Benvindo! </string>
@@ -299,12 +239,10 @@
     <string name="keys_description">Seleciona o teu ficheiro &lt;b>prod.keys&lt;/b> com o botão abaixo.</string>
     <string name="select_keys">Seleciona as Chaves</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Selecione o seu ficheiro <b>firmware.zip</b> com o botão abaixo.\nAtualmente, o Eden requer a versão <b>19.0.1</b> ou inferior.</string>
     <string name="select_firmware">Selecionar Firmware</string>
     <string name="games">Jogos</string>
     <string name="games_description">Seleciona a tua pasta &lt;b>Games&lt;/b> com o botão abaixo.</string>
     <string name="done">Feito</string>
-    <string name="done_description">Tudo pronto.\nDisfruta dos teus jogos!</string>
     <string name="text_continue">Continuar</string>
     <string name="next">Próximo</string>
     <string name="back">Voltar</string>
@@ -315,6 +253,7 @@
     <string name="bluetooth_permissions_denied">Permissões Bluetooth recusadas. O suporte a comandos pode ser limitado.</string>
 
     <!-- Home strings -->
+
     <string name="alphabetical">Alfabético</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Grelha</string>
@@ -324,7 +263,6 @@
     <string name="pre_alpha_warning_description">AVISO: Esta versão não deve ser partilhada publicamente. O software está em fase pré-alpha e pode conter bugs e funcionalidades incompletas.\nSe obteve acesso não autorizado a esta versão, recomenda-se a desinstalação imediata.</string>
     <string name="dont_show_again">Não mostrar novamente</string>
     <string name="pre_alpha_warning">SOFTWARE PRÉ-ALPHA; NÃO DESTINADO A USO PÚBLICO</string>
-    <string name="add_directory_success">Pasta de jogos adicionada com sucesso</string>
     <string name="home_games">Jogos</string>
     <string name="home_search">Pesquisar</string>
     <string name="home_settings">Configurações</string>
@@ -360,6 +298,7 @@
     <string name="install_amiibo_keys">Instala chaves Amiibo</string>
     <string name="install_amiibo_keys_description">Necessário para usares Amiibo no jogo</string>
     <string name="install_amiibo_keys_failure_extension_description">Verifique se seu arquivo keys possui a extensão .bin e tente novamente.</string>
+    <string name="gpu_driver_fetcher">Obtentor de drivers GPU</string>
     <string name="gpu_driver_manager">Gerenciador de driver de GPU</string>
     <string name="install_gpu_driver">Instala driver para GPU</string>
     <string name="install_gpu_driver_description">Instala drivers alternativos para desempenho ou precisão potencialmente melhores</string>
@@ -409,7 +348,6 @@
     <string name="install_game_content_success_install">%1$d instalado com sucesso</string>
     <string name="install_game_content_success_overwrite">%1$d substituída com êxito</string>
     <string name="custom_driver_not_supported">Drivers personalizados não suportados</string>
-    <string name="custom_driver_not_supported_description">Carrea«gamento de drivers personalizados não é suportado pr este dispositivo. \nCheck verifica esta opção de futuro para confirmar se o suporte foi adicionado!</string>
     <string name="manage_yuzu_data">Administrar dados Eden</string>
     <string name="manage_yuzu_data_description">Importa/exporta firmware, chaves, dados do usuário e mais!</string>
     <string name="share_save_file">Partilha ficheiro duardado</string>
@@ -432,8 +370,14 @@
     <string name="no_save_data_found">Dados salvos não encontrados</string>
     <string name="verify_installed_content">Verificar conteúdo instalado</string>
     <string name="verify_installed_content_description">Verifica todo o conteúdo instalado em busca de dados corrompidos</string>
+
     <string name="keys_missing">Faltando chaves de encriptação</string>
     <string name="keys_missing_description">O firmware e jogos comerciais não poderão ser decriptados</string>
+    <string name="uninstall_firmware">Desinstalar firmware</string>
+    <string name="uninstall_firmware_description">Desinstalar o firmware irá removê-lo do dispositivo e pode afetar a compatibilidade de jogos.</string>
+    <string name="firmware_uninstalling">A desinstalar firmware...</string>
+    <string name="firmware_uninstalled_success">Firmware desinstalado com sucesso</string>
+
     <string name="firmware_invalid">Firmware inválido</string>
     <string name="error_firmware_missing">É necessário firmware para executar alguns jogos e aplicações. O Eden só funciona com firmware 19.0.1 ou anterior.</string>
     <string name="error_firmware_corrupted">Firmware está presente mas não pode ser lido. Verifique chaves de descriptografia e volte a fazer dump do firmware se necessário.</string>
@@ -473,7 +417,6 @@
     <string name="licenses_description">Projetos que tornam o Eden para Android possível</string>
     <string name="build">Versão</string>
     <string name="user_data">Dado de utilizados</string>
-    <string name="user_data_description">Importar/exportar todos dados da aplicação data.\n\n Ao importar dados do utilizados, todos os dados existentes do utilizados serão excluídos!</string>
     <string name="exporting_user_data">A exportar dados de utilizados...</string>
     <string name="importing_user_data">A importar dados de utilizador...</string>
     <string name="import_user_data">Importar dados de utilizados...</string>
@@ -482,7 +425,6 @@
     <string name="user_data_import_success">Dados de utilizador importado com sucesso</string>
     <string name="user_data_export_cancelled">Exportação cancelada</string>
     <string name="user_data_import_failed_description">Verifiqua se as pastas de dados do utilizados estão na raiz da pasta zip e contêm um arquivo de configuração em config/config.ini e tenta novamente.</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Limite de velocidade</string>
     <string name="frame_limit_enable_description">Limita a velocidade da emulação a uma porcentagem específica da velocidade normal.</string>
@@ -504,18 +446,22 @@
     <string name="use_custom_rtc_description">Permite a você configurar um relógio em tempo real separado do relógio do seu dispositivo.</string>
     <string name="set_custom_rtc">Defina um relógio em tempo real personalizado</string>
 
-    <!-- Network settings strings -->
     <string name="generate">Gerar</string>
-    <string name="web_username">Nome de utilizador web</string>
-    <string name="web_username_description">Nome de utilizador exibido em salas multiplayer. Deve ter 4-20 caracteres (apenas alfanuméricos, hífens, pontos, underscores e espaços).</string>
+
+    <!-- Network settings strings -->
     <string name="web_token">Token web</string>
     <string name="web_token_description">Token web usado para criar salas públicas. É uma string de 48 caracteres contendo apenas letras minúsculas a-z.</string>
+    <string name="web_username">Nome de utilizador web</string>
+    <string name="web_username_description">Nome de utilizador exibido em salas multiplayer. Deve ter 4-20 caracteres (apenas alfanuméricos, hífens, pontos, underscores e espaços).</string>
     <string name="network">Rede</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">Backend</string>
     <string name="display">Ecrã</string>
     <string name="processing">Pós-processamento</string>
+
+    <string name="frame_skipping">WIP: Saltar frames</string>
+    <string name="frame_skipping_description">Ative ou desative o salto de frames para melhorar o desempenho reduzindo o número de frames renderizados. Esta funcionalidade ainda está em desenvolvimento e será ativada em versões futuras.</string>
     <string name="renderer_accuracy">Nível de precisão</string>
     <string name="renderer_resolution">Resolução (Portátil/Ancorado)</string>
     <string name="renderer_vsync">Modo VSync</string>
@@ -527,8 +473,14 @@
     <string name="renderer_anti_aliasing">Método de Anti-Serrilhado</string>
     <string name="renderer_force_max_clock">Força velocidade máxima (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Força o GPU a correr à velocidade máxima (restrições térmicas serão aplicadas)</string>
+    <string name="renderer_optimize_spirv_output">Otimizar Spir-V</string>
+    <string name="renderer_optimize_spirv_output_description">Otimiza o shader compilado para melhorar a eficiência da GPU.</string>
     <string name="renderer_asynchronous_shaders">Usa shaders assíncronos </string>
     <string name="renderer_asynchronous_shaders_description">Compila shaders de forma assíncrona. Isto pode reduzir engasgadelas, mas também pode introduzir falhas gráficas.</string>
+    <string name="use_fast_gpu_time">Usar tempo rápido de GPU</string>
+    <string name="use_fast_gpu_time_description">Força a maioria dos jogos a executar na sua resolução nativa mais alta. Esta opção é instável e pode causar problemas.</string>
+    <string name="fast_gpu_time">Fator de overclock da GPU</string>
+    <string name="fast_gpu_time_description">Use 128 para desempenho máximo e 512 para fidelidade gráfica máxima.</string>
     <string name="renderer_reactive_flushing">Usar flushing reativo</string>
     <string name="renderer_reactive_flushing_description">Melhora a precisão da renderização em alguns jogos ao custo de desempenho.</string>
     <string name="use_disk_shader_cache">Cache de shaders em disco</string>
@@ -540,6 +492,9 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="use_auto_stub">Usar Auto Stub</string>
+    <string name="use_auto_stub_description">Preenche automaticamente serviços e funções em falta. Pode melhorar a compatibilidade mas causar crashes e problemas de estabilidade.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Ativar depuração de gráficos</string>
@@ -667,6 +622,7 @@ uma tentativa de mapeamento automático</string>
     <string name="import_failed">IMportação falhada</string>
     <string name="cancelling">A cancelar</string>
     <string name="install">Instalar</string>
+    <string name="fetch">Obter</string>
     <string name="delete">Apagar</string>
     <string name="edit">Editar</string>
     <string name="export_success">Exportado com sucesso</string>
@@ -696,8 +652,6 @@ uma tentativa de mapeamento automático</string>
     <string name="installing_driver">A instalar o Driver...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="gpu_driver_fetcher">Obtentor de drivers GPU</string>
-    <string name="fetch">Obter</string>
     <string name="fetch_error">Erro ao obter</string>
     <string name="check_connection">Verifique a sua ligação e tente novamente.</string>
     <string name="show_releases">Mostrar versões</string>
@@ -774,7 +728,6 @@ uma tentativa de mapeamento automático</string>
     <string name="addon_installed_successfully">Adicional instalado com sucesso</string>
     <string name="verifying_content">Verificando conteúdo</string>
     <string name="content_install_notice">Aviso sobre conteúdo adicional</string>
-    <string name="content_install_notice_description">O conteúdo que você selecionou não corresponde a este jogo.\nInstalar mesmo assim?</string>
     <string name="confirm_uninstall">Confirmar desinstalação</string>
     <string name="confirm_uninstall_description">Tem certeza de que quer desinstalar esse adicional?</string>
     <string name="verify_integrity">Verificar integridade</string>
@@ -784,8 +737,6 @@ uma tentativa de mapeamento automático</string>
     <string name="verify_failure_description">Conteúdos do arquivo podem estar corrompidos</string>
     <string name="verify_no_result">A verificação de integridade não pôde ser executada</string>
     <string name="verify_no_result_description">Os conteúdos do arquivo não foram verificados se são válidos</string>
-    <string name="verification_failed_for">A verificação falhou para os seguintes arquivos:\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">A tua ROM está encriptada</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Siga os guias para voltar a fazer dump dos seus <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">cartões de jogo</a> ou <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">títulos digitais</a>.]]></string>
@@ -794,6 +745,7 @@ uma tentativa de mapeamento automático</string>
     <string name="loader_error_video_core_description">Isto é normalmente causado por um driver de GPU incompatível. Instalar um driver GPU pode resolver este problema.</string>
     <string name="loader_error_invalid_format">Impossível carregar a tua ROM</string>
     <string name="loader_error_file_not_found">O ficheiro da ROM não existe</string>
+
     <string name="loader_requires_firmware">O jogo requer firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[O jogo que está a tentar iniciar requer firmware para arrancar ou passar o menu inicial. Por favor <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> faça dump e instale o firmware</a>, ou pressione \"OK\" para continuar mesmo assim.]]></string>
 
@@ -817,7 +769,6 @@ uma tentativa de mapeamento automático</string>
     <string name="config_write_failed">Falha ao escrever ficheiro de configuração</string>
     <string name="config_apply_failed">Falha ao aplicar configuração</string>
     <string name="config_already_exists_title">Configuração Já Existe</string>
-    <string name="config_already_exists_message">Definições personalizadas já existem para %1$s.\n\nDeseja substituir a configuração existente?\n\nEsta ação não pode ser desfeita.</string>
     <string name="config_exists_prompt">A verificar configuração existente...</string>
     <string name="overwrite_cancelled">Substituição cancelada</string>
     <string name="checking_driver">A verificar controlador personalizado: %1$s</string>
@@ -837,7 +788,6 @@ uma tentativa de mapeamento automático</string>
     <string name="invalid_driver_file">Ficheiro de controlador inválido: %s</string>
     <string name="network_unavailable">Nenhuma ligação de rede disponível. Verifique a sua ligação à internet e tente novamente.</string>
     <string name="driver_missing_title">Controlador de GPU Necessário</string>
-    <string name="driver_missing_message">A configuração do jogo requer o controlador de GPU \"%s\" que não está instalado no seu dispositivo.\n\nDeseja transferir e instalá-lo agora?</string>
     <string name="driver_download_cancelled">Transferência do controlador cancelada. O jogo não pode ser iniciado sem o controlador necessário.</string>
     <string name="download">Transferir</string>
 
@@ -864,7 +814,6 @@ uma tentativa de mapeamento automático</string>
     <string name="touchscreen">Ecrã Táctil</string>
     <string name="lock_drawer">Bloquear submenu</string>
     <string name="unlock_drawer">Desbloquear submenu</string>
-
     <string name="load_settings">Carregando configurações...</string>
 
     <!-- Software keyboard -->
@@ -874,13 +823,9 @@ uma tentativa de mapeamento automático</string>
     <string name="abort_button">Abortar</string>
     <string name="continue_button">Continuar</string>
     <string name="system_archive_not_found">Arquivo do Sistema Não Encontrado</string>
-    <string name="system_archive_not_found_message">%s está em falta. Por favor apaga os teus ficheiros de sistema.\nContinuar a emulação pode causar erros.</string>
     <string name="system_archive_general">Um arquivo do sistema</string>
     <string name="save_load_error">Erro Guardar/Carregar</string>
     <string name="fatal_error">Erro fatal</string>
-    <string name="fatal_error_message">Ocorreu um erro fatal. Verifica o teu registro para detalhes. \nContinuar a emulação pode causar erros.</string>
-    <string name="performance_warning">Desligar esta configuração irá reduzir a performance da emulação significantemente! Para a melhor experiência é recomendado que deixes esta configuração ativada.</string>
-    <string name="device_memory_inadequate">RAM do dispositivo: %1$s\nRecommended: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Nenhum jogo inicializável presente!</string>
 
@@ -892,6 +837,25 @@ uma tentativa de mapeamento automático</string>
     <string name="region_china">China</string>
     <string name="region_korea">Coreia</string>
     <string name="region_taiwan">Taiwan</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (Recomendado)</string>
+    <string name="memory_6gb">6GB (Inseguro)</string>
+    <string name="memory_8gb">8GB (Inseguro)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">Base (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Rápido (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">Baixo (128)</string>
+    <string name="gpu_medium">Médio (256)</string>
+    <string name="gpu_high">Alto (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
@@ -910,12 +874,31 @@ uma tentativa de mapeamento automático</string>
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Alto</string>
-    <string name="renderer_accuracy_extreme">Estremo (Lento)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Predefinido</string>
-    <string name="dma_accuracy_unsafe">Inseguro (rápido)</string>
-    <string name="dma_accuracy_safe">Seguro (estável)</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">Método ASTC</string>
+    <string name="accelerate_astc_description">Escolha como as texturas comprimidas em ASTC são descodificadas para renderização: CPU (lento, seguro), GPU (rápido, recomendado) ou CPU Async (sem engasgos, pode causar problemas)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU Assíncrono</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">Recompressão ASTC</string>
+    <string name="astc_recompression_description">Escolha como as texturas ASTC são recomprimidas para melhorar a compatibilidade e o desempenho. Ativar esta opção poupa VRAM, mas pode reduzir a qualidade da textura.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Não Comprimido</string>
+    <string name="astc_recompression_bc1">BC1 (Baixa Qualidade)</string>
+    <string name="astc_recompression_bc3">BC3 (Média Qualidade)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">Modo de VRAM</string>
+    <string name="vram_usage_mode_description">Controla alocação de memória GPU.</string>
+    <string name="vram_usage_conservative">Conservador</string>
+    <string name="vram_usage_aggressive">Agressivo</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
@@ -940,7 +923,6 @@ uma tentativa de mapeamento automático</string>
     <string name="scaling_filter_gaussian">Gaussiano</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Nenhum</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -970,7 +952,6 @@ uma tentativa de mapeamento automático</string>
     <string name="cpu_accuracy_accurate">Preciso</string>
     <string name="cpu_accuracy_unsafe">Inseguro</string>
     <string name="cpu_accuracy_paranoid">Paranoid</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Botões Direcionais</string>
     <string name="gamepad_left_stick">Analógico esquerdo</string>
@@ -1006,6 +987,18 @@ uma tentativa de mapeamento automático</string>
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Plano de fundo preto</string>
     <string name="use_black_backgrounds_description">Quando usar tema escuro, aplicar fundos escuros</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Cor do tema</string>
+    <string name="violet">Roxo (Predefinido)</string>
+    <string name="blue">Azul</string>
+    <string name="cyan">Ciano</string>
+    <string name="red">Vermelho</string>
+    <string name="green">Verde</string>
+    <string name="yellow">Amarelo</string>
+    <string name="orange">Laranja</string>
+    <string name="pink">Rosa</string>
+    <string name="gray">Cinzento</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">Picture in Picture</string>

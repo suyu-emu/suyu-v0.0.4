@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">此软件可以运行 Nintendo Switch 游戏，但不包含任何游戏和密钥文件。&lt;br /&gt;&lt;br /&gt;在开始前，请找到放置于设备存储中的 <![CDATA[<b> prod.keys </b>]]> 文件。&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">了解更多</a>]]></string>
+    <string name="app_disclaimer">此软件可以运行Nintendo Switch游戏机的游戏，但本身并不自带任何游戏或密钥。<br /><br />开始之前，请先选择<![CDATA[<b>密钥文件（prod.keys）</b>]]>。<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">详情</a>]]></string>
     <string name="notice_notification_channel_name">通知及错误提醒</string>
     <string name="notice_notification_channel_description">当发生错误时显示通知。</string>
     <string name="notification_permission_not_granted">未授予通知权限！</string>
-
+    <string name="app_notification_channel_description">Eden模拟器通知</string>
+    <string name="app_notification_running">Eden正在运行</string>
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(增强)</string>
     <string name="process_ram">进程内存: %1$d MB</string>
     <string name="shaders_prefix">正在编译</string>
     <string name="shaders_suffix">着色器</string>
     <string name="charging">(充电中)</string>
+
     <string name="system_info_label">系统:</string>
     <string name="show_stats_overlay">显示性能统计悬浮窗</string>
     <string name="stats_overlay_customization">自定义</string>
@@ -34,6 +36,8 @@
     <string name="bat_temperature_unit">电池温度单位</string>
     <string name="show_power_info">显示电池信息</string>
     <string name="show_power_info_description">显示当前功耗和电池剩余容量</string>
+    <string name="show_shaders_building">显示着色器构建</string>
+    <string name="show_shaders_building_description">显示当前正在构建的着色器数量</string>
     <string name="overlay_position">悬浮窗位置</string>
     <string name="overlay_position_description">选择悬浮窗在屏幕上的显示位置</string>
     <string name="overlay_position_top_left">左上</string>
@@ -44,8 +48,6 @@
     <string name="overlay_position_center_bottom">底部居中</string>
     <string name="perf_overlay_background">悬浮窗背景</string>
     <string name="perf_overlay_background_description">为悬浮窗添加背景以提高可读性</string>
-    <string name="show_shaders_building">显示着色器构建</string>
-    <string name="show_shaders_building_description">显示当前正在构建的着色器数量</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">显示设备信息叠加层</string>
@@ -63,14 +65,24 @@
     <string name="show_fw_version_description">显示已安装的固件版本</string>
 
     <!-- Eden\'s Veil -->
-    <string name="veil_extensions">GPU扩展</string>
-    <string name="veil_renderer">渲染器</string>
-    <string name="veil_misc">CPU和内存</string>
     <string name="eden_veil">伊甸之幕</string>
     <string name="eden_veil_description">实验性设置以提高性能和能力。这些设置可能会导致黑屏或其他游戏问题。</string>
     <string name="eden_veil_warning_description">伊甸之幕中的设置具有高度实验性，可能导致问题。如果游戏无法启动，请禁用所有扩展。</string>
-    <string name="frame_skipping">开发中：跳帧</string>
-    <string name="frame_skipping_description">启用或禁用跳帧以减少渲染帧数，提高性能。此功能仍在开发中，将在未来版本中启用。</string>
+
+    <string name="veil_extensions">GPU扩展</string>
+    <string name="dyna_state">扩展动态状态</string>
+    <string name="dyna_state_description">控制扩展动态状态中可使用的功能数量。数值越高，允许的功能越多，并可能提高性能，但可能会导致某些驱动程序和供应商出现问题。默认值可能因系统和硬件能力而异。可以更改此值，直到实现稳定性和更好的视觉质量。</string>
+    <string name="disabled">已禁用</string>
+    <string name="provoking_vertex">引发顶点</string>
+    <string name="provoking_vertex_description">改善某些游戏中的光照和顶点处理。仅支持Vulkan 1.0+ GPU。</string>
+    <string name="descriptor_indexing">描述符索引</string>
+    <string name="descriptor_indexing_description">改进纹理和缓冲区处理以及Maxwell转换层。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支持。</string>
+    <string name="sample_shading">采样着色</string>
+    <string name="sample_shading_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。仅Vulkan 1.1+设备支持此扩展。</string>
+    <string name="sample_shading_fraction">采样着色比例</string>
+    <string name="sample_shading_fraction_description">采样着色处理的强度。值越高，质量改善越多，但性能降低也越明显。</string>
+
+    <string name="veil_renderer">渲染器</string>
     <string name="frame_interpolation">增强帧同步</string>
     <string name="frame_interpolation_description">通过同步帧间时间确保流畅一致的帧交付，减少卡顿和不均匀动画。适合存在帧时间不稳定或游戏过程中出现微卡顿的游戏。</string>
     <string name="renderer_early_release_fences">提前释放围栏</string>
@@ -79,45 +91,14 @@
     <string name="sync_memory_operations_description">确保计算和内存操作之间的数据一致性。 此选项应能修复某些游戏中的问题，但在某些情况下可能会降低性能。 使用Unreal Engine 4的游戏似乎受影响最大。</string>
     <string name="buffer_reorder_disable">禁用缓冲重排序</string>
     <string name="buffer_reorder_disable_description">勾选时，禁用映射内存上传的重排序功能，允许将上传与特定绘制关联。在某些情况下可能会降低性能。</string>
-    <string name="use_lru_cache">启用LRU缓存</string>
-    <string name="use_lru_cache_description">启用或禁用LRU缓存，通过节省CPU进程使用来提高性能。某些游戏可能存在问题，特别是TotK 1.2.1，如果游戏无法启动或随机崩溃，请禁用此选项。</string>
-    <string name="dyna_state">扩展动态状态</string>
-    <string name="dyna_state_description">控制扩展动态状态中可使用的功能数量。数值越高，允许的功能越多，并可能提高性能，但可能会导致某些驱动程序和供应商出现问题。默认值可能因系统和硬件能力而异。可以更改此值，直到实现稳定性和更好的视觉质量。</string>
-    <string name="disabled">已禁用</string>
+
+    <string name="veil_misc">CPU和内存</string>
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">将核心速度与最大速度百分比同步，在不改变游戏实际速度的情况下提高性能。</string>
-    <string name="use_auto_stub">使用自动存根</string>
-    <string name="use_auto_stub_description">自动补全缺失的服务和功能。可提高兼容性但可能导致崩溃和稳定性问题。</string>
-    <string name="uninstall_firmware">卸载固件</string>
-    <string name="uninstall_firmware_description">卸载固件将从设备中删除它并可能影响游戏兼容性。</string>
-    <string name="firmware_uninstalling">正在卸载固件...</string>
-    <string name="firmware_uninstalled_success">固件卸载成功</string>
-    <string name="provoking_vertex">引发顶点</string>
-    <string name="provoking_vertex_description">改善某些游戏中的光照和顶点处理。仅支持Vulkan 1.0+ GPU。</string>
-    <string name="descriptor_indexing">描述符索引</string>
-    <string name="descriptor_indexing_description">改进纹理和缓冲区处理以及Maxwell转换层。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支持。</string>
-    <string name="use_fast_gpu_time">使用快速GPU时间</string>
-    <string name="use_fast_gpu_time_description">强制大多数游戏以最高原生分辨率运行。此选项不稳定，可能导致问题。</string>
-    <string name="fast_gpu_time">GPU 超频系数</string>
-    <string name="fast_gpu_time_description">使用 128 以获得最大性能，使用 512 以获得最大图形保真度。</string>
-    <string name="gpu_low">低 (128)</string>
-    <string name="gpu_medium">中 (256)</string>
-    <string name="gpu_high">高 (512)</string>
-
-    <!-- Temperature Units -->
-    <string name="temperature_celsius">摄氏度</string>
-    <string name="temperature_fahrenheit">华氏度</string>
-
+    <string name="use_lru_cache">启用LRU缓存</string>
+    <string name="use_lru_cache_description">启用或禁用LRU缓存，通过节省CPU进程使用来提高性能。某些游戏可能存在问题，特别是TotK 1.2.1，如果游戏无法启动或随机崩溃，请禁用此选项。</string>
     <string name="use_fast_cpu_time">快速 CPU 时间</string>
     <string name="use_fast_cpu_time_description">强制模拟 CPU 以更高的时钟速度运行，减少某些 FPS 限制器。此选项不稳定，可能会导致问题，较弱的 CPU 可能会看到性能下降。</string>
-    <string name="fast_cpu_time">CPU 时钟</string>
-    <string name="fast_cpu_time_description">使用 Boost (1700MHz) 以 Switch 的最高原生时钟速度运行，或 Fast (2000MHz) 以双倍时钟速度运行。</string>
-    <string name="memory_layout">内存布局</string>
-    <string name="memory_layout_description">(实验性) 更改模拟内存布局。此设置不会提高性能，但可能有助于通过模组使用高分辨率的游戏。不要在 RAM 为 8GB 或更少的手机上使用。</string>
-    <string name="sample_shading">采样着色</string>
-    <string name="sample_shading_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。仅Vulkan 1.1+设备支持此扩展。</string>
-    <string name="sample_shading_fraction">采样着色比例</string>
-    <string name="sample_shading_fraction_description">采样着色处理的强度。值越高，质量改善越多，但性能降低也越明显。</string>
     <string name="custom_cpu_ticks">自定义CPU时钟</string>
     <string name="custom_cpu_ticks_description">设置自定义的CPU时钟值。更高的值可能提高性能，但也可能导致游戏卡顿。建议范围为77-21000。</string>
     <string name="cpu_ticks">时钟</string>
@@ -125,36 +106,12 @@
     <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
     <string name="cpuopt_unsafe_host_mmu">启用主机 MMU 模拟</string>
     <string name="cpuopt_unsafe_host_mmu_description">此优化可加速来宾程序的内存访问。启用后，来宾内存读取/写入将直接在内存中执行并利用主机的 MMU。禁用此功能将强制所有内存访问使用软件 MMU 模拟。</string>
+    <string name="fast_cpu_time">CPU 时钟</string>
+    <string name="fast_cpu_time_description">使用 Boost (1700MHz) 以 Switch 的最高原生时钟速度运行，或 Fast (2000MHz) 以双倍时钟速度运行。</string>
+    <string name="memory_layout">内存布局</string>
+    <string name="memory_layout_description">(实验性) 更改模拟内存布局。此设置不会提高性能，但可能有助于通过模组使用高分辨率的游戏。不要在 RAM 为 8GB 或更少的手机上使用。</string>
     <string name="dma_accuracy">DMA 精度</string>
     <string name="dma_accuracy_description">控制 DMA 精度。安全精度可以修复某些游戏中的问题，但在某些情况下也可能影响性能。如果不确定，请保留为“默认”。</string>
-
-    <string name="memory_4gb">4GB (推荐)</string>
-    <string name="memory_6gb">6GB (不安全)</string>
-    <string name="memory_8gb">8GB (不安全)</string>
-
-    <string name="clock_base">基础 (1000MHz)</string>
-    <string name="clock_boost">加速 (1700MHz)</string>
-    <string name="clock_fast">快速 (2000MHz)</string>
-
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC解码方式</string>
-    <string name="accelerate_astc_description">选择ASTC压缩纹理的解码方式：CPU（慢速、安全）、GPU（快速、推荐）或CPU异步（无卡顿，可能导致问题）</string>
-    <string name="accelerate_astc_cpu">CPU解码</string>
-    <string name="accelerate_astc_gpu">GPU解码</string>
-    <string name="accelerate_astc_async">CPU异步解码</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC重压缩方式</string>
-    <string name="astc_recompression_description">选择ASTC纹理的重新压缩方式以提高兼容性和性能。启用此选项可节省VRAM，但可能会降低纹理质量。</string>
-    <string name="astc_recompression_uncompressed">不压缩</string>
-    <string name="astc_recompression_bc1">BC1(低质量)</string>
-    <string name="astc_recompression_bc3">BC3(中等质量)</string>
-
-    <!-- VRAM Usage Mode -->
-    <string name="vram_usage_mode">显存使用模式</string>
-    <string name="vram_usage_mode_description">控制显存分配策略</string>
-    <string name="vram_usage_conservative">保守模式</string>
-    <string name="vram_usage_aggressive">激进模式</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">着色器后端</string>
@@ -171,8 +128,6 @@
     <string name="nvdec_emulation_none">禁用</string>
 
     <!-- Optimize Spir-V output -->
-    <string name="renderer_optimize_spirv_output">Spir-V优化</string>
-    <string name="renderer_optimize_spirv_output_description">优化编译后的着色器以提高GPU效率。</string>
     <string name="never">从不</string>
     <string name="on_load">加载时</string>
     <string name="always">总是</string>
@@ -260,35 +215,23 @@
     <string name="emulation_multiplayer">多人联机</string>
     <string name="multiplayer_game_name">偏好游戏</string>
     <string name="multiplayer_preferred_game_name">首选游戏</string>
+    <string name="multiplayer_lobby_type">大厅类型</string>
     <string name="multiplayer_no_game">未找到游戏</string>
     <string name="multiplayer_preferred_game_name_invalid">创建房间需选择首选游戏</string>
     <string name="multiplayer_room_name_error">长度需为3-20个字符</string>
     <string name="multiplayer_required">必填</string>
+    <string name="multiplayer_token_required">需要Web令牌，请前往高级设置 -> 系统 -> 网络</string>
     <string name="multiplayer_ip_error">IP格式无效</string>
     <string name="multiplayer_username_error">必须为4-20个字符（仅字母数字、点号、连字符、下划线和空格）</string>
     <string name="multiplayer_nickname_invalid">用户名无效，请在系统→网络中检查设置</string>
-    <string name="multiplayer_port_error">端口需为1-65535</string>
     <string name="multiplayer_token_error">必须为48个字符，且仅包含小写字母a-z</string>
-    <string name="multiplayer_lobby_type">大厅类型</string>
-    <string name="multiplayer_public_visibility">公开</string>
-    <string name="multiplayer_unlisted_visibility">未列出</string>
+    <string name="multiplayer_port_error">端口需为1-65535</string>
     <string name="cancel">取消</string>
     <string name="ok">确定</string>
     <string name="refresh">刷新</string>
     <string name="room_list">房间列表</string>
-    <string name="multiplayer_token_required">需要Web令牌，请前往高级设置 -> 系统 -> 网络</string>
-
-    <!-- Static Themes -->
-    <string name="static_theme_color">主题颜色</string>
-    <string name="violet">紫色（默认）</string>
-    <string name="blue">蓝色</string>
-    <string name="cyan">青色</string>
-    <string name="red">红色</string>
-    <string name="green">绿色</string>
-    <string name="yellow">黄色</string>
-    <string name="orange">橙色</string>
-    <string name="pink">粉色</string>
-    <string name="gray">灰色</string>
+    <string name="multiplayer_public_visibility">公开</string>
+    <string name="multiplayer_unlisted_visibility">未列出</string>
 
     <!-- Setup strings -->
     <string name="welcome">欢迎！</string>
@@ -298,12 +241,10 @@
     <string name="keys_description">使用下方的按钮来选择你的 &lt;b>prod.keys&lt;/b> 文件。</string>
     <string name="select_keys">选择密钥文件</string>
     <string name="firmware">固件</string>
-    <string name="firmware_description">使用下方按钮选择您的<b>firmware.zip</b>文件。\n当前Eden需要<b>19.0.1</b>或更低版本。</string>
     <string name="select_firmware">选择固件</string>
     <string name="games">游戏</string>
     <string name="games_description">使用下方的按钮选择你的&lt;b>游戏&lt;/b>文件夹。</string>
     <string name="done">完成</string>
-    <string name="done_description">你完成了全部设置。\n玩的开心！</string>
     <string name="text_continue">继续</string>
     <string name="next">下一步</string>
     <string name="back">上一步</string>
@@ -314,6 +255,7 @@
     <string name="bluetooth_permissions_denied">蓝牙权限被拒绝。控制器支持可能受限。</string>
 
     <!-- Home strings -->
+
     <string name="alphabetical">字母顺序</string>
     <string name="view_list">列表</string>
     <string name="view_grid">网格</string>
@@ -323,6 +265,7 @@
     <string name="pre_alpha_warning_description">警告：此版本不适用于公开分享或展示。软件处于预发布阶段，可能存在错误和功能不完整。\n如果您未经授权获取此版本，强烈建议立即卸载。</string>
     <string name="dont_show_again">不再显示</string>
     <string name="pre_alpha_warning">预发布软件，不适用于公开使用</string>
+    <string name="add_directory_success">游戏目录新增成功</string>
     <string name="home_games">游戏</string>
     <string name="home_search">搜索</string>
     <string name="home_settings">设置</string>
@@ -347,7 +290,7 @@
     <string name="give_permission">授予权限</string>
     <string name="notification_warning">跳过授予通知权限？</string>
     <string name="notification_warning_description">Eden 将无法通知您重要信息。</string>
-    <string name="permission_denied">授权遭拒</string>
+    <string name="permission_denied">权限被拒绝</string>
     <string name="permission_denied_description">您曾多次拒绝权限请求，现在您需要在系统设置中手动授予权限。</string>
     <string name="about">关于</string>
     <string name="about_description">开发版本、贡献者、以及更多</string>
@@ -358,6 +301,8 @@
     <string name="install_amiibo_keys">安装 Amiibo 密钥文件</string>
     <string name="install_amiibo_keys_description">在遊戏中使用 Amiibo 时必需</string>
     <string name="install_amiibo_keys_failure_extension_description">请确保您的密钥文件扩展名为 .bin 并重试。</string>
+    <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+    <string name="gpu_driver_fetcher">GPU驱动获取器</string>
     <string name="gpu_driver_manager">GPU 驱动管理器</string>
     <string name="install_gpu_driver">安装 GPU 驱动</string>
     <string name="install_gpu_driver_description">安装替代的驱动程序以获得更好的性能和精度</string>
@@ -366,7 +311,7 @@
     <string name="settings_description">更改模拟器设置</string>
     <string name="search_recently_played">最近游玩</string>
     <string name="search_recently_added">最近添加</string>
-    <string name="search_retail">商业游戏</string>
+    <string name="search_retail">零售游戏</string>
     <string name="search_homebrew">自制游戏</string>
     <string name="open_user_folder">打开 Eden 文件夹</string>
     <string name="open_user_folder_description">管理 Eden 内部文件</string>
@@ -392,6 +337,7 @@
     <string name="firmware_installed_success">固件已成功安装</string>
     <string name="firmware_installed_failure">固件安装失败</string>
     <string name="firmware_installed_failure_description">请确保固件 nca 文件位于 zip 压缩包的根目录，然后重试。</string>
+    <string name="firmware_uninstalled_failure">固件安装失败</string>
     <string name="share_log">分享调试日志</string>
     <string name="share_log_description">分享 Eden 日志文件以便调试</string>
     <string name="share_log_missing">未找到日志文件</string>
@@ -407,7 +353,6 @@
     <string name="install_game_content_success_install">%1$d 个包安装成功</string>
     <string name="install_game_content_success_overwrite">%1$d 个包覆盖安装成功</string>
     <string name="custom_driver_not_supported">不支持自定义驱动</string>
-    <string name="custom_driver_not_supported_description">此设备不支持自定义驱动。\n请之后再访问此项，查看是否已为此设备添加支持。</string>
     <string name="manage_yuzu_data">管理 Eden 数据</string>
     <string name="manage_yuzu_data_description">导入/导出固件、密钥、用户数据以及其他</string>
     <string name="share_save_file">分享存档文件</string>
@@ -426,8 +371,14 @@
     <string name="no_save_data_found">未找到存档数据</string>
     <string name="verify_installed_content">验证已安装内容的完整性</string>
     <string name="verify_installed_content_description">检查所有安装的内容是否有损坏</string>
+
     <string name="keys_missing">密钥缺失</string>
     <string name="keys_missing_description">无法解密固件和商业游戏</string>
+    <string name="uninstall_firmware">卸载固件</string>
+    <string name="uninstall_firmware_description">卸载固件将从设备中删除它并可能影响游戏兼容性。</string>
+    <string name="firmware_uninstalling">正在卸载固件...</string>
+    <string name="firmware_uninstalled_success">固件卸载成功</string>
+
     <string name="firmware_invalid">固件无效</string>
     <string name="error_firmware_missing">运行某些游戏和系统应用需要固件。Eden仅支持19.0.1及更早版本的固件。</string>
     <string name="error_firmware_corrupted">检测到固件存在但无法读取。请检查解密密钥并在必要时重新转储固件。</string>
@@ -440,12 +391,12 @@
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
-    <string name="qlaunch_description">从系统主屏幕启动应用程序</string>
+    <string name="qlaunch_description">从系统主页启动应用</string>
     <string name="applets">小程序启动器</string>
-    <string name="applets_description">使用已安装的固件启动系统小程序</string>
+    <string name="applets_description">从已安装的系统固件中启动系统小程序</string>
     <string name="applets_error_firmware">固件未安装或版本无效</string>
     <string name="applets_error_applet">小程序不可用</string>
-    <string name="applets_error_description"><![CDATA[请确保您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>文件和 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">固件</a>已安装并重试。<br>同时请确保您的固件版本为19.0.1或更早。]]></string>
+    <string name="applets_error_description"><![CDATA[请确保您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>文件和 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">固件</a>已安装并重试。<br>同时请确保固件版本为19.0.1或更早。]]></string>
     <string name="album_applet">相册</string>
     <string name="album_applet_description">查看存储在用户屏幕截图文件夹中的图像</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -461,13 +412,13 @@
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia 不真实</string>
     <string name="copied_to_clipboard">已复制到剪贴板</string>
-    <string name="about_app_description">一款开放源代码的 Switch 模拟器</string>
+    <string name="about_app_description">一款开源的 Switch 模拟器</string>
     <string name="contributors">贡献者</string>
     <string name="contributors_description">Eden 团队的用 \u2764 制作</string>
     <string name="licenses_description">Android 版 Eden 离不开这些项目的支持</string>
     <string name="build">构建版本</string>
     <string name="user_data">用户数据</string>
-    <string name="user_data_description">导入/导出应用程序所有数据。\n\n导入用户数据时，将删除当前所有的用户数据！</string>
+    <string name="user_data_description">导入导出所有应用数据。\n\n导入数据时，现有的数据均会被删除！\n\n从Citron导入数据可能会导致问题，建议手动导入所有需要的数据。</string>
     <string name="exporting_user_data">正在导出用户数据...</string>
     <string name="importing_user_data">正在导入用户数据...</string>
     <string name="import_user_data">导入用户数据</string>
@@ -476,7 +427,6 @@
     <string name="user_data_import_success">导入用户数据成功</string>
     <string name="user_data_export_cancelled">已取消导出数据</string>
     <string name="user_data_import_failed_description">请确保用户数据文件夹位于 zip 压缩包的根目录，并在 config/config.ini 路径中包含配置文件，然后重试。</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">运行速度限制</string>
     <string name="frame_limit_enable_description">将运行速度限制为正常速度的指定百分比。</string>
@@ -498,18 +448,22 @@
     <string name="use_custom_rtc_description">此选项允许您设置与目前系统时间相独立的自定义系统时钟。</string>
     <string name="set_custom_rtc">设置自定义系统时间</string>
 
-    <!-- Network settings strings -->
     <string name="generate">生成</string>
-    <string name="web_username">网络用户名</string>
-    <string name="web_username_description">多人游戏房间中显示的用户名。必须为4-20个字符（仅字母数字、连字符、点号、下划线和空格）。</string>
+
+    <!-- Network settings strings -->
     <string name="web_token">网络令牌</string>
     <string name="web_token_description">用于创建公共房间的网络令牌。它是一个48个字符的字符串，仅包含小写字母a-z。</string>
+    <string name="web_username">网络用户名</string>
+    <string name="web_username_description">多人游戏房间中显示的用户名。必须为4-20个字符（仅字母数字、连字符、点号、下划线和空格）。</string>
     <string name="network">网络</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">后端</string>
     <string name="display">显示</string>
     <string name="processing">后处理</string>
+
+    <string name="frame_skipping">开发中：跳帧</string>
+    <string name="frame_skipping_description">启用或禁用跳帧以减少渲染帧数，提高性能。此功能仍在开发中，将在未来版本中启用。</string>
     <string name="renderer_accuracy">精度等级</string>
     <string name="renderer_resolution">分辨率 (掌机模式/主机模式)</string>
     <string name="renderer_vsync">垂直同步模式</string>
@@ -521,8 +475,14 @@
     <string name="renderer_anti_aliasing">抗锯齿方式</string>
     <string name="renderer_force_max_clock">强制最大时钟 (仅限 Adreno)</string>
     <string name="renderer_force_max_clock_description">强制 GPU 以最大时钟运行 (仍被温控限制)。</string>
+    <string name="renderer_optimize_spirv_output">Spir-V优化</string>
+    <string name="renderer_optimize_spirv_output_description">优化编译后的着色器以提高GPU效率。</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
     <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
+    <string name="use_fast_gpu_time">使用快速GPU时间</string>
+    <string name="use_fast_gpu_time_description">强制大多数游戏以最高原生分辨率运行。此选项不稳定，可能导致问题。</string>
+    <string name="fast_gpu_time">GPU 超频系数</string>
+    <string name="fast_gpu_time_description">使用 128 以获得最大性能，使用 512 以获得最大图形保真度。</string>
     <string name="renderer_reactive_flushing">启用反应性刷新</string>
     <string name="renderer_reactive_flushing_description">牺牲性能，提高某些游戏的渲染精度。</string>
     <string name="use_disk_shader_cache">磁盘着色器缓存</string>
@@ -534,6 +494,9 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="use_auto_stub">使用自动存根</string>
+    <string name="use_auto_stub_description">自动补全缺失的服务和功能。可提高兼容性但可能导致崩溃和稳定性问题。</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">图形调试</string>
@@ -600,12 +563,12 @@
     <string name="auto_map_description">选择一个设备以尝试自动映射</string>
     <string name="attempted_auto_map">尝试为 %1$s 自动映射</string>
     <string name="controller_type">控制器类型</string>
-    <string name="pro_controller">Pro Controller</string>
+    <string name="pro_controller">Pro手柄</string>
     <string name="handheld">掌机模式</string>
     <string name="dual_joycons">双 Joycons 手柄</string>
     <string name="left_joycon">左 Joycon 手柄</string>
     <string name="right_joycon">右 Joycon 手柄</string>
-    <string name="gamecube_controller">GameCube 控制器</string>
+    <string name="gamecube_controller">GameCube手柄</string>
     <string name="invert_axis">轴方向倒置</string>
     <string name="invert_button">反转按键</string>
     <string name="toggle_button">切换按键</string>
@@ -660,6 +623,7 @@
     <string name="import_failed">导入失败</string>
     <string name="cancelling">取消中</string>
     <string name="install">安装</string>
+    <string name="fetch">获取</string>
     <string name="delete">删除</string>
     <string name="edit">编辑</string>
     <string name="export_success">导出成功</string>
@@ -689,8 +653,6 @@
     <string name="installing_driver">正在安装驱动程序…</string>
 
     <!-- GPU driver fetcher -->
-    <string name="gpu_driver_fetcher">GPU驱动获取器</string>
-    <string name="fetch">获取</string>
     <string name="fetch_error">获取时出错</string>
     <string name="check_connection">检查您的连接并重试。</string>
     <string name="show_releases">显示版本</string>
@@ -767,7 +729,6 @@
     <string name="addon_installed_successfully">附加项安装成功</string>
     <string name="verifying_content">验证安装内容...</string>
     <string name="content_install_notice">安装提醒</string>
-    <string name="content_install_notice_description">您选择安装的内容与此游戏不匹配。\n继续安装？</string>
     <string name="confirm_uninstall">卸载确认</string>
     <string name="confirm_uninstall_description">您确定要卸载此附加项吗？</string>
     <string name="verify_integrity">完整性验证</string>
@@ -777,8 +738,6 @@
     <string name="verify_failure_description">文件可能已经损坏</string>
     <string name="verify_no_result">无法执行完整性验证</string>
     <string name="verify_no_result_description">未检查文件的完整性</string>
-    <string name="verification_failed_for">以下文件完整性验证失败：\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">您的 ROM 已加密</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[请按照指南重新转储您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">游戏卡带</a>或<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">数字版游戏</a>。]]></string>
@@ -787,6 +746,7 @@
     <string name="loader_error_video_core_description">这通常由不兼容的 GPU 驱动程序造成，安装自定义 GPU 驱动程序可能解决此问题。</string>
     <string name="loader_error_invalid_format">无法载入 ROM</string>
     <string name="loader_error_file_not_found">ROM 文件不存在</string>
+
     <string name="loader_requires_firmware">游戏需要固件</string>
     <string name="loader_requires_firmware_description"><![CDATA[您尝试启动的游戏需要固件才能引导或通过启动菜单。请<a href=\"https://yuzu-mirror.github.io/help/quickstart\">转储并安装固件</a>，或点击\"确定\"继续。]]></string>
 
@@ -810,7 +770,6 @@
     <string name="config_write_failed">无法写入配置文件</string>
     <string name="config_apply_failed">无法应用配置</string>
     <string name="config_already_exists_title">配置已存在</string>
-    <string name="config_already_exists_message">%1$s 的自定义设置已存在。\n\n是否要覆盖现有配置？\n\n此操作无法撤消。</string>
     <string name="config_exists_prompt">正在检查现有配置...</string>
     <string name="overwrite_cancelled">覆盖已取消</string>
     <string name="checking_driver">正在检查自定义驱动程序: %1$s</string>
@@ -830,7 +789,6 @@
     <string name="invalid_driver_file">无效的驱动程序文件: %s</string>
     <string name="network_unavailable">无可用网络连接。请检查您的互联网连接并重试。</string>
     <string name="driver_missing_title">需要GPU驱动程序</string>
-    <string name="driver_missing_message">游戏配置需要GPU驱动程序 \"%s\"，但您的设备上未安装。\n\n是否要立即下载并安装？</string>
     <string name="driver_download_cancelled">驱动程序下载已取消。没有所需的驱动程序无法启动游戏。</string>
     <string name="download">下载</string>
 
@@ -857,7 +815,6 @@
     <string name="touchscreen">触摸屏</string>
     <string name="lock_drawer">锁定侧边菜单</string>
     <string name="unlock_drawer">解锁侧边菜单</string>
-
     <string name="load_settings">正在载入设定…</string>
 
     <!-- Software keyboard -->
@@ -867,13 +824,10 @@
     <string name="abort_button">中止</string>
     <string name="continue_button">继续</string>
     <string name="system_archive_not_found">未找到系统档案</string>
-    <string name="system_archive_not_found_message">%s 丢失，请转储您的系统档案。\n继续模拟可能造成崩溃和错误。</string>
     <string name="system_archive_general">系统档案</string>
     <string name="save_load_error">保存/载入发生错误</string>
     <string name="fatal_error">致命错误</string>
-    <string name="fatal_error_message">发生致命错误，请查阅日志获取详细信息。\n继续模拟可能会造成崩溃和错误。</string>
-    <string name="performance_warning">关闭此项会显著降低模拟性能！建议您将此项保持为启用状态。</string>
-    <string name="device_memory_inadequate">设备 RAM: %1$s\n推荐 RAM: %2$s</string>
+    <string name="device_memory_inadequate">设备RAM：%1$s\n建议：%2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">当前没有可启动的游戏！</string>
 
@@ -884,7 +838,26 @@
     <string name="region_australia">澳大利亚</string>
     <string name="region_china">中国</string>
     <string name="region_korea">韩国</string>
-    <string name="region_taiwan">中国台湾</string>
+    <string name="region_taiwan">台湾地区</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (推荐)</string>
+    <string name="memory_6gb">6GB (不安全)</string>
+    <string name="memory_8gb">8GB (不安全)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">基础 (1000MHz)</string>
+    <string name="clock_boost">加速 (1700MHz)</string>
+    <string name="clock_fast">快速 (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">低 (128)</string>
+    <string name="gpu_medium">中 (256)</string>
+    <string name="gpu_high">高 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">摄氏度</string>
+    <string name="temperature_fahrenheit">华氏度</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
@@ -903,12 +876,36 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">正常</string>
     <string name="renderer_accuracy_high">高</string>
-    <string name="renderer_accuracy_extreme">极高 (慢速)</string>
+    <string name="renderer_accuracy_extreme">极致</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">默认</string>
-    <string name="dma_accuracy_unsafe">不安全（快速）</string>
-    <string name="dma_accuracy_safe">安全（稳定）</string>
+    <string name="dma_accuracy_unsafe">不安全</string>
+    <string name="dma_accuracy_safe">安全</string>
+
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTC解码方式</string>
+    <string name="accelerate_astc_description">选择ASTC压缩纹理的解码方式：CPU（慢速、安全）、GPU（快速、推荐）或CPU异步（无卡顿，可能导致问题）</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU解码</string>
+    <string name="accelerate_astc_gpu">GPU解码</string>
+    <string name="accelerate_astc_async">CPU异步解码</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC重压缩方式</string>
+    <string name="astc_recompression_description">选择ASTC纹理的重新压缩方式以提高兼容性和性能。启用此选项可节省VRAM，但可能会降低纹理质量。</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">不压缩</string>
+    <string name="astc_recompression_bc1">BC1(低质量)</string>
+    <string name="astc_recompression_bc3">BC3(中等质量)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">显存使用模式</string>
+    <string name="vram_usage_mode_description">控制显存分配策略</string>
+    <string name="vram_usage_conservative">保守模式</string>
+    <string name="vram_usage_aggressive">激进模式</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
@@ -933,7 +930,6 @@
     <string name="scaling_filter_gaussian">高斯模糊</string>
     <string name="scaling_filter_scale_force">强制缩放</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™️ 超级分辨率锐画技术 (FSR)</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">无</string>
     <string name="anti_aliasing_fxaa">快速近似抗锯齿 (FXAA)</string>
@@ -963,7 +959,6 @@
     <string name="cpu_accuracy_accurate">高精度</string>
     <string name="cpu_accuracy_unsafe">低精度</string>
     <string name="cpu_accuracy_paranoid">偏执模式</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">十字方向键</string>
     <string name="gamepad_left_stick">左摇杆</string>
@@ -999,6 +994,18 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">使用黑色背景</string>
     <string name="use_black_backgrounds_description">使用深色主题时，套用黑色背景。</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">主题颜色</string>
+    <string name="violet">紫色（默认）</string>
+    <string name="blue">蓝色</string>
+    <string name="cyan">青色</string>
+    <string name="red">红色</string>
+    <string name="green">绿色</string>
+    <string name="yellow">黄色</string>
+    <string name="orange">橙色</string>
+    <string name="pink">粉色</string>
+    <string name="gray">灰色</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">画中画</string>

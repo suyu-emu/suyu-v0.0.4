@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Denne programvaren vil kjøre spill for Nintendo Switch-spillkonsollen. Ingen spilltitler eller nøkler er inkludert.&lt;br /&gt;&lt;br /&gt;Før du begynner, må du finne <![CDATA[<b> prod.keys </b>]]> filen din på enhetslagringen.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Lær mer</a>]]></string>
     <string name="notice_notification_channel_name">Merknader og feil</string>
     <string name="notice_notification_channel_description">Viser varsler når noe går galt.</string>
     <string name="notification_permission_not_granted">Varslingstillatelse ikke gitt!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Forbedret)</string>
     <string name="process_ram">Prosess-RAM: %1$d MB</string>
     <string name="shaders_prefix">Bygger</string>
     <string name="shaders_suffix">shader(e)</string>
     <string name="charging">(Lades)</string>
+
     <string name="system_info_label">System:</string>
     <string name="show_stats_overlay">Vis ytelsesstatistikkoverlay</string>
     <string name="stats_overlay_customization">Tilpasning</string>
@@ -34,6 +33,8 @@
     <string name="bat_temperature_unit">Batteritemperatursenheter</string>
     <string name="show_power_info">Vis batteriinfo</string>
     <string name="show_power_info_description">Vis gjeldende strømforbruk og gjenværende batterikapasitet</string>
+    <string name="show_shaders_building">Vis bygging av shadere</string>
+    <string name="show_shaders_building_description">Viser nåværende antall shadere som bygges</string>
     <string name="overlay_position">Overlayposisjon</string>
     <string name="overlay_position_description">Velg hvor overlayet vises på skjermen</string>
     <string name="overlay_position_top_left">Øverst til venstre</string>
@@ -44,8 +45,6 @@
     <string name="overlay_position_center_bottom">Midt på bunnen</string>
     <string name="perf_overlay_background">Overlaybakgrunn</string>
     <string name="perf_overlay_background_description">Legg til bakgrunn for bedre lesbarhet</string>
-    <string name="show_shaders_building">Vis bygging av shadere</string>
-    <string name="show_shaders_building_description">Viser nåværende antall shadere som bygges</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">Vis enhetsinformasjon</string>
@@ -63,15 +62,25 @@
     <string name="show_fw_version_description">Viser den installerte firmwareversjonen</string>
 
     <!-- Eden\'s Veil -->
-    <string name="veil_extensions">GPU-utvidelser</string>
-    <string name="veil_renderer">Renderer</string>
-    <string name="veil_misc">CPU og minne</string>
     <string name="eden_veil">Edens slør</string>
     <string name="eden_veil_description">Eksperimentelle innstillinger for å forbedre ytelse og funksjonalitet. Disse innstillingene kan forårsake svarte skjermer eller andre spillproblemer.</string>
     <string name="eden_veil_warning_title">Eksperimentelle innstillinger</string>
     <string name="eden_veil_warning_description">Innstillingene i Edens slør er svært eksperimentelle og kan forårsake problemer. Hvis spillet ikke starter, deaktiver alle utvidelser.</string>
-    <string name="frame_skipping">WIP: Hoppe over bilder</string>
-    <string name="frame_skipping_description">Slå av/på frame skipping for å forbedre ytelsen ved å redusere antall renderte bilder. Denne funksjonen er fortsatt under utvikling og vil bli aktivert i fremtidige versjoner.</string>
+
+    <string name="veil_extensions">GPU-utvidelser</string>
+    <string name="dyna_state">Utvidet dynamisk tilstand</string>
+    <string name="dyna_state_description">Kontrollerer antall funksjoner som kan brukes i Utvidet Dynamisk Tilstand. Høyere tall tillater flere funksjoner og kan øke ytelsen, men kan forårsake problemer med noen drivere og leverandører. Standardverdien kan variere avhengig av systemet og maskinvareevnene dine. Denne verdien kan endres til stabilitet og bedre visuell kvalitet er oppnådd.</string>
+    <string name="disabled">Deaktivert</string>
+    <string name="provoking_vertex">Provoserende vertex</string>
+    <string name="provoking_vertex_description">Forbedrer belysning og vertexhåndtering i enkelte spill. Støttes kun på Vulkan 1.0+ GPU-er.</string>
+    <string name="descriptor_indexing">Beskrivelsesindeksering</string>
+    <string name="descriptor_indexing_description">Forbedrer tekstur- og bufferhåndtering, samt Maxwell-oversettelseslaget. Støttes av noen Vulkan 1.1 GPU-er og alle Vulkan 1.2+ GPU-er.</string>
+    <string name="sample_shading">Prøvegjengivelse</string>
+    <string name="sample_shading_description">Lar fragment-shaderen kjøres per prøve i et flerprøvefragment i stedet for en gang per fragment. Forbedrer grafikkvaliteten på bekostning av ytelse. Bare Vulkan 1.1+-enheter støtter denne utvidelsen.</string>
+    <string name="sample_shading_fraction">Prøveskyggebrøk</string>
+    <string name="sample_shading_fraction_description">Intensiteten til prøveskyggepasseringen. Høyere verdier forbedrer kvaliteten mer, men reduserer også ytelsen i større grad.</string>
+
+    <string name="veil_renderer">Renderer</string>
     <string name="frame_interpolation">Avansert bildevindu-synkronisering</string>
     <string name="frame_interpolation_description">Sikrer jevn og konsekvent bildelevering ved å synkronisere tiden mellom bilder, noe som reduserer hakking og ujevn animasjon. Ideelt for spill som opplever ustabil bildetid eller mikro-hakk under spilling.</string>
     <string name="renderer_early_release_fences">Frigjør gjerder tidlig</string>
@@ -80,45 +89,14 @@
     <string name="sync_memory_operations_description">Sikrer datakonsistens mellom beregnings- og minneoperasjoner. Dette alternativet bør fikse problemer i noen spill, men kan redusere ytelsen i noen tilfeller. Spill med Unreal Engine 4 ser ut til å være de mest berørte.</string>
     <string name="buffer_reorder_disable">Deaktiver bufferomorganisering</string>
     <string name="buffer_reorder_disable_description">Når merket, deaktiveres omorganisering av kartlagt minneopplasting som tillater å knytte opplastinger til spesifikke tegninger. Kan redusere ytelsen i noen tilfeller.</string>
-    <string name="use_lru_cache">Aktiver LRU-mellomlager</string>
-    <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager for å forbedre ytelsen ved å spare CPU-prosessorbruk. Noen spill som TotK 1.2.1 har problemer med dette - deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
-    <string name="dyna_state">Utvidet dynamisk tilstand</string>
-    <string name="dyna_state_description">Kontrollerer antall funksjoner som kan brukes i Utvidet Dynamisk Tilstand. Høyere tall tillater flere funksjoner og kan øke ytelsen, men kan forårsake problemer med noen drivere og leverandører. Standardverdien kan variere avhengig av systemet og maskinvareevnene dine. Denne verdien kan endres til stabilitet og bedre visuell kvalitet er oppnådd.</string>
-    <string name="disabled">Deaktivert</string>
+
+    <string name="veil_misc">CPU og minne</string>
     <string name="use_sync_core">Synkroniser kjernespeed</string>
     <string name="use_sync_core_description">Synkroniser kjernens hastighet med maksimal hastighetsprosent for å forbedre ytelsen uten å endre spillets faktiske hastighet.</string>
-    <string name="use_auto_stub">Bruk Auto Stub</string>
-    <string name="use_auto_stub_description">Automatisk stubber manglende tjenester og funksjoner. Kan forbedre kompatibilitet, men kan forårsake krasj og stabilitetsproblemer.</string>
-    <string name="uninstall_firmware">Avinstaller firmware</string>
-    <string name="uninstall_firmware_description">Avinstallering av firmware vil fjerne den fra enheten og kan påvirke spillkompatibilitet.</string>
-    <string name="firmware_uninstalling">Avinstallerer firmware...</string>
-    <string name="firmware_uninstalled_success">Firmware avinstallert</string>
-    <string name="provoking_vertex">Provoserende vertex</string>
-    <string name="provoking_vertex_description">Forbedrer belysning og vertexhåndtering i enkelte spill. Støttes kun på Vulkan 1.0+ GPU-er.</string>
-    <string name="descriptor_indexing">Beskrivelsesindeksering</string>
-    <string name="descriptor_indexing_description">Forbedrer tekstur- og bufferhåndtering, samt Maxwell-oversettelseslaget. Støttes av noen Vulkan 1.1 GPU-er og alle Vulkan 1.2+ GPU-er.</string>
-    <string name="use_fast_gpu_time">Bruk rask GPU-tid</string>
-    <string name="use_fast_gpu_time_description">Tvinger de fleste spill til å kjøre i høyeste oppløsning. Dette alternativet er ustabilt og kan forårsake problemer.</string>
-    <string name="fast_gpu_time">GPU-overklokkingsfaktor</string>
-    <string name="fast_gpu_time_description">Bruk 128 for maksimal ytelse og 512 for maksimal grafikkvalitet.</string>
-    <string name="gpu_low">Lav (128)</string>
-    <string name="gpu_medium">Middels (256)</string>
-    <string name="gpu_high">Høy (512)</string>
-
-    <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
-
+    <string name="use_lru_cache">Aktiver LRU-mellomlager</string>
+    <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager for å forbedre ytelsen ved å spare CPU-prosessorbruk. Noen spill som TotK 1.2.1 har problemer med dette - deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
     <string name="use_fast_cpu_time">Rask CPU-tid</string>
     <string name="use_fast_cpu_time_description">Tvinger den emulerte CPU-en til å kjøre med høyere klokkehastighet, noe som reduserer visse FPS-begrensninger. Dette alternativet er ustabilt og kan forårsake problemer, og svakere CPU-er kan oppleve redusert ytelse.</string>
-    <string name="fast_cpu_time">CPU-klokkehastighet</string>
-    <string name="fast_cpu_time_description">Bruk Boost (1700MHz) for å kjøre med Switch\'s høyeste native klokkehastighet, eller Fast (2000MHz) for å kjøre med dobbel hastighet.</string>
-    <string name="memory_layout">Minneoppsett</string>
-    <string name="memory_layout_description">(EKSPERIMENTELL) Endre det emulerte minneoppsettet. Denne innstillingen øker ikke ytelsen, men kan hjelpe spill som bruker høy oppløsning via mods. Ikke bruk på telefoner med 8GB RAM eller mindre.</string>
-    <string name="sample_shading">Prøvegjengivelse</string>
-    <string name="sample_shading_description">Lar fragment-shaderen kjøres per prøve i et flerprøvefragment i stedet for en gang per fragment. Forbedrer grafikkvaliteten på bekostning av ytelse. Bare Vulkan 1.1+-enheter støtter denne utvidelsen.</string>
-    <string name="sample_shading_fraction">Prøveskyggebrøk</string>
-    <string name="sample_shading_fraction_description">Intensiteten til prøveskyggepasseringen. Høyere verdier forbedrer kvaliteten mer, men reduserer også ytelsen i større grad.</string>
     <string name="custom_cpu_ticks">Egendefinerte CPU-takter</string>
     <string name="custom_cpu_ticks_description">Angi en egendefinert verdi for CPU-takter. Høyere verdier kan øke ytelsen, men kan også føre til at spret fryser. Et område på 77–21000 anbefales.</string>
     <string name="cpu_ticks">Takter</string>
@@ -126,36 +104,12 @@
     <string name="skip_cpu_inner_invalidation_description">Hopper over enkelte CPU-side cache-invalideringer under minneoppdateringer, reduserer CPU-bruk og forbedrer ytelsen. Kan forårsake feil eller krasj i noen spill.</string>
     <string name="cpuopt_unsafe_host_mmu">Aktiver verts-MMU-emulering</string>
     <string name="cpuopt_unsafe_host_mmu_description">Denne optimaliseringen fremskynder minnetilgang av gjesteprogrammet. Hvis aktivert, utføres gjestens minnelesing/skriving direkte i minnet og bruker vertens MMU. Deaktivering tvinger alle minnetilganger til å bruke programvarebasert MMU-emulering.</string>
+    <string name="fast_cpu_time">CPU-klokkehastighet</string>
+    <string name="fast_cpu_time_description">Bruk Boost (1700MHz) for å kjøre med Switch\'s høyeste native klokkehastighet, eller Fast (2000MHz) for å kjøre med dobbel hastighet.</string>
+    <string name="memory_layout">Minneoppsett</string>
+    <string name="memory_layout_description">(EKSPERIMENTELL) Endre det emulerte minneoppsettet. Denne innstillingen øker ikke ytelsen, men kan hjelpe spill som bruker høy oppløsning via mods. Ikke bruk på telefoner med 8GB RAM eller mindre.</string>
     <string name="dma_accuracy">DMA-nøyaktighet</string>
     <string name="dma_accuracy_description">Kontrollerer DMA-presisjonsnøyaktigheten. Sikker presisjon kan fikse problemer i noen spill, men kan også påvirke ytelsen i noen tilfeller. Hvis du er usikker, la dette stå på Standard.</string>
-
-    <string name="memory_4gb">4GB (Anbefalt)</string>
-    <string name="memory_6gb">6GB (Usikkert)</string>
-    <string name="memory_8gb">8GB (Usikkert)</string>
-
-    <string name="clock_base">Grunnleggende (1000MHz)</string>
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Rask (2000MHz)</string>
-
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC-dekoding</string>
-    <string name="accelerate_astc_description">Velg hvordan ASTC-komprimerte teksturer skal dekodes for rendering: CPU (tregt, sikkert), GPU (raskt, anbefalt) eller CPU Async (ingen stuttering, kan forårsake problemer)</string>
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU asynkront</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC-komprimering</string>
-    <string name="astc_recompression_description">Velg hvordan ASTC-teksturer komprimeres på nytt for å forbedre kompatibilitet og ytelse. Å aktivere dette alternativet sparer VRAM, men kan redusere teksturkvaliteten.</string>
-    <string name="astc_recompression_uncompressed">Ukomprimert</string>
-    <string name="astc_recompression_bc1">BC1 (lav kvalitet)</string>
-    <string name="astc_recompression_bc3">BC3 (middels kvalitet)</string>
-
-    <!-- VRAM Usage Mode -->
-    <string name="vram_usage_mode">VRAM-bruk</string>
-    <string name="vram_usage_mode_description">Kontroller minnetildeling for GPU</string>
-    <string name="vram_usage_conservative">Konservativ</string>
-    <string name="vram_usage_aggressive">Aggressiv</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Shader-backend</string>
@@ -172,8 +126,6 @@
     <string name="nvdec_emulation_none">Ingen</string>
 
     <!-- Optimize Spir-V output -->
-    <string name="renderer_optimize_spirv_output">Optimaliser Spir-V</string>
-    <string name="renderer_optimize_spirv_output_description">Optimaliserer den kompilerte shaderen for å forbedre GPU-effektiviteten.</string>
     <string name="never">Aldri</string>
     <string name="on_load">Ved lasting</string>
     <string name="always">Alltid</string>
@@ -261,35 +213,23 @@
     <string name="emulation_multiplayer">Flerspiller</string>
     <string name="multiplayer_game_name">Foretrukne spill</string>
     <string name="multiplayer_preferred_game_name">Foretrukket spill</string>
+    <string name="multiplayer_lobby_type">Lobbytype</string>
     <string name="multiplayer_no_game">Ingen spill funnet</string>
     <string name="multiplayer_preferred_game_name_invalid">Du må velge et foretrukket spill for å være vert</string>
     <string name="multiplayer_room_name_error">Må være 3-20 tegn</string>
     <string name="multiplayer_required">Påkrevd</string>
+    <string name="multiplayer_token_required">Webtoken kreves, gå til Avanserte innstillinger -> System -> Nettverk</string>
     <string name="multiplayer_ip_error">Ugyldig IP-format</string>
     <string name="multiplayer_username_error">Må være mellom 4-20 tegn (kun alfanumeriske tegn, punktum, bindestreker, understreker og mellomrom)</string>
     <string name="multiplayer_nickname_invalid">Ugyldig brukernavn, kontroller at det er riktig satt under System → Nettverk</string>
-    <string name="multiplayer_port_error">Må være mellom 1-65535</string>
     <string name="multiplayer_token_error">Må være 48 tegn, og kun små bokstaver a-z</string>
-    <string name="multiplayer_lobby_type">Lobbytype</string>
-    <string name="multiplayer_public_visibility">Offentlig</string>
-    <string name="multiplayer_unlisted_visibility">Uoppført</string>
+    <string name="multiplayer_port_error">Må være mellom 1-65535</string>
     <string name="cancel">Avbryt</string>
     <string name="ok">OK</string>
     <string name="refresh">Oppdater</string>
     <string name="room_list">Romliste</string>
-    <string name="multiplayer_token_required">Webtoken kreves, gå til Avanserte innstillinger -> System -> Nettverk</string>
-
-    <!-- Static Themes -->
-    <string name="static_theme_color">Temafarge</string>
-    <string name="violet">Fiolett (Standard)</string>
-    <string name="blue">Blå</string>
-    <string name="cyan">Cyan</string>
-    <string name="red">Rød</string>
-    <string name="green">Grønn</string>
-    <string name="yellow">Gul</string>
-    <string name="orange">Oransje</string>
-    <string name="pink">Rosa</string>
-    <string name="gray">Grå</string>
+    <string name="multiplayer_public_visibility">Offentlig</string>
+    <string name="multiplayer_unlisted_visibility">Uoppført</string>
 
     <!-- Setup strings -->
     <string name="welcome">Velkommen!</string>
@@ -299,12 +239,10 @@
     <string name="keys_description">Velg din &lt;b>prod.keys&lt;/b> fil ved å bruke knappen under.</string>
     <string name="select_keys">Velg nøkler</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Velg <b>firmware.zip</b>-filen din med knappen nedenfor.\nEden krever for tiden versjon <b>19.0.1</b> eller lavere.</string>
     <string name="select_firmware">Velg Firmware</string>
     <string name="games">Spill</string>
     <string name="games_description">Velg din &lt;b>Spill&lt;/b> mappe ved å bruke knappen under.</string>
     <string name="done">Ferdig</string>
-    <string name="done_description">Nå er du klar.\nGled deg til å spille!</string>
     <string name="text_continue">Fortsett</string>
     <string name="next">Neste</string>
     <string name="back">Tilbake</string>
@@ -314,6 +252,7 @@
     <string name="bluetooth_permissions_denied">Bluetooth-tillatelser avslått. Kontrollerstøtte kan være begrenset.</string>
 
     <!-- Home strings -->
+
     <string name="alphabetical">Alfabetisk</string>
     <string name="view_list">Liste</string>
     <string name="view_grid">Rutenett</string>
@@ -323,7 +262,6 @@
     <string name="pre_alpha_warning_description">ADVARSEL: Denne versjonen er ikke ment for offentlig bruk. Programvaren er i tidlig utvikling og kan inneholde feil.</string>
     <string name="dont_show_again">Ikke vis igjen</string>
     <string name="pre_alpha_warning">FORHÅNDSVERSJON; IKKE FOR OFFENTLIG BRUK</string>
-    <string name="add_directory_success">Spillmappe lagt til</string>
     <string name="home_games">Spill</string>
     <string name="home_search">Søk</string>
     <string name="home_settings">Innstillinger</string>
@@ -357,6 +295,7 @@
     <string name="install_amiibo_keys">Installer Amiibo-nøkler</string>
     <string name="install_amiibo_keys_description">Kreves for å bruke Amiibo i spillet</string>
     <string name="install_amiibo_keys_failure_extension_description">Kontroller at nøkkelfilen har filtypen .bin, og prøv igjen.</string>
+    <string name="gpu_driver_fetcher">GPU-driverhenting</string>
     <string name="install_gpu_driver">Installer GPU-driver</string>
     <string name="install_gpu_driver_description">Installer alternative drivere for potensielt bedre ytelse eller nøyaktighet.</string>
     <string name="advanced_settings">Avanserte innstillinger</string>
@@ -399,7 +338,6 @@
     <string name="install_game_content_success_install">%1$d installert</string>
     <string name="install_game_content_success_overwrite">%1$d overskrevet</string>
     <string name="custom_driver_not_supported">Egendefinert driver støttes ikke</string>
-    <string name="custom_driver_not_supported_description">Støtte mangler for denne enheten</string>
     <string name="manage_yuzu_data">Administrer eden-data</string>
     <string name="manage_yuzu_data_description">Importer/eksporter firmware, nøkler osv.</string>
     <string name="share_save_file">Del lagringsfil</string>
@@ -420,8 +358,14 @@
     <string name="no_save_data_found">Ingen lagringsdata funnet</string>
     <string name="verify_installed_content">Verifiser innhold</string>
     <string name="verify_installed_content_description">Sjekk for korrupsjon</string>
+
     <string name="keys_missing">Nøkler mangler</string>
     <string name="keys_missing_description">Kan ikke dekryptere firmware/spill</string>
+    <string name="uninstall_firmware">Avinstaller firmware</string>
+    <string name="uninstall_firmware_description">Avinstallering av firmware vil fjerne den fra enheten og kan påvirke spillkompatibilitet.</string>
+    <string name="firmware_uninstalling">Avinstallerer firmware...</string>
+    <string name="firmware_uninstalled_success">Firmware avinstallert</string>
+
     <string name="firmware_invalid">Ugyldig fastvare</string>
     <string name="error_firmware_missing">Fastvare kreves for å kjøre enkelte spill og applikasjoner. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
     <string name="error_firmware_corrupted">Fastvare er til stede, men kan ikke leses. Sjekk dekrypteringsnøklene og dump fastvaren på nytt om nødvendig.</string>
@@ -432,7 +376,7 @@
     <string name="error_keys_invalid_filename">Kontroller at nøkkelfilen din har filendelsen .keys og prøv på nytt.</string>
     <string name="error_keys_failed_init">Kunne ikke initialisere nøkler. Sjekk at dumpverktøyene dine er oppdaterte og dump nøklene på nytt.</string>
 
-    <!-- Applet-lanseringsstrenger -->
+    <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Start applikasjoner fra systemets hjemmeskjerm</string>
     <string name="applets">Applet-lanserer</string>
@@ -460,14 +404,12 @@
     <string name="contributors_description">Laget med \u2764 fra Eden-teamet</string>
     <string name="licenses_description">Prosjekter som gjør Eden for Android mulig</string>
     <string name="build">Bygg</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Begrense hastigheten</string>
     <string name="frame_limit_enable_description">Begrenser emuleringshastigheten til en spesifisert prosentandel av normal hastighet.</string>
     <string name="frame_limit_slider">Hastighetsbegrensning i prosent</string>
     <string name="frame_limit_slider_description">Angir prosentandelen som skal begrense emuleringshastigheten. 100 % er normal hastighet. Høyere eller lavere verdier vil øke eller redusere hastighetsgrensen.</string>
     <string name="cpu_accuracy">CPU-nøyaktighet</string>
-
     <!-- System settings strings -->
     <string name="device_name">Enhetsnavn</string>
     <string name="use_docked_mode">Dokket modus</string>
@@ -480,18 +422,22 @@
     <string name="use_custom_rtc_description">Gjør det mulig å stille inn en egendefinert sanntidsklokke separat fra den gjeldende systemtiden.</string>
     <string name="set_custom_rtc">Angi tilpasset RTC</string>
 
-    <!-- Network settings strings -->
     <string name="generate">Generer</string>
-    <string name="web_username">Webbrukernavn</string>
-    <string name="web_username_description">Brukernavn som vises i flerspillerrom. Må være mellom 4-20 tegn (kun alfanumeriske tegn, bindestreker, punktum, understreker og mellomrom).</string>
+
+    <!-- Network settings strings -->
     <string name="web_token">Nett-token</string>
     <string name="web_token_description">Nett-token som brukes til å opprette offentlige rom. Det er en 48-tegns streng som kun inneholder små bokstaver a-z.</string>
+    <string name="web_username">Webbrukernavn</string>
+    <string name="web_username_description">Brukernavn som vises i flerspillerrom. Må være mellom 4-20 tegn (kun alfanumeriske tegn, bindestreker, punktum, understreker og mellomrom).</string>
     <string name="network">Nettverk</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">Backend</string>
     <string name="display">Skjerm</string>
     <string name="processing">Etterbehandling</string>
+
+    <string name="frame_skipping">WIP: Hoppe over bilder</string>
+    <string name="frame_skipping_description">Slå av/på frame skipping for å forbedre ytelsen ved å redusere antall renderte bilder. Denne funksjonen er fortsatt under utvikling og vil bli aktivert i fremtidige versjoner.</string>
     <string name="renderer_accuracy">Nøyaktighetsnivå</string>
     <string name="renderer_resolution">Oppløsning (håndholdt/dokket)</string>
     <string name="renderer_vsync">VSync-modus</string>
@@ -503,8 +449,14 @@
     <string name="renderer_anti_aliasing">Anti-aliasing-metode</string>
     <string name="renderer_force_max_clock">Tving fram maksimal klokkefrekvens (kun Adreno)</string>
     <string name="renderer_force_max_clock_description">Tvinger GPU-en til å kjøre med maksimal klokkefrekvens (termiske begrensninger vil fortsatt gjelde).</string>
+    <string name="renderer_optimize_spirv_output">Optimaliser Spir-V</string>
+    <string name="renderer_optimize_spirv_output_description">Optimaliserer den kompilerte shaderen for å forbedre GPU-effektiviteten.</string>
     <string name="renderer_asynchronous_shaders">Bruk asynkrone shaders</string>
     <string name="renderer_asynchronous_shaders_description">Kompilerer shadere asynkront. Dette kan redusere rykk, men kan også forårsake grafiske feil.</string>
+    <string name="use_fast_gpu_time">Bruk rask GPU-tid</string>
+    <string name="use_fast_gpu_time_description">Tvinger de fleste spill til å kjøre i høyeste oppløsning. Dette alternativet er ustabilt og kan forårsake problemer.</string>
+    <string name="fast_gpu_time">GPU-overklokkingsfaktor</string>
+    <string name="fast_gpu_time_description">Bruk 128 for maksimal ytelse og 512 for maksimal grafikkvalitet.</string>
     <string name="renderer_reactive_flushing">Bruk reaktiv spyling</string>
     <string name="renderer_reactive_flushing_description">Forbedrer gjengivelsesnøyaktigheten i enkelte spill på bekostning av ytelsen.</string>
     <string name="use_disk_shader_cache">Disk shader-hurtigbuffer</string>
@@ -516,6 +468,9 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="use_auto_stub">Bruk Auto Stub</string>
+    <string name="use_auto_stub_description">Automatisk stubber manglende tjenester og funksjoner. Kan forbedre kompatibilitet, men kan forårsake krasj og stabilitetsproblemer.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Grafikkfeilsøking</string>
@@ -594,6 +549,7 @@
     <string name="string_import">Importer</string>
     <string name="export">Eksporter</string>
     <string name="install">Installer</string>
+    <string name="fetch">Hent</string>
     <string name="delete">Slett</string>
     <string name="start">Start</string>
     <string name="clear">Fjern</string>
@@ -609,8 +565,6 @@
     <string name="installing_driver">Installerer driver...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="gpu_driver_fetcher">GPU-driverhenting</string>
-    <string name="fetch">Hent</string>
     <string name="fetch_error">Feil under henting</string>
     <string name="check_connection">Sjekk tilkoblingen din og prøv på nytt.</string>
     <string name="show_releases">Vis utgivelser</string>
@@ -660,6 +614,7 @@
     <string name="loader_error_video_core_description">Dette skyldes vanligvis en inkompatibel GPU-driver. Installering av en tilpasset GPU-driver kan løse problemet.</string>
     <string name="loader_error_invalid_format">Kunne ikke laste inn ROM</string>
     <string name="loader_error_file_not_found">ROM-filen finnes ikke</string>
+
     <string name="loader_requires_firmware">Spillet krever fastvare</string>
     <string name="loader_requires_firmware_description"><![CDATA[Spillet du prøver å starte krever fastvare for oppstart eller for å komme forbi startmenyen. Vennligst <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dump og installer fastvare</a>, eller trykk \"OK\" for å fortsette likevel.]]></string>
 
@@ -683,7 +638,6 @@
     <string name="config_write_failed">Kunne ikke skrive konfigurasjonsfil</string>
     <string name="config_apply_failed">Kunne ikke bruke konfigurasjon</string>
     <string name="config_already_exists_title">Konfigurasjon finnes allerede</string>
-    <string name="config_already_exists_message">Egendefinerte innstillinger finnes allerede for %1$s.\n\nVil du overskrive den eksisterende konfigurasjonen?\n\nDenne handlingen kan ikke angres.</string>
     <string name="config_exists_prompt">Sjekker for eksisterende konfigurasjon...</string>
     <string name="overwrite_cancelled">Overskriving avbrutt</string>
     <string name="checking_driver">Sjekker for egendefinert driver: %1$s</string>
@@ -703,7 +657,6 @@
     <string name="invalid_driver_file">Ugyldig driverfil: %s</string>
     <string name="network_unavailable">Ingen nettverkstilkobling tilgjengelig. Vennligst sjekk internettilkoblingen din og prøv på nytt.</string>
     <string name="driver_missing_title">GPU-driver kreves</string>
-    <string name="driver_missing_message">Spillkonfigurasjonen krever GPU-driver \"%s\" som ikke er installert på enheten din.\n\nVil du laste ned og installere den nå?</string>
     <string name="driver_download_cancelled">Driver-nedlasting avbrutt. Spillet kan ikke startes uten den påkrevde driveren.</string>
     <string name="download">Last ned</string>
 
@@ -736,13 +689,9 @@
     <string name="abort_button">Avbryt</string>
     <string name="continue_button">Fortsett</string>
     <string name="system_archive_not_found">System Arkiv Ikke Funnet</string>
-    <string name="system_archive_not_found_message">%s mangler. Dump systemarkivene dine.\nFortsatt emulering kan føre til krasj og feil.</string>
     <string name="system_archive_general">Et systemarkiv</string>
     <string name="save_load_error">Feil ved lagring/innlasting</string>
     <string name="fatal_error">Fatal Feil</string>
-    <string name="fatal_error_message">Det oppstod en fatal feil. Sjekk loggen for mer informasjon.\nFortsatt emulering kan føre til krasj og feil.</string>
-    <string name="performance_warning">Hvis du slår av denne innstillingen, reduseres emuleringsytelsen betydelig! Vi anbefaler at du lar denne innstillingen være aktivert for å få den beste opplevelsen.</string>
-
     <!-- Region Names -->
     <string name="region_japan">Japan</string>
     <string name="region_usa">USA</string>
@@ -752,9 +701,27 @@
     <string name="region_korea">Korea</string>
     <string name="region_taiwan">Taiwan</string>
 
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (Anbefalt)</string>
+    <string name="memory_6gb">6GB (Usikkert)</string>
+    <string name="memory_8gb">8GB (Usikkert)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">Grunnleggende (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Rask (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">Lav (128)</string>
+    <string name="gpu_medium">Middels (256)</string>
+    <string name="gpu_high">Høy (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
-
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Ingen</string>
@@ -762,12 +729,31 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Høy</string>
-    <string name="renderer_accuracy_extreme">Ekstrem (Treg)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
-    <string name="dma_accuracy_unsafe">Usikker (rask)</string>
-    <string name="dma_accuracy_safe">Sikker (stabil)</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTC-dekoding</string>
+    <string name="accelerate_astc_description">Velg hvordan ASTC-komprimerte teksturer skal dekodes for rendering: CPU (tregt, sikkert), GPU (raskt, anbefalt) eller CPU Async (ingen stuttering, kan forårsake problemer)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU asynkront</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC-komprimering</string>
+    <string name="astc_recompression_description">Velg hvordan ASTC-teksturer komprimeres på nytt for å forbedre kompatibilitet og ytelse. Å aktivere dette alternativet sparer VRAM, men kan redusere teksturkvaliteten.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Ukomprimert</string>
+    <string name="astc_recompression_bc1">BC1 (lav kvalitet)</string>
+    <string name="astc_recompression_bc3">BC3 (middels kvalitet)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">VRAM-bruk</string>
+    <string name="vram_usage_mode_description">Kontroller minnetildeling for GPU</string>
+    <string name="vram_usage_conservative">Konservativ</string>
+    <string name="vram_usage_aggressive">Aggressiv</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
@@ -792,7 +778,6 @@
     <string name="scaling_filter_gaussian">Gaussisk</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Ingen</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -811,7 +796,6 @@
     <string name="cpu_accuracy_accurate">Nøyaktig</string>
     <string name="cpu_accuracy_unsafe">Utrygt</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Langsom)</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">Venstre spak</string>
@@ -843,6 +827,18 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Svart bakgrunn</string>
     <string name="use_black_backgrounds_description">Bruk svart bakgrunn når du bruker det mørke temaet.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Temafarge</string>
+    <string name="violet">Fiolett (Standard)</string>
+    <string name="blue">Blå</string>
+    <string name="cyan">Cyan</string>
+    <string name="red">Rød</string>
+    <string name="green">Grønn</string>
+    <string name="yellow">Gul</string>
+    <string name="orange">Oransje</string>
+    <string name="pink">Rosa</string>
+    <string name="gray">Grå</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">Bilde-i-bilde</string>

@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">התוכנה תריץ משחקים לקונסולת ה Nintendo Switch. אף משחק או קבצים בעלי זכויות יוצרים נכללים.&lt;br /&gt;&lt;br /&gt; לפני שאת/ה מתחיל בבקשה מצא את קובץ <![CDATA[<b>prod.keys</b>]]> על המכשיר.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">קרא עוד</a>]]></string>
     <string name="notice_notification_channel_name">התראות ותקלות</string>
     <string name="notice_notification_channel_description">מציג התראות כאשר משהו הולך לא כשורה.</string>
     <string name="notification_permission_not_granted">הרשאות התראות לא ניתנה!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(משופר)</string>
     <string name="process_ram">זיכרון תהליך: %1$d MB</string>
     <string name="shaders_prefix">בונה</string>
     <string name="shaders_suffix">שיידר(ים)</string>
     <string name="charging">(בטעינה)</string>
+
     <string name="system_info_label">מערכת:</string>
     <string name="show_stats_overlay">הצג סטטיסטיקות ביצועים</string>
     <string name="stats_overlay_customization">התאמה אישית</string>
@@ -34,6 +33,8 @@
     <string name="bat_temperature_unit">יחידות טמפרטורת סוללה</string>
     <string name="show_power_info">הצג מידע סוללה</string>
     <string name="show_power_info_description">הצג צריכת חשמל נוכחית וקיבולת סוללה remaining</string>
+    <string name="show_shaders_building">הצג בניית שיידרים</string>
+    <string name="show_shaders_building_description">מציג את מספר השיידרים שנבנים כרגע</string>
     <string name="overlay_position">מיקום שכבה</string>
     <string name="overlay_position_description">בחר היכן להציג את שכבת הסטטיסטיקות על המסך</string>
     <string name="overlay_position_top_left">פינה עליונה שמאלית</string>
@@ -44,8 +45,6 @@
     <string name="overlay_position_center_bottom">מרכז תחתון</string>
     <string name="perf_overlay_background">רקע שכבה</string>
     <string name="perf_overlay_background_description">מוסיף רקע לשכבה לקריאה נוחה יותר</string>
-    <string name="show_shaders_building">הצג בניית שיידרים</string>
-    <string name="show_shaders_building_description">מציג את מספר השיידרים שנבנים כרגע</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">הצג מידע על המכשיר</string>
@@ -63,15 +62,25 @@
     <string name="show_fw_version_description">מציג את גרסת הקושחה המותקנת</string>
 
     <!-- Eden\'s Veil -->
-    <string name="veil_extensions">הרחבות GPU</string>
-    <string name="veil_renderer">רנדרר</string>
-    <string name="veil_misc">מעבד וזיכרון</string>
     <string name="eden_veil">עדן וייל</string>
     <string name="eden_veil_description">הגדרות ניסיוניות לשיפור ביצועים ויכולות. הגדרות אלו עלולות לגרום למסכים שחורים או לבעיות אחרות במשחק.</string>
     <string name="eden_veil_warning_title">הגדרות ניסיוניות</string>
     <string name="eden_veil_warning_description">הגדרות במסך העדן ניסיוניות מאוד ועלולות לגרום לבעיות. אם המשחק לא עולה, השבת את כל ההרחבות.</string>
-    <string name="frame_skipping">בעבודה: דילוג פריימים</string>
-    <string name="frame_skipping_description">החלף דילוג על פריימים כדי לשפר ביצועים על ידי הפחתת מספר הפריימים המוצגים. תכונה זו עדיין בפיתוח ותופעל בגרסאות עתידיות.</string>
+
+    <string name="veil_extensions">הרחבות GPU</string>
+    <string name="dyna_state">מצב דינמי מורחב</string>
+    <string name="dyna_state_description">שולט במספר התכונות שניתן להשתמש בהן במצב דינמי מורחב. מספרים גבוהים יותר מאפשרים יותר תכונות ויכולים לשפר את הביצועים, אך עלולים לגרום לבעיות עם כמה מנהלי התקנים וספקים. הערך המוגדר כברירת מחדל עשוי להשתנות בהתאם למערכת שלך ויכולות החומרה. ניתן לשנות ערך זה עד להשגת יציבות ואיכות ויזואלית טובה יותר.</string>
+    <string name="disabled">מושבת</string>
+    <string name="provoking_vertex">קודקוד מעורר</string>
+    <string name="provoking_vertex_description">משפר תאורה וטיפול בקודקודים במשחקים מסוימים. נתמך רק בכרטיסי מסך עם Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">אינדוקס תיאורים</string>
+    <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
+    <string name="sample_shading">דגימת צל</string>
+    <string name="sample_shading_description">מאפשר לשברי הצללה לרוץ לכל דגימה בקטע רב-דגימות במקום פעם אחת לקטע. משפר את איכות הגרפיקה במחיר של ביצועים. רק מכשירי Vulkan 1.1+ תומכים בהרחבה זו.</string>
+    <string name="sample_shading_fraction">שבר הצללה לדוגמה</string>
+    <string name="sample_shading_fraction_description">עוצמת מעבר ההצללה לדוגמה. ערכים גבוהים יותר משפרים את האיכות יותר אך גם מפחיתים את הביצועים במידה רבה יותר.</string>
+
+    <string name="veil_renderer">רנדרר</string>
     <string name="frame_interpolation">סנכרון פריימים מתקדם</string>
     <string name="frame_interpolation_description">מבטיח אספקה חלקה ועקבית של פריימים על ידי סנכרון התזמון ביניהם, מפחית קפיצות ואנימציה לא אחידה. אידיאלי למשחקים עם בעיות בתזמון פריימים או מיקרו-קפיצות במהלך המשחק.</string>
     <string name="renderer_early_release_fences">שחרר גדרות מוקדם</string>
@@ -80,46 +89,14 @@
     <string name="sync_memory_operations_description">מבטיח עקביות נתונים בין פעולות חישוב וזיכרון. אפשרות זו אמורה לתקן בעיות במשחקים מסוימים, אך עלולה להפחית ביצועים במקרים מסוימים. נראה שהמשחקים עם Unreal Engine 4 הם המושפעים ביותר.</string>
     <string name="buffer_reorder_disable">השבת סידור מחדש של חוצץ</string>
     <string name="buffer_reorder_disable_description">כאשר מסומן, מבטל את סידור מחדש של העלאות זיכרון ממופה המאפשר לשייך העלאות עם ציורים ספציפיים. עלול להפחית ביצועים במקרים מסוימים.</string>
-    <string name="use_lru_cache">הפעלת מטמון LRU</string>
-    <string name="use_lru_cache_description">הפעל או השבת מטמון LRU לשיפור ביצועים על ידי חיסכון בשימוש במעבד. לחלק מהמשחקים כמו TotK 1.2.1 יש בעיות - השבת אם המשחק לא עולה או קורס באקראי.</string>
-    <string name="dyna_state">מצב דינמי מורחב</string>
-    <string name="dyna_state_description">שולט במספר התכונות שניתן להשתמש בהן במצב דינמי מורחב. מספרים גבוהים יותר מאפשרים יותר תכונות ויכולים לשפר את הביצועים, אך עלולים לגרום לבעיות עם כמה מנהלי התקנים וספקים. הערך המוגדר כברירת מחדל עשוי להשתנות בהתאם למערכת שלך ויכולות החומרה. ניתן לשנות ערך זה עד להשגת יציבות ואיכות ויזואלית טובה יותר.</string>
-    <string name="disabled">מושבת</string>
+
+    <string name="veil_misc">מעבד וזיכרון</string>
     <string name="use_sync_core">סנכרון מהירות ליבה</string>
     <string name="use_sync_core_description">סנכרן את מהירות הליבה לאחוז המהירות המרבי כדי לשפר ביצועים מבלי לשנות את מהירות המשחק בפועל.</string>
-    <string name="use_auto_stub">שימוש ב-Auto Stub</string>
-    <string name="use_auto_stub_description">משלים אוטומטית שירותים ופונקציות חסרים. עשוי לשפר תאימות אך עלול לגרום לקריסות ובעיות יציבות.</string>
-    <string name="uninstall_firmware">הסרת קושחה</string>
-    <string name="uninstall_firmware_description">הסרת הקושחה תמחק אותה מהמכשיר ועלולה להשפיע על תאימות משחקים.</string>
-    <string name="firmware_uninstalling">מסיר קושחה...</string>
-    <string name="firmware_uninstalled_success">הקושחה הוסרה בהצלחה</string>
-    <string name="provoking_vertex">קודקוד מעורר</string>
-    <string name="provoking_vertex_description">משפר תאורה וטיפול בקודקודים במשחקים מסוימים. נתמך רק בכרטיסי מסך עם Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">אינדוקס תיאורים</string>
-    <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
-    <string name="use_fast_gpu_time">השתמש בזמן GPU מהיר</string>
-    <string name="use_fast_gpu_time_description">מאלץ את רוב המשחקים לרוץ ברזולוציה המקורית הגבוהה ביותר שלהם. אפשרות זו עלולה לגרום לבעיות.</string>
-
-    <string name="fast_gpu_time">גורם אובר-קלוק ל-GPU</string>
-    <string name="fast_gpu_time_description">השתמש ב-128 לביצועים מקסימליים וב-512 לנאמנות גרפית מקסימלית.</string>
-    <string name="gpu_low">נמוך (128)</string>
-    <string name="gpu_medium">בינוני (256)</string>
-    <string name="gpu_high">גבוה (512)</string>
-
-    <!-- Temperature Units -->
-    <string name="temperature_celsius">צלזיוס</string>
-    <string name="temperature_fahrenheit">פרנהייט</string>
-
+    <string name="use_lru_cache">הפעלת מטמון LRU</string>
+    <string name="use_lru_cache_description">הפעל או השבת מטמון LRU לשיפור ביצועים על ידי חיסכון בשימוש במעבד. לחלק מהמשחקים כמו TotK 1.2.1 יש בעיות - השבת אם המשחק לא עולה או קורס באקראי.</string>
     <string name="use_fast_cpu_time">זמן CPU מהיר</string>
     <string name="use_fast_cpu_time_description">מכריח את ה-CPU המדומה לפעול במהירות שעון גבוהה יותר, מה שמפחית חלק ממגבילי ה-FPS. אפשרות זו אינה יציבה ועלולה לגרום לבעיות, ומעבדים חלשים יותר עשויים לראות ירידה בביצועים.</string>
-    <string name="fast_cpu_time">מהירות שעון CPU</string>
-    <string name="fast_cpu_time_description">השתמש ב-Boost (1700MHz) כדי לפעול במהירות השעון הגבוהה ביותר של ה-Switch, או Fast (2000MHz) כדי לפעול במהירות כפולה.</string>
-    <string name="memory_layout">מבנה זיכרון</string>
-    <string name="memory_layout_description">(ניסיוני) שנה את מבנה הזיכרון המדומה. הגדרה זו לא תגדיל את הביצועים, אך עשויה לעזור במשחקים המשתמשים ברזולוציות גבוהות באמצעות מודים. אל תשתמש בטלפונים עם 8GB זיכרון RAM או פחות.</string>
-    <string name="sample_shading">דגימת צל</string>
-    <string name="sample_shading_description">מאפשר לשברי הצללה לרוץ לכל דגימה בקטע רב-דגימות במקום פעם אחת לקטע. משפר את איכות הגרפיקה במחיר של ביצועים. רק מכשירי Vulkan 1.1+ תומכים בהרחבה זו.</string>
-    <string name="sample_shading_fraction">שבר הצללה לדוגמה</string>
-    <string name="sample_shading_fraction_description">עוצמת מעבר ההצללה לדוגמה. ערכים גבוהים יותר משפרים את האיכות יותר אך גם מפחיתים את הביצועים במידה רבה יותר.</string>
     <string name="custom_cpu_ticks">טיקי CPU מותאמים</string>
     <string name="custom_cpu_ticks_description">הגדר ערך מותאם לטיקי CPU. ערכים גבוהים יותר עשויים לשפר ביצועים, אך גם עלולים לגרום להקפאת המשחק. מומלץ טווח של 77-21000.</string>
     <string name="cpu_ticks">טיקים</string>
@@ -127,36 +104,12 @@
     <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
     <string name="cpuopt_unsafe_host_mmu">הפעל אמולציית MMU מארח</string>
     <string name="cpuopt_unsafe_host_mmu_description">אופטימיזציה זו מאיצה את גישת הזיכרון על ידי התוכנית האורחת. הפעלתה גורמת לכך שפעולות קריאה/כתיבה לזיכרון האורח מתבצעות ישירות לזיכרון ומשתמשות ב-MMU של המארח. השבתת זאת מאלצת את כל גישות הזיכרון להשתמש באמולציית MMU תוכנתית.</string>
+    <string name="fast_cpu_time">מהירות שעון CPU</string>
+    <string name="fast_cpu_time_description">השתמש ב-Boost (1700MHz) כדי לפעול במהירות השעון הגבוהה ביותר של ה-Switch, או Fast (2000MHz) כדי לפעול במהירות כפולה.</string>
+    <string name="memory_layout">מבנה זיכרון</string>
+    <string name="memory_layout_description">(ניסיוני) שנה את מבנה הזיכרון המדומה. הגדרה זו לא תגדיל את הביצועים, אך עשויה לעזור במשחקים המשתמשים ברזולוציות גבוהות באמצעות מודים. אל תשתמש בטלפונים עם 8GB זיכרון RAM או פחות.</string>
     <string name="dma_accuracy">דיוק DMA</string>
     <string name="dma_accuracy_description">שולט בדיוק הדיוק של DMA. דיוק בטוח יכול לתקן בעיות בחלק מהמשחקים, אך הוא עלול גם להשפיע על הביצועים במקרים מסוימים. אם אינך בטוח, השאר זאת על ברירת מחדל.</string>
-
-    <string name="memory_4gb">4GB (מומלץ)</string>
-    <string name="memory_6gb">6GB (לא בטוח)</string>
-    <string name="memory_8gb">8GB (לא בטוח)</string>
-
-    <string name="clock_base">בסיס (1000MHz)</string>
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">מהיר (2000MHz)</string>
-
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">שיטת פענוח ASTC</string>
-    <string name="accelerate_astc_description">בחר כיצד לפרק את הטקסטורות הדחוסות ב-ASTC עבור רינדור: CPU (איטי, בטוח), GPU (מהיר, מומלץ) או CPU Async (ללא קפיצות, עלול לגרום לבעיות)</string>
-    <string name="accelerate_astc_cpu">מעבד</string>
-    <string name="accelerate_astc_gpu">כרטיס מסך</string>
-    <string name="accelerate_astc_async">מעבד (א-סינכרוני)</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">שיטת דחיסת ASTC</string>
-    <string name="astc_recompression_description">בחר כיצד דחיסה מחדש של טקסטורות ASTC משפרת תאימות וביצועים. הפעלת אפשרות זו חוסכת VRAM אך עלולה להוריד את איכות הטקסטורה.</string>
-    <string name="astc_recompression_uncompressed">לא דחוס</string>
-    <string name="astc_recompression_bc1">BC1 (איכות נמוכה)</string>
-    <string name="astc_recompression_bc3">BC3 (איכות בינונית)</string>
-
-    <!-- VRAM Usage Mode -->
-    <string name="vram_usage_mode">מצב שימוש ב-VRAM</string>
-    <string name="vram_usage_mode_description">שליטה בקצב הקצאת ושחרור זיכרון GPU</string>
-    <string name="vram_usage_conservative">שמרני</string>
-    <string name="vram_usage_aggressive">אגרסיבי</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">מנוע שיידרים</string>
@@ -173,8 +126,6 @@
     <string name="nvdec_emulation_none">ללא</string>
 
     <!-- Optimize Spir-V output -->
-    <string name="renderer_optimize_spirv_output">אופטימיזציית Spir-V</string>
-    <string name="renderer_optimize_spirv_output_description">משפר את השאדר המהודר כדי להגביר את יעילות ה-GPU.</string>
     <string name="never">לעולם לא</string>
     <string name="on_load">בטעינה</string>
     <string name="always">תמיד</string>
@@ -262,35 +213,23 @@
     <string name="emulation_multiplayer">רב־משתתפים</string>
     <string name="multiplayer_game_name">משחקים מועדפים</string>
     <string name="multiplayer_preferred_game_name">משחק מועדף</string>
+    <string name="multiplayer_lobby_type">סוג לובי</string>
     <string name="multiplayer_no_game">לא נמצאו משחקים</string>
     <string name="multiplayer_preferred_game_name_invalid">עליך לבחור משחק מועדף לאירוח חדר</string>
     <string name="multiplayer_room_name_error">חייב להיות בין 3-20 תווים</string>
     <string name="multiplayer_required">נדרש</string>
+    <string name="multiplayer_token_required">נדרש אסימון אינטרנט, עבור להגדרות מתקדמות -> מערכת -> רשת</string>
     <string name="multiplayer_ip_error">פורמט IP לא תקין</string>
     <string name="multiplayer_username_error">חייב להכיל 4-20 תווים (אותיות, מספרים, נקודות, מקפים, קו תחתון ורווחים בלבד)</string>
     <string name="multiplayer_nickname_invalid">שם משתמש לא תקין, ודא שהוא מוגדר כראוי במערכת → רשת</string>
-    <string name="multiplayer_port_error">חייב להיות בין 1-65535</string>
     <string name="multiplayer_token_error">חייב להיות באורך 48 תווים, ורק אותיות קטנות a-z</string>
-    <string name="multiplayer_lobby_type">סוג לובי</string>
-    <string name="multiplayer_public_visibility">ציבורי</string>
-    <string name="multiplayer_unlisted_visibility">לא רשום</string>
+    <string name="multiplayer_port_error">חייב להיות בין 1-65535</string>
     <string name="cancel">ביטול</string>
     <string name="ok">אישור</string>
     <string name="refresh">רענון</string>
     <string name="room_list">רשימת חדרים</string>
-    <string name="multiplayer_token_required">נדרש אסימון אינטרנט, עבור להגדרות מתקדמות -> מערכת -> רשת</string>
-
-    <!-- Static Themes -->
-    <string name="static_theme_color">צבע ערכת עיצוב</string>
-    <string name="violet">סגול (ברירת מחדל)</string>
-    <string name="blue">כחול</string>
-    <string name="cyan">טורקיז</string>
-    <string name="red">אדום</string>
-    <string name="green">ירוק</string>
-    <string name="yellow">צהוב</string>
-    <string name="orange">כתום</string>
-    <string name="pink">ורוד</string>
-    <string name="gray">אפור</string>
+    <string name="multiplayer_public_visibility">ציבורי</string>
+    <string name="multiplayer_unlisted_visibility">לא רשום</string>
 
     <!-- Setup strings -->
     <string name="welcome">ברוכים הבאים!</string>
@@ -300,12 +239,10 @@
     <string name="keys_description">בחר את קובץ ה &lt;b>prod.keys&lt;/b> שלך עם הכפתור למטה.</string>
     <string name="select_keys">בחר מפתחות</string>
     <string name="firmware">קושחה</string>
-    <string name="firmware_description">בחר את קובץ ה-<b>firmware.zip</b> שלך באמצעות הכפתור למטה.\nEden דורש כרגע גרסה <b>19.0.1</b> או נמוכה יותר.</string>
     <string name="select_firmware">בחירת קושחה</string>
     <string name="games">משחקים</string>
     <string name="games_description">בחר את התיקיית ה &lt;b>Games&lt;/b> שלך עם הכפתור למטה.</string>
     <string name="done">סיום</string>
-    <string name="done_description">את/ה מוכן. \nתהנה/י  מהמשחקים שלך </string>
     <string name="text_continue">המשך</string>
     <string name="next">הבא</string>
     <string name="back">אחורה</string>
@@ -316,6 +253,7 @@
     <string name="bluetooth_permissions_denied">הרשאות Bluetooth נדחו. תמיכה בבקרים עשויה להיות מוגבלת.</string>
 
     <!-- Home strings -->
+
     <string name="alphabetical">אלפביתי</string>
     <string name="view_list">רשימה</string>
     <string name="view_grid">רשת</string>
@@ -325,7 +263,6 @@
     <string name="pre_alpha_warning_description">אזהרה: גרסה זו אינה מיועדת לשימוש ציבורי. התוכנה בשלבי פיתוח מוקדמים ועלולה להכיל באגים.</string>
     <string name="dont_show_again">אל תציג שוב</string>
     <string name="pre_alpha_warning">תוכנת טרום-אלפא - לא לשימוש ציבורי</string>
-    <string name="add_directory_success">תיקיית משחקים נוספה בהצלחה</string>
     <string name="home_games">משחקים</string>
     <string name="home_search">חפש</string>
     <string name="home_settings">הגדרות</string>
@@ -361,6 +298,7 @@
     <string name="install_amiibo_keys">התקן מפתחות Amiibo</string>
     <string name="install_amiibo_keys_description">נחוץ כדי להשתמש ב Amiibo במשחק</string>
     <string name="install_amiibo_keys_failure_extension_description">ודא/י שלקובץ המפתחות שלך יש סיומת של bin. ונסה/י שוב.</string>
+    <string name="gpu_driver_fetcher">מאחזר מנהלי התקן GPU</string>
     <string name="gpu_driver_manager">מנהל הדרייברים של המעבד הגרפי</string>
     <string name="install_gpu_driver">התקן דרייבר למעבד הגרפי</string>
     <string name="install_gpu_driver_description">התקן דרייברים אחרים בשביל סיכוי לביצועים או דיוק גבוההים יותר</string>
@@ -410,7 +348,6 @@
     <string name="install_game_content_success_install">%1$d הותקן בהצלחה</string>
     <string name="install_game_content_success_overwrite">%1$d נדרס/נכתב מעל בהצלחה</string>
     <string name="custom_driver_not_supported">דרייברים מותאמים אישית לא נתמכים</string>
-    <string name="custom_driver_not_supported_description">הטענת דרייבים מותאמים אישית לא נתמך כרגע על מכשיר זה. \nבבקשה בדוק אופציה זו בעתיד בכדי לראות אם נוספה תמיכה!</string>
     <string name="manage_yuzu_data">נהל את המידע של Eden</string>
     <string name="manage_yuzu_data_description">יבא/יצא firmware, keys, מידע של משתמש ועוד!</string>
     <string name="share_save_file">שתף קובץ שמירה</string>
@@ -433,8 +370,14 @@
     <string name="no_save_data_found">לא נמצאו שמירות</string>
     <string name="verify_installed_content">אמת תוכן מותקן</string>
     <string name="verify_installed_content_description">בודק תוכן מותקן לשגיאות</string>
+
     <string name="keys_missing">מפתחות הצפנה חסרים</string>
     <string name="keys_missing_description">לא ניתן לפענח firmware ומשחקים</string>
+    <string name="uninstall_firmware">הסרת קושחה</string>
+    <string name="uninstall_firmware_description">הסרת הקושחה תמחק אותה מהמכשיר ועלולה להשפיע על תאימות משחקים.</string>
+    <string name="firmware_uninstalling">מסיר קושחה...</string>
+    <string name="firmware_uninstalled_success">הקושחה הוסרה בהצלחה</string>
+
     <string name="firmware_invalid">קושחה לא תקינה</string>
     <string name="error_firmware_missing">נדרש קושחה להפעלת משחקים ויישומים מסוימים. עדן עובד רק עם קושחה 19.0.1 או ישנה יותר.</string>
     <string name="error_firmware_corrupted">קושחה קיימת אך לא ניתנת לקריאה. בדוק מפתחות פענוח ושמור קושחה מחדש אם needed.</string>
@@ -475,7 +418,6 @@
     <string name="licenses_description">פרוייקטים שהופכים את Eden ל Android אפשרי</string>
     <string name="build">גרסה</string>
     <string name="user_data">נתוני משתמש</string>
-    <string name="user_data_description">יבא/יצא את כל נתוני האפליקציה.\n\nכאשר מייבאים את נתוני המשתמש, כל נתוני המשתמש הקיימים ימחקו!</string>
     <string name="exporting_user_data">מייצא נתוני משתמש...</string>
     <string name="importing_user_data">מייבא נתוני משתמש...</string>
     <string name="import_user_data">יבא נתוני משתמש</string>
@@ -484,7 +426,6 @@
     <string name="user_data_import_success">נתוני משתמש יובאו בהצלחה</string>
     <string name="user_data_export_cancelled">ייצוא בוטל</string>
     <string name="user_data_import_failed_description">ודא שנתוני המשתמש נמצאים בשורש קובץ ה zip ושהוא מכיל קובץ סידור ב config/config.ini ונסה שוב.</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">הגבל מהירות</string>
     <string name="frame_limit_enable_description">מגביל את מהירות האמולציה לאחוז מהירות המבוקש מהמהירות הרגילה.</string>
@@ -506,18 +447,22 @@
     <string name="use_custom_rtc_description">מאפשר לך לקבוע שעון זמן אמת נפרד משעון המערכת שלך.</string>
     <string name="set_custom_rtc">קבע RTC מותאם אישית</string>
 
-    <!-- Network settings strings -->
     <string name="generate">יצירה</string>
-    <string name="web_username">שם משתמש באינטרנט</string>
-    <string name="web_username_description">שם משתמש שיוצג בחדרים מרובי משתתפים. חייב להכיל 4-20 תווים (אותיות, מספרים, מקפים, נקודות, קו תחתון ורווחים בלבד).</string>
+
+    <!-- Network settings strings -->
     <string name="web_token">אסימון אינטרנט</string>
     <string name="web_token_description">אסימון אינטרנט המשמש ליצירת חדרים ציבוריים. זהו מחרוזת של 48 תווים המכילה רק אותיות קטנות a-z.</string>
+    <string name="web_username">שם משתמש באינטרנט</string>
+    <string name="web_username_description">שם משתמש שיוצג בחדרים מרובי משתתפים. חייב להכיל 4-20 תווים (אותיות, מספרים, מקפים, נקודות, קו תחתון ורווחים בלבד).</string>
     <string name="network">רשת</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">בקאנד</string>
     <string name="display">תצוגה</string>
     <string name="processing">עיבוד לאחר</string>
+
+    <string name="frame_skipping">בעבודה: דילוג פריימים</string>
+    <string name="frame_skipping_description">החלף דילוג על פריימים כדי לשפר ביצועים על ידי הפחתת מספר הפריימים המוצגים. תכונה זו עדיין בפיתוח ותופעל בגרסאות עתידיות.</string>
     <string name="renderer_accuracy">רמת דיוק</string>
     <string name="renderer_resolution">רזולוציה (מעוגן/נייד)</string>
     <string name="renderer_vsync">מצב VSync</string>
@@ -529,8 +474,14 @@
     <string name="renderer_anti_aliasing">שיטת Anti-aliasing</string>
     <string name="renderer_force_max_clock">החזק מהירות שעון מקסימלית (רק ל Adreno)</string>
     <string name="renderer_force_max_clock_description">מכריח לדחוף את מהירויות המעבד הגרפי למקסימום (הגבלות חום ימשיכו לתפקד).</string>
+    <string name="renderer_optimize_spirv_output">אופטימיזציית Spir-V</string>
+    <string name="renderer_optimize_spirv_output_description">משפר את השאדר המהודר כדי להגביר את יעילות ה-GPU.</string>
     <string name="renderer_asynchronous_shaders">השתמש בשיידרים אסינכרונים</string>
     <string name="renderer_asynchronous_shaders_description">מקמפל שיידרים באופן אסינכרוני. זה עשוי להפחית קפיצות אך גם עלול לגרום לתקלות גרפיות.</string>
+    <string name="use_fast_gpu_time">השתמש בזמן GPU מהיר</string>
+    <string name="use_fast_gpu_time_description">מאלץ את רוב המשחקים לרוץ ברזולוציה המקורית הגבוהה ביותר שלהם. אפשרות זו עלולה לגרום לבעיות.</string>
+    <string name="fast_gpu_time">גורם אובר-קלוק ל-GPU</string>
+    <string name="fast_gpu_time_description">השתמש ב-128 לביצועים מקסימליים וב-512 לנאמנות גרפית מקסימלית.</string>
     <string name="renderer_reactive_flushing">השתמש בהבהוב תגובתי</string>
     <string name="renderer_reactive_flushing_description">משפר את הדיוק של האמולציה במשחקים מסויימים במחיר של ביצועים.</string>
     <string name="use_disk_shader_cache">מטמון השיידר של הדיסק</string>
@@ -542,6 +493,9 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">מעבד</string>
+    <string name="use_auto_stub">שימוש ב-Auto Stub</string>
+    <string name="use_auto_stub_description">משלים אוטומטית שירותים ופונקציות חסרים. עשוי לשפר תאימות אך עלול לגרום לקריסות ובעיות יציבות.</string>
+
     <string name="gpu">מעבד גרפי</string>
     <string name="renderer_api">ממשק תוכנה</string>
     <string name="renderer_debug">דיבאגינג בגרפיקה</string>
@@ -609,6 +563,7 @@
     <string name="import_failed">ייבוא נכשל</string>
     <string name="cancelling">מבטל</string>
     <string name="install">התקן</string>
+    <string name="fetch">אחזר</string>
     <string name="delete">מחק</string>
     <string name="edit">ערוך</string>
     <string name="export_success">יוצא בהצלחה</string>
@@ -628,8 +583,6 @@
     <string name="installing_driver">מתקין דרייבר...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="gpu_driver_fetcher">מאחזר מנהלי התקן GPU</string>
-    <string name="fetch">אחזר</string>
     <string name="fetch_error">שגיאה במהלך האחזור</string>
     <string name="check_connection">בדוק את החיבור שלך ונסה שוב.</string>
     <string name="show_releases">הצג גרסאות</string>
@@ -682,6 +635,7 @@
     <string name="loader_error_video_core_description">זה בדרך כלל נגרם על ידי דרייבר לא מתאים עבור המעבד הגרפי. התקנת דרייבר אשר מתאים למעבד הגרפי יכול לפתור את הבעיה הזו.</string>
     <string name="loader_error_invalid_format">אין אפשרות לטעון את המשחק</string>
     <string name="loader_error_file_not_found">קובץ המשחק לא קיים</string>
+
     <string name="loader_requires_firmware">המשחק דורש קושחה</string>
     <string name="loader_requires_firmware_description"><![CDATA[המשחק שאתה מנסה להפעיל דורש קושחה לאתחול או למעבר מתפריט הפתיחה. אנא <a href=\"https://yuzu-mirror.github.io/help/quickstart\">שמור והתקן קושחה</a> או לחץ \"אישור\" כדי להמשיך בכל מקרה.]]></string>
 
@@ -705,7 +659,6 @@
     <string name="config_write_failed">נכשל בכתיבת קובץ התצורה</string>
     <string name="config_apply_failed">נכשל בהחלת התצורה</string>
     <string name="config_already_exists_title">תצורה כבר קיימת</string>
-    <string name="config_already_exists_message">הגדרות מותאמות אישית כבר קיימות עבור %1$s.\n\nהאם ברצונך לדרוס את התצורה הקיימת?\n\nפעולה זו לא ניתנת לביטול.</string>
     <string name="config_exists_prompt">בודק אם קיימת תצורה...</string>
     <string name="overwrite_cancelled">דריסה בוטלה</string>
     <string name="checking_driver">בודק מנהל התקן מותאם אישית: %1$s</string>
@@ -725,7 +678,6 @@
     <string name="invalid_driver_file">קובץ מנהל התקן לא חוקי: %s</string>
     <string name="network_unavailable">אין חיבור אינטרנט זמין. אנא בדוק את חיבור האינטרנט שלך ונסה שוב.</string>
     <string name="driver_missing_title">נדרש מנהל התקן GPU</string>
-    <string name="driver_missing_message">תצורת המשחק דורשת מנהל התקן GPU \"%s\" אשר אינו מותקן במכשירך.\n\nהאם ברצונך להוריד ולהתקין אותו כעת?</string>
     <string name="driver_download_cancelled">הורדת מנהל ההתקן בוטלה. לא ניתן להפעיל את המשחק ללא מנהל ההתקן הנדרש.</string>
     <string name="download">הורד</string>
 
@@ -758,13 +710,9 @@
     <string name="abort_button">אודות</string>
     <string name="continue_button">המשך</string>
     <string name="system_archive_not_found">ארכיון מערכת לא נמצא</string>
-    <string name="system_archive_not_found_message">%s חסר. בבקשה הוצא תא ארכיוני המערכת שלך./nהמשכת האמולציה עלולה לגרום לקריסות ובאגים.</string>
     <string name="system_archive_general">ארכיון מערכת</string>
     <string name="save_load_error">בעיית שמירה/טעינה</string>
     <string name="fatal_error">שגיאה חמורה</string>
-    <string name="fatal_error_message">שגיאה חמורה התרחשה. בדוק את היומן לפרטים./nהמשך הסימולציה עשוי לגרום לקריסות ולבאגים.</string>
-    <string name="performance_warning">כיבוי הגדרה זו ישפיע משמעותית על ביצועי הסימולציה! לחוויה הטובה ביותר, מומלץ להשאיר את הגדרה זו מופעלת.</string>
-    <string name="device_memory_inadequate">RAM המכשיר: %1$s/nמומלץ: %2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">אין משחק שניתן להריץ!</string>
 
@@ -776,6 +724,25 @@
     <string name="region_china">סין</string>
     <string name="region_korea">קוריאה</string>
     <string name="region_taiwan">טייוואן</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (מומלץ)</string>
+    <string name="memory_6gb">6GB (לא בטוח)</string>
+    <string name="memory_8gb">8GB (לא בטוח)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">בסיס (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">מהיר (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">נמוך (128)</string>
+    <string name="gpu_medium">בינוני (256)</string>
+    <string name="gpu_high">גבוה (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">צלזיוס</string>
+    <string name="temperature_fahrenheit">פרנהייט</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte">בייט</string>
@@ -794,12 +761,31 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">רגיל</string>
     <string name="renderer_accuracy_high">גבוה</string>
-    <string name="renderer_accuracy_extreme">אקסטרים (איטי)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">ברירת מחדל</string>
-    <string name="dma_accuracy_unsafe">לא בטוח (מהיר)</string>
-    <string name="dma_accuracy_safe">בטוח (יציב)</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">שיטת פענוח ASTC</string>
+    <string name="accelerate_astc_description">בחר כיצד לפרק את הטקסטורות הדחוסות ב-ASTC עבור רינדור: CPU (איטי, בטוח), GPU (מהיר, מומלץ) או CPU Async (ללא קפיצות, עלול לגרום לבעיות)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">מעבד</string>
+    <string name="accelerate_astc_gpu">כרטיס מסך</string>
+    <string name="accelerate_astc_async">מעבד (א-סינכרוני)</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">שיטת דחיסת ASTC</string>
+    <string name="astc_recompression_description">בחר כיצד דחיסה מחדש של טקסטורות ASTC משפרת תאימות וביצועים. הפעלת אפשרות זו חוסכת VRAM אך עלולה להוריד את איכות הטקסטורה.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">לא דחוס</string>
+    <string name="astc_recompression_bc1">BC1 (איכות נמוכה)</string>
+    <string name="astc_recompression_bc3">BC3 (איכות בינונית)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">מצב שימוש ב-VRAM</string>
+    <string name="vram_usage_mode_description">שליטה בקצב הקצאת ושחרור זיכרון GPU</string>
+    <string name="vram_usage_conservative">שמרני</string>
+    <string name="vram_usage_aggressive">אגרסיבי</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
@@ -824,7 +810,6 @@
     <string name="scaling_filter_gaussian">Gaussian</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">אין שום דבר</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -849,7 +834,6 @@
     <string name="cpu_accuracy_accurate">מדויק</string>
     <string name="cpu_accuracy_unsafe">לא בטוח</string>
     <string name="cpu_accuracy_paranoid">פראנואידי</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">ג׳ויסטיק שמאלי</string>
@@ -883,6 +867,18 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">רקעים שחורים</string>
     <string name="use_black_backgrounds_description">כשמתשמשים במצב כהה, שם רקעים שחורים.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">צבע ערכת עיצוב</string>
+    <string name="violet">סגול (ברירת מחדל)</string>
+    <string name="blue">כחול</string>
+    <string name="cyan">טורקיז</string>
+    <string name="red">אדום</string>
+    <string name="green">ירוק</string>
+    <string name="yellow">צהוב</string>
+    <string name="orange">כתום</string>
+    <string name="pink">ורוד</string>
+    <string name="gray">אפור</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">תמונה בתוך תמונה</string>

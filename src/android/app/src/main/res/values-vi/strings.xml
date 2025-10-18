@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Phần mềm này sẽ chạy trò chơi cho máy chơi game Nintendo Switch. Không có game titles hoặc keys được bao gồm.&lt;br /&gt;&lt;br /&gt;Trước khi bạn bắt đầu, hãy tìm file <![CDATA[<b> prod.keys </b>]]> trên bộ nhớ thiết bị của bạn.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Tìm hiểu thêm</a>]]></string>
     <string name="notice_notification_channel_name">Thông báo và lỗi</string>
     <string name="notice_notification_channel_description">Hiển thị thông báo khi có sự cố xảy ra</string>
     <string name="notification_permission_not_granted">Ứng dụng không được cấp quyền thông báo!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Nâng cao)</string>
     <string name="process_ram">RAM tiến trình: %1$d MB</string>
     <string name="shaders_prefix">Đang xây dựng</string>
     <string name="shaders_suffix">shader</string>
     <string name="charging">(Đang sạc)</string>
+
     <string name="system_info_label">Hệ thống:</string>
     <string name="show_stats_overlay">Hiển thị thống kê hiệu suất</string>
     <string name="stats_overlay_customization">Tùy chỉnh</string>
@@ -34,6 +33,8 @@
     <string name="bat_temperature_unit">Đơn vị nhiệt độ pin</string>
     <string name="show_power_info">Hiển thị thông tin pin</string>
     <string name="show_power_info_description">Hiển thị mức tiêu thụ điện hiện tại và dung lượng pin còn lại</string>
+    <string name="show_shaders_building">Hiển thị xây dựng shader</string>
+    <string name="show_shaders_building_description">Hiển thị số lượng shader đang được xây dựng hiện tại</string>
     <string name="overlay_position">Vị trí overlay</string>
     <string name="overlay_position_description">Chọn vị trí hiển thị overlay</string>
     <string name="overlay_position_top_left">Trên trái</string>
@@ -44,8 +45,6 @@
     <string name="overlay_position_center_bottom">Giữa dưới</string>
     <string name="perf_overlay_background">Nền overlay</string>
     <string name="perf_overlay_background_description">Thêm nền để dễ đọc</string>
-    <string name="show_shaders_building">Hiển thị xây dựng shader</string>
-    <string name="show_shaders_building_description">Hiển thị số lượng shader đang được xây dựng hiện tại</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">Hiển thị thông tin thiết bị</string>
@@ -63,15 +62,25 @@
     <string name="show_fw_version_description">Hiển thị phiên bản firmware đã cài đặt</string>
 
     <!-- Eden\'s Veil -->
-    <string name="veil_extensions">Tiện ích mở rộng GPU</string>
-    <string name="veil_renderer">Trình kết xuất</string>
-    <string name="veil_misc">CPU và Bộ nhớ</string>
     <string name="eden_veil">Mành che của Eden</string>
     <string name="eden_veil_description">Cài đặt thử nghiệm để cải thiện hiệu suất và khả năng. Những cài đặt này có thể gây ra màn hình đen hoặc các vấn đề khác trong trò chơi.</string>
     <string name="eden_veil_warning_title">Cài đặt thử nghiệm</string>
     <string name="eden_veil_warning_description">Các cài đặt trong Mành che của Eden rất thử nghiệm và có thể gây ra sự cố. Nếu trò chơi của bạn không khởi động, hãy tắt tất cả các tiện ích mở rộng.</string>
-    <string name="frame_skipping">WIP: Bỏ qua khung hình</string>
-    <string name="frame_skipping_description">Bật hoặc tắt bỏ qua khung hình để cải thiện hiệu suất bằng cách giảm số lượng khung hình được kết xuất. Tính năng này đang được phát triển và sẽ được kích hoạt trong các bản phát hành tương lai.</string>
+
+    <string name="veil_extensions">Tiện ích mở rộng GPU</string>
+    <string name="dyna_state">Trạng thái động mở rộng</string>
+    <string name="dyna_state_description">Điều khiển số tính năng có thể được sử dụng trong Trạng thái Động Mở rộng. Giá trị cao hơn cho phép nhiều tính năng hơn và có thể tăng hiệu suất, nhưng có thể gây ra sự cố với một số trình điều khiển và nhà cung cấp. Giá trị mặc định có thể thay đổi tùy thuộc vào hệ thống và khả năng phần cứng của bạn. Giá trị này có thể được thay đổi cho đến khi đạt được độ ổn định và chất lượng hình ảnh tốt hơn.</string>
+    <string name="disabled">Đã tắt</string>
+    <string name="provoking_vertex">Đỉnh kích hoạt</string>
+    <string name="provoking_vertex_description">Cải thiện ánh sáng và xử lý đỉnh trong một số trò chơi. Chỉ được hỗ trợ trên GPU Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Lập chỉ mục bộ mô tả</string>
+    <string name="descriptor_indexing_description">Cải thiện xử lý kết cấu và bộ đệm, cũng như lớp dịch Maxwell. Được hỗ trợ bởi một số GPU Vulkan 1.1 và tất cả GPU Vulkan 1.2+.</string>
+    <string name="sample_shading">Tô bóng mẫu</string>
+    <string name="sample_shading_description">Cho phép fragment shader thực thi trên mỗi mẫu trong một fragment đa mẫu thay vì một lần mỗi fragment. Cải thiện chất lượng đồ họa với chi phí hiệu suất. Chỉ thiết bị Vulkan 1.1+ hỗ trợ tiện ích mở rộng này.</string>
+    <string name="sample_shading_fraction">Phần trăm tô bóng mẫu</string>
+    <string name="sample_shading_fraction_description">Cường độ của bước tô bóng mẫu. Giá trị cao hơn cải thiện chất lượng tốt hơn nhưng cũng giảm hiệu suất nhiều hơn.</string>
+
+    <string name="veil_renderer">Trình kết xuất</string>
     <string name="frame_interpolation">Đồng bộ khung hình nâng cao</string>
     <string name="frame_interpolation_description">Đảm bảo cung cấp khung hình mượt mà và ổn định bằng cách đồng bộ hóa thời gian giữa các khung hình, giảm giật lag và hoạt ảnh không đồng đều. Lý tưởng cho các trò chơi gặp vấn đề về thời gian khung hình không ổn định hoặc giật lag nhẹ trong khi chơi.</string>
     <string name="renderer_early_release_fences">Giải phóng rào chắn sớm</string>
@@ -80,45 +89,14 @@
     <string name="sync_memory_operations_description">Đảm bảo tính nhất quán dữ liệu giữa các thao tác tính toán và bộ nhớ. Tùy chọn này nên khắc phục sự cố trong một số trò chơi, nhưng có thể làm giảm hiệu suất trong một số trường hợp. Các trò chơi với Unreal Engine 4 có vẻ bị ảnh hưởng nhiều nhất.</string>
     <string name="buffer_reorder_disable">Tắt sắp xếp lại bộ đệm</string>
     <string name="buffer_reorder_disable_description">Khi được chọn, sẽ tắt tính năng sắp xếp lại các lần tải lên bộ nhớ đã ánh xạ, cho phép liên kết các lần tải lên với các bản vẽ cụ thể. Có thể làm giảm hiệu suất trong một số trường hợp.</string>
-    <string name="use_lru_cache">Bật bộ nhớ đệm LRU</string>
-    <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU để cải thiện hiệu suất bằng cách tiết kiệm quy trình sử dụng CPU. Một số trò chơi như TotK 1.2.1 có vấn đề - hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
-    <string name="dyna_state">Trạng thái động mở rộng</string>
-    <string name="dyna_state_description">Điều khiển số tính năng có thể được sử dụng trong Trạng thái Động Mở rộng. Giá trị cao hơn cho phép nhiều tính năng hơn và có thể tăng hiệu suất, nhưng có thể gây ra sự cố với một số trình điều khiển và nhà cung cấp. Giá trị mặc định có thể thay đổi tùy thuộc vào hệ thống và khả năng phần cứng của bạn. Giá trị này có thể được thay đổi cho đến khi đạt được độ ổn định và chất lượng hình ảnh tốt hơn.</string>
-    <string name="disabled">Đã tắt</string>
+
+    <string name="veil_misc">CPU và Bộ nhớ</string>
     <string name="use_sync_core">Đồng bộ tốc độ lõi</string>
     <string name="use_sync_core_description">Đồng bộ tốc độ lõi với tỷ lệ phần trăm tốc độ tối đa để cải thiện hiệu suất mà không làm thay đổi tốc độ thực tế của trò chơi.</string>
-    <string name="use_auto_stub">Sử dụng Auto Stub</string>
-    <string name="use_auto_stub_description">Tự động thay thế các dịch vụ và chức năng bị thiếu. Có thể cải thiện khả năng tương thích nhưng gây ra sự cố và vấn đề ổn định.</string>
-    <string name="uninstall_firmware">Gỡ cài đặt firmware</string>
-    <string name="uninstall_firmware_description">Gỡ cài đặt firmware sẽ xóa nó khỏi thiết bị và có thể ảnh hưởng đến khả năng tương thích trò chơi.</string>
-    <string name="firmware_uninstalling">Đang gỡ cài đặt firmware...</string>
-    <string name="firmware_uninstalled_success">Gỡ cài đặt firmware thành công</string>
-    <string name="provoking_vertex">Đỉnh kích hoạt</string>
-    <string name="provoking_vertex_description">Cải thiện ánh sáng và xử lý đỉnh trong một số trò chơi. Chỉ được hỗ trợ trên GPU Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Lập chỉ mục bộ mô tả</string>
-    <string name="descriptor_indexing_description">Cải thiện xử lý kết cấu và bộ đệm, cũng như lớp dịch Maxwell. Được hỗ trợ bởi một số GPU Vulkan 1.1 và tất cả GPU Vulkan 1.2+.</string>
-    <string name="use_fast_gpu_time">Sử dụng thời gian GPU nhanh</string>
-    <string name="use_fast_gpu_time_description">Buộc hầu hết các trò chơi chạy ở độ phân giải gốc cao nhất. Tùy chọn này có thể gây ra sự cố.</string>
-    <string name="fast_gpu_time">Hệ số ép xung GPU</string>
-    <string name="fast_gpu_time_description">Sử dụng 128 để có hiệu suất tối đa và 512 để có độ trung thực đồ họa tối đa.</string>
-    <string name="gpu_low">Thấp (128)</string>
-    <string name="gpu_medium">Trung bình (256)</string>
-    <string name="gpu_high">Cao (512)</string>
-
-    <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsius</string>
-    <string name="temperature_fahrenheit">Fahrenheit</string>
-
+    <string name="use_lru_cache">Bật bộ nhớ đệm LRU</string>
+    <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU để cải thiện hiệu suất bằng cách tiết kiệm quy trình sử dụng CPU. Một số trò chơi như TotK 1.2.1 có vấn đề - hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
     <string name="use_fast_cpu_time">Thời gian CPU nhanh</string>
     <string name="use_fast_cpu_time_description">Buộc CPU mô phỏng chạy ở tốc độ xung nhịp cao hơn, giảm một số giới hạn FPS. Tùy chọn này không ổn định và có thể gây ra sự cố, và CPU yếu hơn có thể thấy hiệu suất giảm.</string>
-    <string name="fast_cpu_time">Tốc độ xung nhịp CPU</string>
-    <string name="fast_cpu_time_description">Sử dụng Boost (1700MHz) để chạy ở tốc độ xung nhịp gốc cao nhất của Switch hoặc Fast (2000MHz) để chạy ở tốc độ gấp đôi.</string>
-    <string name="memory_layout">Bố cục bộ nhớ</string>
-    <string name="memory_layout_description">(THỬ NGHIỆM) Thay đổi bố cục bộ nhớ mô phỏng. Cài đặt này không tăng hiệu suất, nhưng có thể giúp ích cho các trò chơi sử dụng độ phân giải cao thông qua mod. Không sử dụng trên điện thoại có 8GB RAM trở xuống.</string>
-    <string name="sample_shading">Tô bóng mẫu</string>
-    <string name="sample_shading_description">Cho phép fragment shader thực thi trên mỗi mẫu trong một fragment đa mẫu thay vì một lần mỗi fragment. Cải thiện chất lượng đồ họa với chi phí hiệu suất. Chỉ thiết bị Vulkan 1.1+ hỗ trợ tiện ích mở rộng này.</string>
-    <string name="sample_shading_fraction">Phần trăm tô bóng mẫu</string>
-    <string name="sample_shading_fraction_description">Cường độ của bước tô bóng mẫu. Giá trị cao hơn cải thiện chất lượng tốt hơn nhưng cũng giảm hiệu suất nhiều hơn.</string>
     <string name="custom_cpu_ticks">Tích CPU tùy chỉnh</string>
     <string name="custom_cpu_ticks_description">Đặt giá trị tích CPU tùy chỉnh. Giá trị cao hơn có thể tăng hiệu suất, nhưng cũng có thể khiến trò chơi bị đơ. Phạm vi 77–21000 được khuyến nghị.</string>
     <string name="cpu_ticks">Tích</string>
@@ -126,36 +104,12 @@
     <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
     <string name="cpuopt_unsafe_host_mmu">Bật giả lập MMU Máy chủ</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tối ưu hóa này tăng tốc độ truy cập bộ nhớ của chương trình khách. Bật nó lên khiến các thao tác đọc/ghi bộ nhớ khách được thực hiện trực tiếp vào bộ nhớ và sử dụng MMU của Máy chủ. Tắt tính năng này buộc tất cả quyền truy cập bộ nhớ phải sử dụng Giả lập MMU Phần mềm.</string>
+    <string name="fast_cpu_time">Tốc độ xung nhịp CPU</string>
+    <string name="fast_cpu_time_description">Sử dụng Boost (1700MHz) để chạy ở tốc độ xung nhịp gốc cao nhất của Switch hoặc Fast (2000MHz) để chạy ở tốc độ gấp đôi.</string>
+    <string name="memory_layout">Bố cục bộ nhớ</string>
+    <string name="memory_layout_description">(THỬ NGHIỆM) Thay đổi bố cục bộ nhớ mô phỏng. Cài đặt này không tăng hiệu suất, nhưng có thể giúp ích cho các trò chơi sử dụng độ phân giải cao thông qua mod. Không sử dụng trên điện thoại có 8GB RAM trở xuống.</string>
     <string name="dma_accuracy">Độ chính xác DMA</string>
     <string name="dma_accuracy_description">Điều khiển độ chính xác của DMA. Độ chính xác an toàn có thể khắc phục sự cố trong một số trò chơi, nhưng trong một số trường hợp cũng có thể ảnh hưởng đến hiệu suất. Nếu không chắc chắn, hãy để giá trị này ở Mặc định.</string>
-
-    <string name="memory_4gb">4GB (Được đề xuất)</string>
-    <string name="memory_6gb">6GB (Không an toàn)</string>
-    <string name="memory_8gb">8GB (Không an toàn)</string>
-
-    <string name="clock_base">Cơ bản (1000MHz)</string>
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Nhanh (2000MHz)</string>
-
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">Phương thức giải mã ASTC</string>
-    <string name="accelerate_astc_description">Chọn cách giải mã texture nén ASTC để kết xuất: CPU (chậm, an toàn), GPU (nhanh, khuyên dùng) hoặc CPU Async (không giật, có thể gây ra sự cố)</string>
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU bất đồng bộ</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">Phương thức nén lại ASTC</string>
-    <string name="astc_recompression_description">Chọn cách nén lại texture ASTC để cải thiện khả năng tương thích và hiệu suất. Bật tùy chọn này tiết kiệm VRAM nhưng có thể làm giảm chất lượng texture.</string>
-    <string name="astc_recompression_uncompressed">Không nén</string>
-    <string name="astc_recompression_bc1">BC1 (Chất lượng thấp)</string>
-    <string name="astc_recompression_bc3">BC3 (Chất lượng trung bình)</string>
-
-    <!-- VRAM Usage Mode -->
-    <string name="vram_usage_mode">Chế độ sử dụng VRAM</string>
-    <string name="vram_usage_mode_description">Kiểm soát cách cấp phát bộ nhớ GPU</string>
-    <string name="vram_usage_conservative">Bảo thủ</string>
-    <string name="vram_usage_aggressive">Mạnh</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Backend Shader</string>
@@ -172,8 +126,6 @@
     <string name="nvdec_emulation_none">Tắt</string>
 
     <!-- Optimize Spir-V output -->
-    <string name="renderer_optimize_spirv_output">Tối ưu Spir-V</string>
-    <string name="renderer_optimize_spirv_output_description">Tối ưu hóa shader đã biên dịch để cải thiện hiệu suất GPU.</string>
     <string name="never">Không</string>
     <string name="on_load">Khi tải</string>
     <string name="always">Luôn</string>
@@ -261,35 +213,23 @@
     <string name="emulation_multiplayer">Nhiều người chơi</string>
     <string name="multiplayer_game_name">Trò chơi ưa thích</string>
     <string name="multiplayer_preferred_game_name">Trò chơi chính</string>
+    <string name="multiplayer_lobby_type">Loại phòng</string>
     <string name="multiplayer_no_game">Không tìm thấy</string>
     <string name="multiplayer_preferred_game_name_invalid">Chọn trò chơi chính</string>
     <string name="multiplayer_room_name_error">3-20 ký tự</string>
     <string name="multiplayer_required">Bắt buộc</string>
+    <string name="multiplayer_token_required">Yêu cầu mã web, hãy vào Cài đặt nâng cao -> Hệ thống -> Mạng</string>
     <string name="multiplayer_ip_error">Sai định dạng IP</string>
     <string name="multiplayer_username_error">Phải có 4-20 ký tự (chỉ chữ số, dấu chấm, dấu gạch ngang, dấu gạch dưới và khoảng trắng)</string>
     <string name="multiplayer_nickname_invalid">Tên người dùng không hợp lệ, hãy đảm bảo đã đặt đúng trong Hệ thống → Mạng</string>
-    <string name="multiplayer_port_error">1-65535</string>
     <string name="multiplayer_token_error">Phải có 48 ký tự và chỉ chữ thường a-z</string>
-    <string name="multiplayer_lobby_type">Loại phòng</string>
-    <string name="multiplayer_public_visibility">Công khai</string>
-    <string name="multiplayer_unlisted_visibility">Không công khai</string>
+    <string name="multiplayer_port_error">1-65535</string>
     <string name="cancel">Hủy</string>
     <string name="ok">OK</string>
     <string name="refresh">Tải lại</string>
     <string name="room_list">Danh sách phòng</string>
-    <string name="multiplayer_token_required">Yêu cầu mã web, hãy vào Cài đặt nâng cao -> Hệ thống -> Mạng</string>
-
-    <!-- Static Themes -->
-    <string name="static_theme_color">Màu giao diện</string>
-    <string name="violet">Tím (Mặc định)</string>
-    <string name="blue">Xanh dương</string>
-    <string name="cyan">Xanh lơ</string>
-    <string name="red">Đỏ</string>
-    <string name="green">Xanh lá</string>
-    <string name="yellow">Vàng</string>
-    <string name="orange">Cam</string>
-    <string name="pink">Hồng</string>
-    <string name="gray">Xám</string>
+    <string name="multiplayer_public_visibility">Công khai</string>
+    <string name="multiplayer_unlisted_visibility">Không công khai</string>
 
     <!-- Setup strings -->
     <string name="welcome">Chào mừng!</string>
@@ -299,12 +239,10 @@
     <string name="keys_description">Chọn file &lt;b>prod.keys&lt;/b> của bạn bằng nút bên dưới.</string>
     <string name="select_keys">Chọn Chìa khóa</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Chọn file <b>firmware.zip</b> của bạn bằng nút bên dưới.\nHiện Eden yêu cầu phiên bản <b>19.0.1</b> hoặc thấp hơn.</string>
     <string name="select_firmware">Chọn Firmware</string>
     <string name="games">Trò chơi</string>
     <string name="games_description">Chọn thư mục &lt;b>Games&lt;/b> của bạn bằng nút bên dưới.</string>
     <string name="done">Hoàn thành</string>
-    <string name="done_description">Tất cả đã hoàn tất.\nHãy tận hưởng trò chơi của bạn!</string>
     <string name="text_continue">Tiếp tục</string>
     <string name="next">Tiếp theo</string>
     <string name="back">Trở lại</string>
@@ -314,6 +252,7 @@
     <string name="bluetooth_permissions_denied">Từ chối quyền Bluetooth. Hỗ trợ điều khiển có thể bị hạn chế.</string>
 
     <!-- Home strings -->
+
     <string name="alphabetical">A-Z</string>
     <string name="view_list">Danh sách</string>
     <string name="view_grid">Lưới</string>
@@ -323,7 +262,6 @@
     <string name="pre_alpha_warning_description">CẢNH BÁO: Phiên bản này chưa hoàn thiện, có thể có lỗi.</string>
     <string name="dont_show_again">Đừng hiển thị lại</string>
     <string name="pre_alpha_warning">PHẦN MỀM PRE-ALPHA</string>
-    <string name="add_directory_success">Đã thêm thư mục game</string>
     <string name="home_games">Trò chơi</string>
     <string name="home_search">Tìm</string>
     <string name="home_settings">Cài đặt</string>
@@ -357,6 +295,7 @@
     <string name="install_amiibo_keys">Cài đặt Amiibo</string>
     <string name="install_amiibo_keys_description">Cần thiết để dùng Amiibo trong trò chơi</string>
     <string name="install_amiibo_keys_failure_extension_description">Xác minh rằng tệp keys của bạn có đuôi .bin và thử lại.</string>
+    <string name="gpu_driver_fetcher">Trình tải trình điều khiển GPU</string>
     <string name="install_gpu_driver">Cài đặt driver GPU</string>
     <string name="install_gpu_driver_description">Cài đặt driver thay thế để có thể có hiệu suất tốt và chính xác hơn</string>
     <string name="advanced_settings">Cài đặt nâng cao</string>
@@ -399,7 +338,6 @@
     <string name="install_game_content_success_install">%1$d cài thành công</string>
     <string name="install_game_content_success_overwrite">%1$d ghi đè thành công</string>
     <string name="custom_driver_not_supported">Không hỗ trợ driver tùy chỉnh</string>
-    <string name="custom_driver_not_supported_description">Thiết bị này chưa hỗ trợ driver tùy chỉnh</string>
     <string name="manage_yuzu_data">Quản lý dữ liệu</string>
     <string name="manage_yuzu_data_description">Nhập/xuất firmware, keys, dữ liệu</string>
     <string name="share_save_file">Chia sẻ save</string>
@@ -418,8 +356,14 @@
     <string name="no_save_data_found">Không tìm thấy save</string>
     <string name="verify_installed_content">Kiểm tra nội dung</string>
     <string name="verify_installed_content_description">Kiểm tra lỗi nội dung đã cài</string>
+
     <string name="keys_missing">Thiếu keys mã hóa</string>
     <string name="keys_missing_description">Không thể giải mã firmware và game</string>
+    <string name="uninstall_firmware">Gỡ cài đặt firmware</string>
+    <string name="uninstall_firmware_description">Gỡ cài đặt firmware sẽ xóa nó khỏi thiết bị và có thể ảnh hưởng đến khả năng tương thích trò chơi.</string>
+    <string name="firmware_uninstalling">Đang gỡ cài đặt firmware...</string>
+    <string name="firmware_uninstalled_success">Gỡ cài đặt firmware thành công</string>
+
     <string name="firmware_invalid">Firmware không hợp lệ</string>
     <string name="error_firmware_missing">Firmware là cần thiết để chạy một số trò chơi và ứng dụng. Eden chỉ hoạt động với firmware 19.0.1 trở về trước.</string>
     <string name="error_firmware_corrupted">Firmware được báo cáo là có nhưng không thể đọc được. Kiểm tra khóa giải mã và dump lại firmware nếu cần.</string>
@@ -458,14 +402,12 @@
     <string name="contributors_description">Được làm với \u2764 từ nhóm Eden</string>
     <string name="licenses_description">Các dự án làm cho Eden trên Android trở thành điều có thể</string>
     <string name="build">Dựng</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Giới hạn tốc độ</string>
     <string name="frame_limit_enable_description">Giới hạn tốc độ giả lập ở một phần trăm cụ thể của tốc độ bình thường.</string>
     <string name="frame_limit_slider">Giới hạn phần trăm tốc độ</string>
     <string name="frame_limit_slider_description">Xác định phần trăm để giới hạn tốc độ giả lập. 100% là tốc độ bình thường. Giá trị cao hơn hoặc thấp hơn sẽ tăng hoặc giảm giới hạn tốc độ.</string>
     <string name="cpu_accuracy">Độ chính xác CPU</string>
-
     <!-- System settings strings -->
     <string name="device_name">Tên thiết bị</string>
     <string name="use_docked_mode">Chế độ Docked</string>
@@ -478,18 +420,22 @@
     <string name="use_custom_rtc_description">Cho phép bạn thiết lập một đồng hồ thời gian thực tùy chỉnh riêng biệt so với thời gian hệ thống hiện tại.</string>
     <string name="set_custom_rtc">Thiết lập RTC tùy chỉnh</string>
 
-    <!-- Network settings strings -->
     <string name="generate">Tạo</string>
-    <string name="web_username">Tên người dùng web</string>
-    <string name="web_username_description">Tên người dùng hiển thị trong phòng chơi nhiều người. Phải có 4-20 ký tự (chỉ chữ số, dấu gạch ngang, dấu chấm, dấu gạch dưới và khoảng trắng).</string>
+
+    <!-- Network settings strings -->
     <string name="web_token">Token web</string>
     <string name="web_token_description">Token web dùng để tạo phòng công khai. Đây là chuỗi 48 ký tự chỉ chứa chữ thường a-z.</string>
+    <string name="web_username">Tên người dùng web</string>
+    <string name="web_username_description">Tên người dùng hiển thị trong phòng chơi nhiều người. Phải có 4-20 ký tự (chỉ chữ số, dấu gạch ngang, dấu chấm, dấu gạch dưới và khoảng trắng).</string>
     <string name="network">Mạng</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">Backend</string>
     <string name="display">Hiển thị</string>
     <string name="processing">Hậu xử lý</string>
+
+    <string name="frame_skipping">WIP: Bỏ qua khung hình</string>
+    <string name="frame_skipping_description">Bật hoặc tắt bỏ qua khung hình để cải thiện hiệu suất bằng cách giảm số lượng khung hình được kết xuất. Tính năng này đang được phát triển và sẽ được kích hoạt trong các bản phát hành tương lai.</string>
     <string name="renderer_accuracy">Mức độ chính xác</string>
     <string name="renderer_resolution">Độ phân giải (Handheld/Docked)</string>
     <string name="renderer_vsync">Chế độ VSync</string>
@@ -501,8 +447,14 @@
     <string name="renderer_anti_aliasing">Phương pháp khử răng cưa</string>
     <string name="renderer_force_max_clock">Buộc chạy ở xung nhịp tối đa (chỉ Adreno)</string>
     <string name="renderer_force_max_clock_description">Buộc GPU hoạt động ở xung nhịp tối đa có thể (ràng buộc nhiệt độ vẫn sẽ được áp dụng).</string>
+    <string name="renderer_optimize_spirv_output">Tối ưu Spir-V</string>
+    <string name="renderer_optimize_spirv_output_description">Tối ưu hóa shader đã biên dịch để cải thiện hiệu suất GPU.</string>
     <string name="renderer_asynchronous_shaders">Dùng các shader bất đồng bộ</string>
     <string name="renderer_asynchronous_shaders_description">Biên dịch shader không đồng bộ. Điều này có thể giảm giật lag nhưng cũng có thể gây ra lỗi đồ họa.</string>
+    <string name="use_fast_gpu_time">Sử dụng thời gian GPU nhanh</string>
+    <string name="use_fast_gpu_time_description">Buộc hầu hết các trò chơi chạy ở độ phân giải gốc cao nhất. Tùy chọn này có thể gây ra sự cố.</string>
+    <string name="fast_gpu_time">Hệ số ép xung GPU</string>
+    <string name="fast_gpu_time_description">Sử dụng 128 để có hiệu suất tối đa và 512 để có độ trung thực đồ họa tối đa.</string>
     <string name="renderer_reactive_flushing">Bật xả tương ứng</string>
     <string name="renderer_reactive_flushing_description">Cải thiện độ chính xác hiển thị trong một số trò chơi nhưng đồng thời giảm hiệu suất chơi.</string>
     <string name="use_disk_shader_cache">Lưu bộ nhớ đệm shader trên ổ cứng</string>
@@ -514,6 +466,8 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="use_auto_stub">Sử dụng Auto Stub</string>
+    <string name="use_auto_stub_description">Tự động thay thế các dịch vụ và chức năng bị thiếu. Có thể cải thiện khả năng tương thích nhưng gây ra sự cố và vấn đề ổn định.</string>
 
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
@@ -594,6 +548,7 @@
     <string name="string_import">Nhập</string>
     <string name="export">Xuất</string>
     <string name="install">Cài đặt</string>
+    <string name="fetch">Tải</string>
     <string name="delete">Xoá</string>
     <string name="start">Bắt đầu</string>
     <string name="clear">Bỏ trống</string>
@@ -610,8 +565,6 @@
     <string name="installing_driver">Đang cài đặt driver...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="gpu_driver_fetcher">Trình tải trình điều khiển GPU</string>
-    <string name="fetch">Tải</string>
     <string name="fetch_error">Lỗi khi tải</string>
     <string name="check_connection">Kiểm tra kết nối và thử lại.</string>
     <string name="show_releases">Hiển thị bản phát hành</string>
@@ -661,6 +614,7 @@
     <string name="loader_error_video_core_description">Việc này thường do driver GPU không tương thích. Cài đặt một driver GPU tùy chỉnh có thể giải quyết vấn đề này.</string>
     <string name="loader_error_invalid_format">Không thể tải ROM</string>
     <string name="loader_error_file_not_found">Tệp ROM không tồn tại</string>
+
     <string name="loader_requires_firmware">Trò chơi yêu cầu firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Trò chơi bạn đang cố khởi chạy yêu cầu firmware để khởi động hoặc vượt qua menu mở đầu. Vui lòng <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dump và cài đặt firmware</a>, hoặc nhấn \"OK\" để tiếp tục dù sao đi nữa.]]></string>
 
@@ -684,7 +638,6 @@
     <string name="config_write_failed">Không thể ghi tệp cấu hình</string>
     <string name="config_apply_failed">Không thể áp dụng cấu hình</string>
     <string name="config_already_exists_title">Cấu hình Đã Tồn tại</string>
-    <string name="config_already_exists_message">Cài đặt tùy chỉnh đã tồn tại cho %1$s.\n\nBạn có muốn ghi đè cấu hình hiện có không?\n\nHành động này không thể hoàn tác.</string>
     <string name="config_exists_prompt">Đang kiểm tra cấu hình hiện có...</string>
     <string name="overwrite_cancelled">Đã hủy ghi đè</string>
     <string name="checking_driver">Đang kiểm tra trình điều khiển tùy chỉnh: %1$s</string>
@@ -704,7 +657,6 @@
     <string name="invalid_driver_file">Tệp trình điều khiển không hợp lệ: %s</string>
     <string name="network_unavailable">Không có kết nối mạng khả dụng. Vui lòng kiểm tra kết nối internet của bạn và thử lại.</string>
     <string name="driver_missing_title">Yêu cầu Trình điều khiển GPU</string>
-    <string name="driver_missing_message">Cấu hình trò chơi yêu cầu trình điều khiển GPU \"%s\" chưa được cài đặt trên thiết bị của bạn.\n\nBạn có muốn tải xuống và cài đặt ngay bây giờ không?</string>
     <string name="driver_download_cancelled">Đã hủy tải xuống trình điều khiển. Không thể khởi chạy trò chơi nếu thiếu trình điều khiển bắt buộc.</string>
     <string name="download">Tải xuống</string>
 
@@ -737,13 +689,9 @@
     <string name="abort_button">Hủy bỏ</string>
     <string name="continue_button">Tiếp tục</string>
     <string name="system_archive_not_found">Không tìm thấy tệp tin hệ thống</string>
-    <string name="system_archive_not_found_message">%s bị thiếu. Vui lòng trích xuất các tập tin hệ thống của bạn.\nNếu chạy tiếp giả lập có thể gặp sự cố và lỗi.</string>
     <string name="system_archive_general">Một tập tin hệ thống</string>
     <string name="save_load_error">Lỗi Lưu/Tải</string>
     <string name="fatal_error">Lỗi nghiêm trọng</string>
-    <string name="fatal_error_message">Đã xảy ra lỗi nghiêm trọng. Kiểm tra nhật ký để biết chi tiết.\nViệc tiếp tục giả lập có thể dẫn đến sự cố và lỗi.</string>
-    <string name="performance_warning">Tắt cài đặt này sẽ làm giảm đáng kể hiệu suất giả lập! Để có trải nghiệm tốt nhất, bạn nên bật cài này.</string>
-
     <!-- Region Names -->
     <string name="region_japan">Nhật Bản</string>
     <string name="region_usa">Hoa Kỳ</string>
@@ -753,9 +701,27 @@
     <string name="region_korea">Hàn Quốc</string>
     <string name="region_taiwan">Đài Loan</string>
 
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (Được đề xuất)</string>
+    <string name="memory_6gb">6GB (Không an toàn)</string>
+    <string name="memory_8gb">8GB (Không an toàn)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">Cơ bản (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Nhanh (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">Thấp (128)</string>
+    <string name="gpu_medium">Trung bình (256)</string>
+    <string name="gpu_high">Cao (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
-
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Trống</string>
@@ -763,12 +729,31 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Trung bình</string>
     <string name="renderer_accuracy_high">Khỏe</string>
-    <string name="renderer_accuracy_extreme">Tối đa (Chậm)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Mặc định</string>
-    <string name="dma_accuracy_unsafe">Không an toàn (nhanh)</string>
-    <string name="dma_accuracy_safe">An toàn (ổn định)</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">Phương thức giải mã ASTC</string>
+    <string name="accelerate_astc_description">Chọn cách giải mã texture nén ASTC để kết xuất: CPU (chậm, an toàn), GPU (nhanh, khuyên dùng) hoặc CPU Async (không giật, có thể gây ra sự cố)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU bất đồng bộ</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">Phương thức nén lại ASTC</string>
+    <string name="astc_recompression_description">Chọn cách nén lại texture ASTC để cải thiện khả năng tương thích và hiệu suất. Bật tùy chọn này tiết kiệm VRAM nhưng có thể làm giảm chất lượng texture.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Không nén</string>
+    <string name="astc_recompression_bc1">BC1 (Chất lượng thấp)</string>
+    <string name="astc_recompression_bc3">BC3 (Chất lượng trung bình)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">Chế độ sử dụng VRAM</string>
+    <string name="vram_usage_mode_description">Kiểm soát cách cấp phát bộ nhớ GPU</string>
+    <string name="vram_usage_conservative">Bảo thủ</string>
+    <string name="vram_usage_aggressive">Mạnh</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
@@ -793,7 +778,6 @@
     <string name="scaling_filter_gaussian">ScaleForce</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Trống</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -812,7 +796,6 @@
     <string name="cpu_accuracy_accurate">Tuyệt đối</string>
     <string name="cpu_accuracy_unsafe">Tương đối</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Chậm)</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">Cần xoay trái</string>
@@ -844,6 +827,18 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Nền tối</string>
     <string name="use_black_backgrounds_description">Khi sử dụng chủ đề tối, hãy áp dụng nền đen.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Màu giao diện</string>
+    <string name="violet">Tím (Mặc định)</string>
+    <string name="blue">Xanh dương</string>
+    <string name="cyan">Xanh lơ</string>
+    <string name="red">Đỏ</string>
+    <string name="green">Xanh lá</string>
+    <string name="yellow">Vàng</string>
+    <string name="orange">Cam</string>
+    <string name="pink">Hồng</string>
+    <string name="gray">Xám</string>
 
     <string name="mute">Tắt tiếng</string>
     <string name="unmute">Bật tiếng</string>

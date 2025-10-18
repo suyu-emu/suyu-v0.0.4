@@ -4,13 +4,13 @@
     <string name="notice_notification_channel_name">Upozornění a chyby</string>
     <string name="notice_notification_channel_description">Ukáže oznámení v případě chyby.</string>
     <string name="notification_permission_not_granted">Oznámení nejsou oprávněna!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Vylepšený)</string>
     <string name="process_ram">RAM procesu: %1$d MB</string>
     <string name="shaders_prefix">Sestavování</string>
     <string name="shaders_suffix">shaderů</string>
     <string name="charging">(Nabíjení)</string>
+
     <string name="system_info_label">Systém:</string>
     <string name="show_stats_overlay">Zobrazit překryv statistik výkonu</string>
     <string name="stats_overlay_customization">Přizpůsobení</string>
@@ -33,6 +33,8 @@
     <string name="bat_temperature_unit">Jednotky teploty baterie</string>
     <string name="show_power_info">Zobrazit informace o baterii</string>
     <string name="show_power_info_description">Zobrazit aktuální odběr energie a zbývající kapacitu baterie</string>
+    <string name="show_shaders_building">Zobrazit vytváření shaderů</string>
+    <string name="show_shaders_building_description">Zobrazuje aktuální počet vytvářených shaderů</string>
     <string name="overlay_position">Pozice překryvu</string>
     <string name="overlay_position_description">Umístění překryvu statistik na obrazovce</string>
     <string name="overlay_position_top_left">Vlevo nahoře</string>
@@ -43,8 +45,6 @@
     <string name="overlay_position_center_bottom">Dole uprostřed</string>
     <string name="perf_overlay_background">Pozadí překryvu</string>
     <string name="perf_overlay_background_description">Přidá pozadí pro lepší čitelnost</string>
-    <string name="show_shaders_building">Zobrazit vytváření shaderů</string>
-    <string name="show_shaders_building_description">Zobrazuje aktuální počet vytvářených shaderů</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">Zobrazit překryv informací o zařízení</string>
@@ -62,15 +62,25 @@
     <string name="show_fw_version_description">Zobrazí nainstalovanou verzi firmwaru</string>
 
     <!-- Eden\'s Veil -->
-    <string name="veil_extensions">Rozšíření GPU</string>
-    <string name="veil_renderer">Renderer</string>
-    <string name="veil_misc">CPU a paměť</string>
     <string name="eden_veil">Edenův závoj</string>
     <string name="eden_veil_description">Experimentální nastavení pro zlepšení výkonu a schopností. Tato nastavení mohou způsobit černé obrazovky nebo další herní problémy.</string>
     <string name="eden_veil_warning_title">Experimentální nastavení</string>
     <string name="eden_veil_warning_description">Nastavení obsažená v Edenově závoji jsou vysoce experimentální a mohou způsobit problémy. Pokud se vaše hra nespustí, deaktivujte všechna rozšíření.</string>
-    <string name="frame_skipping">WIP: Přeskočení snímků</string>
-    <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
+
+    <string name="veil_extensions">Rozšíření GPU</string>
+    <string name="dyna_state">Rozšířený dynamický stav</string>
+    <string name="dyna_state_description">Ovládá počet funkcí, které lze použít v rozšířeném dynamickém stavu. Vyšší hodnoty umožňují více funkcí a mohou zvýšit výkon, ale mohou způsobit problémy s některými ovladači a výrobci. Výchozí hodnota se může lišit v závislosti na vašem systému a hardwarových schopnostech. Tuto hodnotu lze měnit, dokud nedosáhnete stability a lepší vizuální kvality.</string>
+    <string name="disabled">Vypnuto</string>
+    <string name="provoking_vertex">Provokující vertex</string>
+    <string name="provoking_vertex_description">Zlepšuje osvětlení a zpracování vertexů v některých hrách. Podporováno pouze na GPU s Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Indexování deskriptorů</string>
+    <string name="descriptor_indexing_description">Zlepšuje zpracování textur a bufferů, stejně jako Maxwell překladovou vrstvu. Podporováno některými GPU s Vulkan 1.1 a všemi GPU s Vulkan 1.2+.</string>
+    <string name="sample_shading">Vzorkovací stínování</string>
+    <string name="sample_shading_description">Umožňuje fragment shaderu provádět výpočty pro každý vzorek ve fragmentu s více vzorky namísto jednou pro fragment. Zlepšuje kvalitu grafiky na úkor výkonu. Tuto funkci podporují pouze zařízení s Vulkan 1.1+.</string>
+    <string name="sample_shading_fraction">Podíl stínování vzorku</string>
+    <string name="sample_shading_fraction_description">Intenzita průchodu stínování vzorku. Vyšší hodnoty zlepšují kvalitu, ale také výrazněji snižují výkon.</string>
+
+    <string name="veil_renderer">Renderer</string>
     <string name="frame_interpolation">Vylepšené časování snímků</string>
     <string name="frame_interpolation_description">Zajišťuje plynulé a konzistentní zobrazování snímků synchronizací jejich časování, čímž snižuje trhání a nerovnoměrné animace. Ideální pro hry, které trpí nestabilitou časování snímků nebo mikrotrháním během hraní.</string>
     <string name="renderer_early_release_fences">Uvolnit ploty brzy</string>
@@ -79,45 +89,14 @@
     <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Nejvíce postižené se zdají být hry s Unreal Engine 4.</string>
     <string name="buffer_reorder_disable">Zakázat přeřazování vyrovnávací paměti</string>
     <string name="buffer_reorder_disable_description">Při zaškrtnutí zakáže přeřazování nahrání mapované paměti, což umožňuje spojit nahrání s konkrétními vykresleními. V některých případech může snížit výkon.</string>
-    <string name="use_lru_cache">Povolit LRU mezipaměť</string>
-    <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU, čímž zvýšíte výkon snížením využití procesoru CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, takže ji deaktivujte, pokud hra neběží nebo náhodně padá.</string>
-    <string name="dyna_state">Rozšířený dynamický stav</string>
-    <string name="dyna_state_description">Ovládá počet funkcí, které lze použít v rozšířeném dynamickém stavu. Vyšší hodnoty umožňují více funkcí a mohou zvýšit výkon, ale mohou způsobit problémy s některými ovladači a výrobci. Výchozí hodnota se může lišit v závislosti na vašem systému a hardwarových schopnostech. Tuto hodnotu lze měnit, dokud nedosáhnete stability a lepší vizuální kvality.</string>
-    <string name="disabled">Vypnuto</string>
+
+    <string name="veil_misc">CPU a paměť</string>
     <string name="use_sync_core">Synchronizovat rychlost jádra</string>
     <string name="use_sync_core_description">Synchronizuje rychlost jádra s maximálním procentem rychlosti, aby se zlepšil výkon bez změny skutečné rychlosti hry.</string>
-    <string name="use_auto_stub">Použít automatický stub</string>
-    <string name="use_auto_stub_description">Automaticky doplňuje chybějící služby a funkce. Může zlepšit kompatibilitu, ale také způsobit pády a problémy se stabilitou.</string>
-    <string name="uninstall_firmware">Odinstalovat firmware</string>
-    <string name="uninstall_firmware_description">Odinstalování firmwaru jej odstraní z zařízení a může ovlivnit kompatibilitu her.</string>
-    <string name="firmware_uninstalling">Odstraňování firmwaru</string>
-    <string name="firmware_uninstalled_success">Firmware byl úspěšně odinstalován</string>
-    <string name="provoking_vertex">Provokující vertex</string>
-    <string name="provoking_vertex_description">Zlepšuje osvětlení a zpracování vertexů v některých hrách. Podporováno pouze na GPU s Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Indexování deskriptorů</string>
-    <string name="descriptor_indexing_description">Zlepšuje zpracování textur a bufferů, stejně jako Maxwell překladovou vrstvu. Podporováno některými GPU s Vulkan 1.1 a všemi GPU s Vulkan 1.2+.</string>
-    <string name="use_fast_gpu_time">Použít rychlý čas GPU</string>
-    <string name="use_fast_gpu_time_description">Nutí většinu her běžet v jejich nativním rozlišení. Tato volba je nestabilní a může způsobovat problémy.</string>
-    <string name="fast_gpu_time">Faktor přetaktování GPU</string>
-    <string name="fast_gpu_time_description">Použijte 128 pro maximální výkon a 512 pro maximální věrnost grafiky.</string>
-    <string name="gpu_low">Nízké (128)</string>
-    <string name="gpu_medium">Střední (256)</string>
-    <string name="gpu_high">Vysoké (512)</string>
-
-    <!-- Temperature Units -->
-    <string name="temperature_celsius">Celsia</string>
-    <string name="temperature_fahrenheit">Fahrenheita</string>
-
+    <string name="use_lru_cache">Povolit LRU mezipaměť</string>
+    <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU, čímž zvýšíte výkon snížením využití procesoru CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, takže ji deaktivujte, pokud hra neběží nebo náhodně padá.</string>
     <string name="use_fast_cpu_time">Rychlý čas CPU</string>
     <string name="use_fast_cpu_time_description">Nutí emulované CPU běžet na vyšší frekvenci, čímž snižuje některé limity FPS. Tato volba je nestabilní a může způsobit problémy a slabší CPU mohou mít snížený výkon.</string>
-    <string name="fast_cpu_time">Taktování CPU</string>
-    <string name="fast_cpu_time_description">Použijte Boost (1700MHz) pro běh na nejvyšším nativním taktu Switch nebo Fast (2000MHz) pro běh na dvojnásobném taktu.</string>
-    <string name="memory_layout">Rozložení paměti</string>
-    <string name="memory_layout_description">(EXPERIMENTÁLNÍ) Změna emulovaného rozložení paměti. Toto nastavení nezvyšuje výkon, ale může pomoci hrám využívajícím vysoké rozlišení pomocí modů. Nepoužívejte na telefonech s 8GB RAM nebo méně.</string>
-    <string name="sample_shading">Vzorkovací stínování</string>
-    <string name="sample_shading_description">Umožňuje fragment shaderu provádět výpočty pro každý vzorek ve fragmentu s více vzorky namísto jednou pro fragment. Zlepšuje kvalitu grafiky na úkor výkonu. Tuto funkci podporují pouze zařízení s Vulkan 1.1+.</string>
-    <string name="sample_shading_fraction">Podíl stínování vzorku</string>
-    <string name="sample_shading_fraction_description">Intenzita průchodu stínování vzorku. Vyšší hodnoty zlepšují kvalitu, ale také výrazněji snižují výkon.</string>
     <string name="custom_cpu_ticks">Vlastní CPU takty</string>
     <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu CPU taktů. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučuje se rozsah 77–21000.</string>
     <string name="cpu_ticks">Takty</string>
@@ -125,36 +104,12 @@
     <string name="skip_cpu_inner_invalidation_description">Přeskočí některé invalidace mezipaměti na straně CPU během aktualizací paměti, čímž sníží zatížení CPU a zlepší jeho výkon. Může způsobit chyby nebo pády v některých hrách.</string>
     <string name="cpuopt_unsafe_host_mmu">Povolit emulaci hostitelské MMU</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tato optimalizace zrychluje přístup do paměti hostovaného programu. Její povolení způsobí, že čtení a zápisy do paměti hosta se provádějí přímo v paměti a využívají hostitelskou MMU. Zakázání této funkce vynutí použití softwarové emulace MMU pro všechny přístupy do paměti.</string>
+    <string name="fast_cpu_time">Taktování CPU</string>
+    <string name="fast_cpu_time_description">Použijte Boost (1700MHz) pro běh na nejvyšším nativním taktu Switch nebo Fast (2000MHz) pro běh na dvojnásobném taktu.</string>
+    <string name="memory_layout">Rozložení paměti</string>
+    <string name="memory_layout_description">(EXPERIMENTÁLNÍ) Změna emulovaného rozložení paměti. Toto nastavení nezvyšuje výkon, ale může pomoci hrám využívajícím vysoké rozlišení pomocí modů. Nepoužívejte na telefonech s 8GB RAM nebo méně.</string>
     <string name="dma_accuracy">Přesnost DMA</string>
     <string name="dma_accuracy_description">Ovládá přesnost DMA. Bezpečná přesnost může opravit problémy v některých hrách, ale v některých případech může také ovlivnit výkon. Pokud si nejste jisti, ponechte to na výchozím nastavení.</string>
-
-    <string name="memory_4gb">4GB (Doporučeno)</string>
-    <string name="memory_6gb">6GB (Nebezpečné)</string>
-    <string name="memory_8gb">8GB (Nebezpečné)</string>
-
-    <string name="clock_base">Základní (1000MHz)</string>
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Rychlé (2000MHz)</string>
-
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">Metoda dekódování ASTC</string>
-    <string name="accelerate_astc_description">Vyberte způsob dekódování textur komprimovaných pomocí ASTC pro vykreslování: CPU (pomalé, bezpečné), GPU (rychlé, doporučené) nebo CPU Async (žádné zasekávání, ale mohou nastat problémy)</string>
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU asynchronně</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">Metoda rekomprese ASTC</string>
-    <string name="astc_recompression_description">Vyberte způsob rekomprese textur ASTC pro zlepšení kompatibility a výkonu. Zapnutí této volby ušetří VRAM, ale může snížit kvalitu textur.</string>
-    <string name="astc_recompression_uncompressed">Nekomprimované</string>
-    <string name="astc_recompression_bc1">BC1 (nízká kvalita)</string>
-    <string name="astc_recompression_bc3">BC3 (střední kvalita)</string>
-
-    <!-- VRAM Usage Mode -->
-    <string name="vram_usage_mode">Režim využití VRAM</string>
-    <string name="vram_usage_mode_description">Správa alokace GPU paměti</string>
-    <string name="vram_usage_conservative">Konzervativní</string>
-    <string name="vram_usage_aggressive">Agresivní</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Backend shaderů</string>
@@ -170,9 +125,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Žádné</string>
 
-    <!-- Optimalizace Spir-V výstupu -->
-    <string name="renderer_optimize_spirv_output">Optimalizovat Spir-V výstup</string>
-    <string name="renderer_optimize_spirv_output_description">Optimalizuje zkompilovaný shader pro zvýšení efektivity GPU.</string>
+    <!-- Optimize Spir-V output -->
     <string name="never">Nikdy</string>
     <string name="on_load">Při načtení</string>
     <string name="always">Vždy</string>
@@ -260,35 +213,23 @@
     <string name="emulation_multiplayer">Více hráčů</string>
     <string name="multiplayer_game_name">Preferované hry</string>
     <string name="multiplayer_preferred_game_name">Preferovaná hra</string>
+    <string name="multiplayer_lobby_type">Typ místnosti</string>
     <string name="multiplayer_no_game">Nenalezeny žádné hry</string>
     <string name="multiplayer_preferred_game_name_invalid">Pro hostování místnosti musíte vybrat preferovanou hru.</string>
     <string name="multiplayer_room_name_error">Musí mít 3 až 20 znaků</string>
     <string name="multiplayer_required">Povinné</string>
+    <string name="multiplayer_token_required">Vyžadován webový token, přejděte do Pokročilá nastavení -> Systém -> Síť</string>
     <string name="multiplayer_ip_error">Neplatný formát IP</string>
     <string name="multiplayer_username_error">Musí mít 4–20 znaků a obsahovat pouze alfanumerické znaky, tečky, pomlčky, podtržítka a mezery</string>
     <string name="multiplayer_nickname_invalid">Neplatné uživatelské jméno, ujistěte se, že je správně nastaveno v Systém → Síť</string>
-    <string name="multiplayer_port_error">Musí být mezi 1 a 65535</string>
     <string name="multiplayer_token_error">Musí mít 48 znaků a pouze malá písmena a-z</string>
-    <string name="multiplayer_lobby_type">Typ místnosti</string>
-    <string name="multiplayer_public_visibility">Veřejné</string>
-    <string name="multiplayer_unlisted_visibility">Neveřejné</string>
+    <string name="multiplayer_port_error">Musí být mezi 1 a 65535</string>
     <string name="cancel">Zrušit</string>
     <string name="ok">OK</string>
     <string name="refresh">Obnovit</string>
     <string name="room_list">Seznam místností</string>
-    <string name="multiplayer_token_required">Vyžadován webový token, přejděte do Pokročilá nastavení -> Systém -> Síť</string>
-
-    <!-- Static Themes -->
-    <string name="static_theme_color">Barva motivu</string>
-    <string name="violet">Fialová (Výchozí)</string>
-    <string name="blue">Modrá</string>
-    <string name="cyan">Tyrkysová</string>
-    <string name="red">Červená</string>
-    <string name="green">Zelená</string>
-    <string name="yellow">Žlutá</string>
-    <string name="orange">Oranžová</string>
-    <string name="pink">Růžová</string>
-    <string name="gray">Šedá</string>
+    <string name="multiplayer_public_visibility">Veřejné</string>
+    <string name="multiplayer_unlisted_visibility">Neveřejné</string>
 
     <!-- Setup strings -->
     <string name="welcome">Vítejte!</string>
@@ -296,11 +237,9 @@
     <string name="keys">Klíče</string>
     <string name="select_keys">Vybrat klíče</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Vyberte svůj soubor <b>firmware.zip</b> pomocí tlačítka níže.\nEden aktuálně vyžaduje verzi <b>19.0.1</b> nebo nižší.</string>
     <string name="select_firmware">Vybrat firmware</string>
     <string name="games">Hry</string>
     <string name="done">Hotovo</string>
-    <string name="done_description">Vše je připraveno.\nUžijte si vaše hry!</string>
     <string name="text_continue">Pokračovat</string>
     <string name="next">Další</string>
     <string name="back">Zpět</string>
@@ -310,6 +249,7 @@
     <string name="bluetooth_permissions_denied">Bluetoothová oprávnění zamítnuta. Podpora ovladače může být omezena.</string>
 
     <!-- Home strings -->
+
     <string name="alphabetical">Abecedně</string>
     <string name="view_list">Seznam</string>
     <string name="view_grid">Mřížka</string>
@@ -319,7 +259,6 @@
     <string name="pre_alpha_warning_description">Varování: Tato verze není určena pro veřejnost. Může obsahovat chyby.</string>
     <string name="dont_show_again">Nezobrazovat znovu</string>
     <string name="pre_alpha_warning">PŘEDBĚŽNÁ VERZE</string>
-    <string name="add_directory_success">Složka úspěšně přidána</string>
     <string name="home_games">Hry</string>
     <string name="home_search">Hledat</string>
     <string name="home_settings">Nastavení</string>
@@ -345,6 +284,7 @@
     <string name="warning_cancel">Zrušit</string>
     <string name="install_amiibo_keys">Instalovat Amiibo klíče</string>
     <string name="install_amiibo_keys_description">Povinné použití Amiibo ve hře</string>
+    <string name="gpu_driver_fetcher">Stahovač ovladačů GPU</string>
     <string name="gpu_driver_manager">Správce ovladače GPU</string>
     <string name="install_gpu_driver">Instalovat GPU ovladač</string>
     <string name="advanced_settings">Pokročilé nastavení</string>
@@ -390,8 +330,14 @@
     <string name="no_save_data_found">Nenalezena uložená data</string>
     <string name="verify_installed_content">Ověřit obsah</string>
     <string name="verify_installed_content_description">Kontrola poškození obsahu</string>
+
     <string name="keys_missing">Chybí šifrovací klíče</string>
     <string name="keys_missing_description">Firmware a retail hry nelze dešifrovat</string>
+    <string name="uninstall_firmware">Odinstalovat firmware</string>
+    <string name="uninstall_firmware_description">Odinstalování firmwaru jej odstraní z zařízení a může ovlivnit kompatibilitu her.</string>
+    <string name="firmware_uninstalling">Odstraňování firmwaru</string>
+    <string name="firmware_uninstalled_success">Firmware byl úspěšně odinstalován</string>
+
     <string name="firmware_invalid">Neplatný firmware</string>
     <string name="error_firmware_missing">Firmware je vyžadován pro spuštění některých her a aplikací. Eden funguje pouze s firmwarem 19.0.1 nebo starším.</string>
     <string name="error_firmware_corrupted">Firmware byl nahlášen jako přítomný, ale nelze jej přečíst. Zkontrolujte šifrovací klíče a v případě potřeby firmware převezměte znovu.</string>
@@ -437,8 +383,6 @@
     <string name="user_data_export_success">Uživatelská data byla úspěšně exportována.</string>
     <string name="user_data_import_success">Uživatelská data byla úspěšně importována.</string>
     <string name="user_data_export_cancelled">Export zrušen</string>
-
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Omezit rychlost</string>
     <string name="frame_limit_enable_description">Omezení emulační rychlosti</string>
@@ -460,18 +404,22 @@
     <string name="use_custom_rtc_description">Vlastní nastavení času</string>
     <string name="set_custom_rtc">Nastavit vlastní RTC</string>
 
-    <!-- Network settings strings -->
     <string name="generate">Generovat</string>
-    <string name="web_username">Webové uživatelské jméno</string>
-    <string name="web_username_description">Uživatelské jméno zobrazené v multiplayerových místnostech. Musí mít 4–20 znaků a obsahovat pouze alfanumerické znaky, pomlčky, tečky, podtržítka a mezery.</string>
+
+    <!-- Network settings strings -->
     <string name="web_token">Webový token</string>
     <string name="web_token_description">Webový token používaný k vytváření veřejných místností. Jedná se o řetězec o délce 48 znaků obsahující pouze malá písmena a-z.</string>
+    <string name="web_username">Webové uživatelské jméno</string>
+    <string name="web_username_description">Uživatelské jméno zobrazené v multiplayerových místnostech. Musí mít 4–20 znaků a obsahovat pouze alfanumerické znaky, pomlčky, tečky, podtržítka a mezery.</string>
     <string name="network">Síť</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">Backend</string>
     <string name="display">Zobrazení</string>
     <string name="processing">Postprocesing</string>
+
+    <string name="frame_skipping">WIP: Přeskočení snímků</string>
+    <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="renderer_accuracy">Úroveň přesnosti</string>
     <string name="renderer_resolution">Rozlišení (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync režim</string>
@@ -483,8 +431,14 @@
     <string name="renderer_anti_aliasing">Anti-aliasing</string>
     <string name="renderer_force_max_clock">Maximální takt (Adreno)</string>
     <string name="renderer_force_max_clock_description">Maximální výkon GPU</string>
+    <string name="renderer_optimize_spirv_output">Optimalizovat Spir-V výstup</string>
+    <string name="renderer_optimize_spirv_output_description">Optimalizuje zkompilovaný shader pro zvýšení efektivity GPU.</string>
     <string name="renderer_asynchronous_shaders">Asynchronní shadery</string>
     <string name="renderer_asynchronous_shaders_description">Kompiluje stínovače asynchronně. Může to snížit trhání, ale také způsobit grafické chyby.</string>
+    <string name="use_fast_gpu_time">Použít rychlý čas GPU</string>
+    <string name="use_fast_gpu_time_description">Nutí většinu her běžet v jejich nativním rozlišení. Tato volba je nestabilní a může způsobovat problémy.</string>
+    <string name="fast_gpu_time">Faktor přetaktování GPU</string>
+    <string name="fast_gpu_time_description">Použijte 128 pro maximální výkon a 512 pro maximální věrnost grafiky.</string>
     <string name="renderer_reactive_flushing">Reaktivní flushing</string>
     <string name="renderer_reactive_flushing_description">Zlepšení přesnosti vykreslování</string>
     <string name="use_disk_shader_cache">Shader cache na disku</string>
@@ -496,6 +450,9 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="use_auto_stub">Použít automatický stub</string>
+    <string name="use_auto_stub_description">Automaticky doplňuje chybějící služby a funkce. Může zlepšit kompatibilitu, ale také způsobit pády a problémy se stabilitou.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Ladění grafiky</string>
@@ -527,12 +484,12 @@
     <string name="string_import">Importovat</string>
     <string name="export">Exportovat</string>
     <string name="install">Nainstalovat</string>
+    <string name="fetch">Stáhnout</string>
     <string name="delete">Smazat</string>
     <string name="export_success">Úspěšně exportováno</string>
     <string name="start">Start</string>
     <string name="clear">Vymazat</string>
     <string name="custom">Vlastní</string>
-
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Vybrat GPU ovladač</string>
     <string name="select_gpu_driver_title">Chcete nahradit váš aktuální ovladač GPU?</string>
@@ -544,8 +501,6 @@
     <string name="installing_driver">Instalování ovladače...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="gpu_driver_fetcher">Stahovač ovladačů GPU</string>
-    <string name="fetch">Stáhnout</string>
     <string name="fetch_error">Chyba při stahování</string>
     <string name="check_connection">Zkontrolujte připojení a zkuste to znovu.</string>
     <string name="show_releases">Zobrazit verze</string>
@@ -579,7 +534,6 @@
     <string name="preferences_audio_description">Výstupní engine, hlasitost</string>
     <string name="preferences_theme">Vzhled a barva</string>
     <string name="preferences_debug">Ladění</string>
-
     <!-- Game properties -->
     <string name="info">Info</string>
     <string name="info_description">ID programu, vývojář, verze</string>
@@ -608,13 +562,14 @@
     <string name="updates_and_dlc">Aktualizace a DLC</string>
     <string name="mods_and_cheats">Módy a cheaty</string>
     <string name="addon_notice">Důležité upozornění</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">Složka musí obsahovat cheats/, romfs/ nebo exefs/.</string>
     <string name="invalid_directory">Neplatná složka</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">Složka musí obsahovat cheats/, romfs/ nebo exefs/.</string>
     <string name="addon_installed_successfully">Rozšíření úspěšně nainstalováno</string>
     <string name="verifying_content">Ověřování obsahu...</string>
     <string name="content_install_notice">Upozornění</string>
-    <string name="content_install_notice_description">Obsah neodpovídá hře. Nainstalovat?</string>
     <string name="confirm_uninstall">Potvrdit odstranění</string>
     <string name="confirm_uninstall_description">Odstranit tento doplněk?</string>
     <string name="verify_integrity">Ověřit integritu</string>
@@ -624,8 +579,6 @@
     <string name="verify_failure_description">Soubor může být poškozen</string>
     <string name="verify_no_result">Ověření nelze provést</string>
     <string name="verify_no_result_description">Integrita nebyla ověřena</string>
-    <string name="verification_failed_for">Chyba ověření:\n%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM je zašifrován</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Postupujte podle průvodců pro opětovné převzetí vašich <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">herních karet</a> nebo <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">digitálních titulů</a>.]]></string>
@@ -634,6 +587,7 @@
     <string name="loader_error_video_core_description">Neplatný GPU ovladač</string>
     <string name="loader_error_invalid_format">Nelze načíst ROM</string>
     <string name="loader_error_file_not_found">ROM neexistuje</string>
+
     <string name="loader_requires_firmware">Hra vyžaduje firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Hra, kterou se pokoušíte spustit, vyžaduje firmware pro spuštění nebo pro překročení úvodní nabídky. Prosím <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> převezměte a nainstalujte firmware</a>, nebo stiskněte \"OK\" pro pokračování v každém případě.]]></string>
 
@@ -657,7 +611,6 @@
     <string name="config_write_failed">Nepodařilo se zapsat konfigurační soubor</string>
     <string name="config_apply_failed">Nepodařilo se použít konfiguraci</string>
     <string name="config_already_exists_title">Konfigurace již existuje</string>
-    <string name="config_already_exists_message">Vlastní nastavení již existuje pro %1$s.\n\nChcete přepsat stávající konfiguraci?\n\nTuto akci nelze vrátit zpět.</string>
     <string name="config_exists_prompt">Kontrola existující konfigurace...</string>
     <string name="overwrite_cancelled">Přepsání zrušeno</string>
     <string name="checking_driver">Kontrola vlastního ovladače: %1$s</string>
@@ -677,7 +630,6 @@
     <string name="invalid_driver_file">Neplatný soubor ovladače: %s</string>
     <string name="network_unavailable">Není dostupné síťové připojení. Zkontrolujte prosím připojení k internetu a zkuste to znovu.</string>
     <string name="driver_missing_title">Vyžadován ovladač GPU</string>
-    <string name="driver_missing_message">Konfigurace hry vyžaduje ovladač GPU \"%s\", který není na vašem zařízení nainstalován.\n\nChcete jej nyní stáhnout a nainstalovat?</string>
     <string name="driver_download_cancelled">Stahování ovladače bylo zrušeno. Hru nelze spustit bez požadovaného ovladače.</string>
     <string name="download">Stáhnout</string>
 
@@ -713,15 +665,30 @@
     <string name="abort_button">Přerušit</string>
     <string name="continue_button">Pokračovat</string>
     <string name="system_archive_not_found">Systémový Archív Nenalezen</string>
-    <string name="system_archive_not_found_message">%s chybí. Získejte systémové archivy.\nPokračování může způsobit chyby.</string>
     <string name="system_archive_general">Systémový archív</string>
     <string name="save_load_error">Ukládací/Načítací chyba</string>
     <string name="fatal_error">Fatální Chyba</string>
-    <string name="fatal_error_message">Vyskytla se fatální chyba. Podrobnosti v logu.\nPokračování může způsobit chyby.</string>
-    <string name="performance_warning">Vypnutí sníží výkon!</string>
-    <string name="device_memory_inadequate">RAM zařízení: %1$s\nDoporučeno: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Nenalezena spustitelná hra!</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (Doporučeno)</string>
+    <string name="memory_6gb">6GB (Nebezpečné)</string>
+    <string name="memory_8gb">8GB (Nebezpečné)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">Základní (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Rychlé (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">Nízké (128)</string>
+    <string name="gpu_medium">Střední (256)</string>
+    <string name="gpu_high">Vysoké (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsia</string>
+    <string name="temperature_fahrenheit">Fahrenheita</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
@@ -730,12 +697,31 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normální</string>
     <string name="renderer_accuracy_high">Vysoká</string>
-    <string name="renderer_accuracy_extreme">Extrémní (Pomalé)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Výchozí</string>
-    <string name="dma_accuracy_unsafe">Nebezpečné (rychlé)</string>
-    <string name="dma_accuracy_safe">Bezpečné (stabilní)</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">Metoda dekódování ASTC</string>
+    <string name="accelerate_astc_description">Vyberte způsob dekódování textur komprimovaných pomocí ASTC pro vykreslování: CPU (pomalé, bezpečné), GPU (rychlé, doporučené) nebo CPU Async (žádné zasekávání, ale mohou nastat problémy)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU asynchronně</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">Metoda rekomprese ASTC</string>
+    <string name="astc_recompression_description">Vyberte způsob rekomprese textur ASTC pro zlepšení kompatibility a výkonu. Zapnutí této volby ušetří VRAM, ale může snížit kvalitu textur.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Nekomprimované</string>
+    <string name="astc_recompression_bc1">BC1 (nízká kvalita)</string>
+    <string name="astc_recompression_bc3">BC3 (střední kvalita)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">Režim využití VRAM</string>
+    <string name="vram_usage_mode_description">Správa alokace GPU paměti</string>
+    <string name="vram_usage_conservative">Konzervativní</string>
+    <string name="vram_usage_aggressive">Agresivní</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
@@ -749,7 +735,6 @@
 
     <string name="scaling_filter_bilinear">Bilineární</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Žádné</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -757,12 +742,10 @@
 
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Automatické</string>
-
     <!-- Aspect Ratios -->
     <string name="ratio_default">Výchozí (16:9)</string>
     <string name="ratio_force_four_three">Vynutit 4:3</string>
     <string name="ratio_force_twenty_one_nine">Vynutit 21:9</string>
-
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Přesné</string>
     <string name="cpu_accuracy_unsafe">Nebezpečné</string>
@@ -789,6 +772,18 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Černá pozadí</string>
     <string name="use_black_backgrounds_description">Použít černá pozadí v tmavém režimu</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Barva motivu</string>
+    <string name="violet">Fialová (Výchozí)</string>
+    <string name="blue">Modrá</string>
+    <string name="cyan">Tyrkysová</string>
+    <string name="red">Červená</string>
+    <string name="green">Zelená</string>
+    <string name="yellow">Žlutá</string>
+    <string name="orange">Oranžová</string>
+    <string name="pink">Růžová</string>
+    <string name="gray">Šedá</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">Obraz v obraze</string>

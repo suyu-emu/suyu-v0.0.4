@@ -1,21 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <!-- General application strings -->
-    <string name="app_name" translatable="false">Eden</string>
-    <string name="app_disclaimer">Овај софтвер ће покренути игре за нинтендо прекидач игру. Нису укључени ни тастери за игру или тастери.&lt;br /&gt;&lt;br /&gt; пре него што започнете, молимо вас да пронађете своје</string>
     <string name="notice_notification_channel_name">Обавештења и грешке</string>
-    <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
     <string name="notice_notification_channel_description">Приказује обавештења када нешто пође по злу.</string>
     <string name="notification_permission_not_granted">Дозвола за обавештавање није одобрена!</string>
-
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Побољшано)</string>
     <string name="shaders_prefix">Зграда</string>
     <string name="shaders_suffix">Схадер (с)</string>
-    <string name="system_info_label">Систем:</string>
     <string name="charging">(Пуњење)</string>
 
+    <string name="system_info_label">Систем:</string>
     <string name="show_stats_overlay">Покажи Статистика перформанси Статистика</string>
     <string name="stats_overlay_customization">Прилагођавање</string>
     <string name="stats_overlay_items">Видљивост</string>
@@ -79,6 +74,10 @@
     <string name="provoking_vertex_description">Побољшава осветљење и вертификат руковања у одређеним играма. Подржан само на Вулкану 1.0+ ГПУ-у.</string>
     <string name="descriptor_indexing">Индексирање дескриптора</string>
     <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
+    <string name="sample_shading">Семпловање сенчења</string>
+    <string name="sample_shading_description">Омогућава фрагмент шејдеру да се извршава по узорку у вишеузорачном фрагменту уместо једном по фрагменту. Побољшава квалитет графике на рачун перформанси. Само Vulkan 1.1+ уређаји подржавају ову екстензију.</string>
+    <string name="sample_shading_fraction">Удео сенчења узорка</string>
+    <string name="sample_shading_fraction_description">Интензитет проласка сенчења узорка. Веће вредности побољшавају квалитет више, али такође више смањују перформансе.</string>
 
     <string name="veil_renderer">Рендерер</string>
     <string name="frame_interpolation">Побољшани оквирни пејсинг</string>
@@ -89,12 +88,6 @@
     <string name="sync_memory_operations_description">Осигурава конзистентност података између рачунских и меморијских операција. Ова опција би требало да поправи проблеме у неким играма, али може смањити перформансе у неким случајевима. Чини се да су игре са Unreal Engine 4 највише погођене.</string>
     <string name="buffer_reorder_disable">Онемогући преуређивање бафера</string>
     <string name="buffer_reorder_disable_description">Када је означено, онемогућава преуређивање учитавања мапиране меморије што омогућава повезивање учитавања са одређеним цртањима. Може у неким случајевима смањити перформансе.</string>
-    <string name="use_auto_stub">Користите ауто-стуб</string>
-    <string name="use_auto_stub_description">Аутоматски угушите мрежне услуге и функције. То може побољшати компатибилност, али може проузроковати пад рушења и питања стабилности.</string>
-    <string name="uninstall_firmware">Деинсталирајте фирмвер</string>
-    <string name="uninstall_firmware_description">Деинсталирање фирмвера ће га уклонити са уређаја и може утицати на компатибилност игара.</string>
-    <string name="firmware_uninstalling">Деинсталирање фирмвера</string>
-    <string name="firmware_uninstalled_success">Фирмваре је успешно деинсталирано</string>
 
     <string name="veil_misc">CPU и меморија</string>
     <string name="use_sync_core">Синхронизујте брзину језгре</string>
@@ -103,15 +96,6 @@
     <string name="use_lru_cache_description">Омогућите или онемогућите најмање недавно коришћене (ЛРУ) кеш меморије, све веће перформансе штедећи употребу процеса ЦПУ-а. Неке игре са њом имају проблеме, посебно тотк 1.2.1, тако да онемогућите ако се игра не покрене или се руши насумично.</string>
     <string name="use_fast_cpu_time">Брзо време ЦПУ-а</string>
     <string name="use_fast_cpu_time_description">Присиљава опомена ЦПУ-а како би се покренуло на вишим сатима, смањујући одређене ФПС ограничења. Ова опција је хакира и може проузроковати проблеме и слабији ЦПУ-ови могу видети смањене перформансе.</string>
-    <string name="fast_cpu_time">ЦПУ сат</string>
-    <string name="fast_cpu_time_description">Користите појачање (1700МХз) да бисте се покренули на највишим матичним тактом Свитцх \ 2000МХз (2000МХз) да бисте покренули на 2к сату.</string>
-    <string name="memory_layout">Изглед меморије</string>
-    <string name="memory_layout_description">(Експериментално) Промените изглед емулираног меморије. Ово постављање неће повећати перформансе, али може помоћи у играма које користе високе резолуције путем модова. Не користите на телефонима са 8 ГБ РАМ-а или мање. Ради само на динамичком (ЈИТ) бацкенд-у.</string>
-
-    <string name="sample_shading">Семпловање сенчења</string>
-    <string name="sample_shading_description">Омогућава фрагмент шејдеру да се извршава по узорку у вишеузорачном фрагменту уместо једном по фрагменту. Побољшава квалитет графике на рачун перформанси. Само Vulkan 1.1+ уређаји подржавају ову екстензију.</string>
-    <string name="sample_shading_fraction">Удео сенчења узорка</string>
-    <string name="sample_shading_fraction_description">Интензитет проласка сенчења узорка. Веће вредности побољшавају квалитет више, али такође више смањују перформансе.</string>
     <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
     <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
     <string name="cpu_ticks">Тактови</string>
@@ -119,6 +103,10 @@
     <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
     <string name="cpuopt_unsafe_host_mmu">Омогући емулацију MMU домаћина</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ова оптимизација убрзава приступ меморији од стране гостујућег програма. Укључивање изазива да се читања/уписа меморије госта обављају директно у меморији и користе MMU домаћина. Искључивање присиљава све приступе меморији да користе софтверску емулацију MMU.</string>
+    <string name="fast_cpu_time">ЦПУ сат</string>
+    <string name="fast_cpu_time_description">Користите појачање (1700МХз) да бисте се покренули на највишим матичним тактом Свитцх \ 2000МХз (2000МХз) да бисте покренули на 2к сату.</string>
+    <string name="memory_layout">Изглед меморије</string>
+    <string name="memory_layout_description">(Експериментално) Промените изглед емулираног меморије. Ово постављање неће повећати перформансе, али може помоћи у играма које користе високе резолуције путем модова. Не користите на телефонима са 8 ГБ РАМ-а или мање. Ради само на динамичком (ЈИТ) бацкенд-у.</string>
     <string name="dma_accuracy">DMA тачност</string>
     <string name="dma_accuracy_description">Управља прецизношћу DMA-а. Сигурна прецизност може да исправи проблеме у неким играма, али у неким случајевима може да утиче и на перформансе. Ако нисте сигурни, оставите ово на Подразумевано.</string>
 
@@ -156,6 +144,8 @@
     <string name="multiplayer_join_room_success">Успешно се придружите собу!</string>
     <string name="multiplayer_create_room_failed">Није успело креирање собе!</string>
     <string name="multiplayer_join_room_failed">Није успело да се придружи соби!</string>
+    <string name="multiplayer_name_invalid">Име је прекратко</string>
+    <string name="multiplayer_address_invalid">Неисправна адреса</string>
     <string name="multiplayer_port_invalid">Неважећи порт</string>
     <string name="multiplayer_exit_room">Излазна соба</string>
     <string name="multiplayer_network_error">Грешка у мрежи</string>
@@ -187,6 +177,8 @@
     <string name="multiplayer_kick_member">Избити</string>
     <string name="multiplayer_chat_input_hint">Пошаљите поруке ......</string>
     <string name="multiplayer_password">Лозинка</string>
+    <string name="multiplayer_joining">Придружујем се…</string>
+    <string name="multiplayer_creating">Креирам…</string>
     <string name="multiplayer_room_name">Име собе</string>
     <string name="multiplayer_room_name_invalid">Име собе мора бити између 3 и 20 знакова</string>
     <string name="multiplayer_max_players">Максимални играчи (16)</string>
@@ -220,27 +212,23 @@
     <string name="emulation_multiplayer">Мултиплаиер</string>
     <string name="multiplayer_game_name">Префериране игре</string>
     <string name="multiplayer_preferred_game_name">Преферирана игра</string>
+    <string name="multiplayer_lobby_type">Тип лобија</string>
     <string name="multiplayer_no_game">Није пронађена није пронађена игара</string>
     <string name="multiplayer_preferred_game_name_invalid">Морате одабрати преферирану игру да бисте угостили собу.</string>
-    <string name="multiplayer_token_error">Мора бити дугачко 48 знакова и садржати само мала слова a-z</string>
-    <string name="multiplayer_lobby_type">Тип лобија</string>
-    <string name="multiplayer_public_visibility">Јавно</string>
-    <string name="multiplayer_unlisted_visibility">Неприказано</string>
-    <string name="multiplayer_name_invalid">Име је прекратко</string>
-    <string name="multiplayer_address_invalid">Неисправна адреса</string>
+    <string name="multiplayer_room_name_error">Мора бити између 3 и 20 знакова</string>
+    <string name="multiplayer_required">Обавезно</string>
+    <string name="multiplayer_token_required">Потребан је веб токен, идите на Напредне поставке -> Систем -> Мрежа</string>
+    <string name="multiplayer_ip_error">Неисправан ИП формат</string>
     <string name="multiplayer_username_error">Мора садржати 4-20 знакова (само слова, бројеве, тачке, цртице, доње црте и размаке)</string>
     <string name="multiplayer_nickname_invalid">Неисправно корисничко име, проверите у Систем → Мрежа</string>
+    <string name="multiplayer_token_error">Мора бити дугачко 48 знакова и садржати само мала слова a-z</string>
+    <string name="multiplayer_port_error">Мора бити између 1 и 65535</string>
     <string name="cancel">Отказати</string>
     <string name="ok">У реду</string>
     <string name="refresh">Освежити</string>
     <string name="room_list">Листа соба</string>
-    <string name="multiplayer_joining">Придружујем се…</string>
-    <string name="multiplayer_creating">Креирам…</string>
-    <string name="multiplayer_required">Обавезно</string>
-    <string name="multiplayer_token_required">Потребан је веб токен, идите на Напредне поставке -> Систем -> Мрежа</string>
-    <string name="multiplayer_ip_error">Неисправан ИП формат</string>
-    <string name="multiplayer_port_error">Мора бити између 1 и 65535</string>
-    <string name="multiplayer_room_name_error">Мора бити између 3 и 20 знакова</string>
+    <string name="multiplayer_public_visibility">Јавно</string>
+    <string name="multiplayer_unlisted_visibility">Неприказано</string>
 
     <!-- Setup strings -->
     <string name="welcome">Добродошли!</string>
@@ -250,12 +238,10 @@
     <string name="keys_description">Изаберите свој и лт; &lt;b>prod.keys&lt;/b> датотека са дугметом испод.</string>
     <string name="select_keys">Изаберите тастере</string>
     <string name="firmware">Фирмвер</string>
-    <string name="firmware_description">Изаберите свој <b>firmware.zip</b> фајл помоћу дугмета испод.\nEden тренутно захтева верзију <b>19.0.1</b> или старију.</string>
     <string name="select_firmware">Изабери фирмвер</string>
     <string name="games">Игре</string>
     <string name="games_description">Изаберите свој и игре и ЛТ; Б> мапу са дугметом испод.</string>
     <string name="done">Доношен</string>
-    <string name="done_description">Све је постављено. \ Нењои своје игре!</string>
     <string name="text_continue">Настављати</string>
     <string name="next">Следећи</string>
     <string name="back">Назад</string>
@@ -266,6 +252,7 @@
     <string name="bluetooth_permissions_denied">Bluetooth дозволе одбијене. Подршка за контролере може бити ограничена.</string>
 
     <!-- Home strings -->
+
     <string name="alphabetical">Азбучни</string>
     <string name="view_list">Списак</string>
     <string name="view_grid">Мрежа</string>
@@ -275,7 +262,6 @@
     <string name="pre_alpha_warning_description">УПОЗОРЕЊЕ: Овај софтвер је у пре-алфа фази и може имати грешке и непотпуне примене функција.</string>
     <string name="dont_show_again">Не покажи поново</string>
     <string name="pre_alpha_warning">Пре-Алпха софтвер</string>
-    <string name="add_directory_success">Нова играчка игара је успешно додата</string>
     <string name="home_games">Игре</string>
     <string name="home_search">Тражити</string>
     <string name="home_settings">Подешавања</string>
@@ -362,7 +348,6 @@
     <string name="install_game_content_success_install">%1$d инсталирано успешно</string>
     <string name="install_game_content_success_overwrite">%1$d преписано успешно</string>
     <string name="custom_driver_not_supported">Прилагођени управљачки програми нису подржани</string>
-    <string name="custom_driver_not_supported_description">Прилагођени управљачки програм за учитавање ИСН \"т тренутно подржан за овај уређај.\" НХЕЦК Поново у будућности да бисте видели да ли је додата подршка!</string>
     <string name="manage_yuzu_data">Управљајте подацима ЕДЕН-а</string>
     <string name="manage_yuzu_data_description">Увоз / извозни софтвер, кључеви, кориснички подаци и још много тога!</string>
     <string name="share_save_file">Схаре Спреми датотеку</string>
@@ -372,21 +357,27 @@
     <string name="add_game_folder">Додајте мапу игара</string>
     <string name="folder_already_added">Ова мапа је већ додата!</string>
     <string name="game_folder_properties">Играње некретнина</string>
-    <plurals name="saves_import_failed" tools:ignore="MissingQuantity">
-        <item quantity="one" tools:ignore="ImpliedQuantity">Увоз%d уштедите%d</item>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Увоз%d уштедите%d</item>
         <item quantity="few">Увоз%d уносе%d</item>
         <item quantity="other">Увоз%d уносе%d</item>
     </plurals>
-    <plurals name="saves_import_success" tools:ignore="MissingQuantity">
-        <item quantity="one" tools:ignore="ImpliedQuantity">Успешно увезено%d уштеда</item>
+    <plurals name="saves_import_success">
+        <item quantity="one">Успешно увезено%d уштеда</item>
         <item quantity="few">Успешно увезени%d штеди</item>
         <item quantity="other">Успешно увезени%d штеди</item>
     </plurals>
     <string name="no_save_data_found">Не пронађени су подаци сачувања</string>
     <string name="verify_installed_content">Проверите инсталирани садржај</string>
     <string name="verify_installed_content_description">Проверава све инсталиране садржаје за корупцију</string>
+
     <string name="keys_missing">Шифра о шифрирањима недостају</string>
     <string name="keys_missing_description">Фирмваре и малопродајне игре не могу се дешифровати</string>
+    <string name="uninstall_firmware">Деинсталирајте фирмвер</string>
+    <string name="uninstall_firmware_description">Деинсталирање фирмвера ће га уклонити са уређаја и може утицати на компатибилност игара.</string>
+    <string name="firmware_uninstalling">Деинсталирање фирмвера</string>
+    <string name="firmware_uninstalled_success">Фирмваре је успешно деинсталирано</string>
+
     <string name="firmware_invalid">Неисправан firmware</string>
     <string name="error_firmware_missing">Firmware је потребан за покретање одређених игара и апликација. Eden ради само са firmware-ом 19.0.1 или старијим.</string>
     <string name="error_firmware_corrupted">Firmware је присутан али се не може прочитати. Проверите кључеве за дешифровање и поново направите firmware дамп ако је потребно.</string>
@@ -396,7 +387,6 @@
     <string name="error_keys_copy_failed">Један или више кључева није успело да се копира.</string>
     <string name="error_keys_invalid_filename">Проверите да ли ваш фајл са кључевима има .keys екстензију и покушајте поново.</string>
     <string name="error_keys_failed_init">Неуспела иницијализација кључева. Проверите да ли су вам алати за прављење дампа ажурни и поново направите дамп кључева.</string>
-
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Клаунцх</string>
@@ -427,7 +417,6 @@
     <string name="licenses_description">Пројекти који омогућавају ЕДЕН за Андроид</string>
     <string name="build">Градити</string>
     <string name="user_data">Кориснички подаци</string>
-    <string name="user_data_description">Увоз / извоз свих података апликација. \ Н \ н када увози податке о кориснику, сви постојећи кориснички подаци биће избрисани! \ Н \ НИМПОРТИНГ Подаци из ЦИТРОН-а могу проузроковати проблеме. Препоручује се ручно увоз свих потребних података.</string>
     <string name="exporting_user_data">Извоз података корисника ...</string>
     <string name="importing_user_data">Увоз података корисника ...</string>
     <string name="import_user_data">Увоз корисничких података</string>
@@ -436,7 +425,6 @@
     <string name="user_data_import_success">Корисничке податке увезене успешно</string>
     <string name="user_data_export_cancelled">Извоз је отказан</string>
     <string name="user_data_import_failed_description">Проверите да ли су мапе корисничких података у корену зип мапе и садрже конфигурацију датотека на Цонфиг / Цонфиг.ини и покушајте поново.</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Ограничити брзину</string>
     <string name="frame_limit_enable_description">Ограничава брзину емулације на одређени проценат нормалне брзине.</string>
@@ -458,18 +446,20 @@
     <string name="use_custom_rtc_description">Омогућава вам да поставите прилагођени сат у реалном времену одвојено од тренутног времена система.</string>
     <string name="set_custom_rtc">Подесите прилагођени РТЦ</string>
 
-    <!-- Network settings strings -->
     <string name="generate">Генериши</string>
-    <string name="web_username">Веб корисничко име</string>
-    <string name="web_username_description">Корисничко име које се приказује у мултиплејер собама. Мора садржати 4-20 знакова (само слова, бројеве, цртице, тачке, доње црте и размаке).</string>
+
+    <!-- Network settings strings -->
     <string name="web_token">Веб токен</string>
     <string name="web_token_description">Веб токен који се користи за стварање јавних лобија. То је низ од 48 знакова који садржи само мала слова А-З.</string>
+    <string name="web_username">Веб корисничко име</string>
+    <string name="web_username_description">Корисничко име које се приказује у мултиплејер собама. Мора садржати 4-20 знакова (само слова, бројеве, цртице, тачке, доње црте и размаке).</string>
     <string name="network">Мрежа</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">Бекенд</string>
     <string name="display">Приказ</string>
     <string name="processing">Постпроцесирање</string>
+
     <string name="frame_skipping">ВИП: Фрамескип</string>
     <string name="frame_skipping_description">Пребацивање оквира прескакање да бисте побољшали перформансе смањењем броја пружених оквира. Ова функција се и даље ради и биће омогућена у будућим издањима.</string>
     <string name="renderer_accuracy">Ниво тачности</string>
@@ -502,6 +492,8 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">ЦПУ</string>
+    <string name="use_auto_stub">Користите ауто-стуб</string>
+    <string name="use_auto_stub_description">Аутоматски угушите мрежне услуге и функције. То може побољшати компатибилност, али може проузроковати пад рушења и питања стабилности.</string>
 
     <string name="gpu">ГПУ</string>
     <string name="renderer_api">АПИ</string>
@@ -734,7 +726,6 @@
     <string name="addon_installed_successfully">Аддон је успешно инсталиран</string>
     <string name="verifying_content">Верификација садржаја ...</string>
     <string name="content_install_notice">Обавештење о инсталирању садржаја</string>
-    <string name="content_install_notice_description">Садржај који сте одабрали не одговара овој игри. Ионако нинсталл?</string>
     <string name="confirm_uninstall">Потврдите деинсталирање</string>
     <string name="confirm_uninstall_description">Јесте ли сигурни да желите да деинсталирате овај Аддон?</string>
     <string name="verify_integrity">Проверите интегритет</string>
@@ -744,8 +735,6 @@
     <string name="verify_failure_description">Садржај датотеке може бити оштећен</string>
     <string name="verify_no_result">Провјера интегритета није могла да се изврши</string>
     <string name="verify_no_result_description">Садржај датотеке није проверен за валидност</string>
-    <string name="verification_failed_for">Верификација није успела за следеће датотеке: \ н%1$s</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш РОМ је шифровани</string>
     <string name="loader_error_encrypted_roms_description">Игра ЦартиДгес</string>
@@ -754,6 +743,7 @@
     <string name="loader_error_video_core_description">То обично узрокује некомпатибилни ГПУ драјвер. Инсталирање прилагођеног ГПУ управљачког програма може решити овај проблем.</string>
     <string name="loader_error_invalid_format">Није могуће учитати РОМ</string>
     <string name="loader_error_file_not_found">РОМ датотека не постоји</string>
+
     <string name="loader_requires_firmware">Игра захтева firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Игра коју покушавате да покренете захтева firmware за покретање или прелазак почетног менија. Молимо <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> направите дамп и инсталирајте firmware</a>, или притисните \"OK\" да бисте наставили у сваком случају.]]></string>
 
@@ -777,7 +767,6 @@
     <string name="config_write_failed">Неуспело писање конфигурационе датотеке</string>
     <string name="config_apply_failed">Неуспела примена конфигурације</string>
     <string name="config_already_exists_title">Конфигурација већ постоји</string>
-    <string name="config_already_exists_message">Прилагођена подешавања већ постоје за %1$s.\n\nДа ли желите да препишете постојећу конфигурацију?\n\nОву радњу није могуће поништити.</string>
     <string name="config_exists_prompt">Провера постојеће конфигурације...</string>
     <string name="overwrite_cancelled">Преписивање отказано</string>
     <string name="checking_driver">Провера прилагођеног драјвера: %1$s</string>
@@ -797,7 +786,6 @@
     <string name="invalid_driver_file">Неисправна датотека драјвера: %s</string>
     <string name="network_unavailable">Мрежна веза није доступна. Проверите интернет конекцију и покушајте поново.</string>
     <string name="driver_missing_title">GPU драјвер је потребан</string>
-    <string name="driver_missing_message">Конфигурација игре захтева GPU драјвер \"%s\" који није инсталиран на вашем уређају.\n\nДа ли желите да га преузмете и инсталирате сада?</string>
     <string name="driver_download_cancelled">Преузимање драјвера отказано. Игра се не може покренути без потребног драјвера.</string>
     <string name="download">Преузми</string>
 
@@ -824,7 +812,6 @@
     <string name="touchscreen">Екран осетљив на додир</string>
     <string name="lock_drawer">Ладица за закључавање</string>
     <string name="unlock_drawer">Откључај ладицу</string>
-
     <string name="load_settings">Учитавање поставки ...</string>
 
     <!-- Software keyboard -->
@@ -834,13 +821,9 @@
     <string name="abort_button">Престати</string>
     <string name="continue_button">Настављати</string>
     <string name="system_archive_not_found">Архива система није пронађена</string>
-    <string name="system_archive_not_found_message">%s недостаје. Молимо вас да избаците системске архиве. \ Нцонтинуинг Емулација може резултирати рушењем и грешкама.</string>
     <string name="system_archive_general">Архива система</string>
     <string name="save_load_error">Грешка уштеде / учитавање</string>
     <string name="fatal_error">Фатална грешка</string>
-    <string name="fatal_error_message">Дошло је до кобне грешке. Проверите детаље о дневнику. \ НцонТинуинг Емулација може резултирати сударама и грешкама.</string>
-    <string name="performance_warning">Искључивање ове поставке значајно ће смањити перформансе емулације! За најбоље искуство, препоручује се да поставите ово подешавање омогућено.</string>
-    <string name="device_memory_inadequate">Уређај РАМ-а:%1$s \ н Рецоммсендед:%2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">Нема презентације игре за покретање!</string>
 
@@ -872,26 +855,6 @@
     <string name="temperature_celsius">Целзијус</string>
     <string name="temperature_fahrenheit">Фаренхајт</string>
 
-    <!-- Language Names -->
-    <string name="language_japanese" translatable="false">日本語</string>
-    <string name="language_english" translatable="false">English</string>
-    <string name="language_french" translatable="false">Français</string>
-    <string name="language_german" translatable="false">Deutsch</string>
-    <string name="language_italian" translatable="false">Italiano</string>
-    <string name="language_spanish" translatable="false">Español</string>
-    <string name="language_chinese" translatable="false">简体中文</string>
-    <string name="language_korean" translatable="false">한국어</string>
-    <string name="language_dutch" translatable="false">Nederlands</string>
-    <string name="language_portuguese" translatable="false">Português</string>
-    <string name="language_russian" translatable="false">Русский</string>
-    <string name="language_taiwanese" translatable="false">台湾</string>
-    <string name="language_british_english" translatable="false">British English</string>
-    <string name="language_canadian_french" translatable="false">Français canadien</string>
-    <string name="language_latin_american_spanish" translatable="false">Español latinoamericano</string>
-    <string name="language_simplified_chinese" translatable="false">简体中文</string>
-    <string name="language_traditional_chinese" translatable="false">正體中文</string>
-    <string name="language_brazilian_portuguese" translatable="false">Português do Brasil</string>
-
     <!-- Memory Sizes -->
     <string name="memory_byte">Бајт</string>
     <string name="memory_byte_shorthand">Б</string>
@@ -909,13 +872,8 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Нормалан</string>
     <string name="renderer_accuracy_high">Високо</string>
-    <string name="renderer_accuracy_extreme">Екстремни (спор)</string>
-
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Подразумевано</string>
-    <string name="dma_accuracy_unsafe">Небезбедно (брзо)</string>
-    <string name="dma_accuracy_safe">Безбедно (стабилно)</string>
-
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">АСТЦ метода декодирања</string>
     <string name="accelerate_astc_description">Изаберите како су текстуре са компримираним текстовима декодиране за приказивање: ЦПУ (споро, сигуран), ГПУ (Фаст, Препоручи) или ЦПУ АСИНЦ (без затезача, могу да изазове питања)</string>
@@ -963,7 +921,6 @@
     <string name="scaling_filter_gaussian">Гауссиан</string>
     <string name="scaling_filter_scale_force">Скалефорце</string>
     <string name="scaling_filter_fsr">АМД ФиделитиФКС ™ Супер резолуција</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Ниједан</string>
     <string name="anti_aliasing_fxaa">ФКСАА</string>
@@ -993,7 +950,6 @@
     <string name="cpu_accuracy_accurate">Тачан</string>
     <string name="cpu_accuracy_unsafe">Несигуран</string>
     <string name="cpu_accuracy_paranoid">Параноичан</string>
-
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Д-пад</string>
     <string name="gamepad_left_stick">Левичар</string>
@@ -1070,508 +1026,5 @@
 
     <!-- Licenses screen strings -->
     <string name="licenses">Лиценце</string>
-    <string name="license_fidelityfx_fsr" translatable="false">FidelityFX-FSR</string>
     <string name="license_fidelityfx_fsr_description">Висококвалитетни упглинг из АМД-а</string>
-    <string name="license_fidelityfx_fsr_link" translatable="false">https://github.com/GPUOpen-Effects/FidelityFX-FSR</string>
-    <string name="license_fidelityfx_fsr_copyright" translatable="false">Copyright © 2021 Advanced Micro Devices, Inc.</string>
-    <string name="license_fidelityfx_fsr_text" translatable="false">
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the \"Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:\n\n
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.\n\n
-
-THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-    </string>
-    <string name="license_cubeb" translatable="false">cubeb</string>
-    <string name="license_cubeb_description" translatable="false">Cross platform audio library</string>
-    <string name="license_cubeb_link" translatable="false">https://github.com/mozilla/cubeb</string>
-    <string name="license_cubeb_copyright" translatable="false">Copyright © 2011 Mozilla Foundation</string>
-    <string name="license_cubeb_text" translatable="false">
-Permission to use, copy, modify, and distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.\n\n
-
-THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    </string>
-    <string name="license_dynarmic" translatable="false">Dynarmic</string>
-    <string name="license_dynarmic_description" translatable="false">An ARM dynamic recompiler</string>
-    <string name="license_dynarmic_link" translatable="false">https://github.com/merryhime/dynarmic</string>
-    <string name="license_dynarmic_copyright" translatable="false">Copyright © 2017 merryhime</string>
-    <string name="license_dynarmic_text" translatable="false">
-Permission to use, copy, modify, and/or distribute this software for
-any purpose with or without fee is hereby granted.\n\n
-
-THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
-AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
-OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    </string>
-    <string name="license_ffmpeg" translatable="false">FFmpeg</string>
-    <string name="license_ffmpeg_description" translatable="false">FFmpeg is a collection of libraries and tools to process multimedia content such as audio, video, subtitles and related metadata.</string>
-    <string name="license_ffmpeg_link" translatable="false">https://github.com/FFmpeg/FFmpeg</string>
-    <string name="license_ffmpeg_copyright" translatable="false">Copyright © 1991, 1999 Free Software Foundation, Inc.</string>
-    <string name="license_ffmpeg_text" translatable="false">
-GNU LESSER GENERAL PUBLIC LICENSE\n
-TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\n\n
-
-  0. This License Agreement applies to any software library or other
-program which contains a notice placed by the copyright holder or
-other authorized party saying it may be distributed under the terms of
-this Lesser General Public License (also called \"this License\").
-Each licensee is addressed as \"you\".\n\n
-
-  A \"library\" means a collection of software functions and/or data
-prepared so as to be conveniently linked with application programs
-(which use some of those functions and data) to form executables.\n\n
-
-  The \"Library\", below, refers to any such software library or work
-which has been distributed under these terms.  A \"work based on the
-Library\" means either the Library or any derivative work under
-copyright law: that is to say, a work containing the Library or a
-portion of it, either verbatim or with modifications and/or translated
-straightforwardly into another language.  (Hereinafter, translation is
-included without limitation in the term \"modification\".)\n\n
-
-  \"Source code\" for a work means the preferred form of the work for
-making modifications to it.  For a library, complete source code means
-all the source code for all modules it contains, plus any associated
-interface definition files, plus the scripts used to control compilation
-and installation of the library.\n\n
-
-  Activities other than copying, distribution and modification are not
-covered by this License; they are outside its scope.  The act of
-running a program using the Library is not restricted, and output from
-such a program is covered only if its contents constitute a work based
-on the Library (independent of the use of the Library in a tool for
-writing it).  Whether that is true depends on what the Library does
-and what the program that uses the Library does.\n\n
-
-  1. You may copy and distribute verbatim copies of the Library\"s
-complete source code as you receive it, in any medium, provided that
-you conspicuously and appropriately publish on each copy an
-appropriate copyright notice and disclaimer of warranty; keep intact
-all the notices that refer to this License and to the absence of any
-warranty; and distribute a copy of this License along with the
-Library.\n\n
-
-  You may charge a fee for the physical act of transferring a copy,
-and you may at your option offer warranty protection in exchange for a
-fee.\n\n
-
-  2. You may modify your copy or copies of the Library or any portion
-of it, thus forming a work based on the Library, and copy and
-distribute such modifications or work under the terms of Section 1
-above, provided that you also meet all of these conditions:\n\n
-
-a) The modified work must itself be a software library.\n\n
-
-b) You must cause the files modified to carry prominent notices
-stating that you changed the files and the date of any change.\n\n
-
-c) You must cause the whole of the work to be licensed at no
-charge to all third parties under the terms of this License.\n\n
-
-d) If a facility in the modified Library refers to a function or a
-table of data to be supplied by an application program that uses
-the facility, other than as an argument passed when the facility
-is invoked, then you must make a good faith effort to ensure that,
-in the event an application does not supply such function or
-table, the facility still operates, and performs whatever part of
-its purpose remains meaningful.\n\n
-
-(For example, a function in a library to compute square roots has
-a purpose that is entirely well-defined independent of the
-application.  Therefore, Subsection 2d requires that any
-application-supplied function or table used by this function must
-be optional: if the application does not supply it, the square
-root function must still compute square roots.)\n\n
-
-These requirements apply to the modified work as a whole.  If
-identifiable sections of that work are not derived from the Library,
-and can be reasonably considered independent and separate works in
-themselves, then this License, and its terms, do not apply to those
-sections when you distribute them as separate works.  But when you
-distribute the same sections as part of a whole which is a work based
-on the Library, the distribution of the whole must be on the terms of
-this License, whose permissions for other licensees extend to the
-entire whole, and thus to each and every part regardless of who wrote
-it.\n\n
-
-Thus, it is not the intent of this section to claim rights or contest
-your rights to work written entirely by you; rather, the intent is to
-exercise the right to control the distribution of derivative or
-collective works based on the Library.\n\n
-
-In addition, mere aggregation of another work not based on the Library
-with the Library (or with a work based on the Library) on a volume of
-a storage or distribution medium does not bring the other work under
-the scope of this License.\n\n
-
-  3. You may opt to apply the terms of the ordinary GNU General Public
-License instead of this License to a given copy of the Library.  To do
-this, you must alter all the notices that refer to this License, so
-that they refer to the ordinary GNU General Public License, version 2,
-instead of to this License.  (If a newer version than version 2 of the
-ordinary GNU General Public License has appeared, then you can specify
-that version instead if you wish.)  Do not make any other change in
-these notices.\n\n
-
-  Once this change is made in a given copy, it is irreversible for
-that copy, so the ordinary GNU General Public License applies to all
-subsequent copies and derivative works made from that copy.\n\n
-
-  This option is useful when you wish to copy part of the code of
-the Library into a program that is not a library.\n\n
-
-  4. You may copy and distribute the Library (or a portion or
-derivative of it, under Section 2) in object code or executable form
-under the terms of Sections 1 and 2 above provided that you accompany
-it with the complete corresponding machine-readable source code, which
-must be distributed under the terms of Sections 1 and 2 above on a
-medium customarily used for software interchange.\n\n
-
-  If distribution of object code is made by offering access to copy
-from a designated place, then offering equivalent access to copy the
-source code from the same place satisfies the requirement to
-distribute the source code, even though third parties are not
-compelled to copy the source along with the object code.\n\n
-
-  5. A program that contains no derivative of any portion of the
-Library, but is designed to work with the Library by being compiled or
-linked with it, is called a \"work that uses the Library\".  Such a
-work, in isolation, is not a derivative work of the Library, and
-therefore falls outside the scope of this License.\n\n
-
-  However, linking a \"work that uses the Library\" with the Library
-creates an executable that is a derivative of the Library (because it
-contains portions of the Library), rather than a \"work that uses the
-library\".  The executable is therefore covered by this License.
-Section 6 states terms for distribution of such executables.\n\n
-
-  When a \"work that uses the Library\" uses material from a header file
-that is part of the Library, the object code for the work may be a
-derivative work of the Library even though the source code is not.
-Whether this is true is especially significant if the work can be
-linked without the Library, or if the work is itself a library.  The
-threshold for this to be true is not precisely defined by law.\n\n
-
-  If such an object file uses only numerical parameters, data
-structure layouts and accessors, and small macros and small inline
-functions (ten lines or less in length), then the use of the object
-file is unrestricted, regardless of whether it is legally a derivative
-work.  (Executables containing this object code plus portions of the
-Library will still fall under Section 6.)\n\n
-
-  Otherwise, if the work is a derivative of the Library, you may
-distribute the object code for the work under the terms of Section 6.
-Any executables containing that work also fall under Section 6,
-whether or not they are linked directly with the Library itself.\n\n
-
-  6. As an exception to the Sections above, you may also combine or
-link a \"work that uses the Library\" with the Library to produce a
-work containing portions of the Library, and distribute that work
-under terms of your choice, provided that the terms permit
-modification of the work for the customer\"s own use and reverse
-engineering for debugging such modifications.\n\n
-
-  You must give prominent notice with each copy of the work that the
-Library is used in it and that the Library and its use are covered by
-this License.  You must supply a copy of this License.  If the work
-during execution displays copyright notices, you must include the
-copyright notice for the Library among them, as well as a reference
-directing the user to the copy of this License.  Also, you must do one
-of these things:\n\n
-
-a) Accompany the work with the complete corresponding
-machine-readable source code for the Library including whatever
-changes were used in the work (which must be distributed under
-Sections 1 and 2 above); and, if the work is an executable linked
-with the Library, with the complete machine-readable \"work that
-uses the Library\", as object code and/or source code, so that the
-user can modify the Library and then relink to produce a modified
-executable containing the modified Library.  (It is understood
-that the user who changes the contents of definitions files in the
-Library will not necessarily be able to recompile the application
-to use the modified definitions.)\n\n
-
-b) Use a suitable shared library mechanism for linking with the
-Library.  A suitable mechanism is one that (1) uses at run time a
-copy of the library already present on the user\"s computer system,
-rather than copying library functions into the executable, and (2)
-will operate properly with a modified version of the library, if
-the user installs one, as long as the modified version is
-interface-compatible with the version that the work was made with.\n\n
-
-c) Accompany the work with a written offer, valid for at
-least three years, to give the same user the materials
-specified in Subsection 6a, above, for a charge no more
-than the cost of performing this distribution.\n\n
-
-d) If distribution of the work is made by offering access to copy
-from a designated place, offer equivalent access to copy the above
-specified materials from the same place.\n\n
-
-e) Verify that the user has already received a copy of these
-materials or that you have already sent this user a copy.\n\n
-
-  For an executable, the required form of the \"work that uses the
-Library\" must include any data and utility programs needed for
-reproducing the executable from it.  However, as a special exception,
-the materials to be distributed need not include anything that is
-normally distributed (in either source or binary form) with the major
-components (compiler, kernel, and so on) of the operating system on
-which the executable runs, unless that component itself accompanies
-the executable.\n\n
-
-  It may happen that this requirement contradicts the license
-restrictions of other proprietary libraries that do not normally
-accompany the operating system.  Such a contradiction means you cannot
-use both them and the Library together in an executable that you
-distribute.\n\n
-
-  7. You may place library facilities that are a work based on the
-Library side-by-side in a single library together with other library
-facilities not covered by this License, and distribute such a combined
-library, provided that the separate distribution of the work based on
-the Library and of the other library facilities is otherwise
-permitted, and provided that you do these two things:\n\n
-
-a) Accompany the combined library with a copy of the same work
-based on the Library, uncombined with any other library
-facilities.  This must be distributed under the terms of the
-Sections above.\n\n
-
-b) Give prominent notice with the combined library of the fact
-that part of it is a work based on the Library, and explaining
-where to find the accompanying uncombined form of the same work.\n\n
-
-  8. You may not copy, modify, sublicense, link with, or distribute
-the Library except as expressly provided under this License.  Any
-attempt otherwise to copy, modify, sublicense, link with, or
-distribute the Library is void, and will automatically terminate your
-rights under this License.  However, parties who have received copies,
-or rights, from you under this License will not have their licenses
-terminated so long as such parties remain in full compliance.\n\n
-
-  9. You are not required to accept this License, since you have not
-signed it.  However, nothing else grants you permission to modify or
-distribute the Library or its derivative works.  These actions are
-prohibited by law if you do not accept this License.  Therefore, by
-modifying or distributing the Library (or any work based on the
-Library), you indicate your acceptance of this License to do so, and
-all its terms and conditions for copying, distributing or modifying
-the Library or works based on it.\n\n
-
-  10. Each time you redistribute the Library (or any work based on the
-Library), the recipient automatically receives a license from the
-original licensor to copy, distribute, link with or modify the Library
-subject to these terms and conditions.  You may not impose any further
-restrictions on the recipients\" exercise of the rights granted herein.
-You are not responsible for enforcing compliance by third parties with
-this License.\n\n
-
-  11. If, as a consequence of a court judgment or allegation of patent
-infringement or for any other reason (not limited to patent issues),
-conditions are imposed on you (whether by court order, agreement or
-otherwise) that contradict the conditions of this License, they do not
-excuse you from the conditions of this License.  If you cannot
-distribute so as to satisfy simultaneously your obligations under this
-License and any other pertinent obligations, then as a consequence you
-may not distribute the Library at all.  For example, if a patent
-license would not permit royalty-free redistribution of the Library by
-all those who receive copies directly or indirectly through you, then
-the only way you could satisfy both it and this License would be to
-refrain entirely from distribution of the Library.\n\n
-
-If any portion of this section is held invalid or unenforceable under any
-particular circumstance, the balance of the section is intended to apply,
-and the section as a whole is intended to apply in other circumstances.\n\n
-
-It is not the purpose of this section to induce you to infringe any
-patents or other property right claims or to contest validity of any
-such claims; this section has the sole purpose of protecting the
-integrity of the free software distribution system which is
-implemented by public license practices.  Many people have made
-generous contributions to the wide range of software distributed
-through that system in reliance on consistent application of that
-system; it is up to the author/donor to decide if he or she is willing
-to distribute software through any other system and a licensee cannot
-impose that choice.\n\n
-
-This section is intended to make thoroughly clear what is believed to
-be a consequence of the rest of this License.\n\n
-
-  12. If the distribution and/or use of the Library is restricted in
-certain countries either by patents or by copyrighted interfaces, the
-original copyright holder who places the Library under this License may add
-an explicit geographical distribution limitation excluding those countries,
-so that distribution is permitted only in or among countries not thus
-excluded.  In such case, this License incorporates the limitation as if
-written in the body of this License.\n\n
-
-  13. The Free Software Foundation may publish revised and/or new
-versions of the Lesser General Public License from time to time.
-Such new versions will be similar in spirit to the present version,
-but may differ in detail to address new problems or concerns.\n\n
-
-Each version is given a distinguishing version number.  If the Library
-specifies a version number of this License which applies to it and
-"any later version\", you have the option of following the terms and
-conditions either of that version or of any later version published by
-the Free Software Foundation.  If the Library does not specify a
-license version number, you may choose any version ever published by
-the Free Software Foundation.\n\n
-
-  14. If you wish to incorporate parts of the Library into other free
-programs whose distribution conditions are incompatible with these,
-write to the author to ask for permission.  For software which is
-copyrighted by the Free Software Foundation, write to the Free
-Software Foundation; we sometimes make exceptions for this.  Our
-decision will be guided by the two goals of preserving the free status
-of all derivatives of our free software and of promoting the sharing
-and reuse of software generally.\n\n
-
-NO WARRANTY\n\n
-
-  15. BECAUSE THE LIBRARY IS LICENSED FREE OF CHARGE, THERE IS NO
-WARRANTY FOR THE LIBRARY, TO THE EXTENT PERMITTED BY APPLICABLE LAW.
-EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR
-OTHER PARTIES PROVIDE THE LIBRARY \"AS IS\" WITHOUT WARRANTY OF ANY
-KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE
-LIBRARY IS WITH YOU.  SHOULD THE LIBRARY PROVE DEFECTIVE, YOU ASSUME
-THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.\n\n
-
-  16. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN
-WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY
-AND/OR REDISTRIBUTE THE LIBRARY AS PERMITTED ABOVE, BE LIABLE TO YOU
-FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR
-CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE
-LIBRARY (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
-RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
-FAILURE OF THE LIBRARY TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
-SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGES.
-    </string>
-    <string name="license_opus" translatable="false">Opus</string>
-    <string name="license_opus_description" translatable="false">Modern audio compression for the internet</string>
-    <string name="license_opus_link" translatable="false">https://github.com/xiph/opus</string>
-    <string name="license_opus_copyright" translatable="false">Copyright 2001–2011 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin, Timothy B. Terriberry, CSIRO, Gregory Maxwell, Mark Borgerding, Erik de Castro Lopo</string>
-    <string name="license_opus_text" translatable="false">
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:\n\n
-
-- Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.\n\n
-
-- Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.\n\n
-
-- Neither the name of Internet Society, IETF or IETF Trust, nor the
-names of specific contributors, may be used to endorse or promote
-products derived from this software without specific prior written
-permission.\n\n
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-``AS IS\"\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n
-
-Opus is subject to the royalty-free patent licenses which are
-specified at:\n\n
-
-Xiph.Org Foundation:
-https://datatracker.ietf.org/ipr/1524/ \n\n
-
-Microsoft Corporation:
-https://datatracker.ietf.org/ipr/1914/ \n\n
-
-Broadcom Corporation:
-https://datatracker.ietf.org/ipr/1526/
-    </string>
-    <string name="license_sirit" translatable="false">Sirit</string>
-    <string name="license_sirit_description" translatable="false">A runtime SPIR-V assembler</string>
-    <string name="license_sirit_link" translatable="false">https://github.com/ReinUsesLisp/sirit</string>
-    <string name="license_sirit_copyright" translatable="false">Copyright © 2019, sirit All rights reserved.</string>
-    <string name="license_sirit_text" translatable="false">
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:\n
-* Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.\n
-* Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.\n
-* Neither the name of the organization nor the
-  names of its contributors may be used to endorse or promote products
-  derived from this software without specific prior written permission.\n\n
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    </string>
-    <string name="license_adreno_tools" translatable="false">Adreno Tools</string>
-    <string name="license_adreno_tools_description" translatable="false">A library for applying rootless Adreno GPU driver modifications/replacements</string>
-    <string name="license_adreno_tools_link" translatable="false">https://github.com/bylaws/libadrenotools</string>
-    <string name="license_adreno_tools_copyright" translatable="false">Copyright © 2021, Billy Laws</string>
-    <string name="license_adreno_tools_text" translatable="false">
-BSD 2-Clause License\n\n
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:\n\n
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.\n\n
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.\n\n
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    </string>
-</resources>
+    </resources>

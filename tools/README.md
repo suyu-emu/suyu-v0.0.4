@@ -19,3 +19,7 @@ Tools for Eden and other subprojects.
 - `lanczos_gen.c`
 - `clang-format.sh`: Runs `clang-format` on the entire codebase.
     * Requires: clang
+
+## Translations
+
+- [Translation Scripts](./translations)

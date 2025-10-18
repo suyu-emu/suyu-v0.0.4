@@ -3,7 +3,7 @@
 
     <!-- General application strings -->
     <string name="app_name" translatable="false">Eden</string>
-    <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href="https://yuzu-mirror.github.io/help/quickstart">Learn more</a>]]></string>
+    <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Learn more</a>]]></string>
     <string name="notice_notification_channel_name">Notices and errors</string>
     <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
     <string name="notice_notification_channel_description">Shows notifications when something goes wrong.</string>
@@ -437,8 +437,7 @@
     <string name="applets_description">Launch system applets using installed firmware</string>
     <string name="applets_error_firmware">Firmware not installed or invalid version</string>
     <string name="applets_error_applet">Applet not available</string>
-    <string name="applets_error_description"><![CDATA[Please ensure your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file and
- <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> are installed and try again.<br>Additionally, ensure your firmware is of version 19.0.1 or older.]]></string>
+    <string name="applets_error_description"><![CDATA[Please ensure your <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file and <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> are installed and try again.<br>Additionally, ensure your firmware is of version 19.0.1 or older.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">See images stored in the user screenshots folder with the system photo viewer</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -809,15 +808,15 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">game cartridges</a> or <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">installed titles</a>.]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Please ensure your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file is installed so that games can be decrypted.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">game cartridges</a> or <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">installed titles</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Please ensure your <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file is installed so that games can be decrypted.]]></string>
     <string name="loader_error_video_core">An error occurred initializing the video core</string>
     <string name="loader_error_video_core_description">This is usually caused by an incompatible GPU driver. Installing a custom GPU driver may resolve this problem.</string>
     <string name="loader_error_invalid_format">Unable to load ROM</string>
     <string name="loader_error_file_not_found">ROM file does not exist</string>
 
     <string name="loader_requires_firmware">Game Requires Firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href="https://yuzu-mirror.github.io/help/quickstart"> dump and install firmware</a>, or press \"OK\" to launch anyways.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dump and install firmware</a>, or press \"OK\" to launch anyways.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Searching for game...</string>
