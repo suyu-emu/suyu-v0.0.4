@@ -406,7 +406,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 #define MIGRATE_DIR(type)                                                                          \
     std::string type##path = Common::FS::GetEdenPathString(Common::FS::EdenPath::type##Dir);       \
     if (type##path.starts_with(user_data_migrator.selected_emu.get_user_dir())) {                  \
-        boost::replace_all(type##path, user_data_migrator.selected_emu.lower_name(), "eden");      \
+        boost::replace_all(type##path, user_data_migrator.selected_emu.lower_name().toStdString(), "eden");      \
         Common::FS::SetEdenPath(Common::FS::EdenPath::type##Dir, type##path);                      \
     }
 

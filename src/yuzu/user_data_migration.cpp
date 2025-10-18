@@ -11,12 +11,13 @@
 #include <QString>
 #include <QTranslator>
 #include "common/fs/path_util.h"
-#include "../yuzu/migration_dialog.h"
+#include "qt_common/qt_string_lookup.h"
+#include "yuzu/migration_dialog.h"
 
 // Needs to be included at the end due to https://bugreports.qt.io/browse/QTBUG-73263
-#include <QGuiApplication>
 #include <QButtonGroup>
 #include <QCheckBox>
+#include <QGuiApplication>
 #include <QProgressDialog>
 #include <QRadioButton>
 #include <QThread>
@@ -41,30 +42,19 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow *main_window)
     namespace fs = std::filesystem;
 
     // define strings here for easy access
-    static constexpr const char *prompt_prefix_text
-        = "Eden has detected user data for the following emulators:";
 
-    static constexpr const char *migration_prompt_message
-        = "Would you like to migrate your data for use in Eden?\n"
-          "Select the corresponding button to migrate data from that emulator.\n"
-          "This may take a while.";
-
-    static constexpr const char *clear_shader_tooltip
-        = "Clearing shader cache is recommended for all "
-          "users.\nDo not uncheck unless you know what "
-          "you're doing.";
-
-    static constexpr const char *keep_old_data_tooltip
-        = "Keeps the old data directory. This is recommended if you aren't\n"
-          "space-constrained and want to keep separate data for the old emulator.";
-
-    static constexpr const char *clear_old_data_tooltip
-        = "Deletes the old data directory.\nThis is recommended on "
-          "devices with space constraints.";
-
-    static constexpr const char *link_old_dir_tooltip
-        = "Creates a filesystem link between the old directory and Eden directory.\n"
-          "This is recommended if you want to share data between emulators.";
+    QString prompt_prefix_text = QtCommon::StringLookup::Lookup(
+        QtCommon::StringLookup::MigrationPromptPrefix);
+    QString migration_prompt_message = QtCommon::StringLookup::Lookup(
+        QtCommon::StringLookup::MigrationPrompt);
+    QString clear_shader_tooltip = QtCommon::StringLookup::Lookup(
+        QtCommon::StringLookup::MigrationTooltipClearShader);
+    QString keep_old_data_tooltip = QtCommon::StringLookup::Lookup(
+        QtCommon::StringLookup::MigrationTooltipKeepOld);
+    QString clear_old_data_tooltip = QtCommon::StringLookup::Lookup(
+        QtCommon::StringLookup::MigrationTooltipClearOld);
+    QString link_old_dir_tooltip = QtCommon::StringLookup::Lookup(
+        QtCommon::StringLookup::MigrationTooltipLinkOld);
 
     // actual migration code
 
@@ -78,12 +68,12 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow *main_window)
 
 #define BUTTON(clazz, name, text, tooltip, checkState) \
     clazz *name = new clazz(&migration_prompt); \
-    name->setText(QObject::tr(text)); \
-    name->setToolTip(QObject::tr(tooltip)); \
+    name->setText(text); \
+    name->setToolTip(tooltip); \
     name->setChecked(checkState); \
     migration_prompt.addBox(name);
 
-    BUTTON(QCheckBox, clear_shaders, "Clear Shader Cache", clear_shader_tooltip, true)
+    BUTTON(QCheckBox, clear_shaders, QObject::tr("Clear Shader Cache"), clear_shader_tooltip, true)
 
     u32 id = 0;
 
@@ -91,9 +81,9 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow *main_window)
     BUTTON(QRadioButton, name, text, tooltip, checkState) \
     group->addButton(name, ++id);
 
-    RADIO(keep_old, "Keep Old Data", keep_old_data_tooltip, true)
-    RADIO(clear_old, "Clear Old Data", clear_old_data_tooltip, false)
-    RADIO(link_old, "Link Old Directory", link_old_dir_tooltip, false)
+    RADIO(keep_old,  QObject::tr("Keep Old Data"), keep_old_data_tooltip, true)
+    RADIO(clear_old, QObject::tr("Clear Old Data"), clear_old_data_tooltip, false)
+    RADIO(link_old,  QObject::tr("Link Old Directory"), link_old_dir_tooltip, false)
 
 #undef RADIO
 #undef BUTTON
@@ -111,20 +101,20 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow *main_window)
     // makes my life easier
     qRegisterMetaType<Emulator>();
 
-    QString prompt_text = QObject::tr(prompt_prefix_text);
+    QString prompt_text = prompt_prefix_text;
 
     // natural language processing is a nightmare
     for (const Emulator &emu : found) {
-        prompt_text.append(QStringLiteral("\n- %1").arg(QObject::tr(emu.name)));
+        prompt_text = prompt_text % QStringLiteral("\n ") % emu.name();
 
-        QAbstractButton *button = migration_prompt.addButton(QObject::tr(emu.name));
+        QAbstractButton *button = migration_prompt.addButton(emu.name());
 
         // This is cursed, but it's actually the most efficient way by a mile
         button->setProperty("emulator", QVariant::fromValue(emu));
     }
 
     prompt_text.append(QObject::tr("\n\n"));
-    prompt_text.append(QObject::tr(migration_prompt_message));
+    prompt_text = prompt_text % QStringLiteral("\n\n") % migration_prompt_message;
 
     migration_prompt.setText(prompt_text);
     migration_prompt.addButton(QObject::tr("No"), true);
@@ -191,16 +181,19 @@ void UserDataMigrator::MigrateUserData(QMainWindow *main_window,
 
     thread->connect(thread, &QThread::started, worker, &MigrationWorker::process);
 
-    thread->connect(worker, &MigrationWorker::finished, progress, [=, this](const QString &success_text, const std::string &path) {
-        progress->close();
-        QMessageBox::information(main_window,
-                                 QObject::tr("Migration"),
-                                 success_text,
-                                 QMessageBox::Ok);
+    thread->connect(worker,
+                    &MigrationWorker::finished,
+                    progress,
+                    [=, this](const QString &success_text, const std::string &path) {
+                        progress->close();
+                        QMessageBox::information(main_window,
+                                                 QObject::tr("Migration"),
+                                                 success_text,
+                                                 QMessageBox::Ok);
 
-        migrated = true;
-        thread->quit();
-    });
+                        migrated = true;
+                        thread->quit();
+                    });
 
     thread->connect(worker, &MigrationWorker::finished, worker, &QObject::deleteLater);
     thread->connect(thread, &QThread::finished, thread, &QObject::deleteLater);

@@ -8,9 +8,9 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/service/am/am_types.h"
 #include "frontend_common/content_manager.h"
-#include "qt_common/qt_common.h"
-#include "qt_common/config/uisettings.h"
 #include "qt_common/abstract/qt_frontend_util.h"
+#include "qt_common/config/uisettings.h"
+#include "qt_common/qt_common.h"
 #include "yuzu/util/util.h"
 
 #include <QDesktopServices>
@@ -166,7 +166,8 @@ bool MakeShortcutIcoPath(const u64 program_id,
 
 void OpenEdenFolder(const Common::FS::EdenPath& path)
 {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(Common::FS::GetEdenPathString(path))));
+    QDesktopServices::openUrl(
+        QUrl::fromLocalFile(QString::fromStdString(Common::FS::GetEdenPathString(path))));
 }
 
 void OpenRootDataFolder()
@@ -181,7 +182,8 @@ void OpenNANDFolder()
 
 void OpenSaveFolder()
 {
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "user/save/0000000000000000";
+    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
+                      / "user/save/0000000000000000";
     QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(path.string())));
 }
 
@@ -220,12 +222,11 @@ void RemoveBaseContent(u64 program_id, InstalledEntryType type)
     const auto res = ContentManager::RemoveBaseContent(system->GetFileSystemController(),
                                                        program_id);
     if (res) {
-        QtCommon::Frontend::Information(rootObject,
-                                        tr("Successfully Removed"),
+        QtCommon::Frontend::Information(tr("Successfully Removed"),
                                         tr("Successfully removed the installed base game."));
     } else {
         QtCommon::Frontend::Warning(
-            rootObject,
+
             GetGameListErrorRemoving(type),
             tr("The base game is not installed in the NAND and cannot be removed."));
     }
@@ -235,12 +236,10 @@ void RemoveUpdateContent(u64 program_id, InstalledEntryType type)
 {
     const auto res = ContentManager::RemoveUpdate(system->GetFileSystemController(), program_id);
     if (res) {
-        QtCommon::Frontend::Information(rootObject,
-                                        tr("Successfully Removed"),
+        QtCommon::Frontend::Information(tr("Successfully Removed"),
                                         tr("Successfully removed the installed update."));
     } else {
-        QtCommon::Frontend::Warning(rootObject,
-                                    GetGameListErrorRemoving(type),
+        QtCommon::Frontend::Warning(GetGameListErrorRemoving(type),
                                     tr("There is no update installed for this title."));
     }
 }
@@ -249,14 +248,12 @@ void RemoveAddOnContent(u64 program_id, InstalledEntryType type)
 {
     const size_t count = ContentManager::RemoveAllDLC(*system, program_id);
     if (count == 0) {
-        QtCommon::Frontend::Warning(rootObject,
-                                    GetGameListErrorRemoving(type),
+        QtCommon::Frontend::Warning(GetGameListErrorRemoving(type),
                                     tr("There are no DLCs installed for this title."));
         return;
     }
 
-    QtCommon::Frontend::Information(rootObject,
-                                    tr("Successfully Removed"),
+    QtCommon::Frontend::Information(tr("Successfully Removed"),
                                     tr("Successfully removed %1 installed DLC.").arg(count));
 }
 
@@ -279,18 +276,15 @@ void RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target)
     const auto target_file = shader_cache_folder_path / target_file_name;
 
     if (!Common::FS::Exists(target_file)) {
-        QtCommon::Frontend::Warning(rootObject,
-                                    tr("Error Removing Transferable Shader Cache"),
+        QtCommon::Frontend::Warning(tr("Error Removing Transferable Shader Cache"),
                                     tr("A shader cache for this title does not exist."));
         return;
     }
     if (Common::FS::RemoveFile(target_file)) {
-        QtCommon::Frontend::Information(rootObject,
-                                        tr("Successfully Removed"),
+        QtCommon::Frontend::Information(tr("Successfully Removed"),
                                         tr("Successfully removed the transferable shader cache."));
     } else {
-        QtCommon::Frontend::Warning(rootObject,
-                                    tr("Error Removing Transferable Shader Cache"),
+        QtCommon::Frontend::Warning(tr("Error Removing Transferable Shader Cache"),
                                     tr("Failed to remove the transferable shader cache."));
     }
 }
@@ -307,8 +301,7 @@ void RemoveVulkanDriverPipelineCache(u64 program_id)
         return;
     }
     if (!Common::FS::RemoveFile(target_file)) {
-        QtCommon::Frontend::Warning(rootObject,
-                                    tr("Error Removing Vulkan Driver Pipeline Cache"),
+        QtCommon::Frontend::Warning(tr("Error Removing Vulkan Driver Pipeline Cache"),
                                     tr("Failed to remove the driver pipeline cache."));
     }
 }
@@ -319,18 +312,16 @@ void RemoveAllTransferableShaderCaches(u64 program_id)
     const auto program_shader_cache_dir = shader_cache_dir / fmt::format("{:016x}", program_id);
 
     if (!Common::FS::Exists(program_shader_cache_dir)) {
-        QtCommon::Frontend::Warning(rootObject,
-                                    tr("Error Removing Transferable Shader Caches"),
+        QtCommon::Frontend::Warning(tr("Error Removing Transferable Shader Caches"),
                                     tr("A shader cache for this title does not exist."));
         return;
     }
     if (Common::FS::RemoveDirRecursively(program_shader_cache_dir)) {
-        QtCommon::Frontend::Information(rootObject,
-                                        tr("Successfully Removed"),
+        QtCommon::Frontend::Information(tr("Successfully Removed"),
                                         tr("Successfully removed the transferable shader caches."));
     } else {
         QtCommon::Frontend::Warning(
-            rootObject,
+
             tr("Error Removing Transferable Shader Caches"),
             tr("Failed to remove the transferable shader cache directory."));
     }
@@ -339,27 +330,23 @@ void RemoveAllTransferableShaderCaches(u64 program_id)
 void RemoveCustomConfiguration(u64 program_id, const std::string& game_path)
 {
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(game_path));
-    const auto config_file_name = program_id == 0
-                                      ? Common::FS::PathToUTF8String(file_path.filename())
-                                            .append(".ini")
-                                      : fmt::format("{:016X}.ini", program_id);
+    const auto config_file_name
+        = program_id == 0 ? Common::FS::PathToUTF8String(file_path.filename()).append(".ini")
+                          : fmt::format("{:016X}.ini", program_id);
     const auto custom_config_file_path = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir)
                                          / "custom" / config_file_name;
 
     if (!Common::FS::Exists(custom_config_file_path)) {
-        QtCommon::Frontend::Warning(rootObject,
-                                    tr("Error Removing Custom Configuration"),
+        QtCommon::Frontend::Warning(tr("Error Removing Custom Configuration"),
                                     tr("A custom configuration for this title does not exist."));
         return;
     }
 
     if (Common::FS::RemoveFile(custom_config_file_path)) {
-        QtCommon::Frontend::Information(rootObject,
-                                        tr("Successfully Removed"),
+        QtCommon::Frontend::Information(tr("Successfully Removed"),
                                         tr("Successfully removed the custom game configuration."));
     } else {
-        QtCommon::Frontend::Warning(rootObject,
-                                    tr("Error Removing Custom Configuration"),
+        QtCommon::Frontend::Warning(tr("Error Removing Custom Configuration"),
                                     tr("Failed to remove the custom game configuration."));
     }
 }
@@ -392,18 +379,23 @@ void ResetMetadata(bool show_message)
 
     if (!Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir)
                             / "game_list/")) {
-        if (show_message) QtCommon::Frontend::Warning(rootObject, title, tr("The metadata cache is already empty."));
+        if (show_message)
+            QtCommon::Frontend::Warning(rootObject,
+                                        title,
+                                        tr("The metadata cache is already empty."));
     } else if (Common::FS::RemoveDirRecursively(
                    Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
-        if (show_message) QtCommon::Frontend::Information(rootObject,
-                                        title,
-                                        tr("The operation completed successfully."));
+        if (show_message)
+            QtCommon::Frontend::Information(rootObject,
+                                            title,
+                                            tr("The operation completed successfully."));
         UISettings::values.is_game_list_reload_pending.exchange(true);
     } else {
-        if (show_message) QtCommon::Frontend::Warning(
-            rootObject,
-            title,
-            tr("The metadata cache couldn't be deleted. It might be in use or non-existent."));
+        if (show_message)
+            QtCommon::Frontend::Warning(
+
+                title,
+                tr("The metadata cache couldn't be deleted. It might be in use or non-existent."));
     }
 }
 
@@ -446,7 +438,7 @@ inline constexpr bool CreateShortcutMessagesGUI(ShortcutMessages imsg, const QSt
 void CreateShortcut(const std::string& game_path,
                     const u64 program_id,
                     const std::string& game_title_,
-                    const ShortcutTarget &target,
+                    const ShortcutTarget& target,
                     std::string arguments_,
                     const bool needs_title)
 {
@@ -458,16 +450,18 @@ void CreateShortcut(const std::string& game_path,
 
     if (!std::filesystem::exists(shortcut_path)) {
         CreateShortcutMessagesGUI(ShortcutMessages::Failed,
-            QString::fromStdString(shortcut_path.generic_string()));
+                                  QString::fromStdString(shortcut_path.generic_string()));
         LOG_ERROR(Frontend, "Invalid shortcut target {}", shortcut_path.generic_string());
         return;
     }
 
-    const FileSys::PatchManager pm{program_id, QtCommon::system->GetFileSystemController(),
+    const FileSys::PatchManager pm{program_id,
+                                   QtCommon::system->GetFileSystemController(),
                                    QtCommon::system->GetContentProvider()};
     const auto control = pm.GetControlMetadata();
-    const auto loader =
-        Loader::GetLoader(*QtCommon::system, QtCommon::vfs->OpenFile(game_path, FileSys::OpenMode::Read));
+    const auto loader = Loader::GetLoader(*QtCommon::system,
+                                          QtCommon::vfs->OpenFile(game_path,
+                                                                  FileSys::OpenMode::Read));
 
     std::string game_title{game_title_};
 
@@ -498,8 +492,8 @@ void CreateShortcut(const std::string& game_path,
         LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path);
     }
 
-    QImage icon_data =
-        QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
+    QImage icon_data = QImage::fromData(icon_image_file.data(),
+                                        static_cast<int>(icon_image_file.size()));
     std::filesystem::path out_icon_path;
     if (QtCommon::Game::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
         if (!SaveIconToFile(out_icon_path, icon_data)) {
@@ -532,33 +526,39 @@ void CreateShortcut(const std::string& game_path,
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
-    if (QtCommon::Game::CreateShortcutLink(shortcut_path, comment, out_icon_path, command,
-                                           arguments, categories, keywords, game_title)) {
-        CreateShortcutMessagesGUI(ShortcutMessages::Success,
-                                  qgame_title);
+    if (QtCommon::Game::CreateShortcutLink(shortcut_path,
+                                           comment,
+                                           out_icon_path,
+                                           command,
+                                           arguments,
+                                           categories,
+                                           keywords,
+                                           game_title)) {
+        CreateShortcutMessagesGUI(ShortcutMessages::Success, qgame_title);
         return;
     }
-    CreateShortcutMessagesGUI(ShortcutMessages::Failed,
-                              qgame_title);
+    CreateShortcutMessagesGUI(ShortcutMessages::Failed, qgame_title);
 }
 
 // TODO: You want this to be constexpr? Well too bad, clang19 doesn't believe this is a string literal
-std::string GetShortcutPath(ShortcutTarget target) {
+std::string GetShortcutPath(ShortcutTarget target)
+{
     {
         std::string shortcut_path{};
         if (target == ShortcutTarget::Desktop) {
-            shortcut_path = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)
-            .toStdString();
+            shortcut_path
+                = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString();
         } else if (target == ShortcutTarget::Applications) {
-            shortcut_path = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation)
-            .toStdString();
+            shortcut_path
+                = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
         }
 
         return shortcut_path;
     }
 }
 
-void CreateHomeMenuShortcut(ShortcutTarget target) {
+void CreateHomeMenuShortcut(ShortcutTarget target)
+{
     constexpr u64 QLaunchId = static_cast<u64>(Service::AM::AppletProgramId::QLaunch);
     auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {

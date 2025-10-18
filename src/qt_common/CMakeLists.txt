@@ -66,7 +66,8 @@ target_compile_definitions(qt_common PUBLIC
 
 add_subdirectory(externals)
 
-find_package(frozen REQUIRED)
+# pass targets
+find_package(frozen)
 
 target_link_libraries(qt_common PRIVATE core Qt6::Core Qt6::Concurrent SimpleIni::SimpleIni QuaZip::QuaZip)
 target_link_libraries(qt_common PUBLIC frozen::frozen-headers)

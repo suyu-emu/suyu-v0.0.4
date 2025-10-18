@@ -15,20 +15,11 @@
 #include <core/hle/service/am/frontend/applet_mii_edit.h>
 #include <string>
 
+#include "core/hle/result.h"
 #include "core/hle/service/set/settings_types.h"
 #include "core/hle/service/set/system_settings_server.h"
-#include "core/hle/result.h"
 
 namespace FirmwareManager {
-
-static constexpr std::array<const char *, 5> KEY_INSTALL_RESULT_STRINGS = {
-    "Decryption Keys were successfully installed",
-    "Unable to read key directory, aborting",
-    "One or more keys failed to copy.",
-    "Verify your keys file has a .keys extension and try again.",
-    "Decryption Keys failed to initialize. Check that your dumping tools are up to date and "
-    "re-dump keys.",
-};
 
 static constexpr std::array<u64, 1> FIRMWARE_REQUIRED_GAMES = {
     0x0100152000022000ULL, // MK8DX
@@ -49,16 +40,6 @@ enum KeyInstallResult {
  * @return A result code for the operation.
  */
 KeyInstallResult InstallKeys(std::string location, std::string expected_extension);
-
-/**
- * \brief Get a string representation of a result from InstallKeys.
- * \param result The result code.
- * \return A string representation of the passed result code.
- */
-inline constexpr const char *GetKeyInstallResultString(KeyInstallResult result)
-{
-    return KEY_INSTALL_RESULT_STRINGS.at(static_cast<std::size_t>(result));
-}
 
 /**
  * \brief Check if the specified program requires firmware to run properly.

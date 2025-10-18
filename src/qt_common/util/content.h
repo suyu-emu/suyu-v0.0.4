@@ -7,33 +7,36 @@
 #include <QObject>
 #include "common/common_types.h"
 #include "frontend_common/data_manager.h"
+#include "frontend_common/firmware_manager.h"
+#include "qt_common/qt_string_lookup.h"
 
 namespace QtCommon::Content {
 
 //
 bool CheckGameFirmware(u64 program_id, QObject *parent);
 
-static constexpr std::array<const char *, 6> FIRMWARE_RESULTS
-    = {"Successfully installed firmware version %1",
-       "",
-       "Unable to locate potential firmware NCA files",
-       "Failed to delete one or more firmware files.",
-       "One or more firmware files failed to copy into NAND.",
-       "Firmware installation cancelled, firmware may be in a bad state or corrupted."
-       "Restart Eden or re-install firmware."};
-
 enum class FirmwareInstallResult {
     Success,
-    NoOp,
     NoNCAs,
     FailedDelete,
     FailedCopy,
     FailedCorrupted,
 };
 
-inline constexpr const char *GetFirmwareInstallResultString(FirmwareInstallResult result)
+inline const QString GetFirmwareInstallResultString(FirmwareInstallResult result)
 {
-    return FIRMWARE_RESULTS.at(static_cast<std::size_t>(result));
+    return QtCommon::StringLookup::Lookup(static_cast<StringLookup::StringKey>((int) result + (int) QtCommon::StringLookup::FwInstallSuccess));
+}
+
+/**
+ * \brief Get a string representation of a result from InstallKeys.
+ * \param result The result code.
+ * \return A string representation of the passed result code.
+ */
+inline const QString GetKeyInstallResultString(FirmwareManager::KeyInstallResult result)
+{
+    // this can probably be made into a common function of sorts
+    return QtCommon::StringLookup::Lookup(static_cast<StringLookup::StringKey>((int) result + (int) QtCommon::StringLookup::KeyInstallSuccess));
 }
 
 void InstallFirmware(const QString &location, bool recursive);

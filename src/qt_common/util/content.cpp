@@ -10,15 +10,15 @@
 #include "frontend_common/data_manager.h"
 #include "frontend_common/firmware_manager.h"
 
-#include "qt_common/qt_common.h"
 #include "compress.h"
-#include "qt_common/abstract/qt_progress_dialog.h"
 #include "qt_common/abstract/qt_frontend_util.h"
+#include "qt_common/abstract/qt_progress_dialog.h"
+#include "qt_common/qt_common.h"
 
 #include <QFuture>
+#include <QFutureWatcher>
 #include <QtConcurrentRun>
 #include <JlCompress.h>
-#include <QFutureWatcher>
 
 namespace QtCommon::Content {
 
@@ -60,15 +60,15 @@ void InstallFirmware(const QString& location, bool recursive)
         return progress.wasCanceled();
     };
 
-    static constexpr const char* failedTitle = "Firmware Install Failed";
-    static constexpr const char* successTitle = "Firmware Install Succeeded";
+    QString failedTitle = tr("Firmware Install Failed");
+    QString successTitle = tr("Firmware Install Succeeded");
     QMessageBox::Icon icon;
     FirmwareInstallResult result;
 
     const auto ShowMessage = [&]() {
         QtCommon::Frontend::ShowMessage(icon,
-                                        tr(failedTitle),
-                                        tr(GetFirmwareInstallResultString(result)));
+                                        failedTitle,
+                                        GetFirmwareInstallResultString(result));
     };
 
     LOG_INFO(Frontend, "Installing firmware from {}", location.toStdString());
@@ -188,10 +188,9 @@ void InstallFirmware(const QString& location, bool recursive)
     const std::string display_version(firmware_data.display_version.data());
 
     result = FirmwareInstallResult::Success;
-    QtCommon::Frontend::Information(
-        rootObject,
-        tr(successTitle),
-        tr(GetFirmwareInstallResultString(result)).arg(QString::fromStdString(display_version)));
+    QtCommon::Frontend::Information(successTitle,
+                                    GetFirmwareInstallResultString(result).arg(
+                                        QString::fromStdString(display_version)));
 }
 
 QString UnzipFirmwareToTmp(const QString& location)
@@ -277,14 +276,13 @@ void InstallKeys()
 
     system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
 
+    const QString resMsg = GetKeyInstallResultString(result);
     switch (result) {
     case FirmwareManager::KeyInstallResult::Success:
-        QtCommon::Frontend::Information(tr("Decryption Keys install succeeded"),
-                                        tr("Decryption Keys were successfully installed"));
+        QtCommon::Frontend::Information(tr("Decryption Keys install succeeded"), resMsg);
         break;
     default:
-        QtCommon::Frontend::Critical(tr("Decryption Keys install failed"),
-                                     tr(FirmwareManager::GetKeyInstallResultString(result)));
+        QtCommon::Frontend::Critical(tr("Decryption Keys install failed"), resMsg);
         break;
     }
 }
@@ -296,7 +294,7 @@ void VerifyInstalledContents()
                                                   tr("Cancel"),
                                                   0,
                                                   100,
-                                                  QtCommon::rootObject);
+                                                  rootObject);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
     progress.setAutoClose(false);
@@ -415,7 +413,9 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
     QGuiApplication::processEvents();
 
     auto progress_callback = [=](size_t total_size, size_t processed_size) {
-        QMetaObject::invokeMethod(progress, "setValue", Qt::DirectConnection,
+        QMetaObject::invokeMethod(progress,
+                                  "setValue",
+                                  Qt::DirectConnection,
                                   Q_ARG(int, static_cast<int>((processed_size * 100) / total_size)));
         return !progress->wasCanceled();
     };
@@ -499,8 +499,11 @@ void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir,
 
     QObject::connect(delete_watcher, &QFutureWatcher<bool>::finished, rootObject, [=]() {
         auto progress_callback = [=](size_t total_size, size_t processed_size) {
-            QMetaObject::invokeMethod(progress, "setValue", Qt::DirectConnection,
-                                      Q_ARG(int, static_cast<int>((processed_size * 100) / total_size)));
+            QMetaObject::invokeMethod(progress,
+                                      "setValue",
+                                      Qt::DirectConnection,
+                                      Q_ARG(int,
+                                            static_cast<int>((processed_size * 100) / total_size)));
             return !progress->wasCanceled();
         };
 
