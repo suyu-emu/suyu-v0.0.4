@@ -22,8 +22,6 @@
     <string name="show_fps_description">Aktuální počet snímků za sekundu</string>
     <string name="show_frametime">Zobrazit čas snímku</string>
     <string name="show_frametime_description">Aktuální čas snímku</string>
-    <string name="show_speed">Zobrazit rychlost</string>
-    <string name="show_speed_description">Aktuální rychlost emulace v procentech</string>
     <string name="show_app_ram_usage">Zobrazit využití RAM aplikace</string>
     <string name="show_app_ram_usage_description">Zobrazit množství RAM, které emulátor používá</string>
     <string name="show_system_ram_usage">Zobrazit využití systémové RAM</string>
@@ -133,8 +131,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">Více hráčů</string>
     <string name="multiplayer_description">Vytvořte si vlastní herní místnost nebo se připojte k existující a hrajte s ostatními</string>
-    <string name="multiplayer_room_title">Místnost: %1$s</string>
-    <string name="multiplayer_console_id">ID konzole: %1$s</string>
     <string name="multiplayer_create_room">Vytvořit</string>
     <string name="multiplayer_join_room">Připojit se</string>
     <string name="multiplayer_public_room">Procházet veřejné místnosti</string>
@@ -143,11 +139,6 @@
     <string name="multiplayer_ip_port">Port</string>
     <string name="multiplayer_create_room_success">Místnost úspěšně vytvořena</string>
     <string name="multiplayer_join_room_success">Úspěšně připojeno k místnosti</string>
-    <string name="multiplayer_create_room_failed">Nepodařilo se vytvořit místnost</string>
-    <string name="multiplayer_join_room_failed">Nepodařilo se připojit k místnosti</string>
-    <string name="multiplayer_name_invalid">Jméno je příliš krátké</string>
-    <string name="multiplayer_address_invalid">Neplatná adresa</string>
-    <string name="multiplayer_port_invalid">Neplatný port</string>
     <string name="multiplayer_exit_room">Opustit místnost</string>
     <string name="multiplayer_network_error">Chyba sítě</string>
     <string name="multiplayer_lost_connection">Ztraceno připojení</string>
@@ -176,21 +167,15 @@
     <string name="multiplayer_member_banned">%1$s zablokován</string>
     <string name="multiplayer_address_unbanned">Adresa odblokována</string>
     <string name="multiplayer_kick_member">Vyhodit</string>
-    <string name="multiplayer_chat_input_hint">Poslat zprávu…</string>
     <string name="multiplayer_password">Heslo</string>
     <string name="multiplayer_joining">Připojování…</string>
     <string name="multiplayer_creating">Vytváření…</string>
     <string name="multiplayer_room_name">Název místnosti</string>
-    <string name="multiplayer_room_name_invalid">Název místnosti musí mít 3 až 20 znaků</string>
-    <string name="multiplayer_max_players">Maximální počet hráčů (16)</string>
     <string name="multiplayer_max_players_value">Maximální počet hráčů: %d</string>
     <string name="multiplayer_chat">Chat</string>
     <string name="multiplayer_more_options">Další možnosti</string>
-    <string name="multiplayer_ip_copied">IP adresa zkopírována do schránky</string>
-    <string name="multiplayer_server_address">Adresa serveru</string>
     <string name="chat">Chat</string>
     <string name="type_message">Napište zprávu…</string>
-    <string name="send">Odeslat</string>
     <string name="send_message">Odeslat zprávu</string>
     <string name="multiplayer_moderation">Moderace</string>
     <string name="multiplayer_moderation_title">Seznam zablokovaných</string>
@@ -210,12 +195,8 @@
     <string name="multiplayer_hide_empty_rooms">Skrýt prázdné místnosti</string>
     <string name="multiplayer_tap_refresh_to_check_again">Klepnutím obnovte znovu</string>
     <string name="multiplayer_search_public_lobbies">Hledat místnosti…</string>
-    <string name="emulation_multiplayer">Více hráčů</string>
-    <string name="multiplayer_game_name">Preferované hry</string>
     <string name="multiplayer_preferred_game_name">Preferovaná hra</string>
     <string name="multiplayer_lobby_type">Typ místnosti</string>
-    <string name="multiplayer_no_game">Nenalezeny žádné hry</string>
-    <string name="multiplayer_preferred_game_name_invalid">Pro hostování místnosti musíte vybrat preferovanou hru.</string>
     <string name="multiplayer_room_name_error">Musí mít 3 až 20 znaků</string>
     <string name="multiplayer_required">Povinné</string>
     <string name="multiplayer_token_required">Vyžadován webový token, přejděte do Pokročilá nastavení -> Systém -> Síť</string>
@@ -244,7 +225,6 @@
     <string name="next">Další</string>
     <string name="back">Zpět</string>
     <string name="add_games">Přidat hry</string>
-    <string name="add_games_description">Vyber svoji složku se hrami</string>
     <string name="bluetooth_permissions_granted">Bluetoothová oprávnění udělena.</string>
     <string name="bluetooth_permissions_denied">Bluetoothová oprávnění zamítnuta. Podpora ovladače může být omezena.</string>
 
@@ -258,13 +238,9 @@
     <string name="pre_alpha_warning_title">Předběžná verze</string>
     <string name="pre_alpha_warning_description">Varování: Tato verze není určena pro veřejnost. Může obsahovat chyby.</string>
     <string name="dont_show_again">Nezobrazovat znovu</string>
-    <string name="pre_alpha_warning">PŘEDBĚŽNÁ VERZE</string>
-    <string name="home_games">Hry</string>
     <string name="home_search">Hledat</string>
     <string name="home_settings">Nastavení</string>
     <string name="empty_gamelist">Nebyly nalezeny žádné soubory nebo ještě nebyl vybrán žádný adresář s hrami.</string>
-    <string name="search_and_filter_games">Hledat a filtrovat hry</string>
-    <string name="select_games_folder">Vybrat složku s hrami</string>
     <string name="manage_game_folders">Spravovat složky s hrami</string>
     <string name="install_prod_keys">Instalovat prod.keys</string>
     <string name="install_prod_keys_warning">Přeskočit přidávání klíčů?</string>
@@ -286,26 +262,20 @@
     <string name="install_amiibo_keys_description">Povinné použití Amiibo ve hře</string>
     <string name="gpu_driver_fetcher">Stahovač ovladačů GPU</string>
     <string name="gpu_driver_manager">Správce ovladače GPU</string>
-    <string name="install_gpu_driver">Instalovat GPU ovladač</string>
     <string name="advanced_settings">Pokročilé nastavení</string>
     <string name="settings_description">Konfigurovat nastavení emulátoru</string>
     <string name="search_recently_played">Nedávno hrané</string>
     <string name="search_recently_added">Nedávno přidané</string>
-    <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">Otevřít Eden složku</string>
     <string name="open_user_folder_description">Spravovat soubory Eden</string>
     <string name="no_file_manager">Nenalezen žádný správce souborů</string>
     <string name="notification_no_directory_link">Nepovedlo se otevřít Eden složku</string>
     <string name="manage_save_data">Spravovat data postupu ve hře</string>
     <string name="manage_save_data_description">Data postupu nalezeny. Prosím vyberte možnost.</string>
-    <string name="import_export_saves_description">Importovat nebo exportovat data postupu</string>
     <string name="save_file_imported_success">Uspěšně importováno</string>
     <string name="save_file_invalid_zip_structure">Neplatná struktura dat postupu</string>
-    <string name="import_saves">Importovat</string>
-    <string name="export_saves">Exportovat</string>
     <string name="install_firmware">Nainstalovat firmware</string>
     <string name="firmware_installing">Instalování firmwaru</string>
-    <string name="firmware_installed_success">Firmware byl úspěšně nainstalován</string>
     <string name="firmware_installed_failure">Instalace firmwaru selhala</string>
     <string name="install_game_content">Nainstalovat obsah hry</string>
     <string name="install_game_content_description">Nainstalovat aktualizace hry nebo DLC</string>
@@ -338,7 +308,6 @@
     <string name="firmware_uninstalling">Odstraňování firmwaru</string>
     <string name="firmware_uninstalled_success">Firmware byl úspěšně odinstalován</string>
 
-    <string name="firmware_invalid">Neplatný firmware</string>
     <string name="error_firmware_missing">Firmware je vyžadován pro spuštění některých her a aplikací. Eden funguje pouze s firmwarem 19.0.1 nebo starším.</string>
     <string name="error_firmware_corrupted">Firmware byl nahlášen jako přítomný, ale nelze jej přečíst. Zkontrolujte šifrovací klíče a v případě potřeby firmware převezměte znovu.</string>
     <string name="error_firmware_too_new">Firmware je příliš nový nebo nelze přečíst. Eden funguje pouze s firmwarem 19.0.1 nebo starším.</string>
@@ -378,7 +347,6 @@
     <string name="user_data">Uživatelská data</string>
     <string name="exporting_user_data">Exportování uživatelských dat...</string>
     <string name="importing_user_data">Importování uživatelských dat...</string>
-    <string name="import_user_data">Importovat uživatelská data</string>
     <string name="invalid_yuzu_backup">Neplatná záloha Eden</string>
     <string name="user_data_export_success">Uživatelská data byla úspěšně exportována.</string>
     <string name="user_data_import_success">Uživatelská data byla úspěšně importována.</string>
@@ -470,8 +438,6 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">Výchozí</string>
-    <string name="ini_saved">Nastavení uložena</string>
-    <string name="gameid_saved">Uložena nastavení pro %1$s</string>
     <string name="loading">Načítání...</string>
     <string name="shutting_down">Vypínání...</string>
     <string name="reset_setting_confirmation">Chcete obnovit toto nastavení zpět na jeho výchozí hodnotu?</string>
@@ -488,12 +454,8 @@
     <string name="delete">Smazat</string>
     <string name="export_success">Úspěšně exportováno</string>
     <string name="start">Start</string>
-    <string name="clear">Vymazat</string>
     <string name="custom">Vlastní</string>
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">Vybrat GPU ovladač</string>
-    <string name="select_gpu_driver_title">Chcete nahradit váš aktuální ovladač GPU?</string>
-    <string name="select_gpu_driver_install">Nainstalovat</string>
     <string name="select_gpu_driver_default">Výchozí</string>
     <string name="select_gpu_driver_error">Vybrán neplatný ovladač</string>
     <string name="driver_already_installed">Ovladač již nainstalován</string>
@@ -501,14 +463,9 @@
     <string name="installing_driver">Instalování ovladače...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">Chyba při stahování</string>
-    <string name="check_connection">Zkontrolujte připojení a zkuste to znovu.</string>
     <string name="show_releases">Zobrazit verze</string>
-    <string name="view_full_release_notes">Poznámky k verzi</string>
     <string name="failed_to_fetch">Nepodařilo se stáhnout</string>
     <string name="error_during_fetch">Chyba při stahování</string>
-    <string name="toggle_release_notes">Přepnout poznámky k verzi</string>
-    <string name="downloads">Stažené soubory</string>
     <string name="show_downloads">Zobrazit stažené soubory</string>
     <string name="hide_downloads">Skrýt stažené soubory</string>
     <string name="failed_cache_dir">Adresář mezipaměti není k dispozici</string>
@@ -527,7 +484,6 @@
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Nastavení</string>
-    <string name="preferences_general">Obecné</string>
     <string name="preferences_system">Systém</string>
     <string name="preferences_graphics">Grafika</string>
     <string name="preferences_audio">Zvuk</string>
@@ -585,7 +541,6 @@
     <string name="loader_error_encrypted_keys_description"><![CDATA[Nainstalujte <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> pro dešifrování.]]></string>
     <string name="loader_error_video_core">Chyba inicializace</string>
     <string name="loader_error_video_core_description">Neplatný GPU ovladač</string>
-    <string name="loader_error_invalid_format">Nelze načíst ROM</string>
     <string name="loader_error_file_not_found">ROM neexistuje</string>
 
     <string name="loader_requires_firmware">Hra vyžaduje firmware</string>
@@ -613,19 +568,9 @@
     <string name="config_already_exists_title">Konfigurace již existuje</string>
     <string name="config_exists_prompt">Kontrola existující konfigurace...</string>
     <string name="overwrite_cancelled">Přepsání zrušeno</string>
-    <string name="checking_driver">Kontrola vlastního ovladače: %1$s</string>
-    <string name="driver_unavailable">Vlastní ovladač není pro toto zařízení k dispozici</string>
     <string name="overwrite">Přepsat</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">Chybí ovladač GPU</string>
-    <string name="missing_gpu_driver_message">Vybraný vlastní ovladač \"%s\" není nainstalován. Chcete jej nyní stáhnout и nainstalovat?</string>
-    <string name="downloading_driver">Stahování ovladače...</string>
-    <string name="driver_installed">Ovladač byl úspěšně nainstalován</string>
-    <string name="driver_installation_failed_title">Instalace ovladače selhala</string>
-    <string name="driver_installation_failed_message">Nepodařilo se nainstalovat ovladač GPU: %s</string>
-    <string name="driver_not_available_title">Ovladač není k dispozici</string>
-    <string name="driver_not_available_message">Vybraný ovladač není k dispozici ke stažení.</string>
     <string name="driver_not_found">Požadovaný ovladač není nainstalován: %s</string>
     <string name="invalid_driver_file">Neplatný soubor ovladače: %s</string>
     <string name="network_unavailable">Není dostupné síťové připojení. Zkontrolujte prosím připojení k internetu a zkuste to znovu.</string>
@@ -636,8 +581,6 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">Ukončit emulaci</string>
     <string name="emulation_done">Hotovo</string>
-    <string name="emulation_fps_counter">FPS čítač</string>
-    <string name="emulation_thermal_indicator">Teplotní indikátor</string>
     <string name="emulation_toggle_controls">Přepnout ovládání</string>
     <string name="emulation_rel_stick_center">Relativní střed joysticku</string>
     <string name="emulation_dpad_slide">D-pad slide</string>
@@ -656,7 +599,6 @@
     <string name="touchscreen">Dotyková obrazovka</string>
     <string name="lock_drawer">Zamknout zásuvku</string>
     <string name="unlock_drawer">Odemknout zásuvku</string>
-    <string name="load_settings">Načítání nastavení...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Softwarová klávesnice</string>
@@ -677,7 +619,6 @@
     <string name="memory_8gb">8GB (Nebezpečné)</string>
 
     <!--CPU clock speeds-->
-    <string name="clock_base">Základní (1000MHz)</string>
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Rychlé (2000MHz)</string>
 

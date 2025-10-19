@@ -22,8 +22,6 @@
     <string name="show_fps_description">Aktuális képkockák másodpercenként</string>
     <string name="show_frametime">Képkockaidő mutatása</string>
     <string name="show_frametime_description">Aktuális képkockaidő</string>
-    <string name="show_speed">Sebesség mutatása</string>
-    <string name="show_speed_description">Emulációs sebesség százalékban</string>
     <string name="show_app_ram_usage">Alkalmazás RAM-használat</string>
     <string name="show_app_ram_usage_description">Az emulátor által használt RAM mennyiségének megjelenítése</string>
     <string name="show_system_ram_usage">Rendszer RAM-használat</string>
@@ -133,8 +131,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">Többjátékos</string>
     <string name="multiplayer_description">Hozz létre saját játéktermet vagy csatlakozz egy meglévőhöz</string>
-    <string name="multiplayer_room_title">Szoba: %1$s</string>
-    <string name="multiplayer_console_id">Konzol azonosító: %1$s</string>
     <string name="multiplayer_create_room">Létrehozás</string>
     <string name="multiplayer_join_room">Csatlakozás</string>
     <string name="multiplayer_public_room">Nyilvános szobák böngészése</string>
@@ -143,11 +139,6 @@
     <string name="multiplayer_ip_port">Port</string>
     <string name="multiplayer_create_room_success">Szoba létrehozva</string>
     <string name="multiplayer_join_room_success">Sikeres csatlakozás</string>
-    <string name="multiplayer_create_room_failed">Szoba létrehozása sikertelen</string>
-    <string name="multiplayer_join_room_failed">Csatlakozás sikertelen</string>
-    <string name="multiplayer_name_invalid">Túl rövid név</string>
-    <string name="multiplayer_address_invalid">Érvénytelen cím</string>
-    <string name="multiplayer_port_invalid">Érvénytelen port</string>
     <string name="multiplayer_exit_room">Kilépés a szobából</string>
     <string name="multiplayer_network_error">Hálózati hiba</string>
     <string name="multiplayer_lost_connection">Kapcsolat megszakadt</string>
@@ -176,21 +167,15 @@
     <string name="multiplayer_member_banned">%1$s kitiltva</string>
     <string name="multiplayer_address_unbanned">Cím feloldva</string>
     <string name="multiplayer_kick_member">Kirúgás</string>
-    <string name="multiplayer_chat_input_hint">Üzenet küldése...</string>
     <string name="multiplayer_password">Jelszó</string>
     <string name="multiplayer_joining">Csatlakozás...</string>
     <string name="multiplayer_creating">Létrehozás...</string>
     <string name="multiplayer_room_name">Szoba neve</string>
-    <string name="multiplayer_room_name_invalid">A szobanév 3-20 karakter hosszú legyen</string>
-    <string name="multiplayer_max_players">Max játékos (16)</string>
     <string name="multiplayer_max_players_value">Max játékos: %d</string>
     <string name="multiplayer_chat">Csevegés</string>
     <string name="multiplayer_more_options">További lehetőségek</string>
-    <string name="multiplayer_ip_copied">IP-cím másolva</string>
-    <string name="multiplayer_server_address">Szerver címe</string>
     <string name="chat">Csevegés</string>
     <string name="type_message">Üzenet írása...</string>
-    <string name="send">Küldés</string>
     <string name="send_message">Üzenet küldése</string>
     <string name="multiplayer_moderation">Moderálás</string>
     <string name="multiplayer_moderation_title">Kitiltottak listája</string>
@@ -210,12 +195,8 @@
     <string name="multiplayer_hide_empty_rooms">Üres szobák elrejtése</string>
     <string name="multiplayer_tap_refresh_to_check_again">Frissítés újraellenőrzéshez</string>
     <string name="multiplayer_search_public_lobbies">Szobák keresése...</string>
-    <string name="emulation_multiplayer">Többjátékos</string>
-    <string name="multiplayer_game_name">Kedvenc játékok</string>
     <string name="multiplayer_preferred_game_name">Kedvenc játék</string>
     <string name="multiplayer_lobby_type">Lobby típusa</string>
-    <string name="multiplayer_no_game">Nincs játék</string>
-    <string name="multiplayer_preferred_game_name_invalid">Válassz kedvenc játékot a szoba létrehozásához</string>
     <string name="multiplayer_room_name_error">3-20 karakter kell</string>
     <string name="multiplayer_required">Kötelező</string>
     <string name="multiplayer_token_required">Web token szükséges, lépj a Speciális beállítások -> Rendszer -> Hálózat menüpontba</string>
@@ -247,7 +228,6 @@
     <string name="next">Következő</string>
     <string name="back">Vissza</string>
     <string name="add_games">Játékok hozzáadása</string>
-    <string name="add_games_description">Játékaid mappa kiválasztása</string>
     <string name="step_complete">Kész!</string>
     <string name="bluetooth_permissions_granted">Bluetooth engedélyek megadva.</string>
     <string name="bluetooth_permissions_denied">Bluetooth engedélyek megtagadva. A kontroller támogatás korlátozott lehet.</string>
@@ -262,19 +242,14 @@
     <string name="pre_alpha_warning_title">Pre-Alpha szoftver</string>
     <string name="pre_alpha_warning_description">FIGYELMEZTETÉS: Ez a verzió nem nyilvános. A szoftver pre-alpha állapotban van, hibákat és hiányos funkciókat tartalmazhat.</string>
     <string name="dont_show_again">Ne mutassa újra</string>
-    <string name="pre_alpha_warning">PRE-ALPHA SZOFTVER; NEM NYILVÁNOS HASZNÁLATRA</string>
-    <string name="home_games">Játékok</string>
     <string name="home_search">Keresés</string>
     <string name="home_settings">Beállítások</string>
     <string name="empty_gamelist">Nem található fájl, vagy még nincs kiválasztva könyvtár.</string>
-    <string name="search_and_filter_games">Játékok keresése és szűrése</string>
-    <string name="select_games_folder">Játékmappa kiválasztása</string>
     <string name="manage_game_folders">Játékmappák kezelése</string>
     <string name="add_games_warning">Kihagyod a játékok mappa kiválasztását?</string>
     <string name="add_games_warning_description">A játékok nem jelennek meg a Játékok listában, ha egy mappa nincs kijelölve.</string>
     <string name="home_search_games">Játékok keresése</string>
     <string name="search_settings">Beállítások keresése</string>
-    <string name="games_dir_selected">Játékok könyvtár kiválasztva</string>
     <string name="install_prod_keys">prod.keys telepítése</string>
     <string name="install_prod_keys_description">Kiskereskedelmi játékok dekódolásához szükséges</string>
     <string name="install_prod_keys_warning">Kihagyod a kulcsok hozzáadását?</string>
@@ -296,17 +271,13 @@
     <string name="warning_cancel">Mégse</string>
     <string name="install_amiibo_keys">Amiibo kulcsok telepítése</string>
     <string name="install_amiibo_keys_description">Amiibo használata szükséges a játékhoz</string>
-    <string name="install_amiibo_keys_failure_extension_description">Győződj meg róla, hogy a titkosító fájlod .bin kiterjesztéssel rendelkezik, majd próbáld újra.</string>
     <string name="gpu_driver_fetcher">GPU illesztőprogram letöltő</string>
     <string name="gpu_driver_manager">GPU illesztőprogram-kezelő</string>
-    <string name="install_gpu_driver">GPU illesztőprogram telepítése</string>
     <string name="install_gpu_driver_description">Alternatív illesztőprogramok telepítése az esetlegesen elérhető teljesítmény és pontosság érdekében</string>
     <string name="advanced_settings">Haladó beállítások</string>
-    <string name="advanced_settings_game">Haladó beállítások: %1$s</string>
     <string name="settings_description">Emulátorbeállítások konfigurálása</string>
     <string name="search_recently_played">Nemrég játszva</string>
     <string name="search_recently_added">Nemrég hozzáadva</string>
-    <string name="search_retail">Kiskereskedelmi</string>
     <string name="open_user_folder">Eden mappa megnyitása</string>
     <string name="open_user_folder_description">Eden belső fájljainak kezelése</string>
     <string name="theme_and_color_description">Az alkalmazás megjelenésének módosítása</string>
@@ -317,18 +288,14 @@
     <string name="manage_save_data_description">Mentés található. Kérjük, válassz egyet az alábbi opciók közül.</string>
     <string name="import_save_warning">Mentési fájlok importálása</string>
     <string name="import_save_warning_description">Ezzel felülírod a fájlban lévő mentett adatokat. Biztosan szeretnéd folytatni?</string>
-    <string name="import_export_saves_description">Mentési fájlok importálás vagy exportálása</string>
     <string name="save_files_importing">Mentési fájlok importálása...</string>
     <string name="save_files_exporting">Mentési fájlok exportálása...</string>
     <string name="save_file_imported_success">Sikeresen importálva</string>
     <string name="save_file_invalid_zip_structure">Érvénytelen mentési könyvtárstruktúra</string>
     <string name="save_file_invalid_zip_structure_description">Az első almappa neve a játék azonosítója kell, hogy legyen.</string>
-    <string name="import_saves">Importálás</string>
-    <string name="export_saves">Exportálás</string>
     <string name="install_firmware">Firmware telepítés</string>
     <string name="install_firmware_description">A firmwarenek ZIP archívumban kell lennie, és szükséges a játékok indításához</string>
     <string name="firmware_installing">Firmware telepítése</string>
-    <string name="firmware_installed_success">Firmware sikeresen telepítve</string>
     <string name="firmware_installed_failure">Firmware telepítése sikertelen</string>
     <string name="firmware_installed_failure_description">Győződj meg róla, hogy a firmware nca fájlok a zip gyökerénél vannak, és próbáld meg újra.</string>
     <string name="share_log">Hibakereső logok megosztása</string>
@@ -340,7 +307,6 @@
     <string name="install_game_content_failure">Hiba történt a fájl(ok) NAND-ra telepítése közben</string>
     <string name="install_game_content_failure_description">Győződj meg róla, hogy a tartalom valós, és a prod.keys fájl telepítve van.</string>
     <string name="install_game_content_failure_base">Az alapjátékok telepítése nem engedélyezett az esetleges konfliktusok elkerülése érdekében.</string>
-    <string name="install_game_content_failure_file_extension">Csak NSP és XCI tartalom támogatott. Győződj meg róla, hogy a játéktartalom érvényes.</string>
     <string name="install_game_content_failed_count">%1$d telepítési hiba</string>
     <string name="install_game_content_success">Játéktartalom sikeresen telepítve</string>
     <string name="install_game_content_success_install">%1$d sikeresen telepítve</string>
@@ -348,8 +314,6 @@
     <string name="custom_driver_not_supported">Egyéni illesztőprogramok nem támogatottak</string>
     <string name="manage_yuzu_data">Eden adatok kezelése</string>
     <string name="manage_yuzu_data_description">Firmware, kulcsok, felhasználói adatok és egyebek importálása/exportálása</string>
-    <string name="share_save_file">Mentési fájl megosztása</string>
-    <string name="export_save_failed">A mentés exportálása sikertelen</string>
     <string name="game_folders">Játékmappák</string>
     <string name="deep_scan">Mély szkennelés</string>
     <string name="add_game_folder">Játékmappa hozzáadása</string>
@@ -374,7 +338,6 @@
     <string name="firmware_uninstalling">Firmware eltávolítása...</string>
     <string name="firmware_uninstalled_success">A firmware sikeresen eltávolítva</string>
 
-    <string name="firmware_invalid">Érvénytelen firmware</string>
     <string name="error_firmware_missing">A firmware szükséges egyes játékok és alkalmazások futtatásához. Az Eden csak 19.0.1 vagy régebbi firmware-ekkel működik.</string>
     <string name="error_firmware_corrupted">A firmware jelen van, de nem olvasható. Ellenőrizze a visszafejtési kulcsokat és szükség esetén dumpolja újra a firmware-t.</string>
     <string name="error_firmware_too_new">A firmware túl új vagy nem olvasható. Az Eden csak a 19.0.1 vagy régebbi firmware-ekkel működik.</string>
@@ -414,7 +377,6 @@
     <string name="user_data">Felhasználói adatok</string>
     <string name="exporting_user_data">Felhasználói adatok exportálása...</string>
     <string name="importing_user_data">Felhasználói adatok importálása...</string>
-    <string name="import_user_data">Felhasználói adatok importálása</string>
     <string name="invalid_yuzu_backup">Érvénytelen Eden biztonsági másolat</string>
     <string name="user_data_export_success">Felhasználói adatok sikeresen exportálva</string>
     <string name="user_data_import_success">Felhasználói adatok sikeresen importálva</string>
@@ -543,8 +505,6 @@
     <string name="qualified_button">%1$s%2$s%3$sGomb %4$s</string>
     <string name="qualified_axis">Tengely %1$s%2$s</string>
     <string name="unused">Nem használt</string>
-    <string name="input_prompt">Nyomj vagy mozgass meg egy bemeneti eszközt.</string>
-    <string name="unsupported_input">Nem támogatott bemenet típus</string>
     <string name="input_mapping_filter">Bemeneti hozzárendelési szűrő</string>
     <string name="input_mapping_filter_description">Válassz egy eszközt a hozzárendelési bemenetek szűréséhez</string>
     <string name="auto_map">Kontroller auto-hozzárendelés</string>
@@ -588,10 +548,6 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">Alapértelmezett</string>
-    <string name="ini_saved">Beállítások elmentve</string>
-    <string name="gameid_saved">Beállítások elmentve a következőhöz: %1$s</string>
-    <string name="error_saving">Mentési hiba%1$s .ini: %2$s</string>
-    <string name="unimplemented_menu">Nem implementált menü</string>
     <string name="loading">Betöltés...</string>
     <string name="shutting_down">Leállítás...</string>
     <string name="reset_setting_confirmation">Szeretnéd visszaállítani a beállítások az alapértelmezett értékekre?</string>
@@ -616,39 +572,26 @@
     <string name="edit">Szerkesztés</string>
     <string name="export_success">Sikeresen exportálva</string>
     <string name="start">Start</string>
-    <string name="clear">Törlés</string>
     <string name="global">Globális</string>
     <string name="custom">Egyéni</string>
-    <string name="notice">Értesítés</string>
     <string name="import_complete">Importálás befejezve</string>
-    <string name="more_options">További opciók</string>
     <string name="use_global_setting">Globális beállítás használata</string>
     <string name="operation_completed_successfully">A művelet sikeresen befejeződött</string>
-    <string name="retry">Újra</string>
     <string name="confirm">Megerősítés</string>
     <string name="load">Betöltés</string>
     <string name="save">Mentés</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">Válassz GPU illesztőprogramot</string>
-    <string name="select_gpu_driver_title">Szeretnéd lecserélni a jelenlegi GPU illesztőprogramot?</string>
-    <string name="select_gpu_driver_install">Telepítés</string>
     <string name="select_gpu_driver_default">Alapértelmezett</string>
-    <string name="select_gpu_driver_use_default">Alapértelmezett GPU illesztőprogram használata</string>
     <string name="select_gpu_driver_error">Érvénytelen illesztőprogram kiválasztva</string>
     <string name="driver_already_installed">Az illesztőprogram már telepítve van</string>
     <string name="system_gpu_driver">Rendszer GPU illesztőprogram</string>
     <string name="installing_driver">Illesztőprogram telepítése...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">Hiba a letöltés közben</string>
-    <string name="check_connection">Ellenőrizd az internetkapcsolatod és próbáld újra.</string>
     <string name="show_releases">Verziók megjelenítése</string>
-    <string name="view_full_release_notes">Kiadási megjegyzések</string>
     <string name="failed_to_fetch">Letöltés sikertelen</string>
     <string name="error_during_fetch">Hiba a letöltés közben</string>
-    <string name="toggle_release_notes">Kiadási megjegyzések váltása</string>
-    <string name="downloads">Letöltések</string>
     <string name="show_downloads">Letöltések megjelenítése</string>
     <string name="hide_downloads">Letöltések elrejtése</string>
     <string name="failed_cache_dir">Gyorsítótár könyvtár nem elérhető</string>
@@ -667,7 +610,6 @@
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Beállítások</string>
-    <string name="preferences_general">Általános</string>
     <string name="preferences_system">Rendszer</string>
     <string name="preferences_system_description">Dokkolt mód, régió, nyelv</string>
     <string name="preferences_graphics">Grafika</string>
@@ -731,7 +673,6 @@
     <string name="loader_error_encrypted_keys_description"><![CDATA[Győződj meg róla, hogy a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> fájl telepítve van, hogy a játékok visszafejthetők legyenek.]]></string>
     <string name="loader_error_video_core">Hiba lépett fel a videómag inicializása során</string>
     <string name="loader_error_video_core_description">Ezt általában egy nem kompatibilis GPU illesztő okozza. Egyéni GPU illesztőprogram telepítése megoldhatja a problémát.</string>
-    <string name="loader_error_invalid_format">Nem sikerült betölteni a ROM-ot</string>
     <string name="loader_error_file_not_found">ROM fájl nem létezik</string>
 
     <string name="loader_requires_firmware">A játék firmware-t igényel</string>
@@ -759,19 +700,9 @@
     <string name="config_already_exists_title">A konfiguráció már létezik</string>
     <string name="config_exists_prompt">Létező konfiguráció keresése...</string>
     <string name="overwrite_cancelled">A felülírás megszakítva</string>
-    <string name="checking_driver">Egyéni illesztőprogram ellenőrzése: %1$s</string>
-    <string name="driver_unavailable">Egyéni illesztőprogram nem elérhető ehhez az eszközhöz</string>
     <string name="overwrite">Felülírás</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">GPU illesztőprogram hiányzik</string>
-    <string name="missing_gpu_driver_message">A kiválasztott egyéni illesztőprogram \"%s\" nincs telepítve. Szeretné most letölteni és telepíteni?</string>
-    <string name="downloading_driver">Illesztőprogram letöltése...</string>
-    <string name="driver_installed">Az illesztőprogram sikeresen telepítve</string>
-    <string name="driver_installation_failed_title">Az illesztőprogram telepítése sikertelen</string>
-    <string name="driver_installation_failed_message">Nem sikerült telepíteni a GPU illesztőprogramot: %s</string>
-    <string name="driver_not_available_title">Az illesztőprogram nem elérhető</string>
-    <string name="driver_not_available_message">A kiválasztott illesztőprogram nem érhető el letöltésre.</string>
     <string name="driver_not_found">A szükséges illesztőprogram nincs telepítve: %s</string>
     <string name="invalid_driver_file">Érvénytelen illesztőprogramfájl: %s</string>
     <string name="network_unavailable">Nincs hálózati kapcsolat. Kérjük, ellenőrizze az internetkapcsolatát, és próbálja újra.</string>
@@ -782,8 +713,6 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">Emuláció bezárása</string>
     <string name="emulation_done">Kész</string>
-    <string name="emulation_fps_counter">FPS számláló</string>
-    <string name="emulation_thermal_indicator">Hőmérséklet jelző</string>
     <string name="emulation_toggle_controls">Irányítás átkapcsolása</string>
     <string name="emulation_dpad_slide">D-pad csúsztatása</string>
     <string name="emulation_haptics">Érintés haptikája</string>
@@ -801,7 +730,6 @@
     <string name="touchscreen">Érintőképernyő</string>
     <string name="lock_drawer">Fiók bezárása</string>
     <string name="unlock_drawer">Fiók kinyitása</string>
-    <string name="load_settings">Beállítások betöltése...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Szoftver billenytűzet</string>
@@ -831,7 +759,6 @@
     <string name="memory_8gb">8GB (Nem biztonságos)</string>
 
     <!--CPU clock speeds-->
-    <string name="clock_base">Alap (1000MHz)</string>
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Gyors (2000MHz)</string>
 
@@ -845,7 +772,6 @@
     <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
-    <string name="memory_byte">Bájt</string>
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
@@ -945,7 +871,6 @@
     <string name="gamepad_screenshot">Képernyőmentés</string>
 
     <!-- Disk shader cache -->
-    <string name="preparing_shaders">Árnyékolók előkészítése</string>
     <string name="building_shaders">Árnyékolók létrehozása</string>
 
     <!-- Theme options -->

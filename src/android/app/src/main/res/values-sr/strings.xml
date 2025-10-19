@@ -21,8 +21,6 @@
     <string name="show_fps_description">Прикажите тренутне оквире у секунди</string>
     <string name="show_frametime">Показати фраметиме</string>
     <string name="show_frametime_description">Прикажи тренутни фрамети</string>
-    <string name="show_speed">Брзина показати</string>
-    <string name="show_speed_description">Прикажи проценат брзине тренутне емулације</string>
     <string name="show_app_ram_usage">Прикажи употребу апликације меморије</string>
     <string name="show_app_ram_usage_description">Прикажи количину РАМ-а Емулатор користи</string>
     <string name="show_system_ram_usage">Прикажи употребу система меморије</string>
@@ -132,8 +130,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">Мултиплаиер</string>
     <string name="multiplayer_description">Домаћин сопствене собе за играње или се придружите постојећем којој ћете се играти са људима</string>
-    <string name="multiplayer_room_title">Соба:%1$s</string>
-    <string name="multiplayer_console_id">ИД конзоле:%1$s</string>
     <string name="multiplayer_create_room">Створити</string>
     <string name="multiplayer_join_room">Придружити се</string>
     <string name="multiplayer_public_room">Прегледајте јавне собе</string>
@@ -142,11 +138,6 @@
     <string name="multiplayer_ip_port">Лука</string>
     <string name="multiplayer_create_room_success">Соба је успешно створена!</string>
     <string name="multiplayer_join_room_success">Успешно се придружите собу!</string>
-    <string name="multiplayer_create_room_failed">Није успело креирање собе!</string>
-    <string name="multiplayer_join_room_failed">Није успело да се придружи соби!</string>
-    <string name="multiplayer_name_invalid">Име је прекратко</string>
-    <string name="multiplayer_address_invalid">Неисправна адреса</string>
-    <string name="multiplayer_port_invalid">Неважећи порт</string>
     <string name="multiplayer_exit_room">Излазна соба</string>
     <string name="multiplayer_network_error">Грешка у мрежи</string>
     <string name="multiplayer_lost_connection">Изгубљена веза</string>
@@ -175,21 +166,15 @@
     <string name="multiplayer_member_banned">%1$s забрањено</string>
     <string name="multiplayer_address_unbanned">адреса необјављена</string>
     <string name="multiplayer_kick_member">Избити</string>
-    <string name="multiplayer_chat_input_hint">Пошаљите поруке ......</string>
     <string name="multiplayer_password">Лозинка</string>
     <string name="multiplayer_joining">Придружујем се…</string>
     <string name="multiplayer_creating">Креирам…</string>
     <string name="multiplayer_room_name">Име собе</string>
-    <string name="multiplayer_room_name_invalid">Име собе мора бити између 3 и 20 знакова</string>
-    <string name="multiplayer_max_players">Максимални играчи (16)</string>
     <string name="multiplayer_max_players_value">МАКС ИГРАЧИ:%d</string>
     <string name="multiplayer_chat">Разговарати</string>
     <string name="multiplayer_more_options">Више опција</string>
-    <string name="multiplayer_ip_copied">ИП адреса копирана у међуспремник</string>
-    <string name="multiplayer_server_address">Адреса сервера</string>
     <string name="chat">Разговарати</string>
     <string name="type_message">Унесите поруку ......</string>
-    <string name="send">Пошаљи</string>
     <string name="send_message">Пошаљи поруку</string>
     <string name="multiplayer_moderation">Умјереност</string>
     <string name="multiplayer_moderation_title">Списак</string>
@@ -209,12 +194,8 @@
     <string name="multiplayer_hide_empty_rooms">Сакриј празне собе</string>
     <string name="multiplayer_tap_refresh_to_check_again">Куцните на освежавање да бисте поново проверили</string>
     <string name="multiplayer_search_public_lobbies">Претражите лобиес ...</string>
-    <string name="emulation_multiplayer">Мултиплаиер</string>
-    <string name="multiplayer_game_name">Префериране игре</string>
     <string name="multiplayer_preferred_game_name">Преферирана игра</string>
     <string name="multiplayer_lobby_type">Тип лобија</string>
-    <string name="multiplayer_no_game">Није пронађена није пронађена игара</string>
-    <string name="multiplayer_preferred_game_name_invalid">Морате одабрати преферирану игру да бисте угостили собу.</string>
     <string name="multiplayer_room_name_error">Мора бити између 3 и 20 знакова</string>
     <string name="multiplayer_required">Обавезно</string>
     <string name="multiplayer_token_required">Потребан је веб токен, идите на Напредне поставке -> Систем -> Мрежа</string>
@@ -246,7 +227,6 @@
     <string name="next">Следећи</string>
     <string name="back">Назад</string>
     <string name="add_games">Додајте игре</string>
-    <string name="add_games_description">Одаберите фасциклу за игре</string>
     <string name="step_complete">Довршите!</string>
     <string name="bluetooth_permissions_granted">Bluetooth дозволе одобрене.</string>
     <string name="bluetooth_permissions_denied">Bluetooth дозволе одбијене. Подршка за контролере може бити ограничена.</string>
@@ -261,20 +241,15 @@
     <string name="pre_alpha_warning_title">Пре-Алпха софтвер</string>
     <string name="pre_alpha_warning_description">УПОЗОРЕЊЕ: Овај софтвер је у пре-алфа фази и може имати грешке и непотпуне примене функција.</string>
     <string name="dont_show_again">Не покажи поново</string>
-    <string name="pre_alpha_warning">Пре-Алпха софтвер</string>
-    <string name="home_games">Игре</string>
     <string name="home_search">Тражити</string>
     <string name="home_settings">Подешавања</string>
     <string name="empty_gamelist">Није пронађена ниједна датотека или се још није одабрала директоријум игара.</string>
-    <string name="search_and_filter_games">Игре за претрагу и филтрирање</string>
-    <string name="select_games_folder">Изаберите Фолдер игре</string>
     <string name="manage_game_folders">Управљајте мапама игара</string>
     <string name="select_games_folder_description">Омогућује ЕДЕН-у да попуни листу игара</string>
     <string name="add_games_warning">Прескочите одабир мапе игре?</string>
     <string name="add_games_warning_description">Игре побеђују \"т приказују се на листи игара ако је изабрана мапа н \" т.</string>
     <string name="home_search_games">Претражите игре</string>
     <string name="search_settings">Подешавања претраге</string>
-    <string name="games_dir_selected">Изабрани Игре Именик</string>
     <string name="install_prod_keys">Инсталирајте prod.keys</string>
     <string name="install_prod_keys_description">Потребан за дешифровање малопродајних игара</string>
     <string name="install_prod_keys_warning">Прескочите додавање тастера?</string>
@@ -296,18 +271,13 @@
     <string name="warning_cancel">Отказати</string>
     <string name="install_amiibo_keys">Инсталирајте Амиибо Кеис</string>
     <string name="install_amiibo_keys_description">Потребно је користити Амиибо у игри</string>
-    <string name="install_amiibo_keys_failure_extension_description">Проверите да датотека кључева има .бин екстензију и покушајте поново.</string>
     <string name="gpu_driver_fetcher">ГПУ возач фетцхер</string>
     <string name="gpu_driver_manager">ГПУ управљач возача</string>
-    <string name="install_gpu_driver">Инсталирајте ГПУ драјвер</string>
     <string name="install_gpu_driver_description">Инсталирајте алтернативне управљачке програме за потенцијално боље перформансе или тачност</string>
     <string name="advanced_settings">Напредна подешавања</string>
-    <string name="advanced_settings_game">Напредна подешавања:%1$s</string>
     <string name="settings_description">Конфигуришите подешавања емулатора</string>
     <string name="search_recently_played">Недавно одигран</string>
     <string name="search_recently_added">Недавно је додато</string>
-    <string name="search_retail">Малопродаја</string>
-    <string name="search_homebrew">Домаћинство</string>
     <string name="open_user_folder">Отворите директоријум ЕДЕН</string>
     <string name="open_user_folder_description">Управљајте унутрашњим датотекама ЕДЕН-а</string>
     <string name="theme_and_color_description">Измените изглед апликације</string>
@@ -318,18 +288,14 @@
     <string name="manage_save_data_description">Спреми податке. Изаберите опцију испод.</string>
     <string name="import_save_warning">Увоз сачувај податке</string>
     <string name="import_save_warning_description">Ово ће пребрисати све постојеће сачувајте податке са испорученом датотеком. Јесте ли сигурни да желите да наставите?</string>
-    <string name="import_export_saves_description">Увоз или извоз сачувајте датотеке</string>
     <string name="save_files_importing">Увоз сачуваних датотека ...</string>
     <string name="save_files_exporting">Извоз сачувања датотека ...</string>
     <string name="save_file_imported_success">Увезено је успешно</string>
     <string name="save_file_invalid_zip_structure">Неважеће структуре директорија сачувања</string>
     <string name="save_file_invalid_zip_structure_description">Прво име подмагера мора бити ИД наслова игре.</string>
-    <string name="import_saves">Увоз</string>
-    <string name="export_saves">Извоз</string>
     <string name="install_firmware">Инсталирајте фирмвер</string>
     <string name="install_firmware_description">Фирмваре мора бити у ЗИП архиви и потребно је за покретање неких игара</string>
     <string name="firmware_installing">Инсталирање фирмвера</string>
-    <string name="firmware_installed_success">Фирмвер је успешно инсталиран</string>
     <string name="firmware_installed_failure">Инсталација фирмвера није успела</string>
     <string name="firmware_installed_failure_description">Проверите да ли су ФИРВВАРЕ НЦА датотеке у корену Зип и покушавају поново.</string>
     <string name="firmware_uninstalled_failure">Деинсталација фирмвера није успела</string>
@@ -342,7 +308,6 @@
     <string name="install_game_content_failure">Грешка у инсталирању датотека (а) у НАНД</string>
     <string name="install_game_content_failure_description">Молимо вас да осигурате да су садржаји валидни и да је инсталирана датотека prod.keys.</string>
     <string name="install_game_content_failure_base">Инсталација основних игара није дозвољено да се избегне могући сукоби.</string>
-    <string name="install_game_content_failure_file_extension">Подржани су само НСП и КСЦИ садржај. Проверите да ли постоје садржаји игара валидни.</string>
     <string name="install_game_content_failed_count">%1$d Грешка у инсталацији</string>
     <string name="install_game_content_success">Садржај игре (и) инсталирани су успешно</string>
     <string name="install_game_content_success_install">%1$d инсталирано успешно</string>
@@ -350,8 +315,6 @@
     <string name="custom_driver_not_supported">Прилагођени управљачки програми нису подржани</string>
     <string name="manage_yuzu_data">Управљајте подацима ЕДЕН-а</string>
     <string name="manage_yuzu_data_description">Увоз / извозни софтвер, кључеви, кориснички подаци и још много тога!</string>
-    <string name="share_save_file">Схаре Спреми датотеку</string>
-    <string name="export_save_failed">Није успело извоз уштеде</string>
     <string name="game_folders">Мапе игре</string>
     <string name="deep_scan">Дубоко скенирање</string>
     <string name="add_game_folder">Додајте мапу игара</string>
@@ -378,7 +341,6 @@
     <string name="firmware_uninstalling">Деинсталирање фирмвера</string>
     <string name="firmware_uninstalled_success">Фирмваре је успешно деинсталирано</string>
 
-    <string name="firmware_invalid">Неисправан firmware</string>
     <string name="error_firmware_missing">Firmware је потребан за покретање одређених игара и апликација. Eden ради само са firmware-ом 19.0.1 или старијим.</string>
     <string name="error_firmware_corrupted">Firmware је присутан али се не може прочитати. Проверите кључеве за дешифровање и поново направите firmware дамп ако је потребно.</string>
     <string name="error_firmware_too_new">Firmware је превише нов или се не може прочитати. Eden ради само са firmware-ом 19.0.1 или старијим.</string>
@@ -419,7 +381,6 @@
     <string name="user_data">Кориснички подаци</string>
     <string name="exporting_user_data">Извоз података корисника ...</string>
     <string name="importing_user_data">Увоз података корисника ...</string>
-    <string name="import_user_data">Увоз корисничких података</string>
     <string name="invalid_yuzu_backup">Неважећа резервна копија ЕДЕН-а</string>
     <string name="user_data_export_success">Кориснички подаци су успешно извезени</string>
     <string name="user_data_import_success">Корисничке податке увезене успешно</string>
@@ -552,8 +513,6 @@
     <string name="qualified_button">%1$s%2$s%3$sБУТТОН%4$s</string>
     <string name="qualified_axis">АКСИС%1$s%2$s</string>
     <string name="unused">Неискориштен</string>
-    <string name="input_prompt">Померите се или притисните улаз</string>
-    <string name="unsupported_input">Неподржани тип улаза</string>
     <string name="input_mapping_filter">Филтер за мапирање уноса</string>
     <string name="input_mapping_filter_description">Изаберите уређај за филтрирање уноса мапирања</string>
     <string name="auto_map">Ауто-мапа контролер</string>
@@ -597,10 +556,6 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">Подразумевано</string>
-    <string name="ini_saved">Сачувана подешавања</string>
-    <string name="gameid_saved">Сачувана подешавања за%1$s</string>
-    <string name="error_saving">Грешка уштеде%1$s.ини:%2$s</string>
-    <string name="unimplemented_menu">Једностављени мени</string>
     <string name="loading">Учитавање ...</string>
     <string name="shutting_down">Искључивање ...</string>
     <string name="reset_setting_confirmation">Да ли желите да ресетујете ово постављање назад на задану вредност?</string>
@@ -625,39 +580,26 @@
     <string name="edit">Уредити</string>
     <string name="export_success">Успешно извезено</string>
     <string name="start">Почети</string>
-    <string name="clear">Чист</string>
     <string name="global">Глобално</string>
     <string name="custom">Обичај</string>
-    <string name="notice">Обавештење</string>
     <string name="import_complete">Увоз комплетан</string>
-    <string name="more_options">Више опција</string>
     <string name="use_global_setting">Користите Глобално подешавање</string>
     <string name="operation_completed_successfully">Операција је успешно завршена</string>
-    <string name="retry">Поново покушати</string>
     <string name="confirm">Потврдити</string>
     <string name="load">Оптеретити</string>
     <string name="save">Сачувати</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">Изаберите ГПУ драјвер</string>
-    <string name="select_gpu_driver_title">Да ли желите да замените свој тренутни ГПУ управљачки програм?</string>
-    <string name="select_gpu_driver_install">Инсталирати</string>
     <string name="select_gpu_driver_default">Подразумевано</string>
-    <string name="select_gpu_driver_use_default">Коришћење подразумеваног ГПУ драјвера</string>
     <string name="select_gpu_driver_error">Изабран је неважећи управљачки програм</string>
     <string name="driver_already_installed">Возач је већ инсталиран</string>
     <string name="system_gpu_driver">Систем ГПУ драјвер</string>
     <string name="installing_driver">Инсталирање управљачког програма ...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">Грешка приликом дохваћања</string>
-    <string name="check_connection">Проверите везу и покушајте поново.</string>
     <string name="show_releases">Објаснити издања</string>
-    <string name="view_full_release_notes">Белешке о ослобађању</string>
     <string name="failed_to_fetch">Није успело дохватити</string>
     <string name="error_during_fetch">Грешка током дохвата</string>
-    <string name="toggle_release_notes">Укључите белешке о ослобађању</string>
-    <string name="downloads">Преузимања</string>
     <string name="show_downloads">Схов Довнлоадс</string>
     <string name="hide_downloads">Хиде Довнлоадс</string>
     <string name="failed_cache_dir">Именик у кеш меморију</string>
@@ -676,7 +618,6 @@
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Подешавања</string>
-    <string name="preferences_general">Општи</string>
     <string name="preferences_system">Систем</string>
     <string name="preferences_system_description">Доцдед мод, регион, језик</string>
     <string name="preferences_graphics">Графика</string>
@@ -741,7 +682,6 @@
     <string name="loader_error_encrypted_keys_description">prod.keys</string>
     <string name="loader_error_video_core">Дошло је до грешке приликом иницијализације видео језгра</string>
     <string name="loader_error_video_core_description">То обично узрокује некомпатибилни ГПУ драјвер. Инсталирање прилагођеног ГПУ управљачког програма може решити овај проблем.</string>
-    <string name="loader_error_invalid_format">Није могуће учитати РОМ</string>
     <string name="loader_error_file_not_found">РОМ датотека не постоји</string>
 
     <string name="loader_requires_firmware">Игра захтева firmware</string>
@@ -769,19 +709,9 @@
     <string name="config_already_exists_title">Конфигурација већ постоји</string>
     <string name="config_exists_prompt">Провера постојеће конфигурације...</string>
     <string name="overwrite_cancelled">Преписивање отказано</string>
-    <string name="checking_driver">Провера прилагођеног драјвера: %1$s</string>
-    <string name="driver_unavailable">Прилагођени драјвер није доступан за овај уређај</string>
     <string name="overwrite">Препиши</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">GPU драјвер недостаје</string>
-    <string name="missing_gpu_driver_message">Одабрани прилагођени драјвер \"%s\" није инсталиран. Да ли желите да га преузмете и инсталирате сада?</string>
-    <string name="downloading_driver">Преузимање драјвера...</string>
-    <string name="driver_installed">Драјвер успешно инсталиран</string>
-    <string name="driver_installation_failed_title">Инсталација драјвера није успела</string>
-    <string name="driver_installation_failed_message">Неуспела инсталација GPU драјвера: %s</string>
-    <string name="driver_not_available_title">Драјвер није доступан</string>
-    <string name="driver_not_available_message">Одабрани драјвер није доступан за преузимање.</string>
     <string name="driver_not_found">Потребни драјвер није инсталиран: %s</string>
     <string name="invalid_driver_file">Неисправна датотека драјвера: %s</string>
     <string name="network_unavailable">Мрежна веза није доступна. Проверите интернет конекцију и покушајте поново.</string>
@@ -792,8 +722,6 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">Излазни емулација</string>
     <string name="emulation_done">Доношен</string>
-    <string name="emulation_fps_counter">Фпс цоунтер</string>
-    <string name="emulation_thermal_indicator">Термички индикатор</string>
     <string name="emulation_toggle_controls">Пребацивање контрола</string>
     <string name="emulation_rel_stick_center">Релативни центар за штапић</string>
     <string name="emulation_dpad_slide">Д-Пад Слиде</string>
@@ -812,7 +740,6 @@
     <string name="touchscreen">Екран осетљив на додир</string>
     <string name="lock_drawer">Ладица за закључавање</string>
     <string name="unlock_drawer">Откључај ладицу</string>
-    <string name="load_settings">Учитавање поставки ...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Софтверска тастатура</string>
@@ -842,7 +769,6 @@
     <string name="memory_8gb">8ГБ (несигурно)</string>
 
     <!--CPU clock speeds-->
-    <string name="clock_base">База (1000МХз)</string>
     <string name="clock_boost">Боост (1700МХз)</string>
     <string name="clock_fast">Брзи (2000МХз)</string>
 
@@ -856,7 +782,6 @@
     <string name="temperature_fahrenheit">Фаренхајт</string>
 
     <!-- Memory Sizes -->
-    <string name="memory_byte">Бајт</string>
     <string name="memory_byte_shorthand">Б</string>
     <string name="memory_kilobyte">Кб</string>
     <string name="memory_megabyte">МБ</string>
@@ -958,7 +883,6 @@
     <string name="gamepad_screenshot">Заслона</string>
 
     <!-- Disk shader cache -->
-    <string name="preparing_shaders">Припрема схадера</string>
     <string name="building_shaders">Зграда схадера</string>
 
     <!-- Theme options -->

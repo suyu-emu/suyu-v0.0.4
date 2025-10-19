@@ -12,7 +12,6 @@
     <!-- Spinbox strings -->
     <string name="increment">Прирост</string>
     <string name="decrement">Уменьшение</string>
-    <string name="value">Величина</string>
     <string name="value_too_low">Величина должна быть не менее %1$d</string>
     <string name="value_too_high">Величина должна быть не более %1$d</string>
     <string name="invalid_value">Неверная величина</string>
@@ -45,8 +44,6 @@
     <string name="show_fps_description">Текущее количество кадров в секунду</string>
     <string name="show_frametime">Показать Frametime</string>
     <string name="show_frametime_description">Текущее время кадра</string>
-    <string name="show_speed">Показать скорость</string>
-    <string name="show_speed_description">Текущая скорость эмуляции в %</string>
     <string name="show_app_ram_usage">Показать RAM эмулятора</string>
     <string name="show_app_ram_usage_description">Показать объем оперативной памяти, используемой эмулятором</string>
     <string name="show_system_ram_usage">Показать RAM системы</string>
@@ -156,8 +153,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">Мультиплеер</string>
     <string name="multiplayer_description">Создайте свою игровую комнату или присоединитесь к существующей</string>
-    <string name="multiplayer_room_title">Комната: %1$s</string>
-    <string name="multiplayer_console_id">ID консоли: %1$s</string>
     <string name="multiplayer_create_room">Создать</string>
     <string name="multiplayer_join_room">Присоединиться</string>
     <string name="multiplayer_public_room">Общедоступные комнаты</string>
@@ -166,11 +161,6 @@
     <string name="multiplayer_ip_port">Порт</string>
     <string name="multiplayer_create_room_success">Комната создана</string>
     <string name="multiplayer_join_room_success">Вы присоединились</string>
-    <string name="multiplayer_create_room_failed">Ошибка создания</string>
-    <string name="multiplayer_join_room_failed">Ошибка подключения</string>
-    <string name="multiplayer_name_invalid">Слишком короткое имя</string>
-    <string name="multiplayer_address_invalid">Неверный адрес</string>
-    <string name="multiplayer_port_invalid">Неверный порт</string>
     <string name="multiplayer_exit_room">Выйти</string>
     <string name="multiplayer_network_error">Ошибка сети</string>
     <string name="multiplayer_lost_connection">Соединение потеряно</string>
@@ -199,21 +189,15 @@
     <string name="multiplayer_member_banned">%1$s заблокирован</string>
     <string name="multiplayer_address_unbanned">Адрес разблокирован</string>
     <string name="multiplayer_kick_member">Исключить</string>
-    <string name="multiplayer_chat_input_hint">Сообщение...</string>
     <string name="multiplayer_password">Пароль</string>
     <string name="multiplayer_joining">Подключение...</string>
     <string name="multiplayer_creating">Создание...</string>
     <string name="multiplayer_room_name">Название комнаты</string>
-    <string name="multiplayer_room_name_invalid">3-20 символов</string>
-    <string name="multiplayer_max_players">Макс. игроков (16)</string>
     <string name="multiplayer_max_players_value">Макс. игроков: %d</string>
     <string name="multiplayer_chat">Чат</string>
     <string name="multiplayer_more_options">Дополнительные настройки</string>
-    <string name="multiplayer_ip_copied">IP-адрес скопирован в буфер обмена</string>
-    <string name="multiplayer_server_address">Адрес сервера</string>
     <string name="chat">Чат</string>
     <string name="type_message">Введите сообщение…</string>
-    <string name="send">Отправить</string>
     <string name="send_message">Отправить сообщение</string>
     <string name="multiplayer_moderation">Модерация</string>
     <string name="multiplayer_moderation_title">Черный список</string>
@@ -233,12 +217,8 @@
     <string name="multiplayer_hide_empty_rooms">Скрыть пустые</string>
     <string name="multiplayer_tap_refresh_to_check_again">Обновить</string>
     <string name="multiplayer_search_public_lobbies">Поиск комнат...</string>
-    <string name="emulation_multiplayer">Мультиплеер</string>
-    <string name="multiplayer_game_name">Предпочитаемые игры</string>
     <string name="multiplayer_preferred_game_name">Предпочитаемая игра</string>
     <string name="multiplayer_lobby_type">Тип лобби</string>
-    <string name="multiplayer_no_game">Игры не найдены</string>
-    <string name="multiplayer_preferred_game_name_invalid">Выберите игру</string>
     <string name="multiplayer_room_name_error">3-20 символов</string>
     <string name="multiplayer_required">Обязательно</string>
     <string name="multiplayer_token_required">Требуется веб-токен, перейдите в Дополнительные настройки -> Система -> Сеть</string>
@@ -272,7 +252,6 @@
     <string name="next">Далее</string>
     <string name="back">Назад</string>
     <string name="add_games">Добавить игры</string>
-    <string name="add_games_description">Выберите папку с играми</string>
     <string name="step_complete">Выполнено!</string>
     <string name="bluetooth_permissions_granted">Разрешения Bluetooth предоставлены.</string>
     <string name="bluetooth_permissions_denied">Разрешения Bluetooth отклонены. Поддержка контроллера может быть ограничена.</string>
@@ -289,14 +268,10 @@
     <string name="pre_alpha_warning_title">Пре-альфа версия</string>
     <string name="pre_alpha_warning_description">ВНИМАНИЕ: Эта версия не предназначена для публичного использования. Возможны ошибки и неполные функции.</string>
     <string name="dont_show_again">Не показывать снова</string>
-    <string name="pre_alpha_warning">ПРЕ-АЛЬФА ВЕРСИЯ; НЕ ДЛЯ ПУБЛИКИ</string>
     <string name="add_directory_success">Новый каталог игр успешно добавлен</string>
-    <string name="home_games">Игры</string>
     <string name="home_search">Поиск</string>
     <string name="home_settings">Настройки</string>
     <string name="empty_gamelist">Не найдены файлы или еще не выбрана папка с играми.</string>
-    <string name="search_and_filter_games">Поиск и фильтрация игр</string>
-    <string name="select_games_folder">Выберите папку с играми</string>
     <string name="manage_game_folders">Управление папками</string>
     <string name="select_games_folder_description">Позволяет Eden заполнить список игр</string>
     <string name="add_games_warning">Пропустить выбор папки с играми?</string>
@@ -304,7 +279,6 @@
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Найти игры</string>
     <string name="search_settings">Настройки поиска</string>
-    <string name="games_dir_selected">Выбрана папка с играми</string>
     <string name="install_prod_keys">Установить prod.keys</string>
     <string name="install_prod_keys_description">Требуется для расшифровки розничных игр</string>
     <string name="install_prod_keys_warning">Пропустить добавление ключей?</string>
@@ -328,19 +302,13 @@
     <string name="warning_cancel">Отмена</string>
     <string name="install_amiibo_keys">Установить ключи Amiibo</string>
     <string name="install_amiibo_keys_description">Необходимо для использования Amiibo в играх</string>
-    <string name="install_amiibo_keys_failure_extension_description">Убедитесь, что файл ключей имеет расширение .bin, и повторите попытку.</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
     <string name="gpu_driver_fetcher">Получение драйверов ГПУ</string>
     <string name="gpu_driver_manager">Менеджер драйверов ГП</string>
-    <string name="install_gpu_driver">Установить драйвер ГП</string>
     <string name="install_gpu_driver_description">Установите альтернативные драйверы для потенциально лучшей производительности и/или точности</string>
     <string name="advanced_settings">Расширенные настройки</string>
-    <string name="advanced_settings_game">Расширенные настройки: %1$s</string>
     <string name="settings_description">Настройка параметров эмулятора</string>
     <string name="search_recently_played">Недавно сыгранные</string>
     <string name="search_recently_added">Недавно добавлено</string>
-    <string name="search_retail">Розничные</string>
-    <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">Открыть папку Eden</string>
     <string name="open_user_folder_description">Управление внутренними файлами Eden</string>
     <string name="theme_and_color_description">Изменение внешнего вида приложения</string>
@@ -351,18 +319,14 @@
     <string name="manage_save_data_description">Найдено данные сохранений. Пожалуйста, выберите вариант ниже.</string>
     <string name="import_save_warning">Импортировать сохранения</string>
     <string name="import_save_warning_description">Это перезапишет все существующие данные сохранения выбранным файлом. Вы уверены, что хотите продолжить?</string>
-    <string name="import_export_saves_description">Импорт или экспорт файлов сохранения</string>
     <string name="save_files_importing">Импорт файлов сохранения…</string>
     <string name="save_files_exporting">Экспорт файлов сохранения…</string>
     <string name="save_file_imported_success">Успешно импортировано</string>
     <string name="save_file_invalid_zip_structure">Недопустимая структура папки сохранения</string>
     <string name="save_file_invalid_zip_structure_description">Название первой вложенной папки должно быть идентификатором игры.</string>
-    <string name="import_saves">Импорт</string>
-    <string name="export_saves">Экспорт</string>
     <string name="install_firmware">Установить прошивку</string>
     <string name="install_firmware_description">Прошивка должна находиться в ZIP-архиве и необходима для загрузки некоторых игр</string>
     <string name="firmware_installing">Установка прошивки</string>
-    <string name="firmware_installed_success">Прошивка успешно установлена</string>
     <string name="firmware_installed_failure">Не удалось установить прошивку</string>
     <string name="firmware_installed_failure_description">Убедитесь что файлы прошивки nca находятся в корне zip-архива и повторите попытку.</string>
     <string name="firmware_uninstalled_failure">Не удалось удалить прошивку</string>
@@ -375,7 +339,6 @@
     <string name="install_game_content_failure">Ошибка установки файл(ов) в NAND.</string>
     <string name="install_game_content_failure_description">Убедитесь что содержимое допустимо и что файл prod.keys установлен.</string>
     <string name="install_game_content_failure_base">Установка базовых игр запрещена во избежание возможных конфликтов.</string>
-    <string name="install_game_content_failure_file_extension">Поддерживается только контент NSP и XCI. Пожалуйста убедитесь что игровой контент действителен.</string>
     <string name="install_game_content_failed_count">%1$d ошибка установки</string>
     <string name="install_game_content_success">Игровой контент успешно установлен</string>
     <string name="install_game_content_success_install">%1$d Успешно установлено</string>
@@ -385,8 +348,6 @@
     <string name="custom_driver_not_supported_description">Загрузка пользовательского драйвера в настоящее время не поддерживается для этого устройства.\nПроверьте этот параметр в будущем чтобы узнать была ли добавлена ​​поддержка!</string>
     <string name="manage_yuzu_data">Управление данными Eden</string>
     <string name="manage_yuzu_data_description">Импортируйте/экспортируйте прошивку, ключи, пользовательские данные и многое другое!</string>
-    <string name="share_save_file">Поделиться файлом сохранения</string>
-    <string name="export_save_failed">Не удалось экспортировать сохранение</string>
     <string name="game_folders">Папки с играми</string>
     <string name="deep_scan">Глубокий анализ</string>
     <string name="add_game_folder">Добавить папку с игрой</string>
@@ -417,11 +378,9 @@
     <string name="firmware_uninstalling">Удаление прошивки...</string>
     <string name="firmware_uninstalled_success">Прошивка успешно удалена</string>
 
-    <string name="firmware_invalid">Прошивка недействительна</string>
     <string name="error_firmware_missing">Для запуска некоторых игр и системных апплетов требуется прошивка. Eden работает только с прошивкой версии 19.0.1 и ниже.</string>
     <string name="error_firmware_corrupted">Прошивка обнаружена, но не может быть прочитана. Проверьте наличие ключей дешифрования и при необходимости пересохраните прошивку.</string>
     <string name="error_firmware_too_new">Прошивка слишком новая или не может быть прочитана. Eden работает только с прошивкой версии 19.0.1 и ниже.</string>
-    <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
 
     <string name="keys_failed">Ошибка установки ключей</string>
     <string name="keys_install_success">Ключи успешно установлены</string>
@@ -462,7 +421,6 @@
     <string name="user_data_description">Импортировать/экспортировать всё данные приложения.\n\nПри импортировании пользовательских данных, вся существующие пользовательские данные будут удалены!\n\nИмпортирование данных из Citron может вызвать проблемы. Рекоминдовано самим импортировать все данные.</string>
     <string name="exporting_user_data">Экспорт пользовательских данных…</string>
     <string name="importing_user_data">Импорт пользовательских данных…</string>
-    <string name="import_user_data">Импортировать пользовательские данные</string>
     <string name="invalid_yuzu_backup">Неверная резервная копия Eden</string>
     <string name="user_data_export_success">Пользовательские данные успешно экспортированы</string>
     <string name="user_data_import_success">Пользовательские данные успешно импортированы</string>
@@ -596,8 +554,6 @@
     <string name="qualified_button">%1$s%2$s%3$sКнопка %4$s</string>
     <string name="qualified_axis">Ось %1$s%2$s</string>
     <string name="unused">Не используется</string>
-    <string name="input_prompt">Переместите или нажмите</string>
-    <string name="unsupported_input">Неподдерживаемый тип ввода</string>
     <string name="input_mapping_filter">Фильтр маппинга ввода</string>
     <string name="input_mapping_filter_description">Выберите устройство для фильтрации маппинга</string>
     <string name="auto_map">Авто-маппинг контроллера</string>
@@ -641,10 +597,6 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">По умолчанию</string>
-    <string name="ini_saved">Сохраненные настройки</string>
-    <string name="gameid_saved">Настройки сохранены для %1$s</string>
-    <string name="error_saving">Ошибка сохранения %1$s.ini: %2$s</string>
-    <string name="unimplemented_menu">Нереализованное меню</string>
     <string name="loading">Загрузка...</string>
     <string name="shutting_down">Выключение…</string>
     <string name="reset_setting_confirmation">Хотите ли вы вернуть этот параметр к значению по умолчанию?</string>
@@ -669,39 +621,26 @@
     <string name="edit">Редактировать</string>
     <string name="export_success">Экспорт успешно выполнен</string>
     <string name="start">Запуск</string>
-    <string name="clear">Очистить</string>
     <string name="global">Глобальный</string>
     <string name="custom">Другое</string>
-    <string name="notice">Уведомление</string>
     <string name="import_complete">Импорт завершен</string>
-    <string name="more_options">Больше настроек</string>
     <string name="use_global_setting">Исп. глобальные настройки</string>
     <string name="operation_completed_successfully">Операция выполнена успешно</string>
-    <string name="retry">Повторить</string>
     <string name="confirm">Подтвердить</string>
     <string name="load">Загрузить</string>
     <string name="save">Сохранить</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">Выбрать драйвер ГП</string>
-    <string name="select_gpu_driver_title">Хотите заменить текущий драйвер ГП?</string>
-    <string name="select_gpu_driver_install">Установить</string>
     <string name="select_gpu_driver_default">По умолчанию</string>
-    <string name="select_gpu_driver_use_default">Используется стандартный драйвер ГП </string>
     <string name="select_gpu_driver_error">Выбран неподходящий драйвер</string>
     <string name="driver_already_installed">Драйвер уже установлен</string>
     <string name="system_gpu_driver">Системный драйвер ГП</string>
     <string name="installing_driver">Установка драйвера...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">Ошибка при получении</string>
-    <string name="check_connection">Проверьте соединение и попробуйте снова.</string>
     <string name="show_releases">Показать релизы</string>
-    <string name="view_full_release_notes">Примечания к выпуску</string>
     <string name="failed_to_fetch">Не удалось получить</string>
     <string name="error_during_fetch">Ошибка при получении</string>
-    <string name="toggle_release_notes">Переключить примечания к выпуску</string>
-    <string name="downloads">Загрузки</string>
     <string name="show_downloads">Показать загрузки</string>
     <string name="hide_downloads">Скрыть загрузки</string>
     <string name="failed_cache_dir">Директория кеша недоступна</string>
@@ -720,7 +659,6 @@
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Настройки</string>
-    <string name="preferences_general">Общие</string>
     <string name="preferences_system">Система</string>
     <string name="preferences_system_description">Режим дока, регион, язык</string>
     <string name="preferences_graphics">Графика</string>
@@ -787,7 +725,6 @@
     <string name="loader_error_encrypted_keys_description"><![CDATA[Пожалуйста, убедитесь, что ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> установлен, чтобы игры можно было расшифровать.]]></string>
     <string name="loader_error_video_core">Произошла ошибка при инициализации видеоядра.</string>
     <string name="loader_error_video_core_description">Обычно это вызвано несовместимым драйвером ГП. Установка пользовательского драйвера ГП может решить эту проблему.</string>
-    <string name="loader_error_invalid_format">Не удалось запустить ROM</string>
     <string name="loader_error_file_not_found">Файл ROM не существует</string>
 
     <string name="loader_requires_firmware">Игре требуется прошивка</string>
@@ -816,19 +753,9 @@
     <string name="config_already_exists_message">Пользовательские настройки уже существуют для %1$s. \n\nХотиле ли вы переписать существующую конфигурацию\?\n\nЭто действие нельзя отменить.</string>
     <string name="config_exists_prompt">Проверка существующей конфигурации...</string>
     <string name="overwrite_cancelled">Перезапись отменена</string>
-    <string name="checking_driver">Проверка пользовательского драйвера: %1$s</string>
-    <string name="driver_unavailable">Пользовательский драйвер недоступен для этого устройства</string>
     <string name="overwrite">Перезаписать</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">Отсутствует драйвер GPU</string>
-    <string name="missing_gpu_driver_message">Выбранный пользовательский драйвер \"%s\" не установлен. Хотите скачать и установить его сейчас?</string>
-    <string name="downloading_driver">Загрузка драйвера...</string>
-    <string name="driver_installed">Драйвер успешно установлен</string>
-    <string name="driver_installation_failed_title">Ошибка установки драйвера</string>
-    <string name="driver_installation_failed_message">Не удалось установить драйвер GPU: %s</string>
-    <string name="driver_not_available_title">Драйвер недоступен</string>
-    <string name="driver_not_available_message">Выбранный драйвер недоступен для загрузки.</string>
     <string name="driver_not_found">Необходимый драйвер не установлен: %s</string>
     <string name="invalid_driver_file">Неверный файл драйвера: %s</string>
     <string name="network_unavailable">Сетевое соединение недоступно. Проверьте подключение к интернету и попробуйте снова.</string>
@@ -840,8 +767,6 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">Выход из эмуляции</string>
     <string name="emulation_done">Готово</string>
-    <string name="emulation_fps_counter">Счётчик FPS</string>
-    <string name="emulation_thermal_indicator">Индикатор температуры</string>
     <string name="emulation_toggle_controls">Переключение управления</string>
     <string name="emulation_rel_stick_center">Относительный центр стика</string>
     <string name="emulation_dpad_slide">Слайд крестовиной</string>
@@ -862,7 +787,6 @@
     <string name="unlock_drawer">Разморозить док</string>
     <string name="reset">Сброс</string>
 
-    <string name="load_settings">Загрузка настроек...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Виртуальная клавиатура</string>
@@ -876,7 +800,6 @@
     <string name="save_load_error">Ошибка сохранения/загрузки</string>
     <string name="fatal_error">Фатальная ошибка</string>
     <string name="fatal_error_message">Произошла фатальная ошибка. Проверьте логи для получения подробной информации.\nПродолжение может вызвать сбои и ошибки. </string>
-    <string name="performance_warning">Отключение этого параметра будет значительно снижать производительность. Рекомендуется оставить этот параметр включенным.</string>
     <string name="device_memory_inadequate">Оперативной памяти на устройстве: %1$s\nРекоминдовано: %2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">Загрузочной игры нету!</string>
@@ -896,7 +819,6 @@
     <string name="memory_8gb">8 ГБ (Небезопасно)</string>
 
     <!--CPU clock speeds-->
-    <string name="clock_base">Базовая (1000MHz)</string>
     <string name="clock_boost">Разгон (1700MHz)</string>
     <string name="clock_fast">Быстрая (2000MHz)</string>
 
@@ -910,7 +832,6 @@
     <string name="temperature_fahrenheit">Фаренгейт</string>
 
     <!-- Memory Sizes -->
-    <string name="memory_byte">Байт</string>
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">КБ</string>
     <string name="memory_megabyte">МБ</string>
@@ -1020,7 +941,6 @@
     <string name="gamepad_screenshot">Скриншот</string>
 
     <!-- Disk shader cache -->
-    <string name="preparing_shaders">Подготовка шейдеров</string>
     <string name="building_shaders">Постройка шейдеров</string>
 
     <!-- Theme options -->

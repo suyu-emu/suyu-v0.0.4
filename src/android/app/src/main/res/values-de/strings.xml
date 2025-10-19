@@ -9,7 +9,6 @@
     <string name="app_notification_running">Eden wird ausgeführt</string>
     <string name="seconds">Sekunden</string>
 
-    <string name="value">Wert</string>
     <string name="value_too_low">Wert muss mindestens %1$d betragen</string>
     <string name="value_too_high">Wert darf höchstens %1$d betragen</string>
     <string name="input_overlay_options">Eingabe-Overlay</string>
@@ -31,8 +30,6 @@
     <string name="show_fps_description">Aktuelle Bilder pro Sekunde</string>
     <string name="show_frametime">Frametime anzeigen</string>
     <string name="show_frametime_description">Aktuelle Frametime</string>
-    <string name="show_speed">Geschwindigkeit anzeigen</string>
-    <string name="show_speed_description">Emulationsgeschwindigkeit in Prozent</string>
     <string name="show_app_ram_usage">App-RAM-Nutzung anzeigen</string>
     <string name="show_app_ram_usage_description">Zeigt den RAM-Verbrauch des Emulators an</string>
     <string name="show_system_ram_usage">System-RAM-Nutzung anzeigen</string>
@@ -142,8 +139,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">Mehrspieler</string>
     <string name="multiplayer_description">Erstelle deinen eigenen Spielraum oder trete einem bestehenden bei, um mit anderen zu spielen</string>
-    <string name="multiplayer_room_title">Raum: %1$s</string>
-    <string name="multiplayer_console_id">Konsole-ID: %1$s</string>
     <string name="multiplayer_create_room">Erstellen</string>
     <string name="multiplayer_join_room">Beitreten</string>
     <string name="multiplayer_public_room">Öffentliche Räume durchsuchen</string>
@@ -152,11 +147,6 @@
     <string name="multiplayer_ip_port">Port</string>
     <string name="multiplayer_create_room_success">Raum erfolgreich erstellt</string>
     <string name="multiplayer_join_room_success">Erfolgreich beigetreten</string>
-    <string name="multiplayer_create_room_failed">Raum konnte nicht erstellt werden</string>
-    <string name="multiplayer_join_room_failed">Beitritt fehlgeschlagen</string>
-    <string name="multiplayer_name_invalid">Name zu kurz</string>
-    <string name="multiplayer_address_invalid">Ungültige Adresse</string>
-    <string name="multiplayer_port_invalid">Ungültiger Port</string>
     <string name="multiplayer_exit_room">Raum verlassen</string>
     <string name="multiplayer_network_error">Netzwerkfehler</string>
     <string name="multiplayer_lost_connection">Verbindung verloren</string>
@@ -185,21 +175,15 @@
     <string name="multiplayer_member_banned">%1$s wurde gebannt</string>
     <string name="multiplayer_address_unbanned">Adresse entbannt</string>
     <string name="multiplayer_kick_member">Entfernen</string>
-    <string name="multiplayer_chat_input_hint">Nachricht senden…</string>
     <string name="multiplayer_password">Passwort</string>
     <string name="multiplayer_joining">Beitritt läuft…</string>
     <string name="multiplayer_creating">Erstellung läuft…</string>
     <string name="multiplayer_room_name">Raumname</string>
-    <string name="multiplayer_room_name_invalid">Raumname muss 3-20 Zeichen lang sein</string>
-    <string name="multiplayer_max_players">Max. Spieler (16)</string>
     <string name="multiplayer_max_players_value">Max. Spieler: %d</string>
     <string name="multiplayer_chat">Chat</string>
     <string name="multiplayer_more_options">Weitere Optionen</string>
-    <string name="multiplayer_ip_copied">IP-Adresse kopiert</string>
-    <string name="multiplayer_server_address">Serveradresse</string>
     <string name="chat">Chat</string>
     <string name="type_message">Nachricht eingeben…</string>
-    <string name="send">Senden</string>
     <string name="send_message">Nachricht senden</string>
     <string name="multiplayer_moderation">Moderation</string>
     <string name="multiplayer_moderation_title">Bannliste</string>
@@ -219,12 +203,8 @@
     <string name="multiplayer_hide_empty_rooms">Leere Räume ausblenden</string>
     <string name="multiplayer_tap_refresh_to_check_again">Zum Aktualisieren tippen</string>
     <string name="multiplayer_search_public_lobbies">Räume suchen…</string>
-    <string name="emulation_multiplayer">Mehrspieler</string>
-    <string name="multiplayer_game_name">Bevorzugte Spiele</string>
     <string name="multiplayer_preferred_game_name">Bevorzugtes Spiel</string>
     <string name="multiplayer_lobby_type">Lobby-Typ</string>
-    <string name="multiplayer_no_game">Keine Spiele gefunden</string>
-    <string name="multiplayer_preferred_game_name_invalid">Zum Hosten muss ein bevorzugtes Spiel ausgewählt werden.</string>
     <string name="multiplayer_room_name_error">Muss 3-20 Zeichen lang sein</string>
     <string name="multiplayer_required">Erforderlich</string>
     <string name="multiplayer_token_required">Web-Token erforderlich, gehen Sie zu Erweiterte Einstellungen -> System -> Netzwerk</string>
@@ -258,7 +238,6 @@
     <string name="next">Weiter</string>
     <string name="back">Zurück</string>
     <string name="add_games">Spiele hinzufügen</string>
-    <string name="add_games_description">Spieleverzeichnis auswählen</string>
     <string name="step_complete">Fertig!</string>
     <string name="bluetooth_permissions_granted">Bluetooth-Berechtigungen erteilt.</string>
     <string name="bluetooth_permissions_denied">Bluetooth-Berechtigungen verweigert. Controller-Unterstützung kann eingeschränkt sein.</string>
@@ -275,14 +254,10 @@
     <string name="pre_alpha_warning_title">Pre-Alpha Software</string>
     <string name="pre_alpha_warning_description">WARNUNG: Diese Version ist nicht für die Öffentlichkeit bestimmt.</string>
     <string name="dont_show_again">Nicht mehr anzeigen</string>
-    <string name="pre_alpha_warning">PRE-ALPHA SOFTWARE; NICHT FÜR ÖFFENTLICHE NUTZUNG</string>
     <string name="add_directory_success">Neues Spieleverzeichnis erfolgreich hinzugefügt.</string>
-    <string name="home_games">Spiele</string>
     <string name="home_search">Suche</string>
     <string name="home_settings">Einstellungen</string>
     <string name="empty_gamelist">Es wurden keine Dateien gefunden oder es wurde noch kein Spielverzeichnis ausgewählt.</string>
-    <string name="search_and_filter_games">Spiele suchen und filtern</string>
-    <string name="select_games_folder">Spieleverzeichnis auswählen</string>
     <string name="manage_game_folders">Spiele-Ordner verwalten</string>
     <string name="select_games_folder_description">Erlaubt Eden die Spieleliste zu füllen</string>
     <string name="add_games_warning">Auswahl des Spieleverzeichnisses überspringen?</string>
@@ -290,7 +265,6 @@
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Spiele suchen</string>
     <string name="search_settings">Einstellungen suchen</string>
-    <string name="games_dir_selected">Spieleverzeichnis ausgewählt</string>
     <string name="install_prod_keys">prod.keys installieren</string>
     <string name="install_prod_keys_description">Zum Entschlüsseln von Spielen benötigt</string>
     <string name="install_prod_keys_warning">Hinzufügen der Schlüssel überspringen?</string>
@@ -314,19 +288,13 @@
     <string name="warning_cancel">Abbrechen</string>
     <string name="install_amiibo_keys">Amiibo-Schlüssel installieren</string>
     <string name="install_amiibo_keys_description">Benötigt um Amiibos im Spiel zu verwenden</string>
-    <string name="install_amiibo_keys_failure_extension_description">Überprüfen Sie, ob Ihre Schlüsseldatei die Erweiterung \".bin\" hat, und versuchen Sie es erneut.</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
     <string name="gpu_driver_fetcher">GPU-Treiber-Hersteller</string>
     <string name="gpu_driver_manager">GPU-Treiber Verwaltung</string>
-    <string name="install_gpu_driver">GPU-Treiber installieren</string>
     <string name="install_gpu_driver_description">Alternative Treiber für eventuell bessere Leistung oder Genauigkeit installieren</string>
     <string name="advanced_settings">Erweiterte Einstellungen</string>
-    <string name="advanced_settings_game">Erweiterte Einstellungen: %1$s</string>
     <string name="settings_description">Emulatoreinstellungen konfigurieren</string>
     <string name="search_recently_played">Kürzlich gespielt</string>
     <string name="search_recently_added">Kürzlich hinzugefügt</string>
-    <string name="search_retail">Spiele</string>
-    <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">Eden-Ordner öffnen</string>
     <string name="open_user_folder_description">Eden\'s interne Dateien verwalten</string>
     <string name="theme_and_color_description">Das Aussehen der App ändern</string>
@@ -338,18 +306,14 @@
     <string name="import_save_warning">Speicherdaten importieren</string>
     <string name="import_save_warning_description">Das überschreibt alle existierenden Speicherdaten für dieses Spiel mit der ausgewählten Datei.
 Wirklich fortfahren?</string>
-    <string name="import_export_saves_description">Speicherdaten importieren oder exportieren</string>
     <string name="save_files_importing">Importiere Speicherdaten...</string>
     <string name="save_files_exporting">Exportiere Speicherdaten...</string>
     <string name="save_file_imported_success">Erfolgreich importiert</string>
     <string name="save_file_invalid_zip_structure">Ungültige Speicherverzeichnisstruktur</string>
     <string name="save_file_invalid_zip_structure_description">Der erste Unterordnername muss die Titel-ID des Spiels sein.</string>
-    <string name="import_saves">Importieren</string>
-    <string name="export_saves">Exportieren</string>
     <string name="install_firmware">Firmware installieren</string>
     <string name="install_firmware_description">Die Firmware muss in einem ZIP-Archiv vorliegen und wird zum Booten einiger Spiele benötigt</string>
     <string name="firmware_installing">Firmware wird installiert</string>
-    <string name="firmware_installed_success">Die Firmware wurde erfolgreich installiert!</string>
     <string name="firmware_installed_failure">Bei der Firmware installation ist etwas fehlgeschlagen.</string>
     <string name="firmware_installed_failure_description">Stellen Sie sicher, dass sich die Firmware-NCA-Dateien im Stammverzeichnis der ZIP-Datei befinden, und versuchen Sie es erneut.</string>
     <string name="firmware_uninstalled_failure">Die Deinstallation der Firmware ist fehlgeschlagen</string>
@@ -362,7 +326,6 @@ Wirklich fortfahren?</string>
     <string name="install_game_content_failure">Fehler beim Installieren der Datei(en) auf NAND</string>
     <string name="install_game_content_failure_description">Bitte stellen Sie sicher, dass der/die Inhalt(e) gültig sind und dass die Datei prod.keys installiert ist.</string>
     <string name="install_game_content_failure_base">Um mögliche Konflikte zu vermeiden, ist die Installation von Basisspielen nicht gestattet.</string>
-    <string name="install_game_content_failure_file_extension">Es werden nur NSP- und XCI-Inhalte unterstützt. Bitte überprüfen Sie, ob die Spielinhalte gültig sind.</string>
     <string name="install_game_content_failed_count">%1$d Installationsfehler</string>
     <string name="install_game_content_success">Game content(s) installed successfully</string>
     <string name="install_game_content_success_install">%1$d erfolgreich installiert</string>
@@ -372,8 +335,6 @@ Wirklich fortfahren?</string>
     <string name="custom_driver_not_supported_description">Das Laden von benutzerdefinierten Treibern wird für dieses Gerät momentan nicht unterstützt.\nSchau später einfach nochmal nach, ob die Unterstützung hinzugefügt wurde!</string>
     <string name="manage_yuzu_data">Eden-Daten Verwalten</string>
     <string name="manage_yuzu_data_description">Importieren/Exportieren Sie Firmware, Schlüssel, Benutzerdaten und mehr!</string>
-    <string name="share_save_file">Speicherdaten teilen</string>
-    <string name="export_save_failed">Exportieren der Sicherung fehlgeschlagen</string>
     <string name="game_folders">Spiele-Ordner</string>
     <string name="deep_scan">Tiefer Scan</string>
     <string name="add_game_folder">Spiele-Ordner hinzufügen</string>
@@ -400,11 +361,9 @@ Wirklich fortfahren?</string>
     <string name="firmware_uninstalling">Firmware wird deinstalliert...</string>
     <string name="firmware_uninstalled_success">Firmware erfolgreich deinstalliert</string>
 
-    <string name="firmware_invalid">Ungültige Firmware</string>
     <string name="error_firmware_missing">Firmware wird benötigt, um bestimmte Spiele und Applikationen zu nutzen. Eden funktioniert nur mit Firmware 19.0.1 oder älter.</string>
     <string name="error_firmware_corrupted">Firmware wurde als vorhanden gemeldet, konnte aber nicht gelesen werden. Überprüfen Sie die Entschlüsselungsschlüssel und dumpen Sie die Firmware bei Bedarf neu.</string>
     <string name="error_firmware_too_new">Firmware ist zu neu oder konnte nicht gelesen werden. Eden funktioniert nur mit Firmware 19.0.1 oder älter.</string>
-    <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
 
     <string name="keys_failed">Schlüsselinstallation fehlgeschlagen</string>
     <string name="keys_install_success">Schlüssel erfolgreich installiert</string>
@@ -444,7 +403,6 @@ Wirklich fortfahren?</string>
     <string name="user_data">Nutzerdaten</string>
     <string name="exporting_user_data">Benutzerdaten werden exportiert…</string>
     <string name="importing_user_data">Importiere Nutzerdaten...</string>
-    <string name="import_user_data">Nutzerdaten importieren</string>
     <string name="invalid_yuzu_backup">Ungültiges Eden-Backup</string>
     <string name="user_data_export_success">Nutzerdaten erfolgreich exportiert</string>
     <string name="user_data_import_success">Nutzerdaten erfolgreich importiert</string>
@@ -579,8 +537,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="qualified_button">%1$s%2$s%3$sKnopf %4$s</string>
     <string name="qualified_axis">Achse %1$s%2$s</string>
     <string name="unused">Unbenutzt</string>
-    <string name="input_prompt">Bewegen oder drücken Sie eine Eingabe</string>
-    <string name="unsupported_input">Nicht unterstützter Eingabetyp</string>
     <string name="input_mapping_filter">Eingabezuordnungsfilter</string>
     <string name="input_mapping_filter_description">Wählen Sie ein Gerät zum Filtern von Belegungs- eingaben aus</string>
     <string name="auto_map">Automatisches Zuordnen eines Controllers</string>
@@ -624,10 +580,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
 
     <!-- Miscellaneous -->
     <string name="slider_default">Standard</string>
-    <string name="ini_saved">Einstellungen gespeichert</string>
-    <string name="gameid_saved">Einstellungen für %1$s gespeichert</string>
-    <string name="error_saving">Fehler beim Speichern von %1$s.ini: %2$s</string>
-    <string name="unimplemented_menu">Unimplementiertes Menü</string>
     <string name="loading">Lädt...</string>
     <string name="shutting_down">Beendet...</string>
     <string name="reset_setting_confirmation">Möchtest du diese Einstellung auf den Standardwert zurücksetzen?</string>
@@ -652,39 +604,26 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="edit">Bearbeiten</string>
     <string name="export_success">Erfolgreich exportiert</string>
     <string name="start">Start</string>
-    <string name="clear">Löschen</string>
     <string name="global">Global</string>
     <string name="custom">Benutzerdefiniert</string>
-    <string name="notice">Notiz</string>
     <string name="import_complete">Import abgeschlossen</string>
-    <string name="more_options">Mehr Einstellungen</string>
     <string name="use_global_setting">Globale Einstellung nutzen</string>
     <string name="operation_completed_successfully">Der Vorgang wurde erfolgreich abgeschlossen</string>
-    <string name="retry">erneut versuchen</string>
     <string name="confirm">Bestätige</string>
     <string name="load">Lädt</string>
     <string name="save">Speichern</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">GPU-Treiber auswählen</string>
-    <string name="select_gpu_driver_title">Möchtest du deinen aktuellen GPU-Treiber ersetzen?</string>
-    <string name="select_gpu_driver_install">Installieren</string>
     <string name="select_gpu_driver_default">Standard</string>
-    <string name="select_gpu_driver_use_default">Standard GPU-Treiber wird verwendet</string>
     <string name="select_gpu_driver_error">Ungültiger Treiber ausgewählt</string>
     <string name="driver_already_installed">Treiber bereits installiert</string>
     <string name="system_gpu_driver">System GPU-Treiber</string>
     <string name="installing_driver">Treiber wird installiert...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">Fehler beim Abrufen</string>
-    <string name="check_connection">Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.</string>
     <string name="show_releases">Versionen anzeigen</string>
-    <string name="view_full_release_notes">Versionshinweise</string>
     <string name="failed_to_fetch">Abruf fehlgeschlagen</string>
     <string name="error_during_fetch">Fehler beim Abrufen</string>
-    <string name="toggle_release_notes">Versionshinweise umschalten</string>
-    <string name="downloads">Downloads</string>
     <string name="show_downloads">Downloads anzeigen</string>
     <string name="hide_downloads">Downloads ausblenden</string>
     <string name="failed_cache_dir">Cache-Verzeichnis nicht verfügbar</string>
@@ -703,7 +642,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Einstellungen</string>
-    <string name="preferences_general">Allgemein</string>
     <string name="preferences_system">System</string>
     <string name="preferences_system_description">Gedockter Modus, Region, Sprache</string>
     <string name="preferences_graphics">Grafik</string>
@@ -769,7 +707,6 @@ Wirklich fortfahren?</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Bitte stelle sicher dass die <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> Datei installiert ist, damit Spiele entschlüsselt werden können.]]></string>
     <string name="loader_error_video_core">Bei der Initialisierung des Videokerns ist ein Fehler aufgetreten</string>
     <string name="loader_error_video_core_description">Dies wird normalerweise durch einen inkompatiblen GPU-Treiber verursacht. Die Installation eines passenden GPU-Treibers kann dieses Problem beheben.</string>
-    <string name="loader_error_invalid_format">ROM konnte nicht geladen werden</string>
     <string name="loader_error_file_not_found">ROM-Datei existiert nicht</string>
 
     <string name="loader_requires_firmware">Spiel erfordert Firmware</string>
@@ -797,19 +734,9 @@ Wirklich fortfahren?</string>
     <string name="config_already_exists_title">Konfiguration existiert bereits</string>
     <string name="config_exists_prompt">Überprüfe auf vorhandene Konfiguration...</string>
     <string name="overwrite_cancelled">Überschreiben abgebrochen</string>
-    <string name="checking_driver">Üoverprüfe benutzerdefinierten Treiber: %1$s</string>
-    <string name="driver_unavailable">Benutzerdefinierter Treiber für dieses Gerät nicht verfügbar</string>
     <string name="overwrite">Überschreiben</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">GPU-Treiber fehlt</string>
-    <string name="missing_gpu_driver_message">Der ausgewählte benutzerdefinierte Treiber \"%s\" ist nicht installiert. Möchten Sie ihn jetzt herunterladen und installieren?</string>
-    <string name="downloading_driver">Treiber wird heruntergeladen...</string>
-    <string name="driver_installed">Treiber erfolgreich installiert</string>
-    <string name="driver_installation_failed_title">Treiberinstallation fehlgeschlagen</string>
-    <string name="driver_installation_failed_message">Fehler beim Installieren des GPU-Treibers: %s</string>
-    <string name="driver_not_available_title">Treiber nicht verfügbar</string>
-    <string name="driver_not_available_message">Der ausgewählte Treiber ist nicht zum Download verfügbar.</string>
     <string name="driver_not_found">Erforderlicher Treiber nicht installiert: %s</string>
     <string name="invalid_driver_file">Ungültige Treiberdatei: %s</string>
     <string name="network_unavailable">Keine Netzwerkverbindung verfügbar. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</string>
@@ -820,8 +747,6 @@ Wirklich fortfahren?</string>
     <!-- Emulation Menu -->
     <string name="emulation_exit">Emulation beenden</string>
     <string name="emulation_done">Fertig</string>
-    <string name="emulation_fps_counter">FPS Zähler</string>
-    <string name="emulation_thermal_indicator">Thermoanzeige</string>
     <string name="emulation_toggle_controls">Steuerung umschalten</string>
     <string name="emulation_rel_stick_center">Relativer Stick-Zentrum</string>
     <string name="emulation_dpad_slide">D-Pad-Scrollen</string>
@@ -840,7 +765,6 @@ Wirklich fortfahren?</string>
     <string name="touchscreen">Touchscreen</string>
     <string name="lock_drawer">Menü sperren</string>
     <string name="unlock_drawer">Menü entsperren</string>
-    <string name="load_settings">Lade Einstellungen...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Software-Tastatur</string>
@@ -870,7 +794,6 @@ Wirklich fortfahren?</string>
     <string name="memory_8gb">8 GB (Unsicher)</string>
 
     <!--CPU clock speeds-->
-    <string name="clock_base">Basis (1000MHz)</string>
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Schnell (2000MHz)</string>
 
@@ -884,7 +807,6 @@ Wirklich fortfahren?</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
-    <string name="memory_byte">Byte</string>
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
@@ -987,7 +909,6 @@ Wirklich fortfahren?</string>
     <string name="gamepad_screenshot">Screenshot</string>
 
     <!-- Disk shader cache -->
-    <string name="preparing_shaders">Shader werden vorbereitet</string>
     <string name="building_shaders">Shader werden erstellt</string>
 
     <!-- Theme options -->

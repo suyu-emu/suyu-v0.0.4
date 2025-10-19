@@ -12,7 +12,6 @@
     <!-- Spinbox strings -->
     <string name="increment">Збільшення</string>
     <string name="decrement">Зменшення</string>
-    <string name="value">Значення</string>
     <string name="value_too_low">Значення повинно бути щонайменше %1$d</string>
     <string name="value_too_high">Значення повинно бути не більше %1$d</string>
     <string name="invalid_value">Неправильне значення</string>
@@ -45,8 +44,6 @@
     <string name="show_fps_description">Виводити поточну частоту кадрів</string>
     <string name="show_frametime">Показати Frametime</string>
     <string name="show_frametime_description">Відображати час обробки кадру</string>
-    <string name="show_speed">Показати швидкість</string>
-    <string name="show_speed_description">Відображати швидкість емуляції у відсотках</string>
     <string name="show_app_ram_usage">Показати використання RAM</string>
     <string name="show_app_ram_usage_description">Показати обсяг оперативної пам\'яті, яку використовує емулятор</string>
     <string name="show_system_ram_usage">Показати системну RAM</string>
@@ -156,8 +153,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">Мультиплеєр</string>
     <string name="multiplayer_description">Створити свою або приєднатися до вже існуючої кімнати для гри онлайн</string>
-    <string name="multiplayer_room_title">Кімната: %1$s</string>
-    <string name="multiplayer_console_id">ID консолі: %1$s</string>
     <string name="multiplayer_create_room">Створити</string>
     <string name="multiplayer_join_room">Приєднатися</string>
     <string name="multiplayer_public_room">Публічні кімнати</string>
@@ -166,11 +161,6 @@
     <string name="multiplayer_ip_port">Порт</string>
     <string name="multiplayer_create_room_success">Кімнату успішно створено</string>
     <string name="multiplayer_join_room_success">Приєднано до кімнати</string>
-    <string name="multiplayer_create_room_failed">Помилка створення</string>
-    <string name="multiplayer_join_room_failed">Помилка приєднання</string>
-    <string name="multiplayer_name_invalid">Ім\'я занадто коротке</string>
-    <string name="multiplayer_address_invalid">Невірна адреса</string>
-    <string name="multiplayer_port_invalid">Невірний порт</string>
     <string name="multiplayer_exit_room">Вийти</string>
     <string name="multiplayer_network_error">Помилка мережі</string>
     <string name="multiplayer_lost_connection">Втрачено з\'єднання</string>
@@ -199,21 +189,15 @@
     <string name="multiplayer_member_banned">%1$s заблоковано</string>
     <string name="multiplayer_address_unbanned">Розблоковано</string>
     <string name="multiplayer_kick_member">Вигнати</string>
-    <string name="multiplayer_chat_input_hint">Повідомлення...</string>
     <string name="multiplayer_password">Пароль</string>
     <string name="multiplayer_joining">Приєднуюсь…</string>
     <string name="multiplayer_creating">Створюю…</string>
     <string name="multiplayer_room_name">Назва кімнати</string>
-    <string name="multiplayer_room_name_invalid">Назва кімнати має містити від 3 до 20 символів</string>
-    <string name="multiplayer_max_players">Макс. гравців (16)</string>
     <string name="multiplayer_max_players_value">Макс. гравців: %d</string>
     <string name="multiplayer_chat">Чат</string>
     <string name="multiplayer_more_options">Додаткові налаштування</string>
-    <string name="multiplayer_ip_copied">IP-адресу скопійовано в буфер обміну</string>
-    <string name="multiplayer_server_address">Адреса сервера</string>
     <string name="chat">Чат</string>
     <string name="type_message">Введіть повідомлення…</string>
-    <string name="send">Надіслати</string>
     <string name="send_message">Надіслати повідомлення</string>
     <string name="multiplayer_moderation">Модерація</string>
     <string name="multiplayer_moderation_title">Список блокувань</string>
@@ -233,12 +217,8 @@
     <string name="multiplayer_hide_empty_rooms">Приховати порожні</string>
     <string name="multiplayer_tap_refresh_to_check_again">Оновити</string>
     <string name="multiplayer_search_public_lobbies">Пошук кімнат...</string>
-    <string name="emulation_multiplayer">Мультиплеєр</string>
-    <string name="multiplayer_game_name">Вподобані ігри</string>
     <string name="multiplayer_preferred_game_name">Вподобана гра</string>
     <string name="multiplayer_lobby_type">Тип лобі</string>
-    <string name="multiplayer_no_game">Ігор не знайдено</string>
-    <string name="multiplayer_preferred_game_name_invalid">Виберіть гру</string>
     <string name="multiplayer_room_name_error">3-20 символів</string>
     <string name="multiplayer_required">Обов\'язково</string>
     <string name="multiplayer_token_required">Потрібний веб-токен, перейдіть у Розширені налаштування → Система → Мережа</string>
@@ -272,7 +252,6 @@
     <string name="next">Далі</string>
     <string name="back">Назад</string>
     <string name="add_games">Додати ігри</string>
-    <string name="add_games_description">Виберіть теку з іграми</string>
     <string name="step_complete">Завершено!</string>
     <string name="bluetooth_permissions_granted">Дозволи Bluetooth надано.</string>
     <string name="bluetooth_permissions_denied">Дозволи Bluetooth відхилено. Підтримка контролерів може бути обмежена.</string>
@@ -289,14 +268,10 @@
     <string name="pre_alpha_warning_title">Попередня версія</string>
     <string name="pre_alpha_warning_description">УВАГА: Ця версія не призначена для публічного використання. Програмне забезпечення знаходиться на ранній стадії розробки та може містити помилки.</string>
     <string name="dont_show_again">Більше не показувати</string>
-    <string name="pre_alpha_warning">ПОПЕРЕДНЯ ВЕРСІЯ; НЕ ДЛЯ ПУБЛІКИ</string>
     <string name="add_directory_success">Нову теку з іграми успішно додано</string>
-    <string name="home_games">Ігри</string>
     <string name="home_search">Пошук</string>
     <string name="home_settings">Налаштування</string>
     <string name="empty_gamelist">Не знайдено файлів або ще не вибрано теку з іграми.</string>
-    <string name="search_and_filter_games">Пошук та фільтрація ігор</string>
-    <string name="select_games_folder">Виберіть теку з іграми</string>
     <string name="manage_game_folders">Керування ігровими теками</string>
     <string name="select_games_folder_description">Дозволяє Eden заповнити список ігор</string>
     <string name="add_games_warning">Пропустити вибір теки з іграми?</string>
@@ -304,7 +279,6 @@
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Знайти ігри</string>
     <string name="search_settings">Пошук налаштувань</string>
-    <string name="games_dir_selected">Вибрано теку з іграми</string>
     <string name="install_prod_keys">Встановити prod.keys</string>
     <string name="install_prod_keys_description">Потрібно для розшифровки роздрібних ігор</string>
     <string name="install_prod_keys_warning">Пропустити додавання ключів?</string>
@@ -328,19 +302,13 @@
     <string name="warning_cancel">Відміна</string>
     <string name="install_amiibo_keys">Встановити ключі Amiibo</string>
     <string name="install_amiibo_keys_description">Необхідно для використання Amiibo в іграх</string>
-    <string name="install_amiibo_keys_failure_extension_description">Переконайтеся, що ваш файл ключів має розширення .bin і спробуйте ще раз.</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
     <string name="gpu_driver_fetcher">Отримання драйверів GPU</string>
     <string name="gpu_driver_manager">Менеджер драйверів GPU</string>
-    <string name="install_gpu_driver">Встановити драйвер GPU</string>
     <string name="install_gpu_driver_description">Встановіть альтернативні драйвери для потенційно кращої продуктивності та/або точності</string>
     <string name="advanced_settings">Розширені налаштування</string>
-    <string name="advanced_settings_game">Розширені налаштування: %1$s</string>
     <string name="settings_description">Налаштування параметрів емулятора</string>
     <string name="search_recently_played">Нещодавно зіграно</string>
     <string name="search_recently_added">Нещодавно додано</string>
-    <string name="search_retail">Роздрібні</string>
-    <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">Відкрити теку Eden</string>
     <string name="open_user_folder_description">Керування внутрішніми файлами Eden</string>
     <string name="theme_and_color_description">Змінити зовнішній вигляд застосунку</string>
@@ -351,18 +319,14 @@
     <string name="manage_save_data_description">Знайдено дані збережень. Будь ласка, виберіть варіант нижче.</string>
     <string name="import_save_warning">Імпортувати збереження</string>
     <string name="import_save_warning_description">Ця дія перезапише всі наявні збереження наданим файлом. Бажаєте продовжити\?</string>
-    <string name="import_export_saves_description">Імпорт або експорт файлів збереження</string>
     <string name="save_files_importing">Імпорт файлів збереження...</string>
     <string name="save_files_exporting">Експорт файлів збереження...</string>
     <string name="save_file_imported_success">Успішно імпортовано</string>
     <string name="save_file_invalid_zip_structure">Неприпустима структура теки збереження</string>
     <string name="save_file_invalid_zip_structure_description">Назва підтеки має бути ідентифікатором гри (title ID).</string>
-    <string name="import_saves">Імпорт</string>
-    <string name="export_saves">Експорт</string>
     <string name="install_firmware">Встановити прошивку</string>
     <string name="install_firmware_description">Прошивка має бути у ZIP-архіві. Деякі ігри вимагають її наявності.</string>
     <string name="firmware_installing">Встановлення прошивки…</string>
-    <string name="firmware_installed_success">Прошивку успішно встановлено</string>
     <string name="firmware_installed_failure">Помилка встановлення прошивки</string>
     <string name="firmware_installed_failure_description">Переконайтеся, що файли прошивки знаходяться в корені ZIP-архіву та повторіть спробу.</string>
     <string name="firmware_uninstalled_failure">Помилка видалення прошивки</string>
@@ -375,7 +339,6 @@
     <string name="install_game_content_failure">Помилка встановлення вмісту</string>
     <string name="install_game_content_failure_description">Переконайтеся, що вміст є дійсним та що файл prod.keys встановлено.</string>
     <string name="install_game_content_failure_base">Встановлення базових ігор не дозволено з міркувань сумісності.</string>
-    <string name="install_game_content_failure_file_extension">Підтримуються лише файли NSP та XCI.</string>
     <string name="install_game_content_failed_count">%1$d помилок встановлення</string>
     <string name="install_game_content_success">Вміст гри успішно встановлено</string>
     <string name="install_game_content_success_install">%1$d успішно встановлено</string>
@@ -385,8 +348,6 @@
     <string name="custom_driver_not_supported_description">Завантаження спеціальних драйверів цим пристроєм наразі не підтримується.\nПідтримку може бути додано пізніше, тож час від часу перевіряйте цей параметр!</string>
     <string name="manage_yuzu_data">Керування даними eden</string>
     <string name="manage_yuzu_data_description">Імпорт/експорт прошивки, ключів, даних користувача та іншого.</string>
-    <string name="share_save_file">Поділитися збереженням</string>
-    <string name="export_save_failed">Помилка експорту збереження</string>
     <string name="game_folders">Тека з іграми</string>
     <string name="deep_scan">Глибоке сканування</string>
     <string name="add_game_folder">Додати теку з іграми</string>
@@ -417,11 +378,9 @@
     <string name="firmware_uninstalling">Видалення прошивки...</string>
     <string name="firmware_uninstalled_success">Прошивку успішно видалено</string>
 
-    <string name="firmware_invalid">Недійсна прошивка</string>
     <string name="error_firmware_missing">Для запуску деяких ігор та системних аплетів потрібна прошивка. Eden працює лише з прошивкою 19.0.1 або старішою.</string>
     <string name="error_firmware_corrupted">Прошивка є, але не може бути прочитана. Перевірте ключі дешифрування та повторно зробіть дамп прошивки за необхідності.</string>
     <string name="error_firmware_too_new">Прошивка занадто нова або нечитабельна. Eden працює лише з прошивкою 19.0.1 або старішою.</string>
-    <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
 
     <string name="keys_failed">Не вдалося встановити ключі</string>
     <string name="keys_install_success">Ключі успішно встановлено</string>
@@ -462,7 +421,6 @@
     <string name="user_data_description">Імпортувати/експортувати всі дані програми.\n\nПри імпорті даних користувача всі наявні користувацькі дані буде видалено!\n\nЗавантаження даних із Citron може викликати проблеми. Рекомендується імпортувати всі необхідні дані звідти вручну.</string>
     <string name="exporting_user_data">Експорт даних користувача…</string>
     <string name="importing_user_data">Імпорт даних користувача…</string>
-    <string name="import_user_data">Імпортувати дані користувача</string>
     <string name="invalid_yuzu_backup">Некоректна резервна копія Eden</string>
     <string name="user_data_export_success">Дані користувача успішно експортовано</string>
     <string name="user_data_import_success">Дані користувача успішно імпортовано</string>
@@ -596,8 +554,6 @@
     <string name="qualified_button">%1$s%2$s%3$sКнопка %4$s</string>
     <string name="qualified_axis">Вісь %1$s%2$s</string>
     <string name="unused">Незадіяно</string>
-    <string name="input_prompt">Зруште або натисніть</string>
-    <string name="unsupported_input">Непідтримуваний тип введення</string>
     <string name="input_mapping_filter">Фільтр прив\'язки введення</string>
     <string name="input_mapping_filter_description">Виберіть пристрій для фільтрації вводу</string>
     <string name="auto_map">Автоприв\'язка контролера</string>
@@ -641,10 +597,6 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">За замовчуванням</string>
-    <string name="ini_saved">Збережені налаштування</string>
-    <string name="gameid_saved">Налаштування збережені для %1$s</string>
-    <string name="error_saving">Помилка збереження %1$s.ini: %2$s</string>
-    <string name="unimplemented_menu">Нереалізоване меню</string>
     <string name="loading">Завантаження...</string>
     <string name="shutting_down">Вимкнення...</string>
     <string name="reset_setting_confirmation">Чи хочете ви повернути цей параметр до значення за замовчуванням?</string>
@@ -669,39 +621,26 @@
     <string name="edit">Редагувати</string>
     <string name="export_success">Успішно експортовано</string>
     <string name="start">Запустити</string>
-    <string name="clear">Очистити</string>
     <string name="global">Глобальне</string>
     <string name="custom">Користувацьке</string>
-    <string name="notice">Примітка</string>
     <string name="import_complete">Імпорт завершено </string>
-    <string name="more_options">Більше параметрів</string>
     <string name="use_global_setting">Використовувати глобальне налаштування</string>
     <string name="operation_completed_successfully">Операція завершилася успішно</string>
-    <string name="retry">Спробувати ще</string>
     <string name="confirm">Підтвердити </string>
     <string name="load">Завантажити</string>
     <string name="save">Зберегти</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">Вибрати драйвер GPU</string>
-    <string name="select_gpu_driver_title">Хочете замінити поточний драйвер GPU?</string>
-    <string name="select_gpu_driver_install">Встановити</string>
     <string name="select_gpu_driver_default">За замовчуванням</string>
-    <string name="select_gpu_driver_use_default">Використовується стандартний драйвер GPU</string>
     <string name="select_gpu_driver_error">Вибрано неправильний драйвер</string>
     <string name="driver_already_installed">Драйвер вже встановлено</string>
     <string name="system_gpu_driver">Системний драйвер GPU</string>
     <string name="installing_driver">Встановлення драйвера...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">Помилка під час отримання</string>
-    <string name="check_connection">Перевірте з\'єднання та спробуйте ще раз.</string>
     <string name="show_releases">Показати релізи</string>
-    <string name="view_full_release_notes">Примітки до випуску</string>
     <string name="failed_to_fetch">Не вдалося отримати</string>
     <string name="error_during_fetch">Помилка під час отримання</string>
-    <string name="toggle_release_notes">Перемкнути примітки до випуску</string>
-    <string name="downloads">Завантаження</string>
     <string name="show_downloads">Показати завантаження</string>
     <string name="hide_downloads">Приховати завантаження</string>
     <string name="failed_cache_dir">Директорія кешу недоступна</string>
@@ -720,7 +659,6 @@
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Налаштування</string>
-    <string name="preferences_general">Загальні</string>
     <string name="preferences_system">Система</string>
     <string name="preferences_system_description">Режим док-странції, регіон, мова</string>
     <string name="preferences_graphics">Графіка</string>
@@ -787,7 +725,6 @@
     <string name="loader_error_encrypted_keys_description"><![CDATA[Будь ласка, переконайтеся, що ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> встановлено, щоб ігри можна було розшифрувати.]]></string>
     <string name="loader_error_video_core">Сталася помилка під час ініціалізації відеоядра.</string>
     <string name="loader_error_video_core_description">Зазвичай це спричинено несумісним драйвером GPU. Встановлення користувацького драйвера GPU може вирішити цю проблему.</string>
-    <string name="loader_error_invalid_format">Не вдалося запустити ROM</string>
     <string name="loader_error_file_not_found">ROM файлу не існує</string>
 
     <string name="loader_requires_firmware">Гра вимагає прошивки</string>
@@ -816,19 +753,9 @@
     <string name="config_already_exists_message">Користувацькі налаштування вже існують для: %1$s.\n\nБажаєте перезаписати наявне налаштування\?\n\nЦя дія незворотна.</string>
     <string name="config_exists_prompt">Перевірка наявної конфігурації...</string>
     <string name="overwrite_cancelled">Перезапис скасовано</string>
-    <string name="checking_driver">Перевірка користувацького драйвера: %1$s</string>
-    <string name="driver_unavailable">Користувацький драйвер недоступний для цього пристрою</string>
     <string name="overwrite">Перезаписати</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">Відсутній драйвер GPU</string>
-    <string name="missing_gpu_driver_message">Обраний користувацький драйвер \"%s\" не встановлено. Бажаєте завантажити та встановити його зараз?</string>
-    <string name="downloading_driver">Завантаження драйвера...</string>
-    <string name="driver_installed">Драйвер успішно встановлено</string>
-    <string name="driver_installation_failed_title">Помилка встановлення драйвера</string>
-    <string name="driver_installation_failed_message">Не вдалося встановити драйвер GPU: %s</string>
-    <string name="driver_not_available_title">Драйвер недоступний</string>
-    <string name="driver_not_available_message">Обраний драйвер недоступний для завантаження.</string>
     <string name="driver_not_found">Необхідний драйвер не встановлено: %s</string>
     <string name="invalid_driver_file">Недійсний файл драйвера: %s</string>
     <string name="network_unavailable">Мережеве з\'єднання недоступне. Перевірте підключення до інтернету та спробуйте ще раз.</string>
@@ -840,8 +767,6 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">Вийти з емуляції</string>
     <string name="emulation_done">Готово</string>
-    <string name="emulation_fps_counter">Лічильник FPS</string>
-    <string name="emulation_thermal_indicator">Індикатор температури</string>
     <string name="emulation_toggle_controls">Перемкнути елементи керування</string>
     <string name="emulation_rel_stick_center">Відносний центр джойстика</string>
     <string name="emulation_dpad_slide">Ковзання D-pad</string>
@@ -862,7 +787,6 @@
     <string name="unlock_drawer">Розблокувати панель</string>
     <string name="reset">Скинути</string>
 
-    <string name="load_settings">Завантаження налаштувань…</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Програмна клавіатура</string>
@@ -876,7 +800,6 @@
     <string name="save_load_error">Помилка збереження/завантаження</string>
     <string name="fatal_error">Фатальна помилка</string>
     <string name="fatal_error_message">Сталася фатальна помилка. Для подробиць перевірте журнал.\nПродовження емуляції може закінчитися збоями.</string>
-    <string name="performance_warning">Увімкнення цього налаштування значно погіршить продуктивність. Рекомендується лишити це налаштування увімкненим.</string>
     <string name="device_memory_inadequate">RAM пристрою: %1$s\nРекомендовано: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Надану гру неможливо запустити!</string>
@@ -896,7 +819,6 @@
     <string name="memory_8gb">8 ГБ (Небезпечно)</string>
 
     <!--CPU clock speeds-->
-    <string name="clock_base">Базова (1000MHz)</string>
     <string name="clock_boost">Прискорена (1700MHz)</string>
     <string name="clock_fast">Швидка (2000MHz)</string>
 
@@ -910,7 +832,6 @@
     <string name="temperature_fahrenheit">Фаренгейт</string>
 
     <!-- Memory Sizes -->
-    <string name="memory_byte">Байти</string>
     <string name="memory_byte_shorthand">Б</string>
     <string name="memory_kilobyte">КБ</string>
     <string name="memory_megabyte">МБ</string>
@@ -1026,7 +947,6 @@
     <string name="gamepad_screenshot">Знімок екрану</string>
 
     <!-- Disk shader cache -->
-    <string name="preparing_shaders">Підготовка шейдерів</string>
     <string name="building_shaders">Побудова шейдерів</string>
 
     <!-- Theme options -->

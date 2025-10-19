@@ -22,8 +22,6 @@
     <string name="show_fps_description">מציג מספר פריימים לשנייה</string>
     <string name="show_frametime">הצג זמן פריים</string>
     <string name="show_frametime_description">מציג את זמן העיבוד לפריים</string>
-    <string name="show_speed">הצג מהירות</string>
-    <string name="show_speed_description">מציג את אחוז מהירות האמולציה</string>
     <string name="show_app_ram_usage">הצג שימוש זיכרון</string>
     <string name="show_app_ram_usage_description">הצג את כמות ה-RAM שהאמולטור משתמש בה</string>
     <string name="show_system_ram_usage">הצג שימוש זיכרון מערכת</string>
@@ -133,8 +131,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">רב־משתתפים</string>
     <string name="multiplayer_description">ארח חדר משחק משלך או הצטרף לחדר קיים כדי לשחק עם אנשים</string>
-    <string name="multiplayer_room_title">חדר: %1$s</string>
-    <string name="multiplayer_console_id">מזהה קונסולה: %1$s</string>
     <string name="multiplayer_create_room">צור</string>
     <string name="multiplayer_join_room">הצטרף</string>
     <string name="multiplayer_public_room">עיין בחדרים ציבוריים</string>
@@ -143,11 +139,6 @@
     <string name="multiplayer_ip_port">פורט</string>
     <string name="multiplayer_create_room_success">החדר נוצר בהצלחה</string>
     <string name="multiplayer_join_room_success">הצטרפת לחדר בהצלחה</string>
-    <string name="multiplayer_create_room_failed">יצירת חדר נכשלה</string>
-    <string name="multiplayer_join_room_failed">הצטרפות לחדר נכשלה</string>
-    <string name="multiplayer_name_invalid">השם קצר מדי</string>
-    <string name="multiplayer_address_invalid">כתובת לא תקינה</string>
-    <string name="multiplayer_port_invalid">פורט לא תקין</string>
     <string name="multiplayer_exit_room">צא מהחדר</string>
     <string name="multiplayer_network_error">שגיאת רשת</string>
     <string name="multiplayer_lost_connection">החיבור אבד</string>
@@ -176,21 +167,15 @@
     <string name="multiplayer_member_banned">%1$s נחסם</string>
     <string name="multiplayer_address_unbanned">כתובת שוחררה</string>
     <string name="multiplayer_kick_member">הסר</string>
-    <string name="multiplayer_chat_input_hint">שלח הודעה...</string>
     <string name="multiplayer_password">סיסמה</string>
     <string name="multiplayer_joining">מצטרף...</string>
     <string name="multiplayer_creating">יוצר...</string>
     <string name="multiplayer_room_name">שם חדר</string>
-    <string name="multiplayer_room_name_invalid">שם חדר חייב להיות בין 3-20 תווים</string>
-    <string name="multiplayer_max_players">מקסימום שחקנים (16)</string>
     <string name="multiplayer_max_players_value">מקסימום שחקנים: %d</string>
     <string name="multiplayer_chat">צ\'אט</string>
     <string name="multiplayer_more_options">אפשרויות נוספות</string>
-    <string name="multiplayer_ip_copied">כתובת IP הועתקה ללוח</string>
-    <string name="multiplayer_server_address">כתובת השרת</string>
     <string name="chat">צ\'אט</string>
     <string name="type_message">הקלד הודעה…</string>
-    <string name="send">שלח</string>
     <string name="send_message">שלח הודעה</string>
     <string name="multiplayer_moderation">ניהול</string>
     <string name="multiplayer_moderation_title">רשימת חסומים</string>
@@ -210,12 +195,8 @@
     <string name="multiplayer_hide_empty_rooms">הסתר חדרים ריקים</string>
     <string name="multiplayer_tap_refresh_to_check_again">הקש לרענון לבדיקה מחדש</string>
     <string name="multiplayer_search_public_lobbies">חפש חדרים...</string>
-    <string name="emulation_multiplayer">רב־משתתפים</string>
-    <string name="multiplayer_game_name">משחקים מועדפים</string>
     <string name="multiplayer_preferred_game_name">משחק מועדף</string>
     <string name="multiplayer_lobby_type">סוג לובי</string>
-    <string name="multiplayer_no_game">לא נמצאו משחקים</string>
-    <string name="multiplayer_preferred_game_name_invalid">עליך לבחור משחק מועדף לאירוח חדר</string>
     <string name="multiplayer_room_name_error">חייב להיות בין 3-20 תווים</string>
     <string name="multiplayer_required">נדרש</string>
     <string name="multiplayer_token_required">נדרש אסימון אינטרנט, עבור להגדרות מתקדמות -> מערכת -> רשת</string>
@@ -247,7 +228,6 @@
     <string name="next">הבא</string>
     <string name="back">אחורה</string>
     <string name="add_games">הוסף משחקים</string>
-    <string name="add_games_description">בחר/י את תיקיית המשחקים שלך</string>
     <string name="step_complete">הושלם!</string>
     <string name="bluetooth_permissions_granted">הרשאות Bluetooth אושרו.</string>
     <string name="bluetooth_permissions_denied">הרשאות Bluetooth נדחו. תמיכה בבקרים עשויה להיות מוגבלת.</string>
@@ -262,20 +242,15 @@
     <string name="pre_alpha_warning_title">תוכנת טרום-אלפא</string>
     <string name="pre_alpha_warning_description">אזהרה: גרסה זו אינה מיועדת לשימוש ציבורי. התוכנה בשלבי פיתוח מוקדמים ועלולה להכיל באגים.</string>
     <string name="dont_show_again">אל תציג שוב</string>
-    <string name="pre_alpha_warning">תוכנת טרום-אלפא - לא לשימוש ציבורי</string>
-    <string name="home_games">משחקים</string>
     <string name="home_search">חפש</string>
     <string name="home_settings">הגדרות</string>
     <string name="empty_gamelist">לא נמצאו קבצים או לנבחרה ספריית קבצים בינתיים.</string>
-    <string name="search_and_filter_games">חפש וסנן משחקים</string>
-    <string name="select_games_folder">בחר תיקיית משחקים</string>
     <string name="manage_game_folders">נהל את תיקיית המשחקים</string>
     <string name="select_games_folder_description">אפשר ל Eden  לאכלס את רשימת המשחקים</string>
     <string name="add_games_warning">לדלג על בחירת תיקיית המשחקים?</string>
     <string name="add_games_warning_description">משחקים לא יוצגו ברשימת המשחקים  אם לנבחרה תיקיית משחקים.</string>
     <string name="home_search_games">חפש משחקים</string>
     <string name="search_settings">חפש בהגדרות</string>
-    <string name="games_dir_selected">ספריית משחקים נבחרה</string>
     <string name="install_prod_keys">התקן prod.keys</string>
     <string name="install_prod_keys_description">הכרחי בכדי לפענח משחקים</string>
     <string name="install_prod_keys_warning">לדלג על הוספת מפתחות?</string>
@@ -297,18 +272,13 @@
     <string name="warning_cancel">ביטול</string>
     <string name="install_amiibo_keys">התקן מפתחות Amiibo</string>
     <string name="install_amiibo_keys_description">נחוץ כדי להשתמש ב Amiibo במשחק</string>
-    <string name="install_amiibo_keys_failure_extension_description">ודא/י שלקובץ המפתחות שלך יש סיומת של bin. ונסה/י שוב.</string>
     <string name="gpu_driver_fetcher">מאחזר מנהלי התקן GPU</string>
     <string name="gpu_driver_manager">מנהל הדרייברים של המעבד הגרפי</string>
-    <string name="install_gpu_driver">התקן דרייבר למעבד הגרפי</string>
     <string name="install_gpu_driver_description">התקן דרייברים אחרים בשביל סיכוי לביצועים או דיוק גבוההים יותר</string>
     <string name="advanced_settings">הגדרות מתקדמות</string>
-    <string name="advanced_settings_game">הגדרות מתקדמות: %1$s</string>
     <string name="settings_description">הדר את הגדרות האמולטור</string>
     <string name="search_recently_played">שוחק לאחרונה</string>
     <string name="search_recently_added">הוסף לאחרונה</string>
-    <string name="search_retail">קמעונאי</string>
-    <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">פתח את תיקיית Eden </string>
     <string name="open_user_folder_description">נה ל את הקבצים הפנימיין של Eden</string>
     <string name="theme_and_color_description">ערוך את נראות האפליקציה</string>
@@ -319,18 +289,14 @@
     <string name="manage_save_data_description">מידע שמור לא נמצא. בבקשה בחר/י אופציה מלמטה</string>
     <string name="import_save_warning">ייבוא נתוני שמירה</string>
     <string name="import_save_warning_description">פעולה זו תמחק את כל הנתונים הקיימים ותחליף אותם בקובץ שסופק.האם אתה בטוח שברצונך להמשיך?</string>
-    <string name="import_export_saves_description">יבא או יצא קבצי שמירה</string>
     <string name="save_files_importing">מייבא  קבצי שמירה...</string>
     <string name="save_files_exporting">מייצא קבצי שמירה...</string>
     <string name="save_file_imported_success">יובא בהצלחה</string>
     <string name="save_file_invalid_zip_structure">מבנה ספריית השמירות לא חוקי</string>
     <string name="save_file_invalid_zip_structure_description">התת תיקייה הראשונה חייב להיות ה title ID של המשחק</string>
-    <string name="import_saves">ייבוא</string>
-    <string name="export_saves">ייצוא</string>
     <string name="install_firmware">התקן firmware</string>
     <string name="install_firmware_description">ה frimware   חייב להיות בקובץ zip והוא הכרחי להפעלת חלק מהמשחקים</string>
     <string name="firmware_installing">מתקין frimware</string>
-    <string name="firmware_installed_success">ה frimware הותקן בהצלחה</string>
     <string name="firmware_installed_failure">התקנת ה frimware  נכשלה</string>
     <string name="firmware_installed_failure_description">ודא שקבצי ה firmware nca נמצאים בשורש ה zip ונסה שוב.</string>
     <string name="share_log">שתף  את יומני הרישום של מיפוי הבאגים</string>
@@ -342,7 +308,6 @@
     <string name="install_game_content_failure">תקלה בהתקנת הקובץ (או קבצים) ל NAND</string>
     <string name="install_game_content_failure_description">בבקשה ודא שהתוכן (או תכנים) חוקיים ושקובץ ה prod.keys מותקן.</string>
     <string name="install_game_content_failure_base">התקנת משחק בסיס נדחת בכדי להימנע מקונפליקטים אפשריים.</string>
-    <string name="install_game_content_failure_file_extension">רק קבצי NSP ו XCI נתמכים. בבקשה ודא שתוכן (או תכנים) המשחק חוקי.</string>
     <string name="install_game_content_failed_count">%1$dבעיה (בעיות) התקנה</string>
     <string name="install_game_content_success">תוכן (או תכני) המשחק הותקנו בהצלחה</string>
     <string name="install_game_content_success_install">%1$d הותקן בהצלחה</string>
@@ -350,8 +315,6 @@
     <string name="custom_driver_not_supported">דרייברים מותאמים אישית לא נתמכים</string>
     <string name="manage_yuzu_data">נהל את המידע של Eden</string>
     <string name="manage_yuzu_data_description">יבא/יצא firmware, keys, מידע של משתמש ועוד!</string>
-    <string name="share_save_file">שתף קובץ שמירה</string>
-    <string name="export_save_failed">נכשל בייצוא שמירה</string>
     <string name="game_folders">תיקיית משחקים</string>
     <string name="deep_scan">סריקה עמוקה</string>
     <string name="add_game_folder">הוסף תיקיית משחקים</string>
@@ -378,7 +341,6 @@
     <string name="firmware_uninstalling">מסיר קושחה...</string>
     <string name="firmware_uninstalled_success">הקושחה הוסרה בהצלחה</string>
 
-    <string name="firmware_invalid">קושחה לא תקינה</string>
     <string name="error_firmware_missing">נדרש קושחה להפעלת משחקים ויישומים מסוימים. עדן עובד רק עם קושחה 19.0.1 או ישנה יותר.</string>
     <string name="error_firmware_corrupted">קושחה קיימת אך לא ניתנת לקריאה. בדוק מפתחות פענוח ושמור קושחה מחדש אם needed.</string>
     <string name="error_firmware_too_new">קושחה חדשה מדי או לא ניתנת לקריאה. עדן תומך רק בקושחה 19.0.1 או ישנה יותר.</string>
@@ -420,7 +382,6 @@
     <string name="user_data">נתוני משתמש</string>
     <string name="exporting_user_data">מייצא נתוני משתמש...</string>
     <string name="importing_user_data">מייבא נתוני משתמש...</string>
-    <string name="import_user_data">יבא נתוני משתמש</string>
     <string name="invalid_yuzu_backup">גיבוי Eden לא חוקי</string>
     <string name="user_data_export_success">נתוני משתמש יוצאו בהצלחה</string>
     <string name="user_data_import_success">נתוני משתמש יובאו בהצלחה</string>
@@ -540,10 +501,6 @@
     <string name="use_global_input_configuration">השתמש בהגדרת קלט גלובלי</string>
     <!-- Miscellaneous -->
     <string name="slider_default">ברירת מחדל</string>
-    <string name="ini_saved">הגדרות שמורות</string>
-    <string name="gameid_saved">הגדרות שמורות עבור %1$s</string>
-    <string name="error_saving">תקלה בשמירת %1$s.ini: %2$s</string>
-    <string name="unimplemented_menu">תפריט שלא יושם</string>
     <string name="loading">טוען...</string>
     <string name="shutting_down">כיבוי...</string>
     <string name="reset_setting_confirmation">אתה מעוניין לאפס את ההגדרה הזו חזרה לברירת המחדל?</string>
@@ -568,29 +525,19 @@
     <string name="edit">ערוך</string>
     <string name="export_success">יוצא בהצלחה</string>
     <string name="start">התחלה</string>
-    <string name="clear">נקה</string>
     <string name="save">שמור</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">בחר דרייבר  למעבד הגרפי</string>
-    <string name="select_gpu_driver_title">אתה מעוניין להחליף את הדרייבר של המעבד הגרפי שלך?</string>
-    <string name="select_gpu_driver_install">התקן</string>
     <string name="select_gpu_driver_default">ברירת מחדל</string>
-    <string name="select_gpu_driver_use_default">משתמש בדרייבר ברירת המחדל של המעבד הגרפי</string>
     <string name="select_gpu_driver_error">נבחר דרייבר לא חוקי</string>
     <string name="driver_already_installed">הדרייבר כבר מותקן</string>
     <string name="system_gpu_driver">דרייבר של המעבד הגרפי של המערכת</string>
     <string name="installing_driver">מתקין דרייבר...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">שגיאה במהלך האחזור</string>
-    <string name="check_connection">בדוק את החיבור שלך ונסה שוב.</string>
     <string name="show_releases">הצג גרסאות</string>
-    <string name="view_full_release_notes">הערות גרסה</string>
     <string name="failed_to_fetch">אחזור נכשל</string>
     <string name="error_during_fetch">שגיאה במהלך האחזור</string>
-    <string name="toggle_release_notes">החלף הערות גרסה</string>
-    <string name="downloads">הורדות</string>
     <string name="show_downloads">הצג הורדות</string>
     <string name="hide_downloads">הסתר הורדות</string>
     <string name="failed_cache_dir">תיקיית מטמון לא זמינה</string>
@@ -609,7 +556,6 @@
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">הגדרות</string>
-    <string name="preferences_general">כללי</string>
     <string name="preferences_system">מערכת</string>
     <string name="preferences_system_description">מצב מעוגן, איזור, שפה</string>
     <string name="preferences_graphics">גרפיקה</string>
@@ -633,7 +579,6 @@
     <string name="loader_error_encrypted_keys_description"><![CDATA[אנא וודא שקובץ ה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> מותקן כך שניתן יהיה לפענח משחקים.]]></string>
     <string name="loader_error_video_core">התרחשה בעיה באתחול של ליבת הווידאו</string>
     <string name="loader_error_video_core_description">זה בדרך כלל נגרם על ידי דרייבר לא מתאים עבור המעבד הגרפי. התקנת דרייבר אשר מתאים למעבד הגרפי יכול לפתור את הבעיה הזו.</string>
-    <string name="loader_error_invalid_format">אין אפשרות לטעון את המשחק</string>
     <string name="loader_error_file_not_found">קובץ המשחק לא קיים</string>
 
     <string name="loader_requires_firmware">המשחק דורש קושחה</string>
@@ -661,19 +606,9 @@
     <string name="config_already_exists_title">תצורה כבר קיימת</string>
     <string name="config_exists_prompt">בודק אם קיימת תצורה...</string>
     <string name="overwrite_cancelled">דריסה בוטלה</string>
-    <string name="checking_driver">בודק מנהל התקן מותאם אישית: %1$s</string>
-    <string name="driver_unavailable">מנהל התקן מותאם אישית לא זמין למכשיר זה</string>
     <string name="overwrite">דרוס</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">מנהל התקן GPU חסר</string>
-    <string name="missing_gpu_driver_message">מנהל ההתקן המותאם אישית הנבחר \"%s\" אינו מותקן. האם ברצונך להוריד ולהתקין אותו כעת?</string>
-    <string name="downloading_driver">מוריד מנהל התקן...</string>
-    <string name="driver_installed">מנהל ההתקן הותקן בהצלחה</string>
-    <string name="driver_installation_failed_title">התקנת מנהל ההתקן נכשלה</string>
-    <string name="driver_installation_failed_message">נכשלה התקנת מנהל ההתקן של GPU: %s</string>
-    <string name="driver_not_available_title">מנהל התקן לא זמין</string>
-    <string name="driver_not_available_message">מנהל ההתקן הנבחר אינו זמין להורדה.</string>
     <string name="driver_not_found">מנהל התקן נדרש לא מותקן: %s</string>
     <string name="invalid_driver_file">קובץ מנהל התקן לא חוקי: %s</string>
     <string name="network_unavailable">אין חיבור אינטרנט זמין. אנא בדוק את חיבור האינטרנט שלך ונסה שוב.</string>
@@ -684,7 +619,6 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">צא מהאמולציה</string>
     <string name="emulation_done">סיום</string>
-    <string name="emulation_fps_counter">סופר FPS</string>
     <string name="emulation_toggle_controls">החלפת בקרים</string>
     <string name="emulation_rel_stick_center">מרכז ג׳ויסטיק יחסי</string>
     <string name="emulation_dpad_slide">החלקת D-pad</string>
@@ -701,7 +635,6 @@
     <string name="emulation_unpause">המשך אמולציה</string>
     <string name="emulation_input_overlay">אופציות עבור שכבת-על</string>
     <string name="touchscreen">מסך מגע</string>
-    <string name="load_settings">טוען הגדרות...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">מקלדת תוכנה</string>
@@ -731,7 +664,6 @@
     <string name="memory_8gb">8GB (לא בטוח)</string>
 
     <!--CPU clock speeds-->
-    <string name="clock_base">בסיס (1000MHz)</string>
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">מהיר (2000MHz)</string>
 
@@ -745,7 +677,6 @@
     <string name="temperature_fahrenheit">פרנהייט</string>
 
     <!-- Memory Sizes -->
-    <string name="memory_byte">בייט</string>
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
@@ -842,7 +773,6 @@
     <string name="gamepad_screenshot">צילום מסך</string>
 
     <!-- Disk shader cache -->
-    <string name="preparing_shaders">מכין שיידרים</string>
     <string name="building_shaders">בונה שיידרים</string>
 
     <!-- Theme options -->

@@ -12,7 +12,6 @@
     <!-- Spinbox strings -->
     <string name="increment">Aumentar</string>
     <string name="decrement">Diminuir</string>
-    <string name="value">Valor</string>
     <string name="value_too_low">O valor deve ser no mínimo %1$d</string>
     <string name="value_too_high">O valor deve ser no máximo %1$d</string>
     <string name="invalid_value">Valor inválido</string>
@@ -45,8 +44,6 @@
     <string name="show_fps_description">Exibir FPS atual</string>
     <string name="show_frametime">Mostrar Tempo de Quadro</string>
     <string name="show_frametime_description">Exibir tempo de quadro atual</string>
-    <string name="show_speed">Mostrar Velocidade</string>
-    <string name="show_speed_description">Exibir a velocidade de emulação atual em porcentagem</string>
     <string name="show_app_ram_usage">Mostrar Uso de Memória Pelo App</string>
     <string name="show_app_ram_usage_description">Exibir a quantidade de memória que o emulador está usando</string>
     <string name="show_system_ram_usage">Mostrar Uso de Memória Pelo Sistema</string>
@@ -156,8 +153,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">Multiplayer</string>
     <string name="multiplayer_description">Crie sua própria sala de jogo ou entre em uma existente para jogar com outras pessoas.</string>
-    <string name="multiplayer_room_title">Sala: %1$s</string>
-    <string name="multiplayer_console_id">ID do Console: %1$s</string>
     <string name="multiplayer_create_room">Criar</string>
     <string name="multiplayer_join_room">Entrar</string>
     <string name="multiplayer_public_room">Procurar salas públicas</string>
@@ -166,11 +161,6 @@
     <string name="multiplayer_ip_port">Porta</string>
     <string name="multiplayer_create_room_success">Sala criada com sucesso</string>
     <string name="multiplayer_join_room_success">Entrou na sala com sucesso</string>
-    <string name="multiplayer_create_room_failed">Falha ao criar a sala</string>
-    <string name="multiplayer_join_room_failed">Falha ao entrar na sala</string>
-    <string name="multiplayer_name_invalid">Nome é muito curto</string>
-    <string name="multiplayer_address_invalid">Endereço inválido</string>
-    <string name="multiplayer_port_invalid">Porta inválida</string>
     <string name="multiplayer_exit_room">Sair da Sala</string>
     <string name="multiplayer_network_error">Problema na rede</string>
     <string name="multiplayer_lost_connection">Conexão perdida</string>
@@ -199,21 +189,15 @@
     <string name="multiplayer_member_banned">%1$s foi banido</string>
     <string name="multiplayer_address_unbanned">Endereço desbanido</string>
     <string name="multiplayer_kick_member">Expulsar</string>
-    <string name="multiplayer_chat_input_hint">Enviar mensagens...</string>
     <string name="multiplayer_password">Senha</string>
     <string name="multiplayer_joining">Entrando...</string>
     <string name="multiplayer_creating">Criando...</string>
     <string name="multiplayer_room_name">Nome da Sala</string>
-    <string name="multiplayer_room_name_invalid">O nome da sala deve ter entre 3 e 20 caracteres</string>
-    <string name="multiplayer_max_players">Máx. jogadores (16)</string>
     <string name="multiplayer_max_players_value">Máx. jogadores: %d</string>
     <string name="multiplayer_chat">Chat</string>
     <string name="multiplayer_more_options">Mais Opções</string>
-    <string name="multiplayer_ip_copied">Endereço IP copiado para a área de transferência</string>
-    <string name="multiplayer_server_address">Endereço do Servidor</string>
     <string name="chat">Chat</string>
     <string name="type_message">Digite uma mensagem…</string>
-    <string name="send">Enviar</string>
     <string name="send_message">Enviar mensagem</string>
     <string name="multiplayer_moderation">Moderação</string>
     <string name="multiplayer_moderation_title">Lista de usuários banidos</string>
@@ -233,12 +217,8 @@
     <string name="multiplayer_hide_empty_rooms">Ocultar Salas Vazias</string>
     <string name="multiplayer_tap_refresh_to_check_again">Toque em Atualizar para verificar novamente</string>
     <string name="multiplayer_search_public_lobbies">Procurar Salas Públicas...</string>
-    <string name="emulation_multiplayer">Multiplayer</string>
-    <string name="multiplayer_game_name">Jogos Preferidos</string>
     <string name="multiplayer_preferred_game_name">Jogo Preferido</string>
     <string name="multiplayer_lobby_type">Tipo de Sala Pública</string>
-    <string name="multiplayer_no_game">Nenhum Jogo Encontrado</string>
-    <string name="multiplayer_preferred_game_name_invalid">Você deve escolher um Jogo Preferido para hospedar uma sala.</string>
     <string name="multiplayer_room_name_error">Deve ter entre 3 e 20 caracteres.</string>
     <string name="multiplayer_required">Obrigatório</string>
     <string name="multiplayer_token_required">Web Token necessário, vá para Configurações Avançadas -&gt; Sistema -&gt; Rede</string>
@@ -272,7 +252,6 @@
     <string name="next">Próximo</string>
     <string name="back">Voltar</string>
     <string name="add_games">Adicionar Jogos</string>
-    <string name="add_games_description">Selecione sua pasta de jogos</string>
     <string name="step_complete">Concluído!</string>
     <string name="bluetooth_permissions_granted">Permissões do Bluetooth concedidas.</string>
     <string name="bluetooth_permissions_denied">Permissões do Bluetooth foram negadas. O suporte a controles pode ser limitado.</string>
@@ -289,14 +268,10 @@
     <string name="pre_alpha_warning_title">Versão Pre-Alpha</string>
     <string name="pre_alpha_warning_description">AVISO: Este software está em estágio pré-alpha e pode apresentar erros e funcionalidades incompletas.</string>
     <string name="dont_show_again">Não Mostrar Novamente</string>
-    <string name="pre_alpha_warning">VERSÃO PRE-ALPHA</string>
     <string name="add_directory_success">Nova pasta de jogos adicionada com sucesso</string>
-    <string name="home_games">Jogos</string>
     <string name="home_search">Pesquisar</string>
     <string name="home_settings">Configurações</string>
     <string name="empty_gamelist">Nenhum jogo foi encontrado ou nenhuma pasta de jogos foi definida.</string>
-    <string name="search_and_filter_games">Procura e filtra jogos</string>
-    <string name="select_games_folder">Selecionar a pasta de jogos</string>
     <string name="manage_game_folders">Gerenciar pastas de jogos</string>
     <string name="select_games_folder_description">Permite ao Eden preencher a lista de jogos</string>
     <string name="add_games_warning">Pular a seleção da pasta de jogos\?</string>
@@ -304,7 +279,6 @@
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Procurar jogos</string>
     <string name="search_settings">Procurar nas configurações</string>
-    <string name="games_dir_selected">Pasta de jogos selecionada</string>
     <string name="install_prod_keys">Instalar a chave prod.keys</string>
     <string name="install_prod_keys_description">Necessário para descriptografar jogos comerciais</string>
     <string name="install_prod_keys_warning">Continuar sem adicionar as chaves (keys)\?</string>
@@ -328,19 +302,13 @@
     <string name="warning_cancel">Cancelar</string>
     <string name="install_amiibo_keys">Instalar Amiibo keys</string>
     <string name="install_amiibo_keys_description">Necessárias para usar Amiibo em um jogo</string>
-    <string name="install_amiibo_keys_failure_extension_description">Verifique se seu arquivo de chaves possui a extensão .bin e tente novamente.</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
     <string name="gpu_driver_fetcher">Assistente de Atualização de Drivers da GPU</string>
     <string name="gpu_driver_manager">Gerenciador de Driver da GPU</string>
-    <string name="install_gpu_driver">Instalar driver da GPU</string>
     <string name="install_gpu_driver_description">Instale drivers alternativos que podem ajudar no desempenho ou melhorar a precisão</string>
     <string name="advanced_settings">Configurações Avançadas</string>
-    <string name="advanced_settings_game">Configurações avançadas: %1$s</string>
     <string name="settings_description">Configure opções do emulador</string>
     <string name="search_recently_played">Jogado recentemente</string>
     <string name="search_recently_added">Adicionado recentemente</string>
-    <string name="search_retail">Jogos comerciais</string>
-    <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">Abrir a pasta do Eden</string>
     <string name="open_user_folder_description">Gerencie os arquivos internos do Eden</string>
     <string name="theme_and_color_description">Alterar a aparência do aplicativo</string>
@@ -351,18 +319,14 @@
     <string name="manage_save_data_description">Dados salvos encontrados. Por favor, escolha uma opção abaixo.</string>
     <string name="import_save_warning">Importar dados salvos</string>
     <string name="import_save_warning_description">Isso irá substituir seus dados salvos pelo arquivo selecionado. Você tem certeza que quer continuar\?</string>
-    <string name="import_export_saves_description">Importar ou exportar os dados salvos</string>
     <string name="save_files_importing">Importando dados salvos...</string>
     <string name="save_files_exporting">Exportando dados salvos...</string>
     <string name="save_file_imported_success">Importado com sucesso</string>
     <string name="save_file_invalid_zip_structure">Formato da pasta de salvamento é inválido</string>
     <string name="save_file_invalid_zip_structure_description">O nome da primeira subpasta deve ser o ID do jogo.</string>
-    <string name="import_saves">Importar</string>
-    <string name="export_saves">Exportar</string>
     <string name="install_firmware">Instalar firmware</string>
     <string name="install_firmware_description">O firmware é necessário para iniciar alguns jogos e deve estar em um arquivo ZIP</string>
     <string name="firmware_installing">Instalando firmware</string>
-    <string name="firmware_installed_success">Firmware instalado com sucesso</string>
     <string name="firmware_installed_failure">Falha na instalação do firmware</string>
     <string name="firmware_installed_failure_description">Verifique se os arquivos nca do firmware estão na raiz do arquivo zip e tente novamente.</string>
     <string name="firmware_uninstalled_failure">Falha na desinstalação do firmware</string>
@@ -375,7 +339,6 @@
     <string name="install_game_content_failure">Erro ao instalar arquivo(s) na NAND</string>
     <string name="install_game_content_failure_description">Verifique se o(s) conteúdo(s) são válidos e se o arquivo prod.keys foi instalado.</string>
     <string name="install_game_content_failure_base">A instalação de jogos base não é permitida para evitar possíveis conflitos.</string>
-    <string name="install_game_content_failure_file_extension">Somente conteúdos NSP e XCI são suportados. Por favor verifique se o(s) conteúdo(s) do jogo são válidos.</string>
     <string name="install_game_content_failed_count">%1$d erro(s) de instalação</string>
     <string name="install_game_content_success">Conteúdo(s) de jogo instalado com sucesso</string>
     <string name="install_game_content_success_install">%1$d instalado com sucesso</string>
@@ -385,8 +348,6 @@
     <string name="custom_driver_not_supported_description">Carregamento de drivers personalizados não suportado para este dispositivo no momento.\nVerifique essa opção novamente no futuro para ver se o suporte foi adicionado!</string>
     <string name="manage_yuzu_data">Administrar Dados do Eden</string>
     <string name="manage_yuzu_data_description">Importar/exportar firmware, chaves, dados do usuário e mais!</string>
-    <string name="share_save_file">Compartilhar arquivo de dados salvos</string>
-    <string name="export_save_failed">Erro ao exportar arquivo de dados salvos</string>
     <string name="game_folders">Pastas de jogos</string>
     <string name="deep_scan">Varredura profunda</string>
     <string name="add_game_folder">Adicionar pasta de jogo</string>
@@ -415,11 +376,9 @@
     <string name="firmware_uninstalling">Desinstalando firmware</string>
     <string name="firmware_uninstalled_success">Firmware desinstalado com sucesso</string>
 
-    <string name="firmware_invalid">Firmware inválido</string>
     <string name="error_firmware_missing">Firmware é necessário para executar certos jogos e aplicativos. Eden só funciona com firmware 19.0.1 ou anterior.</string>
     <string name="error_firmware_corrupted">Firmware está presente mas não pode ser lido. Verifique as chaves de descriptografia e refaça o dump do firmware se necessário.</string>
     <string name="error_firmware_too_new">Firmware é muito novo ou não pode ser lido. Eden só funciona com firmware 19.0.1 ou anterior.</string>
-    <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
 
     <string name="keys_failed">Falha ao instalar chaves (keys)</string>
     <string name="keys_install_success">Chaves (keys) instaladas com sucesso</string>
@@ -460,7 +419,6 @@
     <string name="user_data_description">Importar/exportar todos os dados do aplicativo.\n\nAo importar dados de usuário, todos os dados existentes serão excluídos!\n\nImportar dados do CItron pode causar problemas. É recomendado importar manualmente só o que for necessário.</string>
     <string name="exporting_user_data">Exportando dados do usuário...</string>
     <string name="importing_user_data">Importando dados do usuário...</string>
-    <string name="import_user_data">Importar dados do usuário</string>
     <string name="invalid_yuzu_backup">Backup do Eden inválido</string>
     <string name="user_data_export_success">Dados de usuário exportados com sucesso</string>
     <string name="user_data_import_success">Dados de usuário importados com sucesso</string>
@@ -594,8 +552,6 @@
     <string name="qualified_button">%1$s%2$s%3$sBotão %4$s</string>
     <string name="qualified_axis">Eixo %1$s%2$s</string>
     <string name="unused">Não usado</string>
-    <string name="input_prompt">Mova ou aperte um botão</string>
-    <string name="unsupported_input">Tipo de entrada não suportada</string>
     <string name="input_mapping_filter">Filtro de mapeamento dos controles</string>
     <string name="input_mapping_filter_description">Selecione um dispositivo para filtrar o mapeamento dos controles</string>
     <string name="auto_map">Mapear controle automaticamente</string>
@@ -640,10 +596,6 @@ uma tentativa de mapeamento automático</string>
 
     <!-- Miscellaneous -->
     <string name="slider_default">Padrão</string>
-    <string name="ini_saved">Configurações salvas</string>
-    <string name="gameid_saved">Configurações salvas para %1$s</string>
-    <string name="error_saving">Erro ao salvar %1$s.ini: %2$s</string>
-    <string name="unimplemented_menu">Menu não implementado</string>
     <string name="loading">Carregando...</string>
     <string name="shutting_down">Encerrando...</string>
     <string name="reset_setting_confirmation">Deseja redefinir esta configuração para o valor padrão\?</string>
@@ -668,39 +620,26 @@ uma tentativa de mapeamento automático</string>
     <string name="edit">Editar</string>
     <string name="export_success">Exportado com sucesso</string>
     <string name="start">Start</string>
-    <string name="clear">Limpar</string>
     <string name="global">Global</string>
     <string name="custom">Personalizada</string>
-    <string name="notice">Aviso</string>
     <string name="import_complete">Importação concluída</string>
-    <string name="more_options">Mais opções</string>
     <string name="use_global_setting">Usar configuração global</string>
     <string name="operation_completed_successfully">A operação foi concluída com sucesso</string>
-    <string name="retry">Tentar novamente</string>
     <string name="confirm">Confirmar</string>
     <string name="load">Carregar</string>
     <string name="save">Salvar</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">Selecione o driver para a GPU</string>
-    <string name="select_gpu_driver_title">Gostaria de substituir o driver atual da GPU? </string>
-    <string name="select_gpu_driver_install">Instalar</string>
     <string name="select_gpu_driver_default">Padrão</string>
-    <string name="select_gpu_driver_use_default">Usar o driver padrão da GPU</string>
     <string name="select_gpu_driver_error">Driver selecionado inválido</string>
     <string name="driver_already_installed">Driver já instalado</string>
     <string name="system_gpu_driver">Driver padrão da GPU</string>
     <string name="installing_driver">Instalando driver...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">Erro ao obter</string>
-    <string name="check_connection">Verifique sua conexão e tente novamente.</string>
     <string name="show_releases">Mostrar versões</string>
-    <string name="view_full_release_notes">Notas de versão</string>
     <string name="failed_to_fetch">Falha ao obter</string>
     <string name="error_during_fetch">Erro durante a obtenção</string>
-    <string name="toggle_release_notes">Alternar notas de versão</string>
-    <string name="downloads">Downloads</string>
     <string name="show_downloads">Mostrar downloads</string>
     <string name="hide_downloads">Ocultar downloads</string>
     <string name="failed_cache_dir">Diretório de cache indisponível</string>
@@ -719,7 +658,6 @@ uma tentativa de mapeamento automático</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Configurações</string>
-    <string name="preferences_general">Geral</string>
     <string name="preferences_system">Sistema</string>
     <string name="preferences_system_description">Modo TV, região, idioma</string>
     <string name="preferences_graphics">Gráficos</string>
@@ -786,7 +724,6 @@ uma tentativa de mapeamento automático</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Por favor verifique se o seu arquivo <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> está instalado para que os jogos possam ser decriptados.]]></string>
     <string name="loader_error_video_core">Ocorreu um erro ao iniciar o núcleo de vídeo.</string>
     <string name="loader_error_video_core_description">Isto é normalmente causado por um driver de GPU incompatível. Instalar um driver de GPU personalizado pode resolver este problema.</string>
-    <string name="loader_error_invalid_format">Impossível carregar a ROM</string>
     <string name="loader_error_file_not_found">O arquivo ROM não existe</string>
 
     <string name="loader_requires_firmware">O jogo requer firmware</string>
@@ -815,19 +752,9 @@ uma tentativa de mapeamento automático</string>
     <string name="config_already_exists_message">Configurações personalizadas já existem para %1$s.\n\nDeseja sobrescrever a configuração existente\?\n\nEsta ação não pode ser desfeita.</string>
     <string name="config_exists_prompt">Verificando configuração existente...</string>
     <string name="overwrite_cancelled">Sobrescrita cancelada</string>
-    <string name="checking_driver">Verificando driver personalizado: %1$s</string>
-    <string name="driver_unavailable">Driver personalizado não disponível para este dispositivo</string>
     <string name="overwrite">Sobrescrever</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">Driver de GPU Ausente</string>
-    <string name="missing_gpu_driver_message">O driver personalizado selecionado \"%s\" não está instalado. Deseja baixar e instalá-lo agora?</string>
-    <string name="downloading_driver">Baixando driver...</string>
-    <string name="driver_installed">Driver instalado com sucesso</string>
-    <string name="driver_installation_failed_title">Instalação do Driver Falhou</string>
-    <string name="driver_installation_failed_message">Falha ao instalar o driver da GPU: %s</string>
-    <string name="driver_not_available_title">Driver Não Disponível</string>
-    <string name="driver_not_available_message">O driver selecionado não está disponível para download.</string>
     <string name="driver_not_found">Driver necessário não instalado: %s</string>
     <string name="invalid_driver_file">Arquivo de driver inválido: %s</string>
     <string name="network_unavailable">Nenhuma conexão de rede disponível. Verifique sua conexão com a internet e tente novamente.</string>
@@ -839,8 +766,6 @@ uma tentativa de mapeamento automático</string>
     <!-- Emulation Menu -->
     <string name="emulation_exit">Sair da emulação</string>
     <string name="emulation_done">Pronto</string>
-    <string name="emulation_fps_counter">Contador de FPS</string>
-    <string name="emulation_thermal_indicator">Indicador de temperatura</string>
     <string name="emulation_toggle_controls">Marcar/Desmarcar botões</string>
     <string name="emulation_rel_stick_center">Centro Relativo do Analógico</string>
     <string name="emulation_dpad_slide">Deslizamento dos Botões Direcionais</string>
@@ -861,7 +786,6 @@ uma tentativa de mapeamento automático</string>
     <string name="unlock_drawer">Desbloquear este menu</string>
     <string name="reset">Redefinir</string>
 
-    <string name="load_settings">Carregando configurações...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Teclado do software</string>
@@ -875,7 +799,6 @@ uma tentativa de mapeamento automático</string>
     <string name="save_load_error">Erro de Salvamento/Carregamento</string>
     <string name="fatal_error">Erro fatal</string>
     <string name="fatal_error_message">Erro fatal detectado. Confira o log para mais informações.\nProsseguir com a emulação pode causar falhas.</string>
-    <string name="performance_warning">Desativar esta configuração reduzirá significativamente o desempenho. É recomendado mantê-la ativada.</string>
     <string name="device_memory_inadequate">Memória RAM do dispositivo: %1$s\nRecomendada: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Nenhum jogo inicializável presente!</string>
@@ -895,7 +818,6 @@ uma tentativa de mapeamento automático</string>
     <string name="memory_8gb">8GB (Inseguro)</string>
 
     <!--CPU clock speeds-->
-    <string name="clock_base">Base (1000MHz)</string>
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Rápido (2000MHz)</string>
 
@@ -909,7 +831,6 @@ uma tentativa de mapeamento automático</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Memory Sizes -->
-    <string name="memory_byte">Byte</string>
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
@@ -1025,7 +946,6 @@ uma tentativa de mapeamento automático</string>
     <string name="gamepad_screenshot">Captura de tela</string>
 
     <!-- Disk shader cache -->
-    <string name="preparing_shaders">Preparando shaders</string>
     <string name="building_shaders">Criando shaders</string>
 
     <!-- Theme options -->

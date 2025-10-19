@@ -23,8 +23,6 @@
     <string name="show_fps_description">نمایش فریم در ثانیه</string>
     <string name="show_frametime">نمایش زمان فریم</string>
     <string name="show_frametime_description">نمایش زمان هر فریم</string>
-    <string name="show_speed">نمایش سرعت</string>
-    <string name="show_speed_description">نمایش درصد سرعت شبیه‌سازی</string>
     <string name="show_app_ram_usage">نمایش مصرف رم برنامه</string>
     <string name="show_app_ram_usage_description">نمایش میزان رم مورد استفاده شبیه‌ساز</string>
     <string name="show_system_ram_usage">نمایش مصرف رم سیستم</string>
@@ -133,7 +131,6 @@
     <string name="memory_6gb">6 گیگابایت (ناامن)</string>
     <string name="memory_8gb">8 گیگابایت (ناامن)</string>
 
-    <string name="clock_base">پایه (1000MHz)</string>
     <string name="clock_boost">تقویت (1700MHz)</string>
     <string name="clock_fast">سریع (2000MHz)</string>
 
@@ -181,8 +178,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">چندنفره</string>
     <string name="multiplayer_description">اتاق بازی خود را میزبانی کنید یا به یک اتاق موجود بپیوندید تا با دیگران بازی کنید</string>
-    <string name="multiplayer_room_title">اتاق: %1$s</string>
-    <string name="multiplayer_console_id">شناسه کنسول: %1$s</string>
     <string name="multiplayer_create_room">ایجاد</string>
     <string name="multiplayer_join_room">عضویت</string>
     <string name="multiplayer_public_room">مرور اتاق‌های عمومی</string>
@@ -191,11 +186,6 @@
     <string name="multiplayer_ip_port">پورت</string>
     <string name="multiplayer_create_room_success">اتاق با موفقیت ایجاد شد</string>
     <string name="multiplayer_join_room_success">با موفقیت به اتاق پیوستید</string>
-    <string name="multiplayer_create_room_failed">ایجاد اتاق ناموفق بود</string>
-    <string name="multiplayer_join_room_failed">پیوستن به اتاق ناموفق بود</string>
-    <string name="multiplayer_name_invalid">نام خیلی کوتاه است</string>
-    <string name="multiplayer_address_invalid">آدرس نامعتبر</string>
-    <string name="multiplayer_port_invalid">پورت نامعتبر</string>
     <string name="multiplayer_exit_room">خروج از اتاق</string>
     <string name="multiplayer_network_error">خطای شبکه</string>
     <string name="multiplayer_lost_connection">اتصال قطع شد</string>
@@ -224,21 +214,15 @@
     <string name="multiplayer_member_banned">%1$s مسدود شد</string>
     <string name="multiplayer_address_unbanned">آدرس آزاد شد</string>
     <string name="multiplayer_kick_member">اخراج</string>
-    <string name="multiplayer_chat_input_hint">ارسال پیام...</string>
     <string name="multiplayer_password">رمز عبور</string>
     <string name="multiplayer_joining">در حال پیوستن...</string>
     <string name="multiplayer_creating">در حال ایجاد...</string>
     <string name="multiplayer_room_name">نام اتاق</string>
-    <string name="multiplayer_room_name_invalid">نام اتاق باید بین 3 تا 20 کاراکتر باشد</string>
-    <string name="multiplayer_max_players">حداکثر بازیکنان (16)</string>
     <string name="multiplayer_max_players_value">حداکثر بازیکنان: %d</string>
     <string name="multiplayer_chat">چت</string>
     <string name="multiplayer_more_options">گزینه‌های بیشتر</string>
-    <string name="multiplayer_ip_copied">آدرس IP در حافظه موقت کپی شد</string>
-    <string name="multiplayer_server_address">آدرس سرور</string>
     <string name="chat">چت</string>
     <string name="type_message">پیام را بنویسید...</string>
-    <string name="send">ارسال</string>
     <string name="send_message">ارسال پیام</string>
     <string name="multiplayer_moderation">مدیریت</string>
     <string name="multiplayer_moderation_title">لیست مسدودها</string>
@@ -258,12 +242,8 @@
     <string name="multiplayer_hide_empty_rooms">پنهان کردن اتاق‌های خالی</string>
     <string name="multiplayer_tap_refresh_to_check_again">برای بررسی مجدد، تازه‌سازی را لمس کنید</string>
     <string name="multiplayer_search_public_lobbies">جستجوی لابی‌ها...</string>
-    <string name="emulation_multiplayer">چندنفره</string>
-    <string name="multiplayer_game_name">بازی‌های ترجیحی</string>
     <string name="multiplayer_preferred_game_name">بازی ترجیحی</string>
     <string name="multiplayer_lobby_type">نوع لابی</string>
-    <string name="multiplayer_no_game">بازی یافت نشد</string>
-    <string name="multiplayer_preferred_game_name_invalid">برای میزبانی اتاق باید یک بازی ترجیحی انتخاب کنید.</string>
     <string name="multiplayer_room_name_error">باید بین 3 تا 20 کاراکتر باشد</string>
     <string name="multiplayer_required">الزامی</string>
     <string name="multiplayer_token_required">توکن وب مورد نیاز است، به تنظیمات پیشرفته -> سیستم -> شبکه بروید</string>
@@ -309,7 +289,6 @@
     <string name="next">بعدی</string>
     <string name="back">قبلی</string>
     <string name="add_games">افزودن بازی‌ها</string>
-    <string name="add_games_description">پوشه بازی‌های خود را انتخاب کنید</string>
     <string name="step_complete">تکمیل شد!</string>
     <string name="bluetooth_permissions_granted">مجوزهای بلوتوث اعطا شد.</string>
     <string name="bluetooth_permissions_denied">مجوزهای بلوتوث رد شد. پشتیبانی کنترلر ممکن است محدود باشد.</string>
@@ -323,21 +302,16 @@
     <string name="pre_alpha_warning_title">نرم‌افزار پیش‌آلفا</string>
     <string name="pre_alpha_warning_description">هشدار: این نسخه برای استفاده عمومی نیست. ممکن است دارای اشکالات باشد.</string>
     <string name="dont_show_again">عدم نمایش مجدد</string>
-    <string name="pre_alpha_warning">نرم‌افزار پیش‌آلفا؛ برای استفاده عمومی نیست</string>
     <string name="add_directory_success">پوشه بازی با موفقیت اضافه شد</string>
-    <string name="home_games">بازی‌ها</string>
     <string name="home_search">جستجو</string>
     <string name="home_settings">تنظیمات</string>
     <string name="empty_gamelist">هیچ فایلی پیدا نشد یا هنوز پوشه بازی‌ها انتخاب نشده است.</string>
-    <string name="search_and_filter_games">جستجو و فیلتر کردن بازی‌ها</string>
-    <string name="select_games_folder">پوشه بازی‌ها را انتخاب کنید</string>
     <string name="manage_game_folders">مدیریت پوشه‌های بازی</string>
     <string name="select_games_folder_description">به Eden اجازه می دهد تا لیست باز‌ی‌ها را پر کند</string>
     <string name="add_games_warning">از انتخاب پوشه بازی رد می‌شوید؟</string>
     <string name="add_games_warning_description">اگر پوشه‌ای انتخاب نشده باشد، بازی‌ها در لیست بازی‌ها نمایش داده نمی‌شوند.</string>
     <string name="home_search_games">جستجو در بازی‌ها</string>
     <string name="search_settings">جستجو در تنظیمات</string>
-    <string name="games_dir_selected">پوشه بازی‌ها انتخاب شد</string>
     <string name="install_prod_keys">نصب prod.keys</string>
     <string name="install_prod_keys_description">برای رمزگشایی بازی‌های فروشگاهی مورد نیاز است</string>
     <string name="install_prod_keys_warning">افزودن کلیدها را رد می‌کنید؟</string>
@@ -359,17 +333,12 @@
     <string name="warning_cancel">لغو</string>
     <string name="install_amiibo_keys">کلیدهای Amiibo را نصب کنید</string>
     <string name="install_amiibo_keys_description">برای استفاده از Amiibo در بازی لازم است</string>
-    <string name="install_amiibo_keys_failure_extension_description">بررسی کنید که فایل کلیدهای شما دارای پسوند bin. باشد و دوباره امتحان کنید.</string>
     <string name="gpu_driver_manager">مدیریت درایور پردازنده گرافیکی</string>
-    <string name="install_gpu_driver">نصب درایور پردازنده گرافیکی</string>
     <string name="install_gpu_driver_description">درایورهای جایگزین را برای عملکرد یا دقت بهتر نصب کنید</string>
     <string name="advanced_settings">تنظیمات پیشرفته</string>
-    <string name="advanced_settings_game">تنظیمات پیشرفته: %1$s</string>
     <string name="settings_description">پیکربندی تنظیمات شبیه‌ساز</string>
     <string name="search_recently_played">آخرین بازی شده‌ها</string>
     <string name="search_recently_added">به تازگی اضافه شده‌ها</string>
-    <string name="search_retail">فروشگاهی</string>
-    <string name="search_homebrew">ریزکامپیوتری</string>
     <string name="open_user_folder">باز کردن پوشه Eden</string>
     <string name="open_user_folder_description">مدیریت فایل‌های داخلی Eden</string>
     <string name="theme_and_color_description">تغییر ظاهر برنامه</string>
@@ -380,18 +349,14 @@
     <string name="manage_save_data_description">ذخیره داده یافت شد. لطفاً یکی از گزینه‌های زیر را انتخاب کنید.</string>
     <string name="import_save_warning">وارد کردن ذخیره داده‌ها</string>
     <string name="import_save_warning_description">این کار تمام داده‌های ذخیره موجود را با فایل ارائه شده بازنویسی می کند. آیا مطمئن هستید که می‌خواهید ادامه دهید؟</string>
-    <string name="import_export_saves_description">فایل‌های ذخیره داده را وارد یا صادر کنید</string>
     <string name="save_files_importing">در حال وارد کردن فایل‌های ذخیره…</string>
     <string name="save_files_exporting">در حال صادر کردن فایل‌های ذخیره…</string>
     <string name="save_file_imported_success">با موفقیت وارد شد</string>
     <string name="save_file_invalid_zip_structure">ساختار پوشه ذخیره نامعتبر است</string>
     <string name="save_file_invalid_zip_structure_description">اولین نام زیرپوشه باید شناسه عنوان بازی باشد.</string>
-    <string name="import_saves">وارد کردن</string>
-    <string name="export_saves">صادر کردن</string>
     <string name="install_firmware">نصب ثابت‌افزار</string>
     <string name="install_firmware_description">ثابت‌افزار باید در آرشیو ZIP باشد و برای اجرای برخی بازی‌ها نیاز است</string>
     <string name="firmware_installing">در حال نصب ثابت‌افزار</string>
-    <string name="firmware_installed_success">ثابت‌افزار با موفقیت نصب شد</string>
     <string name="firmware_installed_failure">نصب ثابت‌افزار ناموفق بود</string>
     <string name="firmware_installed_failure_description">مطمئن شوید که فایل‌های nca ثابت‌افزار در ریشه فایل فشرده هستند و دوباره امتحان کنید.</string>
     <string name="share_log">اشتراک گزارش اشکال زدایی</string>
@@ -403,7 +368,6 @@
     <string name="install_game_content_failure">خطا در نصب فایل(ها) در NAND</string>
     <string name="install_game_content_failure_description">لطفاً مطمئن شوید که محتوا(های) معتبر هستند و فایل prod.keys نصب شده است.</string>
     <string name="install_game_content_failure_base">نصب فایل اصلی بازی‌ها برای جلوگیری از ناسازگاری‌های احتمالی مجاز نیست.</string>
-    <string name="install_game_content_failure_file_extension">فقط محتوای NSP و XCI پشتیبانی می شود. لطفاً مطمئن شوید که محتوا(های) بازی معتبر است.</string>
     <string name="install_game_content_failed_count">%1$dخطا(های) نصب</string>
     <string name="install_game_content_success">محتوا(های) بازی با موفقیت نصب شد</string>
     <string name="install_game_content_success_install">%1$dبا موفقیت نصب شد</string>
@@ -412,8 +376,6 @@
     <string name="custom_driver_not_supported_description">بارگیری درایور سفارشی در حال حاضر برای این دستگاه پشتیبانی نمی‌شود.\nاین گزینه را دوباره در آینده بررسی کنید تا ببینید آیا پشتیبانی اضافه شده است یا خیر!</string>
     <string name="manage_yuzu_data">مدیریت داده‌های Eden</string>
     <string name="manage_yuzu_data_description">وارد کردن/صادر کردن ثابت‌افزار، کلیدها، داده‌های کاربر، و موارد دیگر!</string>
-    <string name="share_save_file">اشتراک گذاری فایل ذخیره</string>
-    <string name="export_save_failed">ذخیره صادر نشد</string>
     <string name="game_folders">پوشه‌های بازی</string>
     <string name="deep_scan">بررسی عمیق</string>
     <string name="add_game_folder">افزودن پوشه بازی</string>
@@ -432,7 +394,6 @@
     <string name="verify_installed_content_description">تمام محتوای نصب شده را از نظر خرابی بررسی می‌کند</string>
     <string name="keys_missing">کلیدهای رمزگذاری وجود ندارند</string>
     <string name="keys_missing_description">ثابت‌افزار و بازی‌های فروشگاهی قابل رمزگشایی نیستند</string>
-    <string name="firmware_invalid">فیرمور نامعتبر</string>
     <string name="error_firmware_missing">برای اجرای برخی بازی‌ها و برنامه‌ها نیاز به فیرمور است. ادن فقط با فیرمور 19.0.1 یا قدیمی‌تر کار می‌کند.</string>
     <string name="error_firmware_corrupted">فیرمور موجود است اما قابل خواندن نیست. کلیدهای رمزگشایی را بررسی کنید و در صورت نیاز فیرمور را دوباره دامپ کنید.</string>
     <string name="error_firmware_too_new">فیرمور خیلی جدید است یا قابل خواندن نیست. ادن فقط با فیرمور 19.0.1 یا قدیمی‌تر کار می‌کند.</string>
@@ -474,7 +435,6 @@
     <string name="user_data_description">همه داده‌های برنامه را وارد/صادر کنید.\n\nهنگام وارد کردن داده‌های کاربر، همه داده‌های کاربر موجود حذف خواهند شد!</string>
     <string name="exporting_user_data">در حال صادر کردن داده‌های کاربر...</string>
     <string name="importing_user_data">در حال وارد کردن داده‌های کاربر...</string>
-    <string name="import_user_data">وارد کردن داده کاربر</string>
     <string name="invalid_yuzu_backup">پشتیبان نامعتبر Eden</string>
     <string name="user_data_export_success">داده‌های کاربر با موفقیت صادر شد</string>
     <string name="user_data_import_success">داده‌های کاربر با موفقیت وارد شد</string>
@@ -584,8 +544,6 @@
     <string name="not_set">تنظیم نشده</string>
     <string name="unknown">نامعلوم</string>
     <string name="unused">استفاده نشده</string>
-    <string name="input_prompt">یک ورودی را حرکت یا فشار دهید</string>
-    <string name="unsupported_input">نوع ورودی پشتیبانی نمی‌شود</string>
     <string name="input_mapping_filter">فیلتر نگاشت ورودی</string>
     <string name="input_mapping_filter_description">دستگاهی را برای فیلتر کردن ورودی‌های نقشه برداری انتخاب کنید</string>
     <string name="auto_map">نقشه برداری خودکار یک کنترلر</string>
@@ -601,10 +559,6 @@
     <string name="invert_axis">محور معکوس</string>
     <!-- Miscellaneous -->
     <string name="slider_default">پیش‌فرض</string>
-    <string name="ini_saved">تنظیمات ذخیره شده</string>
-    <string name="gameid_saved">تنظیمات ذخیره شده برای %1$s</string>
-    <string name="error_saving">خطا برای ذخیره ini.%1$s : %2$s</string>
-    <string name="unimplemented_menu">منوی ساخته نشده</string>
     <string name="loading">بارگذاری...</string>
     <string name="shutting_down">خاموش شدن…</string>
     <string name="reset_setting_confirmation">آیا می‌خواهید این تنظیم را به مقدار پیش‌فرض خود بازنشانی کنید؟</string>
@@ -628,21 +582,14 @@
     <string name="edit">ویرایش</string>
     <string name="export_success">با موفقیت صادر شد</string>
     <string name="start">شروع</string>
-    <string name="clear">پاکسازی</string>
     <string name="global">سراسری</string>
     <string name="custom">سفارشی</string>
-    <string name="notice">اطلاع</string>
     <string name="import_complete">وارد کردن تکمیل شد</string>
-    <string name="more_options">گزینه‌های بیشتر</string>
     <string name="use_global_setting">استفاده از تنظیمات سراسری</string>
     <string name="operation_completed_successfully">عملیات با موفقیت به پایان رسید</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">انتخاب درایور پردازنده گرافیکی</string>
-    <string name="select_gpu_driver_title">آیا می خواهید درایور فعلی پردازنده گرافیکی خود را جایگزین کنید؟</string>
-    <string name="select_gpu_driver_install">نصب</string>
     <string name="select_gpu_driver_default">پیش‌فرض</string>
-    <string name="select_gpu_driver_use_default">استفاده از درایور پیش‌فرض پردازنده گرافیکی</string>
     <string name="select_gpu_driver_error">درایور نامعتبر انتخاب شده است</string>
     <string name="driver_already_installed">درایور قبلاً نصب شده است</string>
     <string name="system_gpu_driver">درایور سیستم پردازنده گرافیکی</string>
@@ -651,14 +598,9 @@
     <!-- GPU driver fetcher -->
     <string name="gpu_driver_fetcher">دریافت‌کننده درایور GPU</string>
     <string name="fetch">دریافت</string>
-    <string name="fetch_error">خطا در دریافت</string>
-    <string name="check_connection">اتصال خود را بررسی کرده و دوباره امتحان کنید.</string>
     <string name="show_releases">نمایش نسخه‌ها</string>
-    <string name="view_full_release_notes">یادداشت‌های انتشار</string>
     <string name="failed_to_fetch">دریافت ناموفق</string>
     <string name="error_during_fetch">خطا در حین دریافت</string>
-    <string name="toggle_release_notes">تغییر یادداشت‌های انتشار</string>
-    <string name="downloads">دانلودها</string>
     <string name="show_downloads">نمایش دانلودها</string>
     <string name="hide_downloads">مخفی کردن دانلودها</string>
     <string name="failed_cache_dir">پوشه کش در دسترس نیست</string>
@@ -677,7 +619,6 @@
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">تنظیمات</string>
-    <string name="preferences_general">عمومی</string>
     <string name="preferences_system">سیستم</string>
     <string name="preferences_system_description">حالت متصل شده، منطقه، زبان</string>
     <string name="preferences_graphics">گرافیک</string>
@@ -742,7 +683,6 @@
     <string name="loader_error_encrypted_keys_description"><![CDATA[لطفاً مطمئن شوید که فایل prod.keys شما نصب شده است تا بازی‌ها رمزگشایی شوند.]]></string>
     <string name="loader_error_video_core">در راه‌اندازی اولیه هسته ویدیو خطایی رخ داد</string>
     <string name="loader_error_video_core_description">این مورد معمولاً توسط یک درایور گرافیکی ناسازگار ایجاد می‌شود. نصب درایور گرافیکی سفارشی ممکن است این مشکل را حل کند.</string>
-    <string name="loader_error_invalid_format">رام بارگذاری نشد</string>
     <string name="loader_error_file_not_found">فایل رام وجود ندارد</string>
     <string name="loader_requires_firmware">بازی نیاز به فیرمور دارد</string>
     <string name="loader_requires_firmware_description"><![CDATA[بازی که می‌خواهید اجرا کنید برای بوت شدن یا عبور از منوی شروع نیاز به فیرمور دارد. لطفا <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> فیرمور را دامپ و نصب کنید</a> یا برای ادامه کار \"تایید\" را فشار دهید.]]></string>
@@ -770,19 +710,9 @@
     <string name="config_already_exists_message">تنظیمات سفارشی از قبل برای %1$s وجود دارد.\n\nآیا می‌خواهید پیکربندی موجود را بازنویسی کنید؟\n\nاین عمل قابل بازگشت نیست.</string>
     <string name="config_exists_prompt">در حال بررسی پیکربندی موجود...</string>
     <string name="overwrite_cancelled">بازنویسی لغو شد</string>
-    <string name="checking_driver">در حال بررسی درایور سفارشی: %1$s</string>
-    <string name="driver_unavailable">درایور سفارشی برای این دستگاه در دسترس نیست</string>
     <string name="overwrite">بازنویسی</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">درایور GPU یافت نشد</string>
-    <string name="missing_gpu_driver_message">درایور سفارشی انتخاب شده \"%s\" نصب نشده است. آیا می‌خواهید هم اکنون آن را دانلود و نصب کنید؟</string>
-    <string name="downloading_driver">در حال دانلود درایور...</string>
-    <string name="driver_installed">درایور با موفقیت نصب شد</string>
-    <string name="driver_installation_failed_title">نصب درایور ناموفق بود</string>
-    <string name="driver_installation_failed_message">نصب درایور GPU ناموفق بود: %s</string>
-    <string name="driver_not_available_title">درایور در دسترس نیست</string>
-    <string name="driver_not_available_message">درایور انتخاب شده برای دانلود در دسترس نیست.</string>
     <string name="driver_not_found">درایور مورد نیاز نصب نشده است: %s</string>
     <string name="invalid_driver_file">فایل درایور نامعتبر: %s</string>
     <string name="network_unavailable">اتصال شبکه در دسترس نیست. لطفاً اتصال اینترنت خود را بررسی کرده و مجدداً تلاش کنید.</string>
@@ -794,8 +724,6 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">خروج از شبیه‌سازی</string>
     <string name="emulation_done">انجام شد</string>
-    <string name="emulation_fps_counter">شمارشگر فریم</string>
-    <string name="emulation_thermal_indicator">نشانگر حرارتی</string>
     <string name="emulation_toggle_controls">تغییر کنترل‌ها</string>
     <string name="emulation_rel_stick_center">مرکز نسبی استیک</string>
     <string name="emulation_dpad_slide">لغزش دکمه‌های جهتی</string>
@@ -815,7 +743,6 @@
     <string name="lock_drawer">قفل‌کردن منوی کشویی</string>
     <string name="unlock_drawer">بازکردن قفل منو کشویی</string>
 
-    <string name="load_settings">بارگذاری تنظیمات...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">صفحه‌کلید نرم‌افزار</string>
@@ -829,7 +756,6 @@
     <string name="save_load_error">خطای ذخیره/بارگذاری</string>
     <string name="fatal_error">خطای مهلک</string>
     <string name="fatal_error_message">یک خطای مهلک رخ داد. برای جزئیات، گزارش را بررسی کنید.\nادامه شبیه‌سازی ممکن است منجر به خرابی و اشکالات شود.</string>
-    <string name="performance_warning">خاموش کردن این تنظیم عملکرد شبیه‌سازی را به میزان قابل توجهی کاهش می‌دهد! برای بهترین تجربه، توصیه می‌شود این تنظیم را فعال بگذارید.</string>
     <string name="device_memory_inadequate">رم دستگاه: %1$s \nتوصیه شده: %2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">هیچ بازی قابل اجرایی وجود ندارد!</string>
@@ -844,7 +770,6 @@
     <string name="region_taiwan">تایوان</string>
 
     <!-- Memory Sizes -->
-    <string name="memory_byte">بایت</string>
     <string name="memory_byte_shorthand">بایت</string>
     <string name="memory_kilobyte">کیلوبایت</string>
     <string name="memory_megabyte">مگابایت</string>
@@ -929,7 +854,6 @@
     <string name="gamepad_screenshot">نماگرفت</string>
 
     <!-- Disk shader cache -->
-    <string name="preparing_shaders">در حال آماده‌سازی سایه‌زن‌ها</string>
     <string name="building_shaders">در حال ساخت سایه‌زن‌ها</string>
 
     <!-- Theme options -->

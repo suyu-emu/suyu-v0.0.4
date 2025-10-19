@@ -22,8 +22,6 @@
     <string name="show_fps_description">Vis bilder per sekund</string>
     <string name="show_frametime">Vis rammetid</string>
     <string name="show_frametime_description">Vis nåværende rammetid</string>
-    <string name="show_speed">Vis hastighet</string>
-    <string name="show_speed_description">Vis emuleringshastighet i prosent</string>
     <string name="show_app_ram_usage">Vis appminnebruk</string>
     <string name="show_app_ram_usage_description">Vis hvor mye RAM emulatoren bruker</string>
     <string name="show_system_ram_usage">Vis systemminnebruk</string>
@@ -133,8 +131,6 @@
     <!-- Multiplayer -->
     <string name="multiplayer">Flerspiller</string>
     <string name="multiplayer_description">Lag ditt eget spillrom eller bli med i et eksisterende for å spille med andre</string>
-    <string name="multiplayer_room_title">Rom: %1$s</string>
-    <string name="multiplayer_console_id">Konsoll-ID: %1$s</string>
     <string name="multiplayer_create_room">Opprett</string>
     <string name="multiplayer_join_room">Bli med</string>
     <string name="multiplayer_public_room">Bla gjennom offentlige rom</string>
@@ -143,11 +139,6 @@
     <string name="multiplayer_ip_port">Port</string>
     <string name="multiplayer_create_room_success">Rom opprettet</string>
     <string name="multiplayer_join_room_success">Ble med i rommet</string>
-    <string name="multiplayer_create_room_failed">Kunne ikke opprette rom</string>
-    <string name="multiplayer_join_room_failed">Kunne ikke bli med i rommet</string>
-    <string name="multiplayer_name_invalid">Navn for kort</string>
-    <string name="multiplayer_address_invalid">Ugyldig adresse</string>
-    <string name="multiplayer_port_invalid">Ugyldig port</string>
     <string name="multiplayer_exit_room">Forlat rom</string>
     <string name="multiplayer_network_error">Nettverksfeil</string>
     <string name="multiplayer_lost_connection">Mistet tilkobling</string>
@@ -176,21 +167,15 @@
     <string name="multiplayer_member_banned">%1$s ble utestengt</string>
     <string name="multiplayer_address_unbanned">Adresse opphevet</string>
     <string name="multiplayer_kick_member">Spark</string>
-    <string name="multiplayer_chat_input_hint">Send melding…</string>
     <string name="multiplayer_password">Passord</string>
     <string name="multiplayer_joining">Bli med...</string>
     <string name="multiplayer_creating">Oppretter...</string>
     <string name="multiplayer_room_name">Romnavn</string>
-    <string name="multiplayer_room_name_invalid">Romnavn må være mellom 3 og 20 tegn</string>
-    <string name="multiplayer_max_players">Maks spillere (16)</string>
     <string name="multiplayer_max_players_value">Maks spillere: %d</string>
     <string name="multiplayer_chat">Chat</string>
     <string name="multiplayer_more_options">Flere alternativer</string>
-    <string name="multiplayer_ip_copied">IP-adresse kopiert</string>
-    <string name="multiplayer_server_address">Serveradresse</string>
     <string name="chat">Chat</string>
     <string name="type_message">Skriv melding…</string>
-    <string name="send">Send</string>
     <string name="send_message">Send melding</string>
     <string name="multiplayer_moderation">Moderering</string>
     <string name="multiplayer_moderation_title">Utestengingsliste</string>
@@ -210,12 +195,8 @@
     <string name="multiplayer_hide_empty_rooms">Skjul tomme rom</string>
     <string name="multiplayer_tap_refresh_to_check_again">Trykk for å oppdatere</string>
     <string name="multiplayer_search_public_lobbies">Søk i rom...</string>
-    <string name="emulation_multiplayer">Flerspiller</string>
-    <string name="multiplayer_game_name">Foretrukne spill</string>
     <string name="multiplayer_preferred_game_name">Foretrukket spill</string>
     <string name="multiplayer_lobby_type">Lobbytype</string>
-    <string name="multiplayer_no_game">Ingen spill funnet</string>
-    <string name="multiplayer_preferred_game_name_invalid">Du må velge et foretrukket spill for å være vert</string>
     <string name="multiplayer_room_name_error">Må være 3-20 tegn</string>
     <string name="multiplayer_required">Påkrevd</string>
     <string name="multiplayer_token_required">Webtoken kreves, gå til Avanserte innstillinger -> System -> Nettverk</string>
@@ -247,7 +228,6 @@
     <string name="next">Neste</string>
     <string name="back">Tilbake</string>
     <string name="add_games">Legg til spill</string>
-    <string name="add_games_description">Velg din spillmappe</string>
     <string name="bluetooth_permissions_granted">Bluetooth-tillatelser gitt.</string>
     <string name="bluetooth_permissions_denied">Bluetooth-tillatelser avslått. Kontrollerstøtte kan være begrenset.</string>
 
@@ -261,18 +241,13 @@
     <string name="pre_alpha_warning_title">Forhåndsversjon</string>
     <string name="pre_alpha_warning_description">ADVARSEL: Denne versjonen er ikke ment for offentlig bruk. Programvaren er i tidlig utvikling og kan inneholde feil.</string>
     <string name="dont_show_again">Ikke vis igjen</string>
-    <string name="pre_alpha_warning">FORHÅNDSVERSJON; IKKE FOR OFFENTLIG BRUK</string>
-    <string name="home_games">Spill</string>
     <string name="home_search">Søk</string>
     <string name="home_settings">Innstillinger</string>
     <string name="empty_gamelist">Ingen filer ble funnet eller ingen spillkatalog er valgt ennå.</string>
-    <string name="search_and_filter_games">Søk og filtrer spill</string>
-    <string name="select_games_folder">Velg spillmappe</string>
     <string name="select_games_folder_description">Gjør det mulig for Eden å fylle ut spillelisten.</string>
     <string name="add_games_warning">Hoppe over valg av spillmappe?</string>
     <string name="add_games_warning_description">Spill vises ikke i Spill-listen hvis en mappe ikke er valgt.</string>
     <string name="home_search_games">Søk i spill|</string>
-    <string name="games_dir_selected">Spillkatalogen er valgt</string>
     <string name="install_prod_keys">Installer prod.keys</string>
     <string name="install_prod_keys_description">Nødvendig for å dekryptere spill</string>
     <string name="install_prod_keys_warning">Hoppe over å legge til nøkler?</string>
@@ -294,16 +269,12 @@
     <string name="warning_cancel">Avbryt</string>
     <string name="install_amiibo_keys">Installer Amiibo-nøkler</string>
     <string name="install_amiibo_keys_description">Kreves for å bruke Amiibo i spillet</string>
-    <string name="install_amiibo_keys_failure_extension_description">Kontroller at nøkkelfilen har filtypen .bin, og prøv igjen.</string>
     <string name="gpu_driver_fetcher">GPU-driverhenting</string>
-    <string name="install_gpu_driver">Installer GPU-driver</string>
     <string name="install_gpu_driver_description">Installer alternative drivere for potensielt bedre ytelse eller nøyaktighet.</string>
     <string name="advanced_settings">Avanserte innstillinger</string>
     <string name="settings_description">Konfigurere emulatorinnstillinger</string>
     <string name="search_recently_played">Nylig spilt</string>
     <string name="search_recently_added">Nylig lagt til</string>
-    <string name="search_retail">Butikkhandel</string>
-    <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">Åpne Eden-mappen</string>
     <string name="open_user_folder_description">Administrere Edens interne filer</string>
     <string name="theme_and_color_description">Endre appens utseende</string>
@@ -312,16 +283,12 @@
     <string name="notification_no_directory_link_description">Finn brukermappen manuelt med filbehandlingens sidepanel.</string>
     <string name="manage_save_data">Administrere lagringsdata</string>
     <string name="manage_save_data_description">Lagringsdata funnet. Velg et alternativ nedenfor.</string>
-    <string name="import_export_saves_description">Importer eller eksporter lagringsfiler</string>
     <string name="save_file_imported_success">Vellykket import</string>
     <string name="save_file_invalid_zip_structure">Ugyldig struktur for lagringskatalog</string>
     <string name="save_file_invalid_zip_structure_description">Det første undermappenavnet må være spillets tittel-ID.</string>
-    <string name="import_saves">Importer</string>
-    <string name="export_saves">Eksporter</string>
     <string name="install_firmware">Installer fastvare</string>
     <string name="install_firmware_description">Fastvaren må være i et ZIP-arkiv og er nødvendig for å starte noen spill.</string>
     <string name="firmware_installing">Installering av fastvare</string>
-    <string name="firmware_installed_success">Fastvaren er vellykket installert</string>
     <string name="firmware_installed_failure">Installasjon av fastvare mislyktes</string>
     <string name="share_log">Del feilsøkingslogger</string>
     <string name="share_log_description">Del Edens loggfil for å feilsøke problemer</string>
@@ -332,7 +299,6 @@
     <string name="install_game_content_failure">Feil ved installasjon</string>
     <string name="install_game_content_failure_description">Sørg for at innholdet er gyldig</string>
     <string name="install_game_content_failure_base">Grunnspill kan ikke installeres</string>
-    <string name="install_game_content_failure_file_extension">Kun NSP og XCI støttes</string>
     <string name="install_game_content_failed_count">%1$d installasjonsfeil</string>
     <string name="install_game_content_success">Innhold installert</string>
     <string name="install_game_content_success_install">%1$d installert</string>
@@ -340,8 +306,6 @@
     <string name="custom_driver_not_supported">Egendefinert driver støttes ikke</string>
     <string name="manage_yuzu_data">Administrer eden-data</string>
     <string name="manage_yuzu_data_description">Importer/eksporter firmware, nøkler osv.</string>
-    <string name="share_save_file">Del lagringsfil</string>
-    <string name="export_save_failed">Feil ved eksport</string>
     <string name="game_folders">Spillmapper</string>
     <string name="deep_scan">Dyp skanning</string>
     <string name="add_game_folder">Legg til spillmappe</string>
@@ -366,7 +330,6 @@
     <string name="firmware_uninstalling">Avinstallerer firmware...</string>
     <string name="firmware_uninstalled_success">Firmware avinstallert</string>
 
-    <string name="firmware_invalid">Ugyldig fastvare</string>
     <string name="error_firmware_missing">Fastvare kreves for å kjøre enkelte spill og applikasjoner. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
     <string name="error_firmware_corrupted">Fastvare er til stede, men kan ikke leses. Sjekk dekrypteringsnøklene og dump fastvaren på nytt om nødvendig.</string>
     <string name="error_firmware_too_new">Fastvaren er for ny eller kan ikke leses. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
@@ -532,9 +495,6 @@
     <string name="use_global_input_configuration">Bruk global inndatakonfigurasjon</string>
     <!-- Miscellaneous -->
     <string name="slider_default">Standard</string>
-    <string name="ini_saved">Lagrede innstillinger</string>
-    <string name="gameid_saved">Lagrede innstillinger for %1$s</string>
-    <string name="error_saving">Feil ved lagring av %1$s.ini: %2$s</string>
     <string name="loading">Lastes inn...</string>
     <string name="reset_setting_confirmation">Vil du tilbakestille denne innstillingen til standardverdien?</string>
     <string name="reset_to_default">Tilbakestill til standardinnstillingene</string>
@@ -552,27 +512,17 @@
     <string name="fetch">Hent</string>
     <string name="delete">Slett</string>
     <string name="start">Start</string>
-    <string name="clear">Fjern</string>
     <string name="save">Lagre</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">Velg GPU-driver</string>
-    <string name="select_gpu_driver_title">Ønsker du å bytte ut din nåværende GPU-driver?</string>
-    <string name="select_gpu_driver_install">Installer</string>
     <string name="select_gpu_driver_default">Standard</string>
-    <string name="select_gpu_driver_use_default">Bruk av standard GPU-driver</string>
     <string name="system_gpu_driver">Systemets GPU-driver</string>
     <string name="installing_driver">Installerer driver...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="fetch_error">Feil under henting</string>
-    <string name="check_connection">Sjekk tilkoblingen din og prøv på nytt.</string>
     <string name="show_releases">Vis utgivelser</string>
-    <string name="view_full_release_notes">Versjonsnotater</string>
     <string name="failed_to_fetch">Kunne ikke hente</string>
     <string name="error_during_fetch">Feil under henting</string>
-    <string name="toggle_release_notes">Veksle versjonsnotater</string>
-    <string name="downloads">Nedlastinger</string>
     <string name="show_downloads">Vis nedlastinger</string>
     <string name="hide_downloads">Skjul nedlastinger</string>
     <string name="failed_cache_dir">Mellomlager-mappen er ikke tilgjengelig</string>
@@ -591,7 +541,6 @@
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Innstillinger</string>
-    <string name="preferences_general">Generelt</string>
     <string name="preferences_system">System</string>
     <string name="preferences_graphics">Grafikk</string>
     <string name="preferences_audio">Lyd</string>
@@ -612,7 +561,6 @@
     <string name="loader_error_encrypted_keys_description"><![CDATA[Vennligst sørg for at <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> filen er installert slik at spillene kan dekrypteres.]]></string>
     <string name="loader_error_video_core">Det oppstod en feil ved initialisering av videokjernen</string>
     <string name="loader_error_video_core_description">Dette skyldes vanligvis en inkompatibel GPU-driver. Installering av en tilpasset GPU-driver kan løse problemet.</string>
-    <string name="loader_error_invalid_format">Kunne ikke laste inn ROM</string>
     <string name="loader_error_file_not_found">ROM-filen finnes ikke</string>
 
     <string name="loader_requires_firmware">Spillet krever fastvare</string>
@@ -640,19 +588,9 @@
     <string name="config_already_exists_title">Konfigurasjon finnes allerede</string>
     <string name="config_exists_prompt">Sjekker for eksisterende konfigurasjon...</string>
     <string name="overwrite_cancelled">Overskriving avbrutt</string>
-    <string name="checking_driver">Sjekker for egendefinert driver: %1$s</string>
-    <string name="driver_unavailable">Egendefinert driver ikke tilgjengelig for denne enheten</string>
     <string name="overwrite">Overskriv</string>
 
     <!-- Driver strings -->
-    <string name="missing_gpu_driver_title">GPU-driver mangler</string>
-    <string name="missing_gpu_driver_message">Den valgte egendefinerte driveren \"%s\" er ikke installert. Vil du laste ned og installere den nå?</string>
-    <string name="downloading_driver">Laster ned driver...</string>
-    <string name="driver_installed">Driver installert vellykket</string>
-    <string name="driver_installation_failed_title">Driverinstallasjon mislyktes</string>
-    <string name="driver_installation_failed_message">Kunne ikke installere GPU-driveren: %s</string>
-    <string name="driver_not_available_title">Driver ikke tilgjengelig</string>
-    <string name="driver_not_available_message">Den valgte driveren er ikke tilgjengelig for nedlasting.</string>
     <string name="driver_not_found">Påkrevd driver ikke installert: %s</string>
     <string name="invalid_driver_file">Ugyldig driverfil: %s</string>
     <string name="network_unavailable">Ingen nettverkstilkobling tilgjengelig. Vennligst sjekk internettilkoblingen din og prøv på nytt.</string>
@@ -663,7 +601,6 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">Avslutt emulering</string>
     <string name="emulation_done">Ferdig</string>
-    <string name="emulation_fps_counter">FPS-teller</string>
     <string name="emulation_toggle_controls">Veksle mellom kontrollene</string>
     <string name="emulation_rel_stick_center">Relativt pinnesenter</string>
     <string name="emulation_dpad_slide">D-pad-skyving</string>
@@ -680,7 +617,6 @@
     <string name="emulation_unpause">Ta emuleringen ut av pause</string>
     <string name="emulation_input_overlay">Overlay-alternativer</string>
     <string name="touchscreen">Touch-skjerm</string>
-    <string name="load_settings">Laster inn innstillinger...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Programvaretastatur</string>
@@ -707,7 +643,6 @@
     <string name="memory_8gb">8GB (Usikkert)</string>
 
     <!--CPU clock speeds-->
-    <string name="clock_base">Grunnleggende (1000MHz)</string>
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Rask (2000MHz)</string>
 
@@ -804,7 +739,6 @@
     <string name="gamepad_screenshot">Skjermbilde</string>
 
     <!-- Disk shader cache -->
-    <string name="preparing_shaders">Forberedelse av shaders</string>
     <string name="building_shaders">Bygging av shaders</string>
 
     <!-- Theme options -->
