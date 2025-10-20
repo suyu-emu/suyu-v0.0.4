@@ -2,6 +2,12 @@ QAbstractSpinBox {
     min-height: 19px;
 }
 
+QComboBox {
+  padding: 0px 4px 0px 4px;
+  min-width: 60px;
+  min-height: 19px;
+}
+
 QPushButton#TogglableStatusBarButton {
     color: #959595;
     border: 1px solid transparent;

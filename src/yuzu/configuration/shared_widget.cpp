@@ -507,7 +507,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
     created = true;
     const auto type = setting.TypeId();
 
-    QLayout* layout = new QHBoxLayout(this);
+    QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
 
     if (other_setting == nullptr) {
@@ -574,10 +574,10 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
     if (require_checkbox) {
         QWidget* lhs =
             CreateCheckBox(other_setting, label, checkbox_serializer, checkbox_restore_func, touch);
-        layout->addWidget(lhs);
+        layout->addWidget(lhs, 1);
     } else if (setting.TypeId() != typeid(bool)) {
         QLabel* qt_label = CreateLabel(label);
-        layout->addWidget(qt_label);
+        layout->addWidget(qt_label, 1);
     }
 
     if (setting.TypeId() == typeid(bool)) {
@@ -649,7 +649,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         return;
     }
 
-    layout->addWidget(data_component);
+    layout->addWidget(data_component, 1);
 
     if (!managed) {
         return;

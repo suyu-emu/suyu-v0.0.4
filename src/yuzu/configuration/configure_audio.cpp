@@ -126,6 +126,7 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
                 restore_output_device_button->setVisible(
                     !Settings::values.audio_output_device_id.UsingGlobal());
                 widget->layout()->addWidget(restore_output_device_button);
+
                 connect(restore_output_device_button, &QAbstractButton::clicked, [this](bool) {
                     Settings::values.audio_output_device_id.SetGlobal(true);
                     SetOutputDevicesFromDeviceID();
