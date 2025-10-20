@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # specify full path if dupes may exist
-EXCLUDE_FILES="CPM.cmake CPMUtil.cmake GetSCMRev.cmake sse2neon.h renderdoc_app.h tools/cpm externals/stb externals/glad externals/getopt externals/gamemode externals/FidelityFX-FSR externals/demangle externals/bc_decoder"
+EXCLUDE_FILES="CPM.cmake CPMUtil.cmake GetSCMRev.cmake sse2neon.h renderdoc_app.h tools/cpm tools/shellcheck.sh tools/update-cpm.sh externals/stb externals/glad externals/getopt externals/gamemode externals/FidelityFX-FSR externals/demangle externals/bc_decoder"
 
 # license header constants, please change when needed :))))
 YEAR=2025
@@ -104,7 +104,7 @@ for file in $FILES; do
 		case "$file" in
 			*"$pattern"*)
 				excluded=true
-				continue
+				break
 				;;
 			*)
 				excluded=false

@@ -8,8 +8,8 @@
 . tools/cpm/common.sh
 
 # shellcheck disable=SC2086
-JSON=$(find $DIRS -maxdepth "$MAXDEPTH" -name cpmfile.json -exec grep -l "$1" {} \;)
+JSON=$(echo "$CPMFILES" | xargs grep -l "$1")
 
-[ -z "$JSON" ] && echo "!! No cpmfile definition for $1"
+[ -z "$JSON" ] && echo "!! No cpmfile definition for $1" >&2 && exit 1
 
 echo "$JSON"

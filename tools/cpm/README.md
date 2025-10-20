@@ -2,7 +2,13 @@
 
 These are supplemental shell scripts for CPMUtil aiming to ease maintenance burden for sanity checking, updates, prefetching, formatting, and standard operations done by these shell scripts, all in one common place.
 
-All scripts are POSIX-compliant.
+All scripts are POSIX-compliant. If something doesn't work on your shell, ensure it's POSIX-compliant.
+* If your shell doesn't support `$(...)` syntax, you've got bigger problems to worry about.
+<!-- TOC -->
+- [Meta](#meta)
+- [Simple Utilities](#simple-utilities)
+- [Functional Utilities](#functional-utilities)
+<!-- /TOC -->
 
 ## Meta
 
@@ -39,9 +45,8 @@ These scripts don't really have any functionality, they just help you out a bit 
     * Inputs:
         - The repository (e.g. fmtlib/fmt)
         - The sha or tag (e.g. v1.0.1)
-        - `GIT_HOST`: What git host to use (default github.com)
-        - `USE_TAG`: Set to "true" if the second argument is a tag instead of a sha
-        - `ARTIFACT`: The artifact to download, if using a tag. Set to null or empty to use the tag source archive instead
+        - `-g <GIT_HOST>` or `--host <GIT_HOST>`: What git host to use (default github.com)
+        - `-a <ARTIFACT>` or `--artifact <ARTIFACT>`: The artifact to download. Set to null or empty to use a source archive instead
     * Output: the SHA512 sum of the package
 - `url-hash.sh`: Determine the hash of a URL
     * Input: the URL
@@ -51,7 +56,7 @@ These scripts don't really have any functionality, they just help you out a bit 
 
 These modify the CPM cache or cpmfiles. Each allows you to input all the packages to act on, as well as a `<scriptname>-all.sh` that acts upon all available packages.
 
-For the update and hash scripts, set `UPDATE=true` to update the cpmfile with the new version or hash. Beware: if the hash is `cf83e1357...` that means you got a 404 error!
+Beware: if a hash is `cf83e1357...` that means you got a 404 error!
 
 - `fetch.sh`: Prefetch a package according to its cpmfile definition
     * Packages are fetched to the `.cache/cpm` directory by default, following the CPMUtil default.
@@ -61,11 +66,14 @@ For the update and hash scripts, set `UPDATE=true` to update the cpmfile with th
 - `check-updates.sh`: Check a package for available updates
     * This only applies to packages that utilize tags.
     * If the tag is a format string, the `git_version` is acted upon instead.
-    * Setting `FORCE=true` will forcefully update every package and its hash, even if they are on the latest version (`UPDATE` must also be true)
+    * Specifying `-f` or `--force` will forcefully update the package and its hash, even if it's on on the latest version.
+    * Alternatively, only specify `-u` or `--update` to update packages that have new versions available.
     * This script generally runs fast.
-    * Packages that should skip updates (e.g. older versions or packages with poorly-made tag structures... looking at you mbedtls) may specify `"skip_updates": true` in their cpmfile definition. This is unnecessary for untagged (e.g. sha or bare URL) packages.
+    * Packages that should skip updates (e.g. older versions, OR packages with poorly-made tag structures... looking at you mbedtls) may specify `"skip_updates": true` in their cpmfile definition. This is unnecessary for untagged (e.g. sha or bare URL) packages.
 - `check-hashes.sh`: Check a package's hash
+    * Specifying `-f` or `--force` will update the package's hash even if it's not mismatched.
+    * Alternatively, specify `-u` or `--update` to only fix mismatched hashes.
     * This only applies to packages with hardcoded hashes, NOT ones that use hash URLs.
-    * This script will take a looooooooooooooong time. This is operationally equivalent to a prefetch, and thus checking all hashes will take a while--but it's worth it! Just make sure you're not using dial-up.
+    * This script will take a long time. This is operationally equivalent to a prefetch, and thus checking all hashes will take a while--but it's worth it! Just make sure you're not using dial-up.
 
 You are recommended to run sanity hash checking for every pull request and commit, and weekly update checks.

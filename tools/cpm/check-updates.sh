@@ -3,21 +3,51 @@
 # SPDX-FileCopyrightText: 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# env vars:
-# - UPDATE: update if available
-# - FORCE: forcefully update
-
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 
 RETURN=0
 
 filter() {
-	TAGS=$(echo "$TAGS" | jq "[.[] | select(.name | test(\"$1\"; \"i\") | not)]") # vulkan
+	TAGS=$(echo "$TAGS" | jq "[.[] | select(.name | test(\"$1\"; \"i\") | not)]")
 }
 
-for PACKAGE in "$@"
-do
+usage() {
+	cat << EOF
+Usage: $0 [uf] [PACKAGE]...
+Check a specific package or packages for updates.
+
+Options:
+    -u, --update	Update the package if a new version is available.
+                	This will also update the hash if provided.
+
+    -f, --force 	Forcefully update the package version (implies -u)
+                	This is seldom useful, and should only be used in cases of
+                	severe corruption.
+
+This project has defined the following as valid cpmfiles:
+EOF
+
+	for file in $CPMFILES; do
+		echo "- $file"
+	done
+
+	exit $RETURN
+}
+
+while true; do
+	case "$1" in
+		(-uf|--force) UPDATE=true; FORCE=true; continue ;;
+		(-u|--update) UPDATE=true; continue ;;
+		(-h) usage ;;
+		("$0") break ;;
+		("") break ;;
+	esac
+
+	PACKAGE="$1"
+
+	shift
+
 	export PACKAGE
 	# shellcheck disable=SC1091
 	. tools/cpm/package.sh
@@ -67,7 +97,6 @@ do
 
     echo "-- * Version $LATEST available, current is $TAG"
 
-    export USE_TAG=true
     HASH=$(tools/cpm/hash.sh "$REPO" "$LATEST")
 
     echo "-- * New hash: $HASH"

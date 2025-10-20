@@ -36,7 +36,7 @@
         "version": "1.4",
         "repo": "crueter/cpp-jwt",
         "sha": "9eaea6328f",
-        "hash": "e237d92c59ebbf0dc8ac0bae3bc80340e1e9cf430e1c1c9638443001118e16de2b3e9036ac4b98105427667b0386d97831415170b68c432438dcad9ef8052de7",
+        "hash": "35b0b2bfb143585c7b2bd6dc6ca7df5ae5c6e2681000b2ebca077b0ac4bc1e6b6afbe1ce8e47f6d2edad12fcc6404f677acc2ad205661d819b8821ce6f4823fd",
         "find_args": "CONFIG",
         "options": [
             "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
@@ -70,7 +70,7 @@
     "libadrenotools": {
         "repo": "bylaws/libadrenotools",
         "sha": "8fae8ce254",
-        "hash": "c74fa855f0edebbf25c9bce40b00966daa2447bfc5e15f0cf1a95f86cbf70fc6b02590707edbde16328a0a2a4fb9a1fc419d2dfc22a4a4150971be91892d4edb",
+        "hash": "db4a74ce15559c75e01d1868a90701519b655d77f2a343bbee283a42f8332dc9046960fb022dc969f205e457348a3f99cb8be6e1cd91264d2ae1235294b9f9b2",
         "patches": [
             "0001-linkerns-cpm.patch"
         ]
@@ -125,7 +125,7 @@
         "package": "SPIRV-Tools",
         "repo": "crueter/SPIRV-Tools",
         "sha": "2fa2d44485",
-        "hash": "45b198be1d09974ccb2438e8bfa5683f23a0421b058297c28eacfd77e454ec2cf87e77850eddd202efff34b004d8d6b4d12e9615e59bd72be904c196f5eb2169",
+        "hash": "3124bbddf7bd44f11445edeca6786b5bba9fb314f27dc087d0bbd9951b0936884ece2b9b40b75cfc8e31ab10ba55854e73aa63df835c40423b1c81dd47b1437d",
         "git_version": "2025.4",
         "options": [
             "SPIRV_SKIP_EXECUTABLES ON"
@@ -138,7 +138,7 @@
         "package": "SPIRV-Headers",
         "repo": "KhronosGroup/SPIRV-Headers",
         "sha": "01e0577914",
-        "hash": "d0f905311faf7d743de686fdf241dc4cb0a4f08e2184f5a3b3b2946e680db3cd89eeb72954eafe6fa457f93550e27d516575c8709cb134d8aecc0b43064636ce",
+        "hash": "e2b90e95b6f492e640cd27c090d7072f0d03c8fc7382be67cbe176fc8f3fdd78b59f5f0b906198e09808fde645427f409cb9ab8fe4843de7f7dc5b510d454a0a",
         "options": [
             "SPIRV_WERROR OFF"
         ]
@@ -146,7 +146,7 @@
     "cubeb": {
         "repo": "mozilla/cubeb",
         "sha": "fa02160712",
-        "hash": "82d808356752e4064de48c8fecbe7856715ade1e76b53937116bf07129fc1cc5b3de5e4b408de3cd000187ba8dc32ca4109661cb7e0355a52e54bd81b9be1c61",
+        "hash": "8a4bcb2f83ba590f52c66626e895304a73eb61928dbc57777e1822e55378e3568366f17f9da4b80036cc2ef4ea9723c32abf6e7d9bbe00fb03654f0991596ab0",
         "find_args": "CONFIG",
         "options": [
             "USE_SANITIZERS OFF",
@@ -181,7 +181,7 @@
         "package": "DiscordRPC",
         "repo": "eden-emulator/discord-rpc",
         "sha": "1cf7772bb6",
-        "hash": "e9b35e6f2c075823257bcd59f06fe7bb2ccce1976f44818d2e28810435ef79c712a3c4f20f40da41f691342a4058cf86b078eb7f9d9e4dae83c0547c21ec4f97",
+        "hash": "9a6c35887dcacceb4ba1bf3141edb73b05b2abc719a8d81dad9cb9dd5b039ce203946787335d9d738af669c10cf2534638b645635a22096fc28dcae2475e0cbe",
         "find_args": "MODULE"
     },
     "simpleini": {
@@ -206,7 +206,7 @@
         "package": "SDL2",
         "repo": "libsdl-org/SDL",
         "sha": "cc016b0046",
-        "hash": "34d5ef58da6a4f9efa6689c82f67badcbd741f5a4f562a9c2c30828fa839830fb07681c5dc6a7851520e261c8405a416ac0a2c2513b51984fb3b4fa4dcb3e20b",
+        "hash": "b8d9873446cdb922387471df9968e078714683046674ef0d0edddf8e25da65a539a3bae83d635496b970237f90b07b36a69f8d7855d450de59311d6d6e8c3dbc",
         "key": "steamdeck",
         "bundled": true,
         "skip_updates": "true"

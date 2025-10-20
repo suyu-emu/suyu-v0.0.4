@@ -7,4 +7,4 @@
 . tools/cpm/common.sh
 
 # shellcheck disable=SC2086
-tools/cpm/fetch.sh $LIBS
+tools/cpm/fetch.sh "$@" $LIBS

@@ -18,9 +18,33 @@ ROOTDIR="$PWD"
 
 TMP=$(mktemp -d)
 
-# shellcheck disable=SC2034
-for PACKAGE in "$@"
-do
+usage() {
+	cat << EOF
+Usage: $0 [PACKAGE]...
+Fetch the specified package or packages from their defined download locations.
+If the package is already cached, it will not be re-fetched.
+
+This project has defined the following as valid cpmfiles:
+EOF
+
+	for file in $CPMFILES; do
+		echo "- $file"
+	done
+
+	exit 0
+}
+
+while true; do
+	case "$1" in
+		(-h) usage ;;
+		("$0") break ;;
+		("") break ;;
+	esac
+
+	PACKAGE="$1"
+
+	shift
+
 	export PACKAGE
 	# shellcheck disable=SC1091
 	. tools/cpm/package.sh

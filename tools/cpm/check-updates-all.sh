@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 # SPDX-FileCopyrightText: 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -7,4 +7,4 @@
 . tools/cpm/common.sh
 
 # shellcheck disable=SC2086
-tools/cpm/check-updates.sh $LIBS
+tools/cpm/check-updates.sh "$@" $LIBS

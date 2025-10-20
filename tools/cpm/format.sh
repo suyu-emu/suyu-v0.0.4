@@ -6,10 +6,7 @@
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 
-# shellcheck disable=SC2086
-FILES=$(find $DIRS -maxdepth "$MAXDEPTH" -name cpmfile.json)
-
-for file in $FILES; do
+for file in $CPMFILES; do
     jq --indent 4 < "$file" > "$file".new
     mv "$file".new "$file"
 done

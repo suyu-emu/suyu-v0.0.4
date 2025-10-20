@@ -3,9 +3,6 @@
 # SPDX-FileCopyrightText: 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# env vars:
-# - UPDATE: fix hashes if needed
-
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 

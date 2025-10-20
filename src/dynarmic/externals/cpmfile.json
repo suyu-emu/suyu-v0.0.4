@@ -10,7 +10,7 @@
         "version": "0.1.12",
         "repo": "azahar-emu/mcl",
         "sha": "7b08d83418",
-        "hash": "f943bac39c1879986decad7a442ff4288eaeca4a2907684c7914e115a55ecc43c2782ded85c0835763fe04e40d5c82220ce864423e489e648e408a84f54dc4f3",
+        "hash": "9c6ba624cb22ef622f78046a82abb99bf5026284ba17dfacaf46ac842cbd3b0f515f5ba45a1598c7671318a78a2e648db72ce8d10e7537f34e39800bdcb57694",
         "options": [
             "MCL_INSTALL OFF"
         ],
@@ -22,14 +22,14 @@
         "package": "zycore",
         "repo": "zyantific/zycore-c",
         "sha": "75a36c45ae",
-        "hash": "15aa399f39713e042c4345bc3175c82f14dca849fde2a21d4f591f62c43e227b70d868d8bb86beb5f4eb68b1d6bd3792cdd638acf89009e787e3d10ee7401924"
+        "hash": "e1cf9bdd3163b6429eba94d0f9f82e343de33b77a838748f598c719913c9f91c502b818e37b716e174b55a3a26cdf39d665c4b50a548255973ac287c0e554fb6"
     },
     "zydis": {
         "package": "zydis",
         "version": "4",
         "repo": "zyantific/zydis",
         "sha": "c2d2bab025",
-        "hash": "7b48f213ff7aab2926f8c9c65195959143bebbfb2b9a25051ffd8b8b0f1baf1670d9739781de674577d955925f91ac89376e16b476a03828c84e2fd765d45020",
+        "hash": "3808773593536f78d3ddaf4cf712101d3fb6d981c6cc55555ad686a9adbe3397a727f62f561e8d8755bdcd88a763777da30281cc2924fc160b0386c3f99f5bd9",
         "options": [
             "ZYDIS_BUILD_TOOLS OFF",
             "ZYDIS_BUILD_EXAMPLES OFF",

@@ -3,9 +3,6 @@
 # SPDX-FileCopyrightText: 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# env vars:
-# - UPDATE: fix hashes if needed
-
 # shellcheck disable=SC1091
 . tools/cpm/common.sh
 
@@ -14,7 +11,7 @@
 # shellcheck disable=SC2153
 JSON=$(echo "$PACKAGES" | jq -r ".\"$PACKAGE\" | select( . != null )")
 
-[ -z "$JSON" ] && echo "!! No cpmfile definition for $PACKAGE" && exit 1
+[ -z "$JSON" ] && echo "!! No cpmfile definition for $PACKAGE" >&2 && exit 1
 
 # unset stuff
 export PACKAGE_NAME="null"
@@ -134,13 +131,13 @@ elif [ "$REPO" != "null" ]; then
 			DOWNLOAD="${GIT_URL}/archive/refs/tags/${TAG}.tar.gz"
 		fi
 	elif [ "$SHA" != "null" ]; then
-		DOWNLOAD="${GIT_URL}/archive/${SHA}.zip"
+		DOWNLOAD="${GIT_URL}/archive/${SHA}.tar.gz"
 	else
 		if [ "$BRANCH" = null ]; then
 			BRANCH=master
 		fi
 
-		DOWNLOAD="${GIT_URL}/archive/refs/heads/${BRANCH}.zip"
+		DOWNLOAD="${GIT_URL}/archive/refs/heads/${BRANCH}.tar.gz"
 	fi
 else
 	echo "!! No repo or URL defined for $PACKAGE"

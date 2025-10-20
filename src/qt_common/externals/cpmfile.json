@@ -3,7 +3,7 @@
         "package": "QuaZip-Qt6",
         "repo": "crueter/quazip-qt6",
         "sha": "f838774d63",
-        "hash": "9f629a438699801244a106c8df6d5f8f8d19e80df54f530a89403a10c8c4e37a6e95606bbdd307f23636961e8ce34eb37a2186d589a1f227ac9c8e2c678e326e",
+        "hash": "e8f950f47c1f358e2666f08517a9b5b06980677540d3836384e2c27ff5bb129b218f1502b03fdb207d7fd4cd56893f0a0d9094ba8309f19a49cb11e3bb911594",
         "version": "1.3",
         "options": [
             "QUAZIP_INSTALL OFF"
@@ -13,6 +13,6 @@
         "package": "frozen",
         "repo": "serge-sans-paille/frozen",
         "sha": "61dce5ae18",
-        "hash": "1ae3d073e659c1f24b2cdd76379c90d6af9e06bc707d285a4fafce05f7a4c9e592ff208c94a9ae0f0d07620b3c6cec191f126b03d70ad4dfa496a86ed5658a6d"
+        "hash": "b8dfe741c82bc178dfc9749d4ab5a130cee718d9ee7b71d9b547cf5f7f23027ed0152ad250012a8546399fcc1e12187efc68d89d6731256c4d2df7d04eef8d5c"
     }
 }
