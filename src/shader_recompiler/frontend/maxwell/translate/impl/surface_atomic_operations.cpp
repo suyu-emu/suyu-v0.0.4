@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -65,12 +68,19 @@ TextureType GetType(Type type) {
 }
 
 IR::Value MakeCoords(TranslatorVisitor& v, IR::Reg reg, Type type) {
+    const auto array{[&](int index) {
+        return v.ir.BitFieldExtract(v.X(reg + index), v.ir.Imm32(0), v.ir.Imm32(16));
+    }};
     switch (type) {
     case Type::_1D:
     case Type::BUFFER_1D:
         return v.X(reg);
+    case Type::ARRAY_1D:
+        return v.ir.CompositeConstruct(v.X(reg), array(1));
     case Type::_2D:
         return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1));
+    case Type::ARRAY_2D:
+        return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1), array(2));
     case Type::_3D:
         return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1), v.X(reg + 2));
     default:
