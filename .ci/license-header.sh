@@ -1,74 +1,152 @@
 #!/bin/sh -e
 
-HEADER="$(cat "$PWD/.ci/license/header.txt")"
-HEADER_HASH="$(cat "$PWD/.ci/license/header-hash.txt")"
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-echo "Getting branch changes"
+# specify full path if dupes may exist
+EXCLUDE_FILES="CPM.cmake CPMUtil.cmake GetSCMRev.cmake sse2neon.h renderdoc_app.h tools/cpm externals/stb externals/glad externals/getopt externals/gamemode externals/FidelityFX-FSR externals/demangle externals/bc_decoder"
 
-# BRANCH=`git rev-parse --abbrev-ref HEAD`
-# COMMITS=`git log ${BRANCH} --not master --pretty=format:"%h"`
-# RANGE="${COMMITS[${#COMMITS[@]}-1]}^..${COMMITS[0]}"
-# FILES=`git diff-tree --no-commit-id --name-only ${RANGE} -r`
+# license header constants, please change when needed :))))
+YEAR=2025
+HOLDER="Eden Emulator Project"
+LICENSE="GPL-3.0-or-later"
 
-BASE=`git merge-base master HEAD`
-FILES=`git diff --name-only $BASE`
+usage() {
+	cat << EOF
+Usage: $0 [uc]
+Compares the current HEAD to the master branch to check for license
+header discrepancies. Each file changed in a branch MUST have a
+license header, and this script attempts to enforce that.
 
-#FILES=$(git diff --name-only master)
+Options:
+    -u, --update	Fix license headers, if applicable;
+                	if the license header exists but has the incorrect
+                	year or is otherwise malformed, it will be fixed.
 
-echo "Done"
+    -c, --commit	Commit changes to Git (requires --update)
+
+Copyright $YEAR $HOLDER
+Licensed under $LICENSE
+
+The following files/directories are marked as external
+and thus will not have license headers asserted:
+EOF
+
+	for file in $EXCLUDE_FILES; do
+		echo "- $file"
+	done
+
+	exit 0
+}
+
+while true; do
+	case "$1" in
+		(-uc) UPDATE=true; COMMIT=true ;;
+		(-u|--update) UPDATE=true ;;
+		(-c|--commit) COMMIT=true ;;
+		("$0") break ;;
+		("") break ;;
+		(*) usage ;;
+	esac
+
+	shift
+done
+
+# human-readable header string
+header() {
+	header_line1 "$1"
+	header_line2 "$1"
+}
+
+header_line1() {
+	echo "$1 SPDX-FileCopyrightText: Copyright $YEAR $HOLDER"
+}
+
+header_line2() {
+	echo "$1 SPDX-License-Identifier: $LICENSE"
+}
+
+# PCRE header string
+pcre_header() {
+	begin="$1"
+	echo "(?s)$(header_line1 "$begin").*$(header_line2 "$begin")"
+}
 
 check_header() {
-    CONTENT="`head -n3 < $1`"
-    case "$CONTENT" in
-        "$HEADER"*) ;;
-        *) BAD_FILES="$BAD_FILES $1" ;;
-    esac
+	begin="$1"
+	file="$2"
+    content="$(head -n5 < "$2")"
+
+	header="$(pcre_header "$begin")"
+
+	if ! echo "$content" | grep -Pzo "$header" > /dev/null; then
+		# SRC_FILES is Kotlin/C++
+		# OTHER_FILES is sh, CMake
+		case "$begin" in
+			"//")
+				SRC_FILES="$SRC_FILES $file"
+				;;
+			"#")
+				OTHER_FILES="$OTHER_FILES $file"
+				;;
+		esac
+	fi
 }
 
-check_cmake_header() {
-    CONTENT="`head -n3 < $1`"
+BASE=$(git merge-base master HEAD)
+FILES=$(git diff --name-only "$BASE")
 
-    case "$CONTENT" in
-        "$HEADER_HASH"*) ;;
-        *)
-            BAD_CMAKE="$BAD_CMAKE $1" ;;
-    esac
-}
 for file in $FILES; do
     [ -f "$file" ] || continue
 
-    if [ `basename -- "$file"` = "CMakeLists.txt" ]; then
-        check_cmake_header "$file"
-        continue
-    fi
+	# skip files that are third party (crueter's CMake modules, sse2neon, etc)
+	for pattern in $EXCLUDE_FILES; do
+		case "$file" in
+			*"$pattern"*)
+				excluded=true
+				continue
+				;;
+			*)
+				excluded=false
+				;;
+		esac
+	done
 
-    EXTENSION="${file##*.}"
-    case "$EXTENSION" in
-        kts|kt|cpp|h)
-            check_header "$file"
-            ;;
-        cmake)
-            check_cmake_header "$file"
-            ;;
+	[ "$excluded" = "true" ] && continue
+
+	case "$file" in
+		*.cmake|*.sh|CMakeLists.txt)
+			begin="#"
+			;;
+		*.kt*|*.cpp|*.h)
+			begin="//"
+			;;
+		*)
+			continue
+			;;
     esac
+
+	check_header "$begin" "$file"
 done
 
-if [ "$BAD_FILES" = "" ] && [ "$BAD_CMAKE" = "" ]; then
-    echo
-    echo "All good."
+if [ -z "$SRC_FILES" ] && [ -z "$OTHER_FILES" ]; then
+    echo "-- All good."
 
     exit
 fi
 
-if [ "$BAD_FILES" != "" ]; then
-    echo "The following source files have incorrect license headers:"
-    echo
+echo
 
-    for file in $BAD_FILES; do echo $file; done
+if [ "$SRC_FILES" != "" ]; then
+    echo "-- The following source files have incorrect license headers:"
+
+	HEADER=$(header "//")
+
+    for file in $SRC_FILES; do echo "-- * $file"; done
 
     cat << EOF
 
-The following license header should be added to the start of all offending SOURCE files:
+-- The following license header should be added to the start of these offending files:
 
 === BEGIN ===
 $HEADER
@@ -78,18 +156,19 @@ EOF
 
 fi
 
-if [ "$BAD_CMAKE" != "" ]; then
-    echo "The following CMake files have incorrect license headers:"
-    echo
+if [ "$OTHER_FILES" != "" ]; then
+    echo "-- The following CMake and shell scripts have incorrect license headers:"
 
-    for file in $BAD_CMAKE; do echo $file; done
+	HEADER=$(header "#")
+
+    for file in $OTHER_FILES; do echo "-- * $file"; done
 
     cat << EOF
 
-The following license header should be added to the start of all offending CMake files:
+-- The following license header should be added to the start of these offending files:
 
 === BEGIN ===
-$HEADER_HASH
+$HEADER
 ===  END  ===
 
 EOF
@@ -97,50 +176,76 @@ EOF
 fi
 
 cat << EOF
-If some of the code in this PR is not being contributed by the original author,
-the files which have been exclusively changed by that code can be ignored.
-If this happens, this PR requirement can be bypassed once all other files are addressed.
+    If some of the code in this PR is not being contributed by the original author,
+    the files which have been exclusively changed by that code can be ignored.
+    If this happens, this PR requirement can be bypassed once all other files are addressed.
+
 EOF
 
-if [ "$FIX" = "true" ]; then
-    echo
-    echo "FIX set to true. Fixing headers."
-    echo
+if [ "$UPDATE" = "true" ]; then
+	TMP_DIR=$(mktemp -d)
+	echo "-- Fixing headers..."
 
-    for file in $BAD_FILES; do
-        cat $file > $file.bak
+	for file in $SRC_FILES $OTHER_FILES; do
+		case $(basename -- "$file") in
+			*.cmake|CMakeLists.txt)
+				begin="#"
+				shell="false"
+				;;
+			*.sh)
+				begin="#"
+				shell=true
+				;;
+			*.kt*|*.cpp|*.h)
+				begin="//"
+				shell="false"
+				;;
+		esac
 
-        cat .ci/license/header.txt > $file
-        echo >> $file
-        cat $file.bak >> $file
+		# This is fun
+		match="$begin SPDX-FileCopyrightText.*$HOLDER"
 
-        rm $file.bak
+		# basically if the copyright holder is already defined we can just replace the year
+		if head -n5 < "$file" | grep -e "$match" >/dev/null; then
+			replace=$(header_line1 "$begin")
+			sed "s|$match|$replace|" "$file" > "$file".bak
+			mv "$file".bak "$file"
+		else
+			header "$begin" > "$TMP_DIR"/header
 
-        git add $file
-    done
+			if [ "$shell" = "true" ]; then
+				# grab shebang
+				head -n1 "$file" > "$TMP_DIR/shebang"
+				echo >> "$TMP_DIR/shebang"
 
-    for file in $BAD_CMAKE; do
-        cat $file > $file.bak
+				# remove shebang
+				sed '1d' "$file" > "$file".bak
+				mv "$file".bak "$file"
 
-        cat .ci/license/header-hash.txt > $file
-        echo >> $file
-        cat $file.bak >> $file
+				# add to header
+				cat "$TMP_DIR"/shebang "$TMP_DIR"/header > "$TMP_DIR"/new-header
+				mv "$TMP_DIR"/new-header "$TMP_DIR"/header
+			else
+				echo >> "$TMP_DIR/header"
+			fi
 
-        rm $file.bak
+			cat "$TMP_DIR"/header "$file" > "$file".bak
+			mv "$file".bak "$file"
+		fi
 
-        git add $file
-    done
-    echo "License headers fixed."
+		[ "$shell" = "true" ] && chmod a+x "$file"
+		[ "$COMMIT" = "true" ] && git add "$file"
+	done
 
-    if [ "$COMMIT" = "true" ]; then
-        echo
-        echo "COMMIT set to true. Committing changes."
-        echo
-
-        git commit -m "Fix license headers"
-
-        echo "Changes committed. You may now push."
-    fi
-else
-    exit 1
+	echo "-- Done"
 fi
+
+if [ "$COMMIT" = "true" ]; then
+	echo "-- Committing changes"
+
+	git commit -m "Fix license headers"
+
+	echo "-- Changes committed. You may now push."
+fi
+
+[ -d "$TMP_DIR" ] && rm -rf "$TMP_DIR"

@@ -6,18 +6,20 @@ All commits must have proper license header accreditation.
 You can easily add all necessary license headers by running:
 ```sh
 git fetch origin master:master
-FIX=true COMMIT=true .ci/license-header.sh
+.ci/license-header.sh -u -c
 git push
 ```
 
-Alternatively, you may omit `COMMIT=true` and do an amend commit:
+Alternatively, you may omit `-c` and do an amend commit:
 ```sh
 git fetch origin master:master
-FIX=true .ci/license-header.sh
+.ci/license-header.sh
 git commit --amend -a --no-edit
 ```
 
 If the work is licensed/vendored from other people or projects, you may omit the license headers. Additionally, if you wish to retain authorship over a piece of code, you may attribute it to yourself; however, the code may be changed at any given point and brought under the attribution of Eden.
+
+For more information on the license header script, run `.ci/license-header.sh -h`.
 
 ## Pull Requests
 Pull requests are only to be merged by core developers when properly tested and discussions conclude on Discord or other communication channels. Labels are recommended but not required. However, all PRs MUST be namespaced and optionally typed:
