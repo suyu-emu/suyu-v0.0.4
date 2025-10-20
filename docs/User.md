@@ -8,3 +8,4 @@ This handbook is primarily aimed at the end-user - baking useful knowledge for e
 - **[Audio](user/Audio.md)**
 - **[Graphics](user/Graphics.md)**
 - **[Platforms and Architectures](user/Architectures.md)**
+- **[Testing](user/Testing.md)**
