@@ -22,7 +22,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -457,8 +457,14 @@ class GamePropertiesFragment : Fragment() {
             }
         }
         binding.listProperties.apply {
-            layoutManager =
-                GridLayoutManager(requireContext(), resources.getInteger(R.integer.grid_columns))
+            val spanCount = resources.getInteger(R.integer.grid_columns)
+            val staggered = StaggeredGridLayoutManager(
+                spanCount,
+                StaggeredGridLayoutManager.VERTICAL
+            ).apply {
+                gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS
+            }
+            layoutManager = staggered
             adapter = GamePropertiesAdapter(viewLifecycleOwner, properties)
         }
     }
