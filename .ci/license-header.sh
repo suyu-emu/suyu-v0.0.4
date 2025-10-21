@@ -66,20 +66,18 @@ header_line2() {
 	echo "$1 SPDX-License-Identifier: $LICENSE"
 }
 
-# PCRE header string
-pcre_header() {
-	begin="$1"
-	echo "(?s)$(header_line1 "$begin").*$(header_line2 "$begin")"
-}
-
 check_header() {
 	begin="$1"
 	file="$2"
-    content="$(head -n5 < "$2")"
 
-	header="$(pcre_header "$begin")"
+	# separate things out as spaces to make our lives 100000000x easier
+    content="$(head -n5 < "$2" | tr '\n' ' ')"
 
-	if ! echo "$content" | grep -Pzo "$header" > /dev/null; then
+	line1="$(header_line1 "$begin")"
+	line2="$(header_line2 "$begin")"
+
+	# perl and awk are actually awful, so to avoid this problem we avoid it by avoiding it
+	if ! echo "$content" | grep -o "$line1 $line2" >/dev/null; then
 		# SRC_FILES is Kotlin/C++
 		# OTHER_FILES is sh, CMake
 		case "$begin" in
