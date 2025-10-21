@@ -553,7 +553,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(ScalingFilter, Gaussian, tr("Gaussian")),
                               PAIR(ScalingFilter, Lanczos, tr("Lanczos")),
                               PAIR(ScalingFilter, ScaleForce, tr("ScaleForce")),
-                              PAIR(ScalingFilter, Fsr, tr("AMD FidelityFX™️ Super Resolution")),
+                              PAIR(ScalingFilter, Fsr, tr("AMD FidelityFX Super Resolution")),
                               PAIR(ScalingFilter, Area, tr("Area")),
                               PAIR(ScalingFilter, Mmpx, tr("MMPX")),
                               PAIR(ScalingFilter, ZeroTangent, tr("Zero-Tangent")),

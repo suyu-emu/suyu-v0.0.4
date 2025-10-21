@@ -316,7 +316,7 @@ private:
             g_last_scan_results = scan_results;
         }
 
-        // ❸ choose result code
+        // choose result code
         const bool ok = !scan_results.empty();
         Finish(ok ? ResultSuccess : ResultPendingConnection);
     }

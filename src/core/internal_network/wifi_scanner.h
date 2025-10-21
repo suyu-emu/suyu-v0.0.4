@@ -16,7 +16,7 @@ struct ScanData {
     u8 quality{};
     u32 flags{};
 };
-static_assert(sizeof(ScanData) <= 0x2C, "ScanData layout changed – update conversions!");
+static_assert(sizeof(ScanData) <= 0x2C, "ScanData layout changed - update conversions!");
 
 std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline);
 }

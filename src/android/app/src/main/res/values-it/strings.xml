@@ -788,7 +788,7 @@
     <string name="scaling_filter_bicubic">Bicubico</string>
     <string name="scaling_filter_gaussian">Gaussiano</string>
     <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™️ Super Resolution</string>
+    <string name="scaling_filter_fsr">AMD FidelityFX Super Resolution</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Nessuna</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
