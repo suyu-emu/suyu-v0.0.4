@@ -84,8 +84,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Velo di Eden</string>
     <string name="eden_veil_description">Impostazioni sperimentali per migliorare prestazioni e capacità. Queste impostazioni possono causare schermate nere o altri problemi di gioco.</string>
-    <string name="eden_veil_warning_title">Impostazioni sperimentali</string>
-    <string name="eden_veil_warning_description">Le impostazioni nel Velo di Eden sono altamente sperimentali e possono causare problemi. Se il gioco non si avvia, disabilita tutte le estensioni.</string>
 
     <string name="veil_extensions">Estensioni GPU</string>
     <string name="dyna_state">Stato dinamico esteso</string>
@@ -252,8 +250,6 @@
     <string name="back">Indietro</string>
     <string name="add_games">Aggiungi giochi</string>
     <string name="step_complete">Completato!</string>
-    <string name="bluetooth_permissions_granted">Permessi Bluetooth concessi.</string>
-    <string name="bluetooth_permissions_denied">Permessi Bluetooth negati. Il supporto del controller potrebbe essere limitato.</string>
 
     <!-- Home strings -->
 
@@ -262,8 +258,6 @@
     <string name="view_grid">Griglia</string>
     <string name="view_carousel">Carosello</string>
     <string name="folder">Cartella</string>
-    <string name="pre_alpha_warning_title">Software Pre-Alpha</string>
-    <string name="pre_alpha_warning_description">AVVISO: Questa versione non è per uso pubblico. Il software è in fase pre-alpha e può contenere bug e funzionalità incomplete.\nSe hai accesso non autorizzato a questa versione, si consiglia di disinstallarla immediatamente.</string>
     <string name="dont_show_again">Non mostrare più</string>
     <string name="add_directory_success">Nuova directory di gioco aggiunta correttamente </string>
     <string name="home_search">Cerca</string>

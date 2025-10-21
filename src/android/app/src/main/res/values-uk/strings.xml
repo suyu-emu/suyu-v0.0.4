@@ -84,8 +84,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Завіса Eden</string>
     <string name="eden_veil_description">Експериментальні налаштування для покращення продуктивності та сумісності. Ці налаштування можуть викликати збої, зокрема чорний екран.</string>
-    <string name="eden_veil_warning_title">Експериментальні налаштування</string>
-    <string name="eden_veil_warning_description">Налаштування Завіси Eden є експериментальними та можуть спричинити проблеми. Якщо ваша гра не запускається — вимкніть усі розширення.</string>
 
     <string name="veil_extensions">Розширення GPU</string>
     <string name="dyna_state">Розширений динамічний стан</string>
@@ -253,8 +251,6 @@
     <string name="back">Назад</string>
     <string name="add_games">Додати ігри</string>
     <string name="step_complete">Завершено!</string>
-    <string name="bluetooth_permissions_granted">Дозволи Bluetooth надано.</string>
-    <string name="bluetooth_permissions_denied">Дозволи Bluetooth відхилено. Підтримка контролерів може бути обмежена.</string>
 
     <!-- Home strings -->
 
@@ -265,8 +261,6 @@
     <string name="view_carousel">Карусель</string>
     <string name="game_image_desc">Скріншот для %1$s</string>
     <string name="folder">Тека</string>
-    <string name="pre_alpha_warning_title">Попередня версія</string>
-    <string name="pre_alpha_warning_description">УВАГА: Ця версія не призначена для публічного використання. Програмне забезпечення знаходиться на ранній стадії розробки та може містити помилки.</string>
     <string name="dont_show_again">Більше не показувати</string>
     <string name="add_directory_success">Нову теку з іграми успішно додано</string>
     <string name="home_search">Пошук</string>

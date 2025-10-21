@@ -84,8 +84,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Voile d\'Eden</string>
     <string name="eden_veil_description">Paramètres expérimentaux pour améliorer les performances et les capacités. Ces paramètres peuvent causer des écrans noirs ou d\'autres problèmes de jeu.</string>
-    <string name="eden_veil_warning_title">Paramètres expérimentaux</string>
-    <string name="eden_veil_warning_description">Les paramètres du Voile d\'Eden sont très expérimentaux et peuvent causer des problèmes. Si votre jeu ne démarre pas, désactivez toutes les extensions.</string>
 
     <string name="veil_extensions">Extensions GPU</string>
     <string name="dyna_state">État dynamique étendu</string>
@@ -253,8 +251,6 @@
     <string name="back">Retour</string>
     <string name="add_games">Ajouter des jeux</string>
     <string name="step_complete">Terminé !</string>
-    <string name="bluetooth_permissions_granted">Autorisations Bluetooth accordées.</string>
-    <string name="bluetooth_permissions_denied">Autorisations Bluetooth refusées. Le support des contrôleurs peut être limité.</string>
 
     <!-- Home strings -->
 
@@ -265,8 +261,6 @@
     <string name="view_carousel">Carrousel</string>
     <string name="game_image_desc">Captures d\'écran pour %1$s</string>
     <string name="folder">Dossier</string>
-    <string name="pre_alpha_warning_title">Logiciel Pré-Alpha</string>
-    <string name="pre_alpha_warning_description">AVERTISSEMENT : Cette version ne doit pas être partagée ou montrée au public. Ce logiciel est en phase pré-alpha et peut contenir des bugs et des fonctionnalités incomplètes.\nSi vous avez obtenu un accès non autorisé à cette version, il est fortement recommandé de la désinstaller immédiatement.</string>
     <string name="dont_show_again">Ne plus afficher</string>
     <string name="add_directory_success">Nouveau dossier de jeux ajouté</string>
     <string name="home_search">Rechercher</string>

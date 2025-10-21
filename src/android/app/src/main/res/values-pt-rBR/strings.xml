@@ -84,8 +84,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Véu do Éden</string>
     <string name="eden_veil_description">Configurações experimentais que podem melhorar a performance e recursos do emulador. Essas configurações podem causar telas pretas ou outros problemas durante o jogo.</string>
-    <string name="eden_veil_warning_title">Configurações Experimentais</string>
-    <string name="eden_veil_warning_description">As configurações no Véu do Éden são altamente experimentais e podem causar problemas. Se o jogo não iniciar corretamente, desative todas as extensões.\nAlgumas configurações podem estar com nome em inglês para garantir um melhor suporte.</string>
 
     <string name="veil_extensions">Extensões da GPU</string>
     <string name="dyna_state">Extended Dynamic State</string>
@@ -253,8 +251,6 @@
     <string name="back">Voltar</string>
     <string name="add_games">Adicionar Jogos</string>
     <string name="step_complete">Concluído!</string>
-    <string name="bluetooth_permissions_granted">Permissões do Bluetooth concedidas.</string>
-    <string name="bluetooth_permissions_denied">Permissões do Bluetooth foram negadas. O suporte a controles pode ser limitado.</string>
 
     <!-- Home strings -->
 
@@ -265,8 +261,6 @@
     <string name="view_carousel">Carrossel</string>
     <string name="game_image_desc">Captura de tela para %1$s</string>
     <string name="folder">Pasta</string>
-    <string name="pre_alpha_warning_title">Versão Pre-Alpha</string>
-    <string name="pre_alpha_warning_description">AVISO: Este software está em estágio pré-alpha e pode apresentar erros e funcionalidades incompletas.</string>
     <string name="dont_show_again">Não Mostrar Novamente</string>
     <string name="add_directory_success">Nova pasta de jogos adicionada com sucesso</string>
     <string name="home_search">Pesquisar</string>

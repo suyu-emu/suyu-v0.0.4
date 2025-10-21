@@ -84,8 +84,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Eden\'s Veil</string>
     <string name="eden_veil_description">Pengaturan eksperimental untuk meningkatkan kinerja dan kemampuan. Pengaturan ini dapat menyebabkan layar hitam atau masalah game lainnya.</string>
-    <string name="eden_veil_warning_title">Pengaturan Eksperimental</string>
-    <string name="eden_veil_warning_description">Pengaturan di Eden\'s Veil sangat eksperimental dan dapat menyebabkan masalah. Jika game tidak mau berjalan, nonaktifkan semua ekstensi.</string>
 
     <string name="veil_extensions">Ekstensi GPU</string>
     <string name="dyna_state">Status Dinamis Ekstensi</string>
@@ -253,8 +251,6 @@
     <string name="back">Kembali</string>
     <string name="add_games">Tambahkan permainan</string>
     <string name="step_complete">Selesai!</string>
-    <string name="bluetooth_permissions_granted">Izin Bluetooth diberikan.</string>
-    <string name="bluetooth_permissions_denied">Izin Bluetooth ditolak. Dukungan controller mungkin terbatas.</string>
 
     <!-- Home strings -->
 
@@ -265,8 +261,6 @@
     <string name="view_carousel">Karousel</string>
     <string name="game_image_desc">Tangkap layar untuk %1$s</string>
     <string name="folder">Folder</string>
-    <string name="pre_alpha_warning_title">Perangkat Lunak Pre-Alpha</string>
-    <string name="pre_alpha_warning_description">PERINGATAN: Build ini tidak dimaksudkan untuk dibagikan atau ditunjukkan ke publik. Perangkat lunak ini dalam tahap pre-alpha dan mungkin memiliki bug dan fitur yang belum lengkap. \nJika Anda mendapatkan akses tidak sah ke build ini; sangat disarankan untuk mencopotnya segera</string>
     <string name="dont_show_again">Jangan Tampilkan Lagi</string>
     <string name="add_directory_success">Direktori permainan baru berhasil ditambahkan</string>
     <string name="home_search">Cari</string>

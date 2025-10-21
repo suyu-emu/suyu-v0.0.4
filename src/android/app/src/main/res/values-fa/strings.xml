@@ -66,8 +66,6 @@
     <string name="veil_misc">پردازنده و حافظه</string>
     <string name="eden_veil">پرده عدن</string>
     <string name="eden_veil_description">تنظیمات آزمایشی برای بهبود عملکرد و قابلیت. این تنظیمات ممکن است باعث نمایش صفحه سیاه یا سایر مشکلات بازی شود.</string>
-    <string name="eden_veil_warning_title">تنظیمات آزمایشی</string>
-    <string name="eden_veil_warning_description">تنظیمات موجود در پرده عدن بسیار آزمایشی هستند و ممکن است باعث مشکلاتی شوند. اگر بازی شما اجرا نمی‌شود، همه پسوندها را غیرفعال کنید.</string>
     <string name="frame_skipping">در حال توسعه: رد کردن فریم‌ها</string>
     <string name="frame_skipping_description">با فعال کردن رد کردن فریم‌ها، عملکرد را با کاهش تعداد فریم‌های رندر شده بهبود دهید. این قابلیت در حال توسعه است و در نسخه‌های آینده فعال خواهد شد.</string>
     <string name="frame_interpolation">زمان‌بندی پیشرفته فریم‌ها</string>
@@ -290,8 +288,6 @@
     <string name="back">قبلی</string>
     <string name="add_games">افزودن بازی‌ها</string>
     <string name="step_complete">تکمیل شد!</string>
-    <string name="bluetooth_permissions_granted">مجوزهای بلوتوث اعطا شد.</string>
-    <string name="bluetooth_permissions_denied">مجوزهای بلوتوث رد شد. پشتیبانی کنترلر ممکن است محدود باشد.</string>
 
     <!-- Home strings -->
     <string name="alphabetical">الفبایی</string>
@@ -299,8 +295,6 @@
     <string name="view_grid">گرید</string>
     <string name="view_carousel">کاروسل</string>
     <string name="folder">پوشه</string>
-    <string name="pre_alpha_warning_title">نرم‌افزار پیش‌آلفا</string>
-    <string name="pre_alpha_warning_description">هشدار: این نسخه برای استفاده عمومی نیست. ممکن است دارای اشکالات باشد.</string>
     <string name="dont_show_again">عدم نمایش مجدد</string>
     <string name="add_directory_success">پوشه بازی با موفقیت اضافه شد</string>
     <string name="home_search">جستجو</string>

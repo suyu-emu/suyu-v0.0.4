@@ -84,8 +84,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Zasłona Edenu</string>
     <string name="eden_veil_description">Eksperymentalne ustawienia poprawiające wydajność i możliwości. Te ustawienia mogą powodować czarne ekrany lub inne problemy z grą.</string>
-    <string name="eden_veil_warning_title">Ustawienia eksperymentalne</string>
-    <string name="eden_veil_warning_description">Ustawienia w Zasłona Edenu są wysoce eksperymentalne i mogą powodować problemy. Jeśli gra się nie uruchamia, wyłącz wszystkie rozszerzenia.</string>
 
     <string name="veil_extensions">Rozszerzenia GPU</string>
     <string name="dyna_state">Rozszerzony stan dynamiczny</string>
@@ -253,8 +251,6 @@
     <string name="back">Wstecz</string>
     <string name="add_games">Dodaj gry</string>
     <string name="step_complete">Gotowe!</string>
-    <string name="bluetooth_permissions_granted">Uprawnienia Bluetooth przyznane.</string>
-    <string name="bluetooth_permissions_denied">Uprawnienia Bluetooth odrzucone. Obsługa kontrolera może być ograniczona.</string>
 
     <!-- Home strings -->
 
@@ -265,8 +261,6 @@
     <string name="view_carousel">Karuzela</string>
     <string name="game_image_desc">Zrzut ekranu dla %1$s</string>
     <string name="folder">Folder</string>
-    <string name="pre_alpha_warning_title">Oprogramowanie w fazie pre-alfa</string>
-    <string name="pre_alpha_warning_description">UWAGA: Ta wersja nie jest przeznaczona do publicznego udostępniania. Może zawierać błędy i niekompletne funkcje.\nJeśli masz do niej nieautoryzowany dostęp, zaleca się natychmiastową deinstalację.</string>
     <string name="dont_show_again">Nie pokazuj ponownie</string>
     <string name="add_directory_success">Pomyślnie dodano nowy katalog gier</string>
     <string name="home_search">Szukaj</string>

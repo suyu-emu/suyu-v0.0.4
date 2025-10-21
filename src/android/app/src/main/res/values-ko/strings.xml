@@ -62,8 +62,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">에덴의 베일</string>
     <string name="eden_veil_description">성능 및 기능을 향상시키기 위한 실험적 설정. 이 설정은 검은 화면 또는 기타 게임 문제를 일으킬 수 있습니다.</string>
-    <string name="eden_veil_warning_title">실험적 설정</string>
-    <string name="eden_veil_warning_description">에덴의 베일에 포함된 설정은 매우 실험적이며 문제가 발생할 수 있습니다. 게임이 시작되지 않으면 확장 기능을 비활성화하세요.</string>
 
     <string name="veil_extensions">GPU 확장 기능</string>
     <string name="dyna_state">확장 동적 상태</string>
@@ -229,8 +227,6 @@
     <string name="back">이전</string>
     <string name="add_games">게임 추가</string>
     <string name="step_complete">완료되었습니다!</string>
-    <string name="bluetooth_permissions_granted">블루투스 권한이 허용되었습니다.</string>
-    <string name="bluetooth_permissions_denied">블루투스 권한이 거부되었습니다. 컨트롤러 지원이 제한될 수 있습니다.</string>
 
     <!-- Home strings -->
 
@@ -239,8 +235,6 @@
     <string name="view_grid">격자</string>
     <string name="view_carousel">캐러셀</string>
     <string name="folder">폴더</string>
-    <string name="pre_alpha_warning_title">프리-알파 소프트웨어</string>
-    <string name="pre_alpha_warning_description">경고: 이 빌드는 공개용이 아닙니다. 이 소프트웨어는 프리-알파 단계이며 버그 및 미완성 기능이 있을 수 있습니다. \n무단으로 이 빌드를 획득한 경우 즉시 삭제하는 것이 좋습니다.</string>
     <string name="dont_show_again">다시 보지 않기</string>
     <string name="home_search">검색</string>
     <string name="home_settings">설정</string>

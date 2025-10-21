@@ -62,8 +62,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">ڕێکخستنە تاقیکارییەکان بۆ باشترکردنی کارایی و توانا. ئەم ڕێکخستنانە لەوانەیە ببێتە هۆی شاشە ڕەشەکان یان کێشەیتری یاری.</string>
-    <string name="eden_veil_warning_title">ڕێکخستنە تاقیکارییەکان</string>
-    <string name="eden_veil_warning_description">ڕێکخستنەکانی ناو پردی عەدن زۆر تاقیکارییە و ڕەنگە کێشە دروست بکات. ئەگەر یارییەکەت کارینەکات، هەموو زیادکراوەکان ناچالاک بکە.</string>
 
     <string name="veil_extensions">پاشکۆکانی GPU</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
@@ -228,8 +226,6 @@
     <string name="next">دواتر</string>
     <string name="back">گەڕانەوە</string>
     <string name="add_games">زیادکردنی یاری</string>
-    <string name="bluetooth_permissions_granted">مۆڵەتی بلوتۆس درا.</string>
-    <string name="bluetooth_permissions_denied">مۆڵەتی بلوتۆس ڕەتکرایەوە. پشتیوانی کۆنتڕۆڵەر دەکرێت سنوردار بێت.</string>
 
     <!-- Home strings -->
 
@@ -238,8 +234,6 @@
     <string name="view_grid">تۆڕ</string>
     <string name="view_carousel">کارۆسێل</string>
     <string name="folder">فۆڵدەر</string>
-    <string name="pre_alpha_warning_title">نەرمەکاڵای پێش-ئەلفا</string>
-    <string name="pre_alpha_warning_description">ئاگاداری: ئەم وەشانە بۆ بڵاوکردنەوە یان پیشاندانی گشتی نییە. ئەم نەرمەکاڵایە لە قۆناغی پێش-ئەلفادایە و لەوانەیە هەڵەی تێدا بێت.</string>
     <string name="dont_show_again">دووبارە نیشان مەدە</string>
     <string name="home_search">گەڕان</string>
     <string name="home_settings">ڕێکخستنەکان</string>

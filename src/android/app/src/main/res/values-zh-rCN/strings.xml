@@ -65,7 +65,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">伊甸之幕</string>
     <string name="eden_veil_description">实验性设置以提高性能和能力。这些设置可能会导致黑屏或其他游戏问题。</string>
-    <string name="eden_veil_warning_description">伊甸之幕中的设置具有高度实验性，可能导致问题。如果游戏无法启动，请禁用所有扩展。</string>
 
     <string name="veil_extensions">GPU扩展</string>
     <string name="dyna_state">扩展动态状态</string>
@@ -231,8 +230,6 @@
     <string name="back">上一步</string>
     <string name="add_games">添加游戏</string>
     <string name="step_complete">完成！</string>
-    <string name="bluetooth_permissions_granted">蓝牙权限已授予。</string>
-    <string name="bluetooth_permissions_denied">蓝牙权限被拒绝。控制器支持可能受限。</string>
 
     <!-- Home strings -->
 
@@ -241,8 +238,6 @@
     <string name="view_grid">网格</string>
     <string name="view_carousel">轮播</string>
     <string name="folder">文件夹</string>
-    <string name="pre_alpha_warning_title">预发布软件</string>
-    <string name="pre_alpha_warning_description">警告：此版本不适用于公开分享或展示。软件处于预发布阶段，可能存在错误和功能不完整。\n如果您未经授权获取此版本，强烈建议立即卸载。</string>
     <string name="dont_show_again">不再显示</string>
     <string name="add_directory_success">游戏目录新增成功</string>
     <string name="home_search">搜索</string>

@@ -89,8 +89,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Eden\'s Veil</string>
     <string name="eden_veil_description">Experimental settings to improve performance and capability. These settings may cause black screens or other game issues.</string>
-    <string name="eden_veil_warning_title">Experimental Settings</string>
-    <string name="eden_veil_warning_description">The settings contained within Eden\'s Veil are highly experimental and may cause issues. If your game does not boot, disable any extensions.</string>
 
     <string name="veil_extensions">GPU Extensions</string>
     <string name="dyna_state">Extended Dynamic State</string>
@@ -247,7 +245,7 @@
     <string name="keys_description">Select your &lt;b>prod.keys&lt;/b> file with the button below.</string>
     <string name="select_keys">Select Keys</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Select your &lt;b>firmware.zip&lt;/b> file with the button below.\nEden currently requires version &lt;b>19.0.1&lt;/b> or below.</string>
+    <string name="firmware_description">Select your &lt;b>firmware.zip&lt;/b> file with the button below.</string>
     <string name="select_firmware">Select Firmware</string>
     <string name="games">Games</string>
     <string name="games_description">Select your &lt;b>Games&lt;/b> folder with the button below.</string>
@@ -258,8 +256,6 @@
     <string name="back">Back</string>
     <string name="add_games">Add Games</string>
     <string name="step_complete">Complete!</string>
-    <string name="bluetooth_permissions_granted">Bluetooth permissions granted.</string>
-    <string name="bluetooth_permissions_denied">Bluetooth permissions denied. Controller support may be limited.</string>
 
     <!-- Home strings -->
 
@@ -270,8 +266,6 @@
     <string name="view_carousel">Carousel</string>
     <string name="game_image_desc">Screenshot for %1$s</string>
     <string name="folder">Folder</string>
-    <string name="pre_alpha_warning_title">Pre-Alpha Software</string>
-    <string name="pre_alpha_warning_description">WARNING: This software is in the pre-alpha stage and may have bugs and incomplete feature implementations.</string>
     <string name="dont_show_again">Don\'t Show Again</string>
     <string name="add_directory_success">New game directory added successfully </string>
     <string name="home_search">Search</string>

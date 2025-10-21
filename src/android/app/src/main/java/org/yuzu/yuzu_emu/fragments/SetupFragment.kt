@@ -383,7 +383,6 @@ class SetupFragment : Fragment() {
             .putBoolean(Settings.PREF_FIRST_APP_LAUNCH, false)
             .apply()
         mainActivity.finishSetup(binding.root.findNavController())
-        mainActivity.showPreAlphaWarningDialog()
     }
 
     fun pageForward() {

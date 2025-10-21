@@ -70,8 +70,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Edens Schleier</string>
     <string name="eden_veil_description">Experimentelle Einstellungen zur Verbesserung der Leistung und Funktionalität. Diese Einstellungen können schwarze Bildschirme oder andere Spielprobleme verursachen.</string>
-    <string name="eden_veil_warning_title">Experimentelle Einstellungen</string>
-    <string name="eden_veil_warning_description">Die in Edens Schleier enthaltenen Einstellungen sind hoch experimentell und können Probleme verursachen. Wenn Ihr Spiel nicht startet, deaktivieren Sie alle Erweiterungen.</string>
 
     <string name="veil_extensions">GPU-Erweiterungen</string>
     <string name="dyna_state">Erweiterter dynamischer Status</string>
@@ -239,8 +237,6 @@
     <string name="back">Zurück</string>
     <string name="add_games">Spiele hinzufügen</string>
     <string name="step_complete">Fertig!</string>
-    <string name="bluetooth_permissions_granted">Bluetooth-Berechtigungen erteilt.</string>
-    <string name="bluetooth_permissions_denied">Bluetooth-Berechtigungen verweigert. Controller-Unterstützung kann eingeschränkt sein.</string>
 
     <!-- Home strings -->
 
@@ -251,8 +247,6 @@
     <string name="view_carousel">Karussell</string>
     <string name="game_image_desc">Scrennshot für %1$s</string>
     <string name="folder">Ordner</string>
-    <string name="pre_alpha_warning_title">Pre-Alpha Software</string>
-    <string name="pre_alpha_warning_description">WARNUNG: Diese Version ist nicht für die Öffentlichkeit bestimmt.</string>
     <string name="dont_show_again">Nicht mehr anzeigen</string>
     <string name="add_directory_success">Neues Spieleverzeichnis erfolgreich hinzugefügt.</string>
     <string name="home_search">Suche</string>

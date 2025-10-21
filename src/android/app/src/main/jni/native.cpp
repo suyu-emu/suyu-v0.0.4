@@ -840,10 +840,6 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_firmwareVersion(JNIEnv* env, jclas
     return Common::Android::ToJString(env, display_version);
 }
 
-jint Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyFirmware(JNIEnv* env, jclass clazz) {
-    return static_cast<int>(FirmwareManager::VerifyFirmware(EmulationSession::GetInstance().System()));
-}
-
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_gameRequiresFirmware(JNIEnv* env, jclass clazz, jstring jprogramId) {
     auto program_id = EmulationSession::GetProgramId(env, jprogramId);
 

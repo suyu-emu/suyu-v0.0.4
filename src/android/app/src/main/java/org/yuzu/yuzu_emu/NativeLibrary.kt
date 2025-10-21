@@ -440,13 +440,6 @@ object NativeLibrary {
     external fun firmwareVersion(): String
 
     /**
-     * Verifies installed firmware.
-     *
-     * @return The result code.
-     */
-    external fun verifyFirmware(): Int
-
-    /**
      * Check if a game requires firmware to be playable.
      *
      * @param programId The game's Program ID.

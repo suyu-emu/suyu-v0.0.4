@@ -84,8 +84,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">إعدادات تجريبية لتحسين الأداء والقدرة. قد تسبب هذه الإعدادات شاشات سوداء أو مشاكل أخرى في اللعبة.</string>
-    <string name="eden_veil_warning_title">الإعدادات التجريبية</string>
-    <string name="eden_veil_warning_description">الإعدادات الموجودة في حجاب عدن تجريبية للغاية وقد تسبب مشاكل. إذا لم يتم تشغيل اللعبة، فقم بتعطيل أي إضافات.</string>
 
     <string name="veil_extensions">امتدادات GPU</string>
     <string name="dyna_state">الحالة الديناميكية الموسعة</string>
@@ -253,8 +251,6 @@
     <string name="back">عودة</string>
     <string name="add_games">إضافة الألعاب</string>
     <string name="step_complete">مكتمل</string>
-    <string name="bluetooth_permissions_granted">تم منح أذونات البلوتوث.</string>
-    <string name="bluetooth_permissions_denied">تم رفض أذونات البلوتوث. قد يكون دعم التحكم محدودًا.</string>
 
     <!-- Home strings -->
 
@@ -265,8 +261,6 @@
     <string name="view_carousel">عرض دائري</string>
     <string name="game_image_desc"> لقطة شاشة لـ%1$s</string>
     <string name="folder">مجلد</string>
-    <string name="pre_alpha_warning_title">برامج ما قبل ألفا</string>
-    <string name="pre_alpha_warning_description">تحذير: هذا البرنامج هو في مرحلة ما قبل ألفا وقد يكون الأخطاء وتنفيذات الميزة غير المكتملة.</string>
     <string name="dont_show_again">عدم العرض مجددًا</string>
     <string name="add_directory_success">تمت إضافة مجلد اللعبة الجديد بنجاح</string>
     <string name="home_search">البحث</string>

@@ -62,8 +62,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Edenův závoj</string>
     <string name="eden_veil_description">Experimentální nastavení pro zlepšení výkonu a schopností. Tato nastavení mohou způsobit černé obrazovky nebo další herní problémy.</string>
-    <string name="eden_veil_warning_title">Experimentální nastavení</string>
-    <string name="eden_veil_warning_description">Nastavení obsažená v Edenově závoji jsou vysoce experimentální a mohou způsobit problémy. Pokud se vaše hra nespustí, deaktivujte všechna rozšíření.</string>
 
     <string name="veil_extensions">Rozšíření GPU</string>
     <string name="dyna_state">Rozšířený dynamický stav</string>
@@ -225,8 +223,6 @@
     <string name="next">Další</string>
     <string name="back">Zpět</string>
     <string name="add_games">Přidat hry</string>
-    <string name="bluetooth_permissions_granted">Bluetoothová oprávnění udělena.</string>
-    <string name="bluetooth_permissions_denied">Bluetoothová oprávnění zamítnuta. Podpora ovladače může být omezena.</string>
 
     <!-- Home strings -->
 
@@ -235,8 +231,6 @@
     <string name="view_grid">Mřížka</string>
     <string name="view_carousel">Kolotoč</string>
     <string name="folder">Složka</string>
-    <string name="pre_alpha_warning_title">Předběžná verze</string>
-    <string name="pre_alpha_warning_description">Varování: Tato verze není určena pro veřejnost. Může obsahovat chyby.</string>
     <string name="dont_show_again">Nezobrazovat znovu</string>
     <string name="home_search">Hledat</string>
     <string name="home_settings">Nastavení</string>

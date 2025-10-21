@@ -62,8 +62,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">エデンのベール</string>
     <string name="eden_veil_description">パフォーマンスと機能を向上させる実験的な設定。この設定は黒画面やその他のゲームの問題を引き起こす可能性があります。</string>
-    <string name="eden_veil_warning_title">実験的な設定</string>
-    <string name="eden_veil_warning_description">エデンのベールに含まれる設定は非常に実験的であり、問題を引き起こす可能性があります。ゲームが起動しない場合は、拡張機能を無効にしてください。</string>
 
     <string name="veil_extensions">GPU拡張機能</string>
     <string name="dyna_state">拡張ダイナミックステート</string>
@@ -229,8 +227,6 @@
     <string name="back">戻る</string>
     <string name="add_games">ゲームを追加</string>
     <string name="step_complete">完了!</string>
-    <string name="bluetooth_permissions_granted">Bluetoothの権限が許可されました。</string>
-    <string name="bluetooth_permissions_denied">Bluetoothの権限が拒否されました。コントローラーのサポートが制限される可能性があります。</string>
 
     <!-- Home strings -->
 
@@ -241,8 +237,6 @@
     <string name="view_carousel">カルーセル</string>
     <string name="game_image_desc"> のスクリーンショット  %1$s</string>
     <string name="folder">フォルダ</string>
-    <string name="pre_alpha_warning_title">プレアルファ版</string>
-    <string name="pre_alpha_warning_description">警告: このビルドは公開用ではありません。プレアルファ段階でバグや未実装機能が含まれます。\n不正に入手した場合は直ちにアンインストールしてください</string>
     <string name="dont_show_again">再表示しない</string>
     <string name="home_search">検索</string>
     <string name="home_settings">設定</string>

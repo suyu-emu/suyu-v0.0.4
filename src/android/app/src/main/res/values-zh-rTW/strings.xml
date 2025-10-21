@@ -79,8 +79,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">伊甸之幕</string>
     <string name="eden_veil_description">實驗性設定以提高效能和相容性。這些設定可能會導致黑螢幕或其他遊戲問題。</string>
-    <string name="eden_veil_warning_title">實驗性設定</string>
-    <string name="eden_veil_warning_description">伊甸之幕中的設定具有高度實驗性，可能導致問題。如果遊戲無法啟動，請停用所有擴充功能。</string>
 
     <string name="veil_extensions">GPU擴充功能</string>
     <string name="dyna_state">擴展動態狀態</string>
@@ -248,8 +246,6 @@
     <string name="back">上一步</string>
     <string name="add_games">新增遊戲</string>
     <string name="step_complete">完成！</string>
-    <string name="bluetooth_permissions_granted">已授予藍牙存取權。</string>
-    <string name="bluetooth_permissions_denied">藍牙存取權被拒絕。控制器支援可能受限。</string>
 
     <!-- Home strings -->
 
@@ -260,8 +256,6 @@
     <string name="view_carousel">輪播</string>
     <string name="game_image_desc">為%1$s螢幕截圖</string>
     <string name="folder">資料夾</string>
-    <string name="pre_alpha_warning_title">預覽版軟體</string>
-    <string name="pre_alpha_warning_description">警告：此版本不應公開分享或展示。此為預覽版軟體，可能存在錯誤與未完成功能。\n若您未經授權取得此版本，強烈建議立即解除安裝</string>
     <string name="dont_show_again">不再顯示</string>
     <string name="add_directory_success">遊戲目錄新增成功</string>
     <string name="home_search">搜尋</string>

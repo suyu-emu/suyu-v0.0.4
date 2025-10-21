@@ -62,8 +62,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Edens slør</string>
     <string name="eden_veil_description">Eksperimentelle innstillinger for å forbedre ytelse og funksjonalitet. Disse innstillingene kan forårsake svarte skjermer eller andre spillproblemer.</string>
-    <string name="eden_veil_warning_title">Eksperimentelle innstillinger</string>
-    <string name="eden_veil_warning_description">Innstillingene i Edens slør er svært eksperimentelle og kan forårsake problemer. Hvis spillet ikke starter, deaktiver alle utvidelser.</string>
 
     <string name="veil_extensions">GPU-utvidelser</string>
     <string name="dyna_state">Utvidet dynamisk tilstand</string>
@@ -228,8 +226,6 @@
     <string name="next">Neste</string>
     <string name="back">Tilbake</string>
     <string name="add_games">Legg til spill</string>
-    <string name="bluetooth_permissions_granted">Bluetooth-tillatelser gitt.</string>
-    <string name="bluetooth_permissions_denied">Bluetooth-tillatelser avslått. Kontrollerstøtte kan være begrenset.</string>
 
     <!-- Home strings -->
 
@@ -238,8 +234,6 @@
     <string name="view_grid">Rutenett</string>
     <string name="view_carousel">Karusell</string>
     <string name="folder">Mappe</string>
-    <string name="pre_alpha_warning_title">Forhåndsversjon</string>
-    <string name="pre_alpha_warning_description">ADVARSEL: Denne versjonen er ikke ment for offentlig bruk. Programvaren er i tidlig utvikling og kan inneholde feil.</string>
     <string name="dont_show_again">Ikke vis igjen</string>
     <string name="home_search">Søk</string>
     <string name="home_settings">Innstillinger</string>

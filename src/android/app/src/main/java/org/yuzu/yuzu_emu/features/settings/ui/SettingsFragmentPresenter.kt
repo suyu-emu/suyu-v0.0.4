@@ -82,9 +82,6 @@ class SettingsFragmentPresenter(
     }
 
     fun onViewCreated() {
-        if (menuTag == MenuTag.SECTION_EDEN_VEIL) {
-            showEdenVeilWarningDialog()
-        }
         loadSettingsList()
     }
 
@@ -1162,31 +1159,6 @@ class SettingsFragmentPresenter(
 
             add(HeaderSetting(R.string.log))
             add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
-        }
-    }
-
-    fun showEdenVeilWarningDialog() {
-        val shouldDisplayVeilWarning =
-            PreferenceManager.getDefaultSharedPreferences(activity!!.applicationContext)
-                .getBoolean(Settings.PREF_SHOULD_SHOW_EDENS_VEIL_DIALOG, true)
-
-        if (shouldDisplayVeilWarning) {
-            activity?.let {
-                MessageDialogFragment.newInstance(
-                    it,
-                    titleId = R.string.eden_veil_warning_title,
-                    descriptionId = R.string.eden_veil_warning_description,
-                    positiveButtonTitleId = R.string.dont_show_again,
-                    negativeButtonTitleId = R.string.close,
-                    showNegativeButton = true,
-                    positiveAction = {
-                        PreferenceManager.getDefaultSharedPreferences(activity!!.applicationContext)
-                            .edit() {
-                                putBoolean(Settings.PREF_SHOULD_SHOW_EDENS_VEIL_DIALOG, false)
-                            }
-                    }
-                ).show(it.supportFragmentManager, MessageDialogFragment.TAG)
-            }
         }
     }
 }

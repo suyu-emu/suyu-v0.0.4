@@ -35,8 +35,6 @@ object Settings {
 
     const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
     const val PREF_SHOULD_SHOW_DRIVER_WARNING = "ShouldShowDriverWarning"
-    const val PREF_SHOULD_SHOW_PRE_ALPHA_WARNING = "ShouldShowPreAlphaWarning"
-    const val PREF_SHOULD_SHOW_EDENS_VEIL_DIALOG = "ShouldShowEdensVeilDialog"
     const val PREF_MEMORY_WARNING_SHOWN = "MemoryWarningShown"
     const val SECTION_STATS_OVERLAY = "Stats Overlay"
 

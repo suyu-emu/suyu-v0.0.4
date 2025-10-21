@@ -61,8 +61,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Еденова аукција</string>
     <string name="eden_veil_description">Експериментална подешавања за побољшање перформанси и способности. Ова подешавања могу изазвати црне екране или друге проблеме у игри.</string>
-    <string name="eden_veil_warning_title">Експериментална подешавања</string>
-    <string name="eden_veil_warning_description">Подешавања која се налазе у оквиру ЕДЕН-ова вела су високо експериментални и могу проузроковати проблеме. Ако се ваша игра не покрене, онемогућите било какве проширења.</string>
 
     <string name="veil_extensions">ГПУ екстензије</string>
     <string name="dyna_state">Проширена динамичка држава</string>
@@ -228,8 +226,6 @@
     <string name="back">Назад</string>
     <string name="add_games">Додајте игре</string>
     <string name="step_complete">Довршите!</string>
-    <string name="bluetooth_permissions_granted">Bluetooth дозволе одобрене.</string>
-    <string name="bluetooth_permissions_denied">Bluetooth дозволе одбијене. Подршка за контролере може бити ограничена.</string>
 
     <!-- Home strings -->
 
@@ -238,8 +234,6 @@
     <string name="view_grid">Мрежа</string>
     <string name="view_carousel">Карусел</string>
     <string name="folder">Мапа</string>
-    <string name="pre_alpha_warning_title">Пре-Алпха софтвер</string>
-    <string name="pre_alpha_warning_description">УПОЗОРЕЊЕ: Овај софтвер је у пре-алфа фази и може имати грешке и непотпуне примене функција.</string>
     <string name="dont_show_again">Не покажи поново</string>
     <string name="home_search">Тражити</string>
     <string name="home_settings">Подешавања</string>

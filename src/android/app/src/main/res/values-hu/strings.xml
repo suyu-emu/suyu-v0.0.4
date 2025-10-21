@@ -62,8 +62,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Eden Fátyla</string>
     <string name="eden_veil_description">Kísérleti beállítások a teljesítmény és képesség javításához. Ezek a beállítások fekete képernyőket vagy más játékproblémákat okozhatnak.</string>
-    <string name="eden_veil_warning_title">Kísérleti beállítások</string>
-    <string name="eden_veil_warning_description">Az Eden Fátyla beállításai nagyon kísérleti jellegűek, és problémákat okozhatnak. Ha a játék nem indul el, kérjük, tiltsa le az összes kiterjesztést.</string>
 
     <string name="veil_extensions">GPU kiterjesztések</string>
     <string name="dyna_state">Kiterjesztett Dinamikus Állapot</string>
@@ -229,8 +227,6 @@
     <string name="back">Vissza</string>
     <string name="add_games">Játékok hozzáadása</string>
     <string name="step_complete">Kész!</string>
-    <string name="bluetooth_permissions_granted">Bluetooth engedélyek megadva.</string>
-    <string name="bluetooth_permissions_denied">Bluetooth engedélyek megtagadva. A kontroller támogatás korlátozott lehet.</string>
 
     <!-- Home strings -->
 
@@ -239,8 +235,6 @@
     <string name="view_grid">Rács</string>
     <string name="view_carousel">Körhinta</string>
     <string name="folder">Mappa</string>
-    <string name="pre_alpha_warning_title">Pre-Alpha szoftver</string>
-    <string name="pre_alpha_warning_description">FIGYELMEZTETÉS: Ez a verzió nem nyilvános. A szoftver pre-alpha állapotban van, hibákat és hiányos funkciókat tartalmazhat.</string>
     <string name="dont_show_again">Ne mutassa újra</string>
     <string name="home_search">Keresés</string>
     <string name="home_settings">Beállítások</string>

@@ -62,8 +62,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Mành che của Eden</string>
     <string name="eden_veil_description">Cài đặt thử nghiệm để cải thiện hiệu suất và khả năng. Những cài đặt này có thể gây ra màn hình đen hoặc các vấn đề khác trong trò chơi.</string>
-    <string name="eden_veil_warning_title">Cài đặt thử nghiệm</string>
-    <string name="eden_veil_warning_description">Các cài đặt trong Mành che của Eden rất thử nghiệm và có thể gây ra sự cố. Nếu trò chơi của bạn không khởi động, hãy tắt tất cả các tiện ích mở rộng.</string>
 
     <string name="veil_extensions">Tiện ích mở rộng GPU</string>
     <string name="dyna_state">Trạng thái động mở rộng</string>
@@ -228,8 +226,6 @@
     <string name="next">Tiếp theo</string>
     <string name="back">Trở lại</string>
     <string name="add_games">Thêm Trò chơi</string>
-    <string name="bluetooth_permissions_granted">Đã cấp quyền Bluetooth.</string>
-    <string name="bluetooth_permissions_denied">Từ chối quyền Bluetooth. Hỗ trợ điều khiển có thể bị hạn chế.</string>
 
     <!-- Home strings -->
 
@@ -238,8 +234,6 @@
     <string name="view_grid">Lưới</string>
     <string name="view_carousel">Băng chuyền</string>
     <string name="folder">Thư mục</string>
-    <string name="pre_alpha_warning_title">Phần mềm Pre-Alpha</string>
-    <string name="pre_alpha_warning_description">CẢNH BÁO: Phiên bản này chưa hoàn thiện, có thể có lỗi.</string>
     <string name="dont_show_again">Đừng hiển thị lại</string>
     <string name="home_search">Tìm</string>
     <string name="home_settings">Cài đặt</string>

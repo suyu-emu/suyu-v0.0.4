@@ -84,8 +84,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Покров Эдема</string>
     <string name="eden_veil_description">Экспериментальные настройки для улучшения производительности и возможностей. Эти настройки могут вызывать черные экраны или другие проблемы в игре.</string>
-    <string name="eden_veil_warning_title">Экспериментальные настройки</string>
-    <string name="eden_veil_warning_description">Настройки в Покров Эдема являются экспериментальными и могут вызывать проблемы. Если ваша игра не запускается, отключите все расширения.</string>
 
     <string name="veil_extensions">Расширения ГПУ</string>
     <string name="dyna_state">Расширенное динамическое состояние</string>
@@ -253,8 +251,6 @@
     <string name="back">Назад</string>
     <string name="add_games">Добавить игры</string>
     <string name="step_complete">Выполнено!</string>
-    <string name="bluetooth_permissions_granted">Разрешения Bluetooth предоставлены.</string>
-    <string name="bluetooth_permissions_denied">Разрешения Bluetooth отклонены. Поддержка контроллера может быть ограничена.</string>
 
     <!-- Home strings -->
 
@@ -265,8 +261,6 @@
     <string name="view_carousel">Карусель</string>
     <string name="game_image_desc">Скриншот для %1$s</string>
     <string name="folder">Папка</string>
-    <string name="pre_alpha_warning_title">Пре-альфа версия</string>
-    <string name="pre_alpha_warning_description">ВНИМАНИЕ: Эта версия не предназначена для публичного использования. Возможны ошибки и неполные функции.</string>
     <string name="dont_show_again">Не показывать снова</string>
     <string name="add_directory_success">Новый каталог игр успешно добавлен</string>
     <string name="home_search">Поиск</string>

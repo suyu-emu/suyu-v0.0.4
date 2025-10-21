@@ -141,11 +141,16 @@ if (ENABLE_SDL2)
         endif()
     elseif (YUZU_USE_BUNDLED_SDL2)
         message(STATUS "Using bundled SDL2")
+        if (PLATFORM_FREEBSD)
+            set(BUILD_SHARED_LIBS ON)
+        endif()
         AddJsonPackage(sdl2)
     endif()
 
     find_package(SDL2 2.26.4 REQUIRED)
 endif()
+
+set(BUILD_SHARED_LIBS OFF)
 
 # SPIRV Headers
 AddJsonPackage(spirv-headers)

@@ -62,8 +62,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">Véu do Éden</string>
     <string name="eden_veil_description">Definições experimentais para melhorar o desempenho e capacidade. Estas definições podem causar ecrãs pretos ou outros problemas no jogo.</string>
-    <string name="eden_veil_warning_title">Definições experimentais</string>
-    <string name="eden_veil_warning_description">As configurações no Véu do Éden são altamente experimentais e podem causar problemas. Se o jogo não iniciar, desative todas as extensões.</string>
 
     <string name="veil_extensions">Extensões da GPU</string>
     <string name="dyna_state">Estado Dinâmico Estendido</string>
@@ -229,8 +227,6 @@
     <string name="back">Voltar</string>
     <string name="add_games">Adiciona Jogos</string>
     <string name="step_complete">Completo!</string>
-    <string name="bluetooth_permissions_granted">Permissões Bluetooth concedidas.</string>
-    <string name="bluetooth_permissions_denied">Permissões Bluetooth recusadas. O suporte a comandos pode ser limitado.</string>
 
     <!-- Home strings -->
 
@@ -239,8 +235,6 @@
     <string name="view_grid">Grelha</string>
     <string name="view_carousel">Carrossel</string>
     <string name="folder">Pasta</string>
-    <string name="pre_alpha_warning_title">Software Pré-Alpha</string>
-    <string name="pre_alpha_warning_description">AVISO: Esta versão não deve ser partilhada publicamente. O software está em fase pré-alpha e pode conter bugs e funcionalidades incompletas.\nSe obteve acesso não autorizado a esta versão, recomenda-se a desinstalação imediata.</string>
     <string name="dont_show_again">Não mostrar novamente</string>
     <string name="home_search">Pesquisar</string>
     <string name="home_settings">Configurações</string>

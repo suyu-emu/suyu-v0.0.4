@@ -62,8 +62,6 @@
     <!-- Eden\'s Veil -->
     <string name="eden_veil">עדן וייל</string>
     <string name="eden_veil_description">הגדרות ניסיוניות לשיפור ביצועים ויכולות. הגדרות אלו עלולות לגרום למסכים שחורים או לבעיות אחרות במשחק.</string>
-    <string name="eden_veil_warning_title">הגדרות ניסיוניות</string>
-    <string name="eden_veil_warning_description">הגדרות במסך העדן ניסיוניות מאוד ועלולות לגרום לבעיות. אם המשחק לא עולה, השבת את כל ההרחבות.</string>
 
     <string name="veil_extensions">הרחבות GPU</string>
     <string name="dyna_state">מצב דינמי מורחב</string>
@@ -229,8 +227,6 @@
     <string name="back">אחורה</string>
     <string name="add_games">הוסף משחקים</string>
     <string name="step_complete">הושלם!</string>
-    <string name="bluetooth_permissions_granted">הרשאות Bluetooth אושרו.</string>
-    <string name="bluetooth_permissions_denied">הרשאות Bluetooth נדחו. תמיכה בבקרים עשויה להיות מוגבלת.</string>
 
     <!-- Home strings -->
 
@@ -239,8 +235,6 @@
     <string name="view_grid">רשת</string>
     <string name="view_carousel">קרוסלה</string>
     <string name="folder">תיקייה</string>
-    <string name="pre_alpha_warning_title">תוכנת טרום-אלפא</string>
-    <string name="pre_alpha_warning_description">אזהרה: גרסה זו אינה מיועדת לשימוש ציבורי. התוכנה בשלבי פיתוח מוקדמים ועלולה להכיל באגים.</string>
     <string name="dont_show_again">אל תציג שוב</string>
     <string name="home_search">חפש</string>
     <string name="home_settings">הגדרות</string>
