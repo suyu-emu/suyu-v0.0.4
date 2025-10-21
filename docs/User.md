@@ -9,3 +9,4 @@ This handbook is primarily aimed at the end-user - baking useful knowledge for e
 - **[Graphics](user/Graphics.md)**
 - **[Platforms and Architectures](user/Architectures.md)**
 - **[Testing](user/Testing.md)**
+- **[Data, savefiles and storage](user/Storage.md)**

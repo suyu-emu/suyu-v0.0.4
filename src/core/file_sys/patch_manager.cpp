@@ -316,8 +316,7 @@ bool PatchManager::HasNSOPatch(const BuildID& build_id_, std::string_view name) 
     return !CollectPatches(patch_dirs, build_id).empty();
 }
 
-std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(
-    const BuildID& build_id_) const {
+std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(const BuildID& build_id_) const {
     const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
@@ -326,28 +325,36 @@ std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
     auto patch_dirs = load_dir->GetSubdirectories();
-    std::sort(patch_dirs.begin(), patch_dirs.end(),
-              [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
+    std::sort(patch_dirs.begin(), patch_dirs.end(), [](auto const& l, auto const& r) { return l->GetName() < r->GetName(); });
 
+    // <mod dir> / <folder> / cheats / <build id>.txt
     std::vector<Core::Memory::CheatEntry> out;
     for (const auto& subdir : patch_dirs) {
-        if (std::find(disabled.cbegin(), disabled.cend(), subdir->GetName()) != disabled.cend()) {
-            continue;
-        }
-
-        auto cheats_dir = FindSubdirectoryCaseless(subdir, "cheats");
-        if (cheats_dir != nullptr) {
-            if (const auto res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, true)) {
-                std::copy(res->begin(), res->end(), std::back_inserter(out));
-                continue;
-            }
-
-            if (const auto res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, false)) {
-                std::copy(res->begin(), res->end(), std::back_inserter(out));
+        if (std::find(disabled.cbegin(), disabled.cend(), subdir->GetName()) == disabled.cend()) {
+            if (auto cheats_dir = FindSubdirectoryCaseless(subdir, "cheats"); cheats_dir != nullptr) {
+                if (auto const res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, true))
+                    std::copy(res->begin(), res->end(), std::back_inserter(out));
+                if (auto const res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, false))
+                    std::copy(res->begin(), res->end(), std::back_inserter(out));
             }
         }
     }
-
+    // Uncareless user-friendly loading of patches (must start with 'cheat_')
+    // <mod dir> / <cheat file>.txt
+    auto const patch_files = load_dir->GetFiles();
+    for (auto const& f : patch_files) {
+        auto const name = f->GetName();
+        if (name.starts_with("cheat_") && std::find(disabled.cbegin(), disabled.cend(), name) == disabled.cend()) {
+            std::vector<u8> data(f->GetSize());
+            if (f->Read(data.data(), data.size()) == data.size()) {
+                const Core::Memory::TextCheatParser parser;
+                auto const res = parser.Parse(std::string_view(reinterpret_cast<const char*>(data.data()), data.size()));
+                std::copy(res.begin(), res.end(), std::back_inserter(out));
+            } else {
+                LOG_INFO(Common_Filesystem, "Failed to read cheats file for title_id={:016X}", title_id);
+            }
+        }
+    }
     return out;
 }
 
