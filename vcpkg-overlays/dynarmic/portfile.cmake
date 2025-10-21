@@ -10,7 +10,6 @@ vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DDYNARMIC_TESTS=OFF
-        -DDYNARMIC_NO_BUNDLED_FMT=ON
 )
 
 vcpkg_cmake_build()
@@ -19,6 +18,11 @@ vcpkg_cmake_install()
 
 vcpkg_copy_pdbs()
 
-vcpkg_fixup_cmake_targets()
+# Fix CMake targets if they exist
+if(EXISTS "${CURRENT_PACKAGES_DIR}/lib/cmake/dynarmic")
+    vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/dynarmic)
+elseif(EXISTS "${CURRENT_PACKAGES_DIR}/share/dynarmic")
+    vcpkg_fixup_cmake_targets()
+endif()
 
 file(INSTALL "${SOURCE_PATH}/LICENSE.txt" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
