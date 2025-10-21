@@ -235,9 +235,9 @@ int main(int argc, char** argv) {
     while (optind < argc) {
         int arg = getopt_long(argc, argv, "g:fhvp::c:u:d:", long_options, &option_index);
         if (arg != -1) {
-            switch (static_cast<char>(arg)) {
+            switch (char(arg)) {
             case 'd':
-                override_gdb_port = static_cast<uint16_t>(atoi(optarg));
+                override_gdb_port = uint16_t(atoi(optarg));
                 break;
             case 'c':
                 config_path = optarg;
@@ -249,11 +249,9 @@ int main(int argc, char** argv) {
             case 'h':
                 PrintHelp(argv[0]);
                 return 0;
-            case 'g': {
-                const std::string str_arg(optarg);
-                filepath = str_arg;
+            case 'g':
+                filepath = std::string(optarg);
                 break;
-            }
             case 'm': {
                 use_multiplayer = true;
                 const std::string str_arg(optarg);

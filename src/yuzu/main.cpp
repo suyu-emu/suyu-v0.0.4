@@ -3422,9 +3422,7 @@ void GMainWindow::ToggleWindowMode() {
 }
 
 void GMainWindow::ResetWindowSize(u32 width, u32 height) {
-    const auto aspect_ratio = Layout::EmulationAspectRatio(
-        static_cast<Layout::AspectRatio>(Settings::values.aspect_ratio.GetValue()),
-        static_cast<float>(height) / width);
+    const auto aspect_ratio = Layout::EmulationAspectRatio(Settings::values.aspect_ratio.GetValue(), float(height) / width);
     if (!ui->action_Single_Window_Mode->isChecked()) {
         render_window->resize(height / aspect_ratio, height);
     } else {
