@@ -28,7 +28,7 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(مُحسَّن)</string>
-    <string name="process_ram">ذاكرة RAM للعملية: %1$d م.ب</string>
+    <string name="process_ram">Process RAM: %1$d MB</string>
     <string name="shaders_prefix">بناء</string>
     <string name="shaders_suffix">شادر(شادرات)</string>
     <string name="charging">(يشحن)</string>
@@ -240,7 +240,6 @@
     <string name="keys_description">اختر ملف <b>prod.keys</b> من الزر ادناه</string>
     <string name="select_keys">إختيار المفاتيح</string>
     <string name="firmware">الفريموير</string>
-    <string name="firmware_description">حدد ملف firmware.zip بالزر أدناه. يتطلب عدن حاليًا الإصدار 19.0.1 أو إصدارًا أقدم.</string>
     <string name="select_firmware">حدد الفريموير</string>
     <string name="games">الألعاب</string>
     <string name="games_description">حدد مجلد <b>العابك</b> من الزر ادناه.</string>
@@ -395,10 +394,10 @@
     <string name="applets_error_description"><![CDATA[يرجى التأكد من أن ملف <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> الخاص بك و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">الفريموير</a> مثبتة وحاول مرة أخرى.<br>بالإضافة إلى ذلك، تأكد من أن الفريموير الخاص بك هو من الإصدار 19.0.1 أو أقدم.]]></string>
     <string name="album_applet">الألبوم</string>
     <string name="album_applet_description">شاهد الصور المخزنة في مجلد لقطات شاشة المستخدم باستخدام عارض صور النظام</string>
-    <string name="mii_edit_applet">تحرير Mii</string>
-    <string name="mii_edit_applet_description">باستخدام محرر النظام Miis عرض وتحرير</string>
+    <string name="mii_edit_applet">تعديل Mii</string>
+    <string name="mii_edit_applet_description">عرض وتحرير Miis باستخدام محرر النظام</string>
     <string name="cabinet_applet">خزانة</string>
-    <string name="cabinet_applet_description">تحرير وحذف البيانات المخزنة على أميبو</string>
+    <string name="cabinet_applet_description">تعديل وحذف البيانات المخزنة على أميبو</string>
     <string name="cabinet_launcher">مشغل الخزانة</string>
     <string name="cabinet_nickname_and_owner">إعدادات الاسم المستعار والمالك</string>
     <string name="cabinet_game_data_eraser">ممحاة بيانات اللعبة</string>
@@ -422,7 +421,7 @@
     <string name="user_data_export_success">تم تصدير بيانات المستخدم بنجاح</string>
     <string name="user_data_import_success">تم استيراد بيانات المستخدم بنجاح</string>
     <string name="user_data_export_cancelled">تم إلغاء التصدير</string>
-    <string name="user_data_import_failed_description">تأكد من أن مجلدات بيانات المستخدم موجودة في جذر مجلد zip وتحتوي على ملف تكوين في config/config.ini وحاول مرة أخرى.</string>
+    <string name="user_data_import_failed_description">تأكد من أن مجلدات بيانات المستخدم موجودة في جذر مجلد zip وتحتوي على ملف تكوين في config/config.ini ثم حاول مرة أخرى.</string>
     <!-- General settings strings -->
     <string name="frame_limit_enable">الحد من السرعة</string>
     <string name="frame_limit_enable_description">يحد من سرعة المحاكاة بنسبة محددة من السرعة العادية</string>
@@ -490,7 +489,7 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">وحدة المعالج المركزية</string>
-    <string name="use_auto_stub">استخدام الستاب التلقائي</string>
+    <string name="use_auto_stub">استخدم الملحق التلقائي</string>
     <string name="use_auto_stub_description">يقوم تلقائيًا بإضافة خدمات ووظائف ناقصة. قد يحسن التوافق ولكنه قد يتسبب في تعطل المشغل ومشاكل في الاستقرار.</string>
 
     <string name="gpu">وحدة معالجة الرسومات</string>
@@ -553,10 +552,10 @@
     <string name="unused">غير مستخدم</string>
     <string name="input_mapping_filter">مرشح تعيين الإدخال</string>
     <string name="input_mapping_filter_description">اختر جهازًا لتصفية مدخلات الخرائط</string>
-    <string name="auto_map">تعيين وحدة التحكم تلقائيًا</string>
+    <string name="auto_map">تعيين ذراع التحكم تلقائيًا</string>
     <string name="auto_map_description">حدد جهازًا لمحاولة رسم الخرائط التلقائية</string>
     <string name="attempted_auto_map">تم محاولة التعيين التلقائي باستخدام %1$s</string>
-    <string name="controller_type">نوع وحدة التحكم</string>
+    <string name="controller_type">نوع ذراع التحكم</string>
     <string name="pro_controller">Pro Controller</string>
     <string name="handheld">محمول</string>
     <string name="dual_joycons">Dual Joycons</string>
@@ -615,7 +614,8 @@
     <string name="install">تثبيت</string>
     <string name="fetch">جلب</string>
     <string name="delete">حذف</string>
-    <string name="edit">حرر</string>
+    <string name="edit">تعديل</string>
+    <string name="import_success">تم الاستيراد بنجاح</string>
     <string name="export_success">تم التصدير بنجاح</string>
     <string name="start">بدء</string>
     <string name="global">عالمي</string>
@@ -662,8 +662,8 @@
     <string name="preferences_graphics_description">مستوى الدقة ،الدقة ،ذاكرة التخزين المؤقت للتظليل</string>
     <string name="preferences_audio">الصوت</string>
     <string name="preferences_audio_description">محرك الإخراج ، حجم الصوت</string>
-    <string name="preferences_controls">التحكم</string>
-    <string name="preferences_controls_description">مدخلات وحدة تحكم الخريطة</string>
+    <string name="preferences_controls">عناصر التحكم</string>
+    <string name="preferences_controls_description">مدخلات ذراع تحكم في الخريطة</string>
     <string name="preferences_player">اللاعب %d</string>
     <string name="preferences_debug">تصحيح الأخطاء</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
@@ -672,7 +672,7 @@
     <string name="info">معلومات</string>
     <string name="info_description">معرف البرنامج، المطور، الإصدار</string>
     <string name="per_game_settings">إعدادات خاصة للعبة</string>
-    <string name="per_game_settings_description">تحرير الإعدادات الخاصة بهذه اللعبة</string>
+    <string name="per_game_settings_description">تعديل الإعدادات الخاصة بهذه اللعبة</string>
     <string name="launch_options">تشغيل الإعدادات</string>
     <string name="path">المسار</string>
     <string name="program_id">معرف العنوان</string>
@@ -681,6 +681,18 @@
     <string name="copy_details">نسخ التفاصيل</string>
     <string name="add_ons">الإضافات</string>
     <string name="add_ons_description">التعديلات والتحديثات والمحتوى القابل للتنزيل</string>
+    <string name="playtime">زمن اللعب:</string>
+    <string name="reset_playtime">مسح زمن اللعب</string>
+    <string name="reset_playtime_description">إعادة ضبط زمن اللعب الحالي للعبة إلى 0 ثانية</string>
+    <string name="reset_playtime_warning_description">سيؤدي هذا إلى مسح بيانات زمن اللعب الحالية للعبة. هل أنت متأكد؟</string>
+    <string name="playtime_reset_successfully">تمت إعادة ضبط زمن اللعب</string>
+    <string name="edit_playtime">تعديل زمن التشغيل</string>
+    <string name="hours">ساعات</string>
+    <string name="minutes">دقائق</string>
+    <string name="hours_must_be_between_0_and_9999">يجب أن تكون الساعات بين 0 و 9999</string>
+    <string name="minutes_must_be_between_0_and_59">يجب أن تكون الدقائق بين 0 و 59</string>
+    <string name="seconds_must_be_between_0_and_59">يجب أن تكون الثواني بين 0 و 59</string>
+    <string name="playtime_updated_successfully">تم تحديث زمن اللعب بنجاح</string>
     <string name="clear_shader_cache">مسح ذاكرة التخزين المؤقت للتظليل</string>
     <string name="clear_shader_cache_description">يزيل جميع التظليلات التي تم إنشاؤها أثناء لعب هذه اللعبة</string>
     <string name="clear_shader_cache_warning_description">سوف تواجه المزيد من التأتأة مع تجديد ذاكرة التخزين المؤقت للتظليل</string>
@@ -715,6 +727,11 @@
     <string name="verify_no_result">تعذر التحقق من السلامة</string>
     <string name="verify_no_result_description">لم يتم التحقق من صحة محتويات الملف</string>
     <string name="verification_failed_for">فشل التحقق من الملفات التالية:\n%1$s</string>
+    <string name="share_game_settings">مشاركة الإعدادات</string>
+    <string name="import_config">استيراد الإعدادات</string>
+    <string name="export_config">تصدير الإعدادات</string>
+    <string name="share_config_failed">فشل مشاركة ملف الإعدادات</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">الخاص بك ROM تم تشفير</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[يرجى اتباع الأدلة لإعادة نسخ <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">ألعاب البطاقات</a> أو <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">العناوين الرقمية</a>.]]></string>
@@ -733,7 +750,7 @@
     <string name="custom_settings_failed_message">فشل تطبيق الإعدادات المخصصة لـ %1$s: %2$s</string>
     <string name="launch_with_default_settings">التشغيل بالإعدادات الافتراضية</string>
     <string name="launch_cancelled">تم إلغاء التشغيل</string>
-    <string name="custom_settings_failure_reasons">غير قادر على تطبيق الإعدادات المطلوبة. قد يكون هذا بسبب отсут برامج تشغيل GPU أو مشاكل في التهيئة.</string>
+    <string name="custom_settings_failure_reasons">تعذر تطبيق الإعدادات المطلوبة. قد يكون ذلك بسبب فقدان برامج تشغيل GPU أو مشكلات في التكوين.</string>
     <string name="custom_settings_applied">تم تطبيق الإعدادات المخصصة</string>
     <string name="launching_game">جارٍ التشغيل %1$s...</string>
     <string name="failed_to_initialize_game">فشل تهيئة اللعبة</string>
@@ -746,7 +763,7 @@
     <string name="config_write_failed">فشل كتابة ملف التهيئة</string>
     <string name="config_apply_failed">فشل تطبيق التهيئة</string>
     <string name="config_already_exists_title">التهيئة موجودة بالفعل</string>
-    <string name="config_already_exists_message">الإعدادات المخصصة موجودة بالفعل لـ  \'%1$s\' .\nهل ترغب في استبدال التكوين الحالي؟\nلا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="config_already_exists_message">الإعدادات المخصصة موجودة بالفعل لـ  \'%1$s\' .\n\nهل ترغب في استبدال التكوين الحالي؟\n\nلا يمكن التراجع عن هذا الإجراء.</string>
     <string name="config_exists_prompt">جارٍ التحقق من التكوين الحالي...</string>
     <string name="overwrite_cancelled">تم إلغاء الاستبدال</string>
     <string name="overwrite">استبدال</string>
@@ -756,7 +773,7 @@
     <string name="invalid_driver_file">ملف برنامج تشغيل غير صالح: %s</string>
     <string name="network_unavailable">لا يوجد اتصال بالشبكة. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.</string>
     <string name="driver_missing_title">مطلوب برنامج تشغيل وحدة معالجة الرسومات</string>
-    <string name="driver_missing_message">يتطلب إعداد اللعبة برنامج تشغيل وحدة معالجة الرسومات \"\'%s\'\" وهو غير مُثبّت على جهازك.\nهل ترغب بتنزيله وتثبيته الآن؟</string>
+    <string name="driver_missing_message">يتطلب إعداد اللعبة برنامج تشغيل وحدة معالجة الرسومات \"\'%s\'\" وهو غير مُثبّت على جهازك.\n\nهل ترغب بتنزيله وتثبيته الآن؟</string>
     <string name="driver_download_cancelled">تم إلغاء تنزيل برنامج التشغيل. لا يمكن تشغيل اللعبة بدون برنامج التشغيل المطلوب.</string>
     <string name="download">تنزيل</string>
 
@@ -767,14 +784,14 @@
     <string name="emulation_rel_stick_center">مركز العصا النسبي</string>
     <string name="emulation_dpad_slide">مزلاق الأسهم</string>
     <string name="emulation_haptics">الاهتزازات الديناميكية</string>
-    <string name="emulation_show_overlay">عرض وحدة التحكم</string>
-    <string name="emulation_hide_overlay">إخفاء وحدة التحكم</string>
+    <string name="emulation_show_overlay">عرض ذراع التحكم</string>
+    <string name="emulation_hide_overlay">إخفاء ذراع التحكم</string>
     <string name="emulation_toggle_all">تبديل الكل</string>
     <string name="emulation_control_adjust">ضبط التراكب</string>
     <string name="emulation_control_scale">الحجم</string>
     <string name="emulation_control_opacity">الشفافية</string>
     <string name="emulation_touch_overlay_reset">إعادة تعيين التراكب</string>
-    <string name="emulation_touch_overlay_edit">تحرير التراكب</string>
+    <string name="emulation_touch_overlay_edit">تعديل التراكب</string>
     <string name="emulation_pause">إيقاف المحاكاة مؤقتًا</string>
     <string name="emulation_unpause">إلغاء الإيقاف المؤقت للمحاكاة</string>
     <string name="emulation_input_overlay">خيارات التراكب</string>
@@ -796,7 +813,7 @@
     <string name="save_load_error">خطأ في الحفظ/التحميل</string>
     <string name="fatal_error">خطا فادح</string>
     <string name="fatal_error_message">حدث خطأ فادح. تحقق من السجل للحصول على التفاصيل.\nقد يؤدي استمرار المحاكاة إلى حدوث أعطال.</string>
-    <string name="device_memory_inadequate">ذاكرة الوصول العشوائي للجهاز: \'%1$s\'\nموصى به: \'%2$s\' </string>
+    <string name="device_memory_inadequate">ذاكرة الوصول العشوائي للجهاز: %1$s\nموصى به: %2$s</string>
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">لا توجد لعبة قابلة للتمهيد</string>
 
@@ -886,7 +903,7 @@
     <string name="resolution_four">4X (2880p/4320p) (بطيء)</string>
 
     <!-- Renderer VSync -->
-    <string name="renderer_vsync_immediate">Immediate (Off)</string>
+    <string name="renderer_vsync_immediate">Immediate (إيقاف)</string>
     <string name="renderer_vsync_mailbox">Mailbox</string>
     <string name="renderer_vsync_fifo">FIFO (On)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
@@ -935,6 +952,8 @@
     <string name="cpu_accuracy_accurate">دقيق</string>
     <string name="cpu_accuracy_unsafe">غير آمن</string>
     <string name="cpu_accuracy_paranoid">Paranoid</string>
+    <string name="cpu_accuracy_debugging">تصحيح الأخطاء</string>
+
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">الأسهم</string>
     <string name="gamepad_left_stick">العصا اليسرى</string>
@@ -945,11 +964,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">بناء التظليل</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">تغيير سمة التطبيق</string>
     <string name="theme_default">افتراضي</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">تغيير وضع السمة</string>
     <string name="theme_mode_follow_system">اتبع النظام</string>

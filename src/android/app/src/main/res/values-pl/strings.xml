@@ -240,7 +240,6 @@
     <string name="keys_description">Wybierz swoje klucze &lt;b>prod.keys&lt;/b> za pomocą przycisku poniżej.</string>
     <string name="select_keys">Wybierz klucze</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Wybierz swój plik <b>firmware.zip</b> przyciskiem poniżej.\nEden currently requires version <b>19.0.1</b> lub niższej.</string>
     <string name="select_firmware">Wybierz Firmware</string>
     <string name="games">Gry</string>
     <string name="games_description">Wybierz katalog z grami &lt;b>Games&lt;/b> za pomocą przycisku poniżej.</string>
@@ -612,6 +611,7 @@
     <string name="fetch">Pobierz</string>
     <string name="delete">Usuń</string>
     <string name="edit">Edytuj</string>
+    <string name="import_success">Zaimportowano pomyślnie</string>
     <string name="export_success">Pomyślnie wyeksportowano</string>
     <string name="start">Start</string>
     <string name="global">Globalne</string>
@@ -677,6 +677,18 @@
     <string name="copy_details">Kopiuj szczegóły</string>
     <string name="add_ons">Dodatki</string>
     <string name="add_ons_description">Przełącz mody, aktualizacje i DLC</string>
+    <string name="playtime">Czas gry:</string>
+    <string name="reset_playtime">Wyczyść czas gry</string>
+    <string name="reset_playtime_description">Zresetuj czas gry do 0 sekund.</string>
+    <string name="reset_playtime_warning_description">Spowoduje to usunięcie danych dotyczących czasu gry w bieżącej grze. Czy na pewno chcesz to zrobić\?</string>
+    <string name="playtime_reset_successfully">Czas gry został zresetowany</string>
+    <string name="edit_playtime">Edytuj czas gry</string>
+    <string name="hours">Godziny</string>
+    <string name="minutes">Minuty</string>
+    <string name="hours_must_be_between_0_and_9999">Liczba godzin musi mieścić się w zakresie 0–9999</string>
+    <string name="minutes_must_be_between_0_and_59">Liczba minut musi mieścić się w zakresie 0–59</string>
+    <string name="seconds_must_be_between_0_and_59">Liczba sekund musi mieścić się w zakresie 0–59</string>
+    <string name="playtime_updated_successfully">Czas gry zaktualizowano pomyślnie</string>
     <string name="clear_shader_cache">Wyczyść pamięć podręczną shaderów</string>
     <string name="clear_shader_cache_description">Usuwa wszystkie shadery zbudowane podczas grania w tę grę</string>
     <string name="clear_shader_cache_warning_description">Możesz doświadczyć większych przycięć, gdy pamięć podręczna shaderów będzie się odbudowywać</string>
@@ -711,6 +723,11 @@
     <string name="verify_no_result">Nie można było przeprowadzić weryfikacji integralności</string>
     <string name="verify_no_result_description">Zawartość pliku nie została sprawdzona pod kątem poprawności</string>
     <string name="verification_failed_for">Zawartość pliku nie została sprawdzona pod kątem poprawności:\n%1$s</string>
+    <string name="share_game_settings">Udostępnij konfigurację</string>
+    <string name="import_config">Importuj konfigurację</string>
+    <string name="export_config">Eksportuj konfigurację</string>
+    <string name="share_config_failed">Nie udało się udostępnić pliku konfiguracji</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Twój ROM jest zakodowany</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Postępuj zgodnie z przewodnikami, aby ponownie zrzucić swoje <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">karty gry</a> lub <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">tytuły cyfrowe</a>.]]></string>
@@ -931,6 +948,8 @@
     <string name="cpu_accuracy_accurate">Dokładny</string>
     <string name="cpu_accuracy_unsafe">Niebezpieczny</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Wolny)</string>
+    <string name="cpu_accuracy_debugging">Debugowanie</string>
+
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>
     <string name="gamepad_left_stick">Lewa gałka</string>
@@ -941,11 +960,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Budowanie shaderów</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Ustaw motyw aplikacji</string>
     <string name="theme_default">Domyślny</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Zmień tryb motywu</string>
     <string name="theme_mode_follow_system">Podążaj za systemowym</string>

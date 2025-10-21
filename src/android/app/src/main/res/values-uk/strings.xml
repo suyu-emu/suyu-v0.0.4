@@ -240,7 +240,6 @@
     <string name="keys_description">Виберіть ваш файл &lt;b>prod.keys&lt;/b> за допомогою кнопки нижче.</string>
     <string name="select_keys">Вибрати ключі</string>
     <string name="firmware">Прошивка</string>
-    <string name="firmware_description">Виберіть свій файл <b>firmware.zip</b> за допомогою кнопки нижче.\nEden наразі потребує версії <b>19.0.1</b> або нижче.</string>
     <string name="select_firmware">Вибрати прошивку</string>
     <string name="games">Ігри</string>
     <string name="games_description">Виберіть вашу теку з &lt;b>іграми&lt;/b> за допомогою кнопки нижче.</string>
@@ -612,6 +611,7 @@
     <string name="fetch">Отримати</string>
     <string name="delete">Видалити</string>
     <string name="edit">Редагувати</string>
+    <string name="import_success">Успішно імпортовано</string>
     <string name="export_success">Успішно експортовано</string>
     <string name="start">Запустити</string>
     <string name="global">Глобальне</string>
@@ -677,6 +677,18 @@
     <string name="copy_details">Копіювати подробиці</string>
     <string name="add_ons">Доповнення</string>
     <string name="add_ons_description">Перемикати моди, оновлення та доповнення</string>
+    <string name="playtime">Награний час:</string>
+    <string name="reset_playtime">Очистити награний час</string>
+    <string name="reset_playtime_description">Скинути награний час поточної гри до 0 секунд</string>
+    <string name="reset_playtime_warning_description">Це очистить дані про награний час поточної гри. Ви впевнені\?</string>
+    <string name="playtime_reset_successfully">Награний час скинуто</string>
+    <string name="edit_playtime">Редагувати награний час</string>
+    <string name="hours">Години</string>
+    <string name="minutes">Хвилини</string>
+    <string name="hours_must_be_between_0_and_9999">Години повинні бути в межах від 0 до 9999</string>
+    <string name="minutes_must_be_between_0_and_59">Хвилини повинні бути в межах від 0 до 59</string>
+    <string name="seconds_must_be_between_0_and_59">Секунди повинні бути в межах від 0 до 59</string>
+    <string name="playtime_updated_successfully">Награний час успішно оновлено</string>
     <string name="clear_shader_cache">Очистити кеш шейдерів</string>
     <string name="clear_shader_cache_description">Вилучає усі скомпільовані шейдери під час відтворення цієї гри</string>
     <string name="clear_shader_cache_warning_description">Під час повторної генерації шейдерів можуть виникати затримки</string>
@@ -711,6 +723,11 @@
     <string name="verify_no_result">Неможливо виконати перевірку цілісності</string>
     <string name="verify_no_result_description">Файли вмісту не перевірені на дійсність</string>
     <string name="verification_failed_for">Не вдалося перевірити такі файли:\n%1$s</string>
+    <string name="share_game_settings">Поділитися налаштуванням</string>
+    <string name="import_config">Імпортувати налаштування</string>
+    <string name="export_config">Експортувати налаштування</string>
+    <string name="share_config_failed">Не вдалося поділитися файлом налаштування</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрований</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Будь ласка, дотримуйтесь інструкцій для повторного дампу ваших <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">ігрових картриджів</a> або <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">цифрових назв</a>.]]></string>
@@ -931,6 +948,8 @@
     <string name="cpu_accuracy_accurate">Точно</string>
     <string name="cpu_accuracy_unsafe">Небезпечно</string>
     <string name="cpu_accuracy_paranoid">Параноїк (повільно)</string>
+    <string name="cpu_accuracy_debugging">Зневадження</string>
+
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Хрестовина</string>
     <string name="gamepad_left_stick">Лівий джойстик</string>
@@ -941,11 +960,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Побудова шейдерів</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Змінити тему</string>
     <string name="theme_default">За замовчуванням</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Змінити режим теми</string>
     <string name="theme_mode_follow_system">Системна</string>

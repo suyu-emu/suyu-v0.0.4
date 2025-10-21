@@ -240,7 +240,6 @@
     <string name="keys_description">Pilih file &lt;b>prod.keys&lt;/b> Anda dengan tombol di bawah ini.</string>
     <string name="select_keys">Pilih Kunci</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Pilih berkas <b>firmware.zip</b> dengan tombol dibawah.\nSaat ini Eden memerlukan versi <b>19.0.1</b> atau dibawahnya.</string>
     <string name="select_firmware">Pilih Firmware</string>
     <string name="games">Permainan</string>
     <string name="games_description">Pilih folder &lt;b>Games&lt;/b> Anda dengan tombol di bawah ini.</string>
@@ -920,11 +919,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">membangun shader</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Ubah Tema</string>
     <string name="theme_default">Bawaan</string>
     <string name="theme_material_you">Material Anda</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Mengubah Tema</string>
     <string name="theme_mode_follow_system">Mengikuti Sistem</string>

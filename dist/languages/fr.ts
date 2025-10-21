@@ -480,9 +480,23 @@ Cela bannirait à la fois son nom d&apos;utilisateur du forum et son adresse IP.
         <translation>Émulation CPU Multicœur</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="65"/>
+        <source>This option increases CPU emulation thread use from 1 to the maximum of 4.
+This is mainly a debug option and shouldn&apos;t be disabled.</source>
+        <translation>Cette option augmente l’utilisation des threads d’émulation CPU de 1 jusqu’à un maximum de 4.
+Il s’agit principalement d’une option de débogage et elle ne devrait pas être désactivée.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="70"/>
         <source>Memory Layout</source>
         <translation>Disposition de la mémoire</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="71"/>
+        <source>Increases the amount of emulated RAM from 4GB of the board to the devkit 8/6GB.
+Doesn&apos;t affect performance/stability but may allow HD texture mods to load.</source>
+        <translation>Augmente la quantité de RAM émulée de 4 Go sur la Switch à 8/6 Go comme sur les kits de développement.
+Cela n’affecte pas les performances ni la stabilité, mais peut permettre le chargement de mods de textures HD.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="77"/>
@@ -490,14 +504,35 @@ Cela bannirait à la fois son nom d&apos;utilisateur du forum et son adresse IP.
         <translation>Limiter la vitesse en pourcentage</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="78"/>
+        <source>Controls the game's maximum rendering speed, but it's up to each game if it runs faster or not.
+200% for a 30 FPS game is 60 FPS, and for a 60 FPS game it will be 120 FPS.
+Disabling it means unlocking the framerate to the maximum your PC can reach.</source>
+        <translation>Contrôle la vitesse de rendu maximale du jeu, mais c’est chaque jeu qui décide s’il peut tourner plus vite ou non.
+À 200 %, un jeu prévu pour 30 FPS tournera à 60 FPS, et un jeu prévu pour 60 FPS passera à 120 FPS.
+Désactiver cette option signifie débloquer le framerate jusqu’au maximum que votre PC peut atteindre.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="84"/>
         <source>Synchronize Core Speed</source>
         <translation>Synchroniser la vitesse du noyau</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="85"/>
+        <source>Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
+Can help reduce stuttering at lower framerates.</source>
+        <translation>Synchronise la vitesse des cœurs CPU avec la vitesse de rendu maximale du jeu pour augmenter les FPS sans affecter la vitesse du jeu (animations, physique, etc.).
+Peut aider à réduire les saccades à des framerates faibles.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="92"/>
         <source>Accuracy:</source>
         <translation>Précision :</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="93"/>
+        <source>Change the accuracy of the emulated CPU (for debugging only).</source>
+        <translation>Modifie la précision du CPU émulé (réservé au débogage).</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="94"/>
@@ -521,6 +556,11 @@ Utilisez Boost (1700 MHz) pour fonctionner à l&apos;horloge native la plus éle
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="107"/>
         <source>Custom CPU Ticks</source>
         <translation>Ticks CPU personnalisés</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="108"/>
+        <source>Set a custom value of CPU ticks. Higher values can increase performance, but may cause deadlocks. A range of 77-21000 is recommended.</source>
+        <translation>Définissez une valeur personnalisée pour les cycles CPU. Des valeurs plus élevées peuvent améliorer les performances, mais risquent de provoquer des blocages. Une plage de 77-21000 est recommandée.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="115"/>
@@ -584,6 +624,13 @@ Veuillez noter que cela réduit également la précision de certaines instructio
         <translation>Désactiver les vérifications de l&apos;espace d&apos;adresse</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="142"/>
+        <source>This option improves speed by eliminating a safety check before every memory operation.
+Disabling it may allow arbitrary code execution.</source>
+        <translation>Cette option améliore la vitesse en supprimant une vérification de sécurité avant chaque opération mémoire.
+La désactiver peut permettre l’exécution de code arbitraire.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="147"/>
         <source>Ignore global monitor</source>
         <translation>Ignorer le moniteur global</translation>
@@ -601,9 +648,21 @@ Veuillez noter que cela peut entraîner des blocages et d&apos;autres conditions
         <translation>API :</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="157"/>
+        <source>Changes the output graphics API.
+Vulkan is recommended.</source>
+        <translation>Modifie l’API graphique utilisée en sortie.
+Vulkan est recommandé.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="160"/>
         <source>Device:</source>
         <translation>Appareil :</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="161"/>
+        <source>This setting selects the GPU to use (Vulkan only).</source>
+        <translation>Ce paramètre permet de sélectionner le GPU à utiliser (Vulkan uniquement).</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="164"/>
@@ -611,9 +670,25 @@ Veuillez noter que cela peut entraîner des blocages et d&apos;autres conditions
         <translation>Back-end des Shaders :</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="165"/>
+        <source>The shader backend to use with OpenGL.
+GLSL is recommended.</source>
+        <translation>Le moteur de shaders à utiliser avec OpenGL.
+GLSL est recommandé.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="168"/>
         <source>Resolution:</source>
         <translation>Résolution :</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="169"/>
+        <source>Forces to render at a different resolution.
+Higher resolutions require more VRAM and bandwidth.
+Options lower than 1X can cause artifacts.</source>
+        <translation>Force le rendu à une résolution différente.
+Des résolutions plus élevées nécessitent plus de VRAM et de bande passante.
+Des options inférieures à 1X peuvent provoquer des artefacts.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="172"/>
@@ -626,9 +701,23 @@ Veuillez noter que cela peut entraîner des blocages et d&apos;autres conditions
         <translation>Netteté FSR :</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="176"/>
+        <source>Determines how sharpened the image will look using FSR&apos;s dynamic contrast.</source>
+        <translation>Détermine le niveau de netteté de l’image en utilisant le contraste dynamique de FSR.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="179"/>
         <source>Anti-Aliasing Method:</source>
         <translation>Méthode d&apos;anticrénelage :</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="180"/>
+        <source>The anti-aliasing method to use.
+SMAA offers the best quality.
+FXAA can produce a more stable picture in lower resolutions.</source>
+        <translation>La méthode d’anticrénelage à utiliser.
+SMAA offre la meilleure qualité.
+FXAA peut produire une image plus stable à des résolutions plus faibles.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="184"/>
@@ -650,11 +739,30 @@ Le mode plein écran exclusif peut offrir de meilleures performances et un meill
         <translation>Format :</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="192"/>
+        <source>Stretches the renderer to fit the specified aspect ratio.
+Most games only support 16:9, so modifications are required to get other ratios.
+Also controls the aspect ratio of captured screenshots.</source>
+        <translation>Étire le rendu pour correspondre au format d’image spécifié.
+La plupart des jeux ne supportent que le format 16:9, donc des modifications sont nécessaires pour obtenir d’autres formats.
+Contrôle également le format des captures d’écran.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="197"/>
+        <source>Use persistent pipeline cache</source>
+        <translation>Conserver le cache du rendu graphique</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="198"/>
         <source>Allows saving shaders to storage for faster loading on following game boots.
 Disabling it is only intended for debugging.</source>
         <translation>Permet de sauvegarder les shaders sur le stockage pour un chargement plus rapide lors des démarrages ultérieurs du jeu.
 Le désactiver est uniquement destiné au débogage.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="202"/>
+        <source>Optimize SPIRV output</source>
+        <translation>Optimiser la sortie SPIR‑V</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="203"/>
@@ -699,9 +807,29 @@ Dans la plupart des cas, le décodage GPU offre les meilleures performances.</tr
         <translation>Méthode de décodage ASTC :</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="220"/>
+        <source>This option controls how ASTC textures should be decoded.
+CPU: Use the CPU for decoding.
+GPU: Use the GPU's compute shaders to decode ASTC textures (recommended).
+CPU Asynchronously: Use the CPU to decode ASTC textures on demand. EliminatesASTC decoding
+stuttering but may present artifacts.</source>
+        <translation>Cette option contrôle la façon dont les textures ASTC doivent être décodées.
+CPU : Utiliser le CPU pour le décodage.
+GPU : Utiliser les shaders de calcul du GPU pour décoder les textures ASTC (recommandé).
+CPU asynchrone : Utiliser le CPU pour décoder les textures ASTC à la demande. Élimine les saccades liées au décodage ASTC, mais peut provoquer des artefacts.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="228"/>
         <source>ASTC Recompression Method:</source>
         <translation>Méthode de recompression ASTC :</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="229"/>
+        <source>Most GPUs lack support for ASTC textures and must decompress to anintermediate format: RGBA8.
+BC1/BC3: The intermediate format will be recompressed to BC1 or BC3 format,
+ saving VRAM but degrading image quality.</source>
+        <translation>La plupart des GPU ne prennent pas en charge les textures ASTC et doivent les décompresser dans un format intermédiaire : RGBA8.
+BC1/BC3 : Le format intermédiaire sera recompressé en BC1 ou BC3, ce qui économise de la VRAM mais dégrade la qualité de l’image.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="235"/>
@@ -709,9 +837,21 @@ Dans la plupart des cas, le décodage GPU offre les meilleures performances.</tr
         <translation>Mode d&apos;utilisation de la VRAM :</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="236"/>
+        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
+Aggressive mode may impact performance of other applications such as recording software.</source>
+        <translation>Permet de choisir si l’émulateur doit privilégier la conservation de la mémoire ou utiliser au maximum la mémoire vidéo disponible pour les performances.
+Le mode agressif peut affecter les performances d’autres applications, comme les logiciels d’enregistrement.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="239"/>
         <source>Skip CPU Inner Invalidation</source>
         <translation>Ignorer l&apos;invalidation interne du CPU</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="240"/>
+        <source>Skips certain cache invalidations during memory updates, reducing CPU usage and improving latency. This may cause soft-crashes.</source>
+        <translation>Ignore certaines invalidations de cache lors des mises à jour de la mémoire, réduisant l’utilisation du CPU et améliorant la latence. Cela peut provoquer des plantages légers.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="245"/>
@@ -719,9 +859,29 @@ Dans la plupart des cas, le décodage GPU offre les meilleures performances.</tr
         <translation>Mode VSync :</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="246"/>
+        <source>FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
+FIFO Relaxed allows tearing as it recovers from a slow down.
+Mailbox can have lower latency than FIFO and does not tear but may drop frames.
+Immediate (no synchronization) presents whatever is available and can exhibit tearing.</source>
+        <translation>FIFO (VSync) ne perd pas d’images et n’entraîne pas de déchirement, mais est limité par la fréquence de rafraîchissement de l’écran.
+FIFO Relaxed permet le déchirement car il compense un ralentissement.
+Mailbox peut offrir une latence inférieure à FIFO et n’entraîne pas de déchirement, mais peut perdre des images.
+Immediate (pas de synchronisation) affiche ce qui est disponible et peut provoquer du déchirement.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="256"/>
         <source>Sync Memory Operations</source>
         <translation>Synchroniser les opérations mémoire</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="257"/>
+        <source>Ensures data consistency between compute and memory operations.
+This option fixes issues in games, but may degrade performance.
+Unreal Engine 4 games often see the most significant changes thereof.</source>
+        <translation>Assure la cohérence des données entre les opérations de calcul et de mémoire.
+Cette option corrige des problèmes dans les jeux, mais peut dégrader les performances.
+Les jeux Unreal Engine 4 sont souvent ceux qui bénéficient le plus de ce réglage.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="260"/>
@@ -749,6 +909,13 @@ Dans la plupart des cas, le décodage GPU offre les meilleures performances.</tr
         <translation>Filtrage anisotropique :</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="271"/>
+        <source>Controls the quality of texture rendering at oblique angles.
+Safe to set at 16x on most GPUs.</source>
+        <translation>Contrôle la qualité du rendu des textures sous des angles obliques.
+Il est sûr de le régler à 16x sur la plupart des GPU.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="274"/>
         <source>GPU Accuracy:</source>
         <translation>Précision du GPU</translation>
@@ -768,6 +935,21 @@ Le mode Extrême ne devrait être utilisé qu’en dernier recours.</translation
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="280"/>
         <source>DMA Accuracy:</source>
         <translation>Précision du DMA :</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="281"/>
+        <source>Controls the DMA precision accuracy. Safe precision fixes issues in some games but may degrade performance.</source>
+        <translation>Contrôle la précision des transferts DMA. Une précision plus élevée corrige certains problèmes dans certains jeux, mais peut réduire les performances.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="284"/>
+        <source>Enable asynchronous shader compilation (Hack)</source>
+        <translation>Activer la compilation asynchrone des shaders (Hack)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="285"/>
+        <source>May reduce shader stutter.</source>
+        <translation>Peut réduire les saccades dues aux shaders.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
@@ -797,6 +979,15 @@ Cette option peut améliorer considérablement le temps de chargement des shader
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="302"/>
         <source>Enable Compute Pipelines (Intel Vulkan Only)</source>
         <translation>Activer les pipelines de calcul (Vulkan sur Intel uniquement)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="303"/>
+        <source>Required by some games.
+This setting only exists for Intel proprietary drivers and may crash if enabled.
+Compute pipelines are always enabled on all other drivers.</source>
+        <translation>Requis par certains jeux.
+Ce réglage n’existe que pour les pilotes propriétaires Intel et peut provoquer un plantage s’il est activé.
+Les pipelines de calcul sont toujours activés sur tous les autres pilotes.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="309"/>
@@ -834,9 +1025,25 @@ Cette option peut améliorer considérablement le temps de chargement des shader
         <translation>État dynamique étendu</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="326"/>
+        <source>Controls the number of features that can be used in Extended Dynamic State.
+Higher numbers allow for more features and can increase performance, but may cause issues.
+The default value is per-system.</source>
+        <translation>Contrôle le nombre de fonctionnalités utilisables dans l’État Dynamique Étendu.
+Un nombre plus élevé permet d’activer plus de fonctionnalités et peut améliorer les performances, mais peut aussi provoquer des problèmes.
+La valeur par défaut dépend du système.</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="330"/>
         <source>Provoking Vertex</source>
         <translation>Vertex provoquant</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="331"/>
+        <source>Improves lighting and vertex handling in some games.
+Only Vulkan 1.0+ devices support this extension.</source>
+        <translation>Améliore l’éclairage et la gestion des points 3D dans certains jeux.
+Seuls les appareils compatibles avec Vulkan 1.0+ prennent en charge cette extension.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="336"/>
@@ -856,274 +1063,17 @@ Certains appareils compatibles Vulkan 1.1+ et tous ceux en 1.2+ prennent en char
         <translation>Échantillonnage de shading</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="354"/>
-        <source>RNG Seed</source>
-        <translation>Seed RNG</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="357"/>
-        <source>Device Name</source>
-        <translation>Nom de l&apos;appareil</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="360"/>
-        <source>Custom RTC Date:</source>
-        <translation>Date RTC personnalisée :</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="370"/>
-        <source>Language:</source>
-        <translation>Langue :</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="372"/>
-        <source>Region:</source>
-        <translation>Région :</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="373"/>
-        <source>Time Zone:</source>
-        <translation>Fuseau horaire :</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="374"/>
-        <source>Sound Output Mode:</source>
-        <translation>Mode de sortie sonore :</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="377"/>
-        <source>Console Mode:</source>
-        <translation>Mode console :</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="408"/>
-        <source>Confirm before stopping emulation</source>
-        <translation>Confirmer avant d&apos;arrêter l&apos;émulation</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="413"/>
-        <source>Hide mouse on inactivity</source>
-        <translation>Cacher la souris en cas d&apos;inactivité</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="417"/>
-        <source>Disable controller applet</source>
-        <translation>Désactiver l&apos;applet du contrôleur</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="65"/>
-        <source>This option increases CPU emulation thread use from 1 to the maximum of 4.
-This is mainly a debug option and shouldn&apos;t be disabled.</source>
-        <translation>Cette option augmente l’utilisation des threads d’émulation CPU de 1 jusqu’à un maximum de 4.
-Il s’agit principalement d’une option de débogage et elle ne devrait pas être désactivée.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="71"/>
-        <source>Increases the amount of emulated RAM from 4GB of the board to the devkit 8/6GB.
-Doesn&apos;t affect performance/stability but may allow HD texture mods to load.</source>
-        <translation>Augmente la quantité de RAM émulée de 4 Go sur la Switch à 8/6 Go comme sur les kits de développement.
-Cela n’affecte pas les performances ni la stabilité, mais peut permettre le chargement de mods de textures HD.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="78"/>
-        <source>Controls the game's maximum rendering speed, but it's up to each game if it runs faster or not.
-200% for a 30 FPS game is 60 FPS, and for a 60 FPS game it will be 120 FPS.
-Disabling it means unlocking the framerate to the maximum your PC can reach.</source>
-        <translation>Contrôle la vitesse de rendu maximale du jeu, mais c’est chaque jeu qui décide s’il peut tourner plus vite ou non.
-À 200 %, un jeu prévu pour 30 FPS tournera à 60 FPS, et un jeu prévu pour 60 FPS passera à 120 FPS.
-Désactiver cette option signifie débloquer le framerate jusqu’au maximum que votre PC peut atteindre.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="85"/>
-        <source>Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
-Can help reduce stuttering at lower framerates.</source>
-        <translation>Synchronise la vitesse des cœurs CPU avec la vitesse de rendu maximale du jeu pour augmenter les FPS sans affecter la vitesse du jeu (animations, physique, etc.).
-Peut aider à réduire les saccades à des framerates faibles.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="93"/>
-        <source>Change the accuracy of the emulated CPU (for debugging only).</source>
-        <translation>Modifie la précision du CPU émulé (réservé au débogage).</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="108"/>
-        <source>Set a custom value of CPU ticks. Higher values can increase performance, but may cause deadlocks. A range of 77-21000 is recommended.</source>
-        <translation>Définissez une valeur personnalisée pour les cycles CPU. Des valeurs plus élevées peuvent améliorer les performances, mais risquent de provoquer des blocages. Une plage de 77-21000 est recommandée.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="142"/>
-        <source>This option improves speed by eliminating a safety check before every memory operation.
-Disabling it may allow arbitrary code execution.</source>
-        <translation>Cette option améliore la vitesse en supprimant une vérification de sécurité avant chaque opération mémoire.
-La désactiver peut permettre l’exécution de code arbitraire.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="157"/>
-        <source>Changes the output graphics API.
-Vulkan is recommended.</source>
-        <translation>Modifie l’API graphique utilisée en sortie.
-Vulkan est recommandé.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="161"/>
-        <source>This setting selects the GPU to use (Vulkan only).</source>
-        <translation>Ce paramètre permet de sélectionner le GPU à utiliser (Vulkan uniquement).</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="165"/>
-        <source>The shader backend to use with OpenGL.
-GLSL is recommended.</source>
-        <translation>Le moteur de shaders à utiliser avec OpenGL.
-GLSL est recommandé.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="169"/>
-        <source>Forces to render at a different resolution.
-Higher resolutions require more VRAM and bandwidth.
-Options lower than 1X can cause artifacts.</source>
-        <translation>Force le rendu à une résolution différente.
-Des résolutions plus élevées nécessitent plus de VRAM et de bande passante.
-Des options inférieures à 1X peuvent provoquer des artefacts.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="176"/>
-        <source>Determines how sharpened the image will look using FSR&apos;s dynamic contrast.</source>
-        <translation>Détermine le niveau de netteté de l’image en utilisant le contraste dynamique de FSR.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="180"/>
-        <source>The anti-aliasing method to use.
-SMAA offers the best quality.
-FXAA can produce a more stable picture in lower resolutions.</source>
-        <translation>La méthode d’anticrénelage à utiliser.
-SMAA offre la meilleure qualité.
-FXAA peut produire une image plus stable à des résolutions plus faibles.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="192"/>
-        <source>Stretches the renderer to fit the specified aspect ratio.
-Most games only support 16:9, so modifications are required to get other ratios.
-Also controls the aspect ratio of captured screenshots.</source>
-        <translation>Étire le rendu pour correspondre au format d’image spécifié.
-La plupart des jeux ne supportent que le format 16:9, donc des modifications sont nécessaires pour obtenir d’autres formats.
-Contrôle également le format des captures d’écran.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="197"/>
-        <source>Use persistent pipeline cache</source>
-        <translation>Conserver le cache du rendu graphique</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="202"/>
-        <source>Optimize SPIRV output</source>
-        <translation>Optimiser la sortie SPIR‑V</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="220"/>
-        <source>This option controls how ASTC textures should be decoded.
-CPU: Use the CPU for decoding.
-GPU: Use the GPU's compute shaders to decode ASTC textures (recommended).
-CPU Asynchronously: Use the CPU to decode ASTC textures on demand. EliminatesASTC decoding
-stuttering but may present artifacts.</source>
-        <translation>Cette option contrôle la façon dont les textures ASTC doivent être décodées.
-CPU : Utiliser le CPU pour le décodage.
-GPU : Utiliser les shaders de calcul du GPU pour décoder les textures ASTC (recommandé).
-CPU asynchrone : Utiliser le CPU pour décoder les textures ASTC à la demande. Élimine les saccades liées au décodage ASTC, mais peut provoquer des artefacts.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="229"/>
-        <source>Most GPUs lack support for ASTC textures and must decompress to anintermediate format: RGBA8.
-BC1/BC3: The intermediate format will be recompressed to BC1 or BC3 format,
- saving VRAM but degrading image quality.</source>
-        <translation>La plupart des GPU ne prennent pas en charge les textures ASTC et doivent les décompresser dans un format intermédiaire : RGBA8.
-BC1/BC3 : Le format intermédiaire sera recompressé en BC1 ou BC3, ce qui économise de la VRAM mais dégrade la qualité de l’image.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="236"/>
-        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
-Aggressive mode may impact performance of other applications such as recording software.</source>
-        <translation>Permet de choisir si l’émulateur doit privilégier la conservation de la mémoire ou utiliser au maximum la mémoire vidéo disponible pour les performances.
-Le mode agressif peut affecter les performances d’autres applications, comme les logiciels d’enregistrement.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="240"/>
-        <source>Skips certain cache invalidations during memory updates, reducing CPU usage and improving latency. This may cause soft-crashes.</source>
-        <translation>Ignore certaines invalidations de cache lors des mises à jour de la mémoire, réduisant l’utilisation du CPU et améliorant la latence. Cela peut provoquer des plantages légers.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="246"/>
-        <source>FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
-FIFO Relaxed allows tearing as it recovers from a slow down.
-Mailbox can have lower latency than FIFO and does not tear but may drop frames.
-Immediate (no synchronization) presents whatever is available and can exhibit tearing.</source>
-        <translation>FIFO (VSync) ne perd pas d’images et n’entraîne pas de déchirement, mais est limité par la fréquence de rafraîchissement de l’écran.
-FIFO Relaxed permet le déchirement car il compense un ralentissement.
-Mailbox peut offrir une latence inférieure à FIFO et n’entraîne pas de déchirement, mais peut perdre des images.
-Immediate (pas de synchronisation) affiche ce qui est disponible et peut provoquer du déchirement.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="257"/>
-        <source>Ensures data consistency between compute and memory operations.
-This option fixes issues in games, but may degrade performance.
-Unreal Engine 4 games often see the most significant changes thereof.</source>
-        <translation>Assure la cohérence des données entre les opérations de calcul et de mémoire.
-Cette option corrige des problèmes dans les jeux, mais peut dégrader les performances.
-Les jeux Unreal Engine 4 sont souvent ceux qui bénéficient le plus de ce réglage.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="271"/>
-        <source>Controls the quality of texture rendering at oblique angles.
-Safe to set at 16x on most GPUs.</source>
-        <translation>Contrôle la qualité du rendu des textures sous des angles obliques.
-Il est sûr de le régler à 16x sur la plupart des GPU.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="281"/>
-        <source>Controls the DMA precision accuracy. Safe precision fixes issues in some games but may degrade performance.</source>
-        <translation>Contrôle la précision des transferts DMA. Une précision plus élevée corrige certains problèmes dans certains jeux, mais peut réduire les performances.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="284"/>
-        <source>Enable asynchronous shader compilation (Hack)</source>
-        <translation>Activer la compilation asynchrone des shaders (Hack)</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="285"/>
-        <source>May reduce shader stutter.</source>
-        <translation>Peut réduire les saccades dues aux shaders.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="303"/>
-        <source>Required by some games.
-This setting only exists for Intel proprietary drivers and may crash if enabled.
-Compute pipelines are always enabled on all other drivers.</source>
-        <translation>Requis par certains jeux.
-Ce réglage n’existe que pour les pilotes propriétaires Intel et peut provoquer un plantage s’il est activé.
-Les pipelines de calcul sont toujours activés sur tous les autres pilotes.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="326"/>
-        <source>Controls the number of features that can be used in Extended Dynamic State.
-Higher numbers allow for more features and can increase performance, but may cause issues.
-The default value is per-system.</source>
-        <translation>Contrôle le nombre de fonctionnalités utilisables dans l’État Dynamique Étendu.
-Un nombre plus élevé permet d’activer plus de fonctionnalités et peut améliorer les performances, mais peut aussi provoquer des problèmes.
-La valeur par défaut dépend du système.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="331"/>
-        <source>Improves lighting and vertex handling in some games.
-Only Vulkan 1.0+ devices support this extension.</source>
-        <translation>Améliore l’éclairage et la gestion des points 3D dans certains jeux.
-Seuls les appareils compatibles avec Vulkan 1.0+ prennent en charge cette extension.</translation>
-    </message>
-    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="345"/>
         <source>Allows the fragment shader to execute per sample in a multi-sampled fragment instead of once per fragment. Improves graphics quality at the cost of performance.
 Higher values improve quality but degrade performance.</source>
         <translation>Permet au shader de fragments de s’exécuter pour chaque échantillon dans un fragment multi-échantillonné, au lieu d’une seule fois par fragment.
 Améliore la qualité graphique au prix de performances réduites.
 Des valeurs plus élevées améliorent la qualité mais dégradent les performances.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="354"/>
+        <source>RNG Seed</source>
+        <translation>Seed RNG</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="355"/>
@@ -1134,8 +1084,18 @@ Principalement utilisé pour le speedrun.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="357"/>
+        <source>Device Name</source>
+        <translation>Nom de l&apos;appareil</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="357"/>
         <source>The name of the console.</source>
         <translation>Nom de la console.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="360"/>
+        <source>Custom RTC Date:</source>
+        <translation>Date RTC personnalisée :</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="361"/>
@@ -1150,9 +1110,19 @@ Peut être utilisée pour manipuler le temps dans les jeux.</translation>
         <translation>Nombre de secondes écoulées depuis le 1er janvier 1970.</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="370"/>
+        <source>Language:</source>
+        <translation>Langue :</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="371"/>
         <source>This option can be overridden when region setting is auto-select</source>
         <translation>Cette option peut être remplacée lorsque la région est sur auto.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="372"/>
+        <source>Region:</source>
+        <translation>Région :</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="372"/>
@@ -1161,8 +1131,23 @@ Peut être utilisée pour manipuler le temps dans les jeux.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="373"/>
+        <source>Time Zone:</source>
+        <translation>Fuseau horaire :</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="373"/>
         <source>The time zone of the console.</source>
         <translation>Fuseau horaire de la console.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="374"/>
+        <source>Sound Output Mode:</source>
+        <translation>Mode de sortie sonore :</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="377"/>
+        <source>Console Mode:</source>
+        <translation>Mode console :</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="378"/>
@@ -1194,6 +1179,11 @@ Passer en mode Portable peut améliorer les performances sur les systèmes peu p
         <translation>Met l’émulation en pause dès que l’utilisateur change de fenêtre.</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="408"/>
+        <source>Confirm before stopping emulation</source>
+        <translation>Confirmer avant d&apos;arrêter l&apos;émulation</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="409"/>
         <source>Overrides prompts asking to confirm stopping the emulation.
 Enabling it bypasses such prompts and directly exits the emulation.</source>
@@ -1201,9 +1191,19 @@ Enabling it bypasses such prompts and directly exits the emulation.</source>
 L’activer permet de contourner ces confirmations et de quitter directement l’émulation.</translation>
     </message>
     <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="413"/>
+        <source>Hide mouse on inactivity</source>
+        <translation>Cacher la souris en cas d&apos;inactivité</translation>
+    </message>
+    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="414"/>
         <source>Hides the mouse after 2.5s of inactivity.</source>
         <translation>Cache le curseur après 2,5 secondes d’inactivité.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="417"/>
+        <source>Disable controller applet</source>
+        <translation>Désactiver l&apos;applet du contrôleur</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="418"/>
@@ -1376,7 +1376,7 @@ Lorsqu’un programme tente d’ouvrir ce menu, il est immédiatement fermé.</t
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="513"/>
         <source>Debugging</source>
-        <translation type="unfinished"/>
+        <translation>Débogage</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="517"/>
@@ -1510,8 +1510,8 @@ Lorsqu’un programme tente d’ouvrir ce menu, il est immédiatement fermé.</t
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="556"/>
-        <source>AMD FidelityFX™️ Super Resolution</source>
-        <translation>AMD FidelityFX™️ Super Resolution</translation>
+        <source>AMD FidelityFX Super Resolution</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="557"/>
@@ -4652,14 +4652,14 @@ Les valeurs actuelles sont respectivement de %1% et %2%.</translation>
         <translation>Impossible de localiser les données de jeu. Votre fichier ou vos clés de déchiffrement sont peut-être corrompus.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="382"/>
-        <source>Could not extract RomFS. Your file or decryption keys may be corrupted.</source>
-        <translation>Impossible d’extraire les données de jeu. Votre fichier ou vos clés de déchiffrement sont peut-être corrompus.</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="381"/>
         <source>Error extracting archive</source>
         <translation>Erreur lors de l’extraction de l’archive.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="382"/>
+        <source>Could not extract RomFS. Your file or decryption keys may be corrupted.</source>
+        <translation>Impossible d’extraire les données de jeu. Votre fichier ou vos clés de déchiffrement sont peut-être corrompus.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="387"/>
@@ -5778,7 +5778,7 @@ Veuillez aller dans Configurer -&gt; Système -&gt; Réseau puis en choisir une.
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="53"/>
-        <location filename="../../src/yuzu/main.cpp" line="4408"/>
+        <location filename="../../src/yuzu/main.cpp" line="4406"/>
         <source>FSR</source>
         <translation>FSR</translation>
     </message>
@@ -6355,112 +6355,112 @@ Veuillez n&apos;utiliser cette fonctionnalité que pour installer des mises à j
         <translation>Impossible d&apos;ouvrir l&apos;URL &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3605"/>
+        <location filename="../../src/yuzu/main.cpp" line="3603"/>
         <source>TAS Recording</source>
         <translation>Enregistrement TAS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3605"/>
+        <location filename="../../src/yuzu/main.cpp" line="3603"/>
         <source>Overwrite file of player 1?</source>
         <translation>Écraser le fichier du joueur 1 ?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3624"/>
+        <location filename="../../src/yuzu/main.cpp" line="3622"/>
         <source>Invalid config detected</source>
         <translation>Configuration invalide détectée</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3625"/>
+        <location filename="../../src/yuzu/main.cpp" line="3623"/>
         <source>Handheld controller can&apos;t be used on docked mode. Pro controller will be selected.</source>
         <translation>Le contrôleur portable ne peut pas être utilisé en mode TV. La manette pro sera sélectionné.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3767"/>
-        <location filename="../../src/yuzu/main.cpp" line="3818"/>
+        <location filename="../../src/yuzu/main.cpp" line="3765"/>
+        <location filename="../../src/yuzu/main.cpp" line="3816"/>
         <source>Amiibo</source>
         <translation>Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3767"/>
-        <location filename="../../src/yuzu/main.cpp" line="3818"/>
+        <location filename="../../src/yuzu/main.cpp" line="3765"/>
+        <location filename="../../src/yuzu/main.cpp" line="3816"/>
         <source>The current amiibo has been removed</source>
         <translation>L&apos;amiibo actuel a été retiré</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3772"/>
+        <location filename="../../src/yuzu/main.cpp" line="3770"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3772"/>
-        <location filename="../../src/yuzu/main.cpp" line="3830"/>
+        <location filename="../../src/yuzu/main.cpp" line="3770"/>
+        <location filename="../../src/yuzu/main.cpp" line="3828"/>
         <source>The current game is not looking for amiibos</source>
         <translation>Le jeu actuel ne cherche pas d&apos;amiibos.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3778"/>
+        <location filename="../../src/yuzu/main.cpp" line="3776"/>
         <source>Amiibo File (%1);; All Files (*.*)</source>
         <translation>Fichier Amiibo (%1);; Tous les fichiers (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3779"/>
+        <location filename="../../src/yuzu/main.cpp" line="3777"/>
         <source>Load Amiibo</source>
         <translation>Charger un Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3814"/>
+        <location filename="../../src/yuzu/main.cpp" line="3812"/>
         <source>Error loading Amiibo data</source>
         <translation>Erreur lors du chargement des données Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3824"/>
+        <location filename="../../src/yuzu/main.cpp" line="3822"/>
         <source>The selected file is not a valid amiibo</source>
         <translation>Le fichier choisi n&apos;est pas un amiibo valide</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3827"/>
+        <location filename="../../src/yuzu/main.cpp" line="3825"/>
         <source>The selected file is already on use</source>
         <translation>Le fichier sélectionné est déjà utilisé</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3833"/>
+        <location filename="../../src/yuzu/main.cpp" line="3831"/>
         <source>An unknown error occurred</source>
         <translation>Une erreur inconnue s&apos;est produite</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3882"/>
-        <location filename="../../src/yuzu/main.cpp" line="3905"/>
+        <location filename="../../src/yuzu/main.cpp" line="3880"/>
+        <location filename="../../src/yuzu/main.cpp" line="3903"/>
         <source>Keys not installed</source>
         <translation>Clés non installées</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3883"/>
-        <location filename="../../src/yuzu/main.cpp" line="3906"/>
+        <location filename="../../src/yuzu/main.cpp" line="3881"/>
+        <location filename="../../src/yuzu/main.cpp" line="3904"/>
         <source>Install decryption keys and restart Eden before attempting to install firmware.</source>
         <translation>Installez les clés de décryptage et redémarrez Eden avant de tenter d&apos;installer le firmware.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3888"/>
+        <location filename="../../src/yuzu/main.cpp" line="3886"/>
         <source>Select Dumped Firmware Source Location</source>
         <translation>Sélectionnez l&apos;emplacement de la source du firmware extrait</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3911"/>
+        <location filename="../../src/yuzu/main.cpp" line="3909"/>
         <source>Select Dumped Firmware ZIP</source>
         <translation>Sélectionnez le fichier ZIP du firmware dumpé</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3911"/>
+        <location filename="../../src/yuzu/main.cpp" line="3909"/>
         <source>Zipped Archives (*.zip)</source>
         <translation>Archives ZIP (*.zip)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3926"/>
+        <location filename="../../src/yuzu/main.cpp" line="3924"/>
         <source>Firmware cleanup failed</source>
         <translation>Échec du nettoyage du firmware</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3927"/>
+        <location filename="../../src/yuzu/main.cpp" line="3925"/>
         <source>Failed to clean up extracted firmware cache.
 Check write permissions in the system temp directory and try again.
 OS reported error: %1</source>
@@ -6469,278 +6469,278 @@ Vérifiez les permissions d&apos;écriture dans le répertoire temporaire du sys
 L&apos;OS a signalé l&apos;erreur : %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3991"/>
-        <location filename="../../src/yuzu/main.cpp" line="4014"/>
-        <location filename="../../src/yuzu/main.cpp" line="4038"/>
-        <location filename="../../src/yuzu/main.cpp" line="4061"/>
-        <location filename="../../src/yuzu/main.cpp" line="4087"/>
-        <location filename="../../src/yuzu/main.cpp" line="4138"/>
+        <location filename="../../src/yuzu/main.cpp" line="3989"/>
+        <location filename="../../src/yuzu/main.cpp" line="4012"/>
+        <location filename="../../src/yuzu/main.cpp" line="4036"/>
+        <location filename="../../src/yuzu/main.cpp" line="4059"/>
+        <location filename="../../src/yuzu/main.cpp" line="4085"/>
+        <location filename="../../src/yuzu/main.cpp" line="4136"/>
         <source>No firmware available</source>
         <translation>Pas de firmware disponible</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3992"/>
+        <location filename="../../src/yuzu/main.cpp" line="3990"/>
         <source>Please install firmware to use the Album applet.</source>
         <translation>Veuillez installer un firmware pour utiliser l&apos;applet Album</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3998"/>
+        <location filename="../../src/yuzu/main.cpp" line="3996"/>
         <source>Album Applet</source>
         <translation>Applet de l&apos;album</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3999"/>
+        <location filename="../../src/yuzu/main.cpp" line="3997"/>
         <source>Album applet is not available. Please reinstall firmware.</source>
         <translation>L&apos;applet de l&apos;album n&apos;est pas disponible. Veuillez réinstaller le firmware.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4015"/>
+        <location filename="../../src/yuzu/main.cpp" line="4013"/>
         <source>Please install firmware to use the Cabinet applet.</source>
         <translation>Veuillez installer le firmware pour utiliser l&apos;Album.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4021"/>
+        <location filename="../../src/yuzu/main.cpp" line="4019"/>
         <source>Cabinet Applet</source>
         <translation>Applet du cabinet</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4022"/>
+        <location filename="../../src/yuzu/main.cpp" line="4020"/>
         <source>Cabinet applet is not available. Please reinstall firmware.</source>
         <translation>L&apos;applet du cabinet n&apos;est pas disponible. Veuillez réinstaller le firmware.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4039"/>
+        <location filename="../../src/yuzu/main.cpp" line="4037"/>
         <source>Please install firmware to use the Mii editor.</source>
         <translation>Veuillez installer le firmware pour utiliser l&apos;éditeur Mii.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4045"/>
+        <location filename="../../src/yuzu/main.cpp" line="4043"/>
         <source>Mii Edit Applet</source>
         <translation>Applet de l&apos;éditeur Mii</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4046"/>
+        <location filename="../../src/yuzu/main.cpp" line="4044"/>
         <source>Mii editor is not available. Please reinstall firmware.</source>
         <translation>L&apos;éditeur Mii n&apos;est pas disponible. Veuillez réinstaller le firmware.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4062"/>
+        <location filename="../../src/yuzu/main.cpp" line="4060"/>
         <source>Please install firmware to use the Controller Menu.</source>
         <translation>Veuillez installer le firmware pour utiliser le menu des manettes.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4069"/>
+        <location filename="../../src/yuzu/main.cpp" line="4067"/>
         <source>Controller Applet</source>
         <translation>Applet Contrôleur</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4070"/>
+        <location filename="../../src/yuzu/main.cpp" line="4068"/>
         <source>Controller Menu is not available. Please reinstall firmware.</source>
         <translation>Le menu des manettes n&apos;est pas disponible. Veuillez réinstaller le firmware.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4088"/>
+        <location filename="../../src/yuzu/main.cpp" line="4086"/>
         <source>Please install firmware to use the Home Menu.</source>
         <translation>Veuillez installer le firmware pour utiliser le menu d&apos;accueil</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4091"/>
+        <location filename="../../src/yuzu/main.cpp" line="4089"/>
         <source>Firmware Corrupted</source>
         <translation>Firmware corrompu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4098"/>
+        <location filename="../../src/yuzu/main.cpp" line="4096"/>
         <source>Firmware Too New</source>
         <translation>Le firmware est trop récent</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4099"/>
+        <location filename="../../src/yuzu/main.cpp" line="4097"/>
         <source>
 Continue anyways?</source>
         <translation>
 Continuer quand même ?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4103"/>
+        <location filename="../../src/yuzu/main.cpp" line="4101"/>
         <source>Don&apos;t show again</source>
         <translation>Ne plus afficher</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4122"/>
+        <location filename="../../src/yuzu/main.cpp" line="4120"/>
         <source>Home Menu Applet</source>
         <translation>Applet Menu d&apos;accueil</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4123"/>
+        <location filename="../../src/yuzu/main.cpp" line="4121"/>
         <source>Home Menu is not available. Please reinstall firmware.</source>
         <translation>Le menu d&apos;accueil n&apos;est pas disponible. Veuillez réinstaller le firmware.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4139"/>
+        <location filename="../../src/yuzu/main.cpp" line="4137"/>
         <source>Please install firmware to use Starter.</source>
         <translation>Veuillez installer le firmware pour commencer l&apos;utilisation</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4145"/>
+        <location filename="../../src/yuzu/main.cpp" line="4143"/>
         <source>Starter Applet</source>
         <translation>Applet de démarrage</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4146"/>
+        <location filename="../../src/yuzu/main.cpp" line="4144"/>
         <source>Starter is not available. Please reinstall firmware.</source>
         <translation>Le programme de démarrage n&apos;est pas disponible. Veuillez réinstaller le firmware.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4187"/>
+        <location filename="../../src/yuzu/main.cpp" line="4185"/>
         <source>Capture Screenshot</source>
         <translation>Capture d&apos;écran</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4188"/>
+        <location filename="../../src/yuzu/main.cpp" line="4186"/>
         <source>PNG Image (*.png)</source>
         <translation>Image PNG (*.png)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4232"/>
+        <location filename="../../src/yuzu/main.cpp" line="4230"/>
         <source>Update Available</source>
         <translation>Mise à jour disponible</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4237"/>
+        <location filename="../../src/yuzu/main.cpp" line="4235"/>
         <source>Download the %1 update?</source>
         <translation>Télécharger la mise à jour %1 ?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4296"/>
+        <location filename="../../src/yuzu/main.cpp" line="4294"/>
         <source>TAS state: Running %1/%2</source>
         <translation>État du TAS : En cours d&apos;exécution %1/%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4300"/>
+        <location filename="../../src/yuzu/main.cpp" line="4298"/>
         <source>TAS state: Recording %1</source>
         <translation>État du TAS : Enregistrement %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4302"/>
+        <location filename="../../src/yuzu/main.cpp" line="4300"/>
         <source>TAS state: Idle %1/%2</source>
         <translation>État du TAS : Inactif %1:%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4306"/>
+        <location filename="../../src/yuzu/main.cpp" line="4304"/>
         <source>TAS State: Invalid</source>
         <translation>État du TAS : Invalide</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4320"/>
+        <location filename="../../src/yuzu/main.cpp" line="4318"/>
         <source>&amp;Stop Running</source>
         <translation>&amp;Stopper l&apos;exécution</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4320"/>
+        <location filename="../../src/yuzu/main.cpp" line="4318"/>
         <source>&amp;Start</source>
         <translation>&amp;Start</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4321"/>
+        <location filename="../../src/yuzu/main.cpp" line="4319"/>
         <source>Stop R&amp;ecording</source>
         <translation>Stopper l&apos;en&amp;registrement</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4321"/>
+        <location filename="../../src/yuzu/main.cpp" line="4319"/>
         <source>R&amp;ecord</source>
         <translation>En&amp;registrer</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="4345"/>
+        <location filename="../../src/yuzu/main.cpp" line="4343"/>
         <source>Building: %n shader(s)</source>
         <translation><numerusform>Compilation de %n shader</numerusform><numerusform>Compilation de %n shaders</numerusform><numerusform>Compilation de %n shader(s)</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4354"/>
+        <location filename="../../src/yuzu/main.cpp" line="4352"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
         <translation>Échelle : %1x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4357"/>
+        <location filename="../../src/yuzu/main.cpp" line="4355"/>
         <source>Speed: %1% / %2%</source>
         <translation>Vitesse : %1% / %2% </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4361"/>
+        <location filename="../../src/yuzu/main.cpp" line="4359"/>
         <source>Speed: %1%</source>
         <translation>Vitesse : %1% </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4365"/>
+        <location filename="../../src/yuzu/main.cpp" line="4363"/>
         <source>Game: %1 FPS</source>
         <translation>Jeu : %1 FPS </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4368"/>
+        <location filename="../../src/yuzu/main.cpp" line="4366"/>
         <source>Frame: %1 ms</source>
         <translation>Frame : %1 ms</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4398"/>
+        <location filename="../../src/yuzu/main.cpp" line="4396"/>
         <source>%1 %2</source>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4416"/>
+        <location filename="../../src/yuzu/main.cpp" line="4414"/>
         <source>NO AA</source>
         <translation>AUCUN AA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4425"/>
+        <location filename="../../src/yuzu/main.cpp" line="4423"/>
         <source>VOLUME: MUTE</source>
         <translation>VOLUME : MUET</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4428"/>
+        <location filename="../../src/yuzu/main.cpp" line="4426"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
         <translation>VOLUME : %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4488"/>
+        <location filename="../../src/yuzu/main.cpp" line="4486"/>
         <source>Derivation Components Missing</source>
         <translation>Composants de dérivation manquants</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4489"/>
+        <location filename="../../src/yuzu/main.cpp" line="4487"/>
         <source>Encryption keys are missing.</source>
         <translation>Les clés de décryptages sont manquantes</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4570"/>
+        <location filename="../../src/yuzu/main.cpp" line="4568"/>
         <source>Select RomFS Dump Target</source>
         <translation>Sélectionner la cible d&apos;extraction du RomFS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4571"/>
+        <location filename="../../src/yuzu/main.cpp" line="4569"/>
         <source>Please select which RomFS you would like to dump.</source>
         <translation>Veuillez sélectionner quel RomFS vous voulez extraire.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4594"/>
+        <location filename="../../src/yuzu/main.cpp" line="4592"/>
         <source>Are you sure you want to close Eden?</source>
         <translation>Êtes-vous sûr de vouloir fermer Eden ?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4595"/>
-        <location filename="../../src/yuzu/main.cpp" line="4675"/>
-        <location filename="../../src/yuzu/main.cpp" line="4687"/>
+        <location filename="../../src/yuzu/main.cpp" line="4593"/>
+        <location filename="../../src/yuzu/main.cpp" line="4673"/>
+        <location filename="../../src/yuzu/main.cpp" line="4685"/>
         <source>Eden</source>
         <translation>Eden</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4676"/>
+        <location filename="../../src/yuzu/main.cpp" line="4674"/>
         <source>Are you sure you want to stop the emulation? Any unsaved progress will be lost.</source>
         <translation>Êtes-vous sûr d&apos;arrêter l&apos;émulation ? Tout progrès non enregistré sera perdu.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4684"/>
+        <location filename="../../src/yuzu/main.cpp" line="4682"/>
         <source>The currently running application has requested Eden to not exit.
 
 Would you like to bypass this and exit anyway?</source>
@@ -6847,11 +6847,6 @@ Souhaitez-vous contourner cela et quitter quand même ?</translation>
         <translation>Supprimer la configuration personnalisée</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="568"/>
-        <source>Remove Play Time Data</source>
-        <translation>Supprimer les données de temps de jeu</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/game_list.cpp" line="560"/>
         <source>Remove Cache Storage</source>
         <translation>Supprimer le stockage du cache</translation>
@@ -6879,12 +6874,17 @@ Souhaitez-vous contourner cela et quitter quand même ?</translation>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="566"/>
         <source>Manage Play Time</source>
-        <translation type="unfinished"/>
+        <translation>Gérer le Temps de Jeu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="567"/>
         <source>Edit Play Time Data</source>
-        <translation type="unfinished"/>
+        <translation>Modifier les Données de Temps de Jeu</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game_list.cpp" line="568"/>
+        <source>Remove Play Time Data</source>
+        <translation>Supprimer les données de temps de jeu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game_list.cpp" line="569"/>
@@ -7590,16 +7590,6 @@ Message de débogage :</translation>
         <translation>&amp;Outils</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="180"/>
-        <source>&amp;TAS</source>
-        <translation>&amp;TAS</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="190"/>
-        <source>&amp;Create Home Menu Shortcut</source>
-        <translation>&amp;Créer un Raccourci du Menu d&apos;Accueil</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/main.ui" line="161"/>
         <source>Am&amp;iibo</source>
         <translation>Am&amp;iibo</translation>
@@ -7608,6 +7598,16 @@ Message de débogage :</translation>
         <location filename="../../src/yuzu/main.ui" line="170"/>
         <source>&amp;Applets</source>
         <translation>&amp;Mini‑programmes système</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="180"/>
+        <source>&amp;TAS</source>
+        <translation>&amp;TAS</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="190"/>
+        <source>&amp;Create Home Menu Shortcut</source>
+        <translation>&amp;Créer un Raccourci du Menu d&apos;Accueil</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="197"/>
@@ -7830,11 +7830,6 @@ Message de débogage :</translation>
         <translation>Ouvrir le &amp;Menu d’accueil</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="605"/>
-        <source>&amp;Data Manager</source>
-        <translation>&amp;Gestionnaire de données</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/main.ui" line="517"/>
         <source>&amp;Discord</source>
         <translation>&amp;Discord</translation>
@@ -7914,6 +7909,11 @@ Message de débogage :</translation>
         <source>&amp;Eden Dependencies</source>
         <translation>Dépendances d&apos;&amp;Eden</translation>
     </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="605"/>
+        <source>&amp;Data Manager</source>
+        <translation>&amp;Gestionnaire de données</translation>
+    </message>
 </context>
 <context>
     <name>MigrationWorker</name>
@@ -7953,7 +7953,7 @@ Si vous souhaitez supprimer les fichiers qui ont été laissés dans l&apos;anci
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
+        <location filename="../../src/yuzu/migration_worker.h" line="70"/>
         <source>Data was migrated successfully.</source>
         <translation>Les données ont été migré avec succès</translation>
     </message>
@@ -8538,14 +8538,34 @@ p, li { white-space: pre-wrap; }
         <translation>%1 joue à %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="72"/>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="165"/>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="197"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="62"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="155"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="190"/>
         <source>Migration</source>
         <translation>Migration</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="126"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="76"/>
+        <source>Clear Shader Cache</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="84"/>
+        <source>Keep Old Data</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="85"/>
+        <source>Clear Old Data</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="86"/>
+        <source>Link Old Directory</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="116"/>
         <source>
 
 </source>
@@ -8554,25 +8574,25 @@ p, li { white-space: pre-wrap; }
 </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="130"/>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="136"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="120"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="126"/>
         <source>No</source>
         <translation>Non</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="166"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="156"/>
         <source>You can manually re-trigger this prompt by deleting the new config directory:
 %1</source>
         <translation>Vous pouvez relancer manuellement cette invite en supprimant le nouveau répertoire de configuration :
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="182"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="172"/>
         <source>Migrating</source>
         <translation>Migration</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="183"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="173"/>
         <source>Migrating, this may take a while...</source>
         <translation>Migration, cela peut prendre un certain temps...</translation>
     </message>
@@ -8709,12 +8729,22 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="47"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="226"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="296"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="406"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="225"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="294"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="404"/>
         <location filename="../../src/qt_common/util/content.cpp" line="479"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/content.cpp" line="63"/>
+        <source>Firmware Install Failed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/content.cpp" line="64"/>
+        <source>Firmware Install Succeeded</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="179"/>
@@ -8723,7 +8753,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="180"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="324"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="322"/>
         <source>Verification failed for the following files:
 
 %1</source>
@@ -8732,46 +8762,46 @@ p, li { white-space: pre-wrap; }
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="225"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="295"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="224"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="293"/>
         <source>Verifying integrity...</source>
         <translation>Vérification de l&apos;intégrité...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="245"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="318"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="244"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="316"/>
         <source>Integrity verification succeeded!</source>
         <translation>La vérification de l&apos;intégrité réussi !</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="246"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="319"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="245"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="317"/>
         <source>The operation completed successfully.</source>
         <translation>L&apos;opération s&apos;est déroulée avec succès.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="250"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="323"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="249"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="321"/>
         <source>Integrity verification failed!</source>
         <translation>La vérification de l&apos;intégrité a échoué !</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="251"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="250"/>
         <source>File contents may be corrupt or missing.</source>
         <translation>Le contenu d&apos;un fichier peut être corrompu or manquant.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="256"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="255"/>
         <source>Integrity verification couldn&apos;t be performed</source>
         <translation>La vérification de l&apos;intégrité n&apos;a pas pu être effectuée</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="257"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="256"/>
         <source>Firmware installation cancelled, firmware may be in a bad state or corrupted. File contents could not be checked for validity.</source>
         <translation>Installation du firmware annulée, le firmware est peut-être en mauvais état ou corrompu. Impossible de vérifier la validité du contenu du fichier.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="265"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="264"/>
         <source>Select Dumped Keys Location</source>
         <translation>Sélectionner Emplacement Clés Extraites</translation>
     </message>
@@ -8781,22 +8811,17 @@ p, li { white-space: pre-wrap; }
         <translation>Installation des clés de décryptage avec succès</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="283"/>
-        <source>Decryption Keys were successfully installed</source>
-        <translation>Les clés de décryptage ont été installées avec succès</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="286"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="285"/>
         <source>Decryption Keys install failed</source>
         <translation>Installation des clés de décryptage échoué</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="352"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="350"/>
         <source>Orphaned Profiles Detected!</source>
         <translation>Profils orphelins détectés !</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="353"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="351"/>
         <source>UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON'T READ THIS!
 Eden has detected the following save directories with no attached profile:
 %1
@@ -8810,55 +8835,55 @@ Eden a détecté les dossiers de sauvegarde suivants sans profil associé :
 Cliquez sur &quot;OK&quot; pour ouvrir votre dossier de sauvegarde et corriger vos profils.Astuce : copiez le contenu du dossier le plus volumineux ou le plus récemment modifié ailleurs, supprimez tous les profils orphelins, puis déplacez votre contenu copié vers le bon profil.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="366"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="364"/>
         <source>Really clear data?</source>
         <translation>Vraiment effacer les données ?</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="367"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="365"/>
         <source>Important data may be lost!</source>
         <translation>Des données importantes peuvent être perdues !</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="374"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="372"/>
         <source>Are you REALLY sure?</source>
         <translation>Êtes-vous VRAIMENT sûr ?</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="375"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="373"/>
         <source>Once deleted, your data will NOT come back!
 Only do this if you&apos;re 100% sure you want to delete this data.</source>
         <translation>Une fois supprimées, vos données NE POURRONT PAS être récupérées !
 Ne faites cela que si vous êtes sûr à 100 % de vouloir supprimer ces données.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="382"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="380"/>
         <source>Clearing...</source>
         <translation>Suppression en cours…</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="398"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="396"/>
         <source>Select Export Location</source>
         <translation>Sélectionner l’emplacement d’exportation</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="399"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="397"/>
         <source>%1.zip</source>
         <translation>%1.zip</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="400"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="398"/>
         <location filename="../../src/qt_common/util/content.cpp" line="464"/>
         <source>Zipped Archives (*.zip)</source>
         <translation>Archives compressées (*.zip)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="406"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="404"/>
         <source>Exporting data. This may take a while...</source>
         <translation>Exportation des données en cours. Cela peut prendre un certain temps…</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="408"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="406"/>
         <source>Exporting</source>
         <translation>Exportation en cours…</translation>
     </message>
@@ -8918,32 +8943,32 @@ Ne faites cela que si vous êtes sûr à 100 % de vouloir supprimer ces donné
         <translation>Importation en cours…</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="521"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="524"/>
         <source>Imported Successfully</source>
         <translation>Importation réussie</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="521"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="524"/>
         <source>Data was imported successfully.</source>
         <translation>Les données ont été importées avec succès.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="523"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="526"/>
         <source>Import Cancelled</source>
         <translation>Importation annulée</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="523"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="526"/>
         <source>Import was cancelled by the user.</source>
         <translation>L’importation a été annulée par l’utilisateur.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="525"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="528"/>
         <source>Import Failed</source>
         <translation>Échec de l’importation</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="526"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="529"/>
         <source>Ensure you have read permissions on the targeted directory and try again.</source>
         <translation>Assurez-vous d’avoir les permissions de lecture sur le répertoire ciblé et réessayez.</translation>
     </message>
@@ -8951,49 +8976,39 @@ Ne faites cela que si vous êtes sûr à 100 % de vouloir supprimer ces donné
 <context>
     <name>QtCommon::Game</name>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="207"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="209"/>
         <source>Error Removing Contents</source>
         <translation>Erreur Suppression Contenu</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="209"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="211"/>
         <source>Error Removing Update</source>
         <translation>Erreur Suppression Mise à jour</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="211"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="213"/>
         <source>Error Removing DLC</source>
         <translation>Erreur Suppression DLC</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="230"/>
-        <source>The base game is not installed in the NAND and cannot be removed.</source>
-        <translation>Le jeu de base n&apos;est pas installé dans la NAND et ne peut pas être supprimé.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="244"/>
-        <source>There is no update installed for this title.</source>
-        <translation>Il n&apos;y a pas de mise à jour installée pour ce titre.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="254"/>
-        <source>There are no DLCs installed for this title.</source>
-        <translation>Il n&apos;y a pas de DLCs installés pour ce titre. </translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="224"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="225"/>
         <location filename="../../src/qt_common/util/game.cpp" line="239"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="259"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="289"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="329"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="358"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="256"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="284"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="320"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="346"/>
         <source>Successfully Removed</source>
         <translation>Supprimé avec succès</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="225"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="226"/>
         <source>Successfully removed the installed base game.</source>
         <translation>Le jeu de base installé a été supprimé avec succès.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/game.cpp" line="231"/>
+        <source>The base game is not installed in the NAND and cannot be removed.</source>
+        <translation>Le jeu de base n&apos;est pas installé dans la NAND et ne peut pas être supprimé.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="240"/>
@@ -9001,146 +9016,156 @@ Ne faites cela que si vous êtes sûr à 100 % de vouloir supprimer ces donné
         <translation>La mise à jour installée a été supprimée avec succès.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="260"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="243"/>
+        <source>There is no update installed for this title.</source>
+        <translation>Il n&apos;y a pas de mise à jour installée pour ce titre.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/game.cpp" line="252"/>
+        <source>There are no DLCs installed for this title.</source>
+        <translation>Il n&apos;y a pas de DLCs installés pour ce titre. </translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/game.cpp" line="257"/>
         <source>Successfully removed %1 installed DLC.</source>
         <translation>Suppression de %1 DLC installé(s) avec succès.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="283"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="293"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="279"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="287"/>
         <source>Error Removing Transferable Shader Cache</source>
         <translation>Erreur Suppression Cache Shader transférable</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="284"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="324"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="280"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="316"/>
         <source>A shader cache for this title does not exist.</source>
         <translation>Un shader cache pour ce titre n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="290"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="285"/>
         <source>Successfully removed the transferable shader cache.</source>
         <translation>Suppression du cache de shader transférable réussi avec succès.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="294"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="288"/>
         <source>Failed to remove the transferable shader cache.</source>
         <translation>Échec de la suppression du cache de shader transférable.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="311"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="304"/>
         <source>Error Removing Vulkan Driver Pipeline Cache</source>
         <translation>Erreur Suppression Cache de pipeline Pilotes Vulkan</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="312"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="305"/>
         <source>Failed to remove the driver pipeline cache.</source>
         <translation>Échec de la suppression du cache de pipeline de pilotes.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="323"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="334"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="315"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="325"/>
         <source>Error Removing Transferable Shader Caches</source>
         <translation>Erreur Suppression Caches Shader Transférable</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="330"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="321"/>
         <source>Successfully removed the transferable shader caches.</source>
         <translation>Suppression des caches de shader transférable effectuée avec succès.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="335"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="326"/>
         <source>Failed to remove the transferable shader cache directory.</source>
         <translation>Impossible de supprimer le dossier de cache de shader transférable.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="351"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="362"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="340"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="349"/>
         <source>Error Removing Custom Configuration</source>
         <translation>Erreur Suppression Configuration Personnalisée</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="352"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="341"/>
         <source>A custom configuration for this title does not exist.</source>
         <translation>Il n&apos;existe pas de configuration personnalisée pour ce titre.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="359"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="347"/>
         <source>Successfully removed the custom game configuration.</source>
         <translation>La configuration personnalisée du jeu a été supprimée avec succès.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="363"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="350"/>
         <source>Failed to remove the custom game configuration.</source>
         <translation>Échec de la suppression de la configuration personnalisée du jeu.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="391"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="378"/>
         <source>Reset Metadata Cache</source>
         <translation>Réinitialiser le cache des métadonnées</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="395"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="385"/>
         <source>The metadata cache is already empty.</source>
         <translation>Le cache des métadonnées est déjà vide.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="400"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="391"/>
         <source>The operation completed successfully.</source>
         <translation>L&apos;opération s&apos;est déroulée avec succès.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="406"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="398"/>
         <source>The metadata cache couldn&apos;t be deleted. It might be in use or non-existent.</source>
         <translation>Le cache des métadonnées n&apos;a pas pu être supprimé. Il est peut-être en cours d&apos;utilisation ou inexistant.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="421"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="413"/>
         <source>Create Shortcut</source>
         <translation>Créer un raccourci</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="422"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="414"/>
         <source>Do you want to launch the game in fullscreen?</source>
         <translation>Voulez-vous lancer le jeu en plein écran ?</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="426"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="418"/>
         <source>Shortcut Created</source>
         <translation>Raccourcis crée</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="427"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="419"/>
         <source>Successfully created a shortcut to %1</source>
         <translation>Création d&apos;un raccourci vers %1 réussi avec succès</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="432"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="424"/>
         <source>Shortcut may be Volatile!</source>
         <translation>Les raccourcis peuvent être instables !</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="433"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="425"/>
         <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
         <translation>Cela créera un raccourci vers l&apos;AppImage actuel. Cela peut ne pas fonctionner correctement si vous effectuez une mise à jour. Continuer ?</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="439"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="431"/>
         <source>Failed to Create Shortcut</source>
         <translation>Échec de la création du raccourci</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="440"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="432"/>
         <source>Failed to create a shortcut to %1</source>
         <translation>Échec de la création d&apos;un raccourci vers %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="510"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="504"/>
         <source>Create Icon</source>
         <translation>Créer une icône</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="511"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="505"/>
         <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
         <translation>Impossible de créer le fichier icône. Le chemin &quot;%1&quot; n&apos;existe pas et ne peut être créé.</translation>
     </message>
@@ -9176,6 +9201,120 @@ Ne faites cela que si vous êtes sûr à 100 % de vouloir supprimer ces donné
         <location filename="../../src/qt_common/util/path.cpp" line="22"/>
         <source>Failed to create or open shader cache for this title, ensure your app data directory has write permissions.</source>
         <translation>Impossible de créer ou d’ouvrir le cache des shaders pour ce titre. Assurez-vous que votre répertoire de données de l’application dispose des permissions d’écriture.</translation>
+    </message>
+</context>
+<context>
+    <name>QtCommon::StringLookup</name>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="49"/>
+        <source>Contains game save data. DO NOT REMOVE UNLESS YOU KNOW WHAT YOU&apos;RE DOING!</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="51"/>
+        <source>Contains Vulkan and OpenGL pipeline caches. Generally safe to remove.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="52"/>
+        <source>Contains updates and DLC for games.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="53"/>
+        <source>Contains firmware and applet data.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="54"/>
+        <source>Contains game mods, patches, and cheats.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="57"/>
+        <source>Decryption Keys were successfully installed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="58"/>
+        <source>Unable to read key directory, aborting</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="59"/>
+        <source>One or more keys failed to copy.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="61"/>
+        <source>Verify your keys file has a .keys extension and try again.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="63"/>
+        <source>Decryption Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="68"/>
+        <source>Successfully installed firmware version %1</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="69"/>
+        <source>Unable to locate potential firmware NCA files</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="70"/>
+        <source>Failed to delete one or more firmware files.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="71"/>
+        <source>One or more firmware files failed to copy into NAND.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="73"/>
+        <source>Firmware installation cancelled, firmware may be in a bad state or corrupted. Restart Eden or re-install firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="78"/>
+        <source>Eden has detected user data for the following emulators:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="80"/>
+        <source>Would you like to migrate your data for use in Eden?
+Select the corresponding button to migrate data from that emulator.
+This may take a while.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="84"/>
+        <source>Clearing shader cache is recommended for all users.
+Do not uncheck unless you know what you&apos;re doing.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="88"/>
+        <source>Keeps the old data directory. This is recommended if you aren't
+space-constrained and want to keep separate data for the old emulator.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="91"/>
+        <source>Deletes the old data directory.
+This is recommended on devices with space constraints.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="94"/>
+        <source>Creates a filesystem link between the old directory and Eden directory.
+This is recommended if you want to share data between emulators.</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -9607,27 +9746,27 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/set_play_time_dialog.ui" line="14"/>
         <source>Set Play Time Data</source>
-        <translation type="unfinished"/>
+        <translation>Définir les Données de Temps de Jeu</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/set_play_time_dialog.ui" line="25"/>
         <source>Hours:</source>
-        <translation type="unfinished"/>
+        <translation>Heures :</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/set_play_time_dialog.ui" line="39"/>
         <source>Minutes:</source>
-        <translation type="unfinished"/>
+        <translation>Minutes :</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/set_play_time_dialog.ui" line="53"/>
         <source>Seconds:</source>
-        <translation type="unfinished"/>
+        <translation>Secondes :</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/set_play_time_dialog.cpp" line="46"/>
         <source>Total play time reached maximum.</source>
-        <translation type="unfinished"/>
+        <translation>Le temps de jeu total a atteint le maximum.</translation>
     </message>
 </context>
 <context>

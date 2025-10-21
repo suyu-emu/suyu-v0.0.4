@@ -145,7 +145,7 @@
 
     <!-- Optimize Spir-V output -->
     <string name="never">Nunca</string>
-    <string name="on_load">Al cargar</string>
+    <string name="on_load">En carga</string>
     <string name="always">Siempre</string>
 
     <!-- Multiplayer -->
@@ -240,7 +240,6 @@
     <string name="keys_description">Selecciona tu archivo <b>prod.keys</b> utilizando el botón de abajo.</string>
     <string name="select_keys">Seleccionar las claves</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Selecciona tu archivo <b>firmware.zip</b> con el botón abajo.\nEden actualmente requiere la versión <b>19.0.1</b> o inferior.</string>
     <string name="select_firmware">Seleccionar firmware</string>
     <string name="games">Juegos</string>
     <string name="games_description">Selecciona la carpeta <b>Juegos</b> utilizando el botón de abajo</string>
@@ -610,6 +609,7 @@
     <string name="fetch">Obtener</string>
     <string name="delete">Borrar</string>
     <string name="edit">Editar</string>
+    <string name="import_success">Importado exitosamente</string>
     <string name="export_success">Exportado correctamente</string>
     <string name="start">Comenzar</string>
     <string name="global">Global</string>
@@ -675,6 +675,18 @@
     <string name="copy_details">Copiar detalles</string>
     <string name="add_ons">Extras/Add-ons</string>
     <string name="add_ons_description">Activa/desactiva mods, actualizaciones y DLC</string>
+    <string name="playtime">Tiempo de juego:</string>
+    <string name="reset_playtime">Borrar tiempo de juego</string>
+    <string name="reset_playtime_description">Restablecer el tiempo de juego actual a 0 segundos</string>
+    <string name="reset_playtime_warning_description">Esto borrará los datos de tiempo de juego actual. ¿Estás seguro\?</string>
+    <string name="playtime_reset_successfully">El tiempo de juego se ha restablecido</string>
+    <string name="edit_playtime">Editar tiempo de juego</string>
+    <string name="hours">Horas</string>
+    <string name="minutes">Minutos</string>
+    <string name="hours_must_be_between_0_and_9999">Las horas deben estar entre 0 y 9999</string>
+    <string name="minutes_must_be_between_0_and_59">Los minutos deben estar entre 0 y 59</string>
+    <string name="seconds_must_be_between_0_and_59">Los segundos deben estar entre 0 y 59</string>
+    <string name="playtime_updated_successfully">Tiempo de juego actualizado exitosamente</string>
     <string name="clear_shader_cache">Limpiar la caché de shaders</string>
     <string name="clear_shader_cache_description">Elimina todos los shaders construidos mientras se jugaba al juego</string>
     <string name="clear_shader_cache_warning_description">Experimentarás más parones mientras que la caché de shaders se regenera</string>
@@ -709,6 +721,11 @@
     <string name="verify_no_result">No se pudo ejecutar la verificación de integridad</string>
     <string name="verify_no_result_description">No se ha podido comprobar la validez de los contenidos del archivo</string>
     <string name="verification_failed_for">La verificación falló en los siguientes archivos:\n%1$s</string>
+    <string name="share_game_settings">Compartir configuración</string>
+    <string name="import_config">Importar configuración</string>
+    <string name="export_config">Exportar configuración</string>
+    <string name="share_config_failed">No se pudo compartir el archivo de configuración</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Su ROM está encriptada</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Siga las guías para volver a volcar sus <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">tarjetas de juego</a> o <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">títulos digitales</a>.]]></string>
@@ -929,6 +946,8 @@
     <string name="cpu_accuracy_accurate">Preciso</string>
     <string name="cpu_accuracy_unsafe">Impreciso</string>
     <string name="cpu_accuracy_paranoid">Paranoico</string>
+    <string name="cpu_accuracy_debugging">Depuración</string>
+
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Cruceta</string>
     <string name="gamepad_left_stick">Palanca izquierda</string>
@@ -939,11 +958,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Construyendo shaders</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Cambiar tema</string>
     <string name="theme_default">Predeterminado</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Cambiar modo del tema</string>
     <string name="theme_mode_follow_system">Igual al sistema</string>

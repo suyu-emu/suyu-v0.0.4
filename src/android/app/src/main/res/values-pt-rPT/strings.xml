@@ -337,6 +337,7 @@
     <string name="error_firmware_missing">É necessário firmware para executar alguns jogos e aplicações. O Eden só funciona com firmware 19.0.1 ou anterior.</string>
     <string name="error_firmware_corrupted">Firmware está presente mas não pode ser lido. Verifique chaves de descriptografia e volte a fazer dump do firmware se necessário.</string>
     <string name="error_firmware_too_new">Firmware é demasiado recente ou ilegível. O Eden só funciona com firmware 19.0.1 ou anterior.</string>
+
     <string name="keys_failed">Falha ao instalar chaves</string>
     <string name="keys_install_success">Chaves instaladas com sucesso</string>
     <string name="error_keys_copy_failed">Uma ou mais chaves falharam ao copiar.</string>
@@ -734,7 +735,6 @@ uma tentativa de mapeamento automático</string>
     <string name="touchscreen">Ecrã Táctil</string>
     <string name="lock_drawer">Bloquear submenu</string>
     <string name="unlock_drawer">Desbloquear submenu</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">Teclado de software</string>
 
@@ -879,11 +879,10 @@ uma tentativa de mapeamento automático</string>
     <!-- Disk shader cache -->
     <string name="building_shaders">A criar shaders</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Mudar o tema do aplicativo</string>
     <string name="theme_default">Padrão</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Alterar o tema</string>
     <string name="theme_mode_follow_system">Igual ao Sistema</string>

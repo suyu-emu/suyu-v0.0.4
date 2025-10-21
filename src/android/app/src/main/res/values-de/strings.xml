@@ -226,7 +226,6 @@
     <string name="keys_description">Wähle deine &lt;b>prod.keys&lt;/b> Datei mit dem Button unten aus.</string>
     <string name="select_keys">Schlüssel auswählen</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Wählen mit dem Button unten deine <b>firmware.zip</b>-Datei.\nEden benötigt derzeit Version <b>19.0.1</b> oder niedriger.</string>
     <string name="select_firmware">Firmware auswählen</string>
     <string name="games">Spiele</string>
     <string name="games_description">Wähle mit dem Knopf unten den &lt;b>Spiele&lt;/b>-Ordner aus.</string>
@@ -757,7 +756,6 @@ Wirklich fortfahren?</string>
     <string name="touchscreen">Touchscreen</string>
     <string name="lock_drawer">Menü sperren</string>
     <string name="unlock_drawer">Menü entsperren</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">Software-Tastatur</string>
 
@@ -903,11 +901,10 @@ Wirklich fortfahren?</string>
     <!-- Disk shader cache -->
     <string name="building_shaders">Shader werden erstellt</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Theme</string>
     <string name="theme_default">Standard</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Design</string>
     <string name="theme_mode_follow_system">System folgen</string>

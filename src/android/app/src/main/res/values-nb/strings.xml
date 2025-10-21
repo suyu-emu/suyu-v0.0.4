@@ -226,7 +226,6 @@
     <string name="next">Neste</string>
     <string name="back">Tilbake</string>
     <string name="add_games">Legg til spill</string>
-
     <!-- Home strings -->
 
     <string name="alphabetical">Alfabetisk</string>
@@ -326,6 +325,7 @@
     <string name="error_firmware_missing">Fastvare kreves for å kjøre enkelte spill og applikasjoner. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
     <string name="error_firmware_corrupted">Fastvare er til stede, men kan ikke leses. Sjekk dekrypteringsnøklene og dump fastvaren på nytt om nødvendig.</string>
     <string name="error_firmware_too_new">Fastvaren er for ny eller kan ikke leses. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
+
     <string name="keys_failed">Kunne ikke installere nøkler</string>
     <string name="keys_install_success">Nøklene ble installert</string>
     <string name="error_keys_copy_failed">En eller flere nøkler kunne ikke kopieres.</string>
@@ -609,7 +609,6 @@
     <string name="emulation_unpause">Ta emuleringen ut av pause</string>
     <string name="emulation_input_overlay">Overlay-alternativer</string>
     <string name="touchscreen">Touch-skjerm</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">Programvaretastatur</string>
 
@@ -647,6 +646,7 @@
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
 
+    <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
@@ -733,11 +733,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Bygging av shaders</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Endre app-tema</string>
     <string name="theme_default">Standard</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Endre temamodus</string>
     <string name="theme_mode_follow_system">Følg systemet</string>

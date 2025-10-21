@@ -226,7 +226,6 @@
     <string name="next">Tiếp theo</string>
     <string name="back">Trở lại</string>
     <string name="add_games">Thêm Trò chơi</string>
-
     <!-- Home strings -->
 
     <string name="alphabetical">A-Z</string>
@@ -324,6 +323,7 @@
     <string name="error_firmware_missing">Firmware là cần thiết để chạy một số trò chơi và ứng dụng. Eden chỉ hoạt động với firmware 19.0.1 trở về trước.</string>
     <string name="error_firmware_corrupted">Firmware được báo cáo là có nhưng không thể đọc được. Kiểm tra khóa giải mã và dump lại firmware nếu cần.</string>
     <string name="error_firmware_too_new">Firmware quá mới hoặc không thể đọc. Eden chỉ hoạt động với firmware 19.0.1 trở về trước.</string>
+
     <string name="keys_failed">Không thể cài đặt khóa</string>
     <string name="keys_install_success">Đã cài đặt khóa thành công</string>
     <string name="error_keys_copy_failed">Không thể sao chép một hoặc nhiều khóa.</string>
@@ -609,7 +609,6 @@
     <string name="emulation_unpause">Tiếp tục giả lập</string>
     <string name="emulation_input_overlay">Tuỳ chọn lớp phủ</string>
     <string name="touchscreen">Màn hình cảm ứng</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">Bàn phím mềm</string>
 
@@ -647,6 +646,7 @@
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
 
+    <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
@@ -733,11 +733,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Dựng shaders</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Thay đổi chủ đề ứng dụng</string>
     <string name="theme_default">Mặc định</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Thay đổi chế độ giao diện</string>
     <string name="theme_mode_follow_system">Theo hệ thống</string>

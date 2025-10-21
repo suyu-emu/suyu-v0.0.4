@@ -337,6 +337,7 @@
     <string name="error_firmware_missing">Firmware је потребан за покретање одређених игара и апликација. Eden ради само са firmware-ом 19.0.1 или старијим.</string>
     <string name="error_firmware_corrupted">Firmware је присутан али се не може прочитати. Проверите кључеве за дешифровање и поново направите firmware дамп ако је потребно.</string>
     <string name="error_firmware_too_new">Firmware је превише нов или се не може прочитати. Eden ради само са firmware-ом 19.0.1 или старијим.</string>
+
     <string name="keys_failed">Неуспела инсталација кључева</string>
     <string name="keys_install_success">Кључеви успешно инсталирани</string>
     <string name="error_keys_copy_failed">Један или више кључева није успело да се копира.</string>
@@ -732,7 +733,6 @@
     <string name="touchscreen">Екран осетљив на додир</string>
     <string name="lock_drawer">Ладица за закључавање</string>
     <string name="unlock_drawer">Откључај ладицу</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">Софтверска тастатура</string>
 
@@ -877,11 +877,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Зграда схадера</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Промените тему апликација</string>
     <string name="theme_default">Подразумевано</string>
     <string name="theme_material_you">Материјал ти</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Промените режим теме</string>
     <string name="theme_mode_follow_system">Слиједите систем</string>

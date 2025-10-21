@@ -333,6 +333,7 @@
     <string name="error_firmware_missing">일부 게임 및 애플리케이션 실행을 위해 펌웨어가 필요합니다. Eden은 19.0.1 이하 버전의 펌웨어에서만 작동합니다.</string>
     <string name="error_firmware_corrupted">펌웨어가 존재하지만 읽을 수 없습니다. 복호화 키를 확인하고 필요한 경우 펌웨어를 다시 덤프하세요.</string>
     <string name="error_firmware_too_new">펌웨어가 너무 최신이거나 읽을 수 없습니다. Eden은 19.0.1 이전 버전의 펌웨어에서만 작동합니다.</string>
+
     <string name="keys_failed">키 설치 실패</string>
     <string name="keys_install_success">키가 성공적으로 설치됨</string>
     <string name="error_keys_copy_failed">하나 이상의 키를 복사하지 못했습니다.</string>
@@ -681,7 +682,6 @@
     <string name="touchscreen">터치 스크린</string>
     <string name="lock_drawer">에뮬레이터 메뉴 잠금</string>
     <string name="unlock_drawer">에뮬레이터 메뉴 잠금 해제</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">소프트웨어 키보드</string>
 
@@ -826,11 +826,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">셰이더 빌드 중</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">앱 테마 변경</string>
     <string name="theme_default">기본값</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">다크 모드 설정</string>
     <string name="theme_mode_follow_system">시스템 값 사용</string>

@@ -223,7 +223,6 @@
     <string name="next">Další</string>
     <string name="back">Zpět</string>
     <string name="add_games">Přidat hry</string>
-
     <!-- Home strings -->
 
     <string name="alphabetical">Abecedně</string>
@@ -305,6 +304,7 @@
     <string name="error_firmware_missing">Firmware je vyžadován pro spuštění některých her a aplikací. Eden funguje pouze s firmwarem 19.0.1 nebo starším.</string>
     <string name="error_firmware_corrupted">Firmware byl nahlášen jako přítomný, ale nelze jej přečíst. Zkontrolujte šifrovací klíče a v případě potřeby firmware převezměte znovu.</string>
     <string name="error_firmware_too_new">Firmware je příliš nový nebo nelze přečíst. Eden funguje pouze s firmwarem 19.0.1 nebo starším.</string>
+
     <string name="keys_failed">Selhání instalace klíčů</string>
     <string name="keys_install_success">Klíče úspěšně nainstalovány</string>
     <string name="error_keys_copy_failed">Jeden nebo více klíčů se nepodařilo zkopírovat.</string>
@@ -592,7 +592,6 @@
     <string name="touchscreen">Dotyková obrazovka</string>
     <string name="lock_drawer">Zamknout zásuvku</string>
     <string name="unlock_drawer">Odemknout zásuvku</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">Softwarová klávesnice</string>
 
@@ -684,13 +683,13 @@
     <string name="cpu_accuracy_accurate">Přesné</string>
     <string name="cpu_accuracy_unsafe">Nebezpečné</string>
     <string name="gamepad_home">Home</string>
+    <!-- Disk shader cache -->
     <string name="building_shaders">Budování shaderů</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Změnit vzhled aplikace</string>
     <string name="theme_default">Výchozí</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Změnit styl vzhledu</string>
     <string name="theme_mode_follow_system">Podle systému</string>

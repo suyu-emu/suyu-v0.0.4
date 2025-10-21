@@ -240,7 +240,6 @@
     <string name="keys_description">Sélectionnez votre fichier &lt;b>prod.keys&lt;/b> avec le bouton ci-dessous.</string>
     <string name="select_keys">Sélectionner les clés</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Sélectionnez votre <b>firmware.zip</b>avec le bouton ci-dessous.\nEden nécessite actuellement la version <b>19.0.1</b> ou antérieure.</string>
     <string name="select_firmware">Sélectionner le firmware</string>
     <string name="games">Jeux</string>
     <string name="games_description">Sélectionnez votre dossier &lt;b>de Jeux&lt;/b> avec le bouton ci-dessous.</string>
@@ -610,6 +609,7 @@
     <string name="fetch">Récupérer</string>
     <string name="delete">Supprimer</string>
     <string name="edit">Éditer</string>
+    <string name="import_success">Importé avec succès</string>
     <string name="export_success">Exportation réussie</string>
     <string name="start">Start</string>
     <string name="global">Global</string>
@@ -675,6 +675,18 @@
     <string name="copy_details">Copier les détails</string>
     <string name="add_ons">Extensions</string>
     <string name="add_ons_description">Activer les mods, mises à jour et DLC</string>
+    <string name="playtime">Temps de jeu :</string>
+    <string name="reset_playtime">Réinitialiser le Temps de Jeu</string>
+    <string name="reset_playtime_description">Réinitialiser le temps de jeu du jeu actuel à 0 seconde</string>
+    <string name="reset_playtime_warning_description">Cela effacera les données de temps de jeu du jeu actuel. Êtes-vous sûr \?</string>
+    <string name="playtime_reset_successfully">Le temps de jeu a été réinitialisé</string>
+    <string name="edit_playtime">Modifier le Temps de Jeu</string>
+    <string name="hours">Heures</string>
+    <string name="minutes">Minutes</string>
+    <string name="hours_must_be_between_0_and_9999">Les heures doivent être comprises entre 0 et 9999</string>
+    <string name="minutes_must_be_between_0_and_59">Les minutes doivent être comprises entre 0 et 59</string>
+    <string name="seconds_must_be_between_0_and_59">Les secondes doivent être comprises entre 0 et 59</string>
+    <string name="playtime_updated_successfully">Temps de jeu mis à jour avec succès</string>
     <string name="clear_shader_cache">Effacer le cache des shaders</string>
     <string name="clear_shader_cache_description">Supprime tous les shaders générés en jouant à ce jeu</string>
     <string name="clear_shader_cache_warning_description">Vous risquez de rencontrer davantage de saccades pendant que le cache des shaders se régénère.</string>
@@ -709,6 +721,11 @@
     <string name="verify_no_result">La vérification de l\'intégrité n\'a pas pu être effectuée</string>
     <string name="verify_no_result_description">La validité du contenu du fichier n\'a pas été vérifiée</string>
     <string name="verification_failed_for">La vérification a échoué pour les fichiers suivants : %1$s</string>
+    <string name="share_game_settings">Partager la Configuration</string>
+    <string name="import_config">Importer la Configuration</string>
+    <string name="export_config">Exporter la Configuration</string>
+    <string name="share_config_failed">Échec du partage du fichier de configuration</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Votre ROM est cryptée</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Suivez les guides pour redumper vos <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">cartes de jeu</a> ou <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">titres numériques</a>.]]></string>
@@ -929,6 +946,8 @@
     <string name="cpu_accuracy_accurate">Précis</string>
     <string name="cpu_accuracy_unsafe">Risqué</string>
     <string name="cpu_accuracy_paranoid">Paranoïaque</string>
+    <string name="cpu_accuracy_debugging">Débogage</string>
+
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Pavé directionnel</string>
     <string name="gamepad_left_stick">Stick gauche</string>
@@ -939,11 +958,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Compilation des shaders</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Changer le thème de l\'application</string>
     <string name="theme_default">Par défaut</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Changer le mode de thème</string>
     <string name="theme_mode_follow_system">Automatique</string>

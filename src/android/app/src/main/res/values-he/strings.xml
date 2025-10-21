@@ -337,6 +337,7 @@
     <string name="error_firmware_missing">נדרש קושחה להפעלת משחקים ויישומים מסוימים. עדן עובד רק עם קושחה 19.0.1 או ישנה יותר.</string>
     <string name="error_firmware_corrupted">קושחה קיימת אך לא ניתנת לקריאה. בדוק מפתחות פענוח ושמור קושחה מחדש אם needed.</string>
     <string name="error_firmware_too_new">קושחה חדשה מדי או לא ניתנת לקריאה. עדן תומך רק בקושחה 19.0.1 או ישנה יותר.</string>
+
     <string name="keys_failed">התקנת מפתחות נכשלה</string>
     <string name="keys_install_success">מפתחות הותקנו בהצלחה</string>
     <string name="error_keys_copy_failed">אחד או יותר מהמפתחות לא הצליחו להעתקה.</string>
@@ -627,7 +628,6 @@
     <string name="emulation_unpause">המשך אמולציה</string>
     <string name="emulation_input_overlay">אופציות עבור שכבת-על</string>
     <string name="touchscreen">מסך מגע</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">מקלדת תוכנה</string>
 
@@ -767,11 +767,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">בונה שיידרים</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">שנה את נושא האפליקצייה</string>
     <string name="theme_default">ברירת מחדל</string>
     <string name="theme_material_you">חומר אתה/מאטיריאל יו</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">שנה את מצב הנושא</string>
     <string name="theme_mode_follow_system">עקוב אחרי המערכת</string>

@@ -334,6 +334,7 @@
     <string name="error_firmware_missing">A firmware szükséges egyes játékok és alkalmazások futtatásához. Az Eden csak 19.0.1 vagy régebbi firmware-ekkel működik.</string>
     <string name="error_firmware_corrupted">A firmware jelen van, de nem olvasható. Ellenőrizze a visszafejtési kulcsokat és szükség esetén dumpolja újra a firmware-t.</string>
     <string name="error_firmware_too_new">A firmware túl új vagy nem olvasható. Az Eden csak a 19.0.1 vagy régebbi firmware-ekkel működik.</string>
+
     <string name="keys_failed">A kulcsok telepítése sikertelen</string>
     <string name="keys_install_success">A kulcsok sikeresen telepítve</string>
     <string name="error_keys_copy_failed">Egy vagy több kulcs másolása sikertelen.</string>
@@ -722,7 +723,6 @@
     <string name="touchscreen">Érintőképernyő</string>
     <string name="lock_drawer">Fiók bezárása</string>
     <string name="unlock_drawer">Fiók kinyitása</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">Szoftver billenytűzet</string>
 
@@ -865,7 +865,7 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Árnyékolók létrehozása</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Alkalmazás témájának módosítása</string>
     <string name="theme_default">Alapértelmezett</string>
     <!-- Theme Modes -->

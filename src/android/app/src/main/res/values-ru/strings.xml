@@ -240,7 +240,6 @@
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
     <string name="select_keys">Выбрать ключи</string>
     <string name="firmware">Прошивка</string>
-    <string name="firmware_description">Выберите файл <b>firmware.zip</b>с помощью кнопки снизу.\nВ настоящее время для Eden требуется версия <b>19.0.1</b> или ниже.</string>
     <string name="select_firmware">Выбрать прошивку</string>
     <string name="games">Игры</string>
     <string name="games_description">Выберите вашу папку с &lt;b>играми&lt;/b> с помощью кнопки ниже.</string>
@@ -935,11 +934,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Постройка шейдеров</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Сменить тему</string>
     <string name="theme_default">По умолчанию</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Сменить режим темы</string>
     <string name="theme_mode_follow_system">Системная</string>

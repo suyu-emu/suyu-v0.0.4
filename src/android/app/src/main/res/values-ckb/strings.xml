@@ -226,7 +226,6 @@
     <string name="next">دواتر</string>
     <string name="back">گەڕانەوە</string>
     <string name="add_games">زیادکردنی یاری</string>
-
     <!-- Home strings -->
 
     <string name="alphabetical">پێنووس</string>
@@ -326,6 +325,7 @@
     <string name="error_firmware_missing">فریموێر پێویستە بۆ کارپێکردنی هەندێک یاری و بەکارهێنانی بەرنامەکان. ئێدین تەنها لەگەڵ فریموێری 19.0.1 یان کۆنتر کار دەکات.</string>
     <string name="error_firmware_corrupted">فریموێر هەیە بەڵام ناتوانرێت بخوێنرێتەوە. پشکنین بکە بۆ کلیلی شیکردنەوە و دووبارە فریموێرەکە دامپ بکە ئەگەر پێویست بوو.</string>
     <string name="error_firmware_too_new">فریموێر زۆر نوێ یان ناتوانرێت بخوێنرێتەوە. ئێدین تەنها لەگەڵ فریموێری 19.0.1 یان کۆنتر کار دەکات.</string>
+
     <string name="keys_failed">سەرکەوتوو نەبوو لە ناساندنی کلیلی</string>
     <string name="keys_install_success">کلیلەکان بە سەرکەوتوویی ناسێندران</string>
     <string name="error_keys_copy_failed">یەک یان زیاتر کلیل سەرکەوتوو نەبوو لە ناساندن.</string>
@@ -596,7 +596,6 @@
     <string name="emulation_unpause">لادانی وەستاندنی ئیمولەیشن</string>
     <string name="emulation_input_overlay">هەڵبژاردەکانی داپۆشەر</string>
     <string name="touchscreen">رووکاری لەمسی</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">کیبۆردی نەرمەکاڵا</string>
 
@@ -634,6 +633,7 @@
     <string name="temperature_celsius">سیلیزی</string>
     <string name="temperature_fahrenheit">فارینهایت</string>
 
+    <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
@@ -720,11 +720,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">دروستکردنی سێبەرەکان</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">گۆڕینی ڕووکاری ئەپەکە</string>
     <string name="theme_default">بنەڕەت</string>
     <string name="theme_material_you">کەرەستەی تۆ</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">گۆڕینی دۆخی ڕووکار</string>
     <string name="theme_mode_follow_system">پەیڕەوی کردنی سیستەم</string>

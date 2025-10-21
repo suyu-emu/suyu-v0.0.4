@@ -336,6 +336,7 @@
     <string name="error_firmware_missing">一部のゲームとアプリケーションを実行するにはファームウェアが必要です。Edenは19.0.1以前のファームウェアでのみ動作します。</string>
     <string name="error_firmware_corrupted">ファームウェアは存在しますが読み取れません。復号キーを確認し、必要に応じてファームウェアを再ダンプしてください。</string>
     <string name="error_firmware_too_new">ファームウェアが新しすぎるか読み取れません。Edenは19.0.1以前のファームウェアのみに対応しています。</string>
+
     <string name="keys_failed">キーのインストールに失敗</string>
     <string name="keys_install_success">キーが正常にインストールされました</string>
     <string name="error_keys_copy_failed">1つ以上のキーのコピーに失敗しました。</string>
@@ -627,7 +628,6 @@
     <string name="emulation_unpause">再開</string>
     <string name="emulation_input_overlay">表示オプション</string>
     <string name="touchscreen">タッチスクリーン</string>
-
     <!-- Software keyboard -->
     <string name="software_keyboard">ソフトウェアキーボード</string>
 
@@ -767,11 +767,10 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">シェーダーを構築しています</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">アプリのテーマ</string>
     <string name="theme_default">デフォルト</string>
     <string name="theme_material_you">Material You</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">テーマモード</string>
     <string name="theme_mode_follow_system">システムに従う</string>
