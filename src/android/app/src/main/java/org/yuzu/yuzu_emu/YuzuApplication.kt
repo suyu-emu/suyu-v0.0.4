@@ -12,6 +12,10 @@ import android.app.NotificationManager
 import android.content.Context
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import java.io.File
+import java.io.FileOutputStream
+import java.security.KeyStore
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper

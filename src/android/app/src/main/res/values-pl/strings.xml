@@ -305,7 +305,6 @@
     <string name="search_recently_added">Ostatnio dodane</string>
     <string name="open_user_folder">Otwórz folder Eden</string>
     <string name="open_user_folder_description">Zarządzaj plikami emulatora</string>
-    <string name="theme_and_color_description">Personalizuj wygląd aplikacji</string>
     <string name="no_file_manager">Nie znaleziono menedżera plików</string>
     <string name="notification_no_directory_link">Nie można otworzyć folderu emulatora</string>
     <string name="notification_no_directory_link_description">Proszę wybrać ręcznie folder z pomocą panelu bocznego menedżera plików.</string>
@@ -662,7 +661,6 @@
     <string name="preferences_controls">Sterowanie</string>
     <string name="preferences_controls_description">Mapuj wejście kontrolera</string>
     <string name="preferences_player">Gracz %d</string>
-    <string name="preferences_theme">Motyw i kolor</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">Debugowanie CPU/GPU, API grafiki, fastmem</string>
 

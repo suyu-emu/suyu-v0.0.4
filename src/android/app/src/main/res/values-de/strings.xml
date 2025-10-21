@@ -291,7 +291,6 @@
     <string name="search_recently_added">Kürzlich hinzugefügt</string>
     <string name="open_user_folder">Eden-Ordner öffnen</string>
     <string name="open_user_folder_description">Eden\'s interne Dateien verwalten</string>
-    <string name="theme_and_color_description">Das Aussehen der App ändern</string>
     <string name="no_file_manager">Kein Dateimanager gefunden</string>
     <string name="notification_no_directory_link">Eden-Verzeichnis konnte nicht geöffnet werden</string>
     <string name="notification_no_directory_link_description">Bitte suche den Benutzerordner manuell über die Seitenleiste des Dateimanagers.</string>
@@ -645,7 +644,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="preferences_controls">Steuerung</string>
     <string name="preferences_controls_description">Belege die Kontrollertasten</string>
     <string name="preferences_player">Spieler %d</string>
-    <string name="preferences_theme">Theme und Farbe</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">CPU/GPU-Debugging, Grafik-API, Fastmem</string>
 

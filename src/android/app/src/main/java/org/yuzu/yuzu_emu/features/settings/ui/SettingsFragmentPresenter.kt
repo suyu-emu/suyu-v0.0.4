@@ -105,7 +105,7 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_INPUT_PLAYER_SIX -> addInputPlayer(sl, 5)
             MenuTag.SECTION_INPUT_PLAYER_SEVEN -> addInputPlayer(sl, 6)
             MenuTag.SECTION_INPUT_PLAYER_EIGHT -> addInputPlayer(sl, 7)
-            MenuTag.SECTION_THEME -> addThemeSettings(sl)
+            MenuTag.SECTION_APP_SETTINGS -> addThemeSettings(sl)
             MenuTag.SECTION_DEBUG -> addDebugSettings(sl)
             MenuTag.SECTION_EDEN_VEIL -> addEdenVeilSettings(sl)
             MenuTag.SECTION_APPLETS -> addAppletSettings(sl)
@@ -1029,6 +1029,14 @@ class SettingsFragmentPresenter(
                 override val defaultValue: Int = IntSetting.THEME.defaultValue
                 override fun reset() = IntSetting.THEME.setInt(defaultValue)
             }
+
+            if (NativeLibrary.isUpdateCheckerEnabled()) {
+                add(HeaderSetting(R.string.app_settings))
+                add(BooleanSetting.ENABLE_UPDATE_CHECKS.key)
+            }
+
+            add(HeaderSetting(R.string.theme_and_color))
+
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 add(

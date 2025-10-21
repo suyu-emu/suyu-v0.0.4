@@ -62,6 +62,8 @@ namespace AndroidSettings {
         Settings::Setting<s32> theme_mode{linkage, -1, "theme_mode", Settings::Category::Android};
         Settings::Setting<bool> black_backgrounds{linkage, false, "black_backgrounds",
                                                   Settings::Category::Android};
+        Settings::Setting<bool> enable_update_checks{linkage, true, "enable_update_checks",
+                                                  Settings::Category::Android};
 
         // Input/performance overlay settings
         std::vector<OverlayControlData> overlay_control_data;

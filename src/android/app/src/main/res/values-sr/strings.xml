@@ -274,7 +274,6 @@
     <string name="search_recently_added">Недавно је додато</string>
     <string name="open_user_folder">Отворите директоријум ЕДЕН</string>
     <string name="open_user_folder_description">Управљајте унутрашњим датотекама ЕДЕН-а</string>
-    <string name="theme_and_color_description">Измените изглед апликације</string>
     <string name="no_file_manager">Није пронађен ниједан управник датотека</string>
     <string name="notification_no_directory_link">Није могуће отворити директоријум ЕДЕН-а</string>
     <string name="notification_no_directory_link_description">Молимо пронађите корисничку мапу са бочним панелом датотека менаџера и ручно.</string>
@@ -621,7 +620,6 @@
     <string name="preferences_controls">Контрола</string>
     <string name="preferences_controls_description">Унос контролера мапе</string>
     <string name="preferences_player">Играч%d</string>
-    <string name="preferences_theme">Тема и боја</string>
     <string name="preferences_debug">Ослободити збрајања</string>
     <string name="preferences_debug_description">ЦПУ / ГПУ уклањање погрешака, графички АПИ, ФастМем</string>
 

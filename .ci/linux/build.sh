@@ -67,8 +67,9 @@ else
     export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" -DYUZU_USE_PRECOMPILED_HEADERS=OFF)
 fi
 
+
 if [ "$DEVEL" != "true" ]; then
-    export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" -DENABLE_QT_UPDATE_CHECKER=ON)
+    export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" -DENABLE_UPDATE_CHECKER=ON)
 fi
 
 if [ "$USE_WEBENGINE" = "true" ]; then

@@ -305,7 +305,6 @@
     <string name="search_recently_added">baru ditambahkan</string>
     <string name="open_user_folder">Buka folder Eden</string>
     <string name="open_user_folder_description">Kelola file internal Eden\'s</string>
-    <string name="theme_and_color_description">Ubah tampilan aplikasi</string>
     <string name="no_file_manager">Tidak menemukan file manager</string>
     <string name="notification_no_directory_link">Tidak bisa membuka direktori Eden</string>
     <string name="notification_no_directory_link_description">Silakan cari folder pengguna dengan panel samping manajer file secara manual.</string>
@@ -656,7 +655,6 @@
     <string name="preferences_controls">Kendali</string>
     <string name="preferences_controls_description">Petakan input kontroler</string>
     <string name="preferences_player">Player %d</string>
-    <string name="preferences_theme">Tema dan warna</string>
     <string name="preferences_debug">Awakutu</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
 

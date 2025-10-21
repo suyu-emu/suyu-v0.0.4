@@ -175,7 +175,7 @@ endif()
 # qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
-option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
+option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF)
 cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
@@ -596,7 +596,7 @@ if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
     # find_package(httplib CONFIG)
 endif()
 
-if (ENABLE_WEB_SERVICE)
+if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
     find_package(cpp-jwt)
 endif()
 

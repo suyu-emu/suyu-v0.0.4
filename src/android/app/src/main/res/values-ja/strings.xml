@@ -277,7 +277,6 @@
     <string name="search_recently_added">最近追加された</string>
     <string name="open_user_folder">Eden フォルダを開く</string>
     <string name="open_user_folder_description">Eden内部のファイルを管理します</string>
-    <string name="theme_and_color_description">アプリの見た目を変更</string>
     <string name="no_file_manager">ファイルマネージャーが見つかりませんでした</string>
     <string name="notification_no_directory_link">Edenのディレクトリを開けません</string>
     <string name="notification_no_directory_link_description">ファイルマネージャのサイドパネルでユーザーフォルダを手動で探してください。</string>
@@ -556,7 +555,6 @@
     <string name="preferences_graphics">グラフィック</string>
     <string name="preferences_audio">サウンド</string>
     <string name="preferences_controls">操作</string>
-    <string name="preferences_theme">テーマと色</string>
     <string name="preferences_debug">デバッグ</string>
     <!-- Game properties -->
     <string name="info">情報</string>

@@ -301,7 +301,6 @@
     <string name="search_recently_added">Aggiunti recentemente</string>
     <string name="open_user_folder">Apri la cartella di Eden</string>
     <string name="open_user_folder_description">Gestisci i file interni di Eden</string>
-    <string name="theme_and_color_description">Modifica l\'aspetto dell\'app</string>
     <string name="no_file_manager">Nessun file manager trovato</string>
     <string name="notification_no_directory_link">Impossibile aprire la cartella di Eden</string>
     <string name="notification_no_directory_link_description">Per favore individua la cartella dell\'utente manualmente con il pannello laterale del file manager.</string>
@@ -601,7 +600,6 @@
     <string name="preferences_audio">Audio</string>
     <string name="preferences_audio_description">Motore di Output audio e volume</string>
     <string name="preferences_controls">Comandi</string>
-    <string name="preferences_theme">Tema e colori</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">Debugging CPU/GPU, API grafiche, fastmem</string>
 

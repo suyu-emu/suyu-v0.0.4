@@ -62,7 +62,7 @@ Certain other dependencies will be fetched by CPM regardless. System packages *c
 * [libusb](https://github.com/libusb/libusb)
 * [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
 * [sirit](https://github.com/eden-emulator/sirit)
-* [httplib](https://github.com/yhirose/cpp-httplib) - if `ENABLE_QT_UPDATE_CHECKER` or `ENABLE_WEB_SERVICE` are on
+* [httplib](https://github.com/yhirose/cpp-httplib) - if `ENABLE_UPDATE_CHECKER` or `ENABLE_WEB_SERVICE` are on
   - This package is known to be broken on the AUR.
 * [cpp-jwt](https://github.com/arun11299/cpp-jwt) 1.4+ - if `ENABLE_WEB_SERVICE` is on
 * [unordered-dense](https://github.com/martinus/unordered_dense)

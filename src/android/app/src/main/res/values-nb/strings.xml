@@ -271,7 +271,6 @@
     <string name="search_recently_added">Nylig lagt til</string>
     <string name="open_user_folder">Åpne Eden-mappen</string>
     <string name="open_user_folder_description">Administrere Edens interne filer</string>
-    <string name="theme_and_color_description">Endre appens utseende</string>
     <string name="no_file_manager">Ingen filbehandler funnet</string>
     <string name="notification_no_directory_link">Kunne ikke åpne Eden-katalogen</string>
     <string name="notification_no_directory_link_description">Finn brukermappen manuelt med filbehandlingens sidepanel.</string>
@@ -539,7 +538,6 @@
     <string name="preferences_graphics">Grafikk</string>
     <string name="preferences_audio">Lyd</string>
     <string name="preferences_controls">Kontrollere</string>
-    <string name="preferences_theme">Tema og farge</string>
     <string name="preferences_debug">Feilsøk</string>
     <!-- Game properties -->
     <string name="info">Info</string>

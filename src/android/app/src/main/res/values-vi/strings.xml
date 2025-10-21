@@ -271,7 +271,6 @@
     <string name="search_recently_added">Đã thêm gần đây</string>
     <string name="open_user_folder">Mở thư mục Eden</string>
     <string name="open_user_folder_description">Quản lý file nội bộ của Eden</string>
-    <string name="theme_and_color_description">Thay đổi giao diện ứng dụng</string>
     <string name="no_file_manager">Không tìm thấy trình quản lý tệp</string>
     <string name="notification_no_directory_link">Không thể mở thư mục Eden</string>
     <string name="notification_no_directory_link_description">Vui lòng xác định thư mục người dùng với bảng điều khiển bên của trình quản lý tệp thủ công.</string>
@@ -539,7 +538,6 @@
     <string name="preferences_graphics">Đồ Họa</string>
     <string name="preferences_audio">Âm Thanh</string>
     <string name="preferences_controls">Phím</string>
-    <string name="preferences_theme">Chủ đề và màu sắc</string>
     <string name="preferences_debug">Vá lỗi</string>
     <!-- Game properties -->
     <string name="info">Thông Tin</string>

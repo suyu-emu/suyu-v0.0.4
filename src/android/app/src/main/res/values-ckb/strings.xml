@@ -271,7 +271,6 @@
     <string name="search_recently_added">بەم دواییە زیادکرا</string>
     <string name="open_user_folder">کردنەوەی فۆڵدەری یوزو</string>
     <string name="open_user_folder_description">بەڕێوەبردنی فایلە ناوخۆییەکانی یوزو</string>
-    <string name="theme_and_color_description">دەستکاری کردنی شێوازی ئەپەکە</string>
     <string name="no_file_manager">هیچ فایل بەڕێوەبەرێک نەدۆزرایەوە</string>
     <string name="notification_no_directory_link">نەتوانرا ناونیشانی یوزو بکرێتەوە</string>
     <string name="notification_no_directory_link_description">تکایە شوێنی فۆڵدەری بەکارهێنەر لەگەڵ پانێڵی لایەنی فایل بەڕێوەبارەکان بە دەست بدۆزەرەوە.</string>
@@ -532,7 +531,6 @@
     <string name="preferences_system">سیستەم</string>
     <string name="preferences_graphics">گرافیک</string>
     <string name="preferences_audio">دەنگ</string>
-    <string name="preferences_theme">ڕەنگ و ڕووکار</string>
     <string name="preferences_debug">چاککردنەوە</string>
     <string name="path">ڕێڕەو</string>
     <string name="version">وەشان</string>

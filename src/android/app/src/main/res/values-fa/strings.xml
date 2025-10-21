@@ -335,7 +335,6 @@
     <string name="search_recently_added">به تازگی اضافه شده‌ها</string>
     <string name="open_user_folder">باز کردن پوشه Eden</string>
     <string name="open_user_folder_description">مدیریت فایل‌های داخلی Eden</string>
-    <string name="theme_and_color_description">تغییر ظاهر برنامه</string>
     <string name="no_file_manager">هیچ برنامه مدیریت فایلی پیدا نشد</string>
     <string name="notification_no_directory_link">پوشه Eden باز نشد</string>
     <string name="notification_no_directory_link_description">لطفاً پوشه کاربری را با استفاده از پنل کناری برنامه مدیریت فایل به صورت دستی پیدا کنید.</string>
@@ -619,7 +618,6 @@
     <string name="preferences_graphics_description">سطح دقت، وضوح، حافظه پنهان سایه‌زن</string>
     <string name="preferences_audio">صدا</string>
     <string name="preferences_audio_description">موتور خروجی، میزان</string>
-    <string name="preferences_theme">رنگ و تم</string>
     <string name="preferences_debug">اشکال‌زدایی</string>
     <string name="preferences_debug_description">اشکال‌زدایی پردازنده/گرافیک، API گرافیک، fastmem</string>
 

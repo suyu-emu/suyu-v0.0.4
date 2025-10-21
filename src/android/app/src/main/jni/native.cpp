@@ -61,6 +61,9 @@
 #include "core/loader/loader.h"
 #include "frontend_common/config.h"
 #include "frontend_common/firmware_manager.h"
+#ifdef ENABLE_UPDATE_CHECKER
+#include "frontend_common/update_checker.h"
+#endif
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
@@ -1107,4 +1110,48 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_updatePowerState(
     g_is_charging.store(isCharging, std::memory_order_relaxed);
     g_has_battery.store(hasBattery, std::memory_order_relaxed);
 }
+
+//  return #ifdef ENABLE_UPDATE_CHECKER
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isUpdateCheckerEnabled(
+        JNIEnv* env,
+        jobject obj) {
+#ifdef ENABLE_UPDATE_CHECKER
+    return JNI_TRUE;
+#else
+    return JNI_FALSE;
+#endif
+    }
+
+#ifdef ENABLE_UPDATE_CHECKER
+
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
+        JNIEnv* env,
+        jobject obj) {
+    const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != nullptr) ||
+                                (strstr(Common::g_build_version, "alpha") != nullptr) ||
+                                (strstr(Common::g_build_version, "beta") != nullptr) ||
+                                (strstr(Common::g_build_version, "rc") != nullptr));
+    const std::optional<std::string> latest_release_tag =
+        UpdateChecker::GetLatestRelease(is_prerelease);
+
+    if (latest_release_tag && latest_release_tag.value() != Common::g_build_version) {
+        return env->NewStringUTF(latest_release_tag.value().c_str());
+    }
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(
+        JNIEnv* env,
+        jobject obj,
+        jstring version) {
+    const char* version_str = env->GetStringUTFChars(version, nullptr);
+    const std::string url = fmt::format("{}/{}/releases/tag/{}",
+        std::string{Common::g_build_auto_update_website},
+        std::string{Common::g_build_auto_update_repo},
+        version_str);
+    env->ReleaseStringUTFChars(version, version_str);
+    return env->NewStringUTF(url.c_str());
+}
+#endif
+
 } // extern "C"

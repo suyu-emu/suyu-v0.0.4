@@ -275,7 +275,6 @@
     <string name="search_recently_added">최근 추가</string>
     <string name="open_user_folder">Eden 폴더 열기</string>
     <string name="open_user_folder_description">Eden의 내부 파일 관리</string>
-    <string name="theme_and_color_description">앱 디자인 편집</string>
     <string name="no_file_manager">파일 관리자를 찾을 수 없음</string>
     <string name="notification_no_directory_link">Eden 디렉터리를 열 수 없음</string>
     <string name="notification_no_directory_link_description">파일 관리자의 사이드 패널에서 사용자 폴더를 수동으로 찾아주세요.</string>
@@ -570,7 +569,6 @@
     <string name="preferences_audio">오디오</string>
     <string name="preferences_audio_description">출력 엔진, 불륨</string>
     <string name="preferences_controls">조작</string>
-    <string name="preferences_theme">테마 및 색상</string>
     <string name="preferences_debug">디버그</string>
     <string name="preferences_debug_description">CPU/GPU 디버깅, 그래픽 API, Fastmem</string>
 

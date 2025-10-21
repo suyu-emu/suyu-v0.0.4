@@ -54,8 +54,8 @@
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/util/controller_navigation.h"
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
-#include "yuzu/update_checker.h"
+#ifdef ENABLE_UPDATE_CHECKER
+#include "frontend_common/update_checker.h"
 #endif
 
 #ifdef YUZU_ROOM
@@ -517,7 +517,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     show();
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
     if (UISettings::values.check_for_updates) {
         update_future = QtConcurrent::run([]() -> QString {
             const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
@@ -4220,7 +4220,7 @@ void GMainWindow::MigrateConfigFiles() {
     }
 }
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
 void GMainWindow::OnEmulatorUpdateAvailable() {
     QString version_string = update_future.result();
     if (version_string.isEmpty())

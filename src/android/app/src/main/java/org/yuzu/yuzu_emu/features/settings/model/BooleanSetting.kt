@@ -35,6 +35,8 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     PICTURE_IN_PICTURE("picture_in_picture"),
     USE_CUSTOM_RTC("custom_rtc_enabled"),
     BLACK_BACKGROUNDS("black_backgrounds"),
+
+    ENABLE_UPDATE_CHECKS("enable_update_checks"),
     JOYSTICK_REL_CENTER("joystick_rel_center"),
     DPAD_SLIDE("dpad_slide"),
     HAPTIC_FEEDBACK("haptic_feedback"),

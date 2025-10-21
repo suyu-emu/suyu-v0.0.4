@@ -24,7 +24,7 @@ object Settings {
         SECTION_INPUT_PLAYER_SIX,
         SECTION_INPUT_PLAYER_SEVEN,
         SECTION_INPUT_PLAYER_EIGHT,
-        SECTION_THEME(R.string.preferences_theme),
+        SECTION_APP_SETTINGS(R.string.preferences_app_settings),
         SECTION_DEBUG(R.string.preferences_debug),
         SECTION_EDEN_VEIL(R.string.eden_veil),
         SECTION_APPLETS(R.string.applets_menu);

@@ -275,7 +275,6 @@
     <string name="search_recently_added">הוסף לאחרונה</string>
     <string name="open_user_folder">פתח את תיקיית Eden </string>
     <string name="open_user_folder_description">נה ל את הקבצים הפנימיין של Eden</string>
-    <string name="theme_and_color_description">ערוך את נראות האפליקציה</string>
     <string name="no_file_manager">לא נמצא מנהל קבצים</string>
     <string name="notification_no_directory_link">לא יכול לפתוח את ספריית Eden</string>
     <string name="notification_no_directory_link_description">בבקשה מקם את תיקיית המשתמש בפנל הצידי של מנהל הקבצים באופן ידני.</string>
@@ -556,7 +555,6 @@
     <string name="preferences_graphics_description">רמת דיוק, רזולוציה, מטמון שיידרים</string>
     <string name="preferences_audio">שמע</string>
     <string name="preferences_audio_description">מנוע פלט, עוצמת שמע</string>
-    <string name="preferences_theme">צבע ונושא</string>
     <string name="preferences_debug">דיבאג</string>
     <string name="preferences_debug_description">דיבאגינג עבור מעבד/מעבד גרפי, ממשק תוכנה עבור הגרפיקות, fastmem</string>
 

@@ -752,6 +752,12 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.ENABLE_UPDATE_CHECKS,
+                    titleId = R.string.enable_update_checks,
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.RENDERER_DEBUG,
                     titleId = R.string.renderer_debug,
                     descriptionId = R.string.renderer_debug_description

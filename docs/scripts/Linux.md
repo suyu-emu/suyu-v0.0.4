@@ -27,5 +27,5 @@ Boolean flags (set `true` to enable, `false` to disable):
 * AppImage packaging script: `.ci/linux/package.sh`
 
   * Accepts same arch targets as build script
-  * Use `DEVEL=true` to rename app to `Eden Nightly`
+  * Use `DEVEL=true` to rename app to `Eden Nightly` and disable the update checker
   * This should generally not be used unless in a tailor-made packaging environment (e.g. Actions/CI)

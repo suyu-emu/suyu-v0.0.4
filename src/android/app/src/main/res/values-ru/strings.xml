@@ -305,7 +305,6 @@
     <string name="search_recently_added">Недавно добавлено</string>
     <string name="open_user_folder">Открыть папку Eden</string>
     <string name="open_user_folder_description">Управление внутренними файлами Eden</string>
-    <string name="theme_and_color_description">Изменение внешнего вида приложения</string>
     <string name="no_file_manager">Не найден файловый менеджер</string>
     <string name="notification_no_directory_link">Не удалось открыть папку Eden</string>
     <string name="notification_no_directory_link_description">Пожалуйста, найдите папку пользователя с помощью боковой панели файлового менеджера вручную.</string>
@@ -662,7 +661,6 @@
     <string name="preferences_controls">Управление</string>
     <string name="preferences_controls_description">Маппинг контроллера</string>
     <string name="preferences_player">Игрок %d</string>
-    <string name="preferences_theme">Тема и цвет</string>
     <string name="preferences_debug">Отладка</string>
     <string name="preferences_debug_description">Отладка ЦП/ГП, графический API, fastmem</string>
 

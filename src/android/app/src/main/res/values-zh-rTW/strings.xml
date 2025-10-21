@@ -300,7 +300,6 @@
     <string name="search_recently_added">最近新增</string>
     <string name="open_user_folder">開啟 Eden 資料夾</string>
     <string name="open_user_folder_description">管理 Eden 的內部檔案</string>
-    <string name="theme_and_color_description">修改應用程式外觀</string>
     <string name="no_file_manager">找不到檔案管理員</string>
     <string name="notification_no_directory_link">無法開啟 Eden 目錄</string>
     <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
@@ -651,7 +650,6 @@
     <string name="preferences_controls">控制</string>
     <string name="preferences_controls_description">控制器輸入配對</string>
     <string name="preferences_player">玩家 %d</string>
-    <string name="preferences_theme">主題和色彩</string>
     <string name="preferences_debug">偵錯</string>
     <string name="preferences_debug_description">CPU/GPU 偵錯、圖形 API 及 fastmem</string>
 

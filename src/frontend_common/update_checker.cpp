@@ -22,7 +22,6 @@
 
 #include <nlohmann/json.hpp>
 #include <optional>
-#include <qdebug.h>
 #include <string>
 
 std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::string path)
@@ -74,13 +73,16 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
 
         return response.body;
     } catch (std::exception &e) {
-        qDebug() << e.what();
+        LOG_ERROR(Frontend,
+                  "GET to {}{} failed during update check: {}",
+                  url,
+                  path,
+                  e.what());
         return std::nullopt;
     }
 }
 
-std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prereleases)
-{
+std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prereleases) {
     const auto update_check_url = std::string{Common::g_build_auto_update_api};
     std::string update_check_path = fmt::format("/repos/{}",
                                                 std::string{Common::g_build_auto_update_repo});
@@ -90,8 +92,8 @@ std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prerelea
             const auto update_check_tags_path = update_check_path + "/tags";
             const auto update_check_releases_path = update_check_path + "/releases";
 
-            const auto tags_response = GetResponse(update_check_url, update_check_tags_path);
-            const auto releases_response = GetResponse(update_check_url, update_check_releases_path);
+            const auto tags_response = UpdateChecker::GetResponse(update_check_url, update_check_tags_path);
+            const auto releases_response = UpdateChecker::GetResponse(update_check_url, update_check_releases_path);
 
             if (!tags_response || !releases_response)
                 return {};
@@ -110,7 +112,7 @@ std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prerelea
             return latest_tag;
         } else { // This is a stable release, only check for other stable releases.
             update_check_path += "/releases/latest";
-            const auto response = GetResponse(update_check_url, update_check_path);
+            const auto response = UpdateChecker::GetResponse(update_check_url, update_check_path);
 
             if (!response)
                 return {};

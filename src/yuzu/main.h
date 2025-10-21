@@ -32,7 +32,7 @@
 #include <QtDBus/QtDBus>
 #endif
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
 #include <QFuture>
 #include <QFutureWatcher>
 #endif
@@ -420,7 +420,7 @@ private slots:
     void OnEmulationStopped();
     void OnEmulationStopTimeExpired();
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
     void OnEmulatorUpdateAvailable();
 #endif
 
@@ -476,7 +476,7 @@ private:
     std::unique_ptr<PlayTime::PlayTimeManager> play_time_manager;
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
 
-#ifdef ENABLE_QT_UPDATE_CHECKER
+#ifdef ENABLE_UPDATE_CHECKER
     QFuture<QString> update_future;
     QFutureWatcher<QString> update_watcher;
 #endif

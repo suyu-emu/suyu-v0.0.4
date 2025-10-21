@@ -482,7 +482,6 @@
     <string name="preferences_graphics">Grafika</string>
     <string name="preferences_audio">Zvuk</string>
     <string name="preferences_audio_description">Výstupní engine, hlasitost</string>
-    <string name="preferences_theme">Vzhled a barva</string>
     <string name="preferences_debug">Ladění</string>
     <!-- Game properties -->
     <string name="info">Info</string>

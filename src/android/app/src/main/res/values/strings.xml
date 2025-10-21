@@ -268,6 +268,9 @@
     <string name="folder">Folder</string>
     <string name="dont_show_again">Don\'t Show Again</string>
     <string name="add_directory_success">New game directory added successfully </string>
+    <string name="enable_update_checks">"Check for updates on app startup. "</string>
+    <string name="update_available">Update Available</string>
+    <string name="update_available_description">A new version is available: %1$s\n\nWould you like to download it?</string>
     <string name="home_search">Search</string>
     <string name="home_settings">Settings</string>
     <string name="empty_gamelist">No files were found or no game directory has been selected yet.</string>
@@ -310,7 +313,7 @@
     <string name="search_recently_added">Recently added</string>
     <string name="open_user_folder">Open Eden folder</string>
     <string name="open_user_folder_description">Manage Eden\'s internal files</string>
-    <string name="theme_and_color_description">Modify the look of the app</string>
+    <string name="app_settings_description">Modify the behavior and look of the app</string>
     <string name="no_file_manager">No file manager found</string>
     <string name="notification_no_directory_link">Could not open Eden directory</string>
     <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
@@ -670,7 +673,7 @@
     <string name="preferences_controls">Controls</string>
     <string name="preferences_controls_description">Map controller input</string>
     <string name="preferences_player">Player %d</string>
-    <string name="preferences_theme">Theme and color</string>
+    <string name="preferences_app_settings">App vSettings</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
 
@@ -991,10 +994,12 @@
     <!-- Disk shader cache -->
     <string name="building_shaders">Building shaders</string>
 
-    <!-- Theme options -->
+    <!-- App options -->
     <string name="change_app_theme">Change app theme</string>
     <string name="theme_default">Default</string>
     <string name="theme_material_you">Material You</string>
+    <string name="app_settings">App Settings</string>
+    <string name="theme_and_color">Theme And Color</string>
 
     <!-- Theme Modes -->
     <string name="change_theme_mode">Change theme mode</string>

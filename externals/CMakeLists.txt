@@ -214,7 +214,7 @@ if (VulkanMemoryAllocator_ADDED)
 endif()
 
 # httplib
-if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
+if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
     AddJsonPackage(httplib)
 endif()
 

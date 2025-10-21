@@ -305,7 +305,6 @@
     <string name="search_recently_added">أضيفت مؤخراً</string>
     <string name="open_user_folder">فتح مجلد عدن</string>
     <string name="open_user_folder_description">إدارة الملفات الداخلية لـ عدن</string>
-    <string name="theme_and_color_description">تعديل مظهر التطبيق</string>
     <string name="no_file_manager">لم يتم العثور على مدير الملفات</string>
     <string name="notification_no_directory_link">لا يمكن فتح مجلد عدن</string>
     <string name="notification_no_directory_link_description">الرجاء تحديد موقع مجلد المستخدم باستخدام اللوحة الجانبية لمدير الملفات يدويًا</string>
@@ -666,7 +665,6 @@
     <string name="preferences_controls">التحكم</string>
     <string name="preferences_controls_description">مدخلات وحدة تحكم الخريطة</string>
     <string name="preferences_player">اللاعب %d</string>
-    <string name="preferences_theme">السمة واللون</string>
     <string name="preferences_debug">تصحيح الأخطاء</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
 

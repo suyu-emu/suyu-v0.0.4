@@ -279,7 +279,6 @@
     <string name="search_recently_added">最近添加</string>
     <string name="open_user_folder">打开 Eden 文件夹</string>
     <string name="open_user_folder_description">管理 Eden 内部文件</string>
-    <string name="theme_and_color_description">更改外观</string>
     <string name="no_file_manager">找不到可用的文件管理器</string>
     <string name="notification_no_directory_link">无法打开 Eden 文件夹</string>
     <string name="notification_no_directory_link_description">请使用文件管理器侧边栏中的内部存储手动定位用户文件夹。</string>
@@ -624,7 +623,6 @@
     <string name="preferences_controls">控制</string>
     <string name="preferences_controls_description">使用控制器来映射输入</string>
     <string name="preferences_player">玩家 %d</string>
-    <string name="preferences_theme">主题和色彩</string>
     <string name="preferences_debug">调试</string>
     <string name="preferences_debug_description">CPU/GPU 调试、图形 API 及 fastmem 内存访问</string>
 

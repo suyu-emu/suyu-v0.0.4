@@ -305,7 +305,6 @@
     <string name="search_recently_added">Añadido recientemente</string>
     <string name="open_user_folder">Abrir la carpeta de Eden</string>
     <string name="open_user_folder_description">Administrar los archivos internos de Eden</string>
-    <string name="theme_and_color_description">Modificar la apariencia de la aplicación</string>
     <string name="no_file_manager">Explorador de archivos no encontrado</string>
     <string name="notification_no_directory_link">No se pudo abrir la carpeta Eden</string>
     <string name="notification_no_directory_link_description">Por favor, busque la carpeta user con el panel lateral del explorador de archivos de forma manual.</string>
@@ -660,7 +659,6 @@
     <string name="preferences_controls">Controles</string>
     <string name="preferences_controls_description">Asignar entradas del mando</string>
     <string name="preferences_player">Jugador %d</string>
-    <string name="preferences_theme">Tema y color</string>
     <string name="preferences_debug">Depuración</string>
     <string name="preferences_debug_description">CPU/GPU debug, API gráfica, fastMEM</string>
 

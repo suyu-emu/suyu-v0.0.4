@@ -275,7 +275,6 @@
     <string name="search_recently_added">Adicionado recentemente</string>
     <string name="open_user_folder">Abre a pasta Eden</string>
     <string name="open_user_folder_description">Gere os ficheiro internos do Eden</string>
-    <string name="theme_and_color_description">Modifica a aparência da App</string>
     <string name="no_file_manager">Nenhum gestor de ficheiros encontrado</string>
     <string name="notification_no_directory_link">Impossível abrir pasta Eden</string>
     <string name="notification_no_directory_link_description">Localiza a pasta de utilizador manualmente com o painel lateral do gestor de ficheiros.</string>
@@ -623,7 +622,6 @@ uma tentativa de mapeamento automático</string>
     <string name="preferences_controls">Controlos</string>
     <string name="preferences_controls_description">Mapear entradas do controle</string>
     <string name="preferences_player">Jogador %d</string>
-    <string name="preferences_theme">Cor e tema.</string>
     <string name="preferences_debug">Depurar</string>
     <string name="preferences_debug_description">Depuração de CPU/GPU, API gráfica, fastmem</string>
 
