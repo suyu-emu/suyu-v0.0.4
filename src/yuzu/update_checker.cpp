@@ -5,61 +5,85 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// SPDX-FileCopyrightText: eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 #include "update_checker.h"
 #include "common/logging/log.h"
+#include "common/scm_rev.h"
 #include <fmt/format.h>
+
+#ifndef CPPHTTPLIB_OPENSSL_SUPPORT
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#endif
+
 #include <httplib.h>
+
+#ifdef YUZU_BUNDLED_OPENSSL
+#include <openssl/cert.h>
+#endif
+
 #include <nlohmann/json.hpp>
 #include <optional>
+#include <qdebug.h>
 #include <string>
-#include "common/scm_rev.h"
 
 std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::string path)
 {
-    constexpr std::size_t timeout_seconds = 15;
+    try {
+        constexpr std::size_t timeout_seconds = 15;
 
-    std::unique_ptr<httplib::Client> client = std::make_unique<httplib::Client>(url);
-    client->set_connection_timeout(timeout_seconds);
-    client->set_read_timeout(timeout_seconds);
-    client->set_write_timeout(timeout_seconds);
+        std::unique_ptr<httplib::Client> client = std::make_unique<httplib::Client>(url);
+        client->set_connection_timeout(timeout_seconds);
+        client->set_read_timeout(timeout_seconds);
+        client->set_write_timeout(timeout_seconds);
 
-    if (client == nullptr) {
-        LOG_ERROR(Frontend, "Invalid URL {}{}", url, path);
-        return {};
+#ifdef YUZU_BUNDLED_OPENSSL
+        client->load_ca_cert_store(kCert, sizeof(kCert));
+#endif
+
+        if (client == nullptr) {
+            LOG_ERROR(Frontend, "Invalid URL {}{}", url, path);
+            return {};
+        }
+
+        httplib::Request request{
+            .method = "GET",
+            .path = path,
+        };
+
+        client->set_follow_location(true);
+        httplib::Result result;
+        result = client->send(request);
+
+        if (!result) {
+            LOG_ERROR(Frontend, "GET to {}{} returned null", url, path);
+            return {};
+        }
+
+        const auto &response = result.value();
+        if (response.status >= 400) {
+            LOG_ERROR(Frontend,
+                      "GET to {}{} returned error status code: {}",
+                      url,
+                      path,
+                      response.status);
+            return {};
+        }
+        if (!response.headers.contains("content-type")) {
+            LOG_ERROR(Frontend, "GET to {}{} returned no content", url, path);
+            return {};
+        }
+
+        return response.body;
+    } catch (std::exception &e) {
+        qDebug() << e.what();
+        return std::nullopt;
     }
-
-    httplib::Request request{
-        .method = "GET",
-        .path = path,
-    };
-
-    client->set_follow_location(true);
-    const auto result = client->send(request);
-    if (!result) {
-        LOG_ERROR(Frontend, "GET to {}{} returned null", url, path);
-        return {};
-    }
-
-    const auto& response = result.value();
-    if (response.status >= 400) {
-        LOG_ERROR(Frontend, "GET to {}{} returned error status code: {}", url, path, response.status);
-        return {};
-    }
-    if (!response.headers.contains("content-type")) {
-        LOG_ERROR(Frontend, "GET to {}{} returned no content", url, path);
-        return {};
-    }
-
-    return response.body;
 }
 
 std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prereleases)
 {
     const auto update_check_url = std::string{Common::g_build_auto_update_api};
-    std::string update_check_path = fmt::format("/repos/{}", std::string{Common::g_build_auto_update_repo});
+    std::string update_check_path = fmt::format("/repos/{}",
+                                                std::string{Common::g_build_auto_update_repo});
     try {
         if (include_prereleases) { // This can return either a prerelease or a stable release,
             // whichever is more recent.
@@ -95,14 +119,14 @@ std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prerelea
             return latest_tag;
         }
 
-    } catch (nlohmann::detail::out_of_range&) {
+    } catch (nlohmann::detail::out_of_range &) {
         LOG_ERROR(Frontend,
                   "Parsing JSON response from {}{} failed during update check: "
                   "nlohmann::detail::out_of_range",
                   update_check_url,
                   update_check_path);
         return {};
-    } catch (nlohmann::detail::type_error&) {
+    } catch (nlohmann::detail::type_error &) {
         LOG_ERROR(Frontend,
                   "Parsing JSON response from {}{} failed during update check: "
                   "nlohmann::detail::type_error",
