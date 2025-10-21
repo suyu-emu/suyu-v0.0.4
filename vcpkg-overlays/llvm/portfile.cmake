@@ -13,6 +13,7 @@ vcpkg_cmake_configure(
         -DLLVM_INCLUDE_EXAMPLES=OFF
         -DLLVM_INCLUDE_BENCHMARKS=OFF
         -DLLVM_TARGETS_TO_BUILD=X86
+        -DBUILD_SHARED_LIBS=OFF
 )
 
 vcpkg_cmake_build()
