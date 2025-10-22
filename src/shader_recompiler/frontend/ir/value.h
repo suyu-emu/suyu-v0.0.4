@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,7 +17,7 @@
 #include <boost/intrusive/list.hpp>
 
 #include "common/assert.h"
-#include "common/bit_cast.h"
+#include <numeric>
 #include "common/common_types.h"
 #include "shader_recompiler/exception.h"
 #include "shader_recompiler/frontend/ir/attribute.h"
@@ -206,13 +209,13 @@ public:
     /// Intrusively store the host definition of this instruction.
     template <typename DefinitionType>
     void SetDefinition(DefinitionType def) {
-        definition = Common::BitCast<u32>(def);
+        definition = std::bit_cast<u32>(def);
     }
 
     /// Return the intrusively stored host definition of this instruction.
     template <typename DefinitionType>
     [[nodiscard]] DefinitionType Definition() const noexcept {
-        return Common::BitCast<DefinitionType>(definition);
+        return std::bit_cast<DefinitionType>(definition);
     }
 
     /// Destructively remove one reference count from the instruction

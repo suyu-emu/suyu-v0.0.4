@@ -7,18 +7,8 @@
 #ifdef __AVX__
 #include <immintrin.h>
 #endif
-
-// NetBSD apparently still needs these... ugh
-#ifdef __cpp_lib_bit_cast
+#include <numeric>
 #include <bit>
-template <typename To, typename From> constexpr inline To BitCast(const From& from) {
-    return std::bit_cast<To>(from);
-}
-#else
-template <typename To, typename From> constexpr inline To BitCast(const From& from) {
-    return __builtin_bit_cast(To, from);
-}
-#endif
 
 template<typename F>
 void CheckedRun(F&& fn) {
@@ -48,18 +38,18 @@ void CheckedRun(F&& fn) {
         , "+x"(xmm8), "+x"(xmm9), "+x"(xmm10), "+x"(xmm11)
         :
     );
-    CHECK(BitCast<std::uint64_t>(xmm0[0]) == 0);
-    CHECK(BitCast<std::uint64_t>(xmm1[0]) == 1);
-    CHECK(BitCast<std::uint64_t>(xmm2[0]) == 2);
-    CHECK(BitCast<std::uint64_t>(xmm3[0]) == 3);
-    CHECK(BitCast<std::uint64_t>(xmm4[0]) == 4);
-    CHECK(BitCast<std::uint64_t>(xmm5[0]) == 5);
-    CHECK(BitCast<std::uint64_t>(xmm6[0]) == 6);
-    CHECK(BitCast<std::uint64_t>(xmm7[0]) == 7);
-    CHECK(BitCast<std::uint64_t>(xmm8[0]) == 8);
-    CHECK(BitCast<std::uint64_t>(xmm9[0]) == 9);
-    CHECK(BitCast<std::uint64_t>(xmm10[0]) == 10);
-    CHECK(BitCast<std::uint64_t>(xmm11[0]) == 11);
+    CHECK(std::bit_cast<std::uint64_t>(xmm0[0]) == 0);
+    CHECK(std::bit_cast<std::uint64_t>(xmm1[0]) == 1);
+    CHECK(std::bit_cast<std::uint64_t>(xmm2[0]) == 2);
+    CHECK(std::bit_cast<std::uint64_t>(xmm3[0]) == 3);
+    CHECK(std::bit_cast<std::uint64_t>(xmm4[0]) == 4);
+    CHECK(std::bit_cast<std::uint64_t>(xmm5[0]) == 5);
+    CHECK(std::bit_cast<std::uint64_t>(xmm6[0]) == 6);
+    CHECK(std::bit_cast<std::uint64_t>(xmm7[0]) == 7);
+    CHECK(std::bit_cast<std::uint64_t>(xmm8[0]) == 8);
+    CHECK(std::bit_cast<std::uint64_t>(xmm9[0]) == 9);
+    CHECK(std::bit_cast<std::uint64_t>(xmm10[0]) == 10);
+    CHECK(std::bit_cast<std::uint64_t>(xmm11[0]) == 11);
 #else
     fn();
 #endif

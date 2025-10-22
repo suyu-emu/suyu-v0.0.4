@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <fmt/ranges.h>
-
+#include <bit>
 #include "shader_recompiler/backend/glasm/reg_alloc.h"
 #include "shader_recompiler/exception.h"
 #include "shader_recompiler/frontend/ir/value.h"
@@ -78,7 +78,7 @@ Value RegAlloc::MakeImm(const IR::Value& value) {
         break;
     case IR::Type::F32:
         ret.type = Type::U32;
-        ret.imm_u32 = Common::BitCast<u32>(value.F32());
+        ret.imm_u32 = std::bit_cast<u32>(value.F32());
         break;
     case IR::Type::U64:
         ret.type = Type::U64;
@@ -86,7 +86,7 @@ Value RegAlloc::MakeImm(const IR::Value& value) {
         break;
     case IR::Type::F64:
         ret.type = Type::U64;
-        ret.imm_u64 = Common::BitCast<u64>(value.F64());
+        ret.imm_u64 = std::bit_cast<u64>(value.F64());
         break;
     default:
         throw NotImplementedException("Immediate type {}", value.Type());

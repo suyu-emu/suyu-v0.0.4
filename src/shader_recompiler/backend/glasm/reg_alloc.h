@@ -1,13 +1,16 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <bitset>
-
+#include <bit>
 #include <fmt/ranges.h>
+#include <numeric>
 
-#include "common/bit_cast.h"
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "shader_recompiler/exception.h"
@@ -272,7 +275,7 @@ struct fmt::formatter<Shader::Backend::GLASM::ScalarF32> {
         case Shader::Backend::GLASM::Type::Register:
             return Shader::Backend::GLASM::FormatTo<true>(ctx, value.id);
         case Shader::Backend::GLASM::Type::U32:
-            return fmt::format_to(ctx.out(), "{}", Common::BitCast<f32>(value.imm_u32));
+            return fmt::format_to(ctx.out(), "{}", std::bit_cast<f32>(value.imm_u32));
         case Shader::Backend::GLASM::Type::U64:
             break;
         }
@@ -295,7 +298,7 @@ struct fmt::formatter<Shader::Backend::GLASM::ScalarF64> {
         case Shader::Backend::GLASM::Type::U32:
             break;
         case Shader::Backend::GLASM::Type::U64:
-            return fmt::format_to(ctx.out(), "{}", Common::BitCast<f64>(value.imm_u64));
+            return fmt::format_to(ctx.out(), "{}", std::bit_cast<f64>(value.imm_u64));
         }
         throw Shader::InvalidArgument("Invalid value type {}", value.type);
     }

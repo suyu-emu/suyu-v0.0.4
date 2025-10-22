@@ -10,8 +10,8 @@
 #include <memory>
 #include <vector>
 #include <boost/container/small_vector.hpp>
-
-#include "common/bit_cast.h"
+#include <bit>
+#include <numeric>
 #include "common/bit_util.h"
 #include "common/settings.h"
 
@@ -2216,7 +2216,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
         .pNext = nullptr,
         // TODO: Make use of std::bit_cast once libc++ supports it.
-        .customBorderColor = Common::BitCast<VkClearColorValue>(color),
+        .customBorderColor = std::bit_cast<VkClearColorValue>(color),
         .format = VK_FORMAT_UNDEFINED,
     };
     const void* pnext = nullptr;

@@ -30,7 +30,6 @@ add_library(
   assert.h
   atomic_helpers.h
   atomic_ops.h
-  bit_cast.h
   bit_field.h
   bit_util.h
   bounded_threadsafe_queue.h

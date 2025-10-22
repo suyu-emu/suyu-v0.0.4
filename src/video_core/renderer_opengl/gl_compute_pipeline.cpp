@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
-
+#include <bit>
+#include <numeric>
 #include "common/cityhash.h"
 #include "common/settings.h" // for enum class Settings::ShaderBackend
 #include "video_core/renderer_opengl/gl_compute_pipeline.h"
@@ -229,8 +233,8 @@ void ComputePipeline::Configure() {
         }
     }
     if (info.uses_rescaling_uniform) {
-        const f32 float_texture_scaling_mask{Common::BitCast<f32>(texture_scaling_mask)};
-        const f32 float_image_scaling_mask{Common::BitCast<f32>(image_scaling_mask)};
+        const f32 float_texture_scaling_mask{std::bit_cast<f32>(texture_scaling_mask)};
+        const f32 float_image_scaling_mask{std::bit_cast<f32>(image_scaling_mask)};
         if (assembly_program.handle != 0) {
             glProgramLocalParameter4fARB(GL_COMPUTE_PROGRAM_NV, 0, float_texture_scaling_mask,
                                          float_image_scaling_mask, 0.0f, 0.0f);
