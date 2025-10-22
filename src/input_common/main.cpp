@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,7 +22,7 @@
 #include "input_common/input_poller.h"
 #include "input_common/main.h"
 
-#ifdef HAVE_LIBUSB
+#ifdef ENABLE_LIBUSB
 #include "input_common/drivers/gc_adapter.h"
 #endif
 #ifdef HAVE_SDL2
@@ -76,7 +79,7 @@ struct InputSubsystem::Impl {
         RegisterEngine("keyboard", keyboard);
         RegisterEngine("mouse", mouse);
         RegisterEngine("touch", touch_screen);
-#ifdef HAVE_LIBUSB
+#ifdef ENABLE_LIBUSB
         RegisterEngine("gcpad", gcadapter);
 #endif
         RegisterEngine("cemuhookudp", udp_client);
@@ -110,7 +113,7 @@ struct InputSubsystem::Impl {
         UnregisterEngine(keyboard);
         UnregisterEngine(mouse);
         UnregisterEngine(touch_screen);
-#ifdef HAVE_LIBUSB
+#ifdef ENABLE_LIBUSB
         UnregisterEngine(gcadapter);
 #endif
         UnregisterEngine(udp_client);
@@ -145,7 +148,7 @@ struct InputSubsystem::Impl {
         auto android_devices = android->GetInputDevices();
         devices.insert(devices.end(), android_devices.begin(), android_devices.end());
 #endif
-#ifdef HAVE_LIBUSB
+#ifdef ENABLE_LIBUSB
         auto gcadapter_devices = gcadapter->GetInputDevices();
         devices.insert(devices.end(), gcadapter_devices.begin(), gcadapter_devices.end());
 #endif
@@ -178,7 +181,7 @@ struct InputSubsystem::Impl {
             return android;
         }
 #endif
-#ifdef HAVE_LIBUSB
+#ifdef ENABLE_LIBUSB
         if (engine == gcadapter->GetEngineName()) {
             return gcadapter;
         }
@@ -263,7 +266,7 @@ struct InputSubsystem::Impl {
             return true;
         }
 #endif
-#ifdef HAVE_LIBUSB
+#ifdef ENABLE_LIBUSB
         if (engine == gcadapter->GetEngineName()) {
             return true;
         }
@@ -294,7 +297,7 @@ struct InputSubsystem::Impl {
 #ifdef ANDROID
         android->BeginConfiguration();
 #endif
-#ifdef HAVE_LIBUSB
+#ifdef ENABLE_LIBUSB
         gcadapter->BeginConfiguration();
 #endif
         udp_client->BeginConfiguration();
@@ -310,7 +313,7 @@ struct InputSubsystem::Impl {
 #ifdef ANDROID
         android->EndConfiguration();
 #endif
-#ifdef HAVE_LIBUSB
+#ifdef ENABLE_LIBUSB
         gcadapter->EndConfiguration();
 #endif
         udp_client->EndConfiguration();
@@ -343,7 +346,7 @@ struct InputSubsystem::Impl {
     std::shared_ptr<VirtualAmiibo> virtual_amiibo;
     std::shared_ptr<VirtualGamepad> virtual_gamepad;
 
-#ifdef HAVE_LIBUSB
+#ifdef ENABLE_LIBUSB
     std::shared_ptr<GCAdapter> gcadapter;
 #endif
 

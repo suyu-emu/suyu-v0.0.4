@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -83,7 +86,7 @@ if (ENABLE_LIBUSB)
         drivers/gc_adapter.h
     )
     target_link_libraries(input_common PRIVATE libusb::usb)
-    target_compile_definitions(input_common PRIVATE HAVE_LIBUSB)
+    target_compile_definitions(input_common PRIVATE ENABLE_LIBUSB)
 endif()
 
 create_target_directory_groups(input_common)
