@@ -439,9 +439,9 @@ void EmitThreeOpVectorOperation(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
-template<typename Lambda>
-void EmitTwoOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xbyak::Xmm result, Xbyak::Xmm arg1, Lambda lambda, bool fpcr_controlled) {
-    const auto fn = static_cast<mcl::equivalent_function_type<Lambda>*>(lambda);
+template<typename F>
+void EmitTwoOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xbyak::Xmm result, Xbyak::Xmm arg1, F lambda, bool fpcr_controlled) {
+    const auto fn = static_cast<mcl::equivalent_function_type<F>*>(lambda);
 
     const u32 fpcr = ctx.FPCR(fpcr_controlled).Value();
 
@@ -459,8 +459,8 @@ void EmitTwoOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xbyak
     code.add(rsp, stack_space + ABI_SHADOW_SPACE);
 }
 
-template<size_t fpcr_controlled_arg_index = 1, typename Lambda>
-void EmitTwoOpFallback(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Lambda lambda) {
+template<size_t fpcr_controlled_arg_index = 1, typename F>
+void EmitTwoOpFallback(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, F lambda) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Xmm arg1 = ctx.reg_alloc.UseXmm(args[0]);
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
@@ -665,8 +665,14 @@ void EmitX64::EmitFPVectorEqual64(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.DefineValue(inst, a);
 }
 
+template<FP::RoundingMode rounding_mode>
+static void EmitFPVectorFromHalf32Thunk(VectorArray<u32>& output, const VectorArray<u16>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
+    for (size_t i = 0; i < output.size(); ++i)
+        output[i] = FP::FPConvert<u32, u16>(input[i], fpcr, rounding_mode, fpsr);
+}
+
 void EmitX64::EmitFPVectorFromHalf32(EmitContext& ctx, IR::Inst* inst) {
-    const auto rounding_mode = static_cast<FP::RoundingMode>(inst->GetArg(1).GetU8());
+    const auto rounding_mode = FP::RoundingMode(inst->GetArg(1).GetU8());
     const bool fpcr_controlled = inst->GetArg(2).GetU1();
 
     if (code.HasHostFeature(HostFeature::F16C) && !ctx.FPCR().AHP() && !ctx.FPCR().FZ16()) {
@@ -679,32 +685,27 @@ void EmitX64::EmitFPVectorFromHalf32(EmitContext& ctx, IR::Inst* inst) {
         ForceToDefaultNaN<32>(code, ctx.FPCR(fpcr_controlled), result);
 
         ctx.reg_alloc.DefineValue(inst, result);
-        return;
+    } else {
+        switch (rounding_mode) {
+        case FP::RoundingMode::ToNearest_TieEven:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorFromHalf32Thunk<FP::RoundingMode::ToNearest_TieEven>);
+            break;
+        case FP::RoundingMode::TowardsPlusInfinity:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorFromHalf32Thunk<FP::RoundingMode::TowardsPlusInfinity>);
+            break;
+        case FP::RoundingMode::TowardsMinusInfinity:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorFromHalf32Thunk<FP::RoundingMode::TowardsMinusInfinity>);
+            break;
+        case FP::RoundingMode::TowardsZero:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorFromHalf32Thunk<FP::RoundingMode::TowardsZero>);
+            break;
+        case FP::RoundingMode::ToNearest_TieAwayFromZero:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorFromHalf32Thunk<FP::RoundingMode::ToNearest_TieAwayFromZero>);
+            break;
+        default:
+            UNREACHABLE();
+        }
     }
-
-    using rounding_list = mp::list<
-        mp::lift_value<FP::RoundingMode::ToNearest_TieEven>,
-        mp::lift_value<FP::RoundingMode::TowardsPlusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsMinusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsZero>,
-        mp::lift_value<FP::RoundingMode::ToNearest_TieAwayFromZero>>;
-
-    static const auto lut = Common::GenerateLookupTableFromList(
-        []<typename I>(I) {
-            return std::pair{
-                mp::lower_to_tuple_v<I>,
-                Common::FptrCast(
-                    [](VectorArray<u32>& output, const VectorArray<u16>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                        constexpr FP::RoundingMode rounding_mode = mp::get<0, I>::value;
-
-                        for (size_t i = 0; i < output.size(); ++i) {
-                            output[i] = FP::FPConvert<u32, u16>(input[i], fpcr, rounding_mode, fpsr);
-                        }
-                    })};
-        },
-        mp::cartesian_product<rounding_list>{});
-
-    EmitTwoOpFallback<2>(code, ctx, inst, lut.at(std::make_tuple(rounding_mode)));
 }
 
 void EmitX64::EmitFPVectorFromSignedFixed32(EmitContext& ctx, IR::Inst* inst) {
@@ -1681,25 +1682,26 @@ void EmitX64::EmitFPVectorRecipStepFused64(EmitContext& ctx, IR::Inst* inst) {
     EmitRecipStepFused<64>(code, ctx, inst);
 }
 
+template<typename FPT, FP::RoundingMode rounding_mode, bool exact>
+static void EmitFPVectorRoundIntThunk(VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
+    for (size_t i = 0; i < output.size(); ++i)
+        output[i] = FPT(FP::FPRoundInt<FPT>(input[i], fpcr, rounding_mode, exact, fpsr));
+}
+
 template<size_t fsize>
 void EmitFPVectorRoundInt(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto rounding = static_cast<FP::RoundingMode>(inst->GetArg(1).GetU8());
+    const auto rounding = FP::RoundingMode(inst->GetArg(1).GetU8());
     const bool exact = inst->GetArg(2).GetU1();
 
     if constexpr (fsize != 16) {
         if (code.HasHostFeature(HostFeature::SSE41) && rounding != FP::RoundingMode::ToNearest_TieAwayFromZero && !exact) {
             const u8 round_imm = [&]() -> u8 {
                 switch (rounding) {
-                case FP::RoundingMode::ToNearest_TieEven:
-                    return 0b00;
-                case FP::RoundingMode::TowardsPlusInfinity:
-                    return 0b10;
-                case FP::RoundingMode::TowardsMinusInfinity:
-                    return 0b01;
-                case FP::RoundingMode::TowardsZero:
-                    return 0b11;
-                default:
-                    UNREACHABLE();
+                case FP::RoundingMode::ToNearest_TieEven: return 0b00;
+                case FP::RoundingMode::TowardsPlusInfinity: return 0b10;
+                case FP::RoundingMode::TowardsMinusInfinity: return 0b01;
+                case FP::RoundingMode::TowardsZero: return 0b11;
+                default: UNREACHABLE();
                 }
             }();
 
@@ -1711,32 +1713,37 @@ void EmitFPVectorRoundInt(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
         }
     }
 
-    using rounding_list = mp::list<
-        mp::lift_value<FP::RoundingMode::ToNearest_TieEven>,
-        mp::lift_value<FP::RoundingMode::TowardsPlusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsMinusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsZero>,
-        mp::lift_value<FP::RoundingMode::ToNearest_TieAwayFromZero>>;
-    using exact_list = mp::list<std::true_type, std::false_type>;
-
-    static const auto lut = Common::GenerateLookupTableFromList(
-        []<typename I>(I) {
-            using FPT = mcl::unsigned_integer_of_size<fsize>;  // WORKAROUND: For issue 678 on MSVC
-            return std::pair{
-                mp::lower_to_tuple_v<I>,
-                Common::FptrCast(
-                    [](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                        constexpr FP::RoundingMode rounding_mode = mp::get<0, I>::value;
-                        constexpr bool exact = mp::get<1, I>::value;
-
-                        for (size_t i = 0; i < output.size(); ++i) {
-                            output[i] = static_cast<FPT>(FP::FPRoundInt<FPT>(input[i], fpcr, rounding_mode, exact, fpsr));
-                        }
-                    })};
-        },
-        mp::cartesian_product<rounding_list, exact_list>{});
-
-    EmitTwoOpFallback<3>(code, ctx, inst, lut.at(std::make_tuple(rounding, exact)));
+    // Do not make a LUT out of this, let the compiler do it's thing
+    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    switch (rounding) {
+    case FP::RoundingMode::ToNearest_TieEven:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::ToNearest_TieEven, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::ToNearest_TieEven, false>);
+        break;
+    case FP::RoundingMode::TowardsPlusInfinity:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::TowardsPlusInfinity, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::TowardsPlusInfinity, false>);
+        break;
+    case FP::RoundingMode::TowardsMinusInfinity:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::TowardsMinusInfinity, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::TowardsMinusInfinity, false>);
+        break;
+    case FP::RoundingMode::TowardsZero:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::TowardsZero, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::TowardsZero, false>);
+        break;
+    case FP::RoundingMode::ToNearest_TieAwayFromZero:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::ToNearest_TieAwayFromZero, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::ToNearest_TieAwayFromZero, false>);
+        break;
+    default:
+        UNREACHABLE();
+    }
 }
 
 void EmitX64::EmitFPVectorRoundInt16(EmitContext& ctx, IR::Inst* inst) {
@@ -1965,8 +1972,14 @@ void EmitX64::EmitFPVectorSub64(EmitContext& ctx, IR::Inst* inst) {
     EmitThreeOpVectorOperation<64, DefaultIndexer>(code, ctx, inst, &Xbyak::CodeGenerator::subpd);
 }
 
+template<FP::RoundingMode rounding_mode>
+static void EmitFPVectorToHalf32Thunk(VectorArray<u16>& output, const VectorArray<u32>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
+    for (size_t i = 0; i < output.size(); ++i)
+        output[i] = i < input.size() ? FP::FPConvert<u16, u32>(input[i], fpcr, rounding_mode, fpsr) : 0;
+}
+
 void EmitX64::EmitFPVectorToHalf32(EmitContext& ctx, IR::Inst* inst) {
-    const auto rounding_mode = static_cast<FP::RoundingMode>(inst->GetArg(1).GetU8());
+    const auto rounding_mode = FP::RoundingMode(inst->GetArg(1).GetU8());
     const bool fpcr_controlled = inst->GetArg(2).GetU1();
 
     if (code.HasHostFeature(HostFeature::F16C) && !ctx.FPCR().AHP() && !ctx.FPCR().FZ16()) {
@@ -1976,40 +1989,38 @@ void EmitX64::EmitFPVectorToHalf32(EmitContext& ctx, IR::Inst* inst) {
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
 
         ForceToDefaultNaN<32>(code, ctx.FPCR(fpcr_controlled), result);
-        code.vcvtps2ph(result, result, static_cast<u8>(*round_imm));
+        code.vcvtps2ph(result, result, u8(*round_imm));
 
         ctx.reg_alloc.DefineValue(inst, result);
-        return;
+    } else {
+        switch (rounding_mode) {
+        case FP::RoundingMode::ToNearest_TieEven:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorToHalf32Thunk<FP::RoundingMode::ToNearest_TieEven>);
+            break;
+        case FP::RoundingMode::TowardsPlusInfinity:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorToHalf32Thunk<FP::RoundingMode::TowardsPlusInfinity>);
+            break;
+        case FP::RoundingMode::TowardsMinusInfinity:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorToHalf32Thunk<FP::RoundingMode::TowardsMinusInfinity>);
+            break;
+        case FP::RoundingMode::TowardsZero:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorToHalf32Thunk<FP::RoundingMode::TowardsZero>);
+            break;
+        case FP::RoundingMode::ToNearest_TieAwayFromZero:
+            EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorToHalf32Thunk<FP::RoundingMode::ToNearest_TieAwayFromZero>);
+            break;
+        default:
+            UNREACHABLE();
+        }
     }
-
-    using rounding_list = mp::list<
-        mp::lift_value<FP::RoundingMode::ToNearest_TieEven>,
-        mp::lift_value<FP::RoundingMode::TowardsPlusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsMinusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsZero>,
-        mp::lift_value<FP::RoundingMode::ToNearest_TieAwayFromZero>>;
-
-    static const auto lut = Common::GenerateLookupTableFromList(
-        []<typename I>(I) {
-            return std::pair{
-                mp::lower_to_tuple_v<I>,
-                Common::FptrCast(
-                    [](VectorArray<u16>& output, const VectorArray<u32>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                        constexpr FP::RoundingMode rounding_mode = mp::get<0, I>::value;
-
-                        for (size_t i = 0; i < output.size(); ++i) {
-                            if (i < input.size()) {
-                                output[i] = FP::FPConvert<u16, u32>(input[i], fpcr, rounding_mode, fpsr);
-                            } else {
-                                output[i] = 0;
-                            }
-                        }
-                    })};
-        },
-        mp::cartesian_product<rounding_list>{});
-
-    EmitTwoOpFallback<2>(code, ctx, inst, lut.at(std::make_tuple(rounding_mode)));
 }
+
+// Assembly thunk; just remember not to specialise too much otherwise i-cache death!
+// template<typename FPT, size_t fbits, FP::RoundingMode rounding_mode>
+// static void EmitFPVectorToFixedThunk(VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
+//     for (size_t i = 0; i < output.size(); ++i)
+//         output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fbits, unsigned_, fpcr, rounding_mode, fpsr));
+// }
 
 template<size_t fsize, bool unsigned_>
 void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
@@ -2108,7 +2119,7 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                         FCODE(andp)(tmp, xmm0);
                         FCODE(subp)(src, tmp);
                         perform_conversion(src);
-                        ICODE(psll)(xmm0, static_cast<u8>(fsize - 1));
+                        ICODE(psll)(xmm0, u8(fsize - 1));
                         FCODE(orp)(src, xmm0);
 
                         // Saturate to max
@@ -2116,7 +2127,7 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     }
                 } else {
                     using FPT = mcl::unsigned_integer_of_size<fsize>;  // WORKAROUND: For issue 678 on MSVC
-                    constexpr u64 integer_max = static_cast<FPT>((std::numeric_limits<std::conditional_t<unsigned_, FPT, std::make_signed_t<FPT>>>::max)());
+                    constexpr u64 integer_max = FPT((std::numeric_limits<std::conditional_t<unsigned_, FPT, std::make_signed_t<FPT>>>::max)());
 
                     code.movaps(xmm0, GetVectorOf<fsize, float_upper_limit_signed>(code));
                     FCODE(cmplep)(xmm0, src);
@@ -2138,22 +2149,18 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
         mp::lift_value<FP::RoundingMode::TowardsZero>,
         mp::lift_value<FP::RoundingMode::ToNearest_TieAwayFromZero>>;
 
-    static const auto lut = Common::GenerateLookupTableFromList(
-        []<typename I>(I) {
-            using FPT = mcl::unsigned_integer_of_size<fsize>;  // WORKAROUND: For issue 678 on MSVC
-            return std::pair{
-                mp::lower_to_tuple_v<I>,
-                Common::FptrCast(
-                    [](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                        constexpr size_t fbits = mp::get<0, I>::value;
-                        constexpr FP::RoundingMode rounding_mode = mp::get<1, I>::value;
-
-                        for (size_t i = 0; i < output.size(); ++i) {
-                            output[i] = static_cast<FPT>(FP::FPToFixed<FPT>(fsize, input[i], fbits, unsigned_, fpcr, rounding_mode, fpsr));
-                        }
-                    })};
-        },
-        mp::cartesian_product<fbits_list, rounding_list>{});
+    static const auto lut = Common::GenerateLookupTableFromList([]<typename I>(I) {
+        using FPT = mcl::unsigned_integer_of_size<fsize>;  // WORKAROUND: For issue 678 on MSVC
+        return std::pair{
+            mp::lower_to_tuple_v<I>,
+            Common::FptrCast([](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
+                constexpr size_t fbits = mp::get<0, I>::value;
+                constexpr FP::RoundingMode rounding_mode = mp::get<1, I>::value;
+                for (size_t i = 0; i < output.size(); ++i)
+                    output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fbits, unsigned_, fpcr, rounding_mode, fpsr));
+            })
+        };
+    }, mp::cartesian_product<fbits_list, rounding_list>{});
 
     EmitTwoOpFallback<3>(code, ctx, inst, lut.at(std::make_tuple(fbits, rounding)));
 }

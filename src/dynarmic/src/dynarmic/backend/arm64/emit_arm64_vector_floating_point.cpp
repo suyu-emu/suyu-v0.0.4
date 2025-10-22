@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -566,37 +569,49 @@ void EmitIR<IR::Opcode::FPVectorRecipStepFused64>(oaknut::CodeGenerator& code, E
     EmitThreeOpArranged<64>(code, ctx, inst, [&](auto Vresult, auto Va, auto Vb) { code.FRECPS(Vresult, Va, Vb); });
 }
 
+/// @brief Assembly thunk "parameters" are in template parameters
+/// TODO: we have space for a 5th parameter? :)
+template<typename FPT, FP::RoundingMode rounding_mode, bool exact>
+static void EmitIRVectorRoundInt16Thunk(VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
+    for (size_t i = 0; i < output.size(); ++i)
+        output[i] = FPT(FP::FPRoundInt<FPT>(input[i], fpcr, rounding_mode, exact, fpsr));
+}
+
 template<>
 void EmitIR<IR::Opcode::FPVectorRoundInt16>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    const auto rounding = static_cast<FP::RoundingMode>(inst->GetArg(1).GetU8());
+    const auto rounding = FP::RoundingMode(inst->GetArg(1).GetU8());
     const bool exact = inst->GetArg(2).GetU1();
-
-    using rounding_list = mp::list<
-        mp::lift_value<FP::RoundingMode::ToNearest_TieEven>,
-        mp::lift_value<FP::RoundingMode::TowardsPlusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsMinusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsZero>,
-        mp::lift_value<FP::RoundingMode::ToNearest_TieAwayFromZero>>;
-    using exact_list = mp::list<std::true_type, std::false_type>;
-
-    static const auto lut = Common::GenerateLookupTableFromList(
-        []<typename I>(I) {
-            using FPT = u16;
-            return std::pair{
-                mp::lower_to_tuple_v<I>,
-                Common::FptrCast(
-                    [](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                        constexpr FP::RoundingMode rounding_mode = mp::get<0, I>::value;
-                        constexpr bool exact = mp::get<1, I>::value;
-
-                        for (size_t i = 0; i < output.size(); ++i) {
-                            output[i] = static_cast<FPT>(FP::FPRoundInt<FPT>(input[i], fpcr, rounding_mode, exact, fpsr));
-                        }
-                    })};
-        },
-        mp::cartesian_product<rounding_list, exact_list>{});
-
-    EmitTwoOpFallback<3>(code, ctx, inst, lut.at(std::make_tuple(rounding, exact)));
+    // Don't even think about making this a LUT -- it's bad
+    using FPT = u16; // Yes it's u16, no fsize madness
+    switch (rounding) {
+    case FP::RoundingMode::ToNearest_TieEven:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::ToNearest_TieEven, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::ToNearest_TieEven, false>);
+        break;
+    case FP::RoundingMode::TowardsPlusInfinity:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::TowardsPlusInfinity, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::TowardsPlusInfinity, false>);
+        break;
+    case FP::RoundingMode::TowardsMinusInfinity:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::TowardsMinusInfinity, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::TowardsMinusInfinity, false>);
+        break;
+    case FP::RoundingMode::TowardsZero:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::TowardsZero, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::TowardsZero, false>);
+        break;
+    case FP::RoundingMode::ToNearest_TieAwayFromZero:
+        exact
+            ? EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::ToNearest_TieAwayFromZero, true>)
+            : EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::ToNearest_TieAwayFromZero, false>);
+        break;
+    default:
+        UNREACHABLE();
+    }
 }
 
 template<>

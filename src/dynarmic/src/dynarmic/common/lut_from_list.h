@@ -40,9 +40,7 @@ inline auto GenerateLookupTableFromList(Function f, mcl::mp::list<Values...>) {
     using PairT = std::common_type_t<std::invoke_result_t<Function, Values>...>;
 #endif
     using MapT = mcl::mp::apply<std::map, PairT>;
-
     static_assert(mcl::is_instance_of_template_v<std::pair, PairT>);
-
     const std::initializer_list<PairT> pair_array{f(Values{})...};
     return MapT(pair_array.begin(), pair_array.end());
 }

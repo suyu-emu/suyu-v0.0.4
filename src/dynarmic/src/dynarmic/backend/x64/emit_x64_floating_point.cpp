@@ -1071,57 +1071,42 @@ void EmitX64::EmitFPRecipStepFused64(EmitContext& ctx, IR::Inst* inst) {
     EmitFPRecipStepFused<64>(code, ctx, inst);
 }
 
+/// @brief An assembly thunk for the general rounding of FP
+/// Conciously making this be a template, because the cost of comparing "fsize" for every
+/// round is not worth it. Remember we are making only 3 copies (u16,u32,u64)
+/// Extra args layout:
+/// 0-7    rounding_mode
+/// 8-15   exact (!= 0)
+template<typename FPT>
+static u64 EmitFPRoundThunk(u64 input, FP::FPSR& fpsr, FP::FPCR fpcr, u32 extra_args) {
+    auto const exact = ((extra_args >> 16) & 0xff) != 0;
+    auto const rounding_mode = FP::RoundingMode((extra_args >> 8) & 0xff);
+    return FP::FPRoundInt<FPT>(FPT(input), fpcr, rounding_mode, exact, fpsr);
+}
+
 static void EmitFPRound(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, size_t fsize) {
-    const auto rounding_mode = static_cast<FP::RoundingMode>(inst->GetArg(1).GetU8());
-    const bool exact = inst->GetArg(2).GetU1();
-    const auto round_imm = ConvertRoundingModeToX64Immediate(rounding_mode);
-
+    auto const rounding_mode = FP::RoundingMode(inst->GetArg(1).GetU8());
+    bool const exact = inst->GetArg(2).GetU1();
+    auto const round_imm = ConvertRoundingModeToX64Immediate(rounding_mode);
     if (fsize != 16 && code.HasHostFeature(HostFeature::SSE41) && round_imm && !exact) {
-        if (fsize == 64) {
-            FPTwoOp<64>(code, ctx, inst, [&](Xbyak::Xmm result) {
-                code.roundsd(result, result, *round_imm);
-            });
-        } else {
-            FPTwoOp<32>(code, ctx, inst, [&](Xbyak::Xmm result) {
-                code.roundss(result, result, *round_imm);
-            });
+        fsize == 64
+            ? FPTwoOp<64>(code, ctx, inst, [&](Xbyak::Xmm result) { code.roundsd(result, result, *round_imm); })
+            : FPTwoOp<32>(code, ctx, inst, [&](Xbyak::Xmm result) { code.roundss(result, result, *round_imm); });
+    } else {
+        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
+        // See EmitFPRoundThunk
+        auto const extra_args = u32(rounding_mode) | (u32(exact) << 8);
+        ctx.reg_alloc.HostCall(inst, args[0]);
+        code.lea(code.ABI_PARAM2, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+        code.mov(code.ABI_PARAM3.cvt32(), ctx.FPCR().Value());
+        code.mov(code.ABI_PARAM4.cvt32(), extra_args);
+        switch (fsize) {
+        case 64: code.CallFunction(EmitFPRoundThunk<u64>); break;
+        case 32: code.CallFunction(EmitFPRoundThunk<u32>); break;
+        case 16: code.CallFunction(EmitFPRoundThunk<u16>); break;
+        default: UNREACHABLE();
         }
-
-        return;
     }
-
-    using fsize_list = mp::list<mp::lift_value<size_t(16)>,
-                                mp::lift_value<size_t(32)>,
-                                mp::lift_value<size_t(64)>>;
-    using rounding_list = mp::list<
-        mp::lift_value<FP::RoundingMode::ToNearest_TieEven>,
-        mp::lift_value<FP::RoundingMode::TowardsPlusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsMinusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsZero>,
-        mp::lift_value<FP::RoundingMode::ToNearest_TieAwayFromZero>>;
-    using exact_list = mp::list<std::true_type, std::false_type>;
-
-    static const auto lut = Common::GenerateLookupTableFromList(
-        []<typename I>(I) {
-            return std::pair{
-                mp::lower_to_tuple_v<I>,
-                Common::FptrCast(
-                    [](u64 input, FP::FPSR& fpsr, FP::FPCR fpcr) {
-                        constexpr size_t fsize = mp::get<0, I>::value;
-                        constexpr FP::RoundingMode rounding_mode = mp::get<1, I>::value;
-                        constexpr bool exact = mp::get<2, I>::value;
-                        using InputSize = mcl::unsigned_integer_of_size<fsize>;
-
-                        return FP::FPRoundInt<InputSize>(static_cast<InputSize>(input), fpcr, rounding_mode, exact, fpsr);
-                    })};
-        },
-        mp::cartesian_product<fsize_list, rounding_list, exact_list>{});
-
-    auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ctx.reg_alloc.HostCall(inst, args[0]);
-    code.lea(code.ABI_PARAM2, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
-    code.mov(code.ABI_PARAM3.cvt32(), ctx.FPCR().Value());
-    code.CallFunction(lut.at(std::make_tuple(fsize, rounding_mode, exact)));
 }
 
 void EmitX64::EmitFPRoundInt16(EmitContext& ctx, IR::Inst* inst) {
@@ -1621,12 +1606,29 @@ void EmitX64::EmitFPDoubleToSingle(EmitContext& ctx, IR::Inst* inst) {
     }
 }
 
+/// @brief Thunk used in assembly
+/// The extra args is conformed as follows:
+/// 0-7     fbits
+/// 8-15    rounding
+/// 16-23   isize
+/// 24-31   unsigned_ (!= 0)
+/// Better than spamming thousands of templates aye?
+template<size_t fsize>
+static u64 EmitFPToFixedThunk(u64 input, FP::FPSR& fpsr, FP::FPCR fpcr, u32 extra_args) {
+    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    auto const unsigned_ = ((extra_args >> 24) & 0xff) != 0;
+    auto const isize = ((extra_args >> 16) & 0xff);
+    auto const rounding = FP::RoundingMode((extra_args >> 8) & 0xff);
+    auto const fbits = ((extra_args >> 0) & 0xff);
+    return FP::FPToFixed<FPT>(isize, FPT(input), fbits, unsigned_, fpcr, rounding, fpsr);
+}
+
 template<size_t fsize, bool unsigned_, size_t isize>
 static void EmitFPToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const size_t fbits = args[1].GetImmediateU8();
-    const auto rounding_mode = static_cast<FP::RoundingMode>(args[2].GetImmediateU8());
+    const auto rounding_mode = FP::RoundingMode(args[2].GetImmediateU8());
 
     if constexpr (fsize != 16) {
         const auto round_imm = ConvertRoundingModeToX64Immediate(rounding_mode);
@@ -1732,34 +1734,14 @@ static void EmitFPToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             return;
         }
     }
-
-    using fbits_list = mp::lift_sequence<std::make_index_sequence<isize + 1>>;
-    using rounding_list = mp::list<
-        mp::lift_value<FP::RoundingMode::ToNearest_TieEven>,
-        mp::lift_value<FP::RoundingMode::TowardsPlusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsMinusInfinity>,
-        mp::lift_value<FP::RoundingMode::TowardsZero>,
-        mp::lift_value<FP::RoundingMode::ToNearest_TieAwayFromZero>>;
-
-    static const auto lut = Common::GenerateLookupTableFromList(
-        []<typename I>(I) {
-            return std::pair{
-                mp::lower_to_tuple_v<I>,
-                Common::FptrCast(
-                    [](u64 input, FP::FPSR& fpsr, FP::FPCR fpcr) {
-                        constexpr size_t fbits = mp::get<0, I>::value;
-                        constexpr FP::RoundingMode rounding_mode = mp::get<1, I>::value;
-                        using FPT = mcl::unsigned_integer_of_size<fsize>;
-
-                        return FP::FPToFixed<FPT>(isize, static_cast<FPT>(input), fbits, unsigned_, fpcr, rounding_mode, fpsr);
-                    })};
-        },
-        mp::cartesian_product<fbits_list, rounding_list>{});
-
+    // See EmitFPToFixedThunk
+    auto const extra_args = (u32(unsigned_) << 24) | (u32(isize) << 16)
+        | (u32(rounding_mode) << 8) | (u32(fbits));
     ctx.reg_alloc.HostCall(inst, args[0]);
     code.lea(code.ABI_PARAM2, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.mov(code.ABI_PARAM3.cvt32(), ctx.FPCR().Value());
-    code.CallFunction(lut.at(std::make_tuple(fbits, rounding_mode)));
+    code.mov(code.ABI_PARAM4.cvt32(), extra_args);
+    code.CallFunction(EmitFPToFixedThunk<fsize>);
 }
 
 void EmitX64::EmitFPDoubleToFixedS16(EmitContext& ctx, IR::Inst* inst) {
