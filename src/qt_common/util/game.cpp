@@ -149,7 +149,7 @@ bool MakeShortcutIcoPath(const u64 program_id,
 #if defined(_WIN32)
     out_icon_path = Common::FS::GetEdenPath(Common::FS::EdenPath::IconsDir);
     ico_extension = "ico";
-#elif defined(__linux__) || defined(__FreeBSD__)
+#elif !defined(__ANDROID__) // Any *nix but android
     out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
 #endif
     // Create icons directory if it doesn't exist

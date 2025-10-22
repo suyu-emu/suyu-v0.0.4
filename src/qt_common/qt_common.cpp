@@ -33,8 +33,7 @@ std::unique_ptr<Core::System> system = nullptr;
 std::shared_ptr<FileSys::RealVfsFilesystem> vfs = nullptr;
 std::unique_ptr<FileSys::ManualContentProvider> provider = nullptr;
 
-Core::Frontend::WindowSystemType GetWindowSystemType()
-{
+Core::Frontend::WindowSystemType GetWindowSystemType() {
     // Determine WSI type based on Qt platform.
     QString platform_name = QGuiApplication::platformName();
     if (platform_name == QStringLiteral("windows"))
@@ -49,6 +48,8 @@ Core::Frontend::WindowSystemType GetWindowSystemType()
         return Core::Frontend::WindowSystemType::Cocoa;
     else if (platform_name == QStringLiteral("android"))
         return Core::Frontend::WindowSystemType::Android;
+    else if (platform_name == QStringLiteral("haiku"))
+        return Core::Frontend::WindowSystemType::Xcb;
 
     LOG_CRITICAL(Frontend, "Unknown Qt platform {}!", platform_name.toStdString());
     return Core::Frontend::WindowSystemType::Windows;

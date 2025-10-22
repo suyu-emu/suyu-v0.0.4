@@ -12,7 +12,7 @@
 #include <windows.h>
 #include "common/dynamic_library.h"
 
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__) // ^^^ Windows ^^^ vvv POSIX vvv
+#else // ^^^ Windows ^^^ vvv POSIX vvv
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -394,7 +394,7 @@ private:
     std::unordered_map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
 };
 
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__) // ^^^ Windows ^^^ vvv POSIX vvv
+#else // ^^^ Windows ^^^ vvv POSIX vvv
 
 #ifdef ARCHITECTURE_arm64
 
@@ -679,32 +679,7 @@ private:
     FreeRegionManager free_manager{};
 };
 
-#else // ^^^ POSIX ^^^ vvv Generic vvv
-
-class HostMemory::Impl {
-public:
-    explicit Impl([[maybe_unused]] size_t backing_size, [[maybe_unused]] size_t virtual_size) {
-        // This is just a place holder.
-        ASSERT_MSG(false, "Please implement fastmem in a proper way on your platform.");
-    }
-
-    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perm) {}
-
-    void Unmap(size_t virtual_offset, size_t length) {}
-
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {}
-
-    bool ClearBackingRegion(size_t physical_offset, size_t length) {
-        return false;
-    }
-
-    void EnableDirectMappedAddress() {}
-
-    u8* backing_base{nullptr};
-    u8* virtual_base{nullptr};
-};
-
-#endif // ^^^ Generic ^^^
+#endif // ^^^ POSIX ^^^
 
 HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_)
     : backing_size(backing_size_), virtual_size(virtual_size_) {

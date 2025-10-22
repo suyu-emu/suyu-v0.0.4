@@ -39,14 +39,12 @@
 #include <stdint.h>
 #endif
 
+// TODO: We should likely vendor this in the future and just make a patch that makes the code section be like this
+// this kind of macro stupidity is beyond me, but again upstream rejects patches so...
 #if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER)
 #define RENDERDOC_CC __cdecl
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__)
-#define RENDERDOC_CC
-#elif defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
-#define RENDERDOC_CC
 #else
-#error "Unknown platform"
+#define RENDERDOC_CC
 #endif
 
 #ifdef __cplusplus

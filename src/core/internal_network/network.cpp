@@ -15,7 +15,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#elif defined(__unix__) || defined(__APPLE__)
+#else
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -24,8 +24,6 @@
 #include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#else
-#error "Unimplemented platform"
 #endif
 
 #include "common/assert.h"
@@ -165,7 +163,7 @@ Errno TranslateNativeError(int e, CallType call_type = CallType::Other) {
     }
 }
 
-#elif defined(__unix__) || defined(__APPLE__) // ^ _WIN32 v __unix__
+#else // ^^^ Windows vvv POSIX
 
 using SOCKET = int;
 using WSAPOLLFD = pollfd;

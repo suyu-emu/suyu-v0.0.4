@@ -52,6 +52,7 @@ IA-64 (Itanium) support is completely unknown. Existing amd64 packages will not 
 
 The vast majority of Eden's testing is done on Windows, Linux, and Android. However, first-class support is also provided for:
 
+- HaikuOS
 - FreeBSD
 - OpenBSD
 - NetBSD
@@ -125,6 +126,13 @@ Do note that building the GUI version with Qt versions higher than 6.7.3 will ca
 BSD and Solaris distributions tend to lag behind Linux in terms of Vulkan and other library compatibility. For example, OpenIndiana (Solaris) does not properly package Qt, meaning the recommended method of usage is to use `eden-cli` only for now. Solaris also generally works better with OpenGL.
 
 AMD GPU support on these platforms is limited or nonexistent.
+
+## HaikuOS
+
+HaikuOS supports (see below) Vulkan 1.3 and has Mesa 24.0. Because OpenGL ES is used instead of the desktop flavour of OpenGL the OpenGL backend is actually worse than the Vulkan one in terms of stability and system support. OpenGL is highly not recommended due to it being: out of tree builds of Mesa and generally unstable ones at that. Users are advised to use Vulkan whenever possible.
+
+- Additionally system drivers for NVIDIA and Intel iGPUs exist and provide a native Vulkan ICD with the `Xcb` interface as opposed to the native `BView`
+- In order to obtain Vulkan 1.3 support with native `BView` support; Swiftshader can be compiled from source [see this thread](https://discuss.haiku-os.org/t/swiftshader-vulkan-software-renderer-on-haiku/11526/6).
 
 ## VMs
 

@@ -345,7 +345,8 @@ elseif (APPLE)
             backend/exception_handler_macos_mig.c
         )
     endif()
-elseif (UNIX)
+elseif (UNIX AND NOT PLATFORM_HAIKU)
+    # Haiku lacks <ucontext.h>
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_link_libraries(dynarmic PRIVATE rt)
     endif()

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,15 +10,6 @@
 #include <memory>
 #include <span>
 #include <utility>
-
-#if defined(_WIN32)
-// windows
-#elif defined(__unix__) || defined(__APPLE__)
-// unix
-#else
-// haiku
-#error "Platform not implemented"
-#endif
 
 #include "common/common_types.h"
 #include "core/internal_network/network.h"
@@ -28,7 +22,7 @@ struct ProxyPacket;
 
 class SocketBase {
 public:
-#if defined(__unix__) || defined(__APPLE__)
+#ifndef _WIN32
     using SOCKET = int;
     static constexpr SOCKET INVALID_SOCKET = -1;
     static constexpr SOCKET SOCKET_ERROR = -1;

@@ -59,6 +59,10 @@ namespace {
     case Core::Frontend::WindowSystemType::Android:
         extensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
         break;
+#elif defined(__HAIKU__)
+    case Core::Frontend::WindowSystemType::Xcb:
+        extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+        break;
 #else
     case Core::Frontend::WindowSystemType::X11:
         extensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);

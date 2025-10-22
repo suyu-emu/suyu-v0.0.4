@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -104,7 +107,7 @@ constexpr IPv4Address TranslateIPv4(in_addr addr) {
     auto& bytes = addr.S_un.S_un_b;
     return IPv4Address{bytes.s_b1, bytes.s_b2, bytes.s_b3, bytes.s_b4};
 }
-#elif defined(__unix__) || defined(__APPLE__)
+#else
 constexpr IPv4Address TranslateIPv4(in_addr addr) {
     const u32 bytes = addr.s_addr;
     return IPv4Address{static_cast<u8>(bytes), static_cast<u8>(bytes >> 8),

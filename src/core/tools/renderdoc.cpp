@@ -28,6 +28,8 @@ RenderdocAPI::RenderdocAPI() {
             ASSERT(ret == 1);
         }
     }
+#elif defined(__HAIKU__)
+    // no rtld on haiku
 #else
 #ifdef ANDROID
     static constexpr const char RENDERDOC_LIB[] = "libVkLayer_GLES_RenderDoc.so";

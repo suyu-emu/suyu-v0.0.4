@@ -150,37 +150,25 @@ To run with MoltenVK, install additional dependencies:
 brew install molten-vk vulkan-loader
 ```
 
-</details>
+[Caveats](./Caveats.md#macos).
 
+</details>
 <details>
 <summary>FreeBSD</summary>
 
 As root run: `pkg install devel/cmake devel/sdl20 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/jwt-cpp devel/unordered-dense devel/zydis`
 
 If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
-</details>
 
+[Caveats](./Caveats.md#freebsd).
+
+</details>
 <details>
 <summary>NetBSD</summary>
 
-Install `pkgin` if not already `pkg_add pkgin`, see also the general [pkgsrc guide](https://www.netbsd.org/docs/pkgsrc/using.html). For NetBSD 10.1 provide `cat 'PKG_PATH="https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2025Q3/All/"' >/etc/pkg_install.conf`. If `pkgin` is taking too much time consider adding the following to `/etc/rc.conf`:
-```
-ip6addrctl=YES
-ip6addrctl_policy=ipv4_prefer
-```
-
 For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers ffmpeg7 libva nlohmann-json jq libopus qt6 mbedtls3 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1`.
 
-glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
-```sh
-pkgin python313
-git clone https://github.com/KhronosGroup/glslang.git
-cd glslang
-python3.13 ./update_glslang_sources.py
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -- -j`nproc`
-cmake --install build
-```
+[Caveats](./Caveats.md#netbsd).
 
 </details>
 
@@ -191,6 +179,8 @@ cmake --install build
 pkg_add -u
 pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake llvm-19.1.7p3 qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2 libusb1-1.0.27
 ```
+
+[Caveats](./Caveats.md#openbsd).
 
 </details>
 
@@ -205,6 +195,9 @@ Run the usual update + install of essential toolings: `sudo pkg update && sudo p
 - **clang**: Version 20 is broken, use `sudo pkg install developer/clang-19`.
 
 Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/lz4 libusb-1 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt`.
+
+[Caveats](./Caveats.md#solaris).
+
 </details>
 
 <details>
@@ -220,8 +213,18 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
 </details>
 
 <details>
+<summary>HaikuOS</summary>
+
+```sh
+pkgman install git cmake libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt6_devel qt6_5compat_devel zydis_devel glslang
+```
+
+[Caveats](./Caveats.md#haikuos).
+
+</details>
 <summary>RedoxOS</summary>
 
+TODO: Fix syscall crashes (heavy IO stalls and hangup due to net mutexes?)
 ```sh
 sudo pkg update && sudo pkg install git cmake
 sudo pkg install ffmpeg6 sdl2 zlib llvm18

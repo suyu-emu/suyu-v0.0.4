@@ -354,7 +354,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     // Safe optimisations
     case Settings::CpuAccuracy::Auto:
         config.unsafe_optimizations = true;
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__)
         config.fastmem_pointer = std::nullopt;
         config.fastmem_exclusive_access = false;
 #endif

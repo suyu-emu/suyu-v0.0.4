@@ -41,6 +41,18 @@ export LIBGL_ALWAYS_SOFTWARE=1
 - If using OpenIndiana, due to a bug in SDL2's CMake configuration, audio driver defaults to SunOS `<sys/audioio.h>`, which does not exist on OpenIndiana. Using external or bundled SDL2 may solve this.
 - System OpenSSL generally does not work. Instead, use `-DYUZU_USE_BUNDLED_OPENSSL=ON` to use a bundled static OpenSSL, or build a system dependency from source.
 
+## HaikuOS
+
+It's recommended to do a `pkgman full-sync` before installing. See [HaikuOS: Installing applications](https://www.haiku-os.org/guides/daily-tasks/install-applications/). Sometimes the process may be interrupted by an error like "Interrupted syscall". Simply firing the command again fixes the issue. By default `g++` is included on the default installation.
+
+GPU support is generally lacking/buggy, hence it's recommended to only install `pkgman install mesa_lavapipe`. Performance is acceptable for most homebrew applications and even some retail games.
+
+For reasons unberknownst to any human being, `glslangValidator` will crash upon trying to be executed, the solution to this is to build `glslang` yourself. Apply the patch in `.patch/glslang/0001-haikuos-fix.patch`. The main issue is `ShFinalize()` is deallocating already destroyed memory; the "fix" in question is allowing the program to just leak memory and the OS will take care of the rest. See [this issue](https://web.archive.org/web/20251021183604/https://github.com/haikuports/haikuports/issues/13083).
+
+For this reason this patch is NOT applied to default on all platforms (for obvious reasons) - instead this is a HaikuOS specific patch, apply with `git apply <absolute path to patch>` after cloning SPIRV-Tools then `make -C build` and add the resulting binary (in `build/StandAlone/glslang`) into PATH.
+
+`cubeb_devel` will also not work, either disable cubeb or uninstall it.
+
 ## OpenBSD
 
 After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-build/build.make` to use `-j$(nproc)` instead of just `-j`.
@@ -57,6 +69,23 @@ The available OpenSSL port (3.0.17) is out-of-date, and using a bundled static l
 
 ## NetBSD
 
+Install `pkgin` if not already `pkg_add pkgin`, see also the general [pkgsrc guide](https://www.netbsd.org/docs/pkgsrc/using.html). For NetBSD 10.1 provide `echo 'PKG_PATH="https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2025Q3/All/"' >/etc/pkg_install.conf`. If `pkgin` is taking too much time consider adding the following to `/etc/rc.conf`:
+```sh
+ip6addrctl=YES
+ip6addrctl_policy=ipv4_prefer
+```
+
 System provides a default `g++-10` which doesn't support the current C++ codebase; install `clang-19` with `pkgin install clang-19`. Then build with `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -B build`.
 
 Make may error out when generating C++ headers of SPIRV shaders, hence it's recommended to use `gmake` over the default system one.
+
+glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
+```sh
+pkgin python313
+git clone --depth=1 https://github.com/KhronosGroup/glslang.git
+cd glslang
+python3.13 ./update_glslang_sources.py
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -- -j`nproc`
+cmake --install build
+```

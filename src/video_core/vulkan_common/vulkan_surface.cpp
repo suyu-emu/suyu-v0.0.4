@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -51,6 +54,23 @@ vk::SurfaceKHR CreateSurface(
             vkCreateAndroidSurfaceKHR(*instance, &android_ci, nullptr, &unsafe_surface) !=
                 VK_SUCCESS) {
             LOG_ERROR(Render_Vulkan, "Failed to initialize Android surface");
+            throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
+        }
+    }
+#elif defined(__HAIKU__)
+    if (window_info.type == Core::Frontend::WindowSystemType::Xcb) {
+        const VkXcbSurfaceCreateInfoKHR xcb_ci{
+            .sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,
+            .pNext = nullptr,
+            .flags = 0,
+            .connection = static_cast<xcb_connection_t*>(window_info.display_connection),
+            .window = xcb_window_t(uintptr_t(window_info.render_surface))
+        };
+        const auto vkCreateXcbSurfaceKHR = reinterpret_cast<PFN_vkCreateXcbSurfaceKHR>(
+            dld.vkGetInstanceProcAddr(*instance, "vkCreateXcbSurfaceKHR"));
+        if (!vkCreateXcbSurfaceKHR ||
+            vkCreateXcbSurfaceKHR(*instance, &xcb_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
+            LOG_ERROR(Render_Vulkan, "Failed to initialize Xcb surface");
             throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
         }
     }

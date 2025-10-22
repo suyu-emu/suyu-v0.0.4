@@ -11,6 +11,8 @@
 #include "common/thread.h"
 #ifdef __APPLE__
 #include <mach/mach.h>
+#elif defined(__HAIKU__)
+#include <kernel/OS.h>
 #elif defined(_WIN32)
 #include <windows.h>
 #include "common/string_util.h"
@@ -31,43 +33,38 @@
 
 namespace Common {
 
+void SetCurrentThreadPriority(ThreadPriority new_priority) {
 #ifdef _WIN32
-
-void SetCurrentThreadPriority(ThreadPriority new_priority) {
-    auto handle = GetCurrentThread();
-    int windows_priority = 0;
-    switch (new_priority) {
-    case ThreadPriority::Low:
-        windows_priority = THREAD_PRIORITY_BELOW_NORMAL;
-        break;
-    case ThreadPriority::Normal:
-        windows_priority = THREAD_PRIORITY_NORMAL;
-        break;
-    case ThreadPriority::High:
-        windows_priority = THREAD_PRIORITY_ABOVE_NORMAL;
-        break;
-    case ThreadPriority::VeryHigh:
-        windows_priority = THREAD_PRIORITY_HIGHEST;
-        break;
-    case ThreadPriority::Critical:
-        windows_priority = THREAD_PRIORITY_TIME_CRITICAL;
-        break;
-    default:
-        windows_priority = THREAD_PRIORITY_NORMAL;
-        break;
-    }
-    SetThreadPriority(handle, windows_priority);
-}
-
+    int windows_priority = [&]() {
+        switch (new_priority) {
+        case ThreadPriority::Low: return THREAD_PRIORITY_BELOW_NORMAL;
+        case ThreadPriority::Normal: return THREAD_PRIORITY_NORMAL;
+        case ThreadPriority::High: return THREAD_PRIORITY_ABOVE_NORMAL;
+        case ThreadPriority::VeryHigh: return THREAD_PRIORITY_HIGHEST;
+        case ThreadPriority::Critical: return THREAD_PRIORITY_TIME_CRITICAL;
+        default: return THREAD_PRIORITY_NORMAL;
+        }
+    }();
+    SetThreadPriority(GetCurrentThread(), windows_priority);
+#elif defined(__HAIKU__)
+    // TODO: We have priorities for 3D rendering applications - may help lavapipe?
+    int priority = [&]() {
+        switch (new_priority) {
+        case ThreadPriority::Low: return B_LOW_PRIORITY;
+        case ThreadPriority::Normal: return B_NORMAL_PRIORITY;
+        case ThreadPriority::High: return B_DISPLAY_PRIORITY;
+        case ThreadPriority::VeryHigh: return B_URGENT_DISPLAY_PRIORITY;
+        case ThreadPriority::Critical: return B_URGENT_PRIORITY;
+        default: return B_NORMAL_PRIORITY;
+        }
+    }();
+    set_thread_priority(find_thread(NULL), priority);
 #else
-
-void SetCurrentThreadPriority(ThreadPriority new_priority) {
     pthread_t this_thread = pthread_self();
-
     const auto scheduling_type = SCHED_OTHER;
     s32 max_prio = sched_get_priority_max(scheduling_type);
     s32 min_prio = sched_get_priority_min(scheduling_type);
-    u32 level = (std::max)(static_cast<u32>(new_priority) + 1, 4U);
+    u32 level = (std::max)(u32(new_priority) + 1, 4U);
 
     struct sched_param params;
     if (max_prio > min_prio) {
@@ -77,9 +74,8 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
     }
 
     pthread_setschedparam(this_thread, scheduling_type, &params);
-}
-
 #endif
+}
 
 #ifdef _MSC_VER
 

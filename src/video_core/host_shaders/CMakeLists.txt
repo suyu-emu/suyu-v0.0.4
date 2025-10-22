@@ -86,7 +86,15 @@ set(SHADER_FILES
     dynamic_resolution_scale.comp
 )
 
-find_program(GLSLANGVALIDATOR "glslangValidator")
+if (PLATFORM_HAIKU)
+    # glslangValidator WILL crash, glslang will not - why? Who the fuck knows
+    #/boot/home/glslang/build/StandAlone/glslangValidator
+    set(GLSLANGVALIDATOR "glslang")
+else()
+    # Normal sane platform who doesn't have a CRASHING glslangValidator
+    find_program(GLSLANGVALIDATOR "glslangValidator")
+endif()
+
 if ("${GLSLANGVALIDATOR}" STREQUAL "GLSLANGVALIDATOR-NOTFOUND")
     message(FATAL_ERROR "Required program `glslangValidator` not found.")
 endif()

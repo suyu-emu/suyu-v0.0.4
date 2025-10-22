@@ -25,6 +25,7 @@ Eden will store configuration files in the following directories:
 - **Windows**: `%AppData%\Roaming`.
 - **Android**: Data is stored internally.
 - **Linux, macOS, FreeBSD, Solaris, OpenBSD**: `$XDG_DATA_HOME`, `$XDG_CACHE_HOME`, `$XDG_CONFIG_HOME`.
+- **HaikuOS**: `/boot/home/config/settings/eden`
 
 If a `user` directory is present in the current working directory, that will override all global configuration directories and the emulator will use that instead.
 
