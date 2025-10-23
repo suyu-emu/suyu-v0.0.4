@@ -121,6 +121,9 @@ if (ANDROID)
 endif()
 
 if (SUYU_USE_BUNDLED_VCPKG)
+    # Configure vcpkg overlay ports to use custom package definitions
+    set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlays")
+    
     if (ANDROID)
         set(ENV{ANDROID_NDK_HOME} "${ANDROID_NDK}")
         list(APPEND VCPKG_MANIFEST_FEATURES "android")
