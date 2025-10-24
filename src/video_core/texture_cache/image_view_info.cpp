@@ -41,9 +41,7 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
         };
         range.extent.levels = config.res_max_mip_level - config.res_min_mip_level + 1;
         TextureType tex_type = config.texture_type;
-        //normalize 1D texture with many layers
-        if (tex_type == TextureType::Texture1D &&
-            (config.Depth() > 1 || base_layer != 0)) {
+        if (tex_type == TextureType::Texture1D && (config.Depth() > 1 || base_layer != 0)) {
             tex_type = TextureType::Texture1DArray;
         }
         switch (tex_type) {
@@ -74,18 +72,15 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
                 type = ImageViewType::Cube;
                 range.extent.layers = 6;
                 break;
-
             case TextureType::TextureCubeArray:
                 type = ImageViewType::CubeArray;
                 range.extent.layers = config.Depth() * 6;
                 break;
-
             case TextureType::Texture1DBuffer:
                 type = ImageViewType::Buffer;
                 break;
-
             default:
-                ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(config.texture_type.Value()));
+                ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(tex_type));
                 break;
         }
 }

@@ -59,7 +59,7 @@ static Shader::TextureType ConvertTextureType(const Tegra::Texture::TICEntry& en
     case Tegra::Texture::TextureType::TextureCubeArray:
         return Shader::TextureType::ColorArrayCube;
     default:
-        UNIMPLEMENTED();
+        LOG_ERROR(Shader, "Invalid texture_type={}, falling back to texture_type={}", static_cast<int>(entry.texture_type.Value()), Shader::TextureType::Color2D);
         return Shader::TextureType::Color2D;
     }
 }

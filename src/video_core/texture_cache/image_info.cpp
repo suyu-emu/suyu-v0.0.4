@@ -51,10 +51,8 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         config.texture_type != TextureType::Texture2DNoMipmap) {
         ASSERT(!config.IsPitchLinear());
     }
-    //Normalize so that the 1D that actually uses layers is treated as 1DArray
     TextureType tex_type = config.texture_type;
-    if (tex_type == TextureType::Texture1D &&
-    (config.Depth() > 1 || config.BaseLayer() != 0)) {
+    if (tex_type == TextureType::Texture1D && (config.Depth() > 1 || config.BaseLayer() != 0)) {
         tex_type = TextureType::Texture1DArray;
     }
     switch (tex_type) {
@@ -113,7 +111,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
             resources.layers = 1;
             break;
         default:
-            ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(config.texture_type.Value()));
+            ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(tex_type));
             break;
     }
     if (num_samples > 1) {
