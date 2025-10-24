@@ -84,7 +84,8 @@ public:
             {0, D<&IManagerForSystemService::CheckAvailability>, "CheckAvailability"},
             {1, D<&IManagerForSystemService::GetAccountId>, "GetAccountId"},
             {2, nullptr, "EnsureIdTokenCacheAsync"},
-            {3, nullptr, "LoadIdTokenCache"},
+            {3, D<&IManagerForSystemService::LoadIdTokenCacheDeprecated>, "LoadIdTokenCacheDeprecated"}, // 19.0.0+
+            {4, D<&IManagerForSystemService::LoadIdTokenCache>, "LoadIdTokenCache"}, // 19.0.0+
             {100, nullptr, "SetSystemProgramIdentification"},
             {101, nullptr, "RefreshNotificationTokenAsync"}, // 7.0.0+
             {110, nullptr, "GetServiceEntryRequirementCache"}, // 4.0.0+
@@ -123,6 +124,16 @@ private:
     Result GetAccountId(Out<u64> out_account_id) {
         LOG_WARNING(Service_ACC, "(STUBBED) called");
         *out_account_id = account_id.Hash();
+        R_SUCCEED();
+    }
+
+    Result LoadIdTokenCacheDeprecated() {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        R_SUCCEED();
+    }
+
+    Result LoadIdTokenCache() {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
         R_SUCCEED();
     }
 
@@ -647,7 +658,7 @@ public:
             {0, &IManagerForApplication::CheckAvailability, "CheckAvailability"},
             {1, &IManagerForApplication::GetAccountId, "GetAccountId"},
             {2, &IManagerForApplication::EnsureIdTokenCacheAsync, "EnsureIdTokenCacheAsync"},
-            {3, &IManagerForApplication::LoadIdTokenCacheDeprecated, "LoadIdTokenCache"},
+            {3, &IManagerForApplication::LoadIdTokenCacheDeprecated, "LoadIdTokenCacheDeprecated"},
             {4, &IManagerForApplication::LoadIdTokenCache, "LoadIdTokenCache"},
             {130, &IManagerForApplication::GetNintendoAccountUserResourceCacheForApplication, "GetNintendoAccountUserResourceCacheForApplication"},
             {136, &IManagerForApplication::GetNintendoAccountUserResourceCacheForApplication, "GetNintendoAccountUserResourceCache"}, // 19.0.0+

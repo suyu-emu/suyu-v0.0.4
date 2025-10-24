@@ -11,6 +11,7 @@
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/service.h"
+#include <typeinfo>
 
 namespace Service {
 
@@ -439,7 +440,16 @@ template <bool Domain, typename T, typename... A>
 void CmifReplyWrapImpl(HLERequestContext& ctx, T& t, Result (T::*f)(A...)) {
     // Verify domain state.
     if constexpr (!Domain) {
-        ASSERT_MSG(!ctx.GetManager()->IsDomain(), "Non-domain reply used on domain session");
+        const auto _mgr = ctx.GetManager();
+        const bool _is_domain = _mgr ? _mgr->IsDomain() : false;
+        ASSERT_MSG(!_is_domain,
+                   "Non-domain reply used on domain session\n"
+                   "Service={} (type={})\nTIPC={} CmdType={} Cmd=0x{:08X}\n"
+                   "HasDomainHeader={} DomainHandlers={}\nDesc={}",
+                   t.GetServiceName(), typeid(T).name(), ctx.IsTipc(),
+                   static_cast<u32>(ctx.GetCommandType()), static_cast<u32>(ctx.GetCommand()),
+                   ctx.HasDomainMessageHeader(), _mgr ? static_cast<u32>(_mgr->DomainHandlerCount()) : 0u,
+                   ctx.Description());
     }
     const bool is_domain = Domain ? ctx.GetManager()->IsDomain() : false;
 

@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/core.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ldn/ldn.h"
+#include "core/hle/service/ldn/client_process_monitor.h"
 #include "core/hle/service/ldn/monitor_service.h"
 #include "core/hle/service/ldn/sf_monitor_service.h"
 #include "core/hle/service/ldn/sf_service.h"
@@ -40,7 +44,7 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, C<&ISystemServiceCreator::CreateSystemLocalCommunicationService>, "CreateSystemLocalCommunicationService"},
-            {1, nullptr, "CreateClientProcessMonitor"} // 18.0.0+
+            {1, C<&ISystemServiceCreator::CreateClientProcessMonitor>, "CreateClientProcessMonitor"} // 18.0.0+
         };
         // clang-format on
 
@@ -55,6 +59,14 @@ private:
         *out_interface = std::make_shared<ISystemLocalCommunicationService>(system);
         R_SUCCEED();
     }
+
+    Result CreateClientProcessMonitor(
+        OutInterface<IClientProcessMonitor> out_interface) {
+        LOG_DEBUG(Service_LDN, "called");
+
+        *out_interface = std::make_shared<IClientProcessMonitor>(system);
+        R_SUCCEED();
+    }
 };
 
 class IUserServiceCreator final : public ServiceFramework<IUserServiceCreator> {
@@ -62,8 +74,8 @@ public:
     explicit IUserServiceCreator(Core::System& system_) : ServiceFramework{system_, "ldn:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, C<&IUserServiceCreator::CreateUserLocalCommunicationService>, "CreateUserLocalCommunicationService"},
-            {1, nullptr, "CreateClientProcessMonitor"} // 18.0.0+
+            {0, D<&IUserServiceCreator::CreateUserLocalCommunicationService>, "CreateUserLocalCommunicationService"},
+            {1, D<&IUserServiceCreator::CreateClientProcessMonitor>, "CreateClientProcessMonitor"} // 18.0.0+
         };
         // clang-format on
 
@@ -76,6 +88,14 @@ private:
         LOG_DEBUG(Service_LDN, "called");
 
         *out_interface = std::make_shared<IUserLocalCommunicationService>(system);
+        R_SUCCEED();
+    }
+
+    Result CreateClientProcessMonitor(
+        OutInterface<IClientProcessMonitor> out_interface) {
+        LOG_DEBUG(Service_LDN, "called");
+
+        *out_interface = std::make_shared<IClientProcessMonitor>(system);
         R_SUCCEED();
     }
 };
