@@ -22,110 +22,61 @@
 namespace AudioCore::Sink {
 
 void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
-    SCOPE_EXIT {
-        queue.EmplaceWait(buffer);
-        ++queued_buffers;
-    };
-
-    if (type == StreamType::In) {
+    if (type == StreamType::In)
         return;
-    }
 
-    constexpr s32 min{(std::numeric_limits<s16>::min)()};
-    constexpr s32 max{(std::numeric_limits<s16>::max)()};
-
-    auto yuzu_volume{Settings::Volume()};
-    if (yuzu_volume > 1.0f) {
-        yuzu_volume = 0.6f + 20 * std::log10(yuzu_volume);
-    }
-    auto volume{system_volume * device_volume * yuzu_volume};
-
-    if (system_channels == 6 && device_channels == 2) {
+    constexpr s32 min = (std::numeric_limits<s16>::min)();
+    constexpr s32 max = (std::numeric_limits<s16>::max)();
+    auto yuzu_volume = Settings::Volume();
+    if (yuzu_volume > 1.0f)
+        yuzu_volume = 0.6f + 20.0f * std::log10(yuzu_volume);
+    auto const volume = system_volume * device_volume * yuzu_volume;
+    if (system_channels > device_channels) {
+        // "Topological" coefficients, basically makes back sounds be less noisy :)
+        // Front = 1.0; Center = 0.596; LFE = 0.354; Back = 0.707
+        static constexpr std::array<f32, 4> tcoeff{1.0f, 0.596f, 0.354f, 0.707f};
         // We're given 6 channels, but our device only outputs 2, so downmix.
-        // Front = 1.0
-        // Center = 0.596
-        // LFE = 0.354
-        // Back = 0.707
-        static constexpr std::array<f32, 4> down_mix_coeff{1.0f, 0.596f, 0.354f, 0.707f};
-
-        for (u32 read_index = 0, write_index = 0; read_index < samples.size();
-             read_index += system_channels, write_index += device_channels) {
-            const auto fl =
-                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::FrontLeft)]);
-            const auto fr =
-                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::FrontRight)]);
-            const auto c =
-                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::Center)]);
-            const auto lfe =
-                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::LFE)]);
-            const auto bl =
-                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::BackLeft)]);
-            const auto br =
-                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::BackRight)]);
-
-            const auto left_sample{
-                static_cast<s32>((fl * down_mix_coeff[0] + c * down_mix_coeff[1] +
-                                  lfe * down_mix_coeff[2] + bl * down_mix_coeff[3]) *
-                                 volume)};
-
-            const auto right_sample{
-                static_cast<s32>((fr * down_mix_coeff[0] + c * down_mix_coeff[1] +
-                                  lfe * down_mix_coeff[2] + br * down_mix_coeff[3]) *
-                                 volume)};
-
-            samples[write_index + static_cast<u32>(Channels::FrontLeft)] =
-                static_cast<s16>(std::clamp(left_sample, min, max));
-            samples[write_index + static_cast<u32>(Channels::FrontRight)] =
-                static_cast<s16>(std::clamp(right_sample, min, max));
+        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size(); r_offs += system_channels, w_offs += device_channels) {
+            std::array<f32, 6> ccoeff{0.f};
+            for (u32 i = 0; i < system_channels; ++i)
+                ccoeff[i] = f32(samples[r_offs + i]);
+            std::array<f32, 6> rcoeff{
+                ccoeff[u32(Channels::FrontLeft)],
+                ccoeff[u32(Channels::BackLeft)],
+                ccoeff[u32(Channels::Center)],
+                ccoeff[u32(Channels::LFE)],
+                ccoeff[u32(Channels::BackRight)],
+                ccoeff[u32(Channels::FrontRight)],
+            };
+            std::array<f32, 6> scoeff{
+                rcoeff[0] * tcoeff[0] + rcoeff[2] * tcoeff[1] + rcoeff[3] * tcoeff[2] + rcoeff[1] * tcoeff[3],
+                rcoeff[5] * tcoeff[0] + rcoeff[2] * tcoeff[1] + rcoeff[3] * tcoeff[2] + rcoeff[4] * tcoeff[3],
+                rcoeff[4] * tcoeff[0] + rcoeff[3] * tcoeff[1] + rcoeff[2] * tcoeff[2] + rcoeff[2] * tcoeff[3],
+                rcoeff[3] * tcoeff[0] + rcoeff[3] * tcoeff[1] + rcoeff[2] * tcoeff[2] + rcoeff[3] * tcoeff[3],
+                rcoeff[2] * tcoeff[0] + rcoeff[4] * tcoeff[1] + rcoeff[1] * tcoeff[2] + rcoeff[0] * tcoeff[3],
+                rcoeff[1] * tcoeff[0] + rcoeff[4] * tcoeff[1] + rcoeff[1] * tcoeff[2] + rcoeff[5] * tcoeff[3]
+            };
+            for (u32 i = 0; i < system_channels; ++i)
+                samples[w_offs + i] = s16(std::clamp(s32(scoeff[i] * volume), min, max));
         }
-
         samples_buffer.Push(samples.subspan(0, samples.size() / system_channels * device_channels));
-        return;
-    }
-
-    if (system_channels == 2 && device_channels == 6) {
+    } else if (system_channels < device_channels) {
         // We need moar samples! Not all games will provide 6 channel audio.
-        // TODO: Implement some upmixing here. Currently just passthrough, with other
-        // channels left as silence.
         std::vector<s16> new_samples(samples.size() / system_channels * device_channels);
-
-        for (u32 read_index = 0, write_index = 0; read_index < samples.size();
-             read_index += system_channels, write_index += device_channels) {
-            const auto left_sample{static_cast<s16>(std::clamp(
-                static_cast<s32>(
-                    static_cast<f32>(samples[read_index + static_cast<u32>(Channels::FrontLeft)]) *
-                    volume),
-                min, max))};
-
-            new_samples[write_index + static_cast<u32>(Channels::FrontLeft)] = left_sample;
-
-            const auto right_sample{static_cast<s16>(std::clamp(
-                static_cast<s32>(
-                    static_cast<f32>(samples[read_index + static_cast<u32>(Channels::FrontRight)]) *
-                    volume),
-                min, max))};
-
-            new_samples[write_index + static_cast<u32>(Channels::FrontRight)] = right_sample;
-        }
-
+        for (u32 r_offs = 0, w_offs = 0; r_offs < samples.size(); r_offs += system_channels, w_offs += device_channels)
+            for (u32 channel = 0; channel < system_channels; ++channel)
+                new_samples[w_offs + channel] = s16(std::clamp(s32(f32(samples[r_offs + channel]) * volume), min, max));
         samples_buffer.Push(new_samples);
-        return;
+    } else {
+        for (u32 i = 0; i < samples.size() && volume != 1.0f; ++i)
+            samples[i] = s16(std::clamp(s32(f32(samples[i]) * volume), min, max));
+        samples_buffer.Push(samples);
     }
-
-    if (volume != 1.0f) {
-        for (u32 i = 0; i < samples.size(); ++i) {
-            samples[i] = static_cast<s16>(
-                std::clamp(static_cast<s32>(static_cast<f32>(samples[i]) * volume), min, max));
-        }
-    }
-
-    samples_buffer.Push(samples);
+    queue.EmplaceWait(buffer);
+    ++queued_buffers;
 }
 
 std::vector<s16> SinkStream::ReleaseBuffer(u64 num_samples) {
-    constexpr s32 min = (std::numeric_limits<s16>::min)();
-    constexpr s32 max = (std::numeric_limits<s16>::max)();
-
     auto samples{samples_buffer.Pop(num_samples)};
 
     // TODO: Up-mix to 6 channels if the game expects it.
@@ -133,23 +84,22 @@ std::vector<s16> SinkStream::ReleaseBuffer(u64 num_samples) {
 
     // Incoming mic volume seems to always be very quiet, so multiply by an additional 8 here.
     // TODO: Play with this and find something that works better.
+    constexpr s32 min = (std::numeric_limits<s16>::min)();
+    constexpr s32 max = (std::numeric_limits<s16>::max)();
     auto volume{system_volume * device_volume * 8};
-    for (u32 i = 0; i < samples.size(); i++) {
-        samples[i] = static_cast<s16>(
-            std::clamp(static_cast<s32>(static_cast<f32>(samples[i]) * volume), min, max));
-    }
+    for (u32 i = 0; i < samples.size(); i++)
+        samples[i] = s16(std::clamp(s32(f32(samples[i]) * volume), min, max));
 
-    if (samples.size() < num_samples) {
+    if (samples.size() < num_samples)
         samples.resize(num_samples, 0);
-    }
     return samples;
 }
 
 void SinkStream::ClearQueue() {
     samples_buffer.Pop();
     SinkBuffer tmp;
-    while (queue.TryPop(tmp)) {
-    }
+    while (queue.TryPop(tmp))
+        ;
     queued_buffers = 0;
     playing_buffer = {};
     playing_buffer.consumed = true;
@@ -163,9 +113,8 @@ void SinkStream::ProcessAudioIn(std::span<const s16> input_buffer, std::size_t n
 
     // If we're paused or going to shut down, we don't want to consume buffers as coretiming is
     // paused and we'll desync, so just return.
-    if (system.IsPaused() || system.IsShuttingDown()) {
+    if (system.IsPaused() || system.IsShuttingDown())
         return;
-    }
 
     while (frames_written < num_frames) {
         // If the playing buffer has been consumed or has no frames, we need a new one
@@ -195,9 +144,8 @@ void SinkStream::ProcessAudioIn(std::span<const s16> input_buffer, std::size_t n
 
         // If that's all the frames in the current buffer, add its samples and mark it as
         // consumed
-        if (playing_buffer.frames_played >= playing_buffer.frames) {
+        if (playing_buffer.frames_played >= playing_buffer.frames)
             playing_buffer.consumed = true;
-        }
     }
 
     std::memcpy(&last_frame[0], &input_buffer[(frames_written - 1) * frame_size], frame_size_bytes);
@@ -222,9 +170,8 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
         }
 
         static constexpr std::array<s16, 6> silence{};
-        for (size_t i = frames_written; i < num_frames; i++) {
+        for (size_t i = frames_written; i < num_frames; i++)
             std::memcpy(&output_buffer[i * frame_size], &silence[0], frame_size_bytes);
-        }
         return;
     }
 
@@ -234,17 +181,16 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
             if (!queue.TryPop(playing_buffer)) {
                 // If no buffer was available we've underrun, fill the remaining buffer with
                 // the last written frame and continue.
-                for (size_t i = frames_written; i < num_frames; i++) {
+                for (size_t i = frames_written; i < num_frames; i++)
                     std::memcpy(&output_buffer[i * frame_size], &last_frame[0], frame_size_bytes);
-                }
                 frames_written = num_frames;
                 continue;
             }
             // Successfully dequeued a new buffer.
-            queued_buffers--;
-
-            { std::unique_lock lk{release_mutex}; }
-
+            {
+                std::unique_lock lk{release_mutex};\
+                queued_buffers--;
+            }
             release_cv.notify_one();
         }
 
@@ -291,8 +237,7 @@ u64 SinkStream::GetExpectedPlayedSampleCount() {
 
 void SinkStream::WaitFreeSpace(std::stop_token stop_token) {
     std::unique_lock lk{release_mutex};
-    release_cv.wait_for(lk, std::chrono::milliseconds(5),
-                        [this]() { return paused || queued_buffers < max_queue_size; });
+    release_cv.wait_for(lk, std::chrono::milliseconds(5), [this]() { return paused || queued_buffers < max_queue_size; });
     if (queued_buffers > max_queue_size + 3) {
         release_cv.wait(lk, stop_token, [this] { return paused || queued_buffers < max_queue_size; });
     }
