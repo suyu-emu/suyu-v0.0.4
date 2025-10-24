@@ -216,7 +216,7 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
 <summary>HaikuOS</summary>
 
 ```sh
-pkgman install git cmake libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt6_devel qt6_5compat_devel zydis_devel glslang
+pkgman install git cmake libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt6_devel qt6_5compat_devel zydis_devel libusb_devel libz_devel glslang
 ```
 
 [Caveats](./Caveats.md#haikuos).
