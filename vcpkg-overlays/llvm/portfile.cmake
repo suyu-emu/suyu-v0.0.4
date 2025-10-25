@@ -1,3 +1,5 @@
+vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO llvm/llvm-project
@@ -6,14 +8,57 @@ vcpkg_from_github(
     HEAD_REF main
 )
 
+# Configure build options with Windows-specific settings
+set(LLVM_OPTIONS
+    -DLLVM_INCLUDE_TESTS=OFF
+    -DLLVM_INCLUDE_EXAMPLES=OFF
+    -DLLVM_INCLUDE_BENCHMARKS=OFF
+    -DLLVM_TARGETS_TO_BUILD=X86
+    -DBUILD_SHARED_LIBS=OFF
+    -DLLVM_ENABLE_RTTI=ON
+    -DLLVM_ENABLE_EH=ON
+)
+
+# Add Windows-specific build configurations
+if(VCPKG_TARGET_IS_WINDOWS)
+    list(APPEND LLVM_OPTIONS
+        -DLLVM_ENABLE_ZLIB=ON
+        -DLLVM_PARALLEL_LINK_JOBS=1
+        # Disable shared library components that cause export generation issues
+        -DLLVM_BUILD_LLVM_C_DYLIB=OFF
+        -DLLVM_LINK_LLVM_DYLIB=OFF
+        # Disable tools that cause llvm-nm crashes during static builds
+        -DLLVM_BUILD_TOOLS=OFF
+        -DLLVM_INCLUDE_TOOLS=OFF
+        # Add memory safety options
+        -DLLVM_ENABLE_CRASH_OVERRIDES=OFF
+        -DLLVM_ENABLE_DUMP=OFF
+    )
+    
+    # Limit parallel compilation to prevent resource exhaustion
+    if(VCPKG_CONCURRENCY)
+        math(EXPR SAFE_CONCURRENCY "${VCPKG_CONCURRENCY} / 2")
+        if(SAFE_CONCURRENCY LESS 1)
+            set(SAFE_CONCURRENCY 1)
+        endif()
+        list(APPEND LLVM_OPTIONS -DLLVM_PARALLEL_COMPILE_JOBS=${SAFE_CONCURRENCY})
+    else()
+        list(APPEND LLVM_OPTIONS -DLLVM_PARALLEL_COMPILE_JOBS=1)
+    endif()
+endif()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}/llvm"
-    OPTIONS
-        -DLLVM_INCLUDE_TESTS=OFF
-        -DLLVM_INCLUDE_EXAMPLES=OFF
-        -DLLVM_INCLUDE_BENCHMARKS=OFF
-        -DLLVM_TARGETS_TO_BUILD=X86
-        -DBUILD_SHARED_LIBS=OFF
+    OPTIONS ${LLVM_OPTIONS}
+    MAYBE_UNUSED_VARIABLES
+        LLVM_PARALLEL_COMPILE_JOBS
+        LLVM_PARALLEL_LINK_JOBS
+        LLVM_BUILD_LLVM_C_DYLIB
+        LLVM_LINK_LLVM_DYLIB
+        LLVM_BUILD_TOOLS
+        LLVM_INCLUDE_TOOLS
+        LLVM_ENABLE_CRASH_OVERRIDES
+        LLVM_ENABLE_DUMP
 )
 
 vcpkg_cmake_build()

@@ -7,5 +7,11 @@
     "zlib",
     "vcpkg-cmake",
     "vcpkg-cmake-config"
-  ]
+  ],
+  "features": {
+    "tools": {
+      "description": "Build LLVM tools",
+      "dependencies": []
+    }
+  }
 }
