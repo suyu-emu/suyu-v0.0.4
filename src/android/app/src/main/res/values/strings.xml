@@ -673,7 +673,6 @@
     <string name="preferences_controls">Controls</string>
     <string name="preferences_controls_description">Map controller input</string>
     <string name="preferences_player">Player %d</string>
-    <string name="preferences_app_settings">App vSettings</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
 
