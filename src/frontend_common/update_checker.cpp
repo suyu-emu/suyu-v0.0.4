@@ -10,10 +10,6 @@
 #include "common/scm_rev.h"
 #include <fmt/format.h>
 
-#ifndef CPPHTTPLIB_OPENSSL_SUPPORT
-#define CPPHTTPLIB_OPENSSL_SUPPORT
-#endif
-
 #include <httplib.h>
 
 #ifdef YUZU_BUNDLED_OPENSSL

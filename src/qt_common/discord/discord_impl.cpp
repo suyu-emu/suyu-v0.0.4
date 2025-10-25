@@ -8,17 +8,23 @@
 #include <string>
 
 #include <QEventLoop>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
+#include <boost/algorithm/string/replace.hpp>
+#include <httplib.h>
 
 #include <discord_rpc.h>
 #include <fmt/format.h>
+#include <qdebug.h>
 
 #include "common/common_types.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/loader/loader.h"
-#include "qt_common/discord/discord_impl.h"
+
+#include "discord_impl.h"
+
+#ifdef YUZU_BUNDLED_OPENSSL
+#include <openssl/cert.h>
+#endif
 
 namespace DiscordRPC {
 
@@ -44,6 +50,7 @@ std::string DiscordImpl::GetGameString(const std::string& title) {
 
     // Replace spaces with dashes
     std::replace(icon_name.begin(), icon_name.end(), ' ', '-');
+    boost::replace_all(icon_name, "é", "e");
 
     // Remove non-alphanumeric characters but keep dashes
     std::erase_if(icon_name, [](char c) { return !std::isalnum(c) && c != '-'; });
@@ -81,6 +88,8 @@ void DiscordImpl::UpdateGameStatus(bool use_default) {
     presence.details = "Currently in game";
     presence.startTimestamp = start_time;
     Discord_UpdatePresence(&presence);
+
+    qDebug() << "game status updated";
 }
 
 void DiscordImpl::Update() {
@@ -97,15 +106,22 @@ void DiscordImpl::Update() {
             "https://raw.githubusercontent.com/eden-emulator/boxart/refs/heads/master/img/{}.png",
             icon_name);
 
-        QNetworkAccessManager manager;
-        QNetworkRequest request;
-        request.setUrl(QUrl(QString::fromStdString(game_url)));
-        request.setTransferTimeout(3000);
-        QNetworkReply* reply = manager.head(request);
-        QEventLoop request_event_loop;
-        reply->connect(reply, &QNetworkReply::finished, &request_event_loop, &QEventLoop::quit);
-        request_event_loop.exec();
-        UpdateGameStatus(reply->error());
+        httplib::SSLClient client(game_url);
+        client.set_connection_timeout(3);
+        client.set_read_timeout(3);
+        client.set_follow_location(true);
+
+#ifdef YUZU_BUNDLED_OPENSSL
+        client.load_ca_cert_store(kCert, sizeof(kCert));
+#endif
+
+        httplib::Request request{
+            .method = "HEAD",
+            .path = game_url,
+        };
+
+        auto res = client.send(request);
+        UpdateGameStatus(res && res->status == 200);
 
         return;
     }
