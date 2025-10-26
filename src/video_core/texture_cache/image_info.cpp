@@ -54,65 +54,81 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
     TextureType tex_type = config.texture_type;
     if (tex_type == TextureType::Texture1D && (config.Depth() > 1 || config.BaseLayer() != 0)) {
         tex_type = TextureType::Texture1DArray;
+    } else if (tex_type == TextureType::Texture2D && (config.Depth() > 1 || config.BaseLayer() != 0)) {
+        tex_type = TextureType::Texture2DArray;
     }
     switch (tex_type) {
-        case TextureType::Texture1D:
-            ASSERT(config.BaseLayer() == 0);
-            type = ImageType::e1D;
-            size.width = config.Width();
-            resources.layers = 1;
-            break;
-        case TextureType::Texture1DArray:
-            type = ImageType::e1D;
-            size.width = config.Width();
-            resources.layers = config.BaseLayer() + config.Depth();
-            break;
-        case TextureType::Texture2D:
-        case TextureType::Texture2DNoMipmap:
-            ASSERT(config.Depth() == 1);
-            type = config.IsPitchLinear() ? ImageType::Linear : ImageType::e2D;
-            rescaleable = !config.IsPitchLinear();
-            size.width = config.Width();
-            size.height = config.Height();
-            resources.layers = config.BaseLayer() + 1;
-            break;
-        case TextureType::Texture2DArray:
-            type = ImageType::e2D;
-            rescaleable = true;
-            size.width = config.Width();
-            size.height = config.Height();
-            resources.layers = config.BaseLayer() + config.Depth();
-            break;
-        case TextureType::TextureCubemap:
-            ASSERT(config.Depth() == 1);
-            type = ImageType::e2D;
-            size.width = config.Width();
-            size.height = config.Height();
-            resources.layers = config.BaseLayer() + 6;
-            break;
-        case TextureType::TextureCubeArray:
-            UNIMPLEMENTED_IF(config.load_store_hint != 0);
-            type = ImageType::e2D;
-            size.width = config.Width();
-            size.height = config.Height();
-            resources.layers = config.BaseLayer() + config.Depth() * 6;
-            break;
-        case TextureType::Texture3D:
-            ASSERT(config.BaseLayer() == 0);
-            type = ImageType::e3D;
-            size.width = config.Width();
-            size.height = config.Height();
-            size.depth = config.Depth();
-            resources.layers = 1;
-            break;
-        case TextureType::Texture1DBuffer:
-            type = ImageType::Buffer;
-            size.width = config.Width();
-            resources.layers = 1;
-            break;
-        default:
-            ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(tex_type));
-            break;
+    case TextureType::Texture1D:
+        ASSERT(config.BaseLayer() == 0);
+        ASSERT(config.Depth() == 1);
+        type = ImageType::e1D;
+        size.width = config.Width();
+        size.depth = 1;
+        resources.layers = 1;
+        break;
+    case TextureType::Texture1DArray:
+        ASSERT(config.Depth() > 0);
+        ASSERT(config.BaseLayer() < config.Depth());
+        type = ImageType::e1D;
+        size.width = config.Width();
+        size.depth = 1;
+        resources.layers = config.Depth() - config.BaseLayer();
+        break;
+    case TextureType::Texture2D:
+    case TextureType::Texture2DNoMipmap:
+        ASSERT(config.BaseLayer() == 0);
+        ASSERT(config.Depth() == 1);
+        type = config.IsPitchLinear() ? ImageType::Linear : ImageType::e2D;
+        rescaleable = !config.IsPitchLinear();
+        size.width = config.Width();
+        size.height = config.Height();
+        size.depth = 1;
+        resources.layers = 1;
+        break;
+    case TextureType::Texture2DArray:
+        ASSERT(config.Depth() > 0);
+        ASSERT(config.BaseLayer() < config.Depth());
+        type = ImageType::e2D;
+        rescaleable = true;
+        size.width = config.Width();
+        size.height = config.Height();
+        size.depth = 1;
+        resources.layers = config.Depth() - config.BaseLayer();
+        break;
+    case TextureType::TextureCubemap:
+        ASSERT(config.Depth() == 1);
+        type = ImageType::e2D;
+        size.width = config.Width();
+        size.height = config.Height();
+        size.depth = 1;
+        resources.layers = 6;
+        break;
+    case TextureType::TextureCubeArray:
+        UNIMPLEMENTED_IF(config.load_store_hint != 0);
+        ASSERT(config.Depth() > 0);
+        type = ImageType::e2D;
+        size.width = config.Width();
+        size.height = config.Height();
+        size.depth = 1;
+        resources.layers = (config.Depth() - config.BaseLayer()) * 6;
+        break;
+    case TextureType::Texture3D:
+        ASSERT(config.BaseLayer() == 0);
+        type = ImageType::e3D;
+        size.width = config.Width();
+        size.height = config.Height();
+        size.depth = config.Depth();
+        resources.layers = 1;
+        break;
+    case TextureType::Texture1DBuffer:
+        type = ImageType::Buffer;
+        size.width = config.Width();
+        size.depth = 1;
+        resources.layers = 1;
+        break;
+    default:
+        ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(tex_type));
+        break;
     }
     if (num_samples > 1) {
         size.width  *= NumSamplesX(config.msaa_mode);
