@@ -803,10 +803,20 @@
     <string name="emulation_pause">Pause emulation</string>
     <string name="emulation_unpause">Unpause emulation</string>
     <string name="emulation_input_overlay">Overlay options</string>
+    <string name="load_amiibo">Load Amiibo</string>
     <string name="touchscreen">Touchscreen</string>
     <string name="lock_drawer">Lock drawer</string>
     <string name="unlock_drawer">Unlock drawer</string>
     <string name="reset">Reset</string>
+
+    <!-- Amiibo -->
+    <string name="amiibo_title">Amiibo</string>
+    <string name="amiibo_removed_message">The current amiibo has been removed</string>
+    <string name="amiibo_wrong_state">The current game is not looking for amiibo</string>
+    <string name="amiibo_not_valid">The selected file is not a valid amiibo</string>
+    <string name="amiibo_in_use">The selected file is already in use</string>
+    <string name="amiibo_unknown_error">An unknown error occurred</string>
+    <string name="amiibo_load_success">Amiibo loaded</string>
 
 
     <!-- Software keyboard -->

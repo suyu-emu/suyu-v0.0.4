@@ -550,6 +550,21 @@ object NativeLibrary {
     external fun clearFilesystemProvider()
 
     /**
+     * Gets the current virtual amiibo state reported by the core.
+     *
+     * @return Native enum value for the current amiibo state.
+     */
+    external fun getVirtualAmiiboState(): Int
+
+    /**
+     * Loads amiibo data into the currently running emulation session.
+     *
+     * @param data Raw amiibo file contents.
+     * @return Native enum value representing the load result.
+     */
+    external fun loadAmiibo(data: ByteArray): Int
+
+    /**
      * Checks if all necessary keys are present for decryption
      */
     external fun areKeysPresent(): Boolean

@@ -35,6 +35,8 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.Insets
@@ -60,6 +62,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
+import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
@@ -121,6 +124,39 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private var perfStatsRunnable: Runnable? = null
     private var socRunnable: Runnable? = null
+    private var isAmiiboPickerOpen = false
+
+    private val loadAmiiboLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            isAmiiboPickerOpen = false
+            val binding = _binding ?: return@registerForActivityResult
+            binding.inGameMenu.requestFocus()
+
+            if (!isAdded || uri == null) {
+                return@registerForActivityResult
+            }
+
+            val data = try {
+                requireContext().contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            } catch (e: Exception) {
+                Log.error("[EmulationFragment] Failed to read amiibo: ${e.message}")
+                showAmiiboDialog(R.string.amiibo_unknown_error)
+                return@registerForActivityResult
+            }
+
+            val amiiboData = data ?: run {
+                showAmiiboDialog(R.string.amiibo_not_valid)
+                return@registerForActivityResult
+            }
+
+            if (amiiboData.isEmpty()) {
+                showAmiiboDialog(R.string.amiibo_not_valid)
+                return@registerForActivityResult
+            }
+
+            val result = NativeLibrary.loadAmiibo(amiiboData)
+            handleAmiiboLoadResult(result)
+        }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -623,6 +659,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     true
                 }
 
+                R.id.menu_load_amiibo -> handleLoadAmiiboSelection()
+
                 R.id.menu_controls -> {
                     val action = HomeNavigationDirections.actionGlobalSettingsActivity(
                         null,
@@ -893,6 +931,70 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
+    private fun handleLoadAmiiboSelection(): Boolean {
+        val binding = _binding ?: return true
+
+        binding.inGameMenu.requestFocus()
+
+        if (!NativeLibrary.isRunning()) {
+            showAmiiboDialog(R.string.amiibo_wrong_state)
+            return true
+        }
+
+        when (AmiiboState.fromValue(NativeLibrary.getVirtualAmiiboState())) {
+            AmiiboState.TagNearby -> {
+                NativeInput.onRemoveNfcTag()
+                showAmiiboDialog(R.string.amiibo_removed_message)
+            }
+
+            AmiiboState.WaitingForAmiibo -> {
+                if (isAmiiboPickerOpen) {
+                    return true
+                }
+
+                isAmiiboPickerOpen = true
+                binding.drawerLayout.close()
+                loadAmiiboLauncher.launch(AMIIBO_MIME_TYPES)
+            }
+
+            else -> showAmiiboDialog(R.string.amiibo_wrong_state)
+        }
+
+        return true
+    }
+
+    private fun handleAmiiboLoadResult(result: Int) {
+        when (AmiiboLoadResult.fromValue(result)) {
+            AmiiboLoadResult.Success -> {
+                if (!isAdded) {
+                    return
+                }
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.amiibo_load_success),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            AmiiboLoadResult.UnableToLoad -> showAmiiboDialog(R.string.amiibo_in_use)
+            AmiiboLoadResult.NotAnAmiibo -> showAmiiboDialog(R.string.amiibo_not_valid)
+            AmiiboLoadResult.WrongDeviceState -> showAmiiboDialog(R.string.amiibo_wrong_state)
+            AmiiboLoadResult.Unknown -> showAmiiboDialog(R.string.amiibo_unknown_error)
+        }
+    }
+
+    private fun showAmiiboDialog(@StringRes messageRes: Int) {
+        if (!isAdded) {
+            return
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.amiibo_title)
+            .setMessage(messageRes)
+            .setPositiveButton(R.string.ok, null)
+            .show()
+    }
+
     override fun onPause() {
         if (this::emulationState.isInitialized) {
             if (emulationState.isRunning && emulationActivity?.isInPictureInPictureMode != true) {
@@ -906,6 +1008,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        isAmiiboPickerOpen = false
     }
 
     override fun onDetach() {
@@ -1739,7 +1842,34 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
+    private enum class AmiiboState(val value: Int) {
+        Disabled(0),
+        Initialized(1),
+        WaitingForAmiibo(2),
+        TagNearby(3);
+
+        companion object {
+            fun fromValue(value: Int): AmiiboState =
+                values().firstOrNull { it.value == value } ?: Disabled
+        }
+    }
+
+    private enum class AmiiboLoadResult(val value: Int) {
+        Success(0),
+        UnableToLoad(1),
+        NotAnAmiibo(2),
+        WrongDeviceState(3),
+        Unknown(4);
+
+        companion object {
+            fun fromValue(value: Int): AmiiboLoadResult =
+                values().firstOrNull { it.value == value } ?: Unknown
+        }
+    }
+
     companion object {
+        private val AMIIBO_MIME_TYPES =
+            arrayOf("application/octet-stream", "application/x-binary", "*/*")
         private val perfStatsUpdateHandler = Handler(Looper.myLooper()!!)
         private val socUpdateHandler = Handler(Looper.myLooper()!!)
     }

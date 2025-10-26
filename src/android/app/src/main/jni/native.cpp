@@ -7,8 +7,10 @@
 
 #include <codecvt>
 #include <locale>
+#include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 #include <dlfcn.h>
 
 #ifdef ARCHITECTURE_arm64
@@ -67,6 +69,7 @@
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
+#include "input_common/drivers/virtual_amiibo.h"
 #include "jni/native.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
@@ -1003,6 +1006,44 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_areKeysPresent(JNIEnv* env, jobje
     auto& system = EmulationSession::GetInstance().System();
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
     return ContentManager::AreKeysPresent();
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_getVirtualAmiiboState(JNIEnv* env, jobject jobj) {
+    if (!EmulationSession::GetInstance().IsRunning()) {
+        return static_cast<jint>(InputCommon::VirtualAmiibo::State::Disabled);
+    }
+
+    auto* virtual_amiibo =
+        EmulationSession::GetInstance().GetInputSubsystem().GetVirtualAmiibo();
+    if (virtual_amiibo == nullptr) {
+        return static_cast<jint>(InputCommon::VirtualAmiibo::State::Disabled);
+    }
+
+    return static_cast<jint>(virtual_amiibo->GetCurrentState());
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_loadAmiibo(JNIEnv* env, jobject jobj,
+                                                      jbyteArray jdata) {
+    if (!EmulationSession::GetInstance().IsRunning() || jdata == nullptr) {
+        return static_cast<jint>(InputCommon::VirtualAmiibo::Info::WrongDeviceState);
+    }
+
+    auto* virtual_amiibo =
+        EmulationSession::GetInstance().GetInputSubsystem().GetVirtualAmiibo();
+    if (virtual_amiibo == nullptr) {
+        return static_cast<jint>(InputCommon::VirtualAmiibo::Info::Unknown);
+    }
+
+    const jsize length = env->GetArrayLength(jdata);
+    std::vector<u8> bytes(static_cast<std::size_t>(length));
+    if (length > 0) {
+        env->GetByteArrayRegion(jdata, 0, length,
+                                reinterpret_cast<jbyte*>(bytes.data()));
+    }
+
+    const auto info =
+        virtual_amiibo->LoadAmiibo(std::span<u8>(bytes.data(), bytes.size()));
+    return static_cast<jint>(info);
 }
 
 JNIEXPORT void JNICALL

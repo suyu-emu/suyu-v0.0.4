@@ -33,6 +33,11 @@
         android:icon="@drawable/ic_two_users"
         android:title="@string/multiplayer" />
 
+    <item
+        android:id="@+id/menu_load_amiibo"
+        android:icon="@drawable/ic_nfc"
+        android:title="@string/load_amiibo" />
+
 
     <item
         android:id="@+id/menu_overlay_controls"
