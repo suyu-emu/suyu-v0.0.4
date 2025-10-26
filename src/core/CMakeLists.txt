@@ -1201,7 +1201,7 @@ endif()
 
 target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API MbedTLS::mbedcrypto MbedTLS::mbedtls)
 if (MINGW)
-    target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
+    target_link_libraries(core PRIVATE ws2_32 mswsock wlanapi)
 endif()
 
 if (ENABLE_WEB_SERVICE)

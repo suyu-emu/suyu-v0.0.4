@@ -579,6 +579,35 @@ function(create_target_directory_groups target_name)
     endforeach()
 endfunction()
 
+# Platform-specific library requirements
+# Put these BEFORE EXTERNALS or Boost WILL die
+# =============================================
+
+if (APPLE)
+    # Umbrella framework for everything GUI-related
+    find_library(COCOA_LIBRARY Cocoa)
+    set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
+    find_library(ICONV_LIBRARY iconv REQUIRED)
+    list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
+elseif (WIN32)
+    # Target Windows 10
+    add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
+    set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
+    if (MINGW)
+        # PSAPI is the Process Status API
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
+    endif()
+elseif (PLATFORM_HAIKU)
+    # Haiku is so special :)
+    # Some fucking genius decided to name an entire module "network" in 2019
+    # this caused great disaster amongst the Haiku community who had came first with
+    # their "libnetwork.so"; since CMake doesn't do magic, we have to use an ABSOLUTE PATH
+    # to the library itself, otherwise it will think we are linking to... our network thing
+    set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)
+elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
+    set(PLATFORM_LIBRARIES rt)
+endif()
+
 add_subdirectory(externals)
 
 # pass targets from externals
@@ -731,34 +760,6 @@ endif()
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-# Platform-specific library requirements
-# ======================================
-
-if (APPLE)
-    # Umbrella framework for everything GUI-related
-    find_library(COCOA_LIBRARY Cocoa)
-    set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
-    find_library(ICONV_LIBRARY iconv REQUIRED)
-    list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
-elseif (WIN32)
-    # Target Windows 10
-    add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
-    set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
-    if (MINGW)
-        # PSAPI is the Process Status API
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
-    endif()
-elseif (PLATFORM_HAIKU)
-    # Haiku is so special :)
-    # Some fucking genius decided to name an entire module "network" in 2019
-    # this caused great disaster amongst the Haiku community who had came first with
-    # their "libnetwork.so"; since CMake doesn't do magic, we have to use an ABSOLUTE PATH
-    # to the library itself, otherwise it will think we are linking to... our network thing
-    set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)
-elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
-    set(PLATFORM_LIBRARIES rt)
-endif()
 
 # Setup a custom clang-format target (if clang-format can be found) that will run
 # against all the src files. This should be used before making a pull request.

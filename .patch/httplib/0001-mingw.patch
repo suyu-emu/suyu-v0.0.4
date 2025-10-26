@@ -1,0 +1,52 @@
+From e1a946ffb79022d38351a0623f819a5419965c3e Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Fri, 24 Oct 2025 23:41:09 -0700
+Subject: [PATCH] [build] Fix MinGW missing GetAddrInfoExCancel definition
+
+MinGW does not define GetAddrInfoExCancel in its wstcpi whatever header,
+so to get around this we can just load it with GetProcAddress et al.
+
+Signed-off-by: crueter <crueter@eden-emu.dev>
+---
+ httplib.h | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/httplib.h b/httplib.h
+index e15ba44..90a76dc 100644
+--- a/httplib.h
++++ b/httplib.h
+@@ -203,11 +203,13 @@
+ #error Sorry, Visual Studio versions prior to 2015 are not supported
+ #endif
+ 
+-#pragma comment(lib, "ws2_32.lib")
+-
+ using ssize_t = __int64;
+ #endif // _MSC_VER
+ 
++#if defined(_MSC_VER) || defined(__MINGW32__)
++#pragma comment(lib, "ws2_32.lib")
++#endif
++
+ #ifndef S_ISREG
+ #define S_ISREG(m) (((m) & S_IFREG) == S_IFREG)
+ #endif // S_ISREG
+@@ -3557,7 +3559,15 @@ inline int getaddrinfo_with_timeout(const char *node, const char *service,
+     auto wait_result =
+         ::WaitForSingleObject(event, static_cast<DWORD>(timeout_sec * 1000));
+     if (wait_result == WAIT_TIMEOUT) {
++#ifdef __MINGW32__
++      typedef INT (WSAAPI *PFN_GETADDRINFOEXCANCEL)(HANDLE *CancelHandle);
++      auto wsdll = LoadLibraryW((wchar_t*) "ws2_32.lib");
++      PFN_GETADDRINFOEXCANCEL GetAddrInfoExCancel = (PFN_GETADDRINFOEXCANCEL) GetProcAddress(wsdll, "GetAddrInfoExCancel");
++
++      if (cancel_handle) { GetAddrInfoExCancel(&cancel_handle); }
++#else
+       if (cancel_handle) { ::GetAddrInfoExCancel(&cancel_handle); }
++#endif
+       ::CloseHandle(event);
+       return EAI_AGAIN;
+     }
+-- 
+2.51.0
+

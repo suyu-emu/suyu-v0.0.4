@@ -386,6 +386,7 @@ elseif(WIN32)
         set_target_properties(yuzu PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
     elseif(MINGW)
         set_target_properties(yuzu PROPERTIES LINK_FLAGS_RELEASE "-Wl,--subsystem,windows")
+        target_link_libraries(yuzu PRIVATE dwmapi)
     endif()
 endif()
 

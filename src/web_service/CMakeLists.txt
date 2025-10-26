@@ -20,6 +20,7 @@ target_link_libraries(web_service PRIVATE common network nlohmann_json::nlohmann
 
 find_package(OpenSSL REQUIRED)
 target_link_libraries(web_service PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+target_compile_definitions(web_service PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(web_service PRIVATE precompiled_headers.h)

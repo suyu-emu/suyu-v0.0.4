@@ -5,7 +5,6 @@ To build Eden, you MUST have a C++ compiler.
   - GCC 12 also requires Clang 14+
 * On Windows, this is either:
   - **[MSVC](https://visualstudio.microsoft.com/downloads/)** (you should select *Community* option),
-    * *A convenience script to install the Visual Community Studio 2022 with necessary tools is provided in `.ci/windows/install-msvc.ps1`*
   - clang-cl - can be downloaded from the MSVC installer,
   - or **[MSYS2](https://www.msys2.org)**
 * On macOS, this is Apple Clang
@@ -25,6 +24,9 @@ If you are on desktop and plan to use the Qt frontend, you *must* install Qt 6, 
 * MSVC/clang-cl users on Windows must install through the [official installer](https://www.qt.io/download-qt-installer-oss)
 * Linux and macOS users may choose to use the installer as well.
 * MSYS2 can also install Qt 6 via the package manager
+
+If you are on Windows, a convenience script to install MSVC, MSYS2, Qt, all necessary packages for MSYS2, and set up a zsh environment with useful keybinds and aliases can be found [here](https://git.crueter.xyz/scripts/windev).
+- For help setting up Qt Creator, run `./install.sh -h qtcreator`
 
 If you are on Windows and NOT building with MSYS2, you may go [back home](Build.md) and continue.
 
@@ -204,12 +206,26 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
 <summary>MSYS2</summary>
 
 * Open the `MSYS2 MinGW 64-bit` shell (`mingw64.exe`)
-* Download and install all dependencies using:
-  * `pacman -Syu git make mingw-w64-x86_64-SDL2 mingw-w64-x86_64-cmake mingw-w64-x86_64-python-pip mingw-w64-x86_64-qt6 mingw-w64-x86_64-toolchain autoconf libtool automake-wrapper`
-* Add MinGW binaries to the PATH:
+* Download and install all dependencies:
+```
+BASE="git make autoconf libtool automake-wrapper jq patch"
+MINGW="SDL2 cmake python-pip qt6-base toolchain ffmpeg boost catch fmt lz4 nlohmann-json openssl zlib zstd enet opus mbedtls vulkan-devel libusb vulkan-memory-allocator unordered_dense zydis clang ccache"
+
+packages="$BASE"
+for pkg in $MINGW; do
+    packages="$packages mingw-w64-x86_64-$pkg"
+done
+
+pacman -Syu --needed --noconfirm $packages
+```
+* Notes:
+  - Using `qt6-static` is possible but currently untested.
+  - Other environments are entirely untested, but should theoretically work provided you install all the necessary packages.
+  - Clang is installed as it generally works better here. You can compile with GCC just fine, however.
+  - Add `qt-creator` to the `MINGW` variable to install Qt Creator. You can then create a Start Menu shortcut to the MinGW Qt Creator by running `powershell "\$s=(New-Object -COM WScript.Shell).CreateShortcut('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Qt Creator.lnk');\$s.TargetPath='C:\\msys64\\mingw64\\bin\\qtcreator.exe';\$s.Save()"` in Git Bash or MSYS2.
+* Add MinGW binaries to the PATH if they aren't already:
   * `echo 'PATH=/mingw64/bin:$PATH' >> ~/.bashrc`
-* Add VulkanSDK to the PATH:
-  * `echo 'PATH=$(readlink -e /c/VulkanSDK/*/Bin/):$PATH' >> ~/.bashrc`
+  * or `echo 'PATH=/mingw64/bin:$PATH' >> ~/.zshrc`
 </details>
 
 <details>
