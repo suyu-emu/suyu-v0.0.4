@@ -210,5 +210,14 @@
         "key": "steamdeck",
         "bundled": true,
         "skip_updates": "true"
+    },
+    "sse2neon": {
+        "repo": "DLTcollab/sse2neon",
+        "sha": "66267b52fd",
+        "hash": "3aed8676e1b8c428acb076464663e3968a721457b08710a7c5f8df2fbdaa5601053c1606169a55e987e7a58dd17e3cc3b7fbf953aa891c5ac5f8ce2941862e4b",
+        "download_only": "true",
+        "patches": [
+            "0001-Add-support-for-clang-cl-on-Windows-633.patch"
+        ]
     }
 }
