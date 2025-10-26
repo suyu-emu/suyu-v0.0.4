@@ -86,18 +86,21 @@ size_t AesCtrStorage::Write(const u8* buffer, size_t size, size_t offset) {
 
     // Loop until all data is written using a pooled buffer residing on the stack (blocksize = 0x10)
     boost::container::static_vector<u8, BlockSize> pooled_buffer;
-    for (size_t remaining = size; remaining > 0; ) {
-        // Determine data we're writing and where.
-        auto const write_size = (std::min)(pooled_buffer.size(), remaining);
-        u8* write_buf = pooled_buffer.data();
+    pooled_buffer.resize(BlockSize);
 
-        // Encrypt the data and then write it.
+    const u8* cur = buffer;
+    size_t remaining = size;
+    size_t current_offset = offset;
+
+    while (remaining > 0) {
+        const size_t write_size = std::min<std::size_t>(pooled_buffer.size(), remaining);
+
         m_cipher->SetIV(ctr);
-        m_cipher->Transcode(buffer, write_size, write_buf, Core::Crypto::Op::Encrypt);
-        m_base_storage->Write(write_buf, write_size, offset);
+        m_cipher->Transcode(cur, write_size, pooled_buffer.data(), Core::Crypto::Op::Encrypt);
+        m_base_storage->Write(pooled_buffer.data(), write_size, current_offset);
 
-        // Advance next write chunk
-        offset += write_size;
+        cur += write_size;
+        current_offset += write_size;
         remaining -= write_size;
         if (remaining > 0)
             AddCounter(ctr.data(), IvSize, write_size / BlockSize);

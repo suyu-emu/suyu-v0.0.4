@@ -65,10 +65,13 @@ size_t AesXtsStorage::Read(u8* buffer, size_t size, size_t offset) const {
     if ((offset % m_block_size) != 0) {
         // Decrypt into our pooled stack buffer (max bound = NCA::XtsBlockSize)
         boost::container::static_vector<u8, NcaHeader::XtsBlockSize> tmp_buf;
+        ASSERT(m_block_size <= tmp_buf.max_size());
+        tmp_buf.resize(m_block_size);
         // Determine the size of the pre-data read.
         auto const skip_size = size_t(offset - Common::AlignDown(offset, m_block_size));
         auto const data_size = (std::min)(size, m_block_size - skip_size);
-        std::fill_n(tmp_buf.begin(), skip_size, u8{0});
+        if (skip_size > 0)
+            std::fill_n(tmp_buf.begin(), skip_size, u8{0});
         std::memcpy(tmp_buf.data() + skip_size, buffer, data_size);
         m_cipher->SetIV(ctr);
         m_cipher->Transcode(tmp_buf.data(), m_block_size, tmp_buf.data(), Core::Crypto::Op::Decrypt);

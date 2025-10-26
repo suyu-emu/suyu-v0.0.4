@@ -4,8 +4,9 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
 #include <array>
-#include <vector>
+#include <cstring>
 #include <mbedtls/cipher.h>
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -15,6 +16,7 @@
 namespace Core::Crypto {
 namespace {
 using NintendoTweak = std::array<u8, 16>;
+constexpr std::size_t AesBlockBytes = 16;
 
 NintendoTweak CalculateNintendoTweak(std::size_t sector_id) {
     NintendoTweak out{};
@@ -75,39 +77,51 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* des
 
     mbedtls_cipher_reset(context);
 
-    // Only ECB strictly requires block sized chunks.
+    if (size == 0)
+        return;
+
+    const auto mode = mbedtls_cipher_get_cipher_mode(context);
     std::size_t written = 0;
-    if (mbedtls_cipher_get_cipher_mode(context) != MBEDTLS_MODE_ECB) {
-        mbedtls_cipher_update(context, src, size, dest, &written);
-        if (written != size)
+
+    if (mode != MBEDTLS_MODE_ECB) {
+        const int ret = mbedtls_cipher_update(context, src, size, dest, &written);
+        ASSERT(ret == 0);
+        if (written != size) {
             LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.", size, written);
+        }
         return;
     }
 
-    // ECB path: operate in block sized chunks and mirror previous behavior.
     const auto block_size = mbedtls_cipher_get_block_size(context);
-    if (size < block_size) {
-        std::vector<u8> block(block_size);
-        std::memcpy(block.data(), src, size);
-        Transcode(block.data(), block.size(), block.data(), op);
-        std::memcpy(dest, block.data(), size);
-        return;
-    }
+    ASSERT(block_size <= AesBlockBytes);
 
-    for (std::size_t offset = 0; offset < size; offset += block_size) {
-        const auto length = std::min<std::size_t>(block_size, size - offset);
-        mbedtls_cipher_update(context, src + offset, length, dest + offset, &written);
-        if (written != length) {
-            if (length < block_size) {
-                std::vector<u8> block(block_size);
-                std::memcpy(block.data(), src + offset, length);
-                Transcode(block.data(), block.size(), block.data(), op);
-                std::memcpy(dest + offset, block.data(), length);
-                return;
-            }
-            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.", length, written);
+    const std::size_t whole_block_bytes = size - (size % block_size);
+    if (whole_block_bytes != 0) {
+        const int ret = mbedtls_cipher_update(context, src, whole_block_bytes, dest, &written);
+        ASSERT(ret == 0);
+        if (written != whole_block_bytes) {
+            LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.",
+                        whole_block_bytes, written);
         }
     }
+
+    const std::size_t tail = size - whole_block_bytes;
+    if (tail == 0)
+        return;
+
+    std::array<u8, AesBlockBytes> tail_buffer{};
+    std::memcpy(tail_buffer.data(), src + whole_block_bytes, tail);
+
+    std::size_t tail_written = 0;
+    const int ret = mbedtls_cipher_update(context, tail_buffer.data(), block_size, tail_buffer.data(),
+                                          &tail_written);
+    ASSERT(ret == 0);
+    if (tail_written != block_size) {
+        LOG_WARNING(Crypto, "Not all data was processed requested={:016X}, actual={:016X}.", block_size,
+                    tail_written);
+    }
+
+    std::memcpy(dest + whole_block_bytes, tail_buffer.data(), tail);
 }
 
 template <typename Key, std::size_t KeySize>
