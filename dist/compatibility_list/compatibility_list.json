@@ -1,0 +1,354 @@
+[
+  {
+    "compatibility": 0,
+    "directory": "the-legend-of-zelda-breath-of-the-wild",
+    "releases": [
+      {"id": "01007EF00011E000"}
+    ],
+    "title": "The Legend of Zelda: Breath of the Wild"
+  },
+  {
+    "compatibility": 1,
+    "directory": "super-mario-odyssey",
+    "releases": [
+      {"id": "0100000000010000"}
+    ],
+    "title": "Super Mario Odyssey"
+  },
+  {
+    "compatibility": 0,
+    "directory": "animal-crossing-new-horizons",
+    "releases": [
+      {"id": "01006F8002326000"}
+    ],
+    "title": "Animal Crossing: New Horizons"
+  },
+  {
+    "compatibility": 1,
+    "directory": "pokemon-legends-z-a",
+    "releases": [
+      {"id": "0100F43008C44000"}
+    ],
+    "title": "Pokémon Legends: Z-A"
+  },
+  {
+    "compatibility": 1,
+    "directory": "the-legend-of-zelda-tears-of-the-kingdom",
+    "releases": [
+      {"id": "0100F2C0115B6000"}
+    ],
+    "title": "The Legend of Zelda: Tears of the Kingdom"
+  },
+  {
+    "compatibility": 0,
+    "directory": "super-mario-galaxy",
+    "releases": [
+      {"id": "010099C022B96000"}
+    ],
+    "title": "Super Mario Galaxy"
+  },
+  {
+    "compatibility": 3,
+    "directory": "star-wars-republic-commando",
+    "releases": [
+      {"id": "0100FA10115F8000"}
+    ],
+    "title": "Star Wars: Republic Commando"
+  },
+  {
+    "compatibility": 0,
+    "directory": "doki-doki-literature-club-plus",
+    "releases": [
+      {"id": "010086901543E000"}
+    ],
+    "title": "Doki Doki Literature Club Plus"
+  },
+  {
+    "compatibility": 1,
+    "directory": "pokemon-scarlet",
+    "releases": [
+      {"id": "0100A3D008C5C000"}
+    ],
+    "title": "Pokémon Scarlet"
+  },
+    {
+    "compatibility": 1,
+    "directory": "pokemon-violet",
+    "releases": [
+      {"id": "01008F6008C5E000"}
+    ],
+    "title": "Pokémon Violet"
+  },
+  {
+    "compatibility": 2,
+    "directory": "pokemon-legends-arceus",
+    "releases": [
+      {"id": "01001E300D162000"}
+    ],
+    "title": "Pokémon Legends: Arceus"
+  },
+  {
+    "compatibility": 0,
+    "directory": "splatoon-2",
+    "releases": [
+      {"id": "01003BC0000A0000"}
+    ],
+    "title": "Splatoon 2"
+  },
+  {
+    "compatibility": 1,
+    "directory": "super-smash-bros-ultimate",
+    "releases": [
+      {"id": "01006A800016E000"}
+    ],
+    "title": "Super Smash Bros. Ultimate"
+  },
+  {
+    "compatibility": 0,
+    "directory": "mario-kart-8-deluxe",
+    "releases": [
+      {"id": "0100152000022000"}
+    ],
+    "title": "Mario Kart 8 Deluxe"
+  },
+  {
+    "compatibility": 0,
+    "directory": "splatoon-3",
+    "releases": [
+      {"id": "0100C2500FC20000"}
+    ],
+    "title": "Splatoon 3"
+  },
+  {
+    "compatibility": 0,
+    "directory": "new-super-mario-bros-u-deluxe",
+    "releases": [
+      {"id": "0100EA80032EA000"}
+    ],
+    "title": "New Super Mario Bros. U Deluxe"
+  },
+  {
+    "compatibility": 0,
+    "directory": "hyrule-warriors-age-of-calamity",
+    "releases": [
+      {"id": "01002B00111A2000"}
+    ],
+    "title": "Hyrule Warriors: Age of Calamity"
+  },
+  {
+    "compatibility": 2,
+    "directory": "luigis-mansion-3",
+    "releases": [
+      {"id": "0100DCA0064A6000"}
+    ],
+    "title": "Luigi's Mansion 3"
+  },
+  {
+    "compatibility": 2,
+    "directory": "pokemon-brilliant-diamond",
+    "releases": [
+      {"id": "0100000011D90000"}
+    ],
+    "title": "Pokémon Brilliant Diamond"
+  },
+  {
+    "compatibility": 2,
+    "directory": "pokemon-shining-pearl",
+    "releases": [
+      {"id": "010018E011D92000"}
+    ],
+    "title": "Pokémon Shining Pearl"
+  },
+  {
+    "compatibility": 1,
+    "directory": "super-mario-3d-world-bowsers-fury",
+    "releases": [
+      {"id": "010028600EBDA000"}
+    ],
+    "title": "Super Mario 3D World + Bowser's Fury"
+  },
+  {
+    "compatibility": 0,
+    "directory": "the-legend-of-zelda-links-awakening",
+    "releases": [
+      {"id": "01006BB00C6F0000"}
+    ],
+    "title": "The Legend of Zelda: Link's Awakening"
+  },
+  {
+    "compatibility": 1,
+    "directory": "fire-emblem-three-houses",
+    "releases": [
+      {"id": "010055D009F78000"}
+    ],
+    "title": "Fire Emblem: Three Houses"
+  },
+  {
+    "compatibility": 2,
+    "directory": "metroid-dread",
+    "releases": [
+      {"id": "010093801237C000"}
+    ],
+    "title": "Metroid Dread"
+  },
+  {
+    "compatibility": 0,
+    "directory": "paper-mario-the-origami-king",
+    "releases": [
+      {"id": "0100A3900C3E2000"}
+    ],
+    "title": "Paper Mario: The Origami King"
+  },
+  {
+    "compatibility": 1,
+    "directory": "xenoblade-chronicles-definitive-edition",
+    "releases": [
+      {"id": "0100FF500E34A000"}
+    ],
+    "title": "Xenoblade Chronicles: Definitive Edition"
+  },
+  {
+    "compatibility": 2,
+    "directory": "xenoblade-chronicles-3",
+    "releases": [
+      {"id": "010074F013262000"}
+    ],
+    "title": "Xenoblade Chronicles 3"
+  },
+  {
+    "compatibility": 1,
+    "directory": "pikmin-3-deluxe",
+    "releases": [
+      {"id": "0100F8600D4B0000"}
+    ],
+    "title": "Pikmin 3 Deluxe"
+  },
+  {
+    "compatibility": 0,
+    "directory": "donkey-kong-country-tropical-freeze",
+    "releases": [
+      {"id": "0100C1F0054B6000"}
+    ],
+    "title": "Donkey Kong Country: Tropical Freeze"
+  },
+  {
+    "compatibility": 1,
+    "directory": "kirby-and-the-forgotten-land",
+    "releases": [
+      {"id": "01004D300C5AE000"}
+    ],
+    "title": "Kirby and the Forgotten Land"
+  },
+  {
+    "compatibility": 2,
+    "directory": "mario-party-superstars",
+    "releases": [
+      {"id": "01006B400D8B2000"}
+    ],
+    "title": "Mario Party Superstars"
+  },
+  {
+    "compatibility": 0,
+    "directory": "clubhouse-games-51-worldwide-classics",
+    "releases": [
+      {"id": "0100F8600D4B0000"}
+    ],
+    "title": "Clubhouse Games: 51 Worldwide Classics"
+  },
+  {
+    "compatibility": 1,
+    "directory": "ring-fit-adventure",
+    "releases": [
+      {"id": "01006B300BAF8000"}
+    ],
+    "title": "Ring Fit Adventure"
+  },
+  {
+    "compatibility": 2,
+    "directory": "arms",
+    "releases": [
+      {"id": "01009B500007C000"}
+    ],
+    "title": "ARMS"
+  },
+  {
+    "compatibility": 0,
+    "directory": "super-mario-maker-2",
+    "releases": [
+      {"id": "01009B90006DC000"}
+    ],
+    "title": "Super Mario Maker 2"
+  },
+  {
+    "compatibility": 0,
+    "directory": "pokemon-lets-go-pikachu",
+    "releases": [
+      {"id": "010003F003A34000"}
+    ],
+    "title": "Pokémon: Let's Go, Pikachu!"
+  },
+  {
+    "compatibility": 1,
+    "directory": "pokemon-lets-go-eevee",
+    "releases": [
+      {"id": "0100187003A36000"}
+    ],
+    "title": "Pokémon: Let's Go, Eevee!"
+  },
+  {
+    "compatibility": 2,
+    "directory": "pokemon-sword",
+    "releases": [
+      {"id": "0100ABF008968000"}
+    ],
+    "title": "Pokémon Sword"
+  },
+  {
+    "compatibility": 2,
+    "directory": "pokemon-shield",
+    "releases": [
+      {"id": "01008DB008C2C000"}
+    ],
+    "title": "Pokémon Shield"
+  },
+  {
+    "compatibility": 1,
+    "directory": "new-pokemon-snap",
+    "releases": [
+      {"id": "0100F4300C182000"}
+    ],
+    "title": "New Pokémon Snap"
+  },
+  {
+    "compatibility": 0,
+    "directory": "mario-golf-super-rush",
+    "releases": [
+      {"id": "0100C9C00E25C000"}
+    ],
+    "title": "Mario Golf: Super Rush"
+  },
+  {
+    "compatibility": 1,
+    "directory": "mario-tennis-aces",
+    "releases": [
+      {"id": "0100BDE00862A000"}
+    ],
+    "title": "Mario Tennis Aces"
+  },
+  {
+    "compatibility": 2,
+    "directory": "wario-ware-get-it-together",
+    "releases": [
+      {"id": "0100563010F22000"}
+    ],
+    "title": "WarioWare: Get It Together!"
+  },
+  {
+    "compatibility": 0,
+    "directory": "big-brain-academy-brain-vs-brain",
+    "releases": [
+      {"id": "0100190010F24000"}
+    ],
+    "title": "Big Brain Academy: Brain vs. Brain"
+  }
+]

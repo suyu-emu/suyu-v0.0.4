@@ -203,7 +203,7 @@ struct Values {
     QVector<u64> favorited_ids;
 
     // Compatibility List
-    Setting<bool> show_compat{linkage, false, "show_compat", Category::UiGameList};
+    Setting<bool> show_compat{linkage, true, "show_compat", Category::UiGameList};
 
     // Size & File Types Column
     Setting<bool> show_size{linkage, true, "show_size", Category::UiGameList};
