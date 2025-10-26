@@ -39,7 +39,7 @@ Result NpadVibration::SetSettingsService(
 Result NpadVibration::SetVibrationMasterVolume(f32 master_volume) {
     std::scoped_lock lock{mutex};
 
-    if (master_volume < 0.0f && master_volume > 1.0f) {
+    if (master_volume < 0.0f || master_volume > 1.0f) {
         return ResultVibrationStrengthOutOfRange;
     }
 
