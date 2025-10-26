@@ -1081,7 +1081,7 @@ void RasterizerOpenGL::SyncColorMask() {
         flags[Dirty::ColorMask0] = false;
 
         auto& mask = regs.color_mask[0];
-        glColorMask(mask.R != 0, mask.B != 0, mask.G != 0, mask.A != 0);
+        glColorMask(mask.R != 0, mask.G != 0, mask.B != 0, mask.A != 0);
         return;
     }
 
