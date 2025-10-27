@@ -1146,7 +1146,6 @@ add_library(core STATIC
     memory/dmnt_cheat_vm.h
     perf_stats.cpp
     perf_stats.h
-    precompiled_headers.h
     reporter.cpp
     reporter.h
     tools/freezer.cpp
@@ -1270,11 +1269,6 @@ elseif (WIN32)
 else()
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_none.cpp)
-endif()
-
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(core PRIVATE precompiled_headers.h)
 endif()
 
 create_target_directory_groups(core)

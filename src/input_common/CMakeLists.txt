@@ -35,7 +35,6 @@ add_library(input_common STATIC
     input_poller.h
     main.cpp
     main.h
-    precompiled_headers.h
 )
 
 if (MSVC)
@@ -91,10 +90,6 @@ endif()
 
 create_target_directory_groups(input_common)
 target_link_libraries(input_common PUBLIC hid_core PRIVATE common Boost::headers)
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(input_common PRIVATE precompiled_headers.h)
-endif()
 
 if (ANDROID)
     target_sources(input_common PRIVATE

@@ -198,7 +198,6 @@ add_executable(yuzu
     multiplayer/state.cpp
     multiplayer/state.h
     multiplayer/validation.h
-    precompiled_headers.h
     startup_checks.cpp
     startup_checks.h
     set_play_time_dialog.cpp
@@ -446,10 +445,6 @@ endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(yuzu PRIVATE dynarmic::dynarmic)
-endif()
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(yuzu PRIVATE precompiled_headers.h)
 endif()
 
 if (YUZU_ROOM)

@@ -237,7 +237,6 @@ add_library(shader_recompiler STATIC
     ir_opt/vendor_workaround_pass.cpp
     ir_opt/verification_pass.cpp
     object_pool.h
-    precompiled_headers.h
     profile.h
     program_header.h
     runtime_info.h
@@ -266,7 +265,3 @@ else()
 endif()
 
 create_target_directory_groups(shader_recompiler)
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(shader_recompiler PRIVATE precompiled_headers.h)
-endif()

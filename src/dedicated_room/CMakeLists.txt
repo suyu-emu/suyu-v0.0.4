@@ -8,7 +8,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 add_library(yuzu-room STATIC EXCLUDE_FROM_ALL
-    precompiled_headers.h
     yuzu_room.cpp
     yuzu_room.h
     yuzu_room.rc
@@ -25,9 +24,5 @@ if (MSVC)
     target_link_libraries(yuzu-room PRIVATE getopt)
 endif()
 target_link_libraries(yuzu-room PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(yuzu-room PRIVATE precompiled_headers.h)
-endif()
 
 create_target_directory_groups(yuzu-room)

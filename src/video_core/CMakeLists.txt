@@ -102,7 +102,6 @@ add_library(video_core STATIC
     invalidation_accumulator.h
     memory_manager.cpp
     memory_manager.h
-    precompiled_headers.h
     present.h
     pte_kind.h
     query_cache/bank_base.h
@@ -393,10 +392,6 @@ endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE dynarmic::dynarmic)
-endif()
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(video_core PRIVATE precompiled_headers.h)
 endif()
 
 if (ANDROID AND ARCHITECTURE_arm64)

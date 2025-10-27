@@ -36,7 +36,6 @@ add_library(
   cityhash.cpp
   cityhash.h
   common_funcs.h
-  common_precompiled_headers.h
   common_types.h
   concepts.h
   container_hash.h
@@ -102,7 +101,6 @@ add_library(
   param_package.h
   parent_of_member.h
   point.h
-  precompiled_headers.h
   quaternion.h
   range_map.h
   range_mutex.h
@@ -268,10 +266,6 @@ target_link_libraries(common PRIVATE lz4::lz4 LLVM::Demangle zstd::zstd)
 if(ANDROID)
   # For ASharedMemory_create
   target_link_libraries(common PRIVATE android)
-endif()
-
-if(YUZU_USE_PRECOMPILED_HEADERS)
-  target_precompile_headers(common PRIVATE precompiled_headers.h)
 endif()
 
 create_target_directory_groups(common)

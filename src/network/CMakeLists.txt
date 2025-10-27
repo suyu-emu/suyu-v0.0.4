@@ -11,7 +11,6 @@ add_library(network STATIC
     network.h
     packet.cpp
     packet.h
-    precompiled_headers.h
     room.cpp
     room.h
     room_member.cpp
@@ -31,8 +30,4 @@ endif()
 # Solaris uses /lib/amd64/libsocket.so and /lib/amd64/libnsl.so
 if (PLATFORM_SUN)
     target_link_libraries(network PRIVATE socket nsl)
-endif()
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(network PRIVATE precompiled_headers.h)
 endif()

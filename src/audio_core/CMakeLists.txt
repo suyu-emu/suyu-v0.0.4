@@ -56,7 +56,6 @@ add_library(audio_core STATIC
     out/audio_out.h
     out/audio_out_system.cpp
     out/audio_out_system.h
-    precompiled_headers.h
     renderer/audio_device.cpp
     renderer/audio_device.h
     renderer/audio_renderer.h
@@ -264,10 +263,6 @@ if(ANDROID)
     )
     target_link_libraries(audio_core PRIVATE oboe)
     target_compile_definitions(audio_core PUBLIC HAVE_OBOE)
-endif()
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(audio_core PRIVATE precompiled_headers.h)
 endif()
 
 create_target_directory_groups(audio_core)

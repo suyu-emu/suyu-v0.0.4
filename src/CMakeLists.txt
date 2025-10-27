@@ -62,9 +62,6 @@ if (MSVC AND NOT CXX_CLANG)
         /Zc:throwingNew
         /GT
 
-        # Modules
-        /experimental:module- # Explicitly disable module support due to conflicts with precompiled headers.
-
         # External headers diagnostics
         /external:anglebrackets # Treats all headers included by #include <header>, where the header file is enclosed in angle brackets (< >), as external headers
         /external:W0            # Sets the default warning level to 0 for external headers, effectively disabling warnings for them.

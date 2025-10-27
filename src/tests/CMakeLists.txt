@@ -17,7 +17,6 @@ add_executable(tests
     common/unique_function.cpp
     core/core_timing.cpp
     core/internal_network/network.cpp
-    precompiled_headers.h
     video_core/memory_tracker.cpp
     input_common/calibration_configuration_job.cpp
 )
@@ -28,7 +27,3 @@ target_link_libraries(tests PRIVATE common core input_common video_core)
 target_link_libraries(tests PRIVATE ${PLATFORM_LIBRARIES} Catch2::Catch2WithMain Threads::Threads)
 
 add_test(NAME tests COMMAND tests)
-
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(tests PRIVATE precompiled_headers.h)
-endif()

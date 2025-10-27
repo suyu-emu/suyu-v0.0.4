@@ -22,7 +22,6 @@ Notes:
 - `YUZU_USE_BUNDLED_FFMPEG` (ON for non-UNIX) Download (Windows, Android) or build (UNIX) bundled FFmpeg
 - `ENABLE_CUBEB` (ON) Enables the cubeb audio backend
 - `YUZU_TESTS` (ON) Compile tests - requires Catch2
-- `YUZU_USE_PRECOMPILED_HEADERS` (ON for non-UNIX) Use precompiled headers
 - `YUZU_DOWNLOAD_ANDROID_VVL` (ON) Download validation layer binary for Android
 - `YUZU_ENABLE_LTO` (OFF) Enable link-time optimization
   * Not recommended on Windows
