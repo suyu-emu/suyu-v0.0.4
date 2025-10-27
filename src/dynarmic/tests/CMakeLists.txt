@@ -135,8 +135,4 @@ target_include_directories(dynarmic_tests PRIVATE . ../src)
 target_compile_options(dynarmic_tests PRIVATE ${DYNARMIC_CXX_FLAGS})
 target_compile_definitions(dynarmic_tests PRIVATE FMT_USE_USER_DEFINED_LITERALS=1)
 
-if ("x86_64" IN_LIST ARCHITECTURE)
-    target_compile_options(dynarmic_tests PRIVATE -mavx2)
-endif()
-
 add_test(dynarmic_tests dynarmic_tests --durations yes)
