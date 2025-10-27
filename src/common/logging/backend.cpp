@@ -53,11 +53,8 @@ constexpr const char* TrimSourcePath(std::string_view source) {
 class Backend {
 public:
     virtual ~Backend() = default;
-
     virtual void Write(const Entry& entry) = 0;
-
     virtual void EnableForStacktrace() = 0;
-
     virtual void Flush() = 0;
 };
 
@@ -65,13 +62,11 @@ public:
 class ColorConsoleBackend final : public Backend {
 public:
     explicit ColorConsoleBackend() = default;
-
     ~ColorConsoleBackend() override = default;
 
     void Write(const Entry& entry) override {
-        if (enabled.load(std::memory_order_relaxed)) {
+        if (enabled.load(std::memory_order_relaxed))
             PrintColoredMessage(entry);
-        }
     }
 
     void Flush() override {
@@ -97,51 +92,50 @@ public:
         auto old_filename = filename;
         old_filename += ".old.txt";
 
-               // Existence checks are done within the functions themselves.
-               // We don't particularly care if these succeed or not.
+        // Existence checks are done within the functions themselves.
+        // We don't particularly care if these succeed or not.
         static_cast<void>(FS::RemoveFile(old_filename));
         static_cast<void>(FS::RenameFile(filename, old_filename));
 
-        file = std::make_unique<FS::IOFile>(filename, FS::FileAccessMode::Write,
-                                            FS::FileType::TextFile);
+        file = std::make_unique<FS::IOFile>(filename, FS::FileAccessMode::Write, FS::FileType::TextFile);
     }
 
     ~FileBackend() override = default;
 
     void Write(const Entry& entry) override {
-        if (!enabled) {
+        if (!enabled)
             return;
-        }
 
         auto message = FormatLogMessage(entry).append(1, '\n');
-
-#ifndef ANDROID
+#ifndef __ANDROID__
         if (Settings::values.censor_username.GetValue()) {
-            char* username = getenv("USER");
-            if (!username) {
-                username = getenv("USERNAME");
-            }
-            boost::replace_all(message, username, "user");
+            // This must be a static otherwise it would get checked on EVERY
+            // instance of logging an entry...
+            static std::string username = []() -> std::string {
+                auto* s = getenv("USER");
+                if (s == nullptr)
+                    s = getenv("USERNAME");
+                return std::string{s};
+            }();
+            if (!username.empty())
+                boost::replace_all(message, username, "user");
         }
 #endif
-
         bytes_written += file->WriteString(message);
 
         // Option to log each line rather than 4k buffers
-        if (Settings::values.log_flush_line.GetValue()) {
+        if (Settings::values.log_flush_line.GetValue())
             file->Flush();
-        }
 
         using namespace Common::Literals;
         // Prevent logs from exceeding a set maximum size in the event that log entries are spammed.
         const auto write_limit = Settings::values.extended_logging.GetValue() ? 1_GiB : 100_MiB;
         const bool write_limit_exceeded = bytes_written > write_limit;
         if (entry.log_level >= Level::Error || write_limit_exceeded) {
-            if (write_limit_exceeded) {
-                // Stop writing after the write limit is exceeded.
-                // Don't close the file so we can print a stacktrace if necessary
+            // Stop writing after the write limit is exceeded.
+            // Don't close the file so we can print a stacktrace if necessary
+            if (write_limit_exceeded)
                 enabled = false;
-            }
             file->Flush();
         }
     }
@@ -157,8 +151,8 @@ public:
 
 private:
     std::unique_ptr<FS::IOFile> file;
-    bool enabled = true;
     std::size_t bytes_written = 0;
+    bool enabled = true;
 };
 
 /**
@@ -209,9 +203,8 @@ bool initialization_in_progress_suppress_logging = true;
 class Impl {
 public:
     static Impl& Instance() {
-        if (!instance) {
+        if (!instance)
             throw std::runtime_error("Using Logging instance before its initialization");
-        }
         return *instance;
     }
 
@@ -277,25 +270,21 @@ private:
             };
             while (!stop_token.stop_requested()) {
                 message_queue.PopWait(entry, stop_token);
-                if (entry.filename != nullptr) {
+                if (entry.filename != nullptr)
                     write_logs();
-                }
             }
             // Drain the logging queue. Only writes out up to MAX_LOGS_TO_WRITE to prevent a
             // case where a system is repeatedly spamming logs even on close.
             int max_logs_to_write = filter.IsDebug() ? INT_MAX : 100;
-            while (max_logs_to_write-- && message_queue.TryPop(entry)) {
+            while (max_logs_to_write-- && message_queue.TryPop(entry))
                 write_logs();
-            }
         });
     }
 
     void StopBackendThread() {
         backend_thread.request_stop();
-        if (backend_thread.joinable()) {
+        if (backend_thread.joinable())
             backend_thread.join();
-        }
-
         ForEachBackend([](Backend& backend) { backend.Flush(); });
     }
 
@@ -304,7 +293,6 @@ private:
         using std::chrono::duration_cast;
         using std::chrono::microseconds;
         using std::chrono::steady_clock;
-
         return {
             .timestamp = duration_cast<microseconds>(steady_clock::now() - time_origin),
             .log_class = log_class,

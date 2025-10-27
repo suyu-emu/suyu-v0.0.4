@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,26 +31,18 @@ class DebuggerBackend {
 public:
     virtual ~DebuggerBackend() = default;
 
-    /**
-     * Can be invoked from a callback to synchronously wait for more data.
-     * Will return as soon as least one byte is received. Reads up to 4096 bytes.
-     */
+    /// Can be invoked from a callback to synchronously wait for more data.
+    /// Will return as soon as least one byte is received. Reads up to 4096 bytes.
     virtual std::span<const u8> ReadFromClient() = 0;
 
-    /**
-     * Can be invoked from a callback to write data to the client.
-     * Returns immediately after the data is sent.
-     */
+    /// Can be invoked from a callback to write data to the client.
+    /// Returns immediately after the data is sent.
     virtual void WriteToClient(std::span<const u8> data) = 0;
 
-    /**
-     * Gets the currently active thread when the debugger is stopped.
-     */
+    /// Gets the currently active thread when the debugger is stopped.
     virtual Kernel::KThread* GetActiveThread() = 0;
 
-    /**
-     * Sets the currently active thread when the debugger is stopped.
-     */
+    /// Sets the currently active thread when the debugger is stopped.
     virtual void SetActiveThread(Kernel::KThread* thread) = 0;
 };
 
@@ -57,30 +52,20 @@ public:
 
     virtual ~DebuggerFrontend() = default;
 
-    /**
-     * Called after the client has successfully connected to the port.
-     */
+    /// Called after the client has successfully connected to the port.
     virtual void Connected() = 0;
 
-    /**
-     * Called when emulation has stopped.
-     */
+    /// Called when emulation has stopped.
     virtual void Stopped(Kernel::KThread* thread) = 0;
 
-    /**
-     * Called when emulation is shutting down.
-     */
+    /// Called when emulation is shutting down.
     virtual void ShuttingDown() = 0;
 
-    /*
-     * Called when emulation has stopped on a watchpoint.
-     */
+    /// Called when emulation has stopped on a watchpoint.
     virtual void Watchpoint(Kernel::KThread* thread, const Kernel::DebugWatchpoint& watch) = 0;
 
-    /**
-     * Called when new data is asynchronously received on the client socket.
-     * A list of actions to perform is returned.
-     */
+    /// Called when new data is asynchronously received on the client socket.
+    /// A list of actions to perform is returned.
     [[nodiscard]] virtual std::vector<DebuggerAction> ClientData(std::span<const u8> data) = 0;
 
 protected:
