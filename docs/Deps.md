@@ -86,6 +86,8 @@ On riscv64:
 
 These are commands to install all necessary dependencies on various Linux and BSD distributions, as well as macOS. Always review what you're running before you hit Enter!
 
+Notes for writers: Include build tools as well, assume user has NOTHING installed (i.e a fresh install) but that they have updated beforehand so no `upgrade && update` or equivalent should be mentioned - except for rolling release systems like Arch.
+
 Click on the arrows to expand.
 
 <details>
@@ -137,6 +139,35 @@ sudo dnf install qt6-qtbase-private-devel
 </details>
 
 <details>
+<summary>Alpine Linux</summary>
+
+First, enable the community repository; [see here](https://wiki.alpinelinux.org/wiki/Repositories#Enabling_the_community_repository).
+```sh
+# Enable the community repository
+setup-apkrepos -c
+# Install
+apk add g++ git cmake make mbedtls-dev mbedtls-static mesa-dev qt6-qtbase-dev qt6-qtbase-private-dev libquazip1-qt6 ffmpeg-dev libusb-dev libtool boost-dev sdl2-dev zstd-dev vulkan-utility-libraries spirv-tools-dev openssl-dev nlohmann-json lz4-dev opus-dev jq patch
+```
+
+`mbedtls-static` has to be specified otherwise `libeverest.a` and `libp256m.a` will fail to be found.
+
+</details>
+<summary>Void Linux</summary>
+
+```sh
+xbps-install -Su git make cmake clang pkg-config patch mbedtls-devel SPIRV-Tools-devel SPIRV-Headers lz4 liblz4-devel boost-devel ffmpeg6-devel catch2 Vulkan-Utility-Libraries Vulkan-Headers glslang openssl-devel SDL2-devel quazip-qt6-devel qt6-base-devel qt6-qt5compat-devel fmt-devel json-c++ libenet-devel libusb-devel
+```
+
+Yes, `nlohmann-json` is just named `json-c++`. Why?
+
+</details>
+<details>
+<summary>NixOS</summary>
+
+A convenience script is provided on the root of this project [shell.nix](../shell.nix). Run the usual `nix-shell`.
+
+</details>
+<details>
 <summary>macOS</summary>
 
 Install dependencies from **[Homebrew](https://brew.sh/)**
@@ -173,7 +204,6 @@ For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv
 [Caveats](./Caveats.md#netbsd).
 
 </details>
-
 <details>
 <summary>OpenBSD</summary>
 
@@ -185,7 +215,6 @@ pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gm
 [Caveats](./Caveats.md#openbsd).
 
 </details>
-
 <details>
 <summary>Solaris / OpenIndiana</summary>
 
@@ -201,7 +230,6 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
 [Caveats](./Caveats.md#solaris).
 
 </details>
-
 <details>
 <summary>MSYS2</summary>
 
@@ -226,13 +254,13 @@ pacman -Syu --needed --noconfirm $packages
 * Add MinGW binaries to the PATH if they aren't already:
   * `echo 'PATH=/mingw64/bin:$PATH' >> ~/.bashrc`
   * or `echo 'PATH=/mingw64/bin:$PATH' >> ~/.zshrc`
-</details>
 
+</details>
 <details>
 <summary>HaikuOS</summary>
 
 ```sh
-pkgman install git cmake libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt6_devel qt6_5compat_devel zydis_devel libusb_devel libz_devel glslang
+pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt6_devel qt6_5compat_devel zydis_devel libusb1_devel libz_devel glslang mbedtls3
 ```
 
 [Caveats](./Caveats.md#haikuos).

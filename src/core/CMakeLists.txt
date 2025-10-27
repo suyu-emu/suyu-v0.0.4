@@ -1181,13 +1181,14 @@ if (MSVC)
 else()
     target_compile_options(core PRIVATE
         -Werror=conversion
-
         -Wno-sign-conversion
         -Wno-cast-function-type
-
         $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
-        $<$<CXX_COMPILER_ID:Clang>:-Wno-cast-function-type-mismatch>
     )
+    # pre-clang19 will spam with "OH DID YOU MEAN THIS?" otherwise...
+    if (CXX_CLANG AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19)
+        target_compile_options(core PRIVATE -Wno-cast-function-type-mismatch)
+    endif()
 endif()
 
 target_include_directories(core PRIVATE ${OPUS_INCLUDE_DIRS})
