@@ -105,6 +105,7 @@ public:
 
     void ResetUserSaveFile();
 
+    std::vector<std::string> FindGoodProfiles();
     std::vector<std::string> FindOrphanedProfiles();
 
 private:

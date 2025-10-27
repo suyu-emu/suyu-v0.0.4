@@ -488,7 +488,7 @@ void ProfileManager::ResetUserSaveFile()
     ParseUserSaveFile();
 }
 
-std::vector<std::string> ProfileManager::FindOrphanedProfiles()
+std::vector<std::string> ProfileManager::FindGoodProfiles()
 {
     std::vector<std::string> good_uuids;
 
@@ -511,6 +511,13 @@ std::vector<std::string> ProfileManager::FindOrphanedProfiles()
 
     // used for acnh, etc
     good_uuids.emplace_back("00000000000000000000000000000000");
+
+    return good_uuids;
+}
+
+std::vector<std::string> ProfileManager::FindOrphanedProfiles()
+{
+    std::vector<std::string> good_uuids = FindGoodProfiles();
 
     // TODO: fetch save_id programmatically
     const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)

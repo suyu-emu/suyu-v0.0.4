@@ -330,6 +330,7 @@ void FixProfiles()
     // TODO: better solution
     system->GetProfileManager().ResetUserSaveFile();
     std::vector<std::string> orphaned = system->GetProfileManager().FindOrphanedProfiles();
+    std::vector<std::string> good = system->GetProfileManager().FindGoodProfiles();
 
     // no orphaned dirs--all good :)
     if (orphaned.empty())
@@ -346,15 +347,27 @@ void FixProfiles()
         qorphaned = qorphaned % QStringLiteral("\n") % QString::fromStdString(s);
     }
 
+    QString qgood;
+
+    // max. of 8 good profiles is fair, I think
+    // 33 = 32 (UUID) + 1 (\n)
+    qgood.reserve(8 * 33);
+
+    for (const std::string& s : good) {
+        qgood = qgood % QStringLiteral("\n") % QString::fromStdString(s);
+    }
+
     QtCommon::Frontend::Critical(
         tr("Orphaned Profiles Detected!"),
         tr("UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON'T READ THIS!\n"
            "Eden has detected the following save directories with no attached profile:\n"
            "%1\n\n"
+           "The following profiles are valid:\n"
+           "%2\n\n"
            "Click \"OK\" to open your save folder and fix up your profiles.\n"
-           "Hint: copy the contents of the largest or last-modified folder  elsewhere, "
+           "Hint: copy the contents of the largest or last-modified folder elsewhere, "
            "delete all orphaned profiles, and move your copied contents to the good profile.")
-            .arg(qorphaned));
+            .arg(qorphaned, qgood));
 
     QtCommon::Game::OpenSaveFolder();
 }
