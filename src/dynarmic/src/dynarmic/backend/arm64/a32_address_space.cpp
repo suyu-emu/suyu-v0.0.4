@@ -13,7 +13,7 @@
 #include "dynarmic/backend/arm64/devirtualize.h"
 #include "dynarmic/backend/arm64/emit_arm64.h"
 #include "dynarmic/backend/arm64/stack_layout.h"
-#include "dynarmic/common/type_util.h"
+#include "dynarmic/common/cast_util.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/frontend/A32/translate/a32_translate.h"
@@ -93,9 +93,9 @@ static void* EmitExclusiveReadCallTrampoline(oaknut::CodeGenerator& code, const 
 
     code.align(8);
     code.l(l_this);
-    code.dx(std::bit_cast<u64>(&conf));
+    code.dx(mcl::bit_cast<u64>(&conf));
     code.l(l_addr);
-    code.dx(std::bit_cast<u64>(Common::FptrCast(fn)));
+    code.dx(mcl::bit_cast<u64>(Common::FptrCast(fn)));
 
     return target;
 }
@@ -151,9 +151,9 @@ static void* EmitExclusiveWriteCallTrampoline(oaknut::CodeGenerator& code, const
 
     code.align(8);
     code.l(l_this);
-    code.dx(std::bit_cast<u64>(&conf));
+    code.dx(mcl::bit_cast<u64>(&conf));
     code.l(l_addr);
-    code.dx(std::bit_cast<u64>(Common::FptrCast(fn)));
+    code.dx(mcl::bit_cast<u64>(Common::FptrCast(fn)));
 
     return target;
 }
@@ -219,7 +219,7 @@ void A32AddressSpace::EmitPrelude() {
         code.MOV(Xstate, X1);
         code.MOV(Xhalt, X2);
         if (conf.page_table) {
-            code.MOV(Xpagetable, std::bit_cast<u64>(conf.page_table));
+            code.MOV(Xpagetable, mcl::bit_cast<u64>(conf.page_table));
         }
         if (conf.fastmem_pointer) {
             code.MOV(Xfastmem, *conf.fastmem_pointer);
@@ -258,7 +258,7 @@ void A32AddressSpace::EmitPrelude() {
         code.MOV(Xstate, X1);
         code.MOV(Xhalt, X2);
         if (conf.page_table) {
-            code.MOV(Xpagetable, std::bit_cast<u64>(conf.page_table));
+            code.MOV(Xpagetable, mcl::bit_cast<u64>(conf.page_table));
         }
         if (conf.fastmem_pointer) {
             code.MOV(Xfastmem, *conf.fastmem_pointer);
@@ -317,9 +317,9 @@ void A32AddressSpace::EmitPrelude() {
 
         code.align(8);
         code.l(l_this);
-        code.dx(std::bit_cast<u64>(this));
+        code.dx(mcl::bit_cast<u64>(this));
         code.l(l_addr);
-        code.dx(std::bit_cast<u64>(Common::FptrCast(fn)));
+        code.dx(mcl::bit_cast<u64>(Common::FptrCast(fn)));
     }
 
     prelude_info.return_from_run_code = code.xptr<void*>();
@@ -347,7 +347,7 @@ void A32AddressSpace::EmitPrelude() {
 
     code.align(8);
     code.l(l_return_to_dispatcher);
-    code.dx(std::bit_cast<u64>(prelude_info.return_to_dispatcher));
+    code.dx(mcl::bit_cast<u64>(prelude_info.return_to_dispatcher));
 
     prelude_info.end_of_prelude = code.offset();
 
@@ -369,7 +369,7 @@ EmitConfig A32AddressSpace::GetEmitConfig() {
 
         .check_halt_on_memory_access = conf.check_halt_on_memory_access,
 
-        .page_table_pointer = std::bit_cast<u64>(conf.page_table),
+        .page_table_pointer = mcl::bit_cast<u64>(conf.page_table),
         .page_table_address_space_bits = 32,
         .page_table_pointer_mask_bits = conf.page_table_pointer_mask_bits,
         .silently_mirror_page_table = true,

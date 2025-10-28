@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "dynarmic/common/assert.h"
-#include <numeric>
+#include <mcl/bit_cast.hpp>
 
 #include "dynarmic/ir/opcodes.h"
 

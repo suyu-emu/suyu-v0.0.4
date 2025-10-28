@@ -11,10 +11,10 @@
 #include <algorithm>
 #include <array>
 #include <iterator>
-#include <bit>
-#include <numeric>
+
 #include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
+#include <mcl/bit_cast.hpp>
 #include <mcl/mp/metavalue/lift_value.hpp>
 #include "dynarmic/common/common_types.h"
 
@@ -22,6 +22,7 @@
 #include "dynarmic/backend/arm64/emit_context.h"
 #include "dynarmic/backend/arm64/fpsr_manager.h"
 #include "dynarmic/backend/arm64/verbose_debugging_output.h"
+#include "dynarmic/common/always_false.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -245,7 +246,7 @@ void RegAlloc::AssertNoMoreUses() const {
 }
 
 void RegAlloc::EmitVerboseDebuggingOutput() {
-    code.MOV(X19, std::bit_cast<u64>(&PrintVerboseDebuggingOutputLine));  // Non-volatile register
+    code.MOV(X19, mcl::bit_cast<u64>(&PrintVerboseDebuggingOutputLine));  // Non-volatile register
 
     const auto do_location = [&](HostLocInfo& info, HostLocType type, size_t index) {
         using namespace oaknut::util;
@@ -300,7 +301,7 @@ int RegAlloc::GenerateImmediate(const IR::Value& value) {
 
         return 0;
     } else {
-        return 0;//static_assert(false);
+        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
     }
 }
 
@@ -369,7 +370,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
     } else if constexpr (required_kind == HostLoc::Kind::Flags) {
         ASSERT_FALSE("A simple read from flags is likely a logic error.");
     } else {
-        return 0;//static_assert(false);
+        static_assert(Common::always_false_v<mcl::mp::lift_value<required_kind>>);
     }
 }
 
@@ -394,7 +395,7 @@ int RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
         flags.SetupLocation(value);
         return 0;
     } else {
-        return 0; //static_assert(false);
+        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
     }
 }
 
@@ -415,7 +416,7 @@ int RegAlloc::RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* 
     } else if constexpr (kind == HostLoc::Kind::Flags) {
         ASSERT_FALSE("Incorrect function for ReadWrite of flags");
     } else {
-        return write_loc; //static_assert(false);
+        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
     }
 }
 

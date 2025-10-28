@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -10,8 +7,8 @@
 
 #include <optional>
 #include <utility>
-#include <bit>
-#include <numeric>
+
+#include <mcl/bit_cast.hpp>
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/backend/arm64/abi.h"
@@ -551,7 +548,7 @@ void FastmemEmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::In
             FastmemPatchInfo{
                 .marker = marker,
                 .fc = FakeCall{
-                    .call_pc = std::bit_cast<u64>(code.xptr<void*>()),
+                    .call_pc = mcl::bit_cast<u64>(code.xptr<void*>()),
                 },
                 .recompile = ctx.conf.recompile_on_fastmem_failure,
             });
@@ -601,7 +598,7 @@ void FastmemEmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::I
             FastmemPatchInfo{
                 .marker = marker,
                 .fc = FakeCall{
-                    .call_pc = std::bit_cast<u64>(code.xptr<void*>()),
+                    .call_pc = mcl::bit_cast<u64>(code.xptr<void*>()),
                 },
                 .recompile = ctx.conf.recompile_on_fastmem_failure,
             });

@@ -12,7 +12,7 @@
 
 #include "dynarmic/common/common_types.h"
 #include "dynarmic/common/assert.h"
-#include <numeric>
+#include <mcl/bit_cast.hpp>
 
 #include "dynarmic/ir/opcodes.h"
 #include "dynarmic/ir/acc_type.h"
@@ -2931,19 +2931,19 @@ public:
     }
 
     void CallHostFunction(void (*fn)(void)) {
-        Inst(Opcode::CallHostFunction, Imm64(std::bit_cast<u64>(fn)), Value{}, Value{}, Value{});
+        Inst(Opcode::CallHostFunction, Imm64(mcl::bit_cast<u64>(fn)), Value{}, Value{}, Value{});
     }
 
     void CallHostFunction(void (*fn)(u64), const U64& arg1) {
-        Inst(Opcode::CallHostFunction, Imm64(std::bit_cast<u64>(fn)), arg1, Value{}, Value{});
+        Inst(Opcode::CallHostFunction, Imm64(mcl::bit_cast<u64>(fn)), arg1, Value{}, Value{});
     }
 
     void CallHostFunction(void (*fn)(u64, u64), const U64& arg1, const U64& arg2) {
-        Inst(Opcode::CallHostFunction, Imm64(std::bit_cast<u64>(fn)), arg1, arg2, Value{});
+        Inst(Opcode::CallHostFunction, Imm64(mcl::bit_cast<u64>(fn)), arg1, arg2, Value{});
     }
 
     void CallHostFunction(void (*fn)(u64, u64, u64), const U64& arg1, const U64& arg2, const U64& arg3) {
-        Inst(Opcode::CallHostFunction, Imm64(std::bit_cast<u64>(fn)), arg1, arg2, arg3);
+        Inst(Opcode::CallHostFunction, Imm64(mcl::bit_cast<u64>(fn)), arg1, arg2, arg3);
     }
 
     void SetTerm(const Terminal& terminal) {

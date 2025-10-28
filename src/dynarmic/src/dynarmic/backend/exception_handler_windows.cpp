@@ -6,6 +6,8 @@
  * SPDX-License-Identifier: 0BSD
  */
 
+#include <mcl/macro/architecture.hpp>
+
 #if defined(ARCHITECTURE_x86_64)
 #    include "dynarmic/backend/x64/exception_handler_windows.cpp"
 #elif defined(ARCHITECTURE_arm64)

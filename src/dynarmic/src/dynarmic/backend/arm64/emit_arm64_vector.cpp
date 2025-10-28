@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -15,6 +12,7 @@
 #include "dynarmic/backend/arm64/emit_context.h"
 #include "dynarmic/backend/arm64/fpsr_manager.h"
 #include "dynarmic/backend/arm64/reg_alloc.h"
+#include "dynarmic/common/always_false.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/opcodes.h"
@@ -45,7 +43,7 @@ static void EmitTwoOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR:
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qoperand->D2());
         } else {
-            //static_assert(false);
+            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
         }
     });
 }
@@ -68,7 +66,7 @@ static void EmitTwoOpArrangedWiden(oaknut::CodeGenerator& code, EmitContext& ctx
         } else if constexpr (size == 32) {
             emit(Qresult->D2(), Qoperand->toD().S2());
         } else {
-            //static_assert(false);
+            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
         }
     });
 }
@@ -83,7 +81,7 @@ static void EmitTwoOpArrangedNarrow(oaknut::CodeGenerator& code, EmitContext& ct
         } else if constexpr (size == 64) {
             emit(Qresult->toD().S2(), Qoperand->D2());
         } else {
-            //static_assert(false);
+            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
         }
     });
 }
@@ -106,7 +104,7 @@ static void EmitTwoOpArrangedPairWiden(oaknut::CodeGenerator& code, EmitContext&
         } else if constexpr (size == 32) {
             emit(Qresult->D2(), Qoperand->S4());
         } else {
-            //static_assert(false);
+            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
         }
     });
 }
@@ -121,7 +119,7 @@ static void EmitTwoOpArrangedLower(oaknut::CodeGenerator& code, EmitContext& ctx
         } else if constexpr (size == 32) {
             emit(Qresult->toD().S2(), Qoperand->toD().S2());
         } else {
-            //static_assert(false);
+            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
         }
     });
 }
@@ -149,7 +147,7 @@ static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, I
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qa->D2(), Qb->D2());
         } else {
-            //static_assert(false);
+            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
         }
     });
 }
@@ -174,7 +172,7 @@ static void EmitThreeOpArrangedWiden(oaknut::CodeGenerator& code, EmitContext& c
         } else if constexpr (size == 64) {
             emit(Qresult->Q1(), Qa->toD().D1(), Qb->toD().D1());
         } else {
-            //static_assert(false);
+            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
         }
     });
 }
@@ -197,7 +195,7 @@ static void EmitThreeOpArrangedLower(oaknut::CodeGenerator& code, EmitContext& c
         } else if constexpr (size == 32) {
             emit(Qresult->toD().S2(), Qa->toD().S2(), Qb->toD().S2());
         } else {
-            //static_assert(false);
+            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
         }
     });
 }
@@ -219,7 +217,7 @@ static void EmitSaturatedAccumulate(oaknut::CodeGenerator&, EmitContext& ctx, IR
     } else if constexpr (size == 64) {
         emit(Qaccumulator->D2(), Qoperand->D2());
     } else {
-        //static_assert(false);
+        static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
     }
 }
 
@@ -240,7 +238,7 @@ static void EmitImmShift(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* ins
     } else if constexpr (size == 64) {
         emit(Qresult->D2(), Qoperand->D2(), shift_amount);
     } else {
-        //static_assert(false);
+        static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
     }
 }
 
@@ -268,7 +266,7 @@ static void EmitReduce(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst,
     } else if constexpr (size == 64) {
         emit(Vresult, Qoperand->D2());
     } else {
-        //static_assert(false);
+        static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
     }
 }
 

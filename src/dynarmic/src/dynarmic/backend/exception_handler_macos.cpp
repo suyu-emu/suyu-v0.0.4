@@ -19,7 +19,8 @@
 
 #include <fmt/format.h>
 #include "dynarmic/common/assert.h"
-#include <numeric>
+#include <mcl/bit_cast.hpp>
+#include <mcl/macro/architecture.hpp>
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/exception_handler.h"
@@ -145,7 +146,7 @@ kern_return_t MachHandler::HandleRequest(x86_thread_state64_t* ts) {
     FakeCall fc = iter->cb(ts->__rip);
 
     ts->__rsp -= sizeof(u64);
-    *std::bit_cast<u64*>(ts->__rsp) = fc.ret_rip;
+    *mcl::bit_cast<u64*>(ts->__rsp) = fc.ret_rip;
     ts->__rip = fc.call_rip;
 
     return KERN_SUCCESS;
@@ -270,13 +271,13 @@ ExceptionHandler::~ExceptionHandler() = default;
 
 #if defined(ARCHITECTURE_x86_64)
 void ExceptionHandler::Register(X64::BlockOfCode& code) {
-    const u64 code_begin = std::bit_cast<u64>(code.getCode());
+    const u64 code_begin = mcl::bit_cast<u64>(code.getCode());
     const u64 code_end = code_begin + code.GetTotalCodeSize();
     impl = std::make_unique<Impl>(code_begin, code_end);
 }
 #elif defined(ARCHITECTURE_arm64)
 void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
-    const u64 code_begin = std::bit_cast<u64>(mem.ptr());
+    const u64 code_begin = mcl::bit_cast<u64>(mem.ptr());
     const u64 code_end = code_begin + size;
     impl = std::make_unique<Impl>(code_begin, code_end);
 }

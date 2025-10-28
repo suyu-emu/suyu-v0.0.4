@@ -1,13 +1,9 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <bit>
-#include <numeric>
+#include <mcl/bit_cast.hpp>
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/backend/arm64/a64_jitstate.h"
@@ -499,7 +495,7 @@ template<>
 void EmitIR<IR::Opcode::A64GetTPIDR>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto Xvalue = ctx.reg_alloc.WriteX(inst);
     RegAlloc::Realize(Xvalue);
-    code.MOV(Xscratch0, std::bit_cast<u64>(ctx.conf.tpidr_el0));
+    code.MOV(Xscratch0, mcl::bit_cast<u64>(ctx.conf.tpidr_el0));
     code.LDR(Xvalue, Xscratch0);
 }
 
@@ -507,7 +503,7 @@ template<>
 void EmitIR<IR::Opcode::A64GetTPIDRRO>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto Xvalue = ctx.reg_alloc.WriteX(inst);
     RegAlloc::Realize(Xvalue);
-    code.MOV(Xscratch0, std::bit_cast<u64>(ctx.conf.tpidrro_el0));
+    code.MOV(Xscratch0, mcl::bit_cast<u64>(ctx.conf.tpidrro_el0));
     code.LDR(Xvalue, Xscratch0);
 }
 
@@ -516,7 +512,7 @@ void EmitIR<IR::Opcode::A64SetTPIDR>(oaknut::CodeGenerator& code, EmitContext& c
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xvalue = ctx.reg_alloc.ReadX(args[0]);
     RegAlloc::Realize(Xvalue);
-    code.MOV(Xscratch0, std::bit_cast<u64>(ctx.conf.tpidr_el0));
+    code.MOV(Xscratch0, mcl::bit_cast<u64>(ctx.conf.tpidr_el0));
     code.STR(Xvalue, Xscratch0);
 }
 
