@@ -240,7 +240,7 @@ private:
     /// Ring buffer of the samples waiting to be played or consumed
     Common::RingBuffer<s16, 0x10000> samples_buffer;
     /// Audio buffers queued and waiting to play
-    Common::SPSCQueue<SinkBuffer, 0x40000> queue;
+    Common::SPSCQueue<SinkBuffer, 0x10000> queue;
     /// The currently-playing audio buffer
     SinkBuffer playing_buffer{};
     /// The last played (or received) frame of audio, used when the callback underruns
