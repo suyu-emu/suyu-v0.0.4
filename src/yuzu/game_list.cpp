@@ -553,6 +553,7 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     QAction* open_mod_location = context_menu.addAction(tr("Open Mod Data Location"));
     QAction* open_transferable_shader_cache =
         context_menu.addAction(tr("Open Transferable Pipeline Cache"));
+    QAction* ryujinx = context_menu.addAction(tr("Link to Ryujinx"));
     context_menu.addSeparator();
     QMenu* remove_menu = context_menu.addMenu(tr("Remove"));
     QAction* remove_update = remove_menu->addAction(tr("Remove Installed Update"));
@@ -582,7 +583,6 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
 #endif
     context_menu.addSeparator();
     QAction* properties = context_menu.addAction(tr("Configure Game"));
-    QAction* ryujinx = context_menu.addAction(tr("Link to Ryujinx"));
 
     favorite->setVisible(program_id != 0);
     favorite->setCheckable(true);
