@@ -60,27 +60,21 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
     case TextureType::Texture1D:
         ASSERT(config.Height() == 1);
         ASSERT(config.Depth() == 1);
-        ASSERT(base_layer == 0);
         type = ImageViewType::e1D;
-        range.extent.layers = 1;
         break;
     case TextureType::Texture1DArray:
-        ASSERT(config.Depth() > 0);
-        ASSERT(static_cast<u32>(base_layer) < config.Depth());
+        ASSERT(config.Height() == 1);
         type = ImageViewType::e1DArray;
-        range.extent.layers = config.Depth() - base_layer;
+        range.extent.layers = config.Depth();
         break;
     case TextureType::Texture2D:
     case TextureType::Texture2DNoMipmap:
         ASSERT(config.Depth() == 1);
         type = config.normalized_coords ? ImageViewType::e2D : ImageViewType::Rect;
-        range.extent.layers = 1;
         break;
     case TextureType::Texture2DArray:
-        ASSERT(config.Depth() > 0);
-        ASSERT(static_cast<u32>(base_layer) < config.Depth());
         type = ImageViewType::e2DArray;
-        range.extent.layers = config.Depth() - base_layer;
+        range.extent.layers = config.Depth();
         break;
     case TextureType::TextureCubemap:
         ASSERT(config.Depth() == 1);
@@ -88,19 +82,14 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
         range.extent.layers = 6;
         break;
     case TextureType::TextureCubeArray:
-        ASSERT(config.Depth() > 0);
-        ASSERT(static_cast<u32>(base_layer) < config.Depth());
         type = ImageViewType::CubeArray;
-        range.extent.layers = (config.Depth() - base_layer) * 6;
+        range.extent.layers = config.Depth() * 6;
         break;
     case TextureType::Texture3D:
-        ASSERT(base_layer == 0);
         type = ImageViewType::e3D;
-        range.extent.layers = 1;
         break;
     case TextureType::Texture1DBuffer:
         type = ImageViewType::Buffer;
-        range.extent.layers = 1;
         break;
     default:
         ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(tex_type));
