@@ -47,6 +47,26 @@ Various graphical filters exist - each of them aimed at a specific target/image 
 
 While stock shaders offer a basic subset of options for most users, programs such as [ReShade](https://github.com/crosire/reshade) offer a more flexible experience. In addition to that users can also seek out modifications (mods) for enhancing visual experience (60 FPS mods, HDR, etc).
 
+**Installing ReShade (Windows)**
+1. [Download ReShade](https://reshade.me/#download) with add-on support.
+ - [ReShade Setup 6.6.2 (Windows 64-bit) with add-on support](https://reshade.me/downloads/ReShade_Setup_6.6.2_Addon.exe)
+ - SHA512 checksum: `1f09a73afa160480c13ffdd73cc04b1dc82943dddea58ad3bb9375f26b48c2787d0a85197e46b6fce32a4fd3472465520a3355ed3436241e17fba7ebaff7ffec`.
+2. Open ReShade and hit browse, then the folder where `eden.exe` is at, hit open, then hit next.
+3. Select Vulkan as the rendering API, hit next.
+4. In "Select effects to install" screen: hit next don't change anything.
+5. In "Select add on" screen: click the box for `Shader Toggler by Otis` ([GitHub](https://github.com/FransBouma/ShaderToggler)) and hit next.
+
+**Using the Shader Toggler**
+1. Launch a game, you must see a ReShade pop up afterwards.
+2. Progress to a point with a flickering shader.
+3. Hit the Home key on keyboard (or change binds if you don't have one).
+4. Navigate to the add on tab at the top of the ReShade menu.
+5. At the bottom where Shader Toggler is at open the drop down and max out the slider that says "# of fames collected" then select change shaders while staring at the flickering shader.
+6. When the Shader Toggler finishes collecting frames in the top left hit Numpad 2 till it turns off the flickering lines.
+7. Hit Numpad 3 to add it the group of shaders to turn off and hit done and save all toggle groups.
+8. Hit the edit button and select "active at startup" for the shader to be turned off on every game launch.
+9. Caps lock to manually turn on and off the shader (default key you can change it with the previous edit button) 
+
 ## Driver specifics
 
 ### Mesa environment variable hacks
