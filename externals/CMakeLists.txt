@@ -219,7 +219,7 @@ if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
 endif()
 
 # cpp-jwt
-if (ENABLE_WEB_SERVICE)
+if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
     AddJsonPackage(cpp-jwt)
 endif()
 
