@@ -25,18 +25,28 @@ using Thumb16Matcher = Decoder::Matcher<Visitor, u16>;
 
 template<typename V>
 std::optional<std::reference_wrapper<const Thumb16Matcher<V>>> DecodeThumb16(u16 instruction) {
-    static const std::vector<Thumb16Matcher<V>> table = {
-
+    alignas(64) static const std::vector<Thumb16Matcher<V>> table = {
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(Thumb16Matcher, fn, name, Decoder::detail::StringToArray<16>(bitstring)),
 #include "./thumb16.inc"
 #undef INST
-
     };
-
-    const auto matches_instruction = [instruction](const auto& matcher) { return matcher.Matches(instruction); };
-
-    auto iter = std::find_if(table.begin(), table.end(), matches_instruction);
+    auto iter = std::find_if(table.begin(), table.end(), [instruction](const auto& matcher) {
+        return matcher.Matches(instruction);
+    });
     return iter != table.end() ? std::optional<std::reference_wrapper<const Thumb16Matcher<V>>>(*iter) : std::nullopt;
+}
+
+template<typename V>
+std::optional<std::string_view> GetNameThumb16(u32 inst) noexcept {
+    std::vector<std::pair<std::string_view, Thumb16Matcher<V>>> list = {
+#define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(Thumb16Matcher, fn, name, Decoder::detail::StringToArray<16>(bitstring)) },
+#include "./thumb16.inc"
+#undef INST
+    };
+    auto const iter = std::find_if(list.cbegin(), list.cend(), [inst](auto const& m) {
+        return m.second.Matches(inst);
+    });
+    return iter != list.cend() ? std::optional{iter->first} : std::nullopt;
 }
 
 }  // namespace Dynarmic::A32

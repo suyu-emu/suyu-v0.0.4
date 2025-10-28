@@ -12,6 +12,7 @@
 #include <functional>
 #include <optional>
 
+#include "boost/container/small_vector.hpp"
 #include "dynarmic/common/common_types.h"
 #include <xbyak/xbyak.h>
 #include <boost/container/static_vector.hpp>
@@ -77,13 +78,13 @@ public:
         return std::find(values.begin(), values.end(), inst) != values.end();
     }
     inline size_t GetMaxBitWidth() const noexcept {
-        return max_bit_width;
+        return 1 << max_bit_width;
     }
     void AddValue(IR::Inst* inst) noexcept;
     void EmitVerboseDebuggingOutput(BlockOfCode* code, size_t host_loc_index) const noexcept;
 private:
 //non trivial
-    std::vector<IR::Inst*> values; //24
+    boost::container::small_vector<IR::Inst*, 3> values; //24
     // Block state
     uint16_t total_uses = 0; //8
     //sometimes zeroed
@@ -93,10 +94,10 @@ private:
     uint16_t is_being_used_count = 0; //8
     uint16_t current_references = 0; //8
     // Value state
-    uint8_t max_bit_width = 0; //Valid values: 1,2,4,8,16,32,128
+    uint8_t lru_counter : 2 = 0; //1
+    uint8_t max_bit_width : 4 = 0; //Valid values: log2(1,2,4,8,16,32,128) = (0, 1, 2, 3, 4, 5, 6)
     bool is_scratch : 1 = false; //1
     bool is_set_last_use : 1 = false; //1
-    alignas(16) uint8_t lru_counter = 0; //1
     friend class RegAlloc;
 };
 static_assert(sizeof(HostLocInfo) == 64);

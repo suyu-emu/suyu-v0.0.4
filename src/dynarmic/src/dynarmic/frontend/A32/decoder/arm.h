@@ -30,13 +30,13 @@ template<typename Visitor>
 using ArmDecodeTable = std::array<std::vector<ArmMatcher<Visitor>>, 0x1000>;
 
 namespace detail {
-inline size_t ToFastLookupIndexArm(u32 instruction) {
+inline size_t ToFastLookupIndexArm(u32 instruction) noexcept {
     return ((instruction >> 4) & 0x00F) | ((instruction >> 16) & 0xFF0);
 }
 }  // namespace detail
 
 template<typename V>
-constexpr ArmDecodeTable<V> GetArmDecodeTable() {
+constexpr ArmDecodeTable<V> GetArmDecodeTable() noexcept {
     std::vector<ArmMatcher<V>> list = {
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./arm.inc"
@@ -62,15 +62,27 @@ constexpr ArmDecodeTable<V> GetArmDecodeTable() {
 }
 
 template<typename V>
-std::optional<std::reference_wrapper<const ArmMatcher<V>>> DecodeArm(u32 instruction) {
+std::optional<std::reference_wrapper<const ArmMatcher<V>>> DecodeArm(u32 instruction) noexcept {
     alignas(64) static const auto table = GetArmDecodeTable<V>();
     const auto matches_instruction = [instruction](const auto& matcher) {
         return matcher.Matches(instruction);
     };
-
     const auto& subtable = table[detail::ToFastLookupIndexArm(instruction)];
     auto iter = std::find_if(subtable.begin(), subtable.end(), matches_instruction);
     return iter != subtable.end() ? std::optional<std::reference_wrapper<const ArmMatcher<V>>>(*iter) : std::nullopt;
+}
+
+template<typename V>
+std::optional<std::string_view> GetNameARM(u32 inst) noexcept {
+    std::vector<std::pair<std::string_view, ArmMatcher<V>>> list = {
+#define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
+#include "./arm.inc"
+#undef INST
+    };
+    auto const iter = std::find_if(list.cbegin(), list.cend(), [inst](auto const& m) {
+        return m.second.Matches(inst);
+    });
+    return iter != list.cend() ? std::optional{iter->first} : std::nullopt;
 }
 
 }  // namespace Dynarmic::A32

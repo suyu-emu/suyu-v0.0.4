@@ -609,8 +609,8 @@ void EmitX64::EmitVectorArithmeticVShift16(EmitContext& ctx, IR::Inst* inst) {
 
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm left_shift = ctx.reg_alloc.UseScratchXmm(args[1]);
-        const Xbyak::Xmm right_shift = xmm16;
-        const Xbyak::Xmm tmp = xmm17;
+        const Xbyak::Xmm right_shift = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
 
         code.vmovdqa32(tmp, code.Const(xword, 0x00FF00FF00FF00FF, 0x00FF00FF00FF00FF));
         code.vpxord(right_shift, right_shift, right_shift);
@@ -674,8 +674,8 @@ void EmitX64::EmitVectorArithmeticVShift64(EmitContext& ctx, IR::Inst* inst) {
 
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm left_shift = ctx.reg_alloc.UseScratchXmm(args[1]);
-        const Xbyak::Xmm right_shift = xmm16;
-        const Xbyak::Xmm tmp = xmm17;
+        const Xbyak::Xmm right_shift = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
 
         code.vmovdqa32(tmp, code.Const(xword, 0x00000000000000FF, 0x00000000000000FF));
         code.vpxorq(right_shift, right_shift, right_shift);
@@ -1955,8 +1955,8 @@ void EmitX64::EmitVectorLogicalVShift16(EmitContext& ctx, IR::Inst* inst) {
 
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
         const Xbyak::Xmm left_shift = ctx.reg_alloc.UseScratchXmm(args[1]);
-        const Xbyak::Xmm right_shift = xmm16;
-        const Xbyak::Xmm tmp = xmm17;
+        const Xbyak::Xmm right_shift = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
 
         code.vmovdqa32(tmp, code.Const(xword, 0x00FF00FF00FF00FF, 0x00FF00FF00FF00FF));
         code.vpxord(right_shift, right_shift, right_shift);
@@ -2737,7 +2737,7 @@ void EmitX64::EmitVectorPairedAddSignedWiden32(EmitContext& ctx, IR::Inst* inst)
     const Xbyak::Xmm a = ctx.reg_alloc.UseScratchXmm(args[0]);
 
     if (code.HasHostFeature(HostFeature::AVX512_Ortho)) {
-        const Xbyak::Xmm c = xmm16;
+        const Xbyak::Xmm c = ctx.reg_alloc.ScratchXmm();
         code.vpsraq(c, a, 32);
         code.vpsllq(a, a, 32);
         code.vpsraq(a, a, 32);
@@ -5461,7 +5461,7 @@ void EmitX64::EmitVectorTableLookup128(EmitContext& ctx, IR::Inst* inst) {
     if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512BW)) {
         const Xbyak::Xmm indicies = ctx.reg_alloc.UseXmm(args[2]);
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
-        const Xbyak::Xmm masked = xmm16;
+        const Xbyak::Xmm masked = ctx.reg_alloc.ScratchXmm();
 
         code.vpandd(masked, indicies, code.Const(xword_b, 0xF0F0F0F0F0F0F0F0, 0xF0F0F0F0F0F0F0F0));
 

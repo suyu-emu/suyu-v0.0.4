@@ -40,18 +40,18 @@
 using namespace Dynarmic;
 
 std::string_view GetNameOfA32Instruction(u32 instruction) {
-    //if (auto const vfp_decoder = A32::DecodeVFP<A32::TranslatorVisitor>(instruction))
-    //    return *A32::GetNameVFP<A32::TranslatorVisitor>(instruction);
-    //else if (auto const asimd_decoder = A32::DecodeASIMD<A32::TranslatorVisitor>(instruction))
-    //    return *A32::GetNameASIMD<A32::TranslatorVisitor>(instruction);
-    //else if (auto const decoder = A32::DecodeArm<A32::TranslatorVisitor>(instruction))
-    //    return *A32::GetNameARM<A32::TranslatorVisitor>(instruction);
+    if (auto const vfp_decoder = A32::DecodeVFP<A32::TranslatorVisitor>(instruction))
+        return *A32::GetNameVFP<A32::TranslatorVisitor>(instruction);
+    else if (auto const asimd_decoder = A32::DecodeASIMD<A32::TranslatorVisitor>(instruction))
+        return *A32::GetNameASIMD<A32::TranslatorVisitor>(instruction);
+    else if (auto const decoder = A32::DecodeArm<A32::TranslatorVisitor>(instruction))
+        return *A32::GetNameARM<A32::TranslatorVisitor>(instruction);
     return "<null>";
 }
 
 std::string_view GetNameOfA64Instruction(u32 instruction) {
-    //if (auto const decoder = A64::Decode<A64::TranslatorVisitor>(instruction))
-    //    return *A64::GetName<A64::TranslatorVisitor>(instruction);
+    if (auto const decoder = A64::Decode<A64::TranslatorVisitor>(instruction))
+        return *A64::GetName<A64::TranslatorVisitor>(instruction);
     return "<null>";
 }
 

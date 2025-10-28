@@ -57,7 +57,7 @@ TEST_CASE("ASIMD Decoder: Ensure table order correctness", "[decode][a32][.]") {
             INFO("Instruction: " << std::hex << std::setfill('0') << std::setw(8) << instruction);
             INFO("Expect:      " << std::hex << std::setfill('0') << std::setw(8) << expect);
             INFO("Fill:        " << std::hex << std::setfill('0') << std::setw(8) << x);
-            //INFO("Name:        " << *A32::GetNameASIMD<A32::TranslatorVisitor>(instruction));
+            INFO("Name:        " << *A32::GetNameASIMD<A32::TranslatorVisitor>(instruction));
             INFO("iserr:       " << iserr);
             //INFO("alternative: " << alternative->GetName());
             INFO("altiserr:    " << altiserr);

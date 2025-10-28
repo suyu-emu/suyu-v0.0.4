@@ -80,16 +80,16 @@ public:
         };
 
         // TODO: Check code alignment
-
-        const CodePtr current_code_ptr = [this] {
+        const CodePtr aligned_code_ptr = CodePtr((uintptr_t(GetCurrentBlock()) + 15) & ~uintptr_t(15));
+        const CodePtr current_code_ptr = [this, aligned_code_ptr] {
             // RSB optimization
             const u32 new_rsb_ptr = (jit_state.rsb_ptr - 1) & A64JitState::RSBPtrMask;
             if (jit_state.GetUniqueHash() == jit_state.rsb_location_descriptors[new_rsb_ptr]) {
                 jit_state.rsb_ptr = new_rsb_ptr;
-                return reinterpret_cast<CodePtr>(jit_state.rsb_codeptrs[new_rsb_ptr]);
+                return CodePtr(jit_state.rsb_codeptrs[new_rsb_ptr]);
             }
-
-            return GetCurrentBlock();
+            return aligned_code_ptr;
+            //return GetCurrentBlock();
         }();
 
         const HaltReason hr = block_of_code.RunCode(&jit_state, current_code_ptr);

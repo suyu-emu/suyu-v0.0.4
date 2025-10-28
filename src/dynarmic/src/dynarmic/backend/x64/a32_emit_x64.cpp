@@ -28,7 +28,6 @@
 #include "dynarmic/backend/x64/nzcv_util.h"
 #include "dynarmic/backend/x64/perf_map.h"
 #include "dynarmic/backend/x64/stack_layout.h"
-#include "dynarmic/common/variant_util.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/frontend/A32/a32_types.h"
 #include "dynarmic/interface/A32/coprocessor.h"

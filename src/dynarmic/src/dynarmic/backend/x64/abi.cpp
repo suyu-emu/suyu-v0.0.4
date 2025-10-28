@@ -10,7 +10,6 @@
 
 #include <algorithm>
 
-#include <mcl/iterator/reverse.hpp>
 #include "dynarmic/common/common_types.h"
 #include <xbyak/xbyak.h>
 
@@ -76,7 +75,8 @@ void ABI_PopRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, 
     const FrameInfo frame_info = CalculateFrameInfo(num_gprs, num_xmms, frame_size);
 
     size_t xmm_offset = frame_info.xmm_offset + (num_xmms * XMM_SIZE);
-    for (auto const xmm : mcl::iterator::reverse(regs)) {
+    for (auto it = regs.rbegin(); it != regs.rend(); ++it) {
+        auto const xmm = *it;
         if (HostLocIsXMM(xmm)) {
             xmm_offset -= XMM_SIZE;
             if (code.HasHostFeature(HostFeature::AVX)) {
@@ -88,9 +88,11 @@ void ABI_PopRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, 
     }
     if (frame_info.stack_subtraction != 0)
         code.add(rsp, u32(frame_info.stack_subtraction));
-    for (auto const gpr : mcl::iterator::reverse(regs))
+    for (auto it = regs.rbegin(); it != regs.rend(); ++it) {
+        auto const gpr = *it;
         if (HostLocIsGPR(gpr))
             code.pop(HostLocToReg64(gpr));
+    }
 }
 
 void ABI_PushCalleeSaveRegistersAndAdjustStack(BlockOfCode& code, const std::size_t frame_size) {

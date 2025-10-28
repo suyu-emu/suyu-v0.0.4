@@ -11,6 +11,7 @@
 #include <iterator>
 
 #include "dynarmic/common/assert.h"
+#include <boost/variant/detail/apply_visitor_binary.hpp>
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/scope_exit.hpp>
 #include "dynarmic/common/common_types.h"
@@ -21,7 +22,6 @@
 #include "dynarmic/backend/x64/perf_map.h"
 #include "dynarmic/backend/x64/stack_layout.h"
 #include "dynarmic/backend/x64/verbose_debugging_output.h"
-#include "dynarmic/common/variant_util.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/opcodes.h"
@@ -347,14 +347,14 @@ EmitX64::BlockDescriptor EmitX64::RegisterBlock(const IR::LocationDescriptor& de
 }
 
 void EmitX64::EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    Common::VisitVariant<void>(terminal, [this, initial_location, is_single_step](auto x) {
+    boost::apply_visitor([this, initial_location, is_single_step](auto x) {
         using T = std::decay_t<decltype(x)>;
         if constexpr (!std::is_same_v<T, IR::Term::Invalid>) {
             this->EmitTerminalImpl(x, initial_location, is_single_step);
         } else {
             ASSERT_MSG(false, "Invalid terminal");
         }
-    });
+    }, terminal);
 }
 
 void EmitX64::Patch(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr) {

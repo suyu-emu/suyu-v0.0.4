@@ -70,11 +70,9 @@ struct detail {
         return std::make_tuple(mask, expect);
     }
 
-    /**
-     * Generates the masks and shifts for each argument.
-     * A '-' in a bitstring indicates that we don't care about that value.
-     * An argument is specified by a continuous string of the same character.
-     */
+    /// @brief Generates the masks and shifts for each argument.
+    /// A '-' in a bitstring indicates that we don't care about that value.
+    /// An argument is specified by a continuous string of the same character.
     template<size_t N>
     static consteval auto GetArgInfo(std::array<char, opcode_bitsize> bitstring) {
         std::array<opcode_type, N> masks = {};
@@ -98,7 +96,6 @@ struct detail {
 
                 if constexpr (N > 0) {
                     const size_t bit_position = opcode_bitsize - i - 1;
-
                     if (arg_index >= N)
                         throw std::out_of_range("Unexpected field");
 
@@ -109,20 +106,16 @@ struct detail {
                 }
             }
         }
-
 #if !defined(DYNARMIC_IGNORE_ASSERTS) && !defined(__ANDROID__)
         // Avoids a MSVC ICE, and avoids Android NDK issue.
         ASSERT(std::all_of(masks.begin(), masks.end(), [](auto m) { return m != 0; }));
 #endif
-
         return std::make_tuple(masks, shifts);
     }
 
-    /**
-     * This struct's Make member function generates a lambda which decodes an instruction based on
-     * the provided arg_masks and arg_shifts. The Visitor member function to call is provided as a
-     * template argument.
-     */
+    /// @brief This struct's Make member function generates a lambda which decodes an instruction
+    /// based on the provided arg_masks and arg_shifts. The Visitor member function to call is
+    /// provided as a template argument.
     template<typename FnT>
     struct VisitorCaller;
 
@@ -130,36 +123,36 @@ struct detail {
 #    pragma warning(push)
 #    pragma warning(disable : 4800)  // forcing value to bool 'true' or 'false' (performance warning)
 #endif
-    template<typename Visitor, typename... Args, typename CallRetT>
-    struct VisitorCaller<CallRetT (Visitor::*)(Args...)> {
+    template<typename V, typename... Args, typename ReturnType>
+    struct VisitorCaller<ReturnType (V::*)(Args...)> {
         template<size_t... iota>
-        static auto Make(std::integer_sequence<size_t, iota...>,
-                         CallRetT (Visitor::*const fn)(Args...),
+        static constexpr auto Make(std::integer_sequence<size_t, iota...>,
+                         ReturnType (V::*const fn)(Args...),
                          const std::array<opcode_type, sizeof...(iota)> arg_masks,
                          const std::array<size_t, sizeof...(iota)> arg_shifts) {
-            static_assert(std::is_same_v<visitor_type, Visitor>, "Member function is not from Matcher's Visitor");
-            return [fn, arg_masks, arg_shifts](Visitor& v, opcode_type instruction) {
+            static_assert(std::is_same_v<visitor_type, V>, "Member function is not from Matcher's Visitor");
+            return [fn, arg_masks, arg_shifts](V& v, opcode_type instruction) {
                 (void)instruction;
                 (void)arg_masks;
                 (void)arg_shifts;
-                return (v.*fn)(static_cast<Args>((instruction & arg_masks[iota]) >> arg_shifts[iota])...);
+                return (v.*fn)(Args((instruction & arg_masks[iota]) >> arg_shifts[iota])...);
             };
         }
     };
 
-    template<typename Visitor, typename... Args, typename CallRetT>
-    struct VisitorCaller<CallRetT (Visitor::*)(Args...) const> {
+    template<typename V, typename... Args, typename ReturnType>
+    struct VisitorCaller<ReturnType (V::*)(Args...) const> {
         template<size_t... iota>
-        static auto Make(std::integer_sequence<size_t, iota...>,
-                         CallRetT (Visitor::*const fn)(Args...) const,
+        static constexpr auto Make(std::integer_sequence<size_t, iota...>,
+                         ReturnType (V::*const fn)(Args...) const,
                          const std::array<opcode_type, sizeof...(iota)> arg_masks,
                          const std::array<size_t, sizeof...(iota)> arg_shifts) {
-            static_assert(std::is_same_v<visitor_type, const Visitor>, "Member function is not from Matcher's Visitor");
-            return [fn, arg_masks, arg_shifts](const Visitor& v, opcode_type instruction) {
+            static_assert(std::is_same_v<visitor_type, const V>, "Member function is not from Matcher's Visitor");
+            return [fn, arg_masks, arg_shifts](const V& v, opcode_type instruction) {
                 (void)instruction;
                 (void)arg_masks;
                 (void)arg_shifts;
-                return (v.*fn)(static_cast<Args>((instruction & arg_masks[iota]) >> arg_shifts[iota])...);
+                return (v.*fn)(Args((instruction & arg_masks[iota]) >> arg_shifts[iota])...);
             };
         }
     };
@@ -167,27 +160,21 @@ struct detail {
 #    pragma warning(pop)
 #endif
 
-    /**
-     * Creates a matcher that can match and parse instructions based on bitstring.
-     * See also: GetMaskAndExpect and GetArgInfo for format of bitstring.
-     */
-    template<auto bitstring, typename FnT>
-    static auto GetMatcher(FnT fn, const char* const name) {
-        constexpr size_t args_count = mcl::parameter_count_v<FnT>;
-
+    /// @brief Creates a matcher that can match and parse instructions based on bitstring.
+    /// See also: GetMaskAndExpect and GetArgInfo for format of bitstring.
+    template<auto bitstring, typename F>
+    static constexpr auto GetMatcher(F fn) {
+        constexpr size_t args_count = mcl::parameter_count_v<F>;
         constexpr auto mask = std::get<0>(GetMaskAndExpect(bitstring));
         constexpr auto expect = std::get<1>(GetMaskAndExpect(bitstring));
         constexpr auto arg_masks = std::get<0>(GetArgInfo<args_count>(bitstring));
         constexpr auto arg_shifts = std::get<1>(GetArgInfo<args_count>(bitstring));
-
-        using Iota = std::make_index_sequence<args_count>;
-
-        const auto proxy_fn = VisitorCaller<FnT>::Make(Iota(), fn, arg_masks, arg_shifts);
-        return MatcherT(name, mask, expect, proxy_fn);
+        const auto proxy_fn = VisitorCaller<F>::Make(std::make_index_sequence<args_count>(), fn, arg_masks, arg_shifts);
+        return MatcherT(mask, expect, proxy_fn);
     }
 };
 
-#define DYNARMIC_DECODER_GET_MATCHER(MatcherT, fn, name, bitstring) Decoder::detail::detail<MatcherT<V>>::template GetMatcher<bitstring>(&V::fn, name)
+#define DYNARMIC_DECODER_GET_MATCHER(MatcherT, fn, name, bitstring) Decoder::detail::detail<MatcherT<V>>::template GetMatcher<bitstring>(&V::fn)
 
 }  // namespace detail
 }  // namespace Dynarmic::Decoder

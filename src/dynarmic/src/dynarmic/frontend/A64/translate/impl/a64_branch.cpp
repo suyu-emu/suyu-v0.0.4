@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -20,9 +23,12 @@ bool TranslatorVisitor::B_cond(Imm<19> imm19, Cond cond) {
 bool TranslatorVisitor::B_uncond(Imm<26> imm26) {
     const s64 offset = concatenate(imm26, Imm<2>{0}).SignExtend<s64>();
     const u64 target = ir.PC() + offset;
-
-    //ir.SetTerm(IR::Term::LinkBlockFast{ir.current_location->SetPC(target)});
-    ir.SetTerm(IR::Term::LinkBlock{ir.current_location->SetPC(target)});
+    // Pattern to halt execution (B .)
+    if (target == ir.PC()) {
+        ir.SetTerm(IR::Term::LinkBlock{ir.current_location->SetPC(target)});
+        return false;
+    }
+    ir.SetTerm(IR::Term::LinkBlockFast{ir.current_location->SetPC(target)});
     return false;
 }
 

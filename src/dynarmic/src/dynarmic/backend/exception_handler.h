@@ -15,15 +15,15 @@
 #include <mcl/macro/architecture.hpp>
 #include "dynarmic/common/common_types.h"
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 namespace Dynarmic::Backend::X64 {
 class BlockOfCode;
 }  // namespace Dynarmic::Backend::X64
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 namespace oaknut {
 class CodeBlock;
 }  // namespace oaknut
-#elif defined(MCL_ARCHITECTURE_RISCV)
+#elif defined(ARCHITECTURE_riscv64)
 namespace Dynarmic::Backend::RV64 {
 class CodeBlock;
 }  // namespace Dynarmic::Backend::RV64
@@ -33,16 +33,16 @@ class CodeBlock;
 
 namespace Dynarmic::Backend {
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 struct FakeCall {
     u64 call_rip;
     u64 ret_rip;
 };
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 struct FakeCall {
     u64 call_pc;
 };
-#elif defined(MCL_ARCHITECTURE_RISCV)
+#elif defined(ARCHITECTURE_riscv64)
 struct FakeCall {
 };
 #else
@@ -54,11 +54,11 @@ public:
     ExceptionHandler();
     ~ExceptionHandler();
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
     void Register(X64::BlockOfCode& code);
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
     void Register(oaknut::CodeBlock& mem, std::size_t mem_size);
-#elif defined(MCL_ARCHITECTURE_RISCV)
+#elif defined(ARCHITECTURE_riscv64)
     void Register(RV64::CodeBlock& mem, std::size_t mem_size);
 #else
 #    error "Invalid architecture"

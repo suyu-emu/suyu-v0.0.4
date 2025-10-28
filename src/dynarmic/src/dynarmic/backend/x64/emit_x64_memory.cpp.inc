@@ -273,34 +273,31 @@ void AxxEmitX64::EmitExclusiveWriteMemory(AxxEmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const bool ordered = IsOrdered(args[3].GetImmediateAccType());
 
-    if constexpr (bitsize != 128) {
-        ctx.reg_alloc.HostCall(inst, {}, args[1], args[2]);
-    } else {
+    if constexpr (bitsize == 128) {
         ctx.reg_alloc.Use(args[1], ABI_PARAM2);
         ctx.reg_alloc.Use(args[2], HostLoc::XMM1);
         ctx.reg_alloc.EndOfAllocScope();
         ctx.reg_alloc.HostCall(inst);
+    } else {
+        ctx.reg_alloc.HostCall(inst, {}, args[1], args[2]);
     }
 
+    const Xbyak::Reg64 tmp = ctx.reg_alloc.ScratchGpr();
     Xbyak::Label end;
-
     code.mov(code.ABI_RETURN, u32(1));
-    code.cmp(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
+    code.movzx(tmp.cvt32(), code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)]);
+    code.test(tmp.cvt8(), tmp.cvt8());
     code.je(end);
-    code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
-    code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
+    code.xor_(tmp.cvt32(), tmp.cvt32());
+    code.xchg(tmp.cvt8(), code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)]);
+    code.mov(code.ABI_PARAM1, u64(&conf));
     if constexpr (bitsize != 128) {
         using T = mcl::unsigned_integer_of_size<bitsize>;
-
-        code.CallLambda(
-            [](AxxUserConfig& conf, Axx::VAddr vaddr, T value) -> u32 {
-                return conf.global_monitor->DoExclusiveOperation<T>(conf.processor_id, vaddr,
-                                                                    [&](T expected) -> bool {
-                                                                        return (conf.callbacks->*callback)(vaddr, value, expected);
-                                                                    })
-                         ? 0
-                         : 1;
-            });
+        code.CallLambda([](AxxUserConfig& conf, Axx::VAddr vaddr, T value) -> u32 {
+            return conf.global_monitor->DoExclusiveOperation<T>(conf.processor_id, vaddr, [&](T expected) -> bool {
+                return (conf.callbacks->*callback)(vaddr, value, expected);
+            }) ? 0 : 1;
+        });
         if (ordered) {
             code.mfence();
         }
@@ -308,15 +305,11 @@ void AxxEmitX64::EmitExclusiveWriteMemory(AxxEmitContext& ctx, IR::Inst* inst) {
         ctx.reg_alloc.AllocStackSpace(16 + ABI_SHADOW_SPACE);
         code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE]);
         code.movaps(xword[code.ABI_PARAM3], xmm1);
-        code.CallLambda(
-            [](AxxUserConfig& conf, Axx::VAddr vaddr, Vector& value) -> u32 {
-                return conf.global_monitor->DoExclusiveOperation<Vector>(conf.processor_id, vaddr,
-                                                                         [&](Vector expected) -> bool {
-                                                                             return (conf.callbacks->*callback)(vaddr, value, expected);
-                                                                         })
-                         ? 0
-                         : 1;
-            });
+        code.CallLambda([](AxxUserConfig& conf, Axx::VAddr vaddr, Vector& value) -> u32 {
+            return conf.global_monitor->DoExclusiveOperation<Vector>(conf.processor_id, vaddr, [&](Vector expected) -> bool {
+                return (conf.callbacks->*callback)(vaddr, value, expected);
+            }) ? 0 : 1;
+        });
         if (ordered) {
             code.mfence();
         }
@@ -437,10 +430,11 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
 
     SharedLabel end = GenSharedLabel();
 
-    code.mov(tmp, mcl::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
     code.mov(status, u32(1));
-    code.cmp(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
+    code.movzx(tmp.cvt32(), code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)]);
+    code.test(tmp.cvt8(), tmp.cvt8());
     code.je(*end, code.T_NEAR);
+    code.mov(tmp, mcl::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
     code.cmp(qword[tmp], vaddr);
     code.jne(*end, code.T_NEAR);
 
@@ -474,30 +468,29 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
 
         const auto location = code.getCurr();
 
-        if constexpr (bitsize == 128) {
+        switch (bitsize) {
+        case 8:
+            code.lock();
+            code.cmpxchg(code.byte[dest_ptr], value.cvt8());
+            break;
+        case 16:
+            code.lock();
+            code.cmpxchg(word[dest_ptr], value.cvt16());
+            break;
+        case 32:
+            code.lock();
+            code.cmpxchg(dword[dest_ptr], value.cvt32());
+            break;
+        case 64:
+            code.lock();
+            code.cmpxchg(qword[dest_ptr], value.cvt64());
+            break;
+        case 128:
             code.lock();
             code.cmpxchg16b(ptr[dest_ptr]);
-        } else {
-            switch (bitsize) {
-            case 8:
-                code.lock();
-                code.cmpxchg(code.byte[dest_ptr], value.cvt8());
-                break;
-            case 16:
-                code.lock();
-                code.cmpxchg(word[dest_ptr], value.cvt16());
-                break;
-            case 32:
-                code.lock();
-                code.cmpxchg(dword[dest_ptr], value.cvt32());
-                break;
-            case 64:
-                code.lock();
-                code.cmpxchg(qword[dest_ptr], value.cvt64());
-                break;
-            default:
-                UNREACHABLE();
-            }
+            break;
+        default:
+            UNREACHABLE();
         }
 
         code.setnz(status.cvt8());

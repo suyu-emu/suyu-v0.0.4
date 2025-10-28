@@ -58,14 +58,11 @@ add_library(dynarmic STATIC
     common/lut_from_list.h
     common/math_util.cpp
     common/math_util.h
-    common/memory_pool.cpp
-    common/memory_pool.h
     common/safe_ops.h
     common/spin_lock.h
     common/string_util.h
     common/u128.cpp
     common/u128.h
-    common/variant_util.h
     frontend/A32/a32_types.cpp
     frontend/A32/a32_types.h
     frontend/A64/a64_types.cpp
@@ -80,7 +77,6 @@ add_library(dynarmic STATIC
     ir/basic_block.cpp
     ir/basic_block.h
     ir/cond.h
-    ir/ir_emitter.cpp
     ir/ir_emitter.h
     ir/location_descriptor.cpp
     ir/location_descriptor.h

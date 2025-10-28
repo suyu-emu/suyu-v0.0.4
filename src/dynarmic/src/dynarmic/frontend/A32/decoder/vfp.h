@@ -26,36 +26,42 @@ using VFPMatcher = Decoder::Matcher<Visitor, u32>;
 template<typename V>
 std::optional<std::reference_wrapper<const VFPMatcher<V>>> DecodeVFP(u32 instruction) {
     using Table = std::vector<VFPMatcher<V>>;
-
-    static const struct Tables {
+    alignas(64) static const struct Tables {
         Table unconditional;
         Table conditional;
-    } tables = [] {
+    } tables = []() {
         Table list = {
-
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(VFPMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./vfp.inc"
 #undef INST
-
         };
-
-        const auto division = std::stable_partition(list.begin(), list.end(), [&](const auto& matcher) {
+        auto const it = std::stable_partition(list.begin(), list.end(), [&](const auto& matcher) {
             return (matcher.GetMask() & 0xF0000000) == 0xF0000000;
         });
-
         return Tables{
-            Table{list.begin(), division},
-            Table{division, list.end()},
+            Table{list.begin(), it},
+            Table{it, list.end()},
         };
     }();
-
     const bool is_unconditional = (instruction & 0xF0000000) == 0xF0000000;
     const Table& table = is_unconditional ? tables.unconditional : tables.conditional;
-
-    const auto matches_instruction = [instruction](const auto& matcher) { return matcher.Matches(instruction); };
-
-    auto iter = std::find_if(table.begin(), table.end(), matches_instruction);
+    auto iter = std::find_if(table.begin(), table.end(), [instruction](const auto& matcher) {
+        return matcher.Matches(instruction);
+    });
     return iter != table.end() ? std::optional<std::reference_wrapper<const VFPMatcher<V>>>(*iter) : std::nullopt;
+}
+
+template<typename V>
+std::optional<std::string_view> GetNameVFP(u32 inst) noexcept {
+    std::vector<std::pair<std::string_view, VFPMatcher<V>>> list = {
+#define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(VFPMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
+#include "./vfp.inc"
+#undef INST
+    };
+    auto const iter = std::find_if(list.cbegin(), list.cend(), [inst](auto const& m) {
+        return m.second.Matches(inst);
+    });
+    return iter != list.cend() ? std::optional{iter->first} : std::nullopt;
 }
 
 }  // namespace Dynarmic::A32

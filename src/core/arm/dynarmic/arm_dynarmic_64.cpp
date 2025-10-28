@@ -269,12 +269,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     config.wall_clock_cntpct = m_uses_wall_clock;
     config.enable_cycle_counting = !m_uses_wall_clock;
 
-    // Code cache size
-#ifdef ARCHITECTURE_arm64
+    // Code cache size - max in ARM is 128MiB, max in x86_64 is 2GiB
+    // Solaris doesn't support kPageSize >= 512MiB
     config.code_cache_size = std::uint32_t(128_MiB);
-#else
-    config.code_cache_size = std::uint32_t(512_MiB);
-#endif
 
     // Allow memory fault handling to work
     if (m_system.DebuggerEnabled()) {

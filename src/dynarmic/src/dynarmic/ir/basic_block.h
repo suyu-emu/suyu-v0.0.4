@@ -13,6 +13,9 @@
 #include <optional>
 #include <string>
 
+#include <boost/container/container_fwd.hpp>
+#include <boost/container/static_vector.hpp>
+#include <boost/container/stable_vector.hpp>
 #include <mcl/container/intrusive_list.hpp>
 #include "dynarmic/common/common_types.h"
 
@@ -21,7 +24,6 @@
 #include "dynarmic/ir/terminal.h"
 #include "dynarmic/ir/value.h"
 #include "dynarmic/ir/dense_list.h"
-#include "dynarmic/common/memory_pool.h"
 
 namespace Dynarmic::IR {
 
@@ -164,8 +166,12 @@ public:
         return cycle_count;
     }
 private:
+    /// "Hot cache" for small blocks so we don't call global allocator
+    boost::container::static_vector<Inst, 14> inlined_inst;
     /// List of instructions in this block.
     instruction_list_type instructions;
+    /// "Long/far" memory pool
+    boost::container::stable_vector<boost::container::static_vector<Inst, 32>> pooled_inst;
     /// Block to execute next if `cond` did not pass.
     std::optional<LocationDescriptor> cond_failed = {};
     /// Description of the starting location of this block
@@ -174,8 +180,6 @@ private:
     LocationDescriptor end_location;
     /// Conditional to pass in order to execute this block
     Cond cond;
-    /// Memory pool for instruction list
-    std::unique_ptr<Common::Pool<sizeof(Inst), 2097152UL / sizeof(Inst)>> instruction_alloc_pool;
     /// Terminal instruction of this block.
     Terminal terminal = Term::Invalid{};
     /// Number of cycles this block takes to execute if the conditional fails.
@@ -183,6 +187,7 @@ private:
     /// Number of cycles this block takes to execute.
     size_t cycle_count = 0;
 };
+static_assert(sizeof(Block) == 2048);
 
 /// Returns a string representation of the contents of block. Intended for debugging.
 std::string DumpBlock(const IR::Block& block) noexcept;

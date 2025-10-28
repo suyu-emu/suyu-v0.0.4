@@ -9,6 +9,7 @@
 #include "dynarmic/backend/x64/reg_alloc.h"
 
 #include <algorithm>
+#include <limits>
 #include <numeric>
 #include <utility>
 
@@ -118,7 +119,7 @@ void HostLocInfo::AddValue(IR::Inst* inst) noexcept {
     values.push_back(inst);
     ASSERT(size_t(total_uses) + inst->UseCount() < (std::numeric_limits<uint16_t>::max)());
     total_uses += inst->UseCount();
-    max_bit_width = std::max<uint8_t>(max_bit_width, GetBitWidth(inst->GetType()));
+    max_bit_width = std::max<uint8_t>(max_bit_width, std::countr_zero(GetBitWidth(inst->GetType())));
 }
 
 void HostLocInfo::EmitVerboseDebuggingOutput(BlockOfCode* code, size_t host_loc_index) const noexcept {
@@ -152,19 +153,19 @@ bool Argument::GetImmediateU1() const noexcept {
 
 u8 Argument::GetImmediateU8() const noexcept {
     const u64 imm = value.GetImmediateAsU64();
-    ASSERT(imm < 0x100);
+    ASSERT(imm <= u64(std::numeric_limits<u8>::max()));
     return u8(imm);
 }
 
 u16 Argument::GetImmediateU16() const noexcept {
     const u64 imm = value.GetImmediateAsU64();
-    ASSERT(imm < 0x10000);
+    ASSERT(imm <= u64(std::numeric_limits<u16>::max()));
     return u16(imm);
 }
 
 u32 Argument::GetImmediateU32() const noexcept {
     const u64 imm = value.GetImmediateAsU64();
-    ASSERT(imm < 0x100000000);
+    ASSERT(imm <= u64(std::numeric_limits<u32>::max()));
     return u32(imm);
 }
 
@@ -366,10 +367,20 @@ void RegAlloc::HostCall(IR::Inst* result_def,
     if (result_def) {
         DefineValueImpl(result_def, ABI_RETURN);
     }
-
+    for (size_t i = 0; i < args.size(); i++) {
+        if (args[i]) {
+            UseScratch(*args[i], args_hostloc[i]);
+        } else {
+            ScratchGpr(args_hostloc[i]); // TODO: Force spill
+        }
+    }
+    // Must match with with ScratchImpl
+    for (auto const gpr : other_caller_save) {
+        MoveOutOfTheWay(gpr);
+        LocInfo(gpr).WriteLock();
+    }
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i] && !args[i]->get().IsVoid()) {
-            UseScratch(*args[i], args_hostloc[i]);
             // LLVM puts the burden of zero-extension of 8 and 16 bit values on the caller instead of the callee
             const Xbyak::Reg64 reg = HostLocToReg64(args_hostloc[i]);
             switch (args[i]->get().GetType()) {
@@ -389,14 +400,6 @@ void RegAlloc::HostCall(IR::Inst* result_def,
             }
         }
     }
-
-    for (size_t i = 0; i < args.size(); i++)
-        if (!args[i]) {
-            // TODO: Force spill
-            ScratchGpr(args_hostloc[i]);
-        }
-    for (auto const caller_saved : other_caller_save)
-        ScratchImpl({caller_saved});
 }
 
 void RegAlloc::AllocStackSpace(const size_t stack_space) noexcept {
@@ -441,18 +444,18 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
             it_empty_candidate = it;
             break;
         // No empty registers for some reason (very evil) - just do normal LRU
-        } else {
-            if (loc_info.lru_counter < min_lru_counter) {
-                // Otherwise a "quasi"-LRU
-                min_lru_counter = loc_info.lru_counter;
-                if (*it >= HostLoc::R8 && *it <= HostLoc::R15) {
-                    it_rex_candidate = it;
-                } else {
-                    it_candidate = it;
-                }
-                if (min_lru_counter == 0)
-                    break; //early exit
+        } else if (loc_info.lru_counter < min_lru_counter) {
+            // Otherwise a "quasi"-LRU
+            min_lru_counter = loc_info.lru_counter;
+            if (*it >= HostLoc::R8 && *it <= HostLoc::R15) {
+                it_rex_candidate = it;
+            } else {
+                it_candidate = it;
             }
+            // There used to be a break here - DO NOT BREAK away you MUST
+            // evaluate ALL of the registers BEFORE making a decision on when to take
+            // otherwise reg pressure will get high and bugs will seep :)
+            // TODO(lizzie): Investigate these god awful annoying reg pressure issues
         }
     }
     // Final resolution goes as follows:
@@ -559,13 +562,12 @@ void RegAlloc::SpillRegister(HostLoc loc) noexcept {
 }
 
 HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
-#if 0
     // TODO(lizzie): Ok, Windows hates XMM spills, this means less perf for windows
     // but it's fine anyways. We can find other ways to cheat it later - but which?!?!
     // we should NOT save xmm each block entering... MAYBE xbyak has a bug on start/end?
     // TODO(lizzie): This needs to be investigated further later.
     // Do not spill XMM into other XMM silly
-    if (!is_xmm) {
+    /*if (!is_xmm) {
         // TODO(lizzie): Using lower (xmm0 and such) registers results in issues/crashes - INVESTIGATE WHY
         // Intel recommends to spill GPR onto XMM registers IF POSSIBLE
         // TODO(lizzie): Issues on DBZ, theory: Scratch XMM not properly restored after a function call?
@@ -573,8 +575,9 @@ HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
         for (size_t i = size_t(HostLoc::XMM15); i >= size_t(HostLoc::XMM3); --i)
             if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
                 return loc;
-    }
-#endif
+    }*/
+    // TODO: Doing this would mean saving XMM on each call... need to benchmark the benefits
+    // of spilling on XMM versus the potential cost of using XMM registers.....
     // Otherwise go to stack spilling
     for (size_t i = size_t(HostLoc::FirstSpill); i < hostloc_info.size(); ++i)
         if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
