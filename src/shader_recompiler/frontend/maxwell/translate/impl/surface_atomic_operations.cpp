@@ -12,23 +12,21 @@
 namespace Shader::Maxwell {
 namespace {
 enum class Type : u64 {
-    _1D = 0,
-    _1D_BUFFER = 1,
-    _1D_ARRAY = 2,
-    _2D = 3,
-    _2D_ARRAY = 4,
-    _3D = 5,
-    _UNK6 = 6,
-    _UNK7 = 7,
+    _1D,
+    BUFFER_1D,
+    ARRAY_1D,
+    _2D,
+    ARRAY_2D,
+    _3D,
 };
 
 enum class Size : u64 {
     U32,
     S32,
     U64,
+    S64,
     F32FTZRN,
     F16x2FTZRN,
-    S64,
     SD32,
     SD64,
 };
@@ -55,19 +53,18 @@ TextureType GetType(Type type) {
     switch (type) {
     case Type::_1D:
         return TextureType::Color1D;
-    case Type::_1D_BUFFER:
+    case Type::BUFFER_1D:
         return TextureType::Buffer;
-    case Type::_1D_ARRAY:
+    case Type::ARRAY_1D:
         return TextureType::ColorArray1D;
     case Type::_2D:
         return TextureType::Color2D;
-    case Type::_2D_ARRAY:
+    case Type::ARRAY_2D:
         return TextureType::ColorArray2D;
     case Type::_3D:
         return TextureType::Color3D;
-    default:
-        throw NotImplementedException("Invalid type {}", type);
     }
+    throw NotImplementedException("Invalid type {}", type);
 }
 
 IR::Value MakeCoords(TranslatorVisitor& v, IR::Reg reg, Type type) {
@@ -76,19 +73,20 @@ IR::Value MakeCoords(TranslatorVisitor& v, IR::Reg reg, Type type) {
     }};
     switch (type) {
     case Type::_1D:
-    case Type::_1D_BUFFER:
+    case Type::BUFFER_1D:
         return v.X(reg);
-    case Type::_1D_ARRAY:
+    case Type::ARRAY_1D:
         return v.ir.CompositeConstruct(v.X(reg), array(1));
     case Type::_2D:
         return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1));
-    case Type::_2D_ARRAY:
+    case Type::ARRAY_2D:
         return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1), array(2));
     case Type::_3D:
         return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1), v.X(reg + 2));
     default:
-        throw NotImplementedException("Invalid type {}", type);
+        break;
     }
+    throw NotImplementedException("Invalid type {}", type);
 }
 
 IR::Value ApplyAtomicOp(IR::IREmitter& ir, const IR::U32& handle, const IR::Value& coords,

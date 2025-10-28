@@ -243,7 +243,7 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     }
 
     if (shader_backend == Settings::ShaderBackend::Glsl && is_nvidia) {
-        const std::string driver_version = version.substr(13);
+        const std::string_view driver_version = version.substr(13);
         const int version_major =
             std::atoi(driver_version.substr(0, driver_version.find(".")).data());
         if (version_major >= 495) {
