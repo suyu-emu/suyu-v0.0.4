@@ -41,10 +41,20 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
     };
     range.extent.levels = config.res_max_mip_level - config.res_min_mip_level + 1;
     TextureType tex_type = config.texture_type;
-    if (tex_type == TextureType::Texture1D && (config.Depth() > 1 || base_layer != 0)) {
-        tex_type = TextureType::Texture1DArray;
-    } else if (tex_type == TextureType::Texture2D && (config.Depth() > 1 || base_layer != 0)) {
-        tex_type = TextureType::Texture2DArray;
+    if ((config.Depth() > 1 || base_layer != 0) && static_cast<u32>(base_layer) < config.Depth()) {
+        switch (tex_type) {
+        case TextureType::Texture1D:
+            tex_type = TextureType::Texture1DArray;
+            break;
+        case TextureType::Texture2D:
+            tex_type = TextureType::Texture2DArray;
+            break;
+        case TextureType::TextureCubemap:
+            tex_type = TextureType::TextureCubeArray;
+            break;
+        default:
+            break;
+        }
     }
     switch (tex_type) {
     case TextureType::Texture1D:
@@ -63,7 +73,6 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
     case TextureType::Texture2D:
     case TextureType::Texture2DNoMipmap:
         ASSERT(config.Depth() == 1);
-        ASSERT(base_layer == 0);
         type = config.normalized_coords ? ImageViewType::e2D : ImageViewType::Rect;
         range.extent.layers = 1;
         break;

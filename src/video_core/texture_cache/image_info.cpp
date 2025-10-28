@@ -52,10 +52,20 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         ASSERT(!config.IsPitchLinear());
     }
     TextureType tex_type = config.texture_type;
-    if (tex_type == TextureType::Texture1D && (config.Depth() > 1 || config.BaseLayer() != 0)) {
-        tex_type = TextureType::Texture1DArray;
-    } else if (tex_type == TextureType::Texture2D && (config.Depth() > 1 || config.BaseLayer() != 0)) {
-        tex_type = TextureType::Texture2DArray;
+    if ((config.Depth() > 1 || config.BaseLayer() != 0) && config.BaseLayer() < config.Depth()) {
+        switch (tex_type) {
+        case TextureType::Texture1D:
+            tex_type = TextureType::Texture1DArray;
+            break;
+        case TextureType::Texture2D:
+            tex_type = TextureType::Texture2DArray;
+            break;
+        case TextureType::TextureCubemap:
+            tex_type = TextureType::TextureCubeArray;
+            break;
+        default:
+            break;
+        }
     }
     switch (tex_type) {
     case TextureType::Texture1D:
@@ -76,7 +86,6 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         break;
     case TextureType::Texture2D:
     case TextureType::Texture2DNoMipmap:
-        ASSERT(config.BaseLayer() == 0);
         ASSERT(config.Depth() == 1);
         type = config.IsPitchLinear() ? ImageType::Linear : ImageType::e2D;
         rescaleable = !config.IsPitchLinear();
@@ -106,6 +115,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
     case TextureType::TextureCubeArray:
         UNIMPLEMENTED_IF(config.load_store_hint != 0);
         ASSERT(config.Depth() > 0);
+        ASSERT(config.BaseLayer() < config.Depth());
         type = ImageType::e2D;
         size.width = config.Width();
         size.height = config.Height();
