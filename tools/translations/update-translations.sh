@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 command -v tx-cli && COMMAND=tx-cli
 command -v tx && COMMAND=tx
 
