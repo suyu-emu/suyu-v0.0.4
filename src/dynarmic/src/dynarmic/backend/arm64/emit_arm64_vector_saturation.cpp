@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -12,7 +15,6 @@
 #include "dynarmic/backend/arm64/emit_context.h"
 #include "dynarmic/backend/arm64/fpsr_manager.h"
 #include "dynarmic/backend/arm64/reg_alloc.h"
-#include "dynarmic/common/always_false.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/opcodes.h"
@@ -39,7 +41,7 @@ static void Emit(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitF
     } else if constexpr (size == 64) {
         emit(Qresult->D2(), Qa->D2(), Qb->D2());
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+        //static_assert(false);
     }
 }
 

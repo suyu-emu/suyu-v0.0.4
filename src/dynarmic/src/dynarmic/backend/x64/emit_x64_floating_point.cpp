@@ -18,14 +18,13 @@
 #include <mcl/mp/typelist/list.hpp>
 #include <mcl/mp/typelist/lower_to_tuple.hpp>
 #include "dynarmic/common/common_types.h"
-#include <mcl/type_traits/integer_of_size.hpp>
 #include <xbyak/xbyak.h>
 
 #include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/constants.h"
 #include "dynarmic/backend/x64/emit_x64.h"
-#include "dynarmic/common/cast_util.h"
+#include "dynarmic/common/type_util.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/fp/info.h"
@@ -36,22 +35,8 @@
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 
-#define FCODE(NAME)                  \
-    [&code](auto... args) {          \
-        if constexpr (fsize == 32) { \
-            code.NAME##s(args...);   \
-        } else {                     \
-            code.NAME##d(args...);   \
-        }                            \
-    }
-#define ICODE(NAME)                  \
-    [&code](auto... args) {          \
-        if constexpr (fsize == 32) { \
-            code.NAME##d(args...);   \
-        } else {                     \
-            code.NAME##q(args...);   \
-        }                            \
-    }
+#define FCODE(NAME) [&](auto... args) { if (fsize == 32) code.NAME##s(args...); else code.NAME##d(args...); }
+#define ICODE(NAME) [&](auto... args) { if (fsize == 32) code.NAME##d(args...); else code.NAME##q(args...); }
 
 namespace Dynarmic::Backend::X64 {
 
@@ -105,7 +90,7 @@ void ForceDenormalsToZero(BlockOfCode& code, std::initializer_list<Xbyak::Xmm> t
     for (const Xbyak::Xmm& xmm : to_daz) {
         code.movaps(xmm0, code.Const(xword, fsize == 32 ? f32_non_sign_mask : f64_non_sign_mask));
         code.andps(xmm0, xmm);
-        if constexpr (fsize == 32) {
+        if (fsize == 32) {
             code.pcmpgtd(xmm0, code.Const(xword, f32_smallest_normal - 1));
         } else if (code.HasHostFeature(HostFeature::SSE42)) {
             code.pcmpgtq(xmm0, code.Const(xword, f64_smallest_normal - 1));
@@ -120,13 +105,11 @@ void ForceDenormalsToZero(BlockOfCode& code, std::initializer_list<Xbyak::Xmm> t
 
 template<size_t fsize>
 void DenormalsAreZero(BlockOfCode& code, EmitContext& ctx, std::initializer_list<Xbyak::Xmm> to_daz) {
-    if (ctx.FPCR().FZ()) {
+    if (ctx.FPCR().FZ())
         ForceDenormalsToZero<fsize>(code, to_daz);
-    }
 }
 
-template<size_t fsize>
-void ZeroIfNaN(BlockOfCode& code, Xbyak::Xmm xmm_value, Xbyak::Xmm xmm_scratch) {
+void ZeroIfNaN(BlockOfCode& code, Xbyak::Xmm xmm_value, Xbyak::Xmm xmm_scratch, size_t fsize) {
     if (code.HasHostFeature(HostFeature::AVX512_OrthoFloat)) {
         constexpr u32 nan_to_zero = FixupLUT(FpFixup::PosZero,
                                              FpFixup::PosZero);
@@ -141,8 +124,7 @@ void ZeroIfNaN(BlockOfCode& code, Xbyak::Xmm xmm_value, Xbyak::Xmm xmm_scratch) 
     }
 }
 
-template<size_t fsize>
-void ForceToDefaultNaN(BlockOfCode& code, Xbyak::Xmm result) {
+void ForceToDefaultNaN(BlockOfCode& code, Xbyak::Xmm result, size_t fsize) {
     if (code.HasHostFeature(HostFeature::AVX512_OrthoFloat)) {
         const Xbyak::Opmask nan_mask = k1;
         FCODE(vfpclasss)(nan_mask, result, u8(FpClass::QNaN | FpClass::SNaN));
@@ -208,7 +190,7 @@ void PostProcessNaN(BlockOfCode& code, Xbyak::Xmm result, Xbyak::Xmm tmp) {
 // We allow for the case where op1 and result are the same register. We do not read from op1 once result is written to.
 template<size_t fsize>
 void EmitPostProcessNaNs(BlockOfCode& code, Xbyak::Xmm result, Xbyak::Xmm op1, Xbyak::Xmm op2, Xbyak::Reg64 tmp, Xbyak::Label end) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     constexpr FPT exponent_mask = FP::FPInfo<FPT>::exponent_mask;
     constexpr FPT mantissa_msb = FP::FPInfo<FPT>::mantissa_msb;
     constexpr u8 mantissa_msb_bit = static_cast<u8>(FP::FPInfo<FPT>::explicit_mantissa_width - 1);
@@ -236,7 +218,7 @@ void EmitPostProcessNaNs(BlockOfCode& code, Xbyak::Xmm result, Xbyak::Xmm op1, X
     }
 
     constexpr size_t shift = fsize == 32 ? 0 : 48;
-    if constexpr (fsize == 32) {
+    if (fsize == 32) {
         code.movd(tmp.cvt32(), xmm0);
     } else {
         // We do this to avoid requiring 64-bit immediates
@@ -252,7 +234,7 @@ void EmitPostProcessNaNs(BlockOfCode& code, Xbyak::Xmm result, Xbyak::Xmm op1, X
     // op1 == QNaN && op2 == SNaN <<< The problematic case
     // op1 == QNaN && op2 == Inf
 
-    if constexpr (fsize == 32) {
+    if (fsize == 32) {
         code.movd(tmp.cvt32(), op2);
         code.shl(tmp.cvt32(), 32 - mantissa_msb_bit);
     } else {
@@ -291,7 +273,7 @@ void FPTwoOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
     if (ctx.HasOptimization(OptimizationFlag::Unsafe_InaccurateNaN)) {
         // Do nothing
     } else if (ctx.FPCR().DN()) {
-        ForceToDefaultNaN<fsize>(code, result);
+        ForceToDefaultNaN(code, result, fsize);
     } else {
         PostProcessNaN<fsize>(code, result, xmm0);
     }
@@ -302,7 +284,7 @@ void FPTwoOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
 
 template<size_t fsize, typename Function>
 void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -317,7 +299,7 @@ void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn)
         }
 
         if (!ctx.HasOptimization(OptimizationFlag::Unsafe_InaccurateNaN)) {
-            ForceToDefaultNaN<fsize>(code, result);
+            ForceToDefaultNaN(code, result, fsize);
         }
 
         ctx.reg_alloc.DefineValue(inst, result);
@@ -361,7 +343,7 @@ void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn)
 
 template<size_t fsize>
 void FPAbs(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     constexpr FPT non_sign_mask = FP::FPInfo<FPT>::sign_mask - FPT(1u);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -387,7 +369,7 @@ void EmitX64::EmitFPAbs64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 void FPNeg(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     constexpr FPT sign_mask = FP::FPInfo<FPT>::sign_mask;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -442,7 +424,7 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
     FCODE(ucomis)(result, operand);
     code.jz(*equal, code.T_NEAR);
-    if constexpr (is_max) {
+    if (is_max) {
         FCODE(maxs)(result, operand);
     } else {
         FCODE(mins)(result, operand);
@@ -454,7 +436,7 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
         code.L(*equal);
         code.jp(nan);
-        if constexpr (is_max) {
+        if (is_max) {
             code.andps(result, operand);
         } else {
             code.orps(result, operand);
@@ -477,7 +459,7 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize, bool is_max>
 static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) noexcept {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     constexpr FPT default_nan = FP::FPInfo<FPT>::DefaultNaN();
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -502,7 +484,7 @@ static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::
         tmp.setBit(fsize);
 
         const auto move_to_tmp = [=, &code](const Xbyak::Xmm& xmm) {
-            if constexpr (fsize == 32) {
+            if (fsize == 32) {
                 code.movd(tmp.cvt32(), xmm);
             } else {
                 code.movq(tmp.cvt64(), xmm);
@@ -513,7 +495,7 @@ static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::
 
         FCODE(ucomis)(op1, op2);
         code.jz(*z, code.T_NEAR);
-        if constexpr (is_max) {
+        if (is_max) {
             FCODE(maxs)(op2, op1);
         } else {
             FCODE(mins)(op2, op1);
@@ -527,7 +509,7 @@ static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::
 
             code.L(*z);
             code.jp(nan);
-            if constexpr (is_max) {
+            if (is_max) {
                 code.andps(op2, op1);
             } else {
                 code.orps(op2, op1);
@@ -629,12 +611,12 @@ void EmitX64::EmitFPMul64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize, bool negate_product>
 static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     const auto fallback_fn = negate_product ? &FP::FPMulSub<FPT> : &FP::FPMulAdd<FPT>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    if constexpr (fsize != 16) {
+    if (fsize != 16) {
         const bool needs_rounding_correction = ctx.FPCR().FZ();
         const bool needs_nan_correction = !ctx.FPCR().DN();
 
@@ -643,13 +625,13 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(args[1]);
             const Xbyak::Xmm operand3 = ctx.reg_alloc.UseXmm(args[2]);
 
-            if constexpr (negate_product) {
+            if (negate_product) {
                 FCODE(vfnmadd231s)(result, operand2, operand3);
             } else {
                 FCODE(vfmadd231s)(result, operand2, operand3);
             }
             if (ctx.FPCR().DN()) {
-                ForceToDefaultNaN<fsize>(code, result);
+                ForceToDefaultNaN(code, result, fsize);
             }
 
             ctx.reg_alloc.DefineValue(inst, result);
@@ -665,7 +647,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
 
             code.movaps(result, operand1);
-            if constexpr (negate_product) {
+            if (negate_product) {
                 FCODE(vfnmadd231s)(result, operand2, operand3);
             } else {
                 FCODE(vfmadd231s)(result, operand2, operand3);
@@ -686,9 +668,8 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             } else {
                 UNREACHABLE();
             }
-            if (ctx.FPCR().DN()) {
-                ForceToDefaultNaN<fsize>(code, result);
-            }
+            if (ctx.FPCR().DN())
+                ForceToDefaultNaN(code, result, fsize);
             code.L(*end);
 
             ctx.deferred_emits.emplace_back([=, &code, &ctx] {
@@ -769,7 +750,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     code.ptest(operand2, xmm0);
                     code.jnz(op2_done);
                     code.vorps(result, operand2, xmm0);
-                    if constexpr (negate_product) {
+                    if (negate_product) {
                         code.xorps(result, code.Const(xword, FP::FPInfo<FPT>::sign_mask));
                     }
                     code.jmp(*end);
@@ -785,7 +766,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
                     // at this point, all SNaNs have been handled
                     // if op1 was not a QNaN and op2 is, negate the result
-                    if constexpr (negate_product) {
+                    if (negate_product) {
                         FCODE(ucomis)(operand1, operand1);
                         code.jp(*end);
                         FCODE(ucomis)(operand2, operand2);
@@ -806,7 +787,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Xmm operand2 = ctx.reg_alloc.UseScratchXmm(args[1]);
             const Xbyak::Xmm operand3 = ctx.reg_alloc.UseXmm(args[2]);
 
-            if constexpr (negate_product) {
+            if (negate_product) {
                 code.xorps(operand2, code.Const(xword, FP::FPInfo<FPT>::sign_mask));
             }
             FCODE(muls)(operand2, operand3);
@@ -857,7 +838,7 @@ void EmitX64::EmitFPMulSub64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPMulX(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -917,9 +898,9 @@ void EmitX64::EmitFPMulX64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRecipEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
-    if constexpr (fsize != 16) {
+    if (fsize != 16) {
         if (ctx.HasOptimization(OptimizationFlag::Unsafe_ReducedErrorFP)) {
             auto args = ctx.reg_alloc.GetArgumentInfo(inst);
             const Xbyak::Xmm operand = ctx.reg_alloc.UseXmm(args[0]);
@@ -928,7 +909,7 @@ static void EmitFPRecipEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
             if (code.HasHostFeature(HostFeature::AVX512_OrthoFloat)) {
                 FCODE(vrcp14s)(result, operand, operand);
             } else {
-                if constexpr (fsize == 32) {
+                if (fsize == 32) {
                     code.rcpss(result, operand);
                 } else {
                     code.cvtsd2ss(result, operand);
@@ -963,7 +944,7 @@ void EmitX64::EmitFPRecipEstimate64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRecipExponent(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, args[0]);
@@ -986,11 +967,11 @@ void EmitX64::EmitFPRecipExponent64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRecipStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    if constexpr (fsize != 16) {
+    if (fsize != 16) {
         if (code.HasHostFeature(HostFeature::FMA) && ctx.HasOptimization(OptimizationFlag::Unsafe_InaccurateNaN)) {
             Xbyak::Label end, fallback;
 
@@ -1123,9 +1104,9 @@ void EmitX64::EmitFPRoundInt64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
-    if constexpr (fsize != 16) {
+    if (fsize != 16) {
         if (ctx.HasOptimization(OptimizationFlag::Unsafe_ReducedErrorFP)) {
             auto args = ctx.reg_alloc.GetArgumentInfo(inst);
             const Xbyak::Xmm operand = ctx.reg_alloc.UseXmm(args[0]);
@@ -1134,7 +1115,7 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
             if (code.HasHostFeature(HostFeature::AVX512_OrthoFloat)) {
                 FCODE(vrsqrt14s)(result, operand, operand);
             } else {
-                if constexpr (fsize == 32) {
+                if (fsize == 32) {
                     code.rsqrtss(result, operand);
                 } else {
                     code.cvtsd2ss(result, operand);
@@ -1180,7 +1161,7 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
             bool needs_fallback = false;
 
             code.L(*bad_values);
-            if constexpr (fsize == 32) {
+            if (fsize == 32) {
                 code.movd(tmp, operand);
 
                 if (!ctx.FPCR().FZ()) {
@@ -1302,11 +1283,11 @@ void EmitX64::EmitFPRSqrtEstimate64(EmitContext& ctx, IR::Inst* inst) {
 
 template<size_t fsize>
 static void EmitFPRSqrtStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    if constexpr (fsize != 16) {
+    if (fsize != 16) {
         if (code.HasHostFeature(HostFeature::FMA | HostFeature::AVX) && ctx.HasOptimization(OptimizationFlag::Unsafe_InaccurateNaN)) {
             const Xbyak::Xmm operand1 = ctx.reg_alloc.UseXmm(args[0]);
             const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(args[1]);
@@ -1485,9 +1466,8 @@ void EmitX64::EmitFPHalfToDouble(EmitContext& ctx, IR::Inst* inst) {
         // Double-conversion here is acceptable as this is expanding precision.
         code.vcvtph2ps(result, value);
         code.vcvtps2pd(result, result);
-        if (ctx.FPCR().DN()) {
-            ForceToDefaultNaN<64>(code, result);
-        }
+        if (ctx.FPCR().DN())
+            ForceToDefaultNaN(code, result, 64);
 
         ctx.reg_alloc.DefineValue(inst, result);
         return;
@@ -1509,9 +1489,8 @@ void EmitX64::EmitFPHalfToSingle(EmitContext& ctx, IR::Inst* inst) {
         const Xbyak::Xmm value = ctx.reg_alloc.UseXmm(args[0]);
 
         code.vcvtph2ps(result, value);
-        if (ctx.FPCR().DN()) {
-            ForceToDefaultNaN<32>(code, result);
-        }
+        if (ctx.FPCR().DN())
+            ForceToDefaultNaN(code, result, 32);
 
         ctx.reg_alloc.DefineValue(inst, result);
         return;
@@ -1519,23 +1498,22 @@ void EmitX64::EmitFPHalfToSingle(EmitContext& ctx, IR::Inst* inst) {
 
     ctx.reg_alloc.HostCall(inst, args[0]);
     code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
-    code.mov(code.ABI_PARAM3.cvt32(), static_cast<u32>(rounding_mode));
+    code.mov(code.ABI_PARAM3.cvt32(), u32(rounding_mode));
     code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPConvert<u32, u16>);
 }
 
 void EmitX64::EmitFPSingleToDouble(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto rounding_mode = static_cast<FP::RoundingMode>(args[1].GetImmediateU8());
+    const auto rounding_mode = FP::RoundingMode(args[1].GetImmediateU8());
 
     // We special-case the non-IEEE-defined ToOdd rounding mode.
     if (rounding_mode == ctx.FPCR().RMode() && rounding_mode != FP::RoundingMode::ToOdd) {
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
 
         code.cvtss2sd(result, result);
-        if (ctx.FPCR().DN()) {
-            ForceToDefaultNaN<64>(code, result);
-        }
+        if (ctx.FPCR().DN())
+            ForceToDefaultNaN(code, result, 64);
         ctx.reg_alloc.DefineValue(inst, result);
     } else {
         ctx.reg_alloc.HostCall(inst, args[0]);
@@ -1553,12 +1531,9 @@ void EmitX64::EmitFPSingleToHalf(EmitContext& ctx, IR::Inst* inst) {
 
     if (code.HasHostFeature(HostFeature::F16C) && !ctx.FPCR().AHP() && !ctx.FPCR().FZ16()) {
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
-
-        if (ctx.FPCR().DN()) {
-            ForceToDefaultNaN<32>(code, result);
-        }
-        code.vcvtps2ph(result, result, static_cast<u8>(*round_imm));
-
+        if (ctx.FPCR().DN())
+            ForceToDefaultNaN(code, result, 32);
+        code.vcvtps2ph(result, result, u8(*round_imm));
         ctx.reg_alloc.DefineValue(inst, result);
         return;
     }
@@ -1586,21 +1561,18 @@ void EmitX64::EmitFPDoubleToHalf(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitFPDoubleToSingle(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const auto rounding_mode = static_cast<FP::RoundingMode>(args[1].GetImmediateU8());
-
+    const auto rounding_mode = FP::RoundingMode(args[1].GetImmediateU8());
     // We special-case the non-IEEE-defined ToOdd rounding mode.
     if (rounding_mode == ctx.FPCR().RMode() && rounding_mode != FP::RoundingMode::ToOdd) {
         const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
-
         code.cvtsd2ss(result, result);
-        if (ctx.FPCR().DN()) {
-            ForceToDefaultNaN<32>(code, result);
-        }
+        if (ctx.FPCR().DN())
+            ForceToDefaultNaN(code, result, 32);
         ctx.reg_alloc.DefineValue(inst, result);
     } else {
         ctx.reg_alloc.HostCall(inst, args[0]);
         code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
-        code.mov(code.ABI_PARAM3.cvt32(), static_cast<u32>(rounding_mode));
+        code.mov(code.ABI_PARAM3.cvt32(), u32(rounding_mode));
         code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
         code.CallFunction(&FP::FPConvert<u32, u64>);
     }
@@ -1615,7 +1587,7 @@ void EmitX64::EmitFPDoubleToSingle(EmitContext& ctx, IR::Inst* inst) {
 /// Better than spamming thousands of templates aye?
 template<size_t fsize>
 static u64 EmitFPToFixedThunk(u64 input, FP::FPSR& fpsr, FP::FPCR fpcr, u32 extra_args) {
-    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    using FPT = Common::UnsignedIntegerN<fsize>;
     auto const unsigned_ = ((extra_args >> 24) & 0xff) != 0;
     auto const isize = ((extra_args >> 16) & 0xff);
     auto const rounding = FP::RoundingMode((extra_args >> 8) & 0xff);
@@ -1630,7 +1602,7 @@ static void EmitFPToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     const size_t fbits = args[1].GetImmediateU8();
     const auto rounding_mode = FP::RoundingMode(args[2].GetImmediateU8());
 
-    if constexpr (fsize != 16) {
+    if (fsize != 16) {
         const auto round_imm = ConvertRoundingModeToX64Immediate(rounding_mode);
 
         // cvttsd2si truncates during operation so rounding (and thus SSE4.1) not required
@@ -1640,7 +1612,7 @@ static void EmitFPToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             const Xbyak::Xmm src = ctx.reg_alloc.UseScratchXmm(args[0]);
             const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr().cvt64();
 
-            if constexpr (fsize == 64) {
+            if (fsize == 64) {
                 if (fbits != 0) {
                     const u64 scale_factor = static_cast<u64>((fbits + 1023) << 52);
                     code.mulsd(src, code.Const(xword, scale_factor));
@@ -1662,13 +1634,13 @@ static void EmitFPToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                 code.cvtss2sd(src, src);
             }
 
-            if constexpr (isize == 64) {
+            if (isize == 64) {
                 const Xbyak::Xmm scratch = ctx.reg_alloc.ScratchXmm();
 
                 if (!unsigned_) {
                     SharedLabel saturate_max = GenSharedLabel(), end = GenSharedLabel();
 
-                    ZeroIfNaN<64>(code, src, scratch);
+                    ZeroIfNaN(code, src, scratch, 64);
 
                     code.movsd(scratch, code.Const(xword, f64_max_s64_lim));
                     code.comisd(scratch, src);
@@ -1706,11 +1678,11 @@ static void EmitFPToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     code.sar(result2, 63);
                     code.or_(result, result2);
                 }
-            } else if constexpr (isize == 32) {
+            } else if (isize == 32) {
                 if (!unsigned_) {
                     const Xbyak::Xmm scratch = ctx.reg_alloc.ScratchXmm();
 
-                    ZeroIfNaN<64>(code, src, scratch);
+                    ZeroIfNaN(code, src, scratch, 64);
                     code.minsd(src, code.Const(xword, f64_max_s32));
                     // maxsd not required as cvttsd2si results in 0x8000'0000 when out of range
                     code.cvttsd2si(result.cvt32(), src);  // 32 bit gpr
@@ -1723,7 +1695,7 @@ static void EmitFPToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             } else {
                 const Xbyak::Xmm scratch = ctx.reg_alloc.ScratchXmm();
 
-                ZeroIfNaN<64>(code, src, scratch);
+                ZeroIfNaN(code, src, scratch, 64);
                 code.maxsd(src, code.Const(xword, unsigned_ ? f64_min_u16 : f64_min_s16));
                 code.minsd(src, code.Const(xword, unsigned_ ? f64_max_u16 : f64_max_s16));
                 code.cvttsd2si(result, src);  // 64 bit gpr

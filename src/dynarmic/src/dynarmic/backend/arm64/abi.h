@@ -17,7 +17,6 @@
 #include "dynarmic/common/assert.h"
 #include <oaknut/oaknut.hpp>
 
-#include "dynarmic/common/always_false.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -37,7 +36,8 @@ constexpr auto Rscratch0() {
     } else if constexpr (bitsize == 64) {
         return Xscratch0;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<bitsize>>);
+        // TODO: This codepath is regarded as "takeable" on gcc12
+        return Xscratch0; //static_assert(false);
     }
 }
 
@@ -48,7 +48,8 @@ constexpr auto Rscratch1() {
     } else if constexpr (bitsize == 64) {
         return Xscratch1;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<bitsize>>);
+        // TODO: This codepath is regarded as "takeable" on gcc12
+        return Xscratch1; //static_assert(false);
     }
 }
 

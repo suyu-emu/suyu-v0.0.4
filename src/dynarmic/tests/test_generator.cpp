@@ -17,7 +17,6 @@
 #include <vector>
 
 #include <mcl/bit/swap.hpp>
-#include <mcl/macro/architecture.hpp>
 #include "dynarmic/common/common_types.h"
 
 #include "./A32/testenv.h"

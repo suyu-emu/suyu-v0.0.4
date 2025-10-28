@@ -4,6 +4,7 @@
  */
 
 #include <mcl/macro/concatenate_tokens.hpp>
+#include "dynarmic/common/type_util.h"
 
 #define AxxEmitX64 CONCATENATE_TOKENS(Axx, EmitX64)
 #define AxxEmitContext CONCATENATE_TOKENS(Axx, EmitContext)
@@ -15,14 +16,11 @@ using Vector = std::array<u64, 2>;
 }
 
 std::optional<AxxEmitX64::DoNotFastmemMarker> AxxEmitX64::ShouldFastmem(AxxEmitContext& ctx, IR::Inst* inst) const {
-    if (!conf.fastmem_pointer || !exception_handler.SupportsFastmem()) {
+    if (!conf.fastmem_pointer || !exception_handler.SupportsFastmem())
         return std::nullopt;
-    }
-
     const auto marker = std::make_tuple(ctx.Location(), inst->GetName());
-    if (do_not_fastmem.count(marker) > 0) {
+    if (do_not_fastmem.count(marker) > 0)
         return std::nullopt;
-    }
     return marker;
 }
 
@@ -58,16 +56,12 @@ void AxxEmitX64::EmitMemoryRead(AxxEmitContext& ctx, IR::Inst* inst) {
         // Neither fastmem nor page table: Use callbacks
         if constexpr (bitsize == 128) {
             ctx.reg_alloc.HostCall(nullptr, {}, args[1]);
-            if (ordered) {
-                code.mfence();
-            }
+            if (ordered) code.mfence();
             code.CallFunction(memory_read_128);
             ctx.reg_alloc.DefineValue(inst, xmm1);
         } else {
             ctx.reg_alloc.HostCall(inst, {}, args[1]);
-            if (ordered) {
-                code.mfence();
-            }
+            if (ordered) code.mfence();
             Devirtualize<callback>(conf.callbacks).EmitCall(code);
             code.ZeroExtendFrom(bitsize, code.ABI_RETURN);
         }
@@ -102,10 +96,10 @@ void AxxEmitX64::EmitMemoryRead(AxxEmitContext& ctx, IR::Inst* inst) {
             code.call(wrapped_fn);
 
             fastmem_patch_info.emplace(
-                mcl::bit_cast<u64>(location),
+                std::bit_cast<u64>(location),
                 FastmemPatchInfo{
-                    mcl::bit_cast<u64>(code.getCurr()),
-                    mcl::bit_cast<u64>(wrapped_fn),
+                    std::bit_cast<u64>(code.getCurr()),
+                    std::bit_cast<u64>(wrapped_fn),
                     *fastmem_marker,
                     conf.recompile_on_fastmem_failure,
                 });
@@ -153,9 +147,7 @@ void AxxEmitX64::EmitMemoryWrite(AxxEmitContext& ctx, IR::Inst* inst) {
             ctx.reg_alloc.HostCall(nullptr, {}, args[1], args[2]);
             Devirtualize<callback>(conf.callbacks).EmitCall(code);
         }
-        if (ordered) {
-            code.mfence();
-        }
+        if (ordered) code.mfence();
         EmitCheckMemoryAbort(ctx, inst);
         return;
     }
@@ -189,10 +181,10 @@ void AxxEmitX64::EmitMemoryWrite(AxxEmitContext& ctx, IR::Inst* inst) {
             code.call(wrapped_fn);
 
             fastmem_patch_info.emplace(
-                mcl::bit_cast<u64>(location),
+                std::bit_cast<u64>(location),
                 FastmemPatchInfo{
-                    mcl::bit_cast<u64>(code.getCurr()),
-                    mcl::bit_cast<u64>(wrapped_fn),
+                    std::bit_cast<u64>(code.getCurr()),
+                    std::bit_cast<u64>(wrapped_fn),
                     *fastmem_marker,
                     conf.recompile_on_fastmem_failure,
                 });
@@ -223,7 +215,7 @@ void AxxEmitX64::EmitExclusiveReadMemory(AxxEmitContext& ctx, IR::Inst* inst) {
     const bool ordered = IsOrdered(args[2].GetImmediateAccType());
 
     if constexpr (bitsize != 128) {
-        using T = mcl::unsigned_integer_of_size<bitsize>;
+        using T = Common::UnsignedIntegerN<bitsize>;
 
         ctx.reg_alloc.HostCall(inst, {}, args[1]);
 
@@ -290,16 +282,14 @@ void AxxEmitX64::EmitExclusiveWriteMemory(AxxEmitContext& ctx, IR::Inst* inst) {
     code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
     code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
     if constexpr (bitsize != 128) {
-        using T = mcl::unsigned_integer_of_size<bitsize>;
+        using T = Common::UnsignedIntegerN<bitsize>;
 
         code.CallLambda(
             [](AxxUserConfig& conf, Axx::VAddr vaddr, T value) -> u32 {
                 return conf.global_monitor->DoExclusiveOperation<T>(conf.processor_id, vaddr,
-                                                                    [&](T expected) -> bool {
-                                                                        return (conf.callbacks->*callback)(vaddr, value, expected);
-                                                                    })
-                         ? 0
-                         : 1;
+                    [&](T expected) -> bool {
+                        return (conf.callbacks->*callback)(vaddr, value, expected);
+                    }) ? 0 : 1;
             });
         if (ordered) {
             code.mfence();
@@ -311,11 +301,9 @@ void AxxEmitX64::EmitExclusiveWriteMemory(AxxEmitContext& ctx, IR::Inst* inst) {
         code.CallLambda(
             [](AxxUserConfig& conf, Axx::VAddr vaddr, Vector& value) -> u32 {
                 return conf.global_monitor->DoExclusiveOperation<Vector>(conf.processor_id, vaddr,
-                                                                         [&](Vector expected) -> bool {
-                                                                             return (conf.callbacks->*callback)(vaddr, value, expected);
-                                                                         })
-                         ? 0
-                         : 1;
+                    [&](Vector expected) -> bool {
+                        return (conf.callbacks->*callback)(vaddr, value, expected);
+                    }) ? 0 : 1;
             });
         if (ordered) {
             code.mfence();
@@ -356,7 +344,7 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
     EmitExclusiveLock(code, conf, tmp, tmp2.cvt32());
 
     code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(1));
-    code.mov(tmp, mcl::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
+    code.mov(tmp, std::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
     code.mov(qword[tmp], vaddr);
 
     const auto fastmem_marker = ShouldFastmem(ctx, inst);
@@ -369,10 +357,10 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
         const auto location = EmitReadMemoryMov<bitsize>(code, value_idx, src_ptr, ordered);
 
         fastmem_patch_info.emplace(
-            mcl::bit_cast<u64>(location),
+            std::bit_cast<u64>(location),
             FastmemPatchInfo{
-                mcl::bit_cast<u64>(code.getCurr()),
-                mcl::bit_cast<u64>(wrapped_fn),
+                std::bit_cast<u64>(code.getCurr()),
+                std::bit_cast<u64>(wrapped_fn),
                 *fastmem_marker,
                 conf.recompile_on_exclusive_fastmem_failure,
             });
@@ -390,7 +378,7 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
         code.call(wrapped_fn);
     }
 
-    code.mov(tmp, mcl::bit_cast<u64>(GetExclusiveMonitorValuePointer(conf.global_monitor, conf.processor_id)));
+    code.mov(tmp, std::bit_cast<u64>(GetExclusiveMonitorValuePointer(conf.global_monitor, conf.processor_id)));
     EmitWriteMemoryMov<bitsize>(code, tmp, value_idx, false);
 
     EmitExclusiveUnlock(code, conf, tmp, tmp2.cvt32());
@@ -437,7 +425,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
 
     SharedLabel end = GenSharedLabel();
 
-    code.mov(tmp, mcl::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
+    code.mov(tmp, std::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
     code.mov(status, u32(1));
     code.cmp(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
     code.je(*end, code.T_NEAR);
@@ -447,7 +435,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
     EmitExclusiveTestAndClear(code, conf, vaddr, tmp, rax);
 
     code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
-    code.mov(tmp, mcl::bit_cast<u64>(GetExclusiveMonitorValuePointer(conf.global_monitor, conf.processor_id)));
+    code.mov(tmp, std::bit_cast<u64>(GetExclusiveMonitorValuePointer(conf.global_monitor, conf.processor_id)));
 
     if constexpr (bitsize == 128) {
         code.mov(rax, qword[tmp + 0]);
@@ -475,25 +463,20 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
         const auto location = code.getCurr();
 
         if constexpr (bitsize == 128) {
-            code.lock();
-            code.cmpxchg16b(ptr[dest_ptr]);
+            code.lock(); code.cmpxchg16b(ptr[dest_ptr]);
         } else {
             switch (bitsize) {
             case 8:
-                code.lock();
-                code.cmpxchg(code.byte[dest_ptr], value.cvt8());
+                code.lock(); code.cmpxchg(code.byte[dest_ptr], value.cvt8());
                 break;
             case 16:
-                code.lock();
-                code.cmpxchg(word[dest_ptr], value.cvt16());
+                code.lock(); code.cmpxchg(word[dest_ptr], value.cvt16());
                 break;
             case 32:
-                code.lock();
-                code.cmpxchg(dword[dest_ptr], value.cvt32());
+                code.lock(); code.cmpxchg(dword[dest_ptr], value.cvt32());
                 break;
             case 64:
-                code.lock();
-                code.cmpxchg(qword[dest_ptr], value.cvt64());
+                code.lock(); code.cmpxchg(qword[dest_ptr], value.cvt64());
                 break;
             default:
                 UNREACHABLE();
@@ -506,10 +489,10 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
             code.call(wrapped_fn);
 
             fastmem_patch_info.emplace(
-                mcl::bit_cast<u64>(location),
+                std::bit_cast<u64>(location),
                 FastmemPatchInfo{
-                    mcl::bit_cast<u64>(code.getCurr()),
-                    mcl::bit_cast<u64>(wrapped_fn),
+                    std::bit_cast<u64>(code.getCurr()),
+                    std::bit_cast<u64>(wrapped_fn),
                     *fastmem_marker,
                     conf.recompile_on_exclusive_fastmem_failure,
                 });

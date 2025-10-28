@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/macro/architecture.hpp>
-
 #if defined(ARCHITECTURE_x86_64)
 #    include "dynarmic/backend/x64/mig/mach_exc_server.c"
 #elif defined(ARCHITECTURE_arm64)

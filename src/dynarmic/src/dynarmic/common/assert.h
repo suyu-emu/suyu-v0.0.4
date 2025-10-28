@@ -16,38 +16,33 @@ template<typename... Ts>
 
 // Temporary until MCL is fully removed
 #ifndef ASSERT_MSG
-#define ASSERT_MSG(_a_, ...)                                                                       \
-    ([&]() {                                                                        \
-        if (!(_a_)) [[unlikely]] {                                                                 \
-            assert_terminate(#_a_, __VA_ARGS__);                                                   \
-        }                                                                                          \
-    }())
+#   define ASSERT_MSG(_a_, ...) do if (!(_a_)) [[unlikely]] assert_terminate(#_a_, __VA_ARGS__); while(0)
 #endif
 #ifndef ASSERT_FALSE
-#define ASSERT_FALSE(...)                                                     \
-    ([&]() {                                                                  \
-        assert_terminate("false", __VA_ARGS__);                               \
-    }())
+#   define ASSERT_FALSE(...) assert_terminate("false", __VA_ARGS__)
 #endif
-
 #ifndef ASSERT
-#define ASSERT(_a_) ASSERT_MSG(_a_, "")
+#   define ASSERT(_a_) ASSERT_MSG(_a_, "")
 #endif
 #ifndef UNREACHABLE
-#define UNREACHABLE() ASSERT_MSG(false, "unreachable")
+#   ifdef _MSC_VER
+#       define UNREACHABLE() ASSERT_FALSE("unreachable")
+#   else
+#       define UNREACHABLE() __builtin_unreachable();
+#   endif
 #endif
 #ifdef _DEBUG
-#ifndef DEBUG_ASSERT
-#define DEBUG_ASSERT(_a_) ASSERT(_a_)
-#endif
-#ifndef DEBUG_ASSERT_MSG
-#define DEBUG_ASSERT_MSG(_a_, ...) ASSERT_MSG(_a_, __VA_ARGS__)
-#endif
+#   ifndef DEBUG_ASSERT
+#       define DEBUG_ASSERT(_a_) ASSERT(_a_)
+#   endif
+#   ifndef DEBUG_ASSERT_MSG
+#       define DEBUG_ASSERT_MSG(_a_, ...) ASSERT_MSG(_a_, __VA_ARGS__)
+#   endif
 #else // not debug
-#ifndef DEBUG_ASSERT
-#define DEBUG_ASSERT(_a_)
-#endif
-#ifndef DEBUG_ASSERT_MSG
-#define DEBUG_ASSERT_MSG(_a_, _desc_, ...)
-#endif
+#   ifndef DEBUG_ASSERT
+#       define DEBUG_ASSERT(_a_)
+#   endif
+#   ifndef DEBUG_ASSERT_MSG
+#       define DEBUG_ASSERT_MSG(_a_, _desc_, ...)
+#   endif
 #endif

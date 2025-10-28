@@ -6,7 +6,8 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/bit_cast.hpp>
+#include <bit>
+#include <numeric>
 #include <mcl/mp/metavalue/lift_value.hpp>
 #include <mcl/mp/typelist/cartesian_product.hpp>
 #include <mcl/mp/typelist/get.hpp>
@@ -14,7 +15,6 @@
 #include <mcl/mp/typelist/list.hpp>
 #include <mcl/mp/typelist/lower_to_tuple.hpp>
 #include <mcl/type_traits/function_info.hpp>
-#include <mcl/type_traits/integer_of_size.hpp>
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/backend/arm64/a32_jitstate.h"
@@ -24,8 +24,7 @@
 #include "dynarmic/backend/arm64/emit_context.h"
 #include "dynarmic/backend/arm64/fpsr_manager.h"
 #include "dynarmic/backend/arm64/reg_alloc.h"
-#include "dynarmic/common/always_false.h"
-#include "dynarmic/common/cast_util.h"
+#include "dynarmic/common/type_util.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/fp/info.h"
@@ -84,7 +83,7 @@ static void EmitTwoOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR:
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qa->D2());
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+            //static_assert(false);
         }
     });
 }
@@ -112,7 +111,7 @@ static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, I
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qa->D2(), Qb->D2());
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+            //static_assert(false);
         }
     });
 }
@@ -135,7 +134,7 @@ static void EmitFMA(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* ins
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qm->D2(), Qn->D2());
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+            //static_assert(false);
         }
     });
 }
@@ -157,7 +156,7 @@ static void EmitFromFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Ins
         } else if constexpr (size == 64) {
             emit(Qto->D2(), Qfrom->D2(), fbits);
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+            //static_assert(false);
         }
     });
 }
@@ -179,7 +178,7 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
         } else if constexpr (fsize == 64) {
             return Qto->D2();
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<fsize>>);
+            return Qto->D2(); //static_assert(false);
         }
     }();
     auto Vfrom = [&] {
@@ -188,7 +187,7 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
         } else if constexpr (fsize == 64) {
             return Qfrom->D2();
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<fsize>>);
+            return Qfrom->D2(); //static_assert(false);
         }
     }();
 
@@ -271,7 +270,7 @@ static void EmitTwoOpFallbackWithoutRegAlloc(oaknut::CodeGenerator& code, EmitCo
 
     ABI_PushRegisters(code, ABI_CALLER_SAVE & ~(1ull << Qresult.index()), stack_size);
 
-    code.MOV(Xscratch0, mcl::bit_cast<u64>(fn));
+    code.MOV(Xscratch0, std::bit_cast<u64>(fn));
     code.ADD(X0, SP, 0 * 16);
     code.ADD(X1, SP, 1 * 16);
     code.MOV(X2, fpcr);

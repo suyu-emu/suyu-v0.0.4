@@ -7,7 +7,7 @@
  */
 
 #include <string>
-
+#include <bit>
 #include <fmt/format.h>
 
 #ifdef DYNARMIC_USE_LLVM
@@ -16,7 +16,6 @@
 #endif
 
 #include "dynarmic/common/assert.h"
-#include <mcl/bit_cast.hpp>
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/llvm_disassemble.h"
@@ -53,7 +52,7 @@ std::string DisassembleX64(const void* begin, const void* end) {
     LLVMDisasmDispose(llvm_ctx);
 #else
     result += fmt::format("(recompile with DYNARMIC_USE_LLVM=ON to disassemble the generated x86_64 code)\n");
-    result += fmt::format("start: {:016x}, end: {:016x}\n", mcl::bit_cast<u64>(begin), mcl::bit_cast<u64>(end));
+    result += fmt::format("start: {:016x}, end: {:016x}\n", std::bit_cast<u64>(begin), std::bit_cast<u64>(end));
 #endif
 
     return result;
