@@ -344,10 +344,6 @@ if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.
     file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
 endif()
 
-if (UNIX)
-    add_compile_definitions(YUZU_UNIX=1)
-endif()
-
 if (YUZU_LEGACY)
     message(WARNING "Making legacy build. Performance may suffer.")
     add_compile_definitions(YUZU_LEGACY)

@@ -124,7 +124,7 @@ static bool HasSlowSoftwareAstc(std::string_view vendor_name, std::string_view r
         return true;
     }
     if (vendor_name == "Intel") {
-        // Must be inside YUZU_UNIX ifdef as the Windows driver uses the same vendor string
+        // Must be inside Unix ifdef as the Windows driver uses the same vendor string
         // iris, crocus
         const bool is_intel_dg = (renderer.find("DG") != std::string_view::npos);
         return is_intel_dg;
