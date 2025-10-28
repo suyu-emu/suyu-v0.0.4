@@ -358,6 +358,7 @@ private slots:
     void OnGameListAddDirectory();
     void OnGameListShowList(bool show);
     void OnGameListOpenPerGameProperties(const std::string& file);
+    void OnLinkToRyujinx(const u64& program_id);
     void OnMenuLoadFile();
     void OnMenuLoadFolder();
     void IncrementInstallProgress();
@@ -469,6 +470,8 @@ private:
                   QMessageBox::StandardButtons buttons =
                       QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
                   QMessageBox::StandardButton defaultButton = QMessageBox::NoButton);
+
+    std::string GetProfileID();
 
     std::unique_ptr<Ui::MainWindow> ui;
 

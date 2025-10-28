@@ -3,11 +3,14 @@
 
 #include "qt_common.h"
 #include "common/fs/fs.h"
+#include "common/fs/ryujinx_compat.h"
 
 #include <QGuiApplication>
 #include <QStringLiteral>
 #include "common/logging/log.h"
 #include "core/frontend/emu_window.h"
+#include "qt_common/abstract/frontend.h"
+#include "qt_common/qt_string_lookup.h"
 
 #include <QFile>
 
@@ -33,7 +36,8 @@ std::unique_ptr<Core::System> system = nullptr;
 std::shared_ptr<FileSys::RealVfsFilesystem> vfs = nullptr;
 std::unique_ptr<FileSys::ManualContentProvider> provider = nullptr;
 
-Core::Frontend::WindowSystemType GetWindowSystemType() {
+Core::Frontend::WindowSystemType GetWindowSystemType()
+{
     // Determine WSI type based on Qt platform.
     QString platform_name = QGuiApplication::platformName();
     if (platform_name == QStringLiteral("windows"))
@@ -101,9 +105,11 @@ void Init(QObject* root)
     provider = std::make_unique<FileSys::ManualContentProvider>();
 }
 
-std::filesystem::path GetEdenCommand() {
+std::filesystem::path GetEdenCommand()
+{
     std::filesystem::path command;
 
+    // TODO: flatpak?
     QString appimage = QString::fromLocal8Bit(getenv("APPIMAGE"));
     if (!appimage.isEmpty()) {
         command = std::filesystem::path{appimage.toStdString()};

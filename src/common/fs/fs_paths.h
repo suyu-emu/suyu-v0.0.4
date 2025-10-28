@@ -33,6 +33,7 @@
 #define SUDACHI_DIR "sudachi"
 #define YUZU_DIR "yuzu"
 #define SUYU_DIR "suyu"
+#define RYUJINX_DIR "Ryujinx"
 
 // yuzu-specific files
 #define LOG_FILE "eden_log.txt"

@@ -84,7 +84,7 @@ public:
         return eden_paths.at(eden_path);
     }
 
-    [[nodiscard]] const fs::path& GetLegacyPathImpl(LegacyPath legacy_path) {
+    [[nodiscard]] const fs::path& GetLegacyPathImpl(EmuPath legacy_path) {
         return legacy_paths.at(legacy_path);
     }
 
@@ -98,7 +98,7 @@ public:
         eden_paths.insert_or_assign(eden_path, new_path);
     }
 
-    void SetLegacyPathImpl(LegacyPath legacy_path, const fs::path& new_path) {
+    void SetLegacyPathImpl(EmuPath legacy_path, const fs::path& new_path) {
         legacy_paths.insert_or_assign(legacy_path, new_path);
     }
 
@@ -118,9 +118,9 @@ public:
         }
         eden_path_cache = eden_path / CACHE_DIR;
         eden_path_config = eden_path / CONFIG_DIR;
-#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(LegacyPath::titleName##Dir, GetAppDataRoamingDirectory() / upperName##_DIR); \
-        GenerateLegacyPath(LegacyPath::titleName##ConfigDir, GetAppDataRoamingDirectory() / upperName##_DIR / CONFIG_DIR); \
-        GenerateLegacyPath(LegacyPath::titleName##CacheDir, GetAppDataRoamingDirectory() / upperName##_DIR / CACHE_DIR);
+#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(EmuPath::titleName##Dir, GetAppDataRoamingDirectory() / upperName##_DIR); \
+        GenerateLegacyPath(EmuPath::titleName##ConfigDir, GetAppDataRoamingDirectory() / upperName##_DIR / CONFIG_DIR); \
+        GenerateLegacyPath(EmuPath::titleName##CacheDir, GetAppDataRoamingDirectory() / upperName##_DIR / CACHE_DIR);
         LEGACY_PATH(Citron, CITRON)
         LEGACY_PATH(Sudachi, SUDACHI)
         LEGACY_PATH(Yuzu, YUZU)
@@ -140,9 +140,9 @@ public:
             eden_path_cache = eden_path / CACHE_DIR;
             eden_path_config = eden_path / CONFIG_DIR;
         }
-#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(LegacyPath::titleName##Dir, GetDataDirectory("XDG_DATA_HOME") / upperName##_DIR); \
-        GenerateLegacyPath(LegacyPath::titleName##ConfigDir, GetDataDirectory("XDG_CONFIG_HOME") / upperName##_DIR); \
-        GenerateLegacyPath(LegacyPath::titleName##CacheDir, GetDataDirectory("XDG_CACHE_HOME") / upperName##_DIR);
+#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(EmuPath::titleName##Dir, GetDataDirectory("XDG_DATA_HOME") / upperName##_DIR); \
+        GenerateLegacyPath(EmuPath::titleName##ConfigDir, GetDataDirectory("XDG_CONFIG_HOME") / upperName##_DIR); \
+        GenerateLegacyPath(EmuPath::titleName##CacheDir, GetDataDirectory("XDG_CACHE_HOME") / upperName##_DIR);
         LEGACY_PATH(Citron, CITRON)
         LEGACY_PATH(Sudachi, SUDACHI)
         LEGACY_PATH(Yuzu, YUZU)
@@ -165,6 +165,15 @@ public:
         GenerateEdenPath(EdenPath::ShaderDir, eden_path / SHADER_DIR);
         GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
         GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
+
+#ifdef _WIN32
+        GenerateLegacyPath(EmuPath::RyujinxDir, GetAppDataRoamingDirectory() / RYUJINX_DIR);
+#else
+        // In Ryujinx's infinite wisdom, it places EVERYTHING in the config directory on UNIX
+        // This is incredibly stupid and violates a million XDG standards, but whatever
+        GenerateLegacyPath(EmuPath::RyujinxDir, GetDataDirectory("XDG_CONFIG_HOME") / RYUJINX_DIR);
+#endif
+
     }
 
 private:
@@ -179,12 +188,12 @@ private:
         SetEdenPathImpl(eden_path, new_path);
     }
 
-    void GenerateLegacyPath(LegacyPath legacy_path, const fs::path& new_path) {
+    void GenerateLegacyPath(EmuPath legacy_path, const fs::path& new_path) {
         SetLegacyPathImpl(legacy_path, new_path);
     }
 
     std::unordered_map<EdenPath, fs::path> eden_paths;
-    std::unordered_map<LegacyPath, fs::path> legacy_paths;
+    std::unordered_map<EmuPath, fs::path> legacy_paths;
 };
 
 bool ValidatePath(const fs::path& path) {
@@ -272,7 +281,7 @@ const fs::path& GetEdenPath(EdenPath eden_path) {
     return PathManagerImpl::GetInstance().GetEdenPathImpl(eden_path);
 }
 
-const std::filesystem::path& GetLegacyPath(LegacyPath legacy_path) {
+const std::filesystem::path& GetLegacyPath(EmuPath legacy_path) {
     return PathManagerImpl::GetInstance().GetLegacyPathImpl(legacy_path);
 }
 
@@ -280,7 +289,7 @@ std::string GetEdenPathString(EdenPath eden_path) {
     return PathToUTF8String(GetEdenPath(eden_path));
 }
 
-std::string GetLegacyPathString(LegacyPath legacy_path) {
+std::string GetLegacyPathString(EmuPath legacy_path) {
     return PathToUTF8String(GetLegacyPath(legacy_path));
 }
 

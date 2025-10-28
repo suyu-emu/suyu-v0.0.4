@@ -12,9 +12,9 @@ using namespace Common::FS;
 typedef struct Emulator {
     const char *m_name;
 
-    LegacyPath e_user_dir;
-    LegacyPath e_config_dir;
-    LegacyPath e_cache_dir;
+    EmuPath e_user_dir;
+    EmuPath e_config_dir;
+    EmuPath e_cache_dir;
 
     const std::string get_user_dir() const {
         return Common::FS::GetLegacyPath(e_user_dir).string();

@@ -6,10 +6,12 @@
 #include "core/tools/renderdoc.h"
 #include "frontend_common/firmware_manager.h"
 #include "qt_common/qt_common.h"
+#include "qt_common/abstract/frontend.h"
 #include "qt_common/util/content.h"
 #include "qt_common/util/game.h"
 #include "qt_common/util/meta.h"
 #include "qt_common/util/path.h"
+#include "qt_common/util/fs.h"
 #include <clocale>
 #include <cmath>
 #include <memory>
@@ -108,6 +110,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/detached_tasks.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/fs/ryujinx_compat.h"
 #include "common/literals.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
@@ -160,6 +163,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/debugger/wait_tree.h"
 #include "yuzu/data_dialog.h"
 #include "yuzu/deps_dialog.h"
+#include "yuzu/ryujinx_dialog.h"
 #include "qt_common/discord/discord.h"
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
@@ -1597,6 +1601,8 @@ void GMainWindow::ConnectWidgetEvents() {
 
     connect(game_list, &GameList::OpenPerGameGeneralRequested, this,
             &GMainWindow::OnGameListOpenPerGameProperties);
+    connect(game_list, &GameList::LinkToRyujinxRequested, this,
+            &GMainWindow::OnLinkToRyujinx);
 
     connect(this, &GMainWindow::UpdateInstallProgress, this,
             &GMainWindow::IncrementInstallProgress);
@@ -2873,6 +2879,61 @@ void GMainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
     }
 
     OpenPerGameConfiguration(title_id, file);
+}
+
+std::string GMainWindow::GetProfileID()
+{
+    const auto select_profile = [this] {
+        const Core::Frontend::ProfileSelectParameters parameters{
+            .mode = Service::AM::Frontend::UiMode::UserSelector,
+            .invalid_uid_list = {},
+            .display_options = {},
+            .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
+        };
+        QtProfileSelectionDialog dialog(*QtCommon::system, this, parameters);
+        dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint
+                              | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+        dialog.setWindowModality(Qt::WindowModal);
+
+        if (dialog.exec() == QDialog::Rejected) {
+            return -1;
+        }
+
+        return dialog.GetIndex();
+    };
+
+    const auto index = select_profile();
+    if (index == -1) {
+        return "";
+    }
+
+    const auto uuid = QtCommon::system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
+    ASSERT(uuid);
+
+    const auto user_id = uuid->AsU128();
+
+    return fmt::format("{:016X}{:016X}", user_id[1], user_id[0]);
+}
+
+void GMainWindow::OnLinkToRyujinx(const u64& program_id)
+{
+    u64 save_id = QtCommon::FS::GetRyujinxSaveID(program_id);
+    if (save_id == (u64) -1)
+        return;
+
+    const std::string user_id = GetProfileID();
+
+    auto paths = QtCommon::FS::GetEmuPaths(program_id, save_id, user_id);
+    if (!paths)
+        return;
+
+    auto eden_dir = paths.value().first;
+    auto ryu_dir = paths.value().second;
+
+    if (!QtCommon::FS::CheckUnlink(eden_dir, ryu_dir)) {
+        RyujinxDialog dialog(eden_dir, ryu_dir, this);
+        dialog.exec();
+    }
 }
 
 void GMainWindow::OnMenuLoadFile() {

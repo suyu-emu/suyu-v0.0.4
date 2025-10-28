@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef QT_FRONTEND_UTIL_H
-#define QT_FRONTEND_UTIL_H
+#ifndef FRONTEND_H
+#define FRONTEND_H
 
 #include <QGuiApplication>
 #include "qt_common/qt_common.h"
@@ -136,4 +136,4 @@ const QString GetSaveFileName(const QString &title,
                               Options options = Options());
 
 } // namespace QtCommon::Frontend
-#endif // QT_FRONTEND_UTIL_H
+#endif // FRONTEND_H

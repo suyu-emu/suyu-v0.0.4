@@ -95,7 +95,7 @@ void DataWidget::open()
         user_id = selectProfile();
     }
     QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(FrontendCommon::DataManager::GetDataDir(m_dir, user_id))));
+        QString::fromStdString(FrontendCommon::DataManager::GetDataDirString(m_dir, user_id))));
 }
 
 void DataWidget::upload()

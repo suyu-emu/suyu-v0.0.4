@@ -11,7 +11,7 @@
 #include "frontend_common/firmware_manager.h"
 
 #include "compress.h"
-#include "qt_common/abstract/qt_frontend_util.h"
+#include "qt_common/abstract/frontend.h"
 #include "qt_common/abstract/qt_progress_dialog.h"
 #include "qt_common/qt_common.h"
 
@@ -404,7 +404,7 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir data_dir,
                    std::function<void()> callback)
 {
     using namespace QtCommon::Frontend;
-    const std::string dir = FrontendCommon::DataManager::GetDataDir(data_dir, user_id);
+    const std::string dir = FrontendCommon::DataManager::GetDataDirString(data_dir, user_id);
 
     const QString zip_dump_location = GetSaveFileName(tr("Select Export Location"),
                                                       tr("%1.zip").arg(name),
@@ -468,7 +468,7 @@ void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir,
                    const std::string& user_id,
                    std::function<void()> callback)
 {
-    const std::string dir = FrontendCommon::DataManager::GetDataDir(data_dir, user_id);
+    const std::string dir = FrontendCommon::DataManager::GetDataDirString(data_dir, user_id);
 
     using namespace QtCommon::Frontend;
 

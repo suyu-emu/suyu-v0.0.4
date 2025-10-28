@@ -8,7 +8,7 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/service/am/am_types.h"
 #include "frontend_common/content_manager.h"
-#include "qt_common/abstract/qt_frontend_util.h"
+#include "qt_common/abstract/frontend.h"
 #include "qt_common/config/uisettings.h"
 #include "qt_common/qt_common.h"
 #include "yuzu/util/util.h"

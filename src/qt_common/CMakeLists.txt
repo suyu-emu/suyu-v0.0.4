@@ -20,13 +20,14 @@ add_library(qt_common STATIC
     util/applet.h util/applet.cpp
     util/compress.h util/compress.cpp
 
-    abstract/qt_frontend_util.h abstract/qt_frontend_util.cpp
+    abstract/frontend.h abstract/frontend.cpp
     abstract/qt_progress_dialog.h abstract/qt_progress_dialog.cpp
 
     qt_string_lookup.h
     qt_compat.h
 
     discord/discord.h
+    util/fs.h util/fs.cpp
 )
 
 create_target_directory_groups(qt_common)

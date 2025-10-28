@@ -542,6 +542,7 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
 }
 
 void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path) {
+    // TODO(crueter): Refactor this and make it less bad
     QAction* favorite = context_menu.addAction(tr("Favorite"));
     context_menu.addSeparator();
     QAction* start_game = context_menu.addAction(tr("Start Game"));
@@ -581,6 +582,7 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
 #endif
     context_menu.addSeparator();
     QAction* properties = context_menu.addAction(tr("Configure Game"));
+    QAction* ryujinx = context_menu.addAction(tr("Link to Ryujinx"));
 
     favorite->setVisible(program_id != 0);
     favorite->setCheckable(true);
@@ -662,6 +664,9 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
 #endif
     connect(properties, &QAction::triggered,
             [this, path]() { emit OpenPerGameGeneralRequested(path); });
+
+    connect(ryujinx, &QAction::triggered, [this, program_id]() { emit LinkToRyujinxRequested(program_id);
+    });
 };
 
 void GameList::AddCustomDirPopup(QMenu& context_menu, QModelIndex selected) {

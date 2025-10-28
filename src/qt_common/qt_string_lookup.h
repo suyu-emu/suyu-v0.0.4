@@ -42,9 +42,18 @@ enum StringKey {
     MigrationTooltipClearOld,
     MigrationTooltipLinkOld,
 
+    // ryujinx
+    KvdbNonexistent,
+    KvdbNoHeader,
+    KvdbInvalidMagic,
+    KvdbMisaligned,
+    KvdbNoImens,
+    RyujinxNoSaveId,
+
 };
 
-static const frozen::map<StringKey, frozen::string, 21> strings = {
+static const constexpr frozen::map<StringKey, frozen::string, 27> strings = {
+    // 0-4
     {SavesTooltip,
      QT_TR_NOOP("Contains game save data. DO NOT REMOVE UNLESS YOU KNOW WHAT YOU'RE DOING!")},
     {ShadersTooltip,
@@ -54,6 +63,7 @@ static const frozen::map<StringKey, frozen::string, 21> strings = {
     {ModsTooltip, QT_TR_NOOP("Contains game mods, patches, and cheats.")},
 
     // Key install
+    // 5-9
     {KeyInstallSuccess, QT_TR_NOOP("Decryption Keys were successfully installed")},
     {KeyInstallInvalidDir, QT_TR_NOOP("Unable to read key directory, aborting")},
     {KeyInstallErrorFailedCopy, QT_TR_NOOP("One or more keys failed to copy.")},
@@ -65,6 +75,7 @@ static const frozen::map<StringKey, frozen::string, 21> strings = {
          "re-dump keys.")},
 
     // fw install
+    // 10-14
     {FwInstallSuccess, QT_TR_NOOP("Successfully installed firmware version %1")},
     {FwInstallNoNCAs, QT_TR_NOOP("Unable to locate potential firmware NCA files")},
     {FwInstallFailedDelete, QT_TR_NOOP("Failed to delete one or more firmware files.")},
@@ -75,6 +86,7 @@ static const frozen::map<StringKey, frozen::string, 21> strings = {
          "Eden or re-install firmware.")},
 
     // migrator
+    // 15-20
     {MigrationPromptPrefix, QT_TR_NOOP("Eden has detected user data for the following emulators:")},
     {MigrationPrompt,
      QT_TR_NOOP("Would you like to migrate your data for use in Eden?\n"
@@ -93,6 +105,15 @@ static const frozen::map<StringKey, frozen::string, 21> strings = {
     {MigrationTooltipLinkOld,
      QT_TR_NOOP("Creates a filesystem link between the old directory and Eden directory.\n"
                 "This is recommended if you want to share data between emulators.")},
+
+    // why am I writing these comments again
+    // 21-26
+    {KvdbNonexistent, QT_TR_NOOP("Ryujinx title database does not exist.")},
+    {KvdbNoHeader, QT_TR_NOOP("Invalid header on Ryujinx title database.")},
+    {KvdbInvalidMagic, QT_TR_NOOP("Invalid magic header on Ryujinx title database.")},
+    {KvdbMisaligned, QT_TR_NOOP("Invalid byte alignment on Ryujinx title database.")},
+    {KvdbNoImens, QT_TR_NOOP("No items found in Ryujinx title database.")},
+    {RyujinxNoSaveId, QT_TR_NOOP("Title %1 not found in Ryujinx title database.")},
 };
 
 static inline const QString Lookup(StringKey key)

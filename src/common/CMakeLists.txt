@@ -153,6 +153,8 @@ add_library(
   wall_clock.h
   zstd_compression.cpp
   zstd_compression.h
+  fs/ryujinx_compat.h fs/ryujinx_compat.cpp
+  fs/symlink.h fs/symlink.cpp
 )
 
 if(WIN32)

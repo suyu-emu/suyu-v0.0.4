@@ -7,7 +7,7 @@
 #include <QUrl>
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "qt_common/abstract/qt_frontend_util.h"
+#include "qt_common/abstract/frontend.h"
 #include <fmt/format.h>
 
 namespace QtCommon::Path {

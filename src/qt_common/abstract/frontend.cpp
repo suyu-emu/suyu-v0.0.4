@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "qt_frontend_util.h"
+#include "frontend.h"
 #include "qt_common/qt_common.h"
 
 #ifdef YUZU_QT_WIDGETS
