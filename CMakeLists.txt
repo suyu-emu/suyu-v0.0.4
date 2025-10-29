@@ -231,7 +231,7 @@ if(USE_CCACHE)
         set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_BINARY})
         set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_BINARY})
     else()
-        message(WARNING "USE_CCACHE enabled, but no executable found at: ${CCACHE_PATH}")
+        message(FATAL_ERROR "USE_CCACHE enabled, but no executable found at: ${CCACHE_PATH}")
     endif()
 endif()
 
