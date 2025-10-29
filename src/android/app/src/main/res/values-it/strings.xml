@@ -360,9 +360,6 @@
     <string name="firmware_uninstalling">Disinstallazione firmware...</string>
     <string name="firmware_uninstalled_success">Firmware disinstallato con successo</string>
 
-    <string name="error_firmware_missing">Il firmware è richiesto per eseguire alcuni giochi e applicazioni. Eden funziona solo con firmware 19.0.1 o precedente.</string>
-    <string name="error_firmware_corrupted">Il firmware è presente ma non può essere letto. Controlla le chiavi di decrittazione e ridumpa il firmware se necessario.</string>
-    <string name="error_firmware_too_new">Il firmware è troppo recente o illeggibile. Eden supporta solo firmware 19.0.1 o precedenti.</string>
 
     <string name="keys_failed">Installazione chiavi fallita</string>
     <string name="keys_install_success">Chiavi installate con successo</string>

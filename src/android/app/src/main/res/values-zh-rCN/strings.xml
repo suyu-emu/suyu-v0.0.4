@@ -335,9 +335,6 @@
     <string name="firmware_uninstalling">正在卸载固件...</string>
     <string name="firmware_uninstalled_success">固件卸载成功</string>
 
-    <string name="error_firmware_missing">运行某些游戏和系统应用需要固件。Eden仅支持19.0.1及更早版本的固件。</string>
-    <string name="error_firmware_corrupted">检测到固件存在但无法读取。请检查解密密钥并在必要时重新转储固件。</string>
-    <string name="error_firmware_too_new">固件过新或无法读取。Eden仅支持19.0.1及更早版本的固件。</string>
 
     <string name="keys_failed">密钥安装失败</string>
     <string name="keys_install_success">密钥安装成功</string>

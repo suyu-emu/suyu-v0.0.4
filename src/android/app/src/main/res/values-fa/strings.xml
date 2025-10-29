@@ -387,9 +387,6 @@
     <string name="verify_installed_content_description">تمام محتوای نصب شده را از نظر خرابی بررسی می‌کند</string>
     <string name="keys_missing">کلیدهای رمزگذاری وجود ندارند</string>
     <string name="keys_missing_description">ثابت‌افزار و بازی‌های فروشگاهی قابل رمزگشایی نیستند</string>
-    <string name="error_firmware_missing">برای اجرای برخی بازی‌ها و برنامه‌ها نیاز به فیرمور است. ادن فقط با فیرمور 19.0.1 یا قدیمی‌تر کار می‌کند.</string>
-    <string name="error_firmware_corrupted">فیرمور موجود است اما قابل خواندن نیست. کلیدهای رمزگشایی را بررسی کنید و در صورت نیاز فیرمور را دوباره دامپ کنید.</string>
-    <string name="error_firmware_too_new">فیرمور خیلی جدید است یا قابل خواندن نیست. ادن فقط با فیرمور 19.0.1 یا قدیمی‌تر کار می‌کند.</string>
     <string name="keys_failed">خطا در نصب کلیدها</string>
     <string name="keys_install_success">کلیدها با موفقیت نصب شدند</string>
     <string name="error_keys_copy_failed">یک یا چند کلید با خطا در کپی مواجه شد.</string>

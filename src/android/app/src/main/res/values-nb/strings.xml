@@ -322,9 +322,6 @@
     <string name="firmware_uninstalling">Avinstallerer firmware...</string>
     <string name="firmware_uninstalled_success">Firmware avinstallert</string>
 
-    <string name="error_firmware_missing">Fastvare kreves for å kjøre enkelte spill og applikasjoner. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
-    <string name="error_firmware_corrupted">Fastvare er til stede, men kan ikke leses. Sjekk dekrypteringsnøklene og dump fastvaren på nytt om nødvendig.</string>
-    <string name="error_firmware_too_new">Fastvaren er for ny eller kan ikke leses. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
 
     <string name="keys_failed">Kunne ikke installere nøkler</string>
     <string name="keys_install_success">Nøklene ble installert</string>

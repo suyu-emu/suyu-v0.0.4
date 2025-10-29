@@ -334,9 +334,6 @@
     <string name="firmware_uninstalling">Деинсталирање фирмвера</string>
     <string name="firmware_uninstalled_success">Фирмваре је успешно деинсталирано</string>
 
-    <string name="error_firmware_missing">Firmware је потребан за покретање одређених игара и апликација. Eden ради само са firmware-ом 19.0.1 или старијим.</string>
-    <string name="error_firmware_corrupted">Firmware је присутан али се не може прочитати. Проверите кључеве за дешифровање и поново направите firmware дамп ако је потребно.</string>
-    <string name="error_firmware_too_new">Firmware је превише нов или се не може прочитати. Eden ради само са firmware-ом 19.0.1 или старијим.</string>
 
     <string name="keys_failed">Неуспела инсталација кључева</string>
     <string name="keys_install_success">Кључеви успешно инсталирани</string>

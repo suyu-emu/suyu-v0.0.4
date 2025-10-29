@@ -370,9 +370,6 @@
     <string name="firmware_uninstalling">Видалення прошивки...</string>
     <string name="firmware_uninstalled_success">Прошивку успішно видалено</string>
 
-    <string name="error_firmware_missing">Для запуску деяких ігор та системних аплетів потрібна прошивка. Eden працює лише з прошивкою 19.0.1 або старішою.</string>
-    <string name="error_firmware_corrupted">Прошивка є, але не може бути прочитана. Перевірте ключі дешифрування та повторно зробіть дамп прошивки за необхідності.</string>
-    <string name="error_firmware_too_new">Прошивка занадто нова або нечитабельна. Eden працює лише з прошивкою 19.0.1 або старішою.</string>
 
     <string name="keys_failed">Не вдалося встановити ключі</string>
     <string name="keys_install_success">Ключі успішно встановлено</string>

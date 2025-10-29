@@ -301,9 +301,6 @@
     <string name="firmware_uninstalling">Odstraňování firmwaru</string>
     <string name="firmware_uninstalled_success">Firmware byl úspěšně odinstalován</string>
 
-    <string name="error_firmware_missing">Firmware je vyžadován pro spuštění některých her a aplikací. Eden funguje pouze s firmwarem 19.0.1 nebo starším.</string>
-    <string name="error_firmware_corrupted">Firmware byl nahlášen jako přítomný, ale nelze jej přečíst. Zkontrolujte šifrovací klíče a v případě potřeby firmware převezměte znovu.</string>
-    <string name="error_firmware_too_new">Firmware je příliš nový nebo nelze přečíst. Eden funguje pouze s firmwarem 19.0.1 nebo starším.</string>
 
     <string name="keys_failed">Selhání instalace klíčů</string>
     <string name="keys_install_success">Klíče úspěšně nainstalovány</string>

@@ -353,9 +353,6 @@ Wirklich fortfahren?</string>
     <string name="firmware_uninstalling">Firmware wird deinstalliert...</string>
     <string name="firmware_uninstalled_success">Firmware erfolgreich deinstalliert</string>
 
-    <string name="error_firmware_missing">Firmware wird benötigt, um bestimmte Spiele und Applikationen zu nutzen. Eden funktioniert nur mit Firmware 19.0.1 oder älter.</string>
-    <string name="error_firmware_corrupted">Firmware wurde als vorhanden gemeldet, konnte aber nicht gelesen werden. Überprüfen Sie die Entschlüsselungsschlüssel und dumpen Sie die Firmware bei Bedarf neu.</string>
-    <string name="error_firmware_too_new">Firmware ist zu neu oder konnte nicht gelesen werden. Eden funktioniert nur mit Firmware 19.0.1 oder älter.</string>
 
     <string name="keys_failed">Schlüsselinstallation fehlgeschlagen</string>
     <string name="keys_install_success">Schlüssel erfolgreich installiert</string>

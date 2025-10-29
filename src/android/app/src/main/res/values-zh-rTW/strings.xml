@@ -364,9 +364,6 @@
     <string name="firmware_uninstalling">正在解除安裝韌體...</string>
     <string name="firmware_uninstalled_success">韌體解除安裝成功</string>
 
-    <string name="error_firmware_missing">執行某些遊戲和系統應用程式需要韌體。Eden僅支援19.0.1及更早版本的韌體。</string>
-    <string name="error_firmware_corrupted">檢測到韌體存在但無法讀取。請檢查解密金鑰並在必要時重新轉儲韌體。</string>
-    <string name="error_firmware_too_new">韌體過新或無法讀取。Eden僅支援19.0.1及更早版本的韌體。</string>
 
     <string name="keys_failed">金鑰安裝失敗</string>
     <string name="keys_install_success">金鑰安裝成功</string>

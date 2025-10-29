@@ -331,9 +331,6 @@
     <string name="firmware_uninstalling">Firmware eltávolítása...</string>
     <string name="firmware_uninstalled_success">A firmware sikeresen eltávolítva</string>
 
-    <string name="error_firmware_missing">A firmware szükséges egyes játékok és alkalmazások futtatásához. Az Eden csak 19.0.1 vagy régebbi firmware-ekkel működik.</string>
-    <string name="error_firmware_corrupted">A firmware jelen van, de nem olvasható. Ellenőrizze a visszafejtési kulcsokat és szükség esetén dumpolja újra a firmware-t.</string>
-    <string name="error_firmware_too_new">A firmware túl új vagy nem olvasható. Az Eden csak a 19.0.1 vagy régebbi firmware-ekkel működik.</string>
 
     <string name="keys_failed">A kulcsok telepítése sikertelen</string>
     <string name="keys_install_success">A kulcsok sikeresen telepítve</string>

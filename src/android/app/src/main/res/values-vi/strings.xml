@@ -320,9 +320,6 @@
     <string name="firmware_uninstalling">Đang gỡ cài đặt firmware...</string>
     <string name="firmware_uninstalled_success">Gỡ cài đặt firmware thành công</string>
 
-    <string name="error_firmware_missing">Firmware là cần thiết để chạy một số trò chơi và ứng dụng. Eden chỉ hoạt động với firmware 19.0.1 trở về trước.</string>
-    <string name="error_firmware_corrupted">Firmware được báo cáo là có nhưng không thể đọc được. Kiểm tra khóa giải mã và dump lại firmware nếu cần.</string>
-    <string name="error_firmware_too_new">Firmware quá mới hoặc không thể đọc. Eden chỉ hoạt động với firmware 19.0.1 trở về trước.</string>
 
     <string name="keys_failed">Không thể cài đặt khóa</string>
     <string name="keys_install_success">Đã cài đặt khóa thành công</string>

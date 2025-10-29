@@ -364,9 +364,6 @@
     <string name="firmware_uninstalling">Mencopot firmware...</string>
     <string name="firmware_uninstalled_success">Firmware berhasil dicopot</string>
 
-    <string name="error_firmware_missing">Firmware diperlukan untuk menjalankan game dan aplikasi tertentu. Eden hanya bekerja dengan firmware 19.0.1 atau lebih lama.</string>
-    <string name="error_firmware_corrupted">Firmware dilaporkan ada tetapi tidak dapat dibaca. Periksa kunci dekripsi dan dump ulang firmware jika diperlukan.</string>
-    <string name="error_firmware_too_new">Firmware terlalu baru atau tidak dapat dibaca. Eden hanya bekerja dengan firmware 19.0.1 atau lebih lama.</string>
 
     <string name="keys_failed">Gagal menginstal kunci</string>
     <string name="keys_install_success">Kunci berhasil diinstal</string>

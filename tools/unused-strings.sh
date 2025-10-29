@@ -26,7 +26,8 @@ done <"$TMP_DIR"/files
 set -e
 
 # filter out "@string/" and "R.string." from the strings to get the raw names
-sed 's/R.string.\|@string\///' "$USED" | sort -u | grep -v app_name_suffixed > "$FILTERED"
+sed 's/R.string.//' "$USED" | sed 's/@string\///' \
+    | sort -u | grep -v app_name_suffixed > "$FILTERED"
 
 # now we run a sort + uniq -u pass - this basically removes all strings that are
 # present in BOTH the used strings list AND strings.xml

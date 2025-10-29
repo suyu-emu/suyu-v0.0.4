@@ -322,9 +322,6 @@
     <string name="firmware_uninstalling">جاري إزالة البرنامج الثابت</string>
     <string name="firmware_uninstalled_success">تم إزالة البرنامج الثابت بنجاح</string>
 
-    <string name="error_firmware_missing">فریموێر پێویستە بۆ کارپێکردنی هەندێک یاری و بەکارهێنانی بەرنامەکان. ئێدین تەنها لەگەڵ فریموێری 19.0.1 یان کۆنتر کار دەکات.</string>
-    <string name="error_firmware_corrupted">فریموێر هەیە بەڵام ناتوانرێت بخوێنرێتەوە. پشکنین بکە بۆ کلیلی شیکردنەوە و دووبارە فریموێرەکە دامپ بکە ئەگەر پێویست بوو.</string>
-    <string name="error_firmware_too_new">فریموێر زۆر نوێ یان ناتوانرێت بخوێنرێتەوە. ئێدین تەنها لەگەڵ فریموێری 19.0.1 یان کۆنتر کار دەکات.</string>
 
     <string name="keys_failed">سەرکەوتوو نەبوو لە ناساندنی کلیلی</string>
     <string name="keys_install_success">کلیلەکان بە سەرکەوتوویی ناسێندران</string>

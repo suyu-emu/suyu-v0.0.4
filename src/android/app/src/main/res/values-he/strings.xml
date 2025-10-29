@@ -334,9 +334,6 @@
     <string name="firmware_uninstalling">מסיר קושחה...</string>
     <string name="firmware_uninstalled_success">הקושחה הוסרה בהצלחה</string>
 
-    <string name="error_firmware_missing">נדרש קושחה להפעלת משחקים ויישומים מסוימים. עדן עובד רק עם קושחה 19.0.1 או ישנה יותר.</string>
-    <string name="error_firmware_corrupted">קושחה קיימת אך לא ניתנת לקריאה. בדוק מפתחות פענוח ושמור קושחה מחדש אם needed.</string>
-    <string name="error_firmware_too_new">קושחה חדשה מדי או לא ניתנת לקריאה. עדן תומך רק בקושחה 19.0.1 או ישנה יותר.</string>
 
     <string name="keys_failed">התקנת מפתחות נכשלה</string>
     <string name="keys_install_success">מפתחות הותקנו בהצלחה</string>
