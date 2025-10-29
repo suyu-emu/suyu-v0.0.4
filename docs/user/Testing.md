@@ -27,6 +27,8 @@ When you report your results:
 2. "Tested on based master — issue already present. Good result for PR, not a regression."
 ```
 
-This approach helps maintain clarity and accountability in the testing process and ensures regressions are caught and addressed efficiently. If the behavior seems normal for a certain game/feature then it may not be always required to check against the based master. 
+This approach helps maintain clarity and accountability in the testing process and ensures regressions are caught and addressed efficiently. If the behavior seems normal for a certain game/feature then it may not be always required to check against the based master.
 
 If a master build for the PR' based master does not exist. It will be helpful to just test past and future builds nearby. That would help with gathering more information about the problem.
+
+**Always include [debugging info](../Debug.md) as needed**.

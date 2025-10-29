@@ -1,5 +1,23 @@
 # Debug Guidelines
 
+## Issue reports
+
+When reporting issues or finding bugs, we often need backtraces, debug logs, or both in order to track down the issue.
+
+### Graphics Debugging
+
+If your bug is related to a graphical issue--e.g. mismatched colors, vertex explosions, flickering, etc.--then you are required to include graphical debugging logs in your issue reports.
+
+Graphics Debugging is found in General -> Debug on desktop, and Advanced Settings -> Debug on Android. Android users are all set; however, desktop users may need to install the Vulkan Validation Layers:
+- Windows: Install the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home)
+- Linux, BSD, etc: Install `vulkan-validation-layers`, `vulkan-layers`, or similar from your package manager. It should be located in e.g. `/usr/lib64/libVkLayer_khronos_validation.so`
+
+Once Graphics Debugging is enabled, run the problematic game again and continue. Note that the game may run extremely slow on weak hardware.
+
+### Debug Logs
+
+Debug logs can be found in General -> Debug -> Open Log Location on desktop, and Share Debug Logs on Android. This MUST be included in all bug reports, except for certain UI bugs--but we still highly recommend them even for UI bugs.
+
 ## Debugging (host code)
 
 Ignoring SIGSEGV when debugging in host:
@@ -47,10 +65,10 @@ Renderdoc is a free, cross platform, multi-graphics API debugger. It is an inval
 
 Before using renderdoc to diagnose issues, it is always good to make sure there are no validation errors. Any errors means the behavior of the application is undefined. That said, renderdoc can help debug validation errors if you do have them.
 
-When debugging a black screen, there are many ways the application could have setup Vulkan wrong. 
+When debugging a black screen, there are many ways the application could have setup Vulkan wrong.
 Here is a short checklist of items to look at to make sure are appropriate:
 * Draw call counts are correct (aka not zero, or if rendering many triangles, not 3)
-* Vertex buffers are bound 
+* Vertex buffers are bound
 * vertex attributes are correct - Make sure the size & offset of each attribute matches what should it should be
 * Any bound push constants and descriptors have the right data - including:
   * Matrices have correct values - double check the model, view, & projection matrices are uploaded correctly
@@ -63,6 +81,6 @@ Here is a short checklist of items to look at to make sure are appropriate:
 * Blend state is correct
 * Depth state is correct - typically enabled with Function set to Less than or Equal
 * Swapchain images are bound when rendering to the swapchain
-* Image being rendered to is the same as the one being presented when rendering to the swapchain 
+* Image being rendered to is the same as the one being presented when rendering to the swapchain
 
 Alternatively, a [RenderDoc Extension](https://github.com/baldurk/renderdoc-contrib/tree/main/baldurk/whereismydraw) ([Archive](https://web.archive.org/web/20250000000000*/https://github.com/baldurk/renderdoc-contrib/tree/main/baldurk/whereismydraw)) exists which automates doing a lot of these manual steps.
