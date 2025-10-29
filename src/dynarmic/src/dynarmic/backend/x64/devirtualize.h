@@ -11,7 +11,7 @@
 #include <cstring>
 #include <utility>
 
-#include <mcl/bit_cast.hpp>
+#include <bit>
 #include "dynarmic/common/common_types.h"
 #include <mcl/type_traits/function_info.hpp>
 
@@ -32,6 +32,12 @@ struct ThunkBuilder<R (C::*)(Args...), mfp> {
     }
 };
 
+template<typename T, typename P> inline T bit_cast_pointee(const P source_ptr) noexcept {
+    std::aligned_storage_t<sizeof(T), alignof(T)> dest;
+    std::memcpy(&dest, std::bit_cast<void*>(source_ptr), sizeof(T));
+    return reinterpret_cast<T&>(dest);
+}
+
 }  // namespace impl
 
 template<auto mfp>
@@ -42,7 +48,7 @@ ArgCallback DevirtualizeGeneric(mcl::class_type<decltype(mfp)>* this_) {
 template<auto mfp>
 ArgCallback DevirtualizeWindows(mcl::class_type<decltype(mfp)>* this_) {
     static_assert(sizeof(mfp) == 8);
-    return ArgCallback{mcl::bit_cast<u64>(mfp), reinterpret_cast<u64>(this_)};
+    return ArgCallback{std::bit_cast<u64>(mfp), reinterpret_cast<u64>(this_)};
 }
 
 template<auto mfp>
@@ -53,7 +59,7 @@ ArgCallback DevirtualizeItanium(mcl::class_type<decltype(mfp)>* this_) {
         u64 ptr;
         /// The required adjustment to `this`, prior to the call.
         u64 adj;
-    } mfp_struct = mcl::bit_cast<MemberFunctionPointer>(mfp);
+    } mfp_struct = std::bit_cast<MemberFunctionPointer>(mfp);
 
     static_assert(sizeof(MemberFunctionPointer) == 16);
     static_assert(sizeof(MemberFunctionPointer) == sizeof(mfp));
@@ -61,8 +67,8 @@ ArgCallback DevirtualizeItanium(mcl::class_type<decltype(mfp)>* this_) {
     u64 fn_ptr = mfp_struct.ptr;
     u64 this_ptr = reinterpret_cast<u64>(this_) + mfp_struct.adj;
     if (mfp_struct.ptr & 1) {
-        u64 vtable = mcl::bit_cast_pointee<u64>(this_ptr);
-        fn_ptr = mcl::bit_cast_pointee<u64>(vtable + fn_ptr - 1);
+        u64 vtable = impl::bit_cast_pointee<u64>(this_ptr);
+        fn_ptr = impl::bit_cast_pointee<u64>(vtable + fn_ptr - 1);
     }
     return ArgCallback{fn_ptr, this_ptr};
 }

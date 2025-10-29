@@ -92,9 +92,9 @@ static void* EmitExclusiveReadCallTrampoline(oaknut::CodeGenerator& code, const 
 
     code.align(8);
     code.l(l_this);
-    code.dx(mcl::bit_cast<u64>(&conf));
+    code.dx(std::bit_cast<u64>(&conf));
     code.l(l_addr);
-    code.dx(mcl::bit_cast<u64>(Common::FptrCast(fn)));
+    code.dx(std::bit_cast<u64>(Common::FptrCast(fn)));
 
     return target;
 }
@@ -150,9 +150,9 @@ static void* EmitExclusiveWriteCallTrampoline(oaknut::CodeGenerator& code, const
 
     code.align(8);
     code.l(l_this);
-    code.dx(mcl::bit_cast<u64>(&conf));
+    code.dx(std::bit_cast<u64>(&conf));
     code.l(l_addr);
-    code.dx(mcl::bit_cast<u64>(Common::FptrCast(fn)));
+    code.dx(std::bit_cast<u64>(Common::FptrCast(fn)));
 
     return target;
 }
@@ -235,9 +235,9 @@ static void* EmitExclusiveRead128CallTrampoline(oaknut::CodeGenerator& code, con
 
     code.align(8);
     code.l(l_this);
-    code.dx(mcl::bit_cast<u64>(&conf));
+    code.dx(std::bit_cast<u64>(&conf));
     code.l(l_addr);
-    code.dx(mcl::bit_cast<u64>(Common::FptrCast(fn)));
+    code.dx(std::bit_cast<u64>(Common::FptrCast(fn)));
 
     return target;
 }
@@ -317,9 +317,9 @@ static void* EmitExclusiveWrite128CallTrampoline(oaknut::CodeGenerator& code, co
 
     code.align(8);
     code.l(l_this);
-    code.dx(mcl::bit_cast<u64>(&conf));
+    code.dx(std::bit_cast<u64>(&conf));
     code.l(l_addr);
-    code.dx(mcl::bit_cast<u64>(Common::FptrCast(fn)));
+    code.dx(std::bit_cast<u64>(Common::FptrCast(fn)));
 
     return target;
 }
@@ -396,7 +396,7 @@ void A64AddressSpace::EmitPrelude() {
         code.MOV(Xstate, X1);
         code.MOV(Xhalt, X2);
         if (conf.page_table) {
-            code.MOV(Xpagetable, mcl::bit_cast<u64>(conf.page_table));
+            code.MOV(Xpagetable, std::bit_cast<u64>(conf.page_table));
         }
         if (conf.fastmem_pointer) {
             code.MOV(Xfastmem, *conf.fastmem_pointer);
@@ -434,7 +434,7 @@ void A64AddressSpace::EmitPrelude() {
         code.MOV(Xstate, X1);
         code.MOV(Xhalt, X2);
         if (conf.page_table) {
-            code.MOV(Xpagetable, mcl::bit_cast<u64>(conf.page_table));
+            code.MOV(Xpagetable, std::bit_cast<u64>(conf.page_table));
         }
         if (conf.fastmem_pointer) {
             code.MOV(Xfastmem, *conf.fastmem_pointer);
@@ -492,9 +492,9 @@ void A64AddressSpace::EmitPrelude() {
 
         code.align(8);
         code.l(l_this);
-        code.dx(mcl::bit_cast<u64>(this));
+        code.dx(std::bit_cast<u64>(this));
         code.l(l_addr);
-        code.dx(mcl::bit_cast<u64>(Common::FptrCast(fn)));
+        code.dx(std::bit_cast<u64>(Common::FptrCast(fn)));
     }
 
     prelude_info.return_from_run_code = code.xptr<void*>();
@@ -522,7 +522,7 @@ void A64AddressSpace::EmitPrelude() {
 
     code.align(8);
     code.l(l_return_to_dispatcher);
-    code.dx(mcl::bit_cast<u64>(prelude_info.return_to_dispatcher));
+    code.dx(std::bit_cast<u64>(prelude_info.return_to_dispatcher));
 
     prelude_info.end_of_prelude = code.offset();
 
@@ -544,7 +544,7 @@ EmitConfig A64AddressSpace::GetEmitConfig() {
 
         .check_halt_on_memory_access = conf.check_halt_on_memory_access,
 
-        .page_table_pointer = mcl::bit_cast<u64>(conf.page_table),
+        .page_table_pointer = std::bit_cast<u64>(conf.page_table),
         .page_table_address_space_bits = conf.page_table_address_space_bits,
         .page_table_pointer_mask_bits = conf.page_table_pointer_mask_bits,
         .silently_mirror_page_table = conf.silently_mirror_page_table,

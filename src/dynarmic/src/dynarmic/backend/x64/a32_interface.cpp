@@ -13,7 +13,7 @@
 #include <boost/icl/interval_set.hpp>
 #include <fmt/format.h>
 #include "dynarmic/common/assert.h"
-#include <mcl/bit_cast.hpp>
+#include <bit>
 #include <mcl/scope_exit.hpp>
 #include "dynarmic/common/common_types.h"
 
@@ -47,7 +47,7 @@ static RunCodeCallbacks GenRunCodeCallbacks(A32::UserCallbacks* cb, CodePtr (*Lo
 static std::function<void(BlockOfCode&)> GenRCP(const A32::UserConfig& conf) {
     return [conf](BlockOfCode& code) {
         if (conf.page_table) {
-            code.mov(code.r14, mcl::bit_cast<u64>(conf.page_table));
+            code.mov(code.r14, std::bit_cast<u64>(conf.page_table));
         }
         if (conf.fastmem_pointer) {
             code.mov(code.r13, *conf.fastmem_pointer);

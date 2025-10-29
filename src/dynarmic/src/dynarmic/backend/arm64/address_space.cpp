@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -5,7 +8,7 @@
 
 #include <cstdio>
 
-#include <mcl/bit_cast.hpp>
+#include <bit>
 
 #include "dynarmic/backend/arm64/a64_address_space.h"
 #include "dynarmic/backend/arm64/a64_jitstate.h"
@@ -99,7 +102,7 @@ void AddressSpace::ClearCache() {
 
 void AddressSpace::DumpDisassembly() const {
     for (u32* ptr = mem.ptr(); ptr < code.xptr<u32*>(); ptr++) {
-        std::printf("%s", Common::DisassembleAArch64(*ptr, mcl::bit_cast<u64>(ptr)).c_str());
+        std::printf("%s", Common::DisassembleAArch64(*ptr, std::bit_cast<u64>(ptr)).c_str());
     }
 }
 
@@ -316,7 +319,7 @@ void AddressSpace::RelinkForDescriptor(IR::LocationDescriptor target_descriptor,
 
 FakeCall AddressSpace::FastmemCallback(u64 host_pc) {
     {
-        const auto host_ptr = mcl::bit_cast<CodePtr>(host_pc);
+        const auto host_ptr = std::bit_cast<CodePtr>(host_pc);
 
         const auto entry_point = ReverseGetEntryPoint(host_ptr);
         if (!entry_point) {

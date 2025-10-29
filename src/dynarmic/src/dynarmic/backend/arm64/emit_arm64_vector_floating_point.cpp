@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/bit_cast.hpp>
+#include <bit>
 #include <mcl/mp/metavalue/lift_value.hpp>
 #include <mcl/mp/typelist/cartesian_product.hpp>
 #include <mcl/mp/typelist/get.hpp>
@@ -271,7 +271,7 @@ static void EmitTwoOpFallbackWithoutRegAlloc(oaknut::CodeGenerator& code, EmitCo
 
     ABI_PushRegisters(code, ABI_CALLER_SAVE & ~(1ull << Qresult.index()), stack_size);
 
-    code.MOV(Xscratch0, mcl::bit_cast<u64>(fn));
+    code.MOV(Xscratch0, std::bit_cast<u64>(fn));
     code.ADD(X0, SP, 0 * 16);
     code.ADD(X1, SP, 1 * 16);
     code.MOV(X2, fpcr);

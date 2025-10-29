@@ -14,7 +14,7 @@
 
 #include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
-#include <mcl/bit_cast.hpp>
+#include <bit>
 #include <mcl/mp/metavalue/lift_value.hpp>
 #include "dynarmic/common/common_types.h"
 
@@ -246,7 +246,7 @@ void RegAlloc::AssertNoMoreUses() const {
 }
 
 void RegAlloc::EmitVerboseDebuggingOutput() {
-    code.MOV(X19, mcl::bit_cast<u64>(&PrintVerboseDebuggingOutputLine));  // Non-volatile register
+    code.MOV(X19, std::bit_cast<u64>(&PrintVerboseDebuggingOutputLine));  // Non-volatile register
 
     const auto do_location = [&](HostLocInfo& info, HostLocType type, size_t index) {
         using namespace oaknut::util;
