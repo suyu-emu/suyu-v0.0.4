@@ -73,7 +73,7 @@ std::string DiscordImpl::GetGameString(const std::string& title) {
 void DiscordImpl::UpdateGameStatus(bool use_default) {
     const std::string default_text = "Eden is an emulator for the Nintendo Switch";
     const std::string default_image = "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/"
-                                      "dist/qt_themes/default/icons/256x256/eden_named.png";
+                                      "dist/qt_themes/default/icons/256x256/eden.png";
     const std::string url = use_default ? default_image : game_url;
     s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(
                          std::chrono::system_clock::now().time_since_epoch())
@@ -95,7 +95,7 @@ void DiscordImpl::UpdateGameStatus(bool use_default) {
 void DiscordImpl::Update() {
     const std::string default_text = "Eden is an emulator for the Nintendo Switch";
     const std::string default_image = "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/"
-                                      "dist/qt_themes/default/icons/256x256/eden_named.png";
+                                      "dist/qt_themes/default/icons/256x256/eden.png";
 
     if (system.IsPoweredOn()) {
         system.GetAppLoader().ReadTitle(game_title);
