@@ -25,6 +25,7 @@
 #ifdef __unix__
 #include <csignal>
 #include <sys/socket.h>
+#include "qt_common/gui_settings.h"
 #endif
 #ifdef __linux__
 #include "common/linux/gamemode.h"
@@ -551,6 +552,10 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     // Gen keys if necessary
     OnCheckFirmwareDecryption();
+
+#ifdef __unix__
+    OnCheckGraphicsBackend();
+#endif
 
     // Check for orphaned profiles and reset profile data if necessary
     QtCommon::Content::FixProfiles();
@@ -3497,6 +3502,9 @@ void GMainWindow::OnConfigure() {
 #ifdef __linux__
     const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
 #endif
+#ifdef __unix__
+    const bool old_force_x11 = Settings::values.gui_force_x11.GetValue();
+#endif
 
     Settings::SetConfiguringGlobal(true);
     ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(),
@@ -3559,6 +3567,11 @@ void GMainWindow::OnConfigure() {
 #ifdef __linux__
     if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
         SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
+    }
+#endif
+#ifdef __unix__
+    if (Settings::values.gui_force_x11.GetValue() != old_force_x11) {
+        GraphicsBackend::SetForceX11(Settings::values.gui_force_x11.GetValue());
     }
 #endif
 
@@ -4536,6 +4549,54 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     UpdateMenuState();
 }
 
+#ifdef __unix__
+void GMainWindow::OnCheckGraphicsBackend() {
+    const QString platformName = QGuiApplication::platformName();
+    const QByteArray qtPlatform = qgetenv("QT_QPA_PLATFORM");
+
+    if (platformName == QStringLiteral("xcb") || qtPlatform == "xcb")
+        return;
+
+    const bool isWayland = platformName.startsWith(QStringLiteral("wayland"), Qt::CaseInsensitive) || qtPlatform.startsWith("wayland");
+    if (!isWayland)
+        return;
+
+    const bool currently_hidden = Settings::values.gui_hide_backend_warning.GetValue();
+    if (currently_hidden)
+        return;
+
+    QMessageBox msgbox(this);
+    msgbox.setWindowTitle(tr("Wayland Detected!"));
+    msgbox.setText(tr("Wayland is known to have significant performance issues and mysterious bugs.\n"
+                      "It's recommended to use X11 instead.\n\n"
+                      "Would you like to force it for future launches?"));
+    msgbox.setIcon(QMessageBox::Warning);
+
+    QPushButton* okButton = msgbox.addButton(tr("Use X11"), QMessageBox::AcceptRole);
+    msgbox.addButton(tr("Continue with Wayland"), QMessageBox::RejectRole);
+    msgbox.setDefaultButton(okButton);
+
+    QCheckBox* cb = new QCheckBox(tr("Don't show again"), &msgbox);
+    cb->setChecked(currently_hidden);
+    msgbox.setCheckBox(cb);
+
+    msgbox.exec();
+
+    const bool hide = cb->isChecked();
+    if (hide != currently_hidden) {
+        Settings::values.gui_hide_backend_warning.SetValue(hide);
+    }
+
+    if (msgbox.clickedButton() == okButton) {
+        Settings::values.gui_force_x11.SetValue(true);
+        GraphicsBackend::SetForceX11(true);
+        QMessageBox::information(this,
+            tr("Restart Required"),
+            tr("Restart Eden to apply the X11 backend."));
+    }
+}
+#endif
+
 bool GMainWindow::CheckFirmwarePresence() {
     return FirmwareManager::CheckFirmwarePresence(*QtCommon::system.get());
 }
@@ -5028,6 +5089,9 @@ int main(int argc, char* argv[]) {
     if (QString::fromLocal8Bit(qgetenv("DISPLAY")).isEmpty()) {
         qputenv("DISPLAY", ":0");
     }
+
+    if (GraphicsBackend::GetForceX11() && qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM"))
+        qputenv("QT_QPA_PLATFORM", "xcb");
 
     // Fix the Wayland appId. This needs to match the name of the .desktop file without the .desktop
     // suffix.
