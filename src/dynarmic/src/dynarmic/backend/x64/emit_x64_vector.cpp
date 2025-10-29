@@ -3521,48 +3521,47 @@ void EmitX64::EmitVectorReverseElementsInHalfGroups8(EmitContext& ctx, IR::Inst*
 
 void EmitX64::EmitVectorReverseElementsInWordGroups8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
     const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
-
-    // TODO: PSHUFB
-
-    code.movdqa(tmp, data);
-    code.psllw(tmp, 8);
-    code.psrlw(data, 8);
-    code.por(data, tmp);
-    code.pshuflw(data, data, 0b10110001);
-    code.pshufhw(data, data, 0b10110001);
-
+    if (code.HasHostFeature(HostFeature::AVX)) {
+        code.vpshufb(data, data, code.Const(xword, 0x0405060700010203, 0x0c0d0e0f08090a0b));
+    } else if (code.HasHostFeature(HostFeature::SSSE3)) {
+        code.pshufb(data, code.Const(xword, 0x0405060700010203, 0x0c0d0e0f08090a0b));
+    } else {
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+        code.movdqa(tmp, data);
+        code.psllw(tmp, 8);
+        code.psrlw(data, 8);
+        code.por(data, tmp);
+        code.pshuflw(data, data, 0b10110001);
+        code.pshufhw(data, data, 0b10110001);
+    }
     ctx.reg_alloc.DefineValue(inst, data);
 }
 
 void EmitX64::EmitVectorReverseElementsInWordGroups16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
     const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
-
     code.pshuflw(data, data, 0b10110001);
     code.pshufhw(data, data, 0b10110001);
-
     ctx.reg_alloc.DefineValue(inst, data);
 }
 
 void EmitX64::EmitVectorReverseElementsInLongGroups8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
     const Xbyak::Xmm data = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
-
-    // TODO: PSHUFB
-
-    code.movdqa(tmp, data);
-    code.psllw(tmp, 8);
-    code.psrlw(data, 8);
-    code.por(data, tmp);
-    code.pshuflw(data, data, 0b00011011);
-    code.pshufhw(data, data, 0b00011011);
-
+    if (code.HasHostFeature(HostFeature::AVX)) {
+        code.vpshufb(data, data, code.Const(xword, 0x0001020304050607, 0x08090a0b0c0d0e0f));
+    } else if (code.HasHostFeature(HostFeature::SSSE3)) {
+        code.pshufb(data, code.Const(xword, 0x0001020304050607, 0x08090a0b0c0d0e0f));
+    } else {
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+        code.movdqa(tmp, data);
+        code.psllw(tmp, 8);
+        code.psrlw(data, 8);
+        code.por(data, tmp);
+        code.pshuflw(data, data, 0b00011011);
+        code.pshufhw(data, data, 0b00011011);
+    }
     ctx.reg_alloc.DefineValue(inst, data);
 }
 

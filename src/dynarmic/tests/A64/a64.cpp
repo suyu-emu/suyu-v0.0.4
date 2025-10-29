@@ -91,6 +91,28 @@ TEST_CASE("A64: CLZ", "[a64]") {
     REQUIRE(jit.GetVector(5) == Vector{0x0, 0x0000001e0000001f});
 }
 
+TEST_CASE("A64: VREV", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &env;
+    A64::Jit jit{jit_user_config};
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+    code.REV32(V0.B16(), V5.B16());
+    code.REV32(V1.H8(), V5.H8());
+    code.REV64(V2.B16(), V5.B16());
+    code.REV64(V3.H8(), V5.H8());
+    code.REV64(V4.S4(), V5.S4());
+    jit.SetPC(0);
+    jit.SetVector(5, {0x1020304050607080, 0x90A0B0C0D0E0F000});
+    env.ticks_left = env.code_mem.size();
+    CheckedRun([&]() { jit.Run(); });
+    REQUIRE(jit.GetVector(0) == Vector{0x4030201080706050, 0xc0b0a09000f0e0d0});
+    REQUIRE(jit.GetVector(1) == Vector{0x3040102070805060, 0xb0c090a0f000d0e0});
+    REQUIRE(jit.GetVector(2) == Vector{0x8070605040302010, 0x00f0e0d0c0b0a090});
+    REQUIRE(jit.GetVector(3) == Vector{0x7080506030401020, 0xf000d0e0b0c090a0});
+    REQUIRE(jit.GetVector(4) == Vector{0x5060708010203040, 0xd0e0f00090a0b0c0});
+}
+
 TEST_CASE("A64: UADDL{V,P}", "[a64]") {
     A64TestEnv env;
     A64::UserConfig jit_user_config{};
