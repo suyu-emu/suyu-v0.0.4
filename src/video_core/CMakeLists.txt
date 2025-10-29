@@ -398,8 +398,4 @@ if (ANDROID AND ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE adrenotools)
 endif()
 
-if (ARCHITECTURE_arm64)
-    target_link_libraries(video_core PRIVATE sse2neon)
-endif()
-
 create_target_directory_groups(video_core)
