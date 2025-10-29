@@ -1052,53 +1052,40 @@ bool GRenderWindow::LoadOpenGL() {
             tr("Your GPU may not support OpenGL, or you do not have the latest graphics driver."));
         return false;
     }
-
-    const QString renderer =
-        QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
-
+    // Display various warnings (but not fatal errors) for missing OpenGL extensions or lack of
+    // OpenGL 4.6 support
+    const QString renderer = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     if (!GLAD_GL_VERSION_4_6) {
-        LOG_ERROR(Frontend, "GPU does not support OpenGL 4.6: {}", renderer.toStdString());
         QMessageBox::warning(this, tr("Error while initializing OpenGL 4.6!"),
-                             tr("Your GPU may not support OpenGL 4.6, or you do not have the "
-                                "latest graphics driver.<br><br>GL Renderer:<br>%1")
-                                 .arg(renderer));
+            tr("Your GPU may not support OpenGL 4.6, or you do not have the "
+            "latest graphics driver.<br><br>GL Renderer:<br>%1")
+            .arg(renderer));
         return false;
     }
-
-    QStringList unsupported_gl_extensions = GetUnsupportedGLExtensions();
-    if (!unsupported_gl_extensions.empty()) {
+    if (QStringList missing_ext = GetUnsupportedGLExtensions(); !missing_ext.empty()) {
         QMessageBox::warning(
             this, tr("Error while initializing OpenGL!"),
             tr("Your GPU may not support one or more required OpenGL extensions. Please ensure you "
-               "have the latest graphics driver.<br><br>GL Renderer:<br>%1<br><br>Unsupported "
-               "extensions:<br>%2")
-                .arg(renderer)
-                .arg(unsupported_gl_extensions.join(QStringLiteral("<br>"))));
-        return false;
+            "have the latest graphics driver.<br><br>GL Renderer:<br>%1<br><br>Unsupported "
+            "extensions:<br>%2")
+            .arg(renderer).arg(missing_ext.join(QStringLiteral("<br>"))));
+        // Non fatal
     }
     return true;
 }
 
 QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
-    QStringList unsupported_ext;
-
+    QStringList missing_ext;
     // Extensions required to support some texture formats.
-    if (!GLAD_GL_EXT_texture_compression_s3tc) {
-        unsupported_ext.append(QStringLiteral("EXT_texture_compression_s3tc"));
-    }
-    if (!GLAD_GL_ARB_texture_compression_rgtc) {
-        unsupported_ext.append(QStringLiteral("ARB_texture_compression_rgtc"));
-    }
-
-    if (!unsupported_ext.empty()) {
-        const std::string gl_renderer{reinterpret_cast<const char*>(glGetString(GL_RENDERER))};
-        LOG_ERROR(Frontend, "GPU does not support all required extensions: {}", gl_renderer);
-    }
-    for (const QString& ext : unsupported_ext) {
+    if (!GLAD_GL_EXT_texture_compression_s3tc)
+        missing_ext.append(QStringLiteral("EXT_texture_compression_s3tc"));
+    if (!GLAD_GL_ARB_texture_compression_rgtc)
+        missing_ext.append(QStringLiteral("ARB_texture_compression_rgtc"));
+    if (!missing_ext.empty())
+        LOG_ERROR(Frontend, "GPU does not support all required extensions");
+    for (const QString& ext : missing_ext)
         LOG_ERROR(Frontend, "Unsupported GL extension: {}", ext.toStdString());
-    }
-
-    return unsupported_ext;
+    return missing_ext;
 }
 
 void GRenderWindow::OnEmulationStarting(EmuThread* emu_thread_) {
