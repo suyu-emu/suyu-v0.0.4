@@ -1,28 +1,27 @@
 # ui stuff
-/src/android            @AleksandrPopovich @kleidis @Producdevity
-/src/yuzu               @crueter
-/src/eden               @crueter
-/src/frontend_common    @crueter
-/src/qt_common          @crueter
+/src/android         @AleksandrPopovich @kleidis @Producdevity
+/src/yuzu            @crueter
+/src/eden            @crueter
+/src/frontend_common @crueter
+/src/qt_common       @crueter
 
 # docs, meta
-/docs                   @Lizzie @crueter
-/.ci                    @crueter
+/docs                @Lizzie @crueter
+/.ci                 @crueter
 
 # cmake
-*.cmake                 @crueter
-*CMakeLists.txt         @crueter
-*.in                    @crueter
+*.cmake              @crueter
+*CMakeLists.txt      @crueter
+*.in                 @crueter
 
 # individual stuff
-src/web_service         @AleksandrPopovich
-src/dynarmic            @Lizzie
-src/core                @Lizzie @Maufeat @PavelBARABANOV @MrPurple666 @JPikachu
-src/core/hle            @Maufeat @PavelBARABANOV @SDK-Chan
-src/core/arm            @Lizzie @MrPurple666
-src/*_room              @AleksandrPopovich
-src/video_core          @CamilleLaVey @MaranBr @Wildcard @weakboson @Ribbit
-src/shader_recompiler   @Ribbit
+src/web_service      @AleksandrPopovich
+src/dynarmic         @Lizzie
+src/core             @Lizzie @Maufeat @PavelBARABANOV @MrPurple666 @JPikachu
+src/core/hle         @Maufeat @PavelBARABANOV @SDK-Chan
+src/core/arm         @Lizzie @MrPurple666
+src/*_room           @AleksandrPopovich
+src/video_core       @CamilleLaVey @MaranBr @Wildcard @weakboson
 
 # Global owners/triage
-*                       @CamilleLaVey @Maufeat @crueter @MrPurple666 @MaranBr @Lizzie
+*                    @CamilleLaVey @Maufeat @crueter @MrPurple666 @MaranBr @Lizzie
