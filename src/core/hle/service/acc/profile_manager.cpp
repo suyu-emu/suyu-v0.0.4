@@ -10,16 +10,19 @@
 #include <iostream>
 #include <random>
 
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/find.hpp>
 #include <fmt/ranges.h>
 
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/fs_types.h"
 #include "common/fs/path_util.h"
-#include <ranges>
 #include "common/settings.h"
 #include "common/string_util.h"
+#include "core/file_sys/savedata_factory.h"
 #include "core/hle/service/acc/profile_manager.h"
+#include <ranges>
 
 namespace Service::Account {
 
@@ -39,6 +42,7 @@ struct ProfileDataRaw {
     INSERT_PADDING_BYTES(0x10);
     std::array<UserRaw, MAX_USERS> users{};
 };
+
 static_assert(sizeof(ProfileDataRaw) == 0x650, "ProfileDataRaw has incorrect size.");
 
 // TODO(ogniK): Get actual error codes
@@ -490,7 +494,21 @@ void ProfileManager::ResetUserSaveFile()
 
 std::vector<std::string> ProfileManager::FindGoodProfiles()
 {
+    namespace fs = std::filesystem;
+
     std::vector<std::string> good_uuids;
+
+    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
+                      / "user/save/0000000000000000";
+
+    // some exceptions because certain games just LOVE TO CAUSE ISSUES
+    static constexpr const std::array<const char* const, 2> EXCEPTION_UUIDS
+        = {"5755CC2A545A87128500000000000000", "00000000000000000000000000000000"};
+
+    for (const char *const uuid : EXCEPTION_UUIDS) {
+        if (fs::exists(path / uuid))
+            good_uuids.emplace_back(uuid);
+    }
 
     for (const ProfileInfo& p : profiles) {
         std::string uuid_string = [p]() -> std::string {
@@ -506,11 +524,8 @@ std::vector<std::string> ProfileManager::FindGoodProfiles()
             return fmt::format("{:016X}{:016X}", user_id[1], user_id[0]);
         }();
 
-        good_uuids.emplace_back(uuid_string);
+        if (uuid_string != "0") good_uuids.emplace_back(uuid_string);
     }
-
-    // used for acnh, etc
-    good_uuids.emplace_back("00000000000000000000000000000000");
 
     return good_uuids;
 }
@@ -518,6 +533,8 @@ std::vector<std::string> ProfileManager::FindGoodProfiles()
 std::vector<std::string> ProfileManager::FindOrphanedProfiles()
 {
     std::vector<std::string> good_uuids = FindGoodProfiles();
+
+    namespace fs = std::filesystem;
 
     // TODO: fetch save_id programmatically
     const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
@@ -530,32 +547,47 @@ std::vector<std::string> ProfileManager::FindOrphanedProfiles()
         [&good_uuids, &orphaned_profiles](const std::filesystem::directory_entry& entry) -> bool {
             const std::string uuid = entry.path().stem().string();
 
+            bool override = false;
+
             // first off, we should always clear empty profiles
             // 99% of the time these are useless. If not, they are recreated anyways...
-            namespace fs = std::filesystem;
-
-            const auto is_empty = [&entry]() -> bool {
+            const auto is_empty = [&entry, &override]() -> bool {
                 try {
                     for (const auto& file : fs::recursive_directory_iterator(entry.path())) {
-                        if (file.is_regular_file()) {
-                            return true;
-                        }
+                        // TODO: .yuzu_save_size is a weird file that gets created by certain games
+                        // I have no idea what its purpose is, but TEMPORARY SOLUTION: just mark the profile as valid if
+                        // this file exists (???) e.g. for SSBU
+                        // In short: if .yuzu_save_size is the ONLY file in a profile it's probably fine to keep
+                        if (file.path().filename().string() == FileSys::GetSaveDataSizeFileName())
+                            override = true;
+
+                        // if there are any regular files (NOT directories) there, do NOT delete it :p
+                        if (file.is_regular_file())
+                            return false;
                     }
                 } catch (const fs::filesystem_error& e) {
                     // if we get an error--no worries, just pretend it's not empty
-                    return false;
+                    return true;
                 }
-                return false;
+
+                return true;
             }();
 
-            if (!is_empty) {
+            if (is_empty) {
                 fs::remove_all(entry);
                 return true;
             }
 
+            // edge-case: some filesystems forcefully change filenames to lowercase
+            // so we can just ignore any differences
+            // looking at you microsoft... ;)
+            std::string upper_uuid = uuid;
+            boost::to_upper(upper_uuid);
+
             // if profiles.dat contains the UUID--all good
             // if not--it's an orphaned profile and should be resolved by the user
-            if (std::find(good_uuids.begin(), good_uuids.end(), uuid) == good_uuids.end()) {
+            if (!override
+                && std::find(good_uuids.begin(), good_uuids.end(), upper_uuid) == good_uuids.end()) {
                 orphaned_profiles.emplace_back(uuid);
             }
             return true;

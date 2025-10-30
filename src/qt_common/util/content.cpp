@@ -340,33 +340,34 @@ void FixProfiles()
     QString qorphaned;
 
     // max. of 8 orphaned profiles is fair, I think
-    // 33 = 32 (UUID) + 1 (\n)
-    qorphaned.reserve(8 * 33);
+    // 36 = 32 (UUID) + 4 (<br>)
+    qorphaned.reserve(8 * 36);
 
     for (const std::string& s : orphaned) {
-        qorphaned = qorphaned % QStringLiteral("\n") % QString::fromStdString(s);
+        qorphaned = qorphaned % QStringLiteral("<br>") % QString::fromStdString(s);
     }
 
     QString qgood;
 
     // max. of 8 good profiles is fair, I think
-    // 33 = 32 (UUID) + 1 (\n)
-    qgood.reserve(8 * 33);
+    // 36 = 32 (UUID) + 4 (<br>)
+    qgood.reserve(8 * 36);
 
     for (const std::string& s : good) {
-        qgood = qgood % QStringLiteral("\n") % QString::fromStdString(s);
+        qgood = qgood % QStringLiteral("<br>") % QString::fromStdString(s);
     }
 
     QtCommon::Frontend::Critical(
         tr("Orphaned Profiles Detected!"),
-        tr("UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON'T READ THIS!\n"
-           "Eden has detected the following save directories with no attached profile:\n"
-           "%1\n\n"
-           "The following profiles are valid:\n"
-           "%2\n\n"
-           "Click \"OK\" to open your save folder and fix up your profiles.\n"
+        tr("UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON'T READ THIS!<br>"
+           "Eden has detected the following save directories with no attached profile:<br>"
+           "%1<br><br>"
+           "The following profiles are valid:<br>"
+           "%2<br><br>"
+           "Click \"OK\" to open your save folder and fix up your profiles.<br>"
            "Hint: copy the contents of the largest or last-modified folder elsewhere, "
-           "delete all orphaned profiles, and move your copied contents to the good profile.")
+           "delete all orphaned profiles, and move your copied contents to the good profile.<br><br>"
+           "Still confused? See the <a href='https://git.eden-emu.dev/eden-emu/eden/src/branch/master/docs/user/Orphaned.md'>help page</a>.<br>")
             .arg(qorphaned, qgood));
 
     QtCommon::Game::OpenSaveFolder();

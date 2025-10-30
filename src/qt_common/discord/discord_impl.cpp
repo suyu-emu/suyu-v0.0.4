@@ -13,7 +13,6 @@
 
 #include <discord_rpc.h>
 #include <fmt/format.h>
-#include <qdebug.h>
 
 #include "common/common_types.h"
 #include "common/string_util.h"
@@ -88,8 +87,6 @@ void DiscordImpl::UpdateGameStatus(bool use_default) {
     presence.details = "Currently in game";
     presence.startTimestamp = start_time;
     Discord_UpdatePresence(&presence);
-
-    qDebug() << "game status updated";
 }
 
 void DiscordImpl::Update() {
