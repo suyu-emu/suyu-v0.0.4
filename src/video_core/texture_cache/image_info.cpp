@@ -52,7 +52,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         ASSERT(!config.IsPitchLinear());
     }
     TextureType tex_type = config.texture_type;
-    if ((config.Depth() > 1 || config.BaseLayer() != 0) && config.BaseLayer() < config.Depth()) {
+    if (config.Depth() > 1 || config.BaseLayer() != 0) {
         switch (tex_type) {
         case TextureType::Texture1D:
             tex_type = TextureType::Texture1DArray;

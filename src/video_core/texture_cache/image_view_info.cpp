@@ -41,7 +41,7 @@ ImageViewInfo::ImageViewInfo(const TICEntry& config, s32 base_layer) noexcept
     };
     range.extent.levels = config.res_max_mip_level - config.res_min_mip_level + 1;
     TextureType tex_type = config.texture_type;
-    if ((config.Depth() > 1 || base_layer != 0) && static_cast<u32>(base_layer) < config.Depth()) {
+    if (config.Depth() > 1 || base_layer != 0) {
         switch (tex_type) {
         case TextureType::Texture1D:
             tex_type = TextureType::Texture1DArray;
