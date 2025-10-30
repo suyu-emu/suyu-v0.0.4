@@ -151,12 +151,8 @@ struct Jit::Impl final {
         return is_executing;
     }
 
-    void DumpDisassembly() const {
-        current_address_space.DumpDisassembly();
-    }
-
-    std::vector<std::string> Disassemble() const {
-        ASSERT_FALSE("Unimplemented");
+    std::string Disassemble() const {
+        UNREACHABLE();
     }
 
 private:
@@ -315,11 +311,7 @@ bool Jit::IsExecuting() const {
     return impl->IsExecuting();
 }
 
-void Jit::DumpDisassembly() const {
-    impl->DumpDisassembly();
-}
-
-std::vector<std::string> Jit::Disassemble() const {
+std::string Jit::Disassemble() const {
     return impl->Disassemble();
 }
 

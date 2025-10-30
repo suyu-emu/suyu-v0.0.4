@@ -40,11 +40,9 @@ FakeCall AxxEmitX64::FastmemCallback(u64 rip_) {
         }
         return result;
     } else {
-        fmt::print("dynarmic: Segfault happened within JITted code at rip = {:016x}\n", rip_);
-        fmt::print("Segfault wasn't at a fastmem patch location!\n");
-        fmt::print("Now dumping code.......\n\n");
-        Common::DumpDisassembledX64((void*)(rip_ & ~u64(0xFFF)), 0x1000);
-        ASSERT_FALSE("iter != fastmem_patch_info.end()");
+        fmt::print("dynarmic: Segfault happened within JITted code at rip = {:016x}\n"
+            "Segfault wasn't at a fastmem patch location!\n", rip_);
+        UNREACHABLE(); //("iter != fastmem_patch_info.end()");
     }
 }
 

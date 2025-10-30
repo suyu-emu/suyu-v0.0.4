@@ -32,17 +32,3 @@ AddJsonPackage(
     NAME mcl
     BUNDLED_PACKAGE ${DYNARMIC_USE_BUNDLED_EXTERNALS}
 )
-
-# TODO(crueter): maybe it's just Gentoo but zydis system package really sucks
-if ("x86_64" IN_LIST ARCHITECTURE)
-    set(CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON)
-    AddJsonPackage(
-        NAME zycore
-        BUNDLED_PACKAGE ${DYNARMIC_USE_BUNDLED_EXTERNALS}
-    )
-
-    AddJsonPackage(
-        NAME zydis
-        BUNDLED_PACKAGE ${DYNARMIC_USE_BUNDLED_EXTERNALS}
-    )
-endif()

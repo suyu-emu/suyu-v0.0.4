@@ -20,7 +20,6 @@ if (NOT @BUILD_SHARED_LIBS@)
 
     if ("x86_64" IN_LIST ARCHITECTURE)
         find_dependency(xbyak 7)
-        find_dependency(Zydis 4)
     endif()
 
     if (@DYNARMIC_USE_LLVM@)

@@ -16,6 +16,7 @@
 #include <bit>
 #include <mcl/scope_exit.hpp>
 #include "dynarmic/common/common_types.h"
+#include "dynarmic/common/llvm_disassemble.h"
 
 #include "dynarmic/backend/x64/a32_emit_x64.h"
 #include "dynarmic/backend/x64/a32_jitstate.h"
@@ -24,7 +25,6 @@
 #include "dynarmic/backend/x64/devirtualize.h"
 #include "dynarmic/backend/x64/jitstate_info.h"
 #include "dynarmic/common/atomic.h"
-#include "dynarmic/common/x64_disassemble.h"
 #include "dynarmic/frontend/A32/translate/a32_translate.h"
 #include "dynarmic/interface/A32/a32.h"
 #include "dynarmic/ir/basic_block.h"
@@ -176,14 +176,10 @@ struct Jit::Impl {
         return jit_state.SetFpscr(value);
     }
 
-    void DumpDisassembly() const {
+    std::string Disassemble() const {
         const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        Common::DumpDisassembledX64(block_of_code.GetCodeBegin(), size);
-    }
-
-    std::vector<std::string> Disassemble() const {
-        const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        return Common::DisassembleX64(block_of_code.GetCodeBegin(), size);
+        auto const* p = reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
+        return Common::DisassembleX64(p, p + size);
     }
 
 private:
@@ -325,10 +321,6 @@ void Jit::SetFpscr(std::uint32_t value) {
 
 void Jit::ClearExclusiveState() {
     impl->ClearExclusiveState();
-}
-
-void Jit::DumpDisassembly() const {
-    impl->DumpDisassembly();
 }
 
 }  // namespace Dynarmic::A32

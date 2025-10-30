@@ -183,7 +183,7 @@ static void RunInstance(size_t run_number, ThumbTestEnv& test_env, A32Unicorn<Th
             Optimization::Optimize(ir_block, &test_env, {});
             printf("\n\nIR:\n%s", IR::DumpBlock(ir_block).c_str());
             printf("\n\nx86_64:\n");
-            jit.DumpDisassembly();
+            printf("%s", jit.Disassemble().c_str());
             num_insts += ir_block.CycleCount();
         }
 

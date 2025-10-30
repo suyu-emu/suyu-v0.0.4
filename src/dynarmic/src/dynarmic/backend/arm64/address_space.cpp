@@ -100,12 +100,6 @@ void AddressSpace::ClearCache() {
     code.set_offset(prelude_info.end_of_prelude);
 }
 
-void AddressSpace::DumpDisassembly() const {
-    for (u32* ptr = mem.ptr(); ptr < code.xptr<u32*>(); ptr++) {
-        std::printf("%s", Common::DisassembleAArch64(*ptr, std::bit_cast<u64>(ptr)).c_str());
-    }
-}
-
 size_t AddressSpace::GetRemainingSize() {
     return code_cache_size - static_cast<size_t>(code.offset());
 }

@@ -479,7 +479,7 @@ void RunTestInstance(Dynarmic::A32::Jit& jit,
             std::puts(i.c_str());
         }
         fmt::print("===\n");
-        jit.DumpDisassembly();
+        fmt::print("{}", jit.Disassemble());
     }
 }
 
@@ -570,7 +570,7 @@ void RunTestInstance(Dynarmic::A64::Jit& jit,
         for (const auto& i : jit_env.interrupts)
             std::puts(i.c_str());
         fmt::print("===\n");
-        jit.DumpDisassembly();
+        fmt::print("{}", jit.Disassemble());
     }
 }
 

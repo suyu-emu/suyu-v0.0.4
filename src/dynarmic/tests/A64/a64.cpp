@@ -1630,7 +1630,7 @@ TEST_CASE("A64: rand3", "[a64]") {
     jit.SetPstate(0xb0000000);
     jit.SetFpcr(0x01000000);
     env.ticks_left = 110;
-    //jit.DumpDisassembly();
+    //fmt::print("{}", jit.Disassemble());
     CheckedRun([&]() { jit.Run(); });
 }
 

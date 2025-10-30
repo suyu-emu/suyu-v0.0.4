@@ -12,6 +12,7 @@
 
 #include <boost/icl/interval_set.hpp>
 #include "dynarmic/common/assert.h"
+#include "dynarmic/common/llvm_disassemble.h"
 #include <bit>
 #include <mcl/scope_exit.hpp>
 
@@ -21,7 +22,6 @@
 #include "dynarmic/backend/x64/devirtualize.h"
 #include "dynarmic/backend/x64/jitstate_info.h"
 #include "dynarmic/common/atomic.h"
-#include "dynarmic/common/x64_disassemble.h"
 #include "dynarmic/frontend/A64/translate/a64_translate.h"
 #include "dynarmic/interface/A64/a64.h"
 #include "dynarmic/ir/basic_block.h"
@@ -231,14 +231,10 @@ public:
         return is_executing;
     }
 
-    void DumpDisassembly() const {
+    std::string Disassemble() const {
         const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        Common::DumpDisassembledX64(block_of_code.GetCodeBegin(), size);
-    }
-
-    std::vector<std::string> Disassemble() const {
-        const size_t size = reinterpret_cast<const char*>(block_of_code.getCurr()) - reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
-        return Common::DisassembleX64(block_of_code.GetCodeBegin(), size);
+        auto const* p = reinterpret_cast<const char*>(block_of_code.GetCodeBegin());
+        return Common::DisassembleX64(p, p + size);
     }
 
 private:
@@ -427,11 +423,7 @@ bool Jit::IsExecuting() const {
     return impl->IsExecuting();
 }
 
-void Jit::DumpDisassembly() const {
-    return impl->DumpDisassembly();
-}
-
-std::vector<std::string> Jit::Disassemble() const {
+std::string Jit::Disassemble() const {
     return impl->Disassemble();
 }
 

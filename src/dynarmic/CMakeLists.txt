@@ -137,8 +137,6 @@ endif()
 
 if ("x86_64" IN_LIST ARCHITECTURE)
     find_package(xbyak 7 CONFIG)
-    find_package(zycore REQUIRED)
-    find_package(zydis 4 REQUIRED)
 endif()
 
 if (DYNARMIC_USE_LLVM)

@@ -279,7 +279,7 @@ static void RunTestInstance(Dynarmic::A64::Jit& jit, A64Unicorn& uni, A64TestEnv
         fmt::print("{}\n", IR::DumpBlock(ir_block));
 
         fmt::print("x86_64:\n");
-        jit.DumpDisassembly();
+        fmt::print("{}", jit.Disassemble());
 
         fmt::print("Interrupts:\n");
         for (auto& i : uni_env.interrupts) {

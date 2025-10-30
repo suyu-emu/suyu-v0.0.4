@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -19,7 +22,6 @@
 #include "dynarmic/backend/x64/emit_x64_memory.h"
 #include "dynarmic/backend/x64/exclusive_monitor_friend.h"
 #include "dynarmic/backend/x64/perf_map.h"
-#include "dynarmic/common/x64_disassemble.h"
 #include "dynarmic/interface/exclusive_monitor.h"
 
 namespace Dynarmic::Backend::X64 {

@@ -17,24 +17,5 @@
         "patches": [
             "0001-assert-macro.patch"
         ]
-    },
-    "zycore": {
-        "package": "zycore",
-        "repo": "zyantific/zycore-c",
-        "sha": "75a36c45ae",
-        "hash": "e1cf9bdd3163b6429eba94d0f9f82e343de33b77a838748f598c719913c9f91c502b818e37b716e174b55a3a26cdf39d665c4b50a548255973ac287c0e554fb6"
-    },
-    "zydis": {
-        "package": "zydis",
-        "version": "4",
-        "repo": "zyantific/zydis",
-        "sha": "c2d2bab025",
-        "hash": "3808773593536f78d3ddaf4cf712101d3fb6d981c6cc55555ad686a9adbe3397a727f62f561e8d8755bdcd88a763777da30281cc2924fc160b0386c3f99f5bd9",
-        "options": [
-            "ZYDIS_BUILD_TOOLS OFF",
-            "ZYDIS_BUILD_EXAMPLES OFF",
-            "ZYDIS_BUILD_DOXYGEN OFF",
-            "ZYAN_SYSTEM_ZYCORE ON"
-        ]
     }
 }

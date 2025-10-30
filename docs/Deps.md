@@ -72,9 +72,6 @@ Certain other dependencies will be fetched by CPM regardless. System packages *c
 
 On amd64:
 * [xbyak](https://github.com/herumi/xbyak) - 7.22 or earlier is recommended
-* [zycore](https://github.com/zyantific/zycore-c)
-* [zydis](https://github.com/zyantific/zydis) 4+
-* Note: zydis and zycore-c MUST match. Using one as a system dependency and the other as a bundled dependency WILL break things
 
 On aarch64 OR if `DYNARMIC_TESTS` is on:
 * [oaknut](https://github.com/merryhime/oaknut) 2.0.1+
@@ -94,7 +91,7 @@ Click on the arrows to expand.
 <summary>Arch Linux</summary>
 
 ```sh
-sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glslang libzip lz4 mbedtls ninja nlohmann-json openssl opus qt6-base qt6-multimedia sdl2 zlib zstd zip unzip zydis zycore vulkan-headers vulkan-utility-libraries libusb spirv-tools spirv-headers
+sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glslang libzip lz4 mbedtls ninja nlohmann-json openssl opus qt6-base qt6-multimedia sdl2 zlib zstd zip unzip vulkan-headers vulkan-utility-libraries libusb spirv-tools spirv-headers
 ```
 
 * Building with QT Web Engine requires `qt6-webengine` as well.
@@ -106,7 +103,7 @@ sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glsl
 <summary>Ubuntu, Debian, Mint Linux</summary>
 
 ```sh
-sudo apt-get install autoconf cmake g++ gcc git glslang-tools libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev libzydis-dev zydis-tools libzycore-dev libvulkan-dev spirv-tools spirv-headers libusb-1.0-0-dev libxbyak-dev libboost-dev libboost-fiber-dev libboost-context-dev libsdl2-dev libopus-dev libasound2t64 vulkan-utility-libraries-dev
+sudo apt-get install autoconf cmake g++ gcc git glslang-tools libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev libvulkan-dev spirv-tools spirv-headers libusb-1.0-0-dev libxbyak-dev libboost-dev libboost-fiber-dev libboost-context-dev libsdl2-dev libopus-dev libasound2t64 vulkan-utility-libraries-dev
 ```
 
 * Ubuntu 22.04, Linux Mint 20, or Debian 12 or later is required.
@@ -189,7 +186,7 @@ brew install molten-vk vulkan-loader
 <details>
 <summary>FreeBSD</summary>
 
-As root run: `pkg install devel/cmake devel/sdl20 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/jwt-cpp devel/unordered-dense devel/zydis`
+As root run: `pkg install devel/cmake devel/sdl20 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/jwt-cpp devel/unordered-dense`
 
 If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 
@@ -237,7 +234,7 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
 * Download and install all dependencies:
 ```
 BASE="git make autoconf libtool automake-wrapper jq patch"
-MINGW="SDL2 cmake python-pip qt6-base toolchain ffmpeg boost catch fmt lz4 nlohmann-json openssl zlib zstd enet opus mbedtls vulkan-devel libusb vulkan-memory-allocator unordered_dense zydis clang ccache"
+MINGW="SDL2 cmake python-pip qt6-base toolchain ffmpeg boost catch fmt lz4 nlohmann-json openssl zlib zstd enet opus mbedtls vulkan-devel libusb vulkan-memory-allocator unordered_dense clang ccache"
 
 packages="$BASE"
 for pkg in $MINGW; do
@@ -260,7 +257,7 @@ pacman -Syu --needed --noconfirm $packages
 <summary>HaikuOS</summary>
 
 ```sh
-pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt6_devel qt6_5compat_devel zydis_devel libusb1_devel libz_devel glslang mbedtls3
+pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt6_devel qt6_5compat_devel libusb1_devel libz_devel glslang mbedtls3
 ```
 
 [Caveats](./Caveats.md#haikuos).

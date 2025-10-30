@@ -144,11 +144,7 @@ if ("x86_64" IN_LIST ARCHITECTURE)
     target_compile_definitions(dynarmic PRIVATE XBYAK_STRICT_CHECK_MEM_REG_SIZE=0)
 
     target_compile_definitions(dynarmic PRIVATE XBYAK_OLD_DISP_CHECK=1)
-    target_link_libraries(dynarmic
-        PRIVATE
-            xbyak::xbyak
-            Zydis::Zydis
-    )
+    target_link_libraries(dynarmic PRIVATE xbyak::xbyak)
 
     target_architecture_specific_sources(dynarmic "x86_64"
         backend/x64/abi.cpp
@@ -192,8 +188,6 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         backend/x64/verbose_debugging_output.h
         common/spin_lock_x64.cpp
         common/spin_lock_x64.h
-        common/x64_disassemble.cpp
-        common/x64_disassemble.h
         # A32
         backend/x64/a32_emit_x64.cpp
         backend/x64/a32_emit_x64.h
