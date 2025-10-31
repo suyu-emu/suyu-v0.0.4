@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,18 +23,22 @@ class AddonAdapter(val addonViewModel: AddonViewModel) :
     inner class AddonViewHolder(val binding: ListItemAddonBinding) :
         AbstractViewHolder<Patch>(binding) {
         override fun bind(model: Patch) {
-            binding.root.setOnClickListener {
-                binding.addonCheckbox.isChecked = !binding.addonCheckbox.isChecked
+            binding.addonCard.setOnClickListener {
+                binding.addonSwitch.performClick()
             }
             binding.title.text = model.name
             binding.version.text = model.version
-            binding.addonCheckbox.setOnCheckedChangeListener { _, checked ->
+            binding.addonSwitch.isChecked = model.enabled
+
+            binding.addonSwitch.setOnCheckedChangeListener { _, checked ->
                 model.enabled = checked
             }
-            binding.addonCheckbox.isChecked = model.enabled
-            binding.buttonDelete.setOnClickListener {
+
+            val deleteAction = {
                 addonViewModel.setAddonToDelete(model)
             }
+            binding.deleteCard.setOnClickListener { deleteAction() }
+            binding.buttonDelete.setOnClickListener { deleteAction() }
         }
     }
 }

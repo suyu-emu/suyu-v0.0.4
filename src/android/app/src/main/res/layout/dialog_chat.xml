@@ -4,7 +4,8 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="?attr/colorSurface">
 
     <TextView
         android:id="@+id/text_title"
@@ -13,7 +14,8 @@
         android:text="@string/chat"
         android:textAppearance="?attr/textAppearanceHeadline6"
         android:gravity="center"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:textColor="?attr/colorOnSurface" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_recycler_view"
@@ -39,7 +41,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:imeOptions="actionSend" />
+                android:imeOptions="actionSend"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOnSurfaceVariant" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -50,6 +54,7 @@
             android:layout_gravity="bottom"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_send"
-            android:contentDescription="@string/send_message" />
+            android:contentDescription="@string/send_message"
+            app:tint="?attr/colorPrimary" />
     </LinearLayout>
 </LinearLayout>
