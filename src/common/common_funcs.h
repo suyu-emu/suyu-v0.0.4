@@ -128,19 +128,4 @@ namespace Common {
            u64(g) << 48 | u64(h) << 56;
 }
 
-// std::size() does not support zero-size C arrays. We're fixing that.
-template <class C>
-constexpr auto Size(const C& c) -> decltype(c.size()) {
-    return std::size(c);
-}
-
-template <class C>
-constexpr std::size_t Size(const C& c) {
-    if constexpr (sizeof(C) == 0) {
-        return 0;
-    } else {
-        return std::size(c);
-    }
-}
-
 } // namespace Common
