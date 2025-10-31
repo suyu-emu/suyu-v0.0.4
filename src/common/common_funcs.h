@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -39,11 +42,7 @@
 #define Crash() exit(1)
 #endif
 
-#define LTO_NOINLINE __attribute__((noinline))
-
 #else // _MSC_VER
-
-#define LTO_NOINLINE
 
 // Locale Cross-Compatibility
 #define locale_t _locale_t
