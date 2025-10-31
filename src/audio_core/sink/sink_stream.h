@@ -15,10 +15,10 @@
 #include <vector>
 
 #include "audio_core/common/common.h"
+#include "common/bounded_threadsafe_queue.h"
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
 #include "common/ring_buffer.h"
-#include "common/bounded_threadsafe_queue.h"
 #include "common/thread.h"
 
 namespace Core {

@@ -28,7 +28,6 @@ add_library(
   announce_multiplayer_room.h
   assert.cpp
   assert.h
-  atomic_helpers.h
   atomic_ops.h
   bit_field.h
   bit_util.h
