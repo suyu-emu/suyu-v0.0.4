@@ -28,6 +28,9 @@ namespace Kernel {
 
 namespace {
 
+// TODO: Remove this workaround when proper ASLR is implemented for all address spaces.
+constexpr u64 CodeStartOffset = 0x500000UL;
+
 Result TerminateChildren(KernelCore& kernel, KProcess* process,
                          const KThread* thread_to_not_terminate) {
     // Request that all children threads terminate.
@@ -1198,11 +1201,11 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
         break;
     case FileSys::ProgramAddressSpaceType::Is32Bit:
         flag |= Svc::CreateProcessFlag::AddressSpace32Bit;
-        code_address = 0x20'0000;
+        code_address = 0x20'0000 + CodeStartOffset;
         break;
     case FileSys::ProgramAddressSpaceType::Is32BitNoMap:
         flag |= Svc::CreateProcessFlag::AddressSpace32BitWithoutAlias;
-        code_address = 0x20'0000;
+        code_address = 0x20'0000 + CodeStartOffset;
         break;
     }
 
