@@ -810,15 +810,16 @@ void Room::RoomImpl::BroadcastRoomInformation() {
 }
 
 IPv4Address Room::RoomImpl::GenerateFakeIPAddress() {
-    IPv4Address result_ip{192, 168, 0, 0};
-    std::uniform_int_distribution<> dis(0x01, 0xFE); // Random byte between 1 and 0xFE
-    do {
-        for (std::size_t i = 2; i < result_ip.size(); ++i) {
-            result_ip[i] = static_cast<u8>(dis(random_gen));
+    // An IP address is valid if it is not already taken by anybody else in the room.
+    std::lock_guard lock(member_mutex);
+    for (u8 i = 0x01; i < 0xFF; ++i)
+        for (u8 j = 0x01; j < 0xFF; ++j) {
+            IPv4Address addr{192, 168, i, j};
+            if (std::all_of(members.begin(), members.end(), [&addr](auto const& member) { return member.fake_ip != addr; }))
+                return addr;
         }
-    } while (!IsValidFakeIPAddress(result_ip));
-
-    return result_ip;
+    LOG_ERROR(Network, "All addresses are taken");
+    return IPv4Address{192, 168, 0, 0};
 }
 
 void Room::RoomImpl::HandleProxyPacket(const ENetEvent* event) {
