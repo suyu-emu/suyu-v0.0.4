@@ -323,4 +323,8 @@ void Jit::ClearExclusiveState() {
     impl->ClearExclusiveState();
 }
 
+std::string Jit::Disassemble() const {
+    return impl->Disassemble();
+}
+
 }  // namespace Dynarmic::A32
