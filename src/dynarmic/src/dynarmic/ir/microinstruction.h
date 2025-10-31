@@ -53,8 +53,10 @@ public:
     }
 
     inline Value GetArg(size_t index) const noexcept {
-        DEBUG_ASSERT_MSG(index < GetNumArgsOf(op), "Inst::GetArg: index {} >= number of arguments of {} ({})", index, op, GetNumArgsOf(op));
-        DEBUG_ASSERT_MSG(!args[index].IsEmpty() || GetArgTypeOf(op, index) == IR::Type::Opaque, "Inst::GetArg: index {} is empty", index, args[index].GetType());
+        DEBUG_ASSERT(index < GetNumArgsOf(op));
+        DEBUG_ASSERT(!args[index].IsEmpty() || GetArgTypeOf(op, index) == IR::Type::Opaque);
+        //DEBUG_ASSERT(index < GetNumArgsOf(op) && "Inst::GetArg: index {} >= number of arguments of {} ({})", index, op, GetNumArgsOf(op));
+        //DEBUG_ASSERT(!args[index].IsEmpty() || GetArgTypeOf(op, index) == IR::Type::Opaque && "Inst::GetArg: index {} is empty", index, args[index].GetType());
         return args[index];
     }
     void SetArg(size_t index, Value value) noexcept;

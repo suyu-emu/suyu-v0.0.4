@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -41,7 +44,7 @@ IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory
         visitor.ir.SetTerm(IR::Term::LinkBlock{*visitor.ir.current_location});
     }
 
-    ASSERT_MSG(block.HasTerminal(), "Terminal has not been set");
+    ASSERT(block.HasTerminal() && "Terminal has not been set");
 
     block.SetEndLocation(*visitor.ir.current_location);
 

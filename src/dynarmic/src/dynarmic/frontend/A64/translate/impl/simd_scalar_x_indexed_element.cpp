@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -70,15 +73,8 @@ bool MultiplyByElementHalfPrecision(TranslatorVisitor& v, Imm<1> L, Imm<1> M, Im
 
         // TODO: Currently we don't implement half-precision paths
         //       for regular multiplication and extended multiplication.
-
-        if (extra_behavior == ExtraBehavior::None) {
-            ASSERT_FALSE("half-precision option unimplemented");
-        }
-
-        if (extra_behavior == ExtraBehavior::MultiplyExtended) {
-            ASSERT_FALSE("half-precision option unimplemented");
-        }
-
+        ASSERT(extra_behavior != ExtraBehavior::None
+            && extra_behavior != ExtraBehavior::MultiplyExtended);
         if (extra_behavior == ExtraBehavior::Subtract) {
             operand1 = v.ir.FPNeg(operand1);
         }

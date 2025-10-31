@@ -2425,27 +2425,27 @@ void EmitX64::EmitVectorMultiply64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden8(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplySignedWiden8");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden16(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplySignedWiden16");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden32(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplySignedWiden32");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden8(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplyUnsignedWiden8");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden16(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplyUnsignedWiden16");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden32(EmitContext&, IR::Inst*) {
-    ASSERT_FALSE("Unexpected VectorMultiplyUnsignedWiden32");
+    UNREACHABLE();
 }
 
 void EmitX64::EmitVectorNarrow16(EmitContext& ctx, IR::Inst* inst) {
@@ -5039,7 +5039,7 @@ void EmitX64::EmitVectorSub64(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitVectorTable(EmitContext&, IR::Inst* inst) {
     // Do nothing. We *want* to hold on to the refcount for our arguments, so VectorTableLookup can use our arguments.
-    ASSERT_MSG(inst->UseCount() == 1, "Table cannot be used multiple times");
+    ASSERT(inst->UseCount() == 1 && "Table cannot be used multiple times");
 }
 
 void EmitX64::EmitVectorTableLookup64(EmitContext& ctx, IR::Inst* inst) {

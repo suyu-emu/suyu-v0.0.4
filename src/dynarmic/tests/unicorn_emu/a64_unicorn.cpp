@@ -13,7 +13,7 @@
 #define CHECKED(expr)                                                                                    \
     do {                                                                                                 \
         if (auto cerr_ = (expr)) {                                                                       \
-            ASSERT_MSG(false, "Call " #expr " failed with error: {} ({})\n", static_cast<size_t>(cerr_), \
+            ASSERT(false && "Call " #expr " failed with error: {} ({})\n", static_cast<size_t>(cerr_), \
                        uc_strerror(cerr_));                                                              \
         }                                                                                                \
     } while (0)

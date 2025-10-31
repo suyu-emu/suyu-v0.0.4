@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2024 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -16,8 +19,7 @@ class CodeBlock {
 public:
     explicit CodeBlock(std::size_t size) noexcept : memsize(size) {
         mem = (u8*)mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
-        if (mem == nullptr)
-            ASSERT_FALSE("out of memory");
+        ASSERT(mem != nullptr);
     }
 
     ~CodeBlock() noexcept {

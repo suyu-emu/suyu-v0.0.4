@@ -1466,7 +1466,7 @@ static void VerificationPass(const IR::Block& block) {
         for (size_t i = 0; i < inst.NumArgs(); i++) {
             const IR::Type t1 = inst.GetArg(i).GetType();
             const IR::Type t2 = IR::GetArgTypeOf(inst.GetOpcode(), i);
-            ASSERT_MSG(IR::AreTypesCompatible(t1, t2), "Block failed:\n{}", IR::DumpBlock(block));
+            ASSERT(IR::AreTypesCompatible(t1, t2));
         }
     }
     ankerl::unordered_dense::map<IR::Inst*, size_t> actual_uses;

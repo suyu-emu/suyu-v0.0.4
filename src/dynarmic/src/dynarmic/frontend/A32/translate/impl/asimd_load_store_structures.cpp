@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2020 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -69,7 +72,7 @@ std::optional<std::tuple<size_t, size_t, size_t>> DecodeType(Imm<4> type, size_t
         }
         return std::tuple<size_t, size_t, size_t>{4, 1, 2};
     }
-    ASSERT_FALSE("Decode error");
+    UNREACHABLE();
 }
 }  // namespace
 

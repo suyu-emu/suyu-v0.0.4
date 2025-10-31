@@ -77,7 +77,7 @@ IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb, c
         }
     }
 
-    ASSERT_MSG(block.HasTerminal(), "Terminal has not been set");
+    ASSERT(block.HasTerminal() && "Terminal has not been set");
 
     block.SetEndLocation(visitor.ir.current_location);
 

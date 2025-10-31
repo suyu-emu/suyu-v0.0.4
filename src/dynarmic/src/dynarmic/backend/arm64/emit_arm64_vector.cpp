@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -638,7 +641,7 @@ void EmitIR<IR::Opcode::VectorEqual128>(oaknut::CodeGenerator& code, EmitContext
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>
@@ -867,7 +870,7 @@ void EmitIR<IR::Opcode::VectorMaxS64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>
@@ -890,7 +893,7 @@ void EmitIR<IR::Opcode::VectorMaxU64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>
@@ -913,7 +916,7 @@ void EmitIR<IR::Opcode::VectorMinS64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>
@@ -936,7 +939,7 @@ void EmitIR<IR::Opcode::VectorMinU64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>
@@ -956,7 +959,7 @@ void EmitIR<IR::Opcode::VectorMultiply32>(oaknut::CodeGenerator& code, EmitConte
 
 template<>
 void EmitIR<IR::Opcode::VectorMultiply64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
-    ASSERT_MSG(ctx.conf.very_verbose_debugging_output, "VectorMultiply64 is for debugging only");
+    ASSERT(ctx.conf.very_verbose_debugging_output && "VectorMultiply64 is for debugging only");
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         code.FMOV(Xscratch0, Qa->toD());
         code.FMOV(Xscratch1, Qb->toD());
@@ -1383,7 +1386,7 @@ void EmitIR<IR::Opcode::VectorSignExtend64>(oaknut::CodeGenerator& code, EmitCon
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>
@@ -1406,7 +1409,7 @@ void EmitIR<IR::Opcode::VectorSignedMultiply16>(oaknut::CodeGenerator& code, Emi
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>
@@ -1414,7 +1417,7 @@ void EmitIR<IR::Opcode::VectorSignedMultiply32>(oaknut::CodeGenerator& code, Emi
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>
@@ -1600,7 +1603,7 @@ void EmitIR<IR::Opcode::VectorSub64>(oaknut::CodeGenerator& code, EmitContext& c
 template<>
 void EmitIR<IR::Opcode::VectorTable>(oaknut::CodeGenerator&, EmitContext&, IR::Inst* inst) {
     // Do nothing. We *want* to hold on to the refcount for our arguments, so VectorTableLookup can use our arguments.
-    ASSERT_MSG(inst->UseCount() == 1, "Table cannot be used multiple times");
+    ASSERT(inst->UseCount() == 1 && "Table cannot be used multiple times");
 }
 
 template<>
@@ -1665,9 +1668,8 @@ void EmitIR<IR::Opcode::VectorTableLookup64>(oaknut::CodeGenerator& code, EmitCo
             code.TBX(Dresult->B8(), oaknut::List{V0.B16(), V1.B16()}, Dindices->B8());
         }
         break;
-    default:
-        ASSERT_FALSE("Unsupported table_size");
     }
+    UNREACHABLE();
 }
 
 template<>
@@ -1729,9 +1731,8 @@ void EmitIR<IR::Opcode::VectorTableLookup128>(oaknut::CodeGenerator& code, EmitC
             code.TBX(Qresult->B16(), oaknut::List{V0.B16(), V1.B16(), V2.B16(), V3.B16()}, Qindices->B16());
         }
         break;
-    default:
-        ASSERT_FALSE("Unsupported table_size");
     }
+    UNREACHABLE();
 }
 
 template<>
@@ -1778,7 +1779,7 @@ void EmitIR<IR::Opcode::VectorUnsignedMultiply16>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>
@@ -1786,7 +1787,7 @@ void EmitIR<IR::Opcode::VectorUnsignedMultiply32>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 }
 
 template<>

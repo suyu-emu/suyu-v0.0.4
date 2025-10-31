@@ -88,16 +88,14 @@ private:
 };
 
 MachHandler::MachHandler() {
-#define KCHECK(x) ASSERT_MSG((x) == KERN_SUCCESS, "dynarmic: macOS MachHandler: init failure at {}", #x)
-
+#define KCHECK(x) ASSERT((x) == KERN_SUCCESS && "init failure at " #x)
     KCHECK(mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &server_port));
     KCHECK(mach_port_insert_right(mach_task_self(), server_port, server_port, MACH_MSG_TYPE_MAKE_SEND));
     KCHECK(task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, server_port, EXCEPTION_STATE | MACH_EXCEPTION_CODES, THREAD_STATE));
-
-    // The below doesn't actually work, and I'm not sure why; since this doesn't work we'll have a spurious error message upon shutdown.
+    // The below doesn't actually work, and I'm not sure why; since this doesn't work we'll have a spurious
+    // error message upon shutdown.
     mach_port_t prev;
     KCHECK(mach_port_request_notification(mach_task_self(), server_port, MACH_NOTIFY_PORT_DESTROYED, 0, server_port, MACH_MSG_TYPE_MAKE_SEND_ONCE, &prev));
-
 #undef KCHECK
 
     thread = std::thread(&MachHandler::MessagePump, this);

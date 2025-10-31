@@ -30,7 +30,7 @@ public:
 
     explicit Imm(u32 value)
             : value(value) {
-        ASSERT_MSG((mcl::bit::get_bits<0, bit_size - 1>(value) == value), "More bits in value than expected");
+        ASSERT((mcl::bit::get_bits<0, bit_size - 1>(value) == value) && "More bits in value than expected");
     }
 
     template<typename T = u32>

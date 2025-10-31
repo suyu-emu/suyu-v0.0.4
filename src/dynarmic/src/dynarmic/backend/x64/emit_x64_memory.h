@@ -243,7 +243,7 @@ const void* EmitReadMemoryMov(BlockOfCode& code, int value_idx, const Xbyak::Reg
             }
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
         return fastmem_location;
     } else {
@@ -265,7 +265,7 @@ const void* EmitReadMemoryMov(BlockOfCode& code, int value_idx, const Xbyak::Reg
             code.movups(Xbyak::Xmm(value_idx), xword[addr]);
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
         return fastmem_location;
     }
@@ -311,7 +311,7 @@ const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int
             break;
         }
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
         return fastmem_location;
     } else {
@@ -333,7 +333,7 @@ const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int
             code.movups(xword[addr], Xbyak::Xmm(value_idx));
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
         return fastmem_location;
     }

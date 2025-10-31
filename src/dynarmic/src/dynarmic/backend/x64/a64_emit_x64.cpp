@@ -129,10 +129,8 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
-        default: [[unlikely]] {
-                ASSERT_MSG(false, "Invalid opcode: {:x}", std::size_t(opcode));
-            goto finish_this_inst;
-        }
+        default:
+            UNREACHABLE();
         }
 opcode_branch:
         (this->*opcode_handlers[size_t(opcode)])(ctx, &inst);

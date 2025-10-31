@@ -112,8 +112,7 @@ void EmitIR<IR::Opcode::GetNZCVFromOp>(oaknut::CodeGenerator& code, EmitContext&
         break;
     }
     default:
-        ASSERT_FALSE("Invalid type for GetNZCVFromOp");
-        break;
+        UNREACHABLE();
     }
 }
 
@@ -143,8 +142,7 @@ void EmitIR<IR::Opcode::GetNZFromOp>(oaknut::CodeGenerator& code, EmitContext& c
         break;
     }
     default:
-        ASSERT_FALSE("Invalid type for GetNZFromOp");
-        break;
+        UNREACHABLE();
     }
 }
 
@@ -241,8 +239,7 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
 #undef A32OPC
 #undef A64OPC
         default:
-            ASSERT_FALSE("Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
-            break;
+            UNREACHABLE();
         }
 
         reg_alloc.UpdateAllUses();

@@ -12,6 +12,8 @@
 #include <mutex>
 #include <shared_mutex>
 #include <optional>
+#include <bit>
+#include <fmt/format.h>
 #include <ankerl/unordered_dense.h>
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/common/assert.h"
@@ -27,7 +29,6 @@
 #else
 #    error "Invalid architecture"
 #endif
-#include <bit>
 
 namespace Dynarmic::Backend {
 
@@ -139,7 +140,7 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     }
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #elif defined(ARCHITECTURE_riscv64)
-    ASSERT_FALSE("Unimplemented");
+    UNREACHABLE();
 #else
 #    error "Invalid architecture"
 #endif

@@ -70,7 +70,7 @@ bool AnyLocationDescriptorForTerminalHas(IR::Terminal terminal, Fn fn) {
         } else if constexpr (std::is_same_v<T, IR::Term::CheckHalt>) {
             return AnyLocationDescriptorForTerminalHas(t.else_, fn);
         } else {
-            ASSERT_MSG(false, "Invalid terminal type");
+            ASSERT(false && "Invalid terminal type");
             return false;
         }
     }, terminal);
@@ -282,7 +282,7 @@ std::vector<u16> GenRandomThumbInst(u32 pc, bool is_last_inst, A32::ITState it_s
             } else if (bitstring.substr(0, 8) == "11110100") {
                 bitstring.replace(0, 8, "11111001");
             } else {
-                ASSERT_FALSE("Unhandled ASIMD instruction: {} {}", fn, bs);
+                UNREACHABLE(); // "Unhandled ASIMD instruction: {} {}", fn, bs);
             }
             if (std::find(do_not_test.begin(), do_not_test.end(), fn) != do_not_test.end()) {
                 invalid.emplace_back(InstructionGenerator{bitstring.c_str()});

@@ -21,7 +21,7 @@
 namespace Dynarmic::A32 {
 
 bool CondCanContinue(const ConditionalState cond_state, const A32::IREmitter& ir) {
-    ASSERT_MSG(cond_state != ConditionalState::Break, "Should never happen.");
+    ASSERT(cond_state != ConditionalState::Break && "Should never happen.");
     if (cond_state == ConditionalState::None)
         return true;
 

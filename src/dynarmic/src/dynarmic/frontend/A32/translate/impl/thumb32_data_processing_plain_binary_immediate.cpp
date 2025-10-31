@@ -17,7 +17,7 @@ namespace Dynarmic::A32 {
 using SaturationFunction = IR::ResultAndOverflow<IR::U32> (IREmitter::*)(const IR::U32&, size_t);
 
 static bool Saturation(TranslatorVisitor& v, bool sh, Reg n, Reg d, Imm<5> shift_amount, size_t saturate_to, SaturationFunction sat_fn) {
-    ASSERT_MSG(!(sh && shift_amount == 0), "Invalid decode");
+    ASSERT(!(sh && shift_amount == 0) && "Invalid decode");
 
     if (d == Reg::PC || n == Reg::PC) {
         return v.UnpredictableInstruction();

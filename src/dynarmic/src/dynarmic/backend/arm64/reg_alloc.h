@@ -182,7 +182,7 @@ public:
         } else if constexpr (size == 32) {
             return ReadW(arg);
         } else {
-            ASSERT_FALSE("Invalid size to ReadReg {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -199,7 +199,7 @@ public:
         } else if constexpr (size == 8) {
             return ReadB(arg);
         } else {
-            ASSERT_FALSE("Invalid size to ReadVec {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -221,7 +221,7 @@ public:
         } else if constexpr (size == 32) {
             return WriteW(inst);
         } else {
-            ASSERT_FALSE("Invalid size to WriteReg {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -238,7 +238,7 @@ public:
         } else if constexpr (size == 8) {
             return WriteB(inst);
         } else {
-            ASSERT_FALSE("Invalid size to WriteVec {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -258,7 +258,7 @@ public:
         } else if constexpr (size == 32) {
             return ReadWriteW(arg, inst);
         } else {
-            ASSERT_FALSE("Invalid size to ReadWriteReg {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -275,7 +275,7 @@ public:
         } else if constexpr (size == 8) {
             return ReadWriteB(arg, inst);
         } else {
-            ASSERT_FALSE("Invalid size to ReadWriteVec {}", size);
+            UNREACHABLE();
         }
     }
 
@@ -371,9 +371,8 @@ void RAReg<T>::Realize() {
     case RWType::ReadWrite:
         reg = T{reg_alloc.RealizeReadWriteImpl<kind>(read_value, write_value)};
         break;
-    default:
-        ASSERT_FALSE("Invalid RWType");
     }
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::Backend::Arm64

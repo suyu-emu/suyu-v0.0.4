@@ -28,7 +28,7 @@ AddressSpace::AddressSpace(size_t code_cache_size)
         , mem(code_cache_size)
         , code(mem.ptr(), mem.ptr())
         , fastmem_manager(exception_handler) {
-    ASSERT_MSG(code_cache_size <= 128 * 1024 * 1024, "code_cache_size > 128 MiB not currently supported");
+    ASSERT(code_cache_size <= 128 * 1024 * 1024 && "code_cache_size > 128 MiB not currently supported");
 
     exception_handler.Register(mem, code_cache_size);
     exception_handler.SetFastmemCallback([this](u64 host_pc) {
@@ -258,7 +258,7 @@ void AddressSpace::Link(EmittedBlockInfo& block_info) {
             c.BL(prelude_info.get_ticks_remaining);
             break;
         default:
-            ASSERT_FALSE("Invalid relocation target");
+            UNREACHABLE();
         }
     }
 
@@ -292,7 +292,7 @@ void AddressSpace::LinkBlockLinks(const CodePtr entry_point, const CodePtr targe
             }
             break;
         default:
-            ASSERT_FALSE("Invalid BlockRelocationType");
+            UNREACHABLE();
         }
     }
 }
@@ -342,9 +342,9 @@ FakeCall AddressSpace::FastmemCallback(u64 host_pc) {
     }
 
 fail:
-    fmt::print("dynarmic: Segfault happened within JITted code at host_pc = {:016x}\n", host_pc);
-    fmt::print("Segfault wasn't at a fastmem patch location!\n");
-    ASSERT_FALSE("segfault");
+    fmt::print("dynarmic: Segfault happened within JITted code at host_pc = {:016x}\n"
+        "Segfault wasn't at a fastmem patch location!\n", host_pc);
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::Backend::Arm64

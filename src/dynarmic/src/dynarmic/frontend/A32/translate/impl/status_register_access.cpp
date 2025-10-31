@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -31,7 +34,7 @@ bool TranslatorVisitor::arm_MRS(Cond cond, Reg d) {
 
 // MSR<c> <spec_reg>, #<const>
 bool TranslatorVisitor::arm_MSR_imm(Cond cond, unsigned mask, int rotate, Imm<8> imm8) {
-    ASSERT_MSG(mask != 0, "Decode error");
+    ASSERT(mask != 0 && "Decode error");
 
     if (!ArmConditionPassed(cond)) {
         return true;

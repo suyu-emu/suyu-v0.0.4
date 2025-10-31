@@ -315,7 +315,7 @@ CodePtr EmitMemoryLdr(oaknut::CodeGenerator& code, int value_idx, oaknut::XReg X
             code.DMB(oaknut::BarrierOp::ISH);
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
     } else {
         fastmem_location = code.xptr<CodePtr>();
@@ -337,7 +337,7 @@ CodePtr EmitMemoryLdr(oaknut::CodeGenerator& code, int value_idx, oaknut::XReg X
             code.LDR(oaknut::QReg{value_idx}, Xbase, Roffset, index_ext);
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
     }
 
@@ -376,7 +376,7 @@ CodePtr EmitMemoryStr(oaknut::CodeGenerator& code, int value_idx, oaknut::XReg X
             code.DMB(oaknut::BarrierOp::ISH);
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
     } else {
         fastmem_location = code.xptr<CodePtr>();
@@ -398,7 +398,7 @@ CodePtr EmitMemoryStr(oaknut::CodeGenerator& code, int value_idx, oaknut::XReg X
             code.STR(oaknut::QReg{value_idx}, Xbase, Roffset, index_ext);
             break;
         default:
-            ASSERT_FALSE("Invalid bitsize");
+            UNREACHABLE();
         }
     }
 

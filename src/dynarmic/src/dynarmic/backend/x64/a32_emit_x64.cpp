@@ -48,18 +48,16 @@ static Xbyak::Address MJitStateReg(A32::Reg reg) {
 
 static Xbyak::Address MJitStateExtReg(A32::ExtReg reg) {
     if (A32::IsSingleExtReg(reg)) {
-        const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::S0);
+        const size_t index = size_t(reg) - size_t(A32::ExtReg::S0);
         return dword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + sizeof(u32) * index];
-    }
-    if (A32::IsDoubleExtReg(reg)) {
-        const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::D0);
+    } else if (A32::IsDoubleExtReg(reg)) {
+        const size_t index = size_t(reg) - size_t(A32::ExtReg::D0);
         return qword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + sizeof(u64) * index];
-    }
-    if (A32::IsQuadExtReg(reg)) {
-        const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::Q0);
+    } else if (A32::IsQuadExtReg(reg)) {
+        const size_t index = size_t(reg) - size_t(A32::ExtReg::Q0);
         return xword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + 2 * sizeof(u64) * index];
     }
-    ASSERT_FALSE("Should never happen.");
+    UNREACHABLE();
 }
 
 A32EmitContext::A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block)
@@ -144,7 +142,8 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
-            default: [[unlikely]] ASSERT_FALSE("Invalid opcode: {:x}", std::size_t(inst->GetOpcode()));
+            default:
+                UNREACHABLE();
             }
             reg_alloc.EndOfAllocScope();
             func(reg_alloc);
@@ -846,7 +845,7 @@ void A32EmitX64::EmitA32SetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 static void EmitCoprocessorException() {
-    ASSERT_FALSE("Should raise coproc exception here");
+    UNREACHABLE();
 }
 
 static void CallCoprocCallback(BlockOfCode& code, RegAlloc& reg_alloc, A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr, std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}) {
@@ -1126,9 +1125,9 @@ std::string A32EmitX64::LocationDescriptorToFriendlyName(const IR::LocationDescr
 }
 
 void A32EmitX64::EmitTerminalImpl(IR::Term::Interpret terminal, IR::LocationDescriptor initial_location, bool) {
-    ASSERT_MSG(A32::LocationDescriptor{terminal.next}.TFlag() == A32::LocationDescriptor{initial_location}.TFlag(), "Unimplemented");
-    ASSERT_MSG(A32::LocationDescriptor{terminal.next}.EFlag() == A32::LocationDescriptor{initial_location}.EFlag(), "Unimplemented");
-    ASSERT_MSG(terminal.num_instructions == 1, "Unimplemented");
+    ASSERT(A32::LocationDescriptor{terminal.next}.TFlag() == A32::LocationDescriptor{initial_location}.TFlag() && "Unimplemented");
+    ASSERT(A32::LocationDescriptor{terminal.next}.EFlag() == A32::LocationDescriptor{initial_location}.EFlag() && "Unimplemented");
+    ASSERT(terminal.num_instructions == 1 && "Unimplemented");
 
     code.mov(code.ABI_PARAM2.cvt32(), A32::LocationDescriptor{terminal.next}.PC());
     code.mov(code.ABI_PARAM3.cvt32(), 1);

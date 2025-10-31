@@ -71,7 +71,7 @@ IR::UAny TranslatorVisitor::I(size_t bitsize, u64 value) {
     case 64:
         return ir.Imm64(value);
     default:
-        ASSERT_FALSE("Imm - get: Invalid bitsize");
+        UNREACHABLE();
     }
 }
 

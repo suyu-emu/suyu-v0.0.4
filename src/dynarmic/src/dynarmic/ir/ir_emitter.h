@@ -124,7 +124,7 @@ public:
             ASSERT(value.GetType() == Type::U64);
             return value;
         }
-        ASSERT_FALSE("Invalid bitsize");
+        UNREACHABLE();
     }
 
     U32 LeastSignificantWord(const U64& value) {
@@ -992,7 +992,7 @@ public:
     }
 
     UAny VectorGetElement(size_t esize, const U128& a, size_t index) {
-        ASSERT_MSG(esize * index < 128, "Invalid index");
+        ASSERT(esize * index < 128 && "Invalid index");
         switch (esize) {
         case 8:
             return Inst<U8>(Opcode::VectorGetElement8, a, Imm8(static_cast<u8>(index)));
@@ -1008,7 +1008,7 @@ public:
     }
 
     U128 VectorSetElement(size_t esize, const U128& a, size_t index, const IR::UAny& elem) {
-        ASSERT_MSG(esize * index < 128, "Invalid index");
+        ASSERT(esize * index < 128 && "Invalid index");
         switch (esize) {
         case 8:
             return Inst<U128>(Opcode::VectorSetElement8, a, Imm8(static_cast<u8>(index)), elem);
@@ -1114,7 +1114,7 @@ public:
     }
 
     U128 VectorBroadcastElementLower(size_t esize, const U128& a, size_t index) {
-        ASSERT_MSG(esize * index < 128, "Invalid index");
+        ASSERT(esize * index < 128 && "Invalid index");
         switch (esize) {
         case 8:
             return Inst<U128>(Opcode::VectorBroadcastElementLower8, a, u8(index));
@@ -1127,7 +1127,7 @@ public:
     }
 
     U128 VectorBroadcastElement(size_t esize, const U128& a, size_t index) {
-        ASSERT_MSG(esize * index < 128, "Invalid index");
+        ASSERT(esize * index < 128 && "Invalid index");
         switch (esize) {
         case 8:
             return Inst<U128>(Opcode::VectorBroadcastElement8, a, u8(index));

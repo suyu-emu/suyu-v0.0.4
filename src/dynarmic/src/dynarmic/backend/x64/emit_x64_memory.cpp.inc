@@ -39,11 +39,10 @@ FakeCall AxxEmitX64::FastmemCallback(u64 rip_) {
             InvalidateBasicBlocks({std::get<0>(marker)});
         }
         return result;
-    } else {
-        fmt::print("dynarmic: Segfault happened within JITted code at rip = {:016x}\n"
-            "Segfault wasn't at a fastmem patch location!\n", rip_);
-        UNREACHABLE(); //("iter != fastmem_patch_info.end()");
     }
+    fmt::print("dynarmic: Segfault happened within JITted code at rip = {:016x}\n"
+        "Segfault wasn't at a fastmem patch location!\n", rip_);
+    UNREACHABLE(); //("iter != fastmem_patch_info.end()");
 }
 
 template<std::size_t bitsize, auto callback>
