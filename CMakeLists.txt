@@ -183,8 +183,7 @@ option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
 set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
 
-# FreeBSD doesn't have a cubeb port yet, vendoring it isn't required (it's optional anyways)
-cmake_dependent_option(ENABLE_CUBEB "Enables the cubeb audio backend" ON "NOT PLATFORM_FREEBSD" OFF)
+option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 set(EXT_DEFAULT OFF)
 if (MSVC OR ANDROID)
