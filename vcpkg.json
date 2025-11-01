@@ -85,26 +85,6 @@
       "version": "17.0.6"
     },
     {
-      "name": "boost",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-cobalt",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-hash2",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-mqtt5",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-parser",
-      "version": "1.88.0"
-    },
-    {
       "name": "boost-algorithm",
       "version": "1.88.0"
     }
