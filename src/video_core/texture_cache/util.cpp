@@ -647,6 +647,8 @@ LevelArray CalculateMipLevelOffsets(const ImageInfo& info) noexcept {
         return {};
     }
     ASSERT(info.resources.levels <= static_cast<s32>(MAX_MIP_LEVELS));
+    if (info.resources.levels > static_cast<s32>(MAX_MIP_LEVELS))
+        return {};
     const LevelInfo level_info = MakeLevelInfo(info);
     LevelArray offsets{};
     u32 offset = 0;
