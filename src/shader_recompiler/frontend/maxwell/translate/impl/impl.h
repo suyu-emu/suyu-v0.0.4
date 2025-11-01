@@ -86,6 +86,7 @@ public:
     void CAL();
     void CCTL(u64 insn);
     void CCTLL(u64 insn);
+    void CCTLT(u64 insn);
     void CONT(u64 insn);
     void CS2R(u64 insn);
     void CSET(u64 insn);

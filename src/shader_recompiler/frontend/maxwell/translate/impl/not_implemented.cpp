@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -46,6 +49,10 @@ void TranslatorVisitor::CCTL(u64) {
 
 void TranslatorVisitor::CCTLL(u64) {
     ThrowNotImplemented(Opcode::CCTLL);
+}
+
+void TranslatorVisitor::CCTLT(u64) {
+    ThrowNotImplemented(Opcode::CCTLT);
 }
 
 void TranslatorVisitor::CONT(u64) {
