@@ -240,6 +240,7 @@
     <string name="keys_description">Selecione seu arquivo &lt;b>prod.keys&lt;/b> com o botão abaixo.</string>
     <string name="select_keys">Selecione as Chaves (Keys)</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Selecione seu arquivo <b>firmware.zip</b> com o botão abaixo.</string>
     <string name="select_firmware">Selecionar Firmware</string>
     <string name="games">Jogos</string>
     <string name="games_description">Selecione sua pasta de <b>Jogos</b> com o botão abaixo.</string>
@@ -262,6 +263,9 @@
     <string name="folder">Pasta</string>
     <string name="dont_show_again">Não Mostrar Novamente</string>
     <string name="add_directory_success">Nova pasta de jogos adicionada com sucesso</string>
+    <string name="enable_update_checks">Procurar por atualizações ao iniciar o aplicativo.</string>
+    <string name="update_available">Atualização Disponível</string>
+    <string name="update_available_description">Uma nova versão está disponível: %1$s\n\nGostaria de baixá-la\?</string>
     <string name="home_search">Pesquisar</string>
     <string name="home_settings">Configurações</string>
     <string name="empty_gamelist">Nenhum jogo foi encontrado ou nenhuma pasta de jogos foi definida.</string>
@@ -304,6 +308,7 @@
     <string name="search_recently_added">Adicionado recentemente</string>
     <string name="open_user_folder">Abrir a pasta do Eden</string>
     <string name="open_user_folder_description">Gerencie os arquivos internos do Eden</string>
+    <string name="app_settings_description">Alterar o comportamento e aparência do aplicativo</string>
     <string name="no_file_manager">Nenhum gerenciador de arquivos encontrado</string>
     <string name="notification_no_directory_link">Não foi possível abrir a pasta do Eden</string>
     <string name="notification_no_directory_link_description">Localize manualmente a pasta do usuário usando o gerenciador de arquivos.</string>
@@ -673,7 +678,6 @@ uma tentativa de mapeamento automático</string>
     <string name="copy_details">Copiar detalhes</string>
     <string name="add_ons">Add-ons</string>
     <string name="add_ons_description">Gerencie mods, atualizações e DLC</string>
-    <string name="playtime">Tempo de Jogo:</string>
     <string name="reset_playtime">Limpar Tempo de Jogo</string>
     <string name="reset_playtime_description">Resetar o contador de tempo do jogo atual</string>
     <string name="reset_playtime_warning_description">Isso vai resetar os dados do contador de tempo do jogo atual. Tem certeza\?</string>
@@ -791,7 +795,6 @@ uma tentativa de mapeamento automático</string>
     <string name="lock_drawer">Bloquear este menu</string>
     <string name="unlock_drawer">Desbloquear este menu</string>
     <string name="reset">Redefinir</string>
-
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Teclado do software</string>
@@ -960,6 +963,9 @@ uma tentativa de mapeamento automático</string>
     <string name="change_app_theme">Mudar o tema do aplicativo</string>
     <string name="theme_default">Padrão</string>
     <string name="theme_material_you">Material You</string>
+    <string name="app_settings">Configurações do App</string>
+    <string name="theme_and_color">Tema e Cores</string>
+
     <!-- Theme Modes -->
     <string name="change_theme_mode">Alterar o tema</string>
     <string name="theme_mode_follow_system">Igual ao Sistema</string>

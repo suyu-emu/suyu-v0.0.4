@@ -240,6 +240,7 @@
     <string name="keys_description">Виберіть ваш файл &lt;b>prod.keys&lt;/b> за допомогою кнопки нижче.</string>
     <string name="select_keys">Вибрати ключі</string>
     <string name="firmware">Прошивка</string>
+    <string name="firmware_description">Виберіть файл <b>firmware.zip</b> за допомогою кнопки нижче.</string>
     <string name="select_firmware">Вибрати прошивку</string>
     <string name="games">Ігри</string>
     <string name="games_description">Виберіть вашу теку з &lt;b>іграми&lt;/b> за допомогою кнопки нижче.</string>
@@ -262,6 +263,9 @@
     <string name="folder">Тека</string>
     <string name="dont_show_again">Більше не показувати</string>
     <string name="add_directory_success">Нову теку з іграми успішно додано</string>
+    <string name="enable_update_checks">Перевіряти оновлення при запуску застосунку.</string>
+    <string name="update_available">Доступне оновлення</string>
+    <string name="update_available_description">Доступна нова версія: %1$s\n\nХочете її завантажити\?</string>
     <string name="home_search">Пошук</string>
     <string name="home_settings">Налаштування</string>
     <string name="empty_gamelist">Не знайдено файлів або ще не вибрано теку з іграми.</string>
@@ -304,6 +308,7 @@
     <string name="search_recently_added">Нещодавно додано</string>
     <string name="open_user_folder">Відкрити теку Eden</string>
     <string name="open_user_folder_description">Керування внутрішніми файлами Eden</string>
+    <string name="app_settings_description">Змінити зовнішній вигляд і поведінку застосунку</string>
     <string name="no_file_manager">Не знайдено файлового менеджера</string>
     <string name="notification_no_directory_link">Не вдалося відкрити теку Eden</string>
     <string name="notification_no_directory_link_description">Будь ласка, знайдіть теку користувача за допомогою бічної панелі файлового менеджера вручну.</string>
@@ -674,7 +679,6 @@
     <string name="copy_details">Копіювати подробиці</string>
     <string name="add_ons">Доповнення</string>
     <string name="add_ons_description">Перемикати моди, оновлення та доповнення</string>
-    <string name="playtime">Награний час:</string>
     <string name="reset_playtime">Очистити награний час</string>
     <string name="reset_playtime_description">Скинути награний час поточної гри до 0 секунд</string>
     <string name="reset_playtime_warning_description">Це очистить дані про награний час поточної гри. Ви впевнені\?</string>
@@ -792,7 +796,6 @@
     <string name="lock_drawer">Заблокувати панель</string>
     <string name="unlock_drawer">Розблокувати панель</string>
     <string name="reset">Скинути</string>
-
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Програмна клавіатура</string>
@@ -961,6 +964,9 @@
     <string name="change_app_theme">Змінити тему</string>
     <string name="theme_default">За замовчуванням</string>
     <string name="theme_material_you">Material You</string>
+    <string name="app_settings">Налаштування застосунку</string>
+    <string name="theme_and_color">Тема і колір</string>
+
     <!-- Theme Modes -->
     <string name="change_theme_mode">Змінити режим теми</string>
     <string name="theme_mode_follow_system">Системна</string>

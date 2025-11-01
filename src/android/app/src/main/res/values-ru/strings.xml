@@ -240,6 +240,7 @@
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
     <string name="select_keys">Выбрать ключи</string>
     <string name="firmware">Прошивка</string>
+    <string name="firmware_description">Выберете свой <b>firmware.zip</b>файл с кнопкой внизу.</string>
     <string name="select_firmware">Выбрать прошивку</string>
     <string name="games">Игры</string>
     <string name="games_description">Выберите вашу папку с &lt;b>играми&lt;/b> с помощью кнопки ниже.</string>
@@ -262,6 +263,9 @@
     <string name="folder">Папка</string>
     <string name="dont_show_again">Не показывать снова</string>
     <string name="add_directory_success">Новый каталог игр успешно добавлен</string>
+    <string name="enable_update_checks">Проверять наличия обновлений при запуске приложения.</string>
+    <string name="update_available">Обновление доступно</string>
+    <string name="update_available_description">Новая версия приложения доступна:%1$s\n\nНе хотите ли вы скачать его\?</string>
     <string name="home_search">Поиск</string>
     <string name="home_settings">Настройки</string>
     <string name="empty_gamelist">Не найдены файлы или еще не выбрана папка с играми.</string>
@@ -304,6 +308,7 @@
     <string name="search_recently_added">Недавно добавлено</string>
     <string name="open_user_folder">Открыть папку Eden</string>
     <string name="open_user_folder_description">Управление внутренними файлами Eden</string>
+    <string name="app_settings_description">Изменяет поведение и внешний вид приложения</string>
     <string name="no_file_manager">Не найден файловый менеджер</string>
     <string name="notification_no_directory_link">Не удалось открыть папку Eden</string>
     <string name="notification_no_directory_link_description">Пожалуйста, найдите папку пользователя с помощью боковой панели файлового менеджера вручную.</string>
@@ -608,6 +613,7 @@
     <string name="fetch">Получить</string>
     <string name="delete">Удалить</string>
     <string name="edit">Редактировать</string>
+    <string name="import_success">Успешно импортировано</string>
     <string name="export_success">Экспорт успешно выполнен</string>
     <string name="start">Запуск</string>
     <string name="global">Глобальный</string>
@@ -673,6 +679,17 @@
     <string name="copy_details">Копировать детали</string>
     <string name="add_ons">Дополнения</string>
     <string name="add_ons_description">Включение модов, обновлений и DLC</string>
+    <string name="reset_playtime">Очистить игровое время</string>
+    <string name="reset_playtime_description">Сбрасывает игровое время текущей игры обратно до 0 секунд</string>
+    <string name="reset_playtime_warning_description">Это очистит данные о игровом времени текущей игры. Вы уверены\?</string>
+    <string name="playtime_reset_successfully">Игровое время было сброшено</string>
+    <string name="edit_playtime">Изменить игровое время</string>
+    <string name="hours">Часы</string>
+    <string name="minutes">Минуты</string>
+    <string name="hours_must_be_between_0_and_9999">Количество часов должно быть от 0 до 9999</string>
+    <string name="minutes_must_be_between_0_and_59">Количество минут должно быть от 0 до 59</string>
+    <string name="seconds_must_be_between_0_and_59">Количество секунд должно быть от 0 до 59</string>
+    <string name="playtime_updated_successfully">Игровое время было обновлено</string>
     <string name="clear_shader_cache">Очистить кэш шейдеров</string>
     <string name="clear_shader_cache_description">Удаляет все шейдеры, созданные во время игры.</string>
     <string name="clear_shader_cache_warning_description">У вас будет больше лагов во время повторной генерации кэша шейдеров</string>
@@ -707,6 +724,11 @@
     <string name="verify_no_result">Проверка целостности не может быть выполнена</string>
     <string name="verify_no_result_description">Файл не проверялся на корректность</string>
     <string name="verification_failed_for">Проверку не удалась для следующих файлов:\n%1$s</string>
+    <string name="share_game_settings">Поделиться конфигом</string>
+    <string name="import_config">Импортировать конфиг</string>
+    <string name="export_config">Экспортировать конфиг</string>
+    <string name="share_config_failed">Не удалось Поделиться конфигом</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрованный</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Пожалуйста, следуйте инструкциям по пересохранению <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">игровых картриджей</a> или <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">установленных игр</a>.]]></string>
@@ -774,7 +796,6 @@
     <string name="lock_drawer">Заморозить док</string>
     <string name="unlock_drawer">Разморозить док</string>
     <string name="reset">Сброс</string>
-
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Виртуальная клавиатура</string>
@@ -871,6 +892,7 @@
     <string name="resolution_half">0.5X (360p/540p)</string>
     <string name="resolution_three_quarter">0.75X (540p/810p)</string>
     <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
     <string name="resolution_three_half">1.5X (1080p/1620p)</string>
     <string name="resolution_two">2X (1440p/2160p) (Медленно)</string>
     <string name="resolution_three">3X (2160p/3240p) (Медленно)</string>
@@ -892,6 +914,11 @@
     <string name="scaling_filter_scale_force">ScaleForce</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™️ Super Resolution</string>
     <string name="scaling_filter_area">Зона</string>
+    <string name="scaling_filter_zero_tangent">Zero-Tangent</string>
+    <string name="scaling_filter_bspline">B-Spline</string>
+    <string name="scaling_filter_mitchell">Mitchell</string>
+    <string name="scaling_filter_mmpx">MMPX</string>
+
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Выкл.</string>
     <string name="anti_aliasing_fxaa">FXAA</string>
@@ -921,6 +948,8 @@
     <string name="cpu_accuracy_accurate">Точно</string>
     <string name="cpu_accuracy_unsafe">Небезопасно</string>
     <string name="cpu_accuracy_paranoid">Параноик</string>
+    <string name="cpu_accuracy_debugging">Отладка</string>
+
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Крестовина</string>
     <string name="gamepad_left_stick">Левый стик</string>
@@ -935,6 +964,9 @@
     <string name="change_app_theme">Сменить тему</string>
     <string name="theme_default">По умолчанию</string>
     <string name="theme_material_you">Material You</string>
+    <string name="app_settings">Настройки приложения</string>
+    <string name="theme_and_color">Тема и цвет</string>
+
     <!-- Theme Modes -->
     <string name="change_theme_mode">Сменить режим темы</string>
     <string name="theme_mode_follow_system">Системная</string>

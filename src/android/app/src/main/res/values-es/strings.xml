@@ -171,7 +171,7 @@
     <string name="multiplayer_room_is_full">La sala está llena</string>
     <string name="multiplayer_host_banned">Estás baneado de esta sala</string>
     <string name="multiplayer_permission_denied">Permiso denegado</string>
-    <string name="multiplayer_no_such_user">Usuario no encontrado</string>
+    <string name="multiplayer_no_such_user">No hay tal usuario</string>
     <string name="multiplayer_already_in_room">Ya estás en una sala</string>
     <string name="multiplayer_create_room_error">Error al crear sala</string>
     <string name="multiplayer_host_kicked">Anfitrión expulsado</string>
@@ -180,9 +180,9 @@
     <string name="multiplayer_room_idle">Sala inactiva</string>
     <string name="multiplayer_room_joining">Uniéndose a la sala</string>
     <string name="multiplayer_room_joined">Sala unida</string>
-    <string name="multiplayer_room_moderator">Moderador de sala</string>
+    <string name="multiplayer_room_moderator">Moderador de la sala</string>
     <string name="multiplayer_member_join">%1$s se ha unido</string>
-    <string name="multiplayer_member_leave">%1$s ha salido</string>
+    <string name="multiplayer_member_leave">%1$s se fue</string>
     <string name="multiplayer_member_kicked">%1$s fue expulsado</string>
     <string name="multiplayer_member_banned">%1$s fue baneado</string>
     <string name="multiplayer_address_unbanned">Dirección desbaneada</string>
@@ -202,7 +202,7 @@
     <string name="multiplayer_no_bans">No hay usuarios baneados</string>
     <string name="multiplayer_unban_title">Desbanear usuario</string>
     <string name="multiplayer_unban">Desbanear</string>
-    <string name="multiplayer_unban_message">¿Seguro que quieres desbanear a %1$s?</string>
+    <string name="multiplayer_unban_message">¿Estás seguro de que quieres desbanear a %1$s\?</string>
     <string name="multiplayer_ban">Banear usuario</string>
     <string name="multiplayer_room_browser">Salas públicas</string>
     <string name="multiplayer_no_rooms_found">No se encontraron salas públicas</string>
@@ -240,6 +240,7 @@
     <string name="keys_description">Selecciona tu archivo <b>prod.keys</b> utilizando el botón de abajo.</string>
     <string name="select_keys">Seleccionar las claves</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Seleccione su archivo <b> firmware.zip </b> con el botón de abajo.</string>
     <string name="select_firmware">Seleccionar firmware</string>
     <string name="games">Juegos</string>
     <string name="games_description">Selecciona la carpeta <b>Juegos</b> utilizando el botón de abajo</string>
@@ -262,6 +263,9 @@
     <string name="folder">Carpeta</string>
     <string name="dont_show_again">No mostrar de nuevo</string>
     <string name="add_directory_success">Nuevo directorio de juegos agregado exitosamente</string>
+    <string name="enable_update_checks">Busque actualizaciones al iniciar la aplicación.</string>
+    <string name="update_available">Actualización disponible</string>
+    <string name="update_available_description">Hay una nueva versión disponible: %1$s \n\n¿Quieres descargarla\?</string>
     <string name="home_search">Buscar</string>
     <string name="home_settings">Ajustes</string>
     <string name="empty_gamelist">No se encontraron archivos o aún no se ha seleccionado ningún directorio de juego.</string>
@@ -304,6 +308,7 @@
     <string name="search_recently_added">Añadido recientemente</string>
     <string name="open_user_folder">Abrir la carpeta de Eden</string>
     <string name="open_user_folder_description">Administrar los archivos internos de Eden</string>
+    <string name="app_settings_description">Modificar el comportamiento y la apariencia de la aplicación.</string>
     <string name="no_file_manager">Explorador de archivos no encontrado</string>
     <string name="notification_no_directory_link">No se pudo abrir la carpeta Eden</string>
     <string name="notification_no_directory_link_description">Por favor, busque la carpeta user con el panel lateral del explorador de archivos de forma manual.</string>
@@ -672,7 +677,6 @@
     <string name="copy_details">Copiar detalles</string>
     <string name="add_ons">Extras/Add-ons</string>
     <string name="add_ons_description">Activa/desactiva mods, actualizaciones y DLC</string>
-    <string name="playtime">Tiempo de juego:</string>
     <string name="reset_playtime">Borrar tiempo de juego</string>
     <string name="reset_playtime_description">Restablecer el tiempo de juego actual a 0 segundos</string>
     <string name="reset_playtime_warning_description">Esto borrará los datos de tiempo de juego actual. ¿Estás seguro\?</string>
@@ -790,7 +794,6 @@
     <string name="lock_drawer">Bloquear menú cajón</string>
     <string name="unlock_drawer">Desbloquear menú cajón</string>
     <string name="reset">Reiniciar</string>
-
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Teclado de software</string>
@@ -959,6 +962,9 @@
     <string name="change_app_theme">Cambiar tema</string>
     <string name="theme_default">Predeterminado</string>
     <string name="theme_material_you">Material You</string>
+    <string name="app_settings">Configuración de la aplicación</string>
+    <string name="theme_and_color">Tema y color</string>
+
     <!-- Theme Modes -->
     <string name="change_theme_mode">Cambiar modo del tema</string>
     <string name="theme_mode_follow_system">Igual al sistema</string>

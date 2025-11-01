@@ -7,6 +7,25 @@
     <string name="notification_permission_not_granted">未授予通知权限！</string>
     <string name="app_notification_channel_description">Eden模拟器通知</string>
     <string name="app_notification_running">Eden正在运行</string>
+    <string name="seconds">秒</string>
+
+    <!-- Spinbox strings -->
+    <string name="increment">增加</string>
+    <string name="decrement">减少</string>
+    <string name="value_too_low">值必须最小为  %1$d</string>
+    <string name="value_too_high">值最大必须为  %1$d</string>
+    <string name="invalid_value">无效的值</string>
+
+
+    <!-- Input Overlay -->
+    <string name="overlay_auto_hide">自动隐藏虚拟按键</string>
+    <string name="overlay_auto_hide_description">在指定的时间间隔后自动隐藏触摸控制覆盖层。</string>
+    <string name="enable_input_overlay_auto_hide">开启自动隐藏虚拟按键</string>
+
+    <string name="input_overlay_options">虚拟按键输入</string>
+    <string name="input_overlay_options_description">配置虚拟按键</string>
+
+
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(增强)</string>
     <string name="process_ram">进程内存: %1$d MB</string>
@@ -221,10 +240,12 @@
     <string name="keys_description">使用下方的按钮来选择你的 &lt;b>prod.keys&lt;/b> 文件。</string>
     <string name="select_keys">选择密钥文件</string>
     <string name="firmware">固件</string>
+    <string name="firmware_description">请使用下面的按钮选择您的 <b>firmware.zip</b> 文件。</string>
     <string name="select_firmware">选择固件</string>
     <string name="games">游戏</string>
     <string name="games_description">使用下方的按钮选择你的&lt;b>游戏&lt;/b>文件夹。</string>
     <string name="done">完成</string>
+    <string name="done_description">你完成了全部设置。\n玩的开心！</string>
     <string name="text_continue">继续</string>
     <string name="next">下一步</string>
     <string name="back">上一步</string>
@@ -236,10 +257,15 @@
     <string name="alphabetical">字母顺序</string>
     <string name="view_list">列表</string>
     <string name="view_grid">网格</string>
+    <string name="view_grid_compact">紧凑网格</string>
     <string name="view_carousel">轮播</string>
+    <string name="game_image_desc">为 %1$s 截图</string>
     <string name="folder">文件夹</string>
     <string name="dont_show_again">不再显示</string>
     <string name="add_directory_success">游戏目录新增成功</string>
+    <string name="enable_update_checks">在 app 启动时检查更新。</string>
+    <string name="update_available">有可用更新</string>
+    <string name="update_available_description">有一个新版本可用: %1$s\n\n您要下载它吗\?</string>
     <string name="home_search">搜索</string>
     <string name="home_settings">设置</string>
     <string name="empty_gamelist">找不到游戏，或者尚未选择游戏文件夹。</string>
@@ -247,14 +273,17 @@
     <string name="select_games_folder_description">允许 Eden 更新游戏列表</string>
     <string name="add_games_warning">跳过选择游戏文件夹？</string>
     <string name="add_games_warning_description">如果未选择游戏文件夹，游戏将不会显示在游戏列表中。</string>
+    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
     <string name="home_search_games">搜索游戏</string>
     <string name="search_settings">搜索设置</string>
     <string name="install_prod_keys">安装 prod.keys 文件</string>
     <string name="install_prod_keys_description">需要密钥文件来解密游戏</string>
     <string name="install_prod_keys_warning">跳过添加密钥文件？</string>
     <string name="install_prod_keys_warning_description">对于商业游戏，需要有效的密钥文件才能运行。如果没有密钥文件，将只能运行自制软件。</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">跳过添加固件？</string>
     <string name="install_firmware_warning_description">许多游戏需要访问固件才能正常运行。</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">通知</string>
     <string name="notifications_description">使用下方的按钮授予通知权限。</string>
     <string name="give_permission">授予权限</string>
@@ -279,6 +308,7 @@
     <string name="search_recently_added">最近添加</string>
     <string name="open_user_folder">打开 Eden 文件夹</string>
     <string name="open_user_folder_description">管理 Eden 内部文件</string>
+    <string name="app_settings_description">更改 app 的外观</string>
     <string name="no_file_manager">找不到可用的文件管理器</string>
     <string name="notification_no_directory_link">无法打开 Eden 文件夹</string>
     <string name="notification_no_directory_link_description">请使用文件管理器侧边栏中的内部存储手动定位用户文件夹。</string>
@@ -310,7 +340,9 @@
     <string name="install_game_content_success">游戏附加内容已成功安装</string>
     <string name="install_game_content_success_install">%1$d 个包安装成功</string>
     <string name="install_game_content_success_overwrite">%1$d 个包覆盖安装成功</string>
+    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">不支持自定义驱动</string>
+    <string name="custom_driver_not_supported_description">此设备不支持自定义驱动。\n请之后再访问此项，查看是否已为此设备添加支持。</string>
     <string name="manage_yuzu_data">管理 Eden 数据</string>
     <string name="manage_yuzu_data_description">导入/导出固件、密钥、用户数据以及其他</string>
     <string name="game_folders">游戏文件夹</string>
@@ -330,6 +362,8 @@
 
     <string name="keys_missing">密钥缺失</string>
     <string name="keys_missing_description">无法解密固件和商业游戏</string>
+    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
     <string name="uninstall_firmware">卸载固件</string>
     <string name="uninstall_firmware_description">卸载固件将从设备中删除它并可能影响游戏兼容性。</string>
     <string name="firmware_uninstalling">正在卸载固件...</string>
@@ -368,6 +402,7 @@
     <string name="about_app_description">一款开源的 Switch 模拟器</string>
     <string name="contributors">贡献者</string>
     <string name="contributors_description">Eden 团队的用 \u2764 制作</string>
+    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Android 版 Eden 离不开这些项目的支持</string>
     <string name="build">构建版本</string>
     <string name="user_data">用户数据</string>
@@ -572,6 +607,7 @@
     <string name="fetch">获取</string>
     <string name="delete">删除</string>
     <string name="edit">编辑</string>
+    <string name="import_success">导入成功</string>
     <string name="export_success">导出成功</string>
     <string name="start">开始</string>
     <string name="global">全局</string>
@@ -637,6 +673,17 @@
     <string name="copy_details">复制明细</string>
     <string name="add_ons">附加项</string>
     <string name="add_ons_description">管理 mod、游戏更新及 DLC</string>
+    <string name="reset_playtime">清除游戏时间</string>
+    <string name="reset_playtime_description">将当前游戏的游戏时间重置为 0 秒</string>
+    <string name="reset_playtime_warning_description">者会讲出当前游戏的游戏时间数据。您确定吗\?</string>
+    <string name="playtime_reset_successfully">已重置游戏时间</string>
+    <string name="edit_playtime">编辑游戏时间</string>
+    <string name="hours">小时</string>
+    <string name="minutes">分钟</string>
+    <string name="hours_must_be_between_0_and_9999">小时必须为 0 到 9999 之间</string>
+    <string name="minutes_must_be_between_0_and_59">分钟必须为 0 到 59 之间</string>
+    <string name="seconds_must_be_between_0_and_59">秒必须为 0 到 59 之间</string>
+    <string name="playtime_updated_successfully">已成功更新游戏时间</string>
     <string name="clear_shader_cache">清除着色器缓存</string>
     <string name="clear_shader_cache_description">删除此游戏的所有着色器缓存</string>
     <string name="clear_shader_cache_warning_description">由于着色器缓存需要重新生成，您将遇到更多卡顿</string>
@@ -660,6 +707,7 @@
     <string name="addon_installed_successfully">附加项安装成功</string>
     <string name="verifying_content">验证安装内容...</string>
     <string name="content_install_notice">安装提醒</string>
+    <string name="content_install_notice_description">您选择安装的内容与此游戏不匹配。\n要继续安装吗？</string>
     <string name="confirm_uninstall">卸载确认</string>
     <string name="confirm_uninstall_description">您确定要卸载此附加项吗？</string>
     <string name="verify_integrity">完整性验证</string>
@@ -669,6 +717,12 @@
     <string name="verify_failure_description">文件可能已经损坏</string>
     <string name="verify_no_result">无法执行完整性验证</string>
     <string name="verify_no_result_description">未检查文件的完整性</string>
+    <string name="verification_failed_for">下列文件校验失败:\n%1$s</string>
+    <string name="share_game_settings">共享配置</string>
+    <string name="import_config">导入配置</string>
+    <string name="export_config">导出配置</string>
+    <string name="share_config_failed">共享配置文件失败</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">您的 ROM 已加密</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[请按照指南重新转储您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">游戏卡带</a>或<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">数字版游戏</a>。]]></string>
@@ -700,6 +754,7 @@
     <string name="config_write_failed">无法写入配置文件</string>
     <string name="config_apply_failed">无法应用配置</string>
     <string name="config_already_exists_title">配置已存在</string>
+    <string name="config_already_exists_message">已存在 %1$s 的自定义设置。\n\n您要覆盖现存的配置文件吗\?\n\n此操作无法被撤销。</string>
     <string name="config_exists_prompt">正在检查现有配置...</string>
     <string name="overwrite_cancelled">覆盖已取消</string>
     <string name="overwrite">覆盖</string>
@@ -709,6 +764,7 @@
     <string name="invalid_driver_file">无效的驱动程序文件: %s</string>
     <string name="network_unavailable">无可用网络连接。请检查您的互联网连接并重试。</string>
     <string name="driver_missing_title">需要GPU驱动程序</string>
+    <string name="driver_missing_message">游戏配置所需的 GPU 驱动 \"%s\" 尚未安装到您的设备中。\n\n您要立即下载并安装吗\?</string>
     <string name="driver_download_cancelled">驱动程序下载已取消。没有所需的驱动程序无法启动游戏。</string>
     <string name="download">下载</string>
 
@@ -733,6 +789,8 @@
     <string name="touchscreen">触摸屏</string>
     <string name="lock_drawer">锁定侧边菜单</string>
     <string name="unlock_drawer">解锁侧边菜单</string>
+    <string name="reset">重置</string>
+
     <!-- Software keyboard -->
     <string name="software_keyboard">软件键盘</string>
 
@@ -740,9 +798,11 @@
     <string name="abort_button">中止</string>
     <string name="continue_button">继续</string>
     <string name="system_archive_not_found">未找到系统档案</string>
+    <string name="system_archive_not_found_message">%s 已丢失。请重新转储您的系统档案。\n继续模拟可能会导致崩溃。</string>
     <string name="system_archive_general">系统档案</string>
     <string name="save_load_error">保存/载入发生错误</string>
     <string name="fatal_error">致命错误</string>
+    <string name="fatal_error_message">发生致命错误。请查阅日志获取详细信息。\n继续模拟可能会导致崩溃。</string>
     <string name="device_memory_inadequate">设备RAM：%1$s\n建议：%2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">当前没有可启动的游戏！</string>
@@ -826,6 +886,7 @@
     <string name="resolution_half">0.5X (360p/540p)</string>
     <string name="resolution_three_quarter">0.75X (540p/810p)</string>
     <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
     <string name="resolution_three_half">1.5X (1080p/1620p)</string>
     <string name="resolution_two">2X (1440p/2160p) (慢速)</string>
     <string name="resolution_three">3X (2160p/3240p) (慢速)</string>
@@ -841,9 +902,17 @@
     <string name="scaling_filter_nearest_neighbor">近邻取样</string>
     <string name="scaling_filter_bilinear">双线性过滤</string>
     <string name="scaling_filter_bicubic">双三线过滤</string>
+    <string name="scaling_filter_spline1">Spline-1</string>
     <string name="scaling_filter_gaussian">高斯模糊</string>
+    <string name="scaling_filter_lanczos">Lanczos</string>
     <string name="scaling_filter_scale_force">强制缩放</string>
     <string name="scaling_filter_fsr">AMD FidelityFX™️ 超级分辨率锐画技术 (FSR)</string>
+    <string name="scaling_filter_area">区域</string>
+    <string name="scaling_filter_zero_tangent">零切线</string>
+    <string name="scaling_filter_bspline">B-Spline</string>
+    <string name="scaling_filter_mitchell">Mitchell</string>
+    <string name="scaling_filter_mmpx">MMPX</string>
+
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">无</string>
     <string name="anti_aliasing_fxaa">快速近似抗锯齿 (FXAA)</string>
@@ -873,6 +942,8 @@
     <string name="cpu_accuracy_accurate">高精度</string>
     <string name="cpu_accuracy_unsafe">低精度</string>
     <string name="cpu_accuracy_paranoid">偏执模式</string>
+    <string name="cpu_accuracy_debugging">调试</string>
+
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">十字方向键</string>
     <string name="gamepad_left_stick">左摇杆</string>
@@ -887,6 +958,9 @@
     <string name="change_app_theme">切换主题</string>
     <string name="theme_default">系统默认</string>
     <string name="theme_material_you">Material You</string>
+    <string name="app_settings">App 设置</string>
+    <string name="theme_and_color">主题与颜色</string>
+
     <!-- Theme Modes -->
     <string name="change_theme_mode">更改主题模式</string>
     <string name="theme_mode_follow_system">跟随系统</string>
@@ -909,6 +983,7 @@
 
     <!-- Static Themes -->
     <string name="static_theme_color">主题颜色</string>
+    <string name="eden_theme">Eden (默认)</string>
     <string name="violet">紫色（默认）</string>
     <string name="blue">蓝色</string>
     <string name="cyan">青色</string>

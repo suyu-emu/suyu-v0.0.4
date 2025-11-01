@@ -112,7 +112,7 @@
     <string name="use_sync_core">Synchroniser la vitesse du cœur</string>
     <string name="use_sync_core_description">Synchronise la vitesse du cœur avec le pourcentage de vitesse maximal pour améliorer les performances sans modifier la vitesse réelle du jeu.</string>
     <string name="use_lru_cache">Activer le cache LRU</string>
-    <string name="use_lru_cache_description">Active ou désactive le cache LRU pour améliorer les performances en réduisant l\'utilisation du processeur. Certains jeux comme TotK 1.2.1 ont des problèmes - désactivez-le si le jeu ne démarre pas ou plante aléatoirement.</string>
+    <string name="use_lru_cache_description">Active ou désactive le cache LRU (Least Recently Used) pour améliorer les performances en réduisant l’utilisation du processeur. Certains jeux peuvent rencontrer des problèmes avec ce réglage ; désactivez-le si le jeu ne démarre pas ou plante de manière aléatoire.</string>
     <string name="use_fast_cpu_time">Temps CPU rapide</string>
     <string name="use_fast_cpu_time_description">Force le CPU émulé à fonctionner à une fréquence plus élevée, réduisant certains limiteurs de FPS. Cette option est instable et peut causer des problèmes, et les CPU plus faibles peuvent voir une baisse de performance.</string>
     <string name="custom_cpu_ticks">Ticks CPU personnalisés</string>
@@ -125,7 +125,7 @@
     <string name="fast_cpu_time">Fréquence CPU</string>
     <string name="fast_cpu_time_description">Utilisez Boost (1700MHz) pour fonctionner à la fréquence native la plus élevée de la Switch, ou Fast (2000MHz) pour fonctionner à double fréquence.</string>
     <string name="memory_layout">Disposition de la mémoire</string>
-    <string name="memory_layout_description">(EXPÉRIMENTAL) Change la disposition de la mémoire émulée. Ce paramètre n\'augmente pas les performances, mais peut aider les jeux utilisant des résolutions élevées via des mods. Ne pas utiliser sur les téléphones avec 8 Go de RAM ou moins.</string>
+    <string name="memory_layout_description">(EXPÉRIMENTAL) Modifie la disposition de la mémoire émulée.\nCe paramètre n’améliore pas les performances, mais peut aider pour les jeux utilisant des résolutions élevées via des mods. Ne pas utiliser sur les téléphones avec 8 Go de RAM ou moins. Fonctionne uniquement avec le backend Dynarmic (JIT).</string>
     <string name="dma_accuracy">Précision DMA</string>
     <string name="dma_accuracy_description">Contrôle la précision du DMA. Une précision sûre peut résoudre les problèmes dans certains jeux, mais peut aussi affecter les performances dans certains cas. Si vous n\'êtes pas sûr, laissez ce paramètre sur Par défaut.</string>
 
@@ -240,6 +240,7 @@
     <string name="keys_description">Sélectionnez votre fichier &lt;b>prod.keys&lt;/b> avec le bouton ci-dessous.</string>
     <string name="select_keys">Sélectionner les clés</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Sélectionnez votre fichier <b>firmware.zip</b> avec le bouton ci‑dessous.</string>
     <string name="select_firmware">Sélectionner le firmware</string>
     <string name="games">Jeux</string>
     <string name="games_description">Sélectionnez votre dossier &lt;b>de Jeux&lt;/b> avec le bouton ci-dessous.</string>
@@ -262,6 +263,9 @@
     <string name="folder">Dossier</string>
     <string name="dont_show_again">Ne plus afficher</string>
     <string name="add_directory_success">Nouveau dossier de jeux ajouté</string>
+    <string name="enable_update_checks">Vérifier les mises à jour au démarrage de l’application.</string>
+    <string name="update_available">Mise à jour disponible</string>
+    <string name="update_available_description">Une nouvelle version est disponible : %1$s\n\nVoulez‑vous la télécharger \?</string>
     <string name="home_search">Rechercher</string>
     <string name="home_settings">Paramètres</string>
     <string name="empty_gamelist">Aucun fichier n\'a été trouvé ou aucun répertoire de jeu n\'a encore été sélectionné.</string>
@@ -304,6 +308,7 @@
     <string name="search_recently_added">Ajouté récemment</string>
     <string name="open_user_folder">Ouvrir le dossier de Eden</string>
     <string name="open_user_folder_description">Gérer les fichiers internes de Eden</string>
+    <string name="app_settings_description">Modifier le comportement et l’apparence de l’application</string>
     <string name="no_file_manager">Aucun gestionnaire de fichiers trouvé</string>
     <string name="notification_no_directory_link">Impossible d\'ouvrir le répertoire de Eden</string>
     <string name="notification_no_directory_link_description">Veuillez localiser manuellement le dossier utilisateur avec le panneau latéral du gestionnaire de fichiers.</string>
@@ -405,7 +410,7 @@
     <string name="licenses_description">Des projets qui rendent possible Eden pour Android</string>
     <string name="build">Build</string>
     <string name="user_data">Données utilisateur</string>
-    <string name="user_data_description">Importer/exporter toutes les données de l\'application\nLors de l\'importation des données utilisateur, toutes les données déjà existantes seront supprimé !\nImporter les données depuis Citron peut poser des problèmes. Il est recommandé de faire l\'importation manuellement de toutes les données nécessaire.</string>
+    <string name="user_data_description">Importer/exporter toutes les données de l\'application\n\nLors de l\'importation des données utilisateur, toutes les données déjà existantes seront supprimé !\n\nImporter les données depuis Citron peut poser des problèmes. Il est recommandé de faire l\'importation manuellement de toutes les données nécessaire.</string>
     <string name="exporting_user_data">Exportation des données utilisateur...</string>
     <string name="importing_user_data">Importation des données utilisateur...</string>
     <string name="invalid_yuzu_backup">Backup Eden invalide</string>
@@ -672,7 +677,6 @@
     <string name="copy_details">Copier les détails</string>
     <string name="add_ons">Extensions</string>
     <string name="add_ons_description">Activer les mods, mises à jour et DLC</string>
-    <string name="playtime">Temps de jeu :</string>
     <string name="reset_playtime">Réinitialiser le Temps de Jeu</string>
     <string name="reset_playtime_description">Réinitialiser le temps de jeu du jeu actuel à 0 seconde</string>
     <string name="reset_playtime_warning_description">Cela effacera les données de temps de jeu du jeu actuel. Êtes-vous sûr \?</string>
@@ -764,7 +768,7 @@
     <string name="invalid_driver_file">Fichier de pilote invalide : %s</string>
     <string name="network_unavailable">Aucune connexion réseau disponible. Veuillez vérifier votre connexion Internet et réessayer.</string>
     <string name="driver_missing_title">Pilote GPU requis</string>
-    <string name="driver_missing_message">La configuration du jeu nécessite le pilote GPU \"%s\" qui n\'est pas installé sur votre appareil.\nVoulez-vous le télécharger et l\'installer maintenant \?</string>
+    <string name="driver_missing_message">La configuration du jeu nécessite le pilote GPU \"%s\" qui n\'est pas installé sur votre appareil.\n\nVoulez-vous le télécharger et l\'installer maintenant \?</string>
     <string name="driver_download_cancelled">Téléchargement du pilote annulé. Le jeu ne peut pas être lancé sans le pilote requis.</string>
     <string name="download">Télécharger</string>
 
@@ -790,7 +794,6 @@
     <string name="lock_drawer">Verrouiller le tiroir</string>
     <string name="unlock_drawer">Déverrouiller le tiroir</string>
     <string name="reset">Réinitialiser</string>
-
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Clavier virtuel</string>
@@ -959,6 +962,9 @@
     <string name="change_app_theme">Changer le thème de l\'application</string>
     <string name="theme_default">Par défaut</string>
     <string name="theme_material_you">Material You</string>
+    <string name="app_settings">Paramètres de l’App</string>
+    <string name="theme_and_color">Thème et Couleur</string>
+
     <!-- Theme Modes -->
     <string name="change_theme_mode">Changer le mode de thème</string>
     <string name="theme_mode_follow_system">Automatique</string>

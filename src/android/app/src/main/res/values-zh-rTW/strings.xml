@@ -22,7 +22,7 @@
     <string name="overlay_auto_hide_description">在未使用虛擬按鍵幾秒後自動隱藏</string>
     <string name="enable_input_overlay_auto_hide">啟用自動隱藏虛擬按鍵</string>
 
-    <string name="input_overlay_options">導入虛擬按鍵設定檔</string>
+    <string name="input_overlay_options">虛擬按鍵設定</string>
     <string name="input_overlay_options_description">虛擬按鍵設定</string>
 
 
@@ -116,16 +116,16 @@
     <string name="use_fast_cpu_time">快速 CPU 時間</string>
     <string name="use_fast_cpu_time_description">強制模擬 CPU 以更高的時脈運行，減少某些 FPS 限制。此選項不穩定，可能會導致問題，較弱的 CPU 可能會看到效能下降。</string>
     <string name="custom_cpu_ticks">自訂CPU時脈</string>
-    <string name="custom_cpu_ticks_description">設定自訂的CPU時脈值。更高的值可能提高效能，但也可能導致遊戲卡死。建議範圍為77-21000。</string>
+    <string name="custom_cpu_ticks_description">自訂CPU時脈。更高的值可能提高效能，但也可能導致遊戲卡死。建議範圍為77-21000。</string>
     <string name="cpu_ticks">時脈</string>
     <string name="skip_cpu_inner_invalidation">跳過CPU內部失效處理</string>
     <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取的失效處理，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
     <string name="cpuopt_unsafe_host_mmu">啟用主機 MMU 模擬</string>
     <string name="cpuopt_unsafe_host_mmu_description">此最佳化可加速來賓程式的記憶體存取。啟用後，來賓記憶體讀取/寫入將直接在記憶體中執行並利用主機的 MMU。停用此功能將強制所有記憶體存取使用軟體 MMU 模擬。</string>
-    <string name="fast_cpu_time">CPU 時鐘</string>
+    <string name="fast_cpu_time">CPU時脈</string>
     <string name="fast_cpu_time_description">使用 Boost (1700MHz) 以 Switch 的最高原生時脈運行，或 Fast (2000MHz) 以雙倍時脈運行。</string>
     <string name="memory_layout">記憶體佈局</string>
-    <string name="memory_layout_description">（實驗性）更改模擬記憶體佈局。此設定不會提高效能，但可能有助於透過模組使用高解析度的遊戲。不要在 RAM 為 8GB 或更少的手機上使用。</string>
+    <string name="memory_layout_description">（實驗性）更改模擬記憶體佈局。此設定不會提高效能，但可能有助於使用模組來提高解析度的遊戲的載入。不要在 RAM 為 8GB 或更少的手機上使用。若遊戲崩潰請將進階設定裡偵錯選項中的CPU後端改為 Dynarmic (JIT)</string>
     <string name="dma_accuracy">DMA 準確度</string>
     <string name="dma_accuracy_description">控制 DMA 準確度。安全準確度可以修復某些遊戲中的問題，但在某些情況下也可能影響效能。如果不確定，請保留為「預設」。</string>
 
@@ -240,6 +240,7 @@
     <string name="keys_description">使用下方的按鈕安裝您的 <b>prod.keys</b> 檔案。</string>
     <string name="select_keys">選擇金鑰</string>
     <string name="firmware">韌體</string>
+    <string name="firmware_description">使用下方按鈕安裝您的<b>firmware.zip</b>檔案</string>
     <string name="select_firmware">選擇韌體</string>
     <string name="games">遊戲</string>
     <string name="games_description">使用下方的按鈕選擇您的<b>遊戲</b>資料夾。</string>
@@ -262,6 +263,9 @@
     <string name="folder">資料夾</string>
     <string name="dont_show_again">不再顯示</string>
     <string name="add_directory_success">遊戲目錄新增成功</string>
+    <string name="enable_update_checks">在Eden啟動時檢查更新</string>
+    <string name="update_available">偵測到新版本</string>
+    <string name="update_available_description">有更新可供安裝：%1$s\n\n您要進行更新嗎？</string>
     <string name="home_search">搜尋</string>
     <string name="home_settings">設定</string>
     <string name="empty_gamelist">找不到檔案，或者尚未選取遊戲目錄。</string>
@@ -304,6 +308,7 @@
     <string name="search_recently_added">最近新增</string>
     <string name="open_user_folder">開啟 Eden 資料夾</string>
     <string name="open_user_folder_description">管理 Eden 的內部檔案</string>
+    <string name="app_settings_description">自訂Eden的主題與外觀</string>
     <string name="no_file_manager">找不到檔案管理員</string>
     <string name="notification_no_directory_link">無法開啟 Eden 目錄</string>
     <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
@@ -392,7 +397,7 @@
     <string name="cabinet_formatter">格式化程式</string>
 
     <!-- About screen strings -->
-    <string name="gaia_is_not_real">Gaia 不真實</string>
+    <string name="gaia_is_not_real">Gaia不是真的</string>
     <string name="copied_to_clipboard">已複製到剪貼簿</string>
     <string name="about_app_description">一個開放原始碼的 Switch 模擬器</string>
     <string name="contributors">參與者</string>
@@ -401,7 +406,7 @@
     <string name="licenses_description">這些專案使 Eden Android 版成為可能</string>
     <string name="build">組建</string>
     <string name="user_data">使用者資料</string>
-    <string name="user_data_description">導入/導出所有應用程式資料。\n\n導入使用者資料時，現有的使用者資料將被取代！\n\n從 Citron 導入資料可能導致問題，建議手動導入所有所需資料。</string>
+    <string name="user_data_description">導入/導出所有應用程式資料。\n\n導入使用者資料時，現有的使用者資料將被取代！\n\n直接從 Citron 導入資料可能會出現問題，建議手動導入所有所需資料。</string>
     <string name="exporting_user_data">正在導出使用者資料…</string>
     <string name="importing_user_data">正在導入使用者資料…</string>
     <string name="invalid_yuzu_backup">無效的 Eden 備份</string>
@@ -518,7 +523,7 @@
     <string name="range">靈敏度</string>
     <string name="deadzone">無感帶</string>
     <string name="modifier">用按鈕、按鍵來模擬搖桿</string>
-    <string name="modifier_range">修改以按鈕模擬左搖桿的值，視遊戲不同而有所差異\n（模擬左搖桿時，若將此數值設為50，則按下按鈕時遊戲裡的人物可能只會走動而不是奔跑，數值越高代表使用的模擬值越大）</string>
+    <string name="modifier_range">修改按鈕模擬左/右搖桿的值，視遊戲不同而有所差異\n（模擬左搖桿時，若將此數值設為50，則按下按鈕時遊戲裡的人物可能只會走動而不是奔跑；模擬右搖桿時所使用的值則是會影響到轉視角的速度，數值越高代表使用的模擬值越大）</string>
     <string name="triggers">肩部按鍵</string>
     <string name="button_l">L</string>
     <string name="button_r">R</string>
@@ -557,7 +562,7 @@
     <string name="toggle_axis">視角反轉</string>
     <string name="connected">已連線</string>
     <string name="use_system_vibrator">使用系統震動器</string>
-    <string name="input_overlay">虛擬按鍵設定</string>
+    <string name="input_overlay">導入虛擬按鍵設定檔</string>
     <string name="vibration">震動</string>
     <string name="vibration_strength">震動強度</string>
     <string name="profile">設定檔</string>
@@ -668,7 +673,6 @@
     <string name="copy_details">複製詳細資料</string>
     <string name="add_ons">附加元件</string>
     <string name="add_ons_description">切換模組、更新及 DLC</string>
-    <string name="playtime">遊玩時間：</string>
     <string name="reset_playtime">重設遊玩時間</string>
     <string name="reset_playtime_description">將此遊戲的遊玩時間重設為0</string>
     <string name="reset_playtime_warning_description">您確定要重設此遊戲的遊玩時間嗎？</string>
@@ -781,12 +785,11 @@
     <string name="emulation_touch_overlay_edit">編輯虛擬按鍵</string>
     <string name="emulation_pause">暫停模擬</string>
     <string name="emulation_unpause">取消暫停模擬</string>
-    <string name="emulation_input_overlay">虛擬按鍵選項</string>
+    <string name="emulation_input_overlay">疊加層/虛擬按鍵設定</string>
     <string name="touchscreen">觸控螢幕</string>
     <string name="lock_drawer">鎖定側邊選單</string>
     <string name="unlock_drawer">解鎖側邊選單</string>
     <string name="reset">重設</string>
-
 
     <!-- Software keyboard -->
     <string name="software_keyboard">軟體鍵盤</string>
@@ -955,6 +958,9 @@
     <string name="change_app_theme">變更應用程式主題</string>
     <string name="theme_default">預設</string>
     <string name="theme_material_you">質感設計3</string>
+    <string name="app_settings">Eden外觀設定</string>
+    <string name="theme_and_color">主題和顏色</string>
+
     <!-- Theme Modes -->
     <string name="change_theme_mode">變更主題模式</string>
     <string name="theme_mode_follow_system">跟隨系統</string>

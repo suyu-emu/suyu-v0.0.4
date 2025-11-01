@@ -240,6 +240,7 @@
     <string name="keys_description">Wybierz swoje klucze &lt;b>prod.keys&lt;/b> za pomocą przycisku poniżej.</string>
     <string name="select_keys">Wybierz klucze</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Wybierz swój plik <b>firmware.zip</b> przyciskiem poniżej.</string>
     <string name="select_firmware">Wybierz Firmware</string>
     <string name="games">Gry</string>
     <string name="games_description">Wybierz katalog z grami &lt;b>Games&lt;/b> za pomocą przycisku poniżej.</string>
@@ -262,6 +263,9 @@
     <string name="folder">Folder</string>
     <string name="dont_show_again">Nie pokazuj ponownie</string>
     <string name="add_directory_success">Pomyślnie dodano nowy katalog gier</string>
+    <string name="enable_update_checks">Sprawdzaj aktualizacje przy uruchomieniu aplikacji.</string>
+    <string name="update_available">Dostępna aktualizacja</string>
+    <string name="update_available_description">Dostępna jest nowa wersja: %1$s\n\nCzy chcesz ją pobrać\?</string>
     <string name="home_search">Szukaj</string>
     <string name="home_settings">Ustawienia</string>
     <string name="empty_gamelist">Nie znaleziono plików, lub nie wybrano jeszcze katalogu zawierającego gry.</string>
@@ -304,6 +308,7 @@
     <string name="search_recently_added">Ostatnio dodane</string>
     <string name="open_user_folder">Otwórz folder Eden</string>
     <string name="open_user_folder_description">Zarządzaj plikami emulatora</string>
+    <string name="app_settings_description">Dostosuj działanie i wygląd aplikacji</string>
     <string name="no_file_manager">Nie znaleziono menedżera plików</string>
     <string name="notification_no_directory_link">Nie można otworzyć folderu emulatora</string>
     <string name="notification_no_directory_link_description">Proszę wybrać ręcznie folder z pomocą panelu bocznego menedżera plików.</string>
@@ -674,7 +679,6 @@
     <string name="copy_details">Kopiuj szczegóły</string>
     <string name="add_ons">Dodatki</string>
     <string name="add_ons_description">Przełącz mody, aktualizacje i DLC</string>
-    <string name="playtime">Czas gry:</string>
     <string name="reset_playtime">Wyczyść czas gry</string>
     <string name="reset_playtime_description">Zresetuj czas gry do 0 sekund.</string>
     <string name="reset_playtime_warning_description">Spowoduje to usunięcie danych dotyczących czasu gry w bieżącej grze. Czy na pewno chcesz to zrobić\?</string>
@@ -792,7 +796,6 @@
     <string name="lock_drawer">Zablokuj panel</string>
     <string name="unlock_drawer">Odblokuj panel</string>
     <string name="reset">Resetuj</string>
-
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Klawiatura programowa</string>
@@ -961,6 +964,9 @@
     <string name="change_app_theme">Ustaw motyw aplikacji</string>
     <string name="theme_default">Domyślny</string>
     <string name="theme_material_you">Material You</string>
+    <string name="app_settings">Ustawienia aplikacji</string>
+    <string name="theme_and_color">Motyw i kolor</string>
+
     <!-- Theme Modes -->
     <string name="change_theme_mode">Zmień tryb motywu</string>
     <string name="theme_mode_follow_system">Podążaj za systemowym</string>
