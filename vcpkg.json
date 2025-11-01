@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "suyu",
-  "builtin-baseline": "46a8b3026c637b91b6e5442e37275eed79449150",
   "version": "1.0",
+  
   "dependencies": [
     "boost-algorithm",
     "boost-asio",
@@ -81,6 +81,18 @@
     {
       "name": "llvm",
       "version": "17.0.6"
+    },
+    {
+      "name": "boost",
+      "version": "1.88.0"
+    },
+    {
+      "name": "boost-cobalt",
+      "version": "1.80.0"
+    },
+    {
+      "name": "boost-algorithm",
+      "version": "1.88.0"
     }
   ]
 }

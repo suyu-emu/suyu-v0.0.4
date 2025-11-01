@@ -1,13 +1,23 @@
 {
   "default-registry": {
     "kind": "git",
-    "repository": "https://github.com/Microsoft/vcpkg",
-    "baseline": "46a8b3026c637b91b6e5442e37275eed79449150"
+    "baseline": "b2cb0da531c2f1f740045bfe7c4dac59f0b2b69c",
+    "repository": "https://github.com/microsoft/vcpkg"
   },
   "registries": [
     {
+      "kind": "git",
+      "repository": "https://github.com/Microsoft/vcpkg",
+      "baseline": "b2cb0da531c2f1f740045bfe7c4dac59f0b2b69c",
+      "packages": [
+        "boost*",
+        "boost-*"
+      ]
+    },
+    {
       "kind": "artifact",
-      "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip"
+      "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip",
+      "name": "microsoft"
     }
   ],
   "overlay-ports": [
