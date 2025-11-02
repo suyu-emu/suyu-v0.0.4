@@ -231,7 +231,7 @@ void SinkStream::WaitFreeSpace(std::stop_token stop_token) {
         return paused || queued_buffers < max_queue_size;
     };
 
-    release_cv.wait_for(lk, std::chrono::milliseconds(10), can_continue);
+    release_cv.wait_for(lk, std::chrono::milliseconds(8), can_continue);
 
     if (queued_buffers > max_queue_size + 10) {
         release_cv.wait(lk, stop_token, can_continue);
