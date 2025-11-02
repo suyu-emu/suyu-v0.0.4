@@ -93,7 +93,45 @@ Click on the arrows to expand.
 GURU must be enabled:
 
 ```
-sudo
+sudo emerge -a app-eselect/eselect-repository
+sudo eselect repository enable guru
+sudo emaint sync -r guru
+```
+
+Now, install all deps:
+
+```sh
+sudo emerge -a \
+    app-arch/lz4 app-arch/zstd app-arch/unzip \
+    dev-libs/libfmt dev-libs/libusb dev-libs/mcl dev-libs/sirit \
+    dev-libs/unordered_dense dev-libs/boost dev-libs/openssl dev-libs/discord-rpc \
+    dev-util/spirv-tools dev-util/spirv-headers dev-util/vulkan-headers \
+    dev-util/vulkan-utility-libraries dev-util/glslang \
+    media-gfx/renderdoc media-libs/libva media-libs/opus media-video/ffmpeg \
+    media-libs/VulkanMemoryAllocator media-libs/libsdl2 media-libs/cubeb \
+    net-libs/enet net-libs/mbedtls \
+    sys-libs/zlib \
+    dev-cpp/nlohmann_json dev-cpp/simpleini dev-cpp/cpp-httplib dev-cpp/cpp-jwt \
+    games-util/gamemode \
+    net-wireless/wireless-tools \
+    dev-qt/qtbase:6 dev-libs/quazip \
+    virtual/pkgconfig
+```
+
+- On `amd64`, also add `dev-libs/xbyak`
+- On `riscv64`, also add `dev-libs/biscuit` (currently unavailable)
+- On `aarch64`, also add `dev-libs/oaknut`
+- If tests are enabled, also add `dev-libs/oaknut` and `dev-cpp/catch`
+
+Required USE flags:
+- `dev-qt/qtbase network concurrent dbus gui widgets`
+- `dev-libs/quazip qt6`
+- `net-libs/mbedtls cmac`
+- `media-libs/libsdl2 haptic joystick sound video`
+- `dev-cpp/cpp-httplib ssl`
+
+[Caveats](./Caveats.md#gentoo-linux)
+
 </details>
 
 <details>

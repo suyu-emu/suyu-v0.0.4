@@ -1,14 +1,16 @@
 # Caveats
 
 <!-- TOC -->
-- [Arch Linux](#arch-linux)
-- [Gentoo Linux](#gentoo-linux)
-- [macOS](#macos)
-- [Solaris](#solaris)
-- [HaikuOS](#haikuos)
-- [OpenBSD](#openbsd)
-- [FreeBSD](#freebsd)
-- [NetBSD](#netbsd)
+- [Caveats](#caveats)
+  - [Arch Linux](#arch-linux)
+  - [Gentoo Linux](#gentoo-linux)
+  - [macOS](#macos)
+  - [Solaris](#solaris)
+  - [HaikuOS](#haikuos)
+  - [OpenBSD](#openbsd)
+  - [FreeBSD](#freebsd)
+  - [NetBSD](#netbsd)
+  - [MSYS2](#msys2)
 <!-- /TOC -->
 
 ## Arch Linux
@@ -17,7 +19,9 @@ Eden is also available as an [AUR package](https://aur.archlinux.org/packages/ed
 
 ## Gentoo Linux
 
-Enable the GURU repository to install [`games-emulation/eden`](https://gitweb.gentoo.org/repo/proj/guru.git/tree/games-emulation/eden). This repository also contains some additional dependencies, such as mcl, sirit, oaknut, etc.
+[`games-emulation/eden`](https://gitweb.gentoo.org/repo/proj/guru.git/tree/games-emulation/eden) is available in the GURU. This repository also contains some additional dependencies, such as mcl, sirit, oaknut, etc.
+
+If you're having issues with building, always consult that ebuild.
 
 ## macOS
 
@@ -121,7 +125,7 @@ export PATH="/${MSYS_TOOLCHAIN}/bin:$PATH"
 # grab deps of a dll or exe and place them in the current dir
 deps() {
     # string parsing is fun
-    objdump -p "$1" | grep -e ".DLL Name:" | cut -d" " -f3 | while read -r dll; do
+    objdump -p "$1" | awk '/DLL Name:/ {print $3}' | while read -r dll; do
         [ -z "$dll" ] && continue
 
         # bin directory is used for DLLs, so we can do a quick "hack"
@@ -130,8 +134,8 @@ deps() {
 
         [ -z "$dllpath" ] && continue
 
-        # explicitly include system32/syswow64 deps
-        # these aren't needed to be bundled, as all systems include them
+        # explicitly exclude system32/syswow64 deps
+        # these aren't needed to be bundled, as all systems already have them
         case "$dllpath" in
             *System32* | *SysWOW64*) continue ;;
         esac
@@ -152,8 +156,8 @@ deps() {
 deps eden.exe
 
 # deploy Qt plugins and such
-windeployqt6 --release --no-compiler-runtime \
-  --no-opengl-sw --no-system-dxc-compiler --no-system-d3d-compiler eden.exe
+windeployqt6 --no-compiler-runtime --no-opengl-sw --no-system-dxc-compiler \
+    --no-system-d3d-compiler eden.exe
 
 # grab deps for Qt plugins
 find ./*/ -name "*.dll" | while read -r dll; do deps "$dll"; done
