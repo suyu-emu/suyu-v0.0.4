@@ -37,6 +37,12 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 
+# https://gitlab.kitware.com/cmake/cmake/-/merge_requests/11112
+# This works totally fine on MinGW64, but not CLANG{,ARM}64
+if(MINGW AND CXX_CLANG)
+    set(CMAKE_SYSTEM_VERSION 10.0.0)
+endif()
+
 # NB: this does not account for SPARC
 # If you get Eden working on SPARC, please shoot crueter@crueter.xyz multiple emails
 # and you will be hailed for eternity
@@ -221,6 +227,7 @@ if(YUZU_ENABLE_LTO)
     set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ${COMPILER_SUPPORTS_LTO})
 endif()
+
 option(USE_CCACHE "Use ccache for compilation" OFF)
 set(CCACHE_PATH "ccache" CACHE STRING "Path to ccache binary")
 if(USE_CCACHE)
@@ -265,9 +272,11 @@ if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN)
     # your own copy of it.
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
+
 if (ENABLE_WEB_SERVICE)
     set(DEFAULT_ENABLE_OPENSSL ON)
 endif()
+
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 if (ENABLE_OPENSSL)
     set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
@@ -892,6 +901,14 @@ if(MSVC)
         $<$<CONFIG:RelWithDebInfo>:/MD>
         $<$<CONFIG:MinSizeRel>:/MD>
     )
+endif()
+
+if (MINGW)
+    # This saves a truly ridiculous amount of time during linking
+    # In my tests, without this it takes 2 mins, with it takes 3-5 seconds
+    # or on GitHub Actions, 10 minutes -> 3 seconds
+    set(MINGW_FLAGS "-Wl,--strip-all -Wl,--gc-sections")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${MINGW_FLAGS}")
 endif()
 
 add_subdirectory(src)

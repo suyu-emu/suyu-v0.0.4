@@ -88,6 +88,15 @@ Notes for writers: Include build tools as well, assume user has NOTHING installe
 Click on the arrows to expand.
 
 <details>
+<summary>Gentoo Linux</summary>
+
+GURU must be enabled:
+
+```
+sudo
+</details>
+
+<details>
 <summary>Arch Linux</summary>
 
 ```sh
@@ -149,6 +158,8 @@ apk add g++ git cmake make mbedtls-dev mbedtls-static mesa-dev qt6-qtbase-dev qt
 `mbedtls-static` has to be specified otherwise `libeverest.a` and `libp256m.a` will fail to be found.
 
 </details>
+
+<details>
 <summary>Void Linux</summary>
 
 ```sh
@@ -158,6 +169,7 @@ xbps-install -Su git make cmake clang pkg-config patch mbedtls-devel SPIRV-Tools
 Yes, `nlohmann-json` is just named `json-c++`. Why?
 
 </details>
+
 <details>
 <summary>NixOS</summary>
 
@@ -234,23 +246,26 @@ Then install the libraries: `sudo pkg install qt6 boost glslang libzip library/l
 * Download and install all dependencies:
 ```
 BASE="git make autoconf libtool automake-wrapper jq patch"
-MINGW="SDL2 cmake python-pip qt6-base toolchain ffmpeg boost catch fmt lz4 nlohmann-json openssl zlib zstd enet opus mbedtls vulkan-devel libusb vulkan-memory-allocator unordered_dense clang ccache"
+
+MINGW="qt6-base qt6-tools qt6-translations qt6-svg cmake toolchain clang python-pip openssl vulkan-memory-allocator vulkan-devel glslang boost fmt lz4 nlohmann-json zlib zstd enet opus mbedtls libusb unordered_dense"
 
 packages="$BASE"
 for pkg in $MINGW; do
     packages="$packages mingw-w64-x86_64-$pkg"
 done
 
-pacman -Syu --needed --noconfirm $packages
+pacman -Syuu --needed --noconfirm $packages
 ```
 * Notes:
   - Using `qt6-static` is possible but currently untested.
   - Other environments are entirely untested, but should theoretically work provided you install all the necessary packages.
-  - Clang is installed as it generally works better here. You can compile with GCC just fine, however.
+  - GCC is proven to work better with the MinGW environment. If you choose to use Clang, you *may* be better off using the clang64 environment.
   - Add `qt-creator` to the `MINGW` variable to install Qt Creator. You can then create a Start Menu shortcut to the MinGW Qt Creator by running `powershell "\$s=(New-Object -COM WScript.Shell).CreateShortcut('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Qt Creator.lnk');\$s.TargetPath='C:\\msys64\\mingw64\\bin\\qtcreator.exe';\$s.Save()"` in Git Bash or MSYS2.
 * Add MinGW binaries to the PATH if they aren't already:
   * `echo 'PATH=/mingw64/bin:$PATH' >> ~/.bashrc`
   * or `echo 'PATH=/mingw64/bin:$PATH' >> ~/.zshrc`
+
+[Caveats](./Caveats.md#msys2).
 
 </details>
 <details>
@@ -263,6 +278,8 @@ pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel b
 [Caveats](./Caveats.md#haikuos).
 
 </details>
+
+<details>
 <summary>RedoxOS</summary>
 
 TODO: Fix syscall crashes (heavy IO stalls and hangup due to net mutexes?)
