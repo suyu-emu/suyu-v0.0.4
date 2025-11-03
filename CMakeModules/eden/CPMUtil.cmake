@@ -8,7 +8,7 @@ else()
 endif()
 
 option(CPMUTIL_FORCE_BUNDLED
-    "Force bundled packages for all CPM depdendencies" ${BUNDLED_DEFAULT})
+    "Force bundled packages for all CPM dependencies" ${BUNDLED_DEFAULT})
 
 option(CPMUTIL_FORCE_SYSTEM
     "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
