@@ -11,6 +11,7 @@
   - [FreeBSD](#freebsd)
   - [NetBSD](#netbsd)
   - [MSYS2](#msys2)
+  - [Windows 8.1 and below](#windows-81-and-below)
 <!-- /TOC -->
 
 ## Arch Linux
@@ -162,3 +163,9 @@ windeployqt6 --no-compiler-runtime --no-opengl-sw --no-system-dxc-compiler \
 # grab deps for Qt plugins
 find ./*/ -name "*.dll" | while read -r dll; do deps "$dll"; done
 ```
+
+## Windows 8.1 and below
+
+DirectX 12 is not available - simply copy and paste a random DLL and name it `d3d12.dll`.
+
+Install [Qt6 compatibility libraries](github.com/ANightly/qt6windows7) specifically Qt 6.9.5.
