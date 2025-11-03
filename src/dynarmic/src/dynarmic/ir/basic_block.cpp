@@ -44,13 +44,13 @@ Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, s
     // hugely benefit from the coherency of faster allocations...
     IR::Inst* inst;
     if (inlined_inst.size() < inlined_inst.max_size()) {
-        inst = &inlined_inst[inlined_inst.size()];
         inlined_inst.emplace_back(opcode);
+        inst = &inlined_inst[inlined_inst.size() - 1];
     } else {
         if (pooled_inst.empty() || pooled_inst.back().size() == pooled_inst.back().max_size())
             pooled_inst.emplace_back();
-        inst = &pooled_inst.back()[pooled_inst.back().size()];
         pooled_inst.back().emplace_back(opcode);
+        inst = &pooled_inst.back()[pooled_inst.back().size() - 1];
     }
     DEBUG_ASSERT(args.size() == inst->NumArgs());
     std::for_each(args.begin(), args.end(), [&inst, index = size_t(0)](const auto& arg) mutable {
