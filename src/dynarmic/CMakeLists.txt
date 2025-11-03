@@ -50,7 +50,6 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
 
 # Arch detection
-include(DetectArchitecture)
 if (NOT DEFINED ARCHITECTURE)
     message(FATAL_ERROR "Unsupported architecture encountered. Ending CMake generation.")
 endif()

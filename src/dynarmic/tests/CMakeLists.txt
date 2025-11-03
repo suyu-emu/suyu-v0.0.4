@@ -29,7 +29,6 @@ target_link_libraries(dynarmic_tests PRIVATE merry::oaknut)
 
 if (DYNARMIC_TESTS_USE_UNICORN)
     target_link_libraries(dynarmic_tests PRIVATE Unicorn::Unicorn)
-
     target_sources(dynarmic_tests PRIVATE
         fuzz_util.cpp
         fuzz_util.h

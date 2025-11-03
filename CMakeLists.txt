@@ -48,12 +48,12 @@ endif()
 # and you will be hailed for eternity
 if (PLATFORM_SUN)
     # Terrific Solaris pkg shenanigans
-    list(APPEND CMAKE_PREFIX_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
-    list(APPEND CMAKE_MODULE_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SYSROOT}/usr/lib/qt/6.6/lib/amd64/cmake")
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SYSROOT}/usr/lib/qt/6.6/lib/amd64/cmake")
 
     # Amazing - absolutely incredible
-    list(APPEND CMAKE_PREFIX_PATH "/usr/lib/amd64/cmake")
-    list(APPEND CMAKE_MODULE_PATH "/usr/lib/amd64/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SYSROOT}/usr/lib/amd64/cmake")
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SYSROOT}/usr/lib/amd64/cmake")
 
     # For some mighty reason, doing a normal release build sometimes may not trigger
     # the proper -O3 switch to materialize
@@ -69,18 +69,18 @@ endif()
 
 # Needed for FFmpeg w/ VAAPI and DRM
 if (PLATFORM_OPENBSD)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I/usr/X11R6/include")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/X11R6/include")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/X11R6/lib")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/X11R6/lib")
 elseif (PLATFORM_NETBSD)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I/usr/X11R7/include")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/X11R7/include")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/X11R7/lib")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R7/include")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R7/include")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/X11R7/lib")
 endif()
 
 # NetBSD: Fun for the whole family!
 if (PLATFORM_NETBSD)
-    set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:/usr/pkg/lib/ffmpeg7/pkgconfig")
+    set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
 # Detect current compilation architecture and create standard definitions
@@ -98,12 +98,14 @@ function(detect_architecture symbol arch)
         if (ARCHITECTURE_${arch})
             set(ARCHITECTURE "${arch}" PARENT_SCOPE)
             set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_definitions(-DARCHITECTURE_${arch}=1)
+            add_definitions("-DARCHITECTURE_${arch}=1")
         endif()
     endif()
 endfunction()
 
 if (NOT ENABLE_GENERIC)
+    # https://sourceforge.net/p/predef/wiki/Architectures/
+    # TODO: THIS IS FUCKING FLAWED ONLY THE FIRST SYMBOL THAT APPEARS WILL BE CONSIDERED :(
     if (MSVC)
         detect_architecture("_M_AMD64" x86_64)
         detect_architecture("_M_IX86" x86)
@@ -115,6 +117,48 @@ if (NOT ENABLE_GENERIC)
         detect_architecture("__arm__" arm)
         detect_architecture("__aarch64__" arm64)
     endif()
+    detect_architecture("__ARM64__" arm64)
+    detect_architecture("__aarch64__" arm64)
+    detect_architecture("_M_ARM64" arm64)
+
+    detect_architecture("__arm__" arm)
+    detect_architecture("__TARGET_ARCH_ARM" arm)
+    detect_architecture("_M_ARM" arm)
+
+    detect_architecture("__x86_64" x86_64)
+    detect_architecture("__x86_64__" x86_64)
+    detect_architecture("__amd64" x86_64)
+    detect_architecture("_M_X64" x86_64)
+
+    detect_architecture("__i386" x86)
+    detect_architecture("__i386__" x86)
+    detect_architecture("_M_IX86" x86)
+
+    detect_architecture("__ia64" ia64)
+    detect_architecture("__ia64__" ia64)
+    detect_architecture("_M_IA64" ia64)
+
+    detect_architecture("__mips" mips)
+    detect_architecture("__mips__" mips)
+    detect_architecture("_M_MRX000" mips)
+
+    detect_architecture("__powerpc64__" ppc64)
+    detect_architecture("__ppc64__" ppc64)
+    detect_architecture("__PPC64__" ppc64)
+    detect_architecture("_ARCH_PPC64" ppc64)
+
+    detect_architecture("__ppc__" ppc)
+    detect_architecture("__ppc" ppc)
+    detect_architecture("__powerpc__" ppc)
+    detect_architecture("_ARCH_COM" ppc)
+    detect_architecture("_ARCH_PWR" ppc)
+    detect_architecture("_ARCH_PPC" ppc)
+    detect_architecture("_M_MPPC" ppc)
+    detect_architecture("_M_PPC" ppc)
+
+    detect_architecture("__riscv" riscv)
+
+    detect_architecture("__EMSCRIPTEN__" wasm)
 endif()
 
 if (NOT DEFINED ARCHITECTURE)
@@ -166,7 +210,7 @@ if (MSVC AND NOT CXX_CLANG)
 endif()
 
 if (PLATFORM_FREEBSD)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/local/lib")
 
 endif()
 
