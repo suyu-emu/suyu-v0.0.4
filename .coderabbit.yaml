@@ -14,7 +14,7 @@ language: "en-GB"
 
 # Set the tone of reviews and chat. Example: 'You must use talk like Mr. T. I pity the fool who doesn't!'
 # Default: ""
-tone_instructions:"be handy and generate code"
+tone_instructions: "be handy and generate code"
 
 # Enable early-access features.
 # Default: false
