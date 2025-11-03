@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Yuzu.Splash.Main" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/eden_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_yuzu</item>
+        <item name="postSplashScreenTheme">@style/Theme.Yuzu.Main</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorError">@color/yuzu_error</item>
+        <item name="colorErrorContainer">@color/yuzu_errorContainer</item>
+        <item name="colorOnError">@color/yuzu_onError</item>
+        <item name="colorOnErrorContainer">@color/yuzu_onErrorContainer</item>
+        <item name="android:shadowColor">@color/yuzu_shadow</item>
+
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <item name="sliderStyle">@style/YuzuSlider</item>
+
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <!-- Popup menu theme -->
+        <item name="popupMenuStyle">@style/YuzuPopupMenu</item>
+    </style>
+
+    <style name="Theme.Eden.Main" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary colors -->
+        <item name="colorPrimary">@color/eden_primary</item>
+        <item name="colorOnPrimary">@color/eden_on_primary</item>
+        <item name="colorPrimaryContainer">@color/eden_primary_variant</item>
+        <item name="colorOnPrimaryContainer">@color/eden_on_primary</item>
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/eden_secondary</item>
+        <item name="colorOnSecondary">@color/eden_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/eden_secondary_variant</item>
+        <item name="colorOnSecondaryContainer">@color/eden_on_secondary</item>
+        <!-- Tertiary colors -->
+        <item name="colorTertiary">@color/eden_accent_purple</item>
+        <item name="colorOnTertiary">@color/eden_on_primary</item>
+        <item name="colorTertiaryContainer">@color/eden_accent_blue</item>
+        <item name="colorOnTertiaryContainer">@color/eden_on_primary</item>
+        <!-- Background and surface -->
+        <item name="android:colorBackground">@color/eden_background</item>
+        <item name="colorOnBackground">@color/eden_on_background</item>
+        <item name="colorSurface">@color/eden_surface</item>
+        <item name="colorOnSurface">@color/eden_on_surface</item>
+        <item name="colorSurfaceVariant">@color/eden_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/eden_on_surface</item>
+        <!-- Outline and borders -->
+        <item name="colorOutline">@color/eden_border</item>
+        <item name="colorOutlineVariant">@color/eden_border_light</item>
+        <!-- Error colors -->
+        <item name="colorError">@color/eden_error</item>
+        <item name="colorErrorContainer">@color/eden_error</item>
+        <item name="colorOnError">@color/eden_on_primary</item>
+        <item name="colorOnErrorContainer">@color/eden_on_primary</item>
+        <!-- System UI -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <!-- Other theme attributes -->
+        <item name="android:shadowColor">@color/eden_overlay</item>
+        <item name="sliderStyle">@style/EdenSlider</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <!-- Material dialog theme -->
+        <item name="materialAlertDialogTheme">@style/EdenMaterialDialog</item>
+        <!-- Popup menu theme -->
+        <item name="popupMenuStyle">@style/EdenPopupMenu</item>
+        <item name="android:textColorPrimary">@color/eden_on_background</item>
+        <item name="android:itemTextAppearance">@style/TextAppearance.Material3.BodyLarge</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main.Blue" parent="Theme.Yuzu.Main">
+        <!-- Blue theme colors -->
+        <item name="colorPrimary">@color/yuzu_primary_blue</item>
+        <item name="colorOnPrimary">@color/yuzu_onPrimary_blue</item>
+        <item name="colorPrimaryContainer">@color/yuzu_primaryContainer_blue</item>
+        <item name="colorOnPrimaryContainer">@color/yuzu_onPrimaryContainer_blue</item>
+        <item name="colorSecondary">@color/yuzu_secondary_blue</item>
+        <item name="colorOnSecondary">@color/yuzu_onSecondary_blue</item>
+        <item name="colorSecondaryContainer">@color/yuzu_secondaryContainer_blue</item>
+        <item name="colorOnSecondaryContainer">@color/yuzu_onSecondaryContainer_blue</item>
+        <item name="colorTertiary">@color/yuzu_tertiary_blue</item>
+        <item name="colorOnTertiary">@color/yuzu_onTertiary_blue</item>
+        <item name="colorTertiaryContainer">@color/yuzu_tertiaryContainer_blue</item>
+        <item name="colorOnTertiaryContainer">@color/yuzu_onTertiaryContainer_blue</item>
+        <item name="android:colorBackground">@color/yuzu_background_blue</item>
+        <item name="colorOnBackground">@color/yuzu_onBackground_blue</item>
+        <item name="colorSurface">@color/yuzu_surface_blue</item>
+        <item name="colorOnSurface">@color/yuzu_onSurface_blue</item>
+        <item name="colorSurfaceVariant">@color/yuzu_surfaceVariant_blue</item>
+        <item name="colorOnSurfaceVariant">@color/yuzu_onSurfaceVariant_blue</item>
+        <item name="colorOutline">@color/yuzu_outline_blue</item>
+        <item name="colorOnSurfaceInverse">@color/yuzu_inverseOnSurface_blue</item>
+        <item name="colorSurfaceInverse">@color/yuzu_inverseSurface_blue</item>
+        <item name="colorPrimaryInverse">@color/yuzu_inversePrimary_blue</item>
+
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog.Blue</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main.Red" parent="Theme.Yuzu.Main">
+        <!-- Red theme colors -->
+        <item name="colorPrimary">@color/yuzu_primary_red</item>
+        <item name="colorOnPrimary">@color/yuzu_onPrimary_red</item>
+        <item name="colorPrimaryContainer">@color/yuzu_primaryContainer_red</item>
+        <item name="colorOnPrimaryContainer">@color/yuzu_onPrimaryContainer_red</item>
+        <item name="colorSecondary">@color/yuzu_secondary_red</item>
+        <item name="colorOnSecondary">@color/yuzu_onSecondary_red</item>
+        <item name="colorSecondaryContainer">@color/yuzu_secondaryContainer_red</item>
+        <item name="colorOnSecondaryContainer">@color/yuzu_onSecondaryContainer_red</item>
+        <item name="colorTertiary">@color/yuzu_tertiary_red</item>
+        <item name="colorOnTertiary">@color/yuzu_onTertiary_red</item>
+        <item name="colorTertiaryContainer">@color/yuzu_tertiaryContainer_red</item>
+        <item name="colorOnTertiaryContainer">@color/yuzu_onTertiaryContainer_red</item>
+        <item name="android:colorBackground">@color/yuzu_background_red</item>
+        <item name="colorOnBackground">@color/yuzu_onBackground_red</item>
+        <item name="colorSurface">@color/yuzu_surface_red</item>
+        <item name="colorOnSurface">@color/yuzu_onSurface_red</item>
+        <item name="colorSurfaceVariant">@color/yuzu_surfaceVariant_red</item>
+        <item name="colorOnSurfaceVariant">@color/yuzu_onSurfaceVariant_red</item>
+        <item name="colorOutline">@color/yuzu_outline_red</item>
+        <item name="colorOnSurfaceInverse">@color/yuzu_inverseOnSurface_red</item>
+        <item name="colorSurfaceInverse">@color/yuzu_inverseSurface_red</item>
+        <item name="colorPrimaryInverse">@color/yuzu_inversePrimary_red</item>
+
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog.Red</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main.Green" parent="Theme.Yuzu.Main">
+        <!-- Green theme colors -->
+        <item name="colorPrimary">@color/yuzu_primary_green</item>
+        <item name="colorOnPrimary">@color/yuzu_onPrimary_green</item>
+        <item name="colorPrimaryContainer">@color/yuzu_primaryContainer_green</item>
+        <item name="colorOnPrimaryContainer">@color/yuzu_onPrimaryContainer_green</item>
+        <item name="colorSecondary">@color/yuzu_secondary_green</item>
+        <item name="colorOnSecondary">@color/yuzu_onSecondary_green</item>
+        <item name="colorSecondaryContainer">@color/yuzu_secondaryContainer_green</item>
+        <item name="colorOnSecondaryContainer">@color/yuzu_onSecondaryContainer_green</item>
+        <item name="colorTertiary">@color/yuzu_tertiary_green</item>
+        <item name="colorOnTertiary">@color/yuzu_onTertiary_green</item>
+        <item name="colorTertiaryContainer">@color/yuzu_tertiaryContainer_green</item>
+        <item name="colorOnTertiaryContainer">@color/yuzu_onTertiaryContainer_green</item>
+        <item name="android:colorBackground">@color/yuzu_background_green</item>
+        <item name="colorOnBackground">@color/yuzu_onBackground_green</item>
+        <item name="colorSurface">@color/yuzu_surface_green</item>
+        <item name="colorOnSurface">@color/yuzu_onSurface_green</item>
+        <item name="colorSurfaceVariant">@color/yuzu_surfaceVariant_green</item>
+        <item name="colorOnSurfaceVariant">@color/yuzu_onSurfaceVariant_green</item>
+        <item name="colorOutline">@color/yuzu_outline_green</item>
+        <item name="colorOnSurfaceInverse">@color/yuzu_inverseOnSurface_green</item>
+        <item name="colorSurfaceInverse">@color/yuzu_inverseSurface_green</item>
+        <item name="colorPrimaryInverse">@color/yuzu_inversePrimary_green</item>
+
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog.Green</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main.Orange" parent="Theme.Yuzu.Main">
+        <!-- Orange theme colors -->
+        <item name="colorPrimary">@color/yuzu_primary_orange</item>
+        <item name="colorOnPrimary">@color/yuzu_onPrimary_orange</item>
+        <item name="colorPrimaryContainer">@color/yuzu_primaryContainer_orange</item>
+        <item name="colorOnPrimaryContainer">@color/yuzu_onPrimaryContainer_orange</item>
+        <item name="colorSecondary">@color/yuzu_secondary_orange</item>
+        <item name="colorOnSecondary">@color/yuzu_onSecondary_orange</item>
+        <item name="colorSecondaryContainer">@color/yuzu_secondaryContainer_orange</item>
+        <item name="colorOnSecondaryContainer">@color/yuzu_onSecondaryContainer_orange</item>
+        <item name="colorTertiary">@color/yuzu_tertiary_orange</item>
+        <item name="colorOnTertiary">@color/yuzu_onTertiary_orange</item>
+        <item name="colorTertiaryContainer">@color/yuzu_tertiaryContainer_orange</item>
+        <item name="colorOnTertiaryContainer">@color/yuzu_onTertiaryContainer_orange</item>
+        <item name="android:colorBackground">@color/yuzu_background_orange</item>
+        <item name="colorOnBackground">@color/yuzu_onBackground_orange</item>
+        <item name="colorSurface">@color/yuzu_surface_orange</item>
+        <item name="colorOnSurface">@color/yuzu_onSurface_orange</item>
+        <item name="colorSurfaceVariant">@color/yuzu_surfaceVariant_orange</item>
+        <item name="colorOnSurfaceVariant">@color/yuzu_onSurfaceVariant_orange</item>
+        <item name="colorOutline">@color/yuzu_outline_orange</item>
+        <item name="colorOnSurfaceInverse">@color/yuzu_inverseOnSurface_orange</item>
+        <item name="colorSurfaceInverse">@color/yuzu_inverseSurface_orange</item>
+        <item name="colorPrimaryInverse">@color/yuzu_inversePrimary_orange</item>
+
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog.Orange</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main.Yellow" parent="Theme.Yuzu.Main">
+        <!-- Yellow theme colors -->
+        <item name="colorPrimary">@color/yuzu_primary_yellow</item>
+        <item name="colorOnPrimary">@color/yuzu_onPrimary_yellow</item>
+        <item name="colorPrimaryContainer">@color/yuzu_primaryContainer_yellow</item>
+        <item name="colorOnPrimaryContainer">@color/yuzu_onPrimaryContainer_yellow</item>
+        <item name="colorSecondary">@color/yuzu_secondary_yellow</item>
+        <item name="colorOnSecondary">@color/yuzu_onSecondary_yellow</item>
+        <item name="colorSecondaryContainer">@color/yuzu_secondaryContainer_yellow</item>
+        <item name="colorOnSecondaryContainer">@color/yuzu_onSecondaryContainer_yellow</item>
+        <item name="colorTertiary">@color/yuzu_tertiary_yellow</item>
+        <item name="colorOnTertiary">@color/yuzu_onTertiary_yellow</item>
+        <item name="colorTertiaryContainer">@color/yuzu_tertiaryContainer_yellow</item>
+        <item name="colorOnTertiaryContainer">@color/yuzu_onTertiaryContainer_yellow</item>
+        <item name="android:colorBackground">@color/yuzu_background_yellow</item>
+        <item name="colorOnBackground">@color/yuzu_onBackground_yellow</item>
+        <item name="colorSurface">@color/yuzu_surface_yellow</item>
+        <item name="colorOnSurface">@color/yuzu_onSurface_yellow</item>
+        <item name="colorSurfaceVariant">@color/yuzu_surfaceVariant_yellow</item>
+        <item name="colorOnSurfaceVariant">@color/yuzu_onSurfaceVariant_yellow</item>
+        <item name="colorOutline">@color/yuzu_outline_yellow</item>
+        <item name="colorOnSurfaceInverse">@color/yuzu_inverseOnSurface_yellow</item>
+        <item name="colorSurfaceInverse">@color/yuzu_inverseSurface_yellow</item>
+        <item name="colorPrimaryInverse">@color/yuzu_inversePrimary_yellow</item>
+
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog.Yellow</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main.Violet" parent="Theme.Yuzu.Main">
+        <!-- Violet theme colors -->
+        <item name="colorPrimary">@color/yuzu_primary_violet</item>
+        <item name="colorOnPrimary">@color/yuzu_onPrimary_violet</item>
+        <item name="colorPrimaryContainer">@color/yuzu_primaryContainer_violet</item>
+        <item name="colorOnPrimaryContainer">@color/yuzu_onPrimaryContainer_violet</item>
+        <item name="colorSecondary">@color/yuzu_secondary_violet</item>
+        <item name="colorOnSecondary">@color/yuzu_onSecondary_violet</item>
+        <item name="colorSecondaryContainer">@color/yuzu_secondaryContainer_violet</item>
+        <item name="colorOnSecondaryContainer">@color/yuzu_onSecondaryContainer_violet</item>
+        <item name="colorTertiary">@color/yuzu_tertiary_violet</item>
+        <item name="colorOnTertiary">@color/yuzu_onTertiary_violet</item>
+        <item name="colorTertiaryContainer">@color/yuzu_tertiaryContainer_violet</item>
+        <item name="colorOnTertiaryContainer">@color/yuzu_onTertiaryContainer_violet</item>
+        <item name="android:colorBackground">@color/yuzu_background_violet</item>
+        <item name="colorOnBackground">@color/yuzu_onBackground_violet</item>
+        <item name="colorSurface">@color/yuzu_surface_violet</item>
+        <item name="colorOnSurface">@color/yuzu_onSurface_violet</item>
+        <item name="colorSurfaceVariant">@color/yuzu_surfaceVariant_violet</item>
+        <item name="colorOnSurfaceVariant">@color/yuzu_onSurfaceVariant_violet</item>
+        <item name="colorOutline">@color/yuzu_outline_violet</item>
+        <item name="colorOnSurfaceInverse">@color/yuzu_inverseOnSurface_violet</item>
+        <item name="colorSurfaceInverse">@color/yuzu_inverseSurface_violet</item>
+        <item name="colorPrimaryInverse">@color/yuzu_inversePrimary_violet</item>
+
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog.Violet</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main.Cyan" parent="Theme.Yuzu.Main">
+        <!-- Cyan theme colors -->
+        <item name="colorPrimary">@color/yuzu_primary_cyan</item>
+        <item name="colorOnPrimary">@color/yuzu_onPrimary_cyan</item>
+        <item name="colorPrimaryContainer">@color/yuzu_primaryContainer_cyan</item>
+        <item name="colorOnPrimaryContainer">@color/yuzu_onPrimaryContainer_cyan</item>
+        <item name="colorSecondary">@color/yuzu_secondary_cyan</item>
+        <item name="colorOnSecondary">@color/yuzu_onSecondary_cyan</item>
+        <item name="colorSecondaryContainer">@color/yuzu_secondaryContainer_cyan</item>
+        <item name="colorOnSecondaryContainer">@color/yuzu_onSecondaryContainer_cyan</item>
+        <item name="colorTertiary">@color/yuzu_tertiary_cyan</item>
+        <item name="colorOnTertiary">@color/yuzu_onTertiary_cyan</item>
+        <item name="colorTertiaryContainer">@color/yuzu_tertiaryContainer_cyan</item>
+        <item name="colorOnTertiaryContainer">@color/yuzu_onTertiaryContainer_cyan</item>
+        <item name="android:colorBackground">@color/yuzu_background_cyan</item>
+        <item name="colorOnBackground">@color/yuzu_onBackground_cyan</item>
+        <item name="colorSurface">@color/yuzu_surface_cyan</item>
+        <item name="colorOnSurface">@color/yuzu_onSurface_cyan</item>
+        <item name="colorSurfaceVariant">@color/yuzu_surfaceVariant_cyan</item>
+        <item name="colorOnSurfaceVariant">@color/yuzu_onSurfaceVariant_cyan</item>
+        <item name="colorOutline">@color/yuzu_outline_cyan</item>
+        <item name="colorOnSurfaceInverse">@color/yuzu_inverseOnSurface_cyan</item>
+        <item name="colorSurfaceInverse">@color/yuzu_inverseSurface_cyan</item>
+        <item name="colorPrimaryInverse">@color/yuzu_inversePrimary_cyan</item>
+
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog.Cyan</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main.Gray" parent="Theme.Yuzu.Main">
+        <!-- Gray Theme Colors -->
+        <item name="colorPrimary">@color/yuzu_primary_gray</item>
+        <item name="colorOnPrimary">@color/yuzu_onPrimary_gray</item>
+        <item name="colorPrimaryContainer">@color/yuzu_primaryContainer_gray</item>
+        <item name="colorOnPrimaryContainer">@color/yuzu_onPrimaryContainer_gray</item>
+        <item name="colorSecondary">@color/yuzu_secondary_gray</item>
+        <item name="colorOnSecondary">@color/yuzu_onSecondary_gray</item>
+        <item name="colorSecondaryContainer">@color/yuzu_secondaryContainer_gray</item>
+        <item name="colorOnSecondaryContainer">@color/yuzu_onSecondaryContainer_gray</item>
+        <item name="colorTertiary">@color/yuzu_tertiary_gray</item>
+        <item name="colorOnTertiary">@color/yuzu_onTertiary_gray</item>
+        <item name="colorTertiaryContainer">@color/yuzu_tertiaryContainer_gray</item>
+        <item name="colorOnTertiaryContainer">@color/yuzu_onTertiaryContainer_gray</item>
+        <item name="android:colorBackground">@color/yuzu_background_gray</item>
+        <item name="colorOnBackground">@color/yuzu_onBackground_gray</item>
+        <item name="colorSurface">@color/yuzu_surface_gray</item>
+        <item name="colorOnSurface">@color/yuzu_onSurface_gray</item>
+        <item name="colorSurfaceVariant">@color/yuzu_surfaceVariant_gray</item>
+        <item name="colorOnSurfaceVariant">@color/yuzu_onSurfaceVariant_gray</item>
+        <item name="colorOutline">@color/yuzu_outline_gray</item>
+        <item name="colorOnSurfaceInverse">@color/yuzu_inverseOnSurface_gray</item>
+        <item name="colorSurfaceInverse">@color/yuzu_inverseSurface_gray</item>
+        <item name="colorPrimaryInverse">@color/yuzu_inversePrimary_gray</item>
+
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog.Gray</item>
+    </style>
+
+    <style name="Theme.Yuzu.Main.Pink" parent="Theme.Yuzu.Main">
+        <!-- Pink Theme Colors -->
+        <item name="colorPrimary">@color/yuzu_primary_pink</item>
+        <item name="colorOnPrimary">@color/yuzu_onPrimary_pink</item>
+        <item name="colorPrimaryContainer">@color/yuzu_primaryContainer_pink</item>
+        <item name="colorOnPrimaryContainer">@color/yuzu_onPrimaryContainer_pink</item>
+        <item name="colorSecondary">@color/yuzu_secondary_pink</item>
+        <item name="colorOnSecondary">@color/yuzu_onSecondary_pink</item>
+        <item name="colorSecondaryContainer">@color/yuzu_secondaryContainer_pink</item>
+        <item name="colorOnSecondaryContainer">@color/yuzu_onSecondaryContainer_pink</item>
+        <item name="colorTertiary">@color/yuzu_tertiary_pink</item>
+        <item name="colorOnTertiary">@color/yuzu_onTertiary_pink</item>
+        <item name="colorTertiaryContainer">@color/yuzu_tertiaryContainer_pink</item>
+        <item name="colorOnTertiaryContainer">@color/yuzu_onTertiaryContainer_pink</item>
+        <item name="android:colorBackground">@color/yuzu_background_pink</item>
+        <item name="colorOnBackground">@color/yuzu_onBackground_pink</item>
+        <item name="colorSurface">@color/yuzu_surface_pink</item>
+        <item name="colorOnSurface">@color/yuzu_onSurface_pink</item>
+        <item name="colorSurfaceVariant">@color/yuzu_surfaceVariant_pink</item>
+        <item name="colorOnSurfaceVariant">@color/yuzu_onSurfaceVariant_pink</item>
+        <item name="colorOutline">@color/yuzu_outline_pink</item>
+        <item name="colorOnSurfaceInverse">@color/yuzu_inverseOnSurface_pink</item>
+        <item name="colorSurfaceInverse">@color/yuzu_inverseSurface_pink</item>
+        <item name="colorPrimaryInverse">@color/yuzu_inversePrimary_pink</item>
+
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog.PINK</item>
+    </style>
+
+</resources>

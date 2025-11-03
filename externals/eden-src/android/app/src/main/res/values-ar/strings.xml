@@ -1,0 +1,1036 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="app_disclaimer">سيشغل هذا البرنامج ألعابًا لأجهزة الألعاب نينتندو سويتش. لا يتضمن البرنامج أي ألعاب أو مفاتيح.<br /><br />قبل أن تبدأ، يرجى تحديد موقع <![CDATA[<b> prod.keys </b>]]> ملف على وحدة تخزين جهازك.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">اعرف المزيد</a>]]></string>
+    <string name="notice_notification_channel_name">الإشعارات والأخطاء</string>
+    <string name="notice_notification_channel_description">عرض الإشعارات عند حدوث خطأ ما.</string>
+    <string name="notification_permission_not_granted">لم يتم منح إذن الإشعار!</string>
+    <string name="app_notification_channel_description">إشعارات محاكي السويتش Eden</string>
+    <string name="app_notification_running">Eden قيد التشغيل</string>
+    <string name="seconds">ثواني</string>
+
+    <!-- Spinbox strings -->
+    <string name="increment">زيادة</string>
+    <string name="decrement">تقليل</string>
+    <string name="value_too_low">يجب أن تكون القيمة على الأقل %1$d</string>
+    <string name="value_too_high">يجب أن تكون القيمة على الأكثر %1$d</string>
+    <string name="invalid_value">قيمة غير صالحة</string>
+
+
+    <!-- Input Overlay -->
+    <string name="overlay_auto_hide">إخفاء التراكب تلقائيًا</string>
+    <string name="overlay_auto_hide_description">إخفاء تراكب عناصر التحكم باللمس تلقائيًا بعد مرور الوقت المحدد من عدم النشاط.</string>
+    <string name="enable_input_overlay_auto_hide">تمكين إخفاء التراكب تلقائيًا</string>
+
+    <string name="input_overlay_options">تراكب الإدخال</string>
+    <string name="input_overlay_options_description">تكوين عناصر التحكم على الشاشة</string>
+
+
+    <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Enhanced)</string>
+    <string name="process_ram">Process RAM: %1$d MB</string>
+    <string name="shaders_prefix">بناء</string>
+    <string name="shaders_suffix">مظلل (مظللات)</string>
+    <string name="charging">(يشحن)</string>
+
+    <string name="system_info_label">النظام:</string>
+    <string name="show_stats_overlay">عرض تراكب إحصائيات الأداء</string>
+    <string name="stats_overlay_customization">التخصيص</string>
+    <string name="stats_overlay_items">الرؤية</string>
+    <string name="stats_overlay_options">تراكب الأداء</string>
+    <string name="enable_stats_overlay_">تمكين تراكب إحصائيات الأداء</string>
+    <string name="stats_overlay_options_description">قم بتكوين المعلومات التي يتم عرضها في تراكب إحصائيات الأداء</string>
+    <string name="show_fps">عرض معدل الإطارات</string>
+    <string name="show_fps_description">عرض معدل الإطارات الحالي</string>
+    <string name="show_frametime">عرض وقت الإطار</string>
+    <string name="show_frametime_description">عرض وقت الإطار الحالي</string>
+    <string name="show_app_ram_usage">عرض استخدام ذاكرة التطبيق</string>
+    <string name="show_app_ram_usage_description">عرض كمية ذاكرة الوصول العشوائي التي يستخدمها المحاكي</string>
+    <string name="show_system_ram_usage">عرض استخدام ذاكرة النظام</string>
+    <string name="show_system_ram_usage_description">عرض كمية ذاكرة الوصول العشوائي المستخدمة من قبل النظام</string>
+    <string name="show_bat_temperature">عرض درجة حرارة البطارية</string>
+    <string name="show_bat_temperature_description">عرض درجة حرارة البطارية الحالية</string>
+    <string name="bat_temperature_unit">وحدات قياس درجة حرارة البطارية</string>
+    <string name="show_power_info">عرض معلومات البطارية</string>
+    <string name="show_power_info_description">عرض استهلاك الطاقة الحالي والسعة المتبقية في البطارية</string>
+    <string name="show_shaders_building">عرض بناء الظلال</string>
+    <string name="show_shaders_building_description">عرض عدد الظلال التي يتم بناؤها</string>
+    <string name="overlay_position">موضع التراكب</string>
+    <string name="overlay_position_description">اختر مكان عرض التراكب على الشاشة</string>
+    <string name="overlay_position_top_left">أعلى اليمين</string>
+    <string name="overlay_position_top_right">أعلى اليسار</string>
+    <string name="overlay_position_bottom_left">أسفل اليمين</string>
+    <string name="overlay_position_bottom_right">أسفل اليسار</string>
+    <string name="overlay_position_center_top">منتصف الأعلى</string>
+    <string name="overlay_position_center_bottom">منتصف الأسفل</string>
+    <string name="perf_overlay_background">خلفية التراكب</string>
+    <string name="perf_overlay_background_description">يضيف خلفية خلف التراكب لتسهيل القراءة</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">عرض تراكب معلومات الجهاز</string>
+    <string name="enable_soc_overlay">تمكين تراكب الجهاز</string>
+    <string name="soc_overlay_options">تراكب الجهاز</string>
+    <string name="soc_overlay_options_description">تكوين المعلومات التي يتم عرضها في تراكب الجهاز</string>
+
+    <string name="show_device_model">عرض طراز الجهاز</string>
+    <string name="show_device_model_description">عرض طراز الجهاز المضيف</string>
+    <string name="show_gpu_model">عرض طراز وحدة معالجة الرسومات</string>
+    <string name="show_gpu_model_description">عرض طراز وحدة معالجة الرسومات المضيفة</string>
+    <string name="show_soc_model">عرض طراز الرقائق</string>
+    <string name="show_soc_model_description">عرض طراز رقائق المضيف</string>
+    <string name="show_fw_version">عرض إصدار الفيرموير</string>
+    <string name="show_fw_version_description">عرض إصدار الفيرموير</string>
+
+    <!-- Eden\'s Veil -->
+    <string name="eden_veil">حجاب Eden</string>
+    <string name="eden_veil_description">إعدادات تجريبية لتحسين الأداء والقدرة. قد تسبب هذه الإعدادات شاشات سوداء أو مشاكل أخرى في اللعبة.</string>
+
+    <string name="veil_extensions">امتدادات وحدة معالجة الرسوميات</string>
+    <string name="dyna_state">الحالة الديناميكية الموسعة</string>
+    <string name="dyna_state_description">يتحكم في عدد المميزات التي يمكن استخدامها في الحالة الديناميكية الموسعة. الأرقام الأعلى تسمح بميزات أكثر ويمكن أن تعزز الأداء، ولكن قد تسبب مشكلات مع بعض السائقين والبائعين. قد تختلف القيمة الافتراضية بحسب نظامك وقدرات الأجهزة. يمكن تغيير هذه القيمة حتى يتم تحقيق الاستقرار وجودة الصورة الأفضل.</string>
+    <string name="disabled">معطل</string>
+    <string name="provoking_vertex">الرأس المثير</string>
+    <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.0+</string>
+    <string name="descriptor_indexing">فهرسة الوصف</string>
+    <string name="descriptor_indexing_description">يحسن معالجة النسيج والمخزن المؤقت، بالإضافة إلى طبقة الترجمة Maxwell. مدعوم من بعض وحدات معالجة الرسومات Vulkan 1.1 وجميع وحدات معالجة الرسومات Vulkan 1.2+.</string>
+    <string name="sample_shading">تظليل العينة</string>
+    <string name="sample_shading_description">يسمح لمظلل الأجزاء بتنفيذ كل عينة في جزء متعدد العينات بدلاً من مرة واحدة لكل جزء. يحسن جودة الرسومات على حساب بعض الأداء. لا تدعم هذه الإضافة سوى أجهزة Vulkan 1.1+ فقط.</string>
+    <string name="sample_shading_fraction">كسر التظليل العيني</string>
+    <string name="sample_shading_fraction_description">كثافة تمرير تظليل العينة. تؤدي القيم الأعلى إلى تحسين الجودة بشكل أكبر، ولكنها تقلل أيضًا من الأداء إلى حد كبير.</string>
+
+    <string name="veil_renderer">العارض</string>
+    <string name="frame_interpolation">تحسين سرعة الإطارات</string>
+    <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
+    <string name="renderer_early_release_fences">إطلاق الأسوار مبكرًا</string>
+    <string name="renderer_early_release_fences_description">يساعد في إصلاح مشكلة 0 إطار في الثانية في ألعاب مثل DKCR:HD وSubnautica Below Zero وOri 2، ولكن قد يتسبب في تعطيل التحميل أو الأداء في ألعاب Unreal Engine.</string>
+    <string name="sync_memory_operations">مزامنة عمليات الذاكرة</string>
+    <string name="sync_memory_operations_description">يضمن اتساق البيانات بين عمليات الحوسبة والذاكرة. هذا الخيار قد يحل المشكلات في بعض الألعاب، ولكن قد يقلل الأداء في بعض الحالات. يبدو أن الألعاب التي تستخدم Unreal Engine 4 هي الأكثر تأثرًا.</string>
+    <string name="buffer_reorder_disable">تعطيل إعادة ترتيب المخزن المؤقت</string>
+    <string name="buffer_reorder_disable_description">عند التحديد، يتم تعطيل إعادة ترتيب تحميل الذاكرة المعينة مما يسمح بربط التحميلات برسومات محددة. قد يقلل الأداء في بعض الحالات.</string>
+
+    <string name="veil_misc">وحدة المعالجة المركزية والذاكرة</string>
+    <string name="use_sync_core">مزامنة سرعة النواة</string>
+    <string name="use_sync_core_description">مزامنة سرعة النواة مع النسبة القصوى للسرعة لتحسين الأداء دون تغيير السرعة الفعلية للعبة.</string>
+    <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
+    <string name="use_lru_cache_description">تمكين أو تعطيل ذاكرة التخزين المؤقت الأقل استخداماً مؤخراً (LRU) لتحسين الأداء عن طريق تقليل استخدام وحدة المعالجة المركزية. بعض الألعاب قد تواجه مشاكل معه، خاصةً TotK 1.2.1، لذا قم بتعطيله إذا لم تعمل اللعبة أو انهارت عشوائياً.</string>
+    <string name="use_fast_cpu_time">وقت وحدة المعالجة المركزية السريع</string>
+    <string name="use_fast_cpu_time_description">يجبر وحدة المعالجة المركزية المحاكاة على العمل بسرعة أعلى، مما يقلل من بعض محددات معدل الإطارات. هذا الخيار غير مستقر وقد يسبب مشاكل، وقد يرى المستخدمون بأجهزة أضعف انخفاضًا في الأداء.</string>
+    <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
+    <string name="custom_cpu_ticks_description">قم بتعيين قيمة مخصصة لدورات المعالج. القيم الأعلى يمكن أن تزيد من الأداء، ولكنها قد تتسبب أيضًا في تجميد اللعبة. يوصى باستخدام نطاق 77-21000.</string>
+    <string name="cpu_ticks">دورات</string>
+    <string name="skip_cpu_inner_invalidation">تخطي إبطال ذاكرة التخزين المؤقت الداخلية للوحدة المركزية</string>
+    <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقت أثناء تحديثات الذاكرة، مما يقلل استخدام المعالج ويحسن أدائه. قد يسبب هذا أعطالاً أو تعطلًا في بعض الألعاب.</string>
+    <string name="cpuopt_unsafe_host_mmu">تمكين محاكاة MMU المضيف</string>
+    <string name="cpuopt_unsafe_host_mmu_description">يعمل هذا التحسين على تسريع وصول الذاكرة بواسطة البرنامج الضيف. يؤدي تمكينه إلى إجراء عمليات قراءة/كتابة ذاكرة الضيف مباشرة في الذاكرة والاستفادة من MMU المضيف. يؤدي تعطيل هذا إلى إجبار جميع عمليات الوصول إلى الذاكرة على استخدام محاكاة MMU البرمجية.</string>
+    <string name="fast_cpu_time">CPU Clock</string>
+    <string name="fast_cpu_time_description">استخدم Boost (1700MHz) للتشغيل بأعلى سرعة أصلية لـ Switch، أو Fast (2000MHz) للتشغيل بضعف السرعة.</string>
+    <string name="memory_layout">تخطيط الذاكرة</string>
+    <string name="memory_layout_description">(تجريبي) تغيير تخطيط الذاكرة المحاكي. هذا الإعداد لن يزيد من الأداء، ولكن قد يساعد في الألعاب باستخدام قرارات عالية عبر التعديلات. لا تستخدم على الهواتف التي تحتوي على 8GB من ذاكرة الوصول العشوائي أو أقل. يعمل فقط على الواجهة الخلفية الديناميكية (JIT).</string>
+    <string name="dma_accuracy">دقة DMA</string>
+    <string name="dma_accuracy_description">يتحكم في دقة تحديد DMA. يمكن أن تصلح الدقة الآمنة المشاكل في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا كنت غير متأكد، اترك هذا على الوضع الافتراضي.</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">واجهة برمجة الظلال</string>
+    <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">محاكاة NVDEC</string>
+    <string name="nvdec_emulation_description">حدد كيفية التعامل مع فك تشفير الفيديو (NVDEC) خلال المشاهد التمهيدية والمقدمة.</string>
+    <string name="nvdec_emulation_cpu">وحدة المعالجة المركزية</string>
+    <string name="nvdec_emulation_gpu">وحدة المعالجة الرسومية</string>
+    <string name="nvdec_emulation_none">لا شيء</string>
+
+    <!-- Optimize Spir-V output -->
+    <string name="never">أبداً</string>
+    <string name="on_load">عند التحميل</string>
+    <string name="always">دائماً</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">متعدد اللاعبين</string>
+    <string name="multiplayer_description">استضف غرفة ألعاب خاصة بك أو انضم إلى غرفة موجودة بالفعل للعب مع الآخرين</string>
+    <string name="multiplayer_create_room">إنشاء</string>
+    <string name="multiplayer_join_room">الانضمام</string>
+    <string name="multiplayer_public_room">تصفح الغرف العامة</string>
+    <string name="multiplayer_username">اسم المستخدم</string>
+    <string name="multiplayer_ip_address">عنوان IP</string>
+    <string name="multiplayer_ip_port">المنفذ</string>
+    <string name="multiplayer_create_room_success">تم إنشاء الغرفة بنجاح</string>
+    <string name="multiplayer_join_room_success">تم الانضمام إلى الغرفة بنجاح</string>
+    <string name="multiplayer_exit_room">مغادرة الغرفة</string>
+    <string name="multiplayer_network_error">خطأ في الشبكة</string>
+    <string name="multiplayer_lost_connection">فقدان الاتصال</string>
+    <string name="multiplayer_name_collision">اسم المستخدم محجوز مسبقاً</string>
+    <string name="multiplayer_mac_collision">تعارض عناوين MAC</string>
+    <string name="multiplayer_console_id_collision">تعارض معرف وحدة التحكم</string>
+    <string name="multiplayer_wrong_version">إصدار خاطئ</string>
+    <string name="multiplayer_wrong_password">كلمة مرور خاطئة</string>
+    <string name="multiplayer_could_not_connect">تعذر الاتصال</string>
+    <string name="multiplayer_room_is_full">الغرفة ممتلئة</string>
+    <string name="multiplayer_host_banned">أنت محظور من هذه الغرفة</string>
+    <string name="multiplayer_permission_denied">تم رفض الإذن</string>
+    <string name="multiplayer_no_such_user">لا يوجد مثل هذا المستخدم</string>
+    <string name="multiplayer_already_in_room">موجود بالفعل في الغرفة</string>
+    <string name="multiplayer_create_room_error">خطأ في إنشاء الغرفة</string>
+    <string name="multiplayer_host_kicked">تم طرد المضيف</string>
+    <string name="multiplayer_unknown_error">خطأ غير معروف</string>
+    <string name="multiplayer_room_uninitialized">الغرفة غير مهيأة</string>
+    <string name="multiplayer_room_idle">الغرفة خاملة</string>
+    <string name="multiplayer_room_joining">جارٍ الانضمام إلى الغرفة</string>
+    <string name="multiplayer_room_joined">تم الانضمام إلى الغرفة</string>
+    <string name="multiplayer_room_moderator">مشرف الغرفة</string>
+    <string name="multiplayer_member_join">%1$s انضم</string>
+    <string name="multiplayer_member_leave">%1$s غادر</string>
+    <string name="multiplayer_member_kicked">%1$s مطرود</string>
+    <string name="multiplayer_member_banned">%1$s محظور</string>
+    <string name="multiplayer_address_unbanned">تم إلغاء حظر العنوان</string>
+    <string name="multiplayer_kick_member">طرد</string>
+    <string name="multiplayer_password">كلمة المرور</string>
+    <string name="multiplayer_joining">جارٍ الانضمام…</string>
+    <string name="multiplayer_creating">جارٍ الإنشاء…</string>
+    <string name="multiplayer_room_name">اسم الغرفة</string>
+    <string name="multiplayer_max_players_value">الحد الأقصى للاعبين: %d</string>
+    <string name="multiplayer_chat">الدردشة</string>
+    <string name="multiplayer_more_options">المزيد من الخيارات</string>
+    <string name="chat">الدردشة</string>
+    <string name="type_message">اكتب رسالة…</string>
+    <string name="send_message">إرسال رسالة</string>
+    <string name="multiplayer_moderation">الإشراف</string>
+    <string name="multiplayer_moderation_title">قائمة الحظر</string>
+    <string name="multiplayer_no_bans">لا يوجد مستخدمون محظورون</string>
+    <string name="multiplayer_unban_title">إلغاء حظر المستخدم</string>
+    <string name="multiplayer_unban">إلغاء الحظر</string>
+    <string name="multiplayer_unban_message">هل أنت متأكد أنك تريد إلغاء حظر %1$s؟</string>
+    <string name="multiplayer_ban">حظر المستخدم</string>
+    <string name="multiplayer_room_browser">الغرف العامة</string>
+    <string name="multiplayer_no_rooms_found">لم يتم العثور على غرف عامة</string>
+    <string name="multiplayer_password_required">كلمة المرور مطلوبة</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">اللعبة</string>
+    <string name="multiplayer_no_game_info">أي لعبة</string>
+    <string name="multiplayer_password_protected">غرفة محمية بكلمة مرور</string>
+    <string name="multiplayer_hide_full_rooms">إخفاء الغرف الممتلئة</string>
+    <string name="multiplayer_hide_empty_rooms">إخفاء الغرف الفارغة</string>
+    <string name="multiplayer_tap_refresh_to_check_again">اضغط على تحديث للتحقق مرة أخرى</string>
+    <string name="multiplayer_search_public_lobbies">البحث في الغرف…</string>
+    <string name="multiplayer_preferred_game_name">اللعبة المفضلة</string>
+    <string name="multiplayer_lobby_type">نوع الغرفة</string>
+    <string name="multiplayer_room_name_error">يجب أن يتكون من 3 إلى 20 حرفًا</string>
+    <string name="multiplayer_required">مطلوب</string>
+    <string name="multiplayer_token_required">مطلوب رمز ويب، انتقل إلى الإعدادات المتقدمة -&gt; النظام -&gt; الشبكة</string>
+    <string name="multiplayer_ip_error">تنسيق IP غير صالح</string>
+    <string name="multiplayer_username_error">يجب أن يتكون من 4 إلى 20 حرفًا، وأن يحتوي على أحرف أبجدية رقمية ونقاط وشرطات وشرطات سفلية ومسافات فقط</string>
+    <string name="multiplayer_nickname_invalid">اسم مستخدم غير صالح، تأكد من إعداده بشكل صحيح في النظام → الشبكة</string>
+    <string name="multiplayer_token_error">يجب أن يتكون من 48 حرفًا، وأحرف صغيرة من a-z فقط</string>
+    <string name="multiplayer_port_error">يجب أن يكون بين 1 و65535</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">موافق</string>
+    <string name="refresh">تحديث</string>
+    <string name="room_list">قائمة الغرف</string>
+    <string name="multiplayer_public_visibility">عام</string>
+    <string name="multiplayer_unlisted_visibility">غير مدرج</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">مرحبًا!</string>
+    <string name="welcome_description">تعلم كيفية إعداد <b>Eden</b> والبدء في المحاكاة.</string>
+    <string name="get_started">ابدأ الآن</string>
+    <string name="keys">المفاتيح</string>
+    <string name="keys_description">اختر ملف <b>prod.keys</b> الخاص بك باستخدام الزر أدناه.</string>
+    <string name="select_keys">اختر المفاتيح</string>
+    <string name="firmware">الفيرموير</string>
+    <string name="firmware_description">قم بتحديد ملف <b>firmware.zip</b> الخاص بك باستخدام الزر الموجود أدناه.</string>
+    <string name="select_firmware">حدد الفيرموير</string>
+    <string name="games">الألعاب</string>
+    <string name="games_description">حدد مجلد <b>الألعاب</b> الخاص بك باستخدام الزر أدناه.</string>
+    <string name="done">إنهاء</string>
+    <string name="done_description">أنت جاهز تمامًا.\nاستمتع بألعابك!</string>
+    <string name="text_continue">استمر</string>
+    <string name="next">التالي</string>
+    <string name="back">عودة</string>
+    <string name="add_games">إضافة الألعاب</string>
+    <string name="step_complete">انتهى!</string>
+
+    <!-- Home strings -->
+
+    <string name="alphabetical">أبجدي</string>
+    <string name="view_list">قائمة</string>
+    <string name="view_grid">شبكة</string>
+    <string name="view_grid_compact">شبكة مدمجة</string>
+    <string name="view_carousel">دائري</string>
+    <string name="game_image_desc"> لقطة شاشة لـ%1$s</string>
+    <string name="folder">مجلد</string>
+    <string name="dont_show_again">لا تعرض مرة أخرى</string>
+    <string name="add_directory_success">تمت إضافة مجلد اللعبة الجديد بنجاح</string>
+    <string name="enable_update_checks">تحقق من وجود تحديثات عند بدء تشغيل التطبيق.</string>
+    <string name="update_available">تحديث متاح</string>
+    <string name="update_available_description">نسخة جديدة متاحة: %1$s\n\nهل ترغب في تنزيلها؟</string>
+    <string name="home_search">البحث</string>
+    <string name="home_settings">الإعدادات</string>
+    <string name="empty_gamelist">لم يتم العثور على ملفات أو لم يتم تحديد مجلد الألعاب حتى الآن.</string>
+    <string name="manage_game_folders">إدارة مجلدات اللعبة</string>
+    <string name="select_games_folder_description">يسمح لـ Eden بملء قائمة الألعاب</string>
+    <string name="add_games_warning">تخطي تحديد مجلد الألعاب؟</string>
+    <string name="add_games_warning_description">لن يتم عرض الألعاب في قائمة الألعاب إذا لم يتم تحديد مجلد.</string>
+    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
+    <string name="home_search_games">البحث عن الألعاب</string>
+    <string name="search_settings">إعدادات البحث</string>
+    <string name="install_prod_keys">تثبيت prod.keys</string>
+    <string name="install_prod_keys_description">مطلوب لفك تشفير ألعاب البيع بالتجزئة</string>
+    <string name="install_prod_keys_warning">تخطي إضافة المفاتيح؟</string>
+    <string name="install_prod_keys_warning_description">يلزم وجود مفاتيح صالحة لمحاكاة ألعاب البيع بالتجزئة. لن تعمل سوى التطبيقات المحلية إذا واصلت.</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="install_firmware_warning">تخطي إضافة الفيرموير؟</string>
+    <string name="install_firmware_warning_description">العديد من الألعاب تتطلب الوصول إلى الفيرموير لتشغيل بشكل صحيح.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="notifications">الإشعارات</string>
+    <string name="notifications_description">امنح الإذن بالإشعار باستخدام الزر أدناه.</string>
+    <string name="give_permission">منح الإذن</string>
+    <string name="notification_warning">تخطي منح إذن الإشعارات؟</string>
+    <string name="notification_warning_description">لن تتمكن Eden من إشعارك بالمعلومات المهمة.</string>
+    <string name="permission_denied">تم رفض الإذن</string>
+    <string name="permission_denied_description">لقد رفضت هذا الإذن عدة مرات ويتعين عليك الآن منحه يدويًا في إعدادات النظام</string>
+    <string name="about">حول</string>
+    <string name="about_description">بناء الإصدار، والاعتمادات، وأكثر من ذلك</string>
+    <string name="warning_help">مساعدة</string>
+    <string name="warning">تحذير</string>
+    <string name="warning_skip">تخطي</string>
+    <string name="warning_cancel">إلغاء</string>
+    <string name="install_amiibo_keys">تثبيت مفاتيح أميبو</string>
+    <string name="install_amiibo_keys_description">مطلوب لاستخدام أميبو في اللعبة</string>
+    <string name="gpu_driver_fetcher">أداة جلب برامج تشغيل وحدة المعالجة الرسومية</string>
+    <string name="gpu_driver_manager">مدير برامج تشغيل وحدة معالجة الرسومات</string>
+    <string name="install_gpu_driver_description">تثبيت برامج تشغيل بديلة لأداء أو دقة أفضل</string>
+    <string name="advanced_settings">إعدادات متقدمة</string>
+    <string name="settings_description">تكوين إعدادات المحاكي</string>
+    <string name="search_recently_played">تم تشغيلها مؤخرًا</string>
+    <string name="search_recently_added">أضيفت مؤخراً</string>
+    <string name="open_user_folder">فتح مجلد Eden</string>
+    <string name="open_user_folder_description">إدارة الملفات الداخلية لـ Eden</string>
+    <string name="app_settings_description">تعديل سلوك ومظهر التطبيق</string>
+    <string name="no_file_manager">لم يتم العثور على مدير الملفات</string>
+    <string name="notification_no_directory_link">لا يمكن فتح مجلد Eden</string>
+    <string name="notification_no_directory_link_description">يرجى تحديد موقع مجلد المستخدم يدويًا باستخدام اللوحة الجانبية لمدير الملفات.</string>
+    <string name="manage_save_data">إدارة حفظ البيانات</string>
+    <string name="manage_save_data_description">حفظ البيانات التي تم العثور عليها. يرجى اختيار أحد الخيارات التالية</string>
+    <string name="import_save_warning">استيراد حفظ البيانات</string>
+    <string name="import_save_warning_description">سيؤدي هذا إلى استبدال جميع بيانات الحفظ الموجودة بالملف المقدم. هل أنت متأكد أنك تريد الاستمرار؟</string>
+    <string name="save_files_importing">جارٍ استيراد ملفات الحفظ…</string>
+    <string name="save_files_exporting">جارٍ تصدير ملفات الحفظ...</string>
+    <string name="save_file_imported_success">تم الاستيراد بنجاح</string>
+    <string name="save_file_invalid_zip_structure">بنية مجلد الحفظ غير صالحة</string>
+    <string name="save_file_invalid_zip_structure_description">يجب أن يكون اسم المجلد الفرعي الأول هو معرف عنوان اللعبة.</string>
+    <string name="install_firmware">تثبيت الفيرموير</string>
+    <string name="install_firmware_description">يجب أن يكون فيرموير في أرشيف مضغوط وهو ضروري لتشغيل بعض الألعاب</string>
+    <string name="firmware_installing">تثبيت الفيرموير</string>
+    <string name="firmware_installed_failure">فشل تثبيت الفيرموير</string>
+    <string name="firmware_installed_failure_description">تأكد من أن ملفات الفيرموير nca موجودة في جذر ملف مضغوط وحاول مرة أخرى.</string>
+    <string name="firmware_uninstalled_failure">فشل إلغاء تثبيت الفيرموير</string>
+    <string name="share_log">مشاركة سجلات التصحيح</string>
+    <string name="share_log_description">مشاركة ملف سجل Eden لتصحيح الأخطاء</string>
+    <string name="share_log_missing">لم يتم العثور على ملف السجل</string>
+    <string name="install_game_content">تثبيت محتوى اللعبة</string>
+    <string name="install_game_content_description">تثبيت تحديثات اللعبة أو المحتوى القابل للتنزيل</string>
+    <string name="installing_game_content">جارٍ تثبيت المحتوى...</string>
+    <string name="install_game_content_failure">خطأ في تثبيت الملف(ات) على الذاكرة الداخلية</string>
+    <string name="install_game_content_failure_description">يرجى التأكد من صحة المحتوى (المحتويات) وتثبيت ملف prod.keys.</string>
+    <string name="install_game_content_failure_base">لا يُسمح بتثبيت الألعاب الأساسية لتجنب التعارضات المحتملة.</string>
+    <string name="install_game_content_failed_count">%1$d حدث خطأ (أخطاء) في التثبيت </string>
+    <string name="install_game_content_success">تم تثبيت محتوى (محتويات) اللعبة بنجاح</string>
+    <string name="install_game_content_success_install">%1$d تم التثبيت بنجاح</string>
+    <string name="install_game_content_success_overwrite">%1$d تمت الكتابة فوقه بنجاح</string>
+    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
+    <string name="custom_driver_not_supported">برامج التشغيل المخصصة غير مدعومة</string>
+    <string name="custom_driver_not_supported_description">تحميل برنامج التشغيل المخصص غير مدعوم حاليًا لهذا الجهاز. يُرجى إعادة تفعيل هذا الخيار لاحقًا للتحقق من إضافة الدعم.</string>
+    <string name="manage_yuzu_data">إدارة بيانات Eden</string>
+    <string name="manage_yuzu_data_description">استيراد/تصدير فيرموير والمفاتيح وبيانات المستخدم والمزيد</string>
+    <string name="game_folders">مجلدات اللعبة</string>
+    <string name="deep_scan">فحص عميق</string>
+    <string name="add_game_folder">إضافة مجلد اللعبة</string>
+    <string name="folder_already_added">تمت إضافة هذا المجلد بالفعل</string>
+    <string name="game_folder_properties">خصائص مجلد اللعبة</string>
+    <plurals name="saves_import_failed">
+        <item quantity="zero">Failed to import %d saves</item>
+        <item quantity="one">Failed to import %d save</item>
+        <item quantity="two">Failed to import %d saves</item>
+        <item quantity="few">Failed to import %d saves</item>
+        <item quantity="many">Failed to import %d saves</item>
+        <item quantity="other">فشل استيراد %d حفظ</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="zero">Successfully imported %d saves</item>
+        <item quantity="one">Successfully imported %d save</item>
+        <item quantity="two">Successfully imported %d saves</item>
+        <item quantity="few">Successfully imported %d saves</item>
+        <item quantity="many">Successfully imported %d saves</item>
+        <item quantity="other">تم استيراد %d حفظ بنجاح</item>
+    </plurals>
+    <string name="no_save_data_found">لم يتم العثور على بيانات الحفظ</string>
+    <string name="verify_installed_content">التحقق من المحتوى المثبت</string>
+    <string name="verify_installed_content_description">فحص جميع المحتويات المثبتة للتأكد من عدم تلفها</string>
+
+    <string name="keys_missing">مفاتيح التشفير مفقودة</string>
+    <string name="keys_missing_description">لا يمكن فك تشفير الفيرموير والألعاب</string>
+    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
+    <string name="uninstall_firmware">إزالة الفيرموير</string>
+    <string name="uninstall_firmware_description">سيؤدي إزالة الفيرموير إلى حذفه من الجهاز وقد يؤثر على توافق الألعاب.</string>
+    <string name="firmware_uninstalling">إلغاء تثبيت الفيرموير</string>
+    <string name="firmware_uninstalled_success">تم إزالة الفيرموير بنجاح</string>
+
+
+    <string name="keys_failed">فشل تثبيت المفاتيح</string>
+    <string name="keys_install_success">تم تثبيت المفاتيح بنجاح</string>
+    <string name="error_keys_copy_failed">فشل نسخ مفتاح واحد أو أكثر.</string>
+    <string name="error_keys_invalid_filename">تأكد أن ملف المفاتيح يحمل امتداد .keys وحاول مرة أخرى.</string>
+    <string name="error_keys_failed_init">فشل تهيئة المفاتيح. تحقق من أن أدوات النسخ محدثة وأعد نسخ المفاتيح.</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">الشاشة الرئيسية</string>
+    <string name="qlaunch_description">تشغيل التطبيقات من الشاشة الرئيسية للنظام</string>
+    <string name="applets">قائمة التطبيقات المصغرة</string>
+    <string name="applets_description">تطبيقات نظام التشغيل باستخدام الفيرموير المثبتة</string>
+    <string name="applets_error_firmware">الفيرموير غير مثبت أو إصدار غير صالح</string>
+    <string name="applets_error_applet">التطبيق المصغر غير متوفر</string>
+    <string name="applets_error_description"><![CDATA[يرجى التأكد من أن ملف <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> الخاص بك و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">الفيرموير</a> مثبتة وحاول مرة أخرى.<br>بالإضافة إلى ذلك، تأكد من أن الفيرموير الخاص بك هو من الإصدار 19.0.1 أو أقدم.]]></string>
+    <string name="album_applet">الألبوم</string>
+    <string name="album_applet_description">عرض الصور المخزنة في مجلد لقطات شاشة المستخدم باستخدام عارض صور النظام</string>
+    <string name="mii_edit_applet">تعديل Mii</string>
+    <string name="mii_edit_applet_description">عرض وتحرير Miis باستخدام محرر النظام</string>
+    <string name="cabinet_applet">الخزانة</string>
+    <string name="cabinet_applet_description">تعديل وحذف البيانات المخزنة على أميبو</string>
+    <string name="cabinet_launcher">مشغل الخزانة</string>
+    <string name="cabinet_nickname_and_owner">إعدادات الاسم المستعار والمالك</string>
+    <string name="cabinet_game_data_eraser">ممحاة بيانات اللعبة</string>
+    <string name="cabinet_restorer">استعادة</string>
+    <string name="cabinet_formatter">تنسيق</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">Gaia غير حقيقي</string>
+    <string name="copied_to_clipboard">نسخ إلى الحافظة</string>
+    <string name="about_app_description">محاكي Switch مفتوح المصدر</string>
+    <string name="contributors">المساهمين</string>
+    <string name="contributors_description">المساهمون الذين جعلوا تطبيق Eden لنظام Android ممكناً</string>
+    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
+    <string name="licenses_description">المشاريع التي تجعل Eden لأجهزة Android ممكنة</string>
+    <string name="build">البناء</string>
+    <string name="user_data">بيانات المستخدم</string>
+    <string name="user_data_description">استيراد/تصدير جميع بيانات التطبيق.\nعند استيراد بيانات المستخدم، سيتم حذف جميع بيانات المستخدم الموجودة!\nقد يُسبب استيراد البيانات من Citron بعض المشاكل. يُنصح باستيراد جميع البيانات المطلوبة يدويًا.</string>
+    <string name="exporting_user_data">جارٍ تصدير بيانات المستخدم...</string>
+    <string name="importing_user_data">جارٍ استيراد بيانات المستخدم...</string>
+    <string name="invalid_yuzu_backup">نسخة احتياطية Eden غير صالحة</string>
+    <string name="user_data_export_success">تم تصدير بيانات المستخدم بنجاح</string>
+    <string name="user_data_import_success">تم استيراد بيانات المستخدم بنجاح</string>
+    <string name="user_data_export_cancelled">تم إلغاء التصدير</string>
+    <string name="user_data_import_failed_description">تأكد من أن مجلدات بيانات المستخدم موجودة في جذر مجلد مضغوط وتحتوي على ملف تكوين في config/config.ini ثم حاول مرة أخرى.</string>
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">الحد من السرعة</string>
+    <string name="frame_limit_enable_description">يحدد سرعة المحاكاة بنسبة مئوية محددة من السرعة العادية.</string>
+    <string name="frame_limit_slider">نسبة الحد الأقصى للسرعة</string>
+    <string name="frame_limit_slider_description">يحدد النسبة المئوية للحد من سرعة المحاكاة. 100٪ هي السرعة العادية. القيم الأعلى أو الأقل ستزيد أو تقلل من الحد الأقصى للسرعة.</string>
+    <string name="cpu_backend">خلفية وحدة المعالجة المركزية</string>
+    <string name="cpu_accuracy">دقة وحدة المعالجة المركزية</string>
+    <string name="value_with_units">%1$s%2$s</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">اسم الجهاز</string>
+    <string name="use_docked_mode">وضع الإرساء</string>
+    <string name="use_docked_mode_description">يزيد الدقة ويقلل الأداء. يتم استخدام الوضع المحمول عند تعطيله، مما يقلل الدقة ويزيد الأداء.</string>
+    <string name="emulated_region">المنطقة التي تمت محاكاتها</string>
+    <string name="emulated_language">لغة المحاكاة</string>
+    <string name="select_rtc_date">حدد التاريخ و الساعة في الوقت الحقيقي</string>
+    <string name="select_rtc_time">حدد وقت الساعة في الوقت الفعلي</string>
+    <string name="use_custom_rtc">ساعة مخصصة في الوقت الحقيقي</string>
+    <string name="use_custom_rtc_description">يسمح لك بتعيين ساعة مخصصة في الوقت الفعلي منفصلة عن وقت النظام الحالي لديك</string>
+    <string name="set_custom_rtc">تعيين ساعة مخصصة في الوقت الحقيقي</string>
+
+    <string name="generate">توليد</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">رمز الويب</string>
+    <string name="web_token_description">رمز الويب المستخدم لإنشاء غرف عامة. وهو سلسلة من 48 حرفًا تحتوي فقط على أحرف صغيرة من a-z.</string>
+    <string name="web_username">اسم مستخدم الويب</string>
+    <string name="web_username_description">اسم المستخدم الذي سيظهر في غرف الانتظار متعددة اللاعبين. يجب أن يتكون من 4 إلى 20 حرفًا، ويحتوي فقط على أحرف أبجدية رقمية وشرطات ونقاط وشرطات سفلية ومسافات.</string>
+    <string name="network">الشبكة</string>
+
+    <!-- Graphics settings strings -->
+    <string name="backend">الخلفية</string>
+    <string name="display">الشاشة</string>
+    <string name="processing">المعالجة اللاحقة</string>
+
+    <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
+    <string name="frame_skipping_description">تبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة. هذه الميزة قيد التطوير وسيتم تمكينها في الإصدارات المستقبلية.</string>
+    <string name="renderer_accuracy">مستوى الدقة</string>
+    <string name="renderer_resolution">الدقة (محمول/الإرساء)</string>
+    <string name="renderer_vsync">VSync وضع</string>
+    <string name="renderer_screen_layout">اتجاه العرض</string>
+    <string name="renderer_aspect_ratio">تناسب الابعاد</string>
+    <string name="renderer_scaling_filter">مرشح ملائم للنافذة</string>
+    <string name="fsr_sharpness">حدة FSR</string>
+    <string name="fsr_sharpness_description">يحدد مدى وضوح الصورة عند استخدام التباين الديناميكي لـ FSR</string>
+    <string name="renderer_anti_aliasing">طريقة مكافحة التعرج</string>
+    <string name="renderer_force_max_clock">إجبار السرعة القصوى (لأجهزة Adreno فقط)</string>
+    <string name="renderer_force_max_clock_description">يجبر وحدة معالجة الرسومات على العمل بأقصى سرعة ممكنة (سيظل يتم تطبيق القيود الحرارية).</string>
+    <string name="renderer_optimize_spirv_output">تحسين إخراج Spir-V</string>
+    <string name="renderer_optimize_spirv_output_description">يعمل على تحسين أداء برامج التظليل المجمعة لتحسين كفاءة وحدة معالجة الرسومات، ولكنه قد يؤدي إلى زيادة وقت التحميل وإبطاء السرعة في البداية.</string>
+    <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
+    <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
+    <string name="use_fast_gpu_time">استخدم وقت المعالج الرسومي السريع</string>
+    <string name="use_fast_gpu_time_description">يجبر معظم الألعاب على التشغيل بأعلى دقة أصلية لها. هذا الخيار غير آمن وقد يتسبب في مشاكل.</string>
+    <string name="fast_gpu_time">عامل زيادة تردد وحدة معالجة الرسوميات</string>
+    <string name="fast_gpu_time_description">استخدم 128 لأقصى أداء و512 لأقصى دقة رسومية.</string>
+    <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
+    <string name="renderer_reactive_flushing_description">يحسن دقة العرض في بعض الألعاب على حساب الأداء.</string>
+    <string name="use_disk_shader_cache">ذاكرة التخزين المؤقت للتظليل</string>
+    <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
+    <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
+    <string name="anisotropic_filtering_description">يحسن جودة الأنسجة عند عرضها بزوايا مائلة</string>
+
+    <string name="warning_resolution">من المعروف أن تغيير الدقة إلى 2x أو أعلى يسبب مشاكل وقد يؤدي إلى إبطاء كبير في أداء جهازك.</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">وحدة المعالج المركزية</string>
+    <string name="use_auto_stub">استخدم الملحق التلقائي</string>
+    <string name="use_auto_stub_description">استبدال الخدمات والوظائف المفقودة تلقائيًا. قد يؤدي ذلك إلى تحسين التوافق، ولكنه قد يتسبب في حدوث أعطال ومشكلات في الاستقرار.</string>
+
+    <string name="gpu">وحدة معالجة الرسومات</string>
+    <string name="renderer_api">واجهة برمجة التطبيقات</string>
+    <string name="renderer_debug">تصحيح الأخطاء الرسومية</string>
+    <string name="renderer_debug_description">يضبط واجهة برمجة التطبيقات الرسومية على وضع تصحيح الأخطاء البطيء.</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">تسجيل الدخول</string>
+    <string name="flush_by_line">تفريغ سجلات التصحيح حسب السطر</string>
+    <string name="flush_by_line_description">يفرغ سجلات التصحيح عند كتابة كل سطر، مما يجعل التصحيح أسهل في حالات التوقف أو التجميد.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">محرك الإخراج</string>
+    <string name="audio_volume">مستوى الصوت</string>
+    <string name="audio_volume_description">يحدد مستوى إخراج الصوت</string>
+
+    <!-- Input strings -->
+    <string name="buttons">الأزرار</string>
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Plus</string>
+    <string name="button_minus">Minus</string>
+    <string name="button_home">Home</string>
+    <string name="button_capture">Capture</string>
+    <string name="start_pause">Start/Pause</string>
+    <string name="dpad">الأسهم</string>
+    <string name="up">فوق</string>
+    <string name="down">تحت</string>
+    <string name="left">يسار</string>
+    <string name="right">يمين</string>
+    <string name="left_stick">العصا اليسرى</string>
+    <string name="control_stick">عصا التحكم</string>
+    <string name="right_stick">العصا اليمنى</string>
+    <string name="c_stick">عصا-C</string>
+    <string name="pressed">مضغوط</string>
+    <string name="range">النطاق</string>
+    <string name="deadzone">المنطقة الميتة</string>
+    <string name="modifier">المعدل</string>
+    <string name="modifier_range">نطاق المعدل</string>
+    <string name="triggers">المحفزات</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_sl_left">Left SL</string>
+    <string name="button_sr_left">Left SR</string>
+    <string name="button_sl_right">Right SL</string>
+    <string name="button_sr_right">Right SR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">غير صالح</string>
+    <string name="not_set">غير محدد</string>
+    <string name="unknown">غير معروف</string>
+    <string name="qualified_hat">%1$s%2$s%3$sHat %4$s</string>
+    <string name="qualified_button_stick_axis">%1$s%2$s%3$sAxis %4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sزر %4$s</string>
+    <string name="qualified_axis">Axis %1$s%2$s</string>
+    <string name="unused">غير مستخدم</string>
+    <string name="input_mapping_filter">مرشح تعيين الإدخال</string>
+    <string name="input_mapping_filter_description">حدد جهازًا لتصفية مدخلات التعيين</string>
+    <string name="auto_map">تعيين ذراع التحكم تلقائيًا</string>
+    <string name="auto_map_description">حدد جهازًا لمحاولة التعيين التلقائي</string>
+    <string name="attempted_auto_map">تم محاولة التعيين التلقائي باستخدام %1$s</string>
+    <string name="controller_type">نوع ذراع التحكم</string>
+    <string name="pro_controller">Pro Controller</string>
+    <string name="handheld">محمول</string>
+    <string name="dual_joycons">جوي كون ثنائي</string>
+    <string name="left_joycon">جوي كون اليسرى</string>
+    <string name="right_joycon">جوي كون اليمنى</string>
+    <string name="gamecube_controller">GameCube ذراع تحكم</string>
+    <string name="invert_axis">عكس المحور</string>
+    <string name="invert_button">Invert button</string>
+    <string name="toggle_button">Toggle button</string>
+    <string name="turbo_button">Turbo button</string>
+    <string name="set_threshold">Set threshold</string>
+    <string name="toggle_axis">Toggle axis</string>
+    <string name="connected">متصل</string>
+    <string name="use_system_vibrator">استخدام هزاز النظام</string>
+    <string name="input_overlay">تراكب الإدخال</string>
+    <string name="vibration">الاهتزاز</string>
+    <string name="vibration_strength">قوة الاهتزاز</string>
+    <string name="profile">ملف التعريف</string>
+    <string name="create_new_profile">إنشاء ملف تعريف جديد</string>
+    <string name="enter_profile_name">أدخل اسم ملف التعريف</string>
+    <string name="profile_name_already_exists">اسم ملف التعريف موجود بالفعل</string>
+    <string name="invalid_profile_name">اسم ملف التعريف غير صالح</string>
+    <string name="use_global_input_configuration">استخدام تكوين الإدخال العام</string>
+    <string name="player_num_profile">ملف تعريف%d اللاعب</string>
+    <string name="delete_input_profile">حذف ملف تعريف الإدخال</string>
+    <string name="delete_input_profile_description">هل أنت متأكد من رغبتك في حذف ملف التعريف هذا؟ هذا غير قابل للاسترداد</string>
+    <string name="stick_map_description">حرك العصا إلى اليسار ثم للأعلى أو اضغط على زر</string>
+    <string name="button_map_description">اضغط على زر أو حرك الزناد/العصا</string>
+    <string name="map_dpad_direction">تعيين الأسهم %1$s</string>
+    <string name="map_control">تعيين %1$s</string>
+    <string name="failed_to_load_profile">فشل تحميل ملف التعريف</string>
+    <string name="failed_to_save_profile">فشل في حفظ ملف التعريف</string>
+    <string name="reset_mapping">إعادة تعيين التعيينات</string>
+    <string name="reset_mapping_description">هل أنت متأكد من أنك تريد إعادة تعيين جميع الخرائط لوحدة التحكم هذه إلى الوضع الافتراضي؟ لا يمكن التراجع عن هذا</string>
+
+    <!-- Miscellaneous -->
+    <string name="slider_default">افتراضي</string>
+    <string name="loading">جارٍ التحميل…</string>
+    <string name="shutting_down">جارٍ إيقاف التشغيل...</string>
+    <string name="reset_setting_confirmation">هل تريد إعادة ضبط هذا الإعداد إلى قيمته الافتراضية؟</string>
+    <string name="reset_to_default">إعادة التعيين إلى الوضع الافتراضي</string>
+    <string name="reset_to_default_description">إعادة تعيين جميع الإعدادات المتقدمة</string>
+    <string name="reset_all_settings">إعادة تعيين جميع الإعدادات؟</string>
+    <string name="reset_all_settings_description">سيتم إعادة تعيين كافة الإعدادات المتقدمة إلى تكوينها الافتراضي. هذا لا يمكن التراجع عنها.</string>
+    <string name="settings_reset">إعادة تعيين الأعدادات</string>
+    <string name="close">إغلاق</string>
+    <string name="learn_more">معرفة المزيد</string>
+    <string name="auto">تلقائي</string>
+    <string name="submit">إرسال</string>
+    <string name="string_null">لا شيء</string>
+    <string name="string_import">استيراد</string>
+    <string name="export">تصدير</string>
+    <string name="export_failed">فشل التصدير</string>
+    <string name="import_failed">فشل الاستيراد</string>
+    <string name="cancelling">الإلغاء</string>
+    <string name="install">تثبيت</string>
+    <string name="fetch">جلب</string>
+    <string name="delete">حذف</string>
+    <string name="edit">تعديل</string>
+    <string name="import_success">تم الاستيراد بنجاح</string>
+    <string name="export_success">تم التصدير بنجاح</string>
+    <string name="start">بدء</string>
+    <string name="global">المتغيرات العامة</string>
+    <string name="custom">مخصص</string>
+    <string name="import_complete">اكتمل الاستيراد</string>
+    <string name="use_global_setting">استخدام الإعداد العام</string>
+    <string name="operation_completed_successfully">اكتملت العملية بنجاح</string>
+    <string name="confirm">تأكيد</string>
+    <string name="load">تحميل</string>
+    <string name="save">حفظ</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver_default">افتراضي</string>
+    <string name="select_gpu_driver_error">تم تحديد برنامج تشغيل غير صالح</string>
+    <string name="driver_already_installed">برنامج التشغيل مثبت بالفعل</string>
+    <string name="system_gpu_driver">برنامج تشغيل وحدة معالجة الرسومات للنظام</string>
+    <string name="installing_driver">جارٍ تثبيت برنامج التشغيل…</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="show_releases">عرض الإصدارات</string>
+    <string name="failed_to_fetch">فشل في الجلب</string>
+    <string name="error_during_fetch">خطأ أثناء الجلب</string>
+    <string name="show_downloads">عرض التنزيلات</string>
+    <string name="hide_downloads">إخفاء التنزيلات</string>
+    <string name="failed_cache_dir">دليل الذاكرة المؤقتة غير متاح</string>
+    <string name="empty_response_body">نص الاستجابة فارغ</string>
+    <string name="successfully_installed">تم تثبيت %1$s بنجاح</string>
+    <string name="driver_failed_title">فشل تثبيت برنامج التشغيل</string>
+    <string name="failed_install_driver">فشل تثبيت برنامج تشغيل %1$s، هل نظامك يدعمه؟</string>
+    <string name="driver_empty">برنامج التشغيل الذي تم تنزيله فارغ، تحقق من اتصالك بالإنترنت</string>
+    <string name="downloading">جارٍ التنزيل...</string>
+    <string name="installing">جارٍ التثبيت...</string>
+    <string name="latest">الأحدث</string>
+    <string name="recommended_driver">برنامج التشغيل الموصى به:</string>
+    <string name="gpu_model">طراز وحدة معالجة الرسومات:</string>
+    <string name="unsupported_gpu">بطاقة رسومات غير مدعومة</string>
+    <string name="unsupported_gpu_warning">لا تدعم وحدة معالجة الرسومات الخاصة بك إدخال برامج التشغيل. لا يُنصح بمحاولة تعيين برامج تشغيل مخصصة.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">الإعدادات</string>
+    <string name="preferences_system">النظام</string>
+    <string name="preferences_system_description">وضع الإرساء ،المنطقة ،اللغة</string>
+    <string name="preferences_graphics">الرسومات</string>
+    <string name="preferences_graphics_description">مستوى الدقة ،الدقة ،ذاكرة التخزين المؤقت للتظليل</string>
+    <string name="preferences_audio">الصوت</string>
+    <string name="preferences_audio_description">محرك الإخراج ، حجم الصوت</string>
+    <string name="preferences_controls">عناصر التحكم</string>
+    <string name="preferences_controls_description">مدخلات ذراع تحكم في الخريطة</string>
+    <string name="preferences_player">اللاعب %d</string>
+    <string name="preferences_debug">تصحيح الأخطاء</string>
+    <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
+
+    <!-- Game properties -->
+    <string name="info">معلومات</string>
+    <string name="info_description">معرف البرنامج، المطور، الإصدار</string>
+    <string name="per_game_settings">إعدادات خاصة للعبة</string>
+    <string name="per_game_settings_description">تعديل الإعدادات الخاصة بهذه اللعبة</string>
+    <string name="launch_options">تشغيل التكوين</string>
+    <string name="path">المسار</string>
+    <string name="program_id">معرف العنوان</string>
+    <string name="developer">المطور</string>
+    <string name="version">الإصدار</string>
+    <string name="copy_details">نسخ التفاصيل</string>
+    <string name="add_ons">الإضافات</string>
+    <string name="add_ons_description">التعديلات والتحديثات والمحتوى القابل للتنزيل</string>
+    <string name="reset_playtime">مسح زمن اللعب</string>
+    <string name="reset_playtime_description">إعادة ضبط زمن اللعب الحالي للعبة إلى 0 ثانية</string>
+    <string name="reset_playtime_warning_description">سيؤدي هذا إلى مسح بيانات زمن اللعب الحالية للعبة. هل أنت متأكد؟</string>
+    <string name="playtime_reset_successfully">تمت إعادة ضبط زمن اللعب</string>
+    <string name="edit_playtime">تعديل زمن التشغيل</string>
+    <string name="hours">ساعات</string>
+    <string name="minutes">دقائق</string>
+    <string name="hours_must_be_between_0_and_9999">يجب أن تكون الساعات بين 0 و 9999</string>
+    <string name="minutes_must_be_between_0_and_59">يجب أن تكون الدقائق بين 0 و 59</string>
+    <string name="seconds_must_be_between_0_and_59">يجب أن تكون الثواني بين 0 و 59</string>
+    <string name="playtime_updated_successfully">تم تحديث زمن اللعب بنجاح</string>
+    <string name="clear_shader_cache">مسح ذاكرة التخزين المؤقت للتظليل</string>
+    <string name="clear_shader_cache_description">يزيل جميع التظليلات التي تم إنشاؤها أثناء لعب هذه اللعبة</string>
+    <string name="clear_shader_cache_warning_description">سوف تواجه المزيد من التأتأة مع تجديد ذاكرة التخزين المؤقت للتظليل</string>
+    <string name="cleared_shaders_successfully">تم مسح التظليل بنجاح</string>
+    <string name="addons_game">إضافات: %1$s</string>
+    <string name="save_data">حفظ البيانات</string>
+    <string name="save_data_description">إدارة حفظ البيانات الخاصة بهذه اللعبة</string>
+    <string name="delete_save_data">حذف حفظ البيانات</string>
+    <string name="delete_save_data_description">يزيل كافة البيانات المحفوظة الخاصة بهذه اللعبة</string>
+    <string name="delete_save_data_warning_description">يؤدي هذا إلى إزالة كافة البيانات المحفوظة لهذه اللعبة بشكل لا يمكن استرداده. هل أنت متأكد أنك تريد الاستمرار؟</string>
+    <string name="save_data_deleted_successfully">تم حذف البيانات المحفوظة بنجاح</string>
+    <string name="select_content_type">نوع المحتوى</string>
+    <string name="updates_and_dlc">التحديثات والمحتوى القابل للتنزيل</string>
+    <string name="mods_and_cheats">التعديلات والغش</string>
+    <string name="addon_notice">إشعار إضافي مهم</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="addon_notice_description">لتثبيت التعديلات والغش، يجب عليك تحديد مجلد يحتوي على دليل cheats/ أو romfs/ أو exefs/. لا يمكننا التحقق من توافق هذه الملفات مع لعبتك، لذا كن حذراً!</string>
+    <string name="invalid_directory">مجلد غير صالح</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="invalid_directory_description">يرجى التأكد من أن الدليل الذي حددته يحتوي على مجلد cheats/ أو romfs/ أو exefs/ ثم حاول مرة أخرى.</string>
+    <string name="addon_installed_successfully">تم تثبيت الإضافة بنجاح</string>
+    <string name="verifying_content">جارٍ التحقق من المحتوى…</string>
+    <string name="content_install_notice">إشعار تثبيت المحتوى</string>
+    <string name="content_install_notice_description">المحتوى الذي اخترته لا يتوافق مع هذه اللعبة.\n هل ترغب في التثبيت على أي حال؟</string>
+    <string name="confirm_uninstall">تأكيد إلغاء التثبيت</string>
+    <string name="confirm_uninstall_description">هل أنت متأكد من أنك تريد إلغاء تثبيت هذا الإضافة؟</string>
+    <string name="verify_integrity">التحقق من السلامة</string>
+    <string name="verifying">جارٍ التحقق...</string>
+    <string name="verify_success">نجح التحقق من السلامة!</string>
+    <string name="verify_failure">فشل التحقق من السلامة!</string>
+    <string name="verify_failure_description">قد تكون محتويات الملف تالفة</string>
+    <string name="verify_no_result">تعذر التحقق من السلامة</string>
+    <string name="verify_no_result_description">لم يتم التحقق من صحة محتويات الملف</string>
+    <string name="verification_failed_for">فشل التحقق من الملفات التالية:\n%1$s</string>
+    <string name="share_game_settings">مشاركة الإعدادات</string>
+    <string name="import_config">استيراد الإعدادات</string>
+    <string name="export_config">تصدير الإعدادات</string>
+    <string name="share_config_failed">فشل مشاركة ملف الإعدادات</string>
+
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">ROM الخاص بك مشفر</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[يرجى اتباع الإرشادات لإعادة نسخ  <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">بطاقات الألعاب </a> أو <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">الألعاب المثبتة</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[تأكد من تثبيت <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>]]></string>
+    <string name="loader_error_video_core">حدث خطأ أثناء تهيئة نواة الفيديو</string>
+    <string name="loader_error_video_core_description">عادةً ما يكون هذا ناتجًا عن برنامج تشغيل وحدة معالجة الرسومات غير متوافق. قد يؤدي تثبيت برنامج تشغيل مخصص لوحدة معالجة الرسومات إلى حل هذه المشكلة.</string>
+    <string name="loader_error_file_not_found">ملف ROM غير موجود</string>
+
+    <string name="loader_requires_firmware">اللعبة تتطلب الفيرموير</string>
+    <string name="loader_requires_firmware_description"><![CDATA[اللعبة التي تحاول تشغيلها تتطلب الفيرموير للتمهيد أو لتجاوز القائمة الافتتاحية. يرجى <a href=\"https://yuzu-mirror.github.io/help/quickstart\">نسخ وتثبيت الفيرموير</a>، أو اضغط \"موافق\" للمتابعة على أي حال.]]></string>
+
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">جارٍ البحث عن اللعبة...</string>
+    <string name="game_not_found_for_title_id">لم يتم العثور على اللعبة لمعرف العنوان: %1$s</string>
+    <string name="custom_settings_failed_title">فشل الإعدادات المخصصة</string>
+    <string name="custom_settings_failed_message">فشل تطبيق الإعدادات المخصصة لـ %1$s: %2$s</string>
+    <string name="launch_with_default_settings">التشغيل بالإعدادات الافتراضية</string>
+    <string name="launch_cancelled">تم إلغاء التشغيل</string>
+    <string name="custom_settings_failure_reasons">غير قادر على تطبيق الإعدادات المطلوبة. قد يكون ذلك بسبب نقص برامج تشغيل وحدة معالجة الرسوميات أو مشكلات في التكوين.</string>
+    <string name="custom_settings_applied">تم تطبيق الإعدادات المخصصة</string>
+    <string name="launching_game">جارٍ التشغيل %1$s...</string>
+    <string name="failed_to_initialize_game">فشل في تهيئة اللعبة</string>
+    <string name="custom_intent_launch_message_with_settings">هل ترغب في التشغيل %1$s بإعدادات مخصصة؟</string>
+    <string name="custom_intent_launch_message">هل ترغب في التشغيل %1$s؟</string>
+    <string name="custom_intent_launch_title">تشغيل اللعبة</string>
+    <string name="launch">تشغيل</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">فشل كتابة ملف التكوين</string>
+    <string name="config_apply_failed">فشل تطبيق التكوين</string>
+    <string name="config_already_exists_title">التكوين موجود بالفعل</string>
+    <string name="config_already_exists_message">توجد إعدادات مخصصة بالفعل لـ  \'%1$s\' .\n\nهل ترغب في استبدال التكوين الحالي؟\n\nلا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="config_exists_prompt">جارٍ التحقق من التكوين الحالي...</string>
+    <string name="overwrite_cancelled">تم إلغاء الاستبدال</string>
+    <string name="overwrite">استبدال</string>
+
+    <!-- Driver strings -->
+    <string name="driver_not_found">برنامج التشغيل المطلوب غير مثبت: %s</string>
+    <string name="invalid_driver_file">ملف برنامج تشغيل غير صالح: %s</string>
+    <string name="network_unavailable">لا يوجد اتصال بالشبكة. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.</string>
+    <string name="driver_missing_title">مطلوب برنامج تشغيل وحدة معالجة الرسومات</string>
+    <string name="driver_missing_message">يتطلب إعداد اللعبة برنامج تشغيل وحدة معالجة الرسومات \"\'%s\'\" وهو غير مُثبّت على جهازك.\n\nهل ترغب بتنزيله وتثبيته الآن؟</string>
+    <string name="driver_download_cancelled">تم إلغاء تنزيل برنامج التشغيل. لا يمكن تشغيل اللعبة بدون برنامج التشغيل المطلوب.</string>
+    <string name="download">تنزيل</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">خروج من المحاكاة</string>
+    <string name="emulation_done">إنهاء</string>
+    <string name="emulation_toggle_controls">تبديل عناصر التحكم</string>
+    <string name="emulation_rel_stick_center">مركز العصا النسبي</string>
+    <string name="emulation_dpad_slide">انزلاق الأسهم</string>
+    <string name="emulation_haptics">الاهتزازات الديناميكية</string>
+    <string name="emulation_show_overlay">عرض ذراع التحكم</string>
+    <string name="emulation_hide_overlay">إخفاء ذراع التحكم</string>
+    <string name="emulation_toggle_all">تبديل الكل</string>
+    <string name="emulation_control_adjust">ضبط التراكب</string>
+    <string name="emulation_control_scale">الحجم</string>
+    <string name="emulation_control_opacity">الشفافية</string>
+    <string name="emulation_touch_overlay_reset">إعادة تعيين التراكب</string>
+    <string name="emulation_touch_overlay_edit">تعديل التراكب</string>
+    <string name="emulation_pause">إيقاف المحاكاة مؤقتًا</string>
+    <string name="emulation_unpause">إلغاء الإيقاف المؤقت للمحاكاة</string>
+    <string name="emulation_input_overlay">خيارات التراكب</string>
+    <string name="touchscreen">شاشة اللمس</string>
+    <string name="lock_drawer">قفل الدرج</string>
+    <string name="unlock_drawer">فتح الدرج</string>
+    <string name="reset">إعادة الضبط</string>
+
+    <!-- Software keyboard -->
+    <string name="software_keyboard">لوحة المفاتيح البرمجية</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">إلغاء</string>
+    <string name="continue_button">استمر</string>
+    <string name="system_archive_not_found">لم يتم العثور على أرشيف النظام</string>
+    <string name="system_archive_not_found_message">%sمفقود. يرجى تفريغ أرشيفات النظام.\nقد يؤدي استمرار المحاكاة إلى حدوث أعطال.</string>
+    <string name="system_archive_general">أرشيف النظام</string>
+    <string name="save_load_error">خطأ في الحفظ/التحميل</string>
+    <string name="fatal_error">خطا فادح</string>
+    <string name="fatal_error_message">حدث خطأ فادح. تحقق من السجل للحصول على التفاصيل.\nقد يؤدي استمرار المحاكاة إلى حدوث أعطال.</string>
+    <string name="device_memory_inadequate">ذاكرة الوصول العشوائي للجهاز: %1$s\nموصى به: %2$s</string>
+    <string name="memory_formatted">%1$s %2$s</string>
+    <string name="no_game_present">لا توجد لعبة قابلة للتمهيد</string>
+
+    <!-- Region Names -->
+    <string name="region_japan">اليابان</string>
+    <string name="region_usa">الولايات المتحدة الأمريكية</string>
+    <string name="region_europe">أوروبا</string>
+    <string name="region_australia">أستراليا</string>
+    <string name="region_china">الصين</string>
+    <string name="region_korea">كوريا</string>
+    <string name="region_taiwan">تايوان</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4 جيجابايت (موصى به)</string>
+    <string name="memory_6gb">6 جيجابايت (غير آمن)</string>
+    <string name="memory_8gb">8 جيجابايت (غير آمن)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_boost">تعزيز (1700MHz)</string>
+    <string name="clock_fast">سريع (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">منخفض (128)</string>
+    <string name="gpu_medium">متوسط (256)</string>
+    <string name="gpu_high">مرتفع (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">مئوية</string>
+    <string name="temperature_fahrenheit">فهرنهايت</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte_shorthand">بت</string>
+    <string name="memory_kilobyte">كيلوبايت</string>
+    <string name="memory_megabyte">ميجابايت</string>
+    <string name="memory_gigabyte">جيجابايت</string>
+    <string name="memory_terabyte">تيرابايت</string>
+    <string name="memory_petabyte">بيتابايت</string>
+    <string name="memory_exabyte">إكسابايت</string>
+
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">Vulkan</string>
+    <string name="renderer_none">لاشيء</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">عادي</string>
+    <string name="renderer_accuracy_high">عالي</string>
+    <string name="renderer_accuracy_extreme">أقصى حد</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">افتراضي</string>
+    <string name="dma_accuracy_unsafe">غير آمن</string>
+    <string name="dma_accuracy_safe">آمن</string>
+
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">طريقة فك ضغط ASTC</string>
+    <string name="accelerate_astc_description">اختر كيفية فك ضغط نسيج ASTC للعرض: CPU (بطيء، آمن)، GPU (سريع، موصى به)، أو CPU Async (بدون توقف، قد يسبب مشاكل)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">وحدة المعالجة المركزية</string>
+    <string name="accelerate_astc_gpu">وحدة المعالجة الرسومية</string>
+    <string name="accelerate_astc_async">وحدة المعالجة المركزية غير المتزامنة</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">طريقة إعادة ضغط ASTC</string>
+    <string name="astc_recompression_description">اختر كيفية إعادة ضغط نسيج ASTC لتحسين التوافق والأداء. تمكين هذا الخيار يوفر VRAM ولكن قد يقلل من جودة النسيج.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">غير مضغوط</string>
+    <string name="astc_recompression_bc1">BC1 (جودة منخفضة)</string>
+    <string name="astc_recompression_bc3">BC3 (جودة متوسطة)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">وضع استخدام ذاكرة VRAM</string>
+    <string name="vram_usage_mode_description">تحكم في مدى قوة تخصيص المحاكي لذاكرة وحدة معالجة الرسوميات وتحريرها.</string>
+    <string name="vram_usage_conservative">محافظ</string>
+    <string name="vram_usage_aggressive">عدواني</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (بطيء)</string>
+    <string name="resolution_three">3X (2160p/3240p) (بطيء)</string>
+    <string name="resolution_four">4X (2880p/4320p) (بطيء)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">Immediate (إيقاف)</string>
+    <string name="renderer_vsync_mailbox">Mailbox</string>
+    <string name="renderer_vsync_fifo">FIFO (تشغيل)</string>
+    <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
+    <string name="scaling_filter_bilinear">Bilinear</string>
+    <string name="scaling_filter_bicubic">Bicubic</string>
+    <string name="scaling_filter_spline1">Spline-1</string>
+    <string name="scaling_filter_gaussian">Gaussian</string>
+    <string name="scaling_filter_lanczos">Lanczos</string>
+    <string name="scaling_filter_scale_force">ScaleForce</string>
+    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
+    <string name="scaling_filter_area">Area</string>
+    <string name="scaling_filter_zero_tangent">Zero-Tangent</string>
+    <string name="scaling_filter_bspline">B-Spline</string>
+    <string name="scaling_filter_mitchell">Mitchell</string>
+    <string name="scaling_filter_mmpx">MMPX</string>
+
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">لا شيء</string>
+    <string name="anti_aliasing_fxaa">FXAA</string>
+    <string name="anti_aliasing_smaa">SMAA</string>
+
+    <!-- Screen Layouts -->
+    <string name="screen_layout_auto">تلقائي</string>
+    <string name="screen_layout_sensor_landscape">منظر مستشعرات</string>
+    <string name="screen_layout_landscape">منظر طبيعي</string>
+    <string name="screen_layout_reverse_landscape">منظر عكسي</string>
+    <string name="screen_layout_sensor_portrait">صورة المستشعر</string>
+    <string name="screen_layout_portrait">عمودي</string>
+    <string name="screen_layout_reverse_portrait">صورة عكسية</string>
+
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">(16:9) افتراضي</string>
+    <string name="ratio_force_four_three">4:3 فرض</string>
+    <string name="ratio_force_twenty_one_nine">21:9 فرض</string>
+    <string name="ratio_force_sixteen_ten">16:10 فرض</string>
+    <string name="ratio_stretch">تمتد إلى النافذة</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
+    <string name="cpu_backend_nce">تنفيذ التعليمات البرمجية الأصلية (NCE)</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">دقيق</string>
+    <string name="cpu_accuracy_unsafe">غير آمن</string>
+    <string name="cpu_accuracy_paranoid">Paranoid</string>
+    <string name="cpu_accuracy_debugging">تصحيح الأخطاء</string>
+
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">الأسهم</string>
+    <string name="gamepad_left_stick">العصا اليسرى</string>
+    <string name="gamepad_right_stick">العصا اليمنى</string>
+    <string name="gamepad_home">Home</string>
+    <string name="gamepad_screenshot">لقطة شاشة</string>
+
+    <!-- Disk shader cache -->
+    <string name="building_shaders">بناء التظليل</string>
+
+    <!-- App options -->
+    <string name="change_app_theme">تغيير سمة التطبيق</string>
+    <string name="theme_default">افتراضي</string>
+    <string name="theme_material_you">ألوان ديناميكية</string>
+    <string name="app_settings">إعدادات التطبيق</string>
+    <string name="theme_and_color">السمة واللون</string>
+
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">تغيير وضع السمة</string>
+    <string name="theme_mode_follow_system">اتبع النظام</string>
+    <string name="theme_mode_light">فاتح</string>
+    <string name="theme_mode_dark">داكن</string>
+
+    <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
+    <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">خلفيات سوداء</string>
+    <string name="use_black_backgrounds_description">عند استخدام السمة الداكنة، قم بتطبيق خلفيات سوداء.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">لون السمة</string>
+    <string name="eden_theme">Eden (افتراضي)</string>
+    <string name="violet">بنفسجي</string>
+    <string name="blue">أزرق</string>
+    <string name="cyan">سماوي</string>
+    <string name="red">أحمر</string>
+    <string name="green">أخضر</string>
+    <string name="yellow">أصفر</string>
+    <string name="orange">برتقالي</string>
+    <string name="pink">وردي</string>
+    <string name="gray">رمادي</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">صورة داخل صورة</string>
+    <string name="picture_in_picture_description">تصغير النافذة عند وضعها في الخلفية</string>
+    <string name="pause">توقف</string>
+    <string name="play">تشغيل</string>
+    <string name="mute">كتم الصوت</string>
+    <string name="unmute">إلغاء كتم الصوت</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">محاذاة عمودية</string>
+    <string name="top">أعلى</string>
+    <string name="center">منتصف</string>
+    <string name="bottom">أسفل</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">التطبيقات الصغيرة</string>
+    <string name="applets_menu_description">(قيد العمل) تغيير واجهات التطبيقات الصغيرة والإعدادات</string>
+
+    <string name="applet_hle">واجهة مخصصة</string>
+    <string name="applet_lle">تطبيق حقيقي</string>
+
+    <string name="swkbd_applet">لوحة المفاتيح البرمجية</string>
+
+    <string name="airplane_mode">وضع الطيران</string>
+    <string name="airplane_mode_description">تشغيل وضع الطيران في نظام التشغيل سويتش</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">التراخيص</string>
+    <string name="license_fidelityfx_fsr_description">تحسين الجودة بدرجة عالية من AMD</string>
+    </resources>

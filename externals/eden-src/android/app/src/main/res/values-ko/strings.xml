@@ -1,0 +1,891 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="notice_notification_channel_name">알림 및 오류</string>
+    <string name="notice_notification_channel_description">문제가 발생하면 알림을 표시합니다.</string>
+    <string name="notification_permission_not_granted">알림 권한이 부여되지 않았습니다!</string>
+    <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(향상됨)</string>
+    <string name="process_ram">프로세스 RAM: %1$d MB</string>
+    <string name="shaders_prefix">셰이더</string>
+    <string name="shaders_suffix">빌드 중</string>
+    <string name="charging">(충전 중)</string>
+
+    <string name="system_info_label">시스템:</string>
+    <string name="show_stats_overlay">성능 통계 오버레이 표시</string>
+    <string name="stats_overlay_customization">사용자 지정</string>
+    <string name="stats_overlay_items">표시 항목</string>
+    <string name="stats_overlay_options">오버레이</string>
+    <string name="enable_stats_overlay_">성능 통계 오버레이 활성화</string>
+    <string name="stats_overlay_options_description">성능 통계 오버레이에 표시할 정보 설정</string>
+    <string name="show_fps">FPS 표시</string>
+    <string name="show_fps_description">현재 초당 프레임 수 표시</string>
+    <string name="show_frametime">프레임 시간 표시</string>
+    <string name="show_frametime_description">현재 프레임 시간 표시</string>
+    <string name="show_app_ram_usage">앱 RAM 사용량 표시</string>
+    <string name="show_app_ram_usage_description">에뮬레이터가 사용 중인 RAM 양 표시</string>
+    <string name="show_system_ram_usage">시스템 RAM 사용량 표시</string>
+    <string name="show_system_ram_usage_description">시스템이 사용 중인 RAM 양 표시</string>
+    <string name="show_bat_temperature">배터리 온도 표시</string>
+    <string name="show_bat_temperature_description">현재 배터리 온도 표시</string>
+    <string name="bat_temperature_unit">배터리 온도 단위</string>
+    <string name="show_power_info">배터리 정보 표시</string>
+    <string name="show_power_info_description">현재 전력 소모량 및 배터리 잔량 표시</string>
+    <string name="show_shaders_building">셰이더 빌드 표시</string>
+    <string name="show_shaders_building_description">현재 빌드 중인 셰이더 수 표시</string>
+    <string name="overlay_position">오버레이 위치</string>
+    <string name="overlay_position_description">성능 통계 오버레이의 화면 표시 위치 선택</string>
+    <string name="overlay_position_top_left">상단 왼쪽</string>
+    <string name="overlay_position_top_right">상단 오른쪽</string>
+    <string name="overlay_position_bottom_left">하단 왼쪽</string>
+    <string name="overlay_position_bottom_right">하단 오른쪽</string>
+    <string name="overlay_position_center_top">중앙 상단</string>
+    <string name="overlay_position_center_bottom">중앙 하단</string>
+    <string name="perf_overlay_background">오버레이 배경</string>
+    <string name="perf_overlay_background_description">가독성을 위해 오버레이 배경 추가</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">장치 정보 오버레이 표시</string>
+    <string name="enable_soc_overlay">장치 오버레이 활성화</string>
+    <string name="soc_overlay_options">장치 오버레이</string>
+    <string name="soc_overlay_options_description">장치 오버레이에 표시할 정보 구성</string>
+
+    <string name="show_device_model">장치 모델 표시</string>
+    <string name="show_device_model_description">호스트 장치 모델 표시</string>
+    <string name="show_gpu_model">GPU 모델 표시</string>
+    <string name="show_gpu_model_description">호스트 GPU 모델 표시</string>
+    <string name="show_soc_model">SoC 모델 표시</string>
+    <string name="show_soc_model_description">호스트 SoC 모델 표시</string>
+    <string name="show_fw_version">펌웨어 버전 표시</string>
+    <string name="show_fw_version_description">설치된 펌웨어 버전을 표시합니다</string>
+
+    <!-- Eden\'s Veil -->
+    <string name="eden_veil">에덴의 베일</string>
+    <string name="eden_veil_description">성능 및 기능을 향상시키기 위한 실험적 설정. 이 설정은 검은 화면 또는 기타 게임 문제를 일으킬 수 있습니다.</string>
+
+    <string name="veil_extensions">GPU 확장 기능</string>
+    <string name="dyna_state">확장 동적 상태</string>
+    <string name="dyna_state_description">확장 동적 상태에서 사용할 수 있는 기능의 수를 제어합니다. 높은 값은 더 많은 기능을 허용하고 성능을 높일 수 있지만, 일부 드라이버 및 벤더에서 문제를 일으킬 수 있습니다. 기본값은 시스템 및 하드웨어 기능에 따라 다를 수 있습니다. 안정성과 더 나은 시각적 품질이 달성될 때까지 이 값을 변경할 수 있습니다.</string>
+    <string name="disabled">비활성화됨</string>
+    <string name="provoking_vertex">프로보킹 버텍스</string>
+    <string name="provoking_vertex_description">일부 게임에서 조명과 버텍스 처리를 개선합니다. Vulkan 1.0+ GPU에서만 지원됩니다.</string>
+    <string name="descriptor_indexing">디스크립터 인덱싱</string>
+    <string name="descriptor_indexing_description">텍스처 및 버퍼 처리와 Maxwell 변환 레이어를 개선합니다. 일부 Vulkan 1.1 GPU 및 모든 Vulkan 1.2+ GPU에서 지원됩니다.</string>
+    <string name="sample_shading">샘플 쉐이딩</string>
+    <string name="sample_shading_description">멀티샘플 프래그먼트에서 프래그먼트 쉐이더가 프래그먼트당 한 번이 아니라 샘플당 실행되도록 합니다. 성능을 희생하여 그래픽 품질을 향상시킵니다. Vulkan 1.1+ 장치만 이 확장을 지원합니다.</string>
+    <string name="sample_shading_fraction">샘플 쉐이딩 비율</string>
+    <string name="sample_shading_fraction_description">샘플 쉐이딩 패스의 강도. 값이 높을수록 품질이 더 향상되지만 성능도 더 크게 저하됩니다.</string>
+
+    <string name="veil_renderer">렌더러</string>
+    <string name="frame_interpolation">향상된 프레임 페이싱</string>
+    <string name="frame_interpolation_description">프레임 간 타이밍을 동기화하여 부드럽고 일관된 프레임 전달을 보장하며, 끊김과 불균일한 애니메이션을 줄입니다. 프레임 타이밍 불안정이나 게임 플레이 중 미세 끊김이 발생하는 게임에 이상적입니다.</string>
+    <string name="renderer_early_release_fences">펜스 조기 해제</string>
+    <string name="renderer_early_release_fences_description">DKCR:HD, Subnautica Below Zero, Ori 2 등의 게임에서 0 FPS 현상을 해결하지만, Unreal Engine 게임의 로딩이나 성능에 문제를 일으킬 수 있습니다.</string>
+    <string name="sync_memory_operations">메모리 작업 동기화</string>
+    <string name="sync_memory_operations_description">컴퓨팅 및 메모리 작업 간 데이터 일관성을 보장합니다. 이 옵션은 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능이 저하될 수 있습니다. Unreal Engine 4 게임이 가장 큰 영향을 받는 것으로 보입니다.</string>
+    <string name="buffer_reorder_disable">버퍼 재정렬 비활성화</string>
+    <string name="buffer_reorder_disable_description">체크 시, 매핑된 메모리 업로드의 재정렬을 비활성화하여 특정 그리기와 업로드를 연결할 수 있습니다. 경우에 따라 성능이 저하될 수 있습니다.</string>
+
+    <string name="veil_misc">CPU 및 메모리</string>
+    <string name="use_sync_core">코어 속도 동기화</string>
+    <string name="use_sync_core_description">코어 틱 속도를 최대 속도 백분율과 동기화하여 게임의 실제 속도를 변경하지 않고 성능을 향상시킵니다.</string>
+    <string name="use_lru_cache">LRU 캐시 사용</string>
+    <string name="use_lru_cache_description">LRU 캐시를 활성화 또는 비활성화하여 CPU 프로세스 사용을 절약하고 성능을 향상시킵니다. TotK 1.2.1을 포함한 일부 게임에서 문제가 발생할 수 있으므로 게임이 부팅되지 않거나 무작위로 충돌하는 경우 비활성화하세요.</string>
+    <string name="use_fast_cpu_time">빠른 CPU 시간</string>
+    <string name="use_fast_cpu_time_description">에뮬레이트된 CPU를 더 높은 클럭으로 실행하여 특정 FPS 제한기를 줄입니다. 이 옵션은 불안정하며 문제를 일으킬 수 있고, 약한 CPU는 성능 저하를 볼 수 있습니다.</string>
+    <string name="custom_cpu_ticks">사용자 정의 CPU 틱</string>
+    <string name="custom_cpu_ticks_description">CPU 틱의 사용자 정의 값을 설정합니다. 높은 값은 성능을 향상시킬 수 있지만 게임이 멈출 수도 있습니다. 77~21000 범위를 권장합니다.</string>
+    <string name="cpu_ticks">틱</string>
+    <string name="skip_cpu_inner_invalidation">CPU 내부 무효화 건너뛰기</string>
+    <string name="skip_cpu_inner_invalidation_description">메모리 업데이트 시 일부 CPU 측 캐시 무효화를 건너뛰어 CPU 사용량을 줄이고 성능을 향상시킵니다. 일부 게임에서 오류 또는 충돌을 일으킬 수 있습니다.</string>
+    <string name="cpuopt_unsafe_host_mmu">호스트 MMU 에뮬레이션 사용</string>
+    <string name="cpuopt_unsafe_host_mmu_description">이 최적화는 게스트 프로그램의 메모리 접근 속도를 높입니다. 활성화하면 게스트의 메모리 읽기/쓰기가 메모리에서 직접 수행되고 호스트의 MMU를 활용합니다. 비활성화하면 모든 메모리 접근에 소프트웨어 MMU 에뮬레이션을 사용하게 됩니다.</string>
+    <string name="fast_cpu_time">CPU 클럭</string>
+    <string name="fast_cpu_time_description">Boost (1700MHz)를 사용하여 Switch의 최고 네이티브 클럭으로 실행하거나 Fast (2000MHz)를 사용하여 2배 클럭으로 실행합니다.</string>
+    <string name="memory_layout">메모리 레이아웃</string>
+    <string name="memory_layout_description">(실험적) 에뮬레이트된 메모리 레이아웃을 변경합니다. 이 설정은 성능을 높이지 않지만 모드를 통해 고해상도를 사용하는 게임에 도움이 될 수 있습니다. 8GB 이하 RAM의 휴대폰에서는 사용하지 마십시오.</string>
+    <string name="dma_accuracy">DMA 정확도</string>
+    <string name="dma_accuracy_description">DMA 정밀도 정확도를 제어합니다. 안전한 정밀도는 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능에 영향을 미칠 수도 있습니다. 확실하지 않은 경우 기본값으로 두십시오.</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">셰이더 백엔드</string>
+    <string name="shader_backend_description">셰이더 컴파일 방식 선택</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">NVDEC 에뮬레이션</string>
+    <string name="nvdec_emulation_description">비디오 디코딩 처리 방식 선택</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">없음</string>
+
+    <!-- Optimize Spir-V output -->
+    <string name="never">안 함</string>
+    <string name="on_load">로드 시</string>
+    <string name="always">항상</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">멀티플레이어</string>
+    <string name="multiplayer_description">자신의 게임 방을 호스팅하거나 기존 방에 참여하여 다른 사람들과 플레이</string>
+    <string name="multiplayer_create_room">생성</string>
+    <string name="multiplayer_join_room">참가</string>
+    <string name="multiplayer_public_room">공개 방 보기</string>
+    <string name="multiplayer_username">사용자 이름</string>
+    <string name="multiplayer_ip_address">IP 주소</string>
+    <string name="multiplayer_ip_port">포트</string>
+    <string name="multiplayer_create_room_success">방 생성 성공</string>
+    <string name="multiplayer_join_room_success">방 참가 성공</string>
+    <string name="multiplayer_exit_room">방 나가기</string>
+    <string name="multiplayer_network_error">네트워크 오류</string>
+    <string name="multiplayer_lost_connection">연결 끊김</string>
+    <string name="multiplayer_name_collision">사용자 이름이 이미 사용 중입니다</string>
+    <string name="multiplayer_mac_collision">MAC 주소 충돌</string>
+    <string name="multiplayer_console_id_collision">콘솔 ID 충돌</string>
+    <string name="multiplayer_wrong_version">잘못된 버전</string>
+    <string name="multiplayer_wrong_password">잘못된 비밀번호</string>
+    <string name="multiplayer_could_not_connect">연결할 수 없음</string>
+    <string name="multiplayer_room_is_full">방이 가득 찼습니다</string>
+    <string name="multiplayer_host_banned">이 방에서 차단되었습니다</string>
+    <string name="multiplayer_permission_denied">권한 거부됨</string>
+    <string name="multiplayer_no_such_user">해당 사용자 없음</string>
+    <string name="multiplayer_already_in_room">이미 방에 참여 중</string>
+    <string name="multiplayer_create_room_error">방 생성 오류</string>
+    <string name="multiplayer_host_kicked">호스트 추방됨</string>
+    <string name="multiplayer_unknown_error">알 수 없는 오류</string>
+    <string name="multiplayer_room_uninitialized">방 초기화 안 됨</string>
+    <string name="multiplayer_room_idle">방 대기 중</string>
+    <string name="multiplayer_room_joining">방 참여 중...</string>
+    <string name="multiplayer_room_joined">방 참여 완료</string>
+    <string name="multiplayer_room_moderator">방 관리자</string>
+    <string name="multiplayer_member_join">%1$s 님이 참여했습니다</string>
+    <string name="multiplayer_member_leave">%1$s 님이 나갔습니다</string>
+    <string name="multiplayer_member_kicked">%1$s 님이 추방되었습니다</string>
+    <string name="multiplayer_member_banned">%1$s 님이 차단되었습니다</string>
+    <string name="multiplayer_address_unbanned">주소 차단 해제됨</string>
+    <string name="multiplayer_kick_member">추방</string>
+    <string name="multiplayer_password">비밀번호</string>
+    <string name="multiplayer_joining">참여 중...</string>
+    <string name="multiplayer_creating">생성 중...</string>
+    <string name="multiplayer_room_name">방 이름</string>
+    <string name="multiplayer_max_players_value">최대 플레이어: %d</string>
+    <string name="multiplayer_chat">채팅</string>
+    <string name="multiplayer_more_options">더 많은 옵션</string>
+    <string name="chat">채팅</string>
+    <string name="type_message">메시지 입력...</string>
+    <string name="send_message">메시지 보내기</string>
+    <string name="multiplayer_moderation">관리</string>
+    <string name="multiplayer_moderation_title">차단 목록</string>
+    <string name="multiplayer_no_bans">차단된 사용자가 없습니다</string>
+    <string name="multiplayer_unban_title">사용자 차단 해제</string>
+    <string name="multiplayer_unban">차단 해제</string>
+    <string name="multiplayer_unban_message">%1$s 님의 차단을 해제하시겠습니까?</string>
+    <string name="multiplayer_ban">사용자 차단</string>
+    <string name="multiplayer_room_browser">공개 방</string>
+    <string name="multiplayer_no_rooms_found">공개 방이 없습니다</string>
+    <string name="multiplayer_password_required">비밀번호 필요</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">게임</string>
+    <string name="multiplayer_no_game_info">모든 게임</string>
+    <string name="multiplayer_password_protected">비밀번호로 보호된 방</string>
+    <string name="multiplayer_hide_full_rooms">가득 찬 방 숨기기</string>
+    <string name="multiplayer_hide_empty_rooms">빈 방 숨기기</string>
+    <string name="multiplayer_tap_refresh_to_check_again">새로 고침을 눌러 다시 확인</string>
+    <string name="multiplayer_search_public_lobbies">방 검색...</string>
+    <string name="multiplayer_preferred_game_name">선호 게임</string>
+    <string name="multiplayer_lobby_type">로비 유형</string>
+    <string name="multiplayer_room_name_error">3~20자여야 합니다</string>
+    <string name="multiplayer_required">필수</string>
+    <string name="multiplayer_token_required">웹 토큰이 필요합니다. 고급 설정 -> 시스템 -> 네트워크로 이동하세요</string>
+    <string name="multiplayer_ip_error">잘못된 IP 형식</string>
+    <string name="multiplayer_username_error">4~20자의 영숫자, 마침표, 하이픈, 밑줄 및 공백만 포함해야 합니다</string>
+    <string name="multiplayer_nickname_invalid">사용자 이름이 유효하지 않습니다. 시스템 → 네트워크에서 올바르게 설정되었는지 확인하세요</string>
+    <string name="multiplayer_token_error">48자여야 하며, 소문자 a-z만 사용 가능</string>
+    <string name="multiplayer_port_error">1~65535 사이여야 합니다</string>
+    <string name="cancel">취소</string>
+    <string name="ok">확인</string>
+    <string name="refresh">새로 고침</string>
+    <string name="room_list">방 목록</string>
+    <string name="multiplayer_public_visibility">공개</string>
+    <string name="multiplayer_unlisted_visibility">비공개</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">환영합니다!</string>
+    <string name="welcome_description">&lt;b>Eden&lt;/b>를 설정하고 에뮬레이션을 시작하세요.</string>
+    <string name="get_started">시작하기</string>
+    <string name="keys">키 설정</string>
+    <string name="keys_description">아래 버튼으로 &lt;b>prod.keys&lt;/b> 파일을 선택합니다.</string>
+    <string name="select_keys">키 선택</string>
+    <string name="firmware">펌웨어</string>
+    <string name="select_firmware">펌웨어 선택</string>
+    <string name="games">게임</string>
+    <string name="games_description">아래 버튼으로 &lt;b>게임&lt;/b> 폴더를 선택합니다.</string>
+    <string name="done">완료</string>
+    <string name="text_continue">계속</string>
+    <string name="next">다음</string>
+    <string name="back">이전</string>
+    <string name="add_games">게임 추가</string>
+    <string name="step_complete">완료되었습니다!</string>
+
+    <!-- Home strings -->
+
+    <string name="alphabetical">알파벳순</string>
+    <string name="view_list">목록</string>
+    <string name="view_grid">격자</string>
+    <string name="view_carousel">캐러셀</string>
+    <string name="folder">폴더</string>
+    <string name="dont_show_again">다시 보지 않기</string>
+    <string name="home_search">검색</string>
+    <string name="home_settings">설정</string>
+    <string name="empty_gamelist">파일을 찾을 수 없거나 아직 게임 디렉터리를 선택하지 않았습니다.</string>
+    <string name="manage_game_folders">게임 폴더 관리</string>
+    <string name="select_games_folder_description">Eden에 게임 목록 추가하기</string>
+    <string name="add_games_warning">게임 폴더 선택을 건너뛰겠습니까?</string>
+    <string name="add_games_warning_description">폴더를 선택하지 않으면 게임 목록에 게임이 표시되지 않습니다.</string>
+    <string name="home_search_games">게임 검색</string>
+    <string name="search_settings">검색 설정</string>
+    <string name="install_prod_keys">prod.keys 설치</string>
+    <string name="install_prod_keys_description">패키지 게임 암호 해독에 필요</string>
+    <string name="install_prod_keys_warning">키 추가를 건너뛰겠습니까?</string>
+    <string name="install_prod_keys_warning_description">패키지 게임을 에뮬레이트하려면 유효한 키 값이 필요합니다. 이 단계를 건너뛰면 홈브류 게임만 실행할 수 있습니다.</string>
+    <string name="install_firmware_warning">펌웨어 추가를 건너뛰시겠습니까?</string>
+    <string name="install_firmware_warning_description">많은 게임이 제대로 작동하려면 펌웨어에 액세스해야 합니다.</string>
+    <string name="notifications">알림</string>
+    <string name="notifications_description">아래 버튼으로 알림 권한을 부여합니다.</string>
+    <string name="give_permission">알림 켜기</string>
+    <string name="notification_warning">알림을 끄겠습니까?</string>
+    <string name="notification_warning_description">Eden가 중요한 정보를 알려드리지 않습니다.</string>
+    <string name="permission_denied">권한 거부됨</string>
+    <string name="permission_denied_description">권한 허용을 너무 많이 거부하여 시스템 설정에서 수동으로 권한을 부여해야 합니다.</string>
+    <string name="about">정보</string>
+    <string name="about_description">빌드 버전, 크레딧 등</string>
+    <string name="warning_help">도움말</string>
+    <string name="warning">경고</string>
+    <string name="warning_skip">건너뛰기</string>
+    <string name="warning_cancel">취소</string>
+    <string name="install_amiibo_keys">amiibo 키 설치</string>
+    <string name="install_amiibo_keys_description">게임에서 amiibo 사용 시 필요</string>
+    <string name="gpu_driver_fetcher">GPU 드라이버 페처</string>
+    <string name="gpu_driver_manager">GPU 드라이버 관리자</string>
+    <string name="install_gpu_driver_description">잠재적인 성능 또는 정확도 개선을 위해 대체 드라이버 설치</string>
+    <string name="advanced_settings">고급 설정</string>
+    <string name="settings_description">에뮬레이터 설정 구성</string>
+    <string name="search_recently_played">최근 플레이</string>
+    <string name="search_recently_added">최근 추가</string>
+    <string name="open_user_folder">Eden 폴더 열기</string>
+    <string name="open_user_folder_description">Eden의 내부 파일 관리</string>
+    <string name="no_file_manager">파일 관리자를 찾을 수 없음</string>
+    <string name="notification_no_directory_link">Eden 디렉터리를 열 수 없음</string>
+    <string name="notification_no_directory_link_description">파일 관리자의 사이드 패널에서 사용자 폴더를 수동으로 찾아주세요.</string>
+    <string name="manage_save_data">세이브 데이터 관리</string>
+    <string name="manage_save_data_description">세이브 데이터를 발견했습니다. 아래에서 옵션을 선택하세요.</string>
+    <string name="import_save_warning">세이브 데이터 가져오기</string>
+    <string name="import_save_warning_description">이 작업은 기존 데이터 전체를 선택한 파일로 덮어씌웁니다. 계속하시겠습니까?</string>
+    <string name="save_files_importing">세이브 파일 가져오는 중...</string>
+    <string name="save_files_exporting">세이브 파일 내보내는 중...</string>
+    <string name="save_file_imported_success">데이터를 불러왔습니다.</string>
+    <string name="save_file_invalid_zip_structure">올바르지 않은 저장 디렉터리 구조</string>
+    <string name="save_file_invalid_zip_structure_description">첫 번째 하위 폴더 이름은 게임의 타이틀 ID여야 합니다.</string>
+    <string name="install_firmware">펌웨어 설치</string>
+    <string name="install_firmware_description">펌웨어는 ZIP 파일이며 일부 게임을 부팅하는 데 필요합니다.</string>
+    <string name="firmware_installing">펌웨어 설치 중...</string>
+    <string name="firmware_installed_failure">펌웨어 설치 실패</string>
+    <string name="firmware_installed_failure_description">펌웨어 NCA 파일이 ZIP 파일의 루트 디렉토리에 위치한지 확인하고 다시 시도하세요.</string>
+    <string name="share_log">디버그 로그 공유</string>
+    <string name="share_log_description">문제 해결을 위한 Eden 로그 파일 공유</string>
+    <string name="share_log_missing">로그 파일을 찾을 수 없습니다.</string>
+    <string name="install_game_content">게임 콘텐츠 설치</string>
+    <string name="install_game_content_description">게임 업데이트 또는 DLC 설치</string>
+    <string name="installing_game_content">콘텐츠 설치 중...</string>
+    <string name="install_game_content_failure">NAND에 파일을 설치하는 동안 오류 발생</string>
+    <string name="install_game_content_failure_description">콘텐츠가 유효하고 prod.keys가 설치되었는지 확인하세요.</string>
+    <string name="install_game_content_failure_base">충돌을 방지하기 위해 기본 게임 설치는 허용되지 않습니다.</string>
+    <string name="install_game_content_failed_count">%1$d개의 설치 오류</string>
+    <string name="install_game_content_success">게임 콘텐츠 설치됨</string>
+    <string name="install_game_content_success_install">%1$d개를 설치했습니다.</string>
+    <string name="install_game_content_success_overwrite">%1$d개를 덮어씌웠습니다.</string>
+    <string name="custom_driver_not_supported">사용자 지정 드라이버는 지원하지 않습니다.</string>
+    <string name="manage_yuzu_data">Eden 데이터 관리</string>
+    <string name="manage_yuzu_data_description">펌웨어, 키 값, 유저 데이터 등을 가져오기 또는 내보내기</string>
+    <string name="game_folders">게임 폴더</string>
+    <string name="deep_scan">딥 스캔(하위 폴더 탐색)</string>
+    <string name="add_game_folder">게임 폴더 추가</string>
+    <string name="folder_already_added">이 폴더는 이미 추가되어 있습니다!</string>
+    <string name="game_folder_properties">게임 폴더 속성</string>
+    <plurals name="saves_import_failed">
+        <item quantity="other">%d개의 세이브 가져오기 실패</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="other">%d개의 세이브를 가져왔습니다.</item>
+    </plurals>
+    <string name="no_save_data_found">세이브 데이터를 찾을 수 없음</string>
+    <string name="verify_installed_content">설치된 콘텐츠 인증</string>
+    <string name="verify_installed_content_description">전체 설치된 콘텐츠의 손상을 확인합니다.</string>
+
+    <string name="keys_missing">암호화 키를 찾을 수 없음</string>
+    <string name="keys_missing_description">펌웨어 및 패키지 게임을 해독할 수 없음</string>
+    <string name="uninstall_firmware">펌웨어 제거</string>
+    <string name="uninstall_firmware_description">펌웨어를 제거하면 기기에서 삭제되며 게임 호환성에 영향을 줄 수 있습니다.</string>
+    <string name="firmware_uninstalling">펌웨어 제거 중...</string>
+    <string name="firmware_uninstalled_success">펌웨어가 성공적으로 제거되었습니다</string>
+
+
+    <string name="keys_failed">키 설치 실패</string>
+    <string name="keys_install_success">키가 성공적으로 설치됨</string>
+    <string name="error_keys_copy_failed">하나 이상의 키를 복사하지 못했습니다.</string>
+    <string name="error_keys_invalid_filename">키 파일에 .keys 확장자가 있는지 확인하고 다시 시도하세요.</string>
+    <string name="error_keys_failed_init">키 초기화에 실패했습니다. 덤프 도구가 최신 상태인지 확인하고 키를 다시 덤프하세요.</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">시스템 홈 화면에서 애플리케이션 실행</string>
+    <string name="applets">애플릿 런처</string>
+    <string name="applets_description">설치된 펌웨어를 사용해 시스템 애플릿을 실행합니다.</string>
+    <string name="applets_error_firmware">펌웨어가 설치되지 않았거나 유효하지 않은 버전입니다</string>
+    <string name="applets_error_applet">애플릿을 사용할 수 없음</string>
+    <string name="applets_error_description"><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 파일과 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">펌웨어</a>가 설치되어 있는지 확인하고 다시 시도하세요.<br>또한 펌웨어 버전이 19.0.1 이하인지 확인하세요.]]></string>
+    <string name="album_applet">앨범</string>
+    <string name="album_applet_description">시스템 사진 뷰어로 유저 스크린샷 폴더에 저장된 이미지를 확인합니다. </string>
+    <string name="mii_edit_applet">Mii 편집</string>
+    <string name="mii_edit_applet_description">시스템 에디터로 Mii를 보고 편집합니다.</string>
+    <string name="cabinet_applet">캐비닛</string>
+    <string name="cabinet_applet_description">amiibo에 저장된 데이터를 편집하고 삭제합니다.</string>
+    <string name="cabinet_launcher">캐비닛 런처</string>
+    <string name="cabinet_nickname_and_owner">닉네임 및 소유자 설정</string>
+    <string name="cabinet_game_data_eraser">게임 데이터 삭제</string>
+    <string name="cabinet_restorer">복원</string>
+    <string name="cabinet_formatter">포맷터</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">가이아는 진짜가 아님</string>
+    <string name="copied_to_clipboard">클립보드에 복사되었습니다.</string>
+    <string name="about_app_description">오픈 소스 Switch 에뮬레이터</string>
+    <string name="contributors">기여자</string>
+    <string name="contributors_description">Eden 팀의 \u2764로 제작</string>
+    <string name="licenses_description">Android용 Eden를 가능하게 하는 프로젝트</string>
+    <string name="build">빌드</string>
+    <string name="user_data">유저 데이터</string>
+    <string name="exporting_user_data">유저 데이터 내보내는 중...</string>
+    <string name="importing_user_data">유저 데이터 가져오는 중...</string>
+    <string name="invalid_yuzu_backup">올바르지 않은 Eden 백업 파일</string>
+    <string name="user_data_export_success">유저 데이터를 내보냈습니다.</string>
+    <string name="user_data_import_success">유저 데이터를 가져왔습니다.</string>
+    <string name="user_data_export_cancelled">내보내기 취소됨</string>
+    <string name="user_data_import_failed_description">유저 데이터 폴더가 ZIP 폴더의 루트 디렉토리에 위치하고 config/config.ini 구성 파일이 있는지 확인하고 다시 시도하세요.</string>
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">속도 제한</string>
+    <string name="frame_limit_enable_description">에뮬레이션 속도를 정상 속도의 지정된 비율로 제한합니다.</string>
+    <string name="frame_limit_slider">속도 제한 비율</string>
+    <string name="frame_limit_slider_description">에뮬레이션 속도의 제한 비율을 지정합니다. 100%가 정상 속도입니다. 값이 높거나 낮으면 속도 제한이 증가하거나 감소합니다.</string>
+    <string name="cpu_backend">CPU 백엔드</string>
+    <string name="cpu_accuracy">CPU 정확도</string>
+    <string name="value_with_units">%1$s%2$s</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">장치 이름</string>
+    <string name="use_docked_mode">독 모드</string>
+    <string name="use_docked_mode_description">해상도를 높이며 성능이 저하됩니다. 비활성화시 휴대 모드가 사용되며 해상도는 낮아지고 성능은 향상됩니다.</string>
+    <string name="emulated_region">에뮬레이트 지역</string>
+    <string name="emulated_language">에뮬레이트 언어</string>
+    <string name="select_rtc_date">RTC 날짜 선택</string>
+    <string name="select_rtc_time">RTC 시간 선택</string>
+    <string name="use_custom_rtc">사용자 지정 RTC</string>
+    <string name="use_custom_rtc_description">현재 시스템 시간과 별도로 사용자 지정 RTC를 설정할 수 있습니다.</string>
+    <string name="set_custom_rtc">사용자 지정 RTC 설정</string>
+
+    <string name="generate">생성</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">웹 토큰</string>
+    <string name="web_token_description">공개 방을 만들기 위해 사용되는 웹 토큰. a-z 소문자만 포함된 48자 문자열입니다.</string>
+    <string name="web_username">웹 사용자 이름</string>
+    <string name="web_username_description">멀티플레이어 방에 표시되는 사용자 이름. 4~20자의 영숫자, 하이픈, 마침표, 밑줄 및 공백만 포함해야 합니다.</string>
+    <string name="network">네트워크</string>
+
+    <!-- Graphics settings strings -->
+    <string name="backend">백엔드</string>
+    <string name="display">디스플레이</string>
+    <string name="processing">후처리</string>
+
+    <string name="frame_skipping">작업 중: 프레임 스킵</string>
+    <string name="frame_skipping_description">렌더링되는 프레임 수를 줄여 성능을 향상시키기 위해 프레임 스킵을 전환합니다. 이 기능은 현재 개발 중이며 향후 출시 버전에서 활성화될 예정입니다.</string>
+    <string name="renderer_accuracy">정확도 수준</string>
+    <string name="renderer_resolution">해상도 (휴대 모드/독 모드)</string>
+    <string name="renderer_vsync">수직동기화 모드</string>
+    <string name="renderer_screen_layout">화면 방향</string>
+    <string name="renderer_aspect_ratio">화면비</string>
+    <string name="renderer_scaling_filter">윈도우 적응 필터</string>
+    <string name="renderer_anti_aliasing">안티에일리어싱 방법</string>
+    <string name="renderer_force_max_clock">최대 클럭 강제 설정 (아드레노 전용)</string>
+    <string name="renderer_force_max_clock_description">GPU가 가능한 최대 클럭으로 실행되도록 강제합니다 (열 제약 조건은 여전히 적용됩니다).</string>
+    <string name="renderer_optimize_spirv_output">Spir-V 출력 최적화</string>
+    <string name="renderer_optimize_spirv_output_description">컴파일된 셰이더를 최적화하여 GPU 효율성을 향상시킵니다.</string>
+    <string name="renderer_asynchronous_shaders">비동기 셰이더 사용</string>
+    <string name="renderer_asynchronous_shaders_description">셰이더를 비동기적으로 컴파일합니다. 이로 인해 끊김 현상이 줄어들 수 있지만 그래픽 오류가 발생할 수도 있습니다.</string>
+    <string name="use_fast_gpu_time">빠른 GPU 시간 사용</string>
+    <string name="use_fast_gpu_time_description">대부분의 게임을 최고 네이티브 해상도로 강제 실행합니다. 이 옵션은 불안정하여 문제를 일으킬 수 있습니다.</string>
+    <string name="fast_gpu_time">GPU 오버클럭 팩터</string>
+    <string name="fast_gpu_time_description">최대 성능을 위해 128을, 최대 그래픽 충실도를 위해 512를 사용하십시오.</string>
+    <string name="renderer_reactive_flushing">반응형 플러싱 사용</string>
+    <string name="renderer_reactive_flushing_description">일부 게임에서 성능 저하를 감수하고 렌더링 정확도를 향상합니다.</string>
+    <string name="use_disk_shader_cache">디스크 셰이더 캐시</string>
+    <string name="use_disk_shader_cache_description">생성된 셰이더를 로컬에 저장하고 로드하여 끊김 현상을 줄입니다.</string>
+    <string name="anisotropic_filtering">비등방성 필터링</string>
+    <string name="anisotropic_filtering_description">경사각에서 보이는 텍스처의 품질을 향상시킵니다.</string>
+
+    <string name="warning_resolution">해상도를 2x 이상으로 스케일링하면 문제가 발생할 수 있으며 기기가 크게 느려질 수 있습니다.</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="use_auto_stub">자동 스텁 사용</string>
+    <string name="use_auto_stub_description">누락된 서비스와 기능을 자동으로 스텁합니다. 호환성을 개선할 수 있지만 충돌과 안정성 문제를 일으킬 수 있습니다.</string>
+
+    <string name="gpu">GPU</string>
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">그래픽 디버깅</string>
+    <string name="renderer_debug_description">그래픽 API를 느린 디버깅 모드로 설정합니다.</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">로깅</string>
+    <string name="flush_by_line">디버그 로그를 줄별로 플러시</string>
+    <string name="flush_by_line_description">디버그 로그를 각 줄마다 플러시하여 충돌 또는 정지 시 디버깅을 용이하게 합니다.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">출력 엔진</string>
+    <string name="audio_volume">볼륨</string>
+    <string name="audio_volume_description">오디오 출력의 볼륨을 지정합니다.</string>
+
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">+</string>
+    <string name="button_minus">-</string>
+    <string name="button_home">홈</string>
+    <string name="button_capture">캡쳐</string>
+    <string name="dpad">십자패드</string>
+    <string name="up">위</string>
+    <string name="down">아래</string>
+    <string name="left">왼쪽</string>
+    <string name="right">오른쪽</string>
+    <string name="left_stick">L 스틱</string>
+    <string name="right_stick">R 스틱</string>
+    <string name="c_stick">C-Stick</string>
+    <string name="pressed">누르기</string>
+    <string name="range">범위</string>
+    <string name="deadzone">데드존</string>
+    <string name="modifier">수정자</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">유효하지않음</string>
+    <string name="pro_controller">프로 컨트롤러</string>
+    <string name="handheld">휴대 모드</string>
+    <string name="dual_joycons">듀얼 조이콘</string>
+    <string name="left_joycon">왼쪽 조이콘</string>
+    <string name="right_joycon">오른쪽 조이콘</string>
+    <string name="gamecube_controller">GameCube 컨트롤러</string>
+    <string name="invert_axis">축 뒤집기</string>
+    <string name="invert_button">버튼 반전</string>
+    <string name="toggle_button">토글 버튼</string>
+    <string name="turbo_button">터보 버튼</string>
+    <string name="set_threshold">임계값 설정</string>
+    <string name="toggle_axis">axis 토글</string>
+    <string name="connected">연결됨</string>
+    <string name="vibration">진동</string>
+    <string name="profile">프로필</string>
+    <string name="use_global_input_configuration">글로벌 입력 구성 사용</string>
+    <!-- Miscellaneous -->
+    <string name="slider_default">기본값</string>
+    <string name="loading">불러오는 중...</string>
+    <string name="shutting_down">종료하는 중...</string>
+    <string name="reset_setting_confirmation">이 설정을 기본값으로 재설정하겠습니까?</string>
+    <string name="reset_to_default">기본값으로 재설정</string>
+    <string name="reset_to_default_description">모든 고급 설정 초기화</string>
+    <string name="reset_all_settings">모든 설정을 초기화하겠습니까?</string>
+    <string name="reset_all_settings_description">모든 고급 설정이 기본 구성으로 재설정됩니다. 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="settings_reset">설정을 초기화했습니다.</string>
+    <string name="close">닫기</string>
+    <string name="learn_more">자세히</string>
+    <string name="auto">자동</string>
+    <string name="submit">제출</string>
+    <string name="string_null">Null</string>
+    <string name="string_import">가져오기</string>
+    <string name="export">내보내기</string>
+    <string name="export_failed">내보내기 실패</string>
+    <string name="import_failed">가져오기 실패</string>
+    <string name="cancelling">취소하는 중</string>
+    <string name="install">설치</string>
+    <string name="fetch">가져오기</string>
+    <string name="delete">삭제</string>
+    <string name="edit">편집</string>
+    <string name="export_success">데이터를 내보냈습니다.</string>
+    <string name="start">시작</string>
+    <string name="global">글로벌</string>
+    <string name="custom">커스텀</string>
+    <string name="import_complete">가져오기 완료</string>
+    <string name="use_global_setting">글로벌 설정 사용</string>
+    <string name="operation_completed_successfully">작업이 완료되었습니다.</string>
+    <string name="save">저장</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver_default">기본값</string>
+    <string name="select_gpu_driver_error">잘못된 드라이버가 선택되었습니다.</string>
+    <string name="driver_already_installed">이미 설치된 드라이버입니다.</string>
+    <string name="system_gpu_driver">시스템 GPU 드라이버</string>
+    <string name="installing_driver">드라이버 설치 중...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="show_releases">릴리스 표시</string>
+    <string name="failed_to_fetch">가져오기 실패</string>
+    <string name="error_during_fetch">가져오는 중 오류 발생</string>
+    <string name="show_downloads">다운로드 표시</string>
+    <string name="hide_downloads">다운로드 숨기기</string>
+    <string name="failed_cache_dir">캐시 디렉터리를 사용할 수 없음</string>
+    <string name="empty_response_body">빈 응답 본문</string>
+    <string name="successfully_installed">%1$s 성공적으로 설치됨</string>
+    <string name="driver_failed_title">드라이버 설치 실패</string>
+    <string name="failed_install_driver">%1$s 드라이버 설치 실패, 시스템이 지원합니까?</string>
+    <string name="driver_empty">다운로드한 드라이버가 비어 있습니다, 인터넷 연결을 확인하세요</string>
+    <string name="downloading">다운로드 중…</string>
+    <string name="installing">설치 중…</string>
+    <string name="latest">최신</string>
+    <string name="recommended_driver">추천 드라이버:</string>
+    <string name="gpu_model">GPU 모델:</string>
+    <string name="unsupported_gpu">지원되지 않는 GPU</string>
+    <string name="unsupported_gpu_warning">GPU가 드라이버 주입을 지원하지 않습니다. 사용자 정의 드라이버 설정은 권장되지 않습니다.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">설정</string>
+    <string name="preferences_system">시스템</string>
+    <string name="preferences_system_description">독 모드, 지역, 언어</string>
+    <string name="preferences_graphics">그래픽</string>
+    <string name="preferences_graphics_description">정확도 수준, 해상도, 셰이더 캐시</string>
+    <string name="preferences_audio">오디오</string>
+    <string name="preferences_audio_description">출력 엔진, 불륨</string>
+    <string name="preferences_controls">조작</string>
+    <string name="preferences_debug">디버그</string>
+    <string name="preferences_debug_description">CPU/GPU 디버깅, 그래픽 API, Fastmem</string>
+
+    <!-- Game properties -->
+    <string name="info">정보</string>
+    <string name="info_description">프로그램 ID, 개발자, 버전</string>
+    <string name="per_game_settings">게임별 설정</string>
+    <string name="per_game_settings_description">현재 게임에 적용되는 설정을 편집합니다.</string>
+    <string name="launch_options">실행 구성</string>
+    <string name="path">경로</string>
+    <string name="program_id">프로그램 ID</string>
+    <string name="developer">개발자</string>
+    <string name="version">버전</string>
+    <string name="copy_details">세부사항 복사</string>
+    <string name="add_ons">부가 기능</string>
+    <string name="add_ons_description">모드, 업데이트 및 DLC 전환하기</string>
+    <string name="clear_shader_cache">셰이더 캐시 비우기</string>
+    <string name="clear_shader_cache_description">현재 게임을 실행하는 중에 생성된 모든 셰이더를 삭제합니다.</string>
+    <string name="clear_shader_cache_warning_description">셰이더 캐시가 재생성되어 게임이 버벅일 수 있습니다.</string>
+    <string name="cleared_shaders_successfully">셰이더를 비웠습니다.</string>
+    <string name="addons_game">애드온: %1$s</string>
+    <string name="save_data">세이브 데이터</string>
+    <string name="save_data_description">현재 게임에 사용되는 세이브 데이터를 관리합니다.</string>
+    <string name="delete_save_data">세이브 데이터 삭제하기</string>
+    <string name="delete_save_data_description">현재 게임에 사용되는 모든 세이브 데이터를 삭제합니다.</string>
+    <string name="delete_save_data_warning_description">이 작업은 현재 게임의 세이브 데이터를 모두 삭제하고 되돌릴 수 없습니다. 계속하시겠습니까?</string>
+    <string name="save_data_deleted_successfully">세이브 데이터를 삭제했습니다.</string>
+    <string name="select_content_type">콘텐츠 형태</string>
+    <string name="updates_and_dlc">업데이트 및 DLC</string>
+    <string name="mods_and_cheats">모드 및 치트</string>
+    <string name="addon_notice">중요 애드온 알림</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="addon_notice_description">모드와 치트를 설치하려면 cheats/, romfs/, 또는 exefs/ 디렉토리를 포함하는 폴더를 선택해야 합니다. 게임과의 호환 여부를 확인할 수 없기 때문에 신중하게 결정하세요.</string>
+    <string name="invalid_directory">잘못된 디렉토리</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="invalid_directory_description">선택한 디렉토리가 cheats/, romfs/, 또는 exefs/ 폴더를 포함하는지 확인하고 다시 시도하세요.</string>
+    <string name="addon_installed_successfully">애드온을 설치했습니다.</string>
+    <string name="verifying_content">콘텐츠 확인 중...</string>
+    <string name="content_install_notice">콘텐츠 설치 안내</string>
+    <string name="confirm_uninstall">제거 확인</string>
+    <string name="confirm_uninstall_description">이 애드온을 제거하시겠습니까?</string>
+    <string name="verify_integrity">무결성 인증</string>
+    <string name="verifying">인증 중...</string>
+    <string name="verify_success">무결성 인증에 성공했습니다.</string>
+    <string name="verify_failure">무결성 인증에 실패했습니다.</string>
+    <string name="verify_failure_description">파일 콘텐츠가 손상되었을 수 있습니다.</string>
+    <string name="verify_no_result">무결성 인증을 진행할 수 없습니다.</string>
+    <string name="verify_no_result_description">파일 콘텐츠의 유효성 검사가 진행되지 않았습니다.</string>
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">롬 파일이 암호화되어있음</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">게임 카드</a> 또는 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">디지털 타이틀</a>을 다시 덤프하려면 가이드를 따르세요.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[게임을 해독할 수 있도록 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 파일이 설치되어 있는지 확인하세요.]]></string>
+    <string name="loader_error_video_core">비디오 코어를 초기화하는 동안 오류 발생</string>
+    <string name="loader_error_video_core_description">일반적으로 이 문제는 호환되지 않는 GPU 드라이버로 인해 발생합니다. 사용자 지정 GPU 드라이버를 설치하면 이 문제가 해결될 수 있습니다.</string>
+    <string name="loader_error_file_not_found">롬 파일이 존재하지 않음</string>
+
+    <string name="loader_requires_firmware">게임에 펌웨어가 필요합니다</string>
+    <string name="loader_requires_firmware_description"><![CDATA[실행하려는 게임은 부팅하거나 시작 메뉴를 통과하기 위해 펌웨어가 필요합니다. <a href=\"https://yuzu-mirror.github.io/help/quickstart\">펌웨어를 덤프하여 설치</a>하거나 \"확인\"을 눌러 계속 진행하세요.]]></string>
+
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">게임 검색 중...</string>
+    <string name="game_not_found_for_title_id">타이틀 ID에 대한 게임을 찾을 수 없음: %1$s</string>
+    <string name="custom_settings_failed_title">사용자 지정 설정 실패</string>
+    <string name="custom_settings_failed_message">%1$s에 대한 사용자 지정 설정 적용 실패: %2$s</string>
+    <string name="launch_with_default_settings">기본 설정으로 실행</string>
+    <string name="launch_cancelled">실행 취소됨</string>
+    <string name="custom_settings_failure_reasons">요청한 설정을 적용할 수 없습니다. GPU 드라이버 누락 또는 구성 문제 때문일 수 있습니다.</string>
+    <string name="custom_settings_applied">사용자 지정 설정이 적용됨</string>
+    <string name="launching_game">%1$s 실행 중...</string>
+    <string name="failed_to_initialize_game">게임 초기화 실패</string>
+    <string name="custom_intent_launch_message_with_settings">%1$s을(를) 사용자 지정 설정으로 실행하시겠습니까?</string>
+    <string name="custom_intent_launch_message">%1$s을(를) 실행하시겠습니까?</string>
+    <string name="custom_intent_launch_title">게임 실행</string>
+    <string name="launch">실행</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">구성 파일 작성 실패</string>
+    <string name="config_apply_failed">구성 적용 실패</string>
+    <string name="config_already_exists_title">구성이 이미 존재함</string>
+    <string name="config_exists_prompt">기존 구성 확인 중...</string>
+    <string name="overwrite_cancelled">덮어쓰기 취소됨</string>
+    <string name="overwrite">덮어쓰기</string>
+
+    <!-- Driver strings -->
+    <string name="driver_not_found">필요한 드라이버가 설치되지 않았습니다: %s</string>
+    <string name="invalid_driver_file">잘못된 드라이버 파일: %s</string>
+    <string name="network_unavailable">사용 가능한 네트워크 연결이 없습니다. 인터넷 연결을 확인하고 다시 시도하십시오.</string>
+    <string name="driver_missing_title">GPU 드라이버 필요</string>
+    <string name="driver_download_cancelled">드라이버 다운로드가 취소되었습니다. 필요한 드라이버 없이는 게임을 실행할 수 없습니다.</string>
+    <string name="download">다운로드</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">에뮬레이션 종료</string>
+    <string name="emulation_done">완료</string>
+    <string name="emulation_toggle_controls">컨트롤러 선택</string>
+    <string name="emulation_rel_stick_center">스틱의 중심 이동</string>
+    <string name="emulation_dpad_slide">십자키 슬라이드</string>
+    <string name="emulation_haptics">터치 햅틱</string>
+    <string name="emulation_show_overlay">컨트롤러 표시</string>
+    <string name="emulation_hide_overlay">컨트롤러 숨기기</string>
+    <string name="emulation_toggle_all">모두 선택</string>
+    <string name="emulation_control_adjust">컨트롤러 조정</string>
+    <string name="emulation_control_scale">크기</string>
+    <string name="emulation_control_opacity">불투명도</string>
+    <string name="emulation_touch_overlay_reset">컨트롤러 설정 초기화</string>
+    <string name="emulation_touch_overlay_edit">컨트롤러 위치 편집</string>
+    <string name="emulation_pause">에뮬레이션 일시 중지</string>
+    <string name="emulation_unpause">에뮬레이션 일시 중지 해제</string>
+    <string name="emulation_input_overlay">화면 오버레이 설정</string>
+    <string name="touchscreen">터치 스크린</string>
+    <string name="lock_drawer">에뮬레이터 메뉴 잠금</string>
+    <string name="unlock_drawer">에뮬레이터 메뉴 잠금 해제</string>
+    <!-- Software keyboard -->
+    <string name="software_keyboard">소프트웨어 키보드</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">중단</string>
+    <string name="continue_button">계속</string>
+    <string name="system_archive_not_found">시스템 아카이브를 찾을 수 없음</string>
+    <string name="system_archive_general">시스템 아카이브</string>
+    <string name="save_load_error">저장하기/불러오기 오류</string>
+    <string name="fatal_error">치명적 오류</string>
+    <string name="memory_formatted">%1$s %2$s</string>
+    <string name="no_game_present">실행 가능한 게임이 없습니다!</string>
+
+    <!-- Region Names -->
+    <string name="region_japan">일본</string>
+    <string name="region_usa">미국</string>
+    <string name="region_europe">유럽</string>
+    <string name="region_australia">호주</string>
+    <string name="region_china">중국</string>
+    <string name="region_korea">대한민국</string>
+    <string name="region_taiwan">대만</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (권장)</string>
+    <string name="memory_6gb">6GB (안전하지 않음)</string>
+    <string name="memory_8gb">8GB (안전하지 않음)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_boost">부스트 (1700MHz)</string>
+    <string name="clock_fast">빠름 (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">낮음 (128)</string>
+    <string name="gpu_medium">중간 (256)</string>
+    <string name="gpu_high">높음 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">섭씨</string>
+    <string name="temperature_fahrenheit">화씨</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte_shorthand">B</string>
+    <string name="memory_kilobyte">KB</string>
+    <string name="memory_megabyte">MB</string>
+    <string name="memory_gigabyte">GB</string>
+    <string name="memory_terabyte">TB</string>
+    <string name="memory_petabyte">PB</string>
+    <string name="memory_exabyte">EB</string>
+
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">Vulcan</string>
+    <string name="renderer_none">없음</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">보통</string>
+    <string name="renderer_accuracy_high">높음</string>
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">기본값</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTC 디코딩 방법</string>
+    <string name="accelerate_astc_description">ASTC 압축 텍스처의 디코딩 방식을 선택하세요: CPU (느림, 안전), GPU (빠름, 권장), 또는 CPU 비동기 (끊김 없음, 문제 발생 가능)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU 비동기</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC 재압축 방법</string>
+    <string name="astc_recompression_description">ASTC 텍스처의 재압축 방식을 선택하여 호환성과 성능을 향상시킵니다. 이 옵션을 활성화하면 VRAM을 절약할 수 있지만 텍스처 품질이 저하될 수 있습니다.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">비압축</string>
+    <string name="astc_recompression_bc1">BC1 (저화질)</string>
+    <string name="astc_recompression_bc3">BC3 (중화질)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">VRAM 사용 모드</string>
+    <string name="vram_usage_mode_description">GPU 메모리 할당/해제 방식 선택</string>
+    <string name="vram_usage_conservative">보수적</string>
+    <string name="vram_usage_aggressive">적극적</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (느림)</string>
+    <string name="resolution_three">3X (2160p/3240p) (느림)</string>
+    <string name="resolution_four">4X (2880p/4320p) (느림)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">즉각 표시 (끄기)</string>
+    <string name="renderer_vsync_mailbox">메일박스</string>
+    <string name="renderer_vsync_fifo">FIFO (켜기)</string>
+    <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">최근접 보간</string>
+    <string name="scaling_filter_bilinear">쌍선형 보간</string>
+    <string name="scaling_filter_bicubic">쌍입방 보간</string>
+    <string name="scaling_filter_gaussian">가우시안</string>
+    <string name="scaling_filter_scale_force">ScaleForce</string>
+    <string name="scaling_filter_fsr">AMD FidelityFX™ 초고해상도</string>
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">없음</string>
+    <string name="anti_aliasing_fxaa">FXAA</string>
+    <string name="anti_aliasing_smaa">SMAA</string>
+
+    <!-- Screen Layouts -->
+    <string name="screen_layout_auto">자동</string>
+    <string name="screen_layout_sensor_landscape">가로 (방향 감지)</string>
+    <string name="screen_layout_landscape">가로</string>
+    <string name="screen_layout_reverse_landscape">가로 (역방향)</string>
+    <string name="screen_layout_sensor_portrait">세로 (방향 감지)</string>
+    <string name="screen_layout_portrait">세로</string>
+    <string name="screen_layout_reverse_portrait">세로 (역방향)</string>
+
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">기본 (16:9)</string>
+    <string name="ratio_force_four_three">강제 4:3</string>
+    <string name="ratio_force_twenty_one_nine">강제 21:9</string>
+    <string name="ratio_force_sixteen_ten">강제 16:10</string>
+    <string name="ratio_stretch">화면에 맞춤</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
+    <string name="cpu_backend_nce">네이티브 코드 실행 (NCE)</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">정확함</string>
+    <string name="cpu_accuracy_unsafe">최적화 (안전하지 않음)</string>
+    <string name="cpu_accuracy_paranoid">최적화하지 않음</string>
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">십자키</string>
+    <string name="gamepad_left_stick">L 스틱</string>
+    <string name="gamepad_right_stick">R 스틱</string>
+    <string name="gamepad_home">홈</string>
+    <string name="gamepad_screenshot">스크린샷</string>
+
+    <!-- Disk shader cache -->
+    <string name="building_shaders">셰이더 빌드 중</string>
+
+    <!-- App options -->
+    <string name="change_app_theme">앱 테마 변경</string>
+    <string name="theme_default">기본값</string>
+    <string name="theme_material_you">Material You</string>
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">다크 모드 설정</string>
+    <string name="theme_mode_follow_system">시스템 값 사용</string>
+    <string name="theme_mode_light">라이트 모드</string>
+    <string name="theme_mode_dark">다크 모드</string>
+
+    <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
+    <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">검정 배경</string>
+    <string name="use_black_backgrounds_description">어두운 테마 사용 시 검정 배경을 적용합니다.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">테마 색상</string>
+    <string name="violet">보라색 (기본값)</string>
+    <string name="blue">파란색</string>
+    <string name="cyan">시안</string>
+    <string name="red">빨간색</string>
+    <string name="green">초록색</string>
+    <string name="yellow">노란색</string>
+    <string name="orange">주황색</string>
+    <string name="pink">분홍색</string>
+    <string name="gray">회색</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">픽처 인 픽처 (Picture-in-Picture)</string>
+    <string name="picture_in_picture_description">앱을 백그라운드에서 실행할 때 창을 최소화합니다.</string>
+    <string name="pause">일시중지</string>
+    <string name="play">재생</string>
+    <string name="mute">음소거</string>
+    <string name="unmute">음소거 해제</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">수직 정렬</string>
+    <string name="top">상단</string>
+    <string name="center">중앙</string>
+    <string name="bottom">하단</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">애플릿</string>
+    <string name="applets_menu_description">(작업 중) 애플릿 프론트엔드 및 설정 변경</string>
+
+    <string name="applet_hle">사용자 정의 프론트엔드</string>
+    <string name="applet_lle">실제 애플릿</string>
+
+    <string name="swkbd_applet">소프트웨어 키보드</string>
+
+    <string name="airplane_mode">비행기 모드</string>
+    <string name="airplane_mode_description">비행기 모드를 Switch OS에 전달합니다</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">라이센스</string>
+    <string name="license_fidelityfx_fsr_description">AMD 고품질 업스케일링</string>
+    </resources>

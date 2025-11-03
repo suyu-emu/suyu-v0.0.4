@@ -1,0 +1,824 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="notice_notification_channel_name">התראות ותקלות</string>
+    <string name="notice_notification_channel_description">מציג התראות כאשר משהו הולך לא כשורה.</string>
+    <string name="notification_permission_not_granted">הרשאות התראות לא ניתנה!</string>
+    <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(משופר)</string>
+    <string name="process_ram">זיכרון תהליך: %1$d MB</string>
+    <string name="shaders_prefix">בונה</string>
+    <string name="shaders_suffix">שיידר(ים)</string>
+    <string name="charging">(בטעינה)</string>
+
+    <string name="system_info_label">מערכת:</string>
+    <string name="show_stats_overlay">הצג סטטיסטיקות ביצועים</string>
+    <string name="stats_overlay_customization">התאמה אישית</string>
+    <string name="stats_overlay_items">נראות</string>
+    <string name="stats_overlay_options">שכבה</string>
+    <string name="enable_stats_overlay_">הפעל סטטיסטיקות ביצועים</string>
+    <string name="stats_overlay_options_description">הגדר אילו פרטים יוצגו בשכבת הסטטיסטיקות</string>
+    <string name="show_fps">הצג FPS</string>
+    <string name="show_fps_description">מציג מספר פריימים לשנייה</string>
+    <string name="show_frametime">הצג זמן פריים</string>
+    <string name="show_frametime_description">מציג את זמן העיבוד לפריים</string>
+    <string name="show_app_ram_usage">הצג שימוש זיכרון</string>
+    <string name="show_app_ram_usage_description">הצג את כמות ה-RAM שהאמולטור משתמש בה</string>
+    <string name="show_system_ram_usage">הצג שימוש זיכרון מערכת</string>
+    <string name="show_system_ram_usage_description">הצג את כמות ה-RAM שבה המערכת משתמשת</string>
+    <string name="show_bat_temperature">הצג טמפרטורת סוללה</string>
+    <string name="show_bat_temperature_description">הצג טמפרטורת סוללה נוכחית</string>
+    <string name="bat_temperature_unit">יחידות טמפרטורת סוללה</string>
+    <string name="show_power_info">הצג מידע סוללה</string>
+    <string name="show_power_info_description">הצג צריכת חשמל נוכחית וקיבולת סוללה remaining</string>
+    <string name="show_shaders_building">הצג בניית שיידרים</string>
+    <string name="show_shaders_building_description">מציג את מספר השיידרים שנבנים כרגע</string>
+    <string name="overlay_position">מיקום שכבה</string>
+    <string name="overlay_position_description">בחר היכן להציג את שכבת הסטטיסטיקות על המסך</string>
+    <string name="overlay_position_top_left">פינה עליונה שמאלית</string>
+    <string name="overlay_position_top_right">פינה עליונה ימנית</string>
+    <string name="overlay_position_bottom_left">פינה תחתונה שמאלית</string>
+    <string name="overlay_position_bottom_right">פינה תחתונה ימנית</string>
+    <string name="overlay_position_center_top">מרכז עליון</string>
+    <string name="overlay_position_center_bottom">מרכז תחתון</string>
+    <string name="perf_overlay_background">רקע שכבה</string>
+    <string name="perf_overlay_background_description">מוסיף רקע לשכבה לקריאה נוחה יותר</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">הצג מידע על המכשיר</string>
+    <string name="enable_soc_overlay">הפעל הצגת מידע על המכשיר</string>
+    <string name="soc_overlay_options">הצגת מידע על המכשיר</string>
+    <string name="soc_overlay_options_description">הגדר אילו פרטים יוצגו בהצגת המידע על המכשיר</string>
+
+    <string name="show_device_model">הצג דגם מכשיר</string>
+    <string name="show_device_model_description">הצג את דגם המכשיר המארח</string>
+    <string name="show_gpu_model">הצג דגם GPU</string>
+    <string name="show_gpu_model_description">הצג את דגם ה-GPU המארח</string>
+    <string name="show_soc_model">הצג דגם SoC</string>
+    <string name="show_soc_model_description">הצג את דגם ה-SoC המארח</string>
+    <string name="show_fw_version">הצג גרסת קושחה</string>
+    <string name="show_fw_version_description">מציג את גרסת הקושחה המותקנת</string>
+
+    <!-- Eden\'s Veil -->
+    <string name="eden_veil">עדן וייל</string>
+    <string name="eden_veil_description">הגדרות ניסיוניות לשיפור ביצועים ויכולות. הגדרות אלו עלולות לגרום למסכים שחורים או לבעיות אחרות במשחק.</string>
+
+    <string name="veil_extensions">הרחבות GPU</string>
+    <string name="dyna_state">מצב דינמי מורחב</string>
+    <string name="dyna_state_description">שולט במספר התכונות שניתן להשתמש בהן במצב דינמי מורחב. מספרים גבוהים יותר מאפשרים יותר תכונות ויכולים לשפר את הביצועים, אך עלולים לגרום לבעיות עם כמה מנהלי התקנים וספקים. הערך המוגדר כברירת מחדל עשוי להשתנות בהתאם למערכת שלך ויכולות החומרה. ניתן לשנות ערך זה עד להשגת יציבות ואיכות ויזואלית טובה יותר.</string>
+    <string name="disabled">מושבת</string>
+    <string name="provoking_vertex">קודקוד מעורר</string>
+    <string name="provoking_vertex_description">משפר תאורה וטיפול בקודקודים במשחקים מסוימים. נתמך רק בכרטיסי מסך עם Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">אינדוקס תיאורים</string>
+    <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
+    <string name="sample_shading">דגימת צל</string>
+    <string name="sample_shading_description">מאפשר לשברי הצללה לרוץ לכל דגימה בקטע רב-דגימות במקום פעם אחת לקטע. משפר את איכות הגרפיקה במחיר של ביצועים. רק מכשירי Vulkan 1.1+ תומכים בהרחבה זו.</string>
+    <string name="sample_shading_fraction">שבר הצללה לדוגמה</string>
+    <string name="sample_shading_fraction_description">עוצמת מעבר ההצללה לדוגמה. ערכים גבוהים יותר משפרים את האיכות יותר אך גם מפחיתים את הביצועים במידה רבה יותר.</string>
+
+    <string name="veil_renderer">רנדרר</string>
+    <string name="frame_interpolation">סנכרון פריימים מתקדם</string>
+    <string name="frame_interpolation_description">מבטיח אספקה חלקה ועקבית של פריימים על ידי סנכרון התזמון ביניהם, מפחית קפיצות ואנימציה לא אחידה. אידיאלי למשחקים עם בעיות בתזמון פריימים או מיקרו-קפיצות במהלך המשחק.</string>
+    <string name="renderer_early_release_fences">שחרר גדרות מוקדם</string>
+    <string name="renderer_early_release_fences_description">עוזר לתקן 0 FPS במשחקים כמו DKCR:HD, Subnautica Below Zero ו-Ori 2, אך עלול לפגוע בטעינה או בביצועים במשחקי Unreal Engine.</string>
+    <string name="sync_memory_operations">סנכרון פעולות זיכרון</string>
+    <string name="sync_memory_operations_description">מבטיח עקביות נתונים בין פעולות חישוב וזיכרון. אפשרות זו אמורה לתקן בעיות במשחקים מסוימים, אך עלולה להפחית ביצועים במקרים מסוימים. נראה שהמשחקים עם Unreal Engine 4 הם המושפעים ביותר.</string>
+    <string name="buffer_reorder_disable">השבת סידור מחדש של חוצץ</string>
+    <string name="buffer_reorder_disable_description">כאשר מסומן, מבטל את סידור מחדש של העלאות זיכרון ממופה המאפשר לשייך העלאות עם ציורים ספציפיים. עלול להפחית ביצועים במקרים מסוימים.</string>
+
+    <string name="veil_misc">מעבד וזיכרון</string>
+    <string name="use_sync_core">סנכרון מהירות ליבה</string>
+    <string name="use_sync_core_description">סנכרן את מהירות הליבה לאחוז המהירות המרבי כדי לשפר ביצועים מבלי לשנות את מהירות המשחק בפועל.</string>
+    <string name="use_lru_cache">הפעלת מטמון LRU</string>
+    <string name="use_lru_cache_description">הפעל או השבת מטמון LRU לשיפור ביצועים על ידי חיסכון בשימוש במעבד. לחלק מהמשחקים כמו TotK 1.2.1 יש בעיות - השבת אם המשחק לא עולה או קורס באקראי.</string>
+    <string name="use_fast_cpu_time">זמן CPU מהיר</string>
+    <string name="use_fast_cpu_time_description">מכריח את ה-CPU המדומה לפעול במהירות שעון גבוהה יותר, מה שמפחית חלק ממגבילי ה-FPS. אפשרות זו אינה יציבה ועלולה לגרום לבעיות, ומעבדים חלשים יותר עשויים לראות ירידה בביצועים.</string>
+    <string name="custom_cpu_ticks">טיקי CPU מותאמים</string>
+    <string name="custom_cpu_ticks_description">הגדר ערך מותאם לטיקי CPU. ערכים גבוהים יותר עשויים לשפר ביצועים, אך גם עלולים לגרום להקפאת המשחק. מומלץ טווח של 77-21000.</string>
+    <string name="cpu_ticks">טיקים</string>
+    <string name="skip_cpu_inner_invalidation">דלג על איפוס מטמון פנימי של המעבד</string>
+    <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
+    <string name="cpuopt_unsafe_host_mmu">הפעל אמולציית MMU מארח</string>
+    <string name="cpuopt_unsafe_host_mmu_description">אופטימיזציה זו מאיצה את גישת הזיכרון על ידי התוכנית האורחת. הפעלתה גורמת לכך שפעולות קריאה/כתיבה לזיכרון האורח מתבצעות ישירות לזיכרון ומשתמשות ב-MMU של המארח. השבתת זאת מאלצת את כל גישות הזיכרון להשתמש באמולציית MMU תוכנתית.</string>
+    <string name="fast_cpu_time">מהירות שעון CPU</string>
+    <string name="fast_cpu_time_description">השתמש ב-Boost (1700MHz) כדי לפעול במהירות השעון הגבוהה ביותר של ה-Switch, או Fast (2000MHz) כדי לפעול במהירות כפולה.</string>
+    <string name="memory_layout">מבנה זיכרון</string>
+    <string name="memory_layout_description">(ניסיוני) שנה את מבנה הזיכרון המדומה. הגדרה זו לא תגדיל את הביצועים, אך עשויה לעזור במשחקים המשתמשים ברזולוציות גבוהות באמצעות מודים. אל תשתמש בטלפונים עם 8GB זיכרון RAM או פחות.</string>
+    <string name="dma_accuracy">דיוק DMA</string>
+    <string name="dma_accuracy_description">שולט בדיוק הדיוק של DMA. דיוק בטוח יכול לתקן בעיות בחלק מהמשחקים, אך הוא עלול גם להשפיע על הביצועים במקרים מסוימים. אם אינך בטוח, השאר זאת על ברירת מחדל.</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">מנוע שיידרים</string>
+    <string name="shader_backend_description">בחר כיצד לקמפל שיידרים</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">אמולציית NVDEC</string>
+    <string name="nvdec_emulation_description">בחר כיצד לטפל בפענוח וידאו</string>
+    <string name="nvdec_emulation_cpu">מעבד</string>
+    <string name="nvdec_emulation_gpu">כרטיס מסך</string>
+    <string name="nvdec_emulation_none">ללא</string>
+
+    <!-- Optimize Spir-V output -->
+    <string name="never">לעולם לא</string>
+    <string name="on_load">בטעינה</string>
+    <string name="always">תמיד</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">רב־משתתפים</string>
+    <string name="multiplayer_description">ארח חדר משחק משלך או הצטרף לחדר קיים כדי לשחק עם אנשים</string>
+    <string name="multiplayer_create_room">צור</string>
+    <string name="multiplayer_join_room">הצטרף</string>
+    <string name="multiplayer_public_room">עיין בחדרים ציבוריים</string>
+    <string name="multiplayer_username">שם משתמש</string>
+    <string name="multiplayer_ip_address">כתובת IP</string>
+    <string name="multiplayer_ip_port">פורט</string>
+    <string name="multiplayer_create_room_success">החדר נוצר בהצלחה</string>
+    <string name="multiplayer_join_room_success">הצטרפת לחדר בהצלחה</string>
+    <string name="multiplayer_exit_room">צא מהחדר</string>
+    <string name="multiplayer_network_error">שגיאת רשת</string>
+    <string name="multiplayer_lost_connection">החיבור אבד</string>
+    <string name="multiplayer_name_collision">שם משתמש כבר תפוס</string>
+    <string name="multiplayer_mac_collision">כתובת MAC כבר קיימת</string>
+    <string name="multiplayer_console_id_collision">מזהה קונסולה כבר קיים</string>
+    <string name="multiplayer_wrong_version">גרסה לא נכונה</string>
+    <string name="multiplayer_wrong_password">סיסמה לא נכונה</string>
+    <string name="multiplayer_could_not_connect">לא ניתן להתחבר</string>
+    <string name="multiplayer_room_is_full">החדר מלא</string>
+    <string name="multiplayer_host_banned">הוחרמת מחדר זה</string>
+    <string name="multiplayer_permission_denied">הרשאה נדחתה</string>
+    <string name="multiplayer_no_such_user">אין משתמש כזה</string>
+    <string name="multiplayer_already_in_room">כבר בחדר</string>
+    <string name="multiplayer_create_room_error">שגיאה ביצירת חדר</string>
+    <string name="multiplayer_host_kicked">מארח הוסר</string>
+    <string name="multiplayer_unknown_error">שגיאה לא ידועה</string>
+    <string name="multiplayer_room_uninitialized">חדר לא מאותחל</string>
+    <string name="multiplayer_room_idle">חדר לא פעיל</string>
+    <string name="multiplayer_room_joining">מצטרף לחדר...</string>
+    <string name="multiplayer_room_joined">הצטרפת לחדר</string>
+    <string name="multiplayer_room_moderator">מנהל חדר</string>
+    <string name="multiplayer_member_join">%1$s הצטרף</string>
+    <string name="multiplayer_member_leave">%1$s עזב</string>
+    <string name="multiplayer_member_kicked">%1$s הוסר</string>
+    <string name="multiplayer_member_banned">%1$s נחסם</string>
+    <string name="multiplayer_address_unbanned">כתובת שוחררה</string>
+    <string name="multiplayer_kick_member">הסר</string>
+    <string name="multiplayer_password">סיסמה</string>
+    <string name="multiplayer_joining">מצטרף...</string>
+    <string name="multiplayer_creating">יוצר...</string>
+    <string name="multiplayer_room_name">שם חדר</string>
+    <string name="multiplayer_max_players_value">מקסימום שחקנים: %d</string>
+    <string name="multiplayer_chat">צ\'אט</string>
+    <string name="multiplayer_more_options">אפשרויות נוספות</string>
+    <string name="chat">צ\'אט</string>
+    <string name="type_message">הקלד הודעה…</string>
+    <string name="send_message">שלח הודעה</string>
+    <string name="multiplayer_moderation">ניהול</string>
+    <string name="multiplayer_moderation_title">רשימת חסומים</string>
+    <string name="multiplayer_no_bans">אין משתמשים חסומים</string>
+    <string name="multiplayer_unban_title">שחרור משתמש</string>
+    <string name="multiplayer_unban">שחרר</string>
+    <string name="multiplayer_unban_message">האם לשחרר את %1$s?</string>
+    <string name="multiplayer_ban">חסום משתמש</string>
+    <string name="multiplayer_room_browser">חדרים ציבוריים</string>
+    <string name="multiplayer_no_rooms_found">לא נמצאו חדרים ציבוריים</string>
+    <string name="multiplayer_password_required">נדרשת סיסמה</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">משחק</string>
+    <string name="multiplayer_no_game_info">כל משחק</string>
+    <string name="multiplayer_password_protected">חדר עם סיסמה</string>
+    <string name="multiplayer_hide_full_rooms">הסתר חדרים מלאים</string>
+    <string name="multiplayer_hide_empty_rooms">הסתר חדרים ריקים</string>
+    <string name="multiplayer_tap_refresh_to_check_again">הקש לרענון לבדיקה מחדש</string>
+    <string name="multiplayer_search_public_lobbies">חפש חדרים...</string>
+    <string name="multiplayer_preferred_game_name">משחק מועדף</string>
+    <string name="multiplayer_lobby_type">סוג לובי</string>
+    <string name="multiplayer_room_name_error">חייב להיות בין 3-20 תווים</string>
+    <string name="multiplayer_required">נדרש</string>
+    <string name="multiplayer_token_required">נדרש אסימון אינטרנט, עבור להגדרות מתקדמות -> מערכת -> רשת</string>
+    <string name="multiplayer_ip_error">פורמט IP לא תקין</string>
+    <string name="multiplayer_username_error">חייב להכיל 4-20 תווים (אותיות, מספרים, נקודות, מקפים, קו תחתון ורווחים בלבד)</string>
+    <string name="multiplayer_nickname_invalid">שם משתמש לא תקין, ודא שהוא מוגדר כראוי במערכת → רשת</string>
+    <string name="multiplayer_token_error">חייב להיות באורך 48 תווים, ורק אותיות קטנות a-z</string>
+    <string name="multiplayer_port_error">חייב להיות בין 1-65535</string>
+    <string name="cancel">ביטול</string>
+    <string name="ok">אישור</string>
+    <string name="refresh">רענון</string>
+    <string name="room_list">רשימת חדרים</string>
+    <string name="multiplayer_public_visibility">ציבורי</string>
+    <string name="multiplayer_unlisted_visibility">לא רשום</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">ברוכים הבאים!</string>
+    <string name="welcome_description">למד איך להפעיל &lt;b>Eden&lt;/b> וקפוץ ישר לאמולציה.</string>
+    <string name="get_started">כדי להתחיל</string>
+    <string name="keys">מפתחות</string>
+    <string name="keys_description">בחר את קובץ ה &lt;b>prod.keys&lt;/b> שלך עם הכפתור למטה.</string>
+    <string name="select_keys">בחר מפתחות</string>
+    <string name="firmware">קושחה</string>
+    <string name="select_firmware">בחירת קושחה</string>
+    <string name="games">משחקים</string>
+    <string name="games_description">בחר את התיקיית ה &lt;b>Games&lt;/b> שלך עם הכפתור למטה.</string>
+    <string name="done">סיום</string>
+    <string name="text_continue">המשך</string>
+    <string name="next">הבא</string>
+    <string name="back">אחורה</string>
+    <string name="add_games">הוסף משחקים</string>
+    <string name="step_complete">הושלם!</string>
+
+    <!-- Home strings -->
+
+    <string name="alphabetical">אלפביתי</string>
+    <string name="view_list">רשימה</string>
+    <string name="view_grid">רשת</string>
+    <string name="view_carousel">קרוסלה</string>
+    <string name="folder">תיקייה</string>
+    <string name="dont_show_again">אל תציג שוב</string>
+    <string name="home_search">חפש</string>
+    <string name="home_settings">הגדרות</string>
+    <string name="empty_gamelist">לא נמצאו קבצים או לנבחרה ספריית קבצים בינתיים.</string>
+    <string name="manage_game_folders">נהל את תיקיית המשחקים</string>
+    <string name="select_games_folder_description">אפשר ל Eden  לאכלס את רשימת המשחקים</string>
+    <string name="add_games_warning">לדלג על בחירת תיקיית המשחקים?</string>
+    <string name="add_games_warning_description">משחקים לא יוצגו ברשימת המשחקים  אם לנבחרה תיקיית משחקים.</string>
+    <string name="home_search_games">חפש משחקים</string>
+    <string name="search_settings">חפש בהגדרות</string>
+    <string name="install_prod_keys">התקן prod.keys</string>
+    <string name="install_prod_keys_description">הכרחי בכדי לפענח משחקים</string>
+    <string name="install_prod_keys_warning">לדלג על הוספת מפתחות?</string>
+    <string name="install_prod_keys_warning_description">מפתחות חוקיים הכרחיים כדי לשחק במשחקים. רק אפליקציות פירטיות יפעלו אם תמשיך.</string>
+    <string name="install_firmware_warning">לדלג על הוספת קושחה?</string>
+    <string name="install_firmware_warning_description">משחקים רבים דורשים גישה לקושחה כדי לפעול כראוי.</string>
+    <string name="notifications">התראות</string>
+    <string name="notifications_description">תן גישה להתראות עם הכפתור למטה.</string>
+    <string name="give_permission">תן הרשאה</string>
+    <string name="notification_warning">דלג על מתן הרשאה להתראות?</string>
+    <string name="notification_warning_description">Eden  לא יוכל להתריע לך על מידע חשוב.</string>
+    <string name="permission_denied">הרשאה נדחתה</string>
+    <string name="permission_denied_description">את/ה דיחת את ההרשאה יותר מדי פעמים ועכשיו את/ה צריך/ה לתת גישה באופן ידני בהגדרות.</string>
+    <string name="about">אודות</string>
+    <string name="about_description">מספר גירסה, קרדיטים ועוד</string>
+    <string name="warning_help">עזרה</string>
+    <string name="warning">אזהרה</string>
+    <string name="warning_skip">דלג</string>
+    <string name="warning_cancel">ביטול</string>
+    <string name="install_amiibo_keys">התקן מפתחות Amiibo</string>
+    <string name="install_amiibo_keys_description">נחוץ כדי להשתמש ב Amiibo במשחק</string>
+    <string name="gpu_driver_fetcher">מאחזר מנהלי התקן GPU</string>
+    <string name="gpu_driver_manager">מנהל הדרייברים של המעבד הגרפי</string>
+    <string name="install_gpu_driver_description">התקן דרייברים אחרים בשביל סיכוי לביצועים או דיוק גבוההים יותר</string>
+    <string name="advanced_settings">הגדרות מתקדמות</string>
+    <string name="settings_description">הדר את הגדרות האמולטור</string>
+    <string name="search_recently_played">שוחק לאחרונה</string>
+    <string name="search_recently_added">הוסף לאחרונה</string>
+    <string name="open_user_folder">פתח את תיקיית Eden </string>
+    <string name="open_user_folder_description">נה ל את הקבצים הפנימיין של Eden</string>
+    <string name="no_file_manager">לא נמצא מנהל קבצים</string>
+    <string name="notification_no_directory_link">לא יכול לפתוח את ספריית Eden</string>
+    <string name="notification_no_directory_link_description">בבקשה מקם את תיקיית המשתמש בפנל הצידי של מנהל הקבצים באופן ידני.</string>
+    <string name="manage_save_data">נהל  מידע שמור</string>
+    <string name="manage_save_data_description">מידע שמור לא נמצא. בבקשה בחר/י אופציה מלמטה</string>
+    <string name="import_save_warning">ייבוא נתוני שמירה</string>
+    <string name="import_save_warning_description">פעולה זו תמחק את כל הנתונים הקיימים ותחליף אותם בקובץ שסופק.האם אתה בטוח שברצונך להמשיך?</string>
+    <string name="save_files_importing">מייבא  קבצי שמירה...</string>
+    <string name="save_files_exporting">מייצא קבצי שמירה...</string>
+    <string name="save_file_imported_success">יובא בהצלחה</string>
+    <string name="save_file_invalid_zip_structure">מבנה ספריית השמירות לא חוקי</string>
+    <string name="save_file_invalid_zip_structure_description">התת תיקייה הראשונה חייב להיות ה title ID של המשחק</string>
+    <string name="install_firmware">התקן firmware</string>
+    <string name="install_firmware_description">ה frimware   חייב להיות בקובץ zip והוא הכרחי להפעלת חלק מהמשחקים</string>
+    <string name="firmware_installing">מתקין frimware</string>
+    <string name="firmware_installed_failure">התקנת ה frimware  נכשלה</string>
+    <string name="firmware_installed_failure_description">ודא שקבצי ה firmware nca נמצאים בשורש ה zip ונסה שוב.</string>
+    <string name="share_log">שתף  את יומני הרישום של מיפוי הבאגים</string>
+    <string name="share_log_description">שתף את קובץ יומני הרישום של Eden בכדי לתקן בעיות</string>
+    <string name="share_log_missing">לא נמצא קובץ יומן רישום</string>
+    <string name="install_game_content">התקן תוכן משחק</string>
+    <string name="install_game_content_description">התקן עדכוני משחק או DLC</string>
+    <string name="installing_game_content">מתקין תוכן...</string>
+    <string name="install_game_content_failure">תקלה בהתקנת הקובץ (או קבצים) ל NAND</string>
+    <string name="install_game_content_failure_description">בבקשה ודא שהתוכן (או תכנים) חוקיים ושקובץ ה prod.keys מותקן.</string>
+    <string name="install_game_content_failure_base">התקנת משחק בסיס נדחת בכדי להימנע מקונפליקטים אפשריים.</string>
+    <string name="install_game_content_failed_count">%1$dבעיה (בעיות) התקנה</string>
+    <string name="install_game_content_success">תוכן (או תכני) המשחק הותקנו בהצלחה</string>
+    <string name="install_game_content_success_install">%1$d הותקן בהצלחה</string>
+    <string name="install_game_content_success_overwrite">%1$d נדרס/נכתב מעל בהצלחה</string>
+    <string name="custom_driver_not_supported">דרייברים מותאמים אישית לא נתמכים</string>
+    <string name="manage_yuzu_data">נהל את המידע של Eden</string>
+    <string name="manage_yuzu_data_description">יבא/יצא firmware, keys, מידע של משתמש ועוד!</string>
+    <string name="game_folders">תיקיית משחקים</string>
+    <string name="deep_scan">סריקה עמוקה</string>
+    <string name="add_game_folder">הוסף תיקיית משחקים</string>
+    <string name="folder_already_added">התיקייה הזו נוספה כבר!</string>
+    <string name="game_folder_properties">מאפייני תיקיית משחקים</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">נכשל בייבוא %d שמירה</item>
+        <item quantity="two">נכשל בייבוא %d שמירות</item>
+        <item quantity="other">נכשל בייבוא %d שמירות</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">יובא בהצלחה %d שמירה</item>
+        <item quantity="two">יובא בהצלחה %d שמירות</item>
+        <item quantity="other">יובא בהצלחה %d שמירות</item>
+    </plurals>
+    <string name="no_save_data_found">לא נמצאו שמירות</string>
+    <string name="verify_installed_content">אמת תוכן מותקן</string>
+    <string name="verify_installed_content_description">בודק תוכן מותקן לשגיאות</string>
+
+    <string name="keys_missing">מפתחות הצפנה חסרים</string>
+    <string name="keys_missing_description">לא ניתן לפענח firmware ומשחקים</string>
+    <string name="uninstall_firmware">הסרת קושחה</string>
+    <string name="uninstall_firmware_description">הסרת הקושחה תמחק אותה מהמכשיר ועלולה להשפיע על תאימות משחקים.</string>
+    <string name="firmware_uninstalling">מסיר קושחה...</string>
+    <string name="firmware_uninstalled_success">הקושחה הוסרה בהצלחה</string>
+
+
+    <string name="keys_failed">התקנת מפתחות נכשלה</string>
+    <string name="keys_install_success">מפתחות הותקנו בהצלחה</string>
+    <string name="error_keys_copy_failed">אחד או יותר מהמפתחות לא הצליחו להעתקה.</string>
+    <string name="error_keys_invalid_filename">ודא שלקובץ המפתחות שלך יש סיומת .keys ונסה שוב.</string>
+    <string name="error_keys_failed_init">אתחול המפתחות נכשל. ודא שכלי ה-dump מעודכנים ושמור מפתחות מחדש.</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">הפעלת יישומים ממסך הבית של המערכת</string>
+    <string name="applets">משגר Applet</string>
+    <string name="applets_description">מערכת שיגור Applet משתמשת בתוכנה המותקנת</string>
+    <string name="applets_error_firmware">קושחה לא מותקנת או גרסה לא תקינה</string>
+    <string name="applets_error_applet">Applet לא זמין</string>
+    <string name="applets_error_description"><![CDATA[אנא ודא שקובץ ה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> שלך
+וה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">קושחה</a> מותקנים ונסה שוב.<br>כמו כן, ודא שהקושחה שלך בגרסה 19.0.1 או ישנה יותר.]]></string>
+    <string name="album_applet">אלבום</string>
+    <string name="album_applet_description">צפה בתמונות השמורות בתיקיית צילומי המסך של המשתמש בעזרת מציג התמונות של המערכת</string>
+    <string name="mii_edit_applet">עורך Mii</string>
+    <string name="mii_edit_applet_description">צפה וערוך דמויות Mii בעזרת עורך המערכת</string>
+    <string name="cabinet_applet">ארון</string>
+    <string name="cabinet_applet_description">ערוך ומחק מידע השמור על ה amiibo</string>
+    <string name="cabinet_launcher">משגר ארונות</string>
+    <string name="cabinet_nickname_and_owner">כינוי והגדרות בעלים</string>
+    <string name="cabinet_game_data_eraser">מחק של נתוני משחק</string>
+    <string name="cabinet_restorer">שחזר</string>
+    <string name="cabinet_formatter">בונה תבניות</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">Gaia לא אמיתית</string>
+    <string name="copied_to_clipboard">הועתק ללוח</string>
+    <string name="about_app_description">אמולטור Switch עם קוד פתוח</string>
+    <string name="contributors">תורמים</string>
+    <string name="contributors_description">נוצר עם \u2764 מקבוצת Eden</string>
+    <string name="licenses_description">פרוייקטים שהופכים את Eden ל Android אפשרי</string>
+    <string name="build">גרסה</string>
+    <string name="user_data">נתוני משתמש</string>
+    <string name="exporting_user_data">מייצא נתוני משתמש...</string>
+    <string name="importing_user_data">מייבא נתוני משתמש...</string>
+    <string name="invalid_yuzu_backup">גיבוי Eden לא חוקי</string>
+    <string name="user_data_export_success">נתוני משתמש יוצאו בהצלחה</string>
+    <string name="user_data_import_success">נתוני משתמש יובאו בהצלחה</string>
+    <string name="user_data_export_cancelled">ייצוא בוטל</string>
+    <string name="user_data_import_failed_description">ודא שנתוני המשתמש נמצאים בשורש קובץ ה zip ושהוא מכיל קובץ סידור ב config/config.ini ונסה שוב.</string>
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">הגבל מהירות</string>
+    <string name="frame_limit_enable_description">מגביל את מהירות האמולציה לאחוז מהירות המבוקש מהמהירות הרגילה.</string>
+    <string name="frame_limit_slider">הגבל את אחוז המהירות</string>
+    <string name="frame_limit_slider_description">מדייק את אחוז  מהירות האמולציה. 100% זה מהירות רגילה. ערכים גדולים או קטנים  יאיצו או יאטו את מהירות האמולציה.</string>
+    <string name="cpu_backend">קצה האחורי של המעבד</string>
+    <string name="cpu_accuracy">דיוק המעבד</string>
+    <string name="value_with_units">%1$s%2$s</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">שם מכשיר</string>
+    <string name="use_docked_mode">מצב עגינה</string>
+    <string name="use_docked_mode_description">מעלה את הרזולוציה, פוגע בביצועים. משתמש במצב נייד כאשר מנוטרל, מפחית את הרזולוציה ומעלה את הביצועים.</string>
+    <string name="emulated_region">אזור אמולציה</string>
+    <string name="emulated_language">שפת אמולציה</string>
+    <string name="select_rtc_date">בחר תאריך RTC</string>
+    <string name="select_rtc_time">בחר זמן RTC</string>
+    <string name="use_custom_rtc">RTC מותאם אישית</string>
+    <string name="use_custom_rtc_description">מאפשר לך לקבוע שעון זמן אמת נפרד משעון המערכת שלך.</string>
+    <string name="set_custom_rtc">קבע RTC מותאם אישית</string>
+
+    <string name="generate">יצירה</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">אסימון אינטרנט</string>
+    <string name="web_token_description">אסימון אינטרנט המשמש ליצירת חדרים ציבוריים. זהו מחרוזת של 48 תווים המכילה רק אותיות קטנות a-z.</string>
+    <string name="web_username">שם משתמש באינטרנט</string>
+    <string name="web_username_description">שם משתמש שיוצג בחדרים מרובי משתתפים. חייב להכיל 4-20 תווים (אותיות, מספרים, מקפים, נקודות, קו תחתון ורווחים בלבד).</string>
+    <string name="network">רשת</string>
+
+    <!-- Graphics settings strings -->
+    <string name="backend">בקאנד</string>
+    <string name="display">תצוגה</string>
+    <string name="processing">עיבוד לאחר</string>
+
+    <string name="frame_skipping">בעבודה: דילוג פריימים</string>
+    <string name="frame_skipping_description">החלף דילוג על פריימים כדי לשפר ביצועים על ידי הפחתת מספר הפריימים המוצגים. תכונה זו עדיין בפיתוח ותופעל בגרסאות עתידיות.</string>
+    <string name="renderer_accuracy">רמת דיוק</string>
+    <string name="renderer_resolution">רזולוציה (מעוגן/נייד)</string>
+    <string name="renderer_vsync">מצב VSync</string>
+    <string name="renderer_screen_layout">כיוון</string>
+    <string name="renderer_aspect_ratio">יחס רוחב גובה</string>
+    <string name="renderer_scaling_filter">פילטר מתאם חלון</string>
+    <string name="fsr_sharpness">חדות FSR</string>
+    <string name="fsr_sharpness_description">קובע את מידת החדות בעת שימוש ב-FSR.</string>
+    <string name="renderer_anti_aliasing">שיטת Anti-aliasing</string>
+    <string name="renderer_force_max_clock">החזק מהירות שעון מקסימלית (רק ל Adreno)</string>
+    <string name="renderer_force_max_clock_description">מכריח לדחוף את מהירויות המעבד הגרפי למקסימום (הגבלות חום ימשיכו לתפקד).</string>
+    <string name="renderer_optimize_spirv_output">אופטימיזציית Spir-V</string>
+    <string name="renderer_optimize_spirv_output_description">משפר את השאדר המהודר כדי להגביר את יעילות ה-GPU.</string>
+    <string name="renderer_asynchronous_shaders">השתמש בשיידרים אסינכרונים</string>
+    <string name="renderer_asynchronous_shaders_description">מקמפל שיידרים באופן אסינכרוני. זה עשוי להפחית קפיצות אך גם עלול לגרום לתקלות גרפיות.</string>
+    <string name="use_fast_gpu_time">השתמש בזמן GPU מהיר</string>
+    <string name="use_fast_gpu_time_description">מאלץ את רוב המשחקים לרוץ ברזולוציה המקורית הגבוהה ביותר שלהם. אפשרות זו עלולה לגרום לבעיות.</string>
+    <string name="fast_gpu_time">גורם אובר-קלוק ל-GPU</string>
+    <string name="fast_gpu_time_description">השתמש ב-128 לביצועים מקסימליים וב-512 לנאמנות גרפית מקסימלית.</string>
+    <string name="renderer_reactive_flushing">השתמש בהבהוב תגובתי</string>
+    <string name="renderer_reactive_flushing_description">משפר את הדיוק של האמולציה במשחקים מסויימים במחיר של ביצועים.</string>
+    <string name="use_disk_shader_cache">מטמון השיידר של הדיסק</string>
+    <string name="use_disk_shader_cache_description">מפחית בתקיעות על ידי אחסון מקומי וטעינה של שיידרים הנוצרים. </string>
+    <string name="anisotropic_filtering">סינון אנאיזוטרופי</string>
+    <string name="anisotropic_filtering_description">משפר איכות טקסטורות בזוויות.</string>
+
+    <string name="warning_resolution">שינוי רזולוציה ל-2x או יותר עלול לגרום לבעיות ולעיכובים משמעותיים במכשיר שלך.</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">מעבד</string>
+    <string name="use_auto_stub">שימוש ב-Auto Stub</string>
+    <string name="use_auto_stub_description">משלים אוטומטית שירותים ופונקציות חסרים. עשוי לשפר תאימות אך עלול לגרום לקריסות ובעיות יציבות.</string>
+
+    <string name="gpu">מעבד גרפי</string>
+    <string name="renderer_api">ממשק תוכנה</string>
+    <string name="renderer_debug">דיבאגינג בגרפיקה</string>
+    <string name="renderer_debug_description">קובע את ממשק התוכנה של הגרפיקות למצב דיבאגינג איטי.</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">רישום</string>
+    <string name="flush_by_line">רוקן יומני ניפוי שגיאות לפי שורה</string>
+    <string name="flush_by_line_description">מרוקן יומני ניפוי שגיאות בכל שורה שנכתבת, מה שמקל על ניפוי שגיאות במקרים של קריסה או קיפאון.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">מנוע פלט</string>
+    <string name="audio_volume">עוצמת שמע</string>
+    <string name="audio_volume_description">מציין את עוצמת האודיו שיוצא.</string>
+
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">פלוס</string>
+    <string name="button_minus">מינוס</string>
+    <string name="button_home">בית</string>
+    <string name="up">למעלה</string>
+    <string name="down">למטה</string>
+    <string name="left">שמאל</string>
+    <string name="right">ימין</string>
+    <string name="left_stick">ג׳ויסטיק שמאלי</string>
+    <string name="right_stick">ג׳ויסטיק ימני</string>
+    <string name="pressed">לחוץ</string>
+    <string name="range">טווח</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">לא חוקי</string>
+    <string name="unknown">לא ידוע</string>
+    <string name="handheld">מצב נייד</string>
+    <string name="connected">מחובר</string>
+    <string name="vibration">רטט</string>
+    <string name="profile">פרופיל</string>
+    <string name="use_global_input_configuration">השתמש בהגדרת קלט גלובלי</string>
+    <!-- Miscellaneous -->
+    <string name="slider_default">ברירת מחדל</string>
+    <string name="loading">טוען...</string>
+    <string name="shutting_down">כיבוי...</string>
+    <string name="reset_setting_confirmation">אתה מעוניין לאפס את ההגדרה הזו חזרה לברירת המחדל?</string>
+    <string name="reset_to_default">אפס לברירת המחדל</string>
+    <string name="reset_to_default_description">מאפס את כל ההגדרות המתקדמות.</string>
+    <string name="reset_all_settings">לאפס את כל ההגדרות?</string>
+    <string name="reset_all_settings_description">כל ההגדרות המתקדמות יאופסו לברירת המחדל. לא ניתן לבטל פעולה זו.</string>
+    <string name="settings_reset">אפס הגדרות</string>
+    <string name="close">סגור</string>
+    <string name="learn_more">למד עוד</string>
+    <string name="auto">אוטומטי</string>
+    <string name="submit">שלח</string>
+    <string name="string_null">ריק</string>
+    <string name="string_import">ייבוא</string>
+    <string name="export">ייצוא</string>
+    <string name="export_failed">ייצוא נכשל</string>
+    <string name="import_failed">ייבוא נכשל</string>
+    <string name="cancelling">מבטל</string>
+    <string name="install">התקן</string>
+    <string name="fetch">אחזר</string>
+    <string name="delete">מחק</string>
+    <string name="edit">ערוך</string>
+    <string name="export_success">יוצא בהצלחה</string>
+    <string name="start">התחלה</string>
+    <string name="save">שמור</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver_default">ברירת מחדל</string>
+    <string name="select_gpu_driver_error">נבחר דרייבר לא חוקי</string>
+    <string name="driver_already_installed">הדרייבר כבר מותקן</string>
+    <string name="system_gpu_driver">דרייבר של המעבד הגרפי של המערכת</string>
+    <string name="installing_driver">מתקין דרייבר...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="show_releases">הצג גרסאות</string>
+    <string name="failed_to_fetch">אחזור נכשל</string>
+    <string name="error_during_fetch">שגיאה במהלך האחזור</string>
+    <string name="show_downloads">הצג הורדות</string>
+    <string name="hide_downloads">הסתר הורדות</string>
+    <string name="failed_cache_dir">תיקיית מטמון לא זמינה</string>
+    <string name="empty_response_body">גוף תגובה ריק</string>
+    <string name="successfully_installed">%1$s הותקן בהצלחה</string>
+    <string name="driver_failed_title">התקנת מנהל התקן נכשלה</string>
+    <string name="failed_install_driver">התקנת מנהל התקן %1$s נכשלה, האם המערכת שלך תומכת בו?</string>
+    <string name="driver_empty">מנהל ההתקן שהורד ריק, בדוק את החיבור לאינטרנט</string>
+    <string name="downloading">מוריד…</string>
+    <string name="installing">מתקין…</string>
+    <string name="latest">האחרון</string>
+    <string name="recommended_driver">מנהל התקן מומלץ:</string>
+    <string name="gpu_model">דגם GPU:</string>
+    <string name="unsupported_gpu">GPU לא נתמך</string>
+    <string name="unsupported_gpu_warning">ה-GPU שלך אינו תומך בהזרקת מנהל התקן. לא מומלץ להגדיר מנהלי התקן מותאמים אישית.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">הגדרות</string>
+    <string name="preferences_system">מערכת</string>
+    <string name="preferences_system_description">מצב מעוגן, איזור, שפה</string>
+    <string name="preferences_graphics">גרפיקה</string>
+    <string name="preferences_graphics_description">רמת דיוק, רזולוציה, מטמון שיידרים</string>
+    <string name="preferences_audio">שמע</string>
+    <string name="preferences_audio_description">מנוע פלט, עוצמת שמע</string>
+    <string name="preferences_debug">דיבאג</string>
+    <string name="preferences_debug_description">דיבאגינג עבור מעבד/מעבד גרפי, ממשק תוכנה עבור הגרפיקות, fastmem</string>
+
+    <!-- Game properties -->
+    <string name="info">מידע</string>
+    <string name="path">דרך</string>
+    <string name="developer">מפתח</string>
+    <string name="version">גרסה</string>
+    <string name="add_ons">תוספים</string>
+    <string name="verify_success">אימות  התקינות הצליח!</string>
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">המשחק שלך מוצפן</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[אנא עקוב אחר המדריכים לשמירת <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">כרטיסי משחק</a> או <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">כותרות דיגיטליות</a> מחדש.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[אנא וודא שקובץ ה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> מותקן כך שניתן יהיה לפענח משחקים.]]></string>
+    <string name="loader_error_video_core">התרחשה בעיה באתחול של ליבת הווידאו</string>
+    <string name="loader_error_video_core_description">זה בדרך כלל נגרם על ידי דרייבר לא מתאים עבור המעבד הגרפי. התקנת דרייבר אשר מתאים למעבד הגרפי יכול לפתור את הבעיה הזו.</string>
+    <string name="loader_error_file_not_found">קובץ המשחק לא קיים</string>
+
+    <string name="loader_requires_firmware">המשחק דורש קושחה</string>
+    <string name="loader_requires_firmware_description"><![CDATA[המשחק שאתה מנסה להפעיל דורש קושחה לאתחול או למעבר מתפריט הפתיחה. אנא <a href=\"https://yuzu-mirror.github.io/help/quickstart\">שמור והתקן קושחה</a> או לחץ \"אישור\" כדי להמשיך בכל מקרה.]]></string>
+
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">מחפש משחק...</string>
+    <string name="game_not_found_for_title_id">משחק לא נמצא למזהה כותרת: %1$s</string>
+    <string name="custom_settings_failed_title">הגדרות מותאמות אישית נכשלו</string>
+    <string name="custom_settings_failed_message">נכשל בהחלת הגדרות מותאמות אישית עבור %1$s: %2$s</string>
+    <string name="launch_with_default_settings">הפעל עם הגדרות ברירת מחדל</string>
+    <string name="launch_cancelled">ההפעלה בוטלה</string>
+    <string name="custom_settings_failure_reasons">לא ניתן להחיל את ההגדרות המבוקשות. זה עשוי להיות עקב חסרון מנהלי התקן של GPU או בעיות תצורה.</string>
+    <string name="custom_settings_applied">הגדרות מותאמות אישית הוחלו</string>
+    <string name="launching_game">מפעיל את %1$s...</string>
+    <string name="failed_to_initialize_game">נכשל באתחול המשחק</string>
+    <string name="custom_intent_launch_message_with_settings">האם ברצונך להפעיל את %1$s עם הגדרות מותאמות אישית?</string>
+    <string name="custom_intent_launch_message">האם ברצונך להפעיל את %1$s?</string>
+    <string name="custom_intent_launch_title">הפעל משחק</string>
+    <string name="launch">הפעל</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">נכשל בכתיבת קובץ התצורה</string>
+    <string name="config_apply_failed">נכשל בהחלת התצורה</string>
+    <string name="config_already_exists_title">תצורה כבר קיימת</string>
+    <string name="config_exists_prompt">בודק אם קיימת תצורה...</string>
+    <string name="overwrite_cancelled">דריסה בוטלה</string>
+    <string name="overwrite">דרוס</string>
+
+    <!-- Driver strings -->
+    <string name="driver_not_found">מנהל התקן נדרש לא מותקן: %s</string>
+    <string name="invalid_driver_file">קובץ מנהל התקן לא חוקי: %s</string>
+    <string name="network_unavailable">אין חיבור אינטרנט זמין. אנא בדוק את חיבור האינטרנט שלך ונסה שוב.</string>
+    <string name="driver_missing_title">נדרש מנהל התקן GPU</string>
+    <string name="driver_download_cancelled">הורדת מנהל ההתקן בוטלה. לא ניתן להפעיל את המשחק ללא מנהל ההתקן הנדרש.</string>
+    <string name="download">הורד</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">צא מהאמולציה</string>
+    <string name="emulation_done">סיום</string>
+    <string name="emulation_toggle_controls">החלפת בקרים</string>
+    <string name="emulation_rel_stick_center">מרכז ג׳ויסטיק יחסי</string>
+    <string name="emulation_dpad_slide">החלקת D-pad</string>
+    <string name="emulation_haptics">רטט מגע</string>
+    <string name="emulation_show_overlay">הצג בקר</string>
+    <string name="emulation_hide_overlay">הסתר בקר</string>
+    <string name="emulation_toggle_all">החלף הכל</string>
+    <string name="emulation_control_adjust">התאם את שכבת-העל</string>
+    <string name="emulation_control_scale">קנה מידה</string>
+    <string name="emulation_control_opacity">שקיפות</string>
+    <string name="emulation_touch_overlay_reset">אפס את שכבת-העל</string>
+    <string name="emulation_touch_overlay_edit">ערוך שכבת-על</string>
+    <string name="emulation_pause">עצור אמולציה</string>
+    <string name="emulation_unpause">המשך אמולציה</string>
+    <string name="emulation_input_overlay">אופציות עבור שכבת-על</string>
+    <string name="touchscreen">מסך מגע</string>
+    <!-- Software keyboard -->
+    <string name="software_keyboard">מקלדת תוכנה</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">אודות</string>
+    <string name="continue_button">המשך</string>
+    <string name="system_archive_not_found">ארכיון מערכת לא נמצא</string>
+    <string name="system_archive_general">ארכיון מערכת</string>
+    <string name="save_load_error">בעיית שמירה/טעינה</string>
+    <string name="fatal_error">שגיאה חמורה</string>
+    <string name="memory_formatted">%1$s%2$s</string>
+    <string name="no_game_present">אין משחק שניתן להריץ!</string>
+
+    <!-- Region Names -->
+    <string name="region_japan">יפן</string>
+    <string name="region_usa">ארה״ב</string>
+    <string name="region_europe">אירופה</string>
+    <string name="region_australia">אוסטרליה</string>
+    <string name="region_china">סין</string>
+    <string name="region_korea">קוריאה</string>
+    <string name="region_taiwan">טייוואן</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (מומלץ)</string>
+    <string name="memory_6gb">6GB (לא בטוח)</string>
+    <string name="memory_8gb">8GB (לא בטוח)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">מהיר (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">נמוך (128)</string>
+    <string name="gpu_medium">בינוני (256)</string>
+    <string name="gpu_high">גבוה (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">צלזיוס</string>
+    <string name="temperature_fahrenheit">פרנהייט</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte_shorthand">B</string>
+    <string name="memory_kilobyte">KB</string>
+    <string name="memory_megabyte">MB</string>
+    <string name="memory_gigabyte">GB</string>
+    <string name="memory_terabyte">TB</string>
+    <string name="memory_petabyte">PB</string>
+    <string name="memory_exabyte">EB</string>
+
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">Vulkan</string>
+    <string name="renderer_none">אין שום דבר</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">רגיל</string>
+    <string name="renderer_accuracy_high">גבוה</string>
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">ברירת מחדל</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">שיטת פענוח ASTC</string>
+    <string name="accelerate_astc_description">בחר כיצד לפרק את הטקסטורות הדחוסות ב-ASTC עבור רינדור: CPU (איטי, בטוח), GPU (מהיר, מומלץ) או CPU Async (ללא קפיצות, עלול לגרום לבעיות)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">מעבד</string>
+    <string name="accelerate_astc_gpu">כרטיס מסך</string>
+    <string name="accelerate_astc_async">מעבד (א-סינכרוני)</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">שיטת דחיסת ASTC</string>
+    <string name="astc_recompression_description">בחר כיצד דחיסה מחדש של טקסטורות ASTC משפרת תאימות וביצועים. הפעלת אפשרות זו חוסכת VRAM אך עלולה להוריד את איכות הטקסטורה.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">לא דחוס</string>
+    <string name="astc_recompression_bc1">BC1 (איכות נמוכה)</string>
+    <string name="astc_recompression_bc3">BC3 (איכות בינונית)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">מצב שימוש ב-VRAM</string>
+    <string name="vram_usage_mode_description">שליטה בקצב הקצאת ושחרור זיכרון GPU</string>
+    <string name="vram_usage_conservative">שמרני</string>
+    <string name="vram_usage_aggressive">אגרסיבי</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (איטי)</string>
+    <string name="resolution_three">3X (2160p/3240p) (איטי)</string>
+    <string name="resolution_four">4X (2880p/4320p) (איטי)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">מיידי (כבוי)</string>
+    <string name="renderer_vsync_mailbox">תיבת דואר</string>
+    <string name="renderer_vsync_fifo">FIFO (On)</string>
+    <string name="renderer_vsync_fifo_relaxed">FIFO נינוח</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">השכן הקרוב ביותר</string>
+    <string name="scaling_filter_bilinear">ביליניארי</string>
+    <string name="scaling_filter_bicubic">Bicubic</string>
+    <string name="scaling_filter_gaussian">Gaussian</string>
+    <string name="scaling_filter_scale_force">ScaleForce</string>
+    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">אין שום דבר</string>
+    <string name="anti_aliasing_fxaa">FXAA</string>
+    <string name="anti_aliasing_smaa">SMAA</string>
+
+    <!-- Screen Layouts -->
+    <string name="screen_layout_auto">אוטומטי</string>
+    <string name="screen_layout_landscape">לרוחב</string>
+    <string name="screen_layout_portrait">לאורך</string>
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">ברירת מחדל (16:9)</string>
+    <string name="ratio_force_four_three">הכרח 4:3</string>
+    <string name="ratio_force_twenty_one_nine">הכרח 21:9</string>
+    <string name="ratio_force_sixteen_ten">הכרח 16:10</string>
+    <string name="ratio_stretch">הרחב לגודל המסך</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">דינמי</string>
+    <string name="cpu_backend_nce">ביצוע קוד מקורי (NCE)</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">מדויק</string>
+    <string name="cpu_accuracy_unsafe">לא בטוח</string>
+    <string name="cpu_accuracy_paranoid">פראנואידי</string>
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">D-pad</string>
+    <string name="gamepad_left_stick">ג׳ויסטיק שמאלי</string>
+    <string name="gamepad_right_stick">ג׳ויסטיק ימני</string>
+    <string name="gamepad_home">בית</string>
+    <string name="gamepad_screenshot">צילום מסך</string>
+
+    <!-- Disk shader cache -->
+    <string name="building_shaders">בונה שיידרים</string>
+
+    <!-- App options -->
+    <string name="change_app_theme">שנה את נושא האפליקצייה</string>
+    <string name="theme_default">ברירת מחדל</string>
+    <string name="theme_material_you">חומר אתה/מאטיריאל יו</string>
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">שנה את מצב הנושא</string>
+    <string name="theme_mode_follow_system">עקוב אחרי המערכת</string>
+    <string name="theme_mode_light">בהיר</string>
+    <string name="theme_mode_dark">כהה</string>
+
+    <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">רקעים שחורים</string>
+    <string name="use_black_backgrounds_description">כשמתשמשים במצב כהה, שם רקעים שחורים.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">צבע ערכת עיצוב</string>
+    <string name="violet">סגול (ברירת מחדל)</string>
+    <string name="blue">כחול</string>
+    <string name="cyan">טורקיז</string>
+    <string name="red">אדום</string>
+    <string name="green">ירוק</string>
+    <string name="yellow">צהוב</string>
+    <string name="orange">כתום</string>
+    <string name="pink">ורוד</string>
+    <string name="gray">אפור</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">תמונה בתוך תמונה</string>
+    <string name="picture_in_picture_description">הקטן את החלון כאשר נמצא ברקע</string>
+    <string name="pause">עצור</string>
+    <string name="play">שחק</string>
+    <string name="mute">השתק</string>
+    <string name="unmute">בטל השתקה</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">אפלטים</string>
+    <string name="applets_menu_description">(בעבודה) שנה את ממשקי המשתמש וההגדרות של האפלטים</string>
+
+    <string name="applet_hle">ממשק מותאם אישית</string>
+    <string name="applet_lle">אפלט אמיתי</string>
+
+    <string name="swkbd_applet">מקלדת תוכנה</string>
+
+    <string name="airplane_mode">מצב טיסה</string>
+    <string name="airplane_mode_description">מעביר את מצב הטיסה למערכת ההפעלה של Switch</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">רישיונות</string>
+    <string name="license_fidelityfx_fsr_description">אפסקיילינג באיכות גבוהה מ AMD</string>
+    </resources>

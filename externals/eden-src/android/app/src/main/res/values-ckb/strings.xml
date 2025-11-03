@@ -1,0 +1,781 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="notice_notification_channel_name">ئاگاداری و هەڵەکان</string>
+    <string name="notice_notification_channel_description">ئاگادارکردنەوەکان پیشان دەدات کاتێک شتێک بە هەڵەدا دەچێت.</string>
+    <string name="notification_permission_not_granted">مۆڵەتی ئاگادارکردنەوە نەدراوە!</string>
+    <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(پێشکەوتوو)</string>
+    <string name="process_ram">RAMی پرۆسە: %1$d MB</string>
+    <string name="shaders_prefix">بیناکردنی</string>
+    <string name="shaders_suffix">شەیدەر(ەکان)</string>
+    <string name="charging">(بارگاویکراو)</string>
+
+    <string name="system_info_label">سیستەم:</string>
+    <string name="show_stats_overlay">پیشاندانی ستاتیستی کارایی</string>
+    <string name="stats_overlay_customization">خۆڕێکخستن</string>
+    <string name="stats_overlay_items">دیاربوون</string>
+    <string name="stats_overlay_options">ئاوێرە</string>
+    <string name="enable_stats_overlay_">چالاککردنی ستاتیستی کارایی</string>
+    <string name="stats_overlay_options_description">ڕێکخستنی زانیارییەکانی نیشاندان لە ئاوێرەی ستاتیست</string>
+    <string name="show_fps">نیشاندانی FPS</string>
+    <string name="show_fps_description">نیشاندانی ژمارەی فرەییم لە چرکە</string>
+    <string name="show_frametime">نیشاندانی کاتی فرەییم</string>
+    <string name="show_frametime_description">نیشاندانی کاتی فرەییم</string>
+    <string name="show_app_ram_usage">نیشاندانی بەکارهێنانی RAMی ئەپ</string>
+    <string name="show_app_ram_usage_description">نیشاندانی بڕی RAM کە ئێمولاتۆر بەکاردەهێنێت</string>
+    <string name="show_system_ram_usage">نیشاندانی بەکارهێنانی RAMی سیستەم</string>
+    <string name="show_system_ram_usage_description">نیشاندانی بڕی RAM کە سیستم بەکاردەهێنێت</string>
+    <string name="show_bat_temperature">نیشاندانی پلەی گەرمی بەتری</string>
+    <string name="show_bat_temperature_description">پیشاندانی پلەی گەرمی بەترییەکەی ئێستا</string>
+    <string name="bat_temperature_unit">یەکەکانی پلەی گەرمی بەتری</string>
+    <string name="show_power_info">پیشاندانی زانیاری بەتری</string>
+    <string name="show_power_info_description">پیشاندانی بەکارهێنانی وزە و توانای ماوە لەسەر بەتری</string>
+    <string name="show_shaders_building">پیشاندانی دروستکردنی شادەرەکان</string>
+    <string name="show_shaders_building_description">ژمارەی ئێستای شادەرەکانی کە دروست دەکرێن پیشان بدە</string>
+    <string name="overlay_position">شوێنی ئاوێرە</string>
+    <string name="overlay_position_description">هەڵبژاردنی شوێنی نیشاندانی ستاتیست لەسەر شاشە</string>
+    <string name="overlay_position_top_left">سەرەوە چەپ</string>
+    <string name="overlay_position_top_right">سەرەوە ڕاست</string>
+    <string name="overlay_position_bottom_left">خوارەوە چەپ</string>
+    <string name="overlay_position_bottom_right">خوارەوە ڕاست</string>
+    <string name="overlay_position_center_top">ناوەڕاستی سەرەوە</string>
+    <string name="overlay_position_center_bottom">ناوەڕاستی خوارەوە</string>
+    <string name="perf_overlay_background">پاشبنەمای ئاوێرە</string>
+    <string name="perf_overlay_background_description">پاشبنەمای ئاوێرە بۆ خوێندنەوەی ئاسانتر</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">نیشاندانی زانیاری ئامێر</string>
+    <string name="enable_soc_overlay">چالاکردنی ئامێر</string>
+    <string name="soc_overlay_options">ئامێر</string>
+    <string name="soc_overlay_options_description">ڕێکخستنی زانیارییەکانی نیشاندراو لە ئامێرەکە</string>
+
+    <string name="show_device_model">نیشاندانی مۆدێلی ئامێر</string>
+    <string name="show_device_model_description">نیشاندانی مۆدێلی ئامێری میواندار</string>
+    <string name="show_gpu_model">نیشاندانی مۆدێلی GPU</string>
+    <string name="show_gpu_model_description">نیشاندانی مۆدێلی GPUی میواندار</string>
+    <string name="show_soc_model">نیشاندانی مۆدێلی SoC</string>
+    <string name="show_soc_model_description">نیشاندانی مۆدێلی SoCی میواندار</string>
+    <string name="show_fw_version">نیشاندانی وەشانی فریموێر</string>
+    <string name="show_fw_version_description">وەشانی فریموێری نەصبکراو پیشان بدە</string>
+
+    <!-- Eden\'s Veil -->
+    <string name="eden_veil">حجاب عدن</string>
+    <string name="eden_veil_description">ڕێکخستنە تاقیکارییەکان بۆ باشترکردنی کارایی و توانا. ئەم ڕێکخستنانە لەوانەیە ببێتە هۆی شاشە ڕەشەکان یان کێشەیتری یاری.</string>
+
+    <string name="veil_extensions">پاشکۆکانی GPU</string>
+    <string name="dyna_state">الحالة الديناميكية الممتدة</string>
+    <string name="dyna_state_description">کۆntrolی ژمارەی تایبەتمەندییەکان دەکات کە دەتوانرێت لە دۆخی هایپرDynamic بەکاربهێنرێت. ژمارەی زیاتر ڕێگە بە تایبەتمەندییەکی زیاتر دەدات و دەتوانێت کارایی باشتر بکات، بەڵام لەوانەیە کێشە دروست بکات لەگەڵ هەندێک لە درایڤەرەکان و فرۆشەکان. نرخی گریمانەیی دەگۆڕێت بەپێی سیستەم و تواناکانی hardwareی تۆ. دەتوانیت ئەم نرخە بگۆڕیت تا جێگیری و جێیەکی بینینی باشتر دەستبکەوێت.</string>
+    <string name="disabled">ناچالاک</string>
+    <string name="provoking_vertex">الرأس المثير</string>
+    <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.0+.</string>
+    <string name="descriptor_indexing">فهرسة الواصفات</string>
+    <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
+    <string name="sample_shading">سێبەندی نمونە</string>
+    <string name="sample_shading_description">ڕێگە بە شێدەری پارچە دەدات کە بۆ هەر نمونەیەک لە پارچەی فرە نمونەیدا جێبەجێ بکات لە جیاتی جێبەجێکردنی بۆ هەر پارچەیەک. جۆرایی گرافیک باشتر دەکات بە بەهای هەندێک لە کارایی. تەنها ئامێرەکانی Vulkan 1.1+ پشتگیری ئەم درێژکراوە دەکەن.</string>
+    <string name="sample_shading_fraction">پێکهاتەی سێبەرکردنی نموونە</string>
+    <string name="sample_shading_fraction_description">چڕی تێپەڕاندنی سێبەرکردنی نموونە. بەهای زیاتر کوالێتی باشتر دەکات بەڵام کارایی زیاتر کەم دەکاتەوە.</string>
+
+    <string name="veil_renderer">رێندرەر</string>
+    <string name="frame_interpolation">تحسين توقيت الإطارات</string>
+    <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
+    <string name="renderer_early_release_fences">زێدەکردنی پەرستارەکان زووتر</string>
+    <string name="renderer_early_release_fences_description">یارمەتی دەدات لە چارەسەری 0 FPS لە یارییەکانی وەک DKCR:HD، Subnautica Below Zero و Ori 2، بەڵام ڕەنگە بارکردن یان کارایی لە یارییەکانی Unreal Engine تێکبدات.</string>
+    <string name="sync_memory_operations">هاوبەشیی کردارەکانی بیرگە</string>
+    <string name="sync_memory_operations_description">دڵنیایی داتا لە نێوان کردارەکانی کۆمپیوتەر و بیرگە. ئەم هەڵبژاردە کێشەکان لە هەندێک یاری چارەسەر دەکات، بەڵام لە هەندێک حاڵەت کارایی کەم دەکاتەوە. وا دیارە یارییەکانی Unreal Engine 4 زۆرترین کاریگەریان هەیە.</string>
+    <string name="buffer_reorder_disable">ڕێکخستنەوەی بافر ناچالاک بکە</string>
+    <string name="buffer_reorder_disable_description">کە دیاریکرا، ڕێکخستنەوەی بارکردنی بیرگەی نەخشەکراو ناچالاک دەکات کە ڕێگەدەدات بارکردنەکان بە ڕەسمی دیاریکراو ببەسترێت. لە هەندێک حاڵەتدا کاراییمان دەکاتەوە.</string>
+
+    <string name="veil_misc">CPU و بیرگە</string>
+    <string name="use_sync_core">مزامنة سرعة النواة</string>
+    <string name="use_sync_core_description">خێرایی تیکەکانی ناوک ڕێکبخە لەگەڵ ڕێژەی خێرایی بەرزترین بۆ باشترکردنی کارایی بەبێ گۆڕینی خێرایی ڕاستەقینەی یارییەکە.</string>
+    <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
+    <string name="use_lru_cache_description">چالاک یان ناچالاککردنی کاشەی LRU، کارایی باشتر دەکات بە هەڵگرتنی بەکارهێنانی پرۆسەی CPU. هەندێک یاری کێشەی لەگەڵ هەیە، بەتایبەتی TotK 1.2.1، بۆیە بیخەوێنە ئەگەر یاریەکە نەگەڕێت یان بە هەڕەمەکی بشکێت.</string>
+    <string name="use_fast_cpu_time">کاتی CPU خێرا</string>
+    <string name="use_fast_cpu_time_description">CPUی شبیهسازیکراو بە زۆرکردنی کاتژمێر وادەکات بە خێرایی زیاتر کاربکات، ئەمەش هەندێک لە سنووردارکەرانی FPS کەم دەکاتەوە. ئەم هەڵبژاردە هەڵە و لەوانەیە کێشە دروست بکات، و لەوانەیە کەسی بە CPUی بێهێز کارایی کەمتر ببینێت.</string>
+    <string name="custom_cpu_ticks">تیکی CPU هەڵبژێردراو</string>
+    <string name="custom_cpu_ticks_description">بەهای هەڵبژێردراوی تیکی CPU دابنێ. بەهای زیاتر دەتوانن کارایی زیاد بکەن، بەڵام لەوانەیە بووەستانی یاریش دروست بکەن. ئامۆژگاری بە نێوان 77-21000 دەکرێت.</string>
+    <string name="cpu_ticks">تیک</string>
+    <string name="skip_cpu_inner_invalidation">بازنەکردنی ناوەکی CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">هەندێک لە بازنەکردنەکانی هەڵگر لە کاتی نوێکردنەوەی بیرگە دەنێرێت، کەمکردنەوەی بەکارهێنانی CPU و باشترکردنی کارایی. لەوانەیە لە هەندێک یاری کێشە درووست بکات.</string>
+    <string name="cpuopt_unsafe_host_mmu">چالاککردنی میمیکردنی MMU میواندە</string>
+    <string name="cpuopt_unsafe_host_mmu_description">ئەم باشکردنە خێرایی دەستکەوتنی بیرگە لەلایەن پرۆگرامی میوانەکە زیاد دەکات. چالاککردنی وای لێدەکات کە خوێندنەوە/نووسینەکانی بیرگەی میوانەکە ڕاستەوخۆ لە بیرگە ئەنجام بدرێت و میمیکردنی MMU میواندە بەکاربهێنێت. ناچالاککردنی ئەمە هەموو دەستکەوتنەکانی بیرگە ڕەت دەکاتەوە لە بەکارهێنانی میمیکردنی MMU نەرمەکاڵا.</string>
+    <string name="fast_cpu_time">کاتژمێری CPU</string>
+    <string name="fast_cpu_time_description">Boost (1700MHz) بەکاربهێنە بۆ کارکردن بە بەرزترین کاتژمێری نەیتیڤی سوویچ، یان Fast (2000MHz) بۆ کارکردن بە دوو هێندەی کاتژمێر.</string>
+    <string name="memory_layout">ڕێکخستنی بیرگە</string>
+    <string name="memory_layout_description">(تاقیکاری) گۆڕینی ڕێکخستنی بیرگەی شبیهسازیکراو. ئەم ڕێکخستنە کارایی زیاد ناکات، بەڵام لەوانەیە یارمەتی یارییەکان بدات کە بەرزی ڕێزۆلۆشن بەکاردهێنن بە هۆی مۆدەکان. لەسەر مۆبایلەکانی کە 8GB یان کەمتر RAMیان هەیە بەکارمەهێنە.</string>
+    <string name="dma_accuracy">وردیی DMA</string>
+    <string name="dma_accuracy_description">کۆنتڕۆڵی وردیی وردیی DMA دەکات. وردییی پارێزراو دەتوانێت کێشەکان لە هەندێک یاری چارەسەر بکات، بەڵام لە هەندێک حاڵەتدا کاریگەری لەسەر کارایی هەیە. ئەگەر دڵنیا نیت، ئەمە بە سەر ڕەھەوادا بهێڵە.</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">شادەر باکند</string>
+    <string name="shader_backend_description">هەڵبژاردنی ڕێگای پێکهێنانی شادەر</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">ئیمولەیشنی NVDEC</string>
+    <string name="nvdec_emulation_description">هەڵبژاردنی ڕێگای دیکۆدکردنی ڤیدیۆ</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">هیچ</string>
+
+    <!-- Optimize Spir-V output -->
+    <string name="never">هەرگیز</string>
+    <string name="on_load">لەسەر بارکردن</string>
+    <string name="always">هەمیشە</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">یاری فرە یاریکەر</string>
+    <string name="multiplayer_description">ژووری یاری خۆت دروست بکە یان بچۆ ناو ژوورێکی تر بۆ یاریکردن لەگەڵ خەڵک</string>
+    <string name="multiplayer_create_room">دروستکردن</string>
+    <string name="multiplayer_join_room">بەشداریکردن</string>
+    <string name="multiplayer_public_room">گەڕان بە ژوورە گشتییەکان</string>
+    <string name="multiplayer_username">ناوی بەکارهێنەر</string>
+    <string name="multiplayer_ip_address">ناونیشانی IP</string>
+    <string name="multiplayer_ip_port">پۆرت</string>
+    <string name="multiplayer_create_room_success">ژوور بە سەرکەوتوویی دروستکرا</string>
+    <string name="multiplayer_join_room_success">بە سەرکەوتوویی چوویتە ناو ژوورەوە</string>
+    <string name="multiplayer_exit_room">دەرچوون لە ژوور</string>
+    <string name="multiplayer_network_error">هەڵەی تۆڕ</string>
+    <string name="multiplayer_lost_connection">پەیوەندی لەدەستچوو</string>
+    <string name="multiplayer_name_collision">ناوی بەکارهێنەر پێشتر هەیە</string>
+    <string name="multiplayer_mac_collision">ناونیشانی MAC دووبارەکراوەتەوە</string>
+    <string name="multiplayer_console_id_collision">ناسنامەی کۆنسۆڵ دووبارەکراوەتەوە</string>
+    <string name="multiplayer_wrong_version">وەشانی هەڵە</string>
+    <string name="multiplayer_wrong_password">تێپەڕەوشەی هەڵە</string>
+    <string name="multiplayer_could_not_connect">نەتوانی پەیوەندی بکات</string>
+    <string name="multiplayer_room_is_full">ژوور پڕە</string>
+    <string name="multiplayer_host_banned">تۆ لەم ژوورە قەدەغە کراوە</string>
+    <string name="multiplayer_permission_denied">ڕێگەپێنەدراوە</string>
+    <string name="multiplayer_no_such_user">ئەم بەکارهێنەرە بوونی نییە</string>
+    <string name="multiplayer_already_in_room">خۆت لە ژوور دەیت</string>
+    <string name="multiplayer_create_room_error">هەڵە لە دروستکردنی ژوور</string>
+    <string name="multiplayer_host_kicked">خاوەن ژوور دەرکرا</string>
+    <string name="multiplayer_unknown_error">هەڵەی نەناسراو</string>
+    <string name="multiplayer_room_uninitialized">ژوور ڕێکنەخراوە</string>
+    <string name="multiplayer_room_idle">ژوور بێکارە</string>
+    <string name="multiplayer_room_joining">چوونە ناو ژوور</string>
+    <string name="multiplayer_room_joined">چوویتە ناو ژوورەوە</string>
+    <string name="multiplayer_room_moderator">چاودێری ژوور</string>
+    <string name="multiplayer_member_join">%1$s بەشداریکرد</string>
+    <string name="multiplayer_member_leave">%1$s جێهێشت</string>
+    <string name="multiplayer_member_kicked">%1$s دەرکرا</string>
+    <string name="multiplayer_member_banned">%1$s قەدەغەکرا</string>
+    <string name="multiplayer_address_unbanned">ناونیشان لە قەدەغە دەرکرا</string>
+    <string name="multiplayer_kick_member">دەرکردن</string>
+    <string name="multiplayer_password">تێپەڕەوشە</string>
+    <string name="multiplayer_joining">چوونە ناو ژوور…</string>
+    <string name="multiplayer_creating">دروستکردنی ژوور…</string>
+    <string name="multiplayer_room_name">ناوی ژوور</string>
+    <string name="multiplayer_max_players_value">زۆرترین یاریکەر: %d</string>
+    <string name="multiplayer_chat">گفتوگۆ</string>
+    <string name="multiplayer_more_options">هەڵبژاردنی زیاتر</string>
+    <string name="chat">گفتوگۆ</string>
+    <string name="type_message">نامە بنووسە…</string>
+    <string name="send_message">ناردنی پەیام</string>
+    <string name="multiplayer_moderation">چاودێری</string>
+    <string name="multiplayer_moderation_title">لیستی قەدەغەکراوەکان</string>
+    <string name="multiplayer_no_bans">هیچ بەکارهێنەرێک قەدەغە نەکراوە</string>
+    <string name="multiplayer_unban_title">لادانی قەدەغە لە بەکارهێنەر</string>
+    <string name="multiplayer_unban">لادانی قەدەغە</string>
+    <string name="multiplayer_unban_message">دڵنیایت دەتەوێ قەدەغە لە %1$s لابەری؟</string>
+    <string name="multiplayer_ban">قەدەغەکردنی بەکارهێنەر</string>
+    <string name="multiplayer_room_browser">ژوورە گشتییەکان</string>
+    <string name="multiplayer_no_rooms_found">هیچ ژوورێکی گشتی نەدۆزرایەوە</string>
+    <string name="multiplayer_password_required">تێپەڕەوشە پێویستە</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">یاری</string>
+    <string name="multiplayer_no_game_info">هیچ یارییەک</string>
+    <string name="multiplayer_password_protected">ژوور بە تێپەڕەوشە پارێزراوە</string>
+    <string name="multiplayer_hide_full_rooms">شاردنەوەی ژوورە پڕەکان</string>
+    <string name="multiplayer_hide_empty_rooms">شاردنەوەی ژوورە بەتاڵەکان</string>
+    <string name="multiplayer_tap_refresh_to_check_again">بیپەڕێنەوە بۆ پشکنینی دووبارە</string>
+    <string name="multiplayer_search_public_lobbies">گەڕان بە ژوورەکان…</string>
+    <string name="multiplayer_preferred_game_name">یاریی پەسەندکراو</string>
+    <string name="multiplayer_lobby_type">جۆری لۆبی</string>
+    <string name="multiplayer_room_name_error">دەبێت لە نێوان 3 بۆ 20 پیت بێت</string>
+    <string name="multiplayer_required">پێویستە</string>
+    <string name="multiplayer_token_required">تۆکنی وێب پێویستە، بڕۆ بۆ ڕێکخستنە پێشکەوتووەکان -> سیستەم -> تۆڕ</string>
+    <string name="multiplayer_ip_error">فۆرماتی IP نادروستە</string>
+    <string name="multiplayer_username_error">پێویستە ٤-٢٠ پیت بێت (تەنها پیت و ژمارە و خاڵ و خط و خەتەکێشە و بۆشایی)</string>
+    <string name="multiplayer_nickname_invalid">ناوی بەکارهێنەری نادروست، دڵنیا بەرەوە کە بە شێوەیەکی دروست دانراوە لە سیستەم → تۆڕ</string>
+    <string name="multiplayer_token_error">دەبێت 48 پیت بێت، و تەنها پیتی بچووکی a-z</string>
+    <string name="multiplayer_port_error">دەبێت لە نێوان 1 بۆ 65535 بێت</string>
+    <string name="cancel">پاشگەزبوونەوە</string>
+    <string name="ok">باشە</string>
+    <string name="refresh">نوێکردنەوە</string>
+    <string name="room_list">لیستی ژوورەکان</string>
+    <string name="multiplayer_public_visibility">گشتی</string>
+    <string name="multiplayer_unlisted_visibility">نەناسراو</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">بەخێربێیت!</string>
+    <string name="welcome_description">فێربە چۆن &lt;b>Eden&lt;/b> ڕێکبخەیت و بچییە ناو ئیمولەیشن.</string>
+    <string name="get_started">دەست پێبکە</string>
+    <string name="keys">کلیلەکان</string>
+    <string name="keys_description">فایلی &lt;b>prod.keys&lt;/b> هەڵبژێرە بە دوگمەی خوارەوە.</string>
+    <string name="select_keys">کلیلەکان هەڵبژێرە</string>
+    <string name="firmware">فریموێر</string>
+    <string name="select_firmware">هەڵبژاردنی فریموێر</string>
+    <string name="games">یاریەکان</string>
+    <string name="games_description">فۆڵدەری &lt;b>Games&lt;/b> هەڵبژێرە بە دوگمەی خوارەوە.</string>
+    <string name="done">تەواو</string>
+    <string name="text_continue">بەردەوام بوون</string>
+    <string name="next">دواتر</string>
+    <string name="back">گەڕانەوە</string>
+    <string name="add_games">زیادکردنی یاری</string>
+    <!-- Home strings -->
+
+    <string name="alphabetical">پێنووس</string>
+    <string name="view_list">لیست</string>
+    <string name="view_grid">تۆڕ</string>
+    <string name="view_carousel">کارۆسێل</string>
+    <string name="folder">فۆڵدەر</string>
+    <string name="dont_show_again">دووبارە نیشان مەدە</string>
+    <string name="home_search">گەڕان</string>
+    <string name="home_settings">ڕێکخستنەکان</string>
+    <string name="empty_gamelist">تا ئێستا هیچ فایلێک نەدۆزراوەتەوە یان هیچ ناونیشانێکی یاری هەڵنەبژێردراوە.</string>
+    <string name="select_games_folder_description">ڕێگە بە یوزو دەدات بۆ پڕکردنەوەی لیستی یارییەکان</string>
+    <string name="add_games_warning">هەڵبژاردنی فۆڵدەری یارییەکان تێپەڕدەکەیت؟</string>
+    <string name="add_games_warning_description">یارییەکان لە لیستی یارییەکاندا پیشان نادرێن ئەگەر فۆڵدەرێک هەڵنەبژێردرێت.</string>
+    <string name="home_search_games">گەڕان بەدوای یارییەکاندا</string>
+    <string name="install_prod_keys">دابمەزرێنە prod.keys</string>
+    <string name="install_prod_keys_description">پێویستە بۆ کۆدکردنەوەى یارییە تاکەکەسییەکان</string>
+    <string name="install_prod_keys_warning">زیادکردنی کلیلەکان تێپەڕدەکەیت؟</string>
+    <string name="install_prod_keys_warning_description">کلیلی دروست پێویستە بۆ وەرگرتنی یارییەکانی تاکەکەسی.  تەنها ئەپەکانی homebrew کاردەکەن ئەگەر بەردەوام بیت.</string>
+    <string name="install_firmware_warning">فریموێر زیاد نەکەین؟</string>
+    <string name="install_firmware_warning_description">زۆر یاری پێویستیان بە فریموێر هەیە بۆ ئەوەی باش کار بکەن.</string>
+    <string name="notifications">ئاگادارکردنەوەکان</string>
+    <string name="notifications_description">بە دوگمەی خوارەوە مۆڵەتی ئاگادارکردنەوەکە بدە.</string>
+    <string name="give_permission">مۆڵەت بدە</string>
+    <string name="notification_warning">پێدانی مۆڵەتی ئاگادارکردنەوە تێپەڕدەکەیت؟</string>
+    <string name="notification_warning_description">یوزو ناتوانێت لە زانیاری گرنگ ئاگادارت بکاتەوە.</string>
+    <string name="permission_denied">مۆڵەت پێدان ڕەتکرایەوە</string>
+    <string name="permission_denied_description">زۆر جار ئەم مۆڵەتەت ڕەتکردۆتەوە و ئێستا دەبێت بە دەستی ڕێگەپێدان بکەیت لە ڕێکخستنەکانی سیستەمدا.</string>
+    <string name="about">دەربارە</string>
+    <string name="about_description">وەشانی دروستکردن، بیتبێن و زۆر شتیتر</string>
+    <string name="warning_help">یارمەتی</string>
+    <string name="warning">ئاگاداری</string>
+    <string name="warning_skip">پەڕاندن</string>
+    <string name="warning_cancel">ڕەتکردنەوە</string>
+    <string name="install_amiibo_keys">دامەزراندنی کلیلی Amiibo</string>
+    <string name="install_amiibo_keys_description">پێویستە بۆ بەکارهێنانی Amiibo لە یاریدا</string>
+    <string name="gpu_driver_fetcher">هێنەری درایڤەری GPU</string>
+    <string name="install_gpu_driver_description">دامەزراندنی وەگەڕخەری بەدیل بۆ ئەوەی بە ئەگەرێکی زۆرەوە کارایی باشتر یان وردبینی هەبێت</string>
+    <string name="advanced_settings">ڕێکخستنە پێشکەوتووەکان</string>
+    <string name="settings_description">سازدانی ڕێکخستنەکانی ئیمولەیتەر</string>
+    <string name="search_recently_played">بەم دواییە یاری کردووە</string>
+    <string name="search_recently_added">بەم دواییە زیادکرا</string>
+    <string name="open_user_folder">کردنەوەی فۆڵدەری یوزو</string>
+    <string name="open_user_folder_description">بەڕێوەبردنی فایلە ناوخۆییەکانی یوزو</string>
+    <string name="no_file_manager">هیچ فایل بەڕێوەبەرێک نەدۆزرایەوە</string>
+    <string name="notification_no_directory_link">نەتوانرا ناونیشانی یوزو بکرێتەوە</string>
+    <string name="notification_no_directory_link_description">تکایە شوێنی فۆڵدەری بەکارهێنەر لەگەڵ پانێڵی لایەنی فایل بەڕێوەبارەکان بە دەست بدۆزەرەوە.</string>
+    <string name="manage_save_data">بەڕێوەبردنی داتای پاشەکەوتکراو</string>
+    <string name="manage_save_data_description">داتای پاشەکەوتکراو دۆزراوە. تکایە لە خوارەوە بژاردەیەک هەڵبژێرە.</string>
+    <string name="save_file_imported_success">بە سەرکەوتوویی هاوردە کرا</string>
+    <string name="save_file_invalid_zip_structure">پێکهاتەی شوێنی پاشەکەوتکراو نادروستە</string>
+    <string name="save_file_invalid_zip_structure_description">ناوی یەکەمی فۆڵدەر دەبێت ناسنامەی ناونیشانی یارییەکە بێت.</string>
+    <string name="install_firmware">دامەزراندنی پتەوواڵا</string>
+    <string name="install_firmware_description">پتەوواڵا دەبێت لە ئەرشیفی زیپدا بێت و پێویستە بۆ بووتکردنی هەندێک یاری</string>
+    <string name="firmware_installing">دامەزرانی پتەوواڵا</string>
+    <string name="firmware_installed_failure">دامەزراندنی پتەوواڵا شکستی هێنا</string>
+    <string name="share_log">هاوبەشی پێکردنی لۆگەکانی چاککردنەوە</string>
+    <string name="share_log_description">فایلە لۆگەکەی یوزو هاوبەش بکە بۆ چاککردنی کێشەکان</string>
+    <string name="share_log_missing">هیچ فایلێکی لۆگ نەدۆزراوە</string>
+    <string name="install_game_content">دامەزراندنی ناوەڕۆکی یاری</string>
+    <string name="install_game_content_description">دامەزراندنی نوێکاری یارییەکان یان DLC</string>
+    <string name="installing_game_content">دامەزراندنی ناوەڕۆک...</string>
+    <string name="install_game_content_failure">هەڵە لە دامەزراندنی فایل(ەکان) بۆ NAND</string>
+    <string name="install_game_content_failure_description">دڵنیابە لە دروستی ناوەڕۆک و بوونی فایلی prod.keys.</string>
+    <string name="install_game_content_failure_base">دامەزراندنی یارییە سەرەکییەکان ڕێگە نییە.</string>
+    <string name="install_game_content_failed_count">%1$d هەڵەی دامەزراندن</string>
+    <string name="install_game_content_success">ناوەڕۆکی یاری بە سەرکەوتوویی دامەزرا</string>
+    <string name="install_game_content_success_install">%1$d بە سەرکەوتوویی دامەزرا</string>
+    <string name="install_game_content_success_overwrite">%1$d بە سەرکەوتوویی نوێکرایەوە</string>
+    <string name="custom_driver_not_supported">وەگەڕخەری تایبەتمەند پشتگیری ناکرێت</string>
+    <string name="manage_yuzu_data">بەڕێوەبردنی داتای eden</string>
+    <string name="manage_yuzu_data_description">هاوردە/هەناردەکردنی پتەوواڵا، کلیل، داتای بەکارهێنەر و زیاتر!</string>
+    <string name="game_folders">فۆڵدەری یارییەکان</string>
+    <string name="deep_scan">گەڕانی قووڵ</string>
+    <string name="add_game_folder">زیادکردنی فۆڵدەری یاری</string>
+    <string name="folder_already_added">ئەم فۆڵدەرە پێشتر زیادکراوە!</string>
+    <string name="game_folder_properties">تایبەتمەندییەکانی فۆڵدەری یاری</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">هەڵە لە هاوردەکردنی %d پاشەکەوتکراو</item>
+        <item quantity="other">هەڵە لە هاوردەکردنی %d پاشەکەوتکراو</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">%d پاشەکەوتکراو بە سەرکەوتوویی هاوردە کرا</item>
+        <item quantity="other">%d پاشەکەوتکراو بە سەرکەوتوویی هاوردە کرا</item>
+    </plurals>
+    <string name="no_save_data_found">هیچ داتای پاشەکەوتکراوێک نەدۆزرایەوە</string>
+    <string name="verify_installed_content">پشکنینی ناوەڕۆکی دامەزراو</string>
+    <string name="verify_installed_content_description">هەموو ناوەڕۆکی دامەزراو پشکنین دەکات بۆ تێکچوون</string>
+
+    <string name="keys_missing">کلیلە کۆدکراوەکان دیار نییە</string>
+    <string name="keys_missing_description">پتەوواڵا و یارییە تاکەکەسییەکان ناتوانرێت کۆد بکرێنەوە</string>
+    <string name="uninstall_firmware">إزالة البرنامج الثابت</string>
+    <string name="uninstall_firmware_description">سيؤدي إزالة البرنامج الثابت إلى حذفه من الجهاز وقد يؤثر على توافق الألعاب.</string>
+    <string name="firmware_uninstalling">جاري إزالة البرنامج الثابت</string>
+    <string name="firmware_uninstalled_success">تم إزالة البرنامج الثابت بنجاح</string>
+
+
+    <string name="keys_failed">سەرکەوتوو نەبوو لە ناساندنی کلیلی</string>
+    <string name="keys_install_success">کلیلەکان بە سەرکەوتوویی ناسێندران</string>
+    <string name="error_keys_copy_failed">یەک یان زیاتر کلیل سەرکەوتوو نەبوو لە ناساندن.</string>
+    <string name="error_keys_invalid_filename">دڵنیا بەرەوە کە فایلی کلیلی تۆ پاشگرەکەی .keys هەیە و هەوڵ بدەرەوە.</string>
+    <string name="error_keys_failed_init">کلیلەکان سەرکەوتوو نەبوون لە ناساندن. دڵنیا بەرەوە کە ئامرازەکانی دامپکردنت نوێن و دووبارە کلیلی دامپ بکە.</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">ئەپەکان لە شاشەی سەرەکی سیستەم دەستپێبکە</string>
+    <string name="applets">دەستپێکەری ئەپلێت</string>
+    <string name="applets_description">ئەپلێتی سیستەم دەستپێبکە بە بەکارهێنانی پتەوواڵای دامەزراو</string>
+    <string name="applets_error_firmware">فریموێر نەنێردراوە یان وەشانێکی نادروستە</string>
+    <string name="applets_error_applet">ئەپلێت بەردەست نییە</string>
+    <string name="applets_error_description"><![CDATA[تکایە دڵنیابە لەوەی فایلی <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">فریموێر</a>ەکەت نێردراوە و هەوڵ بدەرەوە.<br>هەروەها دڵنیابە لەوەی فریموێرەکەت وەشانی ١٩.٠.١ یان کەمتر بێت.]]></string>
+    <string name="album_applet">ئەلبوم</string>
+    <string name="album_applet_description">وێنەکان لە فۆڵدەری وێنەی بەکارهێنەر ببینە</string>
+    <string name="mii_edit_applet">دەستکاریی Mii</string>
+    <string name="mii_edit_applet_description">Miiەکان بینە و دەستکاری بکە</string>
+    <string name="cabinet_applet">کابینەت</string>
+    <string name="cabinet_applet_description">داتای سەر amiibo دەستکاری یان بسڕەوە</string>
+    <string name="cabinet_launcher">دەستپێکەری کابینەت</string>
+    <string name="cabinet_nickname_and_owner">ڕێکخستنی نازناو و خاوەن</string>
+    <string name="cabinet_game_data_eraser">سڕینەوەی داتای یاری</string>
+    <string name="cabinet_restorer">پاشکەوتکەر</string>
+    <string name="cabinet_formatter">ڕێکخەر</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">گایا ڕاستەقینە نییە</string>
+    <string name="copied_to_clipboard">کۆپی کرا بۆ تەختەی نووسین</string>
+    <string name="about_app_description">ئیمۆلیتەرێکی سەرچاوە-کراوەی سویچ</string>
+    <string name="contributors">بەشداربووان</string>
+    <string name="contributors_description">دروستکراوە لەگەڵ \u2764 لەلایەن تیمەکەی یوزو</string>
+    <string name="licenses_description">ئەو پڕۆژانەی کە یوزوی بۆ ئەندرۆید ڕەخساند</string>
+    <string name="build">بونیات</string>
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">سنووردارکردنی خێرایی</string>
+    <string name="frame_limit_enable_description">خێرایی ئیمولەیشن سنووردار دەکات بۆ ڕێژەیەکی دیاریکراو لە خێرایی ئاسایی.</string>
+    <string name="frame_limit_slider">سنووردارکردنی لەسەدای خێرایی</string>
+    <string name="frame_limit_slider_description">ڕێژەی سەدی دیاری دەکات بۆ سنووردارکردنی خێرایی ئیمولەیشن. 100% خێرایی ئاساییە. بەهایی بەرزتر یان نزمتر دەبێتە هۆی زیاد یان کەمکردنەوەی سنووری خێرایی.</string>
+    <string name="cpu_accuracy">وردی CPU</string>
+    <!-- System settings strings -->
+    <string name="device_name">ناوی ئامێر</string>
+    <string name="use_docked_mode">دۆخی دۆککراو</string>
+    <string name="use_docked_mode_description">ڕوونی زیاد دەکات، کارایی کەم دەکاتەوە. دۆخی دەستی بەکاردێت کاتێک لەکاردەخرێت، ئەمەش ڕوونی دادەبەزێنێت و کارایی زیاد دەکات.</string>
+    <string name="emulated_region">ناوچەی ئیمولەیشن</string>
+    <string name="emulated_language">زمانی ئیمولەیتەر</string>
+    <string name="select_rtc_date">هەڵبژاردنی بەرواری RTC</string>
+    <string name="select_rtc_time">هەڵبژاردنی کاتی RTC</string>
+    <string name="use_custom_rtc">RTCی تایبەتمەند</string>
+    <string name="use_custom_rtc_description">ڕێگەت پێدەدات کاتژمێرێکی کاتی ڕاستەقینەی تایبەتمەند دابنێیت کە جیاوازە لە کاتی ئێستای سیستەمەکەت.</string>
+    <string name="set_custom_rtc">دانانی RTCی تایبەتمەند</string>
+
+    <string name="generate">بەرهەم هێنان</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">نیشانەی وێب</string>
+    <string name="web_token_description">نیشانەی وێب بۆ دروستکردنی ژوورە گشتییەکان. زنجیرەیەکی 48 پیتییە تەنها پیتی a-z بچووک لەخۆدەگرێت.</string>
+    <string name="web_username">ناوی بەکارهێنەری وێب</string>
+    <string name="web_username_description">ناوی بەکارهێنەر کە لە ژوورەکانی فرە یاریزاندا پیشان دەدرێت. پێویستە ٤-٢٠ پیت بێت (تەنها پیت و ژمارە و خاڵ و خط و خەتەکێشە و بۆشایی).</string>
+    <string name="network">تۆڕ</string>
+
+    <!-- Graphics settings strings -->
+    <string name="backend">پاشبنەما</string>
+    <string name="display">پیشاندان</string>
+    <string name="processing">پاشپڕۆسەکردن</string>
+
+    <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
+    <string name="frame_skipping_description">تێپەڕاندنی فرەیمەکان بکە بۆ باشترکردنی کارایی بە کەمکردنەوەی ژمارەی فرەیمە ڕێندرکراوەکان. ئەم تایبەتمەندییە هێشتا کاردەکرێت و لە وەشانە داهاتووەکاندا چالاکدەکرێت.</string>
+    <string name="renderer_accuracy">ئاستی وردبینی</string>
+    <string name="renderer_resolution">ڕوونی (دۆخی دەستی/دۆخی دۆک)</string>
+    <string name="renderer_vsync">دۆخی VSync</string>
+    <string name="renderer_screen_layout">ڕێکخستنی شاشە</string>
+    <string name="renderer_aspect_ratio">ڕێژەی ڕووبەری شاشە</string>
+    <string name="renderer_scaling_filter">فلتەری گونجاندنی پەنجەرە</string>
+    <string name="fsr_sharpness">تیژی FSR</string>
+    <string name="fsr_sharpness_description">دیاریکردنی تیژی وێنە لە کاتی بەکارهێنانی FSR</string>
+    <string name="renderer_anti_aliasing">شێوازی دژە-خاوڕۆیی</string>
+    <string name="renderer_force_max_clock">ناچاریکردن بۆ زۆرترین کاتژمێر (تەنها ئەدرینۆ)</string>
+    <string name="renderer_force_max_clock_description">GPU ناچار دەکات بە زۆرترین کاتژمێر کاربکات (هێشتا سنووردارکردنی گەرمی جێبەجێ دەکرێت).</string>
+    <string name="renderer_optimize_spirv_output">باشترکردنی دەرچوونی Spir-V</string>
+    <string name="renderer_optimize_spirv_output_description">شێیدەرە کۆمپایلکراوەکان باش دەکات بۆ باشترکردنی کارایی GPU.</string>
+    <string name="renderer_asynchronous_shaders">بەکارهێنانی سێبەری ناهاوسەنگ</string>
+    <string name="renderer_asynchronous_shaders_description">کۆمپایلکردنی شادەرەکان بەشێوەی ناڕێک. ئەمە ڕەنگە کەمکردنەوەی ستەتەر بکات بەڵام لەوانەیە هەڵەش دروست بکات.</string>
+    <string name="use_fast_gpu_time">بەکارهێنانی کاتی GPU خێرا</string>
+    <string name="use_fast_gpu_time_description">زۆربەی یارییەکان بەرزی ڕەزولوشنی ڕەسەنی خۆیان دادەمەزرێنێت. ئەم هەڵبژاردە هەڵەیە و لەوانەیە کێشە دروست بکات.</string>
+    <string name="fast_gpu_time">فاکتۆری خێراکردنی GPU</string>
+    <string name="fast_gpu_time_description">128 بەکاربهێنە بۆ باشترین کارایی و 512 بۆ باشترین وردی گرافیک.</string>
+    <string name="renderer_reactive_flushing">بەکارهێنانی بەرپێچدەرەوە</string>
+    <string name="renderer_reactive_flushing_description">وردی ڕێندەرکردن لە هەندێک یاریدا باشتر دەکات لەسەر تێچووی کارایی.</string>
+    <string name="use_disk_shader_cache">بیرگەخێرای سێبەری دیسک</string>
+    <string name="use_disk_shader_cache_description">پچڕپچڕی کەمدەکاتەوە بە هەڵگرتن و بارکردنی سێبەری دروستکراو لە ناوخۆدا.</string>
+    <string name="anisotropic_filtering">فلتەری anisotropic</string>
+    <string name="anisotropic_filtering_description">کوالێتی تێکستەرەکان باشتر دەکات لە کاتی سەیرکردنی لە گۆشە.</string>
+
+    <string name="warning_resolution">گۆرینی رێزلوشن بۆ 2x یان زیاتر دەبێتە هۆی کێشە، و لەوانەیە ببێتە هۆی خاوبوونەوەی بەرچاوی ئامێرەکەت.</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="use_auto_stub">استخدام الستاب التلقائي</string>
+    <string name="use_auto_stub_description">يقوم تلقائيًا بإضافة خدمات ووظائف ناقصة. قد يحسن التوافق ولكنه قد يتسبب في تعطل المشغل ومشاكل في الاستقرار.</string>
+
+    <string name="gpu">GPU</string>
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">چاککردنەوەی گرافیک</string>
+    <string name="renderer_debug_description">API ی گرافیکەکان لە دۆخی چاککردنەوەی هێواش دادەنێت.</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">تۆمارکردن</string>
+    <string name="flush_by_line">خاوکردنەوەی تۆمارەکانی دیباگ بە هێڵ</string>
+    <string name="flush_by_line_description">تۆمارەکانی دیباگ لە هەر هێڵێکدا دەنوسرێت خاو دەکاتەوە، ئەمە وا دەکات دیباگکردن ئاسانتر بێت لە کاتی کرشکردن یان پێکەنین.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">بزوێنری دەرچوونی دەنگ</string>
+    <string name="audio_volume">دەنگ</string>
+    <string name="audio_volume_description">قەبارەی دەنگی دەرچوون دیاری دەکات.</string>
+
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Plus</string>
+    <string name="button_minus">Minus</string>
+    <string name="button_home">ماڵەوە</string>
+    <string name="button_capture">Capture</string>
+    <string name="dpad">D-Pad</string>
+    <string name="up">سەرەوە</string>
+    <string name="down">خوارەوە</string>
+    <string name="left">چەپ</string>
+    <string name="right">ڕاست</string>
+    <string name="left_stick">گێڕی چەپ</string>
+    <string name="right_stick">گێڕی ڕاست</string>
+    <string name="c_stick">گێڕی کامێرا</string>
+    <string name="pressed">فشارخراوەتەسەر</string>
+    <string name="range">مەودا</string>
+    <string name="modifier">دەستکاریکەر</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">نادروست</string>
+    <string name="pro_controller">کۆنتڕۆڵکەری پڕۆ</string>
+    <string name="handheld">دەستی</string>
+    <string name="dual_joycons">دووانە جۆیکۆن</string>
+    <string name="left_joycon">جۆیکۆنی چەپ</string>
+    <string name="right_joycon">جۆیکۆنی ڕاست</string>
+    <string name="gamecube_controller">کۆنتڕۆڵکەری گەیمکیوب</string>
+    <string name="invert_axis">پێچەوانەکردنەوەی تەوەر</string>
+    <string name="invert_button">دوگمەی پێچەوانەکردنەوە</string>
+    <string name="toggle_button">دوگمەی گۆڕین</string>
+    <string name="turbo_button">دوگمەی تۆربۆ</string>
+    <string name="set_threshold">دانانی ئاستەنگ</string>
+    <string name="toggle_axis">گۆڕینی تەوەر</string>
+    <string name="connected">پەیوەستە</string>
+    <string name="vibration">لەرزین</string>
+    <string name="profile">پڕۆفایل</string>
+    <!-- Miscellaneous -->
+    <string name="slider_default">بنەڕەت</string>
+    <string name="loading">بارکردن...</string>
+    <string name="reset_setting_confirmation">ئایا دەتەوێت ئەم ڕێکخستنە بگەڕێنیتەوە بۆ بەهای بنەڕەتی خۆی؟</string>
+    <string name="reset_to_default">دوبارە ڕێکخستنەوەی بۆ بنەڕەت</string>
+    <string name="reset_all_settings">هەموو ڕێکخستنەکان دوبارە ڕێک دەخاتەوە؟</string>
+    <string name="reset_all_settings_description">هەموو ڕێکخستنە پێشکەوتووەکان دەگەڕێنەوە بۆ ڕێکخستنی بنەڕەتی خۆیان. پاشگەز بوونەوەی نییه.</string>
+    <string name="settings_reset">دوبارە ڕێککردنەوەی ڕێکخستنەکان</string>
+    <string name="close">داخستن</string>
+    <string name="learn_more">زیاتر فێربە</string>
+    <string name="auto">خودکار</string>
+    <string name="submit">پێشکەشکردن</string>
+    <string name="string_import">هاوردەکردن</string>
+    <string name="export">هەناردەکردن</string>
+    <string name="install">دامەزراندن</string>
+    <string name="fetch">هێنان</string>
+    <string name="delete">سڕینەوە</string>
+    <string name="save">هەڵگرتن</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver_default">بنەڕەت</string>
+    <string name="system_gpu_driver">وەگەڕخەری GPU ی سیستەم</string>
+    <string name="installing_driver">دامەزراندنی وەگەڕخەر...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="show_releases">پیشاندانی وەشانەکان</string>
+    <string name="failed_to_fetch">هێنان شکستی هێنا</string>
+    <string name="error_during_fetch">هەڵە لە کاتی هێنان</string>
+    <string name="show_downloads">پیشاندانی داگرتنەکان</string>
+    <string name="hide_downloads">شاردنەوەی داگرتنەکان</string>
+    <string name="failed_cache_dir">دایری کاش بەردەست نییە</string>
+    <string name="empty_response_body">ناوەڕۆکی وەڵام بەتاڵە</string>
+    <string name="successfully_installed">%1$s بە سەرکەوتوویی دامەزرا</string>
+    <string name="driver_failed_title">دامەزراندنی درایڤەر شکستی هێنا</string>
+    <string name="failed_install_driver">دامەزراندنی درایڤەری %1$s شکستی هێنا، سیستەمەکەت پشتگیری دەکات؟</string>
+    <string name="driver_empty">درایڤەری داگرتوو بەتاڵە، پەیوەندییەکەت بە ئینتەرنێت پشکنە</string>
+    <string name="downloading">لە داگرتندایە...</string>
+    <string name="installing">لە دامەزراندن...</string>
+    <string name="latest">نوێترین</string>
+    <string name="recommended_driver">درایڤەری پێشنیارکراو:</string>
+    <string name="gpu_model">مۆدێلی GPU:</string>
+    <string name="unsupported_gpu">GPU پشتگیری نەکراوە</string>
+    <string name="unsupported_gpu_warning">GPUی تۆ پشتگیری لە درایڤەری تایبەت ناکات. پێشنیار ناکرێت درایڤەری تایبەت دابنێیت.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">ڕێکخستنەکان</string>
+    <string name="preferences_system">سیستەم</string>
+    <string name="preferences_graphics">گرافیک</string>
+    <string name="preferences_audio">دەنگ</string>
+    <string name="preferences_debug">چاککردنەوە</string>
+    <string name="path">ڕێڕەو</string>
+    <string name="version">وەشان</string>
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">ڕۆمەکەت کۆدکراوە</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[تکایە ڕێنمایییەکان بە شوێن بکەوە بۆ دووبارە دامپکردنی <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">یارییە کارتەکان</a> یان <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">ناونیشانە دیجیتاڵییەکان</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[تکایە دڵنیابەوە لەدامەزراوی <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> فایلەکەت بۆ ئەوەی بتوانرێت یارییەکان کۆد بکرێنەوە.]]></string>
+    <string name="loader_error_video_core">هەڵەیەک لە دەستپێکردنی ناوەکی ڤیدیۆکەدا ڕوویدا</string>
+    <string name="loader_error_video_core_description">ئەمەش بەزۆری بەهۆی وەگەڕخەرێکی ناتەبای GPU ەوەیە. دامەزراندنی وەگەڕخەری GPU ی تایبەتمەندکراو لەوانەیە ئەم کێشەیە چارەسەر بکات.</string>
+    <string name="loader_error_file_not_found">فایلی ڕۆم بوونی نییە</string>
+
+    <string name="loader_requires_firmware">یارییەکە فریموێر پێویستە</string>
+    <string name="loader_requires_firmware_description"><![CDATA[یارییەکە کە تۆ هەوڵ دەدەیت بیخەیتە کار فریموێر پێویستە بۆ کردنەوە یان تێپەڕاندنی مێنیوی کردنەوە. تکایە <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> فریموێر دامپ بکە و دابنێ</a>, یان پەنجە بنێ سەر \"باشە\" بۆ بەردەوامبوون هەرچۆنێک بێت.]]></string>
+
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">گەڕان بە دوای یارییە...</string>
+    <string name="game_not_found_for_title_id">یاری نەدۆزرایەوە بۆ ناسنامەی ناونیشان: %1$s</string>
+    <string name="custom_settings_failed_title">ڕێکخستنە هەڵبژێردراوەکان سەرکەوتوو نەبوو</string>
+    <string name="custom_settings_failed_message">سەرکەوتوو نەبوو لە جێبەجێکردنی ڕێکخستنە هەڵبژێردراوەکان بۆ %1$s: %2$s</string>
+    <string name="launch_with_default_settings">دەستپێکردن بە ڕێکخستنە بنەڕەتییەکان</string>
+    <string name="launch_cancelled">دەستپێکردن هەڵوەشیندراوە</string>
+    <string name="custom_settings_failure_reasons">ناتوانێت ڕێکخستنە داواکراوەکان جێبەجێ بکات. لەوانەیە ئەمە بەهۆی ونبوونی ڕاهێنەری GPU یان کێشەکانی ڕێکخستنەوە بێت.</string>
+    <string name="custom_settings_applied">ڕێکخستنە هەڵبژێردراوەکان جێبەجێ کرا</string>
+    <string name="launching_game">دەستپێکردنی %1$s...</string>
+    <string name="failed_to_initialize_game">سەرکەوتوو نەبوو لە دەستپێکردنی یارییەکە</string>
+    <string name="custom_intent_launch_message_with_settings">ئایا دەتەوێت %1$s بە ڕێکخستنە هەڵبژێردراوەکان دەستپێبکەیت؟</string>
+    <string name="custom_intent_launch_message">ئایا دەتەوێت %1$s دەستپێبکەیت?</string>
+    <string name="custom_intent_launch_title">دەستپێکردنی یاری</string>
+    <string name="launch">دەستپێکردن</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">سەرکەوتوو نەبوو لە نووسینی پەڕگەی ڕێکخستن</string>
+    <string name="config_apply_failed">سەرکەوتوو نەبوو لە جێبەجێکردنی ڕێکخستن</string>
+    <string name="config_already_exists_title">ڕێکخستن هەبووی تری هەیە</string>
+    <string name="config_exists_prompt">پشکنین بۆ ڕێکخستنی ئێستا...</string>
+    <string name="overwrite_cancelled">سڕینەوە هەڵوەشیندراوە</string>
+    <string name="overwrite">سڕینەوە</string>
+
+    <!-- Driver strings -->
+    <string name="driver_not_found">ڕاهێنەری پێویست دامەزراو نییە: %s</string>
+    <string name="invalid_driver_file">پەڕگەی ڕاهێنەری نادروست: %s</string>
+    <string name="network_unavailable">هیچ پەیوەندییەکی تۆڕ بەردەست نییە. تکایە پەیوەندیی ئینتەرنێتەکەت بپشکنە و دووبارە هەوڵبدە.</string>
+    <string name="driver_missing_title">ڕاهێنەری GPU پێویستە</string>
+    <string name="driver_download_cancelled">داگرتنی ڕاهێنەر هەڵوەشیندراوە. ناتوانیت یارییەکە دەستپێبکەیت بەبێ ڕاهێنەری پێویست.</string>
+    <string name="download">داگرتن</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">دەرچوون لە ئیمولەیشن</string>
+    <string name="emulation_done">تەواو</string>
+    <string name="emulation_toggle_controls">گۆڕینی کۆنتڕۆڵ</string>
+    <string name="emulation_rel_stick_center">ناوەندی گێڕ بەنزیکەیی</string>
+    <string name="emulation_dpad_slide">خلیسکانی 4 دوگمەکە</string>
+    <string name="emulation_haptics">لەرینەوەی پەنجەلێدان</string>
+    <string name="emulation_show_overlay">نیشاندانی کۆنتڕۆڵەر</string>
+    <string name="emulation_hide_overlay">پیشاندانی کۆنتڕۆڵەر</string>
+    <string name="emulation_toggle_all">گۆڕینی سەرجەم</string>
+    <string name="emulation_control_adjust">ڕێکخستنی داپۆشەر</string>
+    <string name="emulation_control_scale">پێوەر</string>
+    <string name="emulation_control_opacity">ڕوونی</string>
+    <string name="emulation_touch_overlay_reset">دووبارە ڕێکخستنەوەی داپۆشەر</string>
+    <string name="emulation_touch_overlay_edit">دەستکاریکردنی داپۆشەر</string>
+    <string name="emulation_pause">وەستاندنی ئیمولەیشن</string>
+    <string name="emulation_unpause">لادانی وەستاندنی ئیمولەیشن</string>
+    <string name="emulation_input_overlay">هەڵبژاردەکانی داپۆشەر</string>
+    <string name="touchscreen">رووکاری لەمسی</string>
+    <!-- Software keyboard -->
+    <string name="software_keyboard">کیبۆردی نەرمەکاڵا</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">دەربارە</string>
+    <string name="continue_button">بەردەوام بوون</string>
+    <string name="system_archive_not_found">ئەرشیفی سیستەم نەدۆزراوە</string>
+    <string name="system_archive_general">ئەرشیفێکی سیستەم</string>
+    <string name="save_load_error">هەڵەی پاشەکەوتکردن/بارکردن</string>
+    <string name="fatal_error">هەڵەی کوشندە</string>
+    <!-- Region Names -->
+    <string name="region_japan">ژاپۆن</string>
+    <string name="region_usa">ئەمریکا</string>
+    <string name="region_europe">ئەورووپا</string>
+    <string name="region_australia">ئوسترالیا</string>
+    <string name="region_china">چین</string>
+    <string name="region_korea">کۆریا</string>
+    <string name="region_taiwan">تایوان</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (پێشنیارکراو)</string>
+    <string name="memory_6gb">6GB (نائاسایش)</string>
+    <string name="memory_8gb">8GB (نائاسایش)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_boost">زۆرکردن (1700MHz)</string>
+    <string name="clock_fast">خێرا (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">نزم (128)</string>
+    <string name="gpu_medium">ناوەند (256)</string>
+    <string name="gpu_high">بەرز (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">سیلیزی</string>
+    <string name="temperature_fahrenheit">فارینهایت</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte_shorthand">B</string>
+    <string name="memory_gigabyte">GB</string>
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">ڤوڵکان</string>
+    <string name="renderer_none">هیچ</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">ئاسایی</string>
+    <string name="renderer_accuracy_high">بەرز</string>
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">بنەڕەتی</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ڕێگای دیکۆدکردنی ASTC</string>
+    <string name="accelerate_astc_description">هەڵبژێرە چۆن تێکستوورە پەستووکراوەکانی ASTC دەکرێنەوە بۆ ڕێندرکردن: CPU (هێواش، سەلامەت)، GPU (خێرا، پێشنیارکراو)، یان CPU Async (بێ ستەتەر، لەوانەیە کێشە دروست بکات)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPUی ناڕێک</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ڕێگای پێکهێنانەوەی ASTC</string>
+    <string name="astc_recompression_description">هەڵبژێرە چۆن تێکستوورەکانی ASTC پەستوو دەکرێنەوە بۆ باشترکردنی گونجاندن و کارایی. چالاککردنی ئەم هەڵبژاردە VRAM هەڵدەگرێت بەڵام لەوانەیە کەمکردنەوەی کوالێتی تێکستوور بکات.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">پێکهێنەنەوە</string>
+    <string name="astc_recompression_bc1">BC1 (کوالیتی نزم)</string>
+    <string name="astc_recompression_bc3">BC3 (کوالیتی مامناوەند)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">دۆخی بەکارهێنانی VRAM</string>
+    <string name="vram_usage_mode_description">کۆنتڕۆڵی بەکارهێنانی VRAM</string>
+    <string name="vram_usage_conservative">پارێزەر</string>
+    <string name="vram_usage_aggressive">توند</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (خاو)</string>
+    <string name="resolution_three">3X (2160p/3240p) (خاو)</string>
+    <string name="resolution_four">4X (2880p/4320p) (خاو)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">دەستبەجێ (کوژاوە)</string>
+    <string name="renderer_vsync_mailbox">سندوقی پۆستە</string>
+    <string name="renderer_vsync_fifo">FIFO (پێکراو)</string>
+    <string name="renderer_vsync_fifo_relaxed">FIFO ئارام</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">نزیکترین دراوسێ</string>
+    <string name="scaling_filter_bilinear">دوو هێڵی</string>
+    <string name="scaling_filter_bicubic">دووخشتەکی</string>
+    <string name="scaling_filter_gaussian">گاوسی</string>
+    <string name="scaling_filter_scale_force">پێوەرهێز</string>
+    <string name="scaling_filter_fsr">AMD FidelityFX™ سوپەر ووردبینی</string>
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">هیچ</string>
+    <string name="anti_aliasing_fxaa">FXAA</string>
+    <string name="anti_aliasing_smaa">SMAA</string>
+
+    <!-- Screen Layouts -->
+    <string name="screen_layout_auto">خودکار</string>
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">بنەڕەت (16:9)</string>
+    <string name="ratio_force_four_three">ڕووبەری 4:3</string>
+    <string name="ratio_force_twenty_one_nine">ڕووبەری 21:9</string>
+    <string name="ratio_force_sixteen_ten">ڕووبەری 16:10</string>
+    <string name="ratio_stretch">کشانی پڕ بەشاشە</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">وورد</string>
+    <string name="cpu_accuracy_unsafe">ناسەقامگیر</string>
+    <string name="cpu_accuracy_paranoid">بەگومان (خاو)</string>
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">4 دوگمەکە</string>
+    <string name="gamepad_left_stick">گێڕی چەپ</string>
+    <string name="gamepad_right_stick">گێڕی ڕاست</string>
+    <string name="gamepad_home">ماڵەوە</string>
+    <string name="gamepad_screenshot">وێنەگرتنی شاشە</string>
+
+    <!-- Disk shader cache -->
+    <string name="building_shaders">دروستکردنی سێبەرەکان</string>
+
+    <!-- App options -->
+    <string name="change_app_theme">گۆڕینی ڕووکاری ئەپەکە</string>
+    <string name="theme_default">بنەڕەت</string>
+    <string name="theme_material_you">کەرەستەی تۆ</string>
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">گۆڕینی دۆخی ڕووکار</string>
+    <string name="theme_mode_follow_system">پەیڕەوی کردنی سیستەم</string>
+    <string name="theme_mode_light">ڕوناکی</string>
+    <string name="theme_mode_dark">تاریک</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">پاشبنەمای ڕەش</string>
+    <string name="use_black_backgrounds_description">لە کاتی بەکارهێنانی ڕووکاری تاریکدا، پاشبنەمای ڕەش دادەنێ.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">ڕەنگی پۆل</string>
+    <string name="violet">موڤ (بنەڕەتی)</string>
+    <string name="blue">شین</string>
+    <string name="cyan">سایان</string>
+    <string name="red">سوور</string>
+    <string name="green">سەوز</string>
+    <string name="yellow">زەرد</string>
+    <string name="orange">پرتەقاڵی</string>
+    <string name="pink">پەمەیی</string>
+    <string name="gray">ڕەساسی</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">وێنە لە ناو وێنە</string>
+    <string name="picture_in_picture_description">پەنجەرە بچووک دەکاتەوە کاتێک لە پاشبنەیە.</string>
+    <string name="pause">وەستان</string>
+    <string name="play">یاریکردن</string>
+    <string name="mute">بێدەنگ</string>
+    <string name="unmute">لادانی بێدەنگی</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">ڕێکخستنی ستوونی</string>
+    <string name="top">سەرەوە</string>
+    <string name="center">ناوەند</string>
+    <string name="bottom">خوارەوە</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">ئەپلێتەکان</string>
+    <string name="applets_menu_description">(کار دەکرێت) گۆڕینی فرۆنتێندەکانی ئەپلێت و ڕێکخستنەکان</string>
+
+    <string name="applet_hle">فرۆنتێندی خوازراو</string>
+    <string name="applet_lle">ئەپلێتی ڕاستەقینە</string>
+
+    <string name="swkbd_applet">کلیلەبۆردی نەرمەکاڵا</string>
+
+    <string name="airplane_mode">دۆخی فڕۆکە</string>
+    <string name="airplane_mode_description">دۆخی فڕۆکە بۆ سیستەمی کارپێکەری Switch دەگوازێتەوە</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">مۆڵەتەکان</string>
+    <string name="license_fidelityfx_fsr_description">بەرزکردنەوەی کوالێتی بەرز لە کۆمپانیای AMD</string>
+    </resources>

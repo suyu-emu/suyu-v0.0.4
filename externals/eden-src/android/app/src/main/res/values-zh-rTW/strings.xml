@@ -1,0 +1,1026 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="app_disclaimer">本軟體可執行Nintendo Switch主機的遊戲，軟體不提供遊戲和金鑰檔案。&lt;br/> &lt;br/>在開始之前，請先安裝您的 &lt;<![CDATA[ &lt;b>prod.keys&lt;/b> ]]> 檔案，&lt;br />&lt;br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">了解更多</a>]]></string>
+    <string name="notice_notification_channel_name">通知和錯誤</string>
+    <string name="notice_notification_channel_description">發生錯誤時顯示通知。</string>
+    <string name="notification_permission_not_granted">未授予通知權限！</string>
+    <string name="app_notification_channel_description">Eden模擬器通知</string>
+    <string name="app_notification_running">Eden正在執行</string>
+    <string name="seconds">秒</string>
+
+    <!-- Spinbox strings -->
+    <string name="increment">增加</string>
+    <string name="decrement">減少</string>
+    <string name="value_too_low">範圍最小必須為%1$d</string>
+    <string name="value_too_high">範圍最多必須為%1$d</string>
+    <string name="invalid_value">無效的範圍</string>
+
+
+    <!-- Input Overlay -->
+    <string name="overlay_auto_hide">自動隱藏虛擬按鍵</string>
+    <string name="overlay_auto_hide_description">在未使用虛擬按鍵幾秒後自動隱藏</string>
+    <string name="enable_input_overlay_auto_hide">啟用自動隱藏虛擬按鍵</string>
+
+    <string name="input_overlay_options">虛擬按鍵設定</string>
+    <string name="input_overlay_options_description">虛擬按鍵設定</string>
+
+
+    <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">（增強）</string>
+    <string name="process_ram">記憶體使用量 %1$d MB</string>
+    <string name="shaders_prefix">正在編譯</string>
+    <string name="shaders_suffix">著色器</string>
+    <string name="charging">（充電中）</string>
+
+    <string name="system_info_label">系統:</string>
+    <string name="show_stats_overlay">顯示效能統計疊加層</string>
+    <string name="stats_overlay_customization">自訂</string>
+    <string name="stats_overlay_items">可見項目</string>
+    <string name="stats_overlay_options">疊加層</string>
+    <string name="enable_stats_overlay_">啟用效能統計疊加層</string>
+    <string name="stats_overlay_options_description">設定疊加層中顯示的資訊</string>
+    <string name="show_fps">顯示FPS</string>
+    <string name="show_fps_description">顯示當前幀率</string>
+    <string name="show_frametime">顯示幀時間</string>
+    <string name="show_frametime_description">顯示當前幀時間</string>
+    <string name="show_app_ram_usage">顯示應用程式的記憶體用量</string>
+    <string name="show_app_ram_usage_description">顯示模擬器正在使用的記憶體量</string>
+    <string name="show_system_ram_usage">顯示系統記憶體用量</string>
+    <string name="show_system_ram_usage_description">顯示系統使用的記憶體量</string>
+    <string name="show_bat_temperature">顯示電池溫度</string>
+    <string name="show_bat_temperature_description">顯示電池溫度</string>
+    <string name="bat_temperature_unit">電池溫度單位</string>
+    <string name="show_power_info">顯示電池資訊</string>
+    <string name="show_power_info_description">顯示當前功耗和電池可續航時間</string>
+    <string name="show_shaders_building">當著色器在編譯時顯示</string>
+    <string name="show_shaders_building_description">顯示正在編譯的著色器數量</string>
+    <string name="overlay_position">疊加層位置</string>
+    <string name="overlay_position_description">選擇疊加層在畫面上的顯示位置</string>
+    <string name="overlay_position_top_left">左上</string>
+    <string name="overlay_position_top_right">右上</string>
+    <string name="overlay_position_bottom_left">左下</string>
+    <string name="overlay_position_bottom_right">右下</string>
+    <string name="overlay_position_center_top">頂部居中</string>
+    <string name="overlay_position_center_bottom">底部居中</string>
+    <string name="perf_overlay_background">疊加層背景</string>
+    <string name="perf_overlay_background_description">為疊加層添加背景以提高可讀性</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">顯示裝置資訊浮層</string>
+    <string name="enable_soc_overlay">啟用裝置浮層</string>
+    <string name="soc_overlay_options">裝置浮層</string>
+    <string name="soc_overlay_options_description">設定裝置浮層中顯示的資訊</string>
+
+    <string name="show_device_model">顯示裝置型號</string>
+    <string name="show_device_model_description">顯示主機裝置型號</string>
+    <string name="show_gpu_model">顯示GPU型號</string>
+    <string name="show_gpu_model_description">顯示主機GPU型號</string>
+    <string name="show_soc_model">顯示SoC型號</string>
+    <string name="show_soc_model_description">顯示主機SoC型號</string>
+    <string name="show_fw_version">顯示韌體版本</string>
+    <string name="show_fw_version_description">顯示已安裝的韌體版本</string>
+
+    <!-- Eden\'s Veil -->
+    <string name="eden_veil">伊甸之幕</string>
+    <string name="eden_veil_description">實驗性設定以提高效能和相容性。這些設定可能會導致黑螢幕或其他遊戲問題。</string>
+
+    <string name="veil_extensions">GPU擴充功能</string>
+    <string name="dyna_state">擴展動態狀態</string>
+    <string name="dyna_state_description">控制擴展動態狀態中可使用的功能數量。數值越高，允許的功能越多，並可能提高效能，但可能會導致某些驅動程式和硬體出現問題。預設值可能因系統和硬體能力而異。可以變更此值，直到獲得更佳的穩定性和更好的視覺品質。</string>
+    <string name="disabled">已停用</string>
+    <string name="provoking_vertex">引發頂點</string>
+    <string name="provoking_vertex_description">改善某些遊戲中的光照和頂點處理。僅支援Vulkan 1.0+ GPU。</string>
+    <string name="descriptor_indexing">描述符索引</string>
+    <string name="descriptor_indexing_description">改進紋理和緩衝區處理以及Maxwell轉換層。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支援。</string>
+    <string name="sample_shading">取樣著色</string>
+    <string name="sample_shading_description">允許片段著色器在多取樣片段中每個樣本執行一次，而不是每個片段執行一次。以提高效能為代價改善圖形品質。僅Vulkan 1.1+裝置支援此擴充功能。</string>
+    <string name="sample_shading_fraction">採樣著色比例</string>
+    <string name="sample_shading_fraction_description">採樣著色處理的強度。數值越高，品質改善越多，但效能降低也越明顯。</string>
+
+    <string name="veil_renderer">渲染器</string>
+    <string name="frame_interpolation">增強幀同步</string>
+    <string name="frame_interpolation_description">通過同步幀間時間確保幀傳輸流暢一致，減少卡頓和不均勻動畫。適合存在幀時間不穩定或遊戲過程中出現些微卡頓的遊戲。</string>
+    <string name="renderer_early_release_fences">提前釋放圍欄</string>
+    <string name="renderer_early_release_fences_description">可修復《咚奇剛歸來HD》、《深海迷航：冰點之下》和《聖靈之光2》等遊戲中的0 FPS問題，但可能影響Unreal Engine遊戲的載入或效能。</string>
+    <string name="sync_memory_operations">同步記憶體操作</string>
+    <string name="sync_memory_operations_description">確保計算和記憶體操作之間的資料一致性。 此選項應能修復某些遊戲中的問題，但在某些情況下可能會降低效能。 使用Unreal Engine 4的遊戲似乎受影響最大。</string>
+    <string name="buffer_reorder_disable">停用緩衝區重新排序</string>
+    <string name="buffer_reorder_disable_description">勾選時，停用映射記憶體上傳的重新排序功能，允許將上傳與特定繪製關聯。某些情況下可能會降低效能。</string>
+
+    <string name="veil_misc">CPU與記憶體</string>
+    <string name="use_sync_core">同步核心速度</string>
+    <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能。</string>
+    <string name="use_lru_cache">啟用LRU快取</string>
+    <string name="use_lru_cache_description">啟用或停用LRU快取，透過節省CPU進程使用率來提高效能。某些遊戲可能存在問題，特別是薩爾達傳說：王國之淚 v1.2.1（更新），如果遊戲無法啟動或隨機崩潰，請停用此選項。</string>
+    <string name="use_fast_cpu_time">快速 CPU 時間</string>
+    <string name="use_fast_cpu_time_description">強制模擬 CPU 以更高的時脈運行，減少某些 FPS 限制。此選項不穩定，可能會導致問題，較弱的 CPU 可能會看到效能下降。</string>
+    <string name="custom_cpu_ticks">自訂CPU時脈</string>
+    <string name="custom_cpu_ticks_description">自訂CPU時脈。更高的值可能提高效能，但也可能導致遊戲卡死。建議範圍為77-21000。</string>
+    <string name="cpu_ticks">時脈</string>
+    <string name="skip_cpu_inner_invalidation">跳過CPU內部失效處理</string>
+    <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取的失效處理，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
+    <string name="cpuopt_unsafe_host_mmu">啟用主機 MMU 模擬</string>
+    <string name="cpuopt_unsafe_host_mmu_description">此最佳化可加速來賓程式的記憶體存取。啟用後，來賓記憶體讀取/寫入將直接在記憶體中執行並利用主機的 MMU。停用此功能將強制所有記憶體存取使用軟體 MMU 模擬。</string>
+    <string name="fast_cpu_time">CPU時脈</string>
+    <string name="fast_cpu_time_description">使用 Boost (1700MHz) 以 Switch 的最高原生時脈運行，或 Fast (2000MHz) 以雙倍時脈運行。</string>
+    <string name="memory_layout">記憶體佈局</string>
+    <string name="memory_layout_description">（實驗性）更改模擬記憶體佈局。此設定不會提高效能，但可能有助於使用模組來提高解析度的遊戲的載入。不要在 RAM 為 8GB 或更少的手機上使用。若遊戲崩潰請將進階設定裡偵錯選項中的CPU後端改為 Dynarmic (JIT)</string>
+    <string name="dma_accuracy">DMA 準確度</string>
+    <string name="dma_accuracy_description">控制 DMA 準確度。安全準確度可以修復某些遊戲中的問題，但在某些情況下也可能影響效能。如果不確定，請保留為「預設」。</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">著色器後端</string>
+    <string name="shader_backend_description">選擇著色器的編譯與轉譯方式</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">NVDEC模擬</string>
+    <string name="nvdec_emulation_description">選擇影片解碼（NVDEC）的方式</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">無</string>
+
+    <!-- Optimize Spir-V output -->
+    <string name="never">永不</string>
+    <string name="on_load">載入時</string>
+    <string name="always">總是</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">多人遊戲</string>
+    <string name="multiplayer_description">建立自己的遊戲房間或加入現有房間與他人連線</string>
+    <string name="multiplayer_create_room">建立</string>
+    <string name="multiplayer_join_room">加入</string>
+    <string name="multiplayer_public_room">瀏覽公開房間</string>
+    <string name="multiplayer_username">使用者名稱</string>
+    <string name="multiplayer_ip_address">IP位址</string>
+    <string name="multiplayer_ip_port">埠號</string>
+    <string name="multiplayer_create_room_success">房間建立成功</string>
+    <string name="multiplayer_join_room_success">成功加入房間</string>
+    <string name="multiplayer_exit_room">退出房間</string>
+    <string name="multiplayer_network_error">網路錯誤</string>
+    <string name="multiplayer_lost_connection">連線中斷</string>
+    <string name="multiplayer_name_collision">使用者名稱已被其他人使用</string>
+    <string name="multiplayer_mac_collision">MAC位址衝突</string>
+    <string name="multiplayer_console_id_collision">主機ID衝突</string>
+    <string name="multiplayer_wrong_version">版本不符</string>
+    <string name="multiplayer_wrong_password">密碼錯誤</string>
+    <string name="multiplayer_could_not_connect">無法連接</string>
+    <string name="multiplayer_room_is_full">房間已滿</string>
+    <string name="multiplayer_host_banned">您已被禁止加入此房間</string>
+    <string name="multiplayer_permission_denied">權限不足</string>
+    <string name="multiplayer_no_such_user">使用者不存在</string>
+    <string name="multiplayer_already_in_room">已在房間中</string>
+    <string name="multiplayer_create_room_error">房間建立異常</string>
+    <string name="multiplayer_host_kicked">您已被房主踢出</string>
+    <string name="multiplayer_unknown_error">未知錯誤</string>
+    <string name="multiplayer_room_uninitialized">房間未初始化</string>
+    <string name="multiplayer_room_idle">房間閒置</string>
+    <string name="multiplayer_room_joining">正在加入房間</string>
+    <string name="multiplayer_room_joined">已加入房間</string>
+    <string name="multiplayer_room_moderator">房間管理員</string>
+    <string name="multiplayer_member_join">%1$s 加入</string>
+    <string name="multiplayer_member_leave">%1$s 離開</string>
+    <string name="multiplayer_member_kicked">%1$s 被踢出</string>
+    <string name="multiplayer_member_banned">%1$s 被封鎖</string>
+    <string name="multiplayer_address_unbanned">位址已解封</string>
+    <string name="multiplayer_kick_member">踢出成員</string>
+    <string name="multiplayer_password">密碼</string>
+    <string name="multiplayer_joining">正在加入…</string>
+    <string name="multiplayer_creating">正在建立…</string>
+    <string name="multiplayer_room_name">房間名稱</string>
+    <string name="multiplayer_max_players_value">最大玩家數：%d</string>
+    <string name="multiplayer_chat">聊天</string>
+    <string name="multiplayer_more_options">更多選項</string>
+    <string name="chat">聊天</string>
+    <string name="type_message">輸入訊息…</string>
+    <string name="send_message">傳送訊息</string>
+    <string name="multiplayer_moderation">管理</string>
+    <string name="multiplayer_moderation_title">封鎖名單</string>
+    <string name="multiplayer_no_bans">無封鎖使用者</string>
+    <string name="multiplayer_unban_title">解除封鎖使用者</string>
+    <string name="multiplayer_unban">解除封鎖</string>
+    <string name="multiplayer_unban_message">確定解除封鎖 %1$s 嗎？</string>
+    <string name="multiplayer_ban">封鎖使用者</string>
+    <string name="multiplayer_room_browser">公開房間</string>
+    <string name="multiplayer_no_rooms_found">未找到公開房間</string>
+    <string name="multiplayer_password_required">需輸入密碼</string>
+    <string name="multiplayer_player_count">：%1$d/%2$d</string>
+    <string name="multiplayer_game">遊戲</string>
+    <string name="multiplayer_no_game_info">任意遊戲</string>
+    <string name="multiplayer_password_protected">密碼保護房間</string>
+    <string name="multiplayer_hide_full_rooms">隱藏滿員房間</string>
+    <string name="multiplayer_hide_empty_rooms">隱藏空房間</string>
+    <string name="multiplayer_tap_refresh_to_check_again">點擊重新整理以重試</string>
+    <string name="multiplayer_search_public_lobbies">搜尋房間…</string>
+    <string name="multiplayer_preferred_game_name">首選遊戲</string>
+    <string name="multiplayer_lobby_type">大廳類型</string>
+    <string name="multiplayer_room_name_error">長度需為3-20個字元</string>
+    <string name="multiplayer_required">必填</string>
+    <string name="multiplayer_token_required">需要Web令牌，請前往進階設定 -> 系統 -> 網路</string>
+    <string name="multiplayer_ip_error">IP格式無效</string>
+    <string name="multiplayer_username_error">必須介於4-20個字元之間，並且僅能使用英文字母、數字、句點、破折號、底線和空格（標點符號須為英文格式）</string>
+    <string name="multiplayer_nickname_invalid">使用者名稱無效，請在系統→網路中檢查設定</string>
+    <string name="multiplayer_token_error">必須為48個字元，且僅包含小寫字母a-z</string>
+    <string name="multiplayer_port_error">埠號需為1-65535</string>
+    <string name="cancel">取消</string>
+    <string name="ok">確定</string>
+    <string name="refresh">重新整理</string>
+    <string name="room_list">房間列表</string>
+    <string name="multiplayer_public_visibility">公開</string>
+    <string name="multiplayer_unlisted_visibility">未列出</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">歡迎！</string>
+    <string name="welcome_description">瞭解如何設定 <b>Eden</b> 並開始模擬。</string>
+    <string name="get_started">開始使用</string>
+    <string name="keys">金鑰</string>
+    <string name="keys_description">使用下方的按鈕安裝您的 <b>prod.keys</b> 檔案。</string>
+    <string name="select_keys">選擇金鑰</string>
+    <string name="firmware">韌體</string>
+    <string name="firmware_description">使用下方按鈕安裝您的<b>firmware.zip</b>檔案</string>
+    <string name="select_firmware">選擇韌體</string>
+    <string name="games">遊戲</string>
+    <string name="games_description">使用下方的按鈕選擇您的<b>遊戲</b>資料夾。</string>
+    <string name="done">完成</string>
+    <string name="done_description">您已準備就緒。\n盡情遊玩您的遊戲！</string>
+    <string name="text_continue">繼續</string>
+    <string name="next">下一步</string>
+    <string name="back">上一步</string>
+    <string name="add_games">新增遊戲</string>
+    <string name="step_complete">完成！</string>
+
+    <!-- Home strings -->
+
+    <string name="alphabetical">依字母</string>
+    <string name="view_list">列表</string>
+    <string name="view_grid">網格</string>
+    <string name="view_grid_compact">緊密網格</string>
+    <string name="view_carousel">輪播</string>
+    <string name="game_image_desc">為%1$s螢幕截圖</string>
+    <string name="folder">資料夾</string>
+    <string name="dont_show_again">不再顯示</string>
+    <string name="add_directory_success">遊戲目錄新增成功</string>
+    <string name="enable_update_checks">在Eden啟動時檢查更新</string>
+    <string name="update_available">偵測到新版本</string>
+    <string name="update_available_description">有更新可供安裝：%1$s\n\n您要進行更新嗎？</string>
+    <string name="home_search">搜尋</string>
+    <string name="home_settings">設定</string>
+    <string name="empty_gamelist">找不到檔案，或者尚未選取遊戲目錄。</string>
+    <string name="manage_game_folders">管理遊戲資料夾</string>
+    <string name="select_games_folder_description">允許 Eden 尋找您的遊戲檔案</string>
+    <string name="add_games_warning">跳過選擇遊戲資料夾？</string>
+    <string name="add_games_warning_description">如果未選擇遊戲資料夾，遊戲將不會顯示在遊戲清單。</string>
+    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
+    <string name="home_search_games">搜尋遊戲</string>
+    <string name="search_settings">搜尋設定</string>
+    <string name="install_prod_keys">安裝 prod.keys</string>
+    <string name="install_prod_keys_description">需要解密零售遊戲</string>
+    <string name="install_prod_keys_warning">跳過安裝金鑰？</string>
+    <string name="install_prod_keys_warning_description">模擬零售遊戲需要有效的金鑰，若要繼續，將僅有自製遊戲可以運作。</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="install_firmware_warning">跳過安裝韌體？</string>
+    <string name="install_firmware_warning_description">許多遊戲需要韌體才能正常運作。</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="notifications">通知</string>
+    <string name="notifications_description">使用下方的按鈕授予通知權限。</string>
+    <string name="give_permission">授予權限</string>
+    <string name="notification_warning">跳過授予通知權限？</string>
+    <string name="notification_warning_description">Eden 將無法通知您重要資訊。</string>
+    <string name="permission_denied">權限遭拒</string>
+    <string name="permission_denied_description">您曾多次拒絕了權限要求，現在您需要在系統設定中手動授予權限。</string>
+    <string name="about">關於</string>
+    <string name="about_description">組建版本、製作群、以及更多</string>
+    <string name="warning_help">說明</string>
+    <string name="warning">警告</string>
+    <string name="warning_skip">跳過</string>
+    <string name="warning_cancel">取消</string>
+    <string name="install_amiibo_keys">安裝 Amiibo 金鑰</string>
+    <string name="install_amiibo_keys_description">需要在遊戲中使用 Amiibo</string>
+    <string name="gpu_driver_fetcher">GPU驅動程式下載器</string>
+    <string name="gpu_driver_manager">GPU 驅動程式管理員</string>
+    <string name="install_gpu_driver_description">安裝替代驅動程式以取得潛在的更佳效能或準確度</string>
+    <string name="advanced_settings">進階設定</string>
+    <string name="settings_description">進行模擬器設定</string>
+    <string name="search_recently_played">最近遊玩</string>
+    <string name="search_recently_added">最近新增</string>
+    <string name="open_user_folder">開啟 Eden 資料夾</string>
+    <string name="open_user_folder_description">管理 Eden 的內部檔案</string>
+    <string name="app_settings_description">自訂Eden的主題與外觀</string>
+    <string name="no_file_manager">找不到檔案管理員</string>
+    <string name="notification_no_directory_link">無法開啟 Eden 目錄</string>
+    <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
+    <string name="manage_save_data">管理儲存資料</string>
+    <string name="manage_save_data_description">已找到儲存資料，請選取下方的選項。</string>
+    <string name="import_save_warning">匯入儲存資料</string>
+    <string name="import_save_warning_description">這將會以提供的檔案覆寫所有現有的儲存資料，您確定要繼續嗎？</string>
+    <string name="save_files_importing">正在匯入儲存檔案…</string>
+    <string name="save_files_exporting">正在匯出儲存檔案…</string>
+    <string name="save_file_imported_success">已成功匯入</string>
+    <string name="save_file_invalid_zip_structure">無效的儲存目錄結構</string>
+    <string name="save_file_invalid_zip_structure_description">首個子資料夾名稱必須為遊戲標題 ID。</string>
+    <string name="install_firmware">安裝韌體</string>
+    <string name="install_firmware_description">韌體必須為 ZIP 壓縮檔，將會用於部分遊戲的啟動</string>
+    <string name="firmware_installing">正在安裝韌體</string>
+    <string name="firmware_installed_failure">韌體安裝失敗</string>
+    <string name="firmware_installed_failure_description">請確保韌體 nca 檔案位於 zip 壓縮檔的根目錄，然後再試一次。</string>
+    <string name="firmware_uninstalled_failure">韌體解除安裝失敗</string>
+    <string name="share_log">分享偵錯記錄</string>
+    <string name="share_log_description">分享 Eden 的記錄檔以便對相關問題進行偵錯</string>
+    <string name="share_log_missing">找不到日誌檔案</string>
+    <string name="install_game_content">安裝遊戲內容</string>
+    <string name="install_game_content_description">安裝遊戲更新或 DLC</string>
+    <string name="installing_game_content">正在安裝內容…</string>
+    <string name="install_game_content_failure">安裝檔案至 NAND 時發生錯誤</string>
+    <string name="install_game_content_failure_description">請確保內容有效並且 prod.keys 檔案已安裝。</string>
+    <string name="install_game_content_failure_base">為避免可能的衝突，無法直接安裝遊戲本體。</string>
+    <string name="install_game_content_failed_count">%1$d 安裝錯誤</string>
+    <string name="install_game_content_success">遊戲內容已成功安裝</string>
+    <string name="install_game_content_success_install">%1$d 安裝成功</string>
+    <string name="install_game_content_success_overwrite">%1$d 覆寫成功</string>
+    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
+    <string name="custom_driver_not_supported">您的裝置不支援此自訂驅動程式</string>
+    <string name="custom_driver_not_supported_description">此裝置不支援注入自訂驅動程式。\n請以後再來查看是否已新增支援！</string>
+    <string name="manage_yuzu_data">管理 Eden 資料</string>
+    <string name="manage_yuzu_data_description">安裝韌體、金鑰，匯入/匯出使用者資料及安裝其他項目！</string>
+    <string name="game_folders">遊戲資料夾</string>
+    <string name="deep_scan">深度掃描</string>
+    <string name="add_game_folder">新增遊戲資料夾</string>
+    <string name="folder_already_added">這個資料夾已經新增過了！</string>
+    <string name="game_folder_properties">遊戲資料夾屬性</string>
+    <plurals name="saves_import_failed">
+        <item quantity="other">%d 個存檔導入失敗</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="other">成功導入 %d 個存檔</item>
+    </plurals>
+    <string name="no_save_data_found">找不到儲存資料</string>
+    <string name="verify_installed_content">驗證已安裝內容的完整性</string>
+    <string name="verify_installed_content_description">檢查所有已安裝的內容是否有損壞</string>
+
+    <string name="keys_missing">缺少解密金鑰</string>
+    <string name="keys_missing_description">無法解密韌體和零售遊戲</string>
+    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
+    <string name="uninstall_firmware">解除安裝韌體</string>
+    <string name="uninstall_firmware_description">解除安裝韌體將從裝置中刪除它並可能影響遊戲相容性。</string>
+    <string name="firmware_uninstalling">正在解除安裝韌體...</string>
+    <string name="firmware_uninstalled_success">韌體解除安裝成功</string>
+
+
+    <string name="keys_failed">金鑰安裝失敗</string>
+    <string name="keys_install_success">金鑰安裝成功</string>
+    <string name="error_keys_copy_failed">一個或多個金鑰複製失敗。</string>
+    <string name="error_keys_invalid_filename">請確保金鑰檔案具有.keys副檔名後重試。</string>
+    <string name="error_keys_failed_init">金鑰初始化失敗。請檢查您的轉儲工具是否為最新版本並重新轉儲金鑰。</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">從系統主畫面啟動應用程式</string>
+    <string name="applets">小程式啟動器</string>
+    <string name="applets_description">使用已安裝的韌體啟動系統小程式</string>
+    <string name="applets_error_firmware">韌體未安裝或版本無效</string>
+    <string name="applets_error_applet">無法使用小程式</string>
+    <string name="applets_error_description"><![CDATA[請確認您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>檔案和 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">韌體</a>已安裝並重試。<br>同時請確認您的韌體版本為19.0.1或更早。]]></string>
+    <string name="album_applet">相簿</string>
+    <string name="album_applet_description">使用系統相片檢視器查看儲存在使用者螢幕截圖資料夾中的影像</string>
+    <string name="mii_edit_applet">Mii 編輯</string>
+    <string name="mii_edit_applet_description">使用系統編輯器來檢視並編輯 Mii</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">編輯、刪除儲存在 amiibo 上的資料</string>
+    <string name="cabinet_launcher">Cabinet 啟動器</string>
+    <string name="cabinet_nickname_and_owner">暱稱和擁有者設定</string>
+    <string name="cabinet_game_data_eraser">遊戲資料橡皮擦</string>
+    <string name="cabinet_restorer">還原程式</string>
+    <string name="cabinet_formatter">格式化程式</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">Gaia不是真的</string>
+    <string name="copied_to_clipboard">已複製到剪貼簿</string>
+    <string name="about_app_description">一個開放原始碼的 Switch 模擬器</string>
+    <string name="contributors">參與者</string>
+    <string name="contributors_description">由 Eden 團隊用 \u2764 製作</string>
+    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
+    <string name="licenses_description">這些專案使 Eden Android 版成為可能</string>
+    <string name="build">組建</string>
+    <string name="user_data">使用者資料</string>
+    <string name="user_data_description">導入/導出所有應用程式資料。\n\n導入使用者資料時，現有的使用者資料將被取代！\n\n直接從 Citron 導入資料可能會出現問題，建議手動導入所有所需資料。</string>
+    <string name="exporting_user_data">正在導出使用者資料…</string>
+    <string name="importing_user_data">正在導入使用者資料…</string>
+    <string name="invalid_yuzu_backup">無效的 Eden 備份</string>
+    <string name="user_data_export_success">使用者資料匯出成功</string>
+    <string name="user_data_import_success">使用者資料匯入成功</string>
+    <string name="user_data_export_cancelled">導出已取消</string>
+    <string name="user_data_import_failed_description">請確保使用者資料夾位於 zip 壓縮檔的根目錄，並在 config/config.ini 路徑中包含組態檔案，並再試一次。</string>
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">限制速度</string>
+    <string name="frame_limit_enable_description">將模擬速度限制在標準速度的指定百分比。</string>
+    <string name="frame_limit_slider">限制速度百分比</string>
+    <string name="frame_limit_slider_description">指定限制模擬速度的百分比。100% 為標準速度，更高或更低的值將會增加或減少速度限制。</string>
+    <string name="cpu_backend">CPU 後端</string>
+    <string name="cpu_accuracy">CPU 準確度</string>
+    <string name="value_with_units">%1$s%2$s</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">裝置名稱</string>
+    <string name="use_docked_mode">底座模式</string>
+    <string name="use_docked_mode_description">提高解析度，降低效能。停用後將會使用手提模式，會降低解析度並提高效能。</string>
+    <string name="emulated_region">模擬區域</string>
+    <string name="emulated_language">模擬語言</string>
+    <string name="select_rtc_date">選擇 RTC 日期</string>
+    <string name="select_rtc_time">選擇 RTC 時間</string>
+    <string name="use_custom_rtc">自訂 RTC</string>
+    <string name="use_custom_rtc_description">允許您設定與您的目前系統時間相互獨立的自訂時間。</string>
+    <string name="set_custom_rtc">設定自訂 RTC</string>
+
+    <string name="generate">生成</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">網路令牌</string>
+    <string name="web_token_description">用於建立公開大廳的網路令牌。它是由48個小寫字母a-z組成的字串。</string>
+    <string name="web_username">網路使用者名稱</string>
+    <string name="web_username_description">多人遊戲房間中顯示的使用者名稱。必須為4-20個字元，僅能使用英文字母、數字、句點、破折號、底線和空格（標點符號須為英文格式）。</string>
+    <string name="network">網路</string>
+
+    <!-- Graphics settings strings -->
+    <string name="backend">後端</string>
+    <string name="display">顯示</string>
+    <string name="processing">後處理</string>
+
+    <string name="frame_skipping">開發中：跳幀</string>
+    <string name="frame_skipping_description">啟用或停用跳幀以減少渲染幀數，提高效能。此功能仍在開發中，將在未來版本中啟用。</string>
+    <string name="renderer_accuracy">準確度層級</string>
+    <string name="renderer_resolution">解析度 (手提/底座)</string>
+    <string name="renderer_vsync">垂直同步</string>
+    <string name="renderer_screen_layout">方向</string>
+    <string name="renderer_aspect_ratio">長寬比</string>
+    <string name="renderer_scaling_filter">視窗適應過濾器</string>
+    <string name="fsr_sharpness">FSR 銳化度</string>
+    <string name="fsr_sharpness_description">使用 FSR 時圖片的銳化程度</string>
+    <string name="renderer_anti_aliasing">抗鋸齒</string>
+    <string name="renderer_force_max_clock">強制使用最大時脈 (僅限Adreno)</string>
+    <string name="renderer_force_max_clock_description">強制 GPU 以可能的最大時脈執行 (熱溫限制仍會被套用)。</string>
+    <string name="renderer_optimize_spirv_output">最佳化Spir-V輸出</string>
+    <string name="renderer_optimize_spirv_output_description">最佳化編譯後的著色器以提高GPU效率。</string>
+    <string name="renderer_asynchronous_shaders">使用非同步著色器</string>
+    <string name="renderer_asynchronous_shaders_description">非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
+    <string name="use_fast_gpu_time">使用快速GPU時間</string>
+    <string name="use_fast_gpu_time_description">強制大多數遊戲以最高原生解析度運行。此選項不穩定，可能導致問題。</string>
+    <string name="fast_gpu_time">GPU 超頻係數</string>
+    <string name="fast_gpu_time_description">使用 128 以獲得最大效能，使用 512 以獲得最大圖形保真度。</string>
+    <string name="renderer_reactive_flushing">使用重新啟用排清</string>
+    <string name="renderer_reactive_flushing_description">犧牲效能，以改善部分遊戲的轉譯準確度。</string>
+    <string name="use_disk_shader_cache">磁碟著色器快取</string>
+    <string name="use_disk_shader_cache_description">將產生的著色器快取儲存至硬碟以減少中斷。</string>
+    <string name="anisotropic_filtering">各向異性過濾</string>
+    <string name="anisotropic_filtering_description">改善斜角檢視時的紋理品質</string>
+
+    <string name="warning_resolution">解析度縮放到2倍或更高可能會導致問題，並可能顯著降低設備速度。</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="use_auto_stub">使用自動存根</string>
+    <string name="use_auto_stub_description">自動補上缺少的服務和功能。可提高相容性但可能導致崩潰和穩定性問題。</string>
+
+    <string name="gpu">GPU</string>
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">圖形偵錯</string>
+    <string name="renderer_debug_description">將圖形 API 設為慢速偵錯模式。</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">日誌記錄</string>
+    <string name="flush_by_line">按行寫入偵錯日誌</string>
+    <string name="flush_by_line_description">在每行寫入時重新整理偵錯日誌，讓程式在崩潰或當機時更容易偵錯。</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">輸出引擎</string>
+    <string name="audio_volume">音量</string>
+    <string name="audio_volume_description">指定音訊輸出音量。</string>
+
+    <!-- Input strings -->
+    <string name="buttons">按键</string>
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">＋</string>
+    <string name="button_minus">－</string>
+    <string name="button_home">HOME</string>
+    <string name="button_capture">截圖</string>
+    <string name="start_pause">開始/暫停</string>
+    <string name="dpad">方向鍵</string>
+    <string name="up">上</string>
+    <string name="down">下</string>
+    <string name="left">左</string>
+    <string name="right">右</string>
+    <string name="left_stick">左搖桿</string>
+    <string name="control_stick">控制搖桿</string>
+    <string name="right_stick">右搖桿</string>
+    <string name="c_stick">C 搖桿</string>
+    <string name="pressed">按壓</string>
+    <string name="range">靈敏度</string>
+    <string name="deadzone">無感帶</string>
+    <string name="modifier">用按鈕、按鍵來模擬搖桿</string>
+    <string name="modifier_range">修改按鈕模擬左/右搖桿的值，視遊戲不同而有所差異\n（模擬左搖桿時，若將此數值設為50，則按下按鈕時遊戲裡的人物可能只會走動而不是奔跑；模擬右搖桿時所使用的值則是會影響到轉視角的速度，數值越高代表使用的模擬值越大）</string>
+    <string name="triggers">肩部按鍵</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_sl_left">左 SL</string>
+    <string name="button_sr_left">左 SR</string>
+    <string name="button_sl_right">右 SL</string>
+    <string name="button_sr_right">右 SR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">無效</string>
+    <string name="not_set">未設定</string>
+    <string name="unknown">未知</string>
+    <string name="qualified_hat">%1$s%2$s%3$s方向鍵 %4$s</string>
+    <string name="qualified_button_stick_axis">%1$s%2$s%3$s軸 %4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$s按鍵%4$s</string>
+    <string name="qualified_axis">軸%1$s%2$s</string>
+    <string name="unused">未使用</string>
+    <string name="input_mapping_filter">輸入配對過濾器</string>
+    <string name="input_mapping_filter_description">選擇一個已配對的裝置過濾輸入的控制</string>
+    <string name="auto_map">控制器自動配對</string>
+    <string name="auto_map_description">選擇一個控制器以嘗試自動配對按鈕、搖桿</string>
+    <string name="attempted_auto_map">嘗試為 %1$s 自動配對</string>
+    <string name="controller_type">控制器類型</string>
+    <string name="pro_controller">Pro 手把</string>
+    <string name="handheld">掌機模式</string>
+    <string name="dual_joycons">雙 Joycon 手把</string>
+    <string name="left_joycon">左 Joycon 手把</string>
+    <string name="right_joycon">右 Joycon 手把</string>
+    <string name="gamecube_controller">GameCube 手把</string>
+    <string name="invert_axis">方向反轉</string>
+    <string name="invert_button">反轉按鈕</string>
+    <string name="toggle_button">切換按鍵</string>
+    <string name="turbo_button">連發鍵</string>
+    <string name="set_threshold">設定閾值</string>
+    <string name="toggle_axis">視角反轉</string>
+    <string name="connected">已連線</string>
+    <string name="use_system_vibrator">使用系統震動器</string>
+    <string name="input_overlay">導入虛擬按鍵設定檔</string>
+    <string name="vibration">震動</string>
+    <string name="vibration_strength">震動強度</string>
+    <string name="profile">設定檔</string>
+    <string name="create_new_profile">新增設定檔</string>
+    <string name="enter_profile_name">輸入設定檔名稱</string>
+    <string name="profile_name_already_exists">該名稱已被其它設定檔使用</string>
+    <string name="invalid_profile_name">無效的設定檔名稱</string>
+    <string name="use_global_input_configuration">使用全域輸入設定</string>
+    <string name="player_num_profile">玩家 %d 設定檔</string>
+    <string name="delete_input_profile">刪除設定檔</string>
+    <string name="delete_input_profile_description">您確定要刪除這個設定檔？此動作無法復原</string>
+    <string name="stick_map_description">向左移動搖桿，然後將其向上移動或按下一個按鈕</string>
+    <string name="button_map_description">按下一個按鈕或肩部按鍵/移動搖桿</string>
+    <string name="map_dpad_direction">將方向鍵配對到 %1$s</string>
+    <string name="map_control">配對到 %1$s</string>
+    <string name="failed_to_load_profile">匯入設定檔失敗</string>
+    <string name="failed_to_save_profile">儲存設定檔失敗</string>
+    <string name="reset_mapping">重設控制器配對</string>
+    <string name="reset_mapping_description">您確定要將此控制器的所有配對重設為預設值？此動作無法復原</string>
+
+    <!-- Miscellaneous -->
+    <string name="slider_default">預設</string>
+    <string name="loading">正在載入…</string>
+    <string name="shutting_down">正在關閉…</string>
+    <string name="reset_setting_confirmation">要將此設定重設回預設值嗎？</string>
+    <string name="reset_to_default">重設為預設值</string>
+    <string name="reset_to_default_description">重設所有進階設定</string>
+    <string name="reset_all_settings">重設所有設定？</string>
+    <string name="reset_all_settings_description">所有進階設定將被重設，此動作無法復原</string>
+    <string name="settings_reset">設定已重設</string>
+    <string name="close">關閉</string>
+    <string name="learn_more">深入瞭解</string>
+    <string name="auto">自動</string>
+    <string name="submit">提交</string>
+    <string name="string_null">無</string>
+    <string name="string_import">導入</string>
+    <string name="export">導出</string>
+    <string name="export_failed">導出失敗</string>
+    <string name="import_failed">導入失敗</string>
+    <string name="cancelling">正在取消</string>
+    <string name="install">安裝</string>
+    <string name="fetch">獲取</string>
+    <string name="delete">刪除</string>
+    <string name="edit">編輯</string>
+    <string name="import_success">已成功導入</string>
+    <string name="export_success">已成功導出</string>
+    <string name="start">開始</string>
+    <string name="global">全域</string>
+    <string name="custom">自定義</string>
+    <string name="import_complete">導入完成</string>
+    <string name="use_global_setting">使用全域設定</string>
+    <string name="operation_completed_successfully">操作已成功完成</string>
+    <string name="confirm">確定</string>
+    <string name="load">載入</string>
+    <string name="save">儲存</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver_default">預設</string>
+    <string name="select_gpu_driver_error">選擇的驅動程式無效</string>
+    <string name="driver_already_installed">驅動程式已安裝</string>
+    <string name="system_gpu_driver">系統 GPU 驅動程式</string>
+    <string name="installing_driver">正在安裝驅動程式…</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="show_releases">顯示版本</string>
+    <string name="failed_to_fetch">獲取失敗</string>
+    <string name="error_during_fetch">獲取過程中發生錯誤</string>
+    <string name="show_downloads">顯示下載</string>
+    <string name="hide_downloads">隱藏下載</string>
+    <string name="failed_cache_dir">快取目錄不可用</string>
+    <string name="empty_response_body">回應內容為空</string>
+    <string name="successfully_installed">%1$s 安裝成功</string>
+    <string name="driver_failed_title">驅動程式安裝失敗</string>
+    <string name="failed_install_driver">無法安裝 %1$s 驅動程式，您的系統支援此驅動程式嗎？</string>
+    <string name="driver_empty">下載驅動程式失敗，請檢查您的網路連線</string>
+    <string name="downloading">下載中…</string>
+    <string name="installing">安裝中…</string>
+    <string name="latest">最新</string>
+    <string name="recommended_driver">推薦驅動程式：</string>
+    <string name="gpu_model">GPU型號：</string>
+    <string name="unsupported_gpu">不支援的GPU</string>
+    <string name="unsupported_gpu_warning">您的GPU不支援驅動程式注入。不建議嘗試設定自訂驅動程式。</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">設定</string>
+    <string name="preferences_system">系統</string>
+    <string name="preferences_system_description">底座模式、區域及語言</string>
+    <string name="preferences_graphics">圖形</string>
+    <string name="preferences_graphics_description">準確度層級、解析度及著色器快取</string>
+    <string name="preferences_audio">音訊</string>
+    <string name="preferences_audio_description">輸出引擎及音量</string>
+    <string name="preferences_controls">控制</string>
+    <string name="preferences_controls_description">控制器輸入配對</string>
+    <string name="preferences_player">玩家 %d</string>
+    <string name="preferences_debug">偵錯</string>
+    <string name="preferences_debug_description">CPU/GPU 偵錯、圖形 API 及 fastmem</string>
+
+    <!-- Game properties -->
+    <string name="info">資訊</string>
+    <string name="info_description">程式 ID、開發人員及版本資訊</string>
+    <string name="per_game_settings">個別遊戲設定</string>
+    <string name="per_game_settings_description">編輯此遊戲的特定設定</string>
+    <string name="launch_options">啟動組態</string>
+    <string name="path">路徑</string>
+    <string name="program_id">程式 ID</string>
+    <string name="developer">開發商</string>
+    <string name="version">版本</string>
+    <string name="copy_details">複製詳細資料</string>
+    <string name="add_ons">附加元件</string>
+    <string name="add_ons_description">切換模組、更新及 DLC</string>
+    <string name="reset_playtime">重設遊玩時間</string>
+    <string name="reset_playtime_description">將此遊戲的遊玩時間重設為0</string>
+    <string name="reset_playtime_warning_description">您確定要重設此遊戲的遊玩時間嗎？</string>
+    <string name="playtime_reset_successfully">遊玩時間已重設</string>
+    <string name="edit_playtime">修改遊玩時間</string>
+    <string name="hours">小時</string>
+    <string name="minutes">分鐘</string>
+    <string name="hours_must_be_between_0_and_9999">必須介於0到9999小時之間</string>
+    <string name="minutes_must_be_between_0_and_59">必須介於0到59分鐘之間</string>
+    <string name="seconds_must_be_between_0_and_59">必須介於0到59秒之間</string>
+    <string name="playtime_updated_successfully">成功更新遊玩時間</string>
+    <string name="clear_shader_cache">清除著色器快取</string>
+    <string name="clear_shader_cache_description">清除此遊戲所有已編譯的著色器快取</string>
+    <string name="clear_shader_cache_warning_description">重新編譯著色器快取的過程中可能會導致遊戲有些微卡頓</string>
+    <string name="cleared_shaders_successfully">著色器快取已成功清除</string>
+    <string name="addons_game">附加元件：%1$s</string>
+    <string name="save_data">儲存資料</string>
+    <string name="save_data_description">管理此遊戲的儲存資料</string>
+    <string name="delete_save_data">刪除儲存資料</string>
+    <string name="delete_save_data_description">刪除此遊戲的所有儲存資料</string>
+    <string name="delete_save_data_warning_description">這將會刪除此遊戲的所有儲存資料，且無法復原，您確定要繼續嗎？</string>
+    <string name="save_data_deleted_successfully">儲存資料已成功刪除</string>
+    <string name="select_content_type">內容類型</string>
+    <string name="updates_and_dlc">更新及 DLC</string>
+    <string name="mods_and_cheats">模組及密技</string>
+    <string name="addon_notice">重要的˙附加元件通知</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="addon_notice_description">若要安裝模組及密技，您必須選擇一個包含 cheats/、romfs/ 或 exefs/ 的目錄。我們無法驗證這些內容是否與您的遊戲相容，所以請謹慎安裝！</string>
+    <string name="invalid_directory">無效的目錄</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="invalid_directory_description">請確保您選取的目錄包含 cheats/、romfs/ 或 exefs/ 資料夾，然後再試一次。</string>
+    <string name="addon_installed_successfully">附加元件已成功安裝</string>
+    <string name="verifying_content">正在驗證內容…</string>
+    <string name="content_install_notice">內容安裝通知</string>
+    <string name="content_install_notice_description">此附加元件與您選擇的遊戲不相容，確定要繼續安裝嗎？</string>
+    <string name="confirm_uninstall">確認刪除</string>
+    <string name="confirm_uninstall_description">您確定要刪除此附加元件嗎？</string>
+    <string name="verify_integrity">完整性驗證</string>
+    <string name="verifying">驗證中...</string>
+    <string name="verify_success">完整性驗證成功！</string>
+    <string name="verify_failure">完整性驗證失敗！</string>
+    <string name="verify_failure_description">文件可能已經損壞</string>
+    <string name="verify_no_result">無法執行完整性驗證</string>
+    <string name="verify_no_result_description">未檢查文件的完整性</string>
+    <string name="verification_failed_for">以下文件的完整性驗證失敗：\n %1$s</string>
+    <string name="share_game_settings">分享設定</string>
+    <string name="import_config">導入設定</string>
+    <string name="export_config">導出設定</string>
+    <string name="share_config_failed">分享設定失敗</string>
+
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">您的 ROM 已加密</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[請按照指南重新轉儲您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">遊戲卡</a>或<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">數位版遊戲</a>。]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[請確保您的 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 檔案已安裝，讓遊戲可以解密。]]></string>
+    <string name="loader_error_video_core">初始化視訊核心時發生錯誤</string>
+    <string name="loader_error_video_core_description">這經常是因為不相容的 GPU 驅動程式造成，安裝自訂 GPU 驅動程式可能會解決此問題。</string>
+    <string name="loader_error_file_not_found">ROM 檔案不存在</string>
+
+    <string name="loader_requires_firmware">遊戲需要韌體</string>
+    <string name="loader_requires_firmware_description"><![CDATA[您嘗試啟動的遊戲需要韌體才能啟動或通過遊戲主選單。請<a href=\"https://yuzu-mirror.github.io/help/quickstart\">轉儲並安裝韌體</a>，或點擊\"確定\"繼續。]]></string>
+
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">正在搜尋遊戲...</string>
+    <string name="game_not_found_for_title_id">找不到標題ID的遊戲: %1$s</string>
+    <string name="custom_settings_failed_title">自訂設定失敗</string>
+    <string name="custom_settings_failed_message">無法套用自訂設定 %1$s: %2$s</string>
+    <string name="launch_with_default_settings">使用預設設定啟動</string>
+    <string name="launch_cancelled">啟動已取消</string>
+    <string name="custom_settings_failure_reasons">無法套用請求的設定。這可能是由於缺少GPU驅動程式或設定問題。</string>
+    <string name="custom_settings_applied">已套用自訂設定</string>
+    <string name="launching_game">正在啟動 %1$s...</string>
+    <string name="failed_to_initialize_game">無法初始化遊戲</string>
+    <string name="custom_intent_launch_message_with_settings">是否要使用自訂設定啟動 %1$s？</string>
+    <string name="custom_intent_launch_message">是否要啟動 %1$s？</string>
+    <string name="custom_intent_launch_title">啟動遊戲</string>
+    <string name="launch">啟動</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">設定寫入失敗</string>
+    <string name="config_apply_failed">套用設定失敗</string>
+    <string name="config_already_exists_title">設定已存在</string>
+    <string name="config_already_exists_message">%1$s已存在自訂設定\n\n您要覆寫它嗎？\n\n這個動作無法復原</string>
+    <string name="config_exists_prompt">正在檢查現有設定...</string>
+    <string name="overwrite_cancelled">覆寫已取消</string>
+    <string name="overwrite">覆寫</string>
+
+    <!-- Driver strings -->
+    <string name="driver_not_found">未安裝所需的驅動程式: %s</string>
+    <string name="invalid_driver_file">無效的驅動程式檔案: %s</string>
+    <string name="network_unavailable">無可用網路連線。請檢查您的網路連線並重試。</string>
+    <string name="driver_missing_title">需要GPU驅動程式</string>
+    <string name="driver_missing_message">這個遊戲的設定需要 \"%s\"驅動程式，而它並沒有安裝在您的裝置上\n\n要下載並安裝此驅動程式嗎？</string>
+    <string name="driver_download_cancelled">驅動程式下載已取消。沒有所需的驅動程式無法啟動遊戲。</string>
+    <string name="download">下載</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">結束模擬</string>
+    <string name="emulation_done">完成</string>
+    <string name="emulation_toggle_controls">切換控制</string>
+    <string name="emulation_rel_stick_center">相對搖桿中心</string>
+    <string name="emulation_dpad_slide">方向鍵滑動</string>
+    <string name="emulation_haptics">觸覺回饋技術</string>
+    <string name="emulation_show_overlay">顯示虛擬按鍵</string>
+    <string name="emulation_hide_overlay">隱藏虛擬按鍵</string>
+    <string name="emulation_toggle_all">全部切換</string>
+    <string name="emulation_control_adjust">調整虛擬按鍵</string>
+    <string name="emulation_control_scale">大小</string>
+    <string name="emulation_control_opacity">不透明度</string>
+    <string name="emulation_touch_overlay_reset">重設虛擬按鍵</string>
+    <string name="emulation_touch_overlay_edit">編輯虛擬按鍵</string>
+    <string name="emulation_pause">暫停模擬</string>
+    <string name="emulation_unpause">取消暫停模擬</string>
+    <string name="emulation_input_overlay">疊加層/虛擬按鍵設定</string>
+    <string name="touchscreen">觸控螢幕</string>
+    <string name="lock_drawer">鎖定側邊選單</string>
+    <string name="unlock_drawer">解鎖側邊選單</string>
+    <string name="reset">重設</string>
+
+    <!-- Software keyboard -->
+    <string name="software_keyboard">軟體鍵盤</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">中止</string>
+    <string name="continue_button">繼續</string>
+    <string name="system_archive_not_found">找不到系統存檔</string>
+    <string name="system_archive_not_found_message">缺少%s，請轉儲您的系統存檔\n繼續模擬可能會導致崩潰</string>
+    <string name="system_archive_general">系統存檔</string>
+    <string name="save_load_error">儲存/載入時發生錯誤</string>
+    <string name="fatal_error">嚴重錯誤</string>
+    <string name="fatal_error_message">發生嚴重錯誤。請查看日誌以取得詳細資料\n繼續模擬可能會導致崩潰</string>
+    <string name="device_memory_inadequate">裝置記憶體大小：%1$s\n推薦記憶體大小：%2$s</string>
+    <string name="memory_formatted">%1$s%2$s</string>
+    <string name="no_game_present">目前沒有可啟動的遊戲！</string>
+
+    <!-- Region Names -->
+    <string name="region_japan">日本</string>
+    <string name="region_usa">美國</string>
+    <string name="region_europe">歐洲</string>
+    <string name="region_australia">澳洲</string>
+    <string name="region_china">中國</string>
+    <string name="region_korea">南韓</string>
+    <string name="region_taiwan">臺灣</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (推薦)</string>
+    <string name="memory_6gb">6GB (不安全)</string>
+    <string name="memory_8gb">8GB (不安全)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_boost">加速 (1700MHz)</string>
+    <string name="clock_fast">快速 (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">低 (128)</string>
+    <string name="gpu_medium">中 (256)</string>
+    <string name="gpu_high">高 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">攝氏度</string>
+    <string name="temperature_fahrenheit">華氏度</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte_shorthand">B</string>
+    <string name="memory_kilobyte">KB</string>
+    <string name="memory_megabyte">MB</string>
+    <string name="memory_gigabyte">GB</string>
+    <string name="memory_terabyte">TB</string>
+    <string name="memory_petabyte">PB</string>
+    <string name="memory_exabyte">EB</string>
+
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">Vulkan</string>
+    <string name="renderer_none">無</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">標準</string>
+    <string name="renderer_accuracy_high">高</string>
+    <string name="renderer_accuracy_extreme">極高</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">預設</string>
+    <string name="dma_accuracy_unsafe">不安全</string>
+    <string name="dma_accuracy_safe">安全</string>
+
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTC解碼方式</string>
+    <string name="accelerate_astc_description">選擇ASTC壓縮紋理的解碼方式：CPU（慢速、安全）、GPU（快速、推薦）或CPU非同步（無卡頓，可能導致問題）</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU非同步</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC重新壓縮方式</string>
+    <string name="astc_recompression_description">選擇ASTC紋理的重新壓縮方式以提高相容性和效能。啟用此選項可節省VRAM，但可能會降低紋理品質。</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">未壓縮</string>
+    <string name="astc_recompression_bc1">BC1（低品質）</string>
+    <string name="astc_recompression_bc3">BC3（中品質）</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">VRAM使用模式</string>
+    <string name="vram_usage_mode_description">控制GPU記憶體的分配與釋放策略</string>
+    <string name="vram_usage_conservative">保守</string>
+    <string name="vram_usage_aggressive">積極</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (慢)</string>
+    <string name="resolution_three">3X (2160p/3240p) (慢)</string>
+    <string name="resolution_four">4X (2880p/4320p) (慢)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">即時 (關閉)</string>
+    <string name="renderer_vsync_mailbox">Mailbox</string>
+    <string name="renderer_vsync_fifo">FIFO (開啟)</string>
+    <string name="renderer_vsync_fifo_relaxed">FIFO 寬鬆</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">最鄰近</string>
+    <string name="scaling_filter_bilinear">雙線性</string>
+    <string name="scaling_filter_bicubic">雙立方</string>
+    <string name="scaling_filter_spline1">樣條-1</string>
+    <string name="scaling_filter_gaussian">高斯</string>
+    <string name="scaling_filter_lanczos">蘭佐斯</string>
+    <string name="scaling_filter_scale_force">強制縮放</string>
+    <string name="scaling_filter_fsr">AMD Radeon™ 超級解析度</string>
+    <string name="scaling_filter_area">Area</string>
+    <string name="scaling_filter_zero_tangent">Zero-Tangent</string>
+    <string name="scaling_filter_bspline">B樣條</string>
+    <string name="scaling_filter_mitchell">Mitchell</string>
+    <string name="scaling_filter_mmpx">MMPX</string>
+
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">無</string>
+    <string name="anti_aliasing_fxaa">FXAA</string>
+    <string name="anti_aliasing_smaa">SMAA</string>
+
+    <!-- Screen Layouts -->
+    <string name="screen_layout_auto">自動</string>
+    <string name="screen_layout_sensor_landscape">感應器橫向螢幕</string>
+    <string name="screen_layout_landscape">橫向</string>
+    <string name="screen_layout_reverse_landscape">反轉橫向螢幕</string>
+    <string name="screen_layout_sensor_portrait">感應器直向螢幕</string>
+    <string name="screen_layout_portrait">直向</string>
+    <string name="screen_layout_reverse_portrait">反轉直向螢幕</string>
+
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">預設 (16:9)</string>
+    <string name="ratio_force_four_three">強制 4:3</string>
+    <string name="ratio_force_twenty_one_nine">強制 21:9</string>
+    <string name="ratio_force_sixteen_ten">強制 16:10</string>
+    <string name="ratio_stretch">延展視窗</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
+    <string name="cpu_backend_nce">機器碼執行 (NCE)</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">高準確度</string>
+    <string name="cpu_accuracy_unsafe">低準確度（不安全）</string>
+    <string name="cpu_accuracy_paranoid">不合理</string>
+    <string name="cpu_accuracy_debugging">偵錯</string>
+
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">方向鍵</string>
+    <string name="gamepad_left_stick">左搖桿</string>
+    <string name="gamepad_right_stick">右搖桿</string>
+    <string name="gamepad_home">HOME</string>
+    <string name="gamepad_screenshot">螢幕截圖</string>
+
+    <!-- Disk shader cache -->
+    <string name="building_shaders">正在建置著色器</string>
+
+    <!-- App options -->
+    <string name="change_app_theme">變更應用程式主題</string>
+    <string name="theme_default">預設</string>
+    <string name="theme_material_you">質感設計3</string>
+    <string name="app_settings">Eden外觀設定</string>
+    <string name="theme_and_color">主題和顏色</string>
+
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">變更主題模式</string>
+    <string name="theme_mode_follow_system">跟隨系統</string>
+    <string name="theme_mode_light">淺色</string>
+    <string name="theme_mode_dark">深色</string>
+
+    <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
+    <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">黑色背景</string>
+    <string name="use_black_backgrounds_description">使用深色主題時，套用黑色背景。</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">主題色彩</string>
+    <string name="eden_theme">Eden（預設）</string>
+    <string name="violet">紫色</string>
+    <string name="blue">藍色</string>
+    <string name="cyan">青色</string>
+    <string name="red">紅色</string>
+    <string name="green">綠色</string>
+    <string name="yellow">黃色</string>
+    <string name="orange">橘色</string>
+    <string name="pink">粉紅色</string>
+    <string name="gray">灰色</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">子母畫面</string>
+    <string name="picture_in_picture_description">位於背景時最小化視窗</string>
+    <string name="pause">暫停</string>
+    <string name="play">開始</string>
+    <string name="mute">靜音</string>
+    <string name="unmute">取消靜音</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">垂直對齊</string>
+    <string name="top">頂部</string>
+    <string name="center">中心</string>
+    <string name="bottom">底部</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">小程式</string>
+    <string name="applets_menu_description">(開發中) 更改小程式前端和設定</string>
+
+    <string name="applet_hle">自訂前端</string>
+    <string name="applet_lle">Switch小程式</string>
+
+    <string name="swkbd_applet">軟體鍵盤</string>
+
+    <string name="airplane_mode">飛航模式</string>
+    <string name="airplane_mode_description">將飛航模式傳遞給Switch作業系統</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">授權</string>
+    <string name="license_fidelityfx_fsr_description">來自 AMD 的升級圖像品質</string>
+    </resources>

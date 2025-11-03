@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Pressed state with gradient highlight -->
+    <item android:state_pressed="true">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <gradient
+                        android:angle="45"
+                        android:startColor="@color/eden_border_gradient_start"
+                        android:endColor="@color/eden_border_gradient_end"
+                        android:type="linear" />
+                    <corners android:radius="12dp" />
+                </shape>
+            </item>
+            <item
+                android:bottom="1dp"
+                android:left="1dp"
+                android:right="1dp"
+                android:top="1dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/eden_card_background" />
+                    <corners android:radius="11dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <!-- Selected/focused state -->
+    <item android:state_selected="true">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <gradient
+                        android:angle="45"
+                        android:startColor="@color/eden_border_gradient_start"
+                        android:endColor="@color/eden_border_gradient_end"
+                        android:type="linear" />
+                    <corners android:radius="12dp" />
+                </shape>
+            </item>
+            <item
+                android:bottom="1dp"
+                android:left="1dp"
+                android:right="1dp"
+                android:top="1dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/eden_card_background" />
+                    <corners android:radius="11dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <!-- Default state -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+</selector>

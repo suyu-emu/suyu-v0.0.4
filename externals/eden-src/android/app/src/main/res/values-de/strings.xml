@@ -1,0 +1,967 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="app_disclaimer">Diese Software führt Spiele für die Nintendo Switch-Konsole aus. Es sind keine Spiele oder Keys enthalten.<br /><br />Bevor du beginnst, holen dir bitte deine <![CDATA[<b> prod.keys </b>]]>-Datei von deiner Switch.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Mehr Erfahren</a>]]></string>
+    <string name="notice_notification_channel_name">Hinweise und Fehler</string>
+    <string name="notice_notification_channel_description">Zeigt Benachrichtigungen an, wenn etwas schief läuft.</string>
+    <string name="notification_permission_not_granted">Berechtigung für Benachrichtigungen nicht zugelassen!</string>
+    <string name="app_notification_channel_description">Eden Switch Emulator Benachrichtigungen</string>
+    <string name="app_notification_running">Eden wird ausgeführt</string>
+    <string name="seconds">Sekunden</string>
+
+    <string name="value_too_low">Wert muss mindestens %1$d betragen</string>
+    <string name="value_too_high">Wert darf höchstens %1$d betragen</string>
+    <string name="input_overlay_options">Eingabe-Overlay</string>
+    <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Erweitert)</string>
+    <string name="process_ram">Prozess-RAM: %1$d MB</string>
+    <string name="shaders_prefix">Erstelle</string>
+    <string name="shaders_suffix">Shader</string>
+    <string name="charging">(Wird geladen)</string>
+
+    <string name="system_info_label">System:</string>
+    <string name="show_stats_overlay">Leistungsstatistik Overlay anzeigen</string>
+    <string name="stats_overlay_customization">Anpassung</string>
+    <string name="stats_overlay_items">Sichtbarkeit</string>
+    <string name="stats_overlay_options">Leistungs Overlay</string>
+    <string name="enable_stats_overlay_">Leistungsstatistik Overlay aktivieren</string>
+    <string name="stats_overlay_options_description">Konfiguriere angezeigte Informationen im Overlay</string>
+    <string name="show_fps">FPS anzeigen</string>
+    <string name="show_fps_description">Aktuelle Bilder pro Sekunde</string>
+    <string name="show_frametime">Frametime anzeigen</string>
+    <string name="show_frametime_description">Aktuelle Frametime</string>
+    <string name="show_app_ram_usage">App-RAM-Nutzung anzeigen</string>
+    <string name="show_app_ram_usage_description">Zeigt den RAM-Verbrauch des Emulators an</string>
+    <string name="show_system_ram_usage">System-RAM-Nutzung anzeigen</string>
+    <string name="show_system_ram_usage_description">Zeigt den vom System genutzten RAM an</string>
+    <string name="show_bat_temperature">Batterietemperatur anzeigen</string>
+    <string name="show_bat_temperature_description">Aktuelle Batterietemperatur anzeigen</string>
+    <string name="bat_temperature_unit">Batterietemperatur-Einheiten</string>
+    <string name="show_power_info">Batterieinfo anzeigen</string>
+    <string name="show_power_info_description">Aktuellen Stromverbrauch und verbleibende Kapazität der Batterie anzeigen</string>
+    <string name="show_shaders_building">Shader-Bau anzeigen</string>
+    <string name="show_shaders_building_description">Aktuelle Anzahl der erstellten Shader anzeigen</string>
+    <string name="overlay_position">Overlay-Position</string>
+    <string name="overlay_position_description">Position des Overlays auf dem Bildschirm</string>
+    <string name="overlay_position_top_left">Oben links</string>
+    <string name="overlay_position_top_right">Oben rechts</string>
+    <string name="overlay_position_bottom_left">Unten links</string>
+    <string name="overlay_position_bottom_right">Unten rechts</string>
+    <string name="overlay_position_center_top">Mitte oben</string>
+    <string name="overlay_position_center_bottom">Mitte unten</string>
+    <string name="perf_overlay_background">Overlay-Hintergrund</string>
+    <string name="perf_overlay_background_description">Hintergrund für bessere Lesbarkeit</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Geräteinfo-Overlay anzeigen</string>
+    <string name="enable_soc_overlay">Geräte-Overlay aktivieren</string>
+    <string name="soc_overlay_options">Geräte-Overlay</string>
+    <string name="soc_overlay_options_description">Konfigurieren Sie, welche Informationen im Geräte-Overlay angezeigt werden</string>
+
+    <string name="show_device_model">Gerätemodell anzeigen</string>
+    <string name="show_device_model_description">Modell des Host-Geräts anzeigen</string>
+    <string name="show_gpu_model">GPU-Modell anzeigen</string>
+    <string name="show_gpu_model_description">Modell der Host-GPU anzeigen</string>
+    <string name="show_soc_model">SoC-Modell anzeigen</string>
+    <string name="show_soc_model_description">Modell des Host-SoC anzeigen</string>
+    <string name="show_fw_version">Firmware-Version anzeigen</string>
+    <string name="show_fw_version_description">Zeigt die installierte Firmware-Version an</string>
+
+    <!-- Eden\'s Veil -->
+    <string name="eden_veil">Edens Schleier</string>
+    <string name="eden_veil_description">Experimentelle Einstellungen zur Verbesserung der Leistung und Funktionalität. Diese Einstellungen können schwarze Bildschirme oder andere Spielprobleme verursachen.</string>
+
+    <string name="veil_extensions">GPU-Erweiterungen</string>
+    <string name="dyna_state">Erweiterter dynamischer Status</string>
+    <string name="dyna_state_description">Steuert die Anzahl der Funktionen, die im Erweiterten Dynamischen Zustand verwendet werden können. Höhere Werte ermöglichen mehr Funktionen und können die Leistung steigern, können jedoch bei einigen Treibern und Herstellern zu Problemen führen. Der Standardwert kann je nach System und Hardwarefähigkeiten variieren. Dieser Wert kann geändert werden, bis Stabilität und eine bessere visuelle Qualität erreicht sind.</string>
+    <string name="disabled">Deaktiviert</string>
+    <string name="provoking_vertex">Provokanter Vertex</string>
+    <string name="provoking_vertex_description">Verbessert die Beleuchtung und die Vertex-Verarbeitung in einigen Spielen. Wird nur von GPUs mit Vulkan 1.0+ unterstützt.</string>
+    <string name="descriptor_indexing">Deskriptor-Indizierung</string>
+    <string name="descriptor_indexing_description">Verbessert die Textur- und Puffer-Verarbeitung sowie die Maxwell-Übersetzungsschicht. Wird von einigen Vulkan 1.1-GPUs und allen Vulkan 1.2+-GPUs unterstützt.</string>
+    <string name="sample_shading">Sample Shading</string>
+    <string name="sample_shading_description">Ermöglicht dem Fragment-Shader, pro Sample in einem mehrfach gesampleten Fragment ausgeführt zu werden, anstatt einmal pro Fragment. Verbessert die Grafikqualität auf Kosten der Leistung. Nur Vulkan 1.1+-Geräte unterstützen diese Erweiterung.</string>
+    <string name="sample_shading_fraction">Sample-Shading-Anteil</string>
+    <string name="sample_shading_fraction_description">Die Intensität des Sample-Shading-Durchgangs. Höhere Werte verbessern die Qualität stärker, beeinträchtigen aber auch die Leistung stärker.</string>
+
+    <string name="veil_renderer">Renderer</string>
+    <string name="frame_interpolation">Erweiterte Frame-Synchronisation</string>
+    <string name="frame_interpolation_description">Sorgt für eine gleichmäßige und konsistente Frame-Wiedergabe durch Synchronisierung der Frame-Zeiten, was Ruckeln und ungleichmäßige Animationen reduziert. Ideal für Spiele, die unter instabilen Frame-Zeiten oder Mikrorucklern leiden.</string>
+    <string name="renderer_early_release_fences">Zäune früher freigeben</string>
+    <string name="renderer_early_release_fences_description">Behebt 0 FPS in Spielen wie DKCR:HD, Subnautica Below Zero und Ori 2, kann aber Ladezeiten oder Performance in Unreal Engine-Spielen beeinträchtigen.</string>
+    <string name="sync_memory_operations">Speicheroperationen synchronisieren</string>
+    <string name="sync_memory_operations_description">Stellt die Datenkonsistenz zwischen Compute- und Speicheroperationen sicher. Diese Option sollte Probleme in einigen Spielen beheben, kann aber in einigen Fällen die Leistung verringern. Spiele mit Unreal Engine 4 scheinen am stärksten betroffen zu sein.</string>
+    <string name="buffer_reorder_disable">Puffer-Neuanordnung deaktivieren</string>
+    <string name="buffer_reorder_disable_description">Wenn aktiviert, wird die Neuanordnung von gemappten Speicher-Uploads deaktiviert, was die Zuordnung von Uploads zu bestimmten Zeichenvorgängen ermöglicht. Kann in einigen Fällen die Leistung verringern.</string>
+
+    <string name="veil_misc">CPU und Speicher</string>
+    <string name="use_sync_core">Kern-Geschwindigkeit synchronisieren</string>
+    <string name="use_sync_core_description">Synchronisiert die Taktrate des Kerns mit der maximalen Geschwindigkeit, um die Leistung zu verbessern, ohne die tatsächliche Spielgeschwindigkeit zu verändern.</string>
+    <string name="use_lru_cache">LRU-Cache aktivieren</string>
+    <string name="use_lru_cache_description">Aktivieren oder deaktivieren Sie den LRU-Cache, um die Leistung durch Einsparung von CPU-Prozessorauslastung zu verbessern. Einige Spiele haben Probleme damit, insbesondere TotK 1.2.1, deaktivieren Sie es also, wenn das Spiel nicht startet oder zufällig abstürzt.</string>
+    <string name="use_fast_cpu_time">Schnelle CPU-Zeit</string>
+    <string name="use_fast_cpu_time_description">Zwingt die emulierte CPU, mit höherer Taktrate zu laufen, wodurch bestimmte FPS-Begrenzungen reduziert werden. Diese Option ist unsauber und kann Probleme verursachen, und schwächere CPUs können eine geringere Leistung aufweisen.</string>
+    <string name="custom_cpu_ticks">Benutzerdefinierte CPU-Ticks</string>
+    <string name="custom_cpu_ticks_description">Legen Sie einen benutzerdefinierten Wert für CPU-Ticks fest. Höhere Werte können die Leistung steigern, aber auch zum Einfrieren des Spiels führen. Ein Bereich von 77–21000 wird empfohlen.</string>
+    <string name="cpu_ticks">Ticks</string>
+    <string name="skip_cpu_inner_invalidation">CPU-interne Invalidierung überspringen</string>
+    <string name="skip_cpu_inner_invalidation_description">Überspringt bestimmte Cache-Invalidierungen auf CPU-Seite während Speicherupdates, reduziert die CPU-Auslastung und verbessert die Leistung. Kann in einigen Spielen zu Fehlern oder Abstürzen führen.</string>
+    <string name="cpuopt_unsafe_host_mmu">Host-MMU-Emulation aktivieren</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Diese Optimierung beschleunigt Speicherzugriffe durch das Gastprogramm. Wenn aktiviert, erfolgen Speicherlese- und -schreibvorgänge des Gastes direkt im Speicher und nutzen die MMU des Hosts. Das Deaktivieren erzwingt die Verwendung der Software-MMU-Emulation für alle Speicherzugriffe.</string>
+    <string name="fast_cpu_time">CPU-Takt</string>
+    <string name="fast_cpu_time_description">Verwenden Sie Boost (1700MHz), um mit der höchsten nativen Taktrate des Switch zu laufen, oder Fast (2000MHz), um mit der doppelten Taktrate zu laufen.</string>
+    <string name="memory_layout">Speicherlayout</string>
+    <string name="memory_layout_description">(EXPERIMENTELL) Ändert das emulierte Speicherlayout. Diese Einstellung erhöht nicht die Leistung, kann aber bei Spielen helfen, die hohe Auflösungen über Mods nutzen. Nicht auf Telefonen mit 8 GB RAM oder weniger verwenden.</string>
+    <string name="dma_accuracy">DMA-Genauigkeit</string>
+    <string name="dma_accuracy_description">Steuert die DMA-Präzisionsgenauigkeit. Sichere Präzision kann Probleme in einigen Spielen beheben, kann aber in einigen Fällen auch die Leistung beeinträchtigen. Im Zweifel lassen Sie dies auf Standard stehen.</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">Shader-Backend</string>
+    <string name="shader_backend_description">Methode zur Shader-Kompilierung</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">NVDEC-Emulation</string>
+    <string name="nvdec_emulation_description">Methode zur Videodekodierung</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">Keine</string>
+
+    <!-- Optimize Spir-V output -->
+    <string name="never">Nie</string>
+    <string name="on_load">Beim Laden</string>
+    <string name="always">Immer</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">Mehrspieler</string>
+    <string name="multiplayer_description">Erstelle deinen eigenen Spielraum oder trete einem bestehenden bei, um mit anderen zu spielen</string>
+    <string name="multiplayer_create_room">Erstellen</string>
+    <string name="multiplayer_join_room">Beitreten</string>
+    <string name="multiplayer_public_room">Öffentliche Räume durchsuchen</string>
+    <string name="multiplayer_username">Benutzername</string>
+    <string name="multiplayer_ip_address">IP-Adresse</string>
+    <string name="multiplayer_ip_port">Port</string>
+    <string name="multiplayer_create_room_success">Raum erfolgreich erstellt</string>
+    <string name="multiplayer_join_room_success">Erfolgreich beigetreten</string>
+    <string name="multiplayer_exit_room">Raum verlassen</string>
+    <string name="multiplayer_network_error">Netzwerkfehler</string>
+    <string name="multiplayer_lost_connection">Verbindung verloren</string>
+    <string name="multiplayer_name_collision">Benutzername bereits vergeben</string>
+    <string name="multiplayer_mac_collision">MAC-Adressenkonflikt</string>
+    <string name="multiplayer_console_id_collision">Konsole-ID-Konflikt</string>
+    <string name="multiplayer_wrong_version">Falsche Version</string>
+    <string name="multiplayer_wrong_password">Falsches Passwort</string>
+    <string name="multiplayer_could_not_connect">Verbindung fehlgeschlagen</string>
+    <string name="multiplayer_room_is_full">Raum ist voll</string>
+    <string name="multiplayer_host_banned">Sie sind von diesem Raum gebannt</string>
+    <string name="multiplayer_permission_denied">Zugriff verweigert</string>
+    <string name="multiplayer_no_such_user">Benutzer existiert nicht</string>
+    <string name="multiplayer_already_in_room">Bereits im Raum</string>
+    <string name="multiplayer_create_room_error">Fehler beim Erstellen des Raums</string>
+    <string name="multiplayer_host_kicked">Host wurde entfernt</string>
+    <string name="multiplayer_unknown_error">Unbekannter Fehler</string>
+    <string name="multiplayer_room_uninitialized">Raum nicht initialisiert</string>
+    <string name="multiplayer_room_idle">Raum inaktiv</string>
+    <string name="multiplayer_room_joining">Beitritt läuft…</string>
+    <string name="multiplayer_room_joined">Raum beigetreten</string>
+    <string name="multiplayer_room_moderator">Raum-Moderator</string>
+    <string name="multiplayer_member_join">%1$s ist beigetreten</string>
+    <string name="multiplayer_member_leave">%1$s hat verlassen</string>
+    <string name="multiplayer_member_kicked">%1$s wurde entfernt</string>
+    <string name="multiplayer_member_banned">%1$s wurde gebannt</string>
+    <string name="multiplayer_address_unbanned">Adresse entbannt</string>
+    <string name="multiplayer_kick_member">Entfernen</string>
+    <string name="multiplayer_password">Passwort</string>
+    <string name="multiplayer_joining">Beitritt läuft…</string>
+    <string name="multiplayer_creating">Erstellung läuft…</string>
+    <string name="multiplayer_room_name">Raumname</string>
+    <string name="multiplayer_max_players_value">Max. Spieler: %d</string>
+    <string name="multiplayer_chat">Chat</string>
+    <string name="multiplayer_more_options">Weitere Optionen</string>
+    <string name="chat">Chat</string>
+    <string name="type_message">Nachricht eingeben…</string>
+    <string name="send_message">Nachricht senden</string>
+    <string name="multiplayer_moderation">Moderation</string>
+    <string name="multiplayer_moderation_title">Bannliste</string>
+    <string name="multiplayer_no_bans">Keine gebannten Benutzer</string>
+    <string name="multiplayer_unban_title">Entbannen</string>
+    <string name="multiplayer_unban">Entbannen</string>
+    <string name="multiplayer_unban_message">%1$s wirklich entbannen?</string>
+    <string name="multiplayer_ban">Benutzer bannen</string>
+    <string name="multiplayer_room_browser">Öffentliche Räume</string>
+    <string name="multiplayer_no_rooms_found">Keine öffentlichen Räume gefunden</string>
+    <string name="multiplayer_password_required">Passwort erforderlich</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Spiel</string>
+    <string name="multiplayer_no_game_info">Beliebiges Spiel</string>
+    <string name="multiplayer_password_protected">Passwortgeschützter Raum</string>
+    <string name="multiplayer_hide_full_rooms">Volle Räume ausblenden</string>
+    <string name="multiplayer_hide_empty_rooms">Leere Räume ausblenden</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Zum Aktualisieren tippen</string>
+    <string name="multiplayer_search_public_lobbies">Räume suchen…</string>
+    <string name="multiplayer_preferred_game_name">Bevorzugtes Spiel</string>
+    <string name="multiplayer_lobby_type">Lobby-Typ</string>
+    <string name="multiplayer_room_name_error">Muss 3-20 Zeichen lang sein</string>
+    <string name="multiplayer_required">Erforderlich</string>
+    <string name="multiplayer_token_required">Web-Token erforderlich, gehen Sie zu Erweiterte Einstellungen -> System -> Netzwerk</string>
+    <string name="multiplayer_ip_error">Ungültiges IP-Format</string>
+    <string name="multiplayer_username_error">Muss zwischen 4–20 Zeichen lang sein und nur alphanumerische Zeichen, Punkte, Bindestriche, Unterstriche und Leerzeichen enthalten</string>
+    <string name="multiplayer_nickname_invalid">Ungültiger Benutzername, stellen Sie sicher, dass er in System → Netzwerk korrekt eingestellt ist</string>
+    <string name="multiplayer_token_error">Muss 48 Zeichen lang sein und nur Kleinbuchstaben a-z enthalten</string>
+    <string name="multiplayer_port_error">Muss zwischen 1-65535 liegen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="ok">OK</string>
+    <string name="refresh">Aktualisieren</string>
+    <string name="room_list">Raumliste</string>
+    <string name="multiplayer_public_visibility">Öffentlich</string>
+    <string name="multiplayer_unlisted_visibility">Unlisted</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">Willkommen!</string>
+    <string name="welcome_description">Erfahre wie man &lt;b>Eden&lt;/b> einrichtet und beginne mit der Emulation.</string>
+    <string name="get_started">Erste Schritte</string>
+    <string name="keys">Schlüssel</string>
+    <string name="keys_description">Wähle deine &lt;b>prod.keys&lt;/b> Datei mit dem Button unten aus.</string>
+    <string name="select_keys">Schlüssel auswählen</string>
+    <string name="firmware">Firmware</string>
+    <string name="select_firmware">Firmware auswählen</string>
+    <string name="games">Spiele</string>
+    <string name="games_description">Wähle mit dem Knopf unten den &lt;b>Spiele&lt;/b>-Ordner aus.</string>
+    <string name="done">Fertig</string>
+    <string name="done_description">Du bist start klar.\nViel Spaß mit deinen Spielen!</string>
+    <string name="text_continue">Fortsetzen</string>
+    <string name="next">Weiter</string>
+    <string name="back">Zurück</string>
+    <string name="add_games">Spiele hinzufügen</string>
+    <string name="step_complete">Fertig!</string>
+
+    <!-- Home strings -->
+
+    <string name="alphabetical">Alphabetisch</string>
+    <string name="view_list">Liste</string>
+    <string name="view_grid">Raster</string>
+    <string name="view_grid_compact">Kompaktes Gitter</string>
+    <string name="view_carousel">Karussell</string>
+    <string name="game_image_desc">Scrennshot für %1$s</string>
+    <string name="folder">Ordner</string>
+    <string name="dont_show_again">Nicht mehr anzeigen</string>
+    <string name="add_directory_success">Neues Spieleverzeichnis erfolgreich hinzugefügt.</string>
+    <string name="home_search">Suche</string>
+    <string name="home_settings">Einstellungen</string>
+    <string name="empty_gamelist">Es wurden keine Dateien gefunden oder es wurde noch kein Spielverzeichnis ausgewählt.</string>
+    <string name="manage_game_folders">Spiele-Ordner verwalten</string>
+    <string name="select_games_folder_description">Erlaubt Eden die Spieleliste zu füllen</string>
+    <string name="add_games_warning">Auswahl des Spieleverzeichnisses überspringen?</string>
+    <string name="add_games_warning_description">Spiele werden in der Spieleliste nicht angezeigt, wenn kein Ordner ausgewählt ist.</string>
+    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
+    <string name="home_search_games">Spiele suchen</string>
+    <string name="search_settings">Einstellungen suchen</string>
+    <string name="install_prod_keys">prod.keys installieren</string>
+    <string name="install_prod_keys_description">Zum Entschlüsseln von Spielen benötigt</string>
+    <string name="install_prod_keys_warning">Hinzufügen der Schlüssel überspringen?</string>
+    <string name="install_prod_keys_warning_description">Für die Emulation von Spielen sind gültige Schlüssel erforderlich. Wenn du fortfährst, funktionieren nur Homebrew-Anwendungen.</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="install_firmware_warning">Firmware nicht hinzufügen?</string>
+    <string name="install_firmware_warning_description">Viele Spiele benötigen Zugriff auf die Firmware, um richtig zu funktionieren.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="notifications">Benachrichtigungen</string>
+    <string name="notifications_description">Erteile mit dem Knopf unten die Berechtigung, Benachrichtigungen zu senden.</string>
+    <string name="give_permission">Berechtigung erteilen</string>
+    <string name="notification_warning">Erteilung der Benachrichtigungsberechtigung überspringen\?</string>
+    <string name="notification_warning_description">Eden wird dich nicht über wichtige Informationen benachrichtigen können.</string>
+    <string name="permission_denied">Zugriff verweigert</string>
+    <string name="permission_denied_description">Du hast diese Berechtigung zu oft verweigert und musst sie nun manuell in den Systemeinstellungen erteilen.</string>
+    <string name="about">Über</string>
+    <string name="about_description">Build-Version, Credits und mehr</string>
+    <string name="warning_help">Hilfe</string>
+    <string name="warning">Warnung</string>
+    <string name="warning_skip">Überspringen</string>
+    <string name="warning_cancel">Abbrechen</string>
+    <string name="install_amiibo_keys">Amiibo-Schlüssel installieren</string>
+    <string name="install_amiibo_keys_description">Benötigt um Amiibos im Spiel zu verwenden</string>
+    <string name="gpu_driver_fetcher">GPU-Treiber-Hersteller</string>
+    <string name="gpu_driver_manager">GPU-Treiber Verwaltung</string>
+    <string name="install_gpu_driver_description">Alternative Treiber für eventuell bessere Leistung oder Genauigkeit installieren</string>
+    <string name="advanced_settings">Erweiterte Einstellungen</string>
+    <string name="settings_description">Emulatoreinstellungen konfigurieren</string>
+    <string name="search_recently_played">Kürzlich gespielt</string>
+    <string name="search_recently_added">Kürzlich hinzugefügt</string>
+    <string name="open_user_folder">Eden-Ordner öffnen</string>
+    <string name="open_user_folder_description">Eden\'s interne Dateien verwalten</string>
+    <string name="no_file_manager">Kein Dateimanager gefunden</string>
+    <string name="notification_no_directory_link">Eden-Verzeichnis konnte nicht geöffnet werden</string>
+    <string name="notification_no_directory_link_description">Bitte suche den Benutzerordner manuell über die Seitenleiste des Dateimanagers.</string>
+    <string name="manage_save_data">Speicherdaten verwalten</string>
+    <string name="manage_save_data_description">Speicherdaten gefunden. Bitte wähle unten eine Option aus.</string>
+    <string name="import_save_warning">Speicherdaten importieren</string>
+    <string name="import_save_warning_description">Das überschreibt alle existierenden Speicherdaten für dieses Spiel mit der ausgewählten Datei.
+Wirklich fortfahren?</string>
+    <string name="save_files_importing">Importiere Speicherdaten...</string>
+    <string name="save_files_exporting">Exportiere Speicherdaten...</string>
+    <string name="save_file_imported_success">Erfolgreich importiert</string>
+    <string name="save_file_invalid_zip_structure">Ungültige Speicherverzeichnisstruktur</string>
+    <string name="save_file_invalid_zip_structure_description">Der erste Unterordnername muss die Titel-ID des Spiels sein.</string>
+    <string name="install_firmware">Firmware installieren</string>
+    <string name="install_firmware_description">Die Firmware muss in einem ZIP-Archiv vorliegen und wird zum Booten einiger Spiele benötigt</string>
+    <string name="firmware_installing">Firmware wird installiert</string>
+    <string name="firmware_installed_failure">Bei der Firmware installation ist etwas fehlgeschlagen.</string>
+    <string name="firmware_installed_failure_description">Stellen Sie sicher, dass sich die Firmware-NCA-Dateien im Stammverzeichnis der ZIP-Datei befinden, und versuchen Sie es erneut.</string>
+    <string name="firmware_uninstalled_failure">Die Deinstallation der Firmware ist fehlgeschlagen</string>
+    <string name="share_log">Debug-Logs teilen</string>
+    <string name="share_log_description">Debug-Logs an Eden zur Untersuchung absenden</string>
+    <string name="share_log_missing">Keine Log-Datei gefunden</string>
+    <string name="install_game_content">Spiel installieren</string>
+    <string name="install_game_content_description">Spiel-Updates oder DLCs installieren</string>
+    <string name="installing_game_content">Installiere...</string>
+    <string name="install_game_content_failure">Fehler beim Installieren der Datei(en) auf NAND</string>
+    <string name="install_game_content_failure_description">Bitte stellen Sie sicher, dass der/die Inhalt(e) gültig sind und dass die Datei prod.keys installiert ist.</string>
+    <string name="install_game_content_failure_base">Um mögliche Konflikte zu vermeiden, ist die Installation von Basisspielen nicht gestattet.</string>
+    <string name="install_game_content_failed_count">%1$d Installationsfehler</string>
+    <string name="install_game_content_success">Game content(s) installed successfully</string>
+    <string name="install_game_content_success_install">%1$d erfolgreich installiert</string>
+    <string name="install_game_content_success_overwrite">%1$d erfolgreich überschrieben</string>
+    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
+    <string name="custom_driver_not_supported">Benutzerdefinierte Treiber werden nicht unterstützt</string>
+    <string name="custom_driver_not_supported_description">Das Laden von benutzerdefinierten Treibern wird für dieses Gerät momentan nicht unterstützt.\nSchau später einfach nochmal nach, ob die Unterstützung hinzugefügt wurde!</string>
+    <string name="manage_yuzu_data">Eden-Daten Verwalten</string>
+    <string name="manage_yuzu_data_description">Importieren/Exportieren Sie Firmware, Schlüssel, Benutzerdaten und mehr!</string>
+    <string name="game_folders">Spiele-Ordner</string>
+    <string name="deep_scan">Tiefer Scan</string>
+    <string name="add_game_folder">Spiele-Ordner hinzufügen</string>
+    <string name="folder_already_added">Ordner bereits vorhanden</string>
+    <string name="game_folder_properties">Ordner-Eigenschaften</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">%d Spielstand konnte nicht importiert werden</item>
+        <item quantity="other">%d Spielstände konnten nicht importiert werden</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">%d Spielstand erfolgreich importiert</item>
+        <item quantity="other">%d Spielstände erfolgreich importiert</item>
+    </plurals>
+    <string name="no_save_data_found">Keine Spielstände gefunden</string>
+    <string name="verify_installed_content">Inhalt überprüfen</string>
+    <string name="verify_installed_content_description">Überprüft installierte Inhalte auf Fehler</string>
+
+    <string name="keys_missing">Schlüssel fehlen</string>
+    <string name="keys_missing_description">Firmware und Spiele können nicht entschlüsselt werden</string>
+    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
+    <string name="uninstall_firmware">Firmware deinstallieren</string>
+    <string name="uninstall_firmware_description">Das Deinstallieren der Firmware entfernt sie vom Gerät und kann die Spielkompatibilität beeinträchtigen.</string>
+    <string name="firmware_uninstalling">Firmware wird deinstalliert...</string>
+    <string name="firmware_uninstalled_success">Firmware erfolgreich deinstalliert</string>
+
+
+    <string name="keys_failed">Schlüsselinstallation fehlgeschlagen</string>
+    <string name="keys_install_success">Schlüssel erfolgreich installiert</string>
+    <string name="error_keys_copy_failed">Ein oder mehrere Schlüssel konnten nicht kopiert werden.</string>
+    <string name="error_keys_invalid_filename">Stellen Sie sicher, dass Ihre Schlüsseldatei die Erweiterung .keys hat, und versuchen Sie es erneut.</string>
+    <string name="error_keys_failed_init">Schlüssel konnten nicht initialisiert werden. Stellen Sie sicher, dass Ihre Dumping-Tools auf dem neuesten Stand sind, und dumpen Sie die Schlüssel erneut.</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">Anwendungen vom Systemstartbildschirm aus starten</string>
+    <string name="applets">Applet-Launcher</string>
+    <string name="applets_description">System-Applets mit Firmware starten</string>
+    <string name="applets_error_firmware">Firmware nicht installiert oder ungültige Version</string>
+    <string name="applets_error_applet">Applet nicht verfügbar</string>
+    <string name="applets_error_description"><![CDATA[Bitte stellen Sie sicher, dass Ihre <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>-Datei und <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">Firmware</a> installiert sind, und versuchen Sie es erneut.<br>Stellen Sie außerdem sicher, dass Ihre Firmware Version 19.0.1 oder älter ist.]]></string>
+    <string name="album_applet">Album</string>
+    <string name="album_applet_description">Bilder im Screenshot-Ordner anzeigen</string>
+    <string name="mii_edit_applet">Mii-Editor</string>
+    <string name="mii_edit_applet_description">Miis bearbeiten und anzeigen</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">Amiibo-Daten verwalten</string>
+    <string name="cabinet_launcher">Cabinet-Launcher</string>
+    <string name="cabinet_nickname_and_owner">Name und Besitzer</string>
+    <string name="cabinet_game_data_eraser">Spieldaten löschen</string>
+    <string name="cabinet_restorer">Wiederherstellen</string>
+    <string name="cabinet_formatter">Formatieren</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">Gaia ist nicht real</string>
+    <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
+    <string name="about_app_description">Ein quelloffener Switch-Emulator</string>
+    <string name="contributors">Beitragende</string>
+    <string name="contributors_description">Gemacht mit \u2764 vom Eden Team</string>
+    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
+    <string name="licenses_description">Projekte, die Eden für Android möglich machen </string>
+    <string name="build">Build</string>
+    <string name="user_data">Nutzerdaten</string>
+    <string name="exporting_user_data">Benutzerdaten werden exportiert…</string>
+    <string name="importing_user_data">Importiere Nutzerdaten...</string>
+    <string name="invalid_yuzu_backup">Ungültiges Eden-Backup</string>
+    <string name="user_data_export_success">Nutzerdaten erfolgreich exportiert</string>
+    <string name="user_data_import_success">Nutzerdaten erfolgreich importiert</string>
+    <string name="user_data_export_cancelled">Export abgebrochen</string>
+    <string name="user_data_import_failed_description">Stellen Sie sicher, dass sich die Benutzerdatenordner im Stammverzeichnis des ZIP-Ordners befinden und eine Konfigurationsdatei unter config/config.ini enthalten, und versuchen Sie es erneut.</string>
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">Limitierte Geschwindigkeit</string>
+    <string name="frame_limit_enable_description">Limitiert die Geschwindigkeit auf einen von dir festgelegten Prozentsatz.</string>
+    <string name="frame_limit_slider">Geschwindkeitsbegrenzung in Prozent</string>
+    <string name="frame_limit_slider_description">Gibt die prozentuale Geschwindigkeit der Emulation an. 100% sind normal. Werte darüber oder drunter werden die Geschwindigkeit entsprechend verändern.</string>
+    <string name="cpu_backend">CPU-Backend</string>
+    <string name="cpu_accuracy">CPU-Genauigkeit</string>
+    <string name="value_with_units">%1$s%2$s</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">Gerätename</string>
+    <string name="use_docked_mode">Gedockter Modus</string>
+    <string name="use_docked_mode_description">Der Gedockte-Modus erhöht die Auflösung, verringert aber die Leistung.
+Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die Leistung.</string>
+    <string name="emulated_region">Emulierte Region</string>
+    <string name="emulated_language">Emulierte Sprache</string>
+    <string name="select_rtc_date">RTC-Datum auswählen</string>
+    <string name="select_rtc_time">RTC-Zeit auswählen</string>
+    <string name="use_custom_rtc">Benutzerdefinierte Echtzeituhr</string>
+    <string name="use_custom_rtc_description">Ermöglicht Ihnen, eine benutzerdefinierte Echtzeituhr unabhängig von Ihrer aktuellen Systemzeit einzustellen.</string>
+    <string name="set_custom_rtc">Legen Sie eine benutzerdefinierte Echtzeituhr fest</string>
+
+    <string name="generate">Generieren</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Web-Token</string>
+    <string name="web_token_description">Web-Token zum Erstellen öffentlicher Räume. Es handelt sich um eine 48-stellige Zeichenfolge, die nur Kleinbuchstaben a-z enthält.</string>
+    <string name="web_username">Web-Benutzername</string>
+    <string name="web_username_description">Benutzername, der in Multiplayer-Räumen angezeigt wird. Muss zwischen 4–20 Zeichen lang sein und nur alphanumerische Zeichen, Bindestriche, Punkte, Unterstriche und Leerzeichen enthalten.</string>
+    <string name="network">Netzwerk</string>
+
+    <!-- Graphics settings strings -->
+    <string name="backend">Backend</string>
+    <string name="display">Anzeige</string>
+    <string name="processing">Nachbearbeitung</string>
+
+    <string name="frame_skipping">WIP: Frame Skipping</string>
+    <string name="frame_skipping_description">Aktivieren Sie Frame Skipping, um die Leistung durch Reduzierung der gerenderten Frames zu verbessern. Diese Funktion wird noch entwickelt und in zukünftigen Versionen verfügbar sein.</string>
+    <string name="renderer_accuracy">Genauigkeitsstufe</string>
+    <string name="renderer_resolution">Auflösung (Handheld/Gedockt)</string>
+    <string name="renderer_vsync">VSync-Modus</string>
+    <string name="renderer_screen_layout">Ausrichtung</string>
+    <string name="renderer_aspect_ratio">Seitenverhältnis</string>
+    <string name="renderer_scaling_filter">Skalierungsfilter</string>
+    <string name="fsr_sharpness">FSR-Schärfe</string>
+    <string name="fsr_sharpness_description">Bestimmt die Schärfe bei FSR-Nutzung.</string>
+    <string name="renderer_anti_aliasing">Kantenglättung</string>
+    <string name="renderer_force_max_clock">Maximale Taktfrequenz erzwingen (nur Adreno)</string>
+    <string name="renderer_force_max_clock_description">Erzwingt maximale GPU-Taktfrequenz. (thermische Einschränkungen werden weiterhin angewendet).</string>
+    <string name="renderer_optimize_spirv_output">Spir-V-Optimierung</string>
+    <string name="renderer_optimize_spirv_output_description">Optimiert den kompilierten Shader, um die GPU-Effizienz zu verbessern.</string>
+    <string name="renderer_asynchronous_shaders">Asynchrone Shader</string>
+    <string name="renderer_asynchronous_shaders_description">Kompiliert Shader asynchron. Dies kann Ruckler reduzieren, aber auch Grafikfehler verursachen.</string>
+    <string name="use_fast_gpu_time">Schnelle GPU-Zeit verwenden</string>
+    <string name="use_fast_gpu_time_description">Erzwingt bei den meisten Spielen die höchste native Auflösung. Diese Option ist experimentell und kann Probleme verursachen.</string>
+    <string name="fast_gpu_time">GPU-Übertaktungsfaktor</string>
+    <string name="fast_gpu_time_description">Verwenden Sie 128 für maximale Leistung und 512 für maximale Grafikqualität.</string>
+    <string name="renderer_reactive_flushing">Reaktives Flushing</string>
+    <string name="renderer_reactive_flushing_description">Verbessert die Genauigkeit in einigen Spielen.</string>
+    <string name="use_disk_shader_cache">Shader-Cache auf Festplatte</string>
+    <string name="use_disk_shader_cache_description">Reduziert Ruckler durch Shader-Caching.</string>
+    <string name="anisotropic_filtering">Anisotrope Filterung</string>
+    <string name="anisotropic_filtering_description">Verbessert die Texturenqualität.</string>
+
+    <string name="warning_resolution">Eine Skalierung der Auflösung auf 2x oder höher kann Probleme verursachen und zu erheblichen Verlangsamungen Ihres Geräts führen.</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="use_auto_stub">Auto-Stub verwenden</string>
+    <string name="use_auto_stub_description">Ergänzt automatisch fehlende Dienste und Funktionen. Kann die Kompatibilität verbessern, aber auch zu Abstürzen und Stabilitätsproblemen führen.</string>
+
+    <string name="gpu">GPU</string>
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">Grafik-Debugging</string>
+    <string name="renderer_debug_description">Aktiviert den langsamen Grafik-Debug-Modus.</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">Protokollierung</string>
+    <string name="flush_by_line">Debug-Protokolle zeilenweise leeren</string>
+    <string name="flush_by_line_description">Leert Debug-Protokolle bei jeder geschriebenen Zeile, was das Debuggen bei Abstürzen oder Einfrieren erleichtert.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">Ausgabe-Engine</string>
+    <string name="audio_volume">Lautstärke</string>
+    <string name="audio_volume_description">Legt die Lautstärke der Audioausgabe fest.</string>
+
+    <!-- Input strings -->
+    <string name="buttons">Tasten</string>
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Plus</string>
+    <string name="button_minus">Minus</string>
+    <string name="button_home">Home</string>
+    <string name="button_capture">Screenshot</string>
+    <string name="start_pause">Start/Pause</string>
+    <string name="dpad">Steuerkreuz</string>
+    <string name="up">Hoch</string>
+    <string name="down">Runter</string>
+    <string name="left">Links</string>
+    <string name="right">Rechts</string>
+    <string name="left_stick">Linker Stick</string>
+    <string name="control_stick">Steuerknüppel</string>
+    <string name="right_stick">Rechter Stick</string>
+    <string name="c_stick">C-Stick</string>
+    <string name="pressed">Gedrückt</string>
+    <string name="range">Radius</string>
+    <string name="deadzone">Deadzone</string>
+    <string name="modifier">Modifikator</string>
+    <string name="modifier_range">Modifikatorbereich</string>
+    <string name="triggers">Trigger</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_sl_left">Links SL</string>
+    <string name="button_sr_left">Links SR</string>
+    <string name="button_sl_right">Rechts SL</string>
+    <string name="button_sr_right">Rechts SR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">Ungültig</string>
+    <string name="not_set">Nicht gesetzt</string>
+    <string name="unknown">Unbekannt</string>
+    <string name="qualified_hat">%1$s%2$s%3$sHut%4$s</string>
+    <string name="qualified_button_stick_axis">%1$s%2$s%3$sAchse %4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sKnopf %4$s</string>
+    <string name="qualified_axis">Achse %1$s%2$s</string>
+    <string name="unused">Unbenutzt</string>
+    <string name="input_mapping_filter">Eingabezuordnungsfilter</string>
+    <string name="input_mapping_filter_description">Wählen Sie ein Gerät zum Filtern von Belegungs- eingaben aus</string>
+    <string name="auto_map">Automatisches Zuordnen eines Controllers</string>
+    <string name="auto_map_description">Wählen Sie ein Gerät aus, um die automatische Zuordnung zu versuchen</string>
+    <string name="attempted_auto_map">Versuchte automatische Zuordnung mit %1$s</string>
+    <string name="controller_type">Kontrollertyp</string>
+    <string name="pro_controller">Pro-Controller</string>
+    <string name="handheld">Handheld</string>
+    <string name="dual_joycons">Zwei Joycons</string>
+    <string name="left_joycon">Linker Joycon</string>
+    <string name="right_joycon">Rechter Joycon</string>
+    <string name="gamecube_controller">GameCube-Controller</string>
+    <string name="invert_axis">Achsen umkehren</string>
+    <string name="invert_button">Knopf invertieren</string>
+    <string name="toggle_button">Taste umschalten</string>
+    <string name="turbo_button">Turbo Knopf</string>
+    <string name="set_threshold">Schwellwert festlegen</string>
+    <string name="toggle_axis">Achse umschalten</string>
+    <string name="connected">Verbunden</string>
+    <string name="use_system_vibrator">Systemvibrator verwenden</string>
+    <string name="input_overlay">Eingabe-Overlay</string>
+    <string name="vibration">Vibration</string>
+    <string name="vibration_strength">Vibrationstärke</string>
+    <string name="profile">Profil</string>
+    <string name="create_new_profile">neues Profil erstellen</string>
+    <string name="enter_profile_name">Geben sie den Profilnamen ein</string>
+    <string name="profile_name_already_exists">Profilname bereits vergeben</string>
+    <string name="invalid_profile_name">Ungültiger Profilname</string>
+    <string name="use_global_input_configuration">Verwende globale Eingabe-Konfiguration</string>
+    <string name="player_num_profile">Spieler %d Profil</string>
+    <string name="delete_input_profile">Eingabeprofil löschen</string>
+    <string name="delete_input_profile_description">Möchten Sie dieses Profil wirklich löschen\? Dies kann nicht wiederhergestellt werden.</string>
+    <string name="stick_map_description">Bewegen Sie einen Stick nach links und dann nach oben oder drücken Sie eine Taste</string>
+    <string name="button_map_description">Drücken Sie eine Taste oder bewegen Sie einen Auslöser/Stick</string>
+    <string name="map_dpad_direction">Mit D-Pad belegen %1$s</string>
+    <string name="map_control">Belegen mit %1$s</string>
+    <string name="failed_to_load_profile">Laden des Profils fehlgeschlagen</string>
+    <string name="failed_to_save_profile">Speichern des Profils fehlgeschlagen</string>
+    <string name="reset_mapping">Belegung zurücksetzen</string>
+    <string name="reset_mapping_description">Möchten Sie wirklich alle Zuordnungen für diesen Controller auf die Standardeinstellungen zurücksetzen\? Dies kann nicht rückgängig gemacht werden.</string>
+
+    <!-- Miscellaneous -->
+    <string name="slider_default">Standard</string>
+    <string name="loading">Lädt...</string>
+    <string name="shutting_down">Beendet...</string>
+    <string name="reset_setting_confirmation">Möchtest du diese Einstellung auf den Standardwert zurücksetzen?</string>
+    <string name="reset_to_default">Auf Standard zurücksetzen</string>
+    <string name="reset_to_default_description">Setzt alle erweiterten Einstellungen zurück</string>
+    <string name="reset_all_settings">Alle Einstellungen zurücksetzen?</string>
+    <string name="reset_all_settings_description">Alle erweiterten Einstellungen werden auf ihren Standardwert zurückgesetzt. Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="settings_reset">Einstellungen zurückgesetzt</string>
+    <string name="close">Schließen</string>
+    <string name="learn_more">Mehr erfahren</string>
+    <string name="auto">Auto</string>
+    <string name="submit">Absenden</string>
+    <string name="string_null">Null</string>
+    <string name="string_import">Importieren</string>
+    <string name="export">Exportieren</string>
+    <string name="export_failed">Export fehlgeschlagen</string>
+    <string name="import_failed">Import fehlgeschlagen</string>
+    <string name="cancelling">Abbrechen</string>
+    <string name="install">Installieren</string>
+    <string name="fetch">Abrufen</string>
+    <string name="delete">Löschen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="export_success">Erfolgreich exportiert</string>
+    <string name="start">Start</string>
+    <string name="global">Global</string>
+    <string name="custom">Benutzerdefiniert</string>
+    <string name="import_complete">Import abgeschlossen</string>
+    <string name="use_global_setting">Globale Einstellung nutzen</string>
+    <string name="operation_completed_successfully">Der Vorgang wurde erfolgreich abgeschlossen</string>
+    <string name="confirm">Bestätige</string>
+    <string name="load">Lädt</string>
+    <string name="save">Speichern</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver_default">Standard</string>
+    <string name="select_gpu_driver_error">Ungültiger Treiber ausgewählt</string>
+    <string name="driver_already_installed">Treiber bereits installiert</string>
+    <string name="system_gpu_driver">System GPU-Treiber</string>
+    <string name="installing_driver">Treiber wird installiert...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="show_releases">Versionen anzeigen</string>
+    <string name="failed_to_fetch">Abruf fehlgeschlagen</string>
+    <string name="error_during_fetch">Fehler beim Abrufen</string>
+    <string name="show_downloads">Downloads anzeigen</string>
+    <string name="hide_downloads">Downloads ausblenden</string>
+    <string name="failed_cache_dir">Cache-Verzeichnis nicht verfügbar</string>
+    <string name="empty_response_body">Leere Antwort</string>
+    <string name="successfully_installed">%1$s erfolgreich installiert</string>
+    <string name="driver_failed_title">Treiberinstallation fehlgeschlagen</string>
+    <string name="failed_install_driver">Installation des %1$s-Treibers fehlgeschlagen, unterstützt Ihr System ihn?</string>
+    <string name="driver_empty">Heruntergeladener Treiber ist leer, überprüfen Sie Ihre Internetverbindung</string>
+    <string name="downloading">Wird heruntergeladen…</string>
+    <string name="installing">Wird installiert…</string>
+    <string name="latest">Neueste</string>
+    <string name="recommended_driver">Empfohlener Treiber:</string>
+    <string name="gpu_model">GPU-Modell:</string>
+    <string name="unsupported_gpu">Nicht unterstützte GPU</string>
+    <string name="unsupported_gpu_warning">Ihre GPU unterstützt keine Treiberinjektion. Das Festlegen benutzerdefinierter Treiber wird nicht empfohlen.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">Einstellungen</string>
+    <string name="preferences_system">System</string>
+    <string name="preferences_system_description">Gedockter Modus, Region, Sprache</string>
+    <string name="preferences_graphics">Grafik</string>
+    <string name="preferences_graphics_description">Genauigkeitsstufe, Auflösung, Shader-Cache</string>
+    <string name="preferences_audio">Audio</string>
+    <string name="preferences_audio_description">Ausgabe-Engine, Lautstärke</string>
+    <string name="preferences_controls">Steuerung</string>
+    <string name="preferences_controls_description">Belege die Kontrollertasten</string>
+    <string name="preferences_player">Spieler %d</string>
+    <string name="preferences_debug">Debug</string>
+    <string name="preferences_debug_description">CPU/GPU-Debugging, Grafik-API, Fastmem</string>
+
+    <!-- Game properties -->
+    <string name="info">Info</string>
+    <string name="info_description">Programm-ID, Entwickler, Version</string>
+    <string name="per_game_settings">Spieleinstellungen</string>
+    <string name="per_game_settings_description">Einstellungen für dieses Spiel ändern</string>
+    <string name="launch_options">Starteinstellung</string>
+    <string name="path">Pfad</string>
+    <string name="program_id">Programm-ID</string>
+    <string name="developer">Entwickler</string>
+    <string name="version">Version</string>
+    <string name="copy_details">Details kopieren</string>
+    <string name="add_ons">Add-ons</string>
+    <string name="add_ons_description">Mods, Updates und DLCs aktivieren oder deaktivieren</string>
+    <string name="clear_shader_cache">Shader-Cache löschen</string>
+    <string name="clear_shader_cache_description">Löscht alle für dieses Spiel erstellten Shader</string>
+    <string name="clear_shader_cache_warning_description">Während der Shader-Cache regeneriert wird, kann es zu Rucklern kommen</string>
+    <string name="cleared_shaders_successfully">Shader erfolgreich gelöscht</string>
+    <string name="addons_game">Add-ons: %1$s</string>
+    <string name="save_data">Speicherdaten</string>
+    <string name="save_data_description">Importiert oder exportiert Speicherdaten für dieses Spiel</string>
+    <string name="delete_save_data">Speicherdaten löschen</string>
+    <string name="delete_save_data_description">Löscht alle Speicherdaten für dieses Spiel</string>
+    <string name="delete_save_data_warning_description">Das löscht unwiederbringlich alle Speicherdaten für dieses Spiel.
+Wirklich fortfahren?</string>
+    <string name="save_data_deleted_successfully">Speicherdaten erfolgreich gelöscht</string>
+    <string name="select_content_type">Inhaltstyp</string>
+    <string name="updates_and_dlc">Spiel-Updates und DLCs</string>
+    <string name="mods_and_cheats">Mods und Cheats</string>
+    <string name="addon_notice">Wichtiger Hinweis zum Add-on</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="addon_notice_description">Um Mods und Cheats zu installieren, müssen Sie einen Ordner auswählen, der die Verzeichnisse cheats/, romfs/ oder exefs/ enthält. Wir können nicht überprüfen, ob diese mit Ihrem Spiel kompatibel sind, seien Sie also vorsichtig!</string>
+    <string name="invalid_directory">Ungültiges Verzeichnis</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="invalid_directory_description">Bitte stellen Sie sicher, dass das von Ihnen ausgewählte Verzeichnis einen Ordner „cheats/“, „romfs/“ oder „exefs/“ enthält, und versuchen Sie es erneut.</string>
+    <string name="addon_installed_successfully">Add-on erfolgreich installiert</string>
+    <string name="verifying_content">Verifiziere Inhalt...</string>
+    <string name="content_install_notice">Hinweis zur Inhaltsinstallation</string>
+    <string name="confirm_uninstall">Bestätigen Sie die Deinstallation</string>
+    <string name="confirm_uninstall_description">Möchten Sie dieses Add-on wirklich deinstallieren\?</string>
+    <string name="verify_integrity">Integrität prüfen</string>
+    <string name="verifying">Überprüfe...</string>
+    <string name="verify_success">Integritätsüberprüfung erfolgreich!</string>
+    <string name="verify_failure">Integritätsüberprüfung fehlgeschlagen!</string>
+    <string name="verify_failure_description">Der Dateiinhalt ist möglicherweise beschädigt</string>
+    <string name="verify_no_result">Integritätsüberprüfung konnte nicht durchgeführt werden</string>
+    <string name="verify_no_result_description">Dateiinhalte wurden nicht auf Gültigkeit geprüft</string>
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">Das ROM ist verschlüsselt</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Bitte folgen Sie den Anleitungen zum erneuten Dumpen Ihrer <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">Spielkarten</a> oder <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">digitalen Titel</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Bitte stelle sicher dass die <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> Datei installiert ist, damit Spiele entschlüsselt werden können.]]></string>
+    <string name="loader_error_video_core">Bei der Initialisierung des Videokerns ist ein Fehler aufgetreten</string>
+    <string name="loader_error_video_core_description">Dies wird normalerweise durch einen inkompatiblen GPU-Treiber verursacht. Die Installation eines passenden GPU-Treibers kann dieses Problem beheben.</string>
+    <string name="loader_error_file_not_found">ROM-Datei existiert nicht</string>
+
+    <string name="loader_requires_firmware">Spiel erfordert Firmware</string>
+    <string name="loader_requires_firmware_description"><![CDATA[Das Spiel, das Sie starten möchten, benötigt Firmware zum Booten oder zum Überspringen des Startmenüs. Bitte <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dumpen und installieren Sie Firmware</a>, oder drücken Sie \"OK\", um trotzdem zu starten.]]></string>
+
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Suche nach Spiel...</string>
+    <string name="game_not_found_for_title_id">Spiel nicht gefunden für Titel-ID: %1$s</string>
+    <string name="custom_settings_failed_title">Benutzerdefinierte Einstellungen fehlgeschlagen</string>
+    <string name="custom_settings_failed_message">Fehler beim Anwenden der benutzerdefinierten Einstellungen für %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Mit Standardeinstellungen starten</string>
+    <string name="launch_cancelled">Start abgebrochen</string>
+    <string name="custom_settings_failure_reasons">Die angeforderten Einstellungen konnten nicht angewendet werden. Dies kann an fehlenden GPU-Treibern oder Konfigurationsproblemen liegen.</string>
+    <string name="custom_settings_applied">Benutzerdefinierte Einstellungen übernommen</string>
+    <string name="launching_game">Starte %1$s...</string>
+    <string name="failed_to_initialize_game">Spielinitialisierung fehlgeschlagen</string>
+    <string name="custom_intent_launch_message_with_settings">Möchten Sie %1$s mit benutzerdefinierten Einstellungen starten?</string>
+    <string name="custom_intent_launch_message">Möchten Sie %1$s starten?</string>
+    <string name="custom_intent_launch_title">Spiel starten</string>
+    <string name="launch">Starten</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Konfigurationsdatei konnte nicht geschrieben werden</string>
+    <string name="config_apply_failed">Konfiguration konnte nicht angewendet werden</string>
+    <string name="config_already_exists_title">Konfiguration existiert bereits</string>
+    <string name="config_exists_prompt">Überprüfe auf vorhandene Konfiguration...</string>
+    <string name="overwrite_cancelled">Überschreiben abgebrochen</string>
+    <string name="overwrite">Überschreiben</string>
+
+    <!-- Driver strings -->
+    <string name="driver_not_found">Erforderlicher Treiber nicht installiert: %s</string>
+    <string name="invalid_driver_file">Ungültige Treiberdatei: %s</string>
+    <string name="network_unavailable">Keine Netzwerkverbindung verfügbar. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</string>
+    <string name="driver_missing_title">GPU-Treiber erforderlich</string>
+    <string name="driver_download_cancelled">Treiberdownload abgebrochen. Das Spiel kann ohne den erforderlichen Treiber nicht gestartet werden.</string>
+    <string name="download">Herunterladen</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">Emulation beenden</string>
+    <string name="emulation_done">Fertig</string>
+    <string name="emulation_toggle_controls">Steuerung umschalten</string>
+    <string name="emulation_rel_stick_center">Relativer Stick-Zentrum</string>
+    <string name="emulation_dpad_slide">D-Pad-Scrollen</string>
+    <string name="emulation_haptics">Haptisches Feedback</string>
+    <string name="emulation_show_overlay">Controller anzeigen</string>
+    <string name="emulation_hide_overlay">Controller ausblenden</string>
+    <string name="emulation_toggle_all">Alle umschalten</string>
+    <string name="emulation_control_adjust">Overlay anpassen</string>
+    <string name="emulation_control_scale">Größe</string>
+    <string name="emulation_control_opacity">Transparenz</string>
+    <string name="emulation_touch_overlay_reset">Overlay zurücksetzen</string>
+    <string name="emulation_touch_overlay_edit">Overlay bearbeiten</string>
+    <string name="emulation_pause">Emulation pausieren</string>
+    <string name="emulation_unpause">Emulation fortsetzen</string>
+    <string name="emulation_input_overlay">Overlay-Optionen</string>
+    <string name="touchscreen">Touchscreen</string>
+    <string name="lock_drawer">Menü sperren</string>
+    <string name="unlock_drawer">Menü entsperren</string>
+    <!-- Software keyboard -->
+    <string name="software_keyboard">Software-Tastatur</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">Abbrechen</string>
+    <string name="continue_button">Fortsetzen</string>
+    <string name="system_archive_not_found">Systemarchiv nicht gefunden</string>
+    <string name="system_archive_general">Ein System-Archiv</string>
+    <string name="save_load_error">Speicher-/Ladefehler</string>
+    <string name="fatal_error">Schwerwiegender Fehler</string>
+    <string name="memory_formatted">%1$s %2$s</string>
+    <string name="no_game_present">Kein verfügbares Spiel gefunden</string>
+
+    <!-- Region Names -->
+    <string name="region_japan">Japan</string>
+    <string name="region_usa">USA</string>
+    <string name="region_europe">Europa</string>
+    <string name="region_australia">Australien</string>
+    <string name="region_china">China</string>
+    <string name="region_korea">Korea</string>
+    <string name="region_taiwan">Taiwan</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4 GB (Empfohlen)</string>
+    <string name="memory_6gb">6 GB (Unsicher)</string>
+    <string name="memory_8gb">8 GB (Unsicher)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Schnell (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">Niedrig (128)</string>
+    <string name="gpu_medium">Mittel (256)</string>
+    <string name="gpu_high">Hoch (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte_shorthand">B</string>
+    <string name="memory_kilobyte">KB</string>
+    <string name="memory_megabyte">MB</string>
+    <string name="memory_gigabyte">GB</string>
+    <string name="memory_terabyte">TB</string>
+    <string name="memory_petabyte">PB</string>
+    <string name="memory_exabyte">EB</string>
+
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">Vulkan</string>
+    <string name="renderer_none">Keiner</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">Normal</string>
+    <string name="renderer_accuracy_high">Hoch</string>
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Standard</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTC-Decodierung</string>
+    <string name="accelerate_astc_description">Wählen Sie aus, wie ASTC-komprimierte Texturen für das Rendering decodiert werden: CPU (langsam, sicher), GPU (schnell, empfohlen) oder CPU Async (kein Ruckeln, kann Probleme verursachen)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU Asynchron</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC-Neukompression</string>
+    <string name="astc_recompression_description">Wählen Sie, wie ASTC-Texturen neu komprimiert werden, um die Kompatibilität und Leistung zu verbessern. Diese Option spart VRAM, kann aber die Texturqualität verringern.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Unkomprimiert</string>
+    <string name="astc_recompression_bc1">BC1 (Niedrige Qualität)</string>
+    <string name="astc_recompression_bc3">BC3 (Mittlere Qualität)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">VRAM-Nutzung</string>
+    <string name="vram_usage_mode_description">Steuerung der GPU-Speicherzuweisung</string>
+    <string name="vram_usage_conservative">Konservativ</string>
+    <string name="vram_usage_aggressive">Aggressiv</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (Langsam)</string>
+    <string name="resolution_three">3X (2160p/3240p) (Langsam)</string>
+    <string name="resolution_four">4X (2880p/4320p) (Langsam)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">Direkt (Aus)</string>
+    <string name="renderer_vsync_mailbox">Mailbox</string>
+    <string name="renderer_vsync_fifo">FIFO (An)</string>
+    <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">Nächste-Nachbarn</string>
+    <string name="scaling_filter_bilinear">Bilinear</string>
+    <string name="scaling_filter_bicubic">Bikubisch</string>
+    <string name="scaling_filter_gaussian">Gaussian</string>
+    <string name="scaling_filter_scale_force">ScaleForce</string>
+    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
+    <string name="scaling_filter_area">Bereich</string>
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">Keiner</string>
+    <string name="anti_aliasing_fxaa">FXAA</string>
+    <string name="anti_aliasing_smaa">SMAA</string>
+
+    <!-- Screen Layouts -->
+    <string name="screen_layout_auto">Auto</string>
+    <string name="screen_layout_sensor_landscape">Erkenne Landschaft</string>
+    <string name="screen_layout_landscape">Horizontal</string>
+    <string name="screen_layout_reverse_landscape">Umgekehrte Landschaft</string>
+    <string name="screen_layout_sensor_portrait">Sensor Priorität</string>
+    <string name="screen_layout_portrait">Vertikal</string>
+    <string name="screen_layout_reverse_portrait">Umgekehrte Priorität</string>
+
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">Standard (16:9)</string>
+    <string name="ratio_force_four_three">4:3 erzwingen</string>
+    <string name="ratio_force_twenty_one_nine">21:9 erzwingen</string>
+    <string name="ratio_force_sixteen_ten">16:10 erzwingen</string>
+    <string name="ratio_stretch">Auf Bildschirmgröße anpsassen</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
+    <string name="cpu_backend_nce">Ausführung nativen Codes (ACE)</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">Akkurat</string>
+    <string name="cpu_accuracy_unsafe">Unsicher</string>
+    <string name="cpu_accuracy_paranoid">Paranoid </string>
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">D-Pad</string>
+    <string name="gamepad_left_stick">Linker Stick</string>
+    <string name="gamepad_right_stick">Rechter Stick</string>
+    <string name="gamepad_home">Home</string>
+    <string name="gamepad_screenshot">Screenshot</string>
+
+    <!-- Disk shader cache -->
+    <string name="building_shaders">Shader werden erstellt</string>
+
+    <!-- App options -->
+    <string name="change_app_theme">Theme</string>
+    <string name="theme_default">Standard</string>
+    <string name="theme_material_you">Material You</string>
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">Design</string>
+    <string name="theme_mode_follow_system">System folgen</string>
+    <string name="theme_mode_light">Hell</string>
+    <string name="theme_mode_dark">Dunkel</string>
+
+    <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
+    <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">Schwarze Hintergründe</string>
+    <string name="use_black_backgrounds_description">Bei Verwendung des dunklen Designs, schwarze Hintergründe verwenden.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Designfarbe</string>
+    <string name="eden_theme">Eden (Standard)</string>
+    <string name="violet">Violett </string>
+    <string name="blue">Blau</string>
+    <string name="cyan">Cyan</string>
+    <string name="red">Rot</string>
+    <string name="green">Grün</string>
+    <string name="yellow">Gelb</string>
+    <string name="orange">Orange</string>
+    <string name="pink">Rosa</string>
+    <string name="gray">Grau</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">Bild im Bild</string>
+    <string name="picture_in_picture_description">Minimiere das Fenster wenn die Anwendung im Hintergrund läuft</string>
+    <string name="pause">Pause</string>
+    <string name="play">Spielen</string>
+    <string name="mute">Stummschalten</string>
+    <string name="unmute">Ton aktivieren</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Vertikale Ausrichtung</string>
+    <string name="top">Oben</string>
+    <string name="center">Mitte</string>
+    <string name="bottom">Unten</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Applets</string>
+    <string name="applets_menu_description">(In Arbeit) Applet-Frontends und Einstellungen ändern</string>
+
+    <string name="applet_hle">Benutzerdefinierte Frontend</string>
+    <string name="applet_lle">Echtes Applet</string>
+
+    <string name="swkbd_applet">Software-Tastatur</string>
+
+    <string name="airplane_mode">Flugmodus</string>
+    <string name="airplane_mode_description">Übergibt den Flugmodus an das Switch-Betriebssystem</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">Lizenzen</string>
+    <string name="license_fidelityfx_fsr_description">Hochwertiges Upscaling von AMD</string>
+    </resources>

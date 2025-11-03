@@ -1,0 +1,535 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="regionNames">
+        <item>@string/region_australia</item>
+        <item>@string/region_china</item>
+        <item>@string/region_europe</item>
+        <item>@string/region_japan</item>
+        <item>@string/region_korea</item>
+        <item>@string/region_taiwan</item>
+        <item>@string/region_usa</item>
+    </string-array>
+
+    <integer-array name="regionValues">
+        <item>3</item>
+        <item>4</item>
+        <item>2</item>
+        <item>0</item>
+        <item>5</item>
+        <item>6</item>
+        <item>1</item>
+    </integer-array>
+
+    <string-array name="memoryNames">
+        <item>@string/memory_4gb</item>
+        <item>@string/memory_6gb</item>
+        <item>@string/memory_8gb</item>
+    </string-array>
+
+    <integer-array name="memoryValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="clockNames">
+        <item>@string/clock_boost</item>
+        <item>@string/clock_fast</item>
+    </string-array>
+
+    <integer-array name="clockValues">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
+    <string-array name="languageNames">
+        <item>@string/language_brazilian_portuguese</item>
+        <item>@string/language_british_english</item>
+        <item>@string/language_canadian_french</item>
+        <item>@string/language_chinese</item>
+        <item>@string/language_dutch</item>
+        <item>@string/language_english</item>
+        <item>@string/language_french</item>
+        <item>@string/language_german</item>
+        <item>@string/language_italian</item>
+        <item>@string/language_japanese</item>
+        <item>@string/language_korean</item>
+        <item>@string/language_latin_american_spanish</item>
+        <item>@string/language_portuguese</item>
+        <item>@string/language_russian</item>
+        <item>@string/language_simplified_chinese</item>
+        <item>@string/language_spanish</item>
+        <item>@string/language_taiwanese</item>
+        <item>@string/language_traditional_chinese</item>
+        <item>@string/language_serbian</item>
+    </string-array>
+
+    <integer-array name="languageValues">
+        <item>17</item>
+        <item>12</item>
+        <item>13</item>
+        <item>6</item>
+        <item>8</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>0</item>
+        <item>7</item>
+        <item>14</item>
+        <item>9</item>
+        <item>10</item>
+        <item>15</item>
+        <item>5</item>
+        <item>11</item>
+        <item>16</item>
+        <item>18</item>
+    </integer-array>
+
+    <string-array name="rendererApiNames">
+        <item>@string/renderer_vulkan</item>
+        <item>@string/renderer_none</item>
+    </string-array>
+
+    <integer-array name="rendererApiValues">
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="rendererAccuracyNames">
+        <item>@string/renderer_accuracy_normal</item>
+        <item>@string/renderer_accuracy_high</item>
+        <item>@string/renderer_accuracy_extreme</item>
+    </string-array>
+
+    <integer-array name="rendererAccuracyValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="rendererShaderNames">
+        <item>@string/shader_backend_glsl</item>
+        <item>@string/shader_backend_glasm</item>
+        <item>@string/shader_backend_spirv</item>
+    </string-array>
+
+    <integer-array name="rendererShaderValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <!-- VRAM USAGE MODE CHOICES -->
+    <string-array name="vramUsageMethodNames">
+        <item>@string/vram_usage_conservative</item>
+        <item>@string/vram_usage_aggressive</item>
+    </string-array>
+
+    <!-- VRAM USAGE MODE VALUES -->
+    <integer-array name="vramUsageMethodValues">
+        <item>0</item> <!-- Conservative -->
+        <item>1</item> <!-- Aggressive -->
+    </integer-array>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string-array name="astcDecodingMethodNames">
+        <item>@string/accelerate_astc_cpu</item>
+        <item>@string/accelerate_astc_gpu</item>
+        <item>@string/accelerate_astc_async</item>
+    </string-array>
+
+    <!-- ASTC Decoding Method Values -->
+    <integer-array name="astcDecodingMethodValues">
+        <item>0</item> <!-- CPU -->
+        <item>1</item> <!-- GPU -->
+        <item>2</item> <!-- CPU Asynchronously -->
+    </integer-array>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string-array name="astcRecompressionMethodNames">
+        <item>@string/astc_recompression_uncompressed</item>
+        <item>@string/astc_recompression_bc1</item>
+        <item>@string/astc_recompression_bc3</item>
+    </string-array>
+
+    <!-- ASTC Recompression Method Values -->
+    <integer-array name="astcRecompressionMethodValues">
+        <item>0</item> <!-- Uncompressed -->
+        <item>1</item> <!-- BC1 -->
+        <item>2</item> <!-- BC3 -->
+    </integer-array>
+
+    <!-- NVDEC Emulation Choices -->
+    <string-array name="rendererNvdecNames">
+        <item>@string/nvdec_emulation_none</item> <!-- Off -->
+        <item>@string/nvdec_emulation_cpu</item>  <!-- Cpu -->
+        <item>@string/nvdec_emulation_gpu</item>  <!-- Gpu -->
+    </string-array>
+
+    <!-- NVDEC Emulation Values -->
+    <integer-array name="rendererNvdecValues">
+        <item>3</item> <!-- Off value -->
+        <item>1</item> <!-- CPU value -->
+        <item>2</item> <!-- GPU value -->
+    </integer-array>
+
+    <string-array name="rendererResolutionNames">
+        <item>@string/resolution_quarter</item>
+        <item>@string/resolution_half</item>
+        <item>@string/resolution_three_quarter</item>
+        <item>@string/resolution_one</item>
+        <item>@string/resolution_five_quarter</item>
+        <item>@string/resolution_three_half</item>
+        <item>@string/resolution_two</item>
+        <item>@string/resolution_three</item>
+        <item>@string/resolution_four</item>
+    </string-array>
+
+    <string-array name="rendererVSyncNames">
+        <item>@string/renderer_vsync_immediate</item>
+        <item>@string/renderer_vsync_mailbox</item>
+        <item>@string/renderer_vsync_fifo</item>
+        <item>@string/renderer_vsync_fifo_relaxed</item>
+    </string-array>
+
+    <integer-array name="rendererResolutionValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+    </integer-array>
+
+    <integer-array name="rendererVSyncValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
+
+    <string-array name="rendererScreenLayoutNames">
+        <item>@string/screen_layout_auto</item>
+        <item>@string/screen_layout_sensor_landscape</item>
+        <item>@string/screen_layout_landscape</item>
+        <item>@string/screen_layout_reverse_landscape</item>
+        <item>@string/screen_layout_sensor_portrait</item>
+        <item>@string/screen_layout_portrait</item>
+        <item>@string/screen_layout_reverse_portrait</item>
+    </string-array>
+
+    <integer-array name="rendererScreenLayoutValues">
+        <item>0</item>
+        <item>5</item>
+        <item>1</item>
+        <item>2</item>
+        <item>6</item>
+        <item>4</item>
+        <item>3</item>
+    </integer-array>
+
+    <string-array name="rendererAspectRatioNames">
+        <item>@string/ratio_default</item>
+        <item>@string/ratio_force_four_three</item>
+        <item>@string/ratio_force_twenty_one_nine</item>
+        <item>@string/ratio_force_sixteen_ten</item>
+        <item>@string/ratio_stretch</item>
+    </string-array>
+
+    <integer-array name="rendererAspectRatioValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+
+    <string-array name="rendererScalingFilterNames">
+        <item>@string/scaling_filter_nearest_neighbor</item>
+        <item>@string/scaling_filter_bilinear</item>
+        <item>@string/scaling_filter_bicubic</item>
+        <item>@string/scaling_filter_gaussian</item>
+        <item>@string/scaling_filter_lanczos</item>
+        <item>@string/scaling_filter_scale_force</item>
+        <item>@string/scaling_filter_fsr</item>
+        <item>@string/scaling_filter_area</item>
+        <item>@string/scaling_filter_mmpx</item>
+        <item>@string/scaling_filter_zero_tangent</item>
+        <item>@string/scaling_filter_bspline</item>
+        <item>@string/scaling_filter_mitchell</item>
+        <item>@string/scaling_filter_spline1</item>
+    </string-array>
+
+    <integer-array name="rendererScalingFilterValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+    </integer-array>
+
+    <string-array name="rendererAntiAliasingNames">
+        <item>@string/anti_aliasing_none</item>
+        <item>@string/anti_aliasing_fxaa</item>
+        <item>@string/anti_aliasing_smaa</item>
+    </string-array>
+
+    <integer-array name="rendererAntiAliasingValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="statsPosition">
+        <item>@string/overlay_position_top_left</item>
+        <item>@string/overlay_position_center_top</item>
+        <item>@string/overlay_position_top_right</item>
+        <item>@string/overlay_position_bottom_left</item>
+        <item>@string/overlay_position_center_bottom</item>
+        <item>@string/overlay_position_bottom_right</item>
+    </string-array>
+    <integer-array name="statsPositionValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
+    <string-array name="cpuBackendArm64Names">
+        <item>@string/cpu_backend_dynarmic</item>
+        <item>@string/cpu_backend_nce</item>
+    </string-array>
+
+    <integer-array name="cpuBackendArm64Values">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
+    <string-array name="cpuBackendX86Names">
+        <item>@string/cpu_backend_dynarmic</item>
+    </string-array>
+
+    <integer-array name="cpuBackendX86Values">
+        <item>0</item>
+    </integer-array>
+
+    <string-array name="cpuAccuracyNames">
+        <item>@string/auto</item>
+        <item>@string/cpu_accuracy_accurate</item>
+        <item>@string/cpu_accuracy_unsafe</item>
+        <item>@string/cpu_accuracy_paranoid</item>
+        <item>@string/cpu_accuracy_debugging</item>
+    </string-array>
+
+    <integer-array name="cpuAccuracyValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+
+    <string-array name="gamepadButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>X</item>
+        <item>Y</item>
+        <item>+</item>
+        <item>-</item>
+        <item>@string/gamepad_home</item>
+        <item>@string/gamepad_screenshot</item>
+        <item>L</item>
+        <item>R</item>
+        <item>ZL</item>
+        <item>ZR</item>
+        <item>L3</item>
+        <item>R3</item>
+        <item>@string/gamepad_left_stick</item>
+        <item>@string/gamepad_right_stick</item>
+        <item>@string/gamepad_d_pad</item>
+    </string-array>
+
+    <string-array name="themeEntries">
+        <item>@string/theme_default</item>
+    </string-array>
+    <integer-array name="themeValues">
+        <item>0</item>
+    </integer-array>
+
+    <string-array name="themeEntriesA12">
+        <item>@string/theme_default</item>
+        <item>@string/theme_material_you</item>
+    </string-array>
+    <integer-array name="themeValuesA12">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
+    <string-array name="themeModeEntries">
+        <item>@string/theme_mode_follow_system</item>
+        <item>@string/theme_mode_light</item>
+        <item>@string/theme_mode_dark</item>
+    </string-array>
+    <integer-array name="themeModeValues">
+        <item>-1</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="outputEngineEntries">
+        <item>@string/auto</item>
+        <item>@string/oboe</item>
+        <item>@string/cubeb</item>
+        <item>@string/string_null</item>
+    </string-array>
+    <integer-array name="outputEngineValues">
+        <item>0</item>
+        <item>4</item>
+        <item>1</item>
+        <item>3</item>
+    </integer-array>
+
+    <string-array name="staticThemeNames">
+        <item>@string/eden_theme</item>
+        <item>@string/violet</item>
+        <item>@string/blue</item>
+        <item>@string/cyan</item>
+        <item>@string/red</item>
+        <item>@string/green</item>
+        <item>@string/yellow</item>
+        <item>@string/orange</item>
+        <item>@string/pink</item>
+        <item>@string/gray</item>
+    </string-array>
+    <integer-array name="staticThemeValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </integer-array>
+
+    <string-array name="anisoEntries">
+        <item>@string/auto</item>
+        <item>@string/slider_default</item>
+        <item>@string/multiplier_two</item>
+        <item>@string/multiplier_four</item>
+        <item>@string/multiplier_eight</item>
+        <item>@string/multiplier_sixteen</item>
+    </string-array>
+    <integer-array name="anisoValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
+    <string-array name="verticalAlignmentEntries">
+        <item>@string/top</item>
+        <item>@string/center</item>
+        <item>@string/bottom</item>
+    </string-array>
+    <integer-array name="verticalAlignmentValues">
+        <item>1</item>
+        <item>0</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="optimizeSpirvOutputEntries">
+        <item>@string/never</item>
+        <item>@string/on_load</item>
+        <item>@string/always</item>
+    </string-array>
+    <integer-array name="optimizeSpirvOutputValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="dmaAccuracyNames">
+        <item>@string/dma_accuracy_default</item>
+        <item>@string/dma_accuracy_unsafe</item>
+        <item>@string/dma_accuracy_safe</item>
+    </string-array>
+    <integer-array name="dmaAccuracyValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="appletEntries">
+        <item>@string/applet_hle</item>
+        <item>@string/applet_lle</item>
+    </string-array>
+
+    <integer-array name="appletValues">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
+    <string-array name="gpuEntries">
+        <item>@string/gpu_low</item>
+        <item>@string/gpu_medium</item>
+        <item>@string/gpu_high</item>
+    </string-array>
+
+    <integer-array name="gpuValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="temperatureUnitEntries">
+        <item>@string/temperature_celsius</item>
+        <item>@string/temperature_fahrenheit</item>
+    </string-array>
+
+    <integer-array name="temperatureUnitValues">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
+    <string-array name="dynaStateEntries">
+        <item>@string/disabled</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <integer-array name="dynaStateValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
+
+    <string-array name="installKeysResults">
+        <item>""</item>
+        <item>""</item>
+        <item>@string/error_keys_copy_failed</item>
+        <item>@string/error_keys_invalid_filename</item>
+        <item>@string/error_keys_failed_init</item>
+    </string-array>
+</resources>

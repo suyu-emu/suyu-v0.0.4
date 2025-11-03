@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Custom button styles -->
+    <style name="InGameMenuOption" parent="Widget.Material3.Button.TextButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:gravity">center_vertical|left</item>
+        <item name="android:paddingLeft">32dp</item>
+        <item name="android:paddingRight">32dp</item>
+    </style>
+
+    <style name="YuzuSlider" parent="Widget.Material3.Slider">
+        <item name="tickVisible">false</item>
+        <item name="labelBehavior">gone</item>
+    </style>
+
+    <!-- Blue theme dialog -->
+    <style name="YuzuMaterialDialog.Blue" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/yuzu_primaryContainer_blue</item>
+        <item name="colorSurface">@color/yuzu_primaryContainer_blue</item>
+        <item name="colorSecondary">@color/yuzu_primary_blue</item>
+        <item name="android:textColorLink">@color/yuzu_primary_blue</item>
+        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton.Blue</item>
+        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton.Blue</item>
+        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton.Blue</item>
+    </style>
+
+    <style name="YuzuButton.Blue" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/yuzu_primary_blue</item>
+        <item name="rippleColor">@color/yuzu_inversePrimary_blue</item>
+    </style>
+
+    <!-- Cyan theme dialog -->
+    <style name="YuzuMaterialDialog.Cyan" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/yuzu_primaryContainer_cyan</item>
+        <item name="colorSurface">@color/yuzu_primaryContainer_cyan</item>
+        <item name="colorSecondary">@color/yuzu_primary_cyan</item>
+        <item name="android:textColorLink">@color/yuzu_primary_cyan</item>
+        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton.Cyan</item>
+        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton.Cyan</item>
+        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton.Cyan</item>
+    </style>
+
+    <style name="YuzuButton.Cyan" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/yuzu_primary_cyan</item>
+        <item name="rippleColor">@color/yuzu_inversePrimary_cyan</item>
+    </style>
+
+    <!-- Red theme dialog -->
+    <style name="YuzuMaterialDialog.Red" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/yuzu_primaryContainer_red</item>
+        <item name="colorSurface">@color/yuzu_primaryContainer_red</item>
+        <item name="colorSecondary">@color/yuzu_primary_red</item>
+        <item name="android:textColorLink">@color/yuzu_primary_red</item>
+        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton.Red</item>
+        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton.Red</item>
+        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton.Red</item>
+    </style>
+
+    <style name="YuzuButton.Red" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/yuzu_primary_red</item>
+        <item name="rippleColor">@color/yuzu_inversePrimary_red</item>
+    </style>
+
+    <!-- Green theme dialog -->
+    <style name="YuzuMaterialDialog.Green" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/yuzu_primaryContainer_green</item>
+        <item name="colorSurface">@color/yuzu_primaryContainer_green</item>
+        <item name="colorSecondary">@color/yuzu_primary_green</item>
+        <item name="android:textColorLink">@color/yuzu_primary_green</item>
+        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton.Green</item>
+        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton.Green</item>
+        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton.Green</item>
+    </style>
+
+    <style name="YuzuButton.Green" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/yuzu_primary_green</item>
+        <item name="rippleColor">@color/yuzu_inversePrimary_green</item>
+    </style>
+
+    <!-- Yellow theme dialog -->
+    <style name="YuzuMaterialDialog.Yellow" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/yuzu_primaryContainer_yellow</item>
+        <item name="colorSurface">@color/yuzu_primaryContainer_yellow</item>
+        <item name="colorSecondary">@color/yuzu_primary_yellow</item>
+        <item name="android:textColorLink">@color/yuzu_primary_yellow</item>
+        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton.Yellow</item>
+        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton.Yellow</item>
+        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton.Yellow</item>
+    </style>
+
+    <style name="YuzuButton.Yellow" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/yuzu_primary_yellow</item>
+        <item name="rippleColor">@color/yuzu_inversePrimary_yellow</item>
+    </style>
+
+    <!-- Orange theme dialog -->
+    <style name="YuzuMaterialDialog.Orange" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/yuzu_primaryContainer_orange</item>
+        <item name="colorSurface">@color/yuzu_primaryContainer_orange</item>
+        <item name="colorSecondary">@color/yuzu_primary_orange</item>
+        <item name="android:textColorLink">@color/yuzu_primary_orange</item>
+        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton.Orange</item>
+        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton.Orange</item>
+        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton.Orange</item>
+    </style>
+
+    <style name="YuzuButton.Orange" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/yuzu_primary_orange</item>
+        <item name="rippleColor">@color/yuzu_inversePrimary_orange</item>
+    </style>
+
+    <!-- Violet theme dialog -->
+    <style name="YuzuMaterialDialog.Violet" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/yuzu_primaryContainer_violet</item>
+        <item name="colorSurface">@color/yuzu_primaryContainer_violet</item>
+        <item name="colorSecondary">@color/yuzu_primary_violet</item>
+        <item name="android:textColorLink">@color/yuzu_primary_violet</item>
+        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton.Violet</item>
+        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton.Violet</item>
+        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton.Violet</item>
+    </style>
+
+    <style name="YuzuButton.Violet" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/yuzu_primary_violet</item>
+        <item name="rippleColor">@color/yuzu_inversePrimary_violet</item>
+    </style>
+
+    <!-- Gray theme dialog -->
+    <style name="YuzuMaterialDialog.Gray" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/yuzu_primaryContainer_gray</item>
+        <item name="colorSurface">@color/yuzu_primaryContainer_gray</item>
+        <item name="colorSecondary">@color/yuzu_primary_gray</item>
+        <item name="android:textColorLink">@color/yuzu_primary_gray</item>
+        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton.Gray</item>
+        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton.Gray</item>
+        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton.Gray</item>
+    </style>
+
+    <style name="YuzuButton.Gray" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/yuzu_primary_gray</item>
+        <item name="rippleColor">@color/yuzu_inversePrimary_gray</item>
+    </style>
+
+    <!-- pink theme dialog -->
+    <style name="YuzuMaterialDialog.PINK" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/yuzu_primaryContainer_pink</item>
+        <item name="colorSurface">@color/yuzu_primaryContainer_pink</item>
+        <item name="colorSecondary">@color/yuzu_primary_pink</item>
+        <item name="android:textColorLink">@color/yuzu_primary_pink</item>
+        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton.Pink</item>
+        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton.Pink</item>
+        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton.Pink</item>
+    </style>
+
+    <style name="YuzuButton.Pink" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/yuzu_primary_pink</item>
+        <item name="rippleColor">@color/yuzu_inversePrimary_pink</item>
+    </style>
+
+    <!-- Eden theme styles -->
+    <style name="EdenSlider" parent="Widget.Material3.Slider">
+        <item name="tickVisible">false</item>
+        <item name="labelBehavior">gone</item>
+        <item name="trackColorActive">?attr/colorPrimary</item>
+        <item name="trackColorInactive">?attr/colorOutline</item>
+        <item name="thumbColor">?attr/colorSecondary</item>
+        <item name="haloColor">?attr/colorSecondary</item>
+    </style>
+
+    <style name="EdenMaterialDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/eden_primary</item>
+        <item name="colorSurface">@color/eden_card_background</item>
+        <item name="colorSurfaceContainerHigh">@color/eden_card_background</item>
+        <item name="colorOnSurface">@color/eden_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/eden_on_surface</item>
+        <item name="colorSecondary">@color/eden_secondary</item>
+        <item name="android:textColorPrimary">@color/eden_on_surface</item>
+        <item name="android:textColorSecondary">@color/eden_on_surface</item>
+        <item name="android:colorBackground">@color/eden_card_background</item>
+        <item name="buttonBarPositiveButtonStyle">@style/EdenButton.Dialog</item>
+        <item name="buttonBarNegativeButtonStyle">@style/EdenButton.Dialog</item>
+        <item name="buttonBarNeutralButtonStyle">@style/EdenButton.Dialog</item>
+    </style>
+
+    <style name="EdenButton.Dialog" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/eden_primary</item>
+        <item name="rippleColor">@color/eden_glow_pink</item>
+    </style>
+    <style name="EdenPopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@drawable/popup_menu_background</item>
+    </style>
+    <style name="YuzuPopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@drawable/popup_menu_background</item>
+    </style>
+
+    <style name="EdenButton.Primary" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/eden_on_primary</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.05</item>
+        <item name="backgroundTint">@color/eden_primary</item>
+    </style>
+
+    <style name="EdenButton.Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/eden_secondary</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="android:textColor">@color/eden_secondary</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.05</item>
+    </style>
+
+    <style name="EdenCard" parent="">
+        <item name="android:background">@drawable/theme_card_background</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+    <style name="EdenGameCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">?attr/colorSurface</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <style name="EdenCardElevated" parent="">
+        <item name="android:background">@drawable/eden_card_elevated_selector</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:padding">16dp</item>
+    </style>
+    <!-- Synthwave Text Styles -->
+    <style name="SynthwaveText.Title" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:textColor">@color/eden_on_background</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:shadowColor">@color/eden_glow_pink</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowRadius">8</item>
+    </style>
+    <style name="SynthwaveText.Header" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:textColor">@color/eden_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.05</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:shadowColor">@color/eden_glow_pink</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowRadius">6</item>
+    </style>
+    <style name="SynthwaveText.Body" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/eden_on_background</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+    <style name="SynthwaveText.Secondary" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/eden_secondary</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:shadowColor">@color/eden_glow_cyan</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowRadius">4</item>
+    </style>
+    <style name="SynthwaveText.Accent" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textColor">@color/eden_accent_orange</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:shadowColor">@color/eden_glow_orange</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowRadius">4</item>
+    </style>
+    <!-- Shape appearance for carousel images -->
+    <style name="ShapeAppearance.Eden.CarouselImage" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">8dp</item>
+        <item name="cornerSizeTopRight">8dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+</resources>

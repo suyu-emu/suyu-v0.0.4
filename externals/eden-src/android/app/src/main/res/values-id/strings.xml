@@ -1,0 +1,984 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="app_disclaimer">Perangkat lunak ini akan menjalankan permainan dari konsol Nintendo Switch. Permainan maupun keys tidak disediakan.<br /><br />Sebelum memulai, tolong temukan berkas <![CDATA[<b> prod.keys </b>]]> didalam tempat penyimpanan mu.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Pelajari lebih lanjut</a>]]></string>
+    <string name="notice_notification_channel_name">Pemberitahuan dan error</string>
+    <string name="notice_notification_channel_description">Menampilkan pemberitahuan ketika terjadi kesalahan.</string>
+    <string name="notification_permission_not_granted">Izin notifikasi tidak diberikan!</string>
+    <string name="app_notification_channel_description">Notifikasi emulator Eden</string>
+    <string name="app_notification_running">Eden sedang berjalan</string>
+    <string name="seconds">Detik</string>
+
+    <!-- Spinbox strings -->
+    <string name="increment">Tingkatkan</string>
+    <string name="decrement">Kurangi</string>
+    <string name="value_too_low">Minimal nilai yang diperlukan yaitu %1$d</string>
+    <string name="value_too_high">Maksimal nilai yang diperlukan yaitu %1$d</string>
+    <string name="invalid_value">Nilai invalid</string>
+
+
+    <!-- Input Overlay -->
+    <string name="overlay_auto_hide">Sembunyikan otomatis Overlay</string>
+    <string name="overlay_auto_hide_description">Otomatis menyembunyikan overlay kontrol layar sentuh setelah beberapa waktu spesifik.</string>
+    <string name="enable_input_overlay_auto_hide">Aktifkan \"Sembunyikan otomatis Overlay\"</string>
+
+    <string name="input_overlay_options">Overlay Input</string>
+    <string name="input_overlay_options_description">Konfigurasi kontrol di layar</string>
+
+
+    <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Ditingkatkan)</string>
+    <string name="process_ram">RAM Proses: %1$d MB</string>
+    <string name="shaders_prefix">Membangun</string>
+    <string name="shaders_suffix">Shader</string>
+    <string name="charging">(Sedang diisi)</string>
+
+    <string name="system_info_label">Sistem:</string>
+    <string name="show_stats_overlay">Tampilkan Overlay Statistik Performa</string>
+    <string name="stats_overlay_customization">Kustomisasi</string>
+    <string name="stats_overlay_items">Visibilitas</string>
+    <string name="stats_overlay_options">Overlay</string>
+    <string name="enable_stats_overlay_">Aktifkan Overlay Statistik Performa</string>
+    <string name="stats_overlay_options_description">Konfigurasi informasi yang ditampilkan dalam overlay statistik performa</string>
+    <string name="show_fps">Tampilkan FPS</string>
+    <string name="show_fps_description">Tampilkan frame per detik saat ini</string>
+    <string name="show_frametime">Tampilkan Frametime</string>
+    <string name="show_frametime_description">Tampilkan frametime saat ini</string>
+    <string name="show_app_ram_usage">Tampilkan Penggunaan RAM Aplikasi</string>
+    <string name="show_app_ram_usage_description">Tampilkan jumlah RAM yang digunakan emulator</string>
+    <string name="show_system_ram_usage">Tampilkan Penggunaan RAM Sistem</string>
+    <string name="show_system_ram_usage_description">Tampilkan jumlah RAM yang digunakan oleh sistem</string>
+    <string name="show_bat_temperature">Tampilkan Suhu Baterai</string>
+    <string name="show_bat_temperature_description">Tampilkan suhu baterai saat ini</string>
+    <string name="bat_temperature_unit">Satuan Suhu Baterai</string>
+    <string name="show_power_info">Tampilkan Info Baterai</string>
+    <string name="show_power_info_description">Tampilkan pengeluaran daya saat ini dan kapasitas baterai yang tersisa</string>
+    <string name="show_shaders_building">Tampilkan Pembuatan Shader</string>
+    <string name="show_shaders_building_description">Menampilkan jumlah shader yang sedang dibuat saat ini</string>
+    <string name="overlay_position">Posisi Overlay</string>
+    <string name="overlay_position_description">Pilih lokasi tampilan overlay statistik performa di layar</string>
+    <string name="overlay_position_top_left">Kiri Atas</string>
+    <string name="overlay_position_top_right">Kanan Atas</string>
+    <string name="overlay_position_bottom_left">Kiri Bawah</string>
+    <string name="overlay_position_bottom_right">Kanan Bawah</string>
+    <string name="overlay_position_center_top">Tengah Atas</string>
+    <string name="overlay_position_center_bottom">Tengah Bawah</string>
+    <string name="perf_overlay_background">Latar Belakang Overlay</string>
+    <string name="perf_overlay_background_description">Tambahkan latar belakang di belakang overlay untuk memudahkan pembacaan</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Tampilkan Overlay Info Perangkat</string>
+    <string name="enable_soc_overlay">Aktifkan Overlay Perangkat</string>
+    <string name="soc_overlay_options">Overlay Perangkat</string>
+    <string name="soc_overlay_options_description">Konfigurasi informasi yang ditampilkan di overlay perangkat</string>
+
+    <string name="show_device_model">Tampilkan Model Perangkat</string>
+    <string name="show_device_model_description">Tampilkan model perangkat host</string>
+    <string name="show_gpu_model">Tampilkan Model GPU</string>
+    <string name="show_gpu_model_description">Tampilkan model GPU host</string>
+    <string name="show_soc_model">Tampilkan Model SoC</string>
+    <string name="show_soc_model_description">Tampilkan model SoC host</string>
+    <string name="show_fw_version">Tampilkan Versi Firmware</string>
+    <string name="show_fw_version_description">Menampilkan versi firmware yang terinstal</string>
+
+    <!-- Eden\'s Veil -->
+    <string name="eden_veil">Eden\'s Veil</string>
+    <string name="eden_veil_description">Pengaturan eksperimental untuk meningkatkan kinerja dan kemampuan. Pengaturan ini dapat menyebabkan layar hitam atau masalah game lainnya.</string>
+
+    <string name="veil_extensions">Ekstensi GPU</string>
+    <string name="dyna_state">Status Dinamis Ekstensi</string>
+    <string name="dyna_state_description">Mengontrol jumlah fitur yang dapat digunakan dalam Extended Dynamic State. Angka yang lebih tinggi memungkinkan lebih banyak fitur dan dapat meningkatkan performa, tetapi dapat menyebabkan masalah dengan beberapa driver dan vendor. Nilai default dapat bervariasi tergantung pada sistem dan kemampuan hardware Anda. Nilai ini dapat diubah hingga stabilitas dan kualitas visual yang lebih baik tercapai.</string>
+    <string name="disabled">Dinonaktifkan</string>
+    <string name="provoking_vertex">Vertex Provokasi</string>
+    <string name="provoking_vertex_description">Meningkatkan pencahayaan dan penanganan vertex di beberapa game. Hanya didukung di GPU Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Pengindeks Deskriptor</string>
+    <string name="descriptor_indexing_description">Meningkatkan penanganan tekstur dan buffer, serta lapisan terjemahan Maxwell. Didukung oleh beberapa GPU Vulkan 1.1 dan semua GPU Vulkan 1.2+.</string>
+    <string name="sample_shading">Pencahayaan Sampel</string>
+    <string name="sample_shading_description">Memungkinkan fragment shader dieksekusi per sampel dalam fragmen multisampel alih-alih sekali per fragmen. Meningkatkan kualitas grafis dengan mengorbankan kinerja. Hanya perangkat Vulkan 1.1+ yang mendukung ekstensi ini.</string>
+    <string name="sample_shading_fraction">Fraksi Pencahayaan Sampel</string>
+    <string name="sample_shading_fraction_description">Intensitas proses pencahayaan sampel. Nilai lebih tinggi meningkatkan kualitas lebih baik tetapi juga mengurangi performa lebih besar.</string>
+
+    <string name="veil_renderer">Renderer</string>
+    <string name="frame_interpolation">Penyelarasan Frame Tingkat Lanjut</string>
+    <string name="frame_interpolation_description">Memastikan pengiriman frame yang halus dan konsisten dengan menyinkronkan waktu antar frame, mengurangi stuttering dan animasi tidak rata. Ideal untuk game yang mengalami ketidakstabilan waktu frame atau micro-stutter selama gameplay.</string>
+    <string name="renderer_early_release_fences">Lepas Pagar Lebih Awal</string>
+    <string name="renderer_early_release_fences_description">Membantu memperbaiki 0 FPS di game seperti DKCR:HD, Subnautica Below Zero dan Ori 2, tapi mungkin mengganggu loading atau performa di game Unreal Engine.</string>
+    <string name="sync_memory_operations">Sinkronisasi Operasi Memori</string>
+    <string name="sync_memory_operations_description">Memastikan konsistensi data antara operasi komputasi dan memori. Opsi ini seharusnya memperbaiki masalah di beberapa game, tetapi mungkin mengurangi performa dalam beberapa kasus. Game dengan Unreal Engine 4 tampaknya yang paling terpengaruh.</string>
+    <string name="buffer_reorder_disable">Nonaktifkan Penyusunan Ulang Buffer</string>
+    <string name="buffer_reorder_disable_description">Ketika dicentang, menonaktifkan penyusunan ulang unggahan memori yang dipetakan yang memungkinkan mengaitkan unggahan dengan gambar tertentu. Dapat mengurangi kinerja dalam beberapa kasus.</string>
+
+    <string name="veil_misc">CPU dan Memori</string>
+    <string name="use_sync_core">Sinkronisasi Kecepatan Inti</string>
+    <string name="use_sync_core_description">Sinkronkan kecepatan inti dengan persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan sebenarnya dari permainan.</string>
+    <string name="use_lru_cache">Aktifkan LRU Cache</string>
+    <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU untuk meningkatkan performa dengan mengurangi penggunaan proses CPU. Beberapa game seperti TotK 1.2.1 memiliki masalah - nonaktifkan jika game tidak mau berjalan atau crash acak.</string>
+    <string name="use_fast_cpu_time">Waktu CPU Cepat</string>
+    <string name="use_fast_cpu_time_description">Memaksa CPU emulasi berjalan pada kecepatan clock yang lebih tinggi, mengurangi beberapa pembatas FPS. Opsi ini tidak stabil dan dapat menyebabkan masalah, dan CPU yang lebih lemah mungkin mengalami penurunan kinerja.</string>
+    <string name="custom_cpu_ticks">Ticks CPU Kustom</string>
+    <string name="custom_cpu_ticks_description">Atur nilai ticks CPU kustom. Nilai yang lebih tinggi dapat meningkatkan kinerja, tetapi juga dapat menyebabkan game membeku. Kisaran 77–21000 direkomendasikan.</string>
+    <string name="cpu_ticks">Ticks</string>
+    <string name="skip_cpu_inner_invalidation">Lewati Pembatalan Internal CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Melewati beberapa pembatalan cache sisi CPU selama pembaruan memori, mengurangi penggunaan CPU dan meningkatkan kinerjanya. Mungkin menyebabkan gangguan atau crash pada beberapa game.</string>
+    <string name="cpuopt_unsafe_host_mmu">Aktifkan Emulasi MMU Host</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Optimasi ini mempercepat akses memori oleh program tamu. Mengaktifkannya menyebabkan pembacaan/penulisan memori tamu dilakukan langsung ke memori dan memanfaatkan MMU Host. Menonaktifkan ini memaksa semua akses memori menggunakan Emulasi MMU Perangkat Lunak.</string>
+    <string name="fast_cpu_time">Kecepatan Clock CPU</string>
+    <string name="fast_cpu_time_description">Gunakan Boost (1700MHz) untuk berjalan pada kecepatan clock asli tertinggi Switch, atau Fast (2000MHz) untuk berjalan pada kecepatan ganda.</string>
+    <string name="memory_layout">Tata Letak Memori</string>
+    <string name="memory_layout_description">(EKSPERIMENTAL) Ubah tata letak memori emulasi. Pengaturan ini tidak meningkatkan kinerja, tetapi dapat membantu game yang menggunakan resolusi tinggi melalui mod. Jangan gunakan pada ponsel dengan RAM 8GB atau kurang.</string>
+    <string name="dma_accuracy">Akurasi DMA</string>
+    <string name="dma_accuracy_description">Mengontrol keakuratan presisi DMA. Presisi aman dapat memperbaiki masalah di beberapa game, tetapi juga dapat memengaruhi kinerja dalam beberapa kasus. Jika tidak yakin, biarkan ini pada Bawaan.</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">Backend Shader</string>
+    <string name="shader_backend_description">Pilih cara shader dikompilasi dan diterjemahkan untuk GPU Anda.</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">Emulasi NVDEC</string>
+    <string name="nvdec_emulation_description">Pilih cara decoding video (NVDEC) ditangani selama cutscene dan intro.</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">Tidak Ada</string>
+
+    <!-- Optimize Spir-V output -->
+    <string name="never">Tidak Pernah</string>
+    <string name="on_load">Saat Memuat</string>
+    <string name="always">Selalu</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">Multiplayer</string>
+    <string name="multiplayer_description">Host ruang permainan Anda sendiri atau bergabung dengan yang sudah ada untuk bermain dengan orang lain</string>
+    <string name="multiplayer_create_room">Buat</string>
+    <string name="multiplayer_join_room">Gabung</string>
+    <string name="multiplayer_public_room">Jelajahi Ruang Publik</string>
+    <string name="multiplayer_username">Nama Pengguna</string>
+    <string name="multiplayer_ip_address">Alamat IP</string>
+    <string name="multiplayer_ip_port">Port</string>
+    <string name="multiplayer_create_room_success">Ruang berhasil dibuat</string>
+    <string name="multiplayer_join_room_success">Berhasil bergabung ke ruang</string>
+    <string name="multiplayer_exit_room">Keluar Ruang</string>
+    <string name="multiplayer_network_error">Kesalahan jaringan</string>
+    <string name="multiplayer_lost_connection">Koneksi terputus</string>
+    <string name="multiplayer_name_collision">Nama pengguna sudah digunakan</string>
+    <string name="multiplayer_mac_collision">Alamat MAC bentrok</string>
+    <string name="multiplayer_console_id_collision">ID Konsol bentrok</string>
+    <string name="multiplayer_wrong_version">Versi salah</string>
+    <string name="multiplayer_wrong_password">Password salah</string>
+    <string name="multiplayer_could_not_connect">Tidak dapat terhubung</string>
+    <string name="multiplayer_room_is_full">Ruang penuh</string>
+    <string name="multiplayer_host_banned">Anda dilarang masuk ke ruangan ini</string>
+    <string name="multiplayer_permission_denied">Izin ditolak</string>
+    <string name="multiplayer_no_such_user">Pengguna tidak ditemukan</string>
+    <string name="multiplayer_already_in_room">Sudah berada di ruang</string>
+    <string name="multiplayer_create_room_error">Kesalahan membuat ruang</string>
+    <string name="multiplayer_host_kicked">Host dikeluarkan</string>
+    <string name="multiplayer_unknown_error">Kesalahan tidak diketahui</string>
+    <string name="multiplayer_room_uninitialized">Ruang belum diinisialisasi</string>
+    <string name="multiplayer_room_idle">Ruang tidak aktif</string>
+    <string name="multiplayer_room_joining">Sedang bergabung ke ruang</string>
+    <string name="multiplayer_room_joined">Bergabung ke ruang</string>
+    <string name="multiplayer_room_moderator">Moderator ruang</string>
+    <string name="multiplayer_member_join">%1$s bergabung</string>
+    <string name="multiplayer_member_leave">%1$s keluar</string>
+    <string name="multiplayer_member_kicked">%1$s dikeluarkan</string>
+    <string name="multiplayer_member_banned">%1$s diblokir</string>
+    <string name="multiplayer_address_unbanned">Alamat dibuka blokir</string>
+    <string name="multiplayer_kick_member">Keluarkan</string>
+    <string name="multiplayer_password">Password</string>
+    <string name="multiplayer_joining">Sedang bergabung...</string>
+    <string name="multiplayer_creating">Sedang membuat...</string>
+    <string name="multiplayer_room_name">Nama Ruang</string>
+    <string name="multiplayer_max_players_value">Pemain Maks: %d</string>
+    <string name="multiplayer_chat">Obrolan</string>
+    <string name="multiplayer_more_options">Opsi Lainnya</string>
+    <string name="chat">Obrolan</string>
+    <string name="type_message">Ketik pesan...</string>
+    <string name="send_message">Kirim Pesan</string>
+    <string name="multiplayer_moderation">Moderasi</string>
+    <string name="multiplayer_moderation_title">Daftar Blokir</string>
+    <string name="multiplayer_no_bans">Tidak ada pengguna yang diblokir</string>
+    <string name="multiplayer_unban_title">Buka Blokir Pengguna</string>
+    <string name="multiplayer_unban">Buka Blokir</string>
+    <string name="multiplayer_unban_message">Apakah Anda yakin ingin membuka blokir %1$s?</string>
+    <string name="multiplayer_ban">Blokir Pengguna</string>
+    <string name="multiplayer_room_browser">Ruang Publik</string>
+    <string name="multiplayer_no_rooms_found">Tidak ada ruang publik yang ditemukan</string>
+    <string name="multiplayer_password_required">Password Diperlukan</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Game</string>
+    <string name="multiplayer_no_game_info">Game Apa Saja</string>
+    <string name="multiplayer_password_protected">Ruang dengan password</string>
+    <string name="multiplayer_hide_full_rooms">Sembunyikan Ruang Penuh</string>
+    <string name="multiplayer_hide_empty_rooms">Sembunyikan Ruang Kosong</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Ketuk segarkan untuk memeriksa lagi</string>
+    <string name="multiplayer_search_public_lobbies">Cari Lobi...</string>
+    <string name="multiplayer_preferred_game_name">Game Pilihan</string>
+    <string name="multiplayer_lobby_type">Jenis Lobi</string>
+    <string name="multiplayer_room_name_error">Harus antara 3-20 karakter</string>
+    <string name="multiplayer_required">Diperlukan</string>
+    <string name="multiplayer_token_required">Token Web diperlukan, buka Pengaturan Lanjutan -> Sistem -> Jaringan</string>
+    <string name="multiplayer_ip_error">Format IP tidak valid</string>
+    <string name="multiplayer_username_error">Harus 4-20 karakter (hanya alfanumerik, titik, tanda hubung, garis bawah, dan spasi)</string>
+    <string name="multiplayer_nickname_invalid">Nama pengguna tidak valid, pastikan sudah diatur dengan benar di Sistem → Jaringan</string>
+    <string name="multiplayer_token_error">Harus 48 karakter, dan hanya huruf kecil a-z</string>
+    <string name="multiplayer_port_error">Harus antara 1-65535</string>
+    <string name="cancel">Batal</string>
+    <string name="ok">Oke</string>
+    <string name="refresh">Segarkan</string>
+    <string name="room_list">Daftar Ruang</string>
+    <string name="multiplayer_public_visibility">Publik</string>
+    <string name="multiplayer_unlisted_visibility">Tidak Terdaftar</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">Selamat datang!</string>
+    <string name="welcome_description">Pelajari cara menyiapkan &lt;b>Eden&lt;/b> dan masuk ke dalam emulasi.</string>
+    <string name="get_started">Memulai</string>
+    <string name="keys">Kunci</string>
+    <string name="keys_description">Pilih file &lt;b>prod.keys&lt;/b> Anda dengan tombol di bawah ini.</string>
+    <string name="select_keys">Pilih Kunci</string>
+    <string name="firmware">Firmware</string>
+    <string name="select_firmware">Pilih Firmware</string>
+    <string name="games">Permainan</string>
+    <string name="games_description">Pilih folder &lt;b>Games&lt;/b> Anda dengan tombol di bawah ini.</string>
+    <string name="done">Selesai</string>
+    <string name="done_description">Semuanya telah siap.\nNikmati permainanmu!</string>
+    <string name="text_continue">Lanjut</string>
+    <string name="next">Berikutnya</string>
+    <string name="back">Kembali</string>
+    <string name="add_games">Tambahkan permainan</string>
+    <string name="step_complete">Selesai!</string>
+
+    <!-- Home strings -->
+
+    <string name="alphabetical">Abjad</string>
+    <string name="view_list">Daftar</string>
+    <string name="view_grid">Grid</string>
+    <string name="view_grid_compact">Pola kotak padu</string>
+    <string name="view_carousel">Karousel</string>
+    <string name="game_image_desc">Tangkap layar untuk %1$s</string>
+    <string name="folder">Folder</string>
+    <string name="dont_show_again">Jangan Tampilkan Lagi</string>
+    <string name="add_directory_success">Direktori permainan baru berhasil ditambahkan</string>
+    <string name="home_search">Cari</string>
+    <string name="home_settings">Pengaturan</string>
+    <string name="empty_gamelist">Tidak ada file yang ditemukan atau belum ada direktori game yang dipilih.</string>
+    <string name="manage_game_folders">Kelola folder game</string>
+    <string name="select_games_folder_description">Izinkan Eden mengisi daftar game</string>
+    <string name="add_games_warning">Lewati pemilihan folder game?</string>
+    <string name="add_games_warning_description">Game tidak akan muncul di list jika tidak ada folder yang dipilih.</string>
+    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
+    <string name="home_search_games">Cari permainan</string>
+    <string name="search_settings">Cari pengaturan</string>
+    <string name="install_prod_keys">Install prod.keys</string>
+    <string name="install_prod_keys_description">Diperlukan untuk mendekripsi game retail</string>
+    <string name="install_prod_keys_warning">Lewati penginstalan keys?</string>
+    <string name="install_prod_keys_warning_description">Perlu keys yang valid untuk meng-emulate game retail. Hanya homebrew apps yang akan berfungsi jika kamu melanjutkan.</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="install_firmware_warning">Lewati penambahan firmware?</string>
+    <string name="install_firmware_warning_description">Banyak game memerlukan akses ke firmware untuk berjalan dengan baik.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="notifications">Notifikasi</string>
+    <string name="notifications_description">Berikan izin notifikasi dengan tombol di bawah ini.</string>
+    <string name="give_permission">Berikan izin</string>
+    <string name="notification_warning">Lewati pemberian izin notifikasi?</string>
+    <string name="notification_warning_description">Eden tidak akan dapat memberi tahu Anda tentang informasi penting.</string>
+    <string name="permission_denied">Izin ditolak</string>
+    <string name="permission_denied_description">Kamu terlalu sering menolak izin ini dan sekarang anda harus memberikannya secara manual di pengaturan sistem.</string>
+    <string name="about">Tentang</string>
+    <string name="about_description">Versi build, kredit, dan lainnya</string>
+    <string name="warning_help">Bantuan</string>
+    <string name="warning">Peringatan</string>
+    <string name="warning_skip">Lewati</string>
+    <string name="warning_cancel">Batalkan</string>
+    <string name="install_amiibo_keys">Install Amiibo keys</string>
+    <string name="install_amiibo_keys_description">Diperlukan untuk menggunakan Amiibo di dalam game</string>
+    <string name="gpu_driver_fetcher">Pengambil Driver GPU</string>
+    <string name="gpu_driver_manager">Manajer driver GPU</string>
+    <string name="install_gpu_driver_description">Instal driver lain untuk kinerja atau akurasi yang berpotensi lebih baik</string>
+    <string name="advanced_settings">Pengaturan lanjutan</string>
+    <string name="settings_description">Konfigurasikan pengaturan emulator</string>
+    <string name="search_recently_played">Baru dimainkan</string>
+    <string name="search_recently_added">baru ditambahkan</string>
+    <string name="open_user_folder">Buka folder Eden</string>
+    <string name="open_user_folder_description">Kelola file internal Eden\'s</string>
+    <string name="no_file_manager">Tidak menemukan file manager</string>
+    <string name="notification_no_directory_link">Tidak bisa membuka direktori Eden</string>
+    <string name="notification_no_directory_link_description">Silakan cari folder pengguna dengan panel samping manajer file secara manual.</string>
+    <string name="manage_save_data">Kelola save data</string>
+    <string name="manage_save_data_description">Data simpanan ditemukan. Silakan pilih opsi di bawah.</string>
+    <string name="import_save_warning">Impor data simpanan</string>
+    <string name="import_save_warning_description">Melakukan ini berarti akan menimpa seluruh data simpanan yang sudah ada sebelumnya dengan file simpanan yang Anda berikan. Apakah Anda yakin?</string>
+    <string name="save_files_importing">Mengimpor file simpanan...</string>
+    <string name="save_files_exporting">Mengekspor file simpanan...</string>
+    <string name="save_file_imported_success">Berhasil mengimpor</string>
+    <string name="save_file_invalid_zip_structure">Struktur direktori simpanan tidak valid.</string>
+    <string name="save_file_invalid_zip_structure_description">Nama subfolder pertama harus merupakan title ID dari game.</string>
+    <string name="install_firmware">Install firmware</string>
+    <string name="install_firmware_description">Firmware harus merupakan sebuah file .ZIP dan diperlukan untuk menjalankan beberapa game.</string>
+    <string name="firmware_installing">Menginstall firmware</string>
+    <string name="firmware_installed_failure">Gagal memasang Firmware.</string>
+    <string name="firmware_installed_failure_description">Pastikan file nca firmware terdapat pada folder utama dari file .zip dan coba lagi.</string>
+    <string name="firmware_uninstalled_failure">Instalasi Firmware gagal</string>
+    <string name="share_log">Bagikan log debug</string>
+    <string name="share_log_description">Bagikan file log Eden untuk mendebug isu</string>
+    <string name="share_log_missing">Tidak ada log file yang ditemukan</string>
+    <string name="install_game_content">Instal konten game.</string>
+    <string name="install_game_content_description">Instal pembaruan game atau DLC</string>
+    <string name="installing_game_content">Menginstal konten...</string>
+    <string name="install_game_content_failure">Error menginstal file (- file) pada NAND</string>
+    <string name="install_game_content_failure_description">Tolong pastikan seluruh konten(-konten) valid dan prod.key terinstall</string>
+    <string name="install_game_content_failure_base">Instalasi dari base game tidak diperbolehkan agar terhindar dari konflik yang mungkin terjadi.</string>
+    <string name="install_game_content_failed_count">%1$d instalasi error(-error)</string>
+    <string name="install_game_content_success">Konten(-konten) game sudah berhasil terinstal.</string>
+    <string name="install_game_content_success_install">%1$d telah berhasil terinstal</string>
+    <string name="install_game_content_success_overwrite">%1$d telah berhasil ditimpa.</string>
+    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
+    <string name="custom_driver_not_supported">Driver kustom tidak didukung</string>
+    <string name="custom_driver_not_supported_description">Pemuatan driver kustom tidak didukung oleh perangkat ini.\nPeriksa lagi opsi ini di masa mendatang untuk melihat apakah dukungan telah ditambahkan!</string>
+    <string name="manage_yuzu_data">Kelola data Eden.</string>
+    <string name="manage_yuzu_data_description">Impor/expor firmware, key, data pengguna, dan sebagainya!</string>
+    <string name="game_folders">Folder Game</string>
+    <string name="deep_scan">Pemindaian mendalam</string>
+    <string name="add_game_folder">Pilih folder game</string>
+    <string name="folder_already_added">Folder ini telah ditambahkan!</string>
+    <string name="game_folder_properties">Properti folder game</string>
+    <plurals name="saves_import_failed">
+        <item quantity="other">Gagal mengimpor %d simpanan.</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="other">Berhasil mengimpor %d simpanan.</item>
+    </plurals>
+    <string name="no_save_data_found">Tidak ada data simpanan yang ditemukan.</string>
+    <string name="verify_installed_content">Verifikasi konten yang terinstal</string>
+    <string name="verify_installed_content_description">Memeriksa semua konten yang terinstal dari kerusakan</string>
+
+    <string name="keys_missing">Kunci enkripsi hilang</string>
+    <string name="keys_missing_description">Firmware dan game retail tidak dapat didekripsi</string>
+    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
+    <string name="uninstall_firmware">Copot Firmware</string>
+    <string name="uninstall_firmware_description">Mencopot firmware akan menghapusnya dari perangkat dan dapat memengaruhi kompatibilitas game.</string>
+    <string name="firmware_uninstalling">Mencopot firmware...</string>
+    <string name="firmware_uninstalled_success">Firmware berhasil dicopot</string>
+
+
+    <string name="keys_failed">Gagal menginstal kunci</string>
+    <string name="keys_install_success">Kunci berhasil diinstal</string>
+    <string name="error_keys_copy_failed">Satu atau lebih kunci gagal disalin.</string>
+    <string name="error_keys_invalid_filename">Pastikan file kunci Anda memiliki ekstensi .keys dan coba lagi.</string>
+    <string name="error_keys_failed_init">Kunci gagal diinisialisasi. Periksa apakah alat dumping Anda mutakhir dan dump ulang kunci.</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">Luncurkan aplikasi dari layar beranda sistem</string>
+    <string name="applets">Luncurkan applet</string>
+    <string name="applets_description">Meluncurkan sistem applet menggunakan firmware yang diinstal</string>
+    <string name="applets_error_firmware">Firmware tidak terinstal atau versi tidak valid</string>
+    <string name="applets_error_applet">Applet tidak tersedia</string>
+    <string name="applets_error_description"><![CDATA[Pastikan file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> dan <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> Anda terinstal dan coba lagi.<br>Pastikan juga firmware Anda versi 19.0.1 atau lebih lama.]]></string>
+    <string name="album_applet">Album</string>
+    <string name="album_applet_description">Lihat gambar yang disimpan di folder tangkapan layar pengguna dengan penampil foto sistem.</string>
+    <string name="mii_edit_applet">Ubah Mii</string>
+    <string name="mii_edit_applet_description">Lihat dan ubah Miis dengan mengedit sistem</string>
+    <string name="cabinet_applet">Kabinet</string>
+    <string name="cabinet_applet_description">Ubah dan hapus data yang disimpan pada amiibo</string>
+    <string name="cabinet_launcher">Peluncur kabinet</string>
+    <string name="cabinet_nickname_and_owner">Pengaturan Nama Panggilan dan Pemilik</string>
+    <string name="cabinet_game_data_eraser">Hapus data game</string>
+    <string name="cabinet_restorer">Mengembalikan</string>
+    <string name="cabinet_formatter">Mengatur</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">Gaia tidak nyata</string>
+    <string name="copied_to_clipboard">Salin ke papan klip</string>
+    <string name="about_app_description">Emulator Switch Open-Source</string>
+    <string name="contributors">Kontributor</string>
+    <string name="contributors_description">Dibuat dengan \u2764 dari tim Eden</string>
+    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
+    <string name="licenses_description">Proyek yang memungkinkan Eden untuk Android</string>
+    <string name="build">Versi</string>
+    <string name="user_data">Data pengguna</string>
+    <string name="user_data_description">Impor/Ekspor semua data aplikasi\n\nketika mengimpor data user, semua data user yang tersedia akan dihapus!\n\nMengimpor data dari Citron dapat menyebabkan masalah. Direkomendasikan untuk melakukan impor manual semua data yang dibutuhkan.</string>
+    <string name="exporting_user_data">Mengekspor data pengguna</string>
+    <string name="importing_user_data">Mengimpor data pengguna</string>
+    <string name="invalid_yuzu_backup">cadangan Eden tidak valid</string>
+    <string name="user_data_export_success">berhasil mengekspor data pengguna</string>
+    <string name="user_data_import_success">Berhasil mengimpor data pengguna</string>
+    <string name="user_data_export_cancelled">Ekspor Dibatalkan</string>
+    <string name="user_data_import_failed_description">Pastikan folder data pengguna berada di akar folder zip dan berisi file konfigurasi di config/config.ini dan coba lagi.</string>
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">Batas kecepatan</string>
+    <string name="frame_limit_enable_description">Membatasi kecepatan emulasi ke persentase tertentu dari kecepatan normal</string>
+    <string name="frame_limit_slider">Batas persentase kecepatan</string>
+    <string name="frame_limit_slider_description">Menentukan persentase untuk membatasi kecepatan emulasi. 100% adalah kecepatan normal. Nilai yang lebih tinggi atau lebih rendah akan menambah atau mengurangi batas kecepatan</string>
+    <string name="cpu_backend">Backend CPU</string>
+    <string name="cpu_accuracy">Akurasi CPU</string>
+    <string name="value_with_units">%1$s%2$s</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">Nama perangkat</string>
+    <string name="use_docked_mode">Mode Docked</string>
+    <string name="use_docked_mode_description">Meningkatkan resolusi, menurunkan performa. Mode Handled digunakan saat dinonaktifkan, menurunkan resolusi dan meningkatkan performa</string>
+    <string name="emulated_region">Wilayah yang diemulasikan</string>
+    <string name="emulated_language">Bahasa yang diemulasikan</string>
+    <string name="select_rtc_date">Pilih tanggal RTC</string>
+    <string name="select_rtc_time">Pilih waktu RTC</string>
+    <string name="use_custom_rtc">RTC Kustom</string>
+    <string name="use_custom_rtc_description">Memungkinkan Anda untuk mengatur jam waktu nyata kustom yang terpisah dari waktu sistem saat ini Anda.</string>
+    <string name="set_custom_rtc">Setel RTC Kustom</string>
+
+    <string name="generate">Hasilkan</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Token Web</string>
+    <string name="web_token_description">Token web digunakan untuk membuat ruang publik. Ini adalah string 48 karakter yang hanya berisi huruf kecil a-z.</string>
+    <string name="web_username">Nama Pengguna Web</string>
+    <string name="web_username_description">Nama pengguna yang ditampilkan di ruang multiplayer. Harus 4-20 karakter (hanya alfanumerik, tanda hubung, titik, garis bawah, dan spasi).</string>
+    <string name="network">Jaringan</string>
+
+    <!-- Graphics settings strings -->
+    <string name="backend">Backend</string>
+    <string name="display">Tampilan</string>
+    <string name="processing">Pascaproses</string>
+
+    <string name="frame_skipping">WIP: Loncatan Frame</string>
+    <string name="frame_skipping_description">Aktifkan atau nonaktifkan frame skipping untuk meningkatkan performa dengan mengurangi jumlah frame yang dirender. Fitur ini masih dalam pengembangan dan akan diaktifkan di rilis mendatang.</string>
+    <string name="renderer_accuracy">Tingkatan Akurasi</string>
+    <string name="renderer_resolution">Resolusi (Handheld/Docked)</string>
+    <string name="renderer_vsync">Mode Sinkronisasi Vertikal</string>
+    <string name="renderer_screen_layout">Orientasi</string>
+    <string name="renderer_aspect_ratio">Rasio Aspek</string>
+    <string name="renderer_scaling_filter">Filter penyesuaian jendela</string>
+    <string name="fsr_sharpness">Ketajaman FSR</string>
+    <string name="fsr_sharpness_description">Menentukan seberapa tajam gambar akan terlihat saat menggunakan kontras dinamis FSR</string>
+    <string name="renderer_anti_aliasing">Metode anti-aliasing</string>
+    <string name="renderer_force_max_clock">Paksa jam maximum (hanya untuk Adreno)</string>
+    <string name="renderer_force_max_clock_description">Memaksa GPU untuk berjalan pada kecepatan maksimum yang mungkin (batasan termal masih akan diterapkan).</string>
+    <string name="renderer_optimize_spirv_output">Optimalkan Output Spir-V</string>
+    <string name="renderer_optimize_spirv_output_description">Mengoptimalkan shader yang dikompilasi untuk meningkatkan efisiensi GPU.</string>
+    <string name="renderer_asynchronous_shaders">Gunakan shader asinkron</string>
+    <string name="renderer_asynchronous_shaders_description">Kompilasi shader secara asinkron. Ini dapat mengurangi lag tetapi juga dapat menyebabkan glitch.</string>
+    <string name="use_fast_gpu_time">Gunakan Waktu GPU Cepat</string>
+    <string name="use_fast_gpu_time_description">Memaksa sebagian besar game berjalan pada resolusi asli tertinggi. Opsi ini mungkin menyebabkan masalah.</string>
+    <string name="fast_gpu_time">Faktor Overclock GPU</string>
+    <string name="fast_gpu_time_description">Gunakan 128 untuk kinerja maksimal dan 512 untuk kesetiaan grafis maksimal.</string>
+    <string name="renderer_reactive_flushing">Gunakan reactive flushing</string>
+    <string name="renderer_reactive_flushing_description">Meningkatkan akurasi rendering dalam beberapa permainan dengan mengorbankan performa.</string>
+    <string name="use_disk_shader_cache">Cache shader disk</string>
+    <string name="use_disk_shader_cache_description">Mengurangi Tutup Paksa dengan menyimpan dan memuat yang dihasilkan secara lokal</string>
+    <string name="anisotropic_filtering">Penyaringan Anisotropik</string>
+    <string name="anisotropic_filtering_description">Meningkatkan kualitas tekstur bila dilihat pada sudut miring</string>
+
+    <string name="warning_resolution">Penskalaan resolusi ke 2x atau lebih tinggi diketahui menyebabkan masalah, dan dapat mengakibatkan perlambatan signifikan pada perangkat Anda.</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="use_auto_stub">Gunakan Auto Stub</string>
+    <string name="use_auto_stub_description">Otomatis menyediakan layanan dan fungsi yang hilang. Dapat meningkatkan kompatibilitas tetapi mungkin menyebabkan crash dan masalah stabilitas.</string>
+
+    <string name="gpu">GPU</string>
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">Debugging Grafis</string>
+    <string name="renderer_debug_description">Menyetel grafis API ke mode lambat</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">Pencatatan</string>
+    <string name="flush_by_line">Buang log debug per baris</string>
+    <string name="flush_by_line_description">Membuang log debug pada setiap baris yang ditulis, memudahkan debugging dalam kasus crash atau freeze.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">Output audio</string>
+    <string name="audio_volume">Volume</string>
+    <string name="audio_volume_description">Menentukan volume output audio</string>
+
+    <!-- Input strings -->
+    <string name="buttons">Tombol</string>
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Tambah</string>
+    <string name="button_minus">Kurang</string>
+    <string name="button_home">Home</string>
+    <string name="button_capture">Tangkapan</string>
+    <string name="start_pause">Start/Pause</string>
+    <string name="dpad">D-Pad</string>
+    <string name="up">Atas</string>
+    <string name="down">Bawah</string>
+    <string name="left">Kiri</string>
+    <string name="right">Kanan</string>
+    <string name="left_stick">Left Stick</string>
+    <string name="control_stick">Stik Kontrol</string>
+    <string name="right_stick">Right Stick</string>
+    <string name="c_stick">C-Stick</string>
+    <string name="pressed">Ditekan</string>
+    <string name="range">Jangkauan</string>
+    <string name="deadzone">Zona mati</string>
+    <string name="modifier">Pemodifikasi</string>
+    <string name="modifier_range">Rentang pengubah</string>
+    <string name="triggers">Trigger</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_sl_left">SL Kiri</string>
+    <string name="button_sr_left">SR Kiri</string>
+    <string name="button_sl_right">SL Kanan</string>
+    <string name="button_sr_right">SR Kanan</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">Tidak valid</string>
+    <string name="not_set">Tidak ditetapkan</string>
+    <string name="unknown">Tidak diketahui</string>
+    <string name="qualified_hat">%1$s%2$s%3$sHat%4$s</string>
+    <string name="qualified_button_stick_axis">%1$s%2$s%3$sAxis%4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sTombol%4$s</string>
+    <string name="qualified_axis">Axis%1$s%2$s</string>
+    <string name="unused">Tidak digunakan</string>
+    <string name="input_mapping_filter">Filter pemetaan input</string>
+    <string name="input_mapping_filter_description">Pilih perangkat yang digunakan untuk pemetaan input</string>
+    <string name="auto_map">Atur kontroler secara otomatis</string>
+    <string name="auto_map_description">Pilih perangkat yang akan digunakan untuk pemetaan input otomatis</string>
+    <string name="attempted_auto_map">Pemetaan input otomatis dilakukan dengan %1$s</string>
+    <string name="controller_type">Jenis kontroler</string>
+    <string name="pro_controller">Kontroler Pro</string>
+    <string name="handheld">Jinjing</string>
+    <string name="dual_joycons">Joycon Dual</string>
+    <string name="left_joycon">Joycon Kiri</string>
+    <string name="right_joycon">Joycon Kanan</string>
+    <string name="gamecube_controller">Kontroler GameCube</string>
+    <string name="invert_axis">Balikkan poros</string>
+    <string name="invert_button">Balikkan tombol</string>
+    <string name="toggle_button">Atur tombol</string>
+    <string name="turbo_button">Tombol turbo</string>
+    <string name="set_threshold">Atur batasan</string>
+    <string name="toggle_axis">Aktif/nonaktifkan axis</string>
+    <string name="connected">Terhubung</string>
+    <string name="use_system_vibrator">Gunakan vibrasi sistem</string>
+    <string name="input_overlay">Overlay input</string>
+    <string name="vibration">Getaran</string>
+    <string name="vibration_strength">Kekuatan vibrasi</string>
+    <string name="profile">Profil</string>
+    <string name="create_new_profile">Buat profil baru</string>
+    <string name="enter_profile_name">Masukkan nama profil</string>
+    <string name="profile_name_already_exists">Nama profil telah tersedia</string>
+    <string name="invalid_profile_name">Nama profil tidak valid</string>
+    <string name="use_global_input_configuration">Gunakan konfigurasi input global</string>
+    <string name="player_num_profile">Profil pemain %d</string>
+    <string name="delete_input_profile">Hapus profil input</string>
+    <string name="delete_input_profile_description">Apakah Anda yakin untuk menghapus profil ini\? Tindakan ini permanen.</string>
+    <string name="stick_map_description">Gerakan analog ke kiri lalu atas atau tekan tombol analog</string>
+    <string name="button_map_description">Tekan tombol atau gerakan trigger/analog</string>
+    <string name="map_dpad_direction">Petakan ke D-Pad%1$s</string>
+    <string name="map_control">Petakan ke%1$s</string>
+    <string name="failed_to_load_profile">Gagal memuat profil</string>
+    <string name="failed_to_save_profile">Gagal menyimpan profil</string>
+    <string name="reset_mapping">Atur ulang pemetaan</string>
+    <string name="reset_mapping_description">Apakah Anda yakin untuk mengatur ulang semua pemetaan untuk kontroler ini ke setelan awal\? Tindakan ini permanen.</string>
+
+    <!-- Miscellaneous -->
+    <string name="slider_default">Bawaan</string>
+    <string name="loading">Memuat...</string>
+    <string name="shutting_down">Menutup...</string>
+    <string name="reset_setting_confirmation">Apakah Anda ingin mengatur ulang pengaturan ini kembali ke nilai defaultnya?</string>
+    <string name="reset_to_default">Setel ulang ke bawaan</string>
+    <string name="reset_to_default_description">Mereset semua pengaturan lanjutan</string>
+    <string name="reset_all_settings">Atur ulang semua pengaturan?</string>
+    <string name="reset_all_settings_description">Semua pengaturan lanjutan akan diatur ulang ke konfigurasi default mereka. Ini tidak dapat dibatalkan.</string>
+    <string name="settings_reset">Pengaturan diatur ulang</string>
+    <string name="close">Tutup</string>
+    <string name="learn_more">Pelajari lebih lanjut</string>
+    <string name="auto">Otomatis</string>
+    <string name="submit">Kirimkan</string>
+    <string name="string_null">Null</string>
+    <string name="string_import">Impor</string>
+    <string name="export">Ekspor</string>
+    <string name="export_failed">Ekspor gagal</string>
+    <string name="import_failed">Impor gagal</string>
+    <string name="cancelling">Membatalkan</string>
+    <string name="install">Instal</string>
+    <string name="fetch">Ambil</string>
+    <string name="delete">Hapus</string>
+    <string name="edit">Ubah</string>
+    <string name="export_success">Berhasil diekspor</string>
+    <string name="start">Mulai</string>
+    <string name="global">Utama</string>
+    <string name="custom">Kustom</string>
+    <string name="import_complete">Impor Selasai</string>
+    <string name="use_global_setting">Gunakan Pengaturan Utama</string>
+    <string name="operation_completed_successfully">Operasi selsesai dengan sukses</string>
+    <string name="confirm">Konfirmasi</string>
+    <string name="load">Muat</string>
+    <string name="save">Simpan</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver_default">Bawaan</string>
+    <string name="select_gpu_driver_error">Driver yang dipilih tidak valid</string>
+    <string name="driver_already_installed">Driver sudah terpasang</string>
+    <string name="system_gpu_driver">Driver GPU sistem</string>
+    <string name="installing_driver">Memasang driver...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="show_releases">Tampilkan Rilis</string>
+    <string name="failed_to_fetch">Gagal Mengambil</string>
+    <string name="error_during_fetch">Kesalahan saat Mengambil</string>
+    <string name="show_downloads">Tampilkan Unduhan</string>
+    <string name="hide_downloads">Sembunyikan Unduhan</string>
+    <string name="failed_cache_dir">Direktori cache tidak tersedia</string>
+    <string name="empty_response_body">Isi respons kosong</string>
+    <string name="successfully_installed">%1$s Berhasil Diinstal</string>
+    <string name="driver_failed_title">Gagal Menginstal Driver</string>
+    <string name="failed_install_driver">Gagal menginstal driver %1$s, apakah sistem Anda mendukungnya?</string>
+    <string name="driver_empty">Driver yang diunduh kosong, periksa koneksi internet Anda</string>
+    <string name="downloading">Mengunduh…</string>
+    <string name="installing">Menginstal…</string>
+    <string name="latest">Terbaru</string>
+    <string name="recommended_driver">Driver yang Direkomendasikan:</string>
+    <string name="gpu_model">Model GPU:</string>
+    <string name="unsupported_gpu">GPU Tidak Didukung</string>
+    <string name="unsupported_gpu_warning">GPU Anda tidak mendukung injeksi driver. Tidak disarankan untuk mengatur driver kustom.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">Pengaturan</string>
+    <string name="preferences_system">Sistem</string>
+    <string name="preferences_system_description">Mode Docked, wilayah, bahasa</string>
+    <string name="preferences_graphics">Grafis</string>
+    <string name="preferences_graphics_description">Tingkat akurasi, resolusi, cache shader</string>
+    <string name="preferences_audio">Audio</string>
+    <string name="preferences_audio_description">Output audio, volume</string>
+    <string name="preferences_controls">Kendali</string>
+    <string name="preferences_controls_description">Petakan input kontroler</string>
+    <string name="preferences_player">Player %d</string>
+    <string name="preferences_debug">Awakutu</string>
+    <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
+
+    <!-- Game properties -->
+    <string name="info">Info</string>
+    <string name="info_description">ID program, pengembang, versi</string>
+    <string name="per_game_settings">Pengaturan per game</string>
+    <string name="per_game_settings_description">Mengedit pengaturan khusus untuk game ini</string>
+    <string name="launch_options">Luncurkan konfigurasi</string>
+    <string name="path">Jalur</string>
+    <string name="program_id">Program Id</string>
+    <string name="developer">Pengembang</string>
+    <string name="version">Versi</string>
+    <string name="copy_details">Salin Detail</string>
+    <string name="add_ons">Pengaya</string>
+    <string name="add_ons_description">Ganti mod, pembaruan dan dlc</string>
+    <string name="clear_shader_cache">Menghapus Cache Shader</string>
+    <string name="clear_shader_cache_description">Menghapus semua shader yang dibangun saat bermain game ini</string>
+    <string name="clear_shader_cache_warning_description">Anda akan mengalami lebih banyak stuttering saat shader cache diregenerasi.</string>
+    <string name="cleared_shaders_successfully">Berhasil Membersihkan hader </string>
+    <string name="addons_game">Pengaya Permainan: %1$s</string>
+    <string name="save_data">Simpanan Data</string>
+    <string name="save_data_description">Mengelola data simpanan yang spesifik untuk permainan ini</string>
+    <string name="delete_save_data">Hapus Simpanan Data</string>
+    <string name="delete_save_data_description">Menghapus semua data simpanan yang spesifik untuk permainan ini</string>
+    <string name="delete_save_data_warning_description">Apakah Anda yakin ingin melanjutkan? Ini akan menghapus semua data simpanan permainan ini secara permanen.</string>
+    <string name="save_data_deleted_successfully">Simpanan Data Berhasil Dihapus</string>
+    <string name="select_content_type">Pilih Jenis Konten</string>
+    <string name="updates_and_dlc">Update Dan Dlc</string>
+    <string name="mods_and_cheats">Mod Dan Cheat</string>
+    <string name="addon_notice">Pemberitahuan Pengaya</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="addon_notice_description">Untuk memasang mod dan cheat, Anda harus memilih folder yang berisi direktori cheats/, romfs/, atau exefs/. Kami tidak dapat memverifikasi apakah semua ini kompatibel dengan game Anda, jadi berhati-hatilah!</string>
+    <string name="invalid_directory">Direktori Tidak Valid</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="invalid_directory_description">Pastikan direktori yang Anda pilih berisi folder cheats/, romfs/, atau exefs/, lalu coba lagi.</string>
+    <string name="addon_installed_successfully">Pengaya Sukses Dipasang</string>
+    <string name="verifying_content">Memverifikasi Konten</string>
+    <string name="content_install_notice">Pemberitahuan Pemasangan</string>
+    <string name="content_install_notice_description">Konten yang Anda pilih tidak cocok dengan permainan ini. Tetap Instal\?</string>
+    <string name="confirm_uninstall">Hapus Installasi</string>
+    <string name="confirm_uninstall_description">Apakah Anda yakin ingin menghapus addon ini?</string>
+    <string name="verify_integrity">Integritas</string>
+    <string name="verifying">Memverifikasi</string>
+    <string name="verify_success">Berhasil</string>
+    <string name="verify_failure">Gagal</string>
+    <string name="verify_failure_description">Konten file mungkin rusak</string>
+    <string name="verify_no_result">Tidak Ada Hasil</string>
+    <string name="verify_no_result_description">Isi file tidak diperiksa ke validasinya</string>
+    <string name="verification_failed_for">Verifikasi gagal terkait file ini:\n%1$s</string>
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">ROM-mu ter-enkripsi</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Silakan ikuti panduan untuk mendump ulang <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">kartrid game</a> atau <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">judul digital</a> Anda.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Harap pastikan bahwa Anda <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> diinstal sehingga game dapat didekripsi.]]></string>
+    <string name="loader_error_video_core">Terjadi kesalahan ketika menginisialisasi inti video.</string>
+    <string name="loader_error_video_core_description">Hal ini biasanya disebabkan oleh driver GPU yang tidak kompatibel. Menginstal driver GPU khusus dapat mengatasi masalah ini</string>
+    <string name="loader_error_file_not_found">Berkas Tidak Ditemukan</string>
+
+    <string name="loader_requires_firmware">Game memerlukan firmware</string>
+    <string name="loader_requires_firmware_description"><![CDATA[Game yang ingin Anda jalankan memerlukan firmware untuk boot atau melewati menu pembuka. Silakan <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dump dan instal firmware</a>, atau tekan \"OK\" untuk melanjutkan.]]></string>
+
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Mencari game...</string>
+    <string name="game_not_found_for_title_id">Game tidak ditemukan untuk ID Judul: %1$s</string>
+    <string name="custom_settings_failed_title">Pengaturan Kustom Gagal</string>
+    <string name="custom_settings_failed_message">Gagal menerapkan pengaturan kustom untuk %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Luncurkan dengan Pengaturan Default</string>
+    <string name="launch_cancelled">Peluncuran dibatalkan</string>
+    <string name="custom_settings_failure_reasons">Tidak dapat menerapkan pengaturan yang diminta. Ini mungkin karena driver GPU yang hilang atau masalah konfigurasi.</string>
+    <string name="custom_settings_applied">Pengaturan kustom diterapkan</string>
+    <string name="launching_game">Meluncurkan %1$s...</string>
+    <string name="failed_to_initialize_game">Gagal menginisialisasi game</string>
+    <string name="custom_intent_launch_message_with_settings">Apakah Anda ingin meluncurkan %1$s dengan pengaturan kustom?</string>
+    <string name="custom_intent_launch_message">Apakah Anda ingin meluncurkan %1$s?</string>
+    <string name="custom_intent_launch_title">Luncurkan Game</string>
+    <string name="launch">Luncurkan</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Gagal menulis file konfigurasi</string>
+    <string name="config_apply_failed">Gagal menerapkan konfigurasi</string>
+    <string name="config_already_exists_title">Konfigurasi Sudah Ada</string>
+    <string name="config_already_exists_message">Settingan kustom telah tersedia untuk %1$s.\n\nApakah Anda ingin untuk menimpa konfigurasi yang tersedia\?\n\nTindakan ini permanen.</string>
+    <string name="config_exists_prompt">Memeriksa konfigurasi yang ada...</string>
+    <string name="overwrite_cancelled">Penimpaan dibatalkan</string>
+    <string name="overwrite">Timpa</string>
+
+    <!-- Driver strings -->
+    <string name="driver_not_found">Driver yang diperlukan tidak terinstal: %s</string>
+    <string name="invalid_driver_file">File driver tidak valid: %s</string>
+    <string name="network_unavailable">Tidak ada koneksi jaringan yang tersedia. Silakan periksa koneksi internet Anda dan coba lagi.</string>
+    <string name="driver_missing_title">Driver GPU Diperlukan</string>
+    <string name="driver_missing_message">Konfigurasi game ini memerlukan driver GPU \"%s\" yang tidak terinstal di perangkat Anda.\n\nApakah Anda ingin mengunduh dan menginstalnya\?</string>
+    <string name="driver_download_cancelled">Pengunduhan driver dibatalkan. Game tidak dapat diluncurkan tanpa driver yang diperlukan.</string>
+    <string name="download">Unduh</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">Keluar</string>
+    <string name="emulation_done">Selesai</string>
+    <string name="emulation_toggle_controls">Beralih Kontrol</string>
+    <string name="emulation_rel_stick_center">Pusat stick relatif</string>
+    <string name="emulation_dpad_slide">Geser Dpad</string>
+    <string name="emulation_haptics">Haptik</string>
+    <string name="emulation_show_overlay">Tampilkan Kontroler</string>
+    <string name="emulation_hide_overlay">Sembunyikan Kontroler</string>
+    <string name="emulation_toggle_all">Alihkan Semua</string>
+    <string name="emulation_control_adjust">Menyesuaikan</string>
+    <string name="emulation_control_scale">Skala</string>
+    <string name="emulation_control_opacity">Kegelapan</string>
+    <string name="emulation_touch_overlay_reset">Penyetelan Ulang Hamparan</string>
+    <string name="emulation_touch_overlay_edit">Edit Hamparan</string>
+    <string name="emulation_pause">Jeda</string>
+    <string name="emulation_unpause">Batalkan Jeda</string>
+    <string name="emulation_input_overlay">Hamparan Masukan</string>
+    <string name="touchscreen">Layar Sentuh</string>
+    <string name="lock_drawer">Kunci Laci</string>
+    <string name="unlock_drawer">Buka Kunci Laci</string>
+    <string name="reset">Reset</string>
+
+    <!-- Software keyboard -->
+    <string name="software_keyboard">Papan Ketik Perangkat Lunak</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">Batalkan</string>
+    <string name="continue_button">Lanjut</string>
+    <string name="system_archive_not_found">Arsip Tidak Ditemukan</string>
+    <string name="system_archive_general">Arsip Umum</string>
+    <string name="save_load_error">Kesalahan Memuat</string>
+    <string name="fatal_error">Kesalahan Fatal</string>
+    <string name="device_memory_inadequate">Ram Perangkat: %1$s\nRekomendasi: %2$s</string>
+    <string name="memory_formatted">%1$s%2$s</string>
+    <string name="no_game_present">Tidak ada permainan yang dapat di-boot!</string>
+
+    <!-- Region Names -->
+    <string name="region_japan">Jepang</string>
+    <string name="region_usa">Amerika Serikat</string>
+    <string name="region_europe">Eropa</string>
+    <string name="region_australia">Australia</string>
+    <string name="region_china">Tiongkok</string>
+    <string name="region_korea">Korea</string>
+    <string name="region_taiwan">Taiwan</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (Direkomendasikan)</string>
+    <string name="memory_6gb">6GB (Tidak Aman)</string>
+    <string name="memory_8gb">8GB (Tidak Aman)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Cepat (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">Rendah (128)</string>
+    <string name="gpu_medium">Sedang (256)</string>
+    <string name="gpu_high">Tinggi (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte_shorthand">B</string>
+    <string name="memory_kilobyte">KB</string>
+    <string name="memory_megabyte">MB</string>
+    <string name="memory_gigabyte">Britania Raya</string>
+    <string name="memory_terabyte">TB</string>
+    <string name="memory_petabyte">PB</string>
+    <string name="memory_exabyte">EB</string>
+
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">Vulkan</string>
+    <string name="renderer_none">Tak ada</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">Normal</string>
+    <string name="renderer_accuracy_high">Tinggi</string>
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Bawaan</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">Metode Dekoding ASTC</string>
+    <string name="accelerate_astc_description">Pilih cara tekstur terkompresi ASTC didekode untuk rendering: CPU (lambat, aman), GPU (cepat, direkomendasikan), atau CPU Async (tanpa lag, mungkin menyebabkan masalah)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU Secara Asinkron</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">Metode Rekompresi ASTC</string>
+    <string name="astc_recompression_description">Pilih cara tekstur ASTC dikompresi ulang untuk meningkatkan kompatibilitas dan performa. Mengaktifkan opsi ini menghemat VRAM tetapi dapat menurunkan kualitas tekstur.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Tidak Dikompresi</string>
+    <string name="astc_recompression_bc1">BC1 (Kualitas Rendah)</string>
+    <string name="astc_recompression_bc3">BC3 (Kualitas Menengah)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">Mode Penggunaan VRAM</string>
+    <string name="vram_usage_mode_description">Kontrol seberapa agresif emulator mengalokasikan dan membebaskan memori GPU.</string>
+    <string name="vram_usage_conservative">Konservatif</string>
+    <string name="vram_usage_aggressive">Agresif</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (Lambat)</string>
+    <string name="resolution_three">3X (2160p/3240p) (Lambat)</string>
+    <string name="resolution_four">4X (2880p/4320p) (Lambat)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">Immediate (OFF)</string>
+    <string name="renderer_vsync_mailbox">Mailbox</string>
+    <string name="renderer_vsync_fifo">FIFO (ON)</string>
+    <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
+    <string name="scaling_filter_bilinear">Biliner</string>
+    <string name="scaling_filter_bicubic">Bikubik</string>
+    <string name="scaling_filter_gaussian">Gaussian</string>
+    <string name="scaling_filter_scale_force">ScaleForce</string>
+    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolusi</string>
+    <string name="scaling_filter_area">Area</string>
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">Tak ada</string>
+    <string name="anti_aliasing_fxaa">FXAA</string>
+    <string name="anti_aliasing_smaa">SMAA</string>
+
+    <!-- Screen Layouts -->
+    <string name="screen_layout_auto">Otomatis</string>
+    <string name="screen_layout_sensor_landscape">Lanskap Sensor</string>
+    <string name="screen_layout_landscape">Lanskap</string>
+    <string name="screen_layout_reverse_landscape">Lanskap Terbalik</string>
+    <string name="screen_layout_sensor_portrait">Potret Sensor</string>
+    <string name="screen_layout_portrait">Potret</string>
+    <string name="screen_layout_reverse_portrait">Potret Terbalik</string>
+
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">Bawaan (16:9)</string>
+    <string name="ratio_force_four_three">Paksa 4:3</string>
+    <string name="ratio_force_twenty_one_nine">Paksa 21:9</string>
+    <string name="ratio_force_sixteen_ten">Paksa 16:10</string>
+    <string name="ratio_stretch">Merentangkan</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
+    <string name="cpu_backend_nce">Native code execution (NCE)</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">Akurat</string>
+    <string name="cpu_accuracy_unsafe">Berbahaya</string>
+    <string name="cpu_accuracy_paranoid">Paranoid</string>
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">D Pad</string>
+    <string name="gamepad_left_stick">Left Stick</string>
+    <string name="gamepad_right_stick">Right Stick</string>
+    <string name="gamepad_home">Home</string>
+    <string name="gamepad_screenshot">Screenshot</string>
+
+    <!-- Disk shader cache -->
+    <string name="building_shaders">membangun shader</string>
+
+    <!-- App options -->
+    <string name="change_app_theme">Ubah Tema</string>
+    <string name="theme_default">Bawaan</string>
+    <string name="theme_material_you">Material Anda</string>
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">Mengubah Tema</string>
+    <string name="theme_mode_follow_system">Mengikuti Sistem</string>
+    <string name="theme_mode_light">Terang</string>
+    <string name="theme_mode_dark">Gelap</string>
+
+    <!-- Audio output engines -->
+    <string name="oboe">Oboe</string>
+    <string name="cubeb">Cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">Gunakan Latar Belakang Hitam</string>
+    <string name="use_black_backgrounds_description">Apabila menggunakan tema gelap, terapkan latar belakang hitam</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Warna Tema</string>
+    <string name="eden_theme">Eden (Bawaan)</string>
+    <string name="violet">Ungu (Bawaan)</string>
+    <string name="blue">Biru</string>
+    <string name="cyan">Sian</string>
+    <string name="red">Merah</string>
+    <string name="green">Hijau</string>
+    <string name="yellow">Kuning</string>
+    <string name="orange">Oranye</string>
+    <string name="pink">Merah Muda</string>
+    <string name="gray">Abu-abu</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">Gambar dalam gambar</string>
+    <string name="picture_in_picture_description">Meminimalkan jendela apabila ditempatkan di latar belakang</string>
+    <string name="pause">Jeda</string>
+    <string name="play">Bermain</string>
+    <string name="mute">Bisukan</string>
+    <string name="unmute">Membunyikan</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Penyelarasan vertikal</string>
+    <string name="top">Atas</string>
+    <string name="center">Pusat</string>
+    <string name="bottom">Bawah</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Applet</string>
+    <string name="applets_menu_description">(Dalam pengerjaan) Ubah frontend dan pengaturan applet</string>
+
+    <string name="applet_hle">Frontend Kustom</string>
+    <string name="applet_lle">Applet Asli</string>
+
+    <string name="swkbd_applet">Papan Ketik Perangkat Lunak</string>
+
+    <string name="airplane_mode">Mode Pesawat</string>
+    <string name="airplane_mode_description">Meneruskan Mode Pesawat ke OS Switch</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">Lisensi</string>
+    <string name="license_fidelityfx_fsr_description">Peningkatan kualitas tinggi dari AMD</string>
+    </resources>

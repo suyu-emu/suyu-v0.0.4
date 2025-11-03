@@ -1,0 +1,44 @@
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: 2014 Citra Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "common/scm_rev.h"
+
+#define GIT_REV "@GIT_COMMIT@"
+#define GIT_BRANCH "@GIT_REFSPEC@"
+#define GIT_DESC "@GIT_DESC@"
+#define BUILD_NAME "@REPO_NAME@"
+#define BUILD_DATE "@BUILD_DATE@"
+#define BUILD_FULLNAME "@BUILD_FULLNAME@"
+#define BUILD_VERSION "@BUILD_VERSION@"
+#define BUILD_ID "@BUILD_ID@"
+#define TITLE_BAR_FORMAT_IDLE "@TITLE_BAR_FORMAT_IDLE@"
+#define TITLE_BAR_FORMAT_RUNNING "@TITLE_BAR_FORMAT_RUNNING@"
+#define IS_DEV_BUILD @IS_DEV_BUILD@
+#define COMPILER_ID "@CXX_COMPILER@"
+#define BUILD_AUTO_UPDATE_WEBSITE "@BUILD_AUTO_UPDATE_WEBSITE@"
+#define BUILD_AUTO_UPDATE_API "@BUILD_AUTO_UPDATE_API@"
+#define BUILD_AUTO_UPDATE_REPO "@BUILD_AUTO_UPDATE_REPO@"
+
+namespace Common {
+
+constexpr const char g_scm_rev[] = GIT_REV;
+constexpr const char g_scm_branch[] = GIT_BRANCH;
+constexpr const char g_scm_desc[] = GIT_DESC;
+constexpr const char g_build_name[] = BUILD_NAME;
+constexpr const char g_build_date[] = BUILD_DATE;
+constexpr const char g_build_fullname[] = BUILD_FULLNAME;
+constexpr const char g_build_version[] = BUILD_VERSION;
+constexpr const char g_build_id[] = BUILD_ID;
+constexpr const char g_title_bar_format_idle[] = TITLE_BAR_FORMAT_IDLE;
+constexpr const char g_title_bar_format_running[] = TITLE_BAR_FORMAT_RUNNING;
+constexpr const char g_compiler_id[] = COMPILER_ID;
+constexpr const bool g_is_dev_build = IS_DEV_BUILD;
+
+constexpr const char g_build_auto_update_website[] = BUILD_AUTO_UPDATE_WEBSITE;
+constexpr const char g_build_auto_update_api[] = BUILD_AUTO_UPDATE_API;
+constexpr const char g_build_auto_update_repo[] = BUILD_AUTO_UPDATE_REPO;
+
+} // namespace Common
