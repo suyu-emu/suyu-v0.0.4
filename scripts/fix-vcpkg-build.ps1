@@ -77,7 +77,20 @@ if (-not (Test-Path "vcpkg.json")) {
     exit 1
 }
 
-Write-Host "Installing packages from vcpkg.json..." -ForegroundColor Cyan
+Write-Host "Installing vcpkg-cmake tools first..." -ForegroundColor Cyan
+Write-Host "Command: $vcpkgExe install vcpkg-cmake vcpkg-cmake-config --triplet x64-windows --clean-after-build" -ForegroundColor Gray
+
+try {
+    & $vcpkgExe install vcpkg-cmake vcpkg-cmake-config --triplet x64-windows --clean-after-build
+    Write-Host "vcpkg-cmake tools installed successfully." -ForegroundColor Green
+} catch {
+    Write-Host "Error installing vcpkg-cmake tools: $_" -ForegroundColor Red
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
+Write-Host ""
+Write-Host "Installing remaining packages from vcpkg.json..." -ForegroundColor Cyan
 Write-Host "Command: $vcpkgExe install --triplet x64-windows --clean-after-build" -ForegroundColor Gray
 
 try {
