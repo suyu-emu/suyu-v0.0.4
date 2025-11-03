@@ -41,7 +41,8 @@
     "boost-spirit",
     "boost-test",
     "boost-timer",
-    "boost-variant"
+    "boost-variant",
+    "boost-cobalt"
   ],
   "features": {
     "suyu-tests": {
