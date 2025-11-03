@@ -240,7 +240,7 @@ struct Values {
                                                     Category::Cpu};
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage, CpuAccuracy::Auto,
                                                       "cpu_accuracy", Category::Cpu};
-
+    SwitchableSetting<bool> vtable_bouncing{linkage, true, "vtable_bouncing", Category::Cpu};
     SwitchableSetting<bool> use_fast_cpu_time{linkage,
                                               false,
                                               "use_fast_cpu_time",

@@ -103,12 +103,26 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
         const bool data_abort = True(hr & Core::HaltReason::DataAbort);
         const bool interrupt = True(hr & Core::HaltReason::BreakLoop);
 
+        bool may_abort = true; // Ignore aborting virtual functions (for debugging)
+        if (prefetch_abort && ::Settings::values.vtable_bouncing) {
+            auto& lock = m_kernel.GlobalSchedulerContext().SchedulerLock();
+            lock.Lock();
+            Kernel::Svc::ThreadContext ctx;
+            interface->GetContext(ctx);
+            LOG_WARNING(Core_ARM, "vtable bouncing {:016X}", ctx.lr);
+            ctx.pc = ctx.lr;
+            ctx.r[0] = 0;
+            interface->SetContext(ctx);
+            lock.Unlock();
+            may_abort = false;
+        }
+
         // Since scheduling may occur here, we cannot use any cached
         // state after returning from calls we make.
 
         // Notify the debugger and go to sleep if a breakpoint was hit,
         // or if the thread is unable to continue for any reason.
-        if (breakpoint || prefetch_abort) {
+        if (breakpoint || (prefetch_abort && may_abort)) {
             if (breakpoint) {
                 interface->RewindBreakpointInstruction();
             }
