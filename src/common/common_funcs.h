@@ -32,27 +32,9 @@
 #define INSERT_PADDING_WORDS_NOINIT(num_words)                                                     \
     [[maybe_unused]] std::array<u32, num_words> CONCAT2(pad, __LINE__)
 
-#ifndef _MSC_VER
-
-#if defined(ARCHITECTURE_x86_64)
-#define Crash() __asm__ __volatile__("int $3")
-#elif defined(ARCHITECTURE_arm64)
-#define Crash() __asm__ __volatile__("brk #0")
-#else
-#define Crash() exit(1)
-#endif
-
-#else // _MSC_VER
-
-// Locale Cross-Compatibility
-#define locale_t _locale_t
-
-extern "C" {
-__declspec(dllimport) void __stdcall DebugBreak(void);
-}
-#define Crash() DebugBreak()
-
-#endif // _MSC_VER ndef
+#ifdef _MSC_VER
+#   define locale_t _locale_t // Locale Cross-Compatibility
+#endif // _MSC_VER
 
 #define DECLARE_ENUM_FLAG_OPERATORS(type)                                                          \
     [[nodiscard]] constexpr type operator|(type a, type b) noexcept {                              \

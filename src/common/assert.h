@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -10,8 +13,8 @@
 // However touching this file yields a global recompilation as this header is included almost
 // everywhere. So let's just move the handling of the failed assert to a single cpp file.
 
-void assert_fail_impl();
-[[noreturn]] void unreachable_impl();
+void AssertFailSoftImpl();
+[[noreturn]] void AssertFatalImpl();
 
 #ifdef _MSC_VER
 #define YUZU_NO_INLINE __declspec(noinline)
@@ -22,29 +25,29 @@ void assert_fail_impl();
 #define ASSERT(_a_)                                                                                \
     ([&]() YUZU_NO_INLINE {                                                                        \
         if (!(_a_)) [[unlikely]] {                                                                 \
-            LOG_CRITICAL(Debug, "Assertion Failed!");                                              \
-            assert_fail_impl();                                                                    \
+            LOG_CRITICAL(Debug, "Assert");                                              \
+            AssertFailSoftImpl();                                                                    \
         }                                                                                          \
     }())
 
 #define ASSERT_MSG(_a_, ...)                                                                       \
     ([&]() YUZU_NO_INLINE {                                                                        \
         if (!(_a_)) [[unlikely]] {                                                                 \
-            LOG_CRITICAL(Debug, "Assertion Failed!\n" __VA_ARGS__);                                \
-            assert_fail_impl();                                                                    \
+            LOG_CRITICAL(Debug, "Assert\n" __VA_ARGS__);                                \
+            AssertFailSoftImpl();                                                                    \
         }                                                                                          \
     }())
 
 #define UNREACHABLE()                                                                              \
     do {                                                                                           \
-        LOG_CRITICAL(Debug, "Unreachable code!");                                                  \
-        unreachable_impl();                                                                        \
+        LOG_CRITICAL(Debug, "Unreachable");                                                  \
+        AssertFatalImpl();                                                                        \
     } while (0)
 
 #define UNREACHABLE_MSG(...)                                                                       \
     do {                                                                                           \
-        LOG_CRITICAL(Debug, "Unreachable code!\n" __VA_ARGS__);                                    \
-        unreachable_impl();                                                                        \
+        LOG_CRITICAL(Debug, "Unreachable\n" __VA_ARGS__);                                    \
+        AssertFatalImpl();                                                                        \
     } while (0)
 
 #ifdef _DEBUG
