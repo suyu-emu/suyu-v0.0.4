@@ -6,24 +6,6 @@
   "dependencies": [
     "vcpkg-cmake",
     "vcpkg-cmake-config",
-    "boost-algorithm",
-    "boost-asio",
-    "boost-bind",
-    "boost-config",
-    "boost-container",
-    "boost-context",
-    "boost-crc",
-    "boost-functional",
-    "boost-heap",
-    "boost-icl",
-    "boost-intrusive",
-    "boost-mpl",
-    "boost-process",
-    "boost-range",
-    "boost-spirit",
-    "boost-test",
-    "boost-timer",
-    "boost-variant",
     "cpp-httplib",
     "cpp-jwt",
     "cubeb",
@@ -41,7 +23,25 @@
     "vulkan-memory-allocator",
     "xbyak",
     "zlib",
-    "zstd"
+    "zstd",
+    "boost-algorithm",
+    "boost-asio",
+    "boost-bind",
+    "boost-config",
+    "boost-container",
+    "boost-context",
+    "boost-crc",
+    "boost-functional",
+    "boost-heap",
+    "boost-icl",
+    "boost-intrusive",
+    "boost-mpl",
+    "boost-process",
+    "boost-range",
+    "boost-spirit",
+    "boost-test",
+    "boost-timer",
+    "boost-variant"
   ],
   "features": {
     "suyu-tests": {
@@ -72,6 +72,14 @@
     }
   },
   "overrides": [
+    {
+      "name": "vcpkg-cmake",
+      "version": "2024-04-23"
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "version": "2024-05-23"
+    },
     {
       "name": "catch2",
       "version": "3.4.0"
