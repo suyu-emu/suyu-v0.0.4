@@ -1,0 +1,49 @@
+<org.yuzu.yuzu_emu.views.GradientBorderCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_game_carousel"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:cardPreventCornerOverlap="true"
+    android:clipChildren="true"
+    android:layout_margin="0dp"
+    app:cardBackgroundColor="@color/eden_card_background"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/eden_border">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="4dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/image_game_screen"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/game_image_desc"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Eden.CarouselImage"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/text_game_title"
+            />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/text_game_title"
+            style="@style/TextAppearance.Material3.TitleMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:requiresFadingEdge="horizontal"
+            android:textAlignment="center"
+            app:layout_constraintTop_toBottomOf="@+id/image_game_screen"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:text="Game Title" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</org.yuzu.yuzu_emu.views.GradientBorderCardView>

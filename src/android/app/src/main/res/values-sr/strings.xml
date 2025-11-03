@@ -1,0 +1,942 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="notice_notification_channel_name">Обавештења и грешке</string>
+    <string name="notice_notification_channel_description">Приказује обавештења када нешто пође по злу.</string>
+    <string name="notification_permission_not_granted">Дозвола за обавештавање није одобрена!</string>
+    <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Побољшано)</string>
+    <string name="shaders_prefix">Зграда</string>
+    <string name="shaders_suffix">Схадер (с)</string>
+    <string name="charging">(Пуњење)</string>
+
+    <string name="system_info_label">Систем:</string>
+    <string name="show_stats_overlay">Покажи Статистика перформанси Статистика</string>
+    <string name="stats_overlay_customization">Прилагођавање</string>
+    <string name="stats_overlay_items">Видљивост</string>
+    <string name="stats_overlay_options">Прекривање перформанси</string>
+    <string name="enable_stats_overlay_">Омогући преклапање статистика перформанси</string>
+    <string name="stats_overlay_options_description">Конфигуришите које се информације приказују у прекривању статистике перформанси</string>
+    <string name="show_fps">Прикажи фпс</string>
+    <string name="show_fps_description">Прикажите тренутне оквире у секунди</string>
+    <string name="show_frametime">Показати фраметиме</string>
+    <string name="show_frametime_description">Прикажи тренутни фрамети</string>
+    <string name="show_app_ram_usage">Прикажи употребу апликације меморије</string>
+    <string name="show_app_ram_usage_description">Прикажи количину РАМ-а Емулатор користи</string>
+    <string name="show_system_ram_usage">Прикажи употребу система меморије</string>
+    <string name="show_system_ram_usage_description">Прикажите износ РАМ-а који користи систем</string>
+    <string name="show_bat_temperature">Прикажи температуру батерије</string>
+    <string name="show_bat_temperature_description">Прикажи тренутну температуру батерије</string>
+    <string name="bat_temperature_unit">Јединице за температуру батерије</string>
+    <string name="show_power_info">Прикажи информације о батерији</string>
+    <string name="show_power_info_description">Приказ тренутне потрошње енергије и преостали капацитет батерије</string>
+    <string name="show_shaders_building">Прикажи Схадерс Буилдинг</string>
+    <string name="show_shaders_building_description">Прикажи тренутни број саграђених Схадера</string>
+    <string name="overlay_position">Положај прекривања</string>
+    <string name="overlay_position_description">Одаберите где се приказује прекривање на екрану</string>
+    <string name="overlay_position_top_left">Горњи леви</string>
+    <string name="overlay_position_top_right">Горњи десни</string>
+    <string name="overlay_position_bottom_left">Доњи леви</string>
+    <string name="overlay_position_bottom_right">Дно десно</string>
+    <string name="overlay_position_center_top">Центар на врху</string>
+    <string name="overlay_position_center_bottom">Доњи део центра</string>
+    <string name="perf_overlay_background">Позадина прекривања</string>
+    <string name="perf_overlay_background_description">Додаје позадину иза прекривања за лакше читање</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Прикажи прекривање информација о уређају</string>
+    <string name="enable_soc_overlay">Омогући прекривање уређаја</string>
+    <string name="soc_overlay_options">Прекривање уређаја</string>
+    <string name="soc_overlay_options_description">Конфигуришите које се информације приказују у прекривању уређаја</string>
+
+    <string name="show_device_model">Прикажи модел уређаја</string>
+    <string name="show_device_model_description">Прикажите модел уређаја за хост</string>
+    <string name="show_gpu_model">Прикажи ГПУ модел</string>
+    <string name="show_gpu_model_description">Прикажите модел ГПУ-а у хосту</string>
+    <string name="show_soc_model">Прикажи соц модел</string>
+    <string name="show_soc_model_description">Прикажите модел домаћина СоЦ</string>
+    <string name="show_fw_version">Прикажи верзију фирмвера</string>
+    <string name="show_fw_version_description">Приказује инсталирану верзију фирмвера</string>
+
+    <!-- Eden\'s Veil -->
+    <string name="eden_veil">Еденова аукција</string>
+    <string name="eden_veil_description">Експериментална подешавања за побољшање перформанси и способности. Ова подешавања могу изазвати црне екране или друге проблеме у игри.</string>
+
+    <string name="veil_extensions">ГПУ екстензије</string>
+    <string name="dyna_state">Проширена динамичка држава</string>
+    <string name="dyna_state_description">Управља бројем функција које се могу користити у Проширеном динамичком стању. Веће вредности омогућавају више функција и могу повећати перформансе, али могу изазвати проблеме са неким драјверима и произвођачима. Подразумевана вредност може се разликовати у зависности од вашег система и хардверских могућности. Ова вредност се може мењати док се не постигне стабилност и бољи визуелни квалитет.</string>
+    <string name="disabled">Искључено</string>
+    <string name="provoking_vertex">Провоцирајући врх</string>
+    <string name="provoking_vertex_description">Побољшава осветљење и вертификат руковања у одређеним играма. Подржан само на Вулкану 1.0+ ГПУ-у.</string>
+    <string name="descriptor_indexing">Индексирање дескриптора</string>
+    <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
+    <string name="sample_shading">Семпловање сенчења</string>
+    <string name="sample_shading_description">Омогућава фрагмент шејдеру да се извршава по узорку у вишеузорачном фрагменту уместо једном по фрагменту. Побољшава квалитет графике на рачун перформанси. Само Vulkan 1.1+ уређаји подржавају ову екстензију.</string>
+    <string name="sample_shading_fraction">Удео сенчења узорка</string>
+    <string name="sample_shading_fraction_description">Интензитет проласка сенчења узорка. Веће вредности побољшавају квалитет више, али такође више смањују перформансе.</string>
+
+    <string name="veil_renderer">Рендерер</string>
+    <string name="frame_interpolation">Побољшани оквирни пејсинг</string>
+    <string name="frame_interpolation_description">Осигурава глатку и доследан испоруку оквира синхронизацијом времена између оквира, смањење муцања и неуједначене анимације. Идеално за игре које доживљавају временски оквир нестабилност или микро-штитнике током играња.</string>
+    <string name="renderer_early_release_fences">Ranije oslobađanje ograda</string>
+    <string name="renderer_early_release_fences_description">Pomaže u popravci 0 FPS u igrama kao što su DKCR:HD, Subnautica Below Zero i Ori 2, ali može oštetiti učitavanje ili performanse u Unreal Engine igrama.</string>
+    <string name="sync_memory_operations">Синхронизација меморијских операција</string>
+    <string name="sync_memory_operations_description">Осигурава конзистентност података између рачунских и меморијских операција. Ова опција би требало да поправи проблеме у неким играма, али може смањити перформансе у неким случајевима. Чини се да су игре са Unreal Engine 4 највише погођене.</string>
+    <string name="buffer_reorder_disable">Онемогући преуређивање бафера</string>
+    <string name="buffer_reorder_disable_description">Када је означено, онемогућава преуређивање учитавања мапиране меморије што омогућава повезивање учитавања са одређеним цртањима. Може у неким случајевима смањити перформансе.</string>
+
+    <string name="veil_misc">CPU и меморија</string>
+    <string name="use_sync_core">Синхронизујте брзину језгре</string>
+    <string name="use_sync_core_description">Синхронизујте језгро Тицк Брзина брзине максималне брзине да бисте побољшали перформансе без измене стварне брзине игре.</string>
+    <string name="use_lru_cache">Омогући ЛРУ кеш</string>
+    <string name="use_lru_cache_description">Омогућите или онемогућите најмање недавно коришћене (ЛРУ) кеш меморије, све веће перформансе штедећи употребу процеса ЦПУ-а. Неке игре са њом имају проблеме, посебно тотк 1.2.1, тако да онемогућите ако се игра не покрене или се руши насумично.</string>
+    <string name="use_fast_cpu_time">Брзо време ЦПУ-а</string>
+    <string name="use_fast_cpu_time_description">Присиљава опомена ЦПУ-а како би се покренуло на вишим сатима, смањујући одређене ФПС ограничења. Ова опција је хакира и може проузроковати проблеме и слабији ЦПУ-ови могу видети смањене перформансе.</string>
+    <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
+    <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
+    <string name="cpu_ticks">Тактови</string>
+    <string name="skip_cpu_inner_invalidation">Preskoči unutrašnje poništavanje CPU-a</string>
+    <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
+    <string name="cpuopt_unsafe_host_mmu">Омогући емулацију MMU домаћина</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Ова оптимизација убрзава приступ меморији од стране гостујућег програма. Укључивање изазива да се читања/уписа меморије госта обављају директно у меморији и користе MMU домаћина. Искључивање присиљава све приступе меморији да користе софтверску емулацију MMU.</string>
+    <string name="fast_cpu_time">ЦПУ сат</string>
+    <string name="fast_cpu_time_description">Користите појачање (1700МХз) да бисте се покренули на највишим матичним тактом Свитцх \ 2000МХз (2000МХз) да бисте покренули на 2к сату.</string>
+    <string name="memory_layout">Изглед меморије</string>
+    <string name="memory_layout_description">(Експериментално) Промените изглед емулираног меморије. Ово постављање неће повећати перформансе, али може помоћи у играма које користе високе резолуције путем модова. Не користите на телефонима са 8 ГБ РАМ-а или мање. Ради само на динамичком (ЈИТ) бацкенд-у.</string>
+    <string name="dma_accuracy">DMA тачност</string>
+    <string name="dma_accuracy_description">Управља прецизношћу DMA-а. Сигурна прецизност може да исправи проблеме у неким играма, али у неким случајевима може да утиче и на перформансе. Ако нисте сигурни, оставите ово на Подразумевано.</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">Схадер Бацкенд</string>
+    <string name="shader_backend_description">Изаберите како се сјеначици саставе и преведете за ваш ГПУ.</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">НВДЕЦ Емулација</string>
+    <string name="nvdec_emulation_description">Изаберите како се видео декодирање (НВДЕЦ) обрађује током секс и увозних интросија.</string>
+    <string name="nvdec_emulation_cpu">ЦПУ</string>
+    <string name="nvdec_emulation_gpu">ГПУ</string>
+    <string name="nvdec_emulation_none">Ниједан</string>
+
+    <!-- Optimize Spir-V output -->
+    <string name="never">Невер</string>
+    <string name="on_load">На оптерећење</string>
+    <string name="always">Увек</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">Мултиплаиер</string>
+    <string name="multiplayer_description">Домаћин сопствене собе за играње или се придружите постојећем којој ћете се играти са људима</string>
+    <string name="multiplayer_create_room">Створити</string>
+    <string name="multiplayer_join_room">Придружити се</string>
+    <string name="multiplayer_public_room">Прегледајте јавне собе</string>
+    <string name="multiplayer_username">Корисничко име</string>
+    <string name="multiplayer_ip_address">ИП адреса</string>
+    <string name="multiplayer_ip_port">Лука</string>
+    <string name="multiplayer_create_room_success">Соба је успешно створена!</string>
+    <string name="multiplayer_join_room_success">Успешно се придружите собу!</string>
+    <string name="multiplayer_exit_room">Излазна соба</string>
+    <string name="multiplayer_network_error">Грешка у мрежи</string>
+    <string name="multiplayer_lost_connection">Изгубљена веза</string>
+    <string name="multiplayer_name_collision">Корисничко име је већ заузето</string>
+    <string name="multiplayer_mac_collision">Мац судар</string>
+    <string name="multiplayer_console_id_collision">Судар конзоле</string>
+    <string name="multiplayer_wrong_version">Погрешна верзија</string>
+    <string name="multiplayer_wrong_password">Погрешна лозинка</string>
+    <string name="multiplayer_could_not_connect">Није се могао повезати</string>
+    <string name="multiplayer_room_is_full">Соба је пуна</string>
+    <string name="multiplayer_host_banned">Забрањен вам је приступ овој соби</string>
+    <string name="multiplayer_permission_denied">Дозвола одбијена</string>
+    <string name="multiplayer_no_such_user">Нема таквог корисника</string>
+    <string name="multiplayer_already_in_room">Већ у соби</string>
+    <string name="multiplayer_create_room_error">Креирајте грешку у соби</string>
+    <string name="multiplayer_host_kicked">Шутирао домаћин</string>
+    <string name="multiplayer_unknown_error">непозната грешка</string>
+    <string name="multiplayer_room_uninitialized">Соба неиницијализована</string>
+    <string name="multiplayer_room_idle">Собни у празном ходу</string>
+    <string name="multiplayer_room_joining">Спајање собе</string>
+    <string name="multiplayer_room_joined">Соба се придружила</string>
+    <string name="multiplayer_room_moderator">Модератор соба</string>
+    <string name="multiplayer_member_join">%1$s Придружен</string>
+    <string name="multiplayer_member_leave">%1$s лево</string>
+    <string name="multiplayer_member_kicked">%1$s шутран</string>
+    <string name="multiplayer_member_banned">%1$s забрањено</string>
+    <string name="multiplayer_address_unbanned">адреса необјављена</string>
+    <string name="multiplayer_kick_member">Избити</string>
+    <string name="multiplayer_password">Лозинка</string>
+    <string name="multiplayer_joining">Придружујем се…</string>
+    <string name="multiplayer_creating">Креирам…</string>
+    <string name="multiplayer_room_name">Име собе</string>
+    <string name="multiplayer_max_players_value">МАКС ИГРАЧИ:%d</string>
+    <string name="multiplayer_chat">Разговарати</string>
+    <string name="multiplayer_more_options">Више опција</string>
+    <string name="chat">Разговарати</string>
+    <string name="type_message">Унесите поруку ......</string>
+    <string name="send_message">Пошаљи поруку</string>
+    <string name="multiplayer_moderation">Умјереност</string>
+    <string name="multiplayer_moderation_title">Списак</string>
+    <string name="multiplayer_no_bans">Нема забрањених корисника</string>
+    <string name="multiplayer_unban_title">Унбан корисник</string>
+    <string name="multiplayer_unban">Унбанкати</string>
+    <string name="multiplayer_unban_message">Јесте ли сигурни да желите да убаците%1$s?</string>
+    <string name="multiplayer_ban">Корисник забране</string>
+    <string name="multiplayer_room_browser">Јавне собе</string>
+    <string name="multiplayer_no_rooms_found">Није пронађена ниједна јавне собе</string>
+    <string name="multiplayer_password_required">Потребна лозинка</string>
+    <string name="multiplayer_player_count">:%1$d/%2$d</string>
+    <string name="multiplayer_game">Игра</string>
+    <string name="multiplayer_no_game_info">Било која игра</string>
+    <string name="multiplayer_password_protected">Заштићена соба заштићена лозинком</string>
+    <string name="multiplayer_hide_full_rooms">Сакриј пуне собе</string>
+    <string name="multiplayer_hide_empty_rooms">Сакриј празне собе</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Куцните на освежавање да бисте поново проверили</string>
+    <string name="multiplayer_search_public_lobbies">Претражите лобиес ...</string>
+    <string name="multiplayer_preferred_game_name">Преферирана игра</string>
+    <string name="multiplayer_lobby_type">Тип лобија</string>
+    <string name="multiplayer_room_name_error">Мора бити између 3 и 20 знакова</string>
+    <string name="multiplayer_required">Обавезно</string>
+    <string name="multiplayer_token_required">Потребан је веб токен, идите на Напредне поставке -> Систем -> Мрежа</string>
+    <string name="multiplayer_ip_error">Неисправан ИП формат</string>
+    <string name="multiplayer_username_error">Мора садржати 4-20 знакова (само слова, бројеве, тачке, цртице, доње црте и размаке)</string>
+    <string name="multiplayer_nickname_invalid">Неисправно корисничко име, проверите у Систем → Мрежа</string>
+    <string name="multiplayer_token_error">Мора бити дугачко 48 знакова и садржати само мала слова a-z</string>
+    <string name="multiplayer_port_error">Мора бити између 1 и 65535</string>
+    <string name="cancel">Отказати</string>
+    <string name="ok">У реду</string>
+    <string name="refresh">Освежити</string>
+    <string name="room_list">Листа соба</string>
+    <string name="multiplayer_public_visibility">Јавно</string>
+    <string name="multiplayer_unlisted_visibility">Неприказано</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">Добродошли!</string>
+    <string name="welcome_description">Научите како се подесити и &lt;b>Еден&lt;/b> скочи у емулацију.</string>
+    <string name="get_started">Започните</string>
+    <string name="keys">Тастери</string>
+    <string name="keys_description">Изаберите свој и лт; &lt;b>prod.keys&lt;/b> датотека са дугметом испод.</string>
+    <string name="select_keys">Изаберите тастере</string>
+    <string name="firmware">Фирмвер</string>
+    <string name="select_firmware">Изабери фирмвер</string>
+    <string name="games">Игре</string>
+    <string name="games_description">Изаберите свој и игре и ЛТ; Б> мапу са дугметом испод.</string>
+    <string name="done">Доношен</string>
+    <string name="text_continue">Настављати</string>
+    <string name="next">Следећи</string>
+    <string name="back">Назад</string>
+    <string name="add_games">Додајте игре</string>
+    <string name="step_complete">Довршите!</string>
+
+    <!-- Home strings -->
+
+    <string name="alphabetical">Азбучни</string>
+    <string name="view_list">Списак</string>
+    <string name="view_grid">Мрежа</string>
+    <string name="view_carousel">Карусел</string>
+    <string name="folder">Мапа</string>
+    <string name="dont_show_again">Не покажи поново</string>
+    <string name="home_search">Тражити</string>
+    <string name="home_settings">Подешавања</string>
+    <string name="empty_gamelist">Није пронађена ниједна датотека или се још није одабрала директоријум игара.</string>
+    <string name="manage_game_folders">Управљајте мапама игара</string>
+    <string name="select_games_folder_description">Омогућује ЕДЕН-у да попуни листу игара</string>
+    <string name="add_games_warning">Прескочите одабир мапе игре?</string>
+    <string name="add_games_warning_description">Игре побеђују \"т приказују се на листи игара ако је изабрана мапа н \" т.</string>
+    <string name="home_search_games">Претражите игре</string>
+    <string name="search_settings">Подешавања претраге</string>
+    <string name="install_prod_keys">Инсталирајте prod.keys</string>
+    <string name="install_prod_keys_description">Потребан за дешифровање малопродајних игара</string>
+    <string name="install_prod_keys_warning">Прескочите додавање тастера?</string>
+    <string name="install_prod_keys_warning_description">Потребни су важећи тастери за опонашање малопродајних игара. Само хомебрев апликације ће функционисати ако наставите.</string>
+    <string name="install_firmware_warning">Прескочити додавање фирмвера?</string>
+    <string name="install_firmware_warning_description">Многе игре захтевају приступ фирмверу за правилно функционисање.</string>
+    <string name="notifications">Обавештења</string>
+    <string name="notifications_description">Одобрите дозволу за обавештење дугметом испод.</string>
+    <string name="give_permission">Дозвола за одобрење</string>
+    <string name="notification_warning">Прескочите давање дозволе за обавештавање?</string>
+    <string name="notification_warning_description">Еден је победио да вас може обавестити о важним информацијама.</string>
+    <string name="permission_denied">Дозвола одбијена</string>
+    <string name="permission_denied_description">Превише пута сте негирали ову дозволу и сада морате да га ручно одобри у системским подешавањима.</string>
+    <string name="about">О томе</string>
+    <string name="about_description">Изградите верзију, кредите и још много тога</string>
+    <string name="warning_help">Помоћи</string>
+    <string name="warning">упозорење</string>
+    <string name="warning_skip">Прескочити</string>
+    <string name="warning_cancel">Отказати</string>
+    <string name="install_amiibo_keys">Инсталирајте Амиибо Кеис</string>
+    <string name="install_amiibo_keys_description">Потребно је користити Амиибо у игри</string>
+    <string name="gpu_driver_fetcher">ГПУ возач фетцхер</string>
+    <string name="gpu_driver_manager">ГПУ управљач возача</string>
+    <string name="install_gpu_driver_description">Инсталирајте алтернативне управљачке програме за потенцијално боље перформансе или тачност</string>
+    <string name="advanced_settings">Напредна подешавања</string>
+    <string name="settings_description">Конфигуришите подешавања емулатора</string>
+    <string name="search_recently_played">Недавно одигран</string>
+    <string name="search_recently_added">Недавно је додато</string>
+    <string name="open_user_folder">Отворите директоријум ЕДЕН</string>
+    <string name="open_user_folder_description">Управљајте унутрашњим датотекама ЕДЕН-а</string>
+    <string name="no_file_manager">Није пронађен ниједан управник датотека</string>
+    <string name="notification_no_directory_link">Није могуће отворити директоријум ЕДЕН-а</string>
+    <string name="notification_no_directory_link_description">Молимо пронађите корисничку мапу са бочним панелом датотека менаџера и ручно.</string>
+    <string name="manage_save_data">Управљајте сачувајте податке</string>
+    <string name="manage_save_data_description">Спреми податке. Изаберите опцију испод.</string>
+    <string name="import_save_warning">Увоз сачувај податке</string>
+    <string name="import_save_warning_description">Ово ће пребрисати све постојеће сачувајте податке са испорученом датотеком. Јесте ли сигурни да желите да наставите?</string>
+    <string name="save_files_importing">Увоз сачуваних датотека ...</string>
+    <string name="save_files_exporting">Извоз сачувања датотека ...</string>
+    <string name="save_file_imported_success">Увезено је успешно</string>
+    <string name="save_file_invalid_zip_structure">Неважеће структуре директорија сачувања</string>
+    <string name="save_file_invalid_zip_structure_description">Прво име подмагера мора бити ИД наслова игре.</string>
+    <string name="install_firmware">Инсталирајте фирмвер</string>
+    <string name="install_firmware_description">Фирмваре мора бити у ЗИП архиви и потребно је за покретање неких игара</string>
+    <string name="firmware_installing">Инсталирање фирмвера</string>
+    <string name="firmware_installed_failure">Инсталација фирмвера није успела</string>
+    <string name="firmware_installed_failure_description">Проверите да ли су ФИРВВАРЕ НЦА датотеке у корену Зип и покушавају поново.</string>
+    <string name="firmware_uninstalled_failure">Деинсталација фирмвера није успела</string>
+    <string name="share_log">Дели се за уклањање погрешака</string>
+    <string name="share_log_description">Поделите ЕДЕН \ е-е датотеку дневника у проблематику за уклањање погрешака</string>
+    <string name="share_log_missing">Није пронађена датотека дневника</string>
+    <string name="install_game_content">Инсталирајте садржај игре</string>
+    <string name="install_game_content_description">Инсталирајте исправке игре или ДЛЦ</string>
+    <string name="installing_game_content">Инсталирање садржаја ...</string>
+    <string name="install_game_content_failure">Грешка у инсталирању датотека (а) у НАНД</string>
+    <string name="install_game_content_failure_description">Молимо вас да осигурате да су садржаји валидни и да је инсталирана датотека prod.keys.</string>
+    <string name="install_game_content_failure_base">Инсталација основних игара није дозвољено да се избегне могући сукоби.</string>
+    <string name="install_game_content_failed_count">%1$d Грешка у инсталацији</string>
+    <string name="install_game_content_success">Садржај игре (и) инсталирани су успешно</string>
+    <string name="install_game_content_success_install">%1$d инсталирано успешно</string>
+    <string name="install_game_content_success_overwrite">%1$d преписано успешно</string>
+    <string name="custom_driver_not_supported">Прилагођени управљачки програми нису подржани</string>
+    <string name="manage_yuzu_data">Управљајте подацима ЕДЕН-а</string>
+    <string name="manage_yuzu_data_description">Увоз / извозни софтвер, кључеви, кориснички подаци и још много тога!</string>
+    <string name="game_folders">Мапе игре</string>
+    <string name="deep_scan">Дубоко скенирање</string>
+    <string name="add_game_folder">Додајте мапу игара</string>
+    <string name="folder_already_added">Ова мапа је већ додата!</string>
+    <string name="game_folder_properties">Играње некретнина</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Увоз%d уштедите%d</item>
+        <item quantity="few">Увоз%d уносе%d</item>
+        <item quantity="other">Увоз%d уносе%d</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">Успешно увезено%d уштеда</item>
+        <item quantity="few">Успешно увезени%d штеди</item>
+        <item quantity="other">Успешно увезени%d штеди</item>
+    </plurals>
+    <string name="no_save_data_found">Не пронађени су подаци сачувања</string>
+    <string name="verify_installed_content">Проверите инсталирани садржај</string>
+    <string name="verify_installed_content_description">Проверава све инсталиране садржаје за корупцију</string>
+
+    <string name="keys_missing">Шифра о шифрирањима недостају</string>
+    <string name="keys_missing_description">Фирмваре и малопродајне игре не могу се дешифровати</string>
+    <string name="uninstall_firmware">Деинсталирајте фирмвер</string>
+    <string name="uninstall_firmware_description">Деинсталирање фирмвера ће га уклонити са уређаја и може утицати на компатибилност игара.</string>
+    <string name="firmware_uninstalling">Деинсталирање фирмвера</string>
+    <string name="firmware_uninstalled_success">Фирмваре је успешно деинсталирано</string>
+
+
+    <string name="keys_failed">Неуспела инсталација кључева</string>
+    <string name="keys_install_success">Кључеви успешно инсталирани</string>
+    <string name="error_keys_copy_failed">Један или више кључева није успело да се копира.</string>
+    <string name="error_keys_invalid_filename">Проверите да ли ваш фајл са кључевима има .keys екстензију и покушајте поново.</string>
+    <string name="error_keys_failed_init">Неуспела иницијализација кључева. Проверите да ли су вам алати за прављење дампа ажурни и поново направите дамп кључева.</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Клаунцх</string>
+    <string name="qlaunch_description">Покрените апликације са почетног екрана система</string>
+    <string name="applets">Апплет бацач</string>
+    <string name="applets_description">Покрените системске аплете помоћу инсталираног фирмвера</string>
+    <string name="applets_error_firmware">Фирмвер није инсталиран или је неважећа верзија</string>
+    <string name="applets_error_applet">Апплет није доступан</string>
+    <string name="applets_error_description">prod.keys</string>
+    <string name="album_applet">Албум</string>
+    <string name="album_applet_description">Погледајте слике сачуване у фасцикли заслона корисника са системом Гледач фотографија</string>
+    <string name="mii_edit_applet">Хиљаде Едит</string>
+    <string name="mii_edit_applet_description">Прегледајте и уредите МИИС са системом уреднику</string>
+    <string name="cabinet_applet">Кабинет</string>
+    <string name="cabinet_applet_description">Уређивање и брисање података похрањених на Амиибо-у</string>
+    <string name="cabinet_launcher">Бацач ормара</string>
+    <string name="cabinet_nickname_and_owner">Подешавања надимак и власника</string>
+    <string name="cabinet_game_data_eraser">Брисање података о игри</string>
+    <string name="cabinet_restorer">Рестауратор</string>
+    <string name="cabinet_formatter">Форматтер</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">Гаиа није стварно</string>
+    <string name="copied_to_clipboard">Копирано у међуспремник</string>
+    <string name="about_app_description">Емулатор прекидача отвореног кода</string>
+    <string name="contributors">Сарадници</string>
+    <string name="contributors_description">Сарадници који су омогућили ЕДЕН за Андроид</string>
+    <string name="licenses_description">Пројекти који омогућавају ЕДЕН за Андроид</string>
+    <string name="build">Градити</string>
+    <string name="user_data">Кориснички подаци</string>
+    <string name="exporting_user_data">Извоз података корисника ...</string>
+    <string name="importing_user_data">Увоз података корисника ...</string>
+    <string name="invalid_yuzu_backup">Неважећа резервна копија ЕДЕН-а</string>
+    <string name="user_data_export_success">Кориснички подаци су успешно извезени</string>
+    <string name="user_data_import_success">Корисничке податке увезене успешно</string>
+    <string name="user_data_export_cancelled">Извоз је отказан</string>
+    <string name="user_data_import_failed_description">Проверите да ли су мапе корисничких података у корену зип мапе и садрже конфигурацију датотека на Цонфиг / Цонфиг.ини и покушајте поново.</string>
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">Ограничити брзину</string>
+    <string name="frame_limit_enable_description">Ограничава брзину емулације на одређени проценат нормалне брзине.</string>
+    <string name="frame_limit_slider">Ограничите проценат брзине</string>
+    <string name="frame_limit_slider_description">Одређује проценат за ограничавање брзине емулације. 100% је нормална брзина. Вредности веће или ниже повећаће се или смањити ограничење брзине.</string>
+    <string name="cpu_backend">ЦПУ Бацкенд</string>
+    <string name="cpu_accuracy">ЦПУ тачност</string>
+    <string name="value_with_units">%1$s%2$s</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">Име уређаја</string>
+    <string name="use_docked_mode">Прикључен режим</string>
+    <string name="use_docked_mode_description">Повећава резолуцију, смањење перформанси. Ручни режим се користи када је онемогућено, снижавање резолуције и све веће перформансе.</string>
+    <string name="emulated_region">Емулирана регија</string>
+    <string name="emulated_language">Емулирани језик</string>
+    <string name="select_rtc_date">Изаберите РТЦ дате</string>
+    <string name="select_rtc_time">Изаберите РТЦ време</string>
+    <string name="use_custom_rtc">Цустом РТЦ</string>
+    <string name="use_custom_rtc_description">Омогућава вам да поставите прилагођени сат у реалном времену одвојено од тренутног времена система.</string>
+    <string name="set_custom_rtc">Подесите прилагођени РТЦ</string>
+
+    <string name="generate">Генериши</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Веб токен</string>
+    <string name="web_token_description">Веб токен који се користи за стварање јавних лобија. То је низ од 48 знакова који садржи само мала слова А-З.</string>
+    <string name="web_username">Веб корисничко име</string>
+    <string name="web_username_description">Корисничко име које се приказује у мултиплејер собама. Мора садржати 4-20 знакова (само слова, бројеве, цртице, тачке, доње црте и размаке).</string>
+    <string name="network">Мрежа</string>
+
+    <!-- Graphics settings strings -->
+    <string name="backend">Бекенд</string>
+    <string name="display">Приказ</string>
+    <string name="processing">Постпроцесирање</string>
+
+    <string name="frame_skipping">ВИП: Фрамескип</string>
+    <string name="frame_skipping_description">Пребацивање оквира прескакање да бисте побољшали перформансе смањењем броја пружених оквира. Ова функција се и даље ради и биће омогућена у будућим издањима.</string>
+    <string name="renderer_accuracy">Ниво тачности</string>
+    <string name="renderer_resolution">Резолуција (ручно / прикључено)</string>
+    <string name="renderer_vsync">Всинц мод</string>
+    <string name="renderer_screen_layout">Оријентација</string>
+    <string name="renderer_aspect_ratio">Омјер аспекта</string>
+    <string name="renderer_scaling_filter">Филтер прилагођавања прозора</string>
+    <string name="fsr_sharpness">ФСР оштрина</string>
+    <string name="fsr_sharpness_description">Одређује колико ће се слика наоштрен трајати док користи \"ФСР\" динамички контраст</string>
+    <string name="renderer_anti_aliasing">Метода против алиасирања</string>
+    <string name="renderer_force_max_clock">Формирајте максималне сатове (само адрено)</string>
+    <string name="renderer_force_max_clock_description">Снагује ГПУ да се покреће максималним могућим сатовима (топлотна ограничења ће се и даље примењивати).</string>
+    <string name="renderer_optimize_spirv_output">Оптимизирајте Спирев излаз</string>
+    <string name="renderer_optimize_spirv_output_description">Оптимизира састављена схадер за побољшање ефикасности ГПУ-а.</string>
+    <string name="renderer_asynchronous_shaders">Користите асинхроне схадера</string>
+    <string name="renderer_asynchronous_shaders_description">Саставља схадера асинхроно. Ово може умањити затезаче, али могу такође да уведе пропусте.</string>
+    <string name="use_fast_gpu_time">Користите брзи ГПУ време</string>
+    <string name="use_fast_gpu_time_description">Присиљава већину игара да се покрене у својој највишој родној резолуцији. Ова опција је хаковна и може проузроковати проблеме.</string>
+    <string name="fast_gpu_time">ГПУ оверклок фактора</string>
+    <string name="fast_gpu_time_description">Користите 128 за максималне перформансе и 512 за максималну верност графике.</string>
+    <string name="renderer_reactive_flushing">Користите реактивно испирање</string>
+    <string name="renderer_reactive_flushing_description">Побољшава тачност приказивања у неким играма по цени перформанси.</string>
+    <string name="use_disk_shader_cache">Предмеморија сјена диска</string>
+    <string name="use_disk_shader_cache_description">Смањује муцање локалном чувањем и учитавањем генерисаних схадера.</string>
+    <string name="anisotropic_filtering">Анисотропни филтрирање</string>
+    <string name="anisotropic_filtering_description">Побољшава квалитет текстура када се посматра у косим угловима</string>
+
+    <string name="warning_resolution">Познато је да скалирање резолуције на 2x или више изазива проблеме и може довести до значајног успоравања вашег уређаја.</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">ЦПУ</string>
+    <string name="use_auto_stub">Користите ауто-стуб</string>
+    <string name="use_auto_stub_description">Аутоматски угушите мрежне услуге и функције. То може побољшати компатибилност, али може проузроковати пад рушења и питања стабилности.</string>
+
+    <string name="gpu">ГПУ</string>
+    <string name="renderer_api">АПИ</string>
+    <string name="renderer_debug">Графички уклањање погрешака</string>
+    <string name="renderer_debug_description">Поставља графички АПИ на спорни режим уклањања погрешака.</string>
+    <string name="fastmem">Брбљање</string>
+
+    <string name="log">Сечеља</string>
+    <string name="flush_by_line">Записници за уклањање погрешака по линији</string>
+    <string name="flush_by_line_description">Испушта ознаке за уклањање погрешака на сваком писменом линијском линији, олакшавање уклањања погрешака у случајевима пада или замрзавања.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">Излазни мотор</string>
+    <string name="audio_volume">Запремина</string>
+    <string name="audio_volume_description">Одређује обим аудио излаза.</string>
+
+    <!-- Input strings -->
+    <string name="buttons">Тастери</string>
+    <string name="button_a">А</string>
+    <string name="button_b">Б</string>
+    <string name="button_x">К</string>
+    <string name="button_y">И</string>
+    <string name="button_plus">Плус</string>
+    <string name="button_minus">Минус</string>
+    <string name="button_home">Дом</string>
+    <string name="button_capture">Заробити</string>
+    <string name="start_pause">Почетак / пауза</string>
+    <string name="dpad">Д-пад</string>
+    <string name="up">Уп</string>
+    <string name="down">Надиграти се</string>
+    <string name="left">Лево</string>
+    <string name="right">У праву</string>
+    <string name="left_stick">Левичар</string>
+    <string name="control_stick">Контролни штап</string>
+    <string name="right_stick">Десни штап</string>
+    <string name="c_stick">Ц-стицк</string>
+    <string name="pressed">Пресован</string>
+    <string name="range">Домет</string>
+    <string name="deadzone">Деадзоне</string>
+    <string name="modifier">Модификатор</string>
+    <string name="modifier_range">Распон модификатора</string>
+    <string name="triggers">Окидачи</string>
+    <string name="button_l">Л</string>
+    <string name="button_r">Р</string>
+    <string name="button_zl">Зл</string>
+    <string name="button_zr">Зр</string>
+    <string name="button_sl_left">Лефт сл</string>
+    <string name="button_sr_left">Лефт ср</string>
+    <string name="button_sl_right">Десни сл</string>
+    <string name="button_sr_right">Десно ср</string>
+    <string name="button_z">З</string>
+    <string name="invalid">Неважећи</string>
+    <string name="not_set">Није постављен</string>
+    <string name="unknown">Непознат</string>
+    <string name="qualified_hat">%1$s%2$s%3$sХАТ%4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sБУТТОН%4$s</string>
+    <string name="qualified_axis">АКСИС%1$s%2$s</string>
+    <string name="unused">Неискориштен</string>
+    <string name="input_mapping_filter">Филтер за мапирање уноса</string>
+    <string name="input_mapping_filter_description">Изаберите уређај за филтрирање уноса мапирања</string>
+    <string name="auto_map">Ауто-мапа контролер</string>
+    <string name="auto_map_description">Изаберите уређај да бисте покушали аутоматско мапирање</string>
+    <string name="attempted_auto_map">Покушај аутоматске мапе са%1$s</string>
+    <string name="controller_type">Врста контролера</string>
+    <string name="pro_controller">Про контролер</string>
+    <string name="handheld">Ручни</string>
+    <string name="dual_joycons">Дуал Јоицонс</string>
+    <string name="left_joycon">Леви ЈоиЦон</string>
+    <string name="right_joycon">Десни радовицон</string>
+    <string name="gamecube_controller">Гамецубе контролер</string>
+    <string name="invert_axis">Преокрет</string>
+    <string name="invert_button">Дугме за уметност</string>
+    <string name="toggle_button">Дугме за пребацивање</string>
+    <string name="turbo_button">Турбо дугме</string>
+    <string name="set_threshold">Подесити праг</string>
+    <string name="toggle_axis">Пребацивање оси</string>
+    <string name="connected">Повезан</string>
+    <string name="use_system_vibrator">Користите системски вибратор</string>
+    <string name="input_overlay">Улазно прекривање</string>
+    <string name="vibration">Вибрација</string>
+    <string name="vibration_strength">Снага вибрација</string>
+    <string name="profile">Профил</string>
+    <string name="create_new_profile">Креирајте нови профил</string>
+    <string name="enter_profile_name">Унесите име профила</string>
+    <string name="profile_name_already_exists">Име профила већ постоји</string>
+    <string name="invalid_profile_name">Неважеће име профила</string>
+    <string name="use_global_input_configuration">Користите глобалну улазну конфигурацију</string>
+    <string name="player_num_profile">Играч%d Профил</string>
+    <string name="delete_input_profile">Избриши унос профила</string>
+    <string name="delete_input_profile_description">Јесте ли сигурни да желите да избришете овај профил? Ово се не може надокнадити.</string>
+    <string name="stick_map_description">Померите штап улево и затим горе или притисните дугме</string>
+    <string name="button_map_description">Притисните дугме или преместите окидач / штап</string>
+    <string name="map_dpad_direction">Мапа на Д-Пад%1$s</string>
+    <string name="map_control">МАП до%1$s</string>
+    <string name="failed_to_load_profile">Профил за учитавање није успело</string>
+    <string name="failed_to_save_profile">Није успело да уштедите профил</string>
+    <string name="reset_mapping">Ресетујте мапирање</string>
+    <string name="reset_mapping_description">Јесте ли сигурни да желите да ресетујете све пресликавања за овај контролер за подразумевано? То се не може поништити.</string>
+
+    <!-- Miscellaneous -->
+    <string name="slider_default">Подразумевано</string>
+    <string name="loading">Учитавање ...</string>
+    <string name="shutting_down">Искључивање ...</string>
+    <string name="reset_setting_confirmation">Да ли желите да ресетујете ово постављање назад на задану вредност?</string>
+    <string name="reset_to_default">Ресетујте на подразумевано</string>
+    <string name="reset_to_default_description">Ресетује све напредне поставке</string>
+    <string name="reset_all_settings">Ресетујте сва подешавања?</string>
+    <string name="reset_all_settings_description">Све напредна подешавања ће се ресетовати на њихову подразумевану конфигурацију. То се не може поништити.</string>
+    <string name="settings_reset">Подешавање поставки</string>
+    <string name="close">Затворити</string>
+    <string name="learn_more">Сазнајте више</string>
+    <string name="auto">Аутомат</string>
+    <string name="submit">Поднети</string>
+    <string name="string_null">Нула</string>
+    <string name="string_import">Увоз</string>
+    <string name="export">Извоз</string>
+    <string name="export_failed">Извоз није успео</string>
+    <string name="import_failed">Увоз није успео</string>
+    <string name="cancelling">Отказивање</string>
+    <string name="install">Инсталирати</string>
+    <string name="fetch">Дохватити</string>
+    <string name="delete">Избрисати</string>
+    <string name="edit">Уредити</string>
+    <string name="export_success">Успешно извезено</string>
+    <string name="start">Почети</string>
+    <string name="global">Глобално</string>
+    <string name="custom">Обичај</string>
+    <string name="import_complete">Увоз комплетан</string>
+    <string name="use_global_setting">Користите Глобално подешавање</string>
+    <string name="operation_completed_successfully">Операција је успешно завршена</string>
+    <string name="confirm">Потврдити</string>
+    <string name="load">Оптеретити</string>
+    <string name="save">Сачувати</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver_default">Подразумевано</string>
+    <string name="select_gpu_driver_error">Изабран је неважећи управљачки програм</string>
+    <string name="driver_already_installed">Возач је већ инсталиран</string>
+    <string name="system_gpu_driver">Систем ГПУ драјвер</string>
+    <string name="installing_driver">Инсталирање управљачког програма ...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="show_releases">Објаснити издања</string>
+    <string name="failed_to_fetch">Није успело дохватити</string>
+    <string name="error_during_fetch">Грешка током дохвата</string>
+    <string name="show_downloads">Схов Довнлоадс</string>
+    <string name="hide_downloads">Хиде Довнлоадс</string>
+    <string name="failed_cache_dir">Именик у кеш меморију</string>
+    <string name="empty_response_body">Празно тело одговора</string>
+    <string name="successfully_installed">%1$s успешно инсталиран</string>
+    <string name="driver_failed_title">Инсталација возача није успела</string>
+    <string name="failed_install_driver">Није успело да се инсталира%1$s управљачки програм, да ли ваш систем подржава?</string>
+    <string name="driver_empty">Преузето управљачки програм је празан, проверите свој Интернет</string>
+    <string name="downloading">Преузимање ...</string>
+    <string name="installing">Инсталирање ...</string>
+    <string name="latest">Најновији</string>
+    <string name="recommended_driver">Препоручени управљачки програм:</string>
+    <string name="gpu_model">ГПУ модел:</string>
+    <string name="unsupported_gpu">Неподржани ГПУ</string>
+    <string name="unsupported_gpu_warning">Ваш ГПУ не подржава ињекцију управљачких програма. Покушај постављања прилагођених управљачких програма се не препоручује.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">Подешавања</string>
+    <string name="preferences_system">Систем</string>
+    <string name="preferences_system_description">Доцдед мод, регион, језик</string>
+    <string name="preferences_graphics">Графика</string>
+    <string name="preferences_graphics_description">Ниво тачности, резолуција, сенчара</string>
+    <string name="preferences_audio">Аудио</string>
+    <string name="preferences_audio_description">Излазни мотор, запремина</string>
+    <string name="preferences_controls">Контрола</string>
+    <string name="preferences_controls_description">Унос контролера мапе</string>
+    <string name="preferences_player">Играч%d</string>
+    <string name="preferences_debug">Ослободити збрајања</string>
+    <string name="preferences_debug_description">ЦПУ / ГПУ уклањање погрешака, графички АПИ, ФастМем</string>
+
+    <!-- Game properties -->
+    <string name="info">Информације</string>
+    <string name="info_description">ИД програма, програмер, верзија</string>
+    <string name="per_game_settings">Подешавања по игри</string>
+    <string name="per_game_settings_description">Уређивање поставки специфично за ову игру</string>
+    <string name="launch_options">Лансирање цонфиг</string>
+    <string name="path">Стаза</string>
+    <string name="program_id">ИД програма</string>
+    <string name="developer">Разводнички</string>
+    <string name="version">Верзија</string>
+    <string name="copy_details">Детаљи копирања</string>
+    <string name="add_ons">Додаци</string>
+    <string name="add_ons_description">Пребаците модове, исправке и ДЛЦ</string>
+    <string name="clear_shader_cache">Цлеар Схадер Цацхе</string>
+    <string name="clear_shader_cache_description">Уклања све сјенадесете изграђене током репродукције ове игре</string>
+    <string name="clear_shader_cache_warning_description">Доживећете више муцајући док се схадер кеш регенерати</string>
+    <string name="cleared_shaders_successfully">Успешно очистили схадера</string>
+    <string name="addons_game">Аддонс:%1$s</string>
+    <string name="save_data">Сачувајте податке</string>
+    <string name="save_data_description">Управљајте Спреми податке специфично за ову игру</string>
+    <string name="delete_save_data">Избришите сачувајте податке</string>
+    <string name="delete_save_data_description">Уклања све Спреми податке специфичне за ову игру</string>
+    <string name="delete_save_data_warning_description">Ово неподобно уклања све податке о сачувању ове игре. Јесте ли сигурни да желите да наставите?</string>
+    <string name="save_data_deleted_successfully">Спремите податке који су успешно избрисани</string>
+    <string name="select_content_type">Врста садржаја</string>
+    <string name="updates_and_dlc">Ажурирања и ДЛЦ</string>
+    <string name="mods_and_cheats">Модови и варалице</string>
+    <string name="addon_notice">Важна Обавештење о Аддон-у</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="addon_notice_description">Да бисте инсталирали модс и варалице, морате да одаберете мапу која садржи шифре /, Ромфс / или ЕкеФС / директориј. Не можемо да проверимо да ли ће то бити компатибилно са вашом игром, па будите опрезни!</string>
+    <string name="invalid_directory">Неважећи директориј</string>
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
+    <string name="invalid_directory_description">Молимо вас проверите да ли је име одабрано да садржи варалице /, Ромфс / или ЕкеФС / мапу и покушајте поново.</string>
+    <string name="addon_installed_successfully">Аддон је успешно инсталиран</string>
+    <string name="verifying_content">Верификација садржаја ...</string>
+    <string name="content_install_notice">Обавештење о инсталирању садржаја</string>
+    <string name="confirm_uninstall">Потврдите деинсталирање</string>
+    <string name="confirm_uninstall_description">Јесте ли сигурни да желите да деинсталирате овај Аддон?</string>
+    <string name="verify_integrity">Проверите интегритет</string>
+    <string name="verifying">Провера ...</string>
+    <string name="verify_success">Провера интегритета је успела!</string>
+    <string name="verify_failure">Провера интегритета није успела!</string>
+    <string name="verify_failure_description">Садржај датотеке може бити оштећен</string>
+    <string name="verify_no_result">Провјера интегритета није могла да се изврши</string>
+    <string name="verify_no_result_description">Садржај датотеке није проверен за валидност</string>
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">Ваш РОМ је шифровани</string>
+    <string name="loader_error_encrypted_roms_description">Игра ЦартиДгес</string>
+    <string name="loader_error_encrypted_keys_description">prod.keys</string>
+    <string name="loader_error_video_core">Дошло је до грешке приликом иницијализације видео језгра</string>
+    <string name="loader_error_video_core_description">То обично узрокује некомпатибилни ГПУ драјвер. Инсталирање прилагођеног ГПУ управљачког програма може решити овај проблем.</string>
+    <string name="loader_error_file_not_found">РОМ датотека не постоји</string>
+
+    <string name="loader_requires_firmware">Игра захтева firmware</string>
+    <string name="loader_requires_firmware_description"><![CDATA[Игра коју покушавате да покренете захтева firmware за покретање или прелазак почетног менија. Молимо <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> направите дамп и инсталирајте firmware</a>, или притисните \"OK\" да бисте наставили у сваком случају.]]></string>
+
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Тражење игре...</string>
+    <string name="game_not_found_for_title_id">Игра није пронађена за ID наслова: %1$s</string>
+    <string name="custom_settings_failed_title">Прилагођена подешавања нису успела</string>
+    <string name="custom_settings_failed_message">Неуспело применљивање прилагођених подешавања за %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Покрени са подразумеваним подешавањима</string>
+    <string name="launch_cancelled">Покретање отказано</string>
+    <string name="custom_settings_failure_reasons">Није могуће применити тражена подешавања. Ово може бити услед недостајућих GPU драјвера или проблема са конфигурацијом.</string>
+    <string name="custom_settings_applied">Прилагођена подешавања применљена</string>
+    <string name="launching_game">Покрећем %1$s...</string>
+    <string name="failed_to_initialize_game">Неуспела иницијализација игре</string>
+    <string name="custom_intent_launch_message_with_settings">Да ли желите да покренете %1$s са прилагођеним подешавањима?</string>
+    <string name="custom_intent_launch_message">Да ли желите да покренете %1$s?</string>
+    <string name="custom_intent_launch_title">Покрени игру</string>
+    <string name="launch">Покрени</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Неуспело писање конфигурационе датотеке</string>
+    <string name="config_apply_failed">Неуспела примена конфигурације</string>
+    <string name="config_already_exists_title">Конфигурација већ постоји</string>
+    <string name="config_exists_prompt">Провера постојеће конфигурације...</string>
+    <string name="overwrite_cancelled">Преписивање отказано</string>
+    <string name="overwrite">Препиши</string>
+
+    <!-- Driver strings -->
+    <string name="driver_not_found">Потребни драјвер није инсталиран: %s</string>
+    <string name="invalid_driver_file">Неисправна датотека драјвера: %s</string>
+    <string name="network_unavailable">Мрежна веза није доступна. Проверите интернет конекцију и покушајте поново.</string>
+    <string name="driver_missing_title">GPU драјвер је потребан</string>
+    <string name="driver_download_cancelled">Преузимање драјвера отказано. Игра се не може покренути без потребног драјвера.</string>
+    <string name="download">Преузми</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">Излазни емулација</string>
+    <string name="emulation_done">Доношен</string>
+    <string name="emulation_toggle_controls">Пребацивање контрола</string>
+    <string name="emulation_rel_stick_center">Релативни центар за штапић</string>
+    <string name="emulation_dpad_slide">Д-Пад Слиде</string>
+    <string name="emulation_haptics">Додирните ХАптицс</string>
+    <string name="emulation_show_overlay">Приказати контролер</string>
+    <string name="emulation_hide_overlay">Сакрити контролер</string>
+    <string name="emulation_toggle_all">Пребацивати све</string>
+    <string name="emulation_control_adjust">Подесити прекривање</string>
+    <string name="emulation_control_scale">Скала</string>
+    <string name="emulation_control_opacity">Непрозирност</string>
+    <string name="emulation_touch_overlay_reset">Ресетовање прекривања</string>
+    <string name="emulation_touch_overlay_edit">Уредити прекривање</string>
+    <string name="emulation_pause">Паузирање емулација</string>
+    <string name="emulation_unpause">Непознавање емулације</string>
+    <string name="emulation_input_overlay">Опције прекривања</string>
+    <string name="touchscreen">Екран осетљив на додир</string>
+    <string name="lock_drawer">Ладица за закључавање</string>
+    <string name="unlock_drawer">Откључај ладицу</string>
+    <!-- Software keyboard -->
+    <string name="software_keyboard">Софтверска тастатура</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">Престати</string>
+    <string name="continue_button">Настављати</string>
+    <string name="system_archive_not_found">Архива система није пронађена</string>
+    <string name="system_archive_general">Архива система</string>
+    <string name="save_load_error">Грешка уштеде / учитавање</string>
+    <string name="fatal_error">Фатална грешка</string>
+    <string name="memory_formatted">%1$s%2$s</string>
+    <string name="no_game_present">Нема презентације игре за покретање!</string>
+
+    <!-- Region Names -->
+    <string name="region_japan">Јапан</string>
+    <string name="region_usa">САД</string>
+    <string name="region_europe">Европа</string>
+    <string name="region_australia">Аустралија</string>
+    <string name="region_china">Кина</string>
+    <string name="region_korea">Кореја</string>
+    <string name="region_taiwan">Тајван</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4ГБ (препоручује се)</string>
+    <string name="memory_6gb">6ГБ (несигуран)</string>
+    <string name="memory_8gb">8ГБ (несигурно)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_boost">Боост (1700МХз)</string>
+    <string name="clock_fast">Брзи (2000МХз)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">Ниско (128)</string>
+    <string name="gpu_medium">Средња (256)</string>
+    <string name="gpu_high">Висок (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Целзијус</string>
+    <string name="temperature_fahrenheit">Фаренхајт</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte_shorthand">Б</string>
+    <string name="memory_kilobyte">Кб</string>
+    <string name="memory_megabyte">МБ</string>
+    <string name="memory_gigabyte">ГБ</string>
+    <string name="memory_terabyte">Тб</string>
+    <string name="memory_petabyte">Пб</string>
+    <string name="memory_exabyte">Еб</string>
+
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">Вулкан</string>
+    <string name="renderer_none">Ниједан</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">Нормалан</string>
+    <string name="renderer_accuracy_high">Високо</string>
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Подразумевано</string>
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">АСТЦ метода декодирања</string>
+    <string name="accelerate_astc_description">Изаберите како су текстуре са компримираним текстовима декодиране за приказивање: ЦПУ (споро, сигуран), ГПУ (Фаст, Препоручи) или ЦПУ АСИНЦ (без затезача, могу да изазове питања)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">ЦПУ</string>
+    <string name="accelerate_astc_gpu">ГПУ</string>
+    <string name="accelerate_astc_async">ЦПУ асинхроно</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">Метода рекомпресије АСТЦ-а</string>
+    <string name="astc_recompression_description">Изаберите како се текстуре АСТЦ препоручују да би се побољшале компатибилност и перформансе. Омогућавање ове опције штеди ВРАМ, али може смањити квалитет текстуре.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Некомпримован</string>
+    <string name="astc_recompression_bc1">БЦ1 (низак квалитет)</string>
+    <string name="astc_recompression_bc3">БЦ3 (средњи квалитет)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">ВРАМ режим употребе</string>
+    <string name="vram_usage_mode_description">Контролишите колико агресивно емулатор додељује и ослобађа ГПУ меморију.</string>
+    <string name="vram_usage_conservative">Конзервативан</string>
+    <string name="vram_usage_aggressive">Агресиван</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (споро)</string>
+    <string name="resolution_three">3X (2160p/3240p) (споро)</string>
+    <string name="resolution_four">4X (2880p/4320p) (споро)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">Непосредан (искључен)</string>
+    <string name="renderer_vsync_mailbox">Поштански сандучић</string>
+    <string name="renderer_vsync_fifo">ФИФО (ОН)</string>
+    <string name="renderer_vsync_fifo_relaxed">ФИФО је опуштен</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">Најближи комшија</string>
+    <string name="scaling_filter_bilinear">Билинеарни</string>
+    <string name="scaling_filter_bicubic">Бицубиц</string>
+    <string name="scaling_filter_gaussian">Гауссиан</string>
+    <string name="scaling_filter_scale_force">Скалефорце</string>
+    <string name="scaling_filter_fsr">АМД ФиделитиФКС ™ Супер резолуција</string>
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">Ниједан</string>
+    <string name="anti_aliasing_fxaa">ФКСАА</string>
+    <string name="anti_aliasing_smaa">СМАА</string>
+
+    <!-- Screen Layouts -->
+    <string name="screen_layout_auto">Аутомат</string>
+    <string name="screen_layout_sensor_landscape">Сензорски пејзаж</string>
+    <string name="screen_layout_landscape">Пејзаж</string>
+    <string name="screen_layout_reverse_landscape">Обрнути пејзаж</string>
+    <string name="screen_layout_sensor_portrait">Портрет сензора</string>
+    <string name="screen_layout_portrait">Портрет</string>
+    <string name="screen_layout_reverse_portrait">Обрнути портрет</string>
+
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">Подразумевано (16: 9)</string>
+    <string name="ratio_force_four_three">Форце 4: 3</string>
+    <string name="ratio_force_twenty_one_nine">Натура 21: 9</string>
+    <string name="ratio_force_sixteen_ten">Сила 16:10</string>
+    <string name="ratio_stretch">Протезање до прозора</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
+    <string name="cpu_backend_nce">Извођење изворног кода (НЦЕ)</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">Тачан</string>
+    <string name="cpu_accuracy_unsafe">Несигуран</string>
+    <string name="cpu_accuracy_paranoid">Параноичан</string>
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">Д-пад</string>
+    <string name="gamepad_left_stick">Левичар</string>
+    <string name="gamepad_right_stick">Десни штап</string>
+    <string name="gamepad_home">Дом</string>
+    <string name="gamepad_screenshot">Заслона</string>
+
+    <!-- Disk shader cache -->
+    <string name="building_shaders">Зграда схадера</string>
+
+    <!-- App options -->
+    <string name="change_app_theme">Промените тему апликација</string>
+    <string name="theme_default">Подразумевано</string>
+    <string name="theme_material_you">Материјал ти</string>
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">Промените режим теме</string>
+    <string name="theme_mode_follow_system">Слиједите систем</string>
+    <string name="theme_mode_light">Светло</string>
+    <string name="theme_mode_dark">Мрак</string>
+
+    <!-- Audio output engines -->
+    <string name="oboe">обоја</string>
+    <string name="cubeb">Цубеб</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2к</string>
+    <string name="multiplier_four">4к</string>
+    <string name="multiplier_eight">8к</string>
+    <string name="multiplier_sixteen">16к</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">Црна позадина</string>
+    <string name="use_black_backgrounds_description">Када користите тамну тему, нанесите црну позадину.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Боја теме</string>
+    <string name="violet">Виолет (подразумевано)</string>
+    <string name="blue">Плава</string>
+    <string name="cyan">Цијан</string>
+    <string name="red">Црвено</string>
+    <string name="green">Зеленило</string>
+    <string name="yellow">Жути</string>
+    <string name="orange">Наранџаста</string>
+    <string name="pink">Ружичаст</string>
+    <string name="gray">Сива</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">Слика на слици</string>
+    <string name="picture_in_picture_description">Смањите прозор када се постави у позадини</string>
+    <string name="pause">Пауза</string>
+    <string name="play">Играње</string>
+    <string name="mute">Немирати</string>
+    <string name="unmute">Имуцати</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Вертикално поравнање</string>
+    <string name="top">На врху</string>
+    <string name="center">Центер</string>
+    <string name="bottom">Дно</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Аплетс</string>
+    <string name="applets_menu_description">(ВИП) Промените Апплете Фронтендс и Подешавања</string>
+
+    <string name="applet_hle">Прилагођена фронтенд</string>
+    <string name="applet_lle">Прави апплет</string>
+
+    <string name="swkbd_applet">Софтверска тастатура</string>
+
+    <string name="airplane_mode">Авионски режим</string>
+    <string name="airplane_mode_description">Прослеђује авионски режим на Switch OS</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">Лиценце</string>
+    <string name="license_fidelityfx_fsr_description">Висококвалитетни упглинг из АМД-а</string>
+    </resources>

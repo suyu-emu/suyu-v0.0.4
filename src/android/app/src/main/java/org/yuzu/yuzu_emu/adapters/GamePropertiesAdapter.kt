@@ -1,0 +1,146 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+package org.yuzu.yuzu_emu.adapters
+
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.LifecycleOwner
+import org.yuzu.yuzu_emu.databinding.CardInstallableIconBinding
+import org.yuzu.yuzu_emu.databinding.CardSimpleOutlinedBinding
+import org.yuzu.yuzu_emu.model.GameProperty
+import org.yuzu.yuzu_emu.model.InstallableProperty
+import org.yuzu.yuzu_emu.model.SubmenuProperty
+import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
+import org.yuzu.yuzu_emu.utils.collect
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
+
+class GamePropertiesAdapter(
+    private val viewLifecycle: LifecycleOwner,
+    private var properties: List<GameProperty>
+) : AbstractListAdapter<GameProperty, AbstractViewHolder<GameProperty>>(properties) {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): AbstractViewHolder<GameProperty> {
+        val inflater = LayoutInflater.from(parent.context)
+        return when (viewType) {
+            PropertyType.Submenu.ordinal -> {
+                SubmenuPropertyViewHolder(
+                    CardSimpleOutlinedBinding.inflate(
+                        inflater,
+                        parent,
+                        false
+                    )
+                )
+            }
+
+            else -> InstallablePropertyViewHolder(
+                CardInstallableIconBinding.inflate(
+                    inflater,
+                    parent,
+                    false
+                )
+            )
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return when (properties[position]) {
+            is SubmenuProperty -> PropertyType.Submenu.ordinal
+            else -> PropertyType.Installable.ordinal
+        }
+    }
+
+    inner class SubmenuPropertyViewHolder(val binding: CardSimpleOutlinedBinding) :
+        AbstractViewHolder<GameProperty>(binding) {
+        override fun bind(model: GameProperty) {
+            val submenuProperty = model as SubmenuProperty
+
+            binding.root.setOnClickListener {
+                submenuProperty.action.invoke()
+            }
+
+            binding.title.setText(submenuProperty.titleId)
+            binding.description.setText(submenuProperty.descriptionId)
+            binding.icon.setImageDrawable(
+                ResourcesCompat.getDrawable(
+                    binding.icon.context.resources,
+                    submenuProperty.iconId,
+                    binding.icon.context.theme
+                )
+            )
+
+            binding.details.marquee()
+            if (submenuProperty.details != null) {
+                binding.details.setVisible(true)
+                binding.details.text = submenuProperty.details.invoke()
+            } else if (submenuProperty.detailsFlow != null) {
+                binding.details.setVisible(true)
+                submenuProperty.detailsFlow.collect(viewLifecycle) { binding.details.text = it }
+            } else {
+                binding.details.setVisible(false)
+            }
+
+
+            val hasVisibleActions = submenuProperty.secondaryActions?.any { it.isShown } == true
+
+            if (hasVisibleActions) {
+                binding.dividerSecondaryActions.setVisible(true)
+                binding.layoutSecondaryActions.setVisible(true)
+
+                submenuProperty.secondaryActions!!.forEach { secondaryAction ->
+                    if (secondaryAction.isShown) {
+                        val button = com.google.android.material.button.MaterialButton(
+                            binding.root.context,
+                            null,
+                            com.google.android.material.R.attr.materialButtonOutlinedStyle
+                        ).apply {
+                            setIconResource(secondaryAction.iconId)
+                            iconSize = (18 * binding.root.context.resources.displayMetrics.density).toInt()
+                            text = binding.root.context.getString(secondaryAction.descriptionId)
+                            contentDescription = binding.root.context.getString(secondaryAction.descriptionId)
+                            setOnClickListener { secondaryAction.action.invoke() }
+                        }
+                        binding.layoutSecondaryActions.addView(button)
+                    }
+                }
+            } else {
+                binding.dividerSecondaryActions.setVisible(false)
+                binding.layoutSecondaryActions.setVisible(false)
+            }
+        }
+    }
+
+    inner class InstallablePropertyViewHolder(val binding: CardInstallableIconBinding) :
+        AbstractViewHolder<GameProperty>(binding) {
+        override fun bind(model: GameProperty) {
+            val installableProperty = model as InstallableProperty
+
+            binding.title.setText(installableProperty.titleId)
+            binding.description.setText(installableProperty.descriptionId)
+            binding.icon.setImageDrawable(
+                ResourcesCompat.getDrawable(
+                    binding.icon.context.resources,
+                    installableProperty.iconId,
+                    binding.icon.context.theme
+                )
+            )
+
+            binding.buttonInstall.setVisible(installableProperty.install != null)
+            binding.buttonInstall.setOnClickListener { installableProperty.install?.invoke() }
+            binding.buttonExport.setVisible(installableProperty.export != null)
+            binding.buttonExport.setOnClickListener { installableProperty.export?.invoke() }
+        }
+    }
+
+    enum class PropertyType {
+        Submenu,
+        Installable
+    }
+}

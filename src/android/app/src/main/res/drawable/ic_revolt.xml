@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Scaling isn't perfect but I spent like 10 minutes trying to calculate this and I'm tired -->
+    <group
+        android:scaleX="2.987"
+        android:scaleY="2.987"
+        android:translateX="-107.15"
+        android:translateY="-109.35">
+        <path
+            android:pathData="M42.7,71.38C42.7,60.74 42.7,53.76 42.7,44.7L35.91,36.62H57.87C60.48,36.62 62.77,37.09 64.72,38.03C66.68,38.97 68.2,40.32 69.29,42.08C70.37,43.85 70.92,45.97 70.92,48.43C70.92,50.92 70.36,53.02 69.24,54.73C68.13,56.44 66.56,57.73 64.55,58.6C62.55,59.47 60.21,59.91 57.53,59.91H48.47V52.57H55.61C56.73,52.57 57.69,52.44 58.47,52.17C59.28,51.88 59.89,51.44 60.31,50.83C60.75,50.21 60.96,49.42 60.96,48.43C60.96,47.44 60.75,46.63 60.31,46C59.89,45.37 59.28,44.91 58.47,44.61C57.69,44.31 56.73,44.15 55.61,44.15H52.24V71.38H42.7ZM63.3,55.43L72.09,71.38H61.72L53.14,55.43H63.3Z"
+            android:fillColor="#FF005C"/>
+    </group></vector>

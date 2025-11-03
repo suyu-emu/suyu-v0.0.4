@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/item_release_box"
+    android:padding="8dp"
+    android:paddingStart="12dp"
+    tools:ignore="RtlSymmetry">
+
+    <TextView
+        android:id="@+id/text_release_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/badge_latest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/latest"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="14sp"
+        android:background="@drawable/item_release_latest_badge_background"
+        app:layout_constraintStart_toEndOf="@id/text_release_name"
+        app:layout_constraintTop_toTopOf="@id/text_release_name"
+        app:layout_constraintBottom_toBottomOf="@id/text_release_name"
+        android:layout_marginStart="8dp" />
+
+    <TextView
+        android:id="@+id/text_body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="3"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_release_name" />
+
+    <TextView
+        android:id="@+id/button_toggle_downloads"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/show_downloads"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_body"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"/>
+
+    <ImageView
+        android:id="@+id/image_downloads_arrow"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="@string/show_downloads"
+        android:src="@drawable/ic_dropdown_arrow"
+        app:layout_constraintBottom_toBottomOf="@id/button_toggle_downloads"
+        app:layout_constraintStart_toEndOf="@id/button_toggle_downloads"
+        app:layout_constraintTop_toTopOf="@id/button_toggle_downloads"
+        app:tint="?attr/colorControlNormal" />
+
+    <LinearLayout
+        android:id="@+id/container_downloads"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/button_toggle_downloads"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="8dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

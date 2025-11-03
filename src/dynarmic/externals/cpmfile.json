@@ -1,0 +1,21 @@
+{
+    "biscuit": {
+        "repo": "lioncash/biscuit",
+        "tag": "v%VERSION%",
+        "hash": "1229f345b014f7ca544dedb4edb3311e41ba736f9aa9a67f88b5f26f3c983288c6bb6cdedcfb0b8a02c63088a37e6a0d7ba97d9c2a4d721b213916327cffe28a",
+        "version": "0.9.1",
+        "git_version": "0.19.0"
+    },
+    "mcl": {
+        "version": "0.1.12",
+        "repo": "azahar-emu/mcl",
+        "sha": "7b08d83418",
+        "hash": "9c6ba624cb22ef622f78046a82abb99bf5026284ba17dfacaf46ac842cbd3b0f515f5ba45a1598c7671318a78a2e648db72ce8d10e7537f34e39800bdcb57694",
+        "options": [
+            "MCL_INSTALL OFF"
+        ],
+        "patches": [
+            "0001-assert-macro.patch"
+        ]
+    }
+}

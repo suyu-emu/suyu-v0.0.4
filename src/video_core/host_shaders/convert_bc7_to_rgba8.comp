@@ -1,0 +1,29 @@
+#version 450
+#extension GL_ARB_shader_ballot : require
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(binding = 0) uniform samplerBuffer bc7_data;
+layout(binding = 1, rgba8) uniform writeonly image2D output_image;
+
+// Note: This is a simplified version. Real BC7 decompression is more complex
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(output_image);
+
+    if (pos.x >= size.x || pos.y >= size.y) {
+        return;
+    }
+
+    // Calculate block and pixel within block
+    ivec2 block = pos / 4;
+    ivec2 pixel = pos % 4;
+
+    // Each BC7 block is 16 bytes
+    int block_index = block.y * (size.x / 4) + block.x;
+
+    // Simplified BC7 decoding - you'll need to implement full BC7 decoding
+    vec4 color = texelFetch(bc7_data, block_index * 4 + pixel.y * 4 + pixel.x);
+
+    imageStore(output_image, pos, color);
+}
