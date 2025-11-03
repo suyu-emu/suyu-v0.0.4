@@ -84,3 +84,6 @@
 [submodule "externals/nxapi"]
 	path = externals/nxapi
 	url = https://github.com/samuelthomas2774/nxapi.git
+[submodule "externals/vcpkg"]
+	path = externals/vcpkg
+	url = https://github.com/microsoft/vcpkg.git
