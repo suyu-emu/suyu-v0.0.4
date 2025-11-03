@@ -380,7 +380,7 @@ object NativeLibrary {
     @Keep
     @JvmStatic
     fun onEmulationStarted() {
-        sEmulationActivity.get()!!.onEmulationStarted()
+        sEmulationActivity.get()?.onEmulationStarted()
     }
 
     @Keep
