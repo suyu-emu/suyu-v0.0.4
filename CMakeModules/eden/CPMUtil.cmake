@@ -332,7 +332,7 @@ function(AddPackage)
             else()
                 cpm_utils_message(WARNING ${PKG_ARGS_NAME}
                             "REPO defined but no TAG, SHA, BRANCH, or URL specified, defaulting to master")
-                set(PKG_BRANCH master)
+                set(PKG_BRANCH main)
             endif()
 
             set(pkg_url ${pkg_git_url}/archive/refs/heads/${PKG_BRANCH}.tar.gz)
