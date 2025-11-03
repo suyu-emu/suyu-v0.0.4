@@ -98,6 +98,11 @@ void EmitIAbs32(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
     ctx.AddU32("{}=abs(int({}));", inst, value);
 }
 
+void EmitIAbs64(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
+    // TODO: Uhm, are you sure? This may crash on some drivers!
+    ctx.AddU32("{}=abs(int64_t({}));", inst, value);
+}
+
 void EmitShiftLeftLogical32(EmitContext& ctx, IR::Inst& inst, std::string_view base,
                             std::string_view shift) {
     ctx.AddU32("{}={}<<{};", inst, base, shift);

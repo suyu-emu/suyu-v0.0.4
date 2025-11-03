@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -373,6 +376,7 @@ void EmitUDiv32(EmitContext& ctx, IR::Inst& inst, std::string_view a, std::strin
 void EmitINeg32(EmitContext& ctx, IR::Inst& inst, std::string_view value);
 void EmitINeg64(EmitContext& ctx, IR::Inst& inst, std::string_view value);
 void EmitIAbs32(EmitContext& ctx, IR::Inst& inst, std::string_view value);
+void EmitIAbs64(EmitContext& ctx, IR::Inst& inst, std::string_view value);
 void EmitShiftLeftLogical32(EmitContext& ctx, IR::Inst& inst, std::string_view base,
                             std::string_view shift);
 void EmitShiftLeftLogical64(EmitContext& ctx, IR::Inst& inst, std::string_view base,

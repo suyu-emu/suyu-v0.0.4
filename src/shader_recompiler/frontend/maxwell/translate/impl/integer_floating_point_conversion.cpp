@@ -70,32 +70,25 @@ void I2F(TranslatorVisitor& v, u64 insn, IR::U32U64 src) {
     int src_bitsize{};
     switch (i2f.int_format) {
     case IntFormat::U8:
-        src = v.ir.BitFieldExtract(src, v.ir.Imm32(static_cast<u32>(i2f.selector) * 8),
-                                   v.ir.Imm32(8), is_signed);
-        if (i2f.abs != 0) {
+        src = v.ir.BitFieldExtract(src, v.ir.Imm32(u32(i2f.selector) * 8), v.ir.Imm32(8), is_signed);
+        if (i2f.abs != 0)
             src = SmallAbs(v, src, 8);
-        }
         src_bitsize = 8;
         break;
     case IntFormat::U16:
-        if (i2f.selector == 1 || i2f.selector == 3) {
+        if (i2f.selector == 1 || i2f.selector == 3)
             throw NotImplementedException("Invalid U16 selector {}", i2f.selector.Value());
-        }
-        src = v.ir.BitFieldExtract(src, v.ir.Imm32(static_cast<u32>(i2f.selector) * 8),
-                                   v.ir.Imm32(16), is_signed);
-        if (i2f.abs != 0) {
+        src = v.ir.BitFieldExtract(src, v.ir.Imm32(u32(i2f.selector) * 8), v.ir.Imm32(16), is_signed);
+        if (i2f.abs != 0)
             src = SmallAbs(v, src, 16);
-        }
         src_bitsize = 16;
         break;
     case IntFormat::U32:
     case IntFormat::U64:
-        if (i2f.selector != 0) {
+        if (i2f.selector != 0)
             throw NotImplementedException("Unexpected selector {}", i2f.selector.Value());
-        }
-        if (i2f.abs != 0 && is_signed) {
+        if (i2f.abs != 0 && is_signed)
             src = v.ir.IAbs(src);
-        }
         src_bitsize = i2f.int_format == IntFormat::U64 ? 64 : 32;
         break;
     }
@@ -106,9 +99,7 @@ void I2F(TranslatorVisitor& v, u64 insn, IR::U32U64 src) {
         .rounding = CastFpRounding(i2f.fp_rounding),
         .fmz_mode = IR::FmzMode::DontCare,
     };
-    auto value{v.ir.ConvertIToF(static_cast<size_t>(dst_bitsize),
-                                static_cast<size_t>(conversion_src_bitsize), is_signed, src,
-                                fp_control)};
+    auto value{v.ir.ConvertIToF(size_t(dst_bitsize), size_t(conversion_src_bitsize), is_signed, src, fp_control)};
     if (i2f.neg != 0) {
         if (i2f.abs != 0 || !is_signed) {
             // We know the value is positive
@@ -141,9 +132,8 @@ void I2F(TranslatorVisitor& v, u64 insn, IR::U32U64 src) {
             throw NotImplementedException("Unaligned destination {}", i2f.dest_reg.Value());
         }
         const IR::Value vector{v.ir.UnpackDouble2x32(value)};
-        for (int i = 0; i < 2; ++i) {
-            v.X(i2f.dest_reg + i, IR::U32{v.ir.CompositeExtract(vector, static_cast<size_t>(i))});
-        }
+        for (int i = 0; i < 2; ++i)
+            v.X(i2f.dest_reg + i, IR::U32{v.ir.CompositeExtract(vector, size_t(i))});
         break;
     }
     default:

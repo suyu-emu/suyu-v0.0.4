@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -218,7 +221,7 @@ public:
     [[nodiscard]] U32 IMul(const U32& a, const U32& b);
     [[nodiscard]] U32 IDiv(const U32& a, const U32& b, bool is_signed = false);
     [[nodiscard]] U32U64 INeg(const U32U64& value);
-    [[nodiscard]] U32 IAbs(const U32& value);
+    [[nodiscard]] U32U64 IAbs(const U32U64& value);
     [[nodiscard]] U32U64 ShiftLeftLogical(const U32U64& base, const U32& shift);
     [[nodiscard]] U32U64 ShiftRightLogical(const U32U64& base, const U32& shift);
     [[nodiscard]] U32U64 ShiftRightArithmetic(const U32U64& base, const U32& shift);

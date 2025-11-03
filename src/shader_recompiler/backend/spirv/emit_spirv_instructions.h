@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -293,6 +296,7 @@ Id EmitUDiv32(EmitContext& ctx, Id a, Id b);
 Id EmitINeg32(EmitContext& ctx, Id value);
 Id EmitINeg64(EmitContext& ctx, Id value);
 Id EmitIAbs32(EmitContext& ctx, Id value);
+Id EmitIAbs64(EmitContext& ctx, Id value);
 Id EmitShiftLeftLogical32(EmitContext& ctx, Id base, Id shift);
 Id EmitShiftLeftLogical64(EmitContext& ctx, Id base, Id shift);
 Id EmitShiftRightLogical32(EmitContext& ctx, Id base, Id shift);
