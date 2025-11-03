@@ -84,7 +84,7 @@ function(AddJsonPackage)
     endif()
 
     if (NOT DEFINED CPMFILE_CONTENT)
-        cpm_utils_message(WARNING ${name} "No cpmfile, AddJsonPackage is a no-op")
+        cpm_utils_message(WARNING ${JSON_NAME} "No cpmfile, AddJsonPackage is a no-op")
         return()
     endif()
 
