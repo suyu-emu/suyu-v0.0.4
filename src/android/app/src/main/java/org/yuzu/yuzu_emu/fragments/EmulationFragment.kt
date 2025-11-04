@@ -1511,7 +1511,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
             emulationState.newSurface(holder.surface)
         } else {
-            emulationState.newSurface(holder.surface)
+            // Surface changed due to rotation/config change
+            // Only update surface reference, don't trigger state changes
+            emulationState.updateSurfaceReference(holder.surface)
         }
     }
 
@@ -1839,6 +1841,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         fun updateSurface() {
             if (surface != null) {
                 NativeLibrary.surfaceChanged(surface)
+            }
+        }
+
+        @Synchronized
+        fun updateSurfaceReference(surface: Surface?) {
+            this.surface = surface
+            if (this.surface != null && state == State.RUNNING) {
+                NativeLibrary.surfaceChanged(this.surface)
             }
         }
 
