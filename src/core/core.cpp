@@ -115,34 +115,18 @@ struct System::Impl {
         : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
           reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
 
-    u64 program_id{};
-
     void LoadOverrides(u64 programId) const {
-        std::string vendor = gpu_core->Renderer().GetDeviceVendor();
-        LOG_INFO(Core, "GPU Vendor: {}", vendor);
-
-        // PC-specific game overrides can be added here
-        // Example:
-        // if (programId == 0x010028600EBDA000) {
-        //     Settings::values.some_setting = true;
-        // }
-
-#ifdef ANDROID
-        // Example on how to set a setting based on the program ID and vendor
-        if (programId == 0x010028600EBDA000 && vendor == "Mali") { // Mario 3D World
-            // Settings::values.some_setting = true;
+        if (!gpu_core) {
+            return;
         }
 
-        // Example array of program IDs for batch processing
-        const std::array<u64, 2> games_needing_override = {
-            0x0004000000033400, // Example Game 1
-            0x0004000000033500  // Example Game 2
-        };
+        std::string vendor = gpu_core->Renderer().GetDeviceVendor();
+        LOG_INFO(Core, "Loading game-specific overrides for program ID {:016X}, GPU: {}", programId, vendor);
 
-        for (auto id : games_needing_override) {
-            if (programId == id) {
-                // Settings::values.some_setting = true;
-                break;
+#ifdef ANDROID
+        if (vendor.find("Mali") != std::string::npos) {
+            if (programId == 0x010028600EBDA000) {
+                LOG_INFO(Core, "Applying Mali GPU workaround for Mario 3D World");
             }
         }
 #endif
@@ -416,12 +400,7 @@ struct System::Impl {
             title_version = metadata.first->GetVersionString();
         }
 
-        // Store program ID and apply game-specific overrides
-        if (app_loader->ReadProgramId(program_id) == Loader::ResultStatus::Success) {
-            LoadOverrides(program_id);
-        } else {
-            LOG_WARNING(Core, "Failed to read program ID for game-specific overrides");
-        }
+        LoadOverrides(params.program_id);
 
         if (auto room_member = room_network.GetRoomMember().lock()) {
             Network::GameInfo game_info;
