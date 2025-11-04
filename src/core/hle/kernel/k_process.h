@@ -511,7 +511,7 @@ public:
 
 public:
     Result LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
-                            KProcessAddress aslr_space_start, bool is_hbl);
+        KProcessAddress aslr_space_start, size_t aslr_space_offset, bool is_hbl);
 
     void LoadModule(CodeSet code_set, KProcessAddress base_addr);
 

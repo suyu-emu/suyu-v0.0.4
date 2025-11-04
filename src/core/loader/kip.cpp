@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
+#include "common/settings.h"
 #include "core/file_sys/kernel_executable.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
@@ -76,11 +77,10 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
     Kernel::CodeSet codeset;
     Kernel::PhysicalMemory program_image;
 
-    const auto load_segment = [&program_image](Kernel::CodeSet::Segment& segment,
-                                               const std::vector<u8>& data, u32 offset) {
+    const auto load_segment = [&program_image](Kernel::CodeSet::Segment& segment, const std::vector<u8>& data, u32 offset) {
         segment.addr = offset;
         segment.offset = offset;
-        segment.size = PageAlignSize(static_cast<u32>(data.size()));
+        segment.size = PageAlignSize(u32(data.size()));
         program_image.resize(offset + data.size());
         std::memcpy(program_image.data() + offset, data.data(), data.size());
     };
@@ -92,10 +92,14 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
     program_image.resize(PageAlignSize(kip->GetBSSOffset()) + kip->GetBSSSize());
     codeset.DataSegment().size += kip->GetBSSSize();
 
+    // TODO: this is bad form of ASLR, it sucks
+    size_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
+        ? ::Settings::values.rng_seed.GetValue()
+        : std::rand()) * 0x734287f27) & 0xfff000;
+
     // Setup the process code layout
     if (process
-            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), program_image.size(), 0,
-                              false)
+            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), program_image.size(), 0, aslr_offset, false)
             .IsError()) {
         return {ResultStatus::ErrorNotInitialized, {}};
     }

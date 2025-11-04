@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -237,10 +240,14 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
         return 0;
     }();
 
+    // TODO: this is bad form of ASLR, it sucks
+    size_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
+        ? ::Settings::values.rng_seed.GetValue()
+        : std::rand()) * 0x734287f27) & 0xfff000;
+
     // Setup the process code layout
     if (process
-            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), image_size, fastmem_base,
-                              false)
+            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), image_size, fastmem_base, aslr_offset, false)
             .IsError()) {
         return false;
     }

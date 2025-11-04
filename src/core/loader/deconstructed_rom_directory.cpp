@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -223,8 +226,13 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     // Add patch size to the total module size
     code_size += patch_ctx.GetTotalPatchSize();
 
+    // TODO: this is bad form of ASLR, it sucks
+    size_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
+        ? ::Settings::values.rng_seed.GetValue()
+        : std::rand()) * 0x734287f27) & 0xfff000;
+
     // Setup the process code layout
-    if (process.LoadFromMetadata(metadata, code_size, fastmem_base, is_hbl).IsError()) {
+    if (process.LoadFromMetadata(metadata, code_size, fastmem_base, aslr_offset, is_hbl).IsError()) {
         return {ResultStatus::ErrorUnableToParseKernelMetadata, {}};
     }
 
