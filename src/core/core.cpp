@@ -115,6 +115,39 @@ struct System::Impl {
         : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
           reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
 
+    u64 program_id{};
+
+    void LoadOverrides(u64 programId) const {
+        std::string vendor = gpu_core->Renderer().GetDeviceVendor();
+        LOG_INFO(Core, "GPU Vendor: {}", vendor);
+
+        // PC-specific game overrides can be added here
+        // Example:
+        // if (programId == 0x010028600EBDA000) {
+        //     Settings::values.some_setting = true;
+        // }
+
+#ifdef ANDROID
+        // Example on how to set a setting based on the program ID and vendor
+        if (programId == 0x010028600EBDA000 && vendor == "Mali") { // Mario 3D World
+            // Settings::values.some_setting = true;
+        }
+
+        // Example array of program IDs for batch processing
+        const std::array<u64, 2> games_needing_override = {
+            0x0004000000033400, // Example Game 1
+            0x0004000000033500  // Example Game 2
+        };
+
+        for (auto id : games_needing_override) {
+            if (programId == id) {
+                // Settings::values.some_setting = true;
+                break;
+            }
+        }
+#endif
+    }
+
     void Initialize(System& system) {
         device_memory = std::make_unique<Core::DeviceMemory>();
 
@@ -190,7 +223,7 @@ struct System::Impl {
 
         Service::PSC::Time::LocationName name{};
         auto new_name = Settings::GetTimeZoneString(Settings::values.time_zone_index.GetValue());
-        std::memcpy(name.data(), new_name.data(), std::min(name.size(), new_name.size()));
+        std::memcpy(name.data(), new_name.data(), (std::min)(name.size(), new_name.size()));
 
         timezone_service->SetDeviceLocationName(name);
 
@@ -382,6 +415,14 @@ struct System::Impl {
         if (metadata.first != nullptr) {
             title_version = metadata.first->GetVersionString();
         }
+
+        // Store program ID and apply game-specific overrides
+        if (app_loader->ReadProgramId(program_id) == Loader::ResultStatus::Success) {
+            LoadOverrides(program_id);
+        } else {
+            LOG_WARNING(Core, "Failed to read program ID for game-specific overrides");
+        }
+
         if (auto room_member = room_network.GetRoomMember().lock()) {
             Network::GameInfo game_info;
             game_info.name = name;
