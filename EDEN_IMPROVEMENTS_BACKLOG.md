@@ -341,14 +341,20 @@ For each migration:
 
 1. **Periodic Checks** (Monthly or per release)
    - Check https://git.eden-emu.dev/eden-emu/eden for updates
-   - Run `diff` on key files
+   - Clone Eden repo and run `diff` on key files
    - Update this document with findings
 
 2. **Automated Diffing Script** (Future)
    ```bash
+   # Clone Eden repository for comparison
+   git clone https://git.eden-emu.dev/eden-emu/eden eden-temp
+   
    # Compare specific directories
-   diff -r src/core externals/eden-src/core > eden_core_diff.txt
-   diff -r src/video_core externals/eden-src/video_core > eden_video_diff.txt
+   diff -r src/core eden-temp/src/core > eden_core_diff.txt
+   diff -r src/video_core eden-temp/src/video_core > eden_video_diff.txt
+   
+   # Clean up
+   rm -rf eden-temp
    ```
 
 3. **Issue Tracking**
@@ -360,22 +366,14 @@ For each migration:
 
 ## Quick Reference: Eden Source
 
-**Location:** `externals/eden-src/`  
-**File Count:** 2,984 source files (.cpp/.h)  
-**Last Analyzed:** 2025-11-04  
-**Repository:** https://git.eden-emu.dev/eden-emu/eden
+**Note:** The Eden source folders were used for initial analysis and have been removed after migration. All key improvements are documented in this file.
 
-**Key Directories:**
-- `core/` - Core emulation improvements
-- `video_core/` - Graphics rendering
-- `audio_core/` - Audio processing
-- `android/` - Android platform
-- `common/` - Shared utilities
+**Repository:** https://git.eden-emu.dev/eden-emu/eden  
+**Analysis Completed:** 2025-11-04  
+**Status:** Analysis complete, folders removed from codebase
 
-**Diff Command:**
-```bash
-diff -u src/path/to/file.cpp externals/eden-src/path/to/file.cpp
-```
+**For Future Updates:**
+Clone the Eden repository directly from upstream to compare against latest changes.
 
 ---
 

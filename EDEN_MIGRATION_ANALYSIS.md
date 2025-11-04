@@ -132,6 +132,17 @@ This initial migration focused on safe, high-value improvements from Eden:
 
 Further Eden integration should be done incrementally with thorough testing to ensure SuyuEclipse maintains its stability and unique features while benefiting from Eden's bug fixes.
 
+## Eden Source Folders
+
+**Status:** The Eden source folders (`externals/eden-src/` and `CMakeModules/eden/`) were used for initial analysis and have been removed from the codebase after migration.
+
+All key improvements from Eden have been:
+- Documented in `EDEN_IMPROVEMENTS_BACKLOG.md`
+- Selectively migrated (game override system, Windows safety fixes)
+- Analyzed and prioritized for future work
+
+For future Eden comparisons, clone the repository directly from https://git.eden-emu.dev/eden-emu/eden
+
 ## Testing Checklist
 
 Before merging any Eden improvements:
