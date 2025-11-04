@@ -654,3 +654,11 @@ constexpr bool MayGetNZCVFromOp(const Opcode op) noexcept {
 }
 
 }  // namespace Dynarmic::IR
+
+template<>
+struct fmt::formatter<Dynarmic::IR::Opcode> : fmt::formatter<std::string_view> {
+    template<typename FormatContext>
+    auto format(Dynarmic::IR::Opcode op, FormatContext& ctx) const {
+        return formatter<std::string_view>::format(GetNameOf(op), ctx);
+    }
+};
