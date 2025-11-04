@@ -55,9 +55,4 @@ if(WIN32)
     endif()
 endif()
 
-if (MSVC)
-    include(CopyYuzuSDLDeps)
-    copy_yuzu_SDL_deps(yuzu-cmd)
-endif()
-
 create_target_directory_groups(yuzu-cmd)

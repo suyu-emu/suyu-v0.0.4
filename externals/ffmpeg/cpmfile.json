@@ -15,6 +15,7 @@
         "disabled_platforms": [
             "freebsd-amd64",
             "solaris-amd64",
+            "openbsd-amd64",
             "macos-universal"
         ]
     }

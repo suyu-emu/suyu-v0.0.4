@@ -437,13 +437,6 @@ if (ENABLE_SDL2)
     target_compile_definitions(yuzu PRIVATE HAVE_SDL2)
 endif()
 
-if (MSVC)
-    include(CopyYuzuSDLDeps)
-    include(CopyYuzuFFmpegDeps)
-    copy_yuzu_SDL_deps(yuzu)
-    copy_yuzu_FFmpeg_deps(yuzu)
-endif()
-
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(yuzu PRIVATE dynarmic::dynarmic)
 endif()

@@ -65,7 +65,7 @@ ci_package() {
 
     echo "-- CI package $PACKAGE_NAME"
 
-	for platform in windows-amd64 windows-arm64 android solaris-amd64 freebsd-amd64 linux-amd64 linux-aarch64 macos-universal; do
+	for platform in windows-amd64 windows-arm64 mingw-amd64 mingw-arm64 android solaris-amd64 freebsd-amd64 openbsd-amd64 linux-amd64 linux-aarch64 macos-universal; do
         echo "-- * platform $platform"
 
         case $DISABLED in

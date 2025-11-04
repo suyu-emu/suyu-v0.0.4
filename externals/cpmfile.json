@@ -23,7 +23,11 @@
         "package": "sirit",
         "name": "sirit",
         "repo": "eden-emulator/sirit",
-        "version": "1.0.2"
+        "version": "1.0.2",
+        "disabled_platforms": [
+            "mingw-amd64",
+            "mingw-arm64"
+        ]
     },
     "httplib": {
         "repo": "yhirose/cpp-httplib",

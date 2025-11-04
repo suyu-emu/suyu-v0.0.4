@@ -9,6 +9,8 @@
 - `DISABLED_PLATFORMS`: List of platforms that lack artifacts for this package. Options:
   * `windows-amd64`
   * `windows-arm64`
+  * `mingw-amd64`
+  * `mingw-arm64`
   * `android`
   * `solaris-amd64`
   * `freebsd-amd64`
