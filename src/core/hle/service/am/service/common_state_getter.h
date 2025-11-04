@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,6 +32,8 @@ private:
     Result ReceiveMessage(Out<AppletMessage> out_applet_message);
     Result GetCurrentFocusState(Out<FocusState> out_focus_state);
     Result RequestToAcquireSleepLock();
+    Result ReleaseSleepLock();
+    Result ReleaseSleepLockTransiently();
     Result GetAcquiredSleepLockEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetReaderLockAccessorEx(Out<SharedPointer<ILockAccessor>> out_lock_accessor,
                                    u32 button_type);
