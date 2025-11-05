@@ -612,21 +612,26 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
 
-    // DO NOT REMOVE THIS!!!!!!!!!!!!!!!!!
-    // We have confirmed on multiple different occasions that this is completely broken on RADV
-    // Apparently very old versions of RADV on RDNA3 as well
-    // RDNA1 status is unknown
+    // VK_EXT_vertex_input_dynamic_state (VIDS) workaround
+    // VIDS causes black screen when EDS=0, must be off in this case
+    // May cause glitches on RDNA2:
     // https://gitlab.freedesktop.org/mesa/mesa/-/issues/6577
-    // MESA claims to have fixed it multiple times yet they haven't (expected for a project that uses GitLab)
     if (extensions.vertex_input_dynamic_state && is_radv) {
         const bool is_rdna2 =
             supported_extensions.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
-        if (is_rdna2 && !force_extensions) {
+
+        // Always disable VIDS when EDS=0 to prevent black screen
+        if (Settings::values.dyna_state.GetValue() == 0) {
             LOG_WARNING(Render_Vulkan,
-                        "RADV has broken VK_EXT_vertex_input_dynamic_state on RDNA2 hardware");
+                        "Disabling VK_EXT_vertex_input_dynamic_state due to black screen with EDS=0");
             RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
                                    features.vertex_input_dynamic_state,
                                    VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        } else if (is_rdna2) {
+            // RDNA1 status unknown
+            // Warn about glitches on RDNA2
+            LOG_WARNING(Render_Vulkan,
+                        "RADV glitchy VK_EXT_vertex_input_dynamic_state may cause glitches on some driver versions");
         }
     }
     if (extensions.extended_dynamic_state3 &&
