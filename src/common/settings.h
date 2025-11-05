@@ -546,6 +546,7 @@ struct Values {
                                            Category::RendererExtensions,
                                            Specialization::Scalar};
 
+    SwitchableSetting<bool> force_unsupported_extensions{linkage, false, "force_unsupported_extensions", Category::RendererExtensions};
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
     SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions, Specialization::Paired};

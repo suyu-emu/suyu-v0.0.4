@@ -330,6 +330,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Controls the number of features that can be used in Extended Dynamic State.\nHigher numbers allow for more features and can increase performance, but may cause issues.\nThe default value is per-system."));
 
     INSERT(Settings,
+            force_unsupported_extensions,
+            tr("Force Unsupported Extensions"),
+            tr("Bypasses all driver workarounds and safety checks.\n"
+               "May cause crashes, graphical glitches, or instability.\n"
+               "Only enable for testing purposes."));
+
+    INSERT(Settings,
            provoking_vertex,
            tr("Provoking Vertex"),
            tr("Improves lighting and vertex handling in some games.\n"

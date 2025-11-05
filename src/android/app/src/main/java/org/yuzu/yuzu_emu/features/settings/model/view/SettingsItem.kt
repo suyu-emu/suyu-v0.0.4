@@ -141,6 +141,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                BooleanSetting.RENDERER_FORCE_UNSUPPORTED_EXTENSIONS,
+                titleId = R.string.force_unsupported_extensions,
+                descriptionId = R.string.force_unsupported_extensions_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.RENDERER_PROVOKING_VERTEX,
                     titleId = R.string.provoking_vertex,
                     descriptionId = R.string.provoking_vertex_description

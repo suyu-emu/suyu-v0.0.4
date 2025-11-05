@@ -94,6 +94,8 @@
     <string name="dyna_state">Extended Dynamic State</string>
     <string name="dyna_state_description">Controls the number of features that can be used in Extended Dynamic State. Higher numbers allow for more features and can increase performance, but may cause issues with some drivers and vendors. The default value may vary depending on your system and hardware capabilities. This value can be changed until stability and a better visual quality are achieved.</string>
     <string name="disabled">Disabled</string>
+    <string name="force_unsupported_extensions">Force Unsupported Extensions</string>
+    <string name="force_unsupported_extensions_description">Bypasses all driver workarounds and safety checks. May cause crashes, graphical glitches, or instability. Only enable for testing purposes.</string>
     <string name="provoking_vertex">Provoking Vertex</string>
     <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
     <string name="descriptor_indexing">Descriptor Indexing</string>

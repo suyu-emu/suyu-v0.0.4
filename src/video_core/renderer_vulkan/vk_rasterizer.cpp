@@ -945,7 +945,6 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
-
     UpdateViewportsState(regs);
     UpdateScissorsState(regs);
     UpdateDepthBias(regs);
@@ -953,19 +952,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
-
-    const u8 dynamic_state = Settings::values.dyna_state.GetValue();
-
-    auto features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
-        .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
-    };
-
-    if (features.has_extended_dynamic_state) {
+    if (device.IsExtExtendedDynamicStateSupported()) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
@@ -976,14 +963,13 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthTestEnable(regs);
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
-
-            if (features.has_extended_dynamic_state_2) {
+            if (device.IsExtExtendedDynamicState2Supported()) {
                 UpdatePrimitiveRestartEnable(regs);
                 UpdateRasterizerDiscardEnable(regs);
                 UpdateDepthBiasEnable(regs);
             }
 
-            if (features.has_extended_dynamic_state_3_enables) {
+            if (device.IsExtExtendedDynamicState3Supported()) {
                 using namespace Tegra::Engines;
 
                 if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE ||
@@ -1010,20 +996,15 @@ void RasterizerVulkan::UpdateDynamicStates() {
                 UpdateDepthClampEnable(regs);
             }
         }
-        if (features.has_extended_dynamic_state_2_extra) {
+        if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
             UpdateLogicOp(regs);
         }
-        if (features.has_extended_dynamic_state_3_enables) {
+        if (device.IsExtExtendedDynamicState3Supported()) {
             UpdateBlending(regs);
-            UpdateLineStippleEnable(regs);
-            UpdateConservativeRasterizationMode(regs);
         }
     }
-    if (features.has_dynamic_vertex_input) {
-        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline();
-                gp && gp->HasDynamicVertexInput()) {
-            UpdateVertexInput(regs);
-        }
+    if (device.IsExtVertexInputDynamicStateSupported()) {
+        UpdateVertexInput(regs);
     }
 }
 
