@@ -611,6 +611,24 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             dynamic_state3_enables = false;
         }
     }
+
+    // DO NOT REMOVE THIS!!!!!!!!!!!!!!!!!
+    // We have confirmed on multiple different occasions that this is completely broken on RADV
+    // Apparently very old versions of RADV on RDNA3 as well
+    // RDNA1 status is unknown
+    // https://gitlab.freedesktop.org/mesa/mesa/-/issues/6577
+    // MESA claims to have fixed it multiple times yet they haven't (expected for a project that uses GitLab)
+    if (extensions.vertex_input_dynamic_state && is_radv) {
+        const bool is_rdna2 =
+            supported_extensions.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
+        if (is_rdna2 && !force_extensions) {
+            LOG_WARNING(Render_Vulkan,
+                        "RADV has broken VK_EXT_vertex_input_dynamic_state on RDNA2 hardware");
+            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                                   features.vertex_input_dynamic_state,
+                                   VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        }
+    }
     if (extensions.extended_dynamic_state3 &&
         (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY) && !force_extensions) {
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
