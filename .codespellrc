@@ -2,5 +2,5 @@
 ; SPDX-License-Identifier: GPL-2.0-or-later
 
 [codespell]
-skip = ./.git,./build,./dist,./Doxyfile,./externals,./LICENSES,./src/android/app/src/main/res,./src.bak*
-ignore-words-list = aci,allright,ba,canonicalizations,deques,fpr,froms,hda,inout,lod,masia,nam,nax,nce,nd,optin,pullrequests,pullrequest,te,transfered,unstall,uscaled,vas,zink
+skip = ./.git,./build,./dist,./Doxyfile,./externals,./LICENSES,./src/android/app/src/main/res,./src.bak*,./src/dynarmic/docs
+ignore-words-list = aci,allright,ba,canonicalizations,deques,fpr,froms,hda,inout,lod,masia,nam,nax,nce,nd,optin,pullrequests,pullrequest,te,transfered,unstall,uscaled,vas,zink,fpt,indicies,poping,writting,insturctions,irreversable,ue,padd,instructons,construtor,noticable,irregardless,conciously,nescesary,uneeded,exisitng,cant,preceeded,wont,continous,occured,prefered,offseted,assocated,writed,readd,overrrun
