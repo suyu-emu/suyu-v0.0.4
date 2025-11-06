@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:focusable="false"
+    android:focusableInTouchMode="false"
+    android:padding="4dp">
+
+    <org.yuzu.yuzu_emu.views.GradientBorderCardView
+        android:id="@+id/card_game_grid"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/eden_card_background"
+        app:strokeWidth="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="4dp"
+        android:clickable="true"
+        android:clipToPadding="true"
+        android:focusable="true"
+        android:transitionName="card_game"
+        app:cardCornerRadius="16dp"
+        android:foreground="@color/eden_border_gradient_start">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:paddingLeft="6dp"
+            android:paddingRight="6dp"
+            android:paddingBottom="6dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/image_game_screen"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                android:scaleType="centerCrop"
+                tools:src="@drawable/default_icon" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/text_game_title"
+                style="@style/SynthwaveText.Body"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:requiresFadingEdge="horizontal"
+                android:textAlignment="center"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="@+id/image_game_screen"
+                app:layout_constraintStart_toStartOf="@+id/image_game_screen"
+                app:layout_constraintTop_toBottomOf="@+id/image_game_screen"
+                tools:text="The Legend of Zelda: Skyward Sword" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </org.yuzu.yuzu_emu.views.GradientBorderCardView>
+
+</FrameLayout>

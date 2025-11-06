@@ -184,19 +184,37 @@ else()
     endif()
 endif()
 
+# Core components
 add_subdirectory(common)
 add_subdirectory(nintendo_library)
 add_subdirectory(core)
+
+# Graphics and audio
 add_subdirectory(audio_core)
 add_subdirectory(video_core)
-add_subdirectory(hid_core)
-add_subdirectory(network)
-add_subdirectory(input_common)
-add_subdirectory(frontend_common)
 add_subdirectory(shader_recompiler)
 
+# Input and HID
+add_subdirectory(hid_core)
+add_subdirectory(input_common)
+
+# Networking and frontend
+add_subdirectory(network)
+add_subdirectory(frontend_common)
+
+# Optional components
 if (SUYU_ROOM)
-     add_subdirectory(dedicated_room)
+    add_subdirectory(dedicated_room)
+endif()
+
+# Tests
+if (SUYU_TESTS)
+    add_subdirectory(tests)
+endif()
+
+# Command-line interface
+if (SUYU_CMD)
+    add_subdirectory(suyu_cmd)
 endif()
 
 if (SUYU_TESTS)

@@ -115,6 +115,23 @@ struct System::Impl {
         : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
           reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
 
+    void LoadOverrides(u64 programId) const {
+        if (!gpu_core) {
+            return;
+        }
+
+        std::string vendor = gpu_core->Renderer().GetDeviceVendor();
+        LOG_INFO(Core, "Loading game-specific overrides for program ID {:016X}, GPU: {}", programId, vendor);
+
+#ifdef ANDROID
+        if (vendor.find("Mali") != std::string::npos) {
+            if (programId == 0x010028600EBDA000) {
+                LOG_INFO(Core, "Applying Mali GPU workaround for Mario 3D World");
+            }
+        }
+#endif
+    }
+
     void Initialize(System& system) {
         device_memory = std::make_unique<Core::DeviceMemory>();
 
@@ -190,7 +207,7 @@ struct System::Impl {
 
         Service::PSC::Time::LocationName name{};
         auto new_name = Settings::GetTimeZoneString(Settings::values.time_zone_index.GetValue());
-        std::memcpy(name.data(), new_name.data(), std::min(name.size(), new_name.size()));
+        std::memcpy(name.data(), new_name.data(), (std::min)(name.size(), new_name.size()));
 
         timezone_service->SetDeviceLocationName(name);
 
@@ -382,6 +399,9 @@ struct System::Impl {
         if (metadata.first != nullptr) {
             title_version = metadata.first->GetVersionString();
         }
+
+        LoadOverrides(params.program_id);
+
         if (auto room_member = room_network.GetRoomMember().lock()) {
             Network::GameInfo game_info;
             game_info.name = name;

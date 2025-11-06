@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Suyu.Splash.Main" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/suyu_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_suyu</item>
+        <item name="postSplashScreenTheme">@style/Theme.Suyu.Main</item>
+    </style>
+
+    <style name="Theme.Suyu.Main" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/suyu_primary</item>
+        <item name="colorOnPrimary">@color/suyu_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/suyu_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/suyu_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/suyu_secondary</item>
+        <item name="colorOnSecondary">@color/suyu_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/suyu_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/suyu_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/suyu_tertiary</item>
+        <item name="colorOnTertiary">@color/suyu_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/suyu_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/suyu_onTertiaryContainer</item>
+        <item name="colorError">@color/suyu_error</item>
+        <item name="colorErrorContainer">@color/suyu_errorContainer</item>
+        <item name="colorOnError">@color/suyu_onError</item>
+        <item name="colorOnErrorContainer">@color/suyu_onErrorContainer</item>
+        <item name="android:colorBackground">@color/suyu_background</item>
+        <item name="colorOnBackground">@color/suyu_onBackground</item>
+        <item name="colorSurface">@color/suyu_surface</item>
+        <item name="colorOnSurface">@color/suyu_onSurface</item>
+        <item name="colorSurfaceVariant">@color/suyu_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/suyu_onSurfaceVariant</item>
+        <item name="colorOutline">@color/suyu_outline</item>
+        <item name="colorOnSurfaceInverse">@color/suyu_inverseOnSurface</item>
+        <item name="colorSurfaceInverse">@color/suyu_inverseSurface</item>
+        <item name="colorPrimaryInverse">@color/suyu_inversePrimary</item>
+        <item name="android:shadowColor">@color/suyu_shadow</item>
+
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <item name="sliderStyle">@style/SuyuSlider</item>
+        <item name="materialAlertDialogTheme">@style/SuyuMaterialDialog</item>
+
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
+
+</resources>

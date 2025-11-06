@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#pragma once
+
+namespace Common {
+
+static const constexpr std::array<const char *, @DEPS_LENGTH@> dep_names = {
+@DEP_NAMES@
+};
+
+static const constexpr std::array<const char *, @DEPS_LENGTH@> dep_hashes = {
+@DEP_SHAS@
+};
+
+static const constexpr std::array<const char *, @DEPS_LENGTH@> dep_urls = {
+@DEP_URLS@
+};
+
+} // namespace Common
