@@ -32,10 +32,13 @@ This document describes the fixes applied to resolve vcpkg build issues with boo
 - Maintained registry configuration for boost packages
 
 ### 4. Inefficient vcpkg Clone in GitHub Actions
-**Problem**: The workflow was using `git fetch --unshallow` after a shallow clone, which fetches the entire vcpkg repository history. This is extremely time-consuming for large repositories and can cause timeouts.
+**Problem**: The workflow was using `git fetch --unshallow` after a shallow clone, which fetches the entire vcpkg repository history. Even with `--depth 1`, the initial clone would still checkout all 13,069 files from the default branch, which is extremely time-consuming for large repositories and can cause timeouts.
 
 **Solution**:
-- Replaced the inefficient clone approach with targeted fetch: `git fetch --depth 1 origin <commit>`
+- Replaced the inefficient clone approach with: `git clone --filter=blob:none --no-checkout`
+- Uses `--no-checkout` to skip the initial file checkout step
+- Uses `--filter=blob:none` to create a blobless clone that doesn't download file contents initially
+- Fetches only the specific commit with: `git fetch --depth 1 origin <commit>`
 - This fetches only the specific commit needed (01f602195983451bc83e72f4214af2cbc495aa94) instead of the entire history
 - Significantly reduces clone time from several minutes to seconds
 - Prevents timeout issues in CI/CD pipelines
@@ -57,7 +60,11 @@ This document describes the fixes applied to resolve vcpkg build issues with boo
 
 ### 3. `.github/workflows/cmake-multi-platform.yml`
 - **Verified**: vcpkg checkout commit matches baseline (01f602195983451bc83e72f4214af2cbc495aa94)
-- **Optimized Clone**: Changed from `git fetch --unshallow` to `git fetch --depth 1 origin <commit>` to fetch only the specific commit needed, significantly reducing clone time and avoiding timeouts
+- **Optimized Clone**: Changed from `git fetch --unshallow` to a more efficient approach:
+  - Uses `--no-checkout` flag to skip initial file checkout
+  - Uses `--filter=blob:none` to avoid downloading blob content initially
+  - Uses `git fetch --depth 1 origin <commit>` to fetch only the specific commit needed
+  - Significantly reduces clone time and avoids downloading unnecessary files
 - **Build Process**: Maintained existing build configuration with proper vcpkg integration
 
 ### 4. New Build Scripts
