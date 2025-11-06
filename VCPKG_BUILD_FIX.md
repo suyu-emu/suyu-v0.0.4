@@ -31,6 +31,15 @@ This document describes the fixes applied to resolve vcpkg build issues with boo
 - Updated GitHub Actions workflow to use the same vcpkg commit
 - Maintained registry configuration for boost packages
 
+### 4. Inefficient vcpkg Clone in GitHub Actions
+**Problem**: The workflow was using `git fetch --unshallow` after a shallow clone, which fetches the entire vcpkg repository history. This is extremely time-consuming for large repositories and can cause timeouts.
+
+**Solution**:
+- Replaced the inefficient clone approach with targeted fetch: `git fetch --depth 1 origin <commit>`
+- This fetches only the specific commit needed (01f602195983451bc83e72f4214af2cbc495aa94) instead of the entire history
+- Significantly reduces clone time from several minutes to seconds
+- Prevents timeout issues in CI/CD pipelines
+
 ## Files Modified
 
 ### 1. `vcpkg.json`
@@ -48,6 +57,7 @@ This document describes the fixes applied to resolve vcpkg build issues with boo
 
 ### 3. `.github/workflows/cmake-multi-platform.yml`
 - **Verified**: vcpkg checkout commit matches baseline (01f602195983451bc83e72f4214af2cbc495aa94)
+- **Optimized Clone**: Changed from `git fetch --unshallow` to `git fetch --depth 1 origin <commit>` to fetch only the specific commit needed, significantly reducing clone time and avoiding timeouts
 - **Build Process**: Maintained existing build configuration with proper vcpkg integration
 
 ### 4. New Build Scripts
