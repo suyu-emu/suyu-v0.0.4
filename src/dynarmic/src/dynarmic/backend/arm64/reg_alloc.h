@@ -371,8 +371,9 @@ void RAReg<T>::Realize() {
     case RWType::ReadWrite:
         reg = T{reg_alloc.RealizeReadWriteImpl<kind>(read_value, write_value)};
         break;
+    default:
+        UNREACHABLE();
     }
-    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::Backend::Arm64

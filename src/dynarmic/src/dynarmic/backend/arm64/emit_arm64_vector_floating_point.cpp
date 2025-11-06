@@ -645,8 +645,9 @@ void EmitIR<IR::Opcode::FPVectorRoundInt32>(oaknut::CodeGenerator& code, EmitCon
             case FP::RoundingMode::ToNearest_TieAwayFromZero:
                 code.FRINTA(Qresult->S4(), Qoperand->S4());
                 break;
+            default:
+                UNREACHABLE();
             }
-            UNREACHABLE();
         }
     });
 }
@@ -684,8 +685,9 @@ void EmitIR<IR::Opcode::FPVectorRoundInt64>(oaknut::CodeGenerator& code, EmitCon
             case FP::RoundingMode::ToNearest_TieAwayFromZero:
                 code.FRINTA(Qresult->D2(), Qoperand->D2());
                 break;
+            default:
+                UNREACHABLE();
             }
-            UNREACHABLE();
         }
     });
 }

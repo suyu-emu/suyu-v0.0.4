@@ -468,8 +468,9 @@ void EmitIR<IR::Opcode::FPRoundInt32>(oaknut::CodeGenerator& code, EmitContext& 
         case FP::RoundingMode::ToNearest_TieAwayFromZero:
             code.FRINTA(Sresult, Soperand);
             break;
+        default:
+            UNREACHABLE();
         }
-        UNREACHABLE();
     }
 }
 
