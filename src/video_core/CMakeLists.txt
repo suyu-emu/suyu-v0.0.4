@@ -384,10 +384,6 @@ if (ARCHITECTURE_x86_64)
         macro/macro_jit_x64.h
     )
     target_link_libraries(video_core PUBLIC xbyak::xbyak)
-
-    if (NOT MSVC)
-        target_compile_options(video_core PRIVATE -msse4.1)
-    endif()
 endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
