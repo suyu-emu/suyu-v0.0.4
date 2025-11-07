@@ -292,7 +292,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
     // Curated optimizations
     case Settings::CpuAccuracy::Auto:
         config.unsafe_optimizations = true;
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__) || defined(__DragonFly__)
         config.fastmem_pointer = std::nullopt;
         config.fastmem_exclusive_access = false;
 #endif

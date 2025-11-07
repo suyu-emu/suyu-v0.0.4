@@ -8,6 +8,8 @@ But for new developers you may find that following these guidelines will make ev
 
 Simply put, types/classes are named as `PascalCase`, same for methods and functions like `AddElement`. Variables are named `like_this_snake_case` and constants are `IN_SCREAMING_CASE`.
 
+Except for Qt MOC where `functionName` is preferred.
+
 Template typenames prefer short names like `T`, `I`, `U`, if a longer name is required either `Iterator` or `perform_action` are fine as well.
 
 Macros must always be in `SCREAMING_CASE`. Do not use short letter macros as systems like Solaris will conflict with them; a good rule of thumb is >5 characters per macro - i.e `THIS_MACRO_IS_GOOD`, `AND_ALSO_THIS_ONE`.

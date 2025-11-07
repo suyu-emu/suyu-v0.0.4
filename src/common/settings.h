@@ -296,7 +296,7 @@ struct Values {
                                               Category::CpuDebug};
 
     SwitchableSetting<bool> cpuopt_unsafe_host_mmu{linkage,
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__)
+#if !defined(__APPLE__) && !defined(__linux__) && !defined(__ANDROID__) && !defined(_WIN32)
                                         false,
 #else
                                         true,

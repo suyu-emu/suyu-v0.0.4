@@ -30,6 +30,13 @@ macOS is largely untested. Expect crashes, significant Vulkan issues, and other 
 
 ## Solaris
 
+Always consult [the OpenIndiana package list](https://pkg.openindiana.org/hipster/en/index.shtml) to cross-verify availability.
+
+Run the usual update + install of essential toolings: `sudo pkg update && sudo pkg install git cmake`.
+
+- **gcc**: `sudo pkg install developer/gcc-14`.
+- **clang**: Version 20 is broken, use `sudo pkg install developer/clang-19`.
+
 Qt Widgets appears to be broken. For now, add `-DENABLE_QT=OFF` to your configure command. In the meantime, a Qt Quick frontend is in the works--check back later!
 
 This is needed for some dependencies that call cc directly (tz):
@@ -74,7 +81,7 @@ Still will not run flawlessly until `mesa-24` is available. Modify CMakeCache.tx
 
 After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-build/build.make` to use `-j$(nproc)` instead of just `-j`.
 
-`-lc++-experimental` doesn't exist in OpenBSD but the LLVM driver still tries to link against it, to solve just symlink `ln -s /usr/lib/libc++.a /usr/lib/libc++experimental.a`.
+`-lc++-experimental` doesn't exist in OpenBSD but the LLVM driver still tries to link against it, to solve just symlink `ln -s /usr/lib/libc++.a /usr/lib/libc++experimental.a`. Builds are currently not working due to lack of `std::jthread` and such, either compile libc++ manually or wait for ports to catch up.
 
 If clang has errors, try using `g++-11`.
 
@@ -106,6 +113,21 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -- -j`nproc`
 cmake --install build
 ```
+
+# DragonFlyBSD
+
+If `libstdc++.so.6` is not found (`GLIBCXX_3.4.30`) then attempt:
+```sh
+rm /usr/local/lib/gcc11/libstdc++.so.6
+ln -s /usr/local/lib/gcc14/libstdc++.so /usr/local/lib/gcc11/libstdc++.so.6
+```
+This may have unforeseen consequences of which we don't need to worry about for now.
+
+Default `g++` (and the libstdc++) is too outdated - so install `gcc14` and redirect CMake to the new compiler toolchain  `-DCMAKE_CXX_COMPILER=gcc14 -DCMAKE_C_COMPILER=g++14`.
+
+There is also `llvm18` and use `-DCMAKE_CXX_COMPILER=clang++18 -DCMAKE_C_COMPILER=clang18` (note the `18` suffix at the end). NOTE: It doesn't have an updated libcxx so `<span>` will be missing, either build it manually or use gcc.
+
+If build hangs, use `hammer2 bulkfree`.
 
 ## MSYS2
 
@@ -169,3 +191,9 @@ find ./*/ -name "*.dll" | while read -r dll; do deps "$dll"; done
 DirectX 12 is not available - simply copy and paste a random DLL and name it `d3d12.dll`.
 
 Install [Qt6 compatibility libraries](github.com/ANightly/qt6windows7) specifically Qt 6.9.5.
+
+## RedoxOS
+
+The package install may randomly hang at times, in which case it has to be restarted. ALWAYS do a `sudo pkg update` or the chances of it hanging will be close to 90%. If "multiple" installs fail at once, try installing 1 by 1 the packages.
+
+When CMake invokes certain file syscalls - it may sometimes cause crashes or corruptions on the (kernel?) address space - so reboot the system if there is a "hang" in CMake.

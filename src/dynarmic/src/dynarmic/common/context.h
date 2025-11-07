@@ -72,6 +72,9 @@
 #    elif defined(__sun__)
 #        define CTX_RIP (mctx.gregs[REG_RIP])
 #        define CTX_RSP (mctx.gregs[REG_RSP])
+#    elif defined(__DragonFly__)
+#        define CTX_RIP (mctx.mc_rip)
+#        define CTX_RSP (mctx.mc_rsp)
 #    else
 #        error "Unknown platform"
 #    endif

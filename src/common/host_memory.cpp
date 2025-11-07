@@ -521,14 +521,29 @@ public:
 #else
         fd = memfd_create("HostMemory", 0);
 #endif
-        ASSERT_MSG(fd >= 0, "memfd_create failed: {}", strerror(errno));
-
-        // Defined to extend the file with zeros
-        int ret = ftruncate(fd, backing_size);
-        ASSERT_MSG(ret == 0, "ftruncate failed with {}, are you out-of-memory?", strerror(errno));
-
-        backing_base = static_cast<u8*>(
-            mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+        bool use_anon = false;
+        if (fd <= 0) {
+            LOG_WARNING(Common_Memory, "memfd_create: {}", strerror(errno));
+            use_anon = true;
+        }
+        if (!use_anon) {
+            // Defined to extend the file with zeros
+            int ret = ftruncate(fd, backing_size);
+            if (ret != 0) {
+                LOG_WARNING(Common_Memory, "ftruncate: {} (likely out-of-emory)", strerror(errno));
+                use_anon = true;
+            }
+        }
+        if (use_anon) {
+            LOG_WARNING(Common_Memory, "Using private mappings instead of shared ones");
+            backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+            if (fd > 0) {
+                fd = -1;
+                close(fd);
+            }
+        } else {
+            backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+        }
         ASSERT_MSG(backing_base != MAP_FAILED, "mmap failed: {}", strerror(errno));
 
         // Virtual memory initialization
@@ -552,22 +567,18 @@ public:
         free_manager.AllocateBlock(virtual_base + virtual_offset, length);
 
         // Deduce mapping protection flags.
-        int flags = PROT_NONE;
-        if (True(perms & MemoryPermission::Read)) {
-            flags |= PROT_READ;
-        }
-        if (True(perms & MemoryPermission::Write)) {
-            flags |= PROT_WRITE;
-        }
+        int prot_flags = PROT_NONE;
+        if (True(perms & MemoryPermission::Read))
+            prot_flags |= PROT_READ;
+        if (True(perms & MemoryPermission::Write))
+            prot_flags |= PROT_WRITE;
 #ifdef ARCHITECTURE_arm64
-        if (True(perms & MemoryPermission::Execute)) {
-            flags |= PROT_EXEC;
-        }
+        if (True(perms & MemoryPermission::Execute))
+            prot_flags |= PROT_EXEC;
 #endif
-
-        void* ret = mmap(virtual_base + virtual_offset, length, flags, MAP_SHARED | MAP_FIXED, fd,
-                         host_offset);
-        ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
+        int flags = (fd > 0 ? MAP_SHARED : MAP_PRIVATE) | MAP_FIXED;
+        void* ret = mmap(virtual_base + virtual_offset, length, prot_flags, flags, fd, host_offset);
+        ASSERT_MSG(ret != MAP_FAILED, "mmap: {}", strerror(errno));
     }
 
     void Unmap(size_t virtual_offset, size_t length) {
