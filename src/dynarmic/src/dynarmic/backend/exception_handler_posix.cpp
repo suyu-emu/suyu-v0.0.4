@@ -188,15 +188,15 @@ private:
 ExceptionHandler::ExceptionHandler() = default;
 ExceptionHandler::~ExceptionHandler() = default;
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 void ExceptionHandler::Register(X64::BlockOfCode& code) {
     impl = std::make_unique<Impl>(std::bit_cast<u64>(code.getCode()), code.GetTotalCodeSize());
 }
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr()), size);
 }
-#elif defined(MCL_ARCHITECTURE_RISCV)
+#elif defined(ARCHITECTURE_riscv64)
 void ExceptionHandler::Register(RV64::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr<u64>()), size);
 }

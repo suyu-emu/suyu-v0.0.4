@@ -14,23 +14,8 @@
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/opcodes.h"
 
-#define FCODE(NAME)                  \
-    [&code](auto... args) {          \
-        if constexpr (esize == 32) { \
-            code.NAME##s(args...);   \
-        } else {                     \
-            code.NAME##d(args...);   \
-        }                            \
-    }
-
-#define ICODE(NAME)                  \
-    [&code](auto... args) {          \
-        if constexpr (esize == 32) { \
-            code.NAME##d(args...);   \
-        } else {                     \
-            code.NAME##q(args...);   \
-        }                            \
-    }
+#define FCODE(NAME) [&](auto... args) { if (esize == 32) code.NAME##s(args...); else code.NAME##d(args...); }
+#define ICODE(NAME) [&](auto... args) { if (esize == 32) code.NAME##d(args...); else code.NAME##q(args...); }
 
 namespace Dynarmic::Backend::X64 {
 
