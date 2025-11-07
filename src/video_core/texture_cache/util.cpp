@@ -646,9 +646,10 @@ LevelArray CalculateMipLevelOffsets(const ImageInfo& info) noexcept {
     if (info.type == ImageType::Linear) {
         return {};
     }
-    ASSERT(info.resources.levels <= static_cast<s32>(MAX_MIP_LEVELS));
-    if (info.resources.levels > static_cast<s32>(MAX_MIP_LEVELS))
+    if (info.resources.levels > static_cast<s32>(MAX_MIP_LEVELS)) {
+        LOG_ERROR(HW_GPU, "Image has too many mip levels={}, maximum supported is={}", info.resources.levels, MAX_MIP_LEVELS);
         return {};
+    }
     const LevelInfo level_info = MakeLevelInfo(info);
     LevelArray offsets{};
     u32 offset = 0;

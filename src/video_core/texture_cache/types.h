@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,7 +13,7 @@
 namespace VideoCommon {
 
 constexpr size_t NUM_RT = 8;
-constexpr size_t MAX_MIP_LEVELS = 14;
+constexpr size_t MAX_MIP_LEVELS = 16;
 
 constexpr Common::SlotId CORRUPT_ID{0xfffffffe};
 
