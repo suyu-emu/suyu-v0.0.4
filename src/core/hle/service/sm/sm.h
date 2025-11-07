@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,8 +11,8 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <concepts>
 
-#include "common/concepts.h"
 #include "core/hle/kernel/k_port.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/result.h"
@@ -63,7 +66,7 @@ public:
     Result UnregisterService(const std::string& name);
     Result GetServicePort(Kernel::KClientPort** out_client_port, const std::string& name);
 
-    template <Common::DerivedFrom<SessionRequestHandler> T>
+    template <std::derived_from<SessionRequestHandler> T>
     std::shared_ptr<T> GetService(const std::string& service_name, bool block = false) const {
         auto service = registered_services.find(service_name);
         if (service == registered_services.end() && !block) {

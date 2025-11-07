@@ -8,6 +8,7 @@
 #include <optional>
 #include <ostream>
 #include <string>
+#include <concepts>
 #include "common/concepts.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
@@ -27,7 +28,7 @@ namespace Loader {
 
 namespace {
 
-template <Common::DerivedFrom<AppLoader> T>
+template <std::derived_from<AppLoader> T>
 std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
     const auto file_type = T::IdentifyType(file);
     if (file_type != FileType::Error) {

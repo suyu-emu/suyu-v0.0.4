@@ -63,12 +63,10 @@ constexpr bool IsInvalidCharacter(char c) {
     return impl::IsInvalidCharacterImpl<InvalidCharacters, std::size(InvalidCharacters)>(c);
 }
 constexpr bool IsInvalidCharacterForHostName(char c) {
-    return impl::IsInvalidCharacterImpl<InvalidCharactersForHostName,
-        std::size(InvalidCharactersForHostName)>(c);
+    return impl::IsInvalidCharacterImpl<InvalidCharactersForHostName, std::size(InvalidCharactersForHostName)>(c);
 }
 constexpr bool IsInvalidCharacterForMountName(char c) {
-    return impl::IsInvalidCharacterImpl<InvalidCharactersForMountName,
-        std::size(InvalidCharactersForMountName)>(c);
+    return impl::IsInvalidCharacterImpl<InvalidCharactersForMountName, std::size(InvalidCharactersForMountName)>(c);
 }
 
 } // namespace StringTraits

@@ -23,9 +23,7 @@ namespace VideoCommon::GPUThread {
 static void RunThread(std::stop_token stop_token, Core::System& system,
                       VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
                       Tegra::Control::Scheduler& scheduler, SynchState& state) {
-    std::string name = "GPU";
-
-    Common::SetCurrentThreadName(name.c_str());
+    Common::SetCurrentThreadName("GPU");
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
     system.RegisterHostThread();
 
