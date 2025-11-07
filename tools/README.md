@@ -8,7 +8,8 @@ Tools for Eden and other subprojects.
 
 ## Eden
 
-- `find-unused-strings.pl`: Find unused strings (for Android XML files).
+- `generate_converters.py`: Generates converters for given formats of textures (C++ helper).
+- `svc_generator.py`: Generates the files `src/core/hle/kernel/svc.cpp` and `src/core/hle/kernel/svc.h` based off prototypes.
 - `shellcheck.sh`: Ensure POSIX compliance (and syntax sanity) for all tools in this directory and subdirectories.
 - `llvmpipe-run.sh`: Sets environment variables needed to run any command (or Eden) with llvmpipe.
 - `optimize-assets.sh`: Optimizes PNG assets with OptiPng.
