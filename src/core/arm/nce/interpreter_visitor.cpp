@@ -181,14 +181,6 @@ bool InterpreterVisitor::Ordered(size_t size, bool L, bool o0, Reg Rn, Reg Rt) {
     const size_t dbytes = datasize / 8;
 
     u64 address = (Rn == Reg::SP) ? this->GetSp() : this->GetReg(Rn);
-
-    // Conservative prefetch for atomic ops
-    if (memop == MemOp::Load) {
-        __builtin_prefetch(reinterpret_cast<const void*>(address), 0, 1);
-    } else {
-        __builtin_prefetch(reinterpret_cast<const void*>(address), 1, 1);
-    }
-
     switch (memop) {
     case MemOp::Store: {
         std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -435,21 +427,6 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
     if (!postindex)
         address += offset;
 
-    // Optimized prefetch for loads
-    if (memop == MemOp::Load) {
-        const size_t access_size = datasize / 8;
-        const bool is_aligned = (address % access_size) == 0;
-
-        if (is_aligned) {
-            __builtin_prefetch(reinterpret_cast<const void*>(address), 0, 3);
-            if (access_size >= 8 && access_size <= 32) {
-                __builtin_prefetch(reinterpret_cast<const void*>(address + PREFETCH_STRIDE), 0, 3);
-            }
-        } else {
-            __builtin_prefetch(reinterpret_cast<const void*>(address), 0, 1);
-        }
-    }
-
     switch (memop) {
     case MemOp::Store: {
         u64 data = this->GetReg(Rt);
@@ -515,15 +492,6 @@ bool InterpreterVisitor::SIMDImmediate(bool wback, bool postindex, size_t scale,
     u64 address = (Rn == Reg::SP) ? this->GetSp() : this->GetReg(Rn);
     if (!postindex)
         address += offset;
-
-    // Aggressive prefetch for SIMD
-    if (memop == MemOp::Load) {
-        __builtin_prefetch(reinterpret_cast<const void*>(address), 0, 3);
-        __builtin_prefetch(reinterpret_cast<const void*>(address + CACHE_LINE_SIZE), 0, 3);
-        if (datasize >= SIMD_PREFETCH_THRESHOLD) {
-            __builtin_prefetch(reinterpret_cast<const void*>(address + PREFETCH_STRIDE), 0, 3);
-        }
-    }
 
     switch (memop) {
     case MemOp::Store: {
