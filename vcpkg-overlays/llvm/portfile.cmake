@@ -70,6 +70,7 @@ vcpkg_cmake_install()
 
 # Fix CMake configuration files location and merge debug/release configs
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/llvm)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
 # Handle tools and bin directories for static builds
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
