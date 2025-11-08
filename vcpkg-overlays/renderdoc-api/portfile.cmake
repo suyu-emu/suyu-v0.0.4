@@ -1,7 +1,7 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO baldurk/renderdoc
-    REF v1.27.0
+    REF v1.32.0
     SHA512 0
     HEAD_REF master
 )
