@@ -18,11 +18,12 @@ file(INSTALL "${SOURCE_PATH}/LICENSE.md" DESTINATION "${CURRENT_PACKAGES_DIR}/sh
 file(WRITE "${CURRENT_PACKAGES_DIR}/share/renderdoc-api/renderdoc-api-config.cmake" 
 "# RenderDoc API CMake configuration file
 # This file provides the RenderDoc API headers for graphics debugging
+# The include directory path uses vcpkg variables for robustness.
 
 if(NOT TARGET renderdoc-api::renderdoc-api)
     add_library(renderdoc-api::renderdoc-api INTERFACE IMPORTED)
     set_target_properties(renderdoc-api::renderdoc-api PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES \"\${CMAKE_CURRENT_LIST_DIR}/../../include\"
+        INTERFACE_INCLUDE_DIRECTORIES \"\${VCPKG_INSTALLED_DIR}/\${VCPKG_TARGET_TRIPLET}/include/renderdoc\"
     )
 endif()
 ")
