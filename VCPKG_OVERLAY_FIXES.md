@@ -101,4 +101,4 @@ To verify these fixes:
 1. Run `vcpkg install` with the updated overlay ports
 2. Confirm no policy violation warnings appear
 3. Verify that downstream projects can successfully find and use both packages
-4. Check that CMake config files are in the expected locations (`share/PORT/cmake/`)
+4. Check that CMake config files are in the expected locations (`share/PORT/`)
