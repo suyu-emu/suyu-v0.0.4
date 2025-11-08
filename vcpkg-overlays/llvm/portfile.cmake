@@ -74,8 +74,14 @@ vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/llvm)
 # Handle tools and bin directories for static builds
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     # Copy any essential tools before removing bin directories
-    if(EXISTS "${CURRENT_PACKAGES_DIR}/bin/llvm-tblgen.exe")
-        vcpkg_copy_tools(TOOL_NAMES llvm-tblgen AUTO_CLEAN)
+    if(VCPKG_TARGET_IS_WINDOWS)
+        if(EXISTS "${CURRENT_PACKAGES_DIR}/bin/llvm-tblgen.exe")
+            vcpkg_copy_tools(TOOL_NAMES llvm-tblgen AUTO_CLEAN)
+        endif()
+    else()
+        if(EXISTS "${CURRENT_PACKAGES_DIR}/bin/llvm-tblgen")
+            vcpkg_copy_tools(TOOL_NAMES llvm-tblgen AUTO_CLEAN)
+        endif()
     endif()
     
     # Remove bin directories as they shouldn't exist in static builds
