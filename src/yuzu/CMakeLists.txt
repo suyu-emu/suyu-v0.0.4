@@ -156,8 +156,6 @@ add_executable(yuzu
     debugger/console.h
     debugger/controller.cpp
     debugger/controller.h
-    debugger/wait_tree.cpp
-    debugger/wait_tree.h
 
     game_list.cpp
     game_list.h

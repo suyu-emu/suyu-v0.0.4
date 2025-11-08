@@ -1685,54 +1685,6 @@ QTabBar QToolButton::right-arrow:disabled {
   image: url(":/qss_icons/rc/arrow_right_disabled.png");
 }
 
-/* QDockWiget -------------------------------------------------------------
-
---------------------------------------------------------------------------- */
-QDockWidget {
-  outline: 1px solid #32414B;
-  background-color: #19232D;
-  border: 1px solid #32414B;
-  border-radius: 4px;
-  titlebar-close-icon: url(":/qss_icons/rc/window_close.png");
-  titlebar-normal-icon: url(":/qss_icons/rc/window_undock.png");
-}
-
-QDockWidget::title {
-  /* Better size for title bar */
-  padding: 6px;
-  spacing: 4px;
-  border: none;
-  background-color: #32414B;
-}
-
-QDockWidget::close-button {
-  background-color: #32414B;
-  border-radius: 4px;
-  border: none;
-}
-
-QDockWidget::close-button:hover {
-  image: url(":/qss_icons/rc/window_close_focus.png");
-}
-
-QDockWidget::close-button:pressed {
-  image: url(":/qss_icons/rc/window_close_pressed.png");
-}
-
-QDockWidget::float-button {
-  background-color: #32414B;
-  border-radius: 4px;
-  border: none;
-}
-
-QDockWidget::float-button:hover {
-  image: url(":/qss_icons/rc/window_undock_focus.png");
-}
-
-QDockWidget::float-button:pressed {
-  image: url(":/qss_icons/rc/window_undock_pressed.png");
-}
-
 /* QTreeView QListView QTableView -----------------------------------------
 
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtreeview

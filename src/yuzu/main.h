@@ -390,7 +390,6 @@ private slots:
     void OnToggleFilterBar();
     void OnToggleStatusBar();
     void OnGameListRefresh();
-    void OnDisplayTitleBars(bool);
     void InitializeHotkeys();
     void ToggleFullscreen();
     bool UsingExclusiveFullscreen();
@@ -535,7 +534,6 @@ private:
     QString startup_icon_theme;
 
     // Debugger panes
-    WaitTreeWidget* waitTreeWidget;
     ControllerDialog* controller_dialog;
 
     QAction* actions_recent_files[max_recent_files_item];

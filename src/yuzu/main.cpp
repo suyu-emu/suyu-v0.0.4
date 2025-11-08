@@ -161,7 +161,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "qt_common/config/qt_config.h"
 #include "yuzu/debugger/console.h"
 #include "yuzu/debugger/controller.h"
-#include "yuzu/debugger/wait_tree.h"
 #include "yuzu/data_dialog.h"
 #include "yuzu/deps_dialog.h"
 #include "yuzu/ryujinx_dialog.h"
@@ -1373,19 +1372,9 @@ void GMainWindow::InitializeWidgets() {
 void GMainWindow::InitializeDebugWidgets() {
     QMenu* debug_menu = ui->menu_View_Debugging;
 
-    waitTreeWidget = new WaitTreeWidget(*QtCommon::system, this);
-    addDockWidget(Qt::LeftDockWidgetArea, waitTreeWidget);
-    waitTreeWidget->hide();
-    debug_menu->addAction(waitTreeWidget->toggleViewAction());
-
     controller_dialog = new ControllerDialog(QtCommon::system->HIDCore(), input_subsystem, this);
     controller_dialog->hide();
     debug_menu->addAction(controller_dialog->toggleViewAction());
-
-    connect(this, &GMainWindow::EmulationStarting, waitTreeWidget,
-            &WaitTreeWidget::OnEmulationStarting);
-    connect(this, &GMainWindow::EmulationStopping, waitTreeWidget,
-            &WaitTreeWidget::OnEmulationStopping);
 }
 
 void GMainWindow::InitializeRecentFileMenuActions() {
@@ -1533,7 +1522,6 @@ void GMainWindow::RestoreUIState() {
 
     ui->action_Display_Dock_Widget_Headers->setChecked(
         UISettings::values.display_titlebar.GetValue());
-    OnDisplayTitleBars(ui->action_Display_Dock_Widget_Headers->isChecked());
 
     ui->action_Show_Filter_Bar->setChecked(UISettings::values.show_filter_bar.GetValue());
     game_list->SetFilterVisible(ui->action_Show_Filter_Bar->isChecked());
@@ -1657,7 +1645,6 @@ void GMainWindow::ConnectMenuEvents() {
     // View
     connect_menu(ui->action_Fullscreen, &GMainWindow::ToggleFullscreen);
     connect_menu(ui->action_Single_Window_Mode, &GMainWindow::ToggleWindowMode);
-    connect_menu(ui->action_Display_Dock_Widget_Headers, &GMainWindow::OnDisplayTitleBars);
     connect_menu(ui->action_Show_Filter_Bar, &GMainWindow::OnToggleFilterBar);
     connect_menu(ui->action_Show_Status_Bar, &GMainWindow::OnToggleStatusBar);
 
@@ -1765,26 +1752,6 @@ void GMainWindow::UpdateMenuState() {
     }
 
     multiplayer_state->UpdateNotificationStatus();
-}
-
-void GMainWindow::OnDisplayTitleBars(bool show) {
-    QList<QDockWidget*> widgets = findChildren<QDockWidget*>();
-
-    if (show) {
-        for (QDockWidget* widget : widgets) {
-            QWidget* old = widget->titleBarWidget();
-            widget->setTitleBarWidget(nullptr);
-            if (old != nullptr)
-                delete old;
-        }
-    } else {
-        for (QDockWidget* widget : widgets) {
-            QWidget* old = widget->titleBarWidget();
-            widget->setTitleBarWidget(new QWidget());
-            if (old != nullptr)
-                delete old;
-        }
-    }
 }
 
 void GMainWindow::SetupPrepareForSleep() {
@@ -2133,12 +2100,6 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
 
     connect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
     connect(render_window, &GRenderWindow::MouseActivity, this, &GMainWindow::OnMouseActivity);
-    // BlockingQueuedConnection is important here, it makes sure we've finished refreshing our views
-    // before the CPU continues
-    connect(emu_thread.get(), &EmuThread::DebugModeEntered, waitTreeWidget,
-            &WaitTreeWidget::OnDebugModeEntered, Qt::BlockingQueuedConnection);
-    connect(emu_thread.get(), &EmuThread::DebugModeLeft, waitTreeWidget,
-            &WaitTreeWidget::OnDebugModeLeft, Qt::BlockingQueuedConnection);
 
     connect(emu_thread.get(), &EmuThread::LoadProgress, loading_screen,
             &LoadingScreen::OnLoadProgress, Qt::QueuedConnection);
