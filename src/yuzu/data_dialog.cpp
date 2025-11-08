@@ -32,11 +32,11 @@ DataDialog::DataDialog(QWidget *parent)
                                        QStringLiteral(#name), \
                                        this));
 
-    WIDGET(Saves)
     WIDGET(Shaders)
     WIDGET(UserNand)
     WIDGET(SysNand)
     WIDGET(Mods)
+    WIDGET(Saves)
 
 #undef WIDGET
 
