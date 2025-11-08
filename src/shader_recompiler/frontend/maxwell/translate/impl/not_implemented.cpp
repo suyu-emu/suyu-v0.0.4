@@ -39,7 +39,7 @@ void TranslatorVisitor::BRK(u64) {
     ThrowNotImplemented(Opcode::BRK);
 }
 
-void TranslatorVisitor::CAL() {
+void TranslatorVisitor::CAL(u64) {
     // CAL is a no-op
 }
 
@@ -155,7 +155,7 @@ void TranslatorVisitor::JMP(u64) {
     ThrowNotImplemented(Opcode::JMP);
 }
 
-void TranslatorVisitor::KIL() {
+void TranslatorVisitor::KIL(u64) {
     // KIL is a no-op
 }
 
@@ -172,14 +172,14 @@ void TranslatorVisitor::LONGJMP(u64) {
 }
 
 void TranslatorVisitor::NOP(u64) {
-    // NOP is No-Op.
+    // NOP is a no-op
 }
 
-void TranslatorVisitor::PBK() {
+void TranslatorVisitor::PBK(u64) {
     // PBK is a no-op
 }
 
-void TranslatorVisitor::PCNT() {
+void TranslatorVisitor::PCNT(u64) {
     // PCNT is a no-op
 }
 
@@ -239,7 +239,7 @@ void TranslatorVisitor::SETLMEMBASE(u64) {
     ThrowNotImplemented(Opcode::SETLMEMBASE);
 }
 
-void TranslatorVisitor::SSY() {
+void TranslatorVisitor::SSY(u64) {
     // SSY is a no-op
 }
 
