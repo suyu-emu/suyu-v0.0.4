@@ -152,7 +152,7 @@ struct Jit::Impl final {
     }
 
     std::string Disassemble() const {
-        UNREACHABLE();
+        return {};
     }
 
 private:
