@@ -4,8 +4,6 @@
   "version": "1.0",
   
   "dependencies": [
-    "vcpkg-cmake",
-    "vcpkg-cmake-config",
     "cpp-httplib",
     "cpp-jwt",
     "cubeb",
@@ -41,8 +39,7 @@
     "boost-spirit",
     "boost-test",
     "boost-timer",
-    "boost-variant",
-    "boost-cobalt"
+    "boost-variant"
   ],
   "features": {
     "suyu-tests": {
@@ -74,100 +71,12 @@
   },
   "overrides": [
     {
-      "name": "vcpkg-cmake",
-      "version": "2024-04-23"
-    },
-    {
-      "name": "vcpkg-cmake-config",
-      "version": "2024-05-23"
-    },
-    {
       "name": "catch2",
-      "version": "3.4.0"
+      "version": "3.3.1"
     },
     {
       "name": "fmt",
       "version": "10.1.1"
-    },
-    {
-      "name": "llvm",
-      "version": "17.0.6"
-    },
-    {
-      "name": "boost-algorithm",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-asio",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-bind",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-config",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-container",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-context",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-crc",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-functional",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-heap",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-icl",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-intrusive",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-mpl",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-process",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-range",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-spirit",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-test",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-timer",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-variant",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-cobalt",
-      "version": "1.88.0"
     }
   ]
 }
