@@ -1,6 +1,6 @@
 {
   "name": "renderdoc-api",
-  "version": "1.29.0",
+  "version": "1.27.0",
   "description": "RenderDoc API for graphics debugging",
   "homepage": "https://github.com/baldurk/renderdoc",
   "license": "MIT",

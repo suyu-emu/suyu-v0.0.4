@@ -1,5 +1,8 @@
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
+# Suppress policy checks for issues that are difficult to resolve with LLVM's build system
+set(VCPKG_POLICY_SKIP_ABSOLUTE_PATHS_CHECK enabled)
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO llvm/llvm-project
@@ -64,6 +67,20 @@ vcpkg_cmake_configure(
 vcpkg_cmake_build()
 
 vcpkg_cmake_install()
+
+# Fix CMake configuration files location and merge debug/release configs
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/llvm)
+
+# Handle tools and bin directories for static builds
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+    # Copy any essential tools before removing bin directories
+    if(EXISTS "${CURRENT_PACKAGES_DIR}/bin/llvm-tblgen.exe")
+        vcpkg_copy_tools(TOOL_NAMES llvm-tblgen AUTO_CLEAN)
+    endif()
+    
+    # Remove bin directories as they shouldn't exist in static builds
+    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/bin" "${CURRENT_PACKAGES_DIR}/bin")
+endif()
 
 vcpkg_copy_pdbs()
 
