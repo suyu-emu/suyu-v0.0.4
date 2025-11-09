@@ -7,14 +7,12 @@
 #include <QObject>
 #include "common/fs/path_util.h"
 
-using namespace Common::FS;
-
 typedef struct Emulator {
     const char *m_name;
 
-    EmuPath e_user_dir;
-    EmuPath e_config_dir;
-    EmuPath e_cache_dir;
+    Common::FS::EmuPath e_user_dir;
+    Common::FS::EmuPath e_config_dir;
+    Common::FS::EmuPath e_cache_dir;
 
     const std::string get_user_dir() const {
         return Common::FS::GetLegacyPath(e_user_dir).string();
@@ -35,11 +33,13 @@ typedef struct Emulator {
     }
 } Emulator;
 
+#define STRUCT_EMU(name, enumName) Emulator{name, Common::FS::enumName##Dir, Common::FS::enumName##ConfigDir, Common::FS::enumName##CacheDir}
+
 static constexpr std::array<Emulator, 4> legacy_emus = {
-    Emulator{QT_TR_NOOP("Citron"), CitronDir, CitronConfigDir, CitronCacheDir},
-    Emulator{QT_TR_NOOP("Sudachi"), SudachiDir, SudachiConfigDir, SudachiCacheDir},
-    Emulator{QT_TR_NOOP("Suyu"), SuyuDir, SuyuConfigDir, SuyuCacheDir},
-    Emulator{QT_TR_NOOP("Yuzu"), YuzuDir, YuzuConfigDir, YuzuCacheDir},
+    STRUCT_EMU(QT_TR_NOOP("Citron"), Citron),
+    STRUCT_EMU(QT_TR_NOOP("Sudachi"), Sudachi),
+    STRUCT_EMU(QT_TR_NOOP("Suyu"), Suyu),
+    STRUCT_EMU(QT_TR_NOOP("Yuzu"), Yuzu),
 };
 
 class MigrationWorker : public QObject
@@ -52,7 +52,7 @@ public:
         Link,
     };
 
-    MigrationWorker(const Emulator selected_legacy_emu,
+    MigrationWorker(const Emulator selected_emu,
                     const bool clear_shader_cache,
                     const MigrationStrategy strategy);
 
@@ -64,7 +64,7 @@ signals:
     void error(const QString &error_message);
 
 private:
-    Emulator selected_legacy_emu;
+    Emulator selected_emu;
     bool clear_shader_cache;
     MigrationStrategy strategy;
     QString success_text = tr("Data was migrated successfully.");

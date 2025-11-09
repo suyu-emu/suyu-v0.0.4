@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "data_dialog.h"
-#include "core/hle/service/acc/profile_manager.h"
 #include "frontend_common/data_manager.h"
-#include "qt_common/qt_common.h"
 #include "qt_common/util/content.h"
 #include "qt_common/qt_string_lookup.h"
 #include "ui_data_dialog.h"
+#include "util/util.h"
 
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -26,17 +25,18 @@ DataDialog::DataDialog(QWidget *parent)
     ui->setupUi(this);
 
     // TODO: Should we make this a single widget that pulls data from a model?
-#define WIDGET(name) \
+#define WIDGET(label, name) \
     ui->page->addWidget(new DataWidget(FrontendCommon::DataManager::DataDir::name, \
                                        QtCommon::StringLookup::name##Tooltip, \
                                        QStringLiteral(#name), \
-                                       this));
+                                       this)); \
+    ui->labels->addItem(label);
 
-    WIDGET(Shaders)
-    WIDGET(UserNand)
-    WIDGET(SysNand)
-    WIDGET(Mods)
-    WIDGET(Saves)
+    WIDGET(tr("Shaders"), Shaders)
+    WIDGET(tr("UserNAND"), UserNand)
+    WIDGET(tr("SysNAND"), SysNand)
+    WIDGET(tr("Mods"), Mods)
+    WIDGET(tr("Saves"), Saves)
 
 #undef WIDGET
 
@@ -82,7 +82,7 @@ void DataWidget::clear()
 {
     std::string user_id{};
     if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
-        user_id = selectProfile();
+        user_id = GetProfileIDString();
     }
     QtCommon::Content::ClearDataDir(m_dir, user_id);
     scan();
@@ -92,7 +92,7 @@ void DataWidget::open()
 {
     std::string user_id{};
     if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
-        user_id = selectProfile();
+        user_id = GetProfileIDString();
     }
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         QString::fromStdString(FrontendCommon::DataManager::GetDataDirString(m_dir, user_id))));
@@ -102,7 +102,7 @@ void DataWidget::upload()
 {
     std::string user_id{};
     if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
-        user_id = selectProfile();
+        user_id = GetProfileIDString();
     }
     QtCommon::Content::ExportDataDir(m_dir, user_id, m_exportName);
 }
@@ -111,7 +111,7 @@ void DataWidget::download()
 {
     std::string user_id{};
     if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
-        user_id = selectProfile();
+        user_id = GetProfileIDString();
     }
     QtCommon::Content::ImportDataDir(m_dir, user_id, std::bind(&DataWidget::scan, this));
 }
@@ -130,38 +130,4 @@ void DataWidget::scan() {
 
     watcher->setFuture(
         QtConcurrent::run([this]() { return FrontendCommon::DataManager::DataDirSize(m_dir); }));
-}
-
-std::string DataWidget::selectProfile()
-{
-    const auto select_profile = [this] {
-        const Core::Frontend::ProfileSelectParameters parameters{
-            .mode = Service::AM::Frontend::UiMode::UserSelector,
-            .invalid_uid_list = {},
-            .display_options = {},
-            .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
-        };
-        QtProfileSelectionDialog dialog(*QtCommon::system, this, parameters);
-        dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint
-                              | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
-        dialog.setWindowModality(Qt::WindowModal);
-
-        if (dialog.exec() == QDialog::Rejected) {
-            return -1;
-        }
-
-        return dialog.GetIndex();
-    };
-
-    const auto index = select_profile();
-    if (index == -1) {
-        return "";
-    }
-
-    const auto uuid = QtCommon::system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
-    ASSERT(uuid);
-
-    const auto user_id = uuid->AsU128();
-
-    return fmt::format("{:016X}{:016X}", user_id[1], user_id[0]);
 }

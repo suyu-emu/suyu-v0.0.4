@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -27,7 +30,7 @@ namespace Ui {
 class QtSoftwareKeyboardDialog;
 }
 
-class GMainWindow;
+class MainWindow;
 
 class QtSoftwareKeyboardDialog final : public QDialog {
     Q_OBJECT
@@ -230,7 +233,7 @@ class QtSoftwareKeyboard final : public QObject, public Core::Frontend::Software
     Q_OBJECT
 
 public:
-    explicit QtSoftwareKeyboard(GMainWindow& parent);
+    explicit QtSoftwareKeyboard(MainWindow& parent);
     ~QtSoftwareKeyboard() override;
 
     void Close() const override {

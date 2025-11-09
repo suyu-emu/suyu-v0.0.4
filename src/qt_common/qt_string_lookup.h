@@ -8,6 +8,12 @@
 #include "frozen/map.h"
 #include "frozen/string.h"
 
+/// Small helper to look up enums.
+/// res = the result code
+/// base = the base matching value in the StringKey table
+#define LOOKUP_ENUM(res, base) StringLookup::Lookup( \
+            static_cast<StringLookup::StringKey>((int) res + (int) StringLookup::base))
+
 namespace QtCommon::StringLookup {
 
 Q_NAMESPACE

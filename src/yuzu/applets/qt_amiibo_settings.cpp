@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,7 +21,7 @@
 #include "web_service/web_backend.h"
 #endif
 #include "yuzu/applets/qt_amiibo_settings.h"
-#include "yuzu/main.h"
+#include "yuzu/main_window.h"
 
 QtAmiiboSettingsDialog::QtAmiiboSettingsDialog(QWidget* parent,
                                                Core::Frontend::CabinetParameters parameters_,
@@ -244,12 +247,12 @@ void QtAmiiboSettingsDialog::SetSettingsDescription() {
     }
 }
 
-QtAmiiboSettings::QtAmiiboSettings(GMainWindow& parent) {
+QtAmiiboSettings::QtAmiiboSettings(MainWindow& parent) {
     connect(this, &QtAmiiboSettings::MainWindowShowAmiiboSettings, &parent,
-            &GMainWindow::AmiiboSettingsShowDialog, Qt::QueuedConnection);
+            &MainWindow::AmiiboSettingsShowDialog, Qt::QueuedConnection);
     connect(this, &QtAmiiboSettings::MainWindowRequestExit, &parent,
-            &GMainWindow::AmiiboSettingsRequestExit, Qt::QueuedConnection);
-    connect(&parent, &GMainWindow::AmiiboSettingsFinished, this,
+            &MainWindow::AmiiboSettingsRequestExit, Qt::QueuedConnection);
+    connect(&parent, &MainWindow::AmiiboSettingsFinished, this,
             &QtAmiiboSettings::MainWindowFinished, Qt::QueuedConnection);
 }
 

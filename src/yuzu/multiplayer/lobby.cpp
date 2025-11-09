@@ -15,7 +15,7 @@
 #include "network/network.h"
 #include "ui_lobby.h"
 #include "yuzu/game_list_p.h"
-#include "yuzu/main.h"
+#include "yuzu/main_window.h"
 #include "yuzu/multiplayer/client_room.h"
 #include "yuzu/multiplayer/lobby.h"
 #include "yuzu/multiplayer/lobby_p.h"

@@ -105,6 +105,8 @@ public:
 
     void ResetUserSaveFile();
 
+    std::vector<Common::UUID> FindExistingProfileUUIDs();
+    std::vector<std::string> FindExistingProfileStrings();
     std::vector<std::string> FindGoodProfiles();
     std::vector<std::string> FindOrphanedProfiles();
 

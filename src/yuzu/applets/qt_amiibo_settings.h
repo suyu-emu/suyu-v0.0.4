@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,7 +11,7 @@
 #include <QDialog>
 #include "core/frontend/applets/cabinet.h"
 
-class GMainWindow;
+class MainWindow;
 class QCheckBox;
 class QComboBox;
 class QDialogButtonBox;
@@ -65,7 +68,7 @@ class QtAmiiboSettings final : public QObject, public Core::Frontend::CabinetApp
     Q_OBJECT
 
 public:
-    explicit QtAmiiboSettings(GMainWindow& parent);
+    explicit QtAmiiboSettings(MainWindow& parent);
     ~QtAmiiboSettings() override;
 
     void Close() const override;

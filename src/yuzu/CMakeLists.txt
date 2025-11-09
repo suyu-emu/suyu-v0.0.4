@@ -12,6 +12,8 @@ if (YUZU_USE_BUNDLED_QT AND PLATFORM_LINUX)
     set(CMAKE_BUILD_RPATH "${CMAKE_BINARY_DIR}/bin/lib/")
 endif()
 
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
 add_executable(yuzu
     Info.plist
     about_dialog.cpp
@@ -169,9 +171,9 @@ add_executable(yuzu
     loading_screen.cpp
     loading_screen.h
     loading_screen.ui
+
     main.cpp
-    main.h
-    main.ui
+
     multiplayer/chat_room.cpp
     multiplayer/chat_room.h
     multiplayer/chat_room.ui
@@ -235,6 +237,7 @@ add_executable(yuzu
     data_dialog.h data_dialog.cpp data_dialog.ui
     data_widget.ui
     ryujinx_dialog.h ryujinx_dialog.cpp ryujinx_dialog.ui
+    main_window.h main_window.cpp
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
@@ -441,6 +444,7 @@ endif()
 
 if (YUZU_ROOM)
     target_link_libraries(yuzu PRIVATE yuzu-room)
+target_link_libraries(yuzu PRIVATE Qt6::Widgets)
 endif()
 
 create_target_directory_groups(yuzu)

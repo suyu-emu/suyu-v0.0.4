@@ -14,16 +14,29 @@ namespace fs = std::filesystem;
 
 fs::path GetKvdbPath()
 {
-    return GetLegacyPath(EmuPath::RyujinxDir) / "bis" / "system" / "save" / "8000000000000000" / "0"
+    return GetKvdbPath(GetLegacyPath(EmuPath::RyujinxDir));
+}
+
+fs::path GetKvdbPath(const fs::path& path) {
+    return path / "bis" / "system" / "save" / "8000000000000000" / "0"
            / "imkvdb.arc";
+}
+
+fs::path GetRyuPathFromSavePath(const fs::path& path) {
+    // This is a horrible hack, but I cba to find something better
+    return path.parent_path().parent_path().parent_path().parent_path().parent_path();
 }
 
 fs::path GetRyuSavePath(const u64 &save_id)
 {
+    return GetRyuSavePath(GetLegacyPath(EmuPath::RyujinxDir), save_id);
+}
+
+std::filesystem::path GetRyuSavePath(const std::filesystem::path& path, const u64& save_id) {
     std::string hex = fmt::format("{:016x}", save_id);
 
-    // TODO: what's the difference between 0 and 1?
-    return GetLegacyPath(EmuPath::RyujinxDir) / "bis" / "user" / "save" / hex / "0";
+           // TODO: what's the difference between 0 and 1?
+    return path / "bis" / "user" / "save" / hex / "0";
 }
 
 IMENReadResult ReadKvdb(const fs::path &path, std::vector<IMEN> &imens)

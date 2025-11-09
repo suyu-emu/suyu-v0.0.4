@@ -18,7 +18,7 @@ DepsDialog::DepsDialog(QWidget* parent)
 {
     ui->setupUi(this);
 
-    constexpr size_t rows = Common::dep_hashes.size();
+    constexpr int rows = (int) Common::dep_hashes.size();
     ui->tableDeps->setRowCount(rows);
 
     QStringList labels;
@@ -29,7 +29,7 @@ DepsDialog::DepsDialog(QWidget* parent)
     ui->tableDeps->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeMode::Fixed);
     ui->tableDeps->horizontalHeader()->setMinimumSectionSize(200);
 
-    for (size_t i = 0; i < rows; ++i) {
+    for (int i = 0; i < rows; ++i) {
         const std::string name = Common::dep_names.at(i);
         const std::string sha = Common::dep_hashes.at(i);
         const std::string url = Common::dep_urls.at(i);

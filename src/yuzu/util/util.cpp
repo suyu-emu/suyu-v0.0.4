@@ -8,7 +8,11 @@
 #include <cmath>
 #include <QPainter>
 
+#include "applets/qt_profile_select.h"
 #include "common/logging/log.h"
+#include "core/frontend/applets/profile_select.h"
+#include "core/hle/service/acc/profile_manager.h"
+#include "qt_common/qt_common.h"
 #include "yuzu/util/util.h"
 
 #ifdef _WIN32
@@ -152,4 +156,50 @@ bool SaveIconToFile(const std::filesystem::path& icon_path, const QImage& image)
 #else
     return false;
 #endif
+}
+const std::optional<Common::UUID> GetProfileID() {
+    // if there's only a single profile, the user probably wants to use that... right?
+    const auto& profiles = QtCommon::system->GetProfileManager().FindExistingProfileUUIDs();
+    if (profiles.size() == 1) {
+        return profiles[0];
+    }
+
+    const auto select_profile = [] {
+        const Core::Frontend::ProfileSelectParameters parameters{
+                                                                 .mode = Service::AM::Frontend::UiMode::UserSelector,
+                                                                 .invalid_uid_list = {},
+                                                                 .display_options = {},
+                                                                 .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
+                                                                 };
+        QtProfileSelectionDialog dialog(*QtCommon::system, QtCommon::rootObject, parameters);
+        dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+                              Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+        dialog.setWindowModality(Qt::WindowModal);
+
+        if (dialog.exec() == QDialog::Rejected) {
+            return -1;
+        }
+
+        return dialog.GetIndex();
+    };
+
+    const auto index = select_profile();
+    if (index == -1) {
+        return std::nullopt;
+    }
+
+    const auto uuid =
+        QtCommon::system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
+    ASSERT(uuid);
+
+    return uuid;
+}
+std::string GetProfileIDString() {
+    const auto uuid = GetProfileID();
+    if (!uuid)
+        return "";
+
+    auto user_id = uuid->AsU128();
+
+    return fmt::format("{:016X}{:016X}", user_id[1], user_id[0]);
 }

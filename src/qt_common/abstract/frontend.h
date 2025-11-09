@@ -135,5 +135,9 @@ const QString GetSaveFileName(const QString &title,
                               QString *selectedFilter = nullptr,
                               Options options = Options());
 
+const QString GetExistingDirectory(const QString &caption = QString(),
+                                    const QString &dir = QString(),
+                                    Options options = Option::ShowDirsOnly);
+
 } // namespace QtCommon::Frontend
 #endif // FRONTEND_H

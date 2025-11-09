@@ -20,7 +20,7 @@
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "yuzu/applets/qt_profile_select.h"
-#include "yuzu/main.h"
+#include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
 
 namespace {
@@ -230,12 +230,12 @@ void QtProfileSelectionDialog::SetDialogPurpose(
     }
 }
 
-QtProfileSelector::QtProfileSelector(GMainWindow& parent) {
+QtProfileSelector::QtProfileSelector(MainWindow& parent) {
     connect(this, &QtProfileSelector::MainWindowSelectProfile, &parent,
-            &GMainWindow::ProfileSelectorSelectProfile, Qt::QueuedConnection);
+            &MainWindow::ProfileSelectorSelectProfile, Qt::QueuedConnection);
     connect(this, &QtProfileSelector::MainWindowRequestExit, &parent,
-            &GMainWindow::ProfileSelectorRequestExit, Qt::QueuedConnection);
-    connect(&parent, &GMainWindow::ProfileSelectorFinishedSelection, this,
+            &MainWindow::ProfileSelectorRequestExit, Qt::QueuedConnection);
+    connect(&parent, &MainWindow::ProfileSelectorFinishedSelection, this,
             &QtProfileSelector::MainWindowFinishedSelection, Qt::DirectConnection);
 }
 

@@ -23,7 +23,7 @@
 #include "yuzu/compatibility_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
-#include "yuzu/main.h"
+#include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
 #include <fmt/ranges.h>
 #include <regex>
@@ -314,7 +314,7 @@ void GameList::OnFilterCloseClicked() {
 
 GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvider* provider_,
                    PlayTime::PlayTimeManager& play_time_manager_, Core::System& system_,
-                   GMainWindow* parent)
+                   MainWindow* parent)
     : QWidget{parent}, vfs{std::move(vfs_)}, provider{provider_},
       play_time_manager{play_time_manager_}, system{system_} {
     watcher = new QFileSystemWatcher(this);
@@ -347,7 +347,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     tree_view->setColumnHidden(COLUMN_PLAY_TIME, !UISettings::values.show_play_time);
     item_model->setSortRole(GameListItemPath::SortRole);
 
-    connect(main_window, &GMainWindow::UpdateThemedIcons, this, &GameList::OnUpdateThemedIcons);
+    connect(main_window, &MainWindow::UpdateThemedIcons, this, &GameList::OnUpdateThemedIcons);
     connect(tree_view, &QTreeView::activated, this, &GameList::ValidateEntry);
     connect(tree_view, &QTreeView::customContextMenuRequested, this, &GameList::PopupContextMenu);
     connect(tree_view, &QTreeView::expanded, this, &GameList::OnItemExpanded);
@@ -943,8 +943,8 @@ void GameList::RemoveFavorite(u64 program_id) {
     }
 }
 
-GameListPlaceholder::GameListPlaceholder(GMainWindow* parent) : QWidget{parent} {
-    connect(parent, &GMainWindow::UpdateThemedIcons, this,
+GameListPlaceholder::GameListPlaceholder(MainWindow* parent) : QWidget{parent} {
+    connect(parent, &MainWindow::UpdateThemedIcons, this,
             &GameListPlaceholder::onUpdateThemedIcons);
 
     layout = new QVBoxLayout;

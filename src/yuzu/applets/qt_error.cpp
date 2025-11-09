@@ -1,16 +1,19 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <QDateTime>
 #include "yuzu/applets/qt_error.h"
-#include "yuzu/main.h"
+#include "yuzu/main_window.h"
 
-QtErrorDisplay::QtErrorDisplay(GMainWindow& parent) {
+QtErrorDisplay::QtErrorDisplay(MainWindow& parent) {
     connect(this, &QtErrorDisplay::MainWindowDisplayError, &parent,
-            &GMainWindow::ErrorDisplayDisplayError, Qt::QueuedConnection);
+            &MainWindow::ErrorDisplayDisplayError, Qt::QueuedConnection);
     connect(this, &QtErrorDisplay::MainWindowRequestExit, &parent,
-            &GMainWindow::ErrorDisplayRequestExit, Qt::QueuedConnection);
-    connect(&parent, &GMainWindow::ErrorDisplayFinished, this,
+            &MainWindow::ErrorDisplayRequestExit, Qt::QueuedConnection);
+    connect(&parent, &MainWindow::ErrorDisplayFinished, this,
             &QtErrorDisplay::MainWindowFinishedError, Qt::DirectConnection);
 }
 

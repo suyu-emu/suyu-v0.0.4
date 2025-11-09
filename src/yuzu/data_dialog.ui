@@ -36,31 +36,6 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <item>
-        <property name="text">
-         <string>Shaders</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>UserNAND</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>SysNAND</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Mods</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Saves</string>
-        </property>
-       </item>
       </widget>
      </item>
      <item>

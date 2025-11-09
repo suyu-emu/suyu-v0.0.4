@@ -20,7 +20,7 @@
         "hash": "4fb7f6fde92762305aad8754d7643cd918dd1f3f67e104e9ab385b18c73178d72a17321354eb203b790b6702f2cf6d725a5d6e2dfbc63b1e35f9eb59fb42ece9",
         "git_version": "1.89.0",
         "version": "1.57",
-        "find_args": "CONFIG",
+        "find_args": "CONFIG OPTIONAL_COMPONENTS headers context system fiber filesystem",
         "patches": [
             "0001-clang-cl.patch",
             "0002-use-marmasm.patch",

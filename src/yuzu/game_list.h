@@ -33,7 +33,7 @@ class ControllerNavigation;
 class GameListWorker;
 class GameListSearchField;
 class GameListDir;
-class GMainWindow;
+class MainWindow;
 enum class AmLaunchType;
 enum class StartGameType;
 
@@ -69,7 +69,7 @@ public:
     explicit GameList(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
                       FileSys::ManualContentProvider* provider_,
                       PlayTime::PlayTimeManager& play_time_manager_, Core::System& system_,
-                      GMainWindow* parent = nullptr);
+                      MainWindow* parent = nullptr);
     ~GameList() override;
 
     QString GetLastFilterResultItem() const;
@@ -153,7 +153,7 @@ private:
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
     FileSys::ManualContentProvider* provider;
     GameListSearchField* search_field;
-    GMainWindow* main_window = nullptr;
+    MainWindow* main_window = nullptr;
     QVBoxLayout* layout = nullptr;
     QTreeView* tree_view = nullptr;
     QStandardItemModel* item_model = nullptr;
@@ -171,7 +171,7 @@ private:
 class GameListPlaceholder : public QWidget {
     Q_OBJECT
 public:
-    explicit GameListPlaceholder(GMainWindow* parent = nullptr);
+    explicit GameListPlaceholder(MainWindow* parent = nullptr);
     ~GameListPlaceholder();
 
 signals:

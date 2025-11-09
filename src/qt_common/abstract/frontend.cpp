@@ -28,7 +28,7 @@ const QString GetOpenFileName(const QString &title,
                               Options options)
 {
 #ifdef YUZU_QT_WIDGETS
-    return QFileDialog::getOpenFileName((QWidget *) rootObject, title, dir, filter, selectedFilter, options);
+    return QFileDialog::getOpenFileName(rootObject, title, dir, filter, selectedFilter, options);
 #endif
 }
 
@@ -39,7 +39,14 @@ const QString GetSaveFileName(const QString &title,
                               Options options)
 {
 #ifdef YUZU_QT_WIDGETS
-    return QFileDialog::getSaveFileName((QWidget *) rootObject, title, dir, filter, selectedFilter, options);
+    return QFileDialog::getSaveFileName(rootObject, title, dir, filter, selectedFilter, options);
+#endif
+}
+
+const QString GetExistingDirectory(const QString& caption, const QString& dir,
+                             Options options) {
+#ifdef YUZU_QT_WIDGETS
+    return QFileDialog::getExistingDirectory(rootObject, caption, dir, options);
 #endif
 }
 

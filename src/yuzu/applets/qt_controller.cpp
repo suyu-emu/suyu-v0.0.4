@@ -25,7 +25,7 @@
 #include "yuzu/configuration/configure_motion_touch.h"
 #include "yuzu/configuration/configure_vibration.h"
 #include "yuzu/configuration/input_profiles.h"
-#include "yuzu/main.h"
+#include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
 
 namespace {
@@ -753,12 +753,12 @@ void QtControllerSelectorDialog::DisableUnsupportedPlayers() {
     }
 }
 
-QtControllerSelector::QtControllerSelector(GMainWindow& parent) {
+QtControllerSelector::QtControllerSelector(MainWindow& parent) {
     connect(this, &QtControllerSelector::MainWindowReconfigureControllers, &parent,
-            &GMainWindow::ControllerSelectorReconfigureControllers, Qt::QueuedConnection);
+            &MainWindow::ControllerSelectorReconfigureControllers, Qt::QueuedConnection);
     connect(this, &QtControllerSelector::MainWindowRequestExit, &parent,
-            &GMainWindow::ControllerSelectorRequestExit, Qt::QueuedConnection);
-    connect(&parent, &GMainWindow::ControllerSelectorReconfigureFinished, this,
+            &MainWindow::ControllerSelectorRequestExit, Qt::QueuedConnection);
+    connect(&parent, &MainWindow::ControllerSelectorReconfigureFinished, this,
             &QtControllerSelector::MainWindowReconfigureFinished, Qt::QueuedConnection);
 }
 

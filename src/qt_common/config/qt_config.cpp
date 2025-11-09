@@ -294,6 +294,17 @@ void QtConfig::ReadUIGamelistValues() {
     }
     EndArray();
 
+    const int linked_size = BeginArray("ryujinx_linked");
+    for (int i = 0; i < linked_size; ++i) {
+        SetArrayIndex(i);
+
+        QDir ryu_dir = QString::fromStdString(ReadStringSetting("ryujinx_path"));
+        u64 program_id = ReadUnsignedIntegerSetting("program_id");
+
+        UISettings::values.ryujinx_link_paths.insert(program_id, ryu_dir);
+    }
+    EndArray();
+
     EndGroup();
 }
 
@@ -498,6 +509,21 @@ void QtConfig::SaveUIGamelistValues() {
         WriteIntegerSetting(std::string("program_id"), UISettings::values.favorited_ids[i]);
     }
     EndArray(); // favorites
+
+    BeginArray(std::string("ryujinx_linked"));
+    int i = 0;
+    QMapIterator iter(UISettings::values.ryujinx_link_paths);
+
+    while (iter.hasNext()) {
+        iter.next();
+
+        SetArrayIndex(i);
+        WriteIntegerSetting("program_id", iter.key());
+        WriteStringSetting("ryujinx_path", iter.value().absolutePath().toStdString());
+        ++i;
+    }
+
+    EndArray(); // ryujinx
 
     EndGroup();
 }

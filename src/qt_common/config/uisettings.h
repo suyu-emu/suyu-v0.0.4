@@ -14,6 +14,7 @@
 #include <QString>
 #include <QStringList>
 #include <QVector>
+#include <qdir.h>
 #include "common/common_types.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
@@ -201,6 +202,7 @@ struct Values {
     Setting<bool> cache_game_list{linkage, true, "cache_game_list", Category::UiGameList};
     Setting<bool> favorites_expanded{linkage, true, "favorites_expanded", Category::UiGameList};
     QVector<u64> favorited_ids;
+    QMap<u64, QDir> ryujinx_link_paths;
 
     // Compatibility List
     Setting<bool> show_compat{linkage, true, "show_compat", Category::UiGameList};

@@ -15,7 +15,7 @@
 #include "core/internal_network/network_interface.h"
 #include "network/network.h"
 #include "ui_direct_connect.h"
-#include "yuzu/main.h"
+#include "yuzu/main_window.h"
 #include "yuzu/multiplayer/client_room.h"
 #include "yuzu/multiplayer/direct_connect.h"
 #include "yuzu/multiplayer/message.h"

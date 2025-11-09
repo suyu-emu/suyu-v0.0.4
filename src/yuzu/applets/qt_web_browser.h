@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,7 +17,7 @@
 
 #include "core/frontend/applets/web_browser.h"
 
-class GMainWindow;
+class MainWindow;
 class InputInterpreter;
 class UrlRequestInterceptor;
 
@@ -193,7 +196,7 @@ class QtWebBrowser final : public QObject, public Core::Frontend::WebBrowserAppl
     Q_OBJECT
 
 public:
-    explicit QtWebBrowser(GMainWindow& parent);
+    explicit QtWebBrowser(MainWindow& parent);
     ~QtWebBrowser() override;
 
     void Close() const override;

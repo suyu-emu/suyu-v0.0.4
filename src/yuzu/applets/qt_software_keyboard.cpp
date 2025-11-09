@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,7 +18,7 @@
 #include "hid_core/hid_types.h"
 #include "ui_qt_software_keyboard.h"
 #include "yuzu/applets/qt_software_keyboard.h"
-#include "yuzu/main.h"
+#include "yuzu/main_window.h"
 #include "yuzu/util/overlay_dialog.h"
 
 namespace {
@@ -1541,24 +1544,24 @@ void QtSoftwareKeyboardDialog::InputThread() {
     }
 }
 
-QtSoftwareKeyboard::QtSoftwareKeyboard(GMainWindow& main_window) {
+QtSoftwareKeyboard::QtSoftwareKeyboard(MainWindow& main_window) {
     connect(this, &QtSoftwareKeyboard::MainWindowInitializeKeyboard, &main_window,
-            &GMainWindow::SoftwareKeyboardInitialize, Qt::QueuedConnection);
+            &MainWindow::SoftwareKeyboardInitialize, Qt::QueuedConnection);
     connect(this, &QtSoftwareKeyboard::MainWindowShowNormalKeyboard, &main_window,
-            &GMainWindow::SoftwareKeyboardShowNormal, Qt::QueuedConnection);
+            &MainWindow::SoftwareKeyboardShowNormal, Qt::QueuedConnection);
     connect(this, &QtSoftwareKeyboard::MainWindowShowTextCheckDialog, &main_window,
-            &GMainWindow::SoftwareKeyboardShowTextCheck, Qt::QueuedConnection);
+            &MainWindow::SoftwareKeyboardShowTextCheck, Qt::QueuedConnection);
     connect(this, &QtSoftwareKeyboard::MainWindowShowInlineKeyboard, &main_window,
-            &GMainWindow::SoftwareKeyboardShowInline, Qt::QueuedConnection);
+            &MainWindow::SoftwareKeyboardShowInline, Qt::QueuedConnection);
     connect(this, &QtSoftwareKeyboard::MainWindowHideInlineKeyboard, &main_window,
-            &GMainWindow::SoftwareKeyboardHideInline, Qt::QueuedConnection);
+            &MainWindow::SoftwareKeyboardHideInline, Qt::QueuedConnection);
     connect(this, &QtSoftwareKeyboard::MainWindowInlineTextChanged, &main_window,
-            &GMainWindow::SoftwareKeyboardInlineTextChanged, Qt::QueuedConnection);
+            &MainWindow::SoftwareKeyboardInlineTextChanged, Qt::QueuedConnection);
     connect(this, &QtSoftwareKeyboard::MainWindowExitKeyboard, &main_window,
-            &GMainWindow::SoftwareKeyboardExit, Qt::QueuedConnection);
-    connect(&main_window, &GMainWindow::SoftwareKeyboardSubmitNormalText, this,
+            &MainWindow::SoftwareKeyboardExit, Qt::QueuedConnection);
+    connect(&main_window, &MainWindow::SoftwareKeyboardSubmitNormalText, this,
             &QtSoftwareKeyboard::SubmitNormalText, Qt::QueuedConnection);
-    connect(&main_window, &GMainWindow::SoftwareKeyboardSubmitInlineText, this,
+    connect(&main_window, &MainWindow::SoftwareKeyboardSubmitInlineText, this,
             &QtSoftwareKeyboard::SubmitInlineText, Qt::QueuedConnection);
 }
 

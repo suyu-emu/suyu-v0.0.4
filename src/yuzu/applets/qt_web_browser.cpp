@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,7 +21,7 @@
 #endif
 
 #include "yuzu/applets/qt_web_browser.h"
-#include "yuzu/main.h"
+#include "yuzu/main_window.h"
 
 #ifdef YUZU_USE_QT_WEB_ENGINE
 
@@ -391,14 +394,14 @@ void QtNXWebEngineView::FocusFirstLinkElement() {
 
 #endif
 
-QtWebBrowser::QtWebBrowser(GMainWindow& main_window) {
+QtWebBrowser::QtWebBrowser(MainWindow& main_window) {
     connect(this, &QtWebBrowser::MainWindowOpenWebPage, &main_window,
-            &GMainWindow::WebBrowserOpenWebPage, Qt::QueuedConnection);
+            &MainWindow::WebBrowserOpenWebPage, Qt::QueuedConnection);
     connect(this, &QtWebBrowser::MainWindowRequestExit, &main_window,
-            &GMainWindow::WebBrowserRequestExit, Qt::QueuedConnection);
-    connect(&main_window, &GMainWindow::WebBrowserExtractOfflineRomFS, this,
+            &MainWindow::WebBrowserRequestExit, Qt::QueuedConnection);
+    connect(&main_window, &MainWindow::WebBrowserExtractOfflineRomFS, this,
             &QtWebBrowser::MainWindowExtractOfflineRomFS, Qt::QueuedConnection);
-    connect(&main_window, &GMainWindow::WebBrowserClosed, this,
+    connect(&main_window, &MainWindow::WebBrowserClosed, this,
             &QtWebBrowser::MainWindowWebBrowserClosed, Qt::QueuedConnection);
 }
 
