@@ -1230,7 +1230,22 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
     if (rasterizer) {
         impl->InvalidateGPUMemory(ptr, size);
     }
+
+#ifdef __linux__
+    if (!rasterizer && mapped) {
+        impl->buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
+    }
+#endif
+
     return mapped && ptr != nullptr;
+}
+
+bool Memory::InvalidateSeparateHeap(void* fault_address) {
+#ifdef __linux__
+    return impl->buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
+#else
+    return false;
+#endif
 }
 
 } // namespace Core::Memory

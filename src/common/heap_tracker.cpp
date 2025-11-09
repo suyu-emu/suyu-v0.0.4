@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <fstream>
-#include <vector>
-
 #include "common/heap_tracker.h"
 #include "common/logging/log.h"
 #include "common/assert.h"
@@ -37,8 +36,6 @@ HeapTracker::~HeapTracker() = default;
 
 void HeapTracker::Map(size_t virtual_offset, size_t host_offset, size_t length,
                       MemoryPermission perm, bool is_separate_heap) {
-    bool rebuild_required = false;
-
     // When mapping other memory, map pages immediately.
     if (!is_separate_heap) {
         m_buffer.Map(virtual_offset, host_offset, length, perm, false);
@@ -60,29 +57,11 @@ void HeapTracker::Map(size_t virtual_offset, size_t host_offset, size_t length,
 
         // Insert into mappings.
         m_map_count++;
-        const auto it = m_mappings.insert(*map);
-
-        // Update tick before possible rebuild.
-        it->tick = m_tick++;
-
-        // Check if we need to rebuild.
-        if (m_resident_map_count >= m_max_resident_map_count) {
-            rebuild_required = true;
-        }
-
-        // Map the area.
-        m_buffer.Map(it->vaddr, it->paddr, it->size, it->perm, false);
-
-        // This map is now resident.
-        it->is_resident = true;
-        m_resident_map_count++;
-        m_resident_mappings.insert(*it);
+        m_mappings.insert(*map);
     }
 
-    if (rebuild_required) {
-        // A rebuild was required, so perform it now.
-        this->RebuildSeparateHeapAddressSpace();
-    }
+    // Finally, map.
+    this->DeferredMapSeparateHeap(virtual_offset);
 }
 
 void HeapTracker::Unmap(size_t virtual_offset, size_t size, bool is_separate_heap) {
@@ -169,7 +148,6 @@ void HeapTracker::Protect(size_t virtual_offset, size_t size, MemoryPermission p
 
         // Clamp to end.
         next = (std::min)(next, end);
-
         // Reprotect, if we need to.
         if (should_protect) {
             m_buffer.Protect(cur, next - cur, perm);
@@ -178,6 +156,51 @@ void HeapTracker::Protect(size_t virtual_offset, size_t size, MemoryPermission p
         // Advance.
         cur = next;
     }
+}
+
+bool HeapTracker::DeferredMapSeparateHeap(u8* fault_address) {
+    if (m_buffer.IsInVirtualRange(fault_address)) {
+        return this->DeferredMapSeparateHeap(fault_address - m_buffer.VirtualBasePointer());
+    }
+
+    return false;
+}
+
+bool HeapTracker::DeferredMapSeparateHeap(size_t virtual_offset) {
+    bool rebuild_required = false;
+
+    {
+        std::scoped_lock lk{m_lock};
+
+        // Check to ensure this was a non-resident separate heap mapping.
+        const auto it = this->GetNearestHeapMapLocked(virtual_offset);
+        if (it == m_mappings.end() || it->is_resident) {
+            return false;
+        }
+
+        // Update tick before possible rebuild.
+        it->tick = m_tick++;
+
+        // Check if we need to rebuild.
+        if (m_resident_map_count > m_max_resident_map_count) {
+            rebuild_required = true;
+        }
+
+        // Map the area.
+        m_buffer.Map(it->vaddr, it->paddr, it->size, it->perm, false);
+
+        // This map is now resident.
+        it->is_resident = true;
+        m_resident_map_count++;
+        m_resident_mappings.insert(*it);
+    }
+
+    if (rebuild_required) {
+        // A rebuild was required, so perform it now.
+        this->RebuildSeparateHeapAddressSpace();
+    }
+
+    return true;
 }
 
 void HeapTracker::RebuildSeparateHeapAddressSpace() {
@@ -190,8 +213,8 @@ void HeapTracker::RebuildSeparateHeapAddressSpace() {
     // Despite being worse in theory, this has proven to be better in practice than more
     // regularly dumping a smaller amount, because it significantly reduces average case
     // lock contention.
-    const size_t desired_count = (std::min)(m_resident_map_count, m_max_resident_map_count) / 2;
-    const size_t evict_count = m_resident_map_count - desired_count;
+    std::size_t const desired_count = (std::min)(m_resident_map_count, m_max_resident_map_count) / 2;
+    std::size_t const evict_count = m_resident_map_count - desired_count;
     auto it = m_resident_mappings.begin();
 
     for (size_t i = 0; i < evict_count && it != m_resident_mappings.end(); i++) {
