@@ -237,7 +237,6 @@ WebBrowser::~WebBrowser() = default;
 
 void WebBrowser::Initialize() {
     if (Settings::values.disable_web_applet) {
-        LOG_INFO(Service_AM, "Web Browser Applet disabled, skipping.");
         return;
     }
 
@@ -305,6 +304,7 @@ void WebBrowser::ExecuteInteractive() {
 
 void WebBrowser::Execute() {
     if (Settings::values.disable_web_applet) {
+        LOG_WARNING(Service_AM, "(STUBBED) called, Web Browser Applet is disabled");
         WebBrowserExit(WebExitReason::EndButtonPressed);
         return;
     }

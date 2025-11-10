@@ -229,8 +229,7 @@ std::shared_ptr<FrontendApplet> FrontendAppletHolder::GetApplet(std::shared_ptr<
     case AppletId::ProfileSelect:
         return std::make_shared<ProfileSelect>(system, applet, mode, *frontend.profile_select);
     case AppletId::SoftwareKeyboard:
-        return std::make_shared<SoftwareKeyboard>(system, applet, mode,
-                                                  *frontend.software_keyboard);
+        return std::make_shared<SoftwareKeyboard>(system, applet, mode, *frontend.software_keyboard);
     case AppletId::MiiEdit:
         return std::make_shared<MiiEdit>(system, applet, mode, *frontend.mii_edit);
     case AppletId::Web:
@@ -244,9 +243,7 @@ std::shared_ptr<FrontendApplet> FrontendAppletHolder::GetApplet(std::shared_ptr<
     case AppletId::NetConnect:
         return std::make_shared<NetConnect>(system, applet, mode, *frontend.net_connect);
     default:
-        UNIMPLEMENTED_MSG(
-            "No backend implementation exists for applet_id={:02X}! Falling back to stub applet.",
-            static_cast<u8>(id));
+        LOG_ERROR(Service_AM, "No backend implementation exists for applet_id={:02X}. Falling back to stub applet", static_cast<u8>(id));
         return std::make_shared<StubApplet>(system, applet, id, mode);
     }
 }
