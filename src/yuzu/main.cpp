@@ -6,9 +6,10 @@
 
 #if YUZU_ROOM
 #include "dedicated_room/yuzu_room.h"
-#include <common/detached_tasks.h>
 #include <cstring>
 #endif
+
+#include <common/detached_tasks.h>
 
 #ifdef __unix__
 #include "qt_common/gui_settings.h"
