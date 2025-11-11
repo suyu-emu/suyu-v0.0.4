@@ -176,15 +176,27 @@ else()
         add_compile_definitions(_FILE_OFFSET_BITS=64)
     endif()
 
+    if (YUZU_STATIC_BUILD)
+        add_compile_definitions(QT_STATICPLUGIN)
+
+        # macos doesn't even let you make static executables... wtf?
+        if (NOT APPLE)
+            add_compile_options(-static)
+            if (YUZU_STATIC_BUILD)
+                # yuzu-cmd requires us to explicitly link libpthread, libgcc, and libstdc++ as static
+                # At a guess, it's probably because Qt handles the Qt executable for us, whereas this does not
+                add_link_options(-static -lpthread)
+                add_link_options(-static-libgcc -static-libstdc++)
+            endif()
+        endif()
+    endif()
+
     if (MINGW)
         add_compile_definitions(MINGW_HAS_SECURE_API)
+
         # Only windows has this requirement, thanks windows
-        if (WIN32)
+        if (WIN32 AND ARCHITECTURE_x86_64)
             add_compile_options("-msse4.1")
-        endif()
-        if (MINGW_STATIC_BUILD)
-            add_compile_definitions(QT_STATICPLUGIN)
-            add_compile_options("-static")
         endif()
     endif()
 

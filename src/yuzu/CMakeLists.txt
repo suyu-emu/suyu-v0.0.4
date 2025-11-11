@@ -370,15 +370,18 @@ if (APPLE)
 
     if (YUZU_USE_BUNDLED_MOLTENVK)
         set(MOLTENVK_PLATFORM "macOS")
-        set(MOLTENVK_VERSION "v1.3.0")
+        set(MOLTENVK_VERSION "v1.4.0")
         download_moltenvk(${MOLTENVK_PLATFORM} ${MOLTENVK_VERSION})
     endif()
+
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib")
     find_library(MOLTENVK_LIBRARY MoltenVK REQUIRED)
     message(STATUS "Using MoltenVK at ${MOLTENVK_LIBRARY}.")
-    set_source_files_properties(${MOLTENVK_LIBRARY} PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks
-                                    XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
-    target_sources(yuzu PRIVATE ${MOLTENVK_LIBRARY})
 
+    set_source_files_properties(${MOLTENVK_LIBRARY} PROPERTIES
+        MACOSX_PACKAGE_LOCATION Frameworks
+        XCODE_FILE_ATTRIBUTES "CodeSignOnCopy")
+    target_sources(yuzu PRIVATE ${MOLTENVK_LIBRARY})
 elseif(WIN32)
     # compile as a win32 gui application instead of a console application
     target_link_libraries(yuzu PRIVATE Qt6::EntryPointPrivate)
@@ -445,6 +448,41 @@ endif()
 if (YUZU_ROOM)
     target_link_libraries(yuzu PRIVATE yuzu-room)
 target_link_libraries(yuzu PRIVATE Qt6::Widgets)
+endif()
+
+if (NOT MSVC AND (APPLE OR NOT YUZU_STATIC_BUILD))
+    # needed for vma
+    target_compile_options(yuzu PRIVATE
+        -Wno-conversion
+        -Wno-unused-variable
+        -Wno-unused-parameter
+        -Wno-missing-field-initializers)
+endif()
+
+## certain libraries need extra static libs to be linked ##
+# I have no fucking clue why it ONLY has to be on yuzu
+# yuzu_cmd works totally fine but not this??????????
+if (YUZU_STATIC_BUILD AND MINGW)
+    macro(extra_libs)
+        foreach(lib ${ARGN})
+            find_library(${lib}_LIBRARY ${lib} REQUIRED)
+            target_link_libraries(yuzu PRIVATE ${${lib}_LIBRARY})
+        endforeach()
+    endmacro()
+
+    # I am constantly impressed at how ridiculously stupid the linker is
+    # NB: yes, we have to put them here twice. I have no idea why
+
+    # libtiff.a
+    extra_libs(tiff jbig bz2 lzma deflate jpeg tiff)
+
+    # libfreetype.a
+    extra_libs(freetype bz2 Lerc brotlidec brotlicommon freetype)
+
+    # libharfbuzz.a
+    extra_libs(harfbuzz graphite2)
+
+    extra_libs(wsock32 ws2_32 crypt32 mswsock wlanapi)
 endif()
 
 create_target_directory_groups(yuzu)

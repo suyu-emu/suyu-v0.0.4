@@ -27,3 +27,12 @@ target_link_libraries(tests PRIVATE common core input_common video_core)
 target_link_libraries(tests PRIVATE ${PLATFORM_LIBRARIES} Catch2::Catch2WithMain Threads::Threads)
 
 add_test(NAME tests COMMAND tests)
+
+# needed for vma
+if (NOT MSVC)
+    target_compile_options(tests PRIVATE
+        -Wno-conversion
+        -Wno-unused-variable
+        -Wno-unused-parameter
+        -Wno-missing-field-initializers)
+endif()

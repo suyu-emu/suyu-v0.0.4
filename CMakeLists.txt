@@ -21,6 +21,11 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(PLATFORM_LINUX ON)
 endif()
 
+# dumb heuristic to detect msys2
+if (CMAKE_COMMAND MATCHES "msys64")
+    set(PLATFORM_MSYS ON)
+endif()
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CXX_CLANG ON)
     if (MSVC)
@@ -83,6 +88,89 @@ endif()
 # NetBSD: Fun for the whole family!
 if (PLATFORM_NETBSD)
     set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
+endif()
+
+# MSYS2 utilities
+if (PLATFORM_MSYS)
+    include(FixMsysPaths)
+    # really, really dumb heuristic to detect what environment we are in
+    macro(system var)
+        if (CMAKE_COMMAND MATCHES ${var})
+            set(MSYSTEM ${var})
+        endif()
+    endmacro()
+
+    system(mingw64)
+    system(clang64)
+    system(clangarm64)
+    system(ucrt64)
+
+    if (NOT DEFINED MSYSTEM)
+        set(MSYSTEM msys2)
+    endif()
+
+    # we (generally) want to prioritize environment-specific binaries if possible
+    # some, like autoconf, are not present on environments besides msys2 though
+    set(CMAKE_PROGRAM_PATH C:/msys64/${MSYSTEM}/bin C:/msys64/usr/bin)
+    set(ENV{PKG_CONFIG_PATH} C:/msys64/${MSYSTEM}/lib/pkgconfig)
+endif()
+
+# static stuff
+option(YUZU_STATIC_BUILD "Use static libraries and executables if available" OFF)
+
+if (YUZU_STATIC_BUILD)
+    # lol
+    set(Boost_USE_STATIC_LIBS ON)
+    set(BUILD_SHARED_LIBS OFF)
+
+    ## find .a libs first (static, usually)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+
+    ## some libraries define a Library::Name_static alternative ##
+    set(YUZU_STATIC_SUFFIX _static)
+
+    ## some libraries use CMAKE_IMPORT_LIBRARY_SUFFIX e.g. Harfbuzz ##
+    set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a")
+
+    if (MINGW)
+        # simple hook to reject dynamic libs
+        function(find_library var)
+            # also skip previously-found libraries cuz... yaknow
+            if (${var})
+                return()
+            endif()
+
+            _find_library(${var} ${ARGN})
+            if (${var})
+                get_filename_component(lib_name "${${var}}" NAME)
+                if (lib_name MATCHES "dll\\.a$")
+                    unset(${var} CACHE)
+                    set(${var} "${var}-NOTFOUND" CACHE INTERNAL "" FORCE)
+                endif()
+            endif()
+        endfunction()
+
+        # msys2 quazip does not build a static lib
+        set(QuaZip-Qt6_FORCE_BUNDLED ON)
+
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+        set(YUZU_USE_BUNDLED_SDL2 ON)
+
+        set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+    elseif(APPLE)
+        # these libs do not properly provide static libs/let you do it with cmake
+        set(YUZU_USE_CPM ON)
+
+        # IMPORTED_IMPLIB not set for imported target
+        # TODO(crueter): wtf
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+        set(YUZU_USE_EXTERNAL_SDL2 ON)
+
+        set(fmt_FORCE_BUNDLED ON)
+        set(SPIRV-Tools_FORCE_BUNDLED ON)
+        set(SPIRV-Headers_FORCE_BUNDLED ON)
+        set(zstd_FORCE_BUNDLED ON)
+    endif()
 endif()
 
 # Detect current compilation architecture and create standard definitions
@@ -582,6 +670,7 @@ else()
     find_package(stb MODULE)
 
     find_package(Opus 1.3 MODULE REQUIRED)
+
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED MODULE)
 
@@ -634,15 +723,15 @@ if (APPLE)
     # Umbrella framework for everything GUI-related
     find_library(COCOA_LIBRARY Cocoa)
     set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
-    find_library(ICONV_LIBRARY iconv REQUIRED)
-    list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
+    # find_library(ICONV_LIBRARY iconv REQUIRED)
+    # list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
     add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
-    set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} winmm iphlpapi ws2_32 wlanapi)
     if (MINGW)
         # PSAPI is the Process Status API
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version crypt32 rpcrt4 gdi32 wldap32 mswsock)
     endif()
 elseif (PLATFORM_HAIKU)
     # Haiku is so special :)
@@ -654,6 +743,8 @@ elseif (PLATFORM_HAIKU)
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
 endif()
+
+message(STATUS "Platform Libraries: ${PLATFORM_LIBRARIES}")
 
 add_subdirectory(externals)
 

@@ -542,10 +542,11 @@ function(AddCIPackage)
         PACKAGE
         EXTENSION
         MIN_VERSION
-        DISABLED_PLATFORMS
     )
 
-    cmake_parse_arguments(PKG_ARGS "" "${oneValueArgs}" "" ${ARGN})
+    set(multiValueArgs DISABLED_PLATFORMS)
+
+    cmake_parse_arguments(PKG_ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     if(NOT DEFINED PKG_ARGS_VERSION)
         message(FATAL_ERROR "[CPMUtil] VERSION is required")

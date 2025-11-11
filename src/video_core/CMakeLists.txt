@@ -312,7 +312,6 @@ add_library(video_core STATIC
     vulkan_common/vulkan_wrapper.h
     vulkan_common/nsight_aftermath_tracker.cpp
     vulkan_common/nsight_aftermath_tracker.h
-    vulkan_common/vma.cpp
     vulkan_common/vma.h
     vulkan_common/vulkan.h
 )
@@ -368,9 +367,6 @@ else()
 
     # xbyak
     set_source_files_properties(macro/macro_jit_x64.cpp PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-shadow")
-
-    # VMA
-    set_source_files_properties(vulkan_common/vma.cpp PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-unused-variable;-Wno-unused-parameter;-Wno-missing-field-initializers")
 
     # Get around GCC failing with intrinsics in Debug
     if (CXX_GCC AND CMAKE_BUILD_TYPE MATCHES "Debug")

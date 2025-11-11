@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,6 +12,11 @@ if (lz4_CONSIDERED_CONFIGS)
 else()
     find_package(PkgConfig QUIET)
     pkg_search_module(LZ4 QUIET IMPORTED_TARGET liblz4)
+
+    if (PLATFORM_MSYS)
+        FixMsysPath(PkgConfig::LZ4)
+    endif()
+
     find_package_handle_standard_args(lz4
         REQUIRED_VARS LZ4_LINK_LIBRARIES
         VERSION_VAR LZ4_VERSION

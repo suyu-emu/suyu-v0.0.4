@@ -89,7 +89,7 @@ if (UNIX AND NOT ANDROID)
         endif(CUDA_FOUND)
     endif()
 
-    if (VDPAU_FOUND)
+    if (VDPAU_FOUND AND NOT APPLE)
         list(APPEND FFmpeg_HWACCEL_FLAGS
             --enable-vdpau
             --enable-hwaccel=h264_vdpau
