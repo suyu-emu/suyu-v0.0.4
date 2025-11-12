@@ -3,10 +3,7 @@
 # SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-SRC=en_US
-TARGET=en_US
+SOURCES=$(find src/yuzu src/qt_common -type f \( -name "*.ui" -o -name "*.cpp" -o -name "*.h" -o -name "*.plist" \))
 
-# requires fd
-SOURCES=`fd . src/yuzu src/qt_common -tf -e ui -e cpp -e h -e plist`
-
-lupdate -source-language $SRC -target-language $TARGET $SOURCES -ts dist/languages/en.ts
+# shellcheck disable=SC2086
+lupdate -source-language en_US -target-language en_US $SOURCES -ts dist/languages/en.ts
