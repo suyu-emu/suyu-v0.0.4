@@ -32,6 +32,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     MAX_ANISOTROPY("max_anisotropy"),
     THEME("theme"),
     THEME_MODE("theme_mode"),
+    APP_LANGUAGE("app_language"),
     OVERLAY_SCALE("control_scale"),
     OVERLAY_OPACITY("control_opacity"),
     LOCK_DRAWER("lock_drawer"),

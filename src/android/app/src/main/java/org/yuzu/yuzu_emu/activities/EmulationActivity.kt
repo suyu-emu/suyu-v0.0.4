@@ -86,6 +86,10 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     private var foregroundService: Intent? = null
 
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(YuzuApplication.applyLanguage(base))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.gameLaunched = true
         ThemeHelper.setTheme(this)

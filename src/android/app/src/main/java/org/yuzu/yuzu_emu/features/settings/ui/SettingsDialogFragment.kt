@@ -387,6 +387,12 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                         .show()
                 }
                 scSetting.setSelectedValue(value)
+
+                if (scSetting.setting.key == "app_language") {
+                    settingsViewModel.setShouldRecreateForLanguageChange(true)
+                    // recreate page apply language change instantly
+                    requireActivity().recreate()
+                }
             }
 
             is StringSingleChoiceSetting -> {

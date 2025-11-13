@@ -758,6 +758,15 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SingleChoiceSetting(
+                    IntSetting.APP_LANGUAGE,
+                    titleId = R.string.app_language,
+                    descriptionId = R.string.app_language_description,
+                    choicesId = R.array.appLanguageNames,
+                    valuesId = R.array.appLanguageValues
+                )
+            )
+            put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_DEBUG,
                     titleId = R.string.renderer_debug,

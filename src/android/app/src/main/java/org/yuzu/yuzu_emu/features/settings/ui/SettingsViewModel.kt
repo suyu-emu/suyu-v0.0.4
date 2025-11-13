@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -54,6 +57,8 @@ class SettingsViewModel : ViewModel() {
     private val _shouldShowResetInputDialog = MutableStateFlow(false)
     val shouldShowResetInputDialog = _shouldShowResetInputDialog.asStateFlow()
 
+    private val _shouldRecreateForLanguageChange = MutableStateFlow(false)
+    val shouldRecreateForLanguageChange = _shouldRecreateForLanguageChange.asStateFlow()
     fun setShouldRecreate(value: Boolean) {
         _shouldRecreate.value = value
     }
@@ -101,6 +106,10 @@ class SettingsViewModel : ViewModel() {
 
     fun setShouldShowResetInputDialog(value: Boolean) {
         _shouldShowResetInputDialog.value = value
+    }
+
+    fun setShouldRecreateForLanguageChange(value: Boolean) {
+        _shouldRecreateForLanguageChange.value = value
     }
 
     fun getCurrentDeviceParams(defaultParams: ParamPackage): ParamPackage =

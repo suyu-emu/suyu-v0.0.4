@@ -4,6 +4,7 @@
 package org.yuzu.yuzu_emu.ui.main
 
 import android.content.Intent
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -53,6 +54,7 @@ import org.yuzu.yuzu_emu.activities.EmulationActivity
 import kotlin.text.compareTo
 import androidx.core.net.toUri
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.YuzuApplication
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -67,6 +69,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     private val CHECKED_DECRYPTION = "CheckedDecryption"
     private var checkedDecryption = false
+
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(YuzuApplication.applyLanguage(base))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()

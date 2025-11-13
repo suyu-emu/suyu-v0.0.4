@@ -1,8 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
+import android.content.Context
+import org.yuzu.yuzu_emu.YuzuApplication
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
@@ -24,6 +29,7 @@ import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.ResetSettingsDialogFragment
 import org.yuzu.yuzu_emu.utils.*
+import org.yuzu.yuzu_emu.utils.collect
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
@@ -31,6 +37,10 @@ class SettingsActivity : AppCompatActivity() {
     private val args by navArgs<SettingsActivityArgs>()
 
     private val settingsViewModel: SettingsViewModel by viewModels()
+
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(YuzuApplication.applyLanguage(base))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
@@ -124,6 +134,16 @@ class SettingsActivity : AppCompatActivity() {
                 NativeLibrary.logSettings()
                 NativeConfig.savePerGameConfig()
                 NativeConfig.unloadPerGameConfig()
+            }
+
+            if (settingsViewModel.shouldRecreateForLanguageChange.value) {
+                settingsViewModel.setShouldRecreateForLanguageChange(false)
+                val relaunchIntent = packageManager?.getLaunchIntentForPackage(packageName)
+                if (relaunchIntent != null) {
+                    relaunchIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(relaunchIntent)
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                }
             }
         }
     }

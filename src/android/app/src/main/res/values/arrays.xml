@@ -391,6 +391,61 @@
         <item>2</item>
     </integer-array>
 
+    <string-array name="appLanguageNames">
+        <item>@string/app_language_system</item>
+        <item>@string/app_language_english</item>
+        <item>@string/app_language_spanish</item>
+        <item>@string/app_language_french</item>
+        <item>@string/app_language_german</item>
+        <item>@string/app_language_italian</item>
+        <item>@string/app_language_portuguese</item>
+        <item>@string/app_language_brazilian_portuguese</item>
+        <item>@string/app_language_russian</item>
+        <item>@string/app_language_japanese</item>
+        <item>@string/app_language_korean</item>
+        <item>@string/app_language_simplified_chinese</item>
+        <item>@string/app_language_traditional_chinese</item>
+        <item>@string/app_language_polish</item>
+        <item>@string/app_language_czech</item>
+        <item>@string/app_language_norwegian</item>
+        <item>@string/app_language_hungarian</item>
+        <item>@string/app_language_ukrainian</item>
+        <item>@string/app_language_vietnamese</item>
+        <item>@string/app_language_indonesian</item>
+        <item>@string/app_language_arabic</item>
+        <item>@string/app_language_central_kurdish</item>
+        <item>@string/app_language_persian</item>
+        <item>@string/app_language_hebrew</item>
+        <item>@string/app_language_serbian</item>
+    </string-array>
+    <integer-array name="appLanguageValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+    </integer-array>
+
     <string-array name="outputEngineEntries">
         <item>@string/auto</item>
         <item>@string/oboe</item>

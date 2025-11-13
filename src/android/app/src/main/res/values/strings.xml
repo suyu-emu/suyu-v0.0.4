@@ -1028,6 +1028,35 @@
     <string name="use_black_backgrounds">Black backgrounds</string>
     <string name="use_black_backgrounds_description">When using the dark theme, apply black backgrounds.</string>
 
+    <!-- App Language -->
+    <string name="app_language">App Language</string>
+    <string name="app_language_description">Change the language of the app interface</string>
+    <string name="app_language_system">Follow System</string>
+    <string name="app_language_english">English</string>
+    <string name="app_language_spanish">Español</string>
+    <string name="app_language_french">Français</string>
+    <string name="app_language_german">Deutsch</string>
+    <string name="app_language_italian">Italiano</string>
+    <string name="app_language_portuguese">Português</string>
+    <string name="app_language_brazilian_portuguese">Português do Brasil</string>
+    <string name="app_language_russian">Русский</string>
+    <string name="app_language_japanese">日本語</string>
+    <string name="app_language_korean">한국어</string>
+    <string name="app_language_simplified_chinese">简体中文</string>
+    <string name="app_language_traditional_chinese">繁體中文</string>
+    <string name="app_language_polish">Polski</string>
+    <string name="app_language_czech">Čeština</string>
+    <string name="app_language_norwegian">Norsk bokmål</string>
+    <string name="app_language_hungarian">Magyar</string>
+    <string name="app_language_ukrainian">Українська</string>
+    <string name="app_language_vietnamese">Tiếng Việt</string>
+    <string name="app_language_indonesian">Bahasa Indonesia</string>
+    <string name="app_language_arabic">العربية</string>
+    <string name="app_language_central_kurdish">کوردیی ناوەندی</string>
+    <string name="app_language_persian">فارسی</string>
+    <string name="app_language_hebrew">עברית</string>
+    <string name="app_language_serbian">Српски</string>
+
     <!-- Static Themes -->
     <string name="static_theme_color">Theme Color</string>
     <string name="eden_theme">Eden (Default)</string>
