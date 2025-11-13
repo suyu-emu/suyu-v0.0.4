@@ -35,7 +35,6 @@ if (MSVC AND NOT CXX_CLANG)
 
     # /W4                 - Level 4 warnings
     # /MP                 - Multi-threaded compilation
-    # /Zi                 - Output debugging information
     # /Zm                 - Specifies the precompiled header memory allocation limit
     # /Zo                 - Enhanced debug info for optimized builds
     # /permissive-        - Enables stricter C++ standards conformance checks
@@ -96,11 +95,6 @@ if (MSVC AND NOT CXX_CLANG)
             /W4
             /WX-
         )
-    endif()
-
-    if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
-        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
     endif()
 
     if (ARCHITECTURE_x86_64)

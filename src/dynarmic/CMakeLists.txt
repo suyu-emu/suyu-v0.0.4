@@ -81,11 +81,6 @@ if (MSVC)
         /bigobj             # Increase number of sections in .obj files
         /DNOMINMAX)
 
-    if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
-        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-   endif()
-
     if (CXX_CLANG)
         list(APPEND DYNARMIC_CXX_FLAGS
              -Qunused-arguments
