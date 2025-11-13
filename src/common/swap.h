@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2012 PPSSPP Project
 // SPDX-FileCopyrightText: 2012 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -17,7 +20,17 @@
 
 namespace Common {
 
-#ifdef _MSC_VER
+#if defined(__Bitrig__) || defined(__OpenBSD__)
+// We'll redefine swap16, swap32, swap64 as inline functions
+// but OpenBSD is like "wow I bring my own stuff"
+// It would be nice if we could use them without C++ namespace shenanigans
+// But alas :)
+#undef swap16
+#undef swap32
+#undef swap64
+#endif
+
+#if defined(_MSC_VER)
 [[nodiscard]] inline u16 swap16(u16 data) noexcept {
     return _byteswap_ushort(data);
 }
@@ -28,12 +41,6 @@ namespace Common {
     return _byteswap_uint64(data);
 }
 #elif defined(__clang__) || defined(__GNUC__)
-#if defined(__Bitrig__) || defined(__OpenBSD__)
-// redefine swap16, swap32, swap64 as inline functions
-#undef swap16
-#undef swap32
-#undef swap64
-#endif
 [[nodiscard]] inline u16 swap16(u16 data) noexcept {
     return __builtin_bswap16(data);
 }
@@ -44,7 +51,9 @@ namespace Common {
     return __builtin_bswap64(data);
 }
 #else
-// Generic implementation.
+// Generic implementation - compiler will optimise these into their respective
+// __builtin_byteswapXX() and such; if not, the compiler is stupid and we probably
+// have bigger problems to worry about :)
 [[nodiscard]] inline u16 swap16(u16 data) noexcept {
     return (data >> 8) | (data << 8);
 }
@@ -62,33 +71,27 @@ namespace Common {
 
 [[nodiscard]] inline float swapf(float f) noexcept {
     static_assert(sizeof(u32) == sizeof(float), "float must be the same size as uint32_t.");
-
     u32 value;
     std::memcpy(&value, &f, sizeof(u32));
-
     value = swap32(value);
     std::memcpy(&f, &value, sizeof(u32));
-
     return f;
 }
 
 [[nodiscard]] inline double swapd(double f) noexcept {
     static_assert(sizeof(u64) == sizeof(double), "double must be the same size as uint64_t.");
-
     u64 value;
     std::memcpy(&value, &f, sizeof(u64));
-
     value = swap64(value);
     std::memcpy(&f, &value, sizeof(u64));
-
     return f;
 }
 
 } // Namespace Common
 
 template <typename T, typename F>
-struct swap_struct_t {
-    using swapped_t = swap_struct_t;
+struct SwapStructT {
+    using SwappedT = SwapStructT;
 
 protected:
     T value;
@@ -101,137 +104,137 @@ public:
     T swap() const {
         return swap(value);
     }
-    swap_struct_t() = default;
-    swap_struct_t(const T& v) : value(swap(v)) {}
+    SwapStructT() = default;
+    SwapStructT(const T& v) : value(swap(v)) {}
 
     template <typename S>
-    swapped_t& operator=(const S& source) {
-        value = swap(static_cast<T>(source));
+    SwappedT& operator=(const S& source) {
+        value = swap(T(source));
         return *this;
     }
 
     operator s8() const {
-        return static_cast<s8>(swap());
+        return s8(swap());
     }
     operator u8() const {
-        return static_cast<u8>(swap());
+        return u8(swap());
     }
     operator s16() const {
-        return static_cast<s16>(swap());
+        return s16(swap());
     }
     operator u16() const {
-        return static_cast<u16>(swap());
+        return u16(swap());
     }
     operator s32() const {
-        return static_cast<s32>(swap());
+        return s32(swap());
     }
     operator u32() const {
-        return static_cast<u32>(swap());
+        return u32(swap());
     }
     operator s64() const {
-        return static_cast<s64>(swap());
+        return s64(swap());
     }
     operator u64() const {
-        return static_cast<u64>(swap());
+        return u64(swap());
     }
     operator float() const {
-        return static_cast<float>(swap());
+        return float(swap());
     }
     operator double() const {
-        return static_cast<double>(swap());
+        return double(swap());
     }
 
     // +v
-    swapped_t operator+() const {
+    SwappedT operator+() const {
         return +swap();
     }
     // -v
-    swapped_t operator-() const {
+    SwappedT operator-() const {
         return -swap();
     }
 
     // v / 5
-    swapped_t operator/(const swapped_t& i) const {
+    SwappedT operator/(const SwappedT& i) const {
         return swap() / i.swap();
     }
     template <typename S>
-    swapped_t operator/(const S& i) const {
+    SwappedT operator/(const S& i) const {
         return swap() / i;
     }
 
     // v * 5
-    swapped_t operator*(const swapped_t& i) const {
+    SwappedT operator*(const SwappedT& i) const {
         return swap() * i.swap();
     }
     template <typename S>
-    swapped_t operator*(const S& i) const {
+    SwappedT operator*(const S& i) const {
         return swap() * i;
     }
 
     // v + 5
-    swapped_t operator+(const swapped_t& i) const {
+    SwappedT operator+(const SwappedT& i) const {
         return swap() + i.swap();
     }
     template <typename S>
-    swapped_t operator+(const S& i) const {
-        return swap() + static_cast<T>(i);
+    SwappedT operator+(const S& i) const {
+        return swap() + T(i);
     }
     // v - 5
-    swapped_t operator-(const swapped_t& i) const {
+    SwappedT operator-(const SwappedT& i) const {
         return swap() - i.swap();
     }
     template <typename S>
-    swapped_t operator-(const S& i) const {
-        return swap() - static_cast<T>(i);
+    SwappedT operator-(const S& i) const {
+        return swap() - T(i);
     }
 
     // v += 5
-    swapped_t& operator+=(const swapped_t& i) {
+    SwappedT& operator+=(const SwappedT& i) {
         value = swap(swap() + i.swap());
         return *this;
     }
     template <typename S>
-    swapped_t& operator+=(const S& i) {
-        value = swap(swap() + static_cast<T>(i));
+    SwappedT& operator+=(const S& i) {
+        value = swap(swap() + T(i));
         return *this;
     }
     // v -= 5
-    swapped_t& operator-=(const swapped_t& i) {
+    SwappedT& operator-=(const SwappedT& i) {
         value = swap(swap() - i.swap());
         return *this;
     }
     template <typename S>
-    swapped_t& operator-=(const S& i) {
-        value = swap(swap() - static_cast<T>(i));
+    SwappedT& operator-=(const S& i) {
+        value = swap(swap() - T(i));
         return *this;
     }
 
     // ++v
-    swapped_t& operator++() {
+    SwappedT& operator++() {
         value = swap(swap() + 1);
         return *this;
     }
     // --v
-    swapped_t& operator--() {
+    SwappedT& operator--() {
         value = swap(swap() - 1);
         return *this;
     }
 
     // v++
-    swapped_t operator++(int) {
-        swapped_t old = *this;
+    SwappedT operator++(int) {
+        SwappedT old = *this;
         value = swap(swap() + 1);
         return old;
     }
     // v--
-    swapped_t operator--(int) {
-        swapped_t old = *this;
+    SwappedT operator--(int) {
+        SwappedT old = *this;
         value = swap(swap() - 1);
         return old;
     }
     // Comparison
     // v == i
-    bool operator==(const swapped_t& i) const {
+    bool operator==(const SwappedT& i) const {
         return swap() == i.swap();
     }
     template <typename S>
@@ -240,7 +243,7 @@ public:
     }
 
     // v != i
-    bool operator!=(const swapped_t& i) const {
+    bool operator!=(const SwappedT& i) const {
         return swap() != i.swap();
     }
     template <typename S>
@@ -249,7 +252,7 @@ public:
     }
 
     // v > i
-    bool operator>(const swapped_t& i) const {
+    bool operator>(const SwappedT& i) const {
         return swap() > i.swap();
     }
     template <typename S>
@@ -258,7 +261,7 @@ public:
     }
 
     // v < i
-    bool operator<(const swapped_t& i) const {
+    bool operator<(const SwappedT& i) const {
         return swap() < i.swap();
     }
     template <typename S>
@@ -267,7 +270,7 @@ public:
     }
 
     // v >= i
-    bool operator>=(const swapped_t& i) const {
+    bool operator>=(const SwappedT& i) const {
         return swap() >= i.swap();
     }
     template <typename S>
@@ -276,7 +279,7 @@ public:
     }
 
     // v <= i
-    bool operator<=(const swapped_t& i) const {
+    bool operator<=(const SwappedT& i) const {
         return swap() <= i.swap();
     }
     template <typename S>
@@ -285,82 +288,82 @@ public:
     }
 
     // logical
-    swapped_t operator!() const {
+    SwappedT operator!() const {
         return !swap();
     }
 
     // bitmath
-    swapped_t operator~() const {
+    SwappedT operator~() const {
         return ~swap();
     }
 
-    swapped_t operator&(const swapped_t& b) const {
+    SwappedT operator&(const SwappedT& b) const {
         return swap() & b.swap();
     }
     template <typename S>
-    swapped_t operator&(const S& b) const {
+    SwappedT operator&(const S& b) const {
         return swap() & b;
     }
-    swapped_t& operator&=(const swapped_t& b) {
+    SwappedT& operator&=(const SwappedT& b) {
         value = swap(swap() & b.swap());
         return *this;
     }
     template <typename S>
-    swapped_t& operator&=(const S b) {
+    SwappedT& operator&=(const S b) {
         value = swap(swap() & b);
         return *this;
     }
 
-    swapped_t operator|(const swapped_t& b) const {
+    SwappedT operator|(const SwappedT& b) const {
         return swap() | b.swap();
     }
     template <typename S>
-    swapped_t operator|(const S& b) const {
+    SwappedT operator|(const S& b) const {
         return swap() | b;
     }
-    swapped_t& operator|=(const swapped_t& b) {
+    SwappedT& operator|=(const SwappedT& b) {
         value = swap(swap() | b.swap());
         return *this;
     }
     template <typename S>
-    swapped_t& operator|=(const S& b) {
+    SwappedT& operator|=(const S& b) {
         value = swap(swap() | b);
         return *this;
     }
 
-    swapped_t operator^(const swapped_t& b) const {
+    SwappedT operator^(const SwappedT& b) const {
         return swap() ^ b.swap();
     }
     template <typename S>
-    swapped_t operator^(const S& b) const {
+    SwappedT operator^(const S& b) const {
         return swap() ^ b;
     }
-    swapped_t& operator^=(const swapped_t& b) {
+    SwappedT& operator^=(const SwappedT& b) {
         value = swap(swap() ^ b.swap());
         return *this;
     }
     template <typename S>
-    swapped_t& operator^=(const S& b) {
+    SwappedT& operator^=(const S& b) {
         value = swap(swap() ^ b);
         return *this;
     }
 
     template <typename S>
-    swapped_t operator<<(const S& b) const {
+    SwappedT operator<<(const S& b) const {
         return swap() << b;
     }
     template <typename S>
-    swapped_t& operator<<=(const S& b) const {
+    SwappedT& operator<<=(const S& b) const {
         value = swap(swap() << b);
         return *this;
     }
 
     template <typename S>
-    swapped_t operator>>(const S& b) const {
+    SwappedT operator>>(const S& b) const {
         return swap() >> b;
     }
     template <typename S>
-    swapped_t& operator>>=(const S& b) const {
+    SwappedT& operator>>=(const S& b) const {
         value = swap(swap() >> b);
         return *this;
     }
@@ -370,167 +373,167 @@ public:
 
     // Arithmetic
     template <typename S, typename T2, typename F2>
-    friend S operator+(const S& p, const swapped_t v);
+    friend S operator+(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend S operator-(const S& p, const swapped_t v);
+    friend S operator-(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend S operator/(const S& p, const swapped_t v);
+    friend S operator/(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend S operator*(const S& p, const swapped_t v);
+    friend S operator*(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend S operator%(const S& p, const swapped_t v);
+    friend S operator%(const S& p, const SwappedT v);
 
     // Arithmetic + assignments
     template <typename S, typename T2, typename F2>
-    friend S operator+=(const S& p, const swapped_t v);
+    friend S operator+=(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend S operator-=(const S& p, const swapped_t v);
+    friend S operator-=(const S& p, const SwappedT v);
 
     // Bitmath
     template <typename S, typename T2, typename F2>
-    friend S operator&(const S& p, const swapped_t v);
+    friend S operator&(const S& p, const SwappedT v);
 
     // Comparison
     template <typename S, typename T2, typename F2>
-    friend bool operator<(const S& p, const swapped_t v);
+    friend bool operator<(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend bool operator>(const S& p, const swapped_t v);
+    friend bool operator>(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend bool operator<=(const S& p, const swapped_t v);
+    friend bool operator<=(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend bool operator>=(const S& p, const swapped_t v);
+    friend bool operator>=(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend bool operator!=(const S& p, const swapped_t v);
+    friend bool operator!=(const S& p, const SwappedT v);
 
     template <typename S, typename T2, typename F2>
-    friend bool operator==(const S& p, const swapped_t v);
+    friend bool operator==(const S& p, const SwappedT v);
 };
 
 // Arithmetic
 template <typename S, typename T, typename F>
-S operator+(const S& i, const swap_struct_t<T, F> v) {
+S operator+(const S& i, const SwapStructT<T, F> v) {
     return i + v.swap();
 }
 
 template <typename S, typename T, typename F>
-S operator-(const S& i, const swap_struct_t<T, F> v) {
+S operator-(const S& i, const SwapStructT<T, F> v) {
     return i - v.swap();
 }
 
 template <typename S, typename T, typename F>
-S operator/(const S& i, const swap_struct_t<T, F> v) {
+S operator/(const S& i, const SwapStructT<T, F> v) {
     return i / v.swap();
 }
 
 template <typename S, typename T, typename F>
-S operator*(const S& i, const swap_struct_t<T, F> v) {
+S operator*(const S& i, const SwapStructT<T, F> v) {
     return i * v.swap();
 }
 
 template <typename S, typename T, typename F>
-S operator%(const S& i, const swap_struct_t<T, F> v) {
+S operator%(const S& i, const SwapStructT<T, F> v) {
     return i % v.swap();
 }
 
 // Arithmetic + assignments
 template <typename S, typename T, typename F>
-S& operator+=(S& i, const swap_struct_t<T, F> v) {
+S& operator+=(S& i, const SwapStructT<T, F> v) {
     i += v.swap();
     return i;
 }
 
 template <typename S, typename T, typename F>
-S& operator-=(S& i, const swap_struct_t<T, F> v) {
+S& operator-=(S& i, const SwapStructT<T, F> v) {
     i -= v.swap();
     return i;
 }
 
 // Logical
 template <typename S, typename T, typename F>
-S operator&(const S& i, const swap_struct_t<T, F> v) {
+S operator&(const S& i, const SwapStructT<T, F> v) {
     return i & v.swap();
 }
 
 // Comparison
 template <typename S, typename T, typename F>
-bool operator<(const S& p, const swap_struct_t<T, F> v) {
+bool operator<(const S& p, const SwapStructT<T, F> v) {
     return p < v.swap();
 }
 template <typename S, typename T, typename F>
-bool operator>(const S& p, const swap_struct_t<T, F> v) {
+bool operator>(const S& p, const SwapStructT<T, F> v) {
     return p > v.swap();
 }
 template <typename S, typename T, typename F>
-bool operator<=(const S& p, const swap_struct_t<T, F> v) {
+bool operator<=(const S& p, const SwapStructT<T, F> v) {
     return p <= v.swap();
 }
 template <typename S, typename T, typename F>
-bool operator>=(const S& p, const swap_struct_t<T, F> v) {
+bool operator>=(const S& p, const SwapStructT<T, F> v) {
     return p >= v.swap();
 }
 template <typename S, typename T, typename F>
-bool operator!=(const S& p, const swap_struct_t<T, F> v) {
+bool operator!=(const S& p, const SwapStructT<T, F> v) {
     return p != v.swap();
 }
 template <typename S, typename T, typename F>
-bool operator==(const S& p, const swap_struct_t<T, F> v) {
+bool operator==(const S& p, const SwapStructT<T, F> v) {
     return p == v.swap();
 }
 
 template <typename T>
-struct swap_64_t {
+struct Swap64T {
     static T swap(T x) {
-        return static_cast<T>(Common::swap64(x));
+        return T(Common::swap64(x));
     }
 };
 
 template <typename T>
-struct swap_32_t {
+struct Swap32T {
     static T swap(T x) {
-        return static_cast<T>(Common::swap32(x));
+        return T(Common::swap32(x));
     }
 };
 
 template <typename T>
-struct swap_16_t {
+struct Swap16T {
     static T swap(T x) {
-        return static_cast<T>(Common::swap16(x));
+        return T(Common::swap16(x));
     }
 };
 
 template <typename T>
-struct swap_float_t {
+struct SwapFloatT {
     static T swap(T x) {
-        return static_cast<T>(Common::swapf(x));
+        return T(Common::swapf(x));
     }
 };
 
 template <typename T>
-struct swap_double_t {
+struct SwapDoubleT {
     static T swap(T x) {
-        return static_cast<T>(Common::swapd(x));
+        return T(Common::swapd(x));
     }
 };
 
 template <typename T>
-struct swap_enum_t {
+struct SwapEnumT {
     static_assert(std::is_enum_v<T>);
     using base = std::underlying_type_t<T>;
 
 public:
-    swap_enum_t() = default;
-    swap_enum_t(const T& v) : value(swap(v)) {}
+    SwapEnumT() = default;
+    SwapEnumT(const T& v) : value(swap(v)) {}
 
-    swap_enum_t& operator=(const T& v) {
+    SwapEnumT& operator=(const T& v) {
         value = swap(v);
         return *this;
     }
@@ -540,22 +543,20 @@ public:
     }
 
     explicit operator base() const {
-        return static_cast<base>(swap(value));
+        return base(swap(value));
     }
 
 protected:
     T value{};
-    // clang-format off
     using swap_t = std::conditional_t<
-        std::is_same_v<base, u16>, swap_16_t<u16>, std::conditional_t<
-        std::is_same_v<base, s16>, swap_16_t<s16>, std::conditional_t<
-        std::is_same_v<base, u32>, swap_32_t<u32>, std::conditional_t<
-        std::is_same_v<base, s32>, swap_32_t<s32>, std::conditional_t<
-        std::is_same_v<base, u64>, swap_64_t<u64>, std::conditional_t<
-        std::is_same_v<base, s64>, swap_64_t<s64>, void>>>>>>;
-    // clang-format on
+        std::is_same_v<base, u16>, Swap16T<u16>, std::conditional_t<
+        std::is_same_v<base, s16>, Swap16T<s16>, std::conditional_t<
+        std::is_same_v<base, u32>, Swap32T<u32>, std::conditional_t<
+        std::is_same_v<base, s32>, Swap32T<s32>, std::conditional_t<
+        std::is_same_v<base, u64>, Swap64T<u64>, std::conditional_t<
+        std::is_same_v<base, s64>, Swap64T<s64>, void>>>>>>;
     static T swap(T x) {
-        return static_cast<T>(swap_t::swap(static_cast<base>(x)));
+        return T(swap_t::swap(base(x)));
     }
 };
 
@@ -581,17 +582,17 @@ struct AddEndian<u8, SwapTag> {
 
 template <>
 struct AddEndian<u16, SwapTag> {
-    using type = swap_struct_t<u16, swap_16_t<u16>>;
+    using type = SwapStructT<u16, Swap16T<u16>>;
 };
 
 template <>
 struct AddEndian<u32, SwapTag> {
-    using type = swap_struct_t<u32, swap_32_t<u32>>;
+    using type = SwapStructT<u32, Swap32T<u32>>;
 };
 
 template <>
 struct AddEndian<u64, SwapTag> {
-    using type = swap_struct_t<u64, swap_64_t<u64>>;
+    using type = SwapStructT<u64, Swap64T<u64>>;
 };
 
 template <>
@@ -601,33 +602,33 @@ struct AddEndian<s8, SwapTag> {
 
 template <>
 struct AddEndian<s16, SwapTag> {
-    using type = swap_struct_t<s16, swap_16_t<s16>>;
+    using type = SwapStructT<s16, Swap16T<s16>>;
 };
 
 template <>
 struct AddEndian<s32, SwapTag> {
-    using type = swap_struct_t<s32, swap_32_t<s32>>;
+    using type = SwapStructT<s32, Swap32T<s32>>;
 };
 
 template <>
 struct AddEndian<s64, SwapTag> {
-    using type = swap_struct_t<s64, swap_64_t<s64>>;
+    using type = SwapStructT<s64, Swap64T<s64>>;
 };
 
 template <>
 struct AddEndian<float, SwapTag> {
-    using type = swap_struct_t<float, swap_float_t<float>>;
+    using type = SwapStructT<float, SwapFloatT<float>>;
 };
 
 template <>
 struct AddEndian<double, SwapTag> {
-    using type = swap_struct_t<double, swap_double_t<double>>;
+    using type = SwapStructT<double, SwapDoubleT<double>>;
 };
 
 template <typename T>
 struct AddEndian<T, SwapTag> {
     static_assert(std::is_enum_v<T>);
-    using type = swap_enum_t<T>;
+    using type = SwapEnumT<T>;
 };
 
 // Alias LETag/BETag as KeepTag/SwapTag depending on the system
