@@ -25,18 +25,26 @@ if (UNIX AND NOT ANDROID)
     if (NOT APPLE)
         # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
         if(PLATFORM_SUN)
-            list(APPEND FFmpeg_HWACCEL_LIBRARIES
-                X11
-                "/usr/lib/xorg/amd64/libdrm.so")
+            find_library(LIBDRM_LIB libdrm PATHS /usr/lib/64 /usr/lib/amd64 /usr/lib)
+            if(LIBDRM_LIB)
+                list(APPEND FFmpeg_HWACCEL_LIBRARIES
+                    X11
+                    "${LIBDRM_LIB}")
+                message(STATUS "Found libdrm at: ${LIBDRM_LIB}")
+            else()
+                message(WARNING "libdrm not found, disabling libdrm support")
+                list(APPEND FFmpeg_HWACCEL_FLAGS
+                    --disable-libdrm)
+            endif()
         else()
             pkg_check_modules(LIBDRM libdrm REQUIRED)
             list(APPEND FFmpeg_HWACCEL_LIBRARIES
                 ${LIBDRM_LIBRARIES})
             list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
                 ${LIBDRM_INCLUDE_DIRS})
+            list(APPEND FFmpeg_HWACCEL_FLAGS
+                --enable-libdrm)
         endif()
-        list(APPEND FFmpeg_HWACCEL_FLAGS
-            --enable-libdrm)
     endif()
 
     if(LIBVA_FOUND)
@@ -247,11 +255,19 @@ else()
             SYSTEM_THREADS)
 
     set(FFmpeg_BUILD_LIBRARIES ${FFmpeg_LIBRARIES})
+
+    # BSD make or Solaris make don't support ffmpeg make-j8
+    if (PLATFORM_LINUX OR ANDROID OR APPLE OR WIN32 OR PLATFORM_FREEBSD)
+        set(FFmpeg_MAKE_ARGS -j${SYSTEM_THREADS})
+    else()
+        set(FFmpeg_MAKE_ARGS "")
+    endif()
+
     add_custom_command(
         OUTPUT
             ${FFmpeg_BUILD_LIBRARIES}
         COMMAND
-            make -j${SYSTEM_THREADS}
+            make ${FFmpeg_MAKE_ARGS}
         WORKING_DIRECTORY
             ${FFmpeg_BUILD_DIR}
     )
