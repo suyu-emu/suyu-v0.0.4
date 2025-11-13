@@ -956,38 +956,24 @@ void RasterizerVulkan::UpdateDynamicStates() {
 
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
 
-    auto features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
-        .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
-    };
-
-    if (features.has_extended_dynamic_state) {
+    if (device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
         UpdateStencilOp(regs);
-
         if (state_tracker.TouchStateEnable()) {
             UpdateDepthBoundsTestEnable(regs);
             UpdateDepthTestEnable(regs);
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
-
-            if (features.has_extended_dynamic_state_2) {
+            if (device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1) {
                 UpdatePrimitiveRestartEnable(regs);
                 UpdateRasterizerDiscardEnable(regs);
                 UpdateDepthBiasEnable(regs);
             }
-
-            if (features.has_extended_dynamic_state_3_enables) {
+            if (device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2) {
                 using namespace Tegra::Engines;
-
-                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE ||
-                    device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
+                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
                     struct In {
                         const Maxwell3D::Regs::VertexAttribute::Type d;
                         In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
@@ -995,33 +981,28 @@ void RasterizerVulkan::UpdateDynamicStates() {
                             return n.type == d;
                         }
                     };
-
-                    auto has_float = std::any_of(regs.vertex_attrib_format.begin(),
-                                                 regs.vertex_attrib_format.end(),
-                                                 In(Maxwell3D::Regs::VertexAttribute::Type::Float));
-
-                    if (regs.logic_op.enable)
+                    auto has_float = std::any_of(regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(), In(Maxwell3D::Regs::VertexAttribute::Type::Float));
+                    if (regs.logic_op.enable) {
                         regs.logic_op.enable = static_cast<u32>(!has_float);
-
+					}
                     UpdateLogicOpEnable(regs);
                 } else {
                     UpdateLogicOpEnable(regs);
-                }
+				}
                 UpdateDepthClampEnable(regs);
+                UpdateLineStippleEnable(regs);
+                UpdateConservativeRasterizationMode(regs);
             }
         }
-        if (features.has_extended_dynamic_state_2_extra) {
+        if (device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1) {
             UpdateLogicOp(regs);
         }
-        if (features.has_extended_dynamic_state_3_enables) {
+        if (device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2) {
             UpdateBlending(regs);
-            UpdateLineStippleEnable(regs);
-            UpdateConservativeRasterizationMode(regs);
         }
     }
-    if (features.has_dynamic_vertex_input) {
-        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline();
-                gp && gp->HasDynamicVertexInput()) {
+    if (device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 2) {
+        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
             UpdateVertexInput(regs);
         }
     }
