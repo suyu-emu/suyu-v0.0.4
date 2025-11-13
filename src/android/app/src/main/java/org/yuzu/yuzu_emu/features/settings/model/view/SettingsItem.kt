@@ -667,10 +667,11 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SliderSetting(
+                SpinBoxSetting(
                     IntSetting.CPU_TICKS,
                     titleId = R.string.cpu_ticks,
                     descriptionId = 0,
+                    valueHint = R.string.cpu_ticks,
                     min = 77,
                     max = 65535
                 )
