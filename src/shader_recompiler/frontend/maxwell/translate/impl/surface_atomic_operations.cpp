@@ -145,7 +145,7 @@ bool IsSizeInt32(Size size) {
 }
 
 void ImageAtomOp(TranslatorVisitor& v, IR::Reg dest_reg, IR::Reg operand_reg, IR::Reg coord_reg,
-                 IR::Reg bindless_reg, AtomicOp op, Clamp clamp, Size size, Type type,
+                 std::optional<IR::Reg> bindless_reg, AtomicOp op, Clamp clamp, Size size, Type type,
                  u64 bound_offset, bool is_bindless, bool write_result) {
     if (clamp != Clamp::IGN) {
         throw NotImplementedException("Clamp {}", clamp);
@@ -158,8 +158,7 @@ void ImageAtomOp(TranslatorVisitor& v, IR::Reg dest_reg, IR::Reg operand_reg, IR
     const TextureType tex_type{GetType(type)};
     const IR::Value coords{MakeCoords(v, coord_reg, type)};
 
-    const IR::U32 handle{is_bindless != 0 ? v.X(bindless_reg)
-                                          : v.ir.Imm32(static_cast<u32>(bound_offset * 4))};
+    const IR::U32 handle = is_bindless ? v.X(*bindless_reg) : v.ir.Imm32(u32(bound_offset * 4));
     IR::TextureInstInfo info{};
     info.type.Assign(tex_type);
     info.image_format.Assign(format);
@@ -185,7 +184,7 @@ void TranslatorVisitor::SUATOM(u64 insn) {
         BitField<0, 8, IR::Reg> dest_reg;
         BitField<8, 8, IR::Reg> coord_reg;
         BitField<20, 8, IR::Reg> operand_reg;
-        BitField<36, 13, u64> bound_offset;    // !is_bindless
+        BitField<36, 13, u64> bound_offset; // !is_bindless
         BitField<39, 8, IR::Reg> bindless_reg; // is_bindless
     } const suatom{insn};
 
@@ -196,21 +195,20 @@ void TranslatorVisitor::SUATOM(u64 insn) {
 
 void TranslatorVisitor::SURED(u64 insn) {
     // TODO: confirm offsets
+    // SURED unlike SUATOM does NOT have a binded register
     union {
         u64 raw;
-        BitField<51, 1, u64> is_bound;
-        BitField<21, 3, AtomicOp> op;
-        BitField<33, 3, Type> type;
-        BitField<20, 3, Size> size;
-        BitField<49, 2, Clamp> clamp;
-        BitField<0, 8, IR::Reg> operand_reg;
-        BitField<8, 8, IR::Reg> coord_reg;
-        BitField<36, 13, u64> bound_offset;    // is_bound
-        BitField<39, 8, IR::Reg> bindless_reg; // !is_bound
+        BitField<24, 3, AtomicOp> op; //OK - 24 (SURedOp)
+        BitField<33, 3, Type> type; //OK? - 33 (Dim)
+        BitField<20, 3, Size> size; //?
+        BitField<49, 2, Clamp> clamp; //OK - 49 (Clamp4)
+        BitField<0, 8, IR::Reg> operand_reg; //RA?
+        BitField<8, 8, IR::Reg> coord_reg; //RB?
+        BitField<36, 13, u64> bound_offset; //OK 33 (TidB)
     } const sured{insn};
-    ImageAtomOp(*this, IR::Reg::RZ, sured.operand_reg, sured.coord_reg, sured.bindless_reg,
+    ImageAtomOp(*this, IR::Reg::RZ, sured.operand_reg, sured.coord_reg, std::nullopt,
                 sured.op, sured.clamp, sured.size, sured.type, sured.bound_offset,
-                sured.is_bound == 0, false);
+                false, false);
 }
 
 } // namespace Shader::Maxwell
