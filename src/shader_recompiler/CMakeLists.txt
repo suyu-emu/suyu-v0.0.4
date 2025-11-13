@@ -81,14 +81,12 @@ add_library(shader_recompiler STATIC
     environment.h
     exception.h
     frontend/ir/abstract_syntax_list.h
-    frontend/ir/attribute.cpp
     frontend/ir/attribute.h
     frontend/ir/basic_block.cpp
     frontend/ir/basic_block.h
     frontend/ir/breadth_first_search.h
     frontend/ir/condition.cpp
     frontend/ir/condition.h
-    frontend/ir/flow_test.cpp
     frontend/ir/flow_test.h
     frontend/ir/ir_emitter.cpp
     frontend/ir/ir_emitter.h
