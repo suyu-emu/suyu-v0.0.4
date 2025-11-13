@@ -297,6 +297,9 @@ struct System::Impl {
         std::string vendor = gpu_core->Renderer().GetDeviceVendor();
         LOG_INFO(Core, "GPU Vendor: {}", vendor);
 
+        // Reset all per-game flags
+        Settings::values.use_squashed_iterated_blend = false;
+
         // Insert PC overrides here
 
     #ifdef ANDROID
@@ -322,6 +325,13 @@ struct System::Impl {
 
     #endif
 
+        // Ninja Gaiden Ragebound
+        constexpr u64 ngr = 0x0100781020710000ULL;
+
+        if (programId == ngr) {
+            LOG_INFO(Core, "Enabling game specifc override: use_squashed_iterated_blend");
+            Settings::values.use_squashed_iterated_blend = true;
+        }
     }
 
     SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
@@ -424,6 +434,9 @@ struct System::Impl {
 
     void ShutdownMainProcess() {
         SetShuttingDown(true);
+
+        // Reset per-game flags
+        Settings::values.use_squashed_iterated_blend = false;
 
         is_powered_on = false;
         exit_locked = false;

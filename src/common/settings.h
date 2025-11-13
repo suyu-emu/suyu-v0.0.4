@@ -759,6 +759,9 @@ struct Values {
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
+
+    // Per-game overrides
+    bool use_squashed_iterated_blend;
 };
 
 extern Values values;

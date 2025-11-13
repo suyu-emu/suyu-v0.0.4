@@ -359,6 +359,9 @@ void RestoreGlobalState(bool is_powered_on) {
     for (const auto& reset : values.linkage.restore_functions) {
         reset();
     }
+
+    // Reset per-game flags
+    values.use_squashed_iterated_blend = false;
 }
 
 static bool configuring_global = true;

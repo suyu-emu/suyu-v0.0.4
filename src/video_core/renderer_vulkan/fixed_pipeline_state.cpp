@@ -11,6 +11,7 @@
 #include <ranges>
 #include "common/cityhash.h"
 #include "common/common_types.h"
+#include "common/settings.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
@@ -201,6 +202,19 @@ void FixedPipelineState::BlendingAttachment::Refresh(const Maxwell& regs, size_t
     };
 
     if (!regs.blend_per_target_enabled) {
+        // Temporary workaround for games that use iterated blending
+        // even when dynamic blending is off so overrides work with EDS = 0 as well
+        if (regs.iterated_blend.enable && Settings::values.use_squashed_iterated_blend) {
+            equation_rgb.Assign(PackBlendEquation(Maxwell::Blend::Equation::Add_GL));
+            equation_a.Assign(PackBlendEquation(Maxwell::Blend::Equation::Add_GL));
+            factor_source_rgb.Assign(PackBlendFactor(Maxwell::Blend::Factor::One_GL));
+            factor_dest_rgb.Assign(PackBlendFactor(Maxwell::Blend::Factor::One_GL));
+            factor_source_a.Assign(
+                PackBlendFactor(Maxwell::Blend::Factor::OneMinusSourceColor_GL));
+            factor_dest_a.Assign(PackBlendFactor(Maxwell::Blend::Factor::Zero_GL));
+            enable.Assign(1);
+            return;
+        }
         setup_blend(regs.blend);
         return;
     }

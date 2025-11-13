@@ -1538,22 +1538,41 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
 
     if (state_tracker.TouchBlendEquations()) {
         std::array<VkColorBlendEquationEXT, Maxwell::NumRenderTargets> setup_blends{};
-        for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
-            const auto blend_setup = [&]<typename T>(const T& guest_blend) {
-                auto& host_blend = setup_blends[index];
-                host_blend.srcColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_source);
-                host_blend.dstColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_dest);
-                host_blend.colorBlendOp = MaxwellToVK::BlendEquation(guest_blend.color_op);
-                host_blend.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_source);
-                host_blend.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_dest);
-                host_blend.alphaBlendOp = MaxwellToVK::BlendEquation(guest_blend.alpha_op);
-            };
-            if (!regs.blend_per_target_enabled) {
-                blend_setup(regs.blend);
-                continue;
+
+        const auto blend_setup = [&](auto& host_blend, const auto& guest_blend) {
+            host_blend.srcColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_source);
+            host_blend.dstColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_dest);
+            host_blend.colorBlendOp = MaxwellToVK::BlendEquation(guest_blend.color_op);
+            host_blend.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_source);
+            host_blend.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_dest);
+            host_blend.alphaBlendOp = MaxwellToVK::BlendEquation(guest_blend.alpha_op);
+        };
+
+        // Single blend equation for all targets
+        if (!regs.blend_per_target_enabled) {
+            // Temporary workaround for games that use iterated blending
+            if (regs.iterated_blend.enable && Settings::values.use_squashed_iterated_blend) {
+                setup_blends[0].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+                setup_blends[0].dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+                setup_blends[0].colorBlendOp = VK_BLEND_OP_ADD;
+                setup_blends[0].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+                setup_blends[0].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+                setup_blends[0].alphaBlendOp = VK_BLEND_OP_ADD;
+            } else {
+                blend_setup(setup_blends[0], regs.blend);
             }
-            blend_setup(regs.blend_per_target[index]);
+
+            // Copy first blend state to all other targets
+            for (size_t index = 1; index < Maxwell::NumRenderTargets; index++) {
+                setup_blends[index] = setup_blends[0];
+            }
+        } else {
+            // Per-target blending
+            for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+                blend_setup(setup_blends[index], regs.blend_per_target[index]);
+            }
         }
+
         scheduler.Record([setup_blends](vk::CommandBuffer cmdbuf) {
             cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
         });

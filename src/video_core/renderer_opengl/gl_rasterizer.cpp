@@ -1142,6 +1142,14 @@ void RasterizerOpenGL::SyncBlendState() {
             glDisable(GL_BLEND);
             return;
         }
+        // Temporary workaround for games that use iterated blending
+        if (regs.iterated_blend.enable && Settings::values.use_squashed_iterated_blend) {
+            glEnable(GL_BLEND);
+            glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ZERO);
+            glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+            return;
+        }
+
         glEnable(GL_BLEND);
         glBlendFuncSeparate(MaxwellToGL::BlendFunc(regs.blend.color_source),
                             MaxwellToGL::BlendFunc(regs.blend.color_dest),
