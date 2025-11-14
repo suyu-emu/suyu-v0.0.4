@@ -984,11 +984,9 @@ void RasterizerVulkan::UpdateDynamicStates() {
                     auto has_float = std::any_of(regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(), In(Maxwell3D::Regs::VertexAttribute::Type::Float));
                     if (regs.logic_op.enable) {
                         regs.logic_op.enable = static_cast<u32>(!has_float);
-					}
-                    UpdateLogicOpEnable(regs);
-                } else {
-                    UpdateLogicOpEnable(regs);
-				}
+                    }
+                }
+                UpdateLogicOpEnable(regs);
                 UpdateDepthClampEnable(regs);
                 UpdateLineStippleEnable(regs);
                 UpdateConservativeRasterizationMode(regs);
@@ -1031,19 +1029,25 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         return;
     }
     if (!regs.viewport_scale_offset_enabled) {
-        const auto x = static_cast<float>(regs.surface_clip.x);
-        const auto y = static_cast<float>(regs.surface_clip.y);
-        const auto width = static_cast<float>(regs.surface_clip.width);
-        const auto height = static_cast<float>(regs.surface_clip.height);
+        float x = static_cast<float>(regs.surface_clip.x);
+        float y = static_cast<float>(regs.surface_clip.y);
+        float width = std::max(1.0f, static_cast<float>(regs.surface_clip.width));
+        float height = std::max(1.0f, static_cast<float>(regs.surface_clip.height));
+        if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
+            y += height;
+            height = -height;
+        }
         VkViewport viewport{
             .x = x,
             .y = y,
-            .width = width != 0.0f ? width : 1.0f,
-            .height = height != 0.0f ? height : 1.0f,
+            .width = width,
+            .height = height,
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) { cmdbuf.SetViewport(0, viewport); });
+        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetViewport(0, viewport);
+        });
         return;
     }
     const bool is_rescaling{texture_cache.IsRescaling()};
@@ -1070,16 +1074,21 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         return;
     }
     if (!regs.viewport_scale_offset_enabled) {
-        const auto x = static_cast<float>(regs.surface_clip.x);
-        const auto y = static_cast<float>(regs.surface_clip.y);
-        const auto width = static_cast<float>(regs.surface_clip.width);
-        const auto height = static_cast<float>(regs.surface_clip.height);
-        VkRect2D scissor;
-        scissor.offset.x = static_cast<u32>(x);
-        scissor.offset.y = static_cast<u32>(y);
-        scissor.extent.width = static_cast<u32>(width != 0.0f ? width : 1.0f);
-        scissor.extent.height = static_cast<u32>(height != 0.0f ? height : 1.0f);
-        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) { cmdbuf.SetScissor(0, scissor); });
+        u32 x = regs.surface_clip.x;
+        u32 y = regs.surface_clip.y;
+        u32 width = std::max(1u, static_cast<u32>(regs.surface_clip.width));
+        u32 height = std::max(1u, static_cast<u32>(regs.surface_clip.height));
+        if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
+            y = regs.surface_clip.height - (y + height);
+        }
+        VkRect2D scissor{};
+        scissor.offset.x = static_cast<int32_t>(x);
+        scissor.offset.y = static_cast<int32_t>(y);
+        scissor.extent.width  = width;
+        scissor.extent.height = height;
+        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetScissor(0, scissor);
+        });
         return;
     }
     u32 up_scale = 1;
@@ -1607,7 +1616,7 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
             highest_dirty_attr = index;
         }
     }
-    for (size_t index = 0; index < highest_dirty_attr; ++index) {
+    for (size_t index = 0; index <= highest_dirty_attr; ++index) {
         const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
         const u32 binding{attribute.buffer};
         dirty[Dirty::VertexAttribute0 + index] = false;
