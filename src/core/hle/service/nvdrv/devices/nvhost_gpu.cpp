@@ -168,7 +168,15 @@ NvResult nvhost_gpu::SetErrorNotifier(IoctlSetErrorNotifier& params) {
 
 NvResult nvhost_gpu::SetChannelPriority(IoctlChannelSetPriority& params) {
     channel_priority = params.priority;
-    LOG_DEBUG(Service_NVDRV, "(STUBBED) called, priority={:X}", channel_priority);
+    LOG_INFO(Service_NVDRV, "called, priority={:X}", channel_priority);
+
+    switch (static_cast<ChannelPriority>(channel_priority)) {
+    case ChannelPriority::Low: channel_timeslice = 1300; break;
+    case ChannelPriority::Medium: channel_timeslice = 2600; break;
+    case ChannelPriority::High: channel_timeslice = 5200; break;
+    default : return NvResult::BadParameter;
+    }
+
     return NvResult::Success;
 }
 
@@ -401,6 +409,10 @@ NvResult nvhost_gpu::ChannelSetTimeout(IoctlChannelSetTimeout& params) {
 
 NvResult nvhost_gpu::ChannelSetTimeslice(IoctlSetTimeslice& params) {
     LOG_INFO(Service_NVDRV, "called, timeslice={:#X}", params.timeslice);
+
+    if (params.timeslice < 1000 || params.timeslice > 5000) {
+        return NvResult::BadParameter;
+    }
 
     channel_timeslice = params.timeslice;
 
