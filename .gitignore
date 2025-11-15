@@ -7,6 +7,7 @@
 # Build directory
 /[Bb]uild*/
 doc-build/
+out/
 AppDir/
 uruntime
 
@@ -59,3 +60,4 @@ eden-windows-msvc
 artifacts
 *.AppImage*
 /install*
+vulkansdk*.exe

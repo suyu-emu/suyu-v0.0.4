@@ -3,10 +3,13 @@
 To build Eden, you MUST have a C++ compiler.
 * On Linux, this is usually [GCC](https://gcc.gnu.org/) 11+ or [Clang](https://clang.llvm.org/) v14+
   - GCC 12 also requires Clang 14+
-* On Windows, this is either:
-  - **[MSVC](https://visualstudio.microsoft.com/downloads/)** (you should select *Community* option),
-  - clang-cl - can be downloaded from the MSVC installer,
-  - or **[MSYS2](https://www.msys2.org)**
+* On Windows, we support:
+  - **[MSVC](https://visualstudio.microsoft.com/downloads/)** (default)
+    - It's STRONGLY RECOMMENDED to use the **Community** option and **Visual Studio 2022**
+    - You need to install: **[Desktop development with C++](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation?view=msvc-170)**
+  - **[clang-cl](https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-180)**
+    - You need to install: **C++ Clang tools for Windows**
+  - **[MSYS2](https://www.msys2.org)** (experimental)
 * On macOS, this is Apple Clang
   - This can be installed with `xcode-select --install`
 
@@ -15,20 +18,23 @@ The following additional tools are also required:
 * **[CMake](https://www.cmake.org/)** 3.22+ - already included with the Android SDK
 * **[Git](https://git-scm.com/)** for version control
   - **[Windows installer](https://gitforwindows.org)**
+* **[Python3](https://www.python.org/downloads/)** 3.10+ - necessary to download external repositories
 * On Windows, you must install the **[Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows)** as well
-  - *A convenience script to install the latest SDK is provided in `.ci/windows/install-vulkan-sdk.ps1`*
+  - *A convenience script to install the latest SDK is provided in:*
+    - `tools/windows/install-vulkan-sdk.ps1` (for PowerShell 5+)
+    - `tools/windows/install-vulkan-sdk.sh` (for MSYS2, Git Bash, etc)
 
-If you are on desktop and plan to use the Qt frontend, you *must* install Qt 6, and optionally Qt Creator (the recommended IDE for building)
+If you are on desktop and plan to use the Qt frontend, you *must* install Qt 6, and optionally Qt Creator (the **RECOMMENDED** IDE for building)
 * On Linux, *BSD and macOS, this can be done by the package manager
   - If you wish to use Qt Creator, append `qtcreator` or `qt-creator` to the commands seen below.
-* MSVC/clang-cl users on Windows must install through the [official installer](https://www.qt.io/download-qt-installer-oss)
+* MSVC/clang-cl users on Windows must install through the official [Qt](https://www.qt.io/download-qt-installer-oss) installer
 * Linux and macOS users may choose to use the installer as well.
 * MSYS2 can also install Qt 6 via the package manager
 
 If you are on Windows, a convenience script to install MSVC, MSYS2, Qt, all necessary packages for MSYS2, and set up a zsh environment with useful keybinds and aliases can be found [here](https://git.crueter.xyz/scripts/windev).
 - For help setting up Qt Creator, run `./install.sh -h qtcreator`
 
-If you are on Windows and NOT building with MSYS2, you may go [back home](Build.md) and continue.
+If you are on **Windows** and building with **MSVC** or **clang-cl**, you may go [back home](Build.md) and continue.
 
 ## Externals
 The following are handled by Eden's externals:
