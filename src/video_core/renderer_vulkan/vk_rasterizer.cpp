@@ -1614,7 +1614,7 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
             highest_dirty_attr = index;
         }
     }
-    for (size_t index = 0; index <= highest_dirty_attr; ++index) {
+    for (size_t index = 0; index < highest_dirty_attr; ++index) {
         const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
         const u32 binding{attribute.buffer};
         dirty[Dirty::VertexAttribute0 + index] = false;
