@@ -999,11 +999,9 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateBlending(regs);
         }
     }
-    if (device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 2) {
-        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
+    if (device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 0)
+        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput())
             UpdateVertexInput(regs);
-        }
-    }
 }
 
 void RasterizerVulkan::HandleTransformFeedback() {
