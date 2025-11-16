@@ -42,10 +42,12 @@ if (USE_DISCORD_PRESENCE)
         discord/discord_impl.h
     )
     target_link_libraries(qt_common PUBLIC DiscordRPC::discord-rpc httplib::httplib)
+
     if (YUZU_USE_BUNDLED_OPENSSL)
-        target_link_libraries(qt_common PUBLIC OpenSSL::SSL)
+        target_link_libraries(qt_common PUBLIC OpenSSL::SSL OpenSSL::Crypto)
         target_compile_definitions(qt_common PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
     endif()
+
     target_compile_definitions(qt_common PUBLIC USE_DISCORD_PRESENCE)
 endif()
 

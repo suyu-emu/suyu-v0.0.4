@@ -119,6 +119,8 @@ endif()
 option(YUZU_STATIC_BUILD "Use static libraries and executables if available" OFF)
 
 if (YUZU_STATIC_BUILD)
+    include(StaticQtLibs)
+
     # lol
     set(Boost_USE_STATIC_LIBS ON)
     set(BUILD_SHARED_LIBS OFF)
@@ -136,7 +138,8 @@ if (YUZU_STATIC_BUILD)
         # simple hook to reject dynamic libs
         function(find_library var)
             # also skip previously-found libraries cuz... yaknow
-            if (${var})
+            # UNLESS they are dll.a :{
+            if (${var} AND NOT ${var} MATCHES "dll\\.a$")
                 return()
             endif()
 
@@ -155,17 +158,19 @@ if (YUZU_STATIC_BUILD)
 
         set(YUZU_USE_BUNDLED_FFMPEG ON)
         set(YUZU_USE_BUNDLED_SDL2 ON)
+        set(YUZU_USE_BUNDLED_OPENSSL ON)
 
         set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
     elseif(APPLE)
         # these libs do not properly provide static libs/let you do it with cmake
         set(YUZU_USE_CPM ON)
 
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+        set(YUZU_USE_BUNDLED_SDL2 ON)
+        set(YUZU_USE_BUNDLED_OPENSSL ON)
+
         # IMPORTED_IMPLIB not set for imported target
         # TODO(crueter): wtf
-        set(YUZU_USE_BUNDLED_FFMPEG ON)
-        set(YUZU_USE_EXTERNAL_SDL2 ON)
-
         set(fmt_FORCE_BUNDLED ON)
         set(SPIRV-Tools_FORCE_BUNDLED ON)
         set(SPIRV-Headers_FORCE_BUNDLED ON)
@@ -419,7 +424,7 @@ if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN)
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
 
-if (ENABLE_WEB_SERVICE)
+if (ENABLE_WEB_SERVICE OR USE_DISCORD_PRESENCE)
     set(DEFAULT_ENABLE_OPENSSL ON)
 endif()
 

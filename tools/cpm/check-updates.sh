@@ -67,7 +67,11 @@ while true; do
 
 	[ "$REPO" = null ] && continue
 	[ "$GIT_HOST" != "github.com" ] && continue # TODO
-	# shellcheck disable=SC2153
+
+	if [ "$CI" = "true" ]; then
+		TAG="v$VERSION"
+	fi
+
 	[ "$TAG" = null ] && continue
 
 	echo "-- Package $PACKAGE"

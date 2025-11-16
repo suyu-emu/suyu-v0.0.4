@@ -459,30 +459,8 @@ if (NOT MSVC AND (APPLE OR NOT YUZU_STATIC_BUILD))
         -Wno-missing-field-initializers)
 endif()
 
-## certain libraries need extra static libs to be linked ##
-# I have no fucking clue why it ONLY has to be on yuzu
-# yuzu_cmd works totally fine but not this??????????
 if (YUZU_STATIC_BUILD AND MINGW)
-    macro(extra_libs)
-        foreach(lib ${ARGN})
-            find_library(${lib}_LIBRARY ${lib} REQUIRED)
-            target_link_libraries(yuzu PRIVATE ${${lib}_LIBRARY})
-        endforeach()
-    endmacro()
-
-    # I am constantly impressed at how ridiculously stupid the linker is
-    # NB: yes, we have to put them here twice. I have no idea why
-
-    # libtiff.a
-    extra_libs(tiff jbig bz2 lzma deflate jpeg tiff)
-
-    # libfreetype.a
-    extra_libs(freetype bz2 Lerc brotlidec brotlicommon freetype)
-
-    # libharfbuzz.a
-    extra_libs(harfbuzz graphite2)
-
-    extra_libs(wsock32 ws2_32 crypt32 mswsock wlanapi)
+    static_qt_link(yuzu)
 endif()
 
 create_target_directory_groups(yuzu)

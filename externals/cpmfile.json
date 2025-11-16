@@ -167,11 +167,8 @@
         "package": "SDL2",
         "name": "SDL2",
         "repo": "crueter-ci/SDL2",
-        "version": "2.32.10",
-        "min_version": "2.26.4",
-        "disabled_platforms": [
-            "macos-universal"
-        ]
+        "version": "2.32.10-38e0094637",
+        "min_version": "2.26.4"
     },
     "catch2": {
         "package": "Catch2",

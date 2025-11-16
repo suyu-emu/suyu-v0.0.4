@@ -10,12 +10,7 @@
         "package": "FFmpeg",
         "name": "ffmpeg",
         "repo": "crueter-ci/FFmpeg",
-        "version": "8.0",
-        "min_version": "4.1",
-        "disabled_platforms": [
-            "freebsd-amd64",
-            "solaris-amd64",
-            "openbsd-amd64"
-        ]
+        "version": "8.0-be99d2c0b2",
+        "min_version": "4.1"
     }
 }
