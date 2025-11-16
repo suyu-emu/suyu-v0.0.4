@@ -11,8 +11,8 @@
 /// Small helper to look up enums.
 /// res = the result code
 /// base = the base matching value in the StringKey table
-#define LOOKUP_ENUM(res, base) StringLookup::Lookup( \
-            static_cast<StringLookup::StringKey>((int) res + (int) StringLookup::base))
+#define LOOKUP_ENUM(res, base) QtCommon::StringLookup::Lookup( \
+            QtCommon::StringLookup::StringKey((int) res + (int) QtCommon::StringLookup::base))
 
 namespace QtCommon::StringLookup {
 
@@ -20,11 +20,11 @@ Q_NAMESPACE
 
 // TODO(crueter): QML interface
 enum StringKey {
-    SavesTooltip,
-    ShadersTooltip,
-    UserNandTooltip,
-    SysNandTooltip,
-    ModsTooltip,
+    DataManagerSavesTooltip,
+    DataManagerShadersTooltip,
+    DataManagerUserNandTooltip,
+    DataManagerSysNandTooltip,
+    DataManagerModsTooltip,
 
     // Key install results
     KeyInstallSuccess,
@@ -39,6 +39,10 @@ enum StringKey {
     FwInstallFailedDelete,
     FwInstallFailedCopy,
     FwInstallFailedCorrupted,
+
+    // Firmware Check results
+    FwCheckErrorFirmwareMissing,
+    FwCheckErrorFirmwareCorrupted,
 
     // user data migrator
     MigrationPromptPrefix,
@@ -55,18 +59,19 @@ enum StringKey {
     KvdbMisaligned,
     KvdbNoImens,
     RyujinxNoSaveId,
-
 };
 
-static const constexpr frozen::map<StringKey, frozen::string, 27> strings = {
+// NB: the constexpr check always succeeds (in clangd at least) if size arg < size
+// always triple-check the size arg
+static const constexpr frozen::map<StringKey, frozen::string, 29> strings = {
     // 0-4
-    {SavesTooltip,
+    {DataManagerSavesTooltip,
      QT_TR_NOOP("Contains game save data. DO NOT REMOVE UNLESS YOU KNOW WHAT YOU'RE DOING!")},
-    {ShadersTooltip,
+    {DataManagerShadersTooltip,
      QT_TR_NOOP("Contains Vulkan and OpenGL pipeline caches. Generally safe to remove.")},
-    {UserNandTooltip, QT_TR_NOOP("Contains updates and DLC for games.")},
-    {SysNandTooltip, QT_TR_NOOP("Contains firmware and applet data.")},
-    {ModsTooltip, QT_TR_NOOP("Contains game mods, patches, and cheats.")},
+    {DataManagerUserNandTooltip, QT_TR_NOOP("Contains updates and DLC for games.")},
+    {DataManagerSysNandTooltip, QT_TR_NOOP("Contains firmware and applet data.")},
+    {DataManagerModsTooltip, QT_TR_NOOP("Contains game mods, patches, and cheats.")},
 
     // Key install
     // 5-9
@@ -91,8 +96,17 @@ static const constexpr frozen::map<StringKey, frozen::string, 27> strings = {
          "Firmware installation cancelled, firmware may be in a bad state or corrupted. Restart "
          "Eden or re-install firmware.")},
 
+    {FwCheckErrorFirmwareMissing,
+     QT_TR_NOOP(
+         "Firmware missing. Firmware is required to run certain games and use the Home Menu. "
+         "Versions 19.0.1 or earlier are recommended, as 20.0.0+ is currently experimental.")},
+    {FwCheckErrorFirmwareCorrupted,
+     QT_TR_NOOP(
+         "Firmware reported as present, but was unable to be read. Check for decryption keys and "
+         "redump firmware if necessary.")},
+
     // migrator
-    // 15-20
+    // 17-22
     {MigrationPromptPrefix, QT_TR_NOOP("Eden has detected user data for the following emulators:")},
     {MigrationPrompt,
      QT_TR_NOOP("Would you like to migrate your data for use in Eden?\n"
@@ -113,7 +127,7 @@ static const constexpr frozen::map<StringKey, frozen::string, 27> strings = {
                 "This is recommended if you want to share data between emulators.")},
 
     // why am I writing these comments again
-    // 21-26
+    // 23-28
     {KvdbNonexistent, QT_TR_NOOP("Ryujinx title database does not exist.")},
     {KvdbNoHeader, QT_TR_NOOP("Invalid header on Ryujinx title database.")},
     {KvdbInvalidMagic, QT_TR_NOOP("Invalid magic header on Ryujinx title database.")},

@@ -99,6 +99,12 @@ enum class DpcFlag : u32 {
     Terminated = (1 << 1),
 };
 
+enum class ExceptionFlag : u8 {
+    IsCallingSvc       = 1 << 0,
+    InExceptionHandler = 1 << 1,
+};
+DECLARE_ENUM_FLAG_OPERATORS(ExceptionFlag);
+
 enum class ThreadWaitReasonForDebugging : u32 {
     None,            ///< Thread is not waiting
     Sleep,           ///< Thread is waiting due to a SleepThread SVC
@@ -153,7 +159,7 @@ public:
 
     /**
      * Sets the thread's current priority.
-     * @param priority The new priority.
+     * @param value The new priority.
      */
     void SetPriority(s32 value) {
         m_priority = value;
@@ -340,6 +346,8 @@ public:
     void SetInterruptFlag();
     void ClearInterruptFlag();
 
+    void UpdateTlsThreadCpuTime(s64 switch_tick);
+
     KThread* GetLockOwner() const;
 
     const KAffinityMask& GetAffinityMask() const {
@@ -446,6 +454,7 @@ public:
         bool is_pinned;
         s32 disable_count;
         KThread* cur_thread;
+        std::atomic<u8> exception_flags{0};
     };
 
     StackParameters& GetStackParameters() {
@@ -454,6 +463,16 @@ public:
 
     const StackParameters& GetStackParameters() const {
         return m_stack_parameters;
+    }
+
+    void SetExceptionFlag(ExceptionFlag flag) {
+        GetStackParameters().exception_flags.fetch_or(static_cast<u8>(flag), std::memory_order_relaxed);
+    }
+    void ClearExceptionFlag(ExceptionFlag flag) {
+        GetStackParameters().exception_flags.fetch_and(static_cast<u8>(~static_cast<u8>(flag)), std::memory_order_relaxed);
+    }
+    bool IsExceptionFlagSet(ExceptionFlag flag) const {
+        return (GetStackParameters().exception_flags.load(std::memory_order_relaxed) & static_cast<u8>(flag)) != 0;
     }
 
     class QueueEntry {
@@ -511,10 +530,12 @@ public:
 
     void SetInExceptionHandler() {
         this->GetStackParameters().is_in_exception_handler = true;
+        SetExceptionFlag(ExceptionFlag::InExceptionHandler);
     }
 
     void ClearInExceptionHandler() {
         this->GetStackParameters().is_in_exception_handler = false;
+        ClearExceptionFlag(ExceptionFlag::InExceptionHandler);
     }
 
     bool IsInExceptionHandler() const {
@@ -523,10 +544,12 @@ public:
 
     void SetIsCallingSvc() {
         this->GetStackParameters().is_calling_svc = true;
+        SetExceptionFlag(ExceptionFlag::IsCallingSvc);
     }
 
     void ClearIsCallingSvc() {
         this->GetStackParameters().is_calling_svc = false;
+        ClearExceptionFlag(ExceptionFlag::IsCallingSvc);
     }
 
     bool IsCallingSvc() const {

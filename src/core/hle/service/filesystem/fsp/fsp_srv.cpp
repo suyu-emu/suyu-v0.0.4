@@ -298,8 +298,41 @@ Result FSP_SRV::OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
 Result FSP_SRV::OpenSaveDataFileSystemBySystemSaveDataId(OutInterface<IFileSystem> out_interface,
                                                          FileSys::SaveDataSpaceId space_id,
                                                          FileSys::SaveDataAttribute attribute) {
-    LOG_WARNING(Service_FS, "(STUBBED) called, delegating to 51 OpenSaveDataFilesystem");
-    R_RETURN(OpenSaveDataFileSystem(out_interface, space_id, attribute));
+    LOG_INFO(Service_FS, "called, space_id={}, {}",
+             space_id, attribute.DebugInfo());
+
+    R_UNLESS(attribute.system_save_data_id != FileSys::InvalidSystemSaveDataId,
+             FileSys::ResultInvalidArgument);
+
+    if (attribute.program_id == 0) {
+        attribute.program_id = program_id;
+    }
+
+    FileSys::VirtualDir dir{};
+    R_TRY(save_data_controller->OpenSaveData(&dir, space_id, attribute));
+
+    FileSys::StorageId id{};
+    switch (space_id) {
+    case FileSys::SaveDataSpaceId::User:
+        id = FileSys::StorageId::NandUser;
+        break;
+    case FileSys::SaveDataSpaceId::SdSystem:
+    case FileSys::SaveDataSpaceId::SdUser:
+        id = FileSys::StorageId::SdCard;
+        break;
+    case FileSys::SaveDataSpaceId::System:
+        id = FileSys::StorageId::NandSystem;
+        break;
+    case FileSys::SaveDataSpaceId::Temporary:
+    case FileSys::SaveDataSpaceId::ProperSystem:
+    case FileSys::SaveDataSpaceId::SafeMode:
+        ASSERT(false);
+    }
+
+    *out_interface =
+        std::make_shared<IFileSystem>(system, std::move(dir), SizeGetter::FromStorageId(fsc, id));
+
+    R_SUCCEED();
 }
 
 Result FSP_SRV::OpenReadOnlySaveDataFileSystem(OutInterface<IFileSystem> out_interface,

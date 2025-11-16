@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Qt on macOS doesn't define VMA shit
+#include "qt_common/qt_string_lookup.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
 #endif
@@ -4058,35 +4059,18 @@ void MainWindow::OnOpenControllerMenu() {
 void MainWindow::OnHomeMenu() {
     auto result = FirmwareManager::VerifyFirmware(*QtCommon::system.get());
 
+    using namespace QtCommon::StringLookup;
+
     switch (result) {
     case FirmwareManager::ErrorFirmwareMissing:
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install firmware to use the Home Menu."));
+                             Lookup(FwCheckErrorFirmwareMissing));
         return;
     case FirmwareManager::ErrorFirmwareCorrupted:
         QMessageBox::warning(this, tr("Firmware Corrupted"),
-                             tr(FirmwareManager::GetFirmwareCheckString(result)));
+                             Lookup(FwCheckErrorFirmwareCorrupted));
         return;
-    case FirmwareManager::ErrorFirmwareTooNew: {
-        if (!UISettings::values.show_fw_warning.GetValue()) break;
-
-        QMessageBox box(QMessageBox::Warning,
-                        tr("Firmware Too New"),
-                        tr(FirmwareManager::GetFirmwareCheckString(result)) + tr("\nContinue anyways?"),
-                        QMessageBox::Yes | QMessageBox::No,
-                        this);
-
-        QCheckBox *checkbox = new QCheckBox(tr("Don't show again"));
-        box.setCheckBox(checkbox);
-
-        int button = box.exec();
-        if (checkbox->isChecked()) {
-            UISettings::values.show_fw_warning.SetValue(false);
-        }
-
-        if (button == static_cast<int>(QMessageBox::No)) return;
-        break;
-    } default:
+    default:
         break;
     }
 

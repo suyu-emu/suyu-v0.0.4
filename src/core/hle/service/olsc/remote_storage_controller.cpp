@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -26,14 +29,20 @@ IRemoteStorageController::IRemoteStorageController(Core::System& system_)
         {16, nullptr, "CreateCleanupToDeleteSaveDataArchiveInfoTask"},
         {17, nullptr, "ListDataInfo"},
         {18, nullptr, "GetDataInfo"},
-        {19, nullptr, "Unknown19"},
+        {19, nullptr, "GetDataInfoCacheUpdateNativeHandleHolder"},
         {20, nullptr, "CreateSaveDataArchiveInfoCacheForSaveDataBackupUpdationTask"},
         {21, nullptr, "ListSecondarySaves"},
         {22, D<&IRemoteStorageController::GetSecondarySave>, "GetSecondarySave"},
         {23, nullptr, "TouchSecondarySave"},
         {24, nullptr, "GetSecondarySaveDataInfo"},
         {25, nullptr, "RegisterDownloadSaveDataTransferTaskForAutonomyRegistration"},
-        {900, nullptr, "Unknown900"},
+        {26, nullptr, "Unknown26"}, //20.0.0+
+        {27, nullptr, "Unknown27"}, //20.0.0+
+        {28, nullptr, "Unknown28"}, //20.0.0+
+        {29, nullptr, "Unknown29"}, //21.0.0+
+        {800, nullptr, "Unknown800"}, //20.0.0+
+        {900, nullptr, "SetLoadedDataMissing"},
+        {901, nullptr, "Unknown901"}, //20.2.0+
     };
     // clang-format on
 

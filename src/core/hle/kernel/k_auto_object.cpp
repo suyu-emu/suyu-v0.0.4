@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,6 +11,7 @@ namespace Kernel {
 
 KAutoObject* KAutoObject::Create(KAutoObject* obj) {
     obj->m_ref_count = 1;
+    obj->m_class_token = obj->GetTypeObj().GetClassToken();
     return obj;
 }
 

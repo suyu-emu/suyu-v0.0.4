@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,6 +21,8 @@ IFirmwareDebugSettingsServer::IFirmwareDebugSettingsServer(Core::System& system_
         {21, nullptr, "SetAllowedSslHosts"},
         {22, nullptr, "SetHostFsMountPoint"},
         {23, nullptr, "SetMemoryUsageRateFlag"},
+        {24, nullptr, "CommitSettings"}, //20.0.0+
+        {27, nullptr, "SetHttpAuthConfigs"}, //21.0.0+
     };
     // clang-format on
 

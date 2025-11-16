@@ -121,17 +121,11 @@ FirmwareManager::FirmwareCheckResult FirmwareManager::VerifyFirmware(Core::Syste
         return ErrorFirmwareMissing;
     } else {
         const auto pair = GetFirmwareVersion(system);
-        const auto firmware_data = pair.first;
         const auto result = pair.second;
 
         if (result.IsError()) {
             LOG_INFO(Frontend, "Unable to read firmware");
             return ErrorFirmwareCorrupted;
-        }
-
-        // TODO: update this whenever newer firmware is properly supported
-        if (firmware_data.major > 20) {
-            return ErrorFirmwareTooNew;
         }
     }
 

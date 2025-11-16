@@ -27,7 +27,8 @@ IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterfa
         {2, D<&IReadOnlyApplicationControlDataInterface::ConvertApplicationLanguageToLanguageCode>, "ConvertApplicationLanguageToLanguageCode"},
         {3, nullptr, "ConvertLanguageCodeToApplicationLanguage"},
         {4, nullptr, "SelectApplicationDesiredLanguage"},
-        {5, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithIconSize>, "GetApplicationControlDataWithIconSize"},
+        {5, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithoutIcon>, "GetApplicationControlDataWithIconSize"},
+        {19, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithoutIcon>, "GetApplicationControlDataWithIconSize"},
     };
     // clang-format on
 
@@ -163,7 +164,7 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData(
     R_SUCCEED();
 }
 
-Result IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithIconSize(
+Result IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithoutIcon(
     OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
     Out<u64> out_total_size,
     ApplicationControlSource application_control_source,
@@ -173,35 +174,16 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlDataWithIc
 
     constexpr size_t kExpectedBufferSize = 0x14000;
     constexpr size_t kNACPSize = sizeof(FileSys::RawNACP);
-    constexpr size_t kMaxIconSize = kExpectedBufferSize - kNACPSize;
 
     const FileSys::PatchManager pm{application_id, system.GetFileSystemController(),
                                    system.GetContentProvider()};
     const auto control = pm.GetControlMetadata();
-    const auto size = out_buffer.size();
 
-    if (size < kExpectedBufferSize) {
-        LOG_ERROR(Service_NS, "output buffer is too small! (actual={:016X}, required={:016X})", size, kExpectedBufferSize);
-        R_THROW(ResultUnknown);
-    }
-
-    // Copy NACP
     if (control.first != nullptr) {
         const auto bytes = control.first->GetRawBytes();
         std::memcpy(out_buffer.data(), bytes.data(), bytes.size());
     } else {
         std::memset(out_buffer.data(), 0, kNACPSize);
-    }
-
-    // Copy icon, pad with zeros if needed
-    size_t icon_size = control.second ? control.second->GetSize() : 0;
-    if (icon_size > kMaxIconSize) {
-        icon_size = kMaxIconSize; // Truncate if too large
-    }
-    if (control.second != nullptr && icon_size > 0) {
-        control.second->Read(out_buffer.data() + kNACPSize, icon_size);
-    } else {
-        std::memset(out_buffer.data() + kNACPSize, 0, kMaxIconSize);
     }
 
     *out_total_size = kExpectedBufferSize;

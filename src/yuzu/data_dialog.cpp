@@ -27,7 +27,7 @@ DataDialog::DataDialog(QWidget *parent)
     // TODO: Should we make this a single widget that pulls data from a model?
 #define WIDGET(label, name) \
     ui->page->addWidget(new DataWidget(FrontendCommon::DataManager::DataDir::name, \
-                                       QtCommon::StringLookup::name##Tooltip, \
+                                       QtCommon::StringLookup::DataManager##name##Tooltip, \
                                        QStringLiteral(#name), \
                                        this)); \
     ui->labels->addItem(label);
@@ -80,39 +80,27 @@ DataWidget::DataWidget(FrontendCommon::DataManager::DataDir data_dir,
 
 void DataWidget::clear()
 {
-    std::string user_id{};
-    if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
-        user_id = GetProfileIDString();
-    }
+    std::string user_id = selectProfile();
     QtCommon::Content::ClearDataDir(m_dir, user_id);
     scan();
 }
 
 void DataWidget::open()
 {
-    std::string user_id{};
-    if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
-        user_id = GetProfileIDString();
-    }
+    std::string user_id = selectProfile();
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         QString::fromStdString(FrontendCommon::DataManager::GetDataDirString(m_dir, user_id))));
 }
 
 void DataWidget::upload()
 {
-    std::string user_id{};
-    if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
-        user_id = GetProfileIDString();
-    }
+    std::string user_id = selectProfile();
     QtCommon::Content::ExportDataDir(m_dir, user_id, m_exportName);
 }
 
 void DataWidget::download()
 {
-    std::string user_id{};
-    if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
-        user_id = GetProfileIDString();
-    }
+    std::string user_id = selectProfile();
     QtCommon::Content::ImportDataDir(m_dir, user_id, std::bind(&DataWidget::scan, this));
 }
 
@@ -130,4 +118,14 @@ void DataWidget::scan() {
 
     watcher->setFuture(
         QtConcurrent::run([this]() { return FrontendCommon::DataManager::DataDirSize(m_dir); }));
+}
+
+std::string DataWidget::selectProfile()
+{
+    std::string user_id{};
+    if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
+        user_id = GetProfileIDString();
+    }
+
+    return user_id;
 }

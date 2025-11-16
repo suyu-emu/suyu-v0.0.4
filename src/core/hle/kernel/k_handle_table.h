@@ -68,7 +68,7 @@ public:
         return m_max_count;
     }
 
-    Result Finalize();
+    void Finalize();
     bool Remove(Handle handle);
 
     template <typename T = KAutoObject>

@@ -89,6 +89,11 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {190, nullptr, "SendServerMaintenanceOverlayNotification"},
         {200, nullptr, "GetLastApplicationExitReason"},
         {210, D<&IApplicationFunctions::GetUnknownEvent210>, "Unknown210"},
+        {220, nullptr, "Unknown220"}, // [20.0.0+]
+        {300, nullptr, "Unknown300"}, // [20.0.0+]
+        {310, nullptr, "Unknown310"}, // [20.0.0+]
+        {320, nullptr, "Unknown320"}, // [20.0.0+]
+        {330, nullptr, "Unknown330"}, // [20.0.0+]
         {500, nullptr, "StartContinuousRecordingFlushForDebug"},
         {1000, nullptr, "CreateMovieMaker"},
         {1001, D<&IApplicationFunctions::PrepareForJit>, "PrepareForJit"},

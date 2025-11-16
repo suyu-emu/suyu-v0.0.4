@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -68,6 +71,7 @@ IAudioController::IAudioController(Core::System& system_)
         {10104, nullptr, "GetAudioOutputChannelCountForPlayReport"},
         {10105, nullptr, "BindAudioOutputChannelCountUpdateEventForPlayReport"},
         {10106, nullptr, "GetDefaultAudioOutputTargetForPlayReport"},
+        {10200, nullptr, "Unknown10200"}, // [20.0.0+]
         {50000, nullptr, "SetAnalogInputBoostGainForPrototyping"},
         {50001, nullptr, "OverrideDefaultTargetForDebug"},
         {50003, nullptr, "SetForceOverrideExternalDeviceNameForDebug"},

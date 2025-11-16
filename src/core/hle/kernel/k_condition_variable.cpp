@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -23,8 +26,8 @@ bool ReadFromUser(KernelCore& kernel, u32* out, KProcessAddress address) {
     return true;
 }
 
-bool WriteToUser(KernelCore& kernel, KProcessAddress address, const u32* p) {
-    GetCurrentMemory(kernel).Write32(GetInteger(address), *p);
+bool WriteToUser(KernelCore& kernel, KProcessAddress address, u32 val) {
+    GetCurrentMemory(kernel).Write32(GetInteger(address), val);
     return true;
 }
 
@@ -133,7 +136,7 @@ Result KConditionVariable::SignalToAddress(KernelCore& kernel, KProcessAddress a
 
         // Write the value to userspace.
         Result result{ResultSuccess};
-        if (WriteToUser(kernel, addr, std::addressof(next_value))) [[likely]] {
+        if (WriteToUser(kernel, addr, next_value)) {
             result = ResultSuccess;
         } else {
             result = ResultInvalidCurrentMemory;
@@ -207,13 +210,13 @@ void KConditionVariable::SignalImpl(KThread* thread) {
 
         // TODO(bunnei): We should call CanAccessAtomic(..) here.
         can_access = true;
-        if (can_access) [[likely]] {
+        if (can_access) {
             UpdateLockAtomic(m_kernel, std::addressof(prev_tag), address, own_tag,
                              Svc::HandleWaitMask);
         }
     }
 
-    if (can_access) [[likely]] {
+    if (can_access) {
         if (prev_tag == Svc::InvalidHandle) {
             // If nobody held the lock previously, we're all good.
             thread->EndWait(ResultSuccess);
@@ -225,7 +228,7 @@ void KConditionVariable::SignalImpl(KThread* thread) {
                                             static_cast<Handle>(prev_tag & ~Svc::HandleWaitMask))
                                         .ReleasePointerUnsafe();
 
-            if (owner_thread) [[likely]] {
+            if (owner_thread) {
                 // Add the thread as a waiter on the owner.
                 owner_thread->AddWaiter(thread);
                 owner_thread->Close();
@@ -261,8 +264,8 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
 
         // If we have no waiters, clear the has waiter flag.
         if (it == m_tree.end() || it->GetConditionVariableKey() != cv_key) {
-            const u32 has_waiter_flag{};
-            WriteToUser(m_kernel, cv_key, std::addressof(has_waiter_flag));
+            constexpr u32 HasNoWaiterFlag = 0;
+            WriteToUser(m_kernel, cv_key, HasNoWaiterFlag);
         }
     }
 }
@@ -305,13 +308,13 @@ Result KConditionVariable::Wait(KProcessAddress addr, u64 key, u32 value, s64 ti
 
             // Write to the cv key.
             {
-                const u32 has_waiter_flag = 1;
-                WriteToUser(m_kernel, key, std::addressof(has_waiter_flag));
+                constexpr u32 HasWaiterFlag = 1;
+                WriteToUser(m_kernel, key, HasWaiterFlag);
                 std::atomic_thread_fence(std::memory_order_seq_cst);
             }
 
             // Write the value to userspace.
-            if (!WriteToUser(m_kernel, addr, std::addressof(next_value))) {
+            if (!WriteToUser(m_kernel, addr, next_value)) {
                 slp.CancelSleep();
                 R_THROW(ResultInvalidCurrentMemory);
             }

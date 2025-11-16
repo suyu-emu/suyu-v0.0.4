@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,7 +9,7 @@
 
 namespace Kernel {
 
-Result KHandleTable::Finalize() {
+void KHandleTable::Finalize() {
     // Get the table and clear our record of it.
     u16 saved_table_size = 0;
     {
@@ -22,8 +25,6 @@ Result KHandleTable::Finalize() {
             obj->Close();
         }
     }
-
-    R_SUCCEED();
 }
 
 bool KHandleTable::Remove(Handle handle) {

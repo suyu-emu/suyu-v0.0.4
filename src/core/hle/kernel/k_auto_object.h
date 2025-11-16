@@ -74,6 +74,10 @@ protected:
             return (this->GetClassToken() | rhs.GetClassToken()) == this->GetClassToken();
         }
 
+        static constexpr bool IsClassTokenDerivedFrom(ClassTokenType self, ClassTokenType base) {
+            return (self | base) == self;
+        }
+
     private:
         const char* m_name;
         ClassTokenType m_class_token;
@@ -84,6 +88,7 @@ private:
 
 public:
     explicit KAutoObject(KernelCore& kernel) : m_kernel(kernel) {
+        m_class_token = GetStaticTypeObj().GetClassToken();
         RegisterWithKernel();
     }
     virtual ~KAutoObject() = default;
@@ -107,11 +112,11 @@ public:
     }
 
     bool IsDerivedFrom(const TypeObj& rhs) const {
-        return this->GetTypeObj().IsDerivedFrom(rhs);
+        return TypeObj::IsClassTokenDerivedFrom(m_class_token, rhs.GetClassToken());
     }
 
     bool IsDerivedFrom(const KAutoObject& rhs) const {
-        return this->IsDerivedFrom(rhs.GetTypeObj());
+        return TypeObj::IsClassTokenDerivedFrom(m_class_token, rhs.m_class_token);
     }
 
     template <typename Derived>
@@ -180,6 +185,7 @@ protected:
 
 private:
     std::atomic<u32> m_ref_count{};
+    ClassTokenType m_class_token{};
 };
 
 class KAutoObjectWithListContainer;

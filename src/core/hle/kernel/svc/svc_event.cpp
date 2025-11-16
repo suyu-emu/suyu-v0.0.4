@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -34,7 +37,8 @@ Result ClearEvent(Core::System& system, Handle event_handle) {
     {
         KScopedAutoObject event = handle_table.GetObject<KEvent>(event_handle);
         if (event.IsNotNull()) {
-            R_RETURN(event->Clear());
+            event->Clear();
+            R_SUCCEED();
         }
     }
 
@@ -42,7 +46,8 @@ Result ClearEvent(Core::System& system, Handle event_handle) {
     {
         KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(event_handle);
         if (readable_event.IsNotNull()) {
-            R_RETURN(readable_event->Clear());
+            readable_event->Clear();
+            R_SUCCEED();
         }
     }
 

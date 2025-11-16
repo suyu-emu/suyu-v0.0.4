@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -96,9 +99,12 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {547, nullptr, "GetAllowedBluetoothLinksCount"},
         {548, &IHidSystemServer::GetRegisteredDevices, "GetRegisteredDevices"},
         {549, nullptr, "GetConnectableRegisteredDevices"},
+        {551, nullptr, "GetRegisteredDevicesForControllerSupport"},
         {700, nullptr, "ActivateUniquePad"},
         {702, &IHidSystemServer::AcquireUniquePadConnectionEventHandle, "AcquireUniquePadConnectionEventHandle"},
         {703, &IHidSystemServer::GetUniquePadIds, "GetUniquePadIds"},
+        {711, nullptr, "AcquireUniquePadConnectionOnHandheldForNsEventHandle"}, //20.0.0+
+        {712, nullptr, "GetUniquePadColor12"}, //20.0.0+
         {751, &IHidSystemServer::AcquireJoyDetachOnBluetoothOffEventHandle, "AcquireJoyDetachOnBluetoothOffEventHandle"},
         {800, nullptr, "ListSixAxisSensorHandles"},
         {801, nullptr, "IsSixAxisSensorUserCalibrationSupported"},
@@ -225,6 +231,11 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1309, nullptr, "IsButtonConfigVisible"}, // 18.0.0+
         {1320, nullptr, "WakeTouchScreenUp"}, // 17.0.0+
         {1321, nullptr, "PutTouchScreenToSleep"}, // 17.0.0+
+        {1322, nullptr, "AcquireTouchScreenAsyncWakeCompletedEvent"}, // 20.0.0+
+        {1323, nullptr, "StartTouchScreenAutoTuneForSystemSettings"}, // 21.0.0+
+        {1324, nullptr, "AcquireTouchScreenAutoTuneCompletedEvent"}, // 21.0.0+
+        {1325, nullptr, "IsTouchScreenAutoTuneRequiredForRepairProviderReplacement"}, // 21.0.0+
+        {1326, nullptr, "Unknown1326"}, // 21.0.0+
         {1420, nullptr, "GetAppletResourceProperty"}, // 19.0.0+
     };
     // clang-format on

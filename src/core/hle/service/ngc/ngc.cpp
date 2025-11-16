@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -61,6 +64,8 @@ public:
             {1, &NgcServiceImpl::Check, "Check"},
             {2, &NgcServiceImpl::Mask, "Mask"},
             {3, &NgcServiceImpl::Reload, "Reload"},
+            {4, &NgcServiceImpl::Check, "Check2"},
+            {5, &NgcServiceImpl::Mask, "Mask2"},
         };
         // clang-format on
 

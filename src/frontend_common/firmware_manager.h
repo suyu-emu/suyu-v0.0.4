@@ -53,21 +53,10 @@ inline constexpr bool GameRequiresFirmware(u64 program_id)
            != FIRMWARE_REQUIRED_GAMES.end();
 }
 
-
 enum FirmwareCheckResult {
     FirmwareGood,
     ErrorFirmwareMissing,
     ErrorFirmwareCorrupted,
-    ErrorFirmwareTooNew,
-};
-
-static constexpr std::array<const char *, 4> FIRMWARE_CHECK_STRINGS = {
-    "",
-    "Firmware missing. Firmware is required to run certain games and use the Home Menu. "
-    "Eden only works with firmware 19.0.1 and earlier.",
-    "Firmware reported as present, but was unable to be read. Check for decryption keys and "
-    "redump firmware if necessary.",
-    "Firmware is too new or could not be read. Eden only works with firmware 19.0.1 and earlier.",
 };
 
 /**
@@ -99,16 +88,6 @@ inline bool CheckFirmwarePresence(Core::System &system)
  * \return A result code defining the status of the system's firmware.
  */
 FirmwareCheckResult VerifyFirmware(Core::System &system);
-
-/**
- * \brief Get a string representation of a result from CheckFirmwareVersion.
- * \param result The result code.
- * \return A string representation of the passed result code.
- */
-inline constexpr const char *GetFirmwareCheckString(FirmwareCheckResult result)
-{
-    return FIRMWARE_CHECK_STRINGS.at(static_cast<std::size_t>(result));
-}
 
 /**
  * @brief Get the currently installed firmware version.

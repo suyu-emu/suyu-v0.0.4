@@ -366,6 +366,7 @@ public:
             {23, nullptr, "SetKeptInSleep"},
             {24, nullptr, "RegisterSocketDescriptor"},
             {25, nullptr, "UnregisterSocketDescriptor"},
+            {26, nullptr, "GetNetworkAccessStatus"}, //21.0.0+
         };
         RegisterHandlers(functions);
 

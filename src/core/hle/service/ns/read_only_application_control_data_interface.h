@@ -31,7 +31,7 @@ public:
                                         Out<u32> out_actual_size,
                                         ApplicationControlSource application_control_source,
                                         u64 application_id);
-    Result GetApplicationControlDataWithIconSize(
+    Result GetApplicationControlDataWithoutIcon(
         OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
         Out<u64> out_total_size,
         ApplicationControlSource application_control_source,

@@ -548,8 +548,8 @@ Result IApplicationManagerInterface::GetApplicationTerminateResult(Out<Result> o
 }
 
 Result IApplicationManagerInterface::RequestDownloadApplicationControlDataInBackground(
-    u64 unk, u64 application_id) {
-    LOG_WARNING(Service_NS, "(STUBBED), app={:016X} unk={}", application_id, unk);
+    u64 control_source, u64 application_id) {
+    LOG_WARNING(Service_NS, "(STUBBED), control_source={} app={:016X}", control_source, application_id);
     R_SUCCEED();
 }
 
