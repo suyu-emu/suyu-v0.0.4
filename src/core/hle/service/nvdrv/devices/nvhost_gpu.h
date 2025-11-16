@@ -72,6 +72,16 @@ private:
         High = 0x96,
     };
 
+    enum class NotifierStatus : u16_le {
+        NoError      = 0xFFFF,
+        GenericError = 0x0001,
+        MmuFault     = 0x0002,
+        IllegalMethod= 0x0003,
+        InvalidObject= 0x0004,
+        BadGpfifo    = 0x0005,
+        TimeoutHang  = 0x0006,
+    };
+
     struct IoctlSetNvmapFD {
         s32_le nvmap_fd{};
     };
@@ -178,6 +188,8 @@ private:
     s32_le nvmap_fd{};
     u64_le user_data{};
     IoctlZCullBind zcull_params{};
+    IoctlSetErrorNotifier error_notifier_params{};
+    void PostErrorNotification(u32 info32, u16 info16, NotifierStatus status);
     std::array<std::optional<IoctlAllocObjCtx>, 6> ctxObjs{};
     u32_le channel_priority{};
     u32_le channel_timeslice{};
