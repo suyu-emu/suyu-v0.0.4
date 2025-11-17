@@ -6,12 +6,12 @@
     <string name="notice_notification_channel_description">Mostra le notifiche quando qualcosa va storto.</string>
     <string name="notification_permission_not_granted">Autorizzazione di notifica non concessa!</string>
     <string name="app_notification_channel_description">Notifiche dell\'emulatore Eden Switch</string>
-    <string name="app_notification_running">Eden è in azione</string>
+    <string name="app_notification_running">Eden è in esecuzione</string>
     <string name="seconds">secondi</string>
 
     <!-- Spinbox strings -->
-    <string name="increment">Incremento</string>
-    <string name="decrement">Decremento</string>
+    <string name="increment">Aumenta</string>
+    <string name="decrement">Diminuisci</string>
     <string name="value_too_low">Il valore deve essere almeno  %1$d</string>
     <string name="value_too_high">Il valore deve essere al massimo %1$d</string>
     <string name="invalid_value">Valore non valido</string>
@@ -195,6 +195,7 @@
     <string name="multiplayer_chat">Chat</string>
     <string name="multiplayer_more_options">Altre opzioni</string>
     <string name="chat">Chat</string>
+    <string name="clear">Cancella</string>
     <string name="type_message">Scrivi messaggio...</string>
     <string name="send_message">Invia messaggio</string>
     <string name="multiplayer_moderation">Moderazione</string>
@@ -257,14 +258,14 @@
     <string name="alphabetical">Alfabetico</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Griglia</string>
-    <string name="view_grid_compact">Griglia Compatta</string>
+    <string name="view_grid_compact">Griglia compatta</string>
     <string name="view_carousel">Carosello</string>
     <string name="game_image_desc">Screenshot per %1$s</string>
     <string name="folder">Cartella</string>
     <string name="dont_show_again">Non mostrare più</string>
     <string name="add_directory_success">Nuova directory di gioco aggiunta correttamente </string>
-    <string name="enable_update_checks">Controlla se è disponibile un aggiornamento quando avvii l\'app.</string>
-    <string name="update_available">Aggiornamento Disponibile</string>
+    <string name="enable_update_checks">Controlla la disponibilità di aggiornamenti all\'avvio dell\'app.</string>
+    <string name="update_available">Aggiornamento disponibile</string>
     <string name="update_available_description">Una nuova versione è disponibile:%1$s\n\nVuoi scaricarla\?</string>
     <string name="home_search">Cerca</string>
     <string name="home_settings">Impostazioni</string>
@@ -462,7 +463,7 @@
     <string name="renderer_aspect_ratio">Rapporto d\'aspetto: </string>
     <string name="renderer_scaling_filter">Filtro adattivo della finestra </string>
     <string name="fsr_sharpness">Nitidezza FSR</string>
-    <string name="fsr_sharpness_description">Determina quanto nitida dovrebbe essere l\'immagine utilizzando il Contrasto Dinamido dell\'FSR</string>
+    <string name="fsr_sharpness_description">Determina quanto sarà nitida l\'immagine utilizzando il contrasto dinamico di FSR</string>
     <string name="renderer_anti_aliasing">Metodo di anti-aliasing</string>
     <string name="renderer_force_max_clock">Forza clock massimi (solo Adreno)</string>
     <string name="renderer_force_max_clock_description">Forza la GPU a girare col massimo clock possibile (i vincoli alla temperatura saranno comunque applicati)</string>
@@ -572,8 +573,8 @@
     <string name="profile">Profilo</string>
     <string name="create_new_profile">Crea nuovo profilo</string>
     <string name="enter_profile_name">Inserisci nome profilo</string>
-    <string name="profile_name_already_exists">Un altro profilo con questo nome già esiste</string>
-    <string name="invalid_profile_name">Nome profilo invalido</string>
+    <string name="profile_name_already_exists">Esiste già un altro profilo con questo nome</string>
+    <string name="invalid_profile_name">Nome profilo non valido</string>
     <string name="use_global_input_configuration">Usa la configurazione di input globale</string>
     <string name="player_num_profile">Profilo %d giocatore</string>
     <string name="delete_input_profile">Elimina profilo di input</string>
@@ -659,7 +660,7 @@
     <string name="preferences_audio">Audio</string>
     <string name="preferences_audio_description">Motore di Output audio e volume</string>
     <string name="preferences_controls">Comandi</string>
-    <string name="preferences_controls_description">Mappa un imput del controllerq</string>
+    <string name="preferences_controls_description">Mappa un input del controller</string>
     <string name="preferences_player">Giocatore %d</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">Debugging CPU/GPU, API grafiche, fastmem</string>
@@ -677,6 +678,7 @@
     <string name="copy_details">Copia dettagli</string>
     <string name="add_ons">Add-on</string>
     <string name="add_ons_description">Gestisci mod, aggiornamenti e DLC</string>
+    <string name="playtime">Tempo di gioco:</string>
     <string name="reset_playtime">Resetta tempo di gioco</string>
     <string name="reset_playtime_description">Resetta il tempo di gioco di quest\'ultimo a 0 secondi</string>
     <string name="reset_playtime_warning_description">In questo modo resetterai il tempo di gioco di quest\'ultimo. Sei sicuro\?</string>
@@ -691,7 +693,7 @@
     <string name="clear_shader_cache">Rimuove la cache delle Shader</string>
     <string name="clear_shader_cache_description">Cancella  tutte le shader compilate su questo gioco fino ad ora</string>
     <string name="clear_shader_cache_warning_description">Mentre la cache delle shader rigenera potresti imbatterti in stuttering</string>
-    <string name="cleared_shaders_successfully">Shader azzerate correttamente</string>
+    <string name="cleared_shaders_successfully">Shader eliminati correttamente</string>
     <string name="addons_game">Addons: %1$s</string>
     <string name="save_data">Dati di salvataggio</string>
     <string name="save_data_description">Gestisci i salvataggi di questo gioco</string>
@@ -709,13 +711,13 @@
     <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">Per favore ricontrolla che la cartella che hai selezionato ne contenga una chiamata \"cheats/\", \"romfs/\" o \"exefs/\" e riprova.</string>
     <string name="addon_installed_successfully">Addon installato correttamente</string>
-    <string name="verifying_content">Verificando contenuto...</string>
+    <string name="verifying_content">Verifica del contenuto in corso...</string>
     <string name="content_install_notice">Avviso installazione contenuto</string>
     <string name="content_install_notice_description">Il contenuto che hai selezionato non corrisponde a questo gioco. Vuoi installare comunque\?</string>
     <string name="confirm_uninstall">Conferma disinstallazione</string>
     <string name="confirm_uninstall_description">Sei sicuro di voler cancellare quest\'addon\?</string>
     <string name="verify_integrity">Verifica integrità</string>
-    <string name="verifying">Verificando...</string>
+    <string name="verifying">Verifica in corso...</string>
     <string name="verify_success">Verifica dell\'integrità completata con successo!</string>
     <string name="verify_failure">Verifica dell\'integrità fallita!</string>
     <string name="verify_failure_description">I contenuti dei file potrebbero essere corrotti</string>
@@ -790,10 +792,21 @@
     <string name="emulation_pause">Sospendi l\'emulazione</string>
     <string name="emulation_unpause">Riprendi l\'emulazione</string>
     <string name="emulation_input_overlay">Opzioni overlay</string>
+    <string name="load_amiibo">Carica Amiibo</string>
     <string name="touchscreen">Touchscreen</string>
     <string name="lock_drawer">Blocca drawer</string>
     <string name="unlock_drawer">Sblocca drawer</string>
-    <string name="reset">Resetta</string>
+    <string name="reset">Reimposta</string>
+
+    <!-- Amiibo -->
+    <string name="amiibo_title">Amiibo</string>
+    <string name="amiibo_removed_message">L\'Amiibo corrente è stato rimosso</string>
+    <string name="amiibo_wrong_state">Il gioco in uso non è alla ricerca di Amiibo</string>
+    <string name="amiibo_not_valid">Il file selezionato non è un Amiibo valido</string>
+    <string name="amiibo_in_use">Il file selezionato è già in uso</string>
+    <string name="amiibo_unknown_error">Si è verificato un errore sconosciuto</string>
+    <string name="amiibo_load_success">Amiibo caricato</string>
+
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Tastiera Software</string>

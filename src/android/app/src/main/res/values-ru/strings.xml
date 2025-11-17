@@ -195,6 +195,7 @@
     <string name="multiplayer_chat">Чат</string>
     <string name="multiplayer_more_options">Дополнительные настройки</string>
     <string name="chat">Чат</string>
+    <string name="clear">Очистить</string>
     <string name="type_message">Введите сообщение…</string>
     <string name="send_message">Отправить сообщение</string>
     <string name="multiplayer_moderation">Модерация</string>
@@ -240,7 +241,7 @@
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
     <string name="select_keys">Выбрать ключи</string>
     <string name="firmware">Прошивка</string>
-    <string name="firmware_description">Выберете свой <b>firmware.zip</b>файл с кнопкой внизу.</string>
+    <string name="firmware_description">Выберите файл <b>firmware.zip</b> с помощью кнопки ниже.</string>
     <string name="select_firmware">Выбрать прошивку</string>
     <string name="games">Игры</string>
     <string name="games_description">Выберите вашу папку с &lt;b>играми&lt;/b> с помощью кнопки ниже.</string>
@@ -679,6 +680,7 @@
     <string name="copy_details">Копировать детали</string>
     <string name="add_ons">Дополнения</string>
     <string name="add_ons_description">Включение модов, обновлений и DLC</string>
+    <string name="playtime">Игровое время: </string>
     <string name="reset_playtime">Очистить игровое время</string>
     <string name="reset_playtime_description">Сбрасывает игровое время текущей игры обратно до 0 секунд</string>
     <string name="reset_playtime_warning_description">Это очистит данные о игровом времени текущей игры. Вы уверены\?</string>
@@ -792,10 +794,21 @@
     <string name="emulation_pause">Пауза эмуляции</string>
     <string name="emulation_unpause">Возобновить эмуляцию</string>
     <string name="emulation_input_overlay">Настройка оверлея</string>
+    <string name="load_amiibo">Загрузить Amiibo</string>
     <string name="touchscreen">Сенсорный экран</string>
     <string name="lock_drawer">Заморозить док</string>
     <string name="unlock_drawer">Разморозить док</string>
     <string name="reset">Сброс</string>
+
+    <!-- Amiibo -->
+    <string name="amiibo_title">Amiibo</string>
+    <string name="amiibo_removed_message">Текущий amiibo был убран</string>
+    <string name="amiibo_wrong_state">Текущая игра не ищет amiibo</string>
+    <string name="amiibo_not_valid">Выбранный файл не является допустимым amiibo</string>
+    <string name="amiibo_in_use">Выбранный файл уже используется</string>
+    <string name="amiibo_unknown_error">Произошла неизвестная ошибка</string>
+    <string name="amiibo_load_success">Amiibo загружен</string>
+
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Виртуальная клавиатура</string>
@@ -987,10 +1000,39 @@
     <string name="use_black_backgrounds">Чёрный фон</string>
     <string name="use_black_backgrounds_description">При использовании темной темы применяйте черный фон.</string>
 
+    <!-- App Language -->
+    <string name="app_language">Язык приложения</string>
+    <string name="app_language_description">Поменять язык интерфейса приложения</string>
+    <string name="app_language_system">Следовать системе</string>
+    <string name="app_language_english">Английский</string>
+    <string name="app_language_spanish">Испанский</string>
+    <string name="app_language_french">Французский</string>
+    <string name="app_language_german">Немецкий</string>
+    <string name="app_language_italian">Итальянский</string>
+    <string name="app_language_portuguese">Португальский</string>
+    <string name="app_language_brazilian_portuguese">Португальский бразильский</string>
+    <string name="app_language_russian">Русский</string>
+    <string name="app_language_japanese">Японский</string>
+    <string name="app_language_korean">Корейский</string>
+    <string name="app_language_simplified_chinese">Упрощенный китайский</string>
+    <string name="app_language_traditional_chinese">Традиционный китайский</string>
+    <string name="app_language_polish">Польский</string>
+    <string name="app_language_czech">Чешский</string>
+    <string name="app_language_norwegian">Норвежский</string>
+    <string name="app_language_hungarian">Магуайр</string>
+    <string name="app_language_ukrainian">Украинский</string>
+    <string name="app_language_vietnamese">Вьетнамский</string>
+    <string name="app_language_indonesian">Индонезийский</string>
+    <string name="app_language_arabic">Арабский</string>
+    <string name="app_language_central_kurdish">Персидский язык</string>
+    <string name="app_language_persian">Фарси</string>
+    <string name="app_language_hebrew">Израильский</string>
+    <string name="app_language_serbian">Сербский</string>
+
     <!-- Static Themes -->
     <string name="static_theme_color">Цвет темы</string>
     <string name="eden_theme">Eden (По умолчанию)</string>
-    <string name="violet">Фиолетовый (По умолчанию)</string>
+    <string name="violet">Фиолетовый </string>
     <string name="blue">Синий</string>
     <string name="cyan">Циановый</string>
     <string name="red">Красный</string>

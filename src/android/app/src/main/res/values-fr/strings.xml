@@ -89,7 +89,7 @@
     <string name="dyna_state">État dynamique étendu</string>
     <string name="dyna_state_description">Contrôle le nombre de fonctionnalités utilisables dans l\'état dynamique étendu. Des valeurs plus élevées permettent plus de fonctionnalités et peuvent augmenter les performances, mais peuvent causer des problèmes avec certains pilotes et fabricants. La valeur par défaut peut varier selon votre système et vos capacités matérielles. Cette valeur peut être modifiée jusqu\'à obtenir une stabilité et une meilleure qualité visuelle.</string>
     <string name="disabled">Désactivé</string>
-    <string name="provoking_vertex">Vertex provoquant</string>
+    <string name="provoking_vertex">Provoque des Vertex</string>
     <string name="provoking_vertex_description">Améliore l`éclairage et la gestion des vertex dans certains jeux. Pris en charge uniquement par les GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexation des descripteurs</string>
     <string name="descriptor_indexing_description">Améliore la gestion des textures et des tampons, ainsi que la couche de traduction Maxwell. Pris en charge par certains GPU Vulkan 1.1 et tous les GPU Vulkan 1.2+.</string>
@@ -138,7 +138,7 @@
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Émulation NVDEC</string>
-    <string name="nvdec_emulation_description">Gestion du décodage vidéo</string>
+    <string name="nvdec_emulation_description">Sélectionnez la manière dont le décodage vidéo (NVDEC) est géré pendant les cinématiques et les intros.</string>
     <string name="nvdec_emulation_cpu">CPU</string>
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Aucun</string>
@@ -195,6 +195,7 @@
     <string name="multiplayer_chat">Chat</string>
     <string name="multiplayer_more_options">Plus d\'options</string>
     <string name="chat">Chat</string>
+    <string name="clear">Effacer</string>
     <string name="type_message">Écrire un message…</string>
     <string name="send_message">Envoyer un message</string>
     <string name="multiplayer_moderation">Modération</string>
@@ -677,6 +678,7 @@
     <string name="copy_details">Copier les détails</string>
     <string name="add_ons">Extensions</string>
     <string name="add_ons_description">Activer les mods, mises à jour et DLC</string>
+    <string name="playtime">Temps de jeu :</string>
     <string name="reset_playtime">Réinitialiser le Temps de Jeu</string>
     <string name="reset_playtime_description">Réinitialiser le temps de jeu du jeu actuel à 0 seconde</string>
     <string name="reset_playtime_warning_description">Cela effacera les données de temps de jeu du jeu actuel. Êtes-vous sûr \?</string>
@@ -790,10 +792,21 @@
     <string name="emulation_pause">Mettre en pause l\'émulation</string>
     <string name="emulation_unpause">Reprendre l\'émulation</string>
     <string name="emulation_input_overlay">Options de l\'overlay</string>
+    <string name="load_amiibo">Charger l’Amiibo</string>
     <string name="touchscreen">Écran tactile</string>
     <string name="lock_drawer">Verrouiller le tiroir</string>
     <string name="unlock_drawer">Déverrouiller le tiroir</string>
     <string name="reset">Réinitialiser</string>
+
+    <!-- Amiibo -->
+    <string name="amiibo_title">Amiibo</string>
+    <string name="amiibo_removed_message">L’Amiibo actuel a été supprimé</string>
+    <string name="amiibo_wrong_state">Le jeu actuel ne recherche pas d’Amiibo</string>
+    <string name="amiibo_not_valid">Le fichier sélectionné n’est pas un Amiibo valide</string>
+    <string name="amiibo_in_use">Le fichier sélectionné est déjà utilisé</string>
+    <string name="amiibo_unknown_error">Une erreur inconnue est survenue</string>
+    <string name="amiibo_load_success">Amiibo chargé</string>
+
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Clavier virtuel</string>
@@ -984,6 +997,35 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Arrière-plan noir</string>
     <string name="use_black_backgrounds_description">Lorsque vous utilisez le thème sombre, appliquer un arrière-plan noir.</string>
+
+    <!-- App Language -->
+    <string name="app_language">Language de l\'application</string>
+    <string name="app_language_description">Changer la langue de l\'interface</string>
+    <string name="app_language_system">Suivre le système</string>
+    <string name="app_language_english">Anglais</string>
+    <string name="app_language_spanish">Espagnol</string>
+    <string name="app_language_french">Français</string>
+    <string name="app_language_german">Allemand</string>
+    <string name="app_language_italian">Italien</string>
+    <string name="app_language_portuguese">Portugais</string>
+    <string name="app_language_brazilian_portuguese">Portugais Brésilien</string>
+    <string name="app_language_russian">Russe</string>
+    <string name="app_language_japanese">Japonnais</string>
+    <string name="app_language_korean">Coréen</string>
+    <string name="app_language_simplified_chinese">Chinois Simplifié</string>
+    <string name="app_language_traditional_chinese">Chinois Traditionnel</string>
+    <string name="app_language_polish">Polonais</string>
+    <string name="app_language_czech">Tchèque</string>
+    <string name="app_language_norwegian">Norvégien</string>
+    <string name="app_language_hungarian">Hongrois</string>
+    <string name="app_language_ukrainian">Ukrainien</string>
+    <string name="app_language_vietnamese">Vietnamien</string>
+    <string name="app_language_indonesian">Indonésien</string>
+    <string name="app_language_arabic">Arabe</string>
+    <string name="app_language_central_kurdish">Kurde central</string>
+    <string name="app_language_persian">Perse</string>
+    <string name="app_language_hebrew">Hébreu</string>
+    <string name="app_language_serbian">Serbe</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Couleur du thème</string>

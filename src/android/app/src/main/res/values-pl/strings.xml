@@ -195,6 +195,7 @@
     <string name="multiplayer_chat">Czat</string>
     <string name="multiplayer_more_options">Więcej opcji</string>
     <string name="chat">Czat</string>
+    <string name="clear">Wyczyść</string>
     <string name="type_message">Wpisz wiadomość...</string>
     <string name="send_message">Wyślij wiadomość</string>
     <string name="multiplayer_moderation">Moderacja</string>
@@ -679,6 +680,7 @@
     <string name="copy_details">Kopiuj szczegóły</string>
     <string name="add_ons">Dodatki</string>
     <string name="add_ons_description">Przełącz mody, aktualizacje i DLC</string>
+    <string name="playtime">Czas gry:</string>
     <string name="reset_playtime">Wyczyść czas gry</string>
     <string name="reset_playtime_description">Zresetuj czas gry do 0 sekund.</string>
     <string name="reset_playtime_warning_description">Spowoduje to usunięcie danych dotyczących czasu gry w bieżącej grze. Czy na pewno chcesz to zrobić\?</string>
@@ -792,10 +794,21 @@
     <string name="emulation_pause">Wstrzymaj emulację</string>
     <string name="emulation_unpause">Wznów emulację</string>
     <string name="emulation_input_overlay">Opcje nakładki</string>
+    <string name="load_amiibo">Załaduj Amiibo</string>
     <string name="touchscreen">Ekran dotykowy</string>
     <string name="lock_drawer">Zablokuj panel</string>
     <string name="unlock_drawer">Odblokuj panel</string>
     <string name="reset">Resetuj</string>
+
+    <!-- Amiibo -->
+    <string name="amiibo_title">Amiibo</string>
+    <string name="amiibo_removed_message">Amiibo zostało \"zdjęte\"</string>
+    <string name="amiibo_wrong_state">Ta gra nie szuka amiibo</string>
+    <string name="amiibo_not_valid">Wybrany plik nie jest poprawnym amiibo</string>
+    <string name="amiibo_in_use">Wybrany plik jest już w użyciu</string>
+    <string name="amiibo_unknown_error">Wystąpił nieznany błąd</string>
+    <string name="amiibo_load_success">Amiibo załadowane</string>
+
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Klawiatura programowa</string>
@@ -986,6 +999,35 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Czarne tła</string>
     <string name="use_black_backgrounds_description">Kiedy używany ciemny motyw, tła zostają zastąpione czernią.</string>
+
+    <!-- App Language -->
+    <string name="app_language">Język aplikacji</string>
+    <string name="app_language_description">Zmień język interfejsu aplikacji</string>
+    <string name="app_language_system">Zgodnie z systemem</string>
+    <string name="app_language_english">English</string>
+    <string name="app_language_spanish">Español</string>
+    <string name="app_language_french">Français</string>
+    <string name="app_language_german">Deutsch</string>
+    <string name="app_language_italian">Italiano</string>
+    <string name="app_language_portuguese">Português</string>
+    <string name="app_language_brazilian_portuguese">Português do Brasil</string>
+    <string name="app_language_russian">Русский</string>
+    <string name="app_language_japanese">日本語</string>
+    <string name="app_language_korean">한국어</string>
+    <string name="app_language_simplified_chinese">简体中文</string>
+    <string name="app_language_traditional_chinese">繁體中文</string>
+    <string name="app_language_polish">Polski</string>
+    <string name="app_language_czech">Čeština</string>
+    <string name="app_language_norwegian">Norsk bokmål</string>
+    <string name="app_language_hungarian">Magyar</string>
+    <string name="app_language_ukrainian">Українська</string>
+    <string name="app_language_vietnamese">Tiếng Việt</string>
+    <string name="app_language_indonesian">Bahasa Indonesia</string>
+    <string name="app_language_arabic">العربية</string>
+    <string name="app_language_central_kurdish">کوردیی ناوەندی</string>
+    <string name="app_language_persian">فارسی</string>
+    <string name="app_language_hebrew">עברית</string>
+    <string name="app_language_serbian">Српски</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Kolor motywu</string>

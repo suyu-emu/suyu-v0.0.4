@@ -195,6 +195,7 @@
     <string name="multiplayer_chat">聊天</string>
     <string name="multiplayer_more_options">更多选项</string>
     <string name="chat">聊天</string>
+    <string name="clear">清除</string>
     <string name="type_message">输入消息…</string>
     <string name="send_message">发送消息</string>
     <string name="multiplayer_moderation">管理</string>
@@ -550,18 +551,18 @@
     <string name="controller_type">控制器类型</string>
     <string name="pro_controller">Pro手柄</string>
     <string name="handheld">掌机模式</string>
-    <string name="dual_joycons">双 Joycons 手柄</string>
+    <string name="dual_joycons">双 Joycon 手柄</string>
     <string name="left_joycon">左 Joycon 手柄</string>
     <string name="right_joycon">右 Joycon 手柄</string>
     <string name="gamecube_controller">GameCube手柄</string>
-    <string name="invert_axis">轴方向倒置</string>
+    <string name="invert_axis">反转轴向</string>
     <string name="invert_button">反转按键</string>
     <string name="toggle_button">切换按键</string>
     <string name="turbo_button">连发键</string>
     <string name="set_threshold">阈值设定</string>
     <string name="toggle_axis">切换轴</string>
     <string name="connected">已连接</string>
-    <string name="use_system_vibrator">使用系统震动器</string>
+    <string name="use_system_vibrator">使用系统马达</string>
     <string name="input_overlay">虚拟按键输入</string>
     <string name="vibration">震动</string>
     <string name="vibration_strength">震动强度</string>
@@ -643,7 +644,7 @@
     <string name="latest">最新</string>
     <string name="recommended_driver">推荐驱动:</string>
     <string name="gpu_model">GPU型号:</string>
-    <string name="unsupported_gpu">不支持的GPU</string>
+    <string name="unsupported_gpu">GPU不支持</string>
     <string name="unsupported_gpu_warning">您的GPU不支持驱动注入。不建议设置自定义驱动。</string>
 
     <!-- Preferences Screen -->
@@ -673,6 +674,7 @@
     <string name="copy_details">复制明细</string>
     <string name="add_ons">附加项</string>
     <string name="add_ons_description">管理 mod、游戏更新及 DLC</string>
+    <string name="playtime">游戏时间:</string>
     <string name="reset_playtime">清除游戏时间</string>
     <string name="reset_playtime_description">将当前游戏的游戏时间重置为 0 秒</string>
     <string name="reset_playtime_warning_description">者会讲出当前游戏的游戏时间数据。您确定吗\?</string>
@@ -786,10 +788,21 @@
     <string name="emulation_pause">暂停模拟</string>
     <string name="emulation_unpause">继续模拟</string>
     <string name="emulation_input_overlay">虚拟按键选项</string>
+    <string name="load_amiibo">加载 Amiibo</string>
     <string name="touchscreen">触摸屏</string>
     <string name="lock_drawer">锁定侧边菜单</string>
     <string name="unlock_drawer">解锁侧边菜单</string>
     <string name="reset">重置</string>
+
+    <!-- Amiibo -->
+    <string name="amiibo_title">Amiibo</string>
+    <string name="amiibo_removed_message">当前的 Amiibo 已被移除。</string>
+    <string name="amiibo_wrong_state">当前游戏并没有在寻找 Amiibos</string>
+    <string name="amiibo_not_valid">选择的文件并不是有效的 amiibo</string>
+    <string name="amiibo_in_use">选择的文件已在使用中</string>
+    <string name="amiibo_unknown_error">发生了未知错误</string>
+    <string name="amiibo_load_success">已加载 Amiibo</string>
+
 
     <!-- Software keyboard -->
     <string name="software_keyboard">软件键盘</string>
@@ -980,6 +993,35 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">使用黑色背景</string>
     <string name="use_black_backgrounds_description">使用深色主题时，套用黑色背景。</string>
+
+    <!-- App Language -->
+    <string name="app_language">App 语言</string>
+    <string name="app_language_description">更改 app 界面的语言</string>
+    <string name="app_language_system">跟随系统</string>
+    <string name="app_language_english">English</string>
+    <string name="app_language_spanish">Español</string>
+    <string name="app_language_french">Français</string>
+    <string name="app_language_german">Deutsch</string>
+    <string name="app_language_italian">Italiano</string>
+    <string name="app_language_portuguese">Português</string>
+    <string name="app_language_brazilian_portuguese">Português do Brasil</string>
+    <string name="app_language_russian">Русский</string>
+    <string name="app_language_japanese">日本語</string>
+    <string name="app_language_korean">한국어</string>
+    <string name="app_language_simplified_chinese">简体中文</string>
+    <string name="app_language_traditional_chinese">繁體中文</string>
+    <string name="app_language_polish">Polski</string>
+    <string name="app_language_czech">Čeština</string>
+    <string name="app_language_norwegian">Norsk bokmål</string>
+    <string name="app_language_hungarian">Magyar</string>
+    <string name="app_language_ukrainian">Українська</string>
+    <string name="app_language_vietnamese">Tiếng Việt</string>
+    <string name="app_language_indonesian">Bahasa Indonesia</string>
+    <string name="app_language_arabic">العربية</string>
+    <string name="app_language_central_kurdish">کوردیی ناوەندی</string>
+    <string name="app_language_persian">فارسی</string>
+    <string name="app_language_hebrew">עברית</string>
+    <string name="app_language_serbian">Српски</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">主题颜色</string>

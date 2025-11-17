@@ -195,6 +195,7 @@
     <string name="multiplayer_chat">Чат</string>
     <string name="multiplayer_more_options">Додаткові налаштування</string>
     <string name="chat">Чат</string>
+    <string name="clear">Очистити</string>
     <string name="type_message">Введіть повідомлення…</string>
     <string name="send_message">Надіслати повідомлення</string>
     <string name="multiplayer_moderation">Модерація</string>
@@ -679,6 +680,7 @@
     <string name="copy_details">Копіювати подробиці</string>
     <string name="add_ons">Доповнення</string>
     <string name="add_ons_description">Перемикати моди, оновлення та доповнення</string>
+    <string name="playtime">Награний час: </string>
     <string name="reset_playtime">Очистити награний час</string>
     <string name="reset_playtime_description">Скинути награний час поточної гри до 0 секунд</string>
     <string name="reset_playtime_warning_description">Це очистить дані про награний час поточної гри. Ви впевнені\?</string>
@@ -792,10 +794,21 @@
     <string name="emulation_pause">Призупинити емуляцію</string>
     <string name="emulation_unpause">Продовжити емуляцію</string>
     <string name="emulation_input_overlay">Опції накладання</string>
+    <string name="load_amiibo">Завантажити amiibo</string>
     <string name="touchscreen">Сенсорний екран</string>
     <string name="lock_drawer">Заблокувати панель</string>
     <string name="unlock_drawer">Розблокувати панель</string>
     <string name="reset">Скинути</string>
+
+    <!-- Amiibo -->
+    <string name="amiibo_title">Amiibo</string>
+    <string name="amiibo_removed_message">Поточний amiibo вилучено</string>
+    <string name="amiibo_wrong_state">Поточна гра не очікує на amiibo</string>
+    <string name="amiibo_not_valid">Вибраний файл не є дійсним amiibo</string>
+    <string name="amiibo_in_use">Вибраний файл уже використовується</string>
+    <string name="amiibo_unknown_error">Сталася невідома помилка</string>
+    <string name="amiibo_load_success">Amiibo завантажено</string>
+
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Програмна клавіатура</string>
@@ -986,6 +999,35 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Чорний фон</string>
     <string name="use_black_backgrounds_description">Використовувати чорний фон у темній темі.</string>
+
+    <!-- App Language -->
+    <string name="app_language">Мова застосунку</string>
+    <string name="app_language_description">Змінити мову інтерфейсу застосунку</string>
+    <string name="app_language_system">Як у системі</string>
+    <string name="app_language_english">English</string>
+    <string name="app_language_spanish">Español</string>
+    <string name="app_language_french">Français</string>
+    <string name="app_language_german">Deutsch</string>
+    <string name="app_language_italian">Italiano</string>
+    <string name="app_language_portuguese">Português</string>
+    <string name="app_language_brazilian_portuguese">Português do Brasil</string>
+    <string name="app_language_russian">Русский</string>
+    <string name="app_language_japanese">日本語</string>
+    <string name="app_language_korean">한국어</string>
+    <string name="app_language_simplified_chinese">简体中文</string>
+    <string name="app_language_traditional_chinese">繁體中文</string>
+    <string name="app_language_polish">Polski</string>
+    <string name="app_language_czech">Čeština</string>
+    <string name="app_language_norwegian">Norsk bokmål</string>
+    <string name="app_language_hungarian">Magyar</string>
+    <string name="app_language_ukrainian">Українська</string>
+    <string name="app_language_vietnamese">Tiếng Việt</string>
+    <string name="app_language_indonesian">Bahasa Indonesia</string>
+    <string name="app_language_arabic">العربية</string>
+    <string name="app_language_central_kurdish">کوردیی ناوەندی</string>
+    <string name="app_language_persian">فارسی</string>
+    <string name="app_language_hebrew">עברית</string>
+    <string name="app_language_serbian">Српски</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Колір теми</string>

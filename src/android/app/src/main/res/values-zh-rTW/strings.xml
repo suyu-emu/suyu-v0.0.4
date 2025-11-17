@@ -195,6 +195,7 @@
     <string name="multiplayer_chat">聊天</string>
     <string name="multiplayer_more_options">更多選項</string>
     <string name="chat">聊天</string>
+    <string name="clear">清除</string>
     <string name="type_message">輸入訊息…</string>
     <string name="send_message">傳送訊息</string>
     <string name="multiplayer_moderation">管理</string>
@@ -240,7 +241,7 @@
     <string name="keys_description">使用下方的按鈕安裝您的 <b>prod.keys</b> 檔案。</string>
     <string name="select_keys">選擇金鑰</string>
     <string name="firmware">韌體</string>
-    <string name="firmware_description">使用下方按鈕安裝您的<b>firmware.zip</b>檔案</string>
+    <string name="firmware_description">使用下方的按鈕安裝您的<b>firmware.zip</b>檔案</string>
     <string name="select_firmware">選擇韌體</string>
     <string name="games">遊戲</string>
     <string name="games_description">使用下方的按鈕選擇您的<b>遊戲</b>資料夾。</string>
@@ -314,11 +315,11 @@
     <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
     <string name="manage_save_data">管理儲存資料</string>
     <string name="manage_save_data_description">已找到儲存資料，請選取下方的選項。</string>
-    <string name="import_save_warning">匯入儲存資料</string>
+    <string name="import_save_warning">導入儲存資料</string>
     <string name="import_save_warning_description">這將會以提供的檔案覆寫所有現有的儲存資料，您確定要繼續嗎？</string>
-    <string name="save_files_importing">正在匯入儲存檔案…</string>
+    <string name="save_files_importing">正在導入儲存資料…</string>
     <string name="save_files_exporting">正在匯出儲存檔案…</string>
-    <string name="save_file_imported_success">已成功匯入</string>
+    <string name="save_file_imported_success">已成功導入</string>
     <string name="save_file_invalid_zip_structure">無效的儲存目錄結構</string>
     <string name="save_file_invalid_zip_structure_description">首個子資料夾名稱必須為遊戲標題 ID。</string>
     <string name="install_firmware">安裝韌體</string>
@@ -344,7 +345,7 @@
     <string name="custom_driver_not_supported">您的裝置不支援此自訂驅動程式</string>
     <string name="custom_driver_not_supported_description">此裝置不支援注入自訂驅動程式。\n請以後再來查看是否已新增支援！</string>
     <string name="manage_yuzu_data">管理 Eden 資料</string>
-    <string name="manage_yuzu_data_description">安裝韌體、金鑰，匯入/匯出使用者資料及安裝其他項目！</string>
+    <string name="manage_yuzu_data_description">安裝韌體、金鑰，導入/導出使用者資料及安裝其他項目！</string>
     <string name="game_folders">遊戲資料夾</string>
     <string name="deep_scan">深度掃描</string>
     <string name="add_game_folder">新增遊戲資料夾</string>
@@ -411,7 +412,7 @@
     <string name="importing_user_data">正在導入使用者資料…</string>
     <string name="invalid_yuzu_backup">無效的 Eden 備份</string>
     <string name="user_data_export_success">使用者資料匯出成功</string>
-    <string name="user_data_import_success">使用者資料匯入成功</string>
+    <string name="user_data_import_success">使用者資料導入成功</string>
     <string name="user_data_export_cancelled">導出已取消</string>
     <string name="user_data_import_failed_description">請確保使用者資料夾位於 zip 壓縮檔的根目錄，並在 config/config.ini 路徑中包含組態檔案，並再試一次。</string>
     <!-- General settings strings -->
@@ -562,7 +563,7 @@
     <string name="toggle_axis">視角反轉</string>
     <string name="connected">已連線</string>
     <string name="use_system_vibrator">使用系統震動器</string>
-    <string name="input_overlay">導入虛擬按鍵設定檔</string>
+    <string name="input_overlay">虛擬按鍵設定</string>
     <string name="vibration">震動</string>
     <string name="vibration_strength">震動強度</string>
     <string name="profile">設定檔</string>
@@ -673,6 +674,7 @@
     <string name="copy_details">複製詳細資料</string>
     <string name="add_ons">附加元件</string>
     <string name="add_ons_description">切換模組、更新及 DLC</string>
+    <string name="playtime">遊玩時間：</string>
     <string name="reset_playtime">重設遊玩時間</string>
     <string name="reset_playtime_description">將此遊戲的遊玩時間重設為0</string>
     <string name="reset_playtime_warning_description">您確定要重設此遊戲的遊玩時間嗎？</string>
@@ -786,10 +788,21 @@
     <string name="emulation_pause">暫停模擬</string>
     <string name="emulation_unpause">取消暫停模擬</string>
     <string name="emulation_input_overlay">疊加層/虛擬按鍵設定</string>
+    <string name="load_amiibo">導入Amiibo</string>
     <string name="touchscreen">觸控螢幕</string>
     <string name="lock_drawer">鎖定側邊選單</string>
     <string name="unlock_drawer">解鎖側邊選單</string>
     <string name="reset">重設</string>
+
+    <!-- Amiibo -->
+    <string name="amiibo_title">Amiibo</string>
+    <string name="amiibo_removed_message">該amiibo已被移除</string>
+    <string name="amiibo_wrong_state">此遊戲目前沒有在尋找amiibo</string>
+    <string name="amiibo_not_valid">您所選擇的並不是正確的amiibo金鑰檔</string>
+    <string name="amiibo_in_use">選擇的檔案已在使用中</string>
+    <string name="amiibo_unknown_error">發生未知的錯誤</string>
+    <string name="amiibo_load_success">已導入Amiibo</string>
+
 
     <!-- Software keyboard -->
     <string name="software_keyboard">軟體鍵盤</string>
