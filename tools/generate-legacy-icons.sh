@@ -10,11 +10,11 @@ ROOTDIR=$PWD
 
 cd src/android/app/src/main
 
-pushd res/drawable
+cd res/drawable
 # convert vector to svg--needed to generate launcher png
 cp ic_yuzu_icon.xml tmp
 
-python3 $ROOTDIR/tools/VectorDrawable2Svg.py tmp
+python3 "$ROOTDIR"/tools/VectorDrawable2Svg.py tmp
 
 inkscape -w 768 -h 768 tmp.svg -o ic_tmp.png
 magick ic_icon_bg_orig.png -resize 512x512 bg_tmp.png
@@ -23,7 +23,8 @@ magick bg_tmp.png -strip -type TrueColor -depth 8 -colorspace sRGB -color-matrix
 magick -verbose bg_tmp_rgb.png ic_tmp.png -gravity center -composite -colorspace sRGB ic_launcher.png
 echo
 
-rm *tmp*
-popd
+rm ./*tmp*
 
-# Add legacy here when legacy gets merged
+cd "$ROOTDIR"
+
+# TODO: add legacy icons

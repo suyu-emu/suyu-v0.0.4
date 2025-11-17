@@ -29,6 +29,6 @@ while IFS= read -r locale; do
 		{ grep -e "string name=\"$unused\"" "$STRINGS" >/dev/null; } || \
 		{ echo "-- Removing unused translation $unused" && sed "/string name=\"$unused\"/d" "$locale" > "$locale.new" && mv "$locale.new" "$locale"; }
 	done < "$COMBINED"
-
-	echo "-- done"
 done < "$LOCALES"
+
+rm -rf "$TMP_DIR"
