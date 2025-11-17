@@ -299,6 +299,25 @@
     <string name="permission_denied_description">You denied this permission too many times and now you have to manually grant it in system settings.</string>
     <string name="about">About</string>
     <string name="about_description">Build version, credits, and more</string>
+    <string name="system_information">System Information</string>
+    <string name="system_information_description">View detailed device information</string>
+    <string name="device_manufacturer">Manufacturer</string>
+    <string name="device_model">Model</string>
+    <string name="product">Product</string>
+    <string name="android_version">Android Version</string>
+    <string name="android_security_patch">Security Patch</string>
+    <string name="build_id">Build ID</string>
+    <string name="general_information">General Information</string>
+    <string name="hardware">Hardware</string>
+    <string name="supported_abis">Supported ABIs</string>
+    <string name="cpu_info">CPU Information</string>
+    <string name="gpu_information">GPU Information</string>
+    <string name="vulkan_driver_version">Vulkan Driver Version</string>
+    <string name="error_getting_emulator_info">Error getting emulator info</string>
+    <string name="memory_info">Memory Information</string>
+    <string name="total_memory">Total Memory</string>
+    <string name="soc">SOC:</string>
+
     <string name="warning_help">Help</string>
     <string name="warning">Warning</string>
     <string name="warning_skip">Skip</string>
@@ -656,7 +675,7 @@
     <string name="installing">Installing…</string>
     <string name="latest">Latest</string>
     <string name="recommended_driver">Recommended Driver:</string>
-    <string name="gpu_model">GPU Model:</string>
+    <string name="gpu_model">GPU Model</string>
     <string name="unsupported_gpu">Unsupported GPU</string>
     <string name="unsupported_gpu_warning">Your GPU does not support driver injection. Attempting to set custom drivers is not recommended.</string>
 

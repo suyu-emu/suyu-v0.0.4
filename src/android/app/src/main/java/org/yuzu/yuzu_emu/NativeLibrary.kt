@@ -201,6 +201,18 @@ object NativeLibrary {
     external fun logSettings()
 
     /**
+     * Returns Vulkan driver version / API version / GPU model
+     */
+    external fun getVulkanDriverVersion(): String
+    external fun getVulkanApiVersion(): String
+    external fun getGpuModel(): String
+
+    /**
+     * Returns a summary of detailed information about the CPU.
+     */
+    external fun getCpuSummary(): String
+
+    /**
      * Checks for available updates.
      */
     external fun checkForUpdate(): String?

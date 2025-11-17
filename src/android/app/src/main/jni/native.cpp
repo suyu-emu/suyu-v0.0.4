@@ -8,13 +8,21 @@
 #include "video_core/vulkan_common/vma.h"
 
 #include <codecvt>
+#include <cstdio>
+#include <cstring>
 #include <locale>
+#include <map>
+#include <set>
+#include <sstream>
 #include <span>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 #include <dlfcn.h>
+#include <unistd.h>
 
+#include <iostream>
 #ifdef ARCHITECTURE_arm64
 #include <adrenotools/driver.h>
 #endif
@@ -465,6 +473,205 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath,
     return Core::SystemResultStatus::Success;
 }
 
+namespace {
+
+struct CpuPartInfo {
+    u32 vendor;
+    u32 part;
+    const char* name;
+};
+
+constexpr CpuPartInfo s_cpu_list[] = {
+    // ARM - 0x41
+    {0x41, 0xd01, "Cortex-A32"},
+    {0x41, 0xd02, "Cortex-A34"},
+    {0x41, 0xd04, "Cortex-A35"},
+    {0x41, 0xd03, "Cortex-A53"},
+    {0x41, 0xd05, "Cortex-A55"},
+    {0x41, 0xd46, "Cortex-A510"},
+    {0x41, 0xd80, "Cortex-A520"},
+    {0x41, 0xd88, "Cortex-A520AE"},
+    {0x41, 0xd07, "Cortex-A57"},
+    {0x41, 0xd06, "Cortex-A65"},
+    {0x41, 0xd43, "Cortex-A65AE"},
+    {0x41, 0xd08, "Cortex-A72"},
+    {0x41, 0xd09, "Cortex-A73"},
+    {0x41, 0xd0a, "Cortex-A75"},
+    {0x41, 0xd0b, "Cortex-A76"},
+    {0x41, 0xd0e, "Cortex-A76AE"},
+    {0x41, 0xd0d, "Cortex-A77"},
+    {0x41, 0xd41, "Cortex-A78"},
+    {0x41, 0xd42, "Cortex-A78AE"},
+    {0x41, 0xd4b, "Cortex-A78C"},
+    {0x41, 0xd47, "Cortex-A710"},
+    {0x41, 0xd4d, "Cortex-A715"},
+    {0x41, 0xd81, "Cortex-A720"},
+    {0x41, 0xd89, "Cortex-A720AE"},
+    {0x41, 0xd87, "Cortex-A725"},
+    {0x41, 0xd44, "Cortex-X1"},
+    {0x41, 0xd4c, "Cortex-X1C"},
+    {0x41, 0xd48, "Cortex-X2"},
+    {0x41, 0xd4e, "Cortex-X3"},
+    {0x41, 0xd82, "Cortex-X4"},
+    {0x41, 0xd85, "Cortex-X925"},
+    {0x41, 0xd4a, "Neoverse E1"},
+    {0x41, 0xd0c, "Neoverse N1"},
+    {0x41, 0xd49, "Neoverse N2"},
+    {0x41, 0xd8e, "Neoverse N3"},
+    {0x41, 0xd40, "Neoverse V1"},
+    {0x41, 0xd4f, "Neoverse V2"},
+    {0x41, 0xd84, "Neoverse V3"},
+    {0x41, 0xd83, "Neoverse V3AE"},
+    // Qualcomm - 0x51
+    {0x51, 0x201, "Kryo"},
+    {0x51, 0x205, "Kryo"},
+    {0x51, 0x211, "Kryo"},
+    {0x51, 0x800, "Kryo 385 Gold"},
+    {0x51, 0x801, "Kryo 385 Silver"},
+    {0x51, 0x802, "Kryo 485 Gold"},
+    {0x51, 0x803, "Kryo 485 Silver"},
+    {0x51, 0x804, "Kryo 680 Prime"},
+    {0x51, 0x805, "Kryo 680 Gold"},
+    {0x51, 0x06f, "Krait"},
+    {0x51, 0xc00, "Falkor"},
+    {0x51, 0xc01, "Saphira"},
+    {0x51, 0x001, "Oryon"},
+};
+
+const char* find_cpu_name(u32 vendor, u32 part) {
+    for (const auto& cpu : s_cpu_list) {
+        if (cpu.vendor == vendor && cpu.part == part) {
+            return cpu.name;
+        }
+    }
+    return nullptr;
+}
+
+u64 read_midr_sysfs(u32 cpu_id) {
+    char path[128];
+    std::snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%u/regs/identification/midr_el1", cpu_id);
+
+    FILE* f = std::fopen(path, "r");
+    if (!f) return 0;
+
+    char value[32];
+    if (!std::fgets(value, sizeof(value), f)) {
+        std::fclose(f);
+        return 0;
+    }
+    std::fclose(f);
+
+    return std::strtoull(value, nullptr, 16);
+}
+
+std::pair<u32, std::string> get_pretty_cpus() {
+    std::map<u64, int> core_layout;
+    u32 valid_cpus = 0;
+    for (u32 i = 0; i < std::thread::hardware_concurrency(); ++i) {
+        const auto midr = read_midr_sysfs(i);
+        if (midr == 0) break;
+
+        valid_cpus++;
+        core_layout[midr]++;
+    }
+
+    std::string cpus;
+
+    if (!core_layout.empty()) {
+        const CpuPartInfo* lowest_part = nullptr;
+        u32 lowest_part_id = 0xFFFFFFFF;
+
+        for (const auto& [midr, count] : core_layout) {
+            const auto vendor = (midr >> 24) & 0xff;
+            const auto part = (midr >> 4) & 0xfff;
+
+            if (!cpus.empty()) cpus += " + ";
+            cpus += fmt::format("{}x {}", count, find_cpu_name(vendor, part));
+        }
+    }
+
+    return {valid_cpus, cpus};
+}
+
+std::string get_arm_cpu_name() {
+    std::map<u64, int> core_layout;
+    for (u32 i = 0; i < std::thread::hardware_concurrency(); ++i) {
+        const auto midr = read_midr_sysfs(i);
+        if (midr == 0) break;
+
+        core_layout[midr]++;
+    }
+
+    if (!core_layout.empty()) {
+        const CpuPartInfo* lowest_part = nullptr;
+        u32 lowest_part_id = 0xFFFFFFFF;
+
+        for (const auto& [midr, count] : core_layout) {
+            const auto vendor = (midr >> 24) & 0xff;
+            const auto part = (midr >> 4) & 0xfff;
+
+            for (const auto& cpu : s_cpu_list) {
+                if (cpu.vendor == vendor && cpu.part == part) {
+                    if (cpu.part < lowest_part_id) {
+                        lowest_part_id = cpu.part;
+                        lowest_part = &cpu;
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (lowest_part) {
+            return lowest_part->name;
+        }
+    }
+
+    FILE* f = std::fopen("/proc/cpuinfo", "r");
+    if (!f) return "";
+
+    char buf[512];
+    std::string result;
+
+    auto trim = [](std::string& s) {
+        const auto start = s.find_first_not_of(" \t\r\n");
+        const auto end = s.find_last_not_of(" \t\r\n");
+        s = (start == std::string::npos) ? "" : s.substr(start, end - start + 1);
+    };
+
+    while (std::fgets(buf, sizeof(buf), f)) {
+        std::string line(buf);
+        if (line.find("Hardware") == 0) {
+            auto pos = line.find(':');
+            if (pos != std::string::npos) {
+                result = line.substr(pos + 1);
+                trim(result);
+                break;
+            }
+        }
+    }
+    std::fclose(f);
+
+    if (!result.empty()) {
+        std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+    }
+
+    return result;
+}
+
+const char* fallback_cpu_detection() {
+    static std::string s_result = []() -> std::string {
+        std::string result = get_arm_cpu_name();
+        if (result.empty()) {
+            return "Cortex-A34";
+        }
+        return result;
+    }();
+
+    return s_result.c_str();
+}
+
+} // namespace
+
 extern "C" {
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_surfaceChanged(JNIEnv* env, jobject instance,
@@ -692,6 +899,209 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCpuBackend(JNIEnv* env, jclass 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGpuDriver(JNIEnv* env, jobject jobj) {
     return Common::Android::ToJString(
         env, EmulationSession::GetInstance().System().GPU().Renderer().GetDeviceVendor());
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCpuSummary(JNIEnv* env, jobject /*jobj*/) {
+    get_arm_cpu_name();
+    constexpr const char* CPUINFO_PATH = "/proc/cpuinfo";
+
+    auto trim = [](std::string& s) {
+        const auto start = s.find_first_not_of(" \t\r\n");
+        const auto end = s.find_last_not_of(" \t\r\n");
+        s = (start == std::string::npos) ? "" : s.substr(start, end - start + 1);
+    };
+
+    auto to_lower = [](std::string s) {
+        for (auto& c : s) c = std::tolower(c);
+        return s;
+    };
+
+    try {
+        std::string result;
+        std::pair<u32, std::string> pretty_cpus = get_pretty_cpus();
+        u32 threads = pretty_cpus.first;
+        std::string cpus = pretty_cpus.second;
+
+        fmt::format_to(std::back_inserter(result), "CPUs: {}\n{} Threads",
+                       cpus, threads);
+
+        FILE* f = std::fopen(CPUINFO_PATH, "r");
+        if (!f) return Common::Android::ToJString(env, result);
+
+        char buf[512];
+
+        if (f) {
+            std::set<std::string> feature_set;
+            while (std::fgets(buf, sizeof(buf), f)) {
+                std::string line(buf);
+                if (line.find("Features") == 0 || line.find("features") == 0) {
+                    auto pos = line.find(':');
+                    if (pos != std::string::npos) {
+                        std::string feat_line = line.substr(pos + 1);
+                        trim(feat_line);
+
+                        std::istringstream iss(feat_line);
+                        std::string feature;
+                        while (iss >> feature) {
+                            feature_set.insert(to_lower(feature));
+                        }
+                    }
+                }
+            }
+            std::fclose(f);
+
+            bool has_neon = feature_set.count("neon") || feature_set.count("asimd");
+            bool has_fp = feature_set.count("fp") || feature_set.count("vfp");
+            bool has_sve = feature_set.count("sve");
+            bool has_sve2 = feature_set.count("sve2");
+            bool has_crypto = feature_set.count("aes") || feature_set.count("sha1") ||
+                             feature_set.count("sha2") || feature_set.count("pmull");
+            bool has_dotprod = feature_set.count("asimddp") || feature_set.count("dotprod");
+            bool has_i8mm = feature_set.count("i8mm");
+            bool has_bf16 = feature_set.count("bf16");
+            bool has_atomics = feature_set.count("atomics") || feature_set.count("lse");
+
+            std::string features;
+            if (has_neon || has_fp) {
+                features += "NEON";
+                if (has_dotprod) features += "+DP";
+                if (has_i8mm) features += "+I8MM";
+                if (has_bf16) features += "+BF16";
+            }
+
+            if (has_sve) {
+                if (!features.empty()) features += " | ";
+                features += "SVE";
+                if (has_sve2) features += "2";
+            }
+
+            if (has_crypto) {
+                if (!features.empty()) features += " | ";
+                features += "Crypto";
+            }
+
+            if (has_atomics) {
+                if (!features.empty()) features += " | ";
+                features += "LSE";
+            }
+
+            if (!features.empty()) {
+                result += "\nFeatures: " + features;
+            }
+        }
+
+        fmt::format_to(std::back_inserter(result), "\nLLVM CPU: {}", fallback_cpu_detection());
+
+        return Common::Android::ToJString(env, result);
+    } catch (...) {
+        return Common::Android::ToJString(env, "Unknown");
+    }
+}
+
+
+namespace {
+constexpr u32 VENDOR_QUALCOMM = 0x5143;
+constexpr u32 VENDOR_ARM = 0x13B5;
+
+VkPhysicalDeviceProperties GetVulkanDeviceProperties() {
+    Common::DynamicLibrary library;
+    if (!library.Open("libvulkan.so")) {
+        return {};
+    }
+
+    Vulkan::vk::InstanceDispatch dld;
+    // TODO: warn the user that Vulkan is unavailable rather than hard crash
+    const auto instance = Vulkan::CreateInstance(library, dld, VK_API_VERSION_1_1);
+    const auto physical_devices = instance.EnumeratePhysicalDevices();
+    if (physical_devices.empty()) {
+        return {};
+    }
+
+    const Vulkan::vk::PhysicalDevice physical_device(physical_devices[0], dld);
+    return physical_device.GetProperties();
+}
+} // namespace
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getVulkanDriverVersion(JNIEnv* env, jobject jobj) {
+    try {
+        const auto props = GetVulkanDeviceProperties();
+        if (props.deviceID == 0) {
+            return Common::Android::ToJString(env, "N/A");
+        }
+
+        const u32 driver_version = props.driverVersion;
+        const u32 vendor_id = props.vendorID;
+
+        if (driver_version == 0) {
+            return Common::Android::ToJString(env, "N/A");
+        }
+
+        std::string version_str;
+
+        if (vendor_id == VENDOR_QUALCOMM) {
+            const u32 major = (driver_version >> 24) << 2;
+            const u32 minor = (driver_version >> 12) & 0xFFF;
+            const u32 patch = driver_version & 0xFFF;
+            version_str = fmt::format("{}.{}.{}", major, minor, patch);
+        }
+        else if (vendor_id == VENDOR_ARM) {
+            u32 major = VK_API_VERSION_MAJOR(driver_version);
+            u32 minor = VK_API_VERSION_MINOR(driver_version);
+            u32 patch = VK_API_VERSION_PATCH(driver_version);
+
+            // ARM custom encoding for newer drivers
+            if (major > 10) {
+                major = (driver_version >> 22) & 0x3FF;
+                minor = (driver_version >> 12) & 0x3FF;
+                patch = driver_version & 0xFFF;
+            }
+            version_str = fmt::format("{}.{}.{}", major, minor, patch);
+        }
+        // Standard Vulkan version encoding for other vendors
+        else {
+            const u32 major = VK_API_VERSION_MAJOR(driver_version);
+            const u32 minor = VK_API_VERSION_MINOR(driver_version);
+            const u32 patch = VK_API_VERSION_PATCH(driver_version);
+            version_str = fmt::format("{}.{}.{}", major, minor, patch);
+        }
+
+        return Common::Android::ToJString(env, version_str);
+    } catch (...) {
+        return Common::Android::ToJString(env, "N/A");
+    }
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getVulkanApiVersion(JNIEnv* env, jobject jobj) {
+    try {
+        const auto props = GetVulkanDeviceProperties();
+        if (props.deviceID == 0) {
+            return Common::Android::ToJString(env, "N/A");
+        }
+
+        const u32 api_version = props.apiVersion;
+        const u32 major = VK_API_VERSION_MAJOR(api_version);
+        const u32 minor = VK_API_VERSION_MINOR(api_version);
+        const u32 patch = VK_API_VERSION_PATCH(api_version);
+        const u32 variant = VK_API_VERSION_VARIANT(api_version);
+
+        // Include variant if non-zero (rare on Android)
+        const std::string version_str = variant > 0
+            ? fmt::format("{}.{}.{}.{}", variant, major, minor, patch)
+            : fmt::format("{}.{}.{}", major, minor, patch);
+
+        return Common::Android::ToJString(env, version_str);
+    } catch (...) {
+        return Common::Android::ToJString(env, "N/A");
+    }
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGpuModel(JNIEnv* env, jobject jobj) {
+    const auto props = GetVulkanDeviceProperties();
+    if (props.deviceID == 0) {
+        return Common::Android::ToJString(env, "Unknown");
+    }
+
+    return Common::Android::ToJString(env, props.deviceName);
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_applySettings(JNIEnv* env, jobject jobj) {

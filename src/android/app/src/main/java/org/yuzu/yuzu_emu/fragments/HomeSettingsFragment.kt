@@ -232,6 +232,17 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
+                    R.string.system_information,
+                    R.string.system_information_description,
+                    R.drawable.ic_system,
+                    {
+                        SystemInfoDialogFragment.newInstance()
+                            .show(parentFragmentManager, SystemInfoDialogFragment.TAG)
+                    }
+                )
+            )
+            add(
+                HomeSetting(
                     R.string.about,
                     R.string.about_description,
                     R.drawable.ic_info_outline,
