@@ -130,16 +130,14 @@ void AudioRenderer::CreateSinkStreams() {
 }
 
 void AudioRenderer::Main(std::stop_token stop_token) {
-    static constexpr char name[]{"DSP_AudioRenderer_Main"};
-    Common::SetCurrentThreadName(name);
+    Common::SetCurrentThreadName("DSP_AudioRenderer_Main");
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
 
     // TODO: Create buffer map/unmap thread + mailbox
     // TODO: Create gMix devices, initialize them here
 
     if (mailbox.Receive(Direction::DSP) != Message::InitializeOK) {
-        LOG_ERROR(Service_Audio,
-                  "ADSP Audio Renderer -- Failed to receive initialize message from host!");
+        LOG_ERROR(Service_Audio, "ADSP Audio Renderer -- Failed to receive initialize message from host!");
         return;
     }
 
@@ -156,8 +154,8 @@ void AudioRenderer::Main(std::stop_token stop_token) {
             return;
 
         case Message::Render: {
-            if (system.IsShuttingDown()) [[unlikely]] {
-                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            if (system.IsShuttingDown()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 mailbox.Send(Direction::Host, Message::RenderResponse);
                 continue;
             }
@@ -175,8 +173,8 @@ void AudioRenderer::Main(std::stop_token stop_token) {
                     // this is a new command list, initialize it.
                     if (command_buffer.remaining_command_count == 0) {
                         command_list_processor.Initialize(system, *command_buffer.process,
-                                                          command_buffer.buffer,
-                                                          command_buffer.size, streams[index]);
+                            command_buffer.buffer,
+                            command_buffer.size, streams[index]);
                     }
 
                     if (command_buffer.reset_buffer && !buffers_reset[index]) {
@@ -213,13 +211,10 @@ void AudioRenderer::Main(std::stop_token stop_token) {
                     command_buffer.render_time_taken_us = end_time - start_time;
                 }
             }
-
             mailbox.Send(Direction::Host, Message::RenderResponse);
         } break;
-
         default:
-            LOG_WARNING(Service_Audio,
-                        "ADSP AudioRenderer received an invalid message, msg={:02X}!", msg);
+            LOG_WARNING(Service_Audio, "ADSP AudioRenderer received an invalid message, msg={:02X}!", msg);
             break;
         }
     }

@@ -26,73 +26,59 @@ void SystemManager::InitializeUnsafe() {
     if (!active) {
         active = true;
         audio_renderer.Start();
-        thread = std::jthread([this](std::stop_token stop_token) { ThreadFunc(stop_token); });
+        thread = std::jthread([this](std::stop_token stop_token) {
+            Common::SetCurrentThreadName("AudioRenderSystemManager");
+            Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
+            while (active && !stop_token.stop_requested()) {
+                {
+                    std::scoped_lock l{mutex1};
+                    for (auto system : systems)
+                        system->SendCommandToDsp();
+                }
+                audio_renderer.Signal();
+                audio_renderer.Wait();
+            }
+        });
     }
 }
 
 void SystemManager::Stop() {
-    if (!active) {
-        return;
+    if (active) {
+        active = false;
+        thread.request_stop();
+        thread.join();
+        audio_renderer.Stop();
     }
-    active = false;
-    thread.request_stop();
-    thread.join();
-    audio_renderer.Stop();
 }
 
 bool SystemManager::Add(System& system_) {
     std::scoped_lock l2{mutex2};
-
     if (systems.size() + 1 > MaxRendererSessions) {
         LOG_ERROR(Service_Audio, "Maximum AudioRenderer Systems active, cannot add more!");
         return false;
     }
-
     {
         std::scoped_lock l{mutex1};
-        if (systems.empty()) {
+        if (systems.empty())
             InitializeUnsafe();
-        }
     }
-
     systems.push_back(&system_);
     return true;
 }
 
 bool SystemManager::Remove(System& system_) {
     std::scoped_lock l2{mutex2};
-
     {
         std::scoped_lock l{mutex1};
         if (systems.remove(&system_) == 0) {
-            LOG_ERROR(Service_Audio,
-                      "Failed to remove a render system, it was not found in the list!");
+            LOG_ERROR(Service_Audio, "Failed to remove a render system, it was not found in the list!");
             return false;
         }
     }
 
-    if (systems.empty()) {
+    if (systems.empty())
         Stop();
-    }
     return true;
-}
-
-void SystemManager::ThreadFunc(std::stop_token stop_token) {
-    static constexpr char name[]{"AudioRenderSystemManager"};
-    Common::SetCurrentThreadName(name);
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
-    while (active && !stop_token.stop_requested()) {
-        {
-            std::scoped_lock l{mutex1};
-
-            for (auto system : systems) {
-                system->SendCommandToDsp();
-            }
-        }
-
-        audio_renderer.Signal();
-        audio_renderer.Wait();
-    }
 }
 
 } // namespace AudioCore::Renderer

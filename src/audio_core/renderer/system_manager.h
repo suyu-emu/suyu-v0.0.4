@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -66,11 +69,6 @@ public:
     bool Remove(System& system);
 
 private:
-    /**
-     * Main thread responsible for command generation.
-     */
-    void ThreadFunc(std::stop_token stop_token);
-
     /// Core system
     Core::System& core;
     /// List of pointers to managed systems

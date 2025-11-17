@@ -1056,21 +1056,20 @@ static std::jthread RunHostThreadFunc(KernelCore& kernel, KProcess* process,
     // Register the thread.
     KThread::Register(kernel, thread);
 
-    return std::jthread(
-        [&kernel, thread, thread_name_{std::move(thread_name)}, func_{std::move(func)}] {
-            // Set the thread name.
-            Common::SetCurrentThreadName(thread_name_.c_str());
+    return std::jthread([&kernel, thread, thread_name_{std::move(thread_name)}, func_{std::move(func)}] {
+        // Set the thread name.
+        Common::SetCurrentThreadName(thread_name_.c_str());
 
-            // Set the thread as current.
-            kernel.RegisterHostThread(thread);
+        // Set the thread as current.
+        kernel.RegisterHostThread(thread);
 
-            // Run the callback.
-            func_();
+        // Run the callback.
+        func_();
 
-            // Close the thread.
-            // This will free the process if it is the last reference.
-            thread->Close();
-        });
+        // Close the thread.
+        // This will free the process if it is the last reference.
+        thread->Close();
+    });
 }
 
 std::jthread KernelCore::RunOnHostCoreProcess(std::string&& process_name,

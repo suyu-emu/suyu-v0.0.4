@@ -71,8 +71,7 @@ EmuThread::EmuThread(Core::System& system) : m_system{system} {}
 EmuThread::~EmuThread() = default;
 
 void EmuThread::run() {
-    const char* name = "EmuControlThread";
-    Common::SetCurrentThreadName(name);
+    Common::SetCurrentThreadName("EmuControlThread");
 
     auto& gpu = m_system.GPU();
     auto stop_token = m_stop_source.get_token();

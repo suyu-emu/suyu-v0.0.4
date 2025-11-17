@@ -227,9 +227,7 @@ private:
     }
 
     void ReleaseThreadFunc(std::stop_token stop_token) {
-        std::string name = "GPUFencingThread";
-
-        Common::SetCurrentThreadName(name.c_str());
+        Common::SetCurrentThreadName("GPUFencingThread");
         Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
 
         TFence current_fence;
