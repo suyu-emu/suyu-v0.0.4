@@ -557,6 +557,7 @@ jboolean JNICALL Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_supportsCustomDri
 
 jobjectArray Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getSystemDriverInfo(
     JNIEnv* env, jobject j_obj, jobject j_surf, jstring j_hook_lib_dir) {
+#ifdef ARCHITECTURE_arm64
     const char* file_redirect_dir_{};
     int featureFlags{};
     std::string hook_lib_dir = Common::Android::GetJString(env, j_hook_lib_dir);
@@ -579,15 +580,19 @@ jobjectArray Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getSystemDriverInfo(
     auto version_string =
         fmt::format("{}.{}.{}", VK_API_VERSION_MAJOR(driver_version),
                     VK_API_VERSION_MINOR(driver_version), VK_API_VERSION_PATCH(driver_version));
-
-    jobjectArray j_driver_info = env->NewObjectArray(
-        2, Common::Android::GetStringClass(), Common::Android::ToJString(env, version_string));
-    env->SetObjectArrayElement(j_driver_info, 1,
-                               Common::Android::ToJString(env, device.GetDriverName()));
+    auto driver_name = device.GetDriverName();
+#else
+    auto driver_version = "1.0.0";
+    auto version_string = "1.1.0"; //Assume lowest Vulkan level
+    auto driver_name = "generic";
+#endif
+    jobjectArray j_driver_info = env->NewObjectArray(2, Common::Android::GetStringClass(), Common::Android::ToJString(env, version_string));
+    env->SetObjectArrayElement(j_driver_info, 1, Common::Android::ToJString(env, driver_name));
     return j_driver_info;
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getGpuModel(JNIEnv *env, jobject j_obj, jobject j_surf, jstring j_hook_lib_dir) {
+#ifdef ARCHITECTURE_arm64
     const char* file_redirect_dir_{};
     int featureFlags{};
     std::string hook_lib_dir = Common::Android::GetJString(env, j_hook_lib_dir);
@@ -611,6 +616,9 @@ jstring Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getGpuModel(JNIEnv *env, j
     window.release();
 
     return Common::Android::ToJString(env, model_name);
+#else
+    return Common::Android::ToJString(env, "no-info");
+#endif
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadKeys(JNIEnv* env, jclass clazz) {
