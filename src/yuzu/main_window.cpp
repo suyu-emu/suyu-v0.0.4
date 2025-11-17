@@ -75,6 +75,8 @@
 #include "qt_common/config/uisettings.h"
 #include "qt_common/config/shared_translation.h"
 
+#include "qt_common/abstract/frontend.h"
+
 #include "qt_common/qt_common.h"
 
 #include "qt_common/util/path.h"
@@ -3228,37 +3230,41 @@ void MainWindow::ErrorDisplayRequestExit() {
 }
 
 void MainWindow::OnMenuReportCompatibility() {
-#if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
-    const auto& caps = Common::GetCPUCaps();
-    const bool has_fma = caps.fma || caps.fma4;
-    const auto processor_count = std::thread::hardware_concurrency();
-    const bool has_4threads = processor_count == 0 || processor_count >= 4;
-    const bool has_8gb_ram = Common::GetMemInfo().TotalPhysicalMemory >= 8_GiB;
-    const bool has_broken_vulkan = UISettings::values.has_broken_vulkan;
+    QtCommon::Frontend::Critical(
+        tr("Function Disabled"),
+        tr("Compatibility list reporting is currently disabled. Check back later!"));
 
-    if (!has_fma || !has_4threads || !has_8gb_ram || has_broken_vulkan) {
-        QMessageBox::critical(this, tr("Hardware requirements not met"),
-                              tr("Your system does not meet the recommended hardware requirements. "
-                                 "Compatibility reporting has been disabled."));
-        return;
-    }
+// #if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
+//     const auto& caps = Common::GetCPUCaps();
+//     const bool has_fma = caps.fma || caps.fma4;
+//     const auto processor_count = std::thread::hardware_concurrency();
+//     const bool has_4threads = processor_count == 0 || processor_count >= 4;
+//     const bool has_8gb_ram = Common::GetMemInfo().TotalPhysicalMemory >= 8_GiB;
+//     const bool has_broken_vulkan = UISettings::values.has_broken_vulkan;
 
-    if (!Settings::values.eden_token.GetValue().empty() &&
-        !Settings::values.eden_username.GetValue().empty()) {
-    } else {
-        QMessageBox::critical(
-            this, tr("Missing yuzu Account"),
-            tr("In order to submit a game compatibility test case, you must set up your web token "
-               "and "
-               "username.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
-               "&gt; "
-               "Web."));
-    }
-#else
-    QMessageBox::critical(this, tr("Hardware requirements not met"),
-                          tr("Your system does not meet the recommended hardware requirements. "
-                             "Compatibility reporting has been disabled."));
-#endif
+//     if (!has_fma || !has_4threads || !has_8gb_ram || has_broken_vulkan) {
+//         QMessageBox::critical(this, tr("Hardware requirements not met"),
+//                               tr("Your system does not meet the recommended hardware requirements. "
+//                                  "Compatibility reporting has been disabled."));
+//         return;
+//     }
+
+//     if (!Settings::values.eden_token.GetValue().empty() &&
+//         !Settings::values.eden_username.GetValue().empty()) {
+//     } else {
+//         QMessageBox::critical(
+//             this, tr("Missing yuzu Account"),
+//             tr("In order to submit a game compatibility test case, you must set up your web token "
+//                "and "
+//                "username.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
+//                "&gt; "
+//                "Web."));
+//     }
+// #else
+//     QMessageBox::critical(this, tr("Hardware requirements not met"),
+//                           tr("Your system does not meet the recommended hardware requirements. "
+//                              "Compatibility reporting has been disabled."));
+// #endif
 }
 
 void MainWindow::OpenURL(const QUrl& url) {
