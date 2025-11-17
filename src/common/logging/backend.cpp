@@ -112,10 +112,20 @@ public:
             // This must be a static otherwise it would get checked on EVERY
             // instance of logging an entry...
             static std::string username = []() -> std::string {
-                auto* s = getenv("USER");
-                if (s == nullptr)
-                    s = getenv("USERNAME");
-                return std::string{s};
+                // in order of precedence
+                // LOGNAME usually works on UNIX, USERNAME on Windows
+                // Some UNIX systems suck and don't use LOGNAME so we also
+                // need USER :(
+                for (auto const var : {
+                         "LOGNAME",
+                         "USERNAME",
+                         "USER",
+                     }) {
+                    if (auto const s = getenv(var); s != nullptr)
+                        return std::string{s};
+                }
+
+                return std::string{};
             }();
             if (!username.empty())
                 boost::replace_all(message, username, "user");
