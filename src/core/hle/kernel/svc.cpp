@@ -2503,9 +2503,11 @@ static void Call64(Core::System& system, u32 imm, std::span<uint64_t, 8> args) {
 void Call(Core::System& system, u32 imm) {
     auto& kernel = system.Kernel();
     auto& process = GetCurrentProcess(kernel);
-
     std::array<uint64_t, 8> args;
     kernel.CurrentPhysicalCore().SaveSvcArguments(process, args);
+    LOG_TRACE(Kernel_SVC, "{} [0]={:#x} [1]={:#x} [2]={:#x} [3]={:#x} [4]={:#x} [5]={:#x} [6]={:#x}",
+        imm, GetArg32(args, 0), GetArg32(args, 1), GetArg32(args, 2),
+        GetArg32(args, 3), GetArg32(args, 4), GetArg32(args, 5), GetArg32(args, 6));
     //kernel.EnterSVCProfile();
     if (process.Is64Bit())
         Call64(system, imm, args);
