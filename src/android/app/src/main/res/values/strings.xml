@@ -722,6 +722,8 @@
     <string name="clear_shader_cache_description">Removes all shaders built while playing this game</string>
     <string name="clear_shader_cache_warning_description">You will experience more stuttering as the shader cache regenerates</string>
     <string name="cleared_shaders_successfully">Cleared shaders successfully</string>
+    <string name="driver_shader_wipe_dialog_title">Shaders Cleared</string>
+    <string name="driver_shader_wipe_dialog_message">Eden has automatically cleared all shader caches to maintain Vulkan pipeline validation. This is required when switching GPU drivers to prevent crashes and graphical corruption. You may experience some stuttering as shaders rebuild.</string>
     <string name="addons_game">Addons: %1$s</string>
     <string name="save_data">Save data</string>
     <string name="save_data_description">Manage save data specific to this game</string>

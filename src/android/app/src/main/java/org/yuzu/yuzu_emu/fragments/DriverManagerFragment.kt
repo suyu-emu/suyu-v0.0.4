@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -88,6 +88,12 @@ class DriverManagerFragment : Fragment() {
 
             driverViewModel.showClearButton.collect(viewLifecycleOwner) {
                 binding.toolbarDrivers.menu.findItem(R.id.menu_driver_use_global).isVisible = it
+            }
+        }
+
+        driverViewModel.shouldShowDriverShaderDialog.collect(viewLifecycleOwner) { shouldShow ->
+            if (shouldShow) {
+                showDriverShaderWipeDialog()
             }
         }
 
@@ -235,5 +241,19 @@ class DriverManagerFragment : Fragment() {
                 }
             ).show(requireActivity().supportFragmentManager, MessageDialogFragment.TAG)
         }
+    }
+
+    private fun showDriverShaderWipeDialog() {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.driver_shader_wipe_dialog_title)
+            .setMessage(R.string.driver_shader_wipe_dialog_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                driverViewModel.onDriverShaderDialogDismissed(dontShowAgain = false)
+            }
+            .setNegativeButton(R.string.dont_show_again) { _, _ ->
+                driverViewModel.onDriverShaderDialogDismissed(dontShowAgain = true)
+            }
+            .setCancelable(false)
+            .show()
     }
 }

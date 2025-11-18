@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
@@ -52,9 +56,15 @@ class DriverViewModel : ViewModel() {
 
     private val driversToDelete = mutableListOf<String>()
 
+    private var previousDriverPath: String = ""
+
+    private val _shouldShowDriverShaderDialog = MutableStateFlow(false)
+    val shouldShowDriverShaderDialog: StateFlow<Boolean> get() = _shouldShowDriverShaderDialog
+
     init {
         updateDriverList()
         updateDriverNameForGame(null)
+        previousDriverPath = StringSetting.DRIVER_PATH.getString()
     }
 
     fun reloadDriverData() {
@@ -79,6 +89,7 @@ class DriverViewModel : ViewModel() {
             newDriverList.add(it.second.toDriver(it.second == selectedDriver))
         }
         _driverList.value = newDriverList
+        previousDriverPath = StringSetting.DRIVER_PATH.getString()
     }
 
     fun onOpenDriverManager(game: Game?) {
@@ -92,11 +103,48 @@ class DriverViewModel : ViewModel() {
         _showClearButton.value = value
     }
 
-    fun onDriverSelected(position: Int) {
+    fun onDriverSelected(position: Int, skipShaderWipe: Boolean = false) {
+        val newDriverPath = if (position == 0) {
+            ""
+        } else {
+            driverData[position - 1].first
+        }
+
+        if (!skipShaderWipe && newDriverPath != previousDriverPath) {
+            wipeAllShaders()
+
+            if (!BooleanSetting.DONT_SHOW_DRIVER_SHADER_WARNING.getBoolean(needsGlobal = true)) {
+                _shouldShowDriverShaderDialog.value = true
+            }
+        }
+
         if (position == 0) {
             StringSetting.DRIVER_PATH.setString("")
         } else {
             StringSetting.DRIVER_PATH.setString(driverData[position - 1].first)
+        }
+        previousDriverPath = newDriverPath
+    }
+
+    fun onDriverShaderDialogDismissed(dontShowAgain: Boolean) {
+        if (dontShowAgain) {
+            BooleanSetting.DONT_SHOW_DRIVER_SHADER_WARNING.setBoolean(true)
+            NativeConfig.saveGlobalConfig()
+        }
+        _shouldShowDriverShaderDialog.value = false
+    }
+
+    private fun wipeAllShaders() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val shaderDir = File(
+                    YuzuApplication.appContext.getExternalFilesDir(null)?.canonicalPath +
+                    "/shader/"
+                )
+                if (shaderDir.exists()) {
+                    shaderDir.deleteRecursively()
+                }
+            }
         }
     }
 

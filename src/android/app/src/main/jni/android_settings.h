@@ -182,9 +182,9 @@ namespace AndroidSettings {
                                                     Settings::Specialization::Default, true, true,
                                                     &show_soc_overlay};
 
-        Settings::Setting<bool> dont_show_eden_veil_warning{linkage, false,
-                                                            "dont_show_eden_veil_warning",
-                                                            Settings::Category::Miscellaneous};
+        Settings::Setting<bool> dont_show_driver_shader_warning{linkage, false,
+                                                                "dont_show_driver_shader_warning",
+                                                                Settings::Category::Android, Settings::Specialization::Default, true, true};
     };
 
     extern Values values;
