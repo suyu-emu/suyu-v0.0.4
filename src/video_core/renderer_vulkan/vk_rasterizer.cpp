@@ -1029,8 +1029,8 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     if (!regs.viewport_scale_offset_enabled) {
         float x = static_cast<float>(regs.surface_clip.x);
         float y = static_cast<float>(regs.surface_clip.y);
-        float width = std::max(1.0f, static_cast<float>(regs.surface_clip.width));
-        float height = std::max(1.0f, static_cast<float>(regs.surface_clip.height));
+        float width = (std::max)(1.0f, static_cast<float>(regs.surface_clip.width));
+        float height = (std::max)(1.0f, static_cast<float>(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y += height;
             height = -height;
@@ -1074,8 +1074,8 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
     if (!regs.viewport_scale_offset_enabled) {
         u32 x = regs.surface_clip.x;
         u32 y = regs.surface_clip.y;
-        u32 width = std::max(1u, static_cast<u32>(regs.surface_clip.width));
-        u32 height = std::max(1u, static_cast<u32>(regs.surface_clip.height));
+        u32 width = (std::max)(1u, static_cast<u32>(regs.surface_clip.width));
+        u32 height = (std::max)(1u, static_cast<u32>(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y = regs.surface_clip.height - (y + height);
         }
