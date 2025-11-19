@@ -8,7 +8,6 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
@@ -162,112 +161,9 @@ NvResult nvhost_gpu::ZCullBind(IoctlZCullBind& params) {
 }
 
 NvResult nvhost_gpu::SetErrorNotifier(IoctlSetErrorNotifier& params) {
-    LOG_DEBUG(Service_NVDRV, "called, offset={:#X}, size={:#X}, mem={:#X}",
-              params.offset, params.size, params.mem);
-
-    if (!params.mem || !params.size) {
-        std::scoped_lock lk(channel_mutex);
-        if (!channel_state->initialized) {
-            LOG_CRITICAL(Service_NVDRV, "No address space bound for setting up error notifier!");
-            return NvResult::NotInitialized;
-        }
-
-        error_notifier_params = {};
-        LOG_DEBUG(Service_NVDRV, "Error notifier disabled!");
-        return NvResult::Success;
-    }
-
-    constexpr u64 error_notification_size = sizeof(IoctlGetErrorNotification);
-    if (params.size < error_notification_size) {
-        LOG_ERROR(Service_NVDRV, "Error notification size: {:#X} is too small. Need at least {:#X}", params.size,
-                  error_notification_size);
-        return NvResult::InvalidSize;
-    }
-
-    auto handle = nvmap.GetHandle(static_cast<NvCore::NvMap::Handle::Id>(params.mem));
-    if (!handle) {
-        LOG_ERROR(Service_NVDRV, "Unknown nvmap handle id {:#X}", params.mem);
-        return NvResult::BadParameter;
-    }
-
-    if (params.offset > handle->size || params.size > (handle->size - params.offset)) {
-        LOG_ERROR(Service_NVDRV, "Error notifier out of bounds: offset={:#X} size={:#X} handle size={:#X}", params.offset,
-                  params.size, handle->size);
-        return NvResult::InvalidSize;
-    }
-
-    u64 write_address, write_offset, handle_id;
-    {
-        std::scoped_lock lk(channel_mutex);
-        if (!channel_state->initialized) {
-            LOG_CRITICAL(Service_NVDRV, "No address space bound for setting up error notifier!");
-            return NvResult::NotInitialized;
-        }
-
-        error_notifier_params = params;
-        write_address = handle->address;
-        write_offset = params.offset;
-        handle_id = handle->id;
-    }
-
-    if (write_address) {
-        IoctlGetErrorNotification error_notification{};
-        error_notification.status = static_cast<u16>(NotifierStatus::NoError);
-        system.ApplicationMemory().WriteBlock(write_address + write_offset, &error_notification, sizeof(error_notification));
-    } else {
-        LOG_WARNING(Service_NVDRV,
-                    "nvmap handle id {:#X} has no virtual address assigned; "
-                    "skipping initialization write for error notification!",
-                    handle_id);
-    }
-
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called, offset={:X}, size={:X}, mem={:X}", params.offset,
+                params.size, params.mem);
     return NvResult::Success;
-}
-
-void nvhost_gpu::PostErrorNotification(u32 info32, u16 info16, NotifierStatus status) {
-    IoctlSetErrorNotifier error_notifier_params_snapshot{};
-    Kernel::KEvent *error_notifier_event_snapshot{};
-    {
-        std::scoped_lock lk(channel_mutex);
-        error_notifier_params_snapshot = error_notifier_params;
-        error_notifier_event_snapshot = error_notifier_event;
-    }
-
-    if (!error_notifier_params_snapshot.mem || error_notifier_params_snapshot.size < sizeof(IoctlGetErrorNotification)) {
-        LOG_DEBUG(Service_NVDRV, "PostErrorNotification: notifier not configured or too small!");
-        return;
-    }
-
-    auto handle = nvmap.GetHandle(static_cast<NvCore::NvMap::Handle::Id>(error_notifier_params_snapshot.mem));
-    if (!handle || !handle->address) {
-        LOG_ERROR(Service_NVDRV, "PostErrorNotification: invalid handle or virtual address!");
-        return;
-    }
-
-    IoctlGetErrorNotification error_init{};
-    error_init.info32 = info32;
-    error_init.info16 = info16;
-    error_init.status = static_cast<u16>(status);
-    const u64 write_size = std::min<u64>(sizeof(IoctlGetErrorNotification),
-                                         error_notifier_params_snapshot.size);
-    if (error_notifier_params_snapshot.offset >= handle->size ||
-        write_size > (handle->size - error_notifier_params_snapshot.offset)) {
-        LOG_ERROR(Service_NVDRV, "PostErrorNotification: bounds check failed!");
-        return;
-    }
-
-    const u64 virtual_address = handle->address + error_notifier_params_snapshot.offset;
-    if (virtual_address < handle->address) {
-        LOG_ERROR(Service_NVDRV, "PostErrorNotification: virtual address overflow!");
-        return;
-    }
-
-    auto &application_memory = system.ApplicationMemory();
-    application_memory.WriteBlock(virtual_address, &error_init, write_size);
-
-    if (error_notifier_event_snapshot) {
-        error_notifier_event_snapshot->Signal();
-    }
 }
 
 NvResult nvhost_gpu::SetChannelPriority(IoctlChannelSetPriority& params) {
@@ -382,7 +278,7 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
         params.flags = allowed_mask;
     }
 
-    s32_le ctx_class_number_index =
+    s32_le ctx_class_number_index = 
         GetObjectContextClassNumberIndex(static_cast<CtxClasses>(params.class_num));
     if (ctx_class_number_index < 0) {
         LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:#X}",
@@ -461,7 +357,6 @@ NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandL
 
     if (flags.fence_wait.Value()) {
         if (flags.increment_value.Value()) {
-            PostErrorNotification(flags.raw, 0, NotifierStatus::GenericError);
             return NvResult::BadParameter;
         }
 
@@ -495,11 +390,7 @@ NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandL
 NvResult nvhost_gpu::SubmitGPFIFOBase1(IoctlSubmitGpfifo& params,
                                        std::span<Tegra::CommandListHeader> commands, bool kickoff) {
     if (params.num_entries > commands.size()) {
-        LOG_ERROR(Service_NVDRV,
-                  "SubmitGPFIFO: num_entries={:#X} > provided commands={:#X}",
-                  params.num_entries, commands.size());
-
-        PostErrorNotification(params.num_entries, 0, NotifierStatus::BadGpfifo);
+        UNIMPLEMENTED();
         return NvResult::InvalidSize;
     }
 
@@ -518,7 +409,7 @@ NvResult nvhost_gpu::SubmitGPFIFOBase1(IoctlSubmitGpfifo& params,
 NvResult nvhost_gpu::SubmitGPFIFOBase2(IoctlSubmitGpfifo& params,
                                        std::span<const Tegra::CommandListHeader> commands) {
     if (params.num_entries > commands.size()) {
-        PostErrorNotification(params.num_entries, 0, NotifierStatus::BadGpfifo);
+        UNIMPLEMENTED();
         return NvResult::InvalidSize;
     }
 
