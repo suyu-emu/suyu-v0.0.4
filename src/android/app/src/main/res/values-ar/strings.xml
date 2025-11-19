@@ -111,15 +111,15 @@
     <string name="veil_misc">وحدة المعالجة المركزية والذاكرة</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
     <string name="use_sync_core_description">مزامنة سرعة النواة مع النسبة القصوى للسرعة لتحسين الأداء دون تغيير السرعة الفعلية للعبة.</string>
-    <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
-    <string name="use_lru_cache_description">تمكين أو تعطيل ذاكرة التخزين المؤقت الأقل استخداماً مؤخراً (LRU) لتحسين الأداء عن طريق تقليل استخدام وحدة المعالجة المركزية. بعض الألعاب قد تواجه مشاكل معه، خاصةً TotK 1.2.1، لذا قم بتعطيله إذا لم تعمل اللعبة أو انهارت عشوائياً.</string>
+    <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقتة LRU</string>
+    <string name="use_lru_cache_description">قم بتمكين أو تعطيل ذاكرة التخزين المؤقتة الأقل استخدامًا (LRU)، مما يزيد من الأداء عن طريق توفير استخدام معالج وحدة المعالجة المركزية. قد تواجه بعض الألعاب مشكلات مع هذا الإعداد، لذا قم بتعطيله إذا لم يتم تشغيل اللعبة أو تعطلت بشكل عشوائي.</string>
     <string name="use_fast_cpu_time">وقت وحدة المعالجة المركزية السريع</string>
     <string name="use_fast_cpu_time_description">يجبر وحدة المعالجة المركزية المحاكاة على العمل بسرعة أعلى، مما يقلل من بعض محددات معدل الإطارات. هذا الخيار غير مستقر وقد يسبب مشاكل، وقد يرى المستخدمون بأجهزة أضعف انخفاضًا في الأداء.</string>
     <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
     <string name="custom_cpu_ticks_description">قم بتعيين قيمة مخصصة لدورات المعالج. القيم الأعلى يمكن أن تزيد من الأداء، ولكنها قد تتسبب أيضًا في تجميد اللعبة. يوصى باستخدام نطاق 77-21000.</string>
     <string name="cpu_ticks">دورات</string>
-    <string name="skip_cpu_inner_invalidation">تخطي إبطال ذاكرة التخزين المؤقت الداخلية للوحدة المركزية</string>
-    <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقت أثناء تحديثات الذاكرة، مما يقلل استخدام المعالج ويحسن أدائه. قد يسبب هذا أعطالاً أو تعطلًا في بعض الألعاب.</string>
+    <string name="skip_cpu_inner_invalidation">تخطي إبطال صلاحية وحدة المعالجة المركزية الداخلية</string>
+    <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة من جانب وحدة المعالجة المركزية أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسن أداءها. قد يتسبب ذلك في حدوث أعطال أو تعطل في بعض الألعاب.</string>
     <string name="cpuopt_unsafe_host_mmu">تمكين محاكاة MMU المضيف</string>
     <string name="cpuopt_unsafe_host_mmu_description">يعمل هذا التحسين على تسريع وصول الذاكرة بواسطة البرنامج الضيف. يؤدي تمكينه إلى إجراء عمليات قراءة/كتابة ذاكرة الضيف مباشرة في الذاكرة والاستفادة من MMU المضيف. يؤدي تعطيل هذا إلى إجبار جميع عمليات الوصول إلى الذاكرة على استخدام محاكاة MMU البرمجية.</string>
     <string name="fast_cpu_time">CPU Clock</string>
@@ -294,6 +294,25 @@
     <string name="permission_denied_description">لقد رفضت هذا الإذن عدة مرات ويتعين عليك الآن منحه يدويًا في إعدادات النظام</string>
     <string name="about">حول</string>
     <string name="about_description">إصدار البرنامج، الاعتمادات، والمزيد</string>
+    <string name="system_information">معلومات النظام</string>
+    <string name="system_information_description">عرض معلومات تفصيلية عن الجهاز</string>
+    <string name="device_manufacturer">الشركة المصنعة</string>
+    <string name="device_model">طراز</string>
+    <string name="product">المنتج</string>
+    <string name="android_version">إصدار Android</string>
+    <string name="android_security_patch">تصحيح الأمان</string>
+    <string name="build_id">معرف البناء</string>
+    <string name="general_information">معلومات عامة</string>
+    <string name="hardware">الأجهزة</string>
+    <string name="supported_abis">واجهات برمجة التطبيقات المدعومة</string>
+    <string name="cpu_info">معلومات وحدة المعالجة المركزية</string>
+    <string name="gpu_information">معلومات وحدة معالجة الرسومات</string>
+    <string name="vulkan_driver_version">إصدار برنامج تشغيل Vulkan</string>
+    <string name="error_getting_emulator_info">خطأ في الحصول على معلومات المحاكي</string>
+    <string name="memory_info">معلومات الذاكرة</string>
+    <string name="total_memory">إجمالي الذاكرة</string>
+    <string name="soc">نظام الرقاقة:</string>
+
     <string name="warning_help">مساعدة</string>
     <string name="warning">تحذير</string>
     <string name="warning_skip">تخطي</string>
@@ -313,9 +332,9 @@
     <string name="no_file_manager">لم يتم العثور على مدير الملفات</string>
     <string name="notification_no_directory_link">تعذر فتح مجلد Eden</string>
     <string name="notification_no_directory_link_description">يرجى تحديد موقع مجلد المستخدم يدويًا باستخدام اللوحة الجانبية لمدير الملفات.</string>
-    <string name="manage_save_data">إدارة حفظ البيانات</string>
-    <string name="manage_save_data_description">حفظ البيانات التي تم العثور عليها. يرجى اختيار أحد الخيارات التالية</string>
-    <string name="import_save_warning">استيراد حفظ البيانات</string>
+    <string name="manage_save_data">إدارة بيانات الحفظ</string>
+    <string name="manage_save_data_description">تم العثور على بيانات محفوظة. يرجى تحديد أحد الخيارات أدناه.</string>
+    <string name="import_save_warning">استيراد بيانات الحفظ</string>
     <string name="import_save_warning_description">سيؤدي هذا إلى استبدال جميع البيانات المحفوظة الموجودة بالملف المقدم. هل أنت متأكد من أنك تريد المتابعة؟</string>
     <string name="save_files_importing">جارٍ استيراد ملفات الحفظ…</string>
     <string name="save_files_exporting">جارٍ تصدير ملفات الحفظ...</string>
@@ -397,10 +416,10 @@
     <string name="applets_error_description"><![CDATA[يرجى التأكد من أن ملف <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> الخاص بك و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">الفيرموير</a> مثبتة وحاول مرة أخرى.<br>بالإضافة إلى ذلك، تأكد من أن الفيرموير الخاص بك هو من الإصدار 19.0.1 أو أقدم.]]></string>
     <string name="album_applet">الألبوم</string>
     <string name="album_applet_description">عرض الصور المخزنة في مجلد لقطات شاشة المستخدم باستخدام عارض صور النظام</string>
-    <string name="mii_edit_applet">تعديل Mii</string>
+    <string name="mii_edit_applet">تحرير Mii</string>
     <string name="mii_edit_applet_description">عرض وتحرير Miis باستخدام محرر النظام</string>
     <string name="cabinet_applet">الخزانة</string>
-    <string name="cabinet_applet_description">تعديل وحذف البيانات المخزنة على أميبو</string>
+    <string name="cabinet_applet_description">تحرير وحذف البيانات المخزنة على أميبو</string>
     <string name="cabinet_launcher">مشغل الخزانة</string>
     <string name="cabinet_nickname_and_owner">إعدادات الاسم المستعار والمالك</string>
     <string name="cabinet_game_data_eraser">ممحاة بيانات اللعبة</string>
@@ -483,7 +502,7 @@
     <string name="fast_gpu_time_description">استخدم 128 لأقصى أداء و512 لأقصى دقة رسومية.</string>
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
     <string name="renderer_reactive_flushing_description">يحسن دقة العرض في بعض الألعاب على حساب الأداء.</string>
-    <string name="use_disk_shader_cache">ذاكرة التخزين المؤقت للتظليل</string>
+    <string name="use_disk_shader_cache">ذاكرة التخزين المؤقتة لتظلل القرص</string>
     <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
     <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
     <string name="anisotropic_filtering_description">يحسن جودة الأنسجة عند عرضها بزوايا مائلة</string>
@@ -501,7 +520,7 @@
     <string name="renderer_debug_description">يضبط واجهة برمجة التطبيقات الرسومية على وضع تصحيح الأخطاء البطيء.</string>
     <string name="fastmem">Fastmem</string>
 
-    <string name="log">تسجيل الدخول</string>
+    <string name="log">السجلات</string>
     <string name="flush_by_line">تفريغ سجلات التصحيح حسب السطر</string>
     <string name="flush_by_line_description">يفرغ سجلات التصحيح عند كتابة كل سطر، مما يجعل التصحيح أسهل في حالات التوقف أو التجميد.</string>
 
@@ -564,7 +583,7 @@
     <string name="dual_joycons">جوي كون ثنائي</string>
     <string name="left_joycon">جوي كون اليسرى</string>
     <string name="right_joycon">جوي كون اليمنى</string>
-    <string name="gamecube_controller">ذراع تحكم جيم كيوب</string>
+    <string name="gamecube_controller">ذراع تحكم GameCube</string>
     <string name="invert_axis">عكس المحور</string>
     <string name="invert_button">عكس الزر</string>
     <string name="toggle_button">زر التبديل</string>
@@ -588,7 +607,7 @@
     <string name="stick_map_description">حرك العصا إلى اليسار ثم للأعلى أو اضغط على زر</string>
     <string name="button_map_description">اضغط على زر أو حرك الزناد/العصا</string>
     <string name="map_dpad_direction">تعيين الأسهم %1$s</string>
-    <string name="map_control">تعيين إلى%1$s</string>
+    <string name="map_control">تعيين إلى %1$s</string>
     <string name="failed_to_load_profile">فشل تحميل ملف التعريف</string>
     <string name="failed_to_save_profile">فشل في حفظ ملف التعريف</string>
     <string name="reset_mapping">إعادة تعيين التعيينات</string>
@@ -617,7 +636,7 @@
     <string name="install">تثبيت</string>
     <string name="fetch">جلب</string>
     <string name="delete">حذف</string>
-    <string name="edit">تعديل</string>
+    <string name="edit">تحرير</string>
     <string name="import_success">تم الاستيراد بنجاح</string>
     <string name="export_success">تم التصدير بنجاح</string>
     <string name="start">بدء</string>
@@ -643,7 +662,7 @@
     <string name="error_during_fetch">خطأ أثناء الجلب</string>
     <string name="show_downloads">عرض التنزيلات</string>
     <string name="hide_downloads">إخفاء التنزيلات</string>
-    <string name="failed_cache_dir">مجلد ذاكرة التخزين المؤقت غير متوفر</string>
+    <string name="failed_cache_dir">مجلد ذاكرة التخزين المؤقتة غير متوفر</string>
     <string name="empty_response_body">نص الاستجابة فارغ</string>
     <string name="successfully_installed">تم تثبيت %1$s بنجاح</string>
     <string name="driver_failed_title">فشل تثبيت برنامج التشغيل</string>
@@ -653,7 +672,7 @@
     <string name="installing">جارٍ التثبيت...</string>
     <string name="latest">الأحدث</string>
     <string name="recommended_driver">برنامج التشغيل الموصى به:</string>
-    <string name="gpu_model">طراز وحدة معالجة الرسومات:</string>
+    <string name="gpu_model">طراز وحدة معالجة الرسومات</string>
     <string name="unsupported_gpu">وحدة معالجة الرسومات غير مدعومة</string>
     <string name="unsupported_gpu_warning">لا تدعم وحدة معالجة الرسومات الخاصة بك إدخال برامج التشغيل. لا يُنصح بمحاولة تعيين برامج تشغيل مخصصة.</string>
 
@@ -675,7 +694,7 @@
     <string name="info">معلومات</string>
     <string name="info_description">معرف العنوان، المطور، الإصدار</string>
     <string name="per_game_settings">إعدادات خاصة للعبة</string>
-    <string name="per_game_settings_description">تعديل الإعدادات الخاصة بهذه اللعبة</string>
+    <string name="per_game_settings_description">تحرير الإعدادات الخاصة بهذه اللعبة</string>
     <string name="launch_options">تشغيل التكوين</string>
     <string name="path">المسار</string>
     <string name="program_id">معرف العنوان</string>
@@ -689,21 +708,23 @@
     <string name="reset_playtime_description">إعادة ضبط زمن اللعب الحالي للعبة إلى 0 ثانية</string>
     <string name="reset_playtime_warning_description">سيؤدي هذا إلى مسح بيانات زمن اللعب الحالية للعبة. هل أنت متأكد؟</string>
     <string name="playtime_reset_successfully">تمت إعادة ضبط زمن اللعب</string>
-    <string name="edit_playtime">تعديل زمن التشغيل</string>
+    <string name="edit_playtime">تحرير زمن التشغيل</string>
     <string name="hours">ساعات</string>
     <string name="minutes">دقائق</string>
     <string name="hours_must_be_between_0_and_9999">يجب أن تكون الساعات بين 0 و 9999</string>
     <string name="minutes_must_be_between_0_and_59">يجب أن تكون الدقائق بين 0 و 59</string>
     <string name="seconds_must_be_between_0_and_59">يجب أن تكون الثواني بين 0 و 59</string>
     <string name="playtime_updated_successfully">تم تحديث زمن اللعب بنجاح</string>
-    <string name="clear_shader_cache">مسح ذاكرة التخزين المؤقت للتظليل</string>
+    <string name="clear_shader_cache">مسح ذاكرة التخزين المؤقتة للتظليل</string>
     <string name="clear_shader_cache_description">يزيل جميع التظليلات التي تم إنشاؤها أثناء لعب هذه اللعبة</string>
-    <string name="clear_shader_cache_warning_description">سوف تواجه المزيد من التأتأة مع تجديد ذاكرة التخزين المؤقت للتظليل</string>
+    <string name="clear_shader_cache_warning_description">ستواجه المزيد من التقطع مع إعادة إنشاء ذاكرة التخزين المؤقتة للتظلل</string>
     <string name="cleared_shaders_successfully">تم مسح التظليل بنجاح</string>
+    <string name="driver_shader_wipe_dialog_title">تم مسح الشادر</string>
+    <string name="driver_shader_wipe_dialog_message">قام Eden تلقائيًا بمسح جميع ذاكرات التخزين المؤقت للتظليل للحفاظ على صحة خط أنابيب Vulkan. هذا ضروري عند تبديل برامج تشغيل وحدة معالجة الرسومات لمنع الأعطال وتلف الرسومات. قد تواجه بعض التلعثم أثناء إعادة بناء وحدات التظليل.</string>
     <string name="addons_game">إضافات: %1$s</string>
-    <string name="save_data">حفظ البيانات</string>
-    <string name="save_data_description">إدارة حفظ البيانات الخاصة بهذه اللعبة</string>
-    <string name="delete_save_data">حذف حفظ البيانات</string>
+    <string name="save_data">البيانات المحفوظة</string>
+    <string name="save_data_description">إدارة البيانات المحفوظة الخاصة بهذه اللعبة</string>
+    <string name="delete_save_data">حذف البيانات المحفوظة</string>
     <string name="delete_save_data_description">يزيل كافة البيانات المحفوظة الخاصة بهذه اللعبة</string>
     <string name="delete_save_data_warning_description">سيؤدي هذا إلى حذف جميع بيانات حفظ اللعبة بشكل نهائي. هل أنت متأكد من أنك تريد المتابعة؟</string>
     <string name="save_data_deleted_successfully">تم حذف البيانات المحفوظة بنجاح</string>
@@ -794,7 +815,7 @@
     <string name="emulation_control_scale">الحجم</string>
     <string name="emulation_control_opacity">الشفافية</string>
     <string name="emulation_touch_overlay_reset">إعادة تعيين التراكب</string>
-    <string name="emulation_touch_overlay_edit">تعديل التراكب</string>
+    <string name="emulation_touch_overlay_edit">تحرير التراكب</string>
     <string name="emulation_pause">إيقاف المحاكاة مؤقتًا</string>
     <string name="emulation_unpause">إلغاء الإيقاف المؤقت للمحاكاة</string>
     <string name="emulation_input_overlay">خيارات التراكب</string>

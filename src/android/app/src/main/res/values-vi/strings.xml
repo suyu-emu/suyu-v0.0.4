@@ -525,7 +525,6 @@
     <string name="installing">Đang cài đặt…</string>
     <string name="latest">Mới nhất</string>
     <string name="recommended_driver">Trình điều khiển đề xuất:</string>
-    <string name="gpu_model">Model GPU:</string>
     <string name="unsupported_gpu">GPU không được hỗ trợ</string>
     <string name="unsupported_gpu_warning">GPU của bạn không hỗ trợ tiêm trình điều khiển. Không nên đặt trình điều khiển tùy chỉnh.</string>
 

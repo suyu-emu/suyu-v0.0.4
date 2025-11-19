@@ -525,7 +525,6 @@
     <string name="installing">Installerer…</string>
     <string name="latest">Siste</string>
     <string name="recommended_driver">Anbefalt driver:</string>
-    <string name="gpu_model">GPU-modell:</string>
     <string name="unsupported_gpu">Ustøttet GPU</string>
     <string name="unsupported_gpu_warning">GPU-en din støtter ikke driverinjeksjon. Det anbefales ikke å sette egendefinerte drivere.</string>
 

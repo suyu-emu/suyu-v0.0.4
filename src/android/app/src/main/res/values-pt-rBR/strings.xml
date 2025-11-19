@@ -647,7 +647,6 @@ uma tentativa de mapeamento automático</string>
     <string name="installing">Instalando…</string>
     <string name="latest">Mais recente</string>
     <string name="recommended_driver">Driver recomendado:</string>
-    <string name="gpu_model">Modelo GPU:</string>
     <string name="unsupported_gpu">GPU não suportada</string>
     <string name="unsupported_gpu_warning">Sua GPU não suporta injeção de driver. Não é recomendado definir drivers personalizados.</string>
 

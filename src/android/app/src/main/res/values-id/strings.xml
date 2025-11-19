@@ -636,7 +636,6 @@
     <string name="installing">Menginstal…</string>
     <string name="latest">Terbaru</string>
     <string name="recommended_driver">Driver yang Direkomendasikan:</string>
-    <string name="gpu_model">Model GPU:</string>
     <string name="unsupported_gpu">GPU Tidak Didukung</string>
     <string name="unsupported_gpu_warning">GPU Anda tidak mendukung injeksi driver. Tidak disarankan untuk mengatur driver kustom.</string>
 

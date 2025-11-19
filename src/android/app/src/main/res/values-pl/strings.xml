@@ -294,6 +294,25 @@
     <string name="permission_denied_description">Odmówiłeś dostępu do powiadomień zbyt wiele razy, teraz musisz przyznać je w ustawieniach systemowych Androida.</string>
     <string name="about">O aplikacji</string>
     <string name="about_description">Wersja, podziękowania i więcej</string>
+    <string name="system_information">Informacje o systemie</string>
+    <string name="system_information_description">Wyświetl szczegółowe informacje o urządzeniu</string>
+    <string name="device_manufacturer">Producent</string>
+    <string name="device_model">Model</string>
+    <string name="product">Produkt</string>
+    <string name="android_version">Wersja Androida</string>
+    <string name="android_security_patch">Poprawki bezpieczeństwa</string>
+    <string name="build_id">Identyfikator kompilacji</string>
+    <string name="general_information">Informacje ogólne</string>
+    <string name="hardware">Sprzęt</string>
+    <string name="supported_abis">Obsługiwane ABI</string>
+    <string name="cpu_info">Informacje o CPU</string>
+    <string name="gpu_information">Informacje o GPU</string>
+    <string name="vulkan_driver_version">Wersja sterownika Vulkan</string>
+    <string name="error_getting_emulator_info">Błąd podczas pobierania informacji o emulatorze</string>
+    <string name="memory_info">Informacje o pamięci</string>
+    <string name="total_memory">Całkowita pamięć</string>
+    <string name="soc">SOC:</string>
+
     <string name="warning_help">Pomoc</string>
     <string name="warning">Ostrzeżenie</string>
     <string name="warning_skip">Pomiń</string>
@@ -649,7 +668,7 @@
     <string name="installing">Instalowanie…</string>
     <string name="latest">Najnowsza</string>
     <string name="recommended_driver">Zalecany sterownik:</string>
-    <string name="gpu_model">Model GPU:</string>
+    <string name="gpu_model">Model GPU</string>
     <string name="unsupported_gpu">Nieobsługiwana GPU</string>
     <string name="unsupported_gpu_warning">Twoja GPU nie obsługuje wstrzykiwania sterowników. Nie zaleca się ustawiania niestandardowych sterowników.</string>
 
@@ -696,6 +715,8 @@
     <string name="clear_shader_cache_description">Usuwa wszystkie shadery zbudowane podczas grania w tę grę</string>
     <string name="clear_shader_cache_warning_description">Możesz doświadczyć większych przycięć, gdy pamięć podręczna shaderów będzie się odbudowywać</string>
     <string name="cleared_shaders_successfully">Pomyślnie wyczyszczono shadery</string>
+    <string name="driver_shader_wipe_dialog_title">Shadery wyczyszczone</string>
+    <string name="driver_shader_wipe_dialog_message">Eden automatycznie wyczyścił wszystkie pamięci podręczne shaderów, aby zachować poprawność walidacji potoków Vulkan. Jest to wymagane przy zmianie sterowników GPU, aby zapobiec awariom i błędom graficznym. Podczas ponownego budowania shaderów możesz doświadczyć chwilowych przycięć.</string>
     <string name="addons_game">Dodatki: %1$s</string>
     <string name="save_data">Dane zapisu</string>
     <string name="save_data_description">Zarządzaj danymi zapisu specyficznymi dla tej gry</string>

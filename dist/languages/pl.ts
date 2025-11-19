@@ -5723,44 +5723,44 @@ Przejdź do sekcji Konfiguracja -&gt; System -&gt; Sieć i dokonaj wyboru.</tran
 <context>
     <name>GRenderWindow</name>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1008"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1025"/>
         <source>OpenGL not available!</source>
         <translation>OpenGL niedostępny!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1010"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
         <source>OpenGL shared contexts are not supported.</source>
         <translation>Współdzielone konteksty OpenGL nie są obsługiwane.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1027"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
         <source>Eden has not been compiled with OpenGL support.</source>
         <translation>Eden nie został skompilowany z obsługą OpenGL.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1050"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1066"/>
         <source>Error while initializing OpenGL!</source>
         <translation>Błąd podczas inicjowania OpenGL!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1052"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
         <source>Your GPU may not support OpenGL, or you do not have the latest graphics driver.</source>
         <translation>Twoja karta graficzna może nie obsługiwać OpenGL lub nie masz najnowszych sterowników karty graficznej.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1058"/>
         <source>Error while initializing OpenGL 4.6!</source>
         <translation>Błąd podczas inicjowania OpenGL 4.6!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1060"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
         <source>Your GPU may not support OpenGL 4.6, or you do not have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</source>
         <translation>Twoja karta graficzna może nie obsługiwać OpenGL 4.6 lub nie masz najnowszych sterowników karty graficznej.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1068"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
         <translation>Twoja karta graficzna może nie obsługiwać co najmniej jednego wymaganego rozszerzenia OpenGL. Upewnij się, że masz najnowsze sterowniki karty graficznej&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Nieobsługiwane rozszerzenia:&lt;br&gt;%2</translation>
     </message>
@@ -7354,12 +7354,12 @@ Proszę, używaj tej funkcji tylko do instalowania łatek i DLC.</translation>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3234"/>
         <source>Function Disabled</source>
-        <translation type="unfinished"/>
+        <translation>Funkcja wyłączona</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3235"/>
         <source>Compatibility list reporting is currently disabled. Check back later!</source>
-        <translation type="unfinished"/>
+        <translation>Zgłaszanie do listy kompatybilności jest obecnie wyłączone. Spróbuj ponownie później!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3273"/>

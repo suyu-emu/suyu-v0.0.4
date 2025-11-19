@@ -595,7 +595,6 @@
     <string name="installing">Telepítés…</string>
     <string name="latest">Legújabb</string>
     <string name="recommended_driver">Ajánlott illesztőprogram:</string>
-    <string name="gpu_model">GPU modell:</string>
     <string name="unsupported_gpu">Nem támogatott GPU</string>
     <string name="unsupported_gpu_warning">A GPU-d nem támogatja az illesztőprogramok befecskendezését. Nem ajánlott egyéni illesztőprogramok beállítása.</string>
 

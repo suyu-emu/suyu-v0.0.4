@@ -5660,44 +5660,44 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GRenderWindow</name>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1008"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1025"/>
         <source>OpenGL not available!</source>
         <translation>OpenGL을 사용할 수 없습니다!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1010"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
         <source>OpenGL shared contexts are not supported.</source>
         <translation>OpenGL 공유 컨텍스트는 지원되지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1027"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
         <source>Eden has not been compiled with OpenGL support.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1050"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1066"/>
         <source>Error while initializing OpenGL!</source>
         <translation>OpenGL을 초기화하는 동안 오류가 발생했습니다!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1052"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
         <source>Your GPU may not support OpenGL, or you do not have the latest graphics driver.</source>
         <translation>사용하시는 GPU가 OpenGL을 지원하지 않거나, 최신 그래픽 드라이버가 설치되어 있지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1058"/>
         <source>Error while initializing OpenGL 4.6!</source>
         <translation>OpenGL 4.6 초기화 중 오류 발생!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1060"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
         <source>Your GPU may not support OpenGL 4.6, or you do not have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</source>
         <translation>사용하시는 GPU가 OpenGL 4.6을 지원하지 않거나 최신 그래픽 드라이버가 설치되어 있지 않습니다. &lt;br&gt;&lt;br&gt;GL 렌더링 장치:&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1068"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
         <translation>사용하시는 GPU가 1개 이상의 OpenGL 확장 기능을 지원하지 않습니다. 최신 그래픽 드라이버가 설치되어 있는지 확인하세요. &lt;br&gt;&lt;br&gt;GL 렌더링 장치:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;지원하지 않는 확장 기능:&lt;br&gt;%2</translation>
     </message>

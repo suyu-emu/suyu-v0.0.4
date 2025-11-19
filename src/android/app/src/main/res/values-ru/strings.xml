@@ -294,6 +294,23 @@
     <string name="permission_denied_description">Вы слишком часто отклоняли это разрешение, и теперь вам нужно будет вручную предоставить его в настройках системы.</string>
     <string name="about">О нас</string>
     <string name="about_description">Версия сборки, титры и другое</string>
+    <string name="system_information">Системная информация</string>
+    <string name="system_information_description">Просмотреть подробную информацию об устройстве</string>
+    <string name="device_manufacturer">Производитель</string>
+    <string name="device_model">Модель</string>
+    <string name="product">Продукт</string>
+    <string name="android_version">Версия Android</string>
+    <string name="android_security_patch">Патч безопасности</string>
+    <string name="build_id">ID сборки</string>
+    <string name="general_information">Общая информация</string>
+    <string name="hardware">Аппаратное обеспечение</string>
+    <string name="supported_abis">Поддерживаемые ABI</string>
+    <string name="cpu_info">Информация о ЦП</string>
+    <string name="gpu_information">Информация о ГПУ</string>
+    <string name="vulkan_driver_version">Версия драйвера Vulkan</string>
+    <string name="error_getting_emulator_info">Ошибка получения информации об эмуляторе</string>
+    <string name="memory_info">Информация о памяти</string>
+    <string name="total_memory">Общий объем памяти</string>
     <string name="warning_help">Помощь</string>
     <string name="warning">Предупреждение</string>
     <string name="warning_skip">Пропустить</string>
@@ -649,7 +666,7 @@
     <string name="installing">Установка…</string>
     <string name="latest">Последний</string>
     <string name="recommended_driver">Рекомендуемый драйвер:</string>
-    <string name="gpu_model">Модель ГПУ:</string>
+    <string name="gpu_model">Модель ГПУ</string>
     <string name="unsupported_gpu">ГПУ не поддерживается</string>
     <string name="unsupported_gpu_warning">Ваш ГПУ не поддерживает замену драйверов. Установка сторонних драйверов не рекомендуется.</string>
 
@@ -696,6 +713,8 @@
     <string name="clear_shader_cache_description">Удаляет все шейдеры, созданные во время игры.</string>
     <string name="clear_shader_cache_warning_description">У вас будет больше лагов во время повторной генерации кэша шейдеров</string>
     <string name="cleared_shaders_successfully">Успешно очищены шейдеры</string>
+    <string name="driver_shader_wipe_dialog_title">Шейдеры очищены</string>
+    <string name="driver_shader_wipe_dialog_message">Eden автоматически очистил все кэши шейдеров для поддержания валидации Vulkan-конвейера. Это необходимо при переключении драйверов графического процессора для предотвращения сбоев и графических артефактов. Вы можете столкнуться с некоторыми подтормаживаниями во время перекомпиляции шейдеров.</string>
     <string name="addons_game">Аддоны: %1$s</string>
     <string name="save_data">Сохранить данные</string>
     <string name="save_data_description">Управлять сохранениями этой игры.</string>

@@ -469,7 +469,6 @@
     <string name="installing">Instalace…</string>
     <string name="latest">Nejnovější</string>
     <string name="recommended_driver">Doporučený ovladač:</string>
-    <string name="gpu_model">Model GPU:</string>
     <string name="unsupported_gpu">Nepodporovaná GPU</string>
     <string name="unsupported_gpu_warning">Vaše GPU nepodporuje vkládání ovladačů. Nastavení vlastních ovladačů se nedoporučuje.</string>
 

@@ -294,6 +294,25 @@
     <string name="permission_denied_description">Ви занадто часто відхиляли цей дозвіл, тож тепер вам потрібно буде вручну надати його в системних налаштуваннях.</string>
     <string name="about">Про нас</string>
     <string name="about_description">Версія збірки, титри та інше</string>
+    <string name="system_information">Системна інформація</string>
+    <string name="system_information_description">Переглянути детальну інформацію щодо пристрою</string>
+    <string name="device_manufacturer">Виробник</string>
+    <string name="device_model">Модель</string>
+    <string name="product">Продукт</string>
+    <string name="android_version">Версія Android</string>
+    <string name="android_security_patch">Оновлення безпеки</string>
+    <string name="build_id">ID збірки</string>
+    <string name="general_information">Загальна інформація</string>
+    <string name="hardware">Обладнання</string>
+    <string name="supported_abis">Підтримувані ABI</string>
+    <string name="cpu_info">Інформація щодо ЦП</string>
+    <string name="gpu_information">Інформація щодо ГП</string>
+    <string name="vulkan_driver_version">Версія драйвера Vulkan</string>
+    <string name="error_getting_emulator_info">Помилка під час отримання інформації щодо емуляції</string>
+    <string name="memory_info">Інформація щодо пам’яті</string>
+    <string name="total_memory">Усього пам’яті</string>
+    <string name="soc">SOC:</string>
+
     <string name="warning_help">Допомога</string>
     <string name="warning">Попередження</string>
     <string name="warning_skip">Пропустити</string>
@@ -649,7 +668,7 @@
     <string name="installing">Встановлення…</string>
     <string name="latest">Останній</string>
     <string name="recommended_driver">Рекомендований драйвер:</string>
-    <string name="gpu_model">Модель GPU:</string>
+    <string name="gpu_model">Модель ГП</string>
     <string name="unsupported_gpu">GPU не підтримується</string>
     <string name="unsupported_gpu_warning">Ваш GPU не підтримує заміну драйверів. Встановлення сторонніх драйверів не рекомендується.</string>
 
@@ -696,6 +715,8 @@
     <string name="clear_shader_cache_description">Вилучає усі скомпільовані шейдери під час відтворення цієї гри</string>
     <string name="clear_shader_cache_warning_description">Під час повторної генерації шейдерів можуть виникати затримки</string>
     <string name="cleared_shaders_successfully">Очищення шейдерів успішне </string>
+    <string name="driver_shader_wipe_dialog_title">Шейдери очищено</string>
+    <string name="driver_shader_wipe_dialog_message">Eden автоматично очистив увесь кеш шейдерів, щоб забезпечити перевірку конвеєра Vulkan. Це необхідно при зміні драйверів ГП, щоб уникнути збоїв і графічних помилок.  У вас можуть виникнути мікропідвисання під час повторної компіляції шейдерів.</string>
     <string name="addons_game">Доповнення: %1$s</string>
     <string name="save_data">Збереження</string>
     <string name="save_data_description">Керування збереження цієї гри</string>

@@ -603,7 +603,6 @@
     <string name="installing">Инсталирање ...</string>
     <string name="latest">Најновији</string>
     <string name="recommended_driver">Препоручени управљачки програм:</string>
-    <string name="gpu_model">ГПУ модел:</string>
     <string name="unsupported_gpu">Неподржани ГПУ</string>
     <string name="unsupported_gpu_warning">Ваш ГПУ не подржава ињекцију управљачких програма. Покушај постављања прилагођених управљачких програма се не препоручује.</string>
 

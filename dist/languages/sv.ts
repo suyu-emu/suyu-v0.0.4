@@ -5731,44 +5731,44 @@ Gå till Konfigurera -&gt; System -&gt; Nätverk och gör ett val.</translation>
 <context>
     <name>GRenderWindow</name>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1008"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1025"/>
         <source>OpenGL not available!</source>
         <translation>OpenGL är inte tillgängligt!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1010"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
         <source>OpenGL shared contexts are not supported.</source>
         <translation>Delade OpenGL-kontexter stöds inte.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1027"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
         <source>Eden has not been compiled with OpenGL support.</source>
         <translation>Eden har inte kompilerats med OpenGL-stöd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1050"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1066"/>
         <source>Error while initializing OpenGL!</source>
         <translation>Fel vid initiering av OpenGL!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1052"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
         <source>Your GPU may not support OpenGL, or you do not have the latest graphics driver.</source>
         <translation>Din GPU kanske inte stöder OpenGL, eller så har du inte den senaste grafikdrivrutinen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1058"/>
         <source>Error while initializing OpenGL 4.6!</source>
         <translation>Fel vid initiering av OpenGL 4.6!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1060"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
         <source>Your GPU may not support OpenGL 4.6, or you do not have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</source>
         <translation>Din GPU kanske inte stöder OpenGL 4.6, eller så har du inte den senaste grafikdrivrutinen.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1068"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
         <translation>Din GPU kanske inte stöder ett eller flera av de nödvändiga OpenGL-tilläggen. Se till att du har den senaste grafikdrivrutinen.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Tillägg som inte stöds:&lt;br&gt;%2</translation>
     </message>
@@ -7355,12 +7355,12 @@ Använd endast denna funktion för att installera uppdateringar och DLC.</transl
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3234"/>
         <source>Function Disabled</source>
-        <translation type="unfinished"/>
+        <translation>Funktion inaktiverad</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3235"/>
         <source>Compatibility list reporting is currently disabled. Check back later!</source>
-        <translation type="unfinished"/>
+        <translation>Rapportering till kompatibilitetslistan är för närvarande inaktiverad. Kom tillbaka senare!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3273"/>

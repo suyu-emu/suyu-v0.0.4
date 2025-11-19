@@ -647,7 +647,6 @@
     <string name="installing">Installazione in corso…</string>
     <string name="latest">Ultimo</string>
     <string name="recommended_driver">Driver consigliato:</string>
-    <string name="gpu_model">Modello GPU:</string>
     <string name="unsupported_gpu">GPU non supportata</string>
     <string name="unsupported_gpu_warning">La tua GPU non supporta l\'iniezione di driver. Non è consigliato impostare driver personalizzati.</string>
 

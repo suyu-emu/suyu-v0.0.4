@@ -4592,7 +4592,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="297"/>
         <source>Error deleting image</source>
-        <translation>Помилка видалення зображення</translation>
+        <translation>Помилка під час видалення зображення</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="298"/>
@@ -4602,7 +4602,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="306"/>
         <source>Error deleting file</source>
-        <translation>Помилка видалення файлу</translation>
+        <translation>Помилка під час видалення файлу</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="307"/>
@@ -4612,7 +4612,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="314"/>
         <source>Error creating user image directory</source>
-        <translation>Помилка створення теки користувацьких зображень</translation>
+        <translation>Помилка під час створення теки користувацьких зображень</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="315"/>
@@ -4622,7 +4622,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="320"/>
         <source>Error saving user image</source>
-        <translation>Помилка збереження зображення користувача</translation>
+        <translation>Помилка під час збереження зображення користувача</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="321"/>
@@ -4653,7 +4653,7 @@ Current values are %1% and %2% respectively.</source>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="369"/>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="375"/>
         <source>Error loading archive</source>
-        <translation>Помилка завантаження архіву</translation>
+        <translation>Помилка під час завантаження архіву</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="370"/>
@@ -4668,7 +4668,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="381"/>
         <source>Error extracting archive</source>
-        <translation>Помилка видобування архіву</translation>
+        <translation>Помилка під час видобування архіву</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="382"/>
@@ -4678,7 +4678,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="387"/>
         <source>Error finding image directory</source>
-        <translation>Помилка виявлення теки зображень</translation>
+        <translation>Помилка під час виявлення теки зображень</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="388"/>
@@ -4829,7 +4829,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="282"/>
         <source>Error enabling ring input</source>
-        <translation>Помилка увімкнення введення Ring</translation>
+        <translation>Помилка під час увімкнення введення Ring</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="288"/>
@@ -5726,44 +5726,44 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GRenderWindow</name>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1008"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1025"/>
         <source>OpenGL not available!</source>
         <translation>OpenGL недоступний!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1010"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
         <source>OpenGL shared contexts are not supported.</source>
         <translation>Спільні контексти OpenGL не підтримуються.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1027"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
         <source>Eden has not been compiled with OpenGL support.</source>
         <translation>Eden не скомпільовано з підтримкою OpenGL.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1050"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1066"/>
         <source>Error while initializing OpenGL!</source>
         <translation>Помилка під час ініціалізації OpenGL!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1052"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
         <source>Your GPU may not support OpenGL, or you do not have the latest graphics driver.</source>
         <translation>Ваш ГП може не підтримувати OpenGL або у вас встановлено застарілий графічний драйвер.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1058"/>
         <source>Error while initializing OpenGL 4.6!</source>
         <translation>Помилка під час ініціалізації OpenGL 4.6!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1060"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
         <source>Your GPU may not support OpenGL 4.6, or you do not have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</source>
         <translation>Ваш ГП може не підтримувати OpenGL 4.6 або у вас встановлено застарілий графічний драйвер.&lt;br&gt;&lt;br&gt;Візуалізатор GL:&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1068"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
         <translation>Ваш ГП може не підтримувати одне або кілька розширень, необхідних для OpenGL. Переконайтеся, що у вас встановлено останній графічний драйвер.&lt;br&gt;&lt;br&gt;Візуалізатор GL:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Непідтримувані розширення:&lt;br&gt;%2</translation>
     </message>
@@ -7037,7 +7037,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2427"/>
         <source>Error Opening %1 Folder</source>
-        <translation>Помилка відкриття теки «%1»</translation>
+        <translation>Помилка під час відкриття теки «%1»</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2428"/>
@@ -7165,7 +7165,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2772"/>
         <source>Error Opening %1</source>
-        <translation>Помилка відкриття «%1»</translation>
+        <translation>Помилка під час відкриття «%1»</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2781"/>
@@ -7356,17 +7356,17 @@ Please, only use this feature to install updates and DLC.</source>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3234"/>
         <source>Function Disabled</source>
-        <translation type="unfinished"/>
+        <translation>Функцію вимкнену</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3235"/>
         <source>Compatibility list reporting is currently disabled. Check back later!</source>
-        <translation type="unfinished"/>
+        <translation>Звітування для переліку сумісності наразі вимкнено. Зазирніть пізніше!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3273"/>
         <source>Error opening URL</source>
-        <translation>Помилка відкриття URL</translation>
+        <translation>Помилка під час відкриття URL</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3274"/>
@@ -7429,7 +7429,7 @@ Please, only use this feature to install updates and DLC.</source>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3797"/>
         <source>Error loading Amiibo data</source>
-        <translation>Помилка завантаження даних amiibo</translation>
+        <translation>Помилка під час завантаження даних amiibo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3807"/>
@@ -9032,17 +9032,17 @@ To:
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="209"/>
         <source>Error Removing Contents</source>
-        <translation>Помилка вилучення вмісту</translation>
+        <translation>Помилка під час вилучення вмісту</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="211"/>
         <source>Error Removing Update</source>
-        <translation>Помилка вилучення оновлення</translation>
+        <translation>Помилка під час вилучення оновлення</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="213"/>
         <source>Error Removing DLC</source>
-        <translation>Помилка вилучення доповнення</translation>
+        <translation>Помилка під час вилучення доповнення</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="225"/>
@@ -9088,7 +9088,7 @@ To:
         <location filename="../../src/qt_common/util/game.cpp" line="279"/>
         <location filename="../../src/qt_common/util/game.cpp" line="287"/>
         <source>Error Removing Transferable Shader Cache</source>
-        <translation>Помилка вилучення переміщуваного кешу шейдерів</translation>
+        <translation>Помилка під час вилучення переміщуваного кешу шейдерів</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="280"/>
@@ -9109,7 +9109,7 @@ To:
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="304"/>
         <source>Error Removing Vulkan Driver Pipeline Cache</source>
-        <translation>Помилка вилучення кешу конвеєра драйвера Vulkan</translation>
+        <translation>Помилка під час вилучення кешу конвеєра драйвера Vulkan</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="305"/>
@@ -9120,7 +9120,7 @@ To:
         <location filename="../../src/qt_common/util/game.cpp" line="315"/>
         <location filename="../../src/qt_common/util/game.cpp" line="325"/>
         <source>Error Removing Transferable Shader Caches</source>
-        <translation>Помилка вилучення переміщуваних кешів шейдерів</translation>
+        <translation>Помилка під час вилучення переміщуваних кешів шейдерів</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="321"/>
@@ -9136,7 +9136,7 @@ To:
         <location filename="../../src/qt_common/util/game.cpp" line="340"/>
         <location filename="../../src/qt_common/util/game.cpp" line="349"/>
         <source>Error Removing Custom Configuration</source>
-        <translation>Помилка вилучення користувацього налаштування</translation>
+        <translation>Помилка під час вилучення користувацього налаштування</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="341"/>
@@ -9249,7 +9249,7 @@ To:
     <message>
         <location filename="../../src/qt_common/util/path.cpp" line="21"/>
         <source>Error Opening Shader Cache</source>
-        <translation>Помилка відкривання кешу шейдерів</translation>
+        <translation>Помилка під час відкривання кешу шейдерів</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/path.cpp" line="22"/>

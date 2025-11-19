@@ -519,7 +519,6 @@
     <string name="installing">لە دامەزراندن...</string>
     <string name="latest">نوێترین</string>
     <string name="recommended_driver">درایڤەری پێشنیارکراو:</string>
-    <string name="gpu_model">مۆدێلی GPU:</string>
     <string name="unsupported_gpu">GPU پشتگیری نەکراوە</string>
     <string name="unsupported_gpu_warning">GPUی تۆ پشتگیری لە درایڤەری تایبەت ناکات. پێشنیار ناکرێت درایڤەری تایبەت دابنێیت.</string>
 

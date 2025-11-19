@@ -647,7 +647,6 @@
     <string name="installing">Installation en cours…</string>
     <string name="latest">Dernière</string>
     <string name="recommended_driver">Pilote recommandé :</string>
-    <string name="gpu_model">Modèle GPU :</string>
     <string name="unsupported_gpu">GPU non pris en charge</string>
     <string name="unsupported_gpu_warning">Votre GPU ne prend pas en charge l\'injection de pilotes. Il n\'est pas recommandé de définir des pilotes personnalisés.</string>
 

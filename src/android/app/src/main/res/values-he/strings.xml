@@ -541,7 +541,6 @@
     <string name="installing">מתקין…</string>
     <string name="latest">האחרון</string>
     <string name="recommended_driver">מנהל התקן מומלץ:</string>
-    <string name="gpu_model">דגם GPU:</string>
     <string name="unsupported_gpu">GPU לא נתמך</string>
     <string name="unsupported_gpu_warning">ה-GPU שלך אינו תומך בהזרקת מנהל התקן. לא מומלץ להגדיר מנהלי התקן מותאמים אישית.</string>
 

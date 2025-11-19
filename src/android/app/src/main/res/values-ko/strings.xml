@@ -554,7 +554,6 @@
     <string name="installing">설치 중…</string>
     <string name="latest">최신</string>
     <string name="recommended_driver">추천 드라이버:</string>
-    <string name="gpu_model">GPU 모델:</string>
     <string name="unsupported_gpu">지원되지 않는 GPU</string>
     <string name="unsupported_gpu_warning">GPU가 드라이버 주입을 지원하지 않습니다. 사용자 정의 드라이버 설정은 권장되지 않습니다.</string>
 

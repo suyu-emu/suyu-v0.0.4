@@ -543,7 +543,6 @@
     <string name="installing">インストール中…</string>
     <string name="latest">最新</string>
     <string name="recommended_driver">推奨ドライバー:</string>
-    <string name="gpu_model">GPUモデル:</string>
     <string name="unsupported_gpu">サポートされていないGPU</string>
     <string name="unsupported_gpu_warning">あなたのGPUはドライバーインジェクションをサポートしていません。カスタムドライバーの設定は推奨されません。</string>
 

@@ -2206,7 +2206,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="31"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;For debugging only.&lt;/span&gt;&lt;br/&gt;If you&apos;re not sure what these do, keep all of these enabled. &lt;br/&gt;These settings, when disabled, only take effect when CPU Debugging is enabled. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;للتصحيح فقط.&lt;/span&gt;&lt;br/&gt;إذا لم تكن متأكدًا من وظيفة هذه الإعدادات، فاتركها جميعًا ممكّنة. &lt;br/&gt;عند تعطيل هذه الإعدادات، لا تصبح سارية المفعول إلا عند تمكين تصحيح أخطاء وحدة المعالجة المركزية.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;للتصحيح فقط.&lt;/span&gt;&lt;br/&gt;إذا لم تكن متأكدًا من وظيفة هذه الخيارات، فاتركها جميعًا ممكّنة. &lt;br/&gt;عند تعطيل هذه الإعدادات، لا تصبح سارية المفعول إلا عند تمكين تصحيح أخطاء وحدة المعالجة المركزية. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="41"/>
@@ -3687,7 +3687,7 @@ When a program attempts to open the controller applet, it is immediately closed.
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="722"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2796"/>
         <source>Modifier Range: 0%</source>
-        <translation>0% :نطاق التعديل</translation>
+        <translation>0% :تعديل النطاق</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="755"/>
@@ -3915,7 +3915,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="712"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1073"/>
         <source>Modifier Range: %1%</source>
-        <translation>%1% :نطاق التعديل</translation>
+        <translation>%1% :تعديل النطاق</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="753"/>
@@ -3946,7 +3946,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1118"/>
         <source>GameCube Controller</source>
-        <translation>ذراع تحكم جيم كيوب</translation>
+        <translation>GameCube ذراع تحكم</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1127"/>
@@ -4579,7 +4579,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="220"/>
         <source>Enter a username for the new user:</source>
-        <translation>:أدخل اسم مستخدم للمستخدم الجديد</translation>
+        <translation>أدخل اسم مستخدم للمستخدم الجديد:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="241"/>
@@ -5723,44 +5723,44 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GRenderWindow</name>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1008"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1025"/>
         <source>OpenGL not available!</source>
         <translation>OpenGL غير متوفر!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1010"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1009"/>
         <source>OpenGL shared contexts are not supported.</source>
         <translation>OpenGL لا يتم دعم السياقات المشتركة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1027"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1026"/>
         <source>Eden has not been compiled with OpenGL support.</source>
         <translation>OpenGL لم يتم تجميع إيدن بدعم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1050"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1066"/>
         <source>Error while initializing OpenGL!</source>
         <translation>OpenGL حدث خطأ أثناء تهيئة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1052"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1051"/>
         <source>Your GPU may not support OpenGL, or you do not have the latest graphics driver.</source>
         <translation>أو قد لا يكون لديك أحدث برنامج تشغيل للرسومات OpenGL قد لا تدعم بطاقة الرسومات الخاصة بك</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1058"/>
         <source>Error while initializing OpenGL 4.6!</source>
         <translation>OpenGL 4.6 حدث خطأ أثناء تهيئة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1060"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1059"/>
         <source>Your GPU may not support OpenGL 4.6, or you do not have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</source>
         <translation>أو قد لا يكون لديك أحدث برنامج تشغيل للرسومات OpenGL 4.6 قد لا تدعم بطاقة الرسومات الخاصة بك.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1068"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1067"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
         <translation>قد لا تدعم وحدة معالجة الرسومات لديك ملحقًا واحدًا أو أكثر من ملحقات OpenGL المطلوبة. يُرجى التأكد من تثبيت أحدث برنامج تشغيل للرسومات.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;1%&lt;br&gt;&lt;br&gt;إضافات غير مدعومة: &lt;br&gt;2%</translation>
     </message>
@@ -7359,12 +7359,12 @@ Please, only use this feature to install updates and DLC.</source>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3234"/>
         <source>Function Disabled</source>
-        <translation type="unfinished"/>
+        <translation>الوظيفة معطلة</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3235"/>
         <source>Compatibility list reporting is currently disabled. Check back later!</source>
-        <translation type="unfinished"/>
+        <translation>تقارير قائمة التوافق معطلة حاليًا. يرجى التحقق لاحقًا!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3273"/>
@@ -9647,7 +9647,7 @@ This is recommended if you want to share data between emulators.</source>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.cpp" line="489"/>
         <source>GameCube Controller</source>
-        <translation>ذراع تحكم جيم كيوب</translation>
+        <translation>GameCube ذراع تحكم</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.cpp" line="498"/>

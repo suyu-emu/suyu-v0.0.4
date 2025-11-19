@@ -643,7 +643,6 @@
     <string name="installing">安装中……</string>
     <string name="latest">最新</string>
     <string name="recommended_driver">推荐驱动:</string>
-    <string name="gpu_model">GPU型号:</string>
     <string name="unsupported_gpu">GPU不支持</string>
     <string name="unsupported_gpu_warning">您的GPU不支持驱动注入。不建议设置自定义驱动。</string>
 

@@ -625,7 +625,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="installing">Wird installiert…</string>
     <string name="latest">Neueste</string>
     <string name="recommended_driver">Empfohlener Treiber:</string>
-    <string name="gpu_model">GPU-Modell:</string>
     <string name="unsupported_gpu">Nicht unterstützte GPU</string>
     <string name="unsupported_gpu_warning">Ihre GPU unterstützt keine Treiberinjektion. Das Festlegen benutzerdefinierter Treiber wird nicht empfohlen.</string>
 

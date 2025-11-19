@@ -646,7 +646,6 @@
     <string name="installing">Instalando…</string>
     <string name="latest">Última</string>
     <string name="recommended_driver">Controlador recomendado:</string>
-    <string name="gpu_model">Modelo de GPU:</string>
     <string name="unsupported_gpu">GPU no soportada</string>
     <string name="unsupported_gpu_warning">Tu GPU no soporta la inyección de controladores. No se recomienda configurar controladores personalizados.</string>
 
