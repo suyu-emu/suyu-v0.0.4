@@ -53,6 +53,7 @@ class GamesFragment : Fragment() {
     private var originalHeaderLeftMargin: Int? = null
 
     private var lastViewType: Int = GameAdapter.VIEW_TYPE_GRID
+    private var fallbackBottomInset: Int = 0
 
     companion object {
         private const val SEARCH_TEXT = "SearchText"
@@ -208,12 +209,12 @@ class GamesFragment : Fragment() {
                 else -> throw IllegalArgumentException("Invalid view type: $savedViewType")
             }
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
-                doOnNextLayout {
-                    (this as? CarouselRecyclerView)?.setCarouselMode(true, gameAdapter)
-                    adapter = gameAdapter
+                (binding.gridGames as? View)?.let { it -> ViewCompat.requestApplyInsets(it)}
+                doOnNextLayout { //Carousel: important to avoid overlap issues
+                    (this as? CarouselRecyclerView)?.notifyLaidOut(fallbackBottomInset)
                 }
             } else {
-                (this as? CarouselRecyclerView)?.setCarouselMode(false)
+                (this as? CarouselRecyclerView)?.setupCarousel(false)
             }
             adapter = gameAdapter
             lastViewType = savedViewType
@@ -237,9 +238,8 @@ class GamesFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) {
-            (binding.gridGames as? CarouselRecyclerView)?.restoreScrollState(
-                gamesViewModel.lastScrollPosition
-            )
+            (binding.gridGames as? CarouselRecyclerView)?.setupCarousel(true)
+            (binding.gridGames as? CarouselRecyclerView)?.restoreScrollState(gamesViewModel.lastScrollPosition)
         }
     }
 
@@ -494,6 +494,11 @@ class GamesFragment : Fragment() {
             mlpFab.rightMargin = rightInset + fabPadding
             binding.addDirectory.layoutParams = mlpFab
 
+            val navInsets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val gestureInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemGestures())
+            val bottomInset = maxOf(navInsets.bottom, gestureInsets.bottom, cutoutInsets.bottom)
+            fallbackBottomInset = bottomInset
+            (binding.gridGames as? CarouselRecyclerView)?.notifyInsetsReady(bottomInset)
             windowInsets
         }
 }

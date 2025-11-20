@@ -20,9 +20,8 @@ import androidx.core.view.doOnNextLayout
 import org.yuzu.yuzu_emu.YuzuApplication
 import androidx.preference.PreferenceManager
 import androidx.core.view.WindowInsetsCompat
-
 /**
- * CarouselRecyclerView encapsulates all carousel logic for the games UI.
+ * CarouselRecyclerView encapsulates all carousel content for the games UI.
  * It manages overlapping cards, center snapping, custom drawing order,
  * joypad & fling navigation and mid-screen swipe-to-refresh.
  */
@@ -34,6 +33,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
 
     private var overlapFactor: Float = 0f
     private var overlapPx: Int = 0
+    private var bottomInset: Int = -1
     private var overlapDecoration: OverlappingDecoration? = null
     private var pagerSnapHelper: PagerSnapHelper? = null
     private var scalingScrollListener: OnScrollListener? = null
@@ -202,46 +202,61 @@ class CarouselRecyclerView @JvmOverloads constructor(
         }
     }
 
-    fun setCarouselMode(enabled: Boolean, gameAdapter: GameAdapter? = null) {
+    fun refreshView() {
+        updateChildScalesAndAlpha()
+        focusCenteredCard()
+    }
+
+    fun notifyInsetsReady(newBottomInset: Int) {
+        if (bottomInset != newBottomInset) {
+            bottomInset = newBottomInset
+        }
+        setupCarousel(true)
+    }
+
+    fun notifyLaidOut(fallBackBottomInset: Int) {
+        if (bottomInset < 0) bottomInset = fallBackBottomInset
+        var gameAdapter = adapter as? GameAdapter ?: return
+        var newCardSize = cardSize(bottomInset)
+        if (gameAdapter.cardSize != newCardSize) {
+            gameAdapter.setCardSize(newCardSize)
+        }
+        setupCarousel(true)
+    }
+
+    fun cardSize(bottomInset: Int): Int {
+        val internalFactor = resources.getFraction(R.fraction.carousel_card_size_factor, 1, 1)
+        val userFactor = preferences.getFloat(CAROUSEL_CARD_SIZE_FACTOR, internalFactor).coerceIn(
+            0f,
+            1f
+        )
+        return (userFactor * (height - bottomInset)).toInt()
+    }
+
+    fun setupCarousel(enabled: Boolean) {
         if (enabled) {
+            val gameAdapter = adapter as? GameAdapter ?: return
+            if (gameAdapter.cardSize == 0) return
+            if (bottomInset < 0) return
+
             useCustomDrawingOrder = true
+            val cardSize = gameAdapter.cardSize
 
-            val insets = rootWindowInsets?.let { WindowInsetsCompat.toWindowInsetsCompat(it, this) }
-            val bottomInset = insets?.getInsets(WindowInsetsCompat.Type.systemBars())?.bottom ?: 0
-            val internalFactor = resources.getFraction(R.fraction.carousel_card_size_factor, 1, 1)
-            val userFactor = preferences.getFloat(CAROUSEL_CARD_SIZE_FACTOR, internalFactor).coerceIn(
-                0f,
-                1f
-            )
-            val cardSize = (userFactor * (height - bottomInset)).toInt()
-            gameAdapter?.setCardSize(cardSize)
-
-            val internalOverlapFactor = resources.getFraction(
-                R.fraction.carousel_overlap_factor,
-                1,
-                1
-            )
-            overlapFactor = preferences.getFloat(CAROUSEL_OVERLAP_FACTOR, internalOverlapFactor).coerceIn(
-                0f,
-                1f
-            )
+            val internalOverlapFactor = resources.getFraction(R.fraction.carousel_overlap_factor,1,1)
+            overlapFactor = preferences.getFloat(CAROUSEL_OVERLAP_FACTOR, internalOverlapFactor).coerceIn(0f,1f)
             overlapPx = (cardSize * overlapFactor).toInt()
 
-            val internalFlingMultiplier = resources.getFraction(
-                R.fraction.carousel_fling_multiplier,
-                1,
-                1
-            )
+            val internalFlingMultiplier = resources.getFraction(R.fraction.carousel_fling_multiplier,1,1)
             flingMultiplier = preferences.getFloat(
                 CAROUSEL_FLING_MULTIPLIER,
                 internalFlingMultiplier
             ).coerceIn(1f, 5f)
 
-            gameAdapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            gameAdapter .registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
                 override fun onChanged() {
                     if (pendingScrollAfterReload) {
-                        post {
-                            jigglyScroll()
+                        doOnNextLayout {
+                            refreshView()
                             pendingScrollAfterReload = false
                         }
                     }
@@ -257,7 +272,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
                 addItemDecoration(overlapDecoration!!)
             }
 
-            // Gradual scalingAdd commentMore actions
+            // Gradual scaling on scroll
             if (scalingScrollListener == null) {
                 scalingScrollListener = object : OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -315,8 +330,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
         super.scrollToPosition(position)
         (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(position, overlapPx)
         doOnNextLayout {
-            updateChildScalesAndAlpha()
-            focusCenteredCard()
+            refreshView()
         }
     }
 
@@ -380,12 +394,6 @@ class CarouselRecyclerView @JvmOverloads constructor(
                 .thenBy { it.first }
         )
         return sorted[i].first
-    }
-
-    fun jigglyScroll() {
-        scrollBy(-1, 0)
-        scrollBy(1, 0)
-        focusCenteredCard()
     }
 
     inner class OverlappingDecoration(private val overlap: Int) : ItemDecoration() {
