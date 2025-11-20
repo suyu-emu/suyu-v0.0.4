@@ -9,11 +9,11 @@
 which magick || exit
 
 EDEN_BASE_SVG="dist/icon_variations/base.svg"
-EDEN_SMALL_SVG="dist/icon_variations/base_small.svg"
+#EDEN_SMALL_SVG="dist/icon_variations/base_small.svg"
 EDEN_NAMED_SVG="dist/icon_variations/base_named.svg"
 
-magick -density 256x256 -background transparent $EDEN_SMALL_SVG -define icon:auto-resize -colors 256 dist/eden.ico || exit
-convert -density 256x256 -resize 256x256 -background transparent $EDEN_SMALL_SVG dist/yuzu.bmp || exit
+magick -density 256x256 -background transparent $EDEN_BASE_SVG -define icon:auto-resize -colors 256 dist/eden.ico || exit
+convert -density 256x256 -resize 256x256 -background transparent $EDEN_BASE_SVG dist/yuzu.bmp || exit
 
 magick -size 256x256 -background transparent $EDEN_BASE_SVG dist/qt_themes/default/icons/256x256/eden.png || exit
 magick -size 256x256 -background transparent $EDEN_NAMED_SVG dist/qt_themes/default/icons/256x256/eden_named.png || exit
