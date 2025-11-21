@@ -1615,4 +1615,10 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(
 }
 #endif
 
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getBuildVersion(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj) {
+    return env->NewStringUTF(Common::g_build_version);
+}
+
 } // extern "C"
