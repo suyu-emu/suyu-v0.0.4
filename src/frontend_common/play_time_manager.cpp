@@ -167,25 +167,9 @@ void PlayTimeManager::ResetProgramPlayTime(u64 program_id) {
     Save();
 }
 
-std::string PlayTimeManager::GetReadablePlayTime(u64 time_seconds) {
-    if (time_seconds == 0) {
-        return {};
-    }
-
-    const auto time_minutes = std::max(static_cast<double>(time_seconds) / 60.0, 1.0);
-    const auto time_hours = static_cast<double>(time_seconds) / 3600.0;
-    const bool is_minutes = time_minutes < 60.0;
-
-    if (is_minutes) {
-        return fmt::format("{:.0f} m", time_minutes);
-    } else {
-        const bool has_remainder = time_seconds % 60 != 0;
-        if (has_remainder) {
-            return fmt::format("{:.1f} h", time_hours);
-        } else {
-            return fmt::format("{:.0f} h", time_hours);
-        }
-    }
+std::string PlayTimeManager::GetReadablePlayTime(u64 t) {
+    return t > 0 ? fmt::format("{:02}:{:02}:{:02}", t / 3600, (t / 60) % 60, t % 60)
+        : std::string{};
 }
 
 std::string PlayTimeManager::GetPlayTimeHours(u64 time_seconds) {
