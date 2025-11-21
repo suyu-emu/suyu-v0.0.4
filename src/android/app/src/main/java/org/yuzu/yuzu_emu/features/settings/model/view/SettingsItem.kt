@@ -148,6 +148,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.RENDERER_VERTEX_INPUT_DYNAMIC_STATE,
+                    titleId = R.string.vertex_input_dynamic_state,
+                    descriptionId = R.string.vertex_input_dynamic_state_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.RENDERER_DESCRIPTOR_INDEXING,
                     titleId = R.string.descriptor_indexing,
                     descriptionId = R.string.descriptor_indexing_description

@@ -1196,17 +1196,15 @@ void RasterizerOpenGL::SyncLogicOpState() {
 
     if (device.IsAmd()) {
         using namespace Tegra::Engines;
-        struct In {
-            const Maxwell3D::Regs::VertexAttribute::Type d;
-            In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
-            bool operator()(Maxwell3D::Regs::VertexAttribute n) const {
-                return n.type == d;
-            }
-        };
 
-        bool has_float =
-            std::any_of(regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(),
-                        In(Maxwell3D::Regs::VertexAttribute::Type::Float));
+        bool has_float = std::any_of(
+            regs.vertex_attrib_format.begin(),
+            regs.vertex_attrib_format.end(),
+            [](const auto& n) {
+                return n.type == Maxwell3D::Regs::VertexAttribute::Type::Float;
+            }
+        );
+
         regs.logic_op.enable = static_cast<u32>(!has_float);
     }
 

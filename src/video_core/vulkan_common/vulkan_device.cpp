@@ -494,18 +494,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectPhysicalMemoryInfo();
     CollectToolingInfo();
 
-    if (is_qualcomm || is_turnip) {
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
-        //RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-        //VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
-    }
-
     if (is_qualcomm) {
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
-        //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-
         LOG_WARNING(Render_Vulkan,
                     "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
@@ -544,93 +533,36 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         if (arch >= NvidiaArchitecture::Arch_AmpereOrNewer) {
             LOG_WARNING(Render_Vulkan, "Ampere and newer have broken float16 math");
             features.shader_float16_int8.shaderFloat16 = false;
-        } else if (arch <= NvidiaArchitecture::Arch_Volta) {
-            if (nv_major_version < 527) {
-                LOG_WARNING(Render_Vulkan, "Volta and older have broken VK_KHR_push_descriptor");
-                //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-            }
         }
+
         if (nv_major_version >= 510) {
             LOG_WARNING(Render_Vulkan, "NVIDIA Drivers >= 510 do not support MSAA image blits");
             cant_blit_msaa = true;
         }
     }
-    if (extensions.extended_dynamic_state && is_radv) {
-        // Mask driver version variant
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 21, 2, 0)) {
-            LOG_WARNING(Render_Vulkan,
-                        "RADV versions older than 21.2 have broken VK_EXT_extended_dynamic_state");
-            //RemoveExtensionFeature(extensions.extended_dynamic_state,
-            //features.extended_dynamic_state,
-            //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-        }
-    }
-    if (extensions.extended_dynamic_state2 && is_radv) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 22, 3, 1)) {
-            LOG_WARNING(
-                Render_Vulkan,
-                "RADV versions older than 22.3.1 have broken VK_EXT_extended_dynamic_state2");
-            // RemoveExtensionFeature(extensions.extended_dynamic_state2,
-            //        features.extended_dynamic_state2,
-            //      VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        }
-    }
-    if (extensions.extended_dynamic_state2 && is_qualcomm) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0) &&
-            version < VK_MAKE_API_VERSION(0, 0, 680, 0)) {
-            // Qualcomm Adreno 7xx drivers do not properly support extended_dynamic_state2.
-            LOG_WARNING(Render_Vulkan,
-                        "Qualcomm Adreno 7xx drivers have broken VK_EXT_extended_dynamic_state2");
-            //RemoveExtensionFeature(extensions.extended_dynamic_state2,
-            //features.extended_dynamic_state2,
-            //VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        }
-    }
+
     if (extensions.extended_dynamic_state3 && is_radv) {
         LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
-        dynamic_state3_blending = true;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        dynamic_state3_blending = false;
 
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 23, 1, 0)) {
             LOG_WARNING(Render_Vulkan,
                         "RADV versions older than 23.1.0 have broken depth clamp dynamic state");
-            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = true;
-            dynamic_state3_enables = true;
+            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
+            dynamic_state3_enables = false;
         }
     }
+
     if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
                     "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
-        dynamic_state3_blending = true;
-    }
-    if (extensions.vertex_input_dynamic_state && is_radv) {
-        // TODO(ameerj): Blacklist only offending driver versions
-        // TODO(ameerj): Confirm if RDNA1 is affected
-        const bool is_rdna2 =
-            supported_extensions.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
-        if (is_rdna2) {
-            LOG_WARNING(Render_Vulkan,
-                        "RADV has broken VK_EXT_vertex_input_dynamic_state on RDNA2 hardware");
-            //  RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-            //      features.vertex_input_dynamic_state,
-            //    VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-        }
-    }
-    if (extensions.vertex_input_dynamic_state && is_qualcomm) {
-        // Qualcomm drivers do not properly support vertex_input_dynamic_state.
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers have broken VK_EXT_vertex_input_dynamic_state");
-        //RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-        //  features.vertex_input_dynamic_state,
-        //     VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        dynamic_state3_blending = false;
     }
 
     sets_per_pool = 64;
@@ -644,12 +576,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             has_broken_cube_compatibility = true;
         }
     }
+
     if (is_qualcomm) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
             has_broken_parallel_compiling = true;
         }
     }
+
     if (extensions.sampler_filter_minmax && is_amd) {
         // Disable ext_sampler_filter_minmax on AMD GCN4 and lower as it is broken.
         if (!features.shader_float16_int8.shaderFloat16) {
@@ -660,48 +594,23 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
 
-    if (extensions.vertex_input_dynamic_state && is_intel_windows) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(27, 20, 100, 0)) {
-            LOG_WARNING(Render_Vulkan, "Intel has broken VK_EXT_vertex_input_dynamic_state");
-            //RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-            //features.vertex_input_dynamic_state,
-            //VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-        }
-    }
     if (features.shader_float16_int8.shaderFloat16 && is_intel_windows) {
         // Intel's compiler crashes when using fp16 on Astral Chain, disable it for the time being.
         LOG_WARNING(Render_Vulkan, "Intel has broken float16 math");
         features.shader_float16_int8.shaderFloat16 = false;
     }
+
     if (is_intel_windows) {
         LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
         cant_blit_msaa = true;
     }
+
     has_broken_compute =
         CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
         !Settings::values.enable_compute_pipelines.GetValue();
     if (is_intel_anv || (is_qualcomm && !is_s8gen2)) {
         LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
         must_emulate_bgr565 = true;
-    }
-    if (extensions.push_descriptor && is_intel_anv) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version >= VK_MAKE_API_VERSION(0, 22, 3, 0) &&
-            version < VK_MAKE_API_VERSION(0, 23, 2, 0)) {
-            // Disable VK_KHR_push_descriptor due to
-            // mesa/mesa/-/commit/ff91c5ca42bc80aa411cb3fd8f550aa6fdd16bdc
-            LOG_WARNING(Render_Vulkan,
-                        "ANV drivers 22.3.0 to 23.1.0 have broken VK_KHR_push_descriptor");
-            //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-        }
-    } else if (extensions.push_descriptor && is_nvidia) {
-        const auto arch = GetNvidiaArch();
-        if (arch <= NvidiaArchitecture::Arch_Pascal) {
-            LOG_WARNING(Render_Vulkan,
-                        "Pascal and older architectures have broken VK_KHR_push_descriptor");
-            //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-        }
     }
 
     if (is_mvk) {
@@ -730,8 +639,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                  "Removing extendedDynamicState3 due to missing extendedDynamicState2");
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
                                VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = true;
-        dynamic_state3_enables = true;
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
     }
 
     // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it affects other iGPUs
@@ -743,22 +652,26 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         Settings::values.dyna_state.SetValue(0);
     }
 
-    if (Settings::values.dyna_state.GetValue() == 0) {
-        must_emulate_scaled_formats = true;
-        LOG_INFO(Render_Vulkan, "Extended dynamic state is fully disabled, scaled format emulation is ON");
-
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+    switch (Settings::values.dyna_state.GetValue()) {
+    case 0:
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        [[fallthrough]];
+    case 1:
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        [[fallthrough]];
+    case 2:
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
+        break;
+    }
 
-        LOG_INFO(Render_Vulkan, "All dynamic state extensions and features have been disabled");
-    } else {
-        must_emulate_scaled_formats = false;
-        LOG_INFO(Render_Vulkan, "Extended dynamic state is enabled, scaled format emulation is OFF");
+    if (!extensions.extended_dynamic_state) {
+        Settings::values.vertex_input_dynamic_state.SetValue(false);
+    }
+
+    if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
+        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);

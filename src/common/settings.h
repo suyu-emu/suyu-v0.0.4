@@ -546,6 +546,7 @@ struct Values {
                                            Category::RendererExtensions,
                                            Specialization::Scalar};
 
+    SwitchableSetting<bool> vertex_input_dynamic_state{linkage, true, "vertex_input_dynamic_state", Category::RendererExtensions};
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
     SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions, Specialization::Paired};

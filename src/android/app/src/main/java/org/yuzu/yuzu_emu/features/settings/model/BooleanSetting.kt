@@ -29,6 +29,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SYNC_MEMORY_OPERATIONS("sync_memory_operations"),
     BUFFER_REORDER_DISABLE("disable_buffer_reorder"),
     RENDERER_DEBUG("debug"),
+    RENDERER_VERTEX_INPUT_DYNAMIC_STATE("vertex_input_dynamic_state"),
     RENDERER_PROVOKING_VERTEX("provoking_vertex"),
     RENDERER_DESCRIPTOR_INDEXING("descriptor_indexing"),
     RENDERER_SAMPLE_SHADING("sample_shading"),

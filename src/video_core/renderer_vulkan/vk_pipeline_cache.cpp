@@ -404,17 +404,13 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                     device.GetMaxVertexInputBindings(), Maxwell::NumVertexArrays);
     }
 
-    const u8 dynamic_state = Settings::values.dyna_state.GetValue();
-
-    LOG_INFO(Render_Vulkan, "DynamicState value is set to {}", (u32) dynamic_state);
-
     dynamic_features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
-        .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported() && dynamic_state > 0,
+        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported(),
+        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported(),
+        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported(),
+        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported(),
+        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported(),
+        .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 }
 

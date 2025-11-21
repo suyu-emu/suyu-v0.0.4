@@ -330,6 +330,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Controls the number of features that can be used in Extended Dynamic State.\nHigher numbers allow for more features and can increase performance, but may cause issues.\nThe default value is per-system."));
 
     INSERT(Settings,
+           vertex_input_dynamic_state,
+           tr("Vertex Input Dynamic State"),
+           tr("Enables vertex input dynamic state feature for better quality and performance."));
+
+    INSERT(Settings,
            provoking_vertex,
            tr("Provoking Vertex"),
            tr("Improves lighting and vertex handling in some games.\n"

@@ -453,6 +453,7 @@ class SettingsFragmentPresenter(
         sl.apply {
             add(HeaderSetting(R.string.veil_extensions))
             add(ByteSetting.RENDERER_DYNA_STATE.key)
+            add(BooleanSetting.RENDERER_VERTEX_INPUT_DYNAMIC_STATE.key)
             add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
             add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
             add(BooleanSetting.RENDERER_SAMPLE_SHADING.key)
