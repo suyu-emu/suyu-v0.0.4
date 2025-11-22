@@ -235,10 +235,13 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val isPhysicalKeyboard = event.source and InputDevice.SOURCE_KEYBOARD == InputDevice.SOURCE_KEYBOARD &&
+                                event.device?.isVirtual == false
+
         if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
             event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD &&
-            event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
-            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
+            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE &&
+            !isPhysicalKeyboard
         ) {
             return super.dispatchKeyEvent(event)
         }
