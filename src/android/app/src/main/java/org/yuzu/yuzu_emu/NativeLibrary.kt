@@ -223,6 +223,11 @@ object NativeLibrary {
     external fun getUpdateUrl(version: String): String
 
     /**
+     * Return the URL to download the APK for the given version
+     */
+    external fun getUpdateApkUrl(version: String, packageId: String): String
+
+    /**
      * Returns whether the update checker is enabled through CMAKE options.
      */
     external fun isUpdateCheckerEnabled(): Boolean

@@ -53,8 +53,16 @@ import androidx.core.content.edit
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import kotlin.text.compareTo
 import androidx.core.net.toUri
+import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.textview.MaterialTextView
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.updater.APKDownloader
+import org.yuzu.yuzu_emu.updater.APKInstaller
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -186,9 +194,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             .setTitle(R.string.update_available)
             .setMessage(getString(R.string.update_available_description, version))
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val url = NativeLibrary.getUpdateUrl(version)
-                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                startActivity(intent)
+                downloadAndInstallUpdate(version)
             }
             .setNeutralButton(R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
@@ -199,6 +205,87 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 dialog.dismiss()
             }
             .show()
+    }
+
+    private fun downloadAndInstallUpdate(version: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val packageId = applicationContext.packageName
+            val apkUrl = NativeLibrary.getUpdateApkUrl(version, packageId)
+            val apkFile = File(cacheDir, "update-$version.apk")
+
+            withContext(Dispatchers.Main) {
+                showDownloadProgressDialog()
+            }
+
+            val downloader = APKDownloader(apkUrl, apkFile)
+            downloader.download(
+                onProgress = { progress ->
+                    runOnUiThread {
+                        updateDownloadProgress(progress)
+                    }
+                },
+                onComplete = { success ->
+                    runOnUiThread {
+                        dismissDownloadProgressDialog()
+                        if (success) {
+                            val installer = APKInstaller(this@MainActivity)
+                            installer.install(
+                                apkFile,
+                                onComplete = {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        R.string.update_installed_successfully,
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                },
+                                onFailure = { exception ->
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        getString(R.string.update_install_failed, exception.message),
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            )
+                        } else {
+                            Toast.makeText(
+                                this@MainActivity,
+                                getString(R.string.update_download_failed) + "\n\nURL: $apkUrl",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    private var progressDialog: androidx.appcompat.app.AlertDialog? = null
+    private var progressBar: LinearProgressIndicator? = null
+    private var progressMessage: MaterialTextView? = null
+
+    private fun showDownloadProgressDialog() {
+        val progressView = layoutInflater.inflate(R.layout.dialog_download_progress, null)
+        progressBar = progressView.findViewById(R.id.download_progress_bar)
+        progressMessage = progressView.findViewById(R.id.download_progress_message)
+
+        progressDialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.downloading_update)
+            .setView(progressView)
+            .setCancelable(false)
+            .create()
+        progressDialog?.show()
+    }
+
+    private fun updateDownloadProgress(progress: Int) {
+        progressBar?.progress = progress
+        progressMessage?.text = "$progress%"
+    }
+
+    private fun dismissDownloadProgressDialog() {
+        progressDialog?.dismiss()
+        progressDialog = null
+        progressBar = null
+        progressMessage = null
     }
 
 

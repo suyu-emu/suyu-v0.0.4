@@ -1613,6 +1613,37 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(
     env->ReleaseStringUTFChars(version, version_str);
     return env->NewStringUTF(url.c_str());
 }
+
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateApkUrl(
+        JNIEnv* env,
+        jobject obj,
+        jstring version,
+        jstring packageId) {
+    const char* version_str = env->GetStringUTFChars(version, nullptr);
+    const char* package_id_str = env->GetStringUTFChars(packageId, nullptr);
+
+    std::string variant;
+    std::string package_id(package_id_str);
+
+    if (package_id.find("dev.legacy.eden_emulator") != std::string::npos) {
+        variant = "legacy";
+    } else if (package_id.find("com.miHoYo.Yuanshen") != std::string::npos) {
+        variant = "optimized";
+    } else {
+        variant = "standard";
+    }
+
+    const std::string apk_filename = fmt::format("Eden-Android-{}-{}.apk", version_str, variant);
+    const std::string url = fmt::format("{}/{}/releases/download/{}/{}",
+        std::string{Common::g_build_auto_update_website},
+        std::string{Common::g_build_auto_update_repo},
+        version_str,
+        apk_filename);
+
+    env->ReleaseStringUTFChars(version, version_str);
+    env->ReleaseStringUTFChars(packageId, package_id_str);
+    return env->NewStringUTF(url.c_str());
+}
 #endif
 
 JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getBuildVersion(

@@ -271,9 +271,14 @@
     <string name="folder">Folder</string>
     <string name="dont_show_again">Don\'t Show Again</string>
     <string name="add_directory_success">New game directory added successfully </string>
-    <string name="enable_update_checks">Check for updates on app startup.</string>
+    <string name="enable_update_checks">Check for Updates</string>
+    <string name="enable_update_checks_description">Check for updates on launch, and optionally download and install the new update.</string>
     <string name="update_available">Update Available</string>
     <string name="update_available_description">A new version is available: %1$s\n\nWould you like to download it?</string>
+    <string name="downloading_update">Downloading Update</string>
+    <string name="update_download_failed">Failed to download update</string>
+    <string name="update_installed_successfully">Update installed successfully</string>
+    <string name="update_install_failed">Failed to install update: %1$s</string>
     <string name="home_search">Search</string>
     <string name="home_settings">Settings</string>
     <string name="empty_gamelist">No files were found or no game directory has been selected yet.</string>

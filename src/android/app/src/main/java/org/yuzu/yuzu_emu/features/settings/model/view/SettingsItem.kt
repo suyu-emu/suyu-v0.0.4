@@ -762,6 +762,7 @@ abstract class SettingsItem(
                 SwitchSetting(
                     BooleanSetting.ENABLE_UPDATE_CHECKS,
                     titleId = R.string.enable_update_checks,
+                    descriptionId = R.string.enable_update_checks_description,
                 )
             )
             put(
