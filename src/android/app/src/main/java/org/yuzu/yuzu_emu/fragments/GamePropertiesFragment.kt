@@ -145,13 +145,12 @@ class GamePropertiesFragment : Fragment() {
             val seconds = playTimeSeconds % 60
 
             val readablePlayTime = when {
-                hours > 0 -> "${hours}h ${minutes}m ${seconds}s"
-                minutes > 0 -> "${minutes}m ${seconds}s"
-                else -> "${seconds}s"
-            }
+            hours > 0 -> "$hours${getString(R.string.hours_abbr)} $minutes${getString(R.string.minutes_abbr)} $seconds${getString(R.string.seconds_abbr)}"
+            minutes > 0 -> "$minutes${getString(R.string.minutes_abbr)} $seconds${getString(R.string.seconds_abbr)}"
+            else -> "$seconds${getString(R.string.seconds_abbr)}"
+}
 
-            append(getString(R.string.playtime))
-            append(readablePlayTime)
+            append(getString(R.string.playtime) + " " + readablePlayTime)
         }
 
         binding.playtime.setOnClickListener {
