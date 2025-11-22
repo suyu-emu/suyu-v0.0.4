@@ -1,6 +1,5 @@
-<!--
-SPDX-FileCopyrightText: 2018 yuzu Emulator Project
-SPDX-License-Identifier: GPL-2.0-or-later
--->
+# Contributing
 
-**The Contributor's Guide has moved to [the yuzu wiki](https://github.com/yuzu-emu/yuzu/wiki/Contributing).**
+You want to contribute? Please consult [the development guide](./docs/Development.md).
+
+Don't forget to [get a git account](./docs/SIGNUP.md) - not a requirement per se but it's highly recommended.

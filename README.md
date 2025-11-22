@@ -21,7 +21,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 
 <p align="center">
     </a>
-    <a href="https://discord.gg/kXAmGCXBGD">
+    <a href="https://discord.gg/HstXbPch7X">
         <img src="https://img.shields.io/discord/1367654015269339267?color=5865F2&label=Eden&logo=discord&logoColor=white"
             alt="Discord">
     </a>
@@ -52,8 +52,8 @@ Check out our [website](https://eden-emu.dev) for the latest news on exciting fe
 
 ## Development
 
-Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please join us on [Discord](https://discord.gg/kXAmGCXBGD) or [Revolt](https://rvlt.gg/qKgFEAbH).
-You can also follow us on [X (Twitter)](https://x.com/edenemuofficial) for updates and announcements.
+Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please join us on [Discord](https://discord.gg/HstXbPch7X) or [Revolt](https://rvlt.gg/qKgFEAbH).
+You can also follow us on [X (Twitter)](https://nitter.poast.org/edenemuofficial) for updates and announcements.
 
 If you would like to contribute, we are open to new developers and pull requests. Please ensure that your work is of a high standard and properly documented. You can also contact any of the developers on Discord or Revolt to learn more about the current state of the emulator.
 
@@ -82,7 +82,7 @@ Any donations received will go towards things such as:
 * Additional hardware (e.g. GPUs as needed to improve rendering support, other peripherals to add support for, etc.)
 * CI Infrastructure
 
-If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/edenemu) and talk to Camille or any of our other developers.
+If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/HstXbPch7X) and talk to Camille or any of our other developers.
 
 ## License
 

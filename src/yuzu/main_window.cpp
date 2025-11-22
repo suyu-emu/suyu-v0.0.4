@@ -577,10 +577,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
         UISettings::values.has_broken_vulkan = true;
 
         QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"),
-                             tr("Vulkan initialization failed during boot.<br><br>Click <a "
-                                "href='https://eden-emulator.github.io/wiki/faq/"
-                                "#yuzu-starts-with-the-error-broken-vulkan-installation-detected'>"
-                                "here for instructions to fix the issue</a>."));
+                             tr("Vulkan initialization failed during boot."));
 
 #ifdef HAS_OPENGL
         Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
@@ -1913,10 +1910,8 @@ bool MainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPar
             tr("You are using the deconstructed ROM directory format for this game, which is an "
                "outdated format that has been superseded by others such as NCA, NAX, XCI, or "
                "NSP. Deconstructed ROM directories lack icons, metadata, and update "
-               "support.<br><br>For an explanation of the various Switch formats Eden supports, <a "
-               "href='https://eden-emulator.github.io/wiki/overview-of-switch-game-formats'>check "
-               "out our "
-               "wiki</a>. This message will not be shown again."));
+               "support.<br>For an explanation of the various Switch formats Eden supports, "
+               "out our user handbook. This message will not be shown again."));
     }
 
     if (result != Core::SystemResultStatus::Success) {
@@ -2738,13 +2733,12 @@ void MainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
         directory = it->second.second;
     }
 
-    QDesktopServices::openUrl(
-        QUrl(QStringLiteral("https://eden-emulator.github.io/game/") + directory));
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.emuready.com/listings?emulatorIds=43bfc023-ec22-422d-8324-048a8ec9f28f") + directory));
 }
 
 void MainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
                                            const QtCommon::Game::ShortcutTarget target) {
-    // Create shortcut
+    // Create shortcu
     std::string arguments = fmt::format("-g \"{:s}\"", game_path);
 
     QtCommon::Game::CreateShortcut(game_path, program_id, "", target, arguments, true);
