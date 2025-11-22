@@ -62,41 +62,29 @@ struct DrawParams {
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
     const auto conv = [scale](float value) {
-        float new_value = value * scale;
-        if (scale < 1.0f) {
-            const bool sign = std::signbit(value);
-            new_value = std::round(std::abs(new_value));
-            new_value = sign ? -new_value : new_value;
-        }
-        return new_value;
+        float const new_value = value * scale;
+        return scale < 1.0f
+            ? std::round(std::abs(new_value)) * (std::signbit(new_value) ? -1.f : 1.f)
+            : new_value;
     };
-    const float x = conv(src.translate_x - src.scale_x);
-    const float width = conv(src.scale_x * 2.0f);
-    float y = conv(src.translate_y - src.scale_y);
-    float height = conv(src.scale_y * 2.0f);
-
-    const bool lower_left = regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft;
-    const bool y_negate = !device.IsNvViewportSwizzleSupported() &&
-                          src.swizzle.y == Maxwell::ViewportSwizzle::NegativeY;
-
-    if (lower_left) {
-        // Flip by surface clip height
-        y += conv(static_cast<f32>(regs.surface_clip.height));
-        height = -height;
-    }
-
-    if (y_negate) {
-        // Flip by viewport height
-        y += height;
-        height = -height;
-    }
-
-    const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
+    float const w = src.scale_x;
+    float h = src.scale_y;
+    if (regs.window_origin.mode == Maxwell::WindowOrigin::Mode::LowerLeft) // Flip by surface clip height
+        h = -h;
+    if (!device.IsNvViewportSwizzleSupported() && src.swizzle.y == Maxwell::ViewportSwizzle::NegativeY) // Flip by viewport height
+        h = -h;
+    // In theory, a raster flip is equivalent to a texture flip for a whole square viewport
+    // TODO: one day implement this properly and raster flip the triangles, not the whole viewport... guh
+    if(regs.viewport_transform[1].scale_y == 0 && regs.window_origin.flip_y != 0)
+        h = -h;
+    float const x = src.translate_x - w;
+    float const y = src.translate_y - h;
+    float const reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
     VkViewport viewport{
-        .x = x,
-        .y = y,
-        .width = width != 0.0f ? width : 1.0f,
-        .height = height != 0.0f ? height : 1.0f,
+        .x = conv(x),
+        .y = conv(y),
+        .width = w != 0.0f ? conv(w * 2.f) : 1.0f,
+        .height = h != 0.0f ? conv(h * 2.f) : 1.0f,
         .minDepth = src.translate_z - src.scale_z * reduce_z,
         .maxDepth = src.translate_z + src.scale_z,
     };
@@ -1024,10 +1012,10 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         return;
     }
     if (!regs.viewport_scale_offset_enabled) {
-        float x = static_cast<float>(regs.surface_clip.x);
-        float y = static_cast<float>(regs.surface_clip.y);
-        float width = (std::max)(1.0f, static_cast<float>(regs.surface_clip.width));
-        float height = (std::max)(1.0f, static_cast<float>(regs.surface_clip.height));
+        float x = float(regs.surface_clip.x);
+        float y = float(regs.surface_clip.y);
+        float width = (std::max)(1.0f, float(regs.surface_clip.width));
+        float height = (std::max)(1.0f, float(regs.surface_clip.height));
         if (regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft) {
             y += height;
             height = -height;
