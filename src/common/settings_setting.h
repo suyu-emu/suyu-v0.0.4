@@ -129,7 +129,7 @@ protected:
         } else if constexpr (std::is_floating_point_v<Type>) {
             return fmt::format("{:f}", value_);
         } else if constexpr (std::is_enum_v<Type>) {
-            return std::to_string(static_cast<u32>(value_));
+            return std::to_string(u32(value_));
         } else {
             return std::to_string(value_);
         }
@@ -192,15 +192,13 @@ public:
             if constexpr (std::is_same_v<Type, std::string>) {
                 this->SetValue(input);
             } else if constexpr (std::is_same_v<Type, std::optional<u32>>) {
-                this->SetValue(static_cast<u32>(std::stoul(input)));
+                this->SetValue(u32(std::stoul(input)));
             } else if constexpr (std::is_same_v<Type, bool>) {
                 this->SetValue(input == "true");
             } else if constexpr (std::is_same_v<Type, float>) {
                 this->SetValue(std::stof(input));
-            } else if constexpr (std::is_same_v<Type, AudioEngine>) {
-                this->SetValue(ToEnum<AudioEngine>(input));
             } else {
-                this->SetValue(static_cast<Type>(std::stoll(input)));
+                this->SetValue(Type(std::stoll(input)));
             }
         } catch (std::invalid_argument&) {
             this->SetValue(this->GetDefault());

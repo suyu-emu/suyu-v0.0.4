@@ -186,16 +186,23 @@ void ConfigureAudio::SetConfiguration() {
 void ConfigureAudio::SetOutputSinkFromSinkID() {
     [[maybe_unused]] const QSignalBlocker blocker(sink_combo_box);
 
-    int new_sink_index = 0;
-    const QString sink_id = QString::fromStdString(Settings::values.sink_id.ToString());
-    for (int index = 0; index < sink_combo_box->count(); index++) {
-        if (sink_combo_box->itemText(index) == sink_id) {
-            new_sink_index = index;
-            break;
-        }
-    }
+    const std::string new_sink_id = []() -> const std::string {
+        const Settings::AudioEngine sink_id = Settings::values.sink_id.GetValue();
+        const auto canonicalizations
+            = Settings::EnumMetadata<Settings::AudioEngine>::Canonicalizations();
 
-    sink_combo_box->setCurrentIndex(new_sink_index);
+        for (u32 i = 0; i < canonicalizations.size(); ++i) {
+            const Settings::AudioEngine value = canonicalizations[i].second;
+            const std::string_view key = canonicalizations[i].first;
+
+            if (sink_id == value)
+                return std::string(key);
+        }
+
+        return std::string("null");
+    }();
+
+    sink_combo_box->setCurrentText(QString::fromStdString(new_sink_id));
 }
 
 void ConfigureAudio::SetOutputDevicesFromDeviceID() {
@@ -233,8 +240,20 @@ void ConfigureAudio::ApplyConfiguration() {
         apply_func(is_powered_on);
     }
 
-    Settings::values.sink_id.LoadString(
-        sink_combo_box->itemText(sink_combo_box->currentIndex()).toStdString());
+    const u32 new_sink_id = [this]() {
+        const std::string sink_id = sink_combo_box->currentText().toStdString();
+        const auto canonicalizations
+            = Settings::EnumMetadata<Settings::AudioEngine>::Canonicalizations();
+
+        for (u32 i = 0; i < canonicalizations.size(); ++i) {
+            if (sink_id == canonicalizations[i].first)
+                return i;
+        }
+
+        return u32(0);
+    }();
+
+    Settings::values.sink_id.SetValue(Settings::AudioEngine(new_sink_id));
     Settings::values.audio_output_device_id.SetValue(
         output_device_combo_box->itemText(output_device_combo_box->currentIndex()).toStdString());
     Settings::values.audio_input_device_id.SetValue(

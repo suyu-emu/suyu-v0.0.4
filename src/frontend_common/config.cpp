@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,14 +13,14 @@
 #include "common/settings_common.h"
 #include "common/settings_enums.h"
 #include "config.h"
-#include "core/core.h"
-#include "core/hle/service/acc/profile_manager.h"
-#include "hid_core/resources/npad/npad.h"
-#include "network/network.h"
+
+#ifdef _WIN32
+#include "common/string_util.h"
+#endif
 
 #include <boost/algorithm/string/replace.hpp>
 
-#include "common/string_util.h"
+#include "common/assert.h"
 
 namespace FS = Common::FS;
 
@@ -145,9 +148,9 @@ void Config::ReadPlayerValues(const std::size_t player_index) {
     }
 
     if (player_prefix.empty() && Settings::IsConfiguringGlobal()) {
-        const auto controller = static_cast<Settings::ControllerType>(
+        const auto controller = Settings::ControllerType(
             ReadIntegerSetting(std::string(player_prefix).append("type"),
-                               static_cast<u8>(Settings::ControllerType::ProController)));
+                               u8(Settings::ControllerType::ProController)));
 
         if (controller == Settings::ControllerType::LeftJoycon ||
             controller == Settings::ControllerType::RightJoycon) {
@@ -162,26 +165,26 @@ void Config::ReadPlayerValues(const std::size_t player_index) {
         player.connected = ReadBooleanSetting(connected_key.append("connected"),
                                               std::make_optional(player_index == 0));
 
-        player.controller_type = static_cast<Settings::ControllerType>(
+        player.controller_type = Settings::ControllerType(
             ReadIntegerSetting(std::string(player_prefix).append("type"),
-                               static_cast<u8>(Settings::ControllerType::ProController)));
+                               u8(Settings::ControllerType::ProController)));
 
         player.vibration_enabled = ReadBooleanSetting(
             std::string(player_prefix).append("vibration_enabled"), std::make_optional(true));
 
-        player.vibration_strength = static_cast<int>(
-            ReadIntegerSetting(std::string(player_prefix).append("vibration_strength"), 100));
+        player.vibration_strength =
+            int(ReadIntegerSetting(std::string(player_prefix).append("vibration_strength"), 100));
 
-        player.body_color_left = static_cast<u32>(ReadIntegerSetting(
+        player.body_color_left = u32(ReadIntegerSetting(
             std::string(player_prefix).append("body_color_left"), Settings::JOYCON_BODY_NEON_BLUE));
-        player.body_color_right = static_cast<u32>(ReadIntegerSetting(
+        player.body_color_right = u32(ReadIntegerSetting(
             std::string(player_prefix).append("body_color_right"), Settings::JOYCON_BODY_NEON_RED));
-        player.button_color_left = static_cast<u32>(
-            ReadIntegerSetting(std::string(player_prefix).append("button_color_left"),
-                               Settings::JOYCON_BUTTONS_NEON_BLUE));
-        player.button_color_right = static_cast<u32>(
-            ReadIntegerSetting(std::string(player_prefix).append("button_color_right"),
-                               Settings::JOYCON_BUTTONS_NEON_RED));
+        player.button_color_left =
+            u32(ReadIntegerSetting(std::string(player_prefix).append("button_color_left"),
+                                   Settings::JOYCON_BUTTONS_NEON_BLUE));
+        player.button_color_right =
+            u32(ReadIntegerSetting(std::string(player_prefix).append("button_color_right"),
+                                   Settings::JOYCON_BUTTONS_NEON_RED));
     }
 }
 
@@ -189,11 +192,11 @@ void Config::ReadTouchscreenValues() {
     Settings::values.touchscreen.enabled =
         ReadBooleanSetting(std::string("touchscreen_enabled"), std::make_optional(true));
     Settings::values.touchscreen.rotation_angle =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_angle"), 0));
+        u32(ReadIntegerSetting(std::string("touchscreen_angle"), 0));
     Settings::values.touchscreen.diameter_x =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_x"), 90));
+        u32(ReadIntegerSetting(std::string("touchscreen_diameter_x"), 90));
     Settings::values.touchscreen.diameter_y =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_y"), 90));
+        u32(ReadIntegerSetting(std::string("touchscreen_diameter_y"), 90));
 }
 
 void Config::ReadAudioValues() {
@@ -275,11 +278,17 @@ void Config::ReadCoreValues() {
 void Config::ReadDataStorageValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
 
-    FS::SetEdenPath(FS::EdenPath::NANDDir, ReadStringSetting(std::string("nand_directory")));
-    FS::SetEdenPath(FS::EdenPath::SDMCDir, ReadStringSetting(std::string("sdmc_directory")));
-    FS::SetEdenPath(FS::EdenPath::LoadDir, ReadStringSetting(std::string("load_directory")));
-    FS::SetEdenPath(FS::EdenPath::DumpDir, ReadStringSetting(std::string("dump_directory")));
-    FS::SetEdenPath(FS::EdenPath::TASDir, ReadStringSetting(std::string("tas_directory")));
+    using namespace Common::FS;
+
+    const auto setPath = [this](const EdenPath& path, const char* setting) {
+        SetEdenPath(path, ReadStringSetting(std::string(setting)));
+    };
+
+    setPath(EdenPath::NANDDir, "nand_directory");
+    setPath(EdenPath::SDMCDir, "sdmc_directory");
+    setPath(EdenPath::LoadDir, "load_directory");
+    setPath(EdenPath::DumpDir, "dump_directory");
+    setPath(EdenPath::TASDir, "tas_directory");
 
     ReadCategory(Settings::Category::DataStorage);
 
@@ -449,9 +458,8 @@ void Config::SavePlayerValues(const std::size_t player_index) {
                            std::make_optional(std::string("")));
     }
 
-    WriteIntegerSetting(
-        std::string(player_prefix).append("type"), static_cast<u8>(player.controller_type),
-        std::make_optional(static_cast<u8>(Settings::ControllerType::ProController)));
+    WriteIntegerSetting(std::string(player_prefix).append("type"), u8(player.controller_type),
+                        std::make_optional(u8(Settings::ControllerType::ProController)));
 
     if (!player_prefix.empty() || !Settings::IsConfiguringGlobal()) {
         if (global) {
@@ -487,24 +495,24 @@ void Config::SaveTouchscreenValues() {
                         std::make_optional(true));
 
     WriteIntegerSetting(std::string("touchscreen_angle"), touchscreen.rotation_angle,
-                        std::make_optional(static_cast<u32>(0)));
+                        std::make_optional(u32(0)));
     WriteIntegerSetting(std::string("touchscreen_diameter_x"), touchscreen.diameter_x,
-                        std::make_optional(static_cast<u32>(90)));
+                        std::make_optional(u32(90)));
     WriteIntegerSetting(std::string("touchscreen_diameter_y"), touchscreen.diameter_y,
-                        std::make_optional(static_cast<u32>(90)));
+                        std::make_optional(u32(90)));
 }
 
 void Config::SaveMotionTouchValues() {
     BeginArray(std::string("touch_from_button_maps"));
     for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {
-        SetArrayIndex(static_cast<int>(p));
+        SetArrayIndex(int(p));
         WriteStringSetting(std::string("name"), Settings::values.touch_from_button_maps[p].name,
                            std::make_optional(std::string("default")));
 
         BeginArray(std::string("entries"));
         for (std::size_t q = 0; q < Settings::values.touch_from_button_maps[p].buttons.size();
              ++q) {
-            SetArrayIndex(static_cast<int>(q));
+            SetArrayIndex(int(q));
             WriteStringSetting(std::string("bind"),
                                Settings::values.touch_from_button_maps[p].buttons[q]);
         }
@@ -578,16 +586,18 @@ void Config::SaveCoreValues() {
 void Config::SaveDataStorageValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
 
-    WriteStringSetting(std::string("nand_directory"), FS::GetEdenPathString(FS::EdenPath::NANDDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::NANDDir)));
-    WriteStringSetting(std::string("sdmc_directory"), FS::GetEdenPathString(FS::EdenPath::SDMCDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::SDMCDir)));
-    WriteStringSetting(std::string("load_directory"), FS::GetEdenPathString(FS::EdenPath::LoadDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::LoadDir)));
-    WriteStringSetting(std::string("dump_directory"), FS::GetEdenPathString(FS::EdenPath::DumpDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::DumpDir)));
-    WriteStringSetting(std::string("tas_directory"), FS::GetEdenPathString(FS::EdenPath::TASDir),
-                       std::make_optional(FS::GetEdenPathString(FS::EdenPath::TASDir)));
+    using namespace Common::FS;
+
+    const auto writePath = [this](const char* setting, const EdenPath& path) {
+        WriteStringSetting(std::string(setting), FS::GetEdenPathString(path),
+                           std::make_optional(FS::GetEdenPathString(path)));
+    };
+
+    writePath("nand_directory", EdenPath::NANDDir);
+    writePath("sdmc_directory", EdenPath::SDMCDir);
+    writePath("load_directory", EdenPath::LoadDir);
+    writePath("dump_directory", EdenPath::DumpDir);
+    writePath("tas_directory", EdenPath::TASDir);
 
     WriteCategory(Settings::Category::DataStorage);
 
@@ -632,11 +642,10 @@ void Config::SaveDisabledAddOnValues() {
     BeginArray(std::string(""));
     for (const auto& elem : Settings::values.disabled_addons) {
         SetArrayIndex(i);
-        WriteIntegerSetting(std::string("title_id"), elem.first,
-                            std::make_optional(static_cast<u64>(0)));
+        WriteIntegerSetting(std::string("title_id"), elem.first, std::make_optional(u64(0)));
         BeginArray(std::string("disabled"));
         for (std::size_t j = 0; j < elem.second.size(); ++j) {
-            SetArrayIndex(static_cast<int>(j));
+            SetArrayIndex(int(j));
             WriteStringSetting(std::string("d"), elem.second[j],
                                std::make_optional(std::string("")));
         }
@@ -720,10 +729,10 @@ bool Config::ReadBooleanSetting(const std::string& key, const std::optional<bool
 
     if (config->GetBoolValue(GetSection().c_str(),
                              std::string(full_key).append("\\default").c_str(), false)) {
-        return static_cast<bool>(default_value.value());
+        return bool(default_value.value());
     } else {
         return config->GetBoolValue(GetSection().c_str(), full_key.c_str(),
-                                    static_cast<bool>(default_value.value()));
+                                    bool(default_value.value()));
     }
 }
 
@@ -926,8 +935,7 @@ void Config::ReadSettingGeneric(Settings::BasicSetting* const setting) {
         const bool is_default =
             ReadBooleanSetting(std::string(key).append("\\default"), std::make_optional(true));
         if (!is_default) {
-            const std::string setting_string = ReadStringSetting(key, default_value);
-            setting->LoadString(setting_string);
+            setting->LoadString(ReadStringSetting(key, default_value));
         } else {
             // Empty string resets the Setting to default
             setting->LoadString("");
