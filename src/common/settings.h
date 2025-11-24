@@ -740,10 +740,11 @@ struct Values {
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Debugging};
 
     // Miscellaneous
+    Setting<std::string> serial_battery{linkage, std::string(), "serial_battery", Category::Miscellaneous};
+    Setting<std::string> serial_unit{linkage, std::string(), "serial_unit", Category::Miscellaneous};
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
     Setting<bool> log_flush_line{linkage, false, "flush_line", Category::Miscellaneous, Specialization::Default, true, true};
     Setting<bool> censor_username{linkage, true, "censor_username", Category::Miscellaneous};
-    Setting<bool> use_dev_keys{linkage, false, "use_dev_keys", Category::Miscellaneous};
     Setting<bool> first_launch{linkage, true, "first_launch", Category::Miscellaneous};
 
     // Network

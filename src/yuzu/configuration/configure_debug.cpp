@@ -39,20 +39,34 @@ void ConfigureDebug::SetConfiguration() {
     ui->toggle_gdbstub->setChecked(Settings::values.use_gdbstub.GetValue());
     ui->gdbport_spinbox->setEnabled(Settings::values.use_gdbstub.GetValue());
     ui->gdbport_spinbox->setValue(Settings::values.gdbstub_port.GetValue());
-    ui->toggle_console->setEnabled(runtime_lock);
-    ui->toggle_console->setChecked(UISettings::values.show_console.GetValue());
     ui->log_filter_edit->setText(QString::fromStdString(Settings::values.log_filter.GetValue()));
     ui->flush_line->setChecked(Settings::values.log_flush_line.GetValue());
     ui->censor_username->setChecked(Settings::values.censor_username.GetValue());
-    ui->homebrew_args_edit->setText(QString::fromStdString(Settings::values.program_args.GetValue()));
-    ui->fs_access_log->setEnabled(runtime_lock);
-    ui->fs_access_log->setChecked(Settings::values.enable_fs_access_log.GetValue());
     ui->reporting_services->setChecked(Settings::values.reporting_services.GetValue());
     ui->dump_audio_commands->setChecked(Settings::values.dump_audio_commands.GetValue());
     ui->quest_flag->setChecked(Settings::values.quest_flag.GetValue());
     ui->use_debug_asserts->setChecked(Settings::values.use_debug_asserts.GetValue());
     ui->use_auto_stub->setChecked(Settings::values.use_auto_stub.GetValue());
     ui->enable_all_controllers->setChecked(Settings::values.enable_all_controllers.GetValue());
+    ui->extended_logging->setChecked(Settings::values.extended_logging.GetValue());
+    ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
+#ifdef YUZU_USE_QT_WEB_ENGINE
+    ui->disable_web_applet->setChecked(Settings::values.disable_web_applet.GetValue());
+#else
+    ui->disable_web_applet->setChecked(true);
+#endif
+
+    // Immutable after starting
+    ui->serial_battery_edit->setEnabled(runtime_lock);
+    ui->serial_battery_edit->setText(QString::fromStdString(Settings::values.serial_battery.GetValue()));
+    ui->serial_board_edit->setEnabled(runtime_lock);
+    ui->serial_board_edit->setText(QString::fromStdString(Settings::values.serial_unit.GetValue()));
+    ui->homebrew_args_edit->setEnabled(runtime_lock);
+    ui->homebrew_args_edit->setText(QString::fromStdString(Settings::values.program_args.GetValue()));
+    ui->toggle_console->setEnabled(runtime_lock);
+    ui->toggle_console->setChecked(UISettings::values.show_console.GetValue());
+    ui->fs_access_log->setEnabled(runtime_lock);
+    ui->fs_access_log->setChecked(Settings::values.enable_fs_access_log.GetValue());
     ui->enable_renderdoc_hotkey->setEnabled(runtime_lock);
     ui->enable_renderdoc_hotkey->setChecked(Settings::values.enable_renderdoc_hotkey.GetValue());
     ui->disable_buffer_reorder->setEnabled(runtime_lock);
@@ -73,14 +87,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->disable_macro_hle->setChecked(Settings::values.disable_macro_hle.GetValue());
     ui->disable_loop_safety_checks->setEnabled(runtime_lock);
     ui->disable_loop_safety_checks->setChecked(Settings::values.disable_shader_loop_safety_checks.GetValue());
-    ui->extended_logging->setChecked(Settings::values.extended_logging.GetValue());
     ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
-#ifdef YUZU_USE_QT_WEB_ENGINE
-    ui->disable_web_applet->setChecked(Settings::values.disable_web_applet.GetValue());
-#else
-    ui->disable_web_applet->setChecked(true);
-    ui->disable_web_applet->setVisible(false);
-#endif
 }
 
 void ConfigureDebug::ApplyConfiguration() {

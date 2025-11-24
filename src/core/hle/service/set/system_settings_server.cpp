@@ -961,15 +961,23 @@ Result ISystemSettingsServer::SetPrimaryAlbumStorage(PrimaryAlbumStorage primary
 
 Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
     LOG_INFO(Service_SET, "called");
-
     *out_battery_lot = {"YUZU0EMULATOR14022024"};
+    if (auto const s = ::Settings::values.serial_battery.GetValue(); !s.empty()) {
+        auto const max_size = out_battery_lot->lot_number.size();
+        auto const end = s.size() > max_size ? s.begin() + max_size : s.end();
+        std::copy(s.begin(), end, out_battery_lot->lot_number.begin());
+    }
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetSerialNumber(Out<SerialNumber> out_console_serial) {
     LOG_INFO(Service_SET, "called");
-
     *out_console_serial = {"YUZ10000000001"};
+    if (auto const s = ::Settings::values.serial_unit.GetValue(); !s.empty()) {
+        auto const max_size = out_console_serial->serial_number.size();
+        auto const end = s.size() > max_size ? s.begin() + max_size : s.end();
+        std::copy(s.begin(), end, out_console_serial->serial_number.begin());
+    }
     R_SUCCEED();
 }
 
@@ -1071,10 +1079,9 @@ Result ISystemSettingsServer::SetDeviceNickName(
 }
 
 Result ISystemSettingsServer::GetProductModel(Out<u32> out_product_model) {
-    const u32 product_model = 1;
-
+    // Most certainly should be 1 -- definitely should not be 2, but it's worth tinkering with anyways
+    u32 const product_model = 1;
     LOG_WARNING(Service_SET, "(STUBBED) called, product_model={}", product_model);
-
     *out_product_model = product_model;
     R_SUCCEED();
 }
@@ -1343,52 +1350,44 @@ Result ISystemSettingsServer::GetHttpAuthConfigs(Out<s32> out_count, OutBuffer<B
 }
 
 void ISystemSettingsServer::SetupSettings() {
-    auto system_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
+    auto system_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
     if (!LoadSettingsFile(system_dir, []() { return DefaultSystemSettings(); })) {
         ASSERT(false);
     }
 
-    auto private_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
+    auto private_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
     if (!LoadSettingsFile(private_dir, []() { return DefaultPrivateSettings(); })) {
         ASSERT(false);
     }
 
-    auto device_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
+    auto device_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
     if (!LoadSettingsFile(device_dir, []() { return DefaultDeviceSettings(); })) {
         ASSERT(false);
     }
 
-    auto appln_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
+    auto appln_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
     if (!LoadSettingsFile(appln_dir, []() { return DefaultApplnSettings(); })) {
         ASSERT(false);
     }
 }
 
 void ISystemSettingsServer::StoreSettings() {
-    auto system_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
+    auto system_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
     if (!StoreSettingsFile(system_dir, m_system_settings)) {
         LOG_ERROR(Service_SET, "Failed to store System settings");
     }
 
-    auto private_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
+    auto private_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
     if (!StoreSettingsFile(private_dir, m_private_settings)) {
         LOG_ERROR(Service_SET, "Failed to store Private settings");
     }
 
-    auto device_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
+    auto device_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
     if (!StoreSettingsFile(device_dir, m_device_settings)) {
         LOG_ERROR(Service_SET, "Failed to store Device settings");
     }
 
-    auto appln_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
+    auto appln_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
     if (!StoreSettingsFile(appln_dir, m_appln_settings)) {
         LOG_ERROR(Service_SET, "Failed to store ApplLn settings");
     }
@@ -1399,9 +1398,8 @@ void ISystemSettingsServer::StoreSettingsThreadFunc(std::stop_token stop_token) 
 
     while (Common::StoppableTimedWait(stop_token, std::chrono::minutes(1))) {
         std::scoped_lock l{m_save_needed_mutex};
-        if (!std::exchange(m_save_needed, false)) {
+        if (!std::exchange(m_save_needed, false))
             continue;
-        }
         StoreSettings();
     }
 }
