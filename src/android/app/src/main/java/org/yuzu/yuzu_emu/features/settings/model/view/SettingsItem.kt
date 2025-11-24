@@ -788,6 +788,16 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_auto_stub_description
                 )
             )
+            put(
+                SpinBoxSetting(
+                    IntSetting.DEBUG_KNOBS,
+                    titleId = R.string.debug_knobs,
+                    descriptionId = R.string.debug_knobs_description,
+                    valueHint = R.string.debug_knobs_hint,
+                    min = 0,
+                    max = 65535
+                )
+            )
 
             val fastmem = object : AbstractBooleanSetting {
                 override fun getBoolean(needsGlobal: Boolean): Boolean =

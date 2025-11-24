@@ -141,6 +141,10 @@ void LogSettings() {
     log_path("DataStorage_SDMCDir", Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir));
 }
 
+bool getDebugKnobAt(u8 i) {
+    return (values.debug_knobs.GetValue() & (1 << (i & 0xF))) != 0;
+}
+
 void UpdateGPUAccuracy() {
     values.current_gpu_accuracy = values.gpu_accuracy.GetValue();
 }

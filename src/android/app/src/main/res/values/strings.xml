@@ -135,6 +135,9 @@
     <string name="memory_layout_description">(EXPERIMENTAL) Change the emulated memory layout. This setting will not increase performance, but may help with games utilizing high resolutions via mods. Do not use on phones with 8GB of RAM or less. Only works on the Dynarmic (JIT) backend.</string>
     <string name="dma_accuracy">DMA Accuracy</string>
     <string name="dma_accuracy_description">Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave this on Default.</string>
+    <string name="debug_knobs">Debug knobs</string>
+    <string name="debug_knobs_description">For development use only.</string>
+    <string name="debug_knobs_hint">0 to 65535</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Shader Backend</string>
@@ -533,6 +536,8 @@
     <string name="log">Logging</string>
     <string name="flush_by_line">Flush debug logs by line</string>
     <string name="flush_by_line_description">Flushes debugging logs on each line written, making debugging easier in cases of crashing or freezing.</string>
+
+    <string name="general">General</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Output engine</string>

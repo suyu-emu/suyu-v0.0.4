@@ -507,6 +507,31 @@
            </layout>
           </widget>
          </item>
+          <item row="8" column="0">
+            <widget class="QSpinBox" name="debug_knobs_spinbox">
+                <property name="minimum">
+                <number>0</number>
+                </property>
+                <property name="maximum">
+                <number>65535</number>
+                </property>
+                <property name="toolTip">
+                <string>Bitmask for quick development toggles</string>
+                </property>
+                <property name="statusTip">
+                <string>Set debug knobs (bitmask)</string>
+                </property>
+                <property name="whatsThis">
+                <string>16-bit debug knob set for quick development toggles</string>
+                </property>
+                <property name="suffix">
+                <string> (bitmask)</string>
+                </property>
+                <property name="prefix">
+                <string>Debug Knobs: </string>
+                </property>
+            </widget>
+          </item>
          <item row="7" column="0">
           <widget class="QWidget" name="serial_board_widget" native="true">
            <property name="sizePolicy">

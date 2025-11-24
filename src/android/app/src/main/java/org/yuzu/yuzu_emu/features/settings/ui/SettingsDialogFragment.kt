@@ -186,6 +186,12 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     updateButtonState(isValid)
                 }
 
+                /*
+                 * xbzk: these two events, along with attachRepeat feature,
+                 * were causing spinbox buttons to respond twice per press
+                 * cutting these out to retain accelerated press functionality
+                 * TODO: clean this out later if no issues arise
+                 *
                 spinboxBinding.buttonDecrement.setOnClickListener {
                     val current = spinboxBinding.editValue.text.toString().toIntOrNull() ?: currentValue
                     val newValue = current - 1
@@ -199,6 +205,7 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     spinboxBinding.editValue.setText(newValue.toString())
                     updateValidity(newValue)
                 }
+                */
 
                 fun attachRepeat(button: View, delta: Int) {
                     val handler = Handler(Looper.getMainLooper())

@@ -1167,9 +1167,10 @@ class SettingsFragmentPresenter(
             add(IntSetting.CPU_ACCURACY.key)
             add(BooleanSetting.USE_AUTO_STUB.key)
             add(SettingsItem.FASTMEM_COMBINED)
-
             add(HeaderSetting(R.string.log))
             add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
+            add(HeaderSetting(R.string.general))
+            add(IntSetting.DEBUG_KNOBS.key)
         }
     }
 }
