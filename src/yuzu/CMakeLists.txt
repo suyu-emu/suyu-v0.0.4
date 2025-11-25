@@ -362,9 +362,16 @@ target_sources(yuzu
 )
 
 if (APPLE)
+    # Normal icns
     set(MACOSX_ICON "../../dist/eden.icns")
     set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(yuzu PRIVATE ${MACOSX_ICON})
+
+    # Liquid glass
+    set(MACOSX_LIQUID_GLASS_ICON "../../dist/Assets.car")
+    set_source_files_properties(${MACOSX_LIQUID_GLASS_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(yuzu PRIVATE ${MACOSX_LIQUID_GLASS_ICON})
+
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE TRUE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 

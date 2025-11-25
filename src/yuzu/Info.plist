@@ -21,6 +21,8 @@ SPDX-License-Identifier: GPL-2.0-or-later
     <string></string>
     <key>CFBundleIconFile</key>
     <string>eden.icns</string>
+    <key>CFBundleIconName</key>
+    <string>Eden</string>
     <key>CFBundleIdentifier</key>
     <string>com.yuzu-emu.yuzu</string>
     <key>CFBundleInfoDictionaryVersion</key>
