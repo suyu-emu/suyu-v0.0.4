@@ -195,9 +195,9 @@ void TranslatorVisitor::SUATOM(u64 insn) {
 
 void TranslatorVisitor::SURED(u64 insn) {
     // TODO: confirm offsets
-    // SURED unlike SUATOM does NOT have a binded register
     union {
         u64 raw;
+        BitField<51, 1, u64> is_bound;
         BitField<24, 3, AtomicOp> op; //OK - 24 (SURedOp)
         BitField<33, 3, Type> type; //OK? - 33 (Dim)
         BitField<20, 3, Size> size; //?
@@ -205,10 +205,11 @@ void TranslatorVisitor::SURED(u64 insn) {
         BitField<0, 8, IR::Reg> operand_reg; //RA?
         BitField<8, 8, IR::Reg> coord_reg; //RB?
         BitField<36, 13, u64> bound_offset; //OK 33 (TidB)
+        BitField<39, 8, IR::Reg> bindless_reg; // !is_bound
     } const sured{insn};
-    ImageAtomOp(*this, IR::Reg::RZ, sured.operand_reg, sured.coord_reg, std::nullopt,
+    ImageAtomOp(*this, IR::Reg::RZ, sured.operand_reg, sured.coord_reg, sured.bindless_reg,
                 sured.op, sured.clamp, sured.size, sured.type, sured.bound_offset,
-                false, false);
+                sured.is_bound == 0, false);
 }
 
 } // namespace Shader::Maxwell
