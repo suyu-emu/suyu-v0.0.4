@@ -346,17 +346,6 @@ EmitX64::BlockDescriptor EmitX64::RegisterBlock(const IR::LocationDescriptor& de
     return block_desc;
 }
 
-void EmitX64::EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    boost::apply_visitor([this, initial_location, is_single_step](auto x) {
-        using T = std::decay_t<decltype(x)>;
-        if constexpr (!std::is_same_v<T, IR::Term::Invalid>) {
-            this->EmitTerminalImpl(x, initial_location, is_single_step);
-        } else {
-            ASSERT(false && "Invalid terminal");
-        }
-    }, terminal);
-}
-
 void EmitX64::Patch(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr) {
     const CodePtr save_code_ptr = code.getCurr();
     const PatchInformation& patch_info = patch_information[target_desc];
@@ -399,20 +388,13 @@ void EmitX64::ClearCache() {
 
 void EmitX64::InvalidateBasicBlocks(const ankerl::unordered_dense::set<IR::LocationDescriptor>& locations) {
     code.EnableWriting();
-    SCOPE_EXIT {
-        code.DisableWriting();
-    };
-
     for (const auto& descriptor : locations) {
-        const auto it = block_descriptors.find(descriptor);
-        if (it == block_descriptors.end()) {
-            continue;
+        if (auto const it = block_descriptors.find(descriptor); it != block_descriptors.end()) {
+            Unpatch(descriptor);
+            block_descriptors.erase(it);
         }
-
-        Unpatch(descriptor);
-
-        block_descriptors.erase(it);
     }
+    code.DisableWriting();
 }
 
 }  // namespace Dynarmic::Backend::X64

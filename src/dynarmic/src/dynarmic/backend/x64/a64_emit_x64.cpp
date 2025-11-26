@@ -149,7 +149,7 @@ finish_this_inst:
     if (conf.enable_cycle_counting) {
         EmitAddCycles(block.CycleCount());
     }
-    EmitX64::EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
+    EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();
 
     for (auto& deferred_emit : ctx.deferred_emits) {
@@ -615,110 +615,121 @@ std::string A64EmitX64::LocationDescriptorToFriendlyName(const IR::LocationDescr
                        descriptor.FPCR().Value());
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::Interpret terminal, IR::LocationDescriptor, bool) {
-    code.SwitchMxcsrOnExit();
-    Devirtualize<&A64::UserCallbacks::InterpreterFallback>(conf.callbacks).EmitCall(code, [&](RegList param) {
-        code.mov(param[0], A64::LocationDescriptor{terminal.next}.PC());
-        code.mov(qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)], param[0]);
-        code.mov(param[1].cvt32(), terminal.num_instructions);
+namespace {
+void EmitTerminalImpl(A64EmitX64& e, IR::Term::Interpret terminal, IR::LocationDescriptor, bool) {
+    e.code.SwitchMxcsrOnExit();
+    Devirtualize<&A64::UserCallbacks::InterpreterFallback>(e.conf.callbacks).EmitCall(e.code, [&](RegList param) {
+        e.code.mov(param[0], A64::LocationDescriptor{terminal.next}.PC());
+        e.code.mov(qword[e.code.ABI_JIT_PTR + offsetof(A64JitState, pc)], param[0]);
+        e.code.mov(param[1].cvt32(), terminal.num_instructions);
     });
-    code.ReturnFromRunCode(true);  // TODO: Check cycles
+    e.code.ReturnFromRunCode(true);  // TODO: Check cycles
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
-    code.ReturnFromRunCode();
+void EmitTerminalImpl(A64EmitX64& e, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
+    e.code.ReturnFromRunCode();
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDescriptor, bool is_single_step) {
+void EmitTerminalImpl(A64EmitX64& e, IR::Term::LinkBlock terminal, IR::LocationDescriptor, bool is_single_step) {
     // Used for patches and linking
-    if (conf.HasOptimization(OptimizationFlag::BlockLinking) && !is_single_step) {
-        if (conf.enable_cycle_counting) {
-            code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
-            patch_information[terminal.next].jg.push_back(code.getCurr());
-            if (const auto next_bb = GetBasicBlock(terminal.next)) {
-                EmitPatchJg(terminal.next, next_bb->entrypoint);
+    if (e.conf.HasOptimization(OptimizationFlag::BlockLinking) && !is_single_step) {
+        if (e.conf.enable_cycle_counting) {
+            e.code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
+            e.patch_information[terminal.next].jg.push_back(e.code.getCurr());
+            if (const auto next_bb = e.GetBasicBlock(terminal.next)) {
+                e.EmitPatchJg(terminal.next, next_bb->entrypoint);
             } else {
-                EmitPatchJg(terminal.next);
+                e.EmitPatchJg(terminal.next);
             }
         } else {
-            code.cmp(dword[code.ABI_JIT_PTR + offsetof(A64JitState, halt_reason)], 0);
-            patch_information[terminal.next].jz.push_back(code.getCurr());
-            if (const auto next_bb = GetBasicBlock(terminal.next)) {
-                EmitPatchJz(terminal.next, next_bb->entrypoint);
+            e.code.cmp(dword[e.code.ABI_JIT_PTR + offsetof(A64JitState, halt_reason)], 0);
+            e.patch_information[terminal.next].jz.push_back(e.code.getCurr());
+            if (const auto next_bb = e.GetBasicBlock(terminal.next)) {
+                e.EmitPatchJz(terminal.next, next_bb->entrypoint);
             } else {
-                EmitPatchJz(terminal.next);
+                e.EmitPatchJz(terminal.next);
             }
         }
-        code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
-        code.mov(qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)], rax);
-        code.ForceReturnFromRunCode();
+        e.code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
+        e.code.mov(qword[e.code.ABI_JIT_PTR + offsetof(A64JitState, pc)], rax);
+        e.code.ForceReturnFromRunCode();
     } else {
-        code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
-        code.mov(qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)], rax);
-        code.ReturnFromRunCode();
+        e.code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
+        e.code.mov(qword[e.code.ABI_JIT_PTR + offsetof(A64JitState, pc)], rax);
+        e.code.ReturnFromRunCode();
     }
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor, bool is_single_step) {
-    if (conf.HasOptimization(OptimizationFlag::BlockLinking) && !is_single_step) {
-        patch_information[terminal.next].jmp.push_back(code.getCurr());
-        if (auto next_bb = GetBasicBlock(terminal.next)) {
-            EmitPatchJmp(terminal.next, next_bb->entrypoint);
+void EmitTerminalImpl(A64EmitX64& e, IR::Term::LinkBlockFast terminal, IR::LocationDescriptor, bool is_single_step) {
+    if (e.conf.HasOptimization(OptimizationFlag::BlockLinking) && !is_single_step) {
+        e.patch_information[terminal.next].jmp.push_back(e.code.getCurr());
+        if (auto next_bb = e.GetBasicBlock(terminal.next)) {
+            e.EmitPatchJmp(terminal.next, next_bb->entrypoint);
         } else {
-            EmitPatchJmp(terminal.next);
+            e.EmitPatchJmp(terminal.next);
         }
     } else {
-        code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
-        code.mov(qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)], rax);
-        code.ReturnFromRunCode();
+        e.code.mov(rax, A64::LocationDescriptor{terminal.next}.PC());
+        e.code.mov(qword[e.code.ABI_JIT_PTR + offsetof(A64JitState, pc)], rax);
+        e.code.ReturnFromRunCode();
     }
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::PopRSBHint, IR::LocationDescriptor, bool is_single_step) {
-    if (conf.HasOptimization(OptimizationFlag::ReturnStackBuffer) && !is_single_step) {
-        code.jmp(terminal_handler_pop_rsb_hint);
+void EmitTerminalImpl(A64EmitX64& e, IR::Term::PopRSBHint, IR::LocationDescriptor, bool is_single_step) {
+    if (e.conf.HasOptimization(OptimizationFlag::ReturnStackBuffer) && !is_single_step) {
+        e.code.jmp(e.terminal_handler_pop_rsb_hint);
     } else {
-        code.ReturnFromRunCode();
+        e.code.ReturnFromRunCode();
     }
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::FastDispatchHint, IR::LocationDescriptor, bool is_single_step) {
-    if (!conf.HasOptimization(OptimizationFlag::FastDispatch) || is_single_step) {
-        code.ReturnFromRunCode();
-        return;
+void EmitTerminalImpl(A64EmitX64& e, IR::Term::FastDispatchHint, IR::LocationDescriptor, bool is_single_step) {
+    if (!e.conf.HasOptimization(OptimizationFlag::FastDispatch) || is_single_step) {
+        e.code.ReturnFromRunCode();
+    } else {
+        e.code.jmp(e.terminal_handler_fast_dispatch_hint);
     }
-
-    code.jmp(terminal_handler_fast_dispatch_hint);
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void EmitTerminalImpl(A64EmitX64& e, IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     switch (terminal.if_) {
     case IR::Cond::AL:
     case IR::Cond::NV:
-        EmitTerminal(terminal.then_, initial_location, is_single_step);
+        e.EmitTerminal(terminal.then_, initial_location, is_single_step);
         break;
     default:
-        Xbyak::Label pass = EmitCond(terminal.if_);
-        EmitTerminal(terminal.else_, initial_location, is_single_step);
-        code.L(pass);
-        EmitTerminal(terminal.then_, initial_location, is_single_step);
+        Xbyak::Label pass = e.EmitCond(terminal.if_);
+        e.EmitTerminal(terminal.else_, initial_location, is_single_step);
+        e.code.L(pass);
+        e.EmitTerminal(terminal.then_, initial_location, is_single_step);
         break;
     }
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void EmitTerminalImpl(A64EmitX64& e, IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     Xbyak::Label fail;
-    code.cmp(code.byte[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, check_bit)], u8(0));
-    code.jz(fail);
-    EmitTerminal(terminal.then_, initial_location, is_single_step);
-    code.L(fail);
-    EmitTerminal(terminal.else_, initial_location, is_single_step);
+    e.code.cmp(e.code.byte[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, check_bit)], u8(0));
+    e.code.jz(fail);
+    e.EmitTerminal(terminal.then_, initial_location, is_single_step);
+    e.code.L(fail);
+    e.EmitTerminal(terminal.else_, initial_location, is_single_step);
 }
 
-void A64EmitX64::EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    code.cmp(dword[code.ABI_JIT_PTR + offsetof(A64JitState, halt_reason)], 0);
-    code.jne(code.GetForceReturnFromRunCodeAddress());
-    EmitTerminal(terminal.else_, initial_location, is_single_step);
+void EmitTerminalImpl(A64EmitX64& e, IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+    e.code.cmp(dword[e.code.ABI_JIT_PTR + offsetof(A64JitState, halt_reason)], 0);
+    e.code.jne(e.code.GetForceReturnFromRunCodeAddress());
+    e.EmitTerminal(terminal.else_, initial_location, is_single_step);
+}
+
+void EmitTerminalImpl(A64EmitX64&, IR::Term::Invalid, IR::LocationDescriptor, bool) {
+    UNREACHABLE();
+}
+}
+
+void A64EmitX64::EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept {
+    boost::apply_visitor([this, initial_location, is_single_step](auto x) {
+        EmitTerminalImpl(*this, x, initial_location, is_single_step);
+    }, terminal);
 }
 
 void A64EmitX64::EmitPatchJg(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr) {
