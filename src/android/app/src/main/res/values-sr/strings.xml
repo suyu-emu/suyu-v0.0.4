@@ -888,10 +888,13 @@
     <string name="cubeb">Цубеб</string>
 
     <!-- Anisotropic filtering options -->
-    <string name="multiplier_two">2к</string>
-    <string name="multiplier_four">4к</string>
-    <string name="multiplier_eight">8к</string>
-    <string name="multiplier_sixteen">16к</string>
+    <string name="multiplier_x2">x2</string>
+    <string name="multiplier_x4">x4</string>
+    <string name="multiplier_x8">x8</string>
+    <string name="multiplier_x16">x16</string>
+    <string name="multiplier_x32">x32</string>
+    <string name="multiplier_x64">x64</string>
+    <string name="multiplier_none">None</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Црна позадина</string>

@@ -126,7 +126,7 @@ ENUM(TimeZone, Auto, Default, Cet, Cst6Cdt, Cuba, Eet, Egypt, Eire, Est, Est5Edt
     GmtPlusZero, GmtMinusZero, GmtZero, Greenwich, Hongkong, Hst, Iceland, Iran, Israel, Jamaica,
     Japan, Kwajalein, Libya, Met, Mst, Mst7Mdt, Navajo, Nz, NzChat, Poland, Portugal, Prc, Pst8Pdt,
     Roc, Rok, Singapore, Turkey, Uct, Universal, Utc, WSu, Wet, Zulu);
-ENUM(AnisotropyMode, Automatic, Default, X2, X4, X8, X16);
+ENUM(AnisotropyMode, Automatic, Default, X2, X4, X8, X16, X32, X64, None);
 ENUM(AstcDecodeMode, Cpu, Gpu, CpuAsynchronous);
 ENUM(AstcRecompression, Uncompressed, Bc1, Bc3);
 ENUM(VSyncMode, Immediate, Mailbox, Fifo, FifoRelaxed);

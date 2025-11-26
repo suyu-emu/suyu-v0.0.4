@@ -487,10 +487,13 @@
     <string-array name="anisoEntries">
         <item>@string/auto</item>
         <item>@string/slider_default</item>
-        <item>@string/multiplier_two</item>
-        <item>@string/multiplier_four</item>
-        <item>@string/multiplier_eight</item>
-        <item>@string/multiplier_sixteen</item>
+        <item>@string/multiplier_x2</item>
+        <item>@string/multiplier_x4</item>
+        <item>@string/multiplier_x8</item>
+        <item>@string/multiplier_x16</item>
+        <item>@string/multiplier_x32</item>
+        <item>@string/multiplier_x64</item>
+        <item>@string/multiplier_none</item>
     </string-array>
     <integer-array name="anisoValues">
         <item>0</item>

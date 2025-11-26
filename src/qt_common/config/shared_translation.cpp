@@ -596,6 +596,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(AnisotropyMode, X4, tr("4x")),
                               PAIR(AnisotropyMode, X8, tr("8x")),
                               PAIR(AnisotropyMode, X16, tr("16x")),
+                              PAIR(AnisotropyMode, X32, tr("32x")),
+                              PAIR(AnisotropyMode, X64, tr("64x")),
+                              PAIR(AnisotropyMode, None, tr("None")),
                           }});
     translations->insert(
         {Settings::EnumMetadata<Settings::Language>::Index(),
