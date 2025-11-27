@@ -128,9 +128,6 @@ if (YUZU_STATIC_BUILD)
     ## find .a libs first (static, usually)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
-    ## some libraries define a Library::Name_static alternative ##
-    set(YUZU_STATIC_SUFFIX _static)
-
     ## some libraries use CMAKE_IMPORT_LIBRARY_SUFFIX e.g. Harfbuzz ##
     set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a")
 
@@ -161,20 +158,22 @@ if (YUZU_STATIC_BUILD)
         set(YUZU_USE_BUNDLED_OPENSSL ON)
 
         set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+
+        ## some libraries define a Library::Name_static alternative ##
+        set(MBEDTLS_LIB_SUFFIX _static)
     elseif(APPLE)
-        # these libs do not properly provide static libs/let you do it with cmake
         set(YUZU_USE_CPM ON)
 
         set(YUZU_USE_BUNDLED_FFMPEG ON)
         set(YUZU_USE_BUNDLED_SDL2 ON)
         set(YUZU_USE_BUNDLED_OPENSSL ON)
 
-        # IMPORTED_IMPLIB not set for imported target
-        # TODO(crueter): wtf
+        # these libs do not properly provide static libs/let you do it with cmake
         set(fmt_FORCE_BUNDLED ON)
         set(SPIRV-Tools_FORCE_BUNDLED ON)
         set(SPIRV-Headers_FORCE_BUNDLED ON)
         set(zstd_FORCE_BUNDLED ON)
+        set(MbedTLS_FORCE_BUNDLED ON)
     endif()
 endif()
 

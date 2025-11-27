@@ -1203,7 +1203,7 @@ else()
     target_link_libraries(core PUBLIC Boost::headers)
 endif()
 
-target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API MbedTLS::mbedcrypto${YUZU_STATIC_SUFFIX} MbedTLS::mbedtls${YUZU_STATIC_SUFFIX})
+target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX} MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
 # if (MINGW)
 #     target_link_libraries(core PRIVATE ws2_32 mswsock wlanapi)
 # endif()

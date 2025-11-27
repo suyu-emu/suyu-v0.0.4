@@ -16,7 +16,7 @@ if (ENABLE_WEB_SERVICE)
     target_link_libraries(yuzu-room PRIVATE web_service)
 endif()
 
-target_link_libraries(yuzu-room PRIVATE MbedTLS::mbedcrypto${YUZU_STATIC_SUFFIX} MbedTLS::mbedtls${YUZU_STATIC_SUFFIX})
+target_link_libraries(yuzu-room PRIVATE MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX} MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
 if (MSVC)
     target_link_libraries(yuzu-room PRIVATE getopt)
 endif()
