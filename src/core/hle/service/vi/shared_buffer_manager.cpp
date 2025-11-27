@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -38,13 +41,13 @@ Result AllocateSharedBufferMemory(std::unique_ptr<Kernel::KPageGroup>* out_page_
         Kernel::KMemoryManager::EncodeOption(Kernel::KMemoryManager::Pool::Secure,
                                              Kernel::KMemoryManager::Direction::FromBack)));
 
-    // Fill the output data with red.
+    // Initialize to fully transparent black to avoid covering content before first present.
     for (auto& block : *pg) {
         u32* start = system.DeviceMemory().GetPointer<u32>(block.GetAddress());
         u32* end = system.DeviceMemory().GetPointer<u32>(block.GetAddress() + block.GetSize());
 
-        for (; start < end; start++) {
-            *start = 0xFF0000FF;
+        for (; start < end; ++start) {
+            *start = 0x00000000; // ARGB/RGBA with alpha=0
         }
     }
 
@@ -252,8 +255,9 @@ Result SharedBufferManager::CreateSession(Kernel::KProcess* owner_process, u64* 
     R_TRY(m_container.CreateStrayLayer(std::addressof(producer_binder_id),
                                        std::addressof(session.layer_id), display_id));
 
-    // Configure blending.
+    // Configure blending and z-index
     R_ASSERT(m_container.SetLayerBlending(session.layer_id, enable_blending));
+    R_ASSERT(m_container.SetLayerZIndex(session.layer_id, 100000));
 
     // Get the producer and set preallocated buffers.
     std::shared_ptr<android::BufferQueueProducer> producer;
@@ -370,6 +374,11 @@ Result SharedBufferManager::PresentSharedFrameBuffer(android::Fence fence,
                  android::Status::NoError,
              VI::ResultOperationFailed);
 
+    // Ensure the layer is visible when content is presented.
+    // Re-assert overlay priority in case clients reset it.
+    (void)m_container.SetLayerZIndex(layer_id, 100000);
+    (void)m_container.SetLayerVisibility(layer_id, true);
+
     // We succeeded.
     R_SUCCEED();
 }
@@ -406,21 +415,49 @@ Result SharedBufferManager::WriteAppletCaptureBuffer(bool* out_was_written, s32*
     // TODO: this could be optimized
     s64 e = -1280 * 768 * 4;
     for (auto& block : *m_buffer_page_group) {
-        u8* start = m_system.DeviceMemory().GetPointer<u8>(block.GetAddress());
-        u8* end = m_system.DeviceMemory().GetPointer<u8>(block.GetAddress() + block.GetSize());
+        u8* const block_start = m_system.DeviceMemory().GetPointer<u8>(block.GetAddress());
+        u8* ptr = block_start;
+        u8* const block_end = m_system.DeviceMemory().GetPointer<u8>(block.GetAddress() + block.GetSize());
 
-        for (; start < end; start++) {
-            *start = 0;
-
+        for (; ptr < block_end; ++ptr) {
             if (e >= 0 && e < static_cast<s64>(capture_buffer.size())) {
-                *start = capture_buffer[e];
+                *ptr = capture_buffer[static_cast<size_t>(e)];
+            } else {
+                *ptr = 0;
             }
-            e++;
+            ++e;
         }
 
-        m_system.GPU().Host1x().MemoryManager().ApplyOpOnPointer(start, scratch, [&](DAddr addr) {
-            m_system.GPU().InvalidateRegion(addr, end - start);
+        m_system.GPU().Host1x().MemoryManager().ApplyOpOnPointer(block_start, scratch, [&](DAddr addr) {
+            m_system.GPU().InvalidateRegion(addr, block_end - block_start);
         });
+    }
+
+    // After writing, present a frame on each active shared layer so it becomes visible.
+    for (auto& [aruid, session] : m_sessions) {
+        std::shared_ptr<android::BufferQueueProducer> producer;
+        if (R_FAILED(m_container.GetLayerProducerHandle(std::addressof(producer), session.layer_id))) {
+            continue;
+        }
+        s32 slot = -1;
+        android::Fence fence = android::Fence::NoFence();
+        if (producer->DequeueBuffer(&slot, &fence, SharedBufferAsync != 0, SharedBufferWidth,
+                                    SharedBufferHeight, SharedBufferBlockLinearFormat, 0) !=
+            android::Status::NoError) {
+            continue;
+        }
+        std::shared_ptr<android::GraphicBuffer> gb;
+        if (producer->RequestBuffer(slot, &gb) != android::Status::NoError) {
+            producer->CancelBuffer(slot, android::Fence::NoFence());
+            continue;
+        }
+        android::QueueBufferInput qin{};
+        android::QueueBufferOutput qout{};
+        qin.crop = {0, 0, static_cast<s32>(SharedBufferWidth), static_cast<s32>(SharedBufferHeight)};
+        qin.fence = android::Fence::NoFence();
+        qin.transform = static_cast<android::NativeWindowTransform>(0);
+        qin.swap_interval = 1;
+        (void)producer->QueueBuffer(slot, qin, &qout);
     }
 
     *out_was_written = true;

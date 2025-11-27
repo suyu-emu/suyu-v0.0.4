@@ -1,5 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
+
+#pragma once
 
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
@@ -22,6 +27,7 @@ public:
     void DestroySharedLayerSession(Kernel::KProcess* owner_process);
 
     Result SetLayerBlending(bool enabled, u64 layer_id);
+    Result SetLayerZIndex(s32 z_index, u64 layer_id);
 
 public:
     Result CreateManagedLayer(Out<u64> out_layer_id, u32 flags, u64 display_id,

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +15,7 @@ struct Layer {
     explicit Layer(std::shared_ptr<android::BufferItemConsumer> buffer_item_consumer_,
                    s32 consumer_id_)
         : buffer_item_consumer(std::move(buffer_item_consumer_)), consumer_id(consumer_id_),
-          blending(LayerBlending::None), visible(true) {}
+          blending(LayerBlending::None), visible(true), z_index(0) {}
     ~Layer() {
         buffer_item_consumer->Abandon();
     }
@@ -21,6 +24,7 @@ struct Layer {
     s32 consumer_id;
     LayerBlending blending;
     bool visible;
+    s32 z_index;
 };
 
 struct LayerStack {

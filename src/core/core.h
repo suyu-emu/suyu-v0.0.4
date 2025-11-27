@@ -17,6 +17,8 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs/vfs_types.h"
+#include "core/hle/service/os/event.h"
+#include "core/hle/service/kernel_helpers.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -427,6 +429,11 @@ public:
      * It is used to transfer data between programs.
      */
     [[nodiscard]] std::deque<std::vector<u8>>& GetUserChannel();
+
+    [[nodiscard]] std::deque<std::vector<u8>>& GetGeneralChannel();
+    void PushGeneralChannelData(std::vector<u8>&& data);
+    bool TryPopGeneralChannel(std::vector<u8>& out_data);
+    [[nodiscard]] Service::Event& GetGeneralChannelEvent();
 
     /// Type used for the frontend to designate a callback for System to exit the application.
     using ExitCallback = std::function<void()>;

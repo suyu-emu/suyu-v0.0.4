@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,7 +24,7 @@ IReceiverService::~IReceiverService() = default;
 
 Result IReceiverService::OpenReceiver(Out<SharedPointer<IReceiver>> out_receiver) {
     LOG_DEBUG(Service_PSC, "called");
-    *out_receiver = std::make_shared<IReceiver>(system);
+    *out_receiver = std::shared_ptr<IReceiver>(new IReceiver(system));
     R_SUCCEED();
 }
 

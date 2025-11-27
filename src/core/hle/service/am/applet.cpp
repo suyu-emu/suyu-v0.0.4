@@ -12,7 +12,7 @@ namespace Service::AM {
 
 Applet::Applet(Core::System& system, std::unique_ptr<Process> process_, bool is_application)
     : context(system, "Applet"), lifecycle_manager(system, context, is_application),
-      process(std::move(process_)), hid_registration(system, *process),
+      process(std::move(process_)), hid_registration(system, *process), overlay_event(context),
       gpu_error_detected_event(context), friend_invitation_storage_channel_event(context),
       notification_storage_channel_event(context), health_warning_disappeared_system_event(context),
       unknown_event(context), acquired_sleep_lock_event(context), pop_from_general_channel_event(context),
@@ -63,7 +63,15 @@ void Applet::SetInteractibleLocked(bool interactible) {
 
     is_interactible = interactible;
 
-    hid_registration.EnableAppletToGetInput(interactible && !lifecycle_manager.GetExitRequested());
+    const bool exit_requested = lifecycle_manager.GetExitRequested();
+    const bool input_enabled = interactible && !exit_requested;
+
+    if (applet_id == AppletId::OverlayDisplay || applet_id == AppletId::Application) {
+        LOG_DEBUG(Service_AM, "called, applet={} interactible={} exit_requested={} input_enabled={} overlay_in_foreground={}",
+                 static_cast<u32>(applet_id), interactible, exit_requested, input_enabled, overlay_in_foreground);
+    }
+
+    hid_registration.EnableAppletToGetInput(input_enabled);
 }
 
 void Applet::OnProcessTerminatedLocked() {

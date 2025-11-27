@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,7 +23,7 @@ ISystemDisplayService::ISystemDisplayService(Core::System& system_,
         {1204, nullptr, "SetDisplayMagnification"},
         {2201, nullptr, "SetLayerPosition"},
         {2203, nullptr, "SetLayerSize"},
-        {2204, nullptr, "GetLayerZ"},
+        {2204, C<&ISystemDisplayService::GetLayerZ>, "GetLayerZ"},
         {2205, C<&ISystemDisplayService::SetLayerZ>, "SetLayerZ"},
         {2207, C<&ISystemDisplayService::SetLayerVisibility>, "SetLayerVisibility"},
         {2209, nullptr, "SetLayerAlpha"},
@@ -68,16 +71,26 @@ ISystemDisplayService::ISystemDisplayService(Core::System& system_,
 
 ISystemDisplayService::~ISystemDisplayService() = default;
 
-Result ISystemDisplayService::SetLayerZ(u32 z_value, u64 layer_id) {
-    LOG_WARNING(Service_VI, "(STUBBED) called. layer_id={}, z_value={}", layer_id, z_value);
+Result ISystemDisplayService::GetLayerZ(Out<u64> out_z_value, u64 layer_id) {
+    LOG_DEBUG(Service_VI, "called. layer_id={}", layer_id);
+    s32 z{};
+    const auto res = m_container->GetLayerZIndex(layer_id, &z);
+    R_TRY(res);
+    *out_z_value = static_cast<u64>(z);
     R_SUCCEED();
+}
+
+Result ISystemDisplayService::SetLayerZ(u64 layer_id, u64 z_value) {
+    LOG_DEBUG(Service_VI, "called. layer_id={}, z_value={}", layer_id, z_value);
+    // Forward to container using internal API when available
+    R_RETURN(m_container->SetLayerZIndex(layer_id, static_cast<s32>(z_value)));
 }
 
 // This function currently does nothing but return a success error code in
 // the vi library itself, so do the same thing, but log out the passed in values.
 Result ISystemDisplayService::SetLayerVisibility(bool visible, u64 layer_id) {
     LOG_DEBUG(Service_VI, "called, layer_id={}, visible={}", layer_id, visible);
-    R_SUCCEED();
+    R_RETURN(m_container->SetLayerVisibility(layer_id, visible));
 }
 
 Result ISystemDisplayService::ListDisplayModes(

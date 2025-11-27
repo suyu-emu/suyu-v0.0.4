@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -56,7 +59,7 @@ IApplicationCreator::IApplicationCreator(Core::System& system_, WindowSystem& wi
     static const FunctionInfo functions[] = {
         {0, D<&IApplicationCreator::CreateApplication>, "CreateApplication"},
         {1, nullptr, "PopLaunchRequestedApplication"},
-        {10, nullptr, "CreateSystemApplication"},
+        {10, D<&IApplicationCreator::CreateSystemApplication>, "CreateSystemApplication"},
         {100, nullptr, "PopFloatingApplicationForDevelopment"},
     };
     // clang-format on
@@ -71,6 +74,36 @@ Result IApplicationCreator::CreateApplication(
     LOG_INFO(Service_NS, "called, application_id={:016X}", application_id);
     R_RETURN(
         CreateGuestApplication(out_application_accessor, system, m_window_system, application_id));
+}
+
+Result IApplicationCreator::CreateSystemApplication(
+    Out<SharedPointer<IApplicationAccessor>> out_application_accessor, u64 application_id) {
+
+    FileSys::VirtualFile nca_raw{};
+
+    auto& storage = system.GetContentProviderUnion();
+    nca_raw = storage.GetEntryRaw(application_id, FileSys::ContentRecordType::Program);
+
+    R_UNLESS(nca_raw != nullptr, ResultUnknown);
+
+    std::vector<u8> control;
+    std::unique_ptr<Loader::AppLoader> loader;
+
+    auto process =
+        CreateProcess(system, application_id, 1, 21);
+    R_UNLESS(process != nullptr, ResultUnknown);
+
+    const auto applet = std::make_shared<Applet>(system, std::move(process), true);
+    applet->program_id = application_id;
+    applet->applet_id = AppletId::Starter;
+    applet->type = AppletType::LibraryApplet;
+    applet->library_applet_mode = LibraryAppletMode::AllForeground;
+
+    m_window_system.TrackApplet(applet, true);
+
+    *out_application_accessor =
+        std::make_shared<IApplicationAccessor>(system, applet, m_window_system);
+    R_SUCCEED();
 }
 
 } // namespace Service::AM

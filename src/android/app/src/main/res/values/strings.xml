@@ -1125,7 +1125,7 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Applets</string>
-    <string name="applets_menu_description">(WIP) Change applet frontends and settings</string>
+    <string name="applets_menu_description">Change applet frontends and settings</string>
 
     <string name="applet_hle">Custom Frontend</string>
     <string name="applet_lle">Real Applet</string>
@@ -1134,6 +1134,9 @@
 
     <string name="airplane_mode">Airplane Mode</string>
     <string name="airplane_mode_description">Passes Airplane Mode to the Switch OS</string>
+
+    <string name="enable_overlay">Enable Overlay Applet</string>
+    <string name="enable_overlay_description">Enables Horizon\'s built-in overlay applet. Press and hold the home button for 1 second to show it.</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenses</string>

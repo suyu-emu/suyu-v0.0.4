@@ -1513,8 +1513,7 @@ void MainWindow::RestoreUIState() {
 
     ui->action_Fullscreen->setChecked(UISettings::values.fullscreen.GetValue());
 
-    ui->action_Display_Dock_Widget_Headers->setChecked(
-        UISettings::values.display_titlebar.GetValue());
+    ui->action_Enable_Overlay_Applet->setChecked(Settings::values.enable_overlay.GetValue());
 
     ui->action_Show_Filter_Bar->setChecked(UISettings::values.show_filter_bar.GetValue());
     game_list->SetFilterVisible(ui->action_Show_Filter_Bar->isChecked());
@@ -4408,10 +4407,11 @@ void MainWindow::UpdateUISettings() {
     UISettings::values.state = saveState();
     UISettings::values.single_window_mode = ui->action_Single_Window_Mode->isChecked();
     UISettings::values.fullscreen = ui->action_Fullscreen->isChecked();
-    UISettings::values.display_titlebar = ui->action_Display_Dock_Widget_Headers->isChecked();
     UISettings::values.show_filter_bar = ui->action_Show_Filter_Bar->isChecked();
     UISettings::values.show_status_bar = ui->action_Show_Status_Bar->isChecked();
     UISettings::values.first_start = false;
+
+    Settings::values.enable_overlay = ui->action_Enable_Overlay_Applet->isChecked();
 }
 
 void MainWindow::UpdateInputDrivers() {

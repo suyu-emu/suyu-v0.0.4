@@ -19,7 +19,7 @@ public:
     explicit IReadOnlyApplicationControlDataInterface(Core::System& system_);
     ~IReadOnlyApplicationControlDataInterface() override;
 
-    Result GetApplicationControlDataOld(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+    Result GetApplicationControlData(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
                                      Out<u32> out_actual_size,
                                      ApplicationControlSource application_control_source,
                                      u64 application_id);
@@ -27,10 +27,6 @@ public:
                                          u32 supported_languages);
     Result ConvertApplicationLanguageToLanguageCode(Out<u64> out_language_code,
                                                     ApplicationLanguage application_language);
-    Result GetApplicationControlData(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
-                                        Out<u32> out_actual_size,
-                                        ApplicationControlSource application_control_source,
-                                        u64 application_id);
     Result GetApplicationControlDataWithoutIcon(
         OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
         Out<u64> out_total_size,

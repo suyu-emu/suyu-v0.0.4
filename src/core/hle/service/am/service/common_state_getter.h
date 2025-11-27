@@ -21,6 +21,7 @@ namespace Service::AM {
 
 struct Applet;
 class ILockAccessor;
+class IStorage;
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
 public:
@@ -60,6 +61,8 @@ private:
                                     OutArray<AppletId, BufferAttr_HipcMapAlias> out_applet_ids);
     Result GetSettingsPlatformRegion(Out<Set::PlatformRegion> out_settings_platform_region);
     Result SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled();
+    Result PushToGeneralChannel(SharedPointer<IStorage> storage); // cmd 20
+    Result SetHandlingHomeButtonShortPressedEnabled(bool enabled);
 
     void SetCpuBoostMode(HLERequestContext& ctx);
 

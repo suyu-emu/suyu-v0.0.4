@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,6 +15,7 @@ namespace Service::AM {
 
 struct Applet;
 class WindowSystem;
+class IStorage;
 
 class IHomeMenuFunctions final : public ServiceFramework<IHomeMenuFunctions> {
 public:
@@ -23,6 +27,7 @@ private:
     Result RequestToGetForeground();
     Result LockForeground();
     Result UnlockForeground();
+    Result PopFromGeneralChannel(Out<SharedPointer<IStorage>> out_storage);
     Result GetPopFromGeneralChannelEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result IsRebootEnabled(Out<bool> out_is_reboot_enbaled);
     Result IsForceTerminateApplicationDisabledForDebug(
@@ -31,7 +36,6 @@ private:
     WindowSystem& m_window_system;
     const std::shared_ptr<Applet> m_applet;
     KernelHelpers::ServiceContext m_context;
-    Event m_pop_from_general_channel_event;
 };
 
 } // namespace Service::AM

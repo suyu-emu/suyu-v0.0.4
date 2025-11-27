@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -45,9 +48,10 @@ public:
     void SetLayerVisibility(s32 consumer_binder_id, bool visible);
     void SetLayerBlending(s32 consumer_binder_id, LayerBlending blending);
 
+    std::shared_ptr<Layer> FindLayer(s32 consumer_binder_id);
+
 private:
     Display* FindDisplay(u64 display_id);
-    std::shared_ptr<Layer> FindLayer(s32 consumer_binder_id);
 
 public:
     // TODO: these don't belong here

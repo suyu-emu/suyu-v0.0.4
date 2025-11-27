@@ -580,6 +580,21 @@ struct System::Impl {
         gpu_dirty_memory_managers;
 
     std::deque<std::vector<u8>> user_channel;
+
+    std::mutex general_channel_mutex;
+    std::deque<std::vector<u8>> general_channel;
+    std::unique_ptr<Service::KernelHelpers::ServiceContext> general_channel_context; // lazy
+    std::unique_ptr<Service::Event> general_channel_event;                           // lazy
+    bool general_channel_initialized{false};
+
+    void EnsureGeneralChannelInitialized(System& system) {
+        if (general_channel_initialized) {
+            return;
+        }
+        general_channel_context = std::make_unique<Service::KernelHelpers::ServiceContext>(system, "GeneralChannel");
+        general_channel_event = std::make_unique<Service::Event>(*general_channel_context);
+        general_channel_initialized = true;
+    }
 };
 
 System::System() : impl{std::make_unique<Impl>(*this)} {}
@@ -991,6 +1006,39 @@ void System::ExecuteProgram(std::size_t program_index) {
 
 std::deque<std::vector<u8>>& System::GetUserChannel() {
     return impl->user_channel;
+}
+
+std::deque<std::vector<u8>>& System::GetGeneralChannel() {
+    return impl->general_channel;
+}
+
+void System::PushGeneralChannelData(std::vector<u8>&& data) {
+    std::scoped_lock lk{impl->general_channel_mutex};
+    impl->EnsureGeneralChannelInitialized(*this);
+    const bool was_empty = impl->general_channel.empty();
+    impl->general_channel.push_back(std::move(data));
+    if (was_empty) {
+        impl->general_channel_event->Signal();
+    }
+}
+
+bool System::TryPopGeneralChannel(std::vector<u8>& out_data) {
+    std::scoped_lock lk{impl->general_channel_mutex};
+    if (!impl->general_channel_initialized || impl->general_channel.empty()) {
+        return false;
+    }
+    out_data = std::move(impl->general_channel.back());
+    impl->general_channel.pop_back();
+    if (impl->general_channel.empty()) {
+        impl->general_channel_event->Clear();
+    }
+    return true;
+}
+
+Service::Event& System::GetGeneralChannelEvent() {
+    std::scoped_lock lk{impl->general_channel_mutex};
+    impl->EnsureGeneralChannelInitialized(*this);
+    return *impl->general_channel_event;
 }
 
 void System::RegisterExitCallback(ExitCallback&& callback) {

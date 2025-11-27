@@ -95,7 +95,6 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
         const auto& item = buffer.item;
         const auto& igbp_buffer = *item.graphic_buffer;
 
-        // TODO: get proper Z-index from layer
         if (layer->visible) {
             composition_stack.emplace_back(HwcLayer{
                 .buffer_handle = igbp_buffer.BufferId(),
@@ -104,7 +103,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
                 .width = igbp_buffer.Width(),
                 .height = igbp_buffer.Height(),
                 .stride = igbp_buffer.Stride(),
-                .z_index = 0,
+                .z_index = layer->z_index,
                 .blending = layer->blending,
                 .transform = static_cast<android::BufferTransformFlags>(item.transform),
                 .crop_rect = item.crop,
@@ -128,9 +127,9 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
 
     // If any new buffers were acquired, we can present.
     if (has_acquired_buffer && !composition_stack.empty()) {
-        // Sort by Z-index.
+        // Sort back-to-front: lower z first, higher z last so top-most draws last (on top).
         std::stable_sort(composition_stack.begin(), composition_stack.end(),
-                         [&](auto& l, auto& r) { return l.z_index < r.z_index; });
+                         [&](const HwcLayer& l, const HwcLayer& r) { return l.z_index < r.z_index; });
 
         // Composite.
         nvdisp.Composite(composition_stack);

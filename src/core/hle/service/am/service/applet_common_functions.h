@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,6 +21,7 @@ public:
 private:
     Result SetHomeButtonDoubleClickEnabled(bool home_button_double_click_enabled);
     Result GetHomeButtonDoubleClickEnabled(Out<bool> out_home_button_double_click_enabled);
+    Result SetDisplayMagnification(f32 x, f32 y, f32 width, f32 height);
     Result SetCpuBoostRequestPriority(s32 priority);
     Result GetCurrentApplicationId(Out<u64> out_application_id);
     Result Unknown350(Out<u16> out_unknown);

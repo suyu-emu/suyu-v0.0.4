@@ -95,7 +95,7 @@ std::string SaveDataFactory::GetSaveDataSpaceIdPath(SaveDataSpaceId space) {
     case SaveDataSpaceId::System:
         return "/system/";
     case SaveDataSpaceId::User:
-        case SaveDataSpaceId::SdUser:
+    case SaveDataSpaceId::SdUser:
         return "/user/";
     case SaveDataSpaceId::Temporary:
         return "/temp/";

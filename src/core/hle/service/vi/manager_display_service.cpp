@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -114,6 +117,10 @@ void IManagerDisplayService::DestroySharedLayerSession(Kernel::KProcess* owner_p
 
 Result IManagerDisplayService::SetLayerBlending(bool enabled, u64 layer_id) {
     R_RETURN(m_container->SetLayerBlending(layer_id, enabled));
+}
+
+Result IManagerDisplayService::SetLayerZIndex(s32 z_index, u64 layer_id) {
+    R_RETURN(m_container->SetLayerZIndex(layer_id, z_index));
 }
 
 Result IManagerDisplayService::CreateManagedLayer(Out<u64> out_layer_id, u32 flags, u64 display_id,

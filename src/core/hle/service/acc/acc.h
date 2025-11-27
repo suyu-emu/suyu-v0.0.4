@@ -42,6 +42,7 @@ public:
         void DeleteUser(HLERequestContext& ctx);
         void SetUserPosition(HLERequestContext& ctx);
         void GetProfileEditor(HLERequestContext& ctx);
+        void GetBaasAccountAdministrator(HLERequestContext &ctx);
         void ListQualifiedUsers(HLERequestContext& ctx);
         void ListOpenContextStoredUsers(HLERequestContext& ctx);
         void StoreSaveDataThumbnailApplication(HLERequestContext& ctx);

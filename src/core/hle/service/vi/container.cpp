@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -129,6 +132,38 @@ Result Container::SetLayerBlending(u64 layer_id, bool enabled) {
                                         enabled ? Nvnflinger::LayerBlending::Coverage
                                                 : Nvnflinger::LayerBlending::None);
     R_SUCCEED();
+}
+
+Result Container::SetLayerZIndex(u64 layer_id, s32 z_index) {
+    std::scoped_lock lk{m_lock};
+
+    auto* const layer = m_layers.GetLayerById(layer_id);
+    R_UNLESS(layer != nullptr, VI::ResultNotFound);
+
+    if (auto layer_ref = m_surface_flinger->FindLayer(layer->GetConsumerBinderId())) {
+        LOG_DEBUG(Service_VI, "called, SetLayerZIndex layer_id={} z={} (cid={})", layer_id,
+                 z_index, layer->GetConsumerBinderId());
+        layer_ref->z_index = z_index;
+    } else {
+        LOG_DEBUG(Service_VI, "called, SetLayerZIndex failed to find layer for layer_id={} (cid={})",
+                 layer_id, layer->GetConsumerBinderId());
+    }
+
+    R_SUCCEED();
+}
+
+Result Container::GetLayerZIndex(u64 layer_id, s32* out_z_index) {
+    std::scoped_lock lk{m_lock};
+
+    auto* const layer = m_layers.GetLayerById(layer_id);
+    R_UNLESS(layer != nullptr, VI::ResultNotFound);
+
+    if (auto layer_ref = m_surface_flinger->FindLayer(layer->GetConsumerBinderId())) {
+        *out_z_index = layer_ref->z_index;
+        R_SUCCEED();
+    }
+
+    R_RETURN(VI::ResultNotFound);
 }
 
 void Container::LinkVsyncEvent(u64 display_id, Event* event) {

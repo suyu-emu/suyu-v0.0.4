@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,6 +10,7 @@
 #include "core/hle/service/am/service/application_proxy.h"
 #include "core/hle/service/am/service/library_applet_proxy.h"
 #include "core/hle/service/am/service/system_applet_proxy.h"
+#include "core/hle/service/am/service/overlay_applet_proxy.h"
 #include "core/hle/service/am/window_system.h"
 #include "core/hle/service/cmif_serialization.h"
 
@@ -21,7 +25,7 @@ IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& sys
         {110, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxy>, "OpenSystemAppletProxyEx"},
         {200, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld>, "OpenLibraryAppletProxyOld"},
         {201, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxy>, "OpenLibraryAppletProxy"},
-        {300, nullptr, "OpenOverlayAppletProxy"},
+        {300, D<&IAllSystemAppletProxiesService::OpenOverlayAppletProxy>, "OpenOverlayAppletProxy"},
         {350, D<&IAllSystemAppletProxiesService::OpenSystemApplicationProxy>, "OpenSystemApplicationProxy"},
         {400, nullptr, "CreateSelfLibraryAppletCreatorForDevelop"},
         {410, nullptr, "GetSystemAppletControllerForDebug"},
@@ -59,6 +63,22 @@ Result IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
 
     if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
         *out_library_applet_proxy = std::make_shared<ILibraryAppletProxy>(
+            system, applet, process_handle.Get(), m_window_system);
+        R_SUCCEED();
+    } else {
+        UNIMPLEMENTED();
+        R_THROW(ResultUnknown);
+    }
+}
+
+Result IAllSystemAppletProxiesService::OpenOverlayAppletProxy(
+    Out<SharedPointer<IOverlayAppletProxy>> out_overlay_applet_proxy, ClientProcessId pid,
+    InCopyHandle<Kernel::KProcess> process_handle,
+    InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute) {
+    LOG_WARNING(Service_AM, "called");
+
+    if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
+        *out_overlay_applet_proxy = std::make_shared<IOverlayAppletProxy>(
             system, applet, process_handle.Get(), m_window_system);
         R_SUCCEED();
     } else {

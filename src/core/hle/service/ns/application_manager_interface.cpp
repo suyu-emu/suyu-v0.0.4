@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/cmif_serialization.h"
@@ -11,6 +12,7 @@
 #include "core/hle/service/ns/application_manager_interface.h"
 #include "core/hle/service/ns/content_management_interface.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
+#include "core/file_sys/patch_manager.h"
 
 namespace Service::NS {
 
@@ -19,7 +21,8 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
       service_context{system, "IApplicationManagerInterface"},
       record_update_system_event{service_context}, sd_card_mount_status_event{service_context},
       gamecard_update_detection_event{service_context},
-      gamecard_mount_status_event{service_context}, gamecard_mount_failure_event{service_context} {
+      gamecard_mount_status_event{service_context}, gamecard_mount_failure_event{service_context},
+      gamecard_waken_ready_event{service_context}, unknown_event{service_context} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IApplicationManagerInterface::ListApplicationRecord>, "ListApplicationRecord"},
@@ -42,7 +45,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {26, nullptr, "BeginInstallApplication"},
         {27, nullptr, "DeleteApplicationRecord"},
         {30, nullptr, "RequestApplicationUpdateInfo"},
-        {31, nullptr, "Unknown31"},
+        {31, nullptr, "RequestUpdateApplication"},
         {32, nullptr, "CancelApplicationDownload"},
         {33, nullptr, "ResumeApplicationDownload"},
         {35, nullptr, "UpdateVersionList"},
@@ -138,6 +141,8 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {508, nullptr, "GetLastGameCardMountFailureResult"},
         {509, nullptr, "ListApplicationIdOnGameCard"},
         {510, nullptr, "GetGameCardPlatformRegion"},
+        {511, D<&IApplicationManagerInterface::GetGameCardWakenReadyEvent>, "GetGameCardWakenReadyEvent"},
+        {512, D<&IApplicationManagerInterface::IsGameCardApplicationRunning>, "IsGameCardApplicationRunning"},
         {600, nullptr, "CountApplicationContentMeta"},
         {601, nullptr, "ListApplicationContentMetaStatus"},
         {602, nullptr, "ListAvailableAddOnContent"},
@@ -162,7 +167,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {901, nullptr, "GetApplicationRecordProperty"},
         {902, nullptr, "EnableApplicationAutoUpdate"},
         {903, nullptr, "DisableApplicationAutoUpdate"},
-        {904, nullptr, "TouchApplication"},
+        {904, D<&IApplicationManagerInterface::TouchApplication>, "TouchApplication"},
         {905, nullptr, "RequestApplicationUpdate"},
         {906, D<&IApplicationManagerInterface::IsApplicationUpdateRequested>, "IsApplicationUpdateRequested"},
         {907, nullptr, "WithdrawApplicationUpdateRequest"},
@@ -329,7 +334,7 @@ Result IApplicationManagerInterface::GetApplicationControlData(
     OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_actual_size,
     ApplicationControlSource application_control_source, u64 application_id) {
     LOG_DEBUG(Service_NS, "called");
-    R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationControlDataOld(
+    R_RETURN(IReadOnlyApplicationControlDataInterface(system).GetApplicationControlData(
         out_buffer, out_actual_size, application_control_source, application_id));
 }
 
@@ -400,6 +405,19 @@ Result IApplicationManagerInterface::GetGameCardMountFailureEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_NS, "(STUBBED) called");
     *out_event = gamecard_mount_failure_event.GetHandle();
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::GetGameCardWakenReadyEvent(
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_WARNING(Service_NS, "(STUBBED) called");
+    *out_event = gamecard_waken_ready_event.GetHandle();
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::IsGameCardApplicationRunning(Out<bool> out_is_running) {
+    LOG_WARNING(Service_NS, "(STUBBED) called");
+    *out_is_running = false;
     R_SUCCEED();
 }
 
@@ -526,6 +544,11 @@ Result IApplicationManagerInterface::GetStorageSize(Out<s64> out_total_space_siz
     R_SUCCEED();
 }
 
+Result IApplicationManagerInterface::TouchApplication(u64 application_id) {
+    LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
+    R_SUCCEED();
+}
+
 Result IApplicationManagerInterface::IsApplicationUpdateRequested(Out<bool> out_update_required,
                                                                   Out<u32> out_update_version,
                                                                   u64 application_id) {
@@ -549,14 +572,18 @@ Result IApplicationManagerInterface::GetApplicationTerminateResult(Out<Result> o
 
 Result IApplicationManagerInterface::RequestDownloadApplicationControlDataInBackground(
     u64 control_source, u64 application_id) {
-    LOG_WARNING(Service_NS, "(STUBBED), control_source={} app={:016X}", control_source, application_id);
+    LOG_INFO(Service_NS, "called, control_source={} app={:016X}",
+             control_source, application_id);
+
+    unknown_event.Signal();
     R_SUCCEED();
 }
 
 Result IApplicationManagerInterface::Unknown4022(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_NS, "(STUBBED) called");
-    *out_event = gamecard_update_detection_event.GetHandle();
+    unknown_event.Signal();
+    *out_event = unknown_event.GetHandle();
     R_SUCCEED();
 }
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -33,6 +36,10 @@ void DisplayLayerManager::Initialize(Core::System& system, Kernel::KProcess* pro
     m_buffer_sharing_enabled = false;
     m_blending_enabled = mode == LibraryAppletMode::PartialForeground ||
                          mode == LibraryAppletMode::PartialForegroundIndirectDisplay;
+
+    if (m_applet_id != AppletId::Application) {
+        (void)this->IsSystemBufferSharingEnabled();
+    }
 }
 
 void DisplayLayerManager::Finalize() {
@@ -69,6 +76,18 @@ Result DisplayLayerManager::CreateManagedDisplayLayer(u64* out_layer_id) {
         out_layer_id, 0, display_id, Service::AppletResourceUserId{m_process->GetProcessId()}));
 
     m_manager_display_service->SetLayerVisibility(m_visible, *out_layer_id);
+
+    if (m_applet_id != AppletId::Application) {
+        (void)m_manager_display_service->SetLayerBlending(m_blending_enabled, *out_layer_id);
+        if (m_applet_id == AppletId::OverlayDisplay) {
+            static constexpr s32 kOverlayBackgroundZ = -1;
+            (void)m_manager_display_service->SetLayerZIndex(kOverlayBackgroundZ, *out_layer_id);
+        } else {
+            static constexpr s32 kOverlayZ = 3;
+            (void)m_manager_display_service->SetLayerZIndex(kOverlayZ, *out_layer_id);
+        }
+    }
+
     m_managed_display_layers.emplace(*out_layer_id);
 
     R_SUCCEED();
@@ -105,7 +124,15 @@ Result DisplayLayerManager::IsSystemBufferSharingEnabled() {
 
     // We succeeded, so set up remaining state.
     m_buffer_sharing_enabled = true;
+
+    // Ensure the overlay layer is visible
     m_manager_display_service->SetLayerVisibility(m_visible, m_system_shared_layer_id);
+    m_manager_display_service->SetLayerBlending(m_blending_enabled, m_system_shared_layer_id);
+    s32 initial_z = 1;
+    if (m_applet_id == AppletId::OverlayDisplay) {
+        initial_z = -1;
+    }
+    m_manager_display_service->SetLayerZIndex(initial_z, m_system_shared_layer_id);
     R_SUCCEED();
 }
 
@@ -128,10 +155,14 @@ void DisplayLayerManager::SetWindowVisibility(bool visible) {
 
     if (m_manager_display_service) {
         if (m_system_shared_layer_id) {
+            LOG_INFO(Service_VI, "shared_layer={} visible={} applet_id={}",
+                     m_system_shared_layer_id, m_visible, static_cast<u32>(m_applet_id));
             m_manager_display_service->SetLayerVisibility(m_visible, m_system_shared_layer_id);
         }
 
         for (const auto layer_id : m_managed_display_layers) {
+            LOG_INFO(Service_VI, "managed_layer={} visible={} applet_id={}",
+                     layer_id, m_visible, static_cast<u32>(m_applet_id));
             m_manager_display_service->SetLayerVisibility(m_visible, layer_id);
         }
     }
@@ -139,6 +170,22 @@ void DisplayLayerManager::SetWindowVisibility(bool visible) {
 
 bool DisplayLayerManager::GetWindowVisibility() const {
     return m_visible;
+}
+
+void DisplayLayerManager::SetOverlayZIndex(s32 z_index) {
+    if (!m_manager_display_service) {
+        return;
+    }
+
+    if (m_system_shared_layer_id) {
+        m_manager_display_service->SetLayerZIndex(z_index, m_system_shared_layer_id);
+        LOG_INFO(Service_VI, "called, shared_layer={} z={}", m_system_shared_layer_id, z_index);
+    }
+
+    for (const auto layer_id : m_managed_display_layers) {
+        m_manager_display_service->SetLayerZIndex(z_index, layer_id);
+        LOG_INFO(Service_VI, "called, managed_layer={} z={}", layer_id, z_index);
+    }
 }
 
 Result DisplayLayerManager::WriteAppletCaptureBuffer(bool* out_was_written,

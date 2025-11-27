@@ -215,7 +215,7 @@ public:
             {220, nullptr, "SynchronizeProfileAsync"},
             {221, nullptr, "UploadProfileAsync"},
             {222, nullptr, "SynchronizaProfileAsyncIfSecondsElapsed"},
-            {250, nullptr, "IsLinkedWithNintendoAccount"},
+            {250, &IAdministrator::IsLinkedWithNintendoAccount, "IsLinkedWithNintendoAccount"},
             {251, nullptr, "CreateProcedureToLinkWithNintendoAccount"},
             {252, nullptr, "ResumeProcedureToLinkWithNintendoAccount"},
             {255, nullptr, "CreateProcedureToUpdateLinkageStateOfNintendoAccount"},
@@ -235,6 +235,13 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void IsLinkedWithNintendoAccount(HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(false);
     }
 };
 
@@ -496,6 +503,35 @@ protected:
         rb.Push(static_cast<u32>(buffer.size()));
     }
 
+    void LoadIdTokenCache(HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+
+        std::vector<u8> token_data(0x100);
+        std::fill(token_data.begin(), token_data.end(), u8(0));
+
+        (void)ctx.WriteBuffer(token_data);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(static_cast<u32>(token_data.size()));
+    }
+
+    void GetNintendoAccountUserResourceCacheForApplication(HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+
+        std::vector<u8> nas_user_base_for_application(0x68);
+        (void)ctx.WriteBuffer(nas_user_base_for_application);
+
+        if (ctx.CanWriteBuffer(1)) {
+            std::vector<u8> unknown_out_buffer(ctx.GetWriteBufferSize(1));
+            (void)ctx.WriteBuffer(unknown_out_buffer, 1);
+        }
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(ResultSuccess);
+        rb.PushRaw<u64>(profile_manager.GetLastOpenedUser().Hash());
+    }
+
     void Store(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto base = rp.PopRaw<ProfileBase>();
@@ -707,7 +743,7 @@ private:
         std::vector<u8> token_data(0x100);
         std::fill(token_data.begin(), token_data.end(), u8(0));
 
-        ctx.WriteBuffer(token_data, 0);
+        ctx.WriteBuffer(token_data);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -718,7 +754,7 @@ private:
         LOG_WARNING(Service_ACC, "(STUBBED) called");
 
         std::vector<u8> nas_user_base_for_application(0x68);
-        ctx.WriteBuffer(nas_user_base_for_application, 0);
+        ctx.WriteBuffer(nas_user_base_for_application);
 
         if (ctx.CanWriteBuffer(1)) {
             std::vector<u8> unknown_out_buffer(ctx.GetWriteBufferSize(1));
@@ -934,6 +970,7 @@ Result Module::Interface::InitializeApplicationInfoBase() {
         application_info.application_type = ApplicationType::GameCard;
         break;
     case FileSys::StorageId::Host:
+    case FileSys::StorageId::NandSystem:
     case FileSys::StorageId::NandUser:
     case FileSys::StorageId::SdCard:
     case FileSys::StorageId::None: // Yuzu specific, differs from hardware
@@ -1052,6 +1089,17 @@ void Module::Interface::GetProfileEditor(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<IProfileEditor>(system, user_id, *profile_manager);
+}
+
+void Module::Interface::GetBaasAccountAdministrator(HLERequestContext &ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto uuid = rp.PopRaw<Common::UUID>();
+
+    LOG_INFO(Service_ACC, "called, uuid=0x{}", uuid.RawString());
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<IAdministrator>(system, uuid);
 }
 
 void Module::Interface::ListQualifiedUsers(HLERequestContext& ctx) {

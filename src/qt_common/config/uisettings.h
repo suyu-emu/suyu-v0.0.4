@@ -98,7 +98,6 @@ struct Values {
 
     Setting<bool> single_window_mode{linkage, true, "singleWindowMode", Category::Ui};
     Setting<bool> fullscreen{linkage, false, "fullscreen", Category::Ui};
-    Setting<bool> display_titlebar{linkage, true, "displayTitleBars", Category::Ui};
     Setting<bool> show_filter_bar{linkage, true, "showFilterBar", Category::Ui};
     Setting<bool> show_status_bar{linkage, true, "showStatusBar", Category::Ui};
 
