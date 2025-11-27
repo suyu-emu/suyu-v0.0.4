@@ -15,7 +15,6 @@
 #include "common/assert.h"
 #include "common/atomic_ops.h"
 #include "common/common_types.h"
-#include "common/heap_tracker.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
 #include "common/scope_exit.h"
@@ -59,13 +58,7 @@ struct Memory::Impl {
         } else {
             current_page_table->fastmem_arena = nullptr;
         }
-
-#ifdef __linux__
-        heap_tracker.emplace(system.DeviceMemory().buffer);
-        buffer = std::addressof(*heap_tracker);
-#else
         buffer = std::addressof(system.DeviceMemory().buffer);
-#endif
     }
 
     void MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
@@ -1023,13 +1016,7 @@ struct Memory::Impl {
     std::array<Common::ScratchBuffer<u32>, Core::Hardware::NUM_CPU_CORES> scratch_buffers{};
     std::span<Core::GPUDirtyMemoryManager> gpu_dirty_managers;
     std::mutex sys_core_guard;
-
-    std::optional<Common::HeapTracker> heap_tracker;
-#ifdef __linux__
-    Common::HeapTracker* buffer{};
-#else
     Common::HostMemory* buffer{};
-#endif
 };
 
 Memory::Memory(Core::System& system_) : system{system_} {
@@ -1230,22 +1217,11 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
     if (rasterizer) {
         impl->InvalidateGPUMemory(ptr, size);
     }
-
-#ifdef __linux__
-    if (!rasterizer && mapped) {
-        impl->buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
-    }
-#endif
-
     return mapped && ptr != nullptr;
 }
 
 bool Memory::InvalidateSeparateHeap(void* fault_address) {
-#ifdef __linux__
-    return impl->buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
-#else
     return false;
-#endif
 }
 
 } // namespace Core::Memory
