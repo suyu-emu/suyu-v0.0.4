@@ -27,7 +27,7 @@ set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 
 # Xbyak (also used by Dynarmic, so needs to be added first)
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    if (PLATFORM_SUN OR PLATFORM_OPENBSD)
+    if (PLATFORM_SUN OR PLATFORM_OPENBSD OR PLATFORM_NETBSD OR PLATFORM_DRAGONFLY)
         AddJsonPackage(xbyak_sun)
     else()
         AddJsonPackage(xbyak)

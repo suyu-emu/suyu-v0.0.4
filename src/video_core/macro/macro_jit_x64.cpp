@@ -44,10 +44,20 @@ std::bitset<32> PersistentCallerSavedRegs() {
     return PERSISTENT_REGISTERS & Common::X64::ABI_ALL_CALLER_SAVED;
 }
 
+/// @brief Must enforce W^X constraints, as we yet don't havea  global "NO_EXECUTE" support flag
+/// the speed loss is minimal, and in fact may be negligible, however for your peace of mind
+/// I simply included known OSes whom had W^X issues
+#if defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+static const auto default_cg_mode = Xbyak::DontSetProtectRWE;
+#else
+static const auto default_cg_mode = nullptr; //Allow RWE
+#endif
+
 class MacroJITx64Impl final : public Xbyak::CodeGenerator, public CachedMacro {
 public:
     explicit MacroJITx64Impl(Engines::Maxwell3D& maxwell3d_, const std::vector<u32>& code_)
-        : CodeGenerator{MAX_CODE_SIZE}, code{code_}, maxwell3d{maxwell3d_} {
+        : Xbyak::CodeGenerator(MAX_CODE_SIZE, default_cg_mode)
+        , code{code_}, maxwell3d{maxwell3d_} {
         Compile();
     }
 

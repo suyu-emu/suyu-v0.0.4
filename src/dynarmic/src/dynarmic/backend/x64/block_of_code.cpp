@@ -87,18 +87,24 @@ public:
         // Waste a page to store the size
         size += DYNARMIC_PAGE_SIZE;
 
-#    if defined(MAP_ANONYMOUS)
-        int mode = MAP_PRIVATE | MAP_ANONYMOUS;
-#    elif defined(MAP_ANON)
-        int mode = MAP_PRIVATE | MAP_ANON;
-#    else
-#        error "not supported"
-#    endif
-#    ifdef MAP_JIT
+        int mode = MAP_PRIVATE;
+#if defined(MAP_ANONYMOUS)
+        mode |= MAP_ANONYMOUS;
+#elif defined(MAP_ANON)
+        mode |= MAP_ANON;
+#else
+#   error "not supported"
+#endif
+#ifdef MAP_JIT
         mode |= MAP_JIT;
-#    endif
-
-        void* p = mmap(nullptr, size, PROT_READ | PROT_WRITE, mode, -1, 0);
+#endif
+        int prot = PROT_READ | PROT_WRITE;
+#ifdef PROT_MPROTECT
+        // https://man.netbsd.org/mprotect.2 specifies that an mprotect() that is LESS
+        // restrictive than the original mapping MUST fail
+        prot |= PROT_MPROTECT(PROT_READ) | PROT_MPROTECT(PROT_WRITE) | PROT_MPROTECT(PROT_EXEC);
+#endif
+        void* p = mmap(nullptr, size, prot, mode, -1, 0);
         if (p == MAP_FAILED) {
             using Xbyak::Error;
             XBYAK_THROW(Xbyak::ERR_CANT_ALLOC);

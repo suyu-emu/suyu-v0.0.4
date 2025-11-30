@@ -7,7 +7,7 @@
  */
 
 #include <mutex>
-
+#include <optional>
 #include <xbyak/xbyak.h>
 
 #include "dynarmic/backend/x64/abi.h"
@@ -42,43 +42,46 @@ void EmitSpinLockUnlock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg
 }
 
 namespace {
-
 struct SpinLockImpl {
-    void Initialize();
-
+    void Initialize() noexcept;
+    static void GlobalInitialize() noexcept;
     Xbyak::CodeGenerator code = Xbyak::CodeGenerator(4096, default_cg_mode);
-
-    void (*lock)(volatile int*);
-    void (*unlock)(volatile int*);
+    void (*lock)(volatile int*) = nullptr;
+    void (*unlock)(volatile int*) = nullptr;
 };
 
 std::once_flag flag;
-SpinLockImpl impl;
+/// @brief Bear in mind that initializing the variable as-is on ctor time will trigger bugs
+/// because some OSes do not prepare mprotect() properly at static ctor time
+/// We can't really do anything about it, so just live with this fact
+std::optional<SpinLockImpl> impl;
 
-void SpinLockImpl::Initialize() {
-    const Xbyak::Reg64 ABI_PARAM1 = Backend::X64::HostLocToReg64(Backend::X64::ABI_PARAM1);
-
+void SpinLockImpl::Initialize() noexcept {
+    Xbyak::Reg64 const ABI_PARAM1 = Backend::X64::HostLocToReg64(Backend::X64::ABI_PARAM1);
     code.align();
     lock = code.getCurr<void (*)(volatile int*)>();
     EmitSpinLockLock(code, ABI_PARAM1, code.eax);
     code.ret();
-
     code.align();
     unlock = code.getCurr<void (*)(volatile int*)>();
     EmitSpinLockUnlock(code, ABI_PARAM1, code.eax);
     code.ret();
 }
 
+void SpinLockImpl::GlobalInitialize() noexcept {
+    impl.emplace();
+    impl->Initialize();
+}
 }  // namespace
 
 void SpinLock::Lock() noexcept {
-    std::call_once(flag, &SpinLockImpl::Initialize, impl);
-    impl.lock(&storage);
+    std::call_once(flag, &SpinLockImpl::GlobalInitialize);
+    impl->lock(&storage);
 }
 
 void SpinLock::Unlock() noexcept {
-    std::call_once(flag, &SpinLockImpl::Initialize, impl);
-    impl.unlock(&storage);
+    std::call_once(flag, &SpinLockImpl::GlobalInitialize);
+    impl->unlock(&storage);
 }
 
 }  // namespace Dynarmic
