@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -25,15 +28,21 @@ static s64 WindowsQueryPerformanceCounter() {
 }
 
 static s64 GetSystemTimeNS() {
-    // GetSystemTimePreciseAsFileTime returns the file time in 100ns units.
-    static constexpr s64 Multiplier = 100;
-    // Convert Windows epoch to Unix epoch.
-    static constexpr s64 WindowsEpochToUnixEpoch = 0x19DB1DED53E8000LL;
-
-    FILETIME filetime;
-    GetSystemTimePreciseAsFileTime(&filetime);
-    return Multiplier * ((static_cast<s64>(filetime.dwHighDateTime) << 32) +
-                         static_cast<s64>(filetime.dwLowDateTime) - WindowsEpochToUnixEpoch);
+    static auto pf = (decltype(&GetSystemTimePreciseAsFileTime))(void*)GetProcAddress(GetModuleHandle(TEXT("Kernel32.dll")), "GetSystemTimePreciseAsFileTime"); // Windows 8+
+    if (pf) {
+        // GetSystemTimePreciseAsFileTime returns the file time in 100ns units.
+        constexpr s64 Multiplier = 100;
+        // Convert Windows epoch to Unix epoch.
+        constexpr s64 WindowsEpochToUnixEpoch = 0x19DB1DED53E8000LL;
+        FILETIME filetime;
+        pf(&filetime);
+        return Multiplier * ((s64(filetime.dwHighDateTime) << 32) + s64(filetime.dwLowDateTime) - WindowsEpochToUnixEpoch);
+    } else {
+        // Only Windows XP and below error out here
+        LARGE_INTEGER ticks;
+        QueryPerformanceCounter(&ticks);
+        return ticks.QuadPart;
+    }
 }
 #endif
 

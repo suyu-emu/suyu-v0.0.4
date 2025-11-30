@@ -81,10 +81,9 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
 
 // Sets the debugger-visible name of the current thread.
 void SetCurrentThreadName(const char* name) {
-    if (auto pf = (decltype(&SetThreadDescription))(void*)GetProcAddress(GetModuleHandle(TEXT("KernelBase.dll")), "SetThreadDescription"); pf)
+    static auto pf = (decltype(&SetThreadDescription))(void*)GetProcAddress(GetModuleHandle(TEXT("KernelBase.dll")), "SetThreadDescription");
+    if (pf)
         pf(GetCurrentThread(), UTF8ToUTF16W(name).data()); // Windows 10+
-    else
-        ; // No-op
 }
 
 #else // !MSVC_VER, so must be POSIX threads
