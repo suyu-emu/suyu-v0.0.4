@@ -339,14 +339,10 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
     };
     m_system_settings.eula_versions[0] = eula_version;
     m_system_settings.eula_version_count = 1;
-
-    m_save_thread =
-        std::jthread([this](std::stop_token stop_token) { StoreSettingsThreadFunc(stop_token); });
 }
 
 ISystemSettingsServer::~ISystemSettingsServer() {
     SetSaveNeeded();
-    m_save_thread.request_stop();
 }
 
 bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&& default_func) {
@@ -1393,20 +1389,9 @@ void ISystemSettingsServer::StoreSettings() {
     }
 }
 
-void ISystemSettingsServer::StoreSettingsThreadFunc(std::stop_token stop_token) {
-    Common::SetCurrentThreadName("SettingsStore");
-
-    while (Common::StoppableTimedWait(stop_token, std::chrono::minutes(1))) {
-        std::scoped_lock l{m_save_needed_mutex};
-        if (!std::exchange(m_save_needed, false))
-            continue;
-        StoreSettings();
-    }
-}
-
 void ISystemSettingsServer::SetSaveNeeded() {
     std::scoped_lock l{m_save_needed_mutex};
-    m_save_needed = true;
+    StoreSettings();
 }
 
 Result ISystemSettingsServer::GetSettingsItemValueImpl(std::span<u8> out_value, u64& out_size,
