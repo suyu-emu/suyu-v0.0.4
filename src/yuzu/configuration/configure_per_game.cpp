@@ -41,6 +41,7 @@
 #include "yuzu/configuration/configure_per_game.h"
 #include "yuzu/configuration/configure_per_game_addons.h"
 #include "yuzu/configuration/configure_system.h"
+#include "yuzu/configuration/configure_network.h"
 #include "qt_common/config/uisettings.h"
 #include "yuzu/util/util.h"
 #include "yuzu/vk_device_info.h"
@@ -69,6 +70,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     input_tab = std::make_unique<ConfigureInputPerGame>(system_, game_config.get(), this);
     linux_tab = std::make_unique<ConfigureLinuxTab>(system_, tab_group, *builder, this);
     system_tab = std::make_unique<ConfigureSystem>(system_, tab_group, *builder, this);
+    network_tab = std::make_unique<ConfigureNetwork>(system_, this);
 
     ui->setupUi(this);
 
@@ -80,6 +82,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     ui->tabWidget->addTab(graphics_extensions_tab.get(), tr("GPU Extensions"));
     ui->tabWidget->addTab(audio_tab.get(), tr("Audio"));
     ui->tabWidget->addTab(input_tab.get(), tr("Input Profiles"));
+    ui->tabWidget->addTab(network_tab.get(), tr("Network"));
 
     // Only show Linux tab on Unix
     linux_tab->setVisible(false);
@@ -113,6 +116,7 @@ void ConfigurePerGame::ApplyConfiguration() {
     }
     addons_tab->ApplyConfiguration();
     input_tab->ApplyConfiguration();
+    network_tab->ApplyConfiguration();
 
     if (Settings::IsDockedMode() && Settings::values.players.GetValue()[0].controller_type ==
                                         Settings::ControllerType::Handheld) {
