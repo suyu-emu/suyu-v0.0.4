@@ -50,8 +50,7 @@ constexpr const char* TrimSourcePath(std::string_view source) {
 }
 
 /// @brief Interface for logging backends.
-class Backend {
-public:
+struct Backend {
     virtual ~Backend() = default;
     virtual void Write(const Entry& entry) = 0;
     virtual void EnableForStacktrace() = 0;
@@ -59,8 +58,7 @@ public:
 };
 
 /// @brief Backend that writes to stderr and with color
-class ColorConsoleBackend final : public Backend {
-public:
+struct ColorConsoleBackend final : public Backend {
     explicit ColorConsoleBackend() = default;
     ~ColorConsoleBackend() override = default;
 
@@ -86,16 +84,15 @@ private:
 };
 
 /// @brief Backend that writes to a file passed into the constructor
-class FileBackend final : public Backend {
-public:
+struct FileBackend final : public Backend {
     explicit FileBackend(const std::filesystem::path& filename) {
         auto old_filename = filename;
         old_filename += ".old.txt";
 
         // Existence checks are done within the functions themselves.
         // We don't particularly care if these succeed or not.
-        static_cast<void>(FS::RemoveFile(old_filename));
-        static_cast<void>(FS::RenameFile(filename, old_filename));
+        void(FS::RemoveFile(old_filename));
+        void(FS::RenameFile(filename, old_filename));
 
         file = std::make_unique<FS::IOFile>(filename, FS::FileAccessMode::Write, FS::FileType::TextFile);
     }
@@ -165,51 +162,34 @@ private:
     bool enabled = true;
 };
 
-/**
- * Backend that writes to Visual Studio's output window
- */
-class DebuggerBackend final : public Backend {
-public:
-    explicit DebuggerBackend() = default;
-
-    ~DebuggerBackend() override = default;
-
-    void Write(const Entry& entry) override {
 #ifdef _WIN32
+/// @brief Backend that writes to Visual Studio's output window
+struct DebuggerBackend final : public Backend {
+    explicit DebuggerBackend() = default;
+    ~DebuggerBackend() override = default;
+    void Write(const Entry& entry) override {
         ::OutputDebugStringW(UTF8ToUTF16W(FormatLogMessage(entry).append(1, '\n')).c_str());
-#endif
     }
-
     void Flush() override {}
-
     void EnableForStacktrace() override {}
 };
-
+#endif
 #ifdef ANDROID
-/**
- * Backend that writes to the Android logcat
- */
-class LogcatBackend : public Backend {
-public:
+/// @brief Backend that writes to the Android logcat
+struct LogcatBackend : public Backend {
     explicit LogcatBackend() = default;
-
     ~LogcatBackend() override = default;
-
     void Write(const Entry& entry) override {
         PrintMessageToLogcat(entry);
     }
-
     void Flush() override {}
-
     void EnableForStacktrace() override {}
 };
 #endif
 
 bool initialization_in_progress_suppress_logging = true;
 
-/**
- * Static state as a singleton.
- */
+/// @brief Static state as a singleton.
 class Impl {
 public:
     static Impl& Instance() {
@@ -228,8 +208,7 @@ public:
         void(CreateDir(log_dir));
         Filter filter;
         filter.ParseFilterString(Settings::values.log_filter.GetValue());
-        instance = std::unique_ptr<Impl, decltype(&Deleter)>(new Impl(log_dir / LOG_FILE, filter),
-                                                             Deleter);
+        instance = std::unique_ptr<Impl, decltype(&Deleter)>(new Impl(log_dir / LOG_FILE, filter), Deleter);
         initialization_in_progress_suppress_logging = false;
     }
 
@@ -276,13 +255,14 @@ private:
             Common::SetCurrentThreadName("Logger");
             Entry entry;
             const auto write_logs = [this, &entry]() {
-                ForEachBackend([&entry](Backend& backend) { backend.Write(entry); });
+                ForEachBackend([&entry](Backend& backend) {
+                    backend.Write(entry);
+                });
             };
-            while (!stop_token.stop_requested()) {
+            do {
                 message_queue.PopWait(entry, stop_token);
-                if (entry.filename != nullptr)
-                    write_logs();
-            }
+                write_logs();
+            } while (!stop_token.stop_requested());
             // Drain the logging queue. Only writes out up to MAX_LOGS_TO_WRITE to prevent a
             // case where a system is repeatedly spamming logs even on close.
             int max_logs_to_write = filter.IsDebug() ? INT_MAX : 100;
@@ -315,9 +295,11 @@ private:
     }
 
     void ForEachBackend(auto lambda) {
-        lambda(static_cast<Backend&>(debugger_backend));
         lambda(static_cast<Backend&>(color_console_backend));
         lambda(static_cast<Backend&>(file_backend));
+#ifdef _WIN32
+        lambda(static_cast<Backend&>(debugger_backend));
+#endif
 #ifdef ANDROID
         lambda(static_cast<Backend&>(lc_backend));
 #endif
@@ -330,9 +312,11 @@ private:
     static inline std::unique_ptr<Impl, decltype(&Deleter)> instance{nullptr, Deleter};
 
     Filter filter;
-    DebuggerBackend debugger_backend{};
     ColorConsoleBackend color_console_backend{};
     FileBackend file_backend;
+#ifdef _WIN32
+    DebuggerBackend debugger_backend{};
+#endif
 #ifdef ANDROID
     LogcatBackend lc_backend{};
 #endif
