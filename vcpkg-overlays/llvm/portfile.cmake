@@ -2,6 +2,10 @@ vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
 # Suppress policy checks for issues that are difficult to resolve with LLVM's build system
 set(VCPKG_POLICY_SKIP_ABSOLUTE_PATHS_CHECK enabled)
+set(VCPKG_POLICY_SKIP_MISPLACED_CMAKE_FILES_CHECK enabled)
+set(VCPKG_POLICY_SKIP_LIB_CMAKE_MERGE_CHECK enabled)
+set(VCPKG_POLICY_ALLOW_EXES_IN_BIN enabled)
+set(VCPKG_POLICY_DLLS_IN_STATIC_LIBRARY enabled)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
