@@ -1,6 +1,11 @@
 #include "nintendo_library.h"
 
+#ifdef USE_HTTPLIB
+#include <httplib.h>
+#elif defined(USE_CURL)
 #include <curl/curl.h>
+#endif
+
 #include <nlohmann/json.hpp>
 #include <regex>
 #include <sstream>
@@ -14,19 +19,24 @@
 
 namespace Nintendo {
 
+#ifdef USE_CURL
 // Helper function for CURL write callback
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     userp->append(static_cast<char*>(contents), size * nmemb);
     return size * nmemb;
 }
+#endif
 
 // Implementation class using PIMPL pattern
 class Library::Impl {
 public:
     Impl() : auth_state(AuthenticationState::NotAuthenticated), 
              last_error(LibraryError::None),
-             initialized(false),
-             curl_handle(nullptr) {
+             initialized(false)
+#ifdef USE_CURL
+             , curl_handle(nullptr)
+#endif
+    {
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     }
 
@@ -39,6 +49,14 @@ public:
             return true;
         }
 
+#ifdef USE_HTTPLIB
+        // httplib is header-only, no initialization needed
+        initialized = true;
+        last_error = LibraryError::None;
+        status_message = "Nintendo Library initialized successfully (using cpp-httplib)";
+        LOG_INFO(Service_Nintendo, "Nintendo Library initialized with cpp-httplib");
+        return true;
+#elif defined(USE_CURL)
         // Initialize CURL
         curl_global_init(CURL_GLOBAL_DEFAULT);
         curl_handle = curl_easy_init();
@@ -59,10 +77,18 @@ public:
         
         initialized = true;
         last_error = LibraryError::None;
-        status_message = "Nintendo Library initialized successfully";
+        status_message = "Nintendo Library initialized successfully (using CURL)";
         
-        LOG_INFO(Service_Nintendo, "Nintendo Library initialized");
+        LOG_INFO(Service_Nintendo, "Nintendo Library initialized with CURL");
         return true;
+#else
+        // No HTTP library available
+        initialized = true;
+        last_error = LibraryError::ServiceUnavailable;
+        status_message = "Nintendo Library initialized (network features disabled - no HTTP library)";
+        LOG_WARNING(Service_Nintendo, "Nintendo Library initialized without HTTP support");
+        return true;
+#endif
     }
 
     void Shutdown() {
@@ -75,11 +101,13 @@ public:
 
 private:
     void Cleanup() {
+#ifdef USE_CURL
         if (curl_handle) {
             curl_easy_cleanup(curl_handle);
             curl_handle = nullptr;
         }
         curl_global_cleanup();
+#endif
     }
 
 public:
@@ -87,7 +115,9 @@ public:
     AuthenticationState auth_state;
     LibraryError last_error;
     bool initialized;
+#ifdef USE_CURL
     CURL* curl_handle;
+#endif
     std::string user_agent;
     std::string cache_directory;
     std::string status_message;
