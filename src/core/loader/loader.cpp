@@ -9,6 +9,7 @@
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
+#include "core/anti_piracy_manager.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/loader/deconstructed_rom_directory.h"
@@ -264,6 +265,36 @@ std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile 
     }
 
     LOG_DEBUG(Loader, "Loading file {} as {}...", file->GetName(), GetFileTypeString(type));
+
+    // Perform anti-piracy validation if available
+    if (system.GetAntiPiracyManager()) {
+        auto& anti_piracy = *system.GetAntiPiracyManager();
+        if (anti_piracy.IsInitialized()) {
+            LOG_INFO(Loader, "Performing anti-piracy validation for: {}", file->GetName());
+            
+            auto validation_result = anti_piracy.ValidateRom(file);
+            auto validation_message = anti_piracy.GetValidationMessage(validation_result);
+            
+            LOG_INFO(Loader, "Anti-piracy validation result: {}", validation_message);
+            
+            // Show educational message for suspicious or invalid ROMs
+            if (validation_result == Core::ValidationResult::Suspicious ||
+                validation_result == Core::ValidationResult::Invalid) {
+                LOG_WARNING(Loader, "ROM validation concerns detected.");
+                LOG_INFO(Loader, "Educational message: {}", anti_piracy.GetEducationalMessage());
+                
+                // Log legitimate source suggestions
+                auto suggestions = anti_piracy.GetLegitimateSourceSuggestions();
+                LOG_INFO(Loader, "Consider these legitimate sources:");
+                for (const auto& suggestion : suggestions) {
+                    LOG_INFO(Loader, "  - {}", suggestion);
+                }
+            }
+            
+            // Note: We don't block loading even for suspicious ROMs, as this is educational
+            // and the emulator should remain functional for legitimate use cases
+        }
+    }
 
     return GetFileLoader(system, std::move(file), type, program_id, program_index);
 }

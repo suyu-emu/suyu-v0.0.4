@@ -115,6 +115,7 @@ class RenderdocAPI;
 
 namespace Core {
 
+class AntiPiracyManager;
 class CpuManager;
 class Debugger;
 class DeviceMemory;
@@ -407,6 +408,12 @@ public:
     [[nodiscard]] const Network::RoomNetwork& GetRoomNetwork() const;
 
     [[nodiscard]] Tools::RenderdocAPI& GetRenderdocAPI();
+
+    /// Gets a mutable reference to the Anti-Piracy Manager.
+    [[nodiscard]] AntiPiracyManager* GetAntiPiracyManager();
+
+    /// Gets an immutable reference to the Anti-Piracy Manager.
+    [[nodiscard]] const AntiPiracyManager* GetAntiPiracyManager() const;
 
     void SetExitLocked(bool locked);
     bool GetExitLocked() const;
