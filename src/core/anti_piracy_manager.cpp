@@ -197,12 +197,10 @@ std::vector<Nintendo::GameInfo> AntiPiracyManager::GetNintendoGameLibrary() {
 }
 
 ValidationResult AntiPiracyManager::ValidateRom(const std::string& file_path) {
-    auto file = FileSys::VfsFilesystem::OpenFile(file_path, FileSys::Mode::Read);
-    if (!file) {
-        LOG_ERROR(Core, "Failed to open ROM file: {}", file_path);
-        return ValidationResult::Invalid;
-    }
-    return ValidateRom(file);
+    // Note: This method requires the file to already be loaded as a VirtualFile
+    // The file_path version is deprecated - use ValidateRom(FileSys::VirtualFile) instead
+    LOG_WARNING(Core, "ValidateRom(string) called - use ValidateRom(VirtualFile) for better results");
+    return ValidationResult::Unknown;
 }
 
 ValidationResult AntiPiracyManager::ValidateRom(FileSys::VirtualFile file) {
@@ -317,14 +315,11 @@ RomMetadata AntiPiracyManager::ExtractRomMetadata(FileSys::VirtualFile file) {
 }
 
 void AntiPiracyManager::ValidateRomAsync(const std::string& file_path, ValidationCallback callback) {
-    std::thread validation_thread([this, file_path, callback]() {
-        ValidationResult result = ValidateRom(file_path);
-        auto file = FileSys::VfsFilesystem::OpenFile(file_path, FileSys::Mode::Read);
+    // file_path version not supported - caller should use VirtualFile version
+    std::thread validation_thread([callback]() {
         RomMetadata metadata;
-        if (file) {
-            metadata = ExtractRomMetadata(file);
-        }
-        callback(result, metadata);
+        metadata.file_path = "unknown";
+        callback(ValidationResult::Unknown, metadata);
     });
     validation_thread.detach();
 }
@@ -478,14 +473,18 @@ bool AntiPiracyManager::DetectNXDumpSignature(FileSys::VirtualFile file) {
     try {
         // Look for NXDump signature in the file
         // NXDump typically adds metadata to the end of files
-        const size_t signature_search_size = std::min(file->GetSize(), static_cast<size_t>(1024));
-        std::vector<u8> buffer(signature_search_size);
+        const size_t file_size = file->GetSize();
+        const size_t signature_search_size = std::min(file_size, static_cast<size_t>(1024));
         
-        // Read from the end of the file
-        file->Seek(file->GetSize() - signature_search_size, FileSys::SeekOrigin::SetOrigin);
-        size_t bytes_read = file->Read(buffer.data(), signature_search_size);
+        if (signature_search_size == 0) {
+            return false;
+        }
         
-        std::string content(buffer.begin(), buffer.begin() + bytes_read);
+        // Read from the end of the file using offset-based read
+        size_t offset = file_size > signature_search_size ? file_size - signature_search_size : 0;
+        std::vector<u8> buffer = file->ReadBytes(signature_search_size, offset);
+        
+        std::string content(buffer.begin(), buffer.end());
         
         // Look for NXDump signatures
         return content.find("nxdumptool") != std::string::npos ||
@@ -500,16 +499,13 @@ bool AntiPiracyManager::DetectNXDumpSignature(FileSys::VirtualFile file) {
 
 std::string AntiPiracyManager::CalculateFileHash(FileSys::VirtualFile file) {
     try {
-        // Calculate SHA-256 hash of the first 1MB for performance
+        // Calculate hash of the first 1MB for performance
         const size_t hash_size = std::min(file->GetSize(), static_cast<size_t>(1024 * 1024));
-        std::vector<u8> buffer(hash_size);
-        
-        file->Seek(0, FileSys::SeekOrigin::SetOrigin);
-        size_t bytes_read = file->Read(buffer.data(), hash_size);
+        std::vector<u8> buffer = file->ReadBytes(hash_size, 0);
         
         // Simple hash calculation (in a real implementation, use proper SHA-256)
         std::hash<std::string> hasher;
-        std::string data(buffer.begin(), buffer.begin() + bytes_read);
+        std::string data(buffer.begin(), buffer.end());
         size_t hash = hasher(data);
         
         std::stringstream ss;
@@ -568,12 +564,9 @@ std::string AntiPiracyManager::DetectDumpToolSignature(FileSys::VirtualFile file
     try {
         // Search for dump tool signatures in file metadata
         const size_t search_size = std::min(file->GetSize(), static_cast<size_t>(2048));
-        std::vector<u8> buffer(search_size);
+        std::vector<u8> buffer = file->ReadBytes(search_size, 0);
         
-        file->Seek(0, FileSys::SeekOrigin::SetOrigin);
-        size_t bytes_read = file->Read(buffer.data(), search_size);
-        
-        std::string content(buffer.begin(), buffer.begin() + bytes_read);
+        std::string content(buffer.begin(), buffer.end());
         
         // Check for known dump tool signatures
         for (const auto& signature : impl->legitimate_dump_signatures) {

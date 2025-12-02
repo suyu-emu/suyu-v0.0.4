@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <chrono>
 #include <memory>
 #include <optional>
 #include <ostream>
 #include <string>
+#include <thread>
 #include "common/concepts.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
@@ -24,6 +26,37 @@
 namespace Loader {
 
 namespace {
+
+// Anti-piracy friction delays (in milliseconds)
+// These make piracy harder by adding inconvenience without blocking legitimate users
+constexpr int VERIFIED_GAME_DELAY_MS = 0;           // No delay for verified games
+constexpr int NINTENDO_LIBRARY_DELAY_MS = 0;        // No delay for Nintendo Library matches  
+constexpr int LEGITIMATE_DUMP_DELAY_MS = 500;       // Small delay for legitimate dumps
+constexpr int UNKNOWN_GAME_DELAY_MS = 3000;         // 3 second delay for unknown games
+constexpr int SUSPICIOUS_GAME_DELAY_MS = 8000;      // 8 second delay for suspicious games
+constexpr int INVALID_GAME_DELAY_MS = 15000;        // 15 second delay for invalid/pirated games
+
+// Get friction delay based on validation result
+int GetFrictionDelay(Core::ValidationResult result) {
+    switch (result) {
+        case Core::ValidationResult::Valid:
+            return VERIFIED_GAME_DELAY_MS;
+        case Core::ValidationResult::ValidNintendoLibrary:
+            return NINTENDO_LIBRARY_DELAY_MS;
+        case Core::ValidationResult::ValidLegitimateRip:
+            return LEGITIMATE_DUMP_DELAY_MS;
+        case Core::ValidationResult::Unknown:
+        case Core::ValidationResult::NetworkError:
+        case Core::ValidationResult::NotAuthenticated:
+            return UNKNOWN_GAME_DELAY_MS;
+        case Core::ValidationResult::Suspicious:
+            return SUSPICIOUS_GAME_DELAY_MS;
+        case Core::ValidationResult::Invalid:
+            return INVALID_GAME_DELAY_MS;
+        default:
+            return UNKNOWN_GAME_DELAY_MS;
+    }
+}
 
 template <Common::DerivedFrom<AppLoader> T>
 std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
@@ -276,6 +309,18 @@ std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile 
             auto validation_message = anti_piracy.GetValidationMessage(validation_result);
             
             LOG_INFO(Loader, "Anti-piracy validation result: {}", validation_message);
+            
+            // Apply friction delay based on validation result
+            // This makes piracy harder by adding inconvenience without blocking legitimate users
+            int delay_ms = GetFrictionDelay(validation_result);
+            if (delay_ms > 0) {
+                LOG_INFO(Loader, "Applying anti-piracy friction delay of {} ms", delay_ms);
+                LOG_INFO(Loader, "To reduce or eliminate this delay, verify game ownership through:");
+                LOG_INFO(Loader, "  - Nintendo Account linking (Settings > Nintendo Library)");
+                LOG_INFO(Loader, "  - Using legitimate dump tools like NXDumpTool");
+                
+                std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+            }
             
             // Show educational message for suspicious or invalid ROMs
             if (validation_result == Core::ValidationResult::Suspicious ||

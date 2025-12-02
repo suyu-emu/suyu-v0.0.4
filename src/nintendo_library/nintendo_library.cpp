@@ -1,6 +1,11 @@
 #include "nintendo_library.h"
 
+#ifdef USE_HTTPLIB
+#include <httplib.h>
+#elif defined(USE_CURL)
 #include <curl/curl.h>
+#endif
+
 #include <nlohmann/json.hpp>
 #include <regex>
 #include <sstream>
@@ -14,19 +19,24 @@
 
 namespace Nintendo {
 
+#ifdef USE_CURL
 // Helper function for CURL write callback
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     userp->append(static_cast<char*>(contents), size * nmemb);
     return size * nmemb;
 }
+#endif
 
 // Implementation class using PIMPL pattern
 class Library::Impl {
 public:
     Impl() : auth_state(AuthenticationState::NotAuthenticated), 
              last_error(LibraryError::None),
-             initialized(false),
-             curl_handle(nullptr) {
+             initialized(false)
+#ifdef USE_CURL
+             , curl_handle(nullptr)
+#endif
+    {
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     }
 
@@ -39,6 +49,14 @@ public:
             return true;
         }
 
+#ifdef USE_HTTPLIB
+        // httplib is header-only, no initialization needed
+        initialized = true;
+        last_error = LibraryError::None;
+        status_message = "Nintendo Library initialized successfully (using cpp-httplib)";
+        LOG_INFO(Service_Nintendo, "Nintendo Library initialized with cpp-httplib");
+        return true;
+#elif defined(USE_CURL)
         // Initialize CURL
         curl_global_init(CURL_GLOBAL_DEFAULT);
         curl_handle = curl_easy_init();
@@ -59,10 +77,18 @@ public:
         
         initialized = true;
         last_error = LibraryError::None;
-        status_message = "Nintendo Library initialized successfully";
+        status_message = "Nintendo Library initialized successfully (using CURL)";
         
-        LOG_INFO(Service_Nintendo, "Nintendo Library initialized");
+        LOG_INFO(Service_Nintendo, "Nintendo Library initialized with CURL");
         return true;
+#else
+        // No HTTP library available
+        initialized = true;
+        last_error = LibraryError::ServiceUnavailable;
+        status_message = "Nintendo Library initialized (network features disabled - no HTTP library)";
+        LOG_WARNING(Service_Nintendo, "Nintendo Library initialized without HTTP support");
+        return true;
+#endif
     }
 
     void Shutdown() {
@@ -75,11 +101,13 @@ public:
 
 private:
     void Cleanup() {
+#ifdef USE_CURL
         if (curl_handle) {
             curl_easy_cleanup(curl_handle);
             curl_handle = nullptr;
         }
         curl_global_cleanup();
+#endif
     }
 
 public:
@@ -87,7 +115,9 @@ public:
     AuthenticationState auth_state;
     LibraryError last_error;
     bool initialized;
+#ifdef USE_CURL
     CURL* curl_handle;
+#endif
     std::string user_agent;
     std::string cache_directory;
     std::string status_message;
@@ -141,6 +171,72 @@ bool Library::StartAuthentication(const std::string& username, const std::string
 }
 
 void Library::PerformAuthentication() {
+#ifdef NO_HTTP_LIBRARY
+    impl->auth_state = AuthenticationState::Failed;
+    impl->last_error = LibraryError::ServiceUnavailable;
+    impl->status_message = "HTTP library not available - network features disabled";
+    LOG_WARNING(Service_Nintendo, "Authentication unavailable - no HTTP library");
+    return;
+#elif defined(USE_HTTPLIB)
+    try {
+        httplib::SSLClient cli("accounts.nintendo.com");
+        cli.set_follow_location(true);
+        cli.set_connection_timeout(30);
+        
+        // Step 1: Get Nintendo login page
+        auto res = cli.Get("/login");
+        if (!res || res->status != 200) {
+            impl->auth_state = AuthenticationState::Failed;
+            impl->last_error = LibraryError::NetworkError;
+            impl->status_message = "Failed to connect to Nintendo login page";
+            LOG_ERROR(Service_Nintendo, "Failed to get login page");
+            return;
+        }
+        
+        std::string response = res->body;
+        
+        // Step 2: Extract CSRF token
+        std::string csrf_token = ExtractCSRFToken(response);
+        if (csrf_token.empty()) {
+            impl->auth_state = AuthenticationState::Failed;
+            impl->last_error = LibraryError::ParseError;
+            impl->status_message = "Failed to extract authentication token";
+            return;
+        }
+        
+        // Step 3: Perform login
+        std::string login_data = "authenticity_token=" + csrf_token + 
+                                "&user%5Bemail%5D=" + UrlEncode(impl->username) +
+                                "&user%5Bpassword%5D=" + UrlEncode(impl->password);
+        
+        res = cli.Post("/login", login_data, "application/x-www-form-urlencoded");
+        if (!res) {
+            impl->auth_state = AuthenticationState::Failed;
+            impl->last_error = LibraryError::NetworkError;
+            impl->status_message = "Login request failed";
+            return;
+        }
+        
+        // Step 4: Check if login was successful
+        if (res->status == 200 && res->body.find("error") == std::string::npos) {
+            impl->auth_state = AuthenticationState::Authenticated;
+            impl->last_error = LibraryError::None;
+            impl->status_message = "Authentication successful";
+            LOG_INFO(Service_Nintendo, "Nintendo account authentication successful");
+        } else {
+            impl->auth_state = AuthenticationState::Failed;
+            impl->last_error = LibraryError::AuthenticationFailed;
+            impl->status_message = "Invalid username or password";
+            LOG_WARNING(Service_Nintendo, "Nintendo account authentication failed");
+        }
+        
+    } catch (const std::exception& e) {
+        impl->auth_state = AuthenticationState::Failed;
+        impl->last_error = LibraryError::NetworkError;
+        impl->status_message = "Authentication error: " + std::string(e.what());
+        LOG_ERROR(Service_Nintendo, "Authentication exception: {}", e.what());
+    }
+#elif defined(USE_CURL)
     if (!impl->curl_handle) {
         impl->auth_state = AuthenticationState::Failed;
         impl->last_error = LibraryError::NetworkError;
@@ -214,6 +310,7 @@ void Library::PerformAuthentication() {
         impl->status_message = "Authentication error: " + std::string(e.what());
         LOG_ERROR(Service_Nintendo, "Authentication exception: {}", e.what());
     }
+#endif
 }
 
 std::string Library::ExtractCSRFToken(const std::string& html) {
@@ -279,6 +376,45 @@ bool Library::RefreshGameList() {
         return false;
     }
 
+#ifdef NO_HTTP_LIBRARY
+    impl->last_error = LibraryError::ServiceUnavailable;
+    impl->status_message = "HTTP library not available - network features disabled";
+    return false;
+#elif defined(USE_HTTPLIB)
+    try {
+        httplib::SSLClient cli("www.nintendo.com");
+        cli.set_follow_location(true);
+        cli.set_connection_timeout(30);
+        
+        auto res = cli.Get("/us/orders/");
+        if (!res || res->status != 200) {
+            impl->last_error = LibraryError::NetworkError;
+            impl->status_message = "Failed to retrieve purchase history";
+            LOG_ERROR(Service_Nintendo, "Failed to get orders page");
+            return false;
+        }
+        
+        // Parse the purchase history HTML
+        impl->cached_games = ParsePurchaseHistory(res->body);
+        
+        if (impl->cached_games.empty()) {
+            impl->status_message = "No games found in purchase history";
+            LOG_INFO(Service_Nintendo, "No games found in Nintendo purchase history");
+        } else {
+            impl->status_message = "Found " + std::to_string(impl->cached_games.size()) + " games";
+            LOG_INFO(Service_Nintendo, "Found {} games in Nintendo purchase history", impl->cached_games.size());
+        }
+
+        impl->last_error = LibraryError::None;
+        return true;
+
+    } catch (const std::exception& e) {
+        impl->last_error = LibraryError::ParseError;
+        impl->status_message = "Error parsing purchase history: " + std::string(e.what());
+        LOG_ERROR(Service_Nintendo, "Parse error: {}", e.what());
+        return false;
+    }
+#elif defined(USE_CURL)
     if (!impl->curl_handle) {
         impl->last_error = LibraryError::NetworkError;
         impl->status_message = "HTTP client not available";
@@ -322,6 +458,9 @@ bool Library::RefreshGameList() {
         LOG_ERROR(Service_Nintendo, "Parse error: {}", e.what());
         return false;
     }
+#else
+    return false;
+#endif
 }
 
 std::vector<GameInfo> Library::ParsePurchaseHistory(const std::string& html) {
@@ -428,9 +567,11 @@ void Library::SetCacheDirectory(const std::string& cache_dir) {
 
 void Library::SetUserAgent(const std::string& user_agent) {
     impl->user_agent = user_agent;
+#ifdef USE_CURL
     if (impl->curl_handle) {
         curl_easy_setopt(impl->curl_handle, CURLOPT_USERAGENT, user_agent.c_str());
     }
+#endif
 }
 
 bool Library::IsInitialized() const {
