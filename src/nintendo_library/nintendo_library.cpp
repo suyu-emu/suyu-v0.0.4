@@ -567,9 +567,11 @@ void Library::SetCacheDirectory(const std::string& cache_dir) {
 
 void Library::SetUserAgent(const std::string& user_agent) {
     impl->user_agent = user_agent;
+#ifdef USE_CURL
     if (impl->curl_handle) {
         curl_easy_setopt(impl->curl_handle, CURLOPT_USERAGENT, user_agent.c_str());
     }
+#endif
 }
 
 bool Library::IsInitialized() const {
