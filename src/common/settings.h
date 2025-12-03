@@ -775,7 +775,7 @@ struct Values {
     // Per-game overrides
     bool use_squashed_iterated_blend;
 
-    Setting<bool> enable_overlay{linkage, true, "enable_overlay", Category::Core};
+    Setting<bool> enable_overlay{linkage, false, "enable_overlay", Category::Core};
 };
 
 extern Values values;
