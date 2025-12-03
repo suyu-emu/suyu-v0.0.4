@@ -9,7 +9,7 @@
     },
     "sirit": {
         "repo": "eden-emulator/sirit",
-        "git_version": "1.0.2",
+        "git_version": "1.0.3",
         "tag": "v%VERSION%",
         "artifact": "sirit-source-%VERSION%.tar.zst",
         "hash_suffix": "sha512sum",
@@ -23,11 +23,7 @@
         "package": "sirit",
         "name": "sirit",
         "repo": "eden-emulator/sirit",
-        "version": "1.0.2",
-        "disabled_platforms": [
-            "mingw-amd64",
-            "mingw-arm64"
-        ]
+        "version": "1.0.3"
     },
     "httplib": {
         "repo": "yhirose/cpp-httplib",
@@ -167,7 +163,7 @@
         "package": "SDL2",
         "name": "SDL2",
         "repo": "crueter-ci/SDL2",
-        "version": "2.32.10-38e0094637",
+        "version": "2.32.10-a65111bd2d",
         "min_version": "2.26.4"
     },
     "catch2": {

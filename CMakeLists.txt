@@ -436,10 +436,10 @@ if (ENABLE_OPENSSL)
     option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL})
 endif()
 
+# TODO(crueter): CPM this
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
-    # TODO(crueter): CPM this
-    set(vvl_version "1.4.321.0")
-    set(vvl_zip_file "${CMAKE_BINARY_DIR}/externals/vvl-android.zip")
+    set(vvl_version "1.4.328.0")
+    set(vvl_zip_file "${CMAKE_BINARY_DIR}/externals/vvl-android-${vvl_version}.zip")
     if (NOT EXISTS "${vvl_zip_file}")
         # Download and extract validation layer release to externals directory
         set(vvl_base_url "https://github.com/KhronosGroup/Vulkan-ValidationLayers/releases/download")
@@ -450,8 +450,14 @@ if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
     endif()
 
     # Copy the arm64 binary to src/android/app/main/jniLibs
-    set(vvl_lib_path "${CMAKE_CURRENT_SOURCE_DIR}/src/android/app/src/main/jniLibs/arm64-v8a/")
-    file(COPY "${CMAKE_BINARY_DIR}/externals/android-binaries-${vvl_version}/arm64-v8a/libVkLayer_khronos_validation.so"
+    if (ARCHITECTURE_arm64)
+        set(vvl_abi arm64-v8a)
+    elseif(ARCHITECTURE_x86_64)
+        set(vvl_abi x86_64)
+    endif()
+
+    set(vvl_lib_path "${CMAKE_CURRENT_SOURCE_DIR}/src/android/app/src/main/jniLibs/${vvl_abi}/")
+    file(COPY "${CMAKE_BINARY_DIR}/externals/android-binaries-${vvl_version}/${vvl_abi}/libVkLayer_khronos_validation.so"
         DESTINATION "${vvl_lib_path}")
 endif()
 

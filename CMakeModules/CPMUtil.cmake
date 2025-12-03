@@ -603,8 +603,12 @@ function(AddCIPackage)
         add_ci_package(mingw-arm64)
     endif()
 
-    if (ANDROID AND NOT "android" IN_LIST DISABLED_PLATFORMS)
-        add_ci_package(android)
+    if((ANDROID AND ARCHITECTURE_x86_64) AND NOT "android-x86_64" IN_LIST DISABLED_PLATFORMS)
+        add_ci_package(android-x86_64)
+    endif()
+
+    if((ANDROID AND ARCHITECTURE_arm64) AND NOT "android-aarch64" IN_LIST DISABLED_PLATFORMS)
+        add_ci_package(android-aarch64)
     endif()
 
     if(PLATFORM_SUN AND NOT "solaris-amd64" IN_LIST DISABLED_PLATFORMS)

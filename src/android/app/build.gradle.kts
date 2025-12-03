@@ -4,10 +4,11 @@
 // SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-import android.annotation.SuppressLint
+// import android.annotation.SuppressLint
 import kotlin.collections.setOf
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
+import org.gradle.api.tasks.Copy
 
 plugins {
     id("com.android.application")
@@ -62,11 +63,6 @@ android {
         targetSdk = 36
         versionName = getGitVersion()
         versionCode = autoVersion
-
-        ndk {
-            @SuppressLint("ChromeOsAbiSupport")
-            abiFilters += listOf("arm64-v8a")
-        }
 
         externalNativeBuild {
             cmake {
@@ -127,7 +123,7 @@ android {
             isMinifyEnabled = true
             isDebuggable = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android.txt"),
+                getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
@@ -139,7 +135,7 @@ android {
             signingConfig = signingConfigs.getByName("default")
             isDebuggable = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android.txt"),
+                getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
             versionNameSuffix = "-relWithDebInfo"
@@ -163,12 +159,20 @@ android {
         create("mainline") {
             dimension = "version"
             resValue("string", "app_name_suffixed", "Eden")
+
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
         }
 
         create("genshinSpoof") {
             dimension = "version"
             resValue("string", "app_name_suffixed", "Eden Optimized")
             applicationId = "com.miHoYo.Yuanshen"
+
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
         }
 
         create("legacy") {
@@ -185,6 +189,25 @@ android {
             sourceSets {
                 getByName("legacy") {
                     res.srcDirs("src/main/legacy")
+                }
+            }
+
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
+        }
+
+        create("chromeOS") {
+            dimension = "version"
+            resValue("string", "app_name_suffixed", "Eden")
+
+            ndk {
+                abiFilters += listOf("x86_64")
+            }
+
+            externalNativeBuild {
+                cmake {
+                    abiFilters("x86_64")
                 }
             }
         }
@@ -320,4 +343,36 @@ fun getGitVersion(): String {
         gitVersion
     }
     return versionName.ifEmpty { "0.0" }
+}
+
+afterEvaluate {
+    val artifactsDir = layout.projectDirectory.dir("../../../artifacts")
+    val outputsDir = layout.buildDirectory.dir("outputs").get()
+
+    android.applicationVariants.forEach { variant ->
+        val variantName = variant.name
+        val variantTask = variantName.replaceFirstChar { it.uppercaseChar() }
+
+        val flavor = variant.flavorName
+        val type = variant.buildType.name
+
+        val baseName = "app-$flavor-$type"
+
+        val apkFile = outputsDir.file("apk/$flavor/$type/$baseName.apk")
+        val aabFile = outputsDir.file("bundle/$variantName/$baseName.aab")
+
+        val taskName = "copy${variantTask}Outputs"
+
+        tasks.register<Copy>(taskName) {
+            group = "publishing"
+            description = "Copy APK and AAB for $variantName to $artifactsDir"
+
+            from(apkFile)
+            from(aabFile)
+            into(artifactsDir)
+
+            dependsOn("assemble${variantTask}")
+            dependsOn("bundle${variantTask}")
+        }
+    }
 }
