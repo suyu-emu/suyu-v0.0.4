@@ -294,17 +294,15 @@ std::string GetLegacyPathString(EmuPath legacy_path) {
 }
 
 void SetEdenPath(EdenPath eden_path, const fs::path& new_path) {
-    if (!FS::IsDir(new_path)) {
-        LOG_ERROR(Common_Filesystem, "Filesystem object at new_path={} is not a directory",
-                  PathToUTF8String(new_path));
-        return;
+    auto& instance = PathManagerImpl::GetInstance();
+    if (FS::IsDir(new_path)) {
+        instance.SetEdenPathImpl(eden_path, new_path);
+    } else {
+        LOG_ERROR(Common_Filesystem, "Filesystem object at new_path={} is not a directory", PathToUTF8String(new_path));
     }
-
-    PathManagerImpl::GetInstance().SetEdenPathImpl(eden_path, new_path);
 }
 
-void CreateEdenPaths()
-{
+void CreateEdenPaths() {
     PathManagerImpl::GetInstance().CreateEdenPaths();
 }
 
