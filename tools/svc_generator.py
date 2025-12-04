@@ -597,10 +597,7 @@ def emit_call(bitness, names, suffix):
     for _, name in names:
         lines.append(f"{indent}case SvcId::{name}: return SvcWrap_{name}{suffix}(system, args);")
 
-    lines.append(f"{indent}default:")
-    lines.append(
-        f"{indent*2}LOG_CRITICAL(Kernel_SVC, \"Unknown SVC {{:x}}!\", imm);")
-    lines.append(f"{indent*2}break;")
+    lines.append(f"{indent}default: UNREACHABLE_MSG(\"Unhandled SVC {{:#x}}\", imm);")
     lines.append(f"{indent}}}")
     lines.append("}")
 
