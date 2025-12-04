@@ -56,7 +56,7 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         native/preserve_xmm.cpp
     )
 
-    if (NOT MSVC AND NOT DYNARMIC_MULTIARCH_BUILD)
+    if (NOT MSVC AND NOT MULTIARCH_BUILD)
         target_sources(dynarmic_tests PRIVATE
             rsqrt_test.cpp
             rsqrt_test_fn.s

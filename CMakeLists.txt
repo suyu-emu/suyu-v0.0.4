@@ -5,73 +5,23 @@ cmake_minimum_required(VERSION 3.22)
 
 project(yuzu)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
-    set(PLATFORM_SUN ON)
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    set(PLATFORM_FREEBSD ON)
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
-    set(PLATFORM_OPENBSD ON)
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
-    set(PLATFORM_NETBSD ON)
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "DragonFly")
-    set(PLATFORM_DRAGONFLYBSD ON)
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Haiku")
-    set(PLATFORM_HAIKU ON)
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    set(PLATFORM_LINUX ON)
-endif()
-
-# dumb heuristic to detect msys2
-if (CMAKE_COMMAND MATCHES "msys64")
-    set(PLATFORM_MSYS ON)
-endif()
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CXX_CLANG ON)
-    if (MSVC)
-        set(CXX_CLANG_CL ON)
-    endif()
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CXX_GCC ON)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(CXX_CL ON)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-    set(CXX_ICC ON)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    set(CXX_APPLE ON)
-endif()
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 
-# https://gitlab.kitware.com/cmake/cmake/-/merge_requests/11112
-# This works totally fine on MinGW64, but not CLANG{,ARM}64
-if(MINGW AND CXX_CLANG)
-    set(CMAKE_SYSTEM_VERSION 10.0.0)
-endif()
+set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 
-# NB: this does not account for SPARC
-# If you get Eden working on SPARC, please shoot crueter@crueter.xyz multiple emails
-# and you will be hailed for eternity
-if (PLATFORM_SUN)
-    # Terrific Solaris pkg shenanigans
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SYSROOT}/usr/lib/qt/6.6/lib/amd64/cmake")
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SYSROOT}/usr/lib/qt/6.6/lib/amd64/cmake")
+include(DetectPlatform)
+include(DetectArchitecture)
+include(DefaultConfig)
+include(DownloadExternals)
+include(CMakeDependentOption)
+include(CTest)
+include(CPMUtil)
 
-    # Amazing - absolutely incredible
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SYSROOT}/usr/lib/amd64/cmake")
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SYSROOT}/usr/lib/amd64/cmake")
+DetectArchitecture()
 
-    # For some mighty reason, doing a normal release build sometimes may not trigger
-    # the proper -O3 switch to materialize
-    if (CMAKE_BUILD_TYPE MATCHES "Release")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-    endif()
-    if (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-    endif()
+if (NOT DEFINED ARCHITECTURE)
+    message(FATAL_ERROR "Architecture didn't make it out of scope, did you delete DetectArchitecture.cmake?")
 endif()
 
 # Needed for FFmpeg w/ VAAPI and DRM
@@ -90,34 +40,10 @@ if (PLATFORM_NETBSD)
     set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
-# MSYS2 utilities
-if (PLATFORM_MSYS)
-    include(FixMsysPaths)
-    # really, really dumb heuristic to detect what environment we are in
-    macro(system var)
-        if (CMAKE_COMMAND MATCHES ${var})
-            set(MSYSTEM ${var})
-        endif()
-    endmacro()
-
-    system(mingw64)
-    system(clang64)
-    system(clangarm64)
-    system(ucrt64)
-
-    if (NOT DEFINED MSYSTEM)
-        set(MSYSTEM msys2)
-    endif()
-
-    # we (generally) want to prioritize environment-specific binaries if possible
-    # some, like autoconf, are not present on environments besides msys2 though
-    set(CMAKE_PROGRAM_PATH C:/msys64/${MSYSTEM}/bin C:/msys64/usr/bin)
-    set(ENV{PKG_CONFIG_PATH} C:/msys64/${MSYSTEM}/lib/pkgconfig)
-endif()
-
 # static stuff
 option(YUZU_STATIC_BUILD "Use static libraries and executables if available" OFF)
 
+# TODO: StaticBuild.cmake
 if (YUZU_STATIC_BUILD)
     include(StaticQtLibs)
 
@@ -177,92 +103,6 @@ if (YUZU_STATIC_BUILD)
     endif()
 endif()
 
-# Detect current compilation architecture and create standard definitions
-# =======================================================================
-
-include(CheckSymbolExists)
-function(detect_architecture symbol arch)
-    if (NOT DEFINED ARCHITECTURE)
-        set(CMAKE_REQUIRED_QUIET 1)
-        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
-        unset(CMAKE_REQUIRED_QUIET)
-
-        # The output variable needs to be unique across invocations otherwise
-        # CMake's crazy scope rules will keep it defined
-        if (ARCHITECTURE_${arch})
-            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
-            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_definitions("-DARCHITECTURE_${arch}=1")
-        endif()
-    endif()
-endfunction()
-
-if (NOT ENABLE_GENERIC)
-    # https://sourceforge.net/p/predef/wiki/Architectures/
-    # TODO: THIS IS FUCKING FLAWED ONLY THE FIRST SYMBOL THAT APPEARS WILL BE CONSIDERED :(
-    if (MSVC)
-        detect_architecture("_M_AMD64" x86_64)
-        detect_architecture("_M_IX86" x86)
-        detect_architecture("_M_ARM" arm)
-        detect_architecture("_M_ARM64" arm64)
-    else()
-        detect_architecture("__x86_64__" x86_64)
-        detect_architecture("__i386__" x86)
-        detect_architecture("__arm__" arm)
-        detect_architecture("__aarch64__" arm64)
-    endif()
-    detect_architecture("__ARM64__" arm64)
-    detect_architecture("__aarch64__" arm64)
-    detect_architecture("_M_ARM64" arm64)
-
-    detect_architecture("__arm__" arm)
-    detect_architecture("__TARGET_ARCH_ARM" arm)
-    detect_architecture("_M_ARM" arm)
-
-    detect_architecture("__x86_64" x86_64)
-    detect_architecture("__x86_64__" x86_64)
-    detect_architecture("__amd64" x86_64)
-    detect_architecture("_M_X64" x86_64)
-
-    detect_architecture("__i386" x86)
-    detect_architecture("__i386__" x86)
-    detect_architecture("_M_IX86" x86)
-
-    detect_architecture("__ia64" ia64)
-    detect_architecture("__ia64__" ia64)
-    detect_architecture("_M_IA64" ia64)
-
-    detect_architecture("__mips" mips)
-    detect_architecture("__mips__" mips)
-    detect_architecture("_M_MRX000" mips)
-
-    detect_architecture("__powerpc64__" ppc64)
-    detect_architecture("__ppc64__" ppc64)
-    detect_architecture("__PPC64__" ppc64)
-    detect_architecture("_ARCH_PPC64" ppc64)
-
-    detect_architecture("__ppc__" ppc)
-    detect_architecture("__ppc" ppc)
-    detect_architecture("__powerpc__" ppc)
-    detect_architecture("_ARCH_COM" ppc)
-    detect_architecture("_ARCH_PWR" ppc)
-    detect_architecture("_ARCH_PPC" ppc)
-    detect_architecture("_M_MPPC" ppc)
-    detect_architecture("_M_PPC" ppc)
-
-    detect_architecture("__riscv" riscv)
-
-    detect_architecture("__EMSCRIPTEN__" wasm)
-endif()
-
-if (NOT DEFINED ARCHITECTURE)
-    set(ARCHITECTURE "GENERIC")
-    set(ARCHITECTURE_GENERIC 1)
-    add_definitions(-DARCHITECTURE_GENERIC=1)
-endif()
-
-message(STATUS "Target architecture: ${ARCHITECTURE}")
-
 if (MSVC AND ARCHITECTURE_x86)
     message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
         This can typically happen if you used the Developer Command Prompt from the start menu; \
@@ -292,19 +132,9 @@ if (CXX_CLANG_CL)
     endif()
 endif()
 
-set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
-
-include(DownloadExternals)
-include(CMakeDependentOption)
-include(CTest)
-
 # Disable Warnings as Errors for MSVC
 if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
-endif()
-
-if (PLATFORM_FREEBSD OR PLATFORM_DRAGONFLYBSD)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/local/lib")
 endif()
 
 # Set bundled sdl2/qt as dependent options.
@@ -358,13 +188,7 @@ option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 if(YUZU_ENABLE_LTO)
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT COMPILER_SUPPORTS_LTO)
-    if(NOT COMPILER_SUPPORTS_LTO)
-        message(FATAL_ERROR "Your compiler does not support interprocedural optimization (IPO). Re-run CMake with -DYUZU_ENABLE_LTO=OFF.")
-    endif()
-    set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ${COMPILER_SUPPORTS_LTO})
+    include(UseLTO)
 endif()
 
 option(USE_CCACHE "Use ccache for compilation" OFF)
@@ -391,7 +215,6 @@ if(USE_CCACHE)
     endif()
 endif()
 
-# TODO(crueter): CI this?
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 option(YUZU_LEGACY "Apply patches that improve compatibility with older GPUs (e.g. Snapdragon 865) at the cost of performance" OFF)
@@ -401,12 +224,12 @@ cmake_dependent_option(YUZU_ROOM_STANDALONE "Enable standalone room executable" 
 
 cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "ENABLE_SDL2;NOT ANDROID" OFF)
 
-cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
+cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR PLATFORM_LINUX" OFF)
 
 option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
 set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
 
-cmake_dependent_option(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "LINUX" OFF)
+cmake_dependent_option(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "PLATFORM_LINUX" OFF)
 
 cmake_dependent_option(YUZU_USE_BUNDLED_MOLTENVK "Download bundled MoltenVK lib" ON "APPLE" OFF)
 
@@ -438,39 +261,13 @@ endif()
 
 # TODO(crueter): CPM this
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
-    set(vvl_version "1.4.328.0")
-    set(vvl_zip_file "${CMAKE_BINARY_DIR}/externals/vvl-android-${vvl_version}.zip")
-    if (NOT EXISTS "${vvl_zip_file}")
-        # Download and extract validation layer release to externals directory
-        set(vvl_base_url "https://github.com/KhronosGroup/Vulkan-ValidationLayers/releases/download")
-        file(DOWNLOAD "${vvl_base_url}/vulkan-sdk-${vvl_version}/android-binaries-${vvl_version}.zip"
-            "${vvl_zip_file}" SHOW_PROGRESS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${vvl_zip_file}"
-            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
-    endif()
+    AddJsonPackage(vulkan-validation-layers)
 
-    # Copy the arm64 binary to src/android/app/main/jniLibs
-    if (ARCHITECTURE_arm64)
-        set(vvl_abi arm64-v8a)
-    elseif(ARCHITECTURE_x86_64)
-        set(vvl_abi x86_64)
-    endif()
+    set(abi ${CMAKE_ANDROID_ARCH_ABI})
 
-    set(vvl_lib_path "${CMAKE_CURRENT_SOURCE_DIR}/src/android/app/src/main/jniLibs/${vvl_abi}/")
-    file(COPY "${CMAKE_BINARY_DIR}/externals/android-binaries-${vvl_version}/${vvl_abi}/libVkLayer_khronos_validation.so"
+    set(vvl_lib_path "${CMAKE_CURRENT_SOURCE_DIR}/src/android/app/src/main/jniLibs/${abi}/")
+    file(COPY "${VVL_SOURCE_DIR}/${abi}/libVkLayer_khronos_validation.so"
         DESTINATION "${vvl_lib_path}")
-endif()
-
-if (ANDROID)
-    set(CMAKE_SKIP_INSTALL_RULES ON)
-    set(CMAKE_POLICY_VERSION_MINIMUM 3.5) # Workaround for Oboe
-endif()
-
-# Default to a Release build
-get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if (NOT IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-    message(STATUS "Defaulting to a Release build")
 endif()
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/pre-commit)
@@ -480,25 +277,23 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE
     endif()
 endif()
 
-configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
-    ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
+set(compat_base dist/compatibility_list/compatibility_list)
+set(compat_qrc ${compat_base}.qrc)
+set(compat_json ${compat_base}.json)
+
+configure_file(${PROJECT_SOURCE_DIR}/${compat_qrc}
+    ${PROJECT_BINARY_DIR}/${compat_qrc}
     COPYONLY)
 
-if (EXISTS ${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.json)
-    configure_file("${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.json"
-        "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json"
+if (EXISTS ${PROJECT_SOURCE_DIR}/${compat_json})
+    configure_file("${PROJECT_SOURCE_DIR}/${compat_json}"
+        "${PROJECT_BINARY_DIR}/${compat_json}"
         COPYONLY)
 endif()
 
-if (ENABLE_COMPATIBILITY_LIST_DOWNLOAD AND NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
-    message(STATUS "Downloading compatibility list for yuzu...")
-    file(DOWNLOAD
-        https://api.yuzu-emu.org/gamedb/
-        "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json" SHOW_PROGRESS)
-endif()
-
-if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
-    file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
+# TODO: Compat list download
+if (NOT EXISTS ${PROJECT_BINARY_DIR}/${compat_json})
+    file(WRITE ${PROJECT_BINARY_DIR}/${compat_json} "")
 endif()
 
 if (YUZU_LEGACY)
@@ -579,8 +374,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 # System imported libraries
 # =======================================================================
-
-include(CPMUtil)
 
 # openssl funniness
 if (ENABLE_OPENSSL)
@@ -673,6 +466,7 @@ if (YUZU_USE_CPM)
         add_library(Opus::opus ALIAS opus)
     endif()
 else()
+    # TODO: we can probably just use CPM for this... right?
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
 
@@ -737,10 +531,9 @@ endfunction()
 
 if (APPLE)
     # Umbrella framework for everything GUI-related
-    find_library(COCOA_LIBRARY Cocoa)
+    find_library(COCOA_LIBRARY Cocoa REQUIRED)
+    find_library(IOKIT_LIBRARY IOKit REQUIRED)
     set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
-    # find_library(ICONV_LIBRARY iconv REQUIRED)
-    # list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
     add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
@@ -881,11 +674,6 @@ if(ENABLE_QT)
     set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
 endif()
 
-if (UNIX AND NOT APPLE AND NOT ANDROID)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(LIBVA libva)
-endif()
-
 if (NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
     # Use system installed FFmpeg
     find_package(FFmpeg REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
@@ -911,54 +699,6 @@ endif()
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-# Setup a custom clang-format target (if clang-format can be found) that will run
-# against all the src files. This should be used before making a pull request.
-# =======================================================================
-
-set(CLANG_FORMAT_POSTFIX "-15")
-find_program(CLANG_FORMAT
-    NAMES clang-format${CLANG_FORMAT_POSTFIX}
-    clang-format
-    PATHS ${PROJECT_BINARY_DIR}/externals)
-# if find_program doesn't find it, try to download from externals
-if (NOT CLANG_FORMAT)
-    if (WIN32 AND NOT CMAKE_CROSSCOMPILING)
-        message(STATUS "Clang format not found! Downloading...")
-        set(CLANG_FORMAT "${PROJECT_BINARY_DIR}/externals/clang-format${CLANG_FORMAT_POSTFIX}.exe")
-        file(DOWNLOAD
-            https://github.com/eden-emulator/ext-windows-bin/raw/master/clang-format${CLANG_FORMAT_POSTFIX}.exe
-            "${CLANG_FORMAT}" SHOW_PROGRESS
-            STATUS DOWNLOAD_SUCCESS)
-        if (NOT DOWNLOAD_SUCCESS EQUAL 0)
-            message(WARNING "Could not download clang format! Disabling the clang format target")
-            file(REMOVE ${CLANG_FORMAT})
-            unset(CLANG_FORMAT)
-        endif()
-    else()
-        message(WARNING "Clang format not found! Disabling the clang format target")
-    endif()
-endif()
-
-if (CLANG_FORMAT)
-    set(SRCS ${PROJECT_SOURCE_DIR}/src)
-    set(CCOMMENT "Running clang format against all the .h and .cpp files in src/")
-    if (WIN32)
-        add_custom_target(clang-format
-            COMMAND powershell.exe -Command "Get-ChildItem '${SRCS}/*' -Include *.cpp,*.h -Recurse | Foreach {&'${CLANG_FORMAT}' -i $_.fullname}"
-            COMMENT ${CCOMMENT})
-    elseif(MINGW)
-        add_custom_target(clang-format
-            COMMAND find `cygpath -u ${SRCS}` -iname *.h -o -iname *.cpp | xargs `cygpath -u ${CLANG_FORMAT}` -i
-            COMMENT ${CCOMMENT})
-    else()
-        add_custom_target(clang-format
-            COMMAND find ${SRCS} -iname *.h -o -iname *.cpp | xargs ${CLANG_FORMAT} -i
-            COMMENT ${CCOMMENT})
-    endif()
-    unset(SRCS)
-    unset(CCOMMENT)
-endif()
 
 # Include source code
 # ===================
@@ -993,47 +733,8 @@ if (MSVC AND CXX_CLANG)
     link_libraries(llvm-mingw-runtime)
 endif()
 
-#[[
-    search order:
-    - gold (GCC only) - the best, generally, but unfortunately not packaged anymore
-    - mold (GCC only) - generally does well on GCC
-    - ldd - preferred on clang
-    - bfd - the final fallback
-    - If none are found (macOS uses ld.prime, etc) just use the default linker
-]]
 if (YUZU_USE_FASTER_LD)
-    find_program(LINKER_BFD bfd)
-    if (LINKER_BFD)
-        set(LINKER bfd)
-    endif()
-
-    find_program(LINKER_LLD lld)
-    if (LINKER_LLD)
-        set(LINKER lld)
-    endif()
-
-    if (CXX_GCC)
-        find_program(LINKER_MOLD mold)
-        if (LINKER_MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
-            set(LINKER mold)
-        endif()
-
-        find_program(LINKER_GOLD gold)
-        if (LINKER_GOLD)
-            set(LINKER gold)
-        endif()
-    endif()
-
-    if (LINKER)
-        message(NOTICE "Selecting ${LINKER} as linker")
-        add_link_options("-fuse-ld=${LINKER}")
-    else()
-        message(WARNING "No faster linker found--using default")
-    endif()
-
-    if (LINKER STREQUAL "lld" AND CXX_GCC)
-        message(WARNING "Using lld on GCC may cause issues with certain LTO settings. If the program fails to compile, disable YUZU_USE_FASTER_LD, or install mold or GNU gold.")
-    endif()
+    include(FasterLinker)
 endif()
 
 # Set runtime library to MD/MDd for all configurations
@@ -1053,14 +754,6 @@ if(MSVC)
         $<$<CONFIG:RelWithDebInfo>:/MD>
         $<$<CONFIG:MinSizeRel>:/MD>
     )
-endif()
-
-if (MINGW)
-    # This saves a truly ridiculous amount of time during linking
-    # In my tests, without this it takes 2 mins, with it takes 3-5 seconds
-    # or on GitHub Actions, 10 minutes -> 3 seconds
-    set(MINGW_FLAGS "-Wl,--strip-all -Wl,--gc-sections")
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${MINGW_FLAGS}")
 endif()
 
 add_subdirectory(src)

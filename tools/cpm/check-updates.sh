@@ -8,8 +8,12 @@
 
 RETURN=0
 
-filter() {
+filter_out() {
 	TAGS=$(echo "$TAGS" | jq "[.[] | select(.name | test(\"$1\"; \"i\") | not)]")
+}
+
+filter_in() {
+	TAGS=$(echo "$TAGS" | jq "[.[] | select(.name | test(\"$1\"; \"i\"))]")
 }
 
 usage() {
@@ -83,19 +87,27 @@ while true; do
 	# filter out some commonly known annoyances
 	# TODO add more
 
-	filter vulkan-sdk # vulkan
-	filter yotta      # mbedtls
+	if [ "$PACKAGE" = "vulkan-validation-layers" ]; then
+		filter_in vulkan-sdk
+	else
+		filter_out vulkan-sdk
+	fi
+
+	[ "$CI" = "true" ] && filter_in "-"
+
+	filter_out yotta # mbedtls
 
 	# ignore betas/alphas (remove if needed)
-	filter alpha
-	filter beta
-	filter rc
+	filter_out alpha
+	filter_out beta
+	filter_out rc
 
 	# Add package-specific overrides here, e.g. here for fmt:
-	[ "$PACKAGE" = fmt ] && filter v0.11
+	[ "$PACKAGE" = fmt ] && filter_out v0.11
 
 	LATEST=$(echo "$TAGS" | jq -r '.[0].name')
 
+	[ "$LATEST" = "null" ] && echo "-- * Up-to-date" && continue
 	[ "$LATEST" = "$TAG" ] && [ "$FORCE" != "true" ] && echo "-- * Up-to-date" && continue
 
 	RETURN=1

@@ -28,8 +28,8 @@
     "httplib": {
         "repo": "yhirose/cpp-httplib",
         "tag": "v%VERSION%",
-        "hash": "b364500f76e2ecb0fe21b032d831272e3f1dfeea71af74e325f8fc4ce9dcdb3c941b97a5b422bdeafb9facd058597b90f8bfc284fb9afe3c33fefa15dd5a010b",
-        "git_version": "0.26.0",
+        "hash": "e7a8877d489c97669a8ee536e1498575be921e558ed947253013fe6b67a49d4569eedd01f543caa70183b92d8ac0e8687d662a70d880954412e387317008a239",
+        "git_version": "0.28.0",
         "find_args": "MODULE GLOBAL",
         "patches": [
             "0001-mingw.patch"
@@ -89,9 +89,9 @@
         "package": "unordered_dense",
         "repo": "martinus/unordered_dense",
         "tag": "v%VERSION%",
-        "hash": "f9c819e28e1c1a387acfee09277d6af5e366597a0d39acf1c687acf0608a941ba966af8aaebdb8fba0126c7360269c4a51754ef4cab17c35c01a30215f953368",
+        "hash": "b98b5d4d96f8e0081b184d6c4c1181fae4e41723b54bed4296717d7f417348b48fad0bbcc664cac142b8c8a47e95aa57c1eb1cf6caa855fd782fad3e3ab99e5e",
         "find_args": "CONFIG",
-        "git_version": "4.5.0"
+        "git_version": "4.8.1"
     },
     "mbedtls": {
         "package": "MbedTLS",
@@ -188,9 +188,9 @@
         "package": "SimpleIni",
         "repo": "brofield/simpleini",
         "tag": "v%VERSION%",
-        "hash": "6c198636816a0018adbf7f735d402c64245c6fcd540b7360d4388d46f007f3a520686cdaec4705cb8cb31401b2cb4797a80b42ea5d08a6a5807c0848386f7ca1",
+        "hash": "b937c18a7b6277d77ca7ebfb216af4984810f77af4c32d101b7685369a4bd5eb61406223f82698e167e6311a728d07415ab59639fdf19eff71ad6dc2abfda989",
         "find_args": "MODULE",
-        "git_version": "4.22"
+        "git_version": "4.25"
     },
     "sdl2_generic": {
         "package": "SDL2",
@@ -210,5 +210,13 @@
         "key": "steamdeck",
         "bundled": true,
         "skip_updates": "true"
+    },
+    "moltenvk": {
+        "repo": "KhronosGroup/MoltenVK",
+        "tag": "v%VERSION%",
+        "git_version": "1.4.1",
+        "artifact": "MoltenVK-macOS.tar",
+        "hash": "a394329f390a11d1052d2efeef5f7f33860465eea4d7e9e1faf808e616d533a283b9c55074fb833ef95ef40067fc319470eab07dc72ac63e6464dc26cbe34905",
+        "bundled": true
     }
 }

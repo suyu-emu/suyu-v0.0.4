@@ -33,12 +33,6 @@ option(DYNARMIC_INSTALL "Install dynarmic headers and CMake files" OFF)
 option(DYNARMIC_USE_BUNDLED_EXTERNALS "Use all bundled externals (useful when e.g. cross-compiling)" OFF)
 option(DYNARMIC_ENABLE_LTO "Enable LTO" OFF)
 
-# Default to a Release build
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-    message(STATUS "Defaulting to a Release build")
-endif()
-
 # Set hard requirements for C++
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -53,12 +47,6 @@ endif()
 
 # Add the module directory to the list of paths
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
-
-# Arch detection
-if (NOT DEFINED ARCHITECTURE)
-    message(FATAL_ERROR "Unsupported architecture encountered. Ending CMake generation.")
-endif()
-message(STATUS "Target architecture: ${ARCHITECTURE}")
 
 # Compiler flags
 if (MSVC)
@@ -119,7 +107,7 @@ else()
 endif()
 
 find_package(Boost 1.57 REQUIRED)
-find_package(fmt 9 CONFIG)
+find_package(fmt 8 CONFIG)
 
 # Pull in externals CMakeLists for libs where available
 add_subdirectory(externals)
