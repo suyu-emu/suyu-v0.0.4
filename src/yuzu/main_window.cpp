@@ -571,8 +571,6 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     connect(&update_input_timer, &QTimer::timeout, this, &MainWindow::UpdateInputDrivers);
     update_input_timer.start();
 
-    MigrateConfigFiles();
-
     if (has_broken_vulkan) {
         UISettings::values.has_broken_vulkan = true;
 
@@ -4120,33 +4118,6 @@ void MainWindow::OnCaptureScreenshot() {
     }
 #endif
     render_window->CaptureScreenshot(filename);
-}
-
-// TODO: Written 2020-10-01: Remove per-game config migration code when it is irrelevant
-void MainWindow::MigrateConfigFiles() {
-    const auto config_dir_fs_path = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
-    const QDir config_dir =
-        QDir(QString::fromStdString(Common::FS::PathToUTF8String(config_dir_fs_path)));
-    const QStringList config_dir_list = config_dir.entryList(QStringList(QStringLiteral("*.ini")));
-
-    if (!Common::FS::CreateDirs(config_dir_fs_path / "custom")) {
-        LOG_ERROR(Frontend, "Failed to create new config file directory");
-    }
-
-    for (auto it = config_dir_list.constBegin(); it != config_dir_list.constEnd(); ++it) {
-        const auto filename = it->toStdString();
-        if (filename.find_first_not_of("0123456789abcdefACBDEF", 0) < 16) {
-            continue;
-        }
-        const auto origin = config_dir_fs_path / filename;
-        const auto destination = config_dir_fs_path / "custom" / filename;
-        LOG_INFO(Frontend, "Migrating config file from {} to {}", origin.string(),
-                 destination.string());
-        if (!Common::FS::RenameFile(origin, destination)) {
-            // Delete the old config file if one already exists in the new location.
-            Common::FS::RemoveFile(origin);
-        }
-    }
 }
 
 #ifdef ENABLE_UPDATE_CHECKER
