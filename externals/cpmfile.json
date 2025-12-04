@@ -103,8 +103,8 @@
         "artifact": "%TAG%.tar.bz2",
         "skip_updates": true,
         "patches": [
-            "0002-aesni-fix.patch",
-            "0003-aesni-fix.patch"
+            "0001-aesni-fix.patch",
+            "0002-arm64-aes-fix.patch"
         ]
     },
     "enet": {
