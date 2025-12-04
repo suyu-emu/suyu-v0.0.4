@@ -627,75 +627,43 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     bool has_gamepath = false;
     bool is_fullscreen = false;
 
-    for (int i = 1; i < args.size(); ++i) {
-        // Preserves drag/drop functionality
-        if (args.size() == 2 && !args[1].startsWith(QChar::fromLatin1('-'))) {
-            game_path = args[1];
-            has_gamepath = true;
-            break;
-        }
-
-        // Launch game in fullscreen mode
+    // Preserves drag/drop functionality
+    if (args.size() == 2 && !args[1].startsWith(QChar::fromLatin1('-'))) {
+        game_path = args[1];
+        has_gamepath = true;
+    } else for (int i = 1; i < args.size(); ++i) {
         if (args[i] == QStringLiteral("-f")) {
+            // Launch game in fullscreen mode
             is_fullscreen = true;
-            continue;
-        }
-
-        // Launch game with a specific user
-        if (args[i] == QStringLiteral("-u")) {
-            if (i >= args.size() - 1) {
-                continue;
-            }
-
-            if (args[i + 1].startsWith(QChar::fromLatin1('-'))) {
-                continue;
-            }
-
+        } else if (args[i] == QStringLiteral("-u") && i < args.size() - 1) {
+            // Launch game with a specific user
             int user_arg_idx = ++i;
             bool argument_ok;
             std::size_t selected_user = args[user_arg_idx].toUInt(&argument_ok);
-
             if (!argument_ok) {
                 // try to look it up by username, only finds the first username that matches.
-                const std::string user_arg_str = args[user_arg_idx].toStdString();
-                const auto user_idx = QtCommon::system->GetProfileManager().GetUserIndex(user_arg_str);
-
-                if (user_idx == std::nullopt) {
-                    LOG_ERROR(Frontend, "Invalid user argument");
+                std::string const user_arg_str = args[user_arg_idx].toStdString();
+                auto const user_idx = QtCommon::system->GetProfileManager().GetUserIndex(user_arg_str);
+                if (user_idx != std::nullopt) {
+                    selected_user = user_idx.value();
+                } else {
+                    LOG_ERROR(Frontend, "Invalid user argument '{}'", user_arg_str);
                     continue;
                 }
-
-                selected_user = user_idx.value();
             }
-
-            if (!QtCommon::system->GetProfileManager().UserExistsIndex(selected_user)) {
-                LOG_ERROR(Frontend, "Selected user doesn't exist");
-                continue;
+            if (QtCommon::system->GetProfileManager().UserExistsIndex(selected_user)) {
+                Settings::values.current_user = s32(selected_user);
+                user_flag_cmd_line = true;
+            } else {
+                LOG_ERROR(Frontend, "Selected user {} doesn't exist", selected_user);
             }
-
-            Settings::values.current_user = static_cast<s32>(selected_user);
-
-            user_flag_cmd_line = true;
-            continue;
-        }
-
-        // Launch game at path
-        if (args[i] == QStringLiteral("-g")) {
-            if (i >= args.size() - 1) {
-                continue;
-            }
-
-            if (args[i + 1].startsWith(QChar::fromLatin1('-'))) {
-                continue;
-            }
-
+        } else if (args[i] == QStringLiteral("-g") && i < args.size() - 1) {
+            // Launch game at path
             game_path = args[++i];
             has_gamepath = true;
-        }
-
-        if (args[i] == QStringLiteral("-qlaunch"))
+        } else if (args[i] == QStringLiteral("-qlaunch"))
             should_launch_qlaunch = true;
-        if (args[i] == QStringLiteral("-setup"))
+        else if (args[i] == QStringLiteral("-setup"))
             should_launch_setup = true;
     }
 

@@ -12,4 +12,5 @@ This handbook is primarily aimed at the end-user - baking useful knowledge for e
 - **[Testing](Testing.md)**
 - **[Data, savefiles and storage](Storage.md)**
 - **[Orphaned Profiles](Orphaned.md)**
+- **[Command Line](CommandLine.md)**
 - **[Native Application Development](Native.md)**
