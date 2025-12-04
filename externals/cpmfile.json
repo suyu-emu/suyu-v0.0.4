@@ -212,11 +212,11 @@
         "skip_updates": "true"
     },
     "moltenvk": {
-        "repo": "KhronosGroup/MoltenVK",
-        "tag": "v%VERSION%",
+        "repo": "V380-Ori/Ryujinx.MoltenVK",
+        "tag": "v%VERSION%-ryujinx",
         "git_version": "1.4.1",
         "artifact": "MoltenVK-macOS.tar",
-        "hash": "a394329f390a11d1052d2efeef5f7f33860465eea4d7e9e1faf808e616d533a283b9c55074fb833ef95ef40067fc319470eab07dc72ac63e6464dc26cbe34905",
+        "hash": "5695b36ca5775819a71791557fcb40a4a5ee4495be6b8442e0b666d0c436bec02aae68cc6210183f7a5c986bdbec0e117aecfad5396e496e9c2fd5c89133a347",
         "bundled": true
     }
 }
