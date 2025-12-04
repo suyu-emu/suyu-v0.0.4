@@ -1132,15 +1132,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 //                        val enableFrameSkipping = BooleanSetting.FRAME_SKIPPING.getBoolean()
 
                         var fpsText = String.format("FPS: %.1f", actualFps)
-
                         if (enableFrameInterpolation) {
-                            fpsText += " " + getString(R.string.enhanced_fps_suffix)
+                            fpsText = String.format("eFPS: %.1f", actualFps)
                         }
-
-//                        if (enableFrameSkipping) {
-//                            fpsText += " " + getString(R.string.skipping_fps_suffix)
-//                        }
-
                         sb.append(fpsText)
                     }
 
