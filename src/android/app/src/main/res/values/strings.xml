@@ -298,6 +298,10 @@
     <string name="install_prod_keys_warning_description">Valid keys are required to emulate retail games. Only homebrew apps will function if you continue.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Skip adding firmware?</string>
+    <string name="emulator_data">Setup Emulator Data</string>
+    <string name="emulator_data_description">Keys are required in order for the emulator to work and firmware is recommended and required for using the QLaunch applet</string>
+    <string name="permissions">Grant Permissions</string>
+    <string name="permissions_description">Grant optional permissions to use specific features of the emulator</string>
     <string name="install_firmware_warning_description">Many games require access to firmware to run properly.</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notifications</string>
