@@ -548,7 +548,7 @@ SDLDriver::SDLDriver(std::string input_engine_) : InputEngine(std::move(input_en
             using namespace std::chrono_literals;
             while (initialized) {
                 SendVibrations();
-                std::this_thread::sleep_for(10ms);
+                std::this_thread::sleep_for(250ms); // 4 TPS
             }
         });
     }

@@ -14,7 +14,7 @@
 #include "input_common/drivers/mouse.h"
 
 namespace InputCommon {
-constexpr int update_time = 10;
+constexpr int update_time = 250; // 4 TPS
 constexpr float default_panning_sensitivity = 0.0010f;
 constexpr float default_stick_sensitivity = 0.0006f;
 constexpr float default_deadzone_counterweight = 0.01f;
@@ -73,18 +73,14 @@ Mouse::Mouse(std::string input_engine_) : InputEngine(std::move(input_engine_)) 
     last_mouse_change = {};
     last_motion_change = {};
 
-    update_thread = std::jthread([this](std::stop_token stop_token) { UpdateThread(stop_token); });
-}
-
-void Mouse::UpdateThread(std::stop_token stop_token) {
-    Common::SetCurrentThreadName("Mouse");
-
-    while (!stop_token.stop_requested()) {
-        UpdateStickInput();
-        UpdateMotionInput();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(update_time));
-    }
+    update_thread = std::jthread([this](std::stop_token stop_token) {
+        Common::SetCurrentThreadName("Mouse");
+        while (!stop_token.stop_requested()) {
+            UpdateStickInput();
+            UpdateMotionInput();
+            std::this_thread::sleep_for(std::chrono::milliseconds(update_time));
+        }
+    });
 }
 
 void Mouse::UpdateStickInput() {
