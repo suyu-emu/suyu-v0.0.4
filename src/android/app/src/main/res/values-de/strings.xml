@@ -84,8 +84,6 @@
     <string name="sample_shading_fraction_description">Die Intensität des Sample-Shading-Durchgangs. Höhere Werte verbessern die Qualität stärker, beeinträchtigen aber auch die Leistung stärker.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="frame_interpolation">Erweiterte Frame-Synchronisation</string>
-    <string name="frame_interpolation_description">Sorgt für eine gleichmäßige und konsistente Frame-Wiedergabe durch Synchronisierung der Frame-Zeiten, was Ruckeln und ungleichmäßige Animationen reduziert. Ideal für Spiele, die unter instabilen Frame-Zeiten oder Mikrorucklern leiden.</string>
     <string name="renderer_early_release_fences">Zäune früher freigeben</string>
     <string name="renderer_early_release_fences_description">Behebt 0 FPS in Spielen wie DKCR:HD, Subnautica Below Zero und Ori 2, kann aber Ladezeiten oder Performance in Unreal Engine-Spielen beeinträchtigen.</string>
     <string name="sync_memory_operations">Speicheroperationen synchronisieren</string>
@@ -423,12 +421,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
 
     <!-- Graphics settings strings -->
     <string name="backend">Backend</string>
-    <string name="display">Anzeige</string>
-    <string name="processing">Nachbearbeitung</string>
-
-    <string name="frame_skipping">WIP: Frame Skipping</string>
-    <string name="frame_skipping_description">Aktivieren Sie Frame Skipping, um die Leistung durch Reduzierung der gerenderten Frames zu verbessern. Diese Funktion wird noch entwickelt und in zukünftigen Versionen verfügbar sein.</string>
-    <string name="renderer_accuracy">Genauigkeitsstufe</string>
     <string name="renderer_resolution">Auflösung (Handheld/Gedockt)</string>
     <string name="renderer_vsync">VSync-Modus</string>
     <string name="renderer_screen_layout">Ausrichtung</string>

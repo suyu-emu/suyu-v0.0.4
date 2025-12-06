@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">كثافة تمرير تظليل العينة. تؤدي القيم الأعلى إلى تحسين الجودة بشكل أكبر، ولكنها تقلل أيضًا من الأداء إلى حد كبير.</string>
 
     <string name="veil_renderer">العارض</string>
-    <string name="frame_interpolation">تحسين سرعة الإطارات</string>
-    <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
     <string name="renderer_early_release_fences">إطلاق الأسوار مبكرًا</string>
     <string name="renderer_early_release_fences_description">يساعد في إصلاح مشكلة 0 إطار في الثانية في ألعاب مثل DKCR:HD وSubnautica Below Zero وOri 2، ولكن قد يتسبب في تعطيل التحميل أو الأداء في ألعاب Unreal Engine.</string>
     <string name="sync_memory_operations">مزامنة عمليات الذاكرة</string>
@@ -472,8 +470,6 @@
     <string name="display">الشاشة</string>
     <string name="processing">تأثيرات بعد المعالجة</string>
 
-    <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
-    <string name="frame_skipping_description">تبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة. هذه الميزة قيد التطوير وسيتم تمكينها في الإصدارات المستقبلية.</string>
     <string name="renderer_accuracy">مستوى الدقة</string>
     <string name="renderer_resolution">الدقة (الإرساء/محمول)</string>
     <string name="renderer_vsync">VSync وضع</string>

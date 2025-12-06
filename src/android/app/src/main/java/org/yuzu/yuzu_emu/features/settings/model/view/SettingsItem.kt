@@ -236,21 +236,6 @@ abstract class SettingsItem(
 
                 override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
             }
-            put(
-                SwitchSetting(
-                    BooleanSetting.FRAME_INTERPOLATION,
-                    titleId = R.string.frame_interpolation,
-                    descriptionId = R.string.frame_interpolation_description
-                )
-            )
-
-//            put(
-//                SwitchSetting(
-//                    BooleanSetting.FRAME_SKIPPING,
-//                    titleId = R.string.frame_skipping,
-//                    descriptionId = R.string.frame_skipping_description
-//                )
-//            )
 
             put(
                 SwitchSetting(

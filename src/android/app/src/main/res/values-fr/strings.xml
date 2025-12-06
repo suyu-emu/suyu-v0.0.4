@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">L\'intensité de la passe d\'ombrage d\'échantillon. Des valeurs plus élevées améliorent davantage la qualité mais réduisent aussi plus fortement les performances.</string>
 
     <string name="veil_renderer">Rendu</string>
-    <string name="frame_interpolation">Synchronisation avancée des frames</string>
-    <string name="frame_interpolation_description">Assure une diffusion fluide et régulière des frames en synchronisant leur timing, réduisant ainsi les saccades et les animations irrégulières. Idéal pour les jeux souffrant d`instabilité de timing des frames ou de micro-saccades pendant le jeu.</string>
     <string name="renderer_early_release_fences">Libérer les barrières plus tôt</string>
     <string name="renderer_early_release_fences_description">Résout les problèmes de 0 FPS dans des jeux comme DKCR:HD, Subnautica Below Zero et Ori 2, mais peut perturber le chargement ou les performances des jeux Unreal Engine.</string>
     <string name="sync_memory_operations">Synchroniser les opérations mémoire</string>
@@ -447,8 +445,6 @@
     <string name="display">Affichage</string>
     <string name="processing">Post-traitement</string>
 
-    <string name="frame_skipping">WIP: Saut de frames</string>
-    <string name="frame_skipping_description">Activez ou désactivez le saut d\'images pour améliorer les performances en réduisant le nombre d\'images affichées. Cette fonctionnalité est en cours de développement et sera activée dans les futures versions.</string>
     <string name="renderer_accuracy">Niveau de précision</string>
     <string name="renderer_resolution">Résolution (Mode Portable/Mode TV)</string>
     <string name="renderer_vsync">Mode VSync</string>

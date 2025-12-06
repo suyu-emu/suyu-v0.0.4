@@ -75,8 +75,6 @@
     <string name="sample_shading_fraction_description">Интензитет проласка сенчења узорка. Веће вредности побољшавају квалитет више, али такође више смањују перформансе.</string>
 
     <string name="veil_renderer">Рендерер</string>
-    <string name="frame_interpolation">Побољшани оквирни пејсинг</string>
-    <string name="frame_interpolation_description">Осигурава глатку и доследан испоруку оквира синхронизацијом времена између оквира, смањење муцања и неуједначене анимације. Идеално за игре које доживљавају временски оквир нестабилност или микро-штитнике током играња.</string>
     <string name="renderer_early_release_fences">Ranije oslobađanje ograda</string>
     <string name="renderer_early_release_fences_description">Pomaže u popravci 0 FPS u igrama kao što su DKCR:HD, Subnautica Below Zero i Ori 2, ali može oštetiti učitavanje ili performanse u Unreal Engine igrama.</string>
     <string name="sync_memory_operations">Синхронизација меморијских операција</string>
@@ -405,8 +403,6 @@
     <string name="display">Приказ</string>
     <string name="processing">Постпроцесирање</string>
 
-    <string name="frame_skipping">ВИП: Фрамескип</string>
-    <string name="frame_skipping_description">Пребацивање оквира прескакање да бисте побољшали перформансе смањењем броја пружених оквира. Ова функција се и даље ради и биће омогућена у будућим издањима.</string>
     <string name="renderer_accuracy">Ниво тачности</string>
     <string name="renderer_resolution">Резолуција (ручно / прикључено)</string>
     <string name="renderer_vsync">Всинц мод</string>

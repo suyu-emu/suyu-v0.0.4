@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">עוצמת מעבר ההצללה לדוגמה. ערכים גבוהים יותר משפרים את האיכות יותר אך גם מפחיתים את הביצועים במידה רבה יותר.</string>
 
     <string name="veil_renderer">רנדרר</string>
-    <string name="frame_interpolation">סנכרון פריימים מתקדם</string>
-    <string name="frame_interpolation_description">מבטיח אספקה חלקה ועקבית של פריימים על ידי סנכרון התזמון ביניהם, מפחית קפיצות ואנימציה לא אחידה. אידיאלי למשחקים עם בעיות בתזמון פריימים או מיקרו-קפיצות במהלך המשחק.</string>
     <string name="renderer_early_release_fences">שחרר גדרות מוקדם</string>
     <string name="renderer_early_release_fences_description">עוזר לתקן 0 FPS במשחקים כמו DKCR:HD, Subnautica Below Zero ו-Ori 2, אך עלול לפגוע בטעינה או בביצועים במשחקי Unreal Engine.</string>
     <string name="sync_memory_operations">סנכרון פעולות זיכרון</string>
@@ -406,8 +404,6 @@
     <string name="display">תצוגה</string>
     <string name="processing">עיבוד לאחר</string>
 
-    <string name="frame_skipping">בעבודה: דילוג פריימים</string>
-    <string name="frame_skipping_description">החלף דילוג על פריימים כדי לשפר ביצועים על ידי הפחתת מספר הפריימים המוצגים. תכונה זו עדיין בפיתוח ותופעל בגרסאות עתידיות.</string>
     <string name="renderer_accuracy">רמת דיוק</string>
     <string name="renderer_resolution">רזולוציה (מעוגן/נייד)</string>
     <string name="renderer_vsync">מצב VSync</string>

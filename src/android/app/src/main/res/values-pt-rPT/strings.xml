@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">A intensidade da passagem de sombreamento de amostra. Valores mais elevados melhoram a qualidade, mas também reduzem o desempenho numa maior medida.</string>
 
     <string name="veil_renderer">Renderizador</string>
-    <string name="frame_interpolation">Sincronização avançada de frames</string>
-    <string name="frame_interpolation_description">Garante uma entrega suave e consistente de frames sincronizando o seu tempo, reduzindo engasgadelas e animações irregulares. Ideal para jogos que experienciam instabilidade no tempo de frames ou micro-engasgadelas durante o jogo.</string>
     <string name="renderer_early_release_fences">Libertar barreiras antecipadamente</string>
     <string name="renderer_early_release_fences_description">Ajuda a corrigir 0 FPS em jogos como DKCR:HD, Subnautica Below Zero e Ori 2, mas pode afetar carregamento ou desempenho em jogos Unreal Engine.</string>
     <string name="sync_memory_operations">Sincronizar Operações de Memória</string>
@@ -405,8 +403,6 @@
     <string name="display">Ecrã</string>
     <string name="processing">Pós-processamento</string>
 
-    <string name="frame_skipping">WIP: Saltar frames</string>
-    <string name="frame_skipping_description">Ative ou desative o salto de frames para melhorar o desempenho reduzindo o número de frames renderizados. Esta funcionalidade ainda está em desenvolvimento e será ativada em versões futuras.</string>
     <string name="renderer_accuracy">Nível de precisão</string>
     <string name="renderer_resolution">Resolução (Portátil/Ancorado)</string>
     <string name="renderer_vsync">Modo VSync</string>

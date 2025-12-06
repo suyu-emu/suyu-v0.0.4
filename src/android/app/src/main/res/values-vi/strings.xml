@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">Cường độ của bước tô bóng mẫu. Giá trị cao hơn cải thiện chất lượng tốt hơn nhưng cũng giảm hiệu suất nhiều hơn.</string>
 
     <string name="veil_renderer">Trình kết xuất</string>
-    <string name="frame_interpolation">Đồng bộ khung hình nâng cao</string>
-    <string name="frame_interpolation_description">Đảm bảo cung cấp khung hình mượt mà và ổn định bằng cách đồng bộ hóa thời gian giữa các khung hình, giảm giật lag và hoạt ảnh không đồng đều. Lý tưởng cho các trò chơi gặp vấn đề về thời gian khung hình không ổn định hoặc giật lag nhẹ trong khi chơi.</string>
     <string name="renderer_early_release_fences">Giải phóng rào chắn sớm</string>
     <string name="renderer_early_release_fences_description">Giúp sửa lỗi 0 FPS trong các trò chơi như DKCR:HD, Subnautica Below Zero và Ori 2, nhưng có thể ảnh hưởng đến tải hoặc hiệu suất trong trò chơi Unreal Engine.</string>
     <string name="sync_memory_operations">Đồng bộ hoá thao tác bộ nhớ</string>
@@ -380,8 +378,6 @@
     <string name="display">Hiển thị</string>
     <string name="processing">Hậu xử lý</string>
 
-    <string name="frame_skipping">WIP: Bỏ qua khung hình</string>
-    <string name="frame_skipping_description">Bật hoặc tắt bỏ qua khung hình để cải thiện hiệu suất bằng cách giảm số lượng khung hình được kết xuất. Tính năng này đang được phát triển và sẽ được kích hoạt trong các bản phát hành tương lai.</string>
     <string name="renderer_accuracy">Mức độ chính xác</string>
     <string name="renderer_resolution">Độ phân giải (Handheld/Docked)</string>
     <string name="renderer_vsync">Chế độ VSync</string>

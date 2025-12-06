@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">采样着色处理的强度。值越高，质量改善越多，但性能降低也越明显。</string>
 
     <string name="veil_renderer">渲染器</string>
-    <string name="frame_interpolation">增强帧同步</string>
-    <string name="frame_interpolation_description">通过同步帧间时间确保流畅一致的帧交付，减少卡顿和不均匀动画。适合存在帧时间不稳定或游戏过程中出现微卡顿的游戏。</string>
     <string name="renderer_early_release_fences">提前释放围栏</string>
     <string name="renderer_early_release_fences_description">可修复《大金刚国度:热带寒流》《深海迷航:零度之下》和《奥日2》等游戏中的0 FPS问题，但可能影响Unreal Engine游戏的加载或性能。</string>
     <string name="sync_memory_operations">同步内存操作</string>
@@ -443,8 +441,6 @@
     <string name="display">显示</string>
     <string name="processing">后处理</string>
 
-    <string name="frame_skipping">开发中：跳帧</string>
-    <string name="frame_skipping_description">启用或禁用跳帧以减少渲染帧数，提高性能。此功能仍在开发中，将在未来版本中启用。</string>
     <string name="renderer_accuracy">精度等级</string>
     <string name="renderer_resolution">分辨率 (掌机模式/主机模式)</string>
     <string name="renderer_vsync">垂直同步模式</string>

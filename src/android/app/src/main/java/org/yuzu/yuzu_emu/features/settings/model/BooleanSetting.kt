@@ -52,10 +52,6 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_FW_VERSION("show_firmware_version"),
 
     SOC_OVERLAY_BACKGROUND("soc_overlay_background"),
-
-    FRAME_INTERPOLATION("frame_interpolation"),
-//    FRAME_SKIPPING("frame_skipping"),
-
     ENABLE_INPUT_OVERLAY_AUTO_HIDE("enable_input_overlay_auto_hide"),
 
     PERF_OVERLAY_BACKGROUND("perf_overlay_background"),

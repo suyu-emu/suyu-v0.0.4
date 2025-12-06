@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">サンプルシェーディング処理の強度。高い値ほど品質は向上しますが、パフォーマンスも大きく低下します。</string>
 
     <string name="veil_renderer">レンダラー</string>
-    <string name="frame_interpolation">高度なフレーム同期</string>
-    <string name="frame_interpolation_description">フレーム間のタイミングを同期させることで、スムーズで一貫したフレーム配信を確保し、カクつきや不均一なアニメーションを軽減します。フレームタイミングの不安定さやマイクロスタッターが発生するゲームに最適です。</string>
     <string name="renderer_early_release_fences">フェンスを早期に解放</string>
     <string name="renderer_early_release_fences_description">DKCR:HD、Subnautica Below Zero、Ori 2などのゲームで0 FPSを修正しますが、Unreal Engineゲームの読み込みやパフォーマンスに影響する可能性があります。</string>
     <string name="sync_memory_operations">メモリ操作の同期</string>
@@ -401,8 +399,6 @@
     <string name="display">ディスプレイ</string>
     <string name="processing">後処理</string>
 
-    <string name="frame_skipping">WIP: フレームスキップ</string>
-    <string name="frame_skipping_description">フレームスキップを切り替えて、レンダリングされるフレーム数を減らしパフォーマンスを向上させます。この機能は開発中であり、今後のリリースで有効になります。</string>
     <string name="renderer_accuracy">精度</string>
     <string name="renderer_resolution">解像度（携帯モード/TVモード）</string>
     <string name="renderer_vsync">垂直同期モード</string>

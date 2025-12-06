@@ -333,12 +333,7 @@ struct Values {
                                                           "shader_backend", Category::Renderer,  Specialization::RuntimeList};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
                                          Specialization::RuntimeList};
-#ifdef __ANDROID__
-    SwitchableSetting<bool> frame_interpolation{linkage, true, "frame_interpolation", Category::Renderer,
-                                                Specialization::RuntimeList};
-    SwitchableSetting<bool> frame_skipping{linkage, false, "frame_skipping", Category::Renderer,
-                                           Specialization::RuntimeList};
-#endif
+
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
     SwitchableSetting<SpirvOptimizeMode, true> optimize_spirv_output{linkage,

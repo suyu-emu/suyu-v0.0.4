@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">Fração de Sombreamento de Amostra: Define a intensidade do sample shading. Quanto maior, melhor a qualidade, mas maior o impacto no desempenho.</string>
 
     <string name="veil_renderer">Renderizador</string>
-    <string name="frame_interpolation">Enhanced Frame Pacing</string>
-    <string name="frame_interpolation_description">Sincronização Melhorada de Quadros: Sincroniza o tempo entre os quadros para uma entrega mais uniforme, reduzindo travamentos e animações irregulares. Útil em jogos que sofrem com microtravamentos ou instabilidade na taxa de frames.</string>
     <string name="renderer_early_release_fences">Release Fences Early</string>
     <string name="renderer_early_release_fences_description">Liberar Cercas Antecipadamente: Ajuda a corrigir 0 FPS em jogos como DKCR:HD, Subnautica Below Zero e Ori 2, mas pode prejudicar o carregamento ou o desempenho em jogos feitos com Unreal Engine.</string>
     <string name="sync_memory_operations">Sincronizar Operações de Memória</string>
@@ -446,8 +444,6 @@
     <string name="display">Tela</string>
     <string name="processing">Pós-Processamento</string>
 
-    <string name="frame_skipping">WIP: Pular quadros</string>
-    <string name="frame_skipping_description">Ative ou desative o pulo de quadros para melhorar o desempenho reduzindo o número de quadros renderizados. Este recurso ainda está em desenvolvimento e será habilitado em versões futuras.</string>
     <string name="renderer_accuracy">Nível de precisão</string>
     <string name="renderer_resolution">Resolução (Portátil/Modo TV)</string>
     <string name="renderer_vsync">Modo de VSync</string>

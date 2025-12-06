@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">샘플 쉐이딩 패스의 강도. 값이 높을수록 품질이 더 향상되지만 성능도 더 크게 저하됩니다.</string>
 
     <string name="veil_renderer">렌더러</string>
-    <string name="frame_interpolation">향상된 프레임 페이싱</string>
-    <string name="frame_interpolation_description">프레임 간 타이밍을 동기화하여 부드럽고 일관된 프레임 전달을 보장하며, 끊김과 불균일한 애니메이션을 줄입니다. 프레임 타이밍 불안정이나 게임 플레이 중 미세 끊김이 발생하는 게임에 이상적입니다.</string>
     <string name="renderer_early_release_fences">펜스 조기 해제</string>
     <string name="renderer_early_release_fences_description">DKCR:HD, Subnautica Below Zero, Ori 2 등의 게임에서 0 FPS 현상을 해결하지만, Unreal Engine 게임의 로딩이나 성능에 문제를 일으킬 수 있습니다.</string>
     <string name="sync_memory_operations">메모리 작업 동기화</string>
@@ -401,8 +399,6 @@
     <string name="display">디스플레이</string>
     <string name="processing">후처리</string>
 
-    <string name="frame_skipping">작업 중: 프레임 스킵</string>
-    <string name="frame_skipping_description">렌더링되는 프레임 수를 줄여 성능을 향상시키기 위해 프레임 스킵을 전환합니다. 이 기능은 현재 개발 중이며 향후 출시 버전에서 활성화될 예정입니다.</string>
     <string name="renderer_accuracy">정확도 수준</string>
     <string name="renderer_resolution">해상도 (휴대 모드/독 모드)</string>
     <string name="renderer_vsync">수직동기화 모드</string>

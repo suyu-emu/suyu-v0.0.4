@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">L\'intensità della passata di ombreggiatura campione. Valori più alti migliorano la qualità ma riducono maggiormente le prestazioni.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="frame_interpolation">Sincronizzazione avanzata fotogrammi</string>
-    <string name="frame_interpolation_description">Garantisce una consegna fluida e costante dei fotogrammi sincronizzandone i tempi, riducendo scatti e animazioni irregolari. Ideale per giochi che presentano instabilità nei tempi dei fotogrammi o micro-scatti durante il gameplay.</string>
     <string name="renderer_early_release_fences">Rilascia le barriere prima</string>
     <string name="renderer_early_release_fences_description">Risolve problemi di 0 FPS in giochi come DKCR:HD, Subnautica Below Zero e Ori 2, ma potrebbe compromettere caricamento o prestazioni in giochi Unreal Engine.</string>
     <string name="sync_memory_operations">Sincronizza operazioni di memoria</string>
@@ -447,8 +445,6 @@
     <string name="display">Schermo</string>
     <string name="processing">Post-elaborazione</string>
 
-    <string name="frame_skipping">WIP: Salto fotogrammi</string>
-    <string name="frame_skipping_description">Attiva o disattiva il salto dei fotogrammi per migliorare le prestazioni riducendo il numero di fotogrammi renderizzati. Questa funzionalità è ancora in sviluppo e verrà abilitata nelle versioni future.</string>
     <string name="renderer_accuracy">Livello di accuratezza</string>
     <string name="renderer_resolution">Risoluzione (Portatile/Docked)</string>
     <string name="renderer_vsync">Modalità VSync</string>

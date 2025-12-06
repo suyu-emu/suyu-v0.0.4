@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">Intenzita průchodu stínování vzorku. Vyšší hodnoty zlepšují kvalitu, ale také výrazněji snižují výkon.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="frame_interpolation">Vylepšené časování snímků</string>
-    <string name="frame_interpolation_description">Zajišťuje plynulé a konzistentní zobrazování snímků synchronizací jejich časování, čímž snižuje trhání a nerovnoměrné animace. Ideální pro hry, které trpí nestabilitou časování snímků nebo mikrotrháním během hraní.</string>
     <string name="renderer_early_release_fences">Uvolnit ploty brzy</string>
     <string name="renderer_early_release_fences_description">Pomáhá opravit 0 FPS v hrách jako DKCR:HD, Subnautica Below Zero a Ori 2, ale může narušit načítání nebo výkon v hrách na Unreal Engine.</string>
     <string name="sync_memory_operations">Synchronizace paměťových operací</string>
@@ -370,8 +368,6 @@
     <string name="display">Zobrazení</string>
     <string name="processing">Postprocesing</string>
 
-    <string name="frame_skipping">WIP: Přeskočení snímků</string>
-    <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="renderer_accuracy">Úroveň přesnosti</string>
     <string name="renderer_resolution">Rozlišení (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync režim</string>

@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">Intensiteten til prøveskyggepasseringen. Høyere verdier forbedrer kvaliteten mer, men reduserer også ytelsen i større grad.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="frame_interpolation">Avansert bildevindu-synkronisering</string>
-    <string name="frame_interpolation_description">Sikrer jevn og konsekvent bildelevering ved å synkronisere tiden mellom bilder, noe som reduserer hakking og ujevn animasjon. Ideelt for spill som opplever ustabil bildetid eller mikro-hakk under spilling.</string>
     <string name="renderer_early_release_fences">Frigjør gjerder tidlig</string>
     <string name="renderer_early_release_fences_description">Løser 0 FPS i spill som DKCR:HD, Subnautica Below Zero og Ori 2, men kan forårsake problemer med lasting eller ytelse i Unreal Engine-spill.</string>
     <string name="sync_memory_operations">Synkroniser minneoperasjoner</string>
@@ -382,8 +380,6 @@
     <string name="display">Skjerm</string>
     <string name="processing">Etterbehandling</string>
 
-    <string name="frame_skipping">WIP: Hoppe over bilder</string>
-    <string name="frame_skipping_description">Slå av/på frame skipping for å forbedre ytelsen ved å redusere antall renderte bilder. Denne funksjonen er fortsatt under utvikling og vil bli aktivert i fremtidige versjoner.</string>
     <string name="renderer_accuracy">Nøyaktighetsnivå</string>
     <string name="renderer_resolution">Oppløsning (håndholdt/dokket)</string>
     <string name="renderer_vsync">VSync-modus</string>

@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">採樣著色處理的強度。數值越高，品質改善越多，但效能降低也越明顯。</string>
 
     <string name="veil_renderer">渲染器</string>
-    <string name="frame_interpolation">增強幀同步</string>
-    <string name="frame_interpolation_description">通過同步幀間時間確保幀傳輸流暢一致，減少卡頓和不均勻動畫。適合存在幀時間不穩定或遊戲過程中出現些微卡頓的遊戲。</string>
     <string name="renderer_early_release_fences">提前釋放圍欄</string>
     <string name="renderer_early_release_fences_description">可修復《咚奇剛歸來HD》、《深海迷航：冰點之下》和《聖靈之光2》等遊戲中的0 FPS問題，但可能影響Unreal Engine遊戲的載入或效能。</string>
     <string name="sync_memory_operations">同步記憶體操作</string>
@@ -443,8 +441,6 @@
     <string name="display">顯示</string>
     <string name="processing">後處理</string>
 
-    <string name="frame_skipping">開發中：跳幀</string>
-    <string name="frame_skipping_description">啟用或停用跳幀以減少渲染幀數，提高效能。此功能仍在開發中，將在未來版本中啟用。</string>
     <string name="renderer_accuracy">準確度層級</string>
     <string name="renderer_resolution">解析度 (手提/底座)</string>
     <string name="renderer_vsync">垂直同步</string>

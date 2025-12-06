@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">Інтенсивність проходу затінення зразка. Вищі значення покращують якість, але й сильніше знижують продуктивність.</string>
 
     <string name="veil_renderer">Візуалізатор</string>
-    <string name="frame_interpolation">Покращена синхронізація кадрів</string>
-    <string name="frame_interpolation_description">Забезпечує плавну та стабільну подачу кадрів шляхом синхронізації їх часу, зменшуючи підвисання та нерівномірну анімацію. Ідеально для ігор з нестабільним часом кадрів або мікро-підвисаннями під час гри.</string>
     <string name="renderer_early_release_fences">Release fences early</string>
     <string name="renderer_early_release_fences_description">Це налаштування може бути необхідним для виправлення помилок 0FPS у деяких іграх (зокрема DKCR:HD, Subnautica та Ori 2). Водночас інші ігри, особливо створені на рушії Unreal Engine, можуть працювати некоректно або взагалі не запускатися.</string>
     <string name="sync_memory_operations">Синхронізація операцій з пам\'яттю</string>
@@ -468,8 +466,6 @@
     <string name="display">Дисплей</string>
     <string name="processing">Постобробка</string>
 
-    <string name="frame_skipping">В розробці: Пропуск кадрів</string>
-    <string name="frame_skipping_description">Увімкніть або вимкніть пропуск кадрів для покращення продуктивності за рахунок зменшення кількості візуалізованих кадрів. Ця функція ще розробляється та буде доступна у майбутніх версіях.</string>
     <string name="renderer_accuracy">Рівень точності</string>
     <string name="renderer_resolution">Роздільна здатність (Портативний/Док)</string>
     <string name="renderer_vsync">Режим верт. синхронізації</string>

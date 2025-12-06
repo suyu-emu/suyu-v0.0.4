@@ -105,8 +105,6 @@
     <string name="sample_shading_fraction_description">The intensity of the sample shading pass. Higher values improve quality more but also reduce performance to a greater extent.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="frame_interpolation">Enhanced Frame Pacing</string>
-    <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
     <string name="renderer_early_release_fences">Release Fences Early</string>
     <string name="renderer_early_release_fences_description">Helps fix 0 FPS in games like DKCR:HD, Subnautica Below Zero and Ori 2, but may break loading or performance in Unreal Engine games.</string>
     <string name="sync_memory_operations">Sync Memory Operations</string>
@@ -489,8 +487,6 @@
     <string name="display">Display</string>
     <string name="processing">Post-Processing</string>
 
-    <string name="frame_skipping">WIP: Frameskip</string>
-    <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames. This feature is still being worked on and will be enabled in future releases.</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>

@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">Intensitas proses pencahayaan sampel. Nilai lebih tinggi meningkatkan kualitas lebih baik tetapi juga mengurangi performa lebih besar.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="frame_interpolation">Penyelarasan Frame Tingkat Lanjut</string>
-    <string name="frame_interpolation_description">Memastikan pengiriman frame yang halus dan konsisten dengan menyinkronkan waktu antar frame, mengurangi stuttering dan animasi tidak rata. Ideal untuk game yang mengalami ketidakstabilan waktu frame atau micro-stutter selama gameplay.</string>
     <string name="renderer_early_release_fences">Lepas Pagar Lebih Awal</string>
     <string name="renderer_early_release_fences_description">Membantu memperbaiki 0 FPS di game seperti DKCR:HD, Subnautica Below Zero dan Ori 2, tapi mungkin mengganggu loading atau performa di game Unreal Engine.</string>
     <string name="sync_memory_operations">Sinkronisasi Operasi Memori</string>
@@ -437,8 +435,6 @@
     <string name="display">Tampilan</string>
     <string name="processing">Pascaproses</string>
 
-    <string name="frame_skipping">WIP: Loncatan Frame</string>
-    <string name="frame_skipping_description">Aktifkan atau nonaktifkan frame skipping untuk meningkatkan performa dengan mengurangi jumlah frame yang dirender. Fitur ini masih dalam pengembangan dan akan diaktifkan di rilis mendatang.</string>
     <string name="renderer_accuracy">Tingkatan Akurasi</string>
     <string name="renderer_resolution">Resolusi (Handheld/Docked)</string>
     <string name="renderer_vsync">Mode Sinkronisasi Vertikal</string>

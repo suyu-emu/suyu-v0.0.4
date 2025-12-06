@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">A mintavételezés árnyékolási lépés intenzitása. A magasabb értékek jobb minőséget eredményeznek, de nagyobb mértékben csökkentik a teljesítményt.</string>
 
     <string name="veil_renderer">Megjelenítő</string>
-    <string name="frame_interpolation">Továbbfejlesztett Képkocka-időzítés</string>
-    <string name="frame_interpolation_description">Biztosítja a képkockák sima és egyenletes kézbesítését azok időzítésének szinkronizálásával, csökkentve a megakadásokat és egyenetlen animációkat. Ideális azokhoz a játékokhoz, amelyek képkocka-időzítési instabilitást vagy mikro-reccsenést tapasztalnak játék közben.</string>
     <string name="renderer_early_release_fences">Korai kerítés-felszabadítás</string>
     <string name="renderer_early_release_fences_description">Segít javítani a 0 FPS-t olyan játékokban, mint a DKCR:HD, Subnautica Below Zero és az Ori 2, de ronthatja az Unreal Engine játékok betöltését vagy teljesítményét.</string>
     <string name="sync_memory_operations">Memória-műveletek szinkronizálása</string>
@@ -401,8 +399,6 @@
     <string name="display">Kijelző</string>
     <string name="processing">Utófeldolgozás</string>
 
-    <string name="frame_skipping">Folyamatban: Képkihagyás</string>
-    <string name="frame_skipping_description">Kapcsolja be a képkihagyást a teljesítmény javításához a renderelt képkockák számának csökkentésével. Ez a funkció még fejlesztés alatt áll, és a jövőbeli kiadásokban lesz elérhető.</string>
     <string name="renderer_accuracy">Pontosság szintje</string>
     <string name="renderer_resolution">Felbontás (Kézi/Dockolt)</string>
     <string name="renderer_vsync">VSync mód</string>
