@@ -27,7 +27,6 @@
 
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Aprimorado)</string>
     <string name="process_ram">Memória do processo: %1$d MB</string>
     <string name="shaders_prefix">Compilando</string>
     <string name="shaders_suffix">Shader(s)</string>
@@ -238,15 +237,12 @@
     <string name="get_started">Vamos começar</string>
     <string name="keys">Chaves (Keys)</string>
     <string name="keys_description">Selecione seu arquivo &lt;b>prod.keys&lt;/b> com o botão abaixo.</string>
-    <string name="select_keys">Selecione as Chaves (Keys)</string>
     <string name="firmware">Firmware</string>
     <string name="firmware_description">Selecione seu arquivo <b>firmware.zip</b> com o botão abaixo.</string>
-    <string name="select_firmware">Selecionar Firmware</string>
     <string name="games">Jogos</string>
     <string name="games_description">Selecione sua pasta de <b>Jogos</b> com o botão abaixo.</string>
     <string name="done">Pronto</string>
     <string name="done_description">Tudo certo.\nAproveite seus jogos!</string>
-    <string name="text_continue">Continuar</string>
     <string name="next">Próximo</string>
     <string name="back">Voltar</string>
     <string name="add_games">Adicionar Jogos</string>
@@ -286,9 +282,6 @@
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notificações</string>
     <string name="notifications_description">Conceda a permissão de notificação usando o botão abaixo.</string>
-    <string name="give_permission">Conceder permissão</string>
-    <string name="notification_warning">Ignorar a permissão de notificação\?</string>
-    <string name="notification_warning_description">O Eden não será capaz de notificá-lo sobre informações importantes.</string>
     <string name="permission_denied">Permissão negada</string>
     <string name="permission_denied_description">Como você negou esta permissão várias vezes, agora precisa ativá-la manualmente nas configurações do sistema.</string>
     <string name="about">Sobre</string>

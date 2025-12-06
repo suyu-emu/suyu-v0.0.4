@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Ukáže oznámení v případě chyby.</string>
     <string name="notification_permission_not_granted">Oznámení nejsou oprávněna!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Vylepšený)</string>
     <string name="process_ram">RAM procesu: %1$d MB</string>
     <string name="shaders_prefix">Sestavování</string>
     <string name="shaders_suffix">shaderů</string>
@@ -214,12 +213,9 @@
     <string name="welcome">Vítejte!</string>
     <string name="get_started">Začít</string>
     <string name="keys">Klíče</string>
-    <string name="select_keys">Vybrat klíče</string>
     <string name="firmware">Firmware</string>
-    <string name="select_firmware">Vybrat firmware</string>
     <string name="games">Hry</string>
     <string name="done">Hotovo</string>
-    <string name="text_continue">Pokračovat</string>
     <string name="next">Další</string>
     <string name="back">Zpět</string>
     <string name="add_games">Přidat hry</string>
@@ -240,9 +236,6 @@
     <string name="install_firmware_warning">Přeskočit přidání firmwaru?</string>
     <string name="install_firmware_warning_description">Mnoho her vyžaduje přístup k firmwaru pro správnou funkci.</string>
     <string name="notifications">Oznámení</string>
-    <string name="give_permission">Udělit oprávnění</string>
-    <string name="notification_warning">Přeskočit udělení oprávnění k oznámení?</string>
-    <string name="notification_warning_description">Eden vám nebude schopno oznámit důležité informace.</string>
     <string name="permission_denied">Oprávnění zamítnuto</string>
     <string name="permission_denied_description">Zamítnul jste toto oprávnění příliš mnohokrát, musíte manuálně udělit oprávnění v nastavení systému.</string>
     <string name="about">O aplikaci</string>

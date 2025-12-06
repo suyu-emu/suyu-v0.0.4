@@ -13,7 +13,6 @@
     <string name="value_too_high">Wert darf höchstens %1$d betragen</string>
     <string name="input_overlay_options">Eingabe-Overlay</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Erweitert)</string>
     <string name="process_ram">Prozess-RAM: %1$d MB</string>
     <string name="shaders_prefix">Erstelle</string>
     <string name="shaders_suffix">Shader</string>
@@ -224,14 +223,11 @@
     <string name="get_started">Erste Schritte</string>
     <string name="keys">Schlüssel</string>
     <string name="keys_description">Wähle deine &lt;b>prod.keys&lt;/b> Datei mit dem Button unten aus.</string>
-    <string name="select_keys">Schlüssel auswählen</string>
     <string name="firmware">Firmware</string>
-    <string name="select_firmware">Firmware auswählen</string>
     <string name="games">Spiele</string>
     <string name="games_description">Wähle mit dem Knopf unten den &lt;b>Spiele&lt;/b>-Ordner aus.</string>
     <string name="done">Fertig</string>
     <string name="done_description">Du bist start klar.\nViel Spaß mit deinen Spielen!</string>
-    <string name="text_continue">Fortsetzen</string>
     <string name="next">Weiter</string>
     <string name="back">Zurück</string>
     <string name="add_games">Spiele hinzufügen</string>
@@ -268,9 +264,6 @@
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Benachrichtigungen</string>
     <string name="notifications_description">Erteile mit dem Knopf unten die Berechtigung, Benachrichtigungen zu senden.</string>
-    <string name="give_permission">Berechtigung erteilen</string>
-    <string name="notification_warning">Erteilung der Benachrichtigungsberechtigung überspringen\?</string>
-    <string name="notification_warning_description">Eden wird dich nicht über wichtige Informationen benachrichtigen können.</string>
     <string name="permission_denied">Zugriff verweigert</string>
     <string name="permission_denied_description">Du hast diese Berechtigung zu oft verweigert und musst sie nun manuell in den Systemeinstellungen erteilen.</string>
     <string name="about">Über</string>

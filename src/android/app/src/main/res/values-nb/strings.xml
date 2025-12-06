@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Viser varsler når noe går galt.</string>
     <string name="notification_permission_not_granted">Varslingstillatelse ikke gitt!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Forbedret)</string>
     <string name="process_ram">Prosess-RAM: %1$d MB</string>
     <string name="shaders_prefix">Bygger</string>
     <string name="shaders_suffix">shader(e)</string>
@@ -216,13 +215,10 @@
     <string name="get_started">Kom i gang</string>
     <string name="keys">Nøkler</string>
     <string name="keys_description">Velg din &lt;b>prod.keys&lt;/b> fil ved å bruke knappen under.</string>
-    <string name="select_keys">Velg nøkler</string>
     <string name="firmware">Firmware</string>
-    <string name="select_firmware">Velg Firmware</string>
     <string name="games">Spill</string>
     <string name="games_description">Velg din &lt;b>Spill&lt;/b> mappe ved å bruke knappen under.</string>
     <string name="done">Ferdig</string>
-    <string name="text_continue">Fortsett</string>
     <string name="next">Neste</string>
     <string name="back">Tilbake</string>
     <string name="add_games">Legg til spill</string>
@@ -249,9 +245,6 @@
     <string name="install_firmware_warning_description">Mange spill krever tilgang til firmware for å fungere skikkelig.</string>
     <string name="notifications">Varsler</string>
     <string name="notifications_description">Gi varslingstillatelse med knappen nedenfor.</string>
-    <string name="give_permission">Gi tillatelse</string>
-    <string name="notification_warning">Hoppe over å gi tillatelse til varsling?</string>
-    <string name="notification_warning_description">Eden vil ikke kunne varsle deg om viktig informasjon.</string>
     <string name="permission_denied">Tillatelse avslått</string>
     <string name="permission_denied_description">Du har nektet denne tillatelsen for mange ganger, og nå må du gi den manuelt i systeminnstillingene.</string>
     <string name="about">Om</string>

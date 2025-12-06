@@ -27,7 +27,6 @@
 
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Ulepszony)</string>
     <string name="process_ram">Pamięć procesu: %1$d MB</string>
     <string name="shaders_prefix">Kompilacja</string>
     <string name="shaders_suffix">shaderów</string>
@@ -239,15 +238,12 @@
     <string name="get_started">Zaczynamy</string>
     <string name="keys">Klucze</string>
     <string name="keys_description">Wybierz swoje klucze &lt;b>prod.keys&lt;/b> za pomocą przycisku poniżej.</string>
-    <string name="select_keys">Wybierz klucze</string>
     <string name="firmware">Firmware</string>
     <string name="firmware_description">Wybierz swój plik <b>firmware.zip</b> przyciskiem poniżej.</string>
-    <string name="select_firmware">Wybierz Firmware</string>
     <string name="games">Gry</string>
     <string name="games_description">Wybierz katalog z grami &lt;b>Games&lt;/b> za pomocą przycisku poniżej.</string>
     <string name="done">Gotowe</string>
     <string name="done_description">Wszystko gotowe.\nMiłej gry!</string>
-    <string name="text_continue">Kontynuuj</string>
     <string name="next">Dalej</string>
     <string name="back">Wstecz</string>
     <string name="add_games">Dodaj gry</string>
@@ -287,9 +283,6 @@
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Powiadomienia</string>
     <string name="notifications_description">Nadaj uprawnienia dostępu do powiadomień. </string>
-    <string name="give_permission">Nadaj uprawnienia</string>
-    <string name="notification_warning">Pominąć nadanie uprawnień powiadomień?</string>
-    <string name="notification_warning_description">Eden nie będzie mógł powiadamiać Cię o ważnych informacjach.</string>
     <string name="permission_denied">Odmowa dostępu</string>
     <string name="permission_denied_description">Odmówiłeś dostępu do powiadomień zbyt wiele razy, teraz musisz przyznać je w ustawieniach systemowych Androida.</string>
     <string name="about">O aplikacji</string>

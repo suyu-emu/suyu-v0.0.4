@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">問題の発生時に通知を表示します。</string>
     <string name="notification_permission_not_granted">通知が許可されていません!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(強化)</string>
     <string name="process_ram">プロセスRAM: %1$d MB</string>
     <string name="shaders_prefix">シェーダー</string>
     <string name="shaders_suffix">を構築中</string>
@@ -216,13 +215,10 @@
     <string name="get_started">はじめる</string>
     <string name="keys">キー</string>
     <string name="keys_description">下のボタンから &lt;b>prod.keys&lt;/b> ファイルを選択してください。</string>
-    <string name="select_keys">キーを選択</string>
     <string name="firmware">ファームウェア</string>
-    <string name="select_firmware">ファームウェアを選択</string>
     <string name="games">ゲーム</string>
     <string name="games_description">下のボタンから&lt;b>ゲーム&lt;/b>のあるフォルダを選択してください。</string>
     <string name="done">完了</string>
-    <string name="text_continue">続行</string>
     <string name="next">次へ</string>
     <string name="back">戻る</string>
     <string name="add_games">ゲームを追加</string>
@@ -255,9 +251,6 @@
     <string name="install_firmware_warning_description">多くのゲームは正常に動作するためにファームウェアへのアクセスが必要です。</string>
     <string name="notifications">通知</string>
     <string name="notifications_description">下のボタンで通知を許可してください。</string>
-    <string name="give_permission">許可</string>
-    <string name="notification_warning">通知の許可をスキップしますか？</string>
-    <string name="notification_warning_description">Edenは重要なお知らせを通知できません。</string>
     <string name="permission_denied">権限が拒否されました</string>
     <string name="permission_denied_description">この権限を複数回拒否したため、設定から手動で許可する必要があります。</string>
     <string name="about">情報</string>

@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Приказује обавештења када нешто пође по злу.</string>
     <string name="notification_permission_not_granted">Дозвола за обавештавање није одобрена!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Побољшано)</string>
     <string name="shaders_prefix">Зграда</string>
     <string name="shaders_suffix">Схадер (с)</string>
     <string name="charging">(Пуњење)</string>
@@ -215,13 +214,10 @@
     <string name="get_started">Започните</string>
     <string name="keys">Тастери</string>
     <string name="keys_description">Изаберите свој и лт; &lt;b>prod.keys&lt;/b> датотека са дугметом испод.</string>
-    <string name="select_keys">Изаберите тастере</string>
     <string name="firmware">Фирмвер</string>
-    <string name="select_firmware">Изабери фирмвер</string>
     <string name="games">Игре</string>
     <string name="games_description">Изаберите свој и игре и ЛТ; Б> мапу са дугметом испод.</string>
     <string name="done">Доношен</string>
-    <string name="text_continue">Настављати</string>
     <string name="next">Следећи</string>
     <string name="back">Назад</string>
     <string name="add_games">Додајте игре</string>
@@ -252,9 +248,6 @@
     <string name="install_firmware_warning_description">Многе игре захтевају приступ фирмверу за правилно функционисање.</string>
     <string name="notifications">Обавештења</string>
     <string name="notifications_description">Одобрите дозволу за обавештење дугметом испод.</string>
-    <string name="give_permission">Дозвола за одобрење</string>
-    <string name="notification_warning">Прескочите давање дозволе за обавештавање?</string>
-    <string name="notification_warning_description">Еден је победио да вас може обавестити о важним информацијама.</string>
     <string name="permission_denied">Дозвола одбијена</string>
     <string name="permission_denied_description">Превише пута сте негирали ову дозволу и сада морате да га ручно одобри у системским подешавањима.</string>
     <string name="about">О томе</string>

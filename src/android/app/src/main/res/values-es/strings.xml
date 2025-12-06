@@ -27,7 +27,6 @@
 
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Mejorado)</string>
     <string name="process_ram">Proceso de RAM: %1$d MB</string>
     <string name="shaders_prefix">Compilando</string>
     <string name="shaders_suffix">Sombreador(es)</string>
@@ -238,15 +237,12 @@
     <string name="get_started">Empezar</string>
     <string name="keys">Claves</string>
     <string name="keys_description">Selecciona tu archivo <b>prod.keys</b> utilizando el botón de abajo.</string>
-    <string name="select_keys">Seleccionar las claves</string>
     <string name="firmware">Firmware</string>
     <string name="firmware_description">Seleccione su archivo <b> firmware.zip </b> con el botón de abajo.</string>
-    <string name="select_firmware">Seleccionar firmware</string>
     <string name="games">Juegos</string>
     <string name="games_description">Selecciona la carpeta <b>Juegos</b> utilizando el botón de abajo</string>
     <string name="done">Hecho</string>
     <string name="done_description">Ya está todo listo.\n¡Disfrute de tus juegos!</string>
-    <string name="text_continue">Continuar</string>
     <string name="next">Siguiente</string>
     <string name="back">Atrás</string>
     <string name="add_games">Añadir Juegos</string>
@@ -286,9 +282,6 @@
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notificaciones</string>
     <string name="notifications_description">Otorga el permiso de notificación con el botón de abajo.</string>
-    <string name="give_permission">Conceder permiso</string>
-    <string name="notification_warning">¿Omitir conceder el permiso de notificación?</string>
-    <string name="notification_warning_description">Eden no podrá notificarte información importante.</string>
     <string name="permission_denied">Permiso denegado</string>
     <string name="permission_denied_description">Se ha denegado este permiso demasiadas veces y ahora debes otorgarlo de forma manual en la configuración del sistema.</string>
     <string name="about">Acerca de</string>

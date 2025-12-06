@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">문제가 발생하면 알림을 표시합니다.</string>
     <string name="notification_permission_not_granted">알림 권한이 부여되지 않았습니다!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(향상됨)</string>
     <string name="process_ram">프로세스 RAM: %1$d MB</string>
     <string name="shaders_prefix">셰이더</string>
     <string name="shaders_suffix">빌드 중</string>
@@ -216,13 +215,10 @@
     <string name="get_started">시작하기</string>
     <string name="keys">키 설정</string>
     <string name="keys_description">아래 버튼으로 &lt;b>prod.keys&lt;/b> 파일을 선택합니다.</string>
-    <string name="select_keys">키 선택</string>
     <string name="firmware">펌웨어</string>
-    <string name="select_firmware">펌웨어 선택</string>
     <string name="games">게임</string>
     <string name="games_description">아래 버튼으로 &lt;b>게임&lt;/b> 폴더를 선택합니다.</string>
     <string name="done">완료</string>
-    <string name="text_continue">계속</string>
     <string name="next">다음</string>
     <string name="back">이전</string>
     <string name="add_games">게임 추가</string>
@@ -253,9 +249,6 @@
     <string name="install_firmware_warning_description">많은 게임이 제대로 작동하려면 펌웨어에 액세스해야 합니다.</string>
     <string name="notifications">알림</string>
     <string name="notifications_description">아래 버튼으로 알림 권한을 부여합니다.</string>
-    <string name="give_permission">알림 켜기</string>
-    <string name="notification_warning">알림을 끄겠습니까?</string>
-    <string name="notification_warning_description">Eden가 중요한 정보를 알려드리지 않습니다.</string>
     <string name="permission_denied">권한 거부됨</string>
     <string name="permission_denied_description">권한 허용을 너무 많이 거부하여 시스템 설정에서 수동으로 권한을 부여해야 합니다.</string>
     <string name="about">정보</string>

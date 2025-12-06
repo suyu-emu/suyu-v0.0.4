@@ -7,7 +7,6 @@
     <string name="notification_permission_not_granted">مجوز اعلان داده نشده!</string>
 
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(بهبودیافته)</string>
     <string name="process_ram">حافظه فرآیند: %1$d مگابایت</string>
     <string name="shaders_prefix">در حال ساخت</string>
     <string name="shaders_suffix">شیدر(ها)</string>
@@ -275,15 +274,12 @@
     <string name="get_started">شروع کنید</string>
     <string name="keys">کلیدها</string>
     <string name="keys_description">فایل &lt;b>prod.keys&lt;/b> خود را با دکمه زیر انتخاب کنید.</string>
-    <string name="select_keys">انتخاب کلیدها</string>
     <string name="firmware">فریمور</string>
     <string name="firmware_description">فایل <b>firmware.zip</b> خود را با دکمه زیر انتخاب کنید.\nاکنون ایدن به نسخه <b>19.0.1</b> یا پایین‌تر نیاز دارد.</string>
-    <string name="select_firmware">انتخاب فریمور</string>
     <string name="games">بازی‌ها</string>
     <string name="games_description">پوشه &lt;b>بازی‌ها&lt;/b> خود را با دکمه زیر انتخاب کنید.</string>
     <string name="done">انجام شد</string>
     <string name="done_description">همه چیز آماده است.\nاز بازی‌های خود لذت ببرید!</string>
-    <string name="text_continue">ادامه</string>
     <string name="next">بعدی</string>
     <string name="back">قبلی</string>
     <string name="add_games">افزودن بازی‌ها</string>
@@ -314,9 +310,6 @@
     <string name="install_firmware_warning_description">بسیاری از بازی‌ها برای اجرای صحیح به دسترسی به فریمور نیاز دارند.</string>
     <string name="notifications">اعلان‌ها</string>
     <string name="notifications_description">مجوز اعلان را با دکمه زیر اعطا کنید.</string>
-    <string name="give_permission">اجازه بدهید</string>
-    <string name="notification_warning">دادن مجوز اعلان را رد می‌کنید؟</string>
-    <string name="notification_warning_description">Eden نمی‌تواند شما را از اطلاعات مهم مطلع کند.</string>
     <string name="permission_denied">دسترسی داده نشد</string>
     <string name="permission_denied_description">شما بارها این دسترسی را رد کردید و اکنون باید آن را به صورت دستی در تنظیمات سیستم اعطا کنید.</string>
     <string name="about">درباره</string>

@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">ئاگادارکردنەوەکان پیشان دەدات کاتێک شتێک بە هەڵەدا دەچێت.</string>
     <string name="notification_permission_not_granted">مۆڵەتی ئاگادارکردنەوە نەدراوە!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(پێشکەوتوو)</string>
     <string name="process_ram">RAMی پرۆسە: %1$d MB</string>
     <string name="shaders_prefix">بیناکردنی</string>
     <string name="shaders_suffix">شەیدەر(ەکان)</string>
@@ -216,13 +215,10 @@
     <string name="get_started">دەست پێبکە</string>
     <string name="keys">کلیلەکان</string>
     <string name="keys_description">فایلی &lt;b>prod.keys&lt;/b> هەڵبژێرە بە دوگمەی خوارەوە.</string>
-    <string name="select_keys">کلیلەکان هەڵبژێرە</string>
     <string name="firmware">فریموێر</string>
-    <string name="select_firmware">هەڵبژاردنی فریموێر</string>
     <string name="games">یاریەکان</string>
     <string name="games_description">فۆڵدەری &lt;b>Games&lt;/b> هەڵبژێرە بە دوگمەی خوارەوە.</string>
     <string name="done">تەواو</string>
-    <string name="text_continue">بەردەوام بوون</string>
     <string name="next">دواتر</string>
     <string name="back">گەڕانەوە</string>
     <string name="add_games">زیادکردنی یاری</string>
@@ -249,9 +245,6 @@
     <string name="install_firmware_warning_description">زۆر یاری پێویستیان بە فریموێر هەیە بۆ ئەوەی باش کار بکەن.</string>
     <string name="notifications">ئاگادارکردنەوەکان</string>
     <string name="notifications_description">بە دوگمەی خوارەوە مۆڵەتی ئاگادارکردنەوەکە بدە.</string>
-    <string name="give_permission">مۆڵەت بدە</string>
-    <string name="notification_warning">پێدانی مۆڵەتی ئاگادارکردنەوە تێپەڕدەکەیت؟</string>
-    <string name="notification_warning_description">یوزو ناتوانێت لە زانیاری گرنگ ئاگادارت بکاتەوە.</string>
     <string name="permission_denied">مۆڵەت پێدان ڕەتکرایەوە</string>
     <string name="permission_denied_description">زۆر جار ئەم مۆڵەتەت ڕەتکردۆتەوە و ئێستا دەبێت بە دەستی ڕێگەپێدان بکەیت لە ڕێکخستنەکانی سیستەمدا.</string>
     <string name="about">دەربارە</string>

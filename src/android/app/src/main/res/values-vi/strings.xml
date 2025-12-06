@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Hiển thị thông báo khi có sự cố xảy ra</string>
     <string name="notification_permission_not_granted">Ứng dụng không được cấp quyền thông báo!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Nâng cao)</string>
     <string name="process_ram">RAM tiến trình: %1$d MB</string>
     <string name="shaders_prefix">Đang xây dựng</string>
     <string name="shaders_suffix">shader</string>
@@ -216,13 +215,10 @@
     <string name="get_started">Bắt đầu</string>
     <string name="keys">Chìa khóa</string>
     <string name="keys_description">Chọn file &lt;b>prod.keys&lt;/b> của bạn bằng nút bên dưới.</string>
-    <string name="select_keys">Chọn Chìa khóa</string>
     <string name="firmware">Firmware</string>
-    <string name="select_firmware">Chọn Firmware</string>
     <string name="games">Trò chơi</string>
     <string name="games_description">Chọn thư mục &lt;b>Games&lt;/b> của bạn bằng nút bên dưới.</string>
     <string name="done">Hoàn thành</string>
-    <string name="text_continue">Tiếp tục</string>
     <string name="next">Tiếp theo</string>
     <string name="back">Trở lại</string>
     <string name="add_games">Thêm Trò chơi</string>
@@ -249,9 +245,6 @@
     <string name="install_firmware_warning_description">Nhiều trò chơi cần truy cập firmware để hoạt động bình thường.</string>
     <string name="notifications">Thông báo</string>
     <string name="notifications_description">Ấn vào nút bên dưới để cấp quyền ứng dụng gửi thông báo</string>
-    <string name="give_permission">Cấp quyền</string>
-    <string name="notification_warning">Bỏ qua cấp quyền thông báo?</string>
-    <string name="notification_warning_description">Eden sẽ không thể gửi những thông báo quan trọng đến bạn.</string>
     <string name="permission_denied">Đã từ chối cấp quyền</string>
     <string name="permission_denied_description">Bạn từ chối cấp quyền này quá nhiều lần và giờ bạn phải cấp quyền thủ công trong cài đặt máy.</string>
     <string name="about">Thông tin</string>

@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Értesítések megjelenítése, ha valami rosszul sül el.</string>
     <string name="notification_permission_not_granted">Nincs engedély az értesítés megjelenítéséhez!</string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Továbbfejlesztett)</string>
     <string name="process_ram">Processz RAM: %1$d MB</string>
     <string name="shaders_prefix">Shader(ek)</string>
     <string name="shaders_suffix">fordítása</string>
@@ -216,13 +215,10 @@
     <string name="get_started">Vágjunk bele</string>
     <string name="keys">Kulcsok</string>
     <string name="keys_description">Válaszd ki a &lt;b>prod.keys&lt;/b> fájlodat az alábbi gombbal.</string>
-    <string name="select_keys">Kulcsok kiválasztása</string>
     <string name="firmware">Firmware</string>
-    <string name="select_firmware">Firmware kiválasztása</string>
     <string name="games">Játékok</string>
     <string name="games_description">Válaszd ki a &lt;b>Játékok&lt;/b> mappát az alábbi gombbal.</string>
     <string name="done">Kész</string>
-    <string name="text_continue">Folytatás</string>
     <string name="next">Következő</string>
     <string name="back">Vissza</string>
     <string name="add_games">Játékok hozzáadása</string>
@@ -252,9 +248,6 @@
     <string name="install_firmware_warning_description">Sok játék megfelelő működéséhez firmware szükséges.</string>
     <string name="notifications">Értesítések</string>
     <string name="notifications_description">Értesítési engedélyek megadása az alábbi gombbal.</string>
-    <string name="give_permission">Engedély megadása</string>
-    <string name="notification_warning">Kihagyod az értesítési engedély megadását?</string>
-    <string name="notification_warning_description">Eden nem fog tudni értesíteni a fontos információkról</string>
     <string name="permission_denied">Engedély megtagadva</string>
     <string name="permission_denied_description">Túl gyakran utasítottad el a hozzáférést, így manuálisan kell jóváhagynod a rendszer beállításokban.</string>
     <string name="about">Névjegy</string>

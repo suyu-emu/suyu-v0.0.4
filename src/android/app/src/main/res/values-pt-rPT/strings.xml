@@ -5,7 +5,6 @@
     <string name="notice_notification_channel_description">Mostra notificações quendo algo corre mal.</string>
     <string name="notification_permission_not_granted">Permissões de notificação não permitidas </string>
     <!-- Stats Overlay settings -->
-    <string name="enhanced_fps_suffix">(Melhorado)</string>
     <string name="process_ram">RAM do processo: %1$d MB</string>
     <string name="shaders_prefix">A compilar</string>
     <string name="shaders_suffix">shader(s)</string>
@@ -216,13 +215,10 @@
     <string name="get_started">Começa</string>
     <string name="keys">Chaves</string>
     <string name="keys_description">Seleciona o teu ficheiro &lt;b>prod.keys&lt;/b> com o botão abaixo.</string>
-    <string name="select_keys">Seleciona as Chaves</string>
     <string name="firmware">Firmware</string>
-    <string name="select_firmware">Selecionar Firmware</string>
     <string name="games">Jogos</string>
     <string name="games_description">Seleciona a tua pasta &lt;b>Games&lt;/b> com o botão abaixo.</string>
     <string name="done">Feito</string>
-    <string name="text_continue">Continuar</string>
     <string name="next">Próximo</string>
     <string name="back">Voltar</string>
     <string name="add_games">Adiciona Jogos</string>
@@ -253,9 +249,6 @@
     <string name="install_firmware_warning_description">Muitos jogos requerem acesso ao firmware para funcionar corretamente.</string>
     <string name="notifications">Notificações</string>
     <string name="notifications_description">Conceda a permissão de notificação com o botão abaixo.</string>
-    <string name="give_permission">Conceda permissão</string>
-    <string name="notification_warning">Saltar a concessão da permissão de notificação?</string>
-    <string name="notification_warning_description">Eden não conseguirá te notificar de informações importantes. </string>
     <string name="permission_denied">Permissão negada</string>
     <string name="permission_denied_description">Você negou essa permissão muitas vezes e agora precisa concedê-la manualmente nas configurações do sistema.</string>
     <string name="about">Sobre</string>
