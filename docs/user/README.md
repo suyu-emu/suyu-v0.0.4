@@ -14,3 +14,4 @@ This handbook is primarily aimed at the end-user - baking useful knowledge for e
 - **[Orphaned Profiles](Orphaned.md)**
 - **[Command Line](CommandLine.md)**
 - **[Native Application Development](Native.md)**
+- **[Adding Boolean Settings Toggles](AddingBooleanToggles.md)**
