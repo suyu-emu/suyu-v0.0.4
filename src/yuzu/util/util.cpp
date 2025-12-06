@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <array>
 #include <cmath>
 #include <QPainter>
 
@@ -12,6 +11,7 @@
 #include "common/logging/log.h"
 #include "core/frontend/applets/profile_select.h"
 #include "core/hle/service/acc/profile_manager.h"
+#include "frontend_common/data_manager.h"
 #include "qt_common/qt_common.h"
 #include "yuzu/util/util.h"
 
@@ -29,16 +29,7 @@ QFont GetMonospaceFont() {
 }
 
 QString ReadableByteSize(qulonglong size) {
-    static constexpr std::array units{"B", "KiB", "MiB", "GiB", "TiB", "PiB"};
-    if (size == 0) {
-        return QStringLiteral("0");
-    }
-
-    const int digit_groups = (std::min)(static_cast<int>(std::log10(size) / std::log10(1024)),
-                                      static_cast<int>(units.size()));
-    return QStringLiteral("%L1 %2")
-        .arg(size / std::pow(1024, digit_groups), 0, 'f', 1)
-        .arg(QString::fromUtf8(units[digit_groups]));
+    return QString::fromStdString(FrontendCommon::DataManager::ReadableBytesSize(size));
 }
 
 QPixmap CreateCirclePixmapFromColor(const QColor& color) {

@@ -16,8 +16,7 @@ const std::filesystem::path GetDataDir(DataDir dir, const std::string &user_id =
 const std::string GetDataDirString(DataDir dir, const std::string &user_id = "");
 
 u64 ClearDir(DataDir dir, const std::string &user_id = "");
-
-const std::string ReadableBytesSize(u64 size);
+std::string ReadableBytesSize(u64 size) noexcept;
 
 u64 DataDirSize(DataDir dir);
 
