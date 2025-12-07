@@ -314,8 +314,8 @@ private:
     void SetupSigInterrupts();
     static void HandleSigInterrupt(int);
     void OnSigInterruptNotifierActivated();
-    void SetGamemodeEnabled(bool state);
 #endif
+    void SetGamemodeEnabled(bool state);
 
     Service::AM::FrontendAppletParameters ApplicationAppletParameters();
     Service::AM::FrontendAppletParameters LibraryAppletParameters(u64 program_id,

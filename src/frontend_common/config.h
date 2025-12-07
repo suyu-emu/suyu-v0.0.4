@@ -84,9 +84,6 @@ protected:
     void ReadCoreValues();
     void ReadDataStorageValues();
     void ReadDebuggingValues();
-#ifdef __unix__
-    void ReadLinuxValues();
-#endif
     void ReadServiceValues();
     void ReadDisabledAddOnValues();
     void ReadMiscellaneousValues();
@@ -119,9 +116,6 @@ protected:
     void SaveCoreValues();
     void SaveDataStorageValues();
     void SaveDebuggingValues();
-#ifdef __unix__
-    void SaveLinuxValues();
-#endif
     void SaveNetworkValues();
     void SaveDisabledAddOnValues();
     void SaveMiscellaneousValues();

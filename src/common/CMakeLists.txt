@@ -181,12 +181,6 @@ if(ANDROID)
            android/applets/software_keyboard.h)
 endif()
 
-if(LINUX AND NOT APPLE)
-  target_sources(common PRIVATE linux/gamemode.cpp linux/gamemode.h)
-
-  target_link_libraries(common PRIVATE gamemode::headers)
-endif()
-
 if(ARCHITECTURE_x86_64)
   target_sources(
     common

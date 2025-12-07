@@ -37,7 +37,6 @@
 #include "yuzu/configuration/configure_graphics_advanced.h"
 #include "yuzu/configuration/configure_graphics_extensions.h"
 #include "yuzu/configuration/configure_input_per_game.h"
-#include "yuzu/configuration/configure_linux_tab.h"
 #include "yuzu/configuration/configure_per_game.h"
 #include "yuzu/configuration/configure_per_game_addons.h"
 #include "yuzu/configuration/configure_system.h"
@@ -68,7 +67,6 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
         system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
         [](Settings::AspectRatio, Settings::ResolutionSetup) {}, tab_group, *builder, this);
     input_tab = std::make_unique<ConfigureInputPerGame>(system_, game_config.get(), this);
-    linux_tab = std::make_unique<ConfigureLinuxTab>(system_, tab_group, *builder, this);
     system_tab = std::make_unique<ConfigureSystem>(system_, tab_group, *builder, this);
     network_tab = std::make_unique<ConfigureNetwork>(system_, this);
 
@@ -83,13 +81,6 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     ui->tabWidget->addTab(audio_tab.get(), tr("Audio"));
     ui->tabWidget->addTab(input_tab.get(), tr("Input Profiles"));
     ui->tabWidget->addTab(network_tab.get(), tr("Network"));
-
-    // Only show Linux tab on Unix
-    linux_tab->setVisible(false);
-#ifdef __unix__
-    linux_tab->setVisible(true);
-    ui->tabWidget->addTab(linux_tab.get(), tr("Linux"));
-#endif
 
     setFocusPolicy(Qt::ClickFocus);
     setWindowTitle(tr("Properties"));

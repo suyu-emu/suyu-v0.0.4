@@ -433,10 +433,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Whether or not to check for updates upon startup."));
 
     // Linux
-    INSERT(Settings, enable_gamemode, tr("Enable Gamemode"), QString());
+    INSERT(UISettings, enable_gamemode, tr("Enable Gamemode"), QString());
 #ifdef __unix__
-    INSERT(Settings, gui_force_x11, tr("Force X11 as Graphics Backend"), QString());
-    INSERT(Settings, gui_hide_backend_warning, QString(), QString());
+    INSERT(UISettings, gui_force_x11, tr("Force X11 as Graphics Backend"), QString());
+    INSERT(UISettings, gui_hide_backend_warning, QString(), QString());
 #endif
 
     // Ui Debugging

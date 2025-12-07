@@ -122,7 +122,9 @@ int main(int argc, char* argv[]) {
     // the user folder in the Qt Frontend, we need to cd into that working directory
     const auto bin_path = Common::FS::GetBundleDirectory() / "..";
     chdir(Common::FS::PathToUTF8String(bin_path).c_str());
-#elif defined(__unix__) && !defined(__ANDROID__)
+#endif
+
+#ifdef __unix__
     // Set the DISPLAY variable in order to open web browsers
     // TODO (lat9nq): Find a better solution for AppImages to start external applications
     if (QString::fromLocal8Bit(qgetenv("DISPLAY")).isEmpty()) {

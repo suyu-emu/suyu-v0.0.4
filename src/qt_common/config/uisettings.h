@@ -142,6 +142,19 @@ struct Values {
 
     Setting<bool> check_for_updates{linkage, true, "check_for_updates", Category::UiGeneral};
 
+    // Linux/MinGW may support (requires libdl support)
+    SwitchableSetting<bool> enable_gamemode{linkage,
+#ifndef _MSC_VER
+        true,
+#else
+        false,
+#endif
+        "enable_gamemode", Category::UiGeneral};
+#ifdef __unix__
+    SwitchableSetting<bool> gui_force_x11{linkage, false, "gui_force_x11", Category::UiGeneral};
+    Setting<bool> gui_hide_backend_warning{linkage, false, "gui_hide_backend_warning", Category::UiGeneral};
+#endif
+
     // Discord RPC
     Setting<bool> enable_discord_presence{linkage, false, "enable_discord_presence", Category::Ui};
 

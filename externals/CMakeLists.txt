@@ -267,9 +267,11 @@ if (ANDROID AND ARCHITECTURE_arm64)
     AddJsonPackage(libadrenotools)
 endif()
 
-if (UNIX AND NOT APPLE AND NOT TARGET gamemode::headers)
+AddJsonPackage(gamemode)
+
+if (gamemode_ADDED)
     add_library(gamemode INTERFACE)
-    target_include_directories(gamemode INTERFACE gamemode)
+    target_include_directories(gamemode INTERFACE ${gamemode_SOURCE_DIR}/lib)
     add_library(gamemode::headers ALIAS gamemode)
 endif()
 

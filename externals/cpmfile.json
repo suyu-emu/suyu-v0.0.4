@@ -218,5 +218,12 @@
         "artifact": "MoltenVK-macOS.tar",
         "hash": "5695b36ca5775819a71791557fcb40a4a5ee4495be6b8442e0b666d0c436bec02aae68cc6210183f7a5c986bdbec0e117aecfad5396e496e9c2fd5c89133a347",
         "bundled": true
+    },
+    "gamemode": {
+        "repo": "FeralInteractive/gamemode",
+        "sha": "ce6fe122f3",
+        "hash": "e87ec14ed3e826d578ebf095c41580069dda603792ba91efa84f45f4571a28f4d91889675055fd6f042d7dc25b0b9443daf70963ae463e38b11bcba95f4c65a9",
+        "version": "1.7",
+        "find_args": "MODULE"
     }
 }
