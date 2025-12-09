@@ -100,9 +100,14 @@ bool Value::IsEmpty() const noexcept {
 }
 
 bool Value::IsImmediate() const noexcept {
-    if (IsIdentity())
-        return inner.inst->GetArg(0).IsImmediate();
-    return type != Type::Opaque;
+    IR::Type current_type = type;
+    IR::Inst const* current_inst = inner.inst;
+    while (current_type == Type::Opaque && current_inst->GetOpcode() == Opcode::Identity) {
+        Value const& arg = current_inst->GetArg(0);
+        current_type = arg.type;
+        current_inst = arg.inner.inst;
+    }
+    return current_type != Type::Opaque;
 }
 
 Type Value::GetType() const noexcept {
