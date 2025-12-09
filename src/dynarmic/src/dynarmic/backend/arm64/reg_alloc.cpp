@@ -84,7 +84,7 @@ IR::AccType Argument::GetImmediateAccType() const {
     return value.GetAccType();
 }
 
-HostLoc::Kind Argument::CurrentLocationKind() const {
+HostLoc::Kind Argument::CurrentLocationKind(RegAlloc& reg_alloc) const {
     return reg_alloc.ValueLocation(value.GetInst())->kind;
 }
 
@@ -131,7 +131,7 @@ void HostLocInfo::UpdateUses() {
 }
 
 RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(IR::Inst* inst) {
-    ArgumentInfo ret = {Argument{*this}, Argument{*this}, Argument{*this}, Argument{*this}};
+    ArgumentInfo ret = {Argument{}, Argument{}, Argument{}, Argument{}};
     for (size_t i = 0; i < inst->NumArgs(); i++) {
         const IR::Value arg = inst->GetArg(i);
         ret[i].value = arg;

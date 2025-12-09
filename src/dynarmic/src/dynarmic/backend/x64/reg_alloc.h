@@ -81,7 +81,7 @@ public:
         return 1 << max_bit_width;
     }
     void AddValue(IR::Inst* inst) noexcept;
-    void EmitVerboseDebuggingOutput(BlockOfCode* code, size_t host_loc_index) const noexcept;
+    void EmitVerboseDebuggingOutput(BlockOfCode& code, size_t host_loc_index) const noexcept;
 private:
 //non trivial
     boost::container::small_vector<IR::Inst*, 3> values; //24
@@ -129,16 +129,15 @@ public:
     IR::AccType GetImmediateAccType() const noexcept;
 
     /// Is this value currently in a GPR?
-    bool IsInGpr() const noexcept;
-    bool IsInXmm() const noexcept;
-    bool IsInMemory() const noexcept;
+    bool IsInGpr(RegAlloc& reg_alloc) const noexcept;
+    bool IsInXmm(RegAlloc& reg_alloc) const noexcept;
+    bool IsInMemory(RegAlloc& reg_alloc) const noexcept;
 private:
     friend class RegAlloc;
-    explicit Argument(RegAlloc& reg_alloc) : reg_alloc(reg_alloc) {}
+    explicit Argument() {}
 
 //data
     IR::Value value; //8
-    RegAlloc& reg_alloc; //8
     bool allocated = false; //1
 };
 
@@ -146,55 +145,57 @@ class RegAlloc final {
 public:
     using ArgumentInfo = std::array<Argument, IR::max_arg_count>;
     RegAlloc() noexcept = default;
-    RegAlloc(BlockOfCode* code, boost::container::static_vector<HostLoc, 28> gpr_order, boost::container::static_vector<HostLoc, 28> xmm_order) noexcept;
+    RegAlloc(boost::container::static_vector<HostLoc, 28> gpr_order, boost::container::static_vector<HostLoc, 28> xmm_order) noexcept;
 
     ArgumentInfo GetArgumentInfo(const IR::Inst* inst) noexcept;
     void RegisterPseudoOperation(const IR::Inst* inst) noexcept;
     inline bool IsValueLive(const IR::Inst* inst) const noexcept {
         return !!ValueLocation(inst);
     }
-    inline Xbyak::Reg64 UseGpr(Argument& arg) noexcept {
+    inline Xbyak::Reg64 UseGpr(BlockOfCode& code, Argument& arg) noexcept {
         ASSERT(!arg.allocated);
         arg.allocated = true;
-        return HostLocToReg64(UseImpl(arg.value, gpr_order));
+        return HostLocToReg64(UseImpl(code, arg.value, gpr_order));
     }
-    inline Xbyak::Xmm UseXmm(Argument& arg) noexcept {
+    inline Xbyak::Xmm UseXmm(BlockOfCode& code, Argument& arg) noexcept {
         ASSERT(!arg.allocated);
         arg.allocated = true;
-        return HostLocToXmm(UseImpl(arg.value, xmm_order));
+        return HostLocToXmm(UseImpl(code, arg.value, xmm_order));
     }
-    inline OpArg UseOpArg(Argument& arg) noexcept {
-        return UseGpr(arg);
+    inline OpArg UseOpArg(BlockOfCode& code, Argument& arg) noexcept {
+        return UseGpr(code, arg);
     }
-    inline void Use(Argument& arg, const HostLoc host_loc) noexcept {
+    inline void Use(BlockOfCode& code, Argument& arg, const HostLoc host_loc) noexcept {
         ASSERT(!arg.allocated);
         arg.allocated = true;
-        UseImpl(arg.value, {host_loc});
+        UseImpl(code, arg.value, {host_loc});
     }
 
-    Xbyak::Reg64 UseScratchGpr(Argument& arg) noexcept;
-    Xbyak::Xmm UseScratchXmm(Argument& arg) noexcept;
-    void UseScratch(Argument& arg, HostLoc host_loc) noexcept;
+    Xbyak::Reg64 UseScratchGpr(BlockOfCode& code, Argument& arg) noexcept;
+    Xbyak::Xmm UseScratchXmm(BlockOfCode& code, Argument& arg) noexcept;
+    void UseScratch(BlockOfCode& code, Argument& arg, HostLoc host_loc) noexcept;
 
-    void DefineValue(IR::Inst* inst, const Xbyak::Reg& reg) noexcept;
-    void DefineValue(IR::Inst* inst, Argument& arg) noexcept;
+    void DefineValue(BlockOfCode& code, IR::Inst* inst, const Xbyak::Reg& reg) noexcept;
+    void DefineValue(BlockOfCode& code, IR::Inst* inst, Argument& arg) noexcept;
 
     void Release(const Xbyak::Reg& reg) noexcept;
 
-    inline Xbyak::Reg64 ScratchGpr() noexcept {
-        return HostLocToReg64(ScratchImpl(gpr_order));
+    inline Xbyak::Reg64 ScratchGpr(BlockOfCode& code) noexcept {
+        return HostLocToReg64(ScratchImpl(code, gpr_order));
     }
-    inline Xbyak::Reg64 ScratchGpr(const HostLoc desired_location) noexcept {
-        return HostLocToReg64(ScratchImpl({desired_location}));
+    inline Xbyak::Reg64 ScratchGpr(BlockOfCode& code, const HostLoc desired_location) noexcept {
+        return HostLocToReg64(ScratchImpl(code, {desired_location}));
     }
-    inline Xbyak::Xmm ScratchXmm() noexcept {
-        return HostLocToXmm(ScratchImpl(xmm_order));
+    inline Xbyak::Xmm ScratchXmm(BlockOfCode& code) noexcept {
+        return HostLocToXmm(ScratchImpl(code, xmm_order));
     }
-    inline Xbyak::Xmm ScratchXmm(HostLoc desired_location) noexcept {
-        return HostLocToXmm(ScratchImpl({desired_location}));
+    inline Xbyak::Xmm ScratchXmm(BlockOfCode& code, HostLoc desired_location) noexcept {
+        return HostLocToXmm(ScratchImpl(code, {desired_location}));
     }
 
-    void HostCall(IR::Inst* result_def = nullptr,
+    void HostCall(
+        BlockOfCode& code,
+        IR::Inst* result_def = nullptr,
         const std::optional<Argument::copyable_reference> arg0 = {},
         const std::optional<Argument::copyable_reference> arg1 = {},
         const std::optional<Argument::copyable_reference> arg2 = {},
@@ -202,67 +203,56 @@ public:
     ) noexcept;
 
     // TODO: Values in host flags
-    void AllocStackSpace(const size_t stack_space) noexcept;
-    void ReleaseStackSpace(const size_t stack_space) noexcept;
+    void AllocStackSpace(BlockOfCode& code, const size_t stack_space) noexcept;
+    void ReleaseStackSpace(BlockOfCode& code, const size_t stack_space) noexcept;
 
     inline void EndOfAllocScope() noexcept {
-        for (auto& iter : hostloc_info) {
+        for (auto& iter : hostloc_info)
             iter.ReleaseAll();
-        }
     }
     inline void AssertNoMoreUses() noexcept {
         ASSERT(std::all_of(hostloc_info.begin(), hostloc_info.end(), [](const auto& i) noexcept { return i.IsEmpty(); }));
     }
-    inline void EmitVerboseDebuggingOutput() noexcept {
-        for (size_t i = 0; i < hostloc_info.size(); i++) {
+    inline void EmitVerboseDebuggingOutput(BlockOfCode& code) noexcept {
+        for (size_t i = 0; i < hostloc_info.size(); i++)
             hostloc_info[i].EmitVerboseDebuggingOutput(code, i);
-        }
     }
 private:
     friend struct Argument;
 
     HostLoc SelectARegister(const boost::container::static_vector<HostLoc, 28>& desired_locations) const noexcept;
-    inline std::optional<HostLoc> ValueLocation(const IR::Inst* value) const noexcept {
-        for (size_t i = 0; i < hostloc_info.size(); i++) {
-            if (hostloc_info[i].ContainsValue(value)) {
-                return HostLoc(i);
-            }
-        }
-        return std::nullopt;
-    }
+    std::optional<HostLoc> ValueLocation(const IR::Inst* value) const noexcept;
+    HostLoc UseImpl(BlockOfCode& code, IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
+    HostLoc UseScratchImpl(BlockOfCode& code, IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
+    HostLoc ScratchImpl(BlockOfCode& code, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
+    void DefineValueImpl(BlockOfCode& code, IR::Inst* def_inst, HostLoc host_loc) noexcept;
+    void DefineValueImpl(BlockOfCode& code, IR::Inst* def_inst, const IR::Value& use_inst) noexcept;
 
-    HostLoc UseImpl(IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
-    HostLoc UseScratchImpl(IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
-    HostLoc ScratchImpl(const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
-    void DefineValueImpl(IR::Inst* def_inst, HostLoc host_loc) noexcept;
-    void DefineValueImpl(IR::Inst* def_inst, const IR::Value& use_inst) noexcept;
+    HostLoc LoadImmediate(BlockOfCode& code, IR::Value imm, HostLoc host_loc) noexcept;
+    void Move(BlockOfCode& code, HostLoc to, HostLoc from) noexcept;
+    void CopyToScratch(BlockOfCode& code, size_t bit_width, HostLoc to, HostLoc from) noexcept;
+    void Exchange(BlockOfCode& code, HostLoc a, HostLoc b) noexcept;
+    void MoveOutOfTheWay(BlockOfCode& code, HostLoc reg) noexcept;
 
-    HostLoc LoadImmediate(IR::Value imm, HostLoc host_loc) noexcept;
-    void Move(HostLoc to, HostLoc from) noexcept;
-    void CopyToScratch(size_t bit_width, HostLoc to, HostLoc from) noexcept;
-    void Exchange(HostLoc a, HostLoc b) noexcept;
-    void MoveOutOfTheWay(HostLoc reg) noexcept;
-
-    void SpillRegister(HostLoc loc) noexcept;
+    void SpillRegister(BlockOfCode& code, HostLoc loc) noexcept;
     HostLoc FindFreeSpill(bool is_xmm) const noexcept;
 
     inline HostLocInfo& LocInfo(const HostLoc loc) noexcept {
         ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
-        return hostloc_info[static_cast<size_t>(loc)];
+        return hostloc_info[size_t(loc)];
     }
     inline const HostLocInfo& LocInfo(const HostLoc loc) const noexcept {
         ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
-        return hostloc_info[static_cast<size_t>(loc)];
+        return hostloc_info[size_t(loc)];
     }
 
-    void EmitMove(const size_t bit_width, const HostLoc to, const HostLoc from) noexcept;
-    void EmitExchange(const HostLoc a, const HostLoc b) noexcept;
+    void EmitMove(BlockOfCode& code, const size_t bit_width, const HostLoc to, const HostLoc from) noexcept;
+    void EmitExchange(BlockOfCode& code, const HostLoc a, const HostLoc b) noexcept;
 
 //data
     alignas(64) boost::container::static_vector<HostLoc, 28> gpr_order;
     alignas(64) boost::container::static_vector<HostLoc, 28> xmm_order;
     alignas(64) std::array<HostLocInfo, NonSpillHostLocCount + SpillCount> hostloc_info;
-    BlockOfCode* code = nullptr;
     size_t reserved_stack_space = 0;
 };
 // Ensure a cache line (or less) is used, this is primordial

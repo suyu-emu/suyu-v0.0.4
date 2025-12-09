@@ -152,7 +152,14 @@ const HostLocList any_xmm = {
     HostLoc::XMM15,
 };
 
-Xbyak::Reg64 HostLocToReg64(HostLoc loc);
-Xbyak::Xmm HostLocToXmm(HostLoc loc);
+inline Xbyak::Reg64 HostLocToReg64(HostLoc loc) noexcept {
+    ASSERT(HostLocIsGPR(loc));
+    return Xbyak::Reg64(int(loc));
+}
+
+inline Xbyak::Xmm HostLocToXmm(HostLoc loc) noexcept {
+    ASSERT(HostLocIsXMM(loc));
+    return Xbyak::Xmm(int(loc) - int(HostLoc::XMM0));
+}
 
 }  // namespace Dynarmic::Backend::X64

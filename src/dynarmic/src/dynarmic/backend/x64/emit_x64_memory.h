@@ -75,8 +75,8 @@ Xbyak::RegExp EmitVAddrLookup(BlockOfCode& code, EmitContext& ctx, size_t bitsiz
 
 template<>
 [[maybe_unused]] Xbyak::RegExp EmitVAddrLookup<A32EmitContext>(BlockOfCode& code, A32EmitContext& ctx, size_t bitsize, Xbyak::Label& abort, Xbyak::Reg64 vaddr) {
-    const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr();
-    const Xbyak::Reg32 tmp = ctx.conf.absolute_offset_page_table ? page.cvt32() : ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr(code);
+    const Xbyak::Reg32 tmp = ctx.conf.absolute_offset_page_table ? page.cvt32() : ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     EmitDetectMisalignedVAddr(code, ctx, bitsize, abort, vaddr, tmp.cvt64());
 
@@ -105,8 +105,8 @@ template<>
     const size_t valid_page_index_bits = ctx.conf.page_table_address_space_bits - page_bits;
     const size_t unused_top_bits = 64 - ctx.conf.page_table_address_space_bits;
 
-    const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr();
-    const Xbyak::Reg64 tmp = ctx.conf.absolute_offset_page_table ? page : ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr(code);
+    const Xbyak::Reg64 tmp = ctx.conf.absolute_offset_page_table ? page : ctx.reg_alloc.ScratchGpr(code);
 
     EmitDetectMisalignedVAddr(code, ctx, bitsize, abort, vaddr, tmp);
 
@@ -116,7 +116,7 @@ template<>
     } else if (ctx.conf.silently_mirror_page_table) {
         if (valid_page_index_bits >= 32) {
             if (code.HasHostFeature(HostFeature::BMI2)) {
-                const Xbyak::Reg64 bit_count = ctx.reg_alloc.ScratchGpr();
+                const Xbyak::Reg64 bit_count = ctx.reg_alloc.ScratchGpr(code);
                 code.mov(bit_count, unused_top_bits);
                 code.bzhi(tmp, vaddr, bit_count);
                 code.shr(tmp, int(page_bits));
@@ -168,7 +168,7 @@ template<>
         return r13 + vaddr;
     } else if (ctx.conf.silently_mirror_fastmem) {
         if (!tmp) {
-            tmp = ctx.reg_alloc.ScratchGpr();
+            tmp = ctx.reg_alloc.ScratchGpr(code);
         }
         if (unused_top_bits < 32) {
             code.mov(*tmp, vaddr);
@@ -189,7 +189,7 @@ template<>
         } else {
             // TODO: Consider having TEST as above but coalesce 64-bit constant in register allocator
             if (!tmp) {
-                tmp = ctx.reg_alloc.ScratchGpr();
+                tmp = ctx.reg_alloc.ScratchGpr(code);
             }
             code.mov(*tmp, vaddr);
             code.shr(*tmp, int(ctx.conf.fastmem_address_space_bits));

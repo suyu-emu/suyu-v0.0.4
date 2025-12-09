@@ -175,7 +175,6 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         backend/x64/exclusive_monitor.cpp
         backend/x64/exclusive_monitor_friend.h
         backend/x64/host_feature.h
-        backend/x64/hostloc.cpp
         backend/x64/hostloc.h
         backend/x64/jitstate_info.h
         backend/x64/oparg.h

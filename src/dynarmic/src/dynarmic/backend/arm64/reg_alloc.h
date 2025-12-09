@@ -64,18 +64,18 @@ public:
     IR::AccType GetImmediateAccType() const;
 
     // Only valid if not immediate
-    HostLoc::Kind CurrentLocationKind() const;
-    bool IsInGpr() const { return !IsImmediate() && CurrentLocationKind() == HostLoc::Kind::Gpr; }
-    bool IsInFpr() const { return !IsImmediate() && CurrentLocationKind() == HostLoc::Kind::Fpr; }
+    HostLoc::Kind CurrentLocationKind(RegAlloc& reg_alloc) const;
+    bool IsInGpr(RegAlloc& reg_alloc) const {
+        return !IsImmediate() && CurrentLocationKind(reg_alloc) == HostLoc::Kind::Gpr;
+    }
+    bool IsInFpr(RegAlloc& reg_alloc) const {
+        return !IsImmediate() && CurrentLocationKind(reg_alloc) == HostLoc::Kind::Fpr;
+    }
 
 private:
     friend class RegAlloc;
-    explicit Argument(RegAlloc& reg_alloc)
-            : reg_alloc{reg_alloc} {}
-
-    bool allocated = false;
-    RegAlloc& reg_alloc;
     IR::Value value;
+    bool allocated = false;
 };
 
 struct FlagsTag final {

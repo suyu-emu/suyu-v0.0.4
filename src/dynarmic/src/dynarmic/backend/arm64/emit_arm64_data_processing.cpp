@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -60,7 +63,7 @@ void EmitIR<IR::Opcode::Pack2x32To1x64>(oaknut::CodeGenerator& code, EmitContext
 template<>
 void EmitIR<IR::Opcode::Pack2x64To1x128>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    bool const args_in_gpr[] = { args[0].IsInGpr(), args[1].IsInGpr() };
+    bool const args_in_gpr[] = { args[0].IsInGpr(ctx.reg_alloc), args[1].IsInGpr(ctx.reg_alloc) };
     if (args_in_gpr[0] && args_in_gpr[1]) {
         auto Xlo = ctx.reg_alloc.ReadX(args[0]);
         auto Xhi = ctx.reg_alloc.ReadX(args[1]);

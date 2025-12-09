@@ -77,9 +77,9 @@ void EmitX64::EmitPushRSB(IR::Block&, IR::Inst* inst) {
     ASSERT(inst->GetArg(0).IsImmediate());
     u64 imm64 = inst->GetArg(0).GetU64();
 
-    Xbyak::Reg64 code_ptr_reg = reg_alloc.ScratchGpr({HostLoc::RCX});
-    Xbyak::Reg64 loc_desc_reg = reg_alloc.ScratchGpr();
-    Xbyak::Reg32 index_reg = reg_alloc.ScratchGpr().cvt32();
+    Xbyak::Reg64 code_ptr_reg = reg_alloc.ScratchGpr(code, {HostLoc::RCX});
+    Xbyak::Reg64 loc_desc_reg = reg_alloc.ScratchGpr(code);
+    Xbyak::Reg32 index_reg = reg_alloc.ScratchGpr(code).cvt32();
     u64 code_ptr = unique_hash_to_code_ptr.find(imm64) != unique_hash_to_code_ptr.end()
                     ? u64(unique_hash_to_code_ptr[imm64])
                     : u64(code->GetReturnFromRunCodeAddress());

@@ -91,7 +91,7 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
         return gprs;
     }();
 
-    new (&this->reg_alloc) RegAlloc{&code, gpr_order, any_xmm};
+    new (&this->reg_alloc) RegAlloc{gpr_order, any_xmm};
     A64EmitContext ctx{conf, reg_alloc, block};
 
     // Start emitting.
@@ -159,7 +159,7 @@ finish_this_inst:
     }
     code.int3();
 
-    const size_t size = static_cast<size_t>(code.getCurr() - entrypoint);
+    const size_t size = size_t(code.getCurr() - entrypoint);
 
     const A64::LocationDescriptor descriptor{block.Location()};
     const A64::LocationDescriptor end_location{block.EndLocation()};
@@ -266,25 +266,25 @@ void A64EmitX64::EmitPushRSB(EmitContext& ctx, IR::Inst* inst) {
 
 void A64EmitX64::EmitA64SetCheckBit(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const Xbyak::Reg8 to_store = ctx.reg_alloc.UseGpr(args[0]).cvt8();
+    const Xbyak::Reg8 to_store = ctx.reg_alloc.UseGpr(code, args[0]).cvt8();
     code.mov(code.byte[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, check_bit)], to_store);
 }
 
 void A64EmitX64::EmitA64GetCFlag(A64EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
     code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A64JitState, cpsr_nzcv)]);
     code.shr(result, NZCV::x64_c_flag_bit);
     code.and_(result, 1);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetNZCVRaw(A64EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg32 nzcv_raw = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 nzcv_raw = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     code.mov(nzcv_raw, dword[code.ABI_JIT_PTR + offsetof(A64JitState, cpsr_nzcv)]);
 
     if (code.HasHostFeature(HostFeature::FastBMI2)) {
-        const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr(code).cvt32();
         code.mov(tmp, NZCV::x64_mask);
         code.pext(nzcv_raw, nzcv_raw, tmp);
         code.shl(nzcv_raw, 28);
@@ -294,16 +294,16 @@ void A64EmitX64::EmitA64GetNZCVRaw(A64EmitContext& ctx, IR::Inst* inst) {
         code.and_(nzcv_raw, NZCV::arm_mask);
     }
 
-    ctx.reg_alloc.DefineValue(inst, nzcv_raw);
+    ctx.reg_alloc.DefineValue(code, inst, nzcv_raw);
 }
 
 void A64EmitX64::EmitA64SetNZCVRaw(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const Xbyak::Reg32 nzcv_raw = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+    const Xbyak::Reg32 nzcv_raw = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
 
     code.shr(nzcv_raw, 28);
     if (code.HasHostFeature(HostFeature::FastBMI2)) {
-        const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr(code).cvt32();
         code.mov(tmp, NZCV::x64_mask);
         code.pdep(nzcv_raw, nzcv_raw, tmp);
     } else {
@@ -315,63 +315,63 @@ void A64EmitX64::EmitA64SetNZCVRaw(A64EmitContext& ctx, IR::Inst* inst) {
 
 void A64EmitX64::EmitA64SetNZCV(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const Xbyak::Reg32 to_store = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+    const Xbyak::Reg32 to_store = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
     code.mov(dword[code.ABI_JIT_PTR + offsetof(A64JitState, cpsr_nzcv)], to_store);
 }
 
 void A64EmitX64::EmitA64GetW(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg)]);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetX(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Reg reg = inst->GetArg(0).GetA64RegRef();
-    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr(code);
 
     code.mov(result, qword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg)]);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetS(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
-    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
     code.movd(result, addr);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetD(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
-    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
     code.movq(result, addr);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetQ(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
-    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
     code.movaps(result, addr);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetSP(A64EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr(code);
     code.mov(result, qword[code.ABI_JIT_PTR + offsetof(A64JitState, sp)]);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetFPCR(A64EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
     code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A64JitState, fpcr)]);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 static u32 GetFPSRImpl(A64JitState* jit_state) {
@@ -379,7 +379,7 @@ static u32 GetFPSRImpl(A64JitState* jit_state) {
 }
 
 void A64EmitX64::EmitA64GetFPSR(A64EmitContext& ctx, IR::Inst* inst) {
-    ctx.reg_alloc.HostCall(inst);
+    ctx.reg_alloc.HostCall(code, inst);
     code.mov(code.ABI_PARAM1, code.ABI_JIT_PTR);
     code.stmxcsr(code.dword[code.ABI_JIT_PTR + offsetof(A64JitState, guest_MXCSR)]);
     code.CallFunction(GetFPSRImpl);
@@ -393,7 +393,7 @@ void A64EmitX64::EmitA64SetW(A64EmitContext& ctx, IR::Inst* inst) {
         code.mov(addr, args[1].GetImmediateS32());
     } else {
         // TODO: zext tracking, xmm variant
-        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseScratchGpr(args[1]);
+        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseScratchGpr(code, args[1]);
         code.mov(to_store.cvt32(), to_store.cvt32());
         code.mov(addr, to_store);
     }
@@ -405,11 +405,11 @@ void A64EmitX64::EmitA64SetX(A64EmitContext& ctx, IR::Inst* inst) {
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, reg) + sizeof(u64) * static_cast<size_t>(reg)];
     if (args[1].FitsInImmediateS32()) {
         code.mov(addr, args[1].GetImmediateS32());
-    } else if (args[1].IsInXmm()) {
-        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
+    } else if (args[1].IsInXmm(ctx.reg_alloc)) {
+        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[1]);
         code.movq(addr, to_store);
     } else {
-        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseGpr(args[1]);
+        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseGpr(code, args[1]);
         code.mov(addr, to_store);
     }
 }
@@ -419,8 +419,8 @@ void A64EmitX64::EmitA64SetS(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
-    const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[1]);
+    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
     // TODO: Optimize
     code.pxor(tmp, tmp);
     code.movss(tmp, to_store);
@@ -432,7 +432,7 @@ void A64EmitX64::EmitA64SetD(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
-    const Xbyak::Xmm to_store = ctx.reg_alloc.UseScratchXmm(args[1]);
+    const Xbyak::Xmm to_store = ctx.reg_alloc.UseScratchXmm(code, args[1]);
     code.movq(to_store, to_store);  // TODO: Remove when able
     code.movaps(addr, to_store);
 }
@@ -442,7 +442,7 @@ void A64EmitX64::EmitA64SetQ(A64EmitContext& ctx, IR::Inst* inst) {
     const A64::Vec vec = inst->GetArg(0).GetA64VecRef();
     const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
-    const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[1]);
     code.movaps(addr, to_store);
 }
 
@@ -451,11 +451,11 @@ void A64EmitX64::EmitA64SetSP(A64EmitContext& ctx, IR::Inst* inst) {
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, sp)];
     if (args[0].FitsInImmediateS32()) {
         code.mov(addr, args[0].GetImmediateS32());
-    } else if (args[0].IsInXmm()) {
-        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[0]);
+    } else if (args[0].IsInXmm(ctx.reg_alloc)) {
+        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[0]);
         code.movq(addr, to_store);
     } else {
-        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseGpr(args[0]);
+        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseGpr(code, args[0]);
         code.mov(addr, to_store);
     }
 }
@@ -466,7 +466,7 @@ static void SetFPCRImpl(A64JitState* jit_state, u32 value) {
 
 void A64EmitX64::EmitA64SetFPCR(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ctx.reg_alloc.HostCall(nullptr, {}, args[0]);
+    ctx.reg_alloc.HostCall(code, nullptr, {}, args[0]);
     code.mov(code.ABI_PARAM1, code.ABI_JIT_PTR);
     code.CallFunction(SetFPCRImpl);
     code.ldmxcsr(code.dword[code.ABI_JIT_PTR + offsetof(A64JitState, guest_MXCSR)]);
@@ -478,7 +478,7 @@ static void SetFPSRImpl(A64JitState* jit_state, u32 value) {
 
 void A64EmitX64::EmitA64SetFPSR(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ctx.reg_alloc.HostCall(nullptr, {}, args[0]);
+    ctx.reg_alloc.HostCall(code, nullptr, {}, args[0]);
     code.mov(code.ABI_PARAM1, code.ABI_JIT_PTR);
     code.CallFunction(SetFPSRImpl);
     code.ldmxcsr(code.dword[code.ABI_JIT_PTR + offsetof(A64JitState, guest_MXCSR)]);
@@ -489,17 +489,17 @@ void A64EmitX64::EmitA64SetPC(A64EmitContext& ctx, IR::Inst* inst) {
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)];
     if (args[0].FitsInImmediateS32()) {
         code.mov(addr, args[0].GetImmediateS32());
-    } else if (args[0].IsInXmm()) {
-        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[0]);
+    } else if (args[0].IsInXmm(ctx.reg_alloc)) {
+        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[0]);
         code.movq(addr, to_store);
     } else {
-        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseGpr(args[0]);
+        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseGpr(code, args[0]);
         code.mov(addr, to_store);
     }
 }
 
 void A64EmitX64::EmitA64CallSupervisor(A64EmitContext& ctx, IR::Inst* inst) {
-    ctx.reg_alloc.HostCall(nullptr);
+    ctx.reg_alloc.HostCall(code, nullptr);
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(args[0].IsImmediate());
     const u32 imm = args[0].GetImmediateU32();
@@ -511,7 +511,7 @@ void A64EmitX64::EmitA64CallSupervisor(A64EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A64EmitX64::EmitA64ExceptionRaised(A64EmitContext& ctx, IR::Inst* inst) {
-    ctx.reg_alloc.HostCall(nullptr);
+    ctx.reg_alloc.HostCall(code, nullptr);
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(args[0].IsImmediate() && args[1].IsImmediate());
     const u64 pc = args[0].GetImmediateU64();
@@ -524,13 +524,13 @@ void A64EmitX64::EmitA64ExceptionRaised(A64EmitContext& ctx, IR::Inst* inst) {
 
 void A64EmitX64::EmitA64DataCacheOperationRaised(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ctx.reg_alloc.HostCall(nullptr, {}, args[1], args[2]);
+    ctx.reg_alloc.HostCall(code, nullptr, {}, args[1], args[2]);
     Devirtualize<&A64::UserCallbacks::DataCacheOperationRaised>(conf.callbacks).EmitCall(code);
 }
 
 void A64EmitX64::EmitA64InstructionCacheOperationRaised(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ctx.reg_alloc.HostCall(nullptr, {}, args[0], args[1]);
+    ctx.reg_alloc.HostCall(code, nullptr, {}, args[0], args[1]);
     Devirtualize<&A64::UserCallbacks::InstructionCacheOperationRaised>(conf.callbacks).EmitCall(code);
 }
 
@@ -548,18 +548,18 @@ void A64EmitX64::EmitA64InstructionSynchronizationBarrier(A64EmitContext& ctx, I
         return;
     }
 
-    ctx.reg_alloc.HostCall(nullptr);
+    ctx.reg_alloc.HostCall(code, nullptr);
     Devirtualize<&A64::UserCallbacks::InstructionSynchronizationBarrierRaised>(conf.callbacks).EmitCall(code);
 }
 
 void A64EmitX64::EmitA64GetCNTFRQ(A64EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
     code.mov(result, conf.cntfrq_el0);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetCNTPCT(A64EmitContext& ctx, IR::Inst* inst) {
-    ctx.reg_alloc.HostCall(inst);
+    ctx.reg_alloc.HostCall(code, inst);
     if (!conf.wall_clock_cntpct) {
         code.UpdateTicks();
     }
@@ -567,43 +567,43 @@ void A64EmitX64::EmitA64GetCNTPCT(A64EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A64EmitX64::EmitA64GetCTR(A64EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
     code.mov(result, conf.ctr_el0);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetDCZID(A64EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
     code.mov(result, conf.dczid_el0);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetTPIDR(A64EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr(code);
     if (conf.tpidr_el0) {
         code.mov(result, u64(conf.tpidr_el0));
         code.mov(result, qword[result]);
     } else {
         code.xor_(result.cvt32(), result.cvt32());
     }
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64GetTPIDRRO(A64EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr(code);
     if (conf.tpidrro_el0) {
         code.mov(result, u64(conf.tpidrro_el0));
         code.mov(result, qword[result]);
     } else {
         code.xor_(result.cvt32(), result.cvt32());
     }
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A64EmitX64::EmitA64SetTPIDR(A64EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const Xbyak::Reg64 value = ctx.reg_alloc.UseGpr(args[0]);
-    const Xbyak::Reg64 addr = ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 value = ctx.reg_alloc.UseGpr(code, args[0]);
+    const Xbyak::Reg64 addr = ctx.reg_alloc.ScratchGpr(code);
     if (conf.tpidr_el0) {
         code.mov(addr, u64(conf.tpidr_el0));
         code.mov(qword[addr], value);

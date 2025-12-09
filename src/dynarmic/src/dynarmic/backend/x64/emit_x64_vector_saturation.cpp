@@ -26,9 +26,9 @@ namespace {
 void EmitVectorSaturatedNative(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, void (Xbyak::CodeGenerator::*saturated_fn)(const Xbyak::Mmx& mmx, const Xbyak::Operand&), void (Xbyak::CodeGenerator::*unsaturated_fn)(const Xbyak::Mmx& mmx, const Xbyak::Operand&), void (Xbyak::CodeGenerator::*sub_fn)(const Xbyak::Mmx& mmx, const Xbyak::Operand&)) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm addend = ctx.reg_alloc.UseXmm(args[1]);
-    const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr().cvt8();
+    const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm addend = ctx.reg_alloc.UseXmm(code, args[1]);
+    const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr(code).cvt8();
 
     code.movaps(xmm0, result);
 
@@ -39,7 +39,7 @@ void EmitVectorSaturatedNative(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
     if (code.HasHostFeature(HostFeature::SSE41)) {
         code.ptest(xmm0, xmm0);
     } else {
-        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
         code.pxor(tmp, tmp);
         code.pcmpeqw(xmm0, tmp);
         code.pmovmskb(overflow.cvt32(), xmm0);
@@ -49,7 +49,7 @@ void EmitVectorSaturatedNative(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
     code.setnz(overflow);
     code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
 
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 enum class Op {
@@ -65,10 +65,10 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512DQ)) {
-        const Xbyak::Xmm operand1 = ctx.reg_alloc.UseXmm(args[0]);
-        const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(args[1]);
-        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
-        const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr().cvt8();
+        const Xbyak::Xmm operand1 = ctx.reg_alloc.UseXmm(code, args[0]);
+        const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(code, args[1]);
+        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
+        const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr(code).cvt8();
 
         code.movaps(xmm0, operand1);
 
@@ -91,15 +91,15 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
         code.setnz(overflow);
         code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
 
-        ctx.reg_alloc.DefineValue(inst, result);
+        ctx.reg_alloc.DefineValue(code, inst, result);
         return;
     }
 
-    const Xbyak::Xmm operand1 = code.HasHostFeature(HostFeature::AVX) ? ctx.reg_alloc.UseXmm(args[0]) : ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(args[1]);
-    const Xbyak::Xmm result = code.HasHostFeature(HostFeature::AVX) ? ctx.reg_alloc.ScratchXmm() : operand1;
-    const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr().cvt8();
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm operand1 = code.HasHostFeature(HostFeature::AVX) ? ctx.reg_alloc.UseXmm(code, args[0]) : ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(code, args[1]);
+    const Xbyak::Xmm result = code.HasHostFeature(HostFeature::AVX) ? ctx.reg_alloc.ScratchXmm(code) : operand1;
+    const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr(code).cvt8();
+    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
 
     if (code.HasHostFeature(HostFeature::AVX)) {
         if constexpr (op == Op::Add) {
@@ -150,7 +150,7 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
     if (code.HasHostFeature(HostFeature::SSE41)) {
         FCODE(blendvp)(result, tmp);
 
-        ctx.reg_alloc.DefineValue(inst, result);
+        ctx.reg_alloc.DefineValue(code, inst, result);
     } else {
         code.psrad(xmm0, 31);
         if constexpr (esize == 64) {
@@ -161,7 +161,7 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
         code.pandn(xmm0, result);
         code.por(tmp, xmm0);
 
-        ctx.reg_alloc.DefineValue(inst, tmp);
+        ctx.reg_alloc.DefineValue(code, inst, tmp);
     }
 }
 
@@ -172,10 +172,10 @@ void EmitVectorUnsignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512DQ)) {
-        const Xbyak::Xmm operand1 = ctx.reg_alloc.UseXmm(args[0]);
-        const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(args[1]);
-        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
-        const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr().cvt8();
+        const Xbyak::Xmm operand1 = ctx.reg_alloc.UseXmm(code, args[0]);
+        const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(code, args[1]);
+        const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
+        const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr(code).cvt8();
 
         if constexpr (op == Op::Add) {
             ICODE(vpadd)(result, operand1, operand2);
@@ -191,15 +191,15 @@ void EmitVectorUnsignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
         code.setnz(overflow);
         code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
 
-        ctx.reg_alloc.DefineValue(inst, result);
+        ctx.reg_alloc.DefineValue(code, inst, result);
         return;
     }
 
-    const Xbyak::Xmm operand1 = code.HasHostFeature(HostFeature::AVX) ? ctx.reg_alloc.UseXmm(args[0]) : ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(args[1]);
-    const Xbyak::Xmm result = code.HasHostFeature(HostFeature::AVX) ? ctx.reg_alloc.ScratchXmm() : operand1;
-    const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr().cvt8();
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm operand1 = code.HasHostFeature(HostFeature::AVX) ? ctx.reg_alloc.UseXmm(code, args[0]) : ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(code, args[1]);
+    const Xbyak::Xmm result = code.HasHostFeature(HostFeature::AVX) ? ctx.reg_alloc.ScratchXmm(code) : operand1;
+    const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr(code).cvt8();
+    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
 
     if constexpr (op == Op::Add) {
         if (code.HasHostFeature(HostFeature::AVX)) {
@@ -252,10 +252,10 @@ void EmitVectorUnsignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
 
     if constexpr (op == Op::Add) {
         code.por(result, tmp);
-        ctx.reg_alloc.DefineValue(inst, result);
+        ctx.reg_alloc.DefineValue(code, inst, result);
     } else {
         code.pandn(tmp, result);
-        ctx.reg_alloc.DefineValue(inst, tmp);
+        ctx.reg_alloc.DefineValue(code, inst, tmp);
     }
 }
 

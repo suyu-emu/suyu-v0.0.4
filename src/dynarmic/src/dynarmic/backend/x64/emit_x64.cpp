@@ -68,7 +68,7 @@ void EmitX64::EmitVoid(EmitContext&, IR::Inst*) {
 void EmitX64::EmitIdentity(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     if (!args[0].IsImmediate()) {
-        ctx.reg_alloc.DefineValue(inst, args[0]);
+        ctx.reg_alloc.DefineValue(code, inst, args[0]);
     }
 }
 
@@ -78,7 +78,7 @@ void EmitX64::EmitBreakpoint(EmitContext&, IR::Inst*) {
 
 void EmitX64::EmitCallHostFunction(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ctx.reg_alloc.HostCall(nullptr, args[1], args[2], args[3]);
+    ctx.reg_alloc.HostCall(code, nullptr, args[1], args[2], args[3]);
     code.mov(rax, args[0].GetImmediateU64());
     code.call(rax);
 }
@@ -120,7 +120,7 @@ void EmitX64::EmitVerboseDebuggingOutput(RegAlloc& reg_alloc) {
     code.lea(rax, ptr[rsp + sizeof(RegisterData) + offsetof(StackLayout, spill)]);
     code.mov(qword[rsp + offsetof(RegisterData, spill)], rax);
 
-    reg_alloc.EmitVerboseDebuggingOutput();
+    reg_alloc.EmitVerboseDebuggingOutput(code);
 
     for (int i = 0; i < 16; i++) {
         if (rsp.getIdx() == i) {
@@ -140,9 +140,9 @@ void EmitX64::EmitPushRSB(EmitContext& ctx, IR::Inst* inst) {
     ASSERT(args[0].IsImmediate());
     const u64 unique_hash_of_target = args[0].GetImmediateU64();
 
-    ctx.reg_alloc.ScratchGpr(HostLoc::RCX);
-    const Xbyak::Reg64 loc_desc_reg = ctx.reg_alloc.ScratchGpr();
-    const Xbyak::Reg64 index_reg = ctx.reg_alloc.ScratchGpr();
+    ctx.reg_alloc.ScratchGpr(code, HostLoc::RCX);
+    const Xbyak::Reg64 loc_desc_reg = ctx.reg_alloc.ScratchGpr(code);
+    const Xbyak::Reg64 index_reg = ctx.reg_alloc.ScratchGpr(code);
 
     PushRSBHelper(loc_desc_reg, index_reg, IR::LocationDescriptor{unique_hash_of_target});
 }
@@ -190,12 +190,12 @@ void EmitX64::EmitGetNZFromOp(EmitContext& ctx, IR::Inst* inst) {
         }
     }();
 
-    const Xbyak::Reg64 nz = ctx.reg_alloc.ScratchGpr(HostLoc::RAX);
-    const Xbyak::Reg value = ctx.reg_alloc.UseGpr(args[0]).changeBit(bitsize);
+    const Xbyak::Reg64 nz = ctx.reg_alloc.ScratchGpr(code, HostLoc::RAX);
+    const Xbyak::Reg value = ctx.reg_alloc.UseGpr(code, args[0]).changeBit(bitsize);
     code.test(value, value);
     code.lahf();
     code.movzx(eax, ah);
-    ctx.reg_alloc.DefineValue(inst, nz);
+    ctx.reg_alloc.DefineValue(code, inst, nz);
 }
 
 void EmitX64::EmitGetNZCVFromOp(EmitContext& ctx, IR::Inst* inst) {
@@ -221,27 +221,27 @@ void EmitX64::EmitGetNZCVFromOp(EmitContext& ctx, IR::Inst* inst) {
         }
     }();
 
-    const Xbyak::Reg64 nzcv = ctx.reg_alloc.ScratchGpr(HostLoc::RAX);
-    const Xbyak::Reg value = ctx.reg_alloc.UseGpr(args[0]).changeBit(bitsize);
+    const Xbyak::Reg64 nzcv = ctx.reg_alloc.ScratchGpr(code, HostLoc::RAX);
+    const Xbyak::Reg value = ctx.reg_alloc.UseGpr(code, args[0]).changeBit(bitsize);
     code.test(value, value);
     code.lahf();
     code.xor_(al, al);
-    ctx.reg_alloc.DefineValue(inst, nzcv);
+    ctx.reg_alloc.DefineValue(code, inst, nzcv);
 }
 
 void EmitX64::EmitGetCFlagFromNZCV(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (args[0].IsImmediate()) {
-        const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
         const u32 value = (args[0].GetImmediateU32() >> 8) & 1;
         code.mov(result, value);
-        ctx.reg_alloc.DefineValue(inst, result);
+        ctx.reg_alloc.DefineValue(code, inst, result);
     } else {
-        const Xbyak::Reg32 result = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+        const Xbyak::Reg32 result = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
         code.shr(result, 8);
         code.and_(result, 1);
-        ctx.reg_alloc.DefineValue(inst, result);
+        ctx.reg_alloc.DefineValue(code, inst, result);
     }
 }
 
@@ -249,30 +249,30 @@ void EmitX64::EmitNZCVFromPackedFlags(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (args[0].IsImmediate()) {
-        const Xbyak::Reg32 nzcv = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 nzcv = ctx.reg_alloc.ScratchGpr(code).cvt32();
         u32 value = 0;
         value |= mcl::bit::get_bit<31>(args[0].GetImmediateU32()) ? (1 << 15) : 0;
         value |= mcl::bit::get_bit<30>(args[0].GetImmediateU32()) ? (1 << 14) : 0;
         value |= mcl::bit::get_bit<29>(args[0].GetImmediateU32()) ? (1 << 8) : 0;
         value |= mcl::bit::get_bit<28>(args[0].GetImmediateU32()) ? (1 << 0) : 0;
         code.mov(nzcv, value);
-        ctx.reg_alloc.DefineValue(inst, nzcv);
+        ctx.reg_alloc.DefineValue(code, inst, nzcv);
     } else if (code.HasHostFeature(HostFeature::FastBMI2)) {
-        const Xbyak::Reg32 nzcv = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 nzcv = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
         code.shr(nzcv, 28);
         code.mov(tmp, NZCV::x64_mask);
         code.pdep(nzcv, nzcv, tmp);
 
-        ctx.reg_alloc.DefineValue(inst, nzcv);
+        ctx.reg_alloc.DefineValue(code, inst, nzcv);
     } else {
-        const Xbyak::Reg32 nzcv = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+        const Xbyak::Reg32 nzcv = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
 
         code.shr(nzcv, 28);
         code.imul(nzcv, nzcv, NZCV::to_x64_multiplier);
         code.and_(nzcv, NZCV::x64_mask);
-        ctx.reg_alloc.DefineValue(inst, nzcv);
+        ctx.reg_alloc.DefineValue(code, inst, nzcv);
     }
 }
 

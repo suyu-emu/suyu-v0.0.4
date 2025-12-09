@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -19,16 +22,16 @@ namespace CRC32 = Common::Crypto::CRC32;
 static void EmitCRC32Castagnoli(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, const int data_size) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     if (code.HasHostFeature(HostFeature::SSE42)) {
-        const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg value = ctx.reg_alloc.UseGpr(args[1]).changeBit(data_size);
+        const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg value = ctx.reg_alloc.UseGpr(code, args[1]).changeBit(data_size);
         if (data_size != 64) {
             code.crc32(crc, value);
         } else {
             code.crc32(crc.cvt64(), value);
         }
-        ctx.reg_alloc.DefineValue(inst, crc);
+        ctx.reg_alloc.DefineValue(code, inst, crc);
     } else {
-        ctx.reg_alloc.HostCall(inst, args[0], args[1], {});
+        ctx.reg_alloc.HostCall(code, inst, args[0], args[1], {});
         code.mov(code.ABI_PARAM3.cvt32(), data_size / CHAR_BIT); //zext
         code.CallFunction(&CRC32::ComputeCRC32Castagnoli);
     }
@@ -38,11 +41,11 @@ static void EmitCRC32ISO(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, co
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (code.HasHostFeature(HostFeature::PCLMULQDQ) && data_size < 32) {
-        const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg64 value = ctx.reg_alloc.UseScratchGpr(args[1]);
-        const Xbyak::Xmm xmm_value = ctx.reg_alloc.ScratchXmm();
-        const Xbyak::Xmm xmm_const = ctx.reg_alloc.ScratchXmm();
-        const Xbyak::Xmm xmm_tmp = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg64 value = ctx.reg_alloc.UseScratchGpr(code, args[1]);
+        const Xbyak::Xmm xmm_value = ctx.reg_alloc.ScratchXmm(code);
+        const Xbyak::Xmm xmm_const = ctx.reg_alloc.ScratchXmm(code);
+        const Xbyak::Xmm xmm_tmp = ctx.reg_alloc.ScratchXmm(code);
 
         code.movdqa(xmm_const, code.Const(xword, 0xb4e5b025'f7011641, 0x00000001'DB710641));
 
@@ -64,12 +67,12 @@ static void EmitCRC32ISO(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, co
 
         code.pextrd(crc, xmm_value, 2);
 
-        ctx.reg_alloc.DefineValue(inst, crc);
+        ctx.reg_alloc.DefineValue(code, inst, crc);
     } else  if (code.HasHostFeature(HostFeature::PCLMULQDQ) && data_size == 32) {
-        const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg32 value = ctx.reg_alloc.UseGpr(args[1]).cvt32();
-        const Xbyak::Xmm xmm_value = ctx.reg_alloc.ScratchXmm();
-        const Xbyak::Xmm xmm_const = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 value = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
+        const Xbyak::Xmm xmm_value = ctx.reg_alloc.ScratchXmm(code);
+        const Xbyak::Xmm xmm_const = ctx.reg_alloc.ScratchXmm(code);
 
         code.movdqa(xmm_const, code.Const(xword, 0xb4e5b025'f7011641, 0x00000001'DB710641));
 
@@ -82,12 +85,12 @@ static void EmitCRC32ISO(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, co
 
         code.pextrd(crc, xmm_value, 2);
 
-        ctx.reg_alloc.DefineValue(inst, crc);
+        ctx.reg_alloc.DefineValue(code, inst, crc);
     } else if (code.HasHostFeature(HostFeature::PCLMULQDQ) && data_size == 64) {
-        const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg64 value = ctx.reg_alloc.UseGpr(args[1]);
-        const Xbyak::Xmm xmm_value = ctx.reg_alloc.ScratchXmm();
-        const Xbyak::Xmm xmm_const = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Reg32 crc = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg64 value = ctx.reg_alloc.UseGpr(code, args[1]);
+        const Xbyak::Xmm xmm_value = ctx.reg_alloc.ScratchXmm(code);
+        const Xbyak::Xmm xmm_const = ctx.reg_alloc.ScratchXmm(code);
 
         code.movdqa(xmm_const, code.Const(xword, 0xb4e5b025'f7011641, 0x00000001'DB710641));
 
@@ -100,9 +103,9 @@ static void EmitCRC32ISO(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, co
 
         code.pextrd(crc, xmm_value, 2);
 
-        ctx.reg_alloc.DefineValue(inst, crc);
+        ctx.reg_alloc.DefineValue(code, inst, crc);
     } else {
-        ctx.reg_alloc.HostCall(inst, args[0], args[1], {});
+        ctx.reg_alloc.HostCall(code, inst, args[0], args[1], {});
         code.mov(code.ABI_PARAM3, data_size / CHAR_BIT);
         code.CallFunction(&CRC32::ComputeCRC32ISO);
     }

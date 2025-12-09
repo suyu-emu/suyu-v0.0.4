@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -16,14 +19,14 @@ void EmitX64::EmitPackedAddU8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
 
     code.paddb(xmm_a, xmm_b);
 
     if (ge_inst) {
-        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm();
-        const Xbyak::Xmm ones = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm(code);
+        const Xbyak::Xmm ones = ctx.reg_alloc.ScratchXmm(code);
 
         code.pcmpeqb(ones, ones);
 
@@ -32,21 +35,21 @@ void EmitX64::EmitPackedAddU8(EmitContext& ctx, IR::Inst* inst) {
         code.pcmpeqb(xmm_ge, xmm_b);
         code.pxor(xmm_ge, ones);
 
-        ctx.reg_alloc.DefineValue(ge_inst, xmm_ge);
+        ctx.reg_alloc.DefineValue(code, ge_inst, xmm_ge);
     }
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedAddS8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
 
     if (ge_inst) {
-        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm(code);
 
         code.pcmpeqb(xmm0, xmm0);
 
@@ -54,27 +57,27 @@ void EmitX64::EmitPackedAddS8(EmitContext& ctx, IR::Inst* inst) {
         code.paddsb(xmm_ge, xmm_b);
         code.pcmpgtb(xmm_ge, xmm0);
 
-        ctx.reg_alloc.DefineValue(ge_inst, xmm_ge);
+        ctx.reg_alloc.DefineValue(code, ge_inst, xmm_ge);
     }
 
     code.paddb(xmm_a, xmm_b);
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedAddU16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
 
     code.paddw(xmm_a, xmm_b);
 
     if (ge_inst) {
         if (code.HasHostFeature(HostFeature::SSE41)) {
-            const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm();
-            const Xbyak::Xmm ones = ctx.reg_alloc.ScratchXmm();
+            const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm(code);
+            const Xbyak::Xmm ones = ctx.reg_alloc.ScratchXmm(code);
 
             code.pcmpeqb(ones, ones);
 
@@ -83,10 +86,10 @@ void EmitX64::EmitPackedAddU16(EmitContext& ctx, IR::Inst* inst) {
             code.pcmpeqw(xmm_ge, xmm_b);
             code.pxor(xmm_ge, ones);
 
-            ctx.reg_alloc.DefineValue(ge_inst, xmm_ge);
+            ctx.reg_alloc.DefineValue(code, ge_inst, xmm_ge);
         } else {
-            const Xbyak::Xmm tmp_a = ctx.reg_alloc.ScratchXmm();
-            const Xbyak::Xmm tmp_b = ctx.reg_alloc.ScratchXmm();
+            const Xbyak::Xmm tmp_a = ctx.reg_alloc.ScratchXmm(code);
+            const Xbyak::Xmm tmp_b = ctx.reg_alloc.ScratchXmm(code);
 
             // !(b <= a+b) == b > a+b
             code.movdqa(tmp_a, xmm_a);
@@ -95,22 +98,22 @@ void EmitX64::EmitPackedAddU16(EmitContext& ctx, IR::Inst* inst) {
             code.paddw(tmp_b, code.Const(xword, 0x80008000));
             code.pcmpgtw(tmp_b, tmp_a);  // *Signed* comparison!
 
-            ctx.reg_alloc.DefineValue(ge_inst, tmp_b);
+            ctx.reg_alloc.DefineValue(code, ge_inst, tmp_b);
         }
     }
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedAddS16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
 
     if (ge_inst) {
-        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm(code);
 
         code.pcmpeqw(xmm0, xmm0);
 
@@ -118,45 +121,45 @@ void EmitX64::EmitPackedAddS16(EmitContext& ctx, IR::Inst* inst) {
         code.paddsw(xmm_ge, xmm_b);
         code.pcmpgtw(xmm_ge, xmm0);
 
-        ctx.reg_alloc.DefineValue(ge_inst, xmm_ge);
+        ctx.reg_alloc.DefineValue(code, ge_inst, xmm_ge);
     }
 
     code.paddw(xmm_a, xmm_b);
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedSubU8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
 
     if (ge_inst) {
-        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm(code);
 
         code.movdqa(xmm_ge, xmm_a);
         code.pmaxub(xmm_ge, xmm_b);
         code.pcmpeqb(xmm_ge, xmm_a);
 
-        ctx.reg_alloc.DefineValue(ge_inst, xmm_ge);
+        ctx.reg_alloc.DefineValue(code, ge_inst, xmm_ge);
     }
 
     code.psubb(xmm_a, xmm_b);
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedSubS8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
 
     if (ge_inst) {
-        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm(code);
 
         code.pcmpeqb(xmm0, xmm0);
 
@@ -164,12 +167,12 @@ void EmitX64::EmitPackedSubS8(EmitContext& ctx, IR::Inst* inst) {
         code.psubsb(xmm_ge, xmm_b);
         code.pcmpgtb(xmm_ge, xmm0);
 
-        ctx.reg_alloc.DefineValue(ge_inst, xmm_ge);
+        ctx.reg_alloc.DefineValue(code, ge_inst, xmm_ge);
     }
 
     code.psubb(xmm_a, xmm_b);
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedSubU16(EmitContext& ctx, IR::Inst* inst) {
@@ -177,19 +180,19 @@ void EmitX64::EmitPackedSubU16(EmitContext& ctx, IR::Inst* inst) {
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
     if (!ge_inst) {
-        const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-        const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
+        const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
 
         code.psubw(xmm_a, xmm_b);
 
-        ctx.reg_alloc.DefineValue(inst, xmm_a);
+        ctx.reg_alloc.DefineValue(code, inst, xmm_a);
         return;
     }
 
     if (code.HasHostFeature(HostFeature::SSE41)) {
-        const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-        const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
-        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
+        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm(code);
 
         code.movdqa(xmm_ge, xmm_a);
         code.pmaxuw(xmm_ge, xmm_b);  // Requires SSE 4.1
@@ -197,15 +200,15 @@ void EmitX64::EmitPackedSubU16(EmitContext& ctx, IR::Inst* inst) {
 
         code.psubw(xmm_a, xmm_b);
 
-        ctx.reg_alloc.DefineValue(ge_inst, xmm_ge);
-        ctx.reg_alloc.DefineValue(inst, xmm_a);
+        ctx.reg_alloc.DefineValue(code, ge_inst, xmm_ge);
+        ctx.reg_alloc.DefineValue(code, inst, xmm_a);
         return;
     }
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseScratchXmm(args[1]);
-    const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm();
-    const Xbyak::Xmm ones = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseScratchXmm(code, args[1]);
+    const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm(code);
+    const Xbyak::Xmm ones = ctx.reg_alloc.ScratchXmm(code);
 
     // (a >= b) == !(b > a)
     code.pcmpeqb(ones, ones);
@@ -217,19 +220,19 @@ void EmitX64::EmitPackedSubU16(EmitContext& ctx, IR::Inst* inst) {
 
     code.psubw(xmm_a, xmm_b);
 
-    ctx.reg_alloc.DefineValue(ge_inst, xmm_ge);
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, ge_inst, xmm_ge);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedSubS16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
 
     if (ge_inst) {
-        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm();
+        const Xbyak::Xmm xmm_ge = ctx.reg_alloc.ScratchXmm(code);
 
         code.pcmpeqw(xmm0, xmm0);
 
@@ -237,21 +240,21 @@ void EmitX64::EmitPackedSubS16(EmitContext& ctx, IR::Inst* inst) {
         code.psubsw(xmm_ge, xmm_b);
         code.pcmpgtw(xmm_ge, xmm0);
 
-        ctx.reg_alloc.DefineValue(ge_inst, xmm_ge);
+        ctx.reg_alloc.DefineValue(code, ge_inst, xmm_ge);
     }
 
     code.psubw(xmm_a, xmm_b);
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedHalvingAddU8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    if (args[0].IsInXmm() || args[1].IsInXmm()) {
-        const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-        const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseScratchXmm(args[1]);
-        const Xbyak::Xmm ones = ctx.reg_alloc.ScratchXmm();
+    if (args[0].IsInXmm(ctx.reg_alloc) || args[1].IsInXmm(ctx.reg_alloc)) {
+        const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseScratchXmm(code, args[1]);
+        const Xbyak::Xmm ones = ctx.reg_alloc.ScratchXmm(code);
 
         // Since,
         //   pavg(a, b) == (a + b + 1) >> 1
@@ -264,11 +267,11 @@ void EmitX64::EmitPackedHalvingAddU8(EmitContext& ctx, IR::Inst* inst) {
         code.pavgb(xmm_a, xmm_b);
         code.pxor(xmm_a, ones);
 
-        ctx.reg_alloc.DefineValue(inst, xmm_a);
+        ctx.reg_alloc.DefineValue(code, inst, xmm_a);
     } else {
-        const Xbyak::Reg32 reg_a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg32 reg_b = ctx.reg_alloc.UseGpr(args[1]).cvt32();
-        const Xbyak::Reg32 xor_a_b = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 reg_a = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 reg_b = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
+        const Xbyak::Reg32 xor_a_b = ctx.reg_alloc.ScratchGpr(code).cvt32();
         const Xbyak::Reg32 and_a_b = reg_a;
         const Xbyak::Reg32 result = reg_a;
 
@@ -284,17 +287,17 @@ void EmitX64::EmitPackedHalvingAddU8(EmitContext& ctx, IR::Inst* inst) {
         code.and_(xor_a_b, 0x7F7F7F7F);
         code.add(result, xor_a_b);
 
-        ctx.reg_alloc.DefineValue(inst, result);
+        ctx.reg_alloc.DefineValue(code, inst, result);
     }
 }
 
 void EmitX64::EmitPackedHalvingAddU16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    if (args[0].IsInXmm() || args[1].IsInXmm()) {
-        const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-        const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
-        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+    if (args[0].IsInXmm(ctx.reg_alloc) || args[1].IsInXmm(ctx.reg_alloc)) {
+        const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
+        const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
 
         code.movdqa(tmp, xmm_a);
         code.pand(xmm_a, xmm_b);
@@ -302,11 +305,11 @@ void EmitX64::EmitPackedHalvingAddU16(EmitContext& ctx, IR::Inst* inst) {
         code.psrlw(tmp, 1);
         code.paddw(xmm_a, tmp);
 
-        ctx.reg_alloc.DefineValue(inst, xmm_a);
+        ctx.reg_alloc.DefineValue(code, inst, xmm_a);
     } else {
-        const Xbyak::Reg32 reg_a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg32 reg_b = ctx.reg_alloc.UseGpr(args[1]).cvt32();
-        const Xbyak::Reg32 xor_a_b = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 reg_a = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 reg_b = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
+        const Xbyak::Reg32 xor_a_b = ctx.reg_alloc.ScratchGpr(code).cvt32();
         const Xbyak::Reg32 and_a_b = reg_a;
         const Xbyak::Reg32 result = reg_a;
 
@@ -322,19 +325,19 @@ void EmitX64::EmitPackedHalvingAddU16(EmitContext& ctx, IR::Inst* inst) {
         code.and_(xor_a_b, 0x7FFF7FFF);
         code.add(result, xor_a_b);
 
-        ctx.reg_alloc.DefineValue(inst, result);
+        ctx.reg_alloc.DefineValue(code, inst, result);
     }
 }
 
 void EmitX64::EmitPackedHalvingAddS8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Reg32 reg_a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-    const Xbyak::Reg32 reg_b = ctx.reg_alloc.UseGpr(args[1]).cvt32();
-    const Xbyak::Reg32 xor_a_b = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 reg_a = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+    const Xbyak::Reg32 reg_b = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
+    const Xbyak::Reg32 xor_a_b = ctx.reg_alloc.ScratchGpr(code).cvt32();
     const Xbyak::Reg32 and_a_b = reg_a;
     const Xbyak::Reg32 result = reg_a;
-    const Xbyak::Reg32 carry = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 carry = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     // This relies on the equality x+y == ((x&y) << 1) + (x^y).
     // Note that x^y always contains the LSB of the result.
@@ -352,15 +355,15 @@ void EmitX64::EmitPackedHalvingAddS8(EmitContext& ctx, IR::Inst* inst) {
     code.add(result, xor_a_b);
     code.xor_(result, carry);
 
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void EmitX64::EmitPackedHalvingAddS16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
+    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
 
     // This relies on the equality x+y == ((x&y) << 1) + (x^y).
     // Note that x^y always contains the LSB of the result.
@@ -373,14 +376,14 @@ void EmitX64::EmitPackedHalvingAddS16(EmitContext& ctx, IR::Inst* inst) {
     code.psraw(tmp, 1);
     code.paddw(xmm_a, tmp);
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedHalvingSubU8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Reg32 minuend = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-    const Xbyak::Reg32 subtrahend = ctx.reg_alloc.UseScratchGpr(args[1]).cvt32();
+    const Xbyak::Reg32 minuend = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+    const Xbyak::Reg32 subtrahend = ctx.reg_alloc.UseScratchGpr(code, args[1]).cvt32();
 
     // This relies on the equality x-y == (x^y) - (((x^y)&y) << 1).
     // Note that x^y always contains the LSB of the result.
@@ -403,16 +406,16 @@ void EmitX64::EmitPackedHalvingSubU8(EmitContext& ctx, IR::Inst* inst) {
     code.xor_(minuend, 0x80808080);
 
     // minuend now contains the desired result.
-    ctx.reg_alloc.DefineValue(inst, minuend);
+    ctx.reg_alloc.DefineValue(code, inst, minuend);
 }
 
 void EmitX64::EmitPackedHalvingSubS8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Reg32 minuend = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-    const Xbyak::Reg32 subtrahend = ctx.reg_alloc.UseScratchGpr(args[1]).cvt32();
+    const Xbyak::Reg32 minuend = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+    const Xbyak::Reg32 subtrahend = ctx.reg_alloc.UseScratchGpr(code, args[1]).cvt32();
 
-    const Xbyak::Reg32 carry = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 carry = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     // This relies on the equality x-y == (x^y) - (((x^y)&y) << 1).
     // Note that x^y always contains the LSB of the result.
@@ -439,14 +442,14 @@ void EmitX64::EmitPackedHalvingSubS8(EmitContext& ctx, IR::Inst* inst) {
     code.xor_(minuend, 0x80808080);
     code.xor_(minuend, carry);
 
-    ctx.reg_alloc.DefineValue(inst, minuend);
+    ctx.reg_alloc.DefineValue(code, inst, minuend);
 }
 
 void EmitX64::EmitPackedHalvingSubU16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Xmm minuend = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm subtrahend = ctx.reg_alloc.UseScratchXmm(args[1]);
+    const Xbyak::Xmm minuend = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm subtrahend = ctx.reg_alloc.UseScratchXmm(code, args[1]);
 
     // This relies on the equality x-y == (x^y) - (((x^y)&y) << 1).
     // Note that x^y always contains the LSB of the result.
@@ -462,14 +465,14 @@ void EmitX64::EmitPackedHalvingSubU16(EmitContext& ctx, IR::Inst* inst) {
 
     code.psubw(minuend, subtrahend);
 
-    ctx.reg_alloc.DefineValue(inst, minuend);
+    ctx.reg_alloc.DefineValue(code, inst, minuend);
 }
 
 void EmitX64::EmitPackedHalvingSubS16(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Xmm minuend = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm subtrahend = ctx.reg_alloc.UseScratchXmm(args[1]);
+    const Xbyak::Xmm minuend = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm subtrahend = ctx.reg_alloc.UseScratchXmm(code, args[1]);
 
     // This relies on the equality x-y == (x^y) - (((x^y)&y) << 1).
     // Note that x^y always contains the LSB of the result.
@@ -485,17 +488,17 @@ void EmitX64::EmitPackedHalvingSubS16(EmitContext& ctx, IR::Inst* inst) {
 
     code.psubw(minuend, subtrahend);
 
-    ctx.reg_alloc.DefineValue(inst, minuend);
+    ctx.reg_alloc.DefineValue(code, inst, minuend);
 }
 
 static void EmitPackedSubAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, bool hi_is_sum, bool is_signed, bool is_halving) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto ge_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetGEFromOp);
 
-    const Xbyak::Reg32 reg_a_hi = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-    const Xbyak::Reg32 reg_b_hi = ctx.reg_alloc.UseScratchGpr(args[1]).cvt32();
-    const Xbyak::Reg32 reg_a_lo = ctx.reg_alloc.ScratchGpr().cvt32();
-    const Xbyak::Reg32 reg_b_lo = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 reg_a_hi = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+    const Xbyak::Reg32 reg_b_hi = ctx.reg_alloc.UseScratchGpr(code, args[1]).cvt32();
+    const Xbyak::Reg32 reg_a_lo = ctx.reg_alloc.ScratchGpr(code).cvt32();
+    const Xbyak::Reg32 reg_b_lo = ctx.reg_alloc.ScratchGpr(code).cvt32();
     Xbyak::Reg32 reg_sum, reg_diff;
 
     if (is_signed) {
@@ -543,7 +546,7 @@ static void EmitPackedSubAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst
         code.and_(ge_diff, hi_is_sum ? 0x0000FFFF : 0xFFFF0000);
         code.or_(ge_sum, ge_diff);
 
-        ctx.reg_alloc.DefineValue(ge_inst, ge_sum);
+        ctx.reg_alloc.DefineValue(code, ge_inst, ge_sum);
     }
 
     if (is_halving) {
@@ -557,7 +560,7 @@ static void EmitPackedSubAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst
     // Merge them.
     code.shld(reg_a_hi, reg_a_lo, 16);
 
-    ctx.reg_alloc.DefineValue(inst, reg_a_hi);
+    ctx.reg_alloc.DefineValue(code, inst, reg_a_hi);
 }
 
 void EmitX64::EmitPackedAddSubU16(EmitContext& ctx, IR::Inst* inst) {
@@ -595,12 +598,12 @@ void EmitX64::EmitPackedHalvingSubAddS16(EmitContext& ctx, IR::Inst* inst) {
 static void EmitPackedOperation(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, void (Xbyak::CodeGenerator::*fn)(const Xbyak::Mmx& mmx, const Xbyak::Operand&)) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
 
     (code.*fn)(xmm_a, xmm_b);
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedSaturatedAddU8(EmitContext& ctx, IR::Inst* inst) {
@@ -638,9 +641,9 @@ void EmitX64::EmitPackedSaturatedSubS16(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitPackedAbsDiffSumU8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseScratchXmm(args[1]);
-    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm xmm_b = ctx.reg_alloc.UseScratchXmm(code, args[1]);
+    const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
 
     // TODO: Optimize with zero-extension detection
     code.movaps(tmp, code.Const(xword, 0x0000'0000'ffff'ffff));
@@ -648,45 +651,45 @@ void EmitX64::EmitPackedAbsDiffSumU8(EmitContext& ctx, IR::Inst* inst) {
     code.pand(xmm_b, tmp);
     code.psadbw(xmm_a, xmm_b);
 
-    ctx.reg_alloc.DefineValue(inst, xmm_a);
+    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 
 void EmitX64::EmitPackedSelect(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const size_t num_args_in_xmm = args[0].IsInXmm() + args[1].IsInXmm() + args[2].IsInXmm();
+    const size_t num_args_in_xmm = args[0].IsInXmm(ctx.reg_alloc) + args[1].IsInXmm(ctx.reg_alloc) + args[2].IsInXmm(ctx.reg_alloc);
 
     if (num_args_in_xmm >= 2) {
-        const Xbyak::Xmm ge = ctx.reg_alloc.UseScratchXmm(args[0]);
-        const Xbyak::Xmm to = ctx.reg_alloc.UseXmm(args[1]);
-        const Xbyak::Xmm from = ctx.reg_alloc.UseScratchXmm(args[2]);
+        const Xbyak::Xmm ge = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        const Xbyak::Xmm to = ctx.reg_alloc.UseXmm(code, args[1]);
+        const Xbyak::Xmm from = ctx.reg_alloc.UseScratchXmm(code, args[2]);
 
         code.pand(from, ge);
         code.pandn(ge, to);
         code.por(from, ge);
 
-        ctx.reg_alloc.DefineValue(inst, from);
+        ctx.reg_alloc.DefineValue(code, inst, from);
     } else if (code.HasHostFeature(HostFeature::BMI1)) {
-        const Xbyak::Reg32 ge = ctx.reg_alloc.UseGpr(args[0]).cvt32();
-        const Xbyak::Reg32 to = ctx.reg_alloc.UseScratchGpr(args[1]).cvt32();
-        const Xbyak::Reg32 from = ctx.reg_alloc.UseScratchGpr(args[2]).cvt32();
+        const Xbyak::Reg32 ge = ctx.reg_alloc.UseGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 to = ctx.reg_alloc.UseScratchGpr(code, args[1]).cvt32();
+        const Xbyak::Reg32 from = ctx.reg_alloc.UseScratchGpr(code, args[2]).cvt32();
 
         code.and_(from, ge);
         code.andn(to, ge, to);
         code.or_(from, to);
 
-        ctx.reg_alloc.DefineValue(inst, from);
+        ctx.reg_alloc.DefineValue(code, inst, from);
     } else {
-        const Xbyak::Reg32 ge = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg32 to = ctx.reg_alloc.UseGpr(args[1]).cvt32();
-        const Xbyak::Reg32 from = ctx.reg_alloc.UseScratchGpr(args[2]).cvt32();
+        const Xbyak::Reg32 ge = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 to = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
+        const Xbyak::Reg32 from = ctx.reg_alloc.UseScratchGpr(code, args[2]).cvt32();
 
         code.and_(from, ge);
         code.not_(ge);
         code.and_(ge, to);
         code.or_(from, ge);
 
-        ctx.reg_alloc.DefineValue(inst, from);
+        ctx.reg_alloc.DefineValue(code, inst, from);
     }
 }
 
