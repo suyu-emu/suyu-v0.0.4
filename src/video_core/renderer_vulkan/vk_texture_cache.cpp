@@ -1269,6 +1269,17 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::R32G32_FLOAT:
     case PixelFormat::R32G32_SINT:
     case PixelFormat::R32_FLOAT:
+        if (src_view.format == PixelFormat::D32_FLOAT) {
+            const Region2D region{
+                .start = {0, 0},
+                .end = {static_cast<s32>(dst->RenderArea().width),
+                        static_cast<s32>(dst->RenderArea().height)},
+            };
+            return blit_image_helper.BlitColor(dst, src_view, region, region,
+                                            Tegra::Engines::Fermi2D::Filter::Point,
+                                            Tegra::Engines::Fermi2D::Operation::SrcCopy);
+        }
+        break;
     case PixelFormat::R16_FLOAT:
     case PixelFormat::R16_UNORM:
     case PixelFormat::R16_SNORM:
