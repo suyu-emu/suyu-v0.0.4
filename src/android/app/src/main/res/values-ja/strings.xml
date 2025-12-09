@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">サンプルシェーディング処理の強度。高い値ほど品質は向上しますが、パフォーマンスも大きく低下します。</string>
 
     <string name="veil_renderer">レンダラー</string>
-    <string name="renderer_early_release_fences">フェンスを早期に解放</string>
-    <string name="renderer_early_release_fences_description">DKCR:HD、Subnautica Below Zero、Ori 2などのゲームで0 FPSを修正しますが、Unreal Engineゲームの読み込みやパフォーマンスに影響する可能性があります。</string>
     <string name="sync_memory_operations">メモリ操作の同期</string>
     <string name="sync_memory_operations_description">計算処理とメモリ操作間のデータ一貫性を保証します。 このオプションは一部のゲームの問題を修正しますが、場合によってはパフォーマンスが低下する可能性があります。 Unreal Engine 4のゲームが最も影響を受けるようです。</string>
     <string name="buffer_reorder_disable">バッファの再並べ替えを無効化</string>
@@ -666,9 +664,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">なし</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">標準</string>
-    <string name="renderer_accuracy_high">高</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">デフォルト</string>
     <!-- ASTC Decoding Method -->

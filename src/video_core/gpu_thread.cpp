@@ -79,15 +79,8 @@ void ThreadManager::FlushRegion(DAddr addr, u64 size) {
     if (!is_async) {
         // Always flush with synchronous GPU mode
         PushCommand(FlushRegionCommand(addr, size));
-        return;
     }
-    if (!Settings::IsGPULevelExtreme()) {
-        return;
-    }
-    auto& gpu = system.GPU();
-    u64 fence = gpu.RequestFlush(addr, size);
-    TickGPU();
-    gpu.WaitForSyncOperation(fence);
+    return;
 }
 
 void ThreadManager::TickGPU() {

@@ -105,8 +105,6 @@
     <string name="sample_shading_fraction_description">The intensity of the sample shading pass. Higher values improve quality more but also reduce performance to a greater extent.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="renderer_early_release_fences">Release Fences Early</string>
-    <string name="renderer_early_release_fences_description">Helps fix 0 FPS in games like DKCR:HD, Subnautica Below Zero and Ori 2, but may break loading or performance in Unreal Engine games.</string>
     <string name="sync_memory_operations">Sync Memory Operations</string>
     <string name="sync_memory_operations_description">Ensures data consistency between compute and memory operations. This option should fix issues in some games, but may also reduce performance in some cases. Unreal Engine 4 games often see the most significant changes thereof.</string>
     <string name="buffer_reorder_disable">Disable Buffer Reorder</string>
@@ -924,9 +922,9 @@
     <string name="renderer_none">None</string>
 
     <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normal</string>
-    <string name="renderer_accuracy_high">High</string>
-    <string name="renderer_accuracy_extreme">Extreme</string>
+    <string name="renderer_accuracy_low">Performance</string>
+    <string name="renderer_accuracy_medium">Balanced</string>
+    <string name="renderer_accuracy_high">Accurate</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Default</string>

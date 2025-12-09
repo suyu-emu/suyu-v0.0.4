@@ -103,7 +103,7 @@ bool DmaPusher::Step() {
             ProcessCommands(headers);
         };
 
-        const bool use_safe = Settings::IsDMALevelDefault() ? Settings::IsGPULevelHigh() : Settings::IsDMALevelSafe();
+        const bool use_safe = Settings::IsDMALevelDefault() ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) : Settings::IsDMALevelSafe();
 
         if (use_safe) {
             safe_process();

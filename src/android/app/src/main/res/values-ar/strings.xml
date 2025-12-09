@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">كثافة تمرير تظليل العينة. تؤدي القيم الأعلى إلى تحسين الجودة بشكل أكبر، ولكنها تقلل أيضًا من الأداء إلى حد كبير.</string>
 
     <string name="veil_renderer">العارض</string>
-    <string name="renderer_early_release_fences">إطلاق الأسوار مبكرًا</string>
-    <string name="renderer_early_release_fences_description">يساعد في إصلاح مشكلة 0 إطار في الثانية في ألعاب مثل DKCR:HD وSubnautica Below Zero وOri 2، ولكن قد يتسبب في تعطيل التحميل أو الأداء في ألعاب Unreal Engine.</string>
     <string name="sync_memory_operations">مزامنة عمليات الذاكرة</string>
     <string name="sync_memory_operations_description">يضمن اتساق البيانات بين عمليات الحوسبة والذاكرة. هذا الخيار قد يحل المشكلات في بعض الألعاب، ولكن قد يقلل الأداء في بعض الحالات. يبدو أن الألعاب التي تستخدم Unreal Engine 4 هي الأكثر تأثرًا.</string>
     <string name="buffer_reorder_disable">تعطيل إعادة ترتيب المخزن المؤقت</string>
@@ -879,11 +877,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">لاشيء</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">عادي</string>
-    <string name="renderer_accuracy_high">عالي</string>
-    <string name="renderer_accuracy_extreme">أقصى</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">افتراضي</string>

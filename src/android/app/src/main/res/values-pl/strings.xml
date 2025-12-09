@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">Intensywność przebiegu cieniowania próbki. Wyższe wartości poprawiają jakość, ale także w większym stopniu zmniejszają wydajność.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="renderer_early_release_fences">Wcześniejsze zwalnianie zabezpieczeń</string>
-    <string name="renderer_early_release_fences_description">Pomaga naprawić 0 FPS w grach takich jak DKCR:HD, Subnautica Below Zero i Ori 2, ale może zaburzyć ładowanie lub wydajność w grach Unreal Engine.</string>
     <string name="sync_memory_operations">Synchronizuj operacje pamięci</string>
     <string name="sync_memory_operations_description">Zapewnia spójność danych między operacjami obliczeniowymi i pamięciowymi. Ta opcja powinna naprawiać problemy w niektórych grach, ale może zmniejszyć wydajność w niektórych przypadkach. Gry z Unreal Engine 4 wydają się być najbardziej dotknięte.</string>
     <string name="buffer_reorder_disable">Wyłącz przestawianie bufora</string>
@@ -875,11 +873,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Żadny</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normalny</string>
-    <string name="renderer_accuracy_high">Wysoki</string>
-    <string name="renderer_accuracy_extreme">Ekstremalne</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">預設</string>

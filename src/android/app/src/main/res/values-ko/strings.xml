@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">샘플 쉐이딩 패스의 강도. 값이 높을수록 품질이 더 향상되지만 성능도 더 크게 저하됩니다.</string>
 
     <string name="veil_renderer">렌더러</string>
-    <string name="renderer_early_release_fences">펜스 조기 해제</string>
-    <string name="renderer_early_release_fences_description">DKCR:HD, Subnautica Below Zero, Ori 2 등의 게임에서 0 FPS 현상을 해결하지만, Unreal Engine 게임의 로딩이나 성능에 문제를 일으킬 수 있습니다.</string>
     <string name="sync_memory_operations">메모리 작업 동기화</string>
     <string name="sync_memory_operations_description">컴퓨팅 및 메모리 작업 간 데이터 일관성을 보장합니다. 이 옵션은 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능이 저하될 수 있습니다. Unreal Engine 4 게임이 가장 큰 영향을 받는 것으로 보입니다.</string>
     <string name="buffer_reorder_disable">버퍼 재정렬 비활성화</string>
@@ -720,9 +718,6 @@
     <string name="renderer_vulkan">Vulcan</string>
     <string name="renderer_none">없음</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">보통</string>
-    <string name="renderer_accuracy_high">높음</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">기본값</string>
     <!-- ASTC Decoding Method -->

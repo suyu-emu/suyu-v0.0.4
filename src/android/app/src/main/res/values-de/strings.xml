@@ -84,8 +84,6 @@
     <string name="sample_shading_fraction_description">Die Intensität des Sample-Shading-Durchgangs. Höhere Werte verbessern die Qualität stärker, beeinträchtigen aber auch die Leistung stärker.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="renderer_early_release_fences">Zäune früher freigeben</string>
-    <string name="renderer_early_release_fences_description">Behebt 0 FPS in Spielen wie DKCR:HD, Subnautica Below Zero und Ori 2, kann aber Ladezeiten oder Performance in Unreal Engine-Spielen beeinträchtigen.</string>
     <string name="sync_memory_operations">Speicheroperationen synchronisieren</string>
     <string name="sync_memory_operations_description">Stellt die Datenkonsistenz zwischen Compute- und Speicheroperationen sicher. Diese Option sollte Probleme in einigen Spielen beheben, kann aber in einigen Fällen die Leistung verringern. Spiele mit Unreal Engine 4 scheinen am stärksten betroffen zu sein.</string>
     <string name="buffer_reorder_disable">Puffer-Neuanordnung deaktivieren</string>
@@ -790,9 +788,6 @@ Wirklich fortfahren?</string>
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Keiner</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normal</string>
-    <string name="renderer_accuracy_high">Hoch</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
     <!-- ASTC Decoding Method -->

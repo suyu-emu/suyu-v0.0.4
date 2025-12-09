@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">Cường độ của bước tô bóng mẫu. Giá trị cao hơn cải thiện chất lượng tốt hơn nhưng cũng giảm hiệu suất nhiều hơn.</string>
 
     <string name="veil_renderer">Trình kết xuất</string>
-    <string name="renderer_early_release_fences">Giải phóng rào chắn sớm</string>
-    <string name="renderer_early_release_fences_description">Giúp sửa lỗi 0 FPS trong các trò chơi như DKCR:HD, Subnautica Below Zero và Ori 2, nhưng có thể ảnh hưởng đến tải hoặc hiệu suất trong trò chơi Unreal Engine.</string>
     <string name="sync_memory_operations">Đồng bộ hoá thao tác bộ nhớ</string>
     <string name="sync_memory_operations_description">Đảm bảo tính nhất quán dữ liệu giữa các thao tác tính toán và bộ nhớ. Tùy chọn này nên khắc phục sự cố trong một số trò chơi, nhưng có thể làm giảm hiệu suất trong một số trường hợp. Các trò chơi với Unreal Engine 4 có vẻ bị ảnh hưởng nhiều nhất.</string>
     <string name="buffer_reorder_disable">Tắt sắp xếp lại bộ đệm</string>
@@ -638,9 +636,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Trống</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Trung bình</string>
-    <string name="renderer_accuracy_high">Khỏe</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Mặc định</string>
     <!-- ASTC Decoding Method -->

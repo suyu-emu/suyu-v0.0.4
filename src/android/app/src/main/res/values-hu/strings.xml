@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">A mintavételezés árnyékolási lépés intenzitása. A magasabb értékek jobb minőséget eredményeznek, de nagyobb mértékben csökkentik a teljesítményt.</string>
 
     <string name="veil_renderer">Megjelenítő</string>
-    <string name="renderer_early_release_fences">Korai kerítés-felszabadítás</string>
-    <string name="renderer_early_release_fences_description">Segít javítani a 0 FPS-t olyan játékokban, mint a DKCR:HD, Subnautica Below Zero és az Ori 2, de ronthatja az Unreal Engine játékok betöltését vagy teljesítményét.</string>
     <string name="sync_memory_operations">Memória-műveletek szinkronizálása</string>
     <string name="sync_memory_operations_description">Biztosítja az adatok konzisztenciáját a számítási és memória-műveletek között. Ez az opciónak javítania kell néhány játékban előforduló problémát, de bizonyos esetekben csökkentheti a teljesítményt. Az Unreal Engine 4-et használó játékok látszanak a legérintettebbek.</string>
     <string name="buffer_reorder_disable">Puffer újrarendezés letiltása</string>
@@ -761,9 +759,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Nincs</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normál</string>
-    <string name="renderer_accuracy_high">Magas</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Alapértelmezett</string>
     <!-- ASTC Decoding Method -->

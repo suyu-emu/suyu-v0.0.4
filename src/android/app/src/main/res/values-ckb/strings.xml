@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">چڕی تێپەڕاندنی سێبەرکردنی نموونە. بەهای زیاتر کوالێتی باشتر دەکات بەڵام کارایی زیاتر کەم دەکاتەوە.</string>
 
     <string name="veil_renderer">رێندرەر</string>
-    <string name="renderer_early_release_fences">زێدەکردنی پەرستارەکان زووتر</string>
-    <string name="renderer_early_release_fences_description">یارمەتی دەدات لە چارەسەری 0 FPS لە یارییەکانی وەک DKCR:HD، Subnautica Below Zero و Ori 2، بەڵام ڕەنگە بارکردن یان کارایی لە یارییەکانی Unreal Engine تێکبدات.</string>
     <string name="sync_memory_operations">هاوبەشیی کردارەکانی بیرگە</string>
     <string name="sync_memory_operations_description">دڵنیایی داتا لە نێوان کردارەکانی کۆمپیوتەر و بیرگە. ئەم هەڵبژاردە کێشەکان لە هەندێک یاری چارەسەر دەکات، بەڵام لە هەندێک حاڵەت کارایی کەم دەکاتەوە. وا دیارە یارییەکانی Unreal Engine 4 زۆرترین کاریگەریان هەیە.</string>
     <string name="buffer_reorder_disable">ڕێکخستنەوەی بافر ناچالاک بکە</string>
@@ -625,9 +623,6 @@
     <string name="renderer_vulkan">ڤوڵکان</string>
     <string name="renderer_none">هیچ</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">ئاسایی</string>
-    <string name="renderer_accuracy_high">بەرز</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">بنەڕەتی</string>
     <!-- ASTC Decoding Method -->

@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">Інтенсивність проходу затінення зразка. Вищі значення покращують якість, але й сильніше знижують продуктивність.</string>
 
     <string name="veil_renderer">Візуалізатор</string>
-    <string name="renderer_early_release_fences">Release fences early</string>
-    <string name="renderer_early_release_fences_description">Це налаштування може бути необхідним для виправлення помилок 0FPS у деяких іграх (зокрема DKCR:HD, Subnautica та Ori 2). Водночас інші ігри, особливо створені на рушії Unreal Engine, можуть працювати некоректно або взагалі не запускатися.</string>
     <string name="sync_memory_operations">Синхронізація операцій з пам\'яттю</string>
     <string name="sync_memory_operations_description">Забезпечує узгодженість даних між обчислювальними операціями та операціями з пам\'яттю. Ця опція має виправляти проблеми в деяких іграх, але може знижувати продуктивність у деяких випадках. Ігри на Unreal Engine 4, здається, найбільш постраждалі.</string>
     <string name="buffer_reorder_disable">Вимкнути переупорядкування буфера</string>
@@ -875,11 +873,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Вимкнено</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Нормальна</string>
-    <string name="renderer_accuracy_high">Висока</string>
-    <string name="renderer_accuracy_extreme">Екстремально</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Типово</string>

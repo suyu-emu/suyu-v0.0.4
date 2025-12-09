@@ -65,8 +65,6 @@
     <string name="veil_misc">پردازنده و حافظه</string>
     <string name="eden_veil">پرده عدن</string>
     <string name="eden_veil_description">تنظیمات آزمایشی برای بهبود عملکرد و قابلیت. این تنظیمات ممکن است باعث نمایش صفحه سیاه یا سایر مشکلات بازی شود.</string>
-    <string name="renderer_early_release_fences">رهاسازی حصارها زودتر</string>
-    <string name="renderer_early_release_fences_description">به رفع مشکل 0 فریم بر ثانیه در بازی‌هایی مانند DKCR:HD، Subnautica Below Zero و Ori 2 کمک می‌کند، اما ممکن است بارگذاری یا عملکرد بازی‌های Unreal Engine را مختل کند.</string>
     <string name="sync_memory_operations">همگام‌سازی عملیات حافظه</string>
     <string name="sync_memory_operations_description">اطمینان از سازگاری داده‌ها بین عملیات محاسباتی و حافظه. این گزینه ممکن است مشکلات برخی بازی‌ها را رفع کند، اما در برخی موارد ممکن است عملکرد را کاهش دهد. به نظر می‌رسد بازی‌های با Unreal Engine 4 بیشترین تأثیر را داشته باشند.</string>
     <string name="buffer_reorder_disable">غیرفعال کردن مرتب‌سازی مجدد بافر</string>
@@ -759,11 +757,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">هیچ</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">معمولی</string>
-    <string name="renderer_accuracy_high">زیاد</string>
-    <string name="renderer_accuracy_extreme">افراطی (کند)</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">پیش فرض</string>

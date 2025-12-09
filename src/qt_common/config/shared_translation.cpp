@@ -277,9 +277,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings,
            gpu_accuracy,
            tr("GPU Accuracy:"),
-           tr("Controls the GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
-              "required for some.\nParticles tend to only render correctly with High "
-              "accuracy.\nExtreme should only be used as a last resort."));
+           tr("Controls the GPU emulation accuracy.\nMost games render fine with Performance or Balanced modes, but Accurate is still "
+              "required for some.\nParticles tend to only render correctly with Accurate mode."));
     INSERT(Settings,
            dma_accuracy,
            tr("DMA Accuracy:"),
@@ -507,9 +506,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
          }});
     translations->insert({Settings::EnumMetadata<Settings::GpuAccuracy>::Index(),
                           {
-                              PAIR(GpuAccuracy, Normal, tr("Normal")),
-                              PAIR(GpuAccuracy, High, tr("High")),
-                              PAIR(GpuAccuracy, Extreme, tr("Extreme")),
+                              PAIR(GpuAccuracy, Low, tr("Performance")),
+                              PAIR(GpuAccuracy, Medium, tr("Balanced")),
+                              PAIR(GpuAccuracy, High, tr("Accurate")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::DmaAccuracy>::Index(),
                           {

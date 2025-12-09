@@ -414,9 +414,9 @@ struct Values {
 
     SwitchableSetting<GpuAccuracy, true> gpu_accuracy{linkage,
 #ifdef ANDROID
-                                                      GpuAccuracy::Normal,
+                                                      GpuAccuracy::Low,
 #else
-                                                      GpuAccuracy::High,
+                                                      GpuAccuracy::Medium,
 #endif
                                                       "gpu_accuracy",
                                                       Category::RendererAdvanced,
@@ -424,7 +424,7 @@ struct Values {
                                                       true,
                                                       true};
 
-    GpuAccuracy current_gpu_accuracy{GpuAccuracy::High};
+    GpuAccuracy current_gpu_accuracy{GpuAccuracy::Medium};
 
     SwitchableSetting<DmaAccuracy, true> dma_accuracy{linkage,
                                                       DmaAccuracy::Default,
@@ -457,15 +457,6 @@ struct Values {
                                                         Specialization::Default,
                                                         true,
                                                         true};
-#ifdef ANDROID
-    SwitchableSetting<bool> early_release_fences{linkage,
-                                                 false,
-                                                 "early_release_fences",
-                                                 Category::RendererAdvanced,
-                                                 Specialization::Default,
-                                                 true,
-                                                 true};
-#endif
     SwitchableSetting<bool> sync_memory_operations{linkage,
                                                    false,
                                                    "sync_memory_operations",
@@ -771,7 +762,8 @@ extern Values values;
 bool getDebugKnobAt(u8 i);
 
 void UpdateGPUAccuracy();
-bool IsGPULevelExtreme();
+bool IsGPULevelLow();
+bool IsGPULevelMedium();
 bool IsGPULevelHigh();
 
 bool IsDMALevelDefault();

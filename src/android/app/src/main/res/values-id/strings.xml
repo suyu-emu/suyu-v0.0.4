@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">Intensitas proses pencahayaan sampel. Nilai lebih tinggi meningkatkan kualitas lebih baik tetapi juga mengurangi performa lebih besar.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="renderer_early_release_fences">Lepas Pagar Lebih Awal</string>
-    <string name="renderer_early_release_fences_description">Membantu memperbaiki 0 FPS di game seperti DKCR:HD, Subnautica Below Zero dan Ori 2, tapi mungkin mengganggu loading atau performa di game Unreal Engine.</string>
     <string name="sync_memory_operations">Sinkronisasi Operasi Memori</string>
     <string name="sync_memory_operations_description">Memastikan konsistensi data antara operasi komputasi dan memori. Opsi ini seharusnya memperbaiki masalah di beberapa game, tetapi mungkin mengurangi performa dalam beberapa kasus. Game dengan Unreal Engine 4 tampaknya yang paling terpengaruh.</string>
     <string name="buffer_reorder_disable">Nonaktifkan Penyusunan Ulang Buffer</string>
@@ -811,9 +809,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Tak ada</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normal</string>
-    <string name="renderer_accuracy_high">Tinggi</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Bawaan</string>
     <!-- ASTC Decoding Method -->

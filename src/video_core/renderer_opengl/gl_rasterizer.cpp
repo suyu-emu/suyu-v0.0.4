@@ -629,9 +629,6 @@ void RasterizerOpenGL::ReleaseFences(bool force) {
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(DAddr addr, u64 size,
                                                 VideoCommon::CacheType which) {
-    if (Settings::IsGPULevelExtreme()) {
-        FlushRegion(addr, size, which);
-    }
     InvalidateRegion(addr, size, which);
 }
 

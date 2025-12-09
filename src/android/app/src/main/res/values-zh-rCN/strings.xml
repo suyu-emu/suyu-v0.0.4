@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">采样着色处理的强度。值越高，质量改善越多，但性能降低也越明显。</string>
 
     <string name="veil_renderer">渲染器</string>
-    <string name="renderer_early_release_fences">提前释放围栏</string>
-    <string name="renderer_early_release_fences_description">可修复《大金刚国度:热带寒流》《深海迷航:零度之下》和《奥日2》等游戏中的0 FPS问题，但可能影响Unreal Engine游戏的加载或性能。</string>
     <string name="sync_memory_operations">同步内存操作</string>
     <string name="sync_memory_operations_description">确保计算和内存操作之间的数据一致性。 此选项应能修复某些游戏中的问题，但在某些情况下可能会降低性能。 使用Unreal Engine 4的游戏似乎受影响最大。</string>
     <string name="buffer_reorder_disable">禁用缓冲重排序</string>
@@ -847,11 +845,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">无</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">正常</string>
-    <string name="renderer_accuracy_high">高</string>
-    <string name="renderer_accuracy_extreme">极致</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">默认</string>

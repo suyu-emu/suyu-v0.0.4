@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">採樣著色處理的強度。數值越高，品質改善越多，但效能降低也越明顯。</string>
 
     <string name="veil_renderer">渲染器</string>
-    <string name="renderer_early_release_fences">提前釋放圍欄</string>
-    <string name="renderer_early_release_fences_description">可修復《咚奇剛歸來HD》、《深海迷航：冰點之下》和《聖靈之光2》等遊戲中的0 FPS問題，但可能影響Unreal Engine遊戲的載入或效能。</string>
     <string name="sync_memory_operations">同步記憶體操作</string>
     <string name="sync_memory_operations_description">確保計算和記憶體操作之間的資料一致性。 此選項應能修復某些遊戲中的問題，但在某些情況下可能會降低效能。 使用Unreal Engine 4的遊戲似乎受影響最大。</string>
     <string name="buffer_reorder_disable">停用緩衝區重新排序</string>
@@ -847,11 +845,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">無</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">標準</string>
-    <string name="renderer_accuracy_high">高</string>
-    <string name="renderer_accuracy_extreme">極高</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">預設</string>

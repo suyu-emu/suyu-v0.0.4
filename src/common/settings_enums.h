@@ -133,7 +133,7 @@ ENUM(VSyncMode, Immediate, Mailbox, Fifo, FifoRelaxed);
 ENUM(VramUsageMode, Conservative, Aggressive);
 ENUM(RendererBackend, OpenGL, Vulkan, Null);
 ENUM(ShaderBackend, Glsl, Glasm, SpirV);
-ENUM(GpuAccuracy, Normal, High, Extreme);
+ENUM(GpuAccuracy, Low, Medium, High);
 ENUM(DmaAccuracy, Default, Unsafe, Safe);
 ENUM(CpuBackend, Dynarmic, Nce);
 ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid, Debugging);

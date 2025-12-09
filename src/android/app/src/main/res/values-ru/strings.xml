@@ -98,8 +98,6 @@
     <string name="sample_shading_fraction_description">Интенсивность прохода сэмплового затенения. Более высокие значения улучшают качество, но и сильнее снижают производительность.</string>
 
     <string name="veil_renderer">Рендеринг</string>
-    <string name="renderer_early_release_fences">Ранний релиз ограждений</string>
-    <string name="renderer_early_release_fences_description">Помогает исправить 0 FPS в играх типа DKCR:HD, Subnautica Below Zero и Ori 2, но может нарушить загрузку или производительность в играх на Unreal Engine.</string>
     <string name="sync_memory_operations">Синхронизация операций с памятью</string>
     <string name="sync_memory_operations_description">Обеспечивает согласованность данных между вычислительными операциями и операциями с памятью. Эта опция должна исправлять проблемы в некоторых играх, но может снижать производительность в некоторых случаях. Наиболее сильно это затрагивает игры на Unreal Engine 4.</string>
     <string name="buffer_reorder_disable">Отключить переупорядочивание буфера</string>
@@ -873,11 +871,6 @@
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Никакой</string>
-
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Нормальная</string>
-    <string name="renderer_accuracy_high">Высокая</string>
-    <string name="renderer_accuracy_extreme">Экстрим</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">По умолчанию</string>

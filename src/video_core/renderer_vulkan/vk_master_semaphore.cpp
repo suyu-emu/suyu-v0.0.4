@@ -80,7 +80,9 @@ void MasterSemaphore::Wait(u64 tick) {
     if (!semaphore) {
         // If we don't support timeline semaphores, wait for the value normally
         std::unique_lock lk{free_mutex};
-        free_cv.wait(lk, [&] { return gpu_tick.load(std::memory_order_relaxed) >= tick; });
+        free_cv.wait(lk, [&] {
+            return gpu_tick.load(std::memory_order_acquire) >= tick;
+        });
         return;
     }
 
@@ -216,15 +218,32 @@ void MasterSemaphore::WaitThread(std::stop_token token) {
             wait_queue.pop();
         }
 
+#ifdef ANDROID
+        VkResult status;
+        do {
+            status = fence.GetStatus();
+            if (status == VK_NOT_READY) {
+                std::this_thread::sleep_for(std::chrono::microseconds(100));
+            }
+        } while (status == VK_NOT_READY);
+
+        if (status == VK_SUCCESS) {
+            fence.Reset();
+        } else {
+            vk::Check(status);
+            continue;
+        }
+#else
         fence.Wait();
         fence.Reset();
+#endif
 
         {
             std::scoped_lock lock{free_mutex};
             free_queue.push_front(std::move(fence));
-            gpu_tick.store(host_tick);
+            gpu_tick.store(host_tick, std::memory_order_release);
         }
-        free_cv.notify_one();
+        free_cv.notify_all();
     }
 }
 

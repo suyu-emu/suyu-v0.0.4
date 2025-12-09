@@ -98,9 +98,9 @@
     </integer-array>
 
     <string-array name="rendererAccuracyNames">
-        <item>@string/renderer_accuracy_normal</item>
+        <item>@string/renderer_accuracy_low</item>
+        <item>@string/renderer_accuracy_medium</item>
         <item>@string/renderer_accuracy_high</item>
-        <item>@string/renderer_accuracy_extreme</item>
     </string-array>
 
     <integer-array name="rendererAccuracyValues">

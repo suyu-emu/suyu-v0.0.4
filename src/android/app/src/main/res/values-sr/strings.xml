@@ -75,8 +75,6 @@
     <string name="sample_shading_fraction_description">Интензитет проласка сенчења узорка. Веће вредности побољшавају квалитет више, али такође више смањују перформансе.</string>
 
     <string name="veil_renderer">Рендерер</string>
-    <string name="renderer_early_release_fences">Ranije oslobađanje ograda</string>
-    <string name="renderer_early_release_fences_description">Pomaže u popravci 0 FPS u igrama kao što su DKCR:HD, Subnautica Below Zero i Ori 2, ali može oštetiti učitavanje ili performanse u Unreal Engine igrama.</string>
     <string name="sync_memory_operations">Синхронизација меморијских операција</string>
     <string name="sync_memory_operations_description">Осигурава конзистентност података између рачунских и меморијских операција. Ова опција би требало да поправи проблеме у неким играма, али може смањити перформансе у неким случајевима. Чини се да су игре са Unreal Engine 4 највише погођене.</string>
     <string name="buffer_reorder_disable">Онемогући преуређивање бафера</string>
@@ -771,9 +769,6 @@
     <string name="renderer_vulkan">Вулкан</string>
     <string name="renderer_none">Ниједан</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Нормалан</string>
-    <string name="renderer_accuracy_high">Високо</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Подразумевано</string>
     <!-- ASTC Decoding Method -->

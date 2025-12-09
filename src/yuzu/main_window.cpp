@@ -1267,9 +1267,6 @@ void MainWindow::InitializeWidgets() {
                 QMenu context_menu;
 
                 for (auto const& gpu_accuracy_pair : ConfigurationShared::gpu_accuracy_texts_map) {
-                    if (gpu_accuracy_pair.first == Settings::GpuAccuracy::Extreme) {
-                        continue;
-                    }
                     context_menu.addAction(gpu_accuracy_pair.second, [this, gpu_accuracy_pair] {
                         Settings::values.gpu_accuracy.SetValue(gpu_accuracy_pair.first);
                         UpdateGPUAccuracyButton();
@@ -3563,16 +3560,15 @@ void MainWindow::OnToggleDockedMode() {
 
 void MainWindow::OnToggleGpuAccuracy() {
     switch (Settings::values.gpu_accuracy.GetValue()) {
-    case Settings::GpuAccuracy::High: {
-        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Normal);
+    case Settings::GpuAccuracy::Low:
+        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Medium);
         break;
-    }
-    case Settings::GpuAccuracy::Normal:
-    case Settings::GpuAccuracy::Extreme:
-    default: {
+    case Settings::GpuAccuracy::Medium:
         Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::High);
         break;
-    }
+    case Settings::GpuAccuracy::High:
+        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Low);
+        break;
     }
 
     QtCommon::system->ApplySettings();
@@ -4260,7 +4256,7 @@ void MainWindow::UpdateGPUAccuracyButton() {
     const auto gpu_accuracy_text =
         ConfigurationShared::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
     gpu_accuracy_button->setText(gpu_accuracy_text.toUpper());
-    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Normal);
+    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Low);
 }
 
 void MainWindow::UpdateDockedButton() {

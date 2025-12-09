@@ -76,8 +76,6 @@
     <string name="sample_shading_fraction_description">Intenzita průchodu stínování vzorku. Vyšší hodnoty zlepšují kvalitu, ale také výrazněji snižují výkon.</string>
 
     <string name="veil_renderer">Renderer</string>
-    <string name="renderer_early_release_fences">Uvolnit ploty brzy</string>
-    <string name="renderer_early_release_fences_description">Pomáhá opravit 0 FPS v hrách jako DKCR:HD, Subnautica Below Zero a Ori 2, ale může narušit načítání nebo výkon v hrách na Unreal Engine.</string>
     <string name="sync_memory_operations">Synchronizace paměťových operací</string>
     <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Nejvíce postižené se zdají být hry s Unreal Engine 4.</string>
     <string name="buffer_reorder_disable">Zakázat přeřazování vyrovnávací paměti</string>
@@ -612,9 +610,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Žádné</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_normal">Normální</string>
-    <string name="renderer_accuracy_high">Vysoká</string>
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Výchozí</string>
     <!-- ASTC Decoding Method -->
