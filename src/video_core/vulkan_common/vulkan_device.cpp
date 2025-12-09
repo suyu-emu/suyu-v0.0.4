@@ -663,11 +663,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         break;
     }
 
-    if (!extensions.extended_dynamic_state) {
-        Settings::values.vertex_input_dynamic_state.SetValue(false);
-    }
-
-    if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
+    if (!Settings::values.vertex_input_dynamic_state.GetValue() || !extensions.extended_dynamic_state) {
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
