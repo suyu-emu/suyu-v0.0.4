@@ -88,7 +88,8 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {181, nullptr, "UpgradeLaunchRequiredVersion"},
         {190, nullptr, "SendServerMaintenanceOverlayNotification"},
         {200, nullptr, "GetLastApplicationExitReason"},
-        {210, D<&IApplicationFunctions::GetUnknownEvent210>, "Unknown210"},
+        {210, D<&IApplicationFunctions::GetLaunchRequiredVersionUpgrade>, "GetLaunchRequiredVersionUpgrade"}, // [20.0.0+]
+        {211, nullptr, "GetLaunchRequiredVersionUpgradeStatus"}, // [20.0.0+]
         {220, nullptr, "Unknown220"}, // [20.0.0+]
         {300, nullptr, "Unknown300"}, // [20.0.0+]
         {310, nullptr, "Unknown310"}, // [20.0.0+]
@@ -496,10 +497,10 @@ Result IApplicationFunctions::GetHealthWarningDisappearedSystemEvent(
     R_SUCCEED();
 }
 
-Result IApplicationFunctions::GetUnknownEvent210(
+Result IApplicationFunctions::GetLaunchRequiredVersionUpgrade(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
-    LOG_DEBUG(Service_AM, "called");
-    *out_event = m_applet->unknown_event.GetHandle();
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    *out_event = m_applet->state_changed_event.GetHandle();
     R_SUCCEED();
 }
 
