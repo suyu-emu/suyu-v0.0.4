@@ -1,4 +1,4 @@
-# Installing Atmosphere Mods
+# User Handbook - Installing Atmosphere Mods
 
 Use this guide for when you want to install an Atmosphere-based mod for use in Eden.
 

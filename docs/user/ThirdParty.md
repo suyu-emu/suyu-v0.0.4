@@ -6,3 +6,4 @@ While most of the links mentioned in this guide are relatively "safe"; we urge u
 
 - [Nightly Eden builds](https://github.com/pflyly/eden-nightly)
 - [NixOS Eden Flake](https://github.com/Grantimatter/eden-flake)
+- [ES-DE Frontend Support](https://github.com/GlazedBelmont/es-de-android-custom-systems)

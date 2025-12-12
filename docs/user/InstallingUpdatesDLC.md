@@ -1,4 +1,4 @@
-# Working with Updates/DLC in Eden
+# User Handbook - Working with Updates/DLC in Eden
 
 Use this guide when you want to install Updates or DLC for your games in Eden.
 

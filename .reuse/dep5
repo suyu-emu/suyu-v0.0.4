@@ -13,8 +13,6 @@ Copyright: yuzu Emulator Project
 License: GPL-2.0-or-later
 
 Files: dist/qt_themes/default/icons/256x256/eden.png
-       dist/qt_themes/default/icons/256x256/eden_named.png
-       dist/Assets.car
        dist/yuzu.bmp
        dist/eden.icns
        dist/eden.ico

@@ -1,10 +1,22 @@
-# Eden Fails to Launch and Does Not Leave Any Logs
+# User Handbook - Troubleshooting
+
+## Vulkan initialization error
+
+- Ensure you have the latest drivers
+- Uninstall old drivers, for Windows you can use [Display Driver Uninstaller](https://www.guru3d.com/download/display-driver-uninstaller-download/)
+- Change backend manually in the settings file (set it from `0` to `1` or viceversa).
+- Disconnect your second monitor, if any
+
+## This mod only works on an Emulator
+
+- Enable RNG seed
+- Set RNG seed to 0
+
+## Eden Fails to Launch and Does Not Leave Any Logs
 
 **Click [Here](https://evilperson1337.notion.site/Windows-Eden-Fails-to-Launch-and-Does-Not-Leave-Any-Logs-2b057c2edaf68156b640cf1ac549870a) for a version of this guide with images & visual elements.**
 
----
-
-## Error Details
+### Error Details
 
 *Behavior*:  Program appears not to launch or exits immediately without leaving any log entries.
 *Platform(s) Affected*:
@@ -32,13 +44,11 @@ Faulting package-relative application ID:
 
 ---
 
-## Causes
+### Causes
 
 <aside>
 
-### Issue 1: Missing C++ Redistributable
-
----
+#### Issue 1: Missing C++ Redistributable
 
 *Eden requires the latest C++ redistributable from Microsoft in order to run.  Like many other programs, it relies on aspects and libraries included in this runtime, without it - the program cannot run.*
 
@@ -50,9 +60,7 @@ Faulting package-relative application ID:
 
 <aside>
 
-### Issue 2: Corrupted System Files
-
----
+#### Issue 2: Corrupted System Files
 
 *A corruption of necessary system files can cause odd behaviors when Eden tries to access them.  It is a very rare case and you would likely see other programs misbehaving if this is what your issue is, but you can try if you have no other options.*
 

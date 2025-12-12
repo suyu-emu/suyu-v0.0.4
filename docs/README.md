@@ -10,4 +10,6 @@ This contains documentation created by developers. This contains build instructi
 - **[Debug Guidelines](./Debug.md)**
 - **[CPM - CMake Package Manager](CPMUtil.md)**
 - **[Platform-Specific Caveats](Caveats.md)**
+- **[The NVIDIA SM86 (Maxwell) GPU](./NvidiaGpu.md)**
 - **[User Handbook](./user)**
+- **[Release Policy](./ReleasePolicy.md)**

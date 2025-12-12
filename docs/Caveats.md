@@ -77,6 +77,8 @@ For this reason this patch is NOT applied to default on all platforms (for obvio
 
 Still will not run flawlessly until `mesa-24` is available. Modify CMakeCache.txt with the `.so` of libGL and libGLESv2 by doing the incredibly difficult task of copy pasting them (`cp /boot/system/lib/libGL.so .`)
 
+If you have `quazip1_qt6_devel`, uninstall it. It may call `Core5Compat` on CMake which is wrongly packaged.
+
 ## OpenBSD
 
 After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-build/build.make` to use `-j$(nproc)` instead of just `-j`.
@@ -99,11 +101,17 @@ ip6addrctl=YES
 ip6addrctl_policy=ipv4_prefer
 ```
 
-System provides a default `g++-10` which doesn't support the current C++ codebase; install `clang-19` with `pkgin install clang-19`. Then build with `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -B build`.
+System provides a default `g++-10` which doesn't support the current C++ codebase; install `clang-19` with `pkgin install clang-19`. Or install `gcc14` (or `gcc15` with current pkgsrc). Provided that, the following CMake commands may work:
+
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -Bbuild`
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/pkg/gcc14/bin/gcc -DCMAKE_CXX_COMPILER=/usr/pkg/gcc14/bin/g++ -Bbuild`
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/pkg/gcc15/bin/gcc -DCMAKE_CXX_COMPILER=/usr/pkg/gcc15/bin/g++ -Bbuild`
 
 Make may error out when generating C++ headers of SPIRV shaders, hence it's recommended to use `gmake` over the default system one.
 
-glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
+[parallel/spirv-tools](https://iso.us.netbsd.org/pub/pkgsrc/current/pkgsrc/parallel/spirv-tools/index.html) isn't available in binary form and must be build from source.
+
+Such that glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
 ```sh
 pkgin python313
 git clone --depth=1 https://github.com/KhronosGroup/glslang.git
@@ -113,6 +121,8 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -- -j`nproc`
 cmake --install build
 ```
+
+However, pkgsrc is highly recommended, see [getting pkgsrc](https://iso.us.netbsd.org/pub/pkgsrc/current/pkgsrc/doc/pkgsrc.html#getting). You must get `current` not the `2025Q2` version.
 
 # DragonFlyBSD
 

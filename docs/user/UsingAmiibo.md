@@ -1,10 +1,14 @@
-# Using Amiibo with Eden
+# User Handbook - Using Amiibo
 
 Use this guide when you want to load Amiibo into your games for use with the Eden emulator.
 
 **Click [Here](https://evilperson1337.notion.site/Using-Amiibo-with-Eden-2b057c2edaf681b1b28ec6be600c6d3e) for a version of this guide with images & visual elements.**
 
----
+## Android
+
+TBD
+
+## Desktop
 
 ### Pre-Requisites
 
@@ -17,9 +21,7 @@ Use this guide when you want to load Amiibo into your games for use with the Ede
 
     </aside> 
 
-## Steps
-
----
+### Steps
 
 1. Launch Eden and launch the game you want to load Amiibo for.
     <aside>

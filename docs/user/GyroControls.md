@@ -3,7 +3,7 @@ Use this guide when you want to use the Steam Deck's native gyro functionality f
 
 **Click [Here](https://evilperson1337.notion.site/Getting-Gyro-Motion-Controls-Working-on-Steam-Deck-2b057c2edaf681a1aaade35db6e0fd1b) for a version of this guide with images & visual elements.**
 
----
+## Steamdeck
 
 ### Pre-Requisites
 
@@ -13,7 +13,7 @@ Use this guide when you want to use the Steam Deck's native gyro functionality f
 
 ---
 
-## Steps
+### Steps
 
 1. Go into Steam Deck's Desktop Mode, and use the shortcut to launch EmuDeck.
 2. Install [SteamDeckGyroDSU](https://github.com/kmicki/SteamDeckGyroDSU/releases) by going to *3rd Party Tools > Gyroscope* and clicking **Install.**

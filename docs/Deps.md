@@ -183,6 +183,8 @@ sudo dnf config-manager --enable crb
 sudo dnf install qt6-qtbase-private-devel
 ```
 
+For systems like OpenEuler or derivates, don't forget to also install: `SDL2-devel pkg-config fmt-dev nlohmann-json-dev`.
+
 * [RPM Fusion](https://rpmfusion.org/Configuration) is required for `ffmpeg-devel`
 * Fedora 32 or later is required.
 * Fedora 36+ users with GCC 12 need Clang and should configure CMake with: `cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -B build`
@@ -241,7 +243,7 @@ brew install molten-vk vulkan-loader
 <details>
 <summary>FreeBSD</summary>
 
-As root run: `pkg install devel/cmake devel/sdl20 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/jwt-cpp devel/unordered-dense mbedtls3 vulkan-headers quazip-qt6`
+As root run: `pkg install devel/cmake devel/sdl20 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/unordered-dense mbedtls3 vulkan-headers quazip-qt6`
 
 If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 
@@ -251,7 +253,7 @@ If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 <details>
 <summary>NetBSD</summary>
 
-For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers ffmpeg7 libva nlohmann-json jq libopus qt6 mbedtls3 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1`.
+For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers ffmpeg7 libva nlohmann-json jq libopus qt6 mbedtls3 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1 libcxx`.
 
 [Caveats](./Caveats.md#netbsd).
 
@@ -320,7 +322,7 @@ pacman -Syuu --needed --noconfirm $packages
 <summary>HaikuOS</summary>
 
 ```sh
-pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt6_devel qt6_5compat_devel libusb1_devel libz_devel mbedtls3_devel glslang
+pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel qt6_declarative_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt5_devel qt6_5compat_devel mbedtls3_devel glslang qt6_devel
 ```
 
 [Caveats](./Caveats.md#haikuos).

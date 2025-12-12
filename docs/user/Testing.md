@@ -2,6 +2,11 @@
 
 While this is mainly aimed for testers - normal users can benefit from these guidelines to make their life easier when trying to outline and/or report an issue.
 
+## Getting logs
+
+In order to get more information, you can find logs in the following location:
+
+
 ## How to Test a PR Against the Based Master When Issues Arise
 
 When you're testing a pull request (PR) and encounter unexpected behavior, it's important to determine whether the issue was introduced by the PR or if it already exists in the base code. To do this, compare the behavior against the based master branch.
