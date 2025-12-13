@@ -13,6 +13,7 @@
 #include "core/hle/service/ns/content_management_interface.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/file_sys/patch_manager.h"
+#include "frontend_common/firmware_manager.h"
 
 namespace Service::NS {
 
@@ -429,13 +430,13 @@ Result IApplicationManagerInterface::IsAnyApplicationEntityInstalled(
 }
 
 Result IApplicationManagerInterface::GetApplicationViewDeprecated(
-    OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
+    OutArray<ApplicationViewV19, BufferAttr_HipcMapAlias> out_application_views,
     InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
     const auto size = (std::min)(out_application_views.size(), application_ids.size());
     LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
 
     for (size_t i = 0; i < size; i++) {
-        ApplicationView view{};
+        ApplicationViewV19 view{};
         view.application_id = application_ids[i];
         view.version = 0x70000;
         view.flags = 0x401f17;
@@ -447,34 +448,53 @@ Result IApplicationManagerInterface::GetApplicationViewDeprecated(
 }
 
 Result IApplicationManagerInterface::GetApplicationViewWithPromotionInfo(
-    OutArray<ApplicationViewWithPromotionInfo, BufferAttr_HipcMapAlias> out_application_views,
+    OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+    Out<u32> out_count,
     InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
-    const auto size = (std::min)(out_application_views.size(), application_ids.size());
-    LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
+    const auto requested = application_ids.size();
+    LOG_WARNING(Service_NS, "called, size={}", requested);
 
-    for (size_t i = 0; i < size; i++) {
-        ApplicationViewWithPromotionInfo view{};
-        view.view.application_id = application_ids[i];
-        view.view.version = 0x70000;
-        view.view.flags = 0x401f17;
-        view.promotion = {};
+    const auto fw_pair = FirmwareManager::GetFirmwareVersion(system);
+    const bool is_fw20 = fw_pair.first.major >= 20;
 
-        out_application_views[i] = view;
+    const size_t per_entry_size = is_fw20 ? (sizeof(ApplicationViewV20) + sizeof(PromotionInfo))
+                                             : (sizeof(ApplicationViewV19) + sizeof(PromotionInfo));
+    const size_t capacity_entries = out_buffer.size() / per_entry_size;
+    const size_t to_write_entries = (std::min)(requested, capacity_entries);
+
+    u8* dst = out_buffer.data();
+    for (size_t i = 0; i < to_write_entries; ++i) {
+        ApplicationViewWithPromotionData data{};
+        data.view.application_id = application_ids[i];
+        data.view.version = 0x70000;
+        data.view.unk = 0;
+        data.view.flags = 0x401f17;
+        data.view.download_state = {};
+        data.view.download_progress = {};
+        data.promotion = {};
+
+        const size_t written = WriteApplicationViewWithPromotion(dst, out_buffer.size() - (dst - out_buffer.data()), data, is_fw20);
+        if (written == 0) {
+            break;
+        }
+        dst += written;
     }
 
+    *out_count = static_cast<u32>(dst - out_buffer.data()) / static_cast<u32>(per_entry_size);
     R_SUCCEED();
 }
 
 Result IApplicationManagerInterface::GetApplicationView(
-    OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
+    OutArray<ApplicationViewV20, BufferAttr_HipcMapAlias> out_application_views,
     InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
     const auto size = (std::min)(out_application_views.size(), application_ids.size());
     LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
 
     for (size_t i = 0; i < size; i++) {
-        ApplicationView view{};
+        ApplicationViewV20 view{};
         view.application_id = application_ids[i];
         view.version = 0x70000;
+        view.unk = 0;
         view.flags = 0x401f17;
 
         out_application_views[i] = view;

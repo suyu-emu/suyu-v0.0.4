@@ -36,13 +36,14 @@ public:
     Result IsGameCardApplicationRunning(Out<bool> out_is_running);
     Result IsAnyApplicationEntityInstalled(Out<bool> out_is_any_application_entity_installed);
     Result GetApplicationViewDeprecated(
-        OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
+        OutArray<ApplicationViewV19, BufferAttr_HipcMapAlias> out_application_views,
         InArray<u64, BufferAttr_HipcMapAlias> application_ids);
     Result GetApplicationViewWithPromotionInfo(
-        OutArray<ApplicationViewWithPromotionInfo, BufferAttr_HipcMapAlias> out_application_views,
+        OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+        Out<u32> out_count,
         InArray<u64, BufferAttr_HipcMapAlias> application_ids);
     Result GetApplicationView(
-        OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
+        OutArray<ApplicationViewV20, BufferAttr_HipcMapAlias> out_application_views,
         InArray<u64, BufferAttr_HipcMapAlias> application_ids);
     Result GetApplicationRightsOnClient(
         OutArray<ApplicationRightsOnClient, BufferAttr_HipcMapAlias> out_rights, Out<u32> out_count,
