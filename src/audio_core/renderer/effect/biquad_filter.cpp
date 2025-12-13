@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -34,14 +37,22 @@ void BiquadFilterInfo::Update(BehaviorInfo::ErrorInfo& error_info,
 }
 
 void BiquadFilterInfo::UpdateForCommandGeneration() {
-    if (enabled) {
-        usage_state = UsageState::Enabled;
-    } else {
-        usage_state = UsageState::Disabled;
-    }
+    usage_state = enabled ? UsageState::Enabled : UsageState::Disabled;
 
-    auto params{reinterpret_cast<ParameterVersion1*>(parameter.data())};
-    params->state = ParameterState::Updated;
+    auto* params_v1 = reinterpret_cast<ParameterVersion1*>(parameter.data());
+    auto* params_v2 = reinterpret_cast<ParameterVersion2*>(parameter.data());
+
+    const auto raw_state_v1 = static_cast<u8>(params_v1->state);
+    const auto raw_state_v2 = static_cast<u8>(params_v2->state);
+
+    if (raw_state_v1 <= static_cast<u8>(ParameterState::Updated)) {
+        params_v1->state = ParameterState::Updated;
+    } else if (raw_state_v2 <= static_cast<u8>(ParameterState::Updated)) {
+        params_v2->state = ParameterState::Updated;
+    } else {
+        params_v1->state = ParameterState::Updated;
+        params_v2->state = ParameterState::Updated;
+    }
 }
 
 void BiquadFilterInfo::InitializeResultState(EffectResultState& result_state) {}
