@@ -10,8 +10,13 @@ set(CMAKE_XCODE_EMIT_RELATIVE_PATH YES)
 
 project(suyu)
 
+# Use improved CMake modules from eden subdirectory with fallback
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/eden")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
+
+# Set CPM cache for better dependency management
+set(CPM_SOURCE_CACHE "${CMAKE_SOURCE_DIR}/.cache/cpm")
 
 include(DownloadExternals)
 include(CMakeDependentOption)
@@ -313,7 +318,25 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # =======================================================================
 
 # Enforce the search mode of non-required packages for better and shorter failure messages
-find_package(Boost 1.79.0 REQUIRED context)
+# Boost with flexible component search - try all required components
+if(NOT WIN32 AND NOT APPLE)
+    set(Boost_USE_STATIC_LIBS ON)
+endif()
+
+find_package(Boost 1.79.0 QUIET COMPONENTS context)
+if(NOT Boost_FOUND)
+    # Fallback: try without version requirement
+    find_package(Boost QUIET COMPONENTS context)
+    if(NOT Boost_FOUND)
+        # Final fallback: use headers only
+        find_package(Boost 1.79.0 QUIET)
+    endif()
+endif()
+
+if(NOT Boost_FOUND)
+    message(FATAL_ERROR "Boost library not found. Please install Boost >= 1.79.0 or enable bundled package management")
+endif()
+
 find_package(enet 1.3 MODULE)
 find_package(fmt 9 REQUIRED)
 find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
@@ -708,7 +731,9 @@ function(create_target_directory_groups target_name)
 endfunction()
 
 # Prevent boost from linking against libs when building
-target_link_libraries(Boost::headers INTERFACE Boost::disable_autolinking)
+if(TARGET Boost::headers)
+    target_link_libraries(Boost::headers INTERFACE Boost::disable_autolinking)
+endif()
 # Adjustments for MSVC + Ninja
 if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")
     add_compile_options(
