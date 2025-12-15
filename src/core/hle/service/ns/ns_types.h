@@ -90,8 +90,8 @@ static_assert(sizeof(ApplicationViewV19) == 0x50, "ApplicationViewV19 has incorr
 struct ApplicationViewV20 {
     u64 application_id;
     u32 version;
-    u32 unk;
     u32 flags;
+    u32 unk;
     ApplicationDownloadState download_state;
     ApplicationDownloadState download_progress;
 };
@@ -100,8 +100,8 @@ static_assert(sizeof(ApplicationViewV20) == 0x58, "ApplicationViewV20 has incorr
 struct ApplicationViewData {
     u64 application_id{};
     u32 version{};
-    u32 unk{};
     u32 flags{};
+    u32 unk{};
     ApplicationDownloadState download_state{};
     ApplicationDownloadState download_progress{};
 };
@@ -113,8 +113,8 @@ inline size_t WriteApplicationView(void* dst, size_t dst_size, const Application
         auto* out = reinterpret_cast<ApplicationViewV20*>(dst);
         out->application_id = data.application_id;
         out->version = data.version;
-        out->unk = data.unk;
         out->flags = data.flags;
+        out->unk = data.unk;
         out->download_state = data.download_state;
         out->download_progress = data.download_progress;
         return sizeof(ApplicationViewV20);
