@@ -137,7 +137,7 @@ If your initial configure failed:
 - Evaluate the error and find any related settings
 - See the [CPM docs](CPM.md) to see if you may need to forcefully bundle any packages
 
-Otherwise, feel free to ask for help in Revolt or Discord.
+Otherwise, feel free to ask for help in Stoat or Discord.
 
 ## Caveats
 

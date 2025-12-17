@@ -447,7 +447,7 @@
     <string name="user_data_export_cancelled">Export cancelled</string>
     <string name="user_data_import_failed_description">Make sure the user data folders are at the root of the zip folder and contain a config file at config/config.ini and try again.</string>
     <string name="discord_link" translatable="false">https://discord.gg/HstXbPch7X</string>
-    <string name="revolt_link" translatable="false">https://rvlt.gg/qKgFEAbH</string>
+    <string name="stoat_link" translatable="false">https://stt.gg/qKgFEAbH</string>
     <string name="x_link" translatable="false">https://nitter.poast.org/edenemuofficial</string>
     <string name="website_link" translatable="false">https://eden-emu.dev</string>
     <string name="github_link" translatable="false">https://git.eden-emu.dev/eden-emu</string>

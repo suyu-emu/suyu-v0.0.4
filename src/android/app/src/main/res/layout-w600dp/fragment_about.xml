@@ -220,12 +220,12 @@
                         app:iconPadding="0dp" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_revolt"
+                        android:id="@+id/button_stoat"
                         style="@style/EdenButton.Secondary"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:layout_marginEnd="12dp"
-                        app:icon="@drawable/ic_revolt"
+                        app:icon="@drawable/ic_stoat"
                         app:iconGravity="textStart"
                         app:iconSize="24dp"
                         app:iconPadding="0dp" />

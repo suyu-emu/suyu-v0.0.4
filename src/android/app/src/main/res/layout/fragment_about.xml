@@ -215,12 +215,12 @@
 
                 <com.google.android.material.button.MaterialButton
                     style="@style/EdenButton.Secondary"
-                    android:id="@+id/button_revolt"
+                    android:id="@+id/button_stoat"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:icon="@drawable/ic_revolt"
+                    app:icon="@drawable/ic_stoat"
                     app:iconSize="24dp"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp" />
@@ -235,7 +235,7 @@
                     app:icon="@drawable/ic_x"
                     app:iconSize="24dp"
                     app:iconGravity="textStart"
-                    app:iconPadding="0dp" />        
+                    app:iconPadding="0dp" />
 
                 <com.google.android.material.button.MaterialButton
                     style="@style/EdenButton.Secondary"
