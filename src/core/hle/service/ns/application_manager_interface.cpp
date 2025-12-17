@@ -10,6 +10,8 @@
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ns/application_manager_interface.h"
+
+#include "core/file_sys/content_archive.h"
 #include "core/hle/service/ns/content_management_interface.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/file_sys/patch_manager.h"
@@ -54,7 +56,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {37, nullptr, "ListRequiredVersion"},
         {38, D<&IApplicationManagerInterface::CheckApplicationLaunchVersion>, "CheckApplicationLaunchVersion"},
         {39, nullptr, "CheckApplicationLaunchRights"},
-        {40, nullptr, "GetApplicationLogoData"},
+        {40, D<&IApplicationManagerInterface::GetApplicationLogoData>, "GetApplicationLogoData"},
         {41, nullptr, "CalculateApplicationDownloadRequiredSize"},
         {42, nullptr, "CleanupSdCard"},
         {43, D<&IApplicationManagerInterface::CheckSdCardMountStatus>, "CheckSdCardMountStatus"},
@@ -331,6 +333,53 @@ Result IApplicationManagerInterface::UnregisterNetworkServiceAccountWithUserSave
     LOG_DEBUG(Service_NS, "called, user_id={}", user_id.FormattedString());
     R_SUCCEED();
 }
+
+Result IApplicationManagerInterface::GetApplicationLogoData(
+    Out<s64> out_size, OutBuffer<BufferAttr_HipcMapAlias> out_buffer, u64 application_id,
+    InBuffer<BufferAttr_HipcMapAlias> logo_path_buffer) {
+    const std::string path_view{reinterpret_cast<const char*>(logo_path_buffer.data()),
+                                logo_path_buffer.size()};
+
+    // Find null terminator and trim the path
+    auto null_pos = path_view.find('\0');
+    std::string path = (null_pos != std::string::npos) ? path_view.substr(0, null_pos) : path_view;
+
+    LOG_DEBUG(Service_NS, "called, application_id={:016X}, logo_path={}", application_id, path);
+
+    auto& content_provider = system.GetContentProviderUnion();
+
+    auto program = content_provider.GetEntry(application_id, FileSys::ContentRecordType::Program);
+    if (!program) {
+        LOG_WARNING(Service_NS, "Application program not found for id={:016X}", application_id);
+        R_RETURN(ResultUnknown);
+    }
+
+    const auto logo_dir = program->GetLogoPartition();
+    if (!logo_dir) {
+        LOG_WARNING(Service_NS, "Logo partition not found for id={:016X}", application_id);
+        R_RETURN(ResultUnknown);
+    }
+
+    const auto file = logo_dir->GetFile(path);
+    if (!file) {
+        LOG_WARNING(Service_NS, "Logo path not found: {} for id={:016X}", path,
+                    application_id);
+        R_RETURN(ResultUnknown);
+    }
+
+    const auto data = file->ReadAllBytes();
+    if (data.size() > out_buffer.size()) {
+        LOG_WARNING(Service_NS, "Logo buffer too small: have={}, need={}", out_buffer.size(),
+                    data.size());
+        R_RETURN(ResultUnknown);
+    }
+
+    std::memcpy(out_buffer.data(), data.data(), data.size());
+    *out_size = static_cast<s64>(data.size());
+
+    R_SUCCEED();
+}
+
 Result IApplicationManagerInterface::GetApplicationControlData(
     OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_actual_size,
     ApplicationControlSource application_control_source, u64 application_id) {

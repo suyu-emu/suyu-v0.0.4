@@ -36,10 +36,6 @@ void DisplayLayerManager::Initialize(Core::System& system, Kernel::KProcess* pro
     m_buffer_sharing_enabled = false;
     m_blending_enabled = mode == LibraryAppletMode::PartialForeground ||
                          mode == LibraryAppletMode::PartialForegroundIndirectDisplay;
-
-    if (m_applet_id != AppletId::Application) {
-        (void)this->IsSystemBufferSharingEnabled();
-    }
 }
 
 void DisplayLayerManager::Finalize() {
@@ -80,11 +76,10 @@ Result DisplayLayerManager::CreateManagedDisplayLayer(u64* out_layer_id) {
     if (m_applet_id != AppletId::Application) {
         (void)m_manager_display_service->SetLayerBlending(m_blending_enabled, *out_layer_id);
         if (m_applet_id == AppletId::OverlayDisplay) {
-            static constexpr s32 kOverlayBackgroundZ = -1;
-            (void)m_manager_display_service->SetLayerZIndex(kOverlayBackgroundZ, *out_layer_id);
+            (void)m_manager_display_service->SetLayerZIndex(-1, *out_layer_id);
+            (void)m_display_service->GetContainer()->SetLayerIsOverlay(*out_layer_id, true);
         } else {
-            static constexpr s32 kOverlayZ = 3;
-            (void)m_manager_display_service->SetLayerZIndex(kOverlayZ, *out_layer_id);
+            (void)m_manager_display_service->SetLayerZIndex(1, *out_layer_id);
         }
     }
 
@@ -131,6 +126,7 @@ Result DisplayLayerManager::IsSystemBufferSharingEnabled() {
     s32 initial_z = 1;
     if (m_applet_id == AppletId::OverlayDisplay) {
         initial_z = -1;
+        (void)m_display_service->GetContainer()->SetLayerIsOverlay(m_system_shared_layer_id, true);
     }
     m_manager_display_service->SetLayerZIndex(initial_z, m_system_shared_layer_id);
     R_SUCCEED();

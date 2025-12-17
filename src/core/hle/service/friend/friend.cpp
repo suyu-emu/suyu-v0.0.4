@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -67,7 +70,7 @@ public:
             {20701, &IFriendService::GetPlayHistoryStatistics, "GetPlayHistoryStatistics"},
             {20800, &IFriendService::LoadUserSetting, "LoadUserSetting"},
             {20801, nullptr, "SyncUserSetting"},
-            {20900, nullptr, "RequestListSummaryOverlayNotification"},
+            {20900, &IFriendService::RequestListSummaryOverlayNotification, "RequestListSummaryOverlayNotification"},
             {21000, nullptr, "GetExternalApplicationCatalog"},
             {22000, nullptr, "GetReceivedFriendInvitationList"},
             {22001, nullptr, "GetReceivedFriendInvitationDetailedInfo"},
@@ -312,6 +315,13 @@ private:
         setting.friend_code_next_issuable_time = 99999999999;
         strcpy(setting.friend_code, "0000-0000-0000");
         ctx.WriteBuffer(setting);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void RequestListSummaryOverlayNotification(HLERequestContext& ctx) {
+        LOG_INFO(Service_Friend, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);

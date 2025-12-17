@@ -78,8 +78,25 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
     for (auto& layer : display.stack.layers) {
         auto consumer_id = layer->consumer_id;
 
+        bool should_try_acquire = true;
+        if (!layer->is_overlay) {
+            auto fb_it = m_framebuffers.find(consumer_id);
+            if (fb_it != m_framebuffers.end() && fb_it->second.is_acquired) {
+                const u64 frames_since_last_acquire = m_frame_number - fb_it->second.last_acquire_frame;
+                const s32 expected_interval = NormalizeSwapInterval(nullptr, fb_it->second.item.swap_interval);
+
+                if (frames_since_last_acquire < static_cast<u64>(expected_interval)) {
+                    should_try_acquire = false;
+                }
+            }
+        }
+
         // Try to fetch the framebuffer (either new or stale).
-        const auto result = this->CacheFramebufferLocked(*layer, consumer_id);
+        const auto result = should_try_acquire
+            ? this->CacheFramebufferLocked(*layer, consumer_id)
+            : (m_framebuffers.find(consumer_id) != m_framebuffers.end() && m_framebuffers[consumer_id].is_acquired
+                ? CacheStatus::CachedBufferReused
+                : CacheStatus::NoBufferAvailable);
 
         // If we failed, skip this layer.
         if (result == CacheStatus::NoBufferAvailable) {
@@ -111,6 +128,12 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
             });
         }
 
+        // Overlay layers run at their own framerate independently of the game.
+        // Skip them when calculating the swap interval for the main game.
+        if (layer->is_overlay) {
+            continue;
+        }
+
         // We need to compose again either before this frame is supposed to
         // be released, or exactly on the vsync period it should be released.
         const s32 item_swap_interval = NormalizeSwapInterval(out_speed_scale, item.swap_interval);
@@ -138,33 +161,44 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
     // Batch framebuffer releases, instead of one-into-one.
     std::vector<std::pair<Layer*, Framebuffer*>> to_release;
     for (auto& [layer_id, framebuffer] : m_framebuffers) {
-        if (framebuffer.release_frame_number > m_frame_number || !framebuffer.is_acquired)
+        if (!framebuffer.is_acquired)
             continue;
-        if (auto layer = display.stack.FindLayer(layer_id); layer)
+
+        auto layer = display.stack.FindLayer(layer_id);
+        if (!layer)
+            continue;
+
+        // Overlay layers always release after every compose
+        // Non-overlay layers release based on their swap interval
+        if (layer->is_overlay || framebuffer.release_frame_number <= m_frame_number) {
             to_release.emplace_back(layer.get(), &framebuffer);
+        }
     }
     for (auto& [layer, framebuffer] : to_release) {
         layer->buffer_item_consumer->ReleaseBuffer(framebuffer->item, android::Fence::NoFence());
         framebuffer->is_acquired = false;
     }
 
-    // Advance by at least one frame.
-    const u32 frame_advance = swap_interval.value_or(1);
-    m_frame_number += frame_advance;
+    // Advance by 1 frame (60 FPS compositing)
+    m_frame_number += 1;
 
-    // Release any necessary framebuffers.
+    // Release any necessary framebuffers (non-overlay layers only, as overlays are already released above).
     for (auto& [layer_id, framebuffer] : m_framebuffers) {
-        if (framebuffer.release_frame_number > m_frame_number) {
-            // Not yet ready to release this framebuffer.
-            continue;
-        }
-
         if (!framebuffer.is_acquired) {
             // Already released.
             continue;
         }
 
+        if (framebuffer.release_frame_number > m_frame_number) {
+            continue;
+        }
+
         if (const auto layer = display.stack.FindLayer(layer_id); layer != nullptr) {
+            // Skip overlay layers as they were already released above
+            if (layer->is_overlay) {
+                continue;
+            }
+
             // TODO: support release fence
             // This is needed to prevent screen tearing
             layer->buffer_item_consumer->ReleaseBuffer(framebuffer.item, android::Fence::NoFence());
@@ -172,7 +206,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
         }
     }
 
-    return frame_advance;
+    return 1;
 }
 
 void HardwareComposer::RemoveLayerLocked(Display& display, ConsumerId consumer_id) {
@@ -200,8 +234,9 @@ bool HardwareComposer::TryAcquireFramebufferLocked(Layer& layer, Framebuffer& fr
     }
 
     // We succeeded, so set the new release frame info.
-    framebuffer.release_frame_number =
-        NormalizeSwapInterval(nullptr, framebuffer.item.swap_interval);
+    const s32 swap_interval = layer.is_overlay ? 1 : NormalizeSwapInterval(nullptr, framebuffer.item.swap_interval);
+    framebuffer.release_frame_number = m_frame_number + swap_interval;
+    framebuffer.last_acquire_frame = m_frame_number;
     framebuffer.is_acquired = true;
 
     return true;

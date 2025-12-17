@@ -60,6 +60,10 @@ public:
                                         u64 application_id);
     Result CheckApplicationLaunchVersion(u64 application_id);
     Result GetApplicationTerminateResult(Out<Result> out_result, u64 application_id);
+    Result GetApplicationLogoData(Out<s64> out_size,
+                                  OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+                                  u64 application_id,
+                                  InBuffer<BufferAttr_HipcMapAlias> logo_path_buffer);
     Result Unknown4022(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result Unknown4023(Out<u64> out_result);
     Result Unknown4053();

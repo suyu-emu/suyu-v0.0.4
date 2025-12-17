@@ -179,4 +179,9 @@ struct ApplicationDisplayData {
 };
 static_assert(sizeof(ApplicationDisplayData) == 0x300, "ApplicationDisplayData has incorrect size.");
 
+struct LogoPath {
+    std::array<char, 0x300> path;
+};
+static_assert(std::is_trivially_copyable_v<LogoPath>, "LogoPath must be trivially copyable.");
+
 } // namespace Service::NS

@@ -186,8 +186,6 @@ void WindowSystem::OnSystemButtonPress(SystemButtonType type) {
         if (m_overlay_display) {
             std::scoped_lock lk_overlay{m_overlay_display->lock};
             m_overlay_display->overlay_in_foreground = !m_overlay_display->overlay_in_foreground;
-            // Tie window visibility to foreground state so hidden when not active
-            m_overlay_display->window_visible = m_overlay_display->overlay_in_foreground;
             LOG_INFO(Service_AM, "Overlay long-press toggle: overlay_in_foreground={} window_visible={}", m_overlay_display->overlay_in_foreground, m_overlay_display->window_visible);
         }
         SendButtonAppletMessageLocked(AppletMessage::DetectLongPressingHomeButton);
@@ -393,7 +391,7 @@ void WindowSystem::UpdateAppletStateLocked(Applet* applet, bool is_foreground, b
     s32 z_index = 0;
     const bool now_foreground = inherited_foreground;
     if (applet->applet_id == AppletId::OverlayDisplay) {
-        z_index = applet->overlay_in_foreground ? 100000 : -100000;
+        z_index = applet->overlay_in_foreground ? 100000 : -1;
     } else if (now_foreground && !is_obscured) {
         z_index = 2;
     } else if (now_foreground) {

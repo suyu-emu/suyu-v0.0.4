@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -98,6 +101,13 @@ void SurfaceFlinger::SetLayerBlending(s32 consumer_binder_id, LayerBlending blen
     if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
         layer->blending = blending;
         return;
+    }
+}
+
+void SurfaceFlinger::SetLayerIsOverlay(s32 consumer_binder_id, bool is_overlay) {
+    if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
+        layer->is_overlay = is_overlay;
+        LOG_DEBUG(Service_VI, "Layer {} marked as overlay: {}", consumer_binder_id, is_overlay);
     }
 }
 

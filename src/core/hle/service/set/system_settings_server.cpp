@@ -36,6 +36,29 @@ struct SettingsHeader {
     u32 version;
     u32 reserved;
 };
+
+void SyncGlobalLanguageFromCode(LanguageCode language_code) {
+    const auto it = std::find_if(available_language_codes.begin(), available_language_codes.end(),
+                                 [language_code](LanguageCode code) { return code == language_code; });
+    if (it == available_language_codes.end()) {
+        return;
+    }
+
+    const std::size_t index = static_cast<std::size_t>(std::distance(available_language_codes.begin(), it));
+    if (index >= static_cast<std::size_t>(Settings::values.language_index.GetValue())) {
+        Settings::values.language_index.SetValue(static_cast<Settings::Language>(index));
+    }
+}
+
+void SyncGlobalRegionFromCode(SystemRegionCode region_code) {
+    const auto region_index = static_cast<std::size_t>(region_code);
+    if (region_index > static_cast<std::size_t>(Settings::Region::Taiwan)) {
+        return;
+    }
+
+    Settings::values.region_index.SetValue(static_cast<Settings::Region>(region_index));
+}
+
 } // Anonymous namespace
 
 Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
@@ -457,6 +480,7 @@ Result ISystemSettingsServer::SetLanguageCode(LanguageCode language_code) {
     LOG_INFO(Service_SET, "called, language_code={}", language_code);
 
     m_system_settings.language_code = language_code;
+    SyncGlobalLanguageFromCode(language_code);
     SetSaveNeeded();
     R_SUCCEED();
 }
@@ -889,6 +913,7 @@ Result ISystemSettingsServer::SetRegionCode(SystemRegionCode region_code) {
     LOG_INFO(Service_SET, "called, region_code={}", region_code);
 
     m_system_settings.region_code = region_code;
+    SyncGlobalRegionFromCode(region_code);
     SetSaveNeeded();
     R_SUCCEED();
 }
@@ -1224,6 +1249,7 @@ Result ISystemSettingsServer::SetKeyboardLayout(KeyboardLayout keyboard_layout) 
     LOG_INFO(Service_SET, "called, keyboard_layout={}", keyboard_layout);
 
     m_system_settings.keyboard_layout = keyboard_layout;
+    SetSaveNeeded();
     R_SUCCEED();
 }
 

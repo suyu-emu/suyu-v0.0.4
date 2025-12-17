@@ -24,7 +24,7 @@ namespace Service::AM {
         {20, D<&IOverlayFunctions::SetHandlingHomeButtonShortPressedEnabled>, "SetHandlingHomeButtonShortPressedEnabled"},
         {21, nullptr, "SetHandlingTouchScreenInputEnabled"},
         {30, nullptr, "SetHealthWarningShowingState"},
-        {31, nullptr, "IsHealthWarningRequired"},
+        {31, D<&IOverlayFunctions::IsHealthWarningRequired>, "IsHealthWarningRequired"},
         {40, nullptr, "GetApplicationNintendoLogo"},
         {41, nullptr, "GetApplicationStartupMovie"},
         {50, nullptr, "SetGpuTimeSliceBoostForApplication"},
@@ -69,12 +69,33 @@ namespace Service::AM {
     Result IOverlayFunctions::GetApplicationIdForLogo(Out<u64> out_application_id) {
         LOG_DEBUG(Service_AM, "called");
 
-        // Prefer explicit application_id if available, else fall back to program_id
+        std::shared_ptr<Applet> target_applet;
+
+        auto* window_system = system.GetAppletManager().GetWindowSystem();
+        if (window_system) {
+            target_applet = window_system->GetMainApplet();
+            if (target_applet) {
+                std::scoped_lock lk{target_applet->lock};
+                LOG_DEBUG(Service_AM, "applet_id={}, program_id={:016X}, type={}",
+                          static_cast<u32>(target_applet->applet_id), target_applet->program_id,
+                          static_cast<u32>(target_applet->type));
+
+                u64 id = target_applet->screen_shot_identity.application_id;
+                if (id == 0) {
+                    id = target_applet->program_id;
+                }
+                LOG_DEBUG(Service_AM, "application_id={:016X}", id);
+                *out_application_id = id;
+                R_SUCCEED();
+            }
+        }
+
         std::scoped_lock lk{m_applet->lock};
         u64 id = m_applet->screen_shot_identity.application_id;
         if (id == 0) {
             id = m_applet->program_id;
         }
+        LOG_DEBUG(Service_AM, "application_id={:016X} (fallback)", id);
         *out_application_id = id;
         R_SUCCEED();
     }
@@ -83,6 +104,13 @@ namespace Service::AM {
         LOG_WARNING(Service_AM, "(STUBBED) called, enabled={}", enabled);
         std::scoped_lock lk{m_applet->lock};
         m_applet->auto_sleep_disabled = !enabled;
+        R_SUCCEED();
+    }
+
+    Result IOverlayFunctions::IsHealthWarningRequired(Out<bool> is_required) {
+        LOG_DEBUG(Service_AM, "called");
+        std::scoped_lock lk{m_applet->lock};
+        *is_required = false;
         R_SUCCEED();
     }
 

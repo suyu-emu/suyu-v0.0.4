@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -34,6 +37,7 @@ private:
     struct Framebuffer {
         android::BufferItem item{};
         ReleaseFrameNumber release_frame_number{};
+        u64 last_acquire_frame{0};
         bool is_acquired{false};
     };
 

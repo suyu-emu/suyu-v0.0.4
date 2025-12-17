@@ -18,6 +18,7 @@ namespace Service::AM {
         Result EndToWatchShortHomeButtonMessage();
         Result GetApplicationIdForLogo(Out<u64> out_application_id);
         Result SetAutoSleepTimeAndDimmingTimeEnabled(bool enabled);
+        Result IsHealthWarningRequired(Out<bool> is_required);
         Result SetHandlingHomeButtonShortPressedEnabled(bool enabled);
         Result Unknown70();
 
