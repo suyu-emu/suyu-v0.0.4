@@ -179,7 +179,7 @@ private:
 
     void BuildErrnoResponse(HLERequestContext& ctx, Errno bsd_errno) const noexcept;
 
-    std::array<std::optional<FileDescriptor>, MAX_FD> file_descriptors;
+    static inline std::array<std::optional<FileDescriptor>, MAX_FD> file_descriptors{};
 
     /// Callback to parse and handle a received wifi packet.
     void OnProxyPacketReceived(const Network::ProxyPacket& packet);

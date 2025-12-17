@@ -578,7 +578,7 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::span<con
     }
 
     std::vector<Network::PollFD> host_pollfds(fds.size());
-    std::transform(fds.begin(), fds.end(), host_pollfds.begin(), [this](PollFD pollfd) {
+    std::transform(fds.begin(), fds.end(), host_pollfds.begin(), [](PollFD pollfd) {
         Network::PollFD result;
         result.socket = file_descriptors[pollfd.fd]->socket.get();
         result.events = Translate(pollfd.events);
@@ -657,7 +657,11 @@ Errno BSD::ConnectImpl(s32 fd, std::span<const u8> addr) {
 
     const auto result = Translate(file_descriptors[fd]->socket->Connect(Translate(addr_in)));
     if (result != Errno::SUCCESS) {
-        LOG_ERROR(Service, "Connect fd={} failed with errno={}", fd, static_cast<int>(result));
+        if (result == Errno::INPROGRESS || result == Errno::AGAIN) {
+            LOG_DEBUG(Service, "Connect fd={} in progress (non-blocking), errno={}", fd, static_cast<int>(result));
+        } else {
+            LOG_ERROR(Service, "Connect fd={} failed with errno={}", fd, static_cast<int>(result));
+        }
     } else {
         LOG_INFO(Service, "Connect fd={} succeeded", fd);
     }
@@ -967,7 +971,11 @@ Expected<s32, Errno> BSD::DuplicateSocketImpl(s32 fd) {
         return Unexpected(Errno::MFILE);
     }
 
-    file_descriptors[new_fd] = file_descriptors[fd];
+    file_descriptors[new_fd] = FileDescriptor{
+        .socket = file_descriptors[fd]->socket,
+        .flags = file_descriptors[fd]->flags,
+        .is_connection_based = file_descriptors[fd]->is_connection_based,
+    };
     return new_fd;
 }
 
