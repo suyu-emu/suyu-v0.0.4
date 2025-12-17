@@ -188,13 +188,14 @@ void A64EmitX64::ClearFastDispatchTable() {
 }
 
 void A64EmitX64::GenTerminalHandlers() {
-    // PC ends up in rbp, location_descriptor ends up in rbx
+    // PC ends up in rcx, location_descriptor ends up in rbx
+    static_assert(std::find(ABI_ALL_CALLEE_SAVE.begin(), ABI_ALL_CALLEE_SAVE.end(), HostLoc::R12) != ABI_ALL_CALLEE_SAVE.end());
     const auto calculate_location_descriptor = [this] {
         // This calculation has to match up with A64::LocationDescriptor::UniqueHash
         // TODO: Optimization is available here based on known state of fpcr.
-        code.mov(rbp, qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)]);
+        code.mov(rdi, qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)]);
         code.mov(rcx, A64::LocationDescriptor::pc_mask);
-        code.and_(rcx, rbp);
+        code.and_(rcx, rdi);
         code.mov(ebx, dword[code.ABI_JIT_PTR + offsetof(A64JitState, fpcr)]);
         code.and_(ebx, A64::LocationDescriptor::fpcr_mask);
         code.shl(rbx, A64::LocationDescriptor::fpcr_shift);
@@ -226,20 +227,21 @@ void A64EmitX64::GenTerminalHandlers() {
         terminal_handler_fast_dispatch_hint = code.getCurr<const void*>();
         calculate_location_descriptor();
         code.L(rsb_cache_miss);
-        code.mov(r12, reinterpret_cast<u64>(fast_dispatch_table.data()));
-        code.mov(rbp, rbx);
+        code.mov(r8, reinterpret_cast<u64>(fast_dispatch_table.data()));
+        //code.mov(r12, qword[code.ABI_JIT_PTR + offsetof(A64JitState, pc)]);
+        code.mov(r12, rbx);
         if (code.HasHostFeature(HostFeature::SSE42)) {
-            code.crc32(rbp, r12);
+            code.crc32(r12, r8);
         }
-        code.and_(ebp, fast_dispatch_table_mask);
-        code.lea(rbp, ptr[r12 + rbp]);
-        code.cmp(rbx, qword[rbp + offsetof(FastDispatchEntry, location_descriptor)]);
-        code.jne(fast_dispatch_cache_miss);
-        code.jmp(ptr[rbp + offsetof(FastDispatchEntry, code_ptr)]);
+        code.and_(r12d, fast_dispatch_table_mask);
+        code.lea(r12, ptr[r8 + r12]);
+        code.cmp(rbx, qword[r12 + offsetof(FastDispatchEntry, location_descriptor)]);
+        code.jne(fast_dispatch_cache_miss, code.T_NEAR);
+        code.jmp(ptr[r12 + offsetof(FastDispatchEntry, code_ptr)]);
         code.L(fast_dispatch_cache_miss);
-        code.mov(qword[rbp + offsetof(FastDispatchEntry, location_descriptor)], rbx);
+        code.mov(qword[r12 + offsetof(FastDispatchEntry, location_descriptor)], rbx);
         code.LookupBlock();
-        code.mov(ptr[rbp + offsetof(FastDispatchEntry, code_ptr)], rax);
+        code.mov(ptr[r12 + offsetof(FastDispatchEntry, code_ptr)], rax);
         code.jmp(rax);
         PerfMapRegister(terminal_handler_fast_dispatch_hint, code.getCurr(), "a64_terminal_handler_fast_dispatch_hint");
 

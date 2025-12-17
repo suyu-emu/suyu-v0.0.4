@@ -37,6 +37,9 @@
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/opt_passes.h"
 
+#include "./A32/testenv.h"
+#include "./A64/testenv.h"
+
 using namespace Dynarmic;
 
 std::string_view GetNameOfA32Instruction(u32 instruction) {
@@ -65,7 +68,10 @@ void PrintA32Instruction(u32 instruction) {
     fmt::print("should_continue: {}\n\n", should_continue);
     fmt::print("IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
-    Optimization::Optimize(ir_block, A32::UserConfig{}, {});
+    ArmTestEnv jit_env{};
+    Dynarmic::A32::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &jit_env;
+    Optimization::Optimize(ir_block, jit_user_config, {});
     fmt::print("Optimized IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
 }
@@ -80,7 +86,10 @@ void PrintA64Instruction(u32 instruction) {
     fmt::print("should_continue: {}\n\n", should_continue);
     fmt::print("IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
-    Optimization::Optimize(ir_block, A64::UserConfig{}, {});
+    A64TestEnv jit_env{};
+    Dynarmic::A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &jit_env;
+    Optimization::Optimize(ir_block, jit_user_config, {});
     fmt::print("Optimized IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
 }
@@ -98,7 +107,10 @@ void PrintThumbInstruction(u32 instruction) {
     fmt::print("should_continue: {}\n\n", should_continue);
     fmt::print("IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
-    Optimization::Optimize(ir_block, A32::UserConfig{}, {});
+    ThumbTestEnv jit_env{};
+    Dynarmic::A32::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &jit_env;
+    Optimization::Optimize(ir_block, jit_user_config, {});
     fmt::print("Optimized IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
 }
@@ -219,7 +231,7 @@ void ExecuteA32Instruction(u32 instruction) {
                 *(iter->second) = *value;
                 fmt::print("> {} = 0x{:08x}\n", reg_name, *value);
             }
-        } else if (reg_name == "mem" || reg_name == "memory") {
+        } else if (reg_name.starts_with("m")) {
             fmt::print("address: ");
             if (const auto address = get_value()) {
                 fmt::print("value: ");
@@ -228,7 +240,7 @@ void ExecuteA32Instruction(u32 instruction) {
                     fmt::print("> mem[0x{:08x}] = 0x{:08x}\n", *address, *value);
                 }
             }
-        } else if (reg_name == "end") {
+        } else if (reg_name == "exit" || reg_name == "end" || reg_name.starts_with("q")) {
             break;
         }
     }
@@ -244,6 +256,7 @@ void ExecuteA32Instruction(u32 instruction) {
     env.MemoryWrite32(initial_pc + 4, 0xEAFFFFFE);  // B +0
 
     cpu.Run();
+    fmt::print("{}", fmt::join(cpu.Disassemble(), "\n"));
 
     fmt::print("Registers modified:\n");
     for (size_t i = 0; i < regs.size(); ++i) {

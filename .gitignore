@@ -37,6 +37,8 @@ CMakeLists.txt.user*
 # *nix related
 # Common convention for backup or temporary files
 *~
+*.core
+dtrace-out/
 
 # Visual Studio CMake settings
 CMakeSettings.json

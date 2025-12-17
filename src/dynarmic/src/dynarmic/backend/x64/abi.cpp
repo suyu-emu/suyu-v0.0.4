@@ -28,7 +28,8 @@ static_assert(ABI_SHADOW_SPACE <= 32);
 
 static FrameInfo CalculateFrameInfo(const size_t num_gprs, const size_t num_xmms, size_t frame_size) {
     // We are initially 8 byte aligned because the return value is pushed onto an aligned stack after a call.
-    const size_t rsp_alignment = (num_gprs % 2 == 0) ? 8 : 0;
+    // (It's an extra GPR save due to %rbp)
+    const size_t rsp_alignment = ((num_gprs + 1) % 2 == 0) ? 8 : 0;
     const size_t total_xmm_size = num_xmms * XMM_SIZE;
     if (frame_size & 0xF) {
         frame_size += 0x10 - (frame_size & 0xF);
@@ -48,6 +49,8 @@ void ABI_PushRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size,
     const size_t num_xmms = std::count_if(regs.begin(), regs.end(), HostLocIsXMM);
     const FrameInfo frame_info = CalculateFrameInfo(num_gprs, num_xmms, frame_size);
 
+    code.push(rbp);
+    code.mov(rbp, rsp);
     for (auto const gpr : regs)
         if (HostLocIsGPR(gpr))
             code.push(HostLocToReg64(gpr));
@@ -93,6 +96,7 @@ void ABI_PopRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, 
         if (HostLocIsGPR(gpr))
             code.pop(HostLocToReg64(gpr));
     }
+    code.pop(rbp);
 }
 
 void ABI_PushCalleeSaveRegistersAndAdjustStack(BlockOfCode& code, const std::size_t frame_size) {
