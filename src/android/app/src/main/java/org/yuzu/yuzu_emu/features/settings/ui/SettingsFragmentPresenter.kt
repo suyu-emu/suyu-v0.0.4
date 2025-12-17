@@ -274,6 +274,7 @@ class SettingsFragmentPresenter(
         sl.apply {
             add(BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.key)
             add(IntSetting.INPUT_OVERLAY_AUTO_HIDE.key)
+            add(BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.key)
         }
     }
 

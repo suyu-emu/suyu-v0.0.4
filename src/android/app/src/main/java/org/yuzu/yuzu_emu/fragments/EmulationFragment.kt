@@ -93,7 +93,6 @@ import org.yuzu.yuzu_emu.utils.collect
 import org.yuzu.yuzu_emu.utils.CustomSettingsHandler
 import java.io.ByteArrayOutputStream
 import java.io.File
-import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -106,6 +105,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     val handler = Handler(Looper.getMainLooper())
     private var isOverlayVisible = true
+    private var controllerInputReceived = false
 
     private var _binding: FragmentEmulationBinding? = null
 
@@ -656,6 +656,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     BooleanSetting.SHOW_INPUT_OVERLAY.setBoolean(newState)
                     updateQuickOverlayMenuEntry(newState)
                     binding.surfaceInputOverlay.refreshControls()
+                    // Sync view visibility with the setting
+                    if (newState) {
+                        showOverlay()
+                    } else {
+                        hideOverlay()
+                    }
                     NativeConfig.saveGlobalConfig()
                     true
                 }
@@ -1901,7 +1907,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         companion object {
             fun fromValue(value: Int): AmiiboState =
-                values().firstOrNull { it.value == value } ?: Disabled
+                entries.firstOrNull { it.value == value } ?: Disabled
         }
     }
 
@@ -1914,7 +1920,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         companion object {
             fun fromValue(value: Int): AmiiboLoadResult =
-                values().firstOrNull { it.value == value } ?: Unknown
+                entries.firstOrNull { it.value == value } ?: Unknown
         }
     }
 
@@ -1971,6 +1977,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     fun showOverlay() {
         if (!isOverlayVisible) {
             isOverlayVisible = true
+            // Reset controller input flag so controller can hide overlay again
+            controllerInputReceived = false
             ViewUtils.showView(binding.surfaceInputOverlay, 500)
         }
     }
@@ -1978,7 +1986,26 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private fun hideOverlay() {
         if (isOverlayVisible) {
             isOverlayVisible = false
-            ViewUtils.hideView(binding.surfaceInputOverlay, 500)
+            ViewUtils.hideView(binding.surfaceInputOverlay)
         }
+    }
+
+    fun onControllerInputDetected() {
+        if (!BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.getBoolean()) return
+        if (!BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) return
+        if (controllerInputReceived) return
+        controllerInputReceived = true
+        hideOverlay()
+    }
+
+    fun onControllerConnected() {
+        controllerInputReceived = false
+    }
+
+    fun onControllerDisconnected() {
+        if (!BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.getBoolean()) return
+        if (!BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) return
+        controllerInputReceived = false
+        showOverlay()
     }
 }

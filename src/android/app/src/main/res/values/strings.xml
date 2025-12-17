@@ -26,6 +26,8 @@
     <string name="overlay_auto_hide">Overlay Auto Hide</string>
     <string name="overlay_auto_hide_description">Automatically hide the touch controls overlay after the specified time of inactivity.</string>
     <string name="enable_input_overlay_auto_hide">Enable Overlay Auto Hide</string>
+    <string name="hide_overlay_on_controller_input">Hide Overlay on Controller Input</string>
+    <string name="hide_overlay_on_controller_input_description">Automatically hide the touch controls overlay when a physical controller is used. Overlay reappears when controller is disconnected.</string>
 
     <string name="input_overlay_options">Input Overlay</string>
     <string name="input_overlay_options_description">Configure on-screen controls</string>

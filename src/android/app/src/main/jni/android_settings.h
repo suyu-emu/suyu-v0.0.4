@@ -92,6 +92,11 @@ namespace AndroidSettings {
         Settings::Setting<u32> input_overlay_auto_hide{linkage, 5, "input_overlay_auto_hide",
                                                     Settings::Category::Overlay,
                                                     Settings::Specialization::Default, true, true, &enable_input_overlay_auto_hide};
+        Settings::Setting<bool> hide_overlay_on_controller_input{linkage, false,
+                                                              "hide_overlay_on_controller_input",
+                                                              Settings::Category::Overlay,
+                                                              Settings::Specialization::Default, true,
+                                                              true};
         Settings::Setting<bool> perf_overlay_background{linkage, false, "perf_overlay_background",
                                                         Settings::Category::Overlay,
                                                         Settings::Specialization::Default, true,

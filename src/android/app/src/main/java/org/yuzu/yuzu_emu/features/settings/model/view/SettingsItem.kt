@@ -387,6 +387,13 @@ abstract class SettingsItem(
                     valueHint = R.string.seconds
                 )
             )
+            put(
+                SwitchSetting(
+                    BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT,
+                    titleId = R.string.hide_overlay_on_controller_input,
+                    descriptionId = R.string.hide_overlay_on_controller_input_description
+                )
+            )
 
             put(
                 SwitchSetting(
