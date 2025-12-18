@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 
 #include <condition_variable>
 #include <mutex>
-#include <queue>
+#include <boost/container/deque.hpp>
 
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
@@ -88,8 +91,8 @@ private:
 #endif
     vk::CommandPool cmdpool;
     std::vector<Frame> frames;
-    std::queue<Frame*> present_queue;
-    std::queue<Frame*> free_queue;
+    boost::container::deque<Frame*> present_queue;
+    boost::container::deque<Frame*> free_queue;
     std::condition_variable_any frame_cv;
     std::condition_variable free_cv;
     std::mutex swapchain_mutex;
