@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -12,19 +15,19 @@ INewsService::INewsService(Core::System& system_) : ServiceFramework{system_, "I
         {10100, D<&INewsService::PostLocalNews>, "PostLocalNews"},
         {20100, nullptr, "SetPassphrase"},
         {30100, D<&INewsService::GetSubscriptionStatus>, "GetSubscriptionStatus"},
-        {30101, nullptr, "GetTopicList"},
-        {30110, nullptr, "Unknown30110"},
+        {30101, nullptr, "GetTopicList"}, //3.0.0+
+        {30110, nullptr, "Unknown30110"}, //6.0.0+
         {30200, D<&INewsService::IsSystemUpdateRequired>, "IsSystemUpdateRequired"},
-        {30201, nullptr, "Unknown30201"},
-        {30210, nullptr, "Unknown30210"},
+        {30201, nullptr, "Unknown30201"}, //8.0.0+
+        {30210, nullptr, "Unknown30210"}, //10.0.0+
         {30300, nullptr, "RequestImmediateReception"},
-        {30400, nullptr, "DecodeArchiveFile"},
-        {30500, nullptr, "Unknown30500"},
-        {30900, nullptr, "Unknown30900"},
-        {30901, nullptr, "Unknown30901"},
-        {30902, nullptr, "Unknown30902"},
+        {30400, nullptr, "DecodeArchiveFile"}, //3.0.0-18.1.0
+        {30500, nullptr, "Unknown30500"}, //8.0.0+
+        {30900, nullptr, "Unknown30900"}, //1.0.0
+        {30901, nullptr, "Unknown30901"}, //1.0.0
+        {30902, nullptr, "Unknown30902"}, //1.0.0
         {40100, nullptr, "SetSubscriptionStatus"},
-        {40101, D<&INewsService::RequestAutoSubscription>, "RequestAutoSubscription"},
+        {40101, D<&INewsService::RequestAutoSubscription>, "RequestAutoSubscription"}, //3.0.0+
         {40200, nullptr, "ClearStorage"},
         {40201, nullptr, "ClearSubscriptionStatusAll"},
         {90100, nullptr, "GetNewsDatabaseDump"},

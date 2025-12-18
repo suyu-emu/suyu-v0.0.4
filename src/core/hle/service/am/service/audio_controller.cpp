@@ -18,7 +18,7 @@ IAudioController::IAudioController(Core::System& system_)
         {2, D<&IAudioController::GetLibraryAppletExpectedMasterVolume>, "GetLibraryAppletExpectedMasterVolume"},
         {3, D<&IAudioController::ChangeMainAppletMasterVolume>, "ChangeMainAppletMasterVolume"},
         {4, D<&IAudioController::SetTransparentVolumeRate>, "SetTransparentVolumeRate"},
-        {5, nullptr, "Unknown5"},
+        {5, nullptr, "Unknown5"}, //20.0.0+
     };
     // clang-format on
 

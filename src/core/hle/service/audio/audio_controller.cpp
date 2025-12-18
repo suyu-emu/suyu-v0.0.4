@@ -30,7 +30,7 @@ IAudioController::IAudioController(Core::System& system_)
         {3, D<&IAudioController::GetTargetVolumeMax>, "GetTargetVolumeMax"},
         {4, D<&IAudioController::IsTargetMute>, "IsTargetMute"},
         {5, D<&IAudioController::SetTargetMute>, "SetTargetMute"},
-        {6, nullptr, "IsTargetConnected"},
+        {6, nullptr, "IsTargetConnected"}, //20.0.0+
         {7, nullptr, "SetDefaultTarget"},
         {8, nullptr, "GetDefaultTarget"},
         {9, D<&IAudioController::GetAudioOutputMode>, "GetAudioOutputMode"},
@@ -67,7 +67,8 @@ IAudioController::IAudioController(Core::System& system_)
         {40, nullptr, "GetSystemInformationForDebug"},
         {41, nullptr, "SetVolumeButtonLongPressTime"},
         {42, nullptr, "SetNativeVolumeForDebug"},
-        {5000, D<&IAudioController::Unknown5000>, "Unknown5000"},
+        {43, nullptr, "Unknown43"}, //21.0.0+
+        {5000, D<&IAudioController::Unknown5000>, "Unknown5000"}, //19.0.0+
         {10000, nullptr, "NotifyAudioOutputTargetForPlayReport"},
         {10001, nullptr, "NotifyAudioOutputChannelCountForPlayReport"},
         {10002, nullptr, "NotifyUnsupportedUsbOutputDeviceAttachedForPlayReport"},
@@ -76,13 +77,13 @@ IAudioController::IAudioController(Core::System& system_)
         {10102, nullptr, "BindAudioOutputTargetUpdateEventForPlayReport"},
         {10103, nullptr, "GetAudioOutputTargetForPlayReport"},
         {10104, nullptr, "GetAudioOutputChannelCountForPlayReport"},
-        {10105, nullptr, "BindAudioOutputChannelCountUpdateEventForPlayReport"},
-        {10106, nullptr, "GetDefaultAudioOutputTargetForPlayReport"},
-        {10200, nullptr, "Unknown10200"}, // [20.0.0+]
-        {50000, nullptr, "SetAnalogInputBoostGainForPrototyping"},
-        {50001, nullptr, "OverrideDefaultTargetForDebug"},
-        {50003, nullptr, "SetForceOverrideExternalDeviceNameForDebug"},
-        {50004, nullptr, "ClearForceOverrideExternalDeviceNameForDebug"}
+        {10105, nullptr, "BindAudioOutputChannelCountUpdateEventForPlayReport"}, //14.0.0-19.0.1
+        {10106, nullptr, "GetDefaultAudioOutputTargetForPlayReport"}, //14.0.0-19.0.1
+        {10200, nullptr, "Unknown10200"}, //20.0.0+
+        {50000, nullptr, "SetAnalogInputBoostGainForPrototyping"}, //15.0.0-18.1.0
+        {50001, nullptr, "OverrideDefaultTargetForDebug"}, //19.0.0-19.0.1
+        {50003, nullptr, "SetForceOverrideExternalDeviceNameForDebug"}, //19.0.0+
+        {50004, nullptr, "ClearForceOverrideExternalDeviceNameForDebug"} //19.0.0+
     };
     // clang-format on
 

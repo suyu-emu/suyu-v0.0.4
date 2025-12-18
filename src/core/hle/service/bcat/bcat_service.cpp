@@ -43,21 +43,21 @@ IBcatService::IBcatService(Core::System& system_, BcatBackend& backend_)
             {20401, nullptr, "UnregisterSystemApplicationDeliveryTask"},
             {20410, nullptr, "SetSystemApplicationDeliveryTaskTimer"},
             {30100, D<&IBcatService::SetPassphrase>, "SetPassphrase"},
-            {30101, nullptr, "Unknown30101"},
-            {30102, nullptr, "Unknown30102"},
+            {30101, nullptr, "Unknown30101"}, //2.0.0-2.3.0
+            {30102, nullptr, "Unknown30102"}, //2.0.0-2.3.0
             {30200, nullptr, "RegisterBackgroundDeliveryTask"},
             {30201, nullptr, "UnregisterBackgroundDeliveryTask"},
             {30202, nullptr, "BlockDeliveryTask"},
             {30203, nullptr, "UnblockDeliveryTask"},
             {30210, nullptr, "SetDeliveryTaskTimer"},
             {30300, D<&IBcatService::RegisterSystemApplicationDeliveryTasks>, "RegisterSystemApplicationDeliveryTasks"},
-            {90100, nullptr, "EnumerateBackgroundDeliveryTask"},
-            {90101, nullptr, "Unknown90101"},
+            {90100, nullptr, "GetDeliveryTaskList"},
+            {90101, nullptr, "GetDeliveryTaskListForSystem"}, //11.0.0+
             {90200, nullptr, "GetDeliveryList"},
             {90201, D<&IBcatService::ClearDeliveryCacheStorage>, "ClearDeliveryCacheStorage"},
             {90202, nullptr, "ClearDeliveryTaskSubscriptionStatus"},
             {90300, nullptr, "GetPushNotificationLog"},
-            {90301, nullptr, "Unknown90301"},
+            {90301, nullptr, "GetDeliveryCacheStorageUsage"}, //11.0.0+
         };
     // clang-format on
     RegisterHandlers(functions);

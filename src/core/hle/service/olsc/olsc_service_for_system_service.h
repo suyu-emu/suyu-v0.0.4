@@ -24,12 +24,12 @@ public:
     ~IOlscServiceForSystemService() override;
 
 private:
-    Result OpenTransferTaskListController(
+    Result GetTransferTaskListController(
         Out<SharedPointer<ITransferTaskListController>> out_interface);
-    Result OpenRemoteStorageController(Out<SharedPointer<IRemoteStorageController>> out_interface);
-    Result OpenDaemonController(Out<SharedPointer<IDaemonController>> out_interface);
-    Result GetDataTransferPolicyInfo(Out<DataTransferPolicy> out_policy_info, u64 application_id);
-    Result CloneService(Out<SharedPointer<IOlscServiceForSystemService>> out_interface);
+    Result GetRemoteStorageController(Out<SharedPointer<IRemoteStorageController>> out_interface);
+    Result GetDaemonController(Out<SharedPointer<IDaemonController>> out_interface);
+    Result GetDataTransferPolicy(Out<DataTransferPolicy> out_policy, u64 application_id);
+    Result GetOlscServiceForSystemService(Out<SharedPointer<IOlscServiceForSystemService>> out_interface);
 };
 
 } // namespace Service::OLSC

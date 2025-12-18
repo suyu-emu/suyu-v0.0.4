@@ -188,7 +188,7 @@ private:
     Network::RoomMember::CallbackHandle<Network::ProxyPacket> proxy_packet_received;
 
 protected:
-    virtual std::unique_lock<std::mutex> LockService() override;
+    std::unique_lock<std::mutex> LockService() noexcept override;
 };
 
 class BSDCFG final : public ServiceFramework<BSDCFG> {

@@ -88,13 +88,13 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {181, nullptr, "UpgradeLaunchRequiredVersion"},
         {190, nullptr, "SendServerMaintenanceOverlayNotification"},
         {200, nullptr, "GetLastApplicationExitReason"},
-        {210, D<&IApplicationFunctions::GetLaunchRequiredVersionUpgrade>, "GetLaunchRequiredVersionUpgrade"}, // [20.0.0+]
-        {211, nullptr, "GetLaunchRequiredVersionUpgradeStatus"}, // [20.0.0+]
-        {220, nullptr, "Unknown220"}, // [20.0.0+]
-        {300, nullptr, "Unknown300"}, // [20.0.0+]
-        {310, nullptr, "Unknown310"}, // [20.0.0+]
-        {320, nullptr, "Unknown320"}, // [20.0.0+]
-        {330, nullptr, "Unknown330"}, // [20.0.0+]
+        {210, D<&IApplicationFunctions::GetLaunchRequiredVersionUpgrade>, "GetLaunchRequiredVersionUpgrade"}, //20.0.0+
+        {211, nullptr, "GetLaunchRequiredVersionUpgradeStatus"}, //20.0.0+
+        {220, nullptr, "Unknown220"}, //20.0.0+
+        {300, nullptr, "CreateMovieWriter"}, //20.0.0+
+        {310, nullptr, "Unknown310"}, //20.0.0+
+        {320, nullptr, "Unknown320"}, //20.0.0+
+        {330, nullptr, "Unknown330"}, //20.0.0+
         {500, nullptr, "StartContinuousRecordingFlushForDebug"},
         {1000, nullptr, "CreateMovieMaker"},
         {1001, D<&IApplicationFunctions::PrepareForJit>, "PrepareForJit"},

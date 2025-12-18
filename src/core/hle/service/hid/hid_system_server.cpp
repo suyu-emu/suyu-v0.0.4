@@ -70,7 +70,9 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {328, nullptr, "AttachAbstractedPadToNpad"},
         {329, nullptr, "DetachAbstractedPadAll"},
         {330, nullptr, "CheckAbstractedPadConnection"},
-        {500, nullptr, "SetAppletResourceUserId"},
+        {332, nullptr, "ConvertAppletDetailedUiTypeFromPlayReportType"}, //19.0.0+
+        {333, nullptr, "SetNpadUserSpgApplet"}, //20.0.0+
+        {334, nullptr, "AcquireUniquePadButtonStateChangedEventHandle"}, //20.0.0+
         {501, &IHidSystemServer::RegisterAppletResourceUserId, "RegisterAppletResourceUserId"},
         {502, &IHidSystemServer::UnregisterAppletResourceUserId, "UnregisterAppletResourceUserId"},
         {503, &IHidSystemServer::EnableAppletToGetInput, "EnableAppletToGetInput"},
@@ -99,7 +101,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {547, nullptr, "GetAllowedBluetoothLinksCount"},
         {548, &IHidSystemServer::GetRegisteredDevices, "GetRegisteredDevices"},
         {549, nullptr, "GetConnectableRegisteredDevices"},
-        {551, nullptr, "GetRegisteredDevicesForControllerSupport"},
+        {551, nullptr, "GetRegisteredDevicesForControllerSupport"}, //20.0.0+
         {700, nullptr, "ActivateUniquePad"},
         {702, &IHidSystemServer::AcquireUniquePadConnectionEventHandle, "AcquireUniquePadConnectionEventHandle"},
         {703, &IHidSystemServer::GetUniquePadIds, "GetUniquePadIds"},
@@ -119,6 +121,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {810, nullptr, "GetUniquePadControllerNumber"},
         {811, nullptr, "GetSixAxisSensorUserCalibrationStage"},
         {812, nullptr, "GetConsoleUniqueSixAxisSensorHandle"},
+        {813, nullptr, "GetDeviceType"},
         {821, nullptr, "StartAnalogStickManualCalibration"},
         {822, nullptr, "RetryCurrentAnalogStickManualCalibrationStage"},
         {823, nullptr, "CancelAnalogStickManualCalibration"},
@@ -149,6 +152,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1009, nullptr, "AcquireAudioControlEventHandle"},
         {1010, nullptr, "GetAudioControlStates"},
         {1011, nullptr, "DeactivateAudioControl"},
+        {1012, nullptr, "GetFirmwareVersionStringForUserSupportPage"},
         {1050, nullptr, "IsSixAxisSensorAccurateUserCalibrationSupported"},
         {1051, nullptr, "StartSixAxisSensorAccurateUserCalibration"},
         {1052, nullptr, "CancelSixAxisSensorAccurateUserCalibration"},
@@ -169,6 +173,8 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1155, &IHidSystemServer::SetForceHandheldStyleVibration, "SetForceHandheldStyleVibration"},
         {1156, nullptr, "SendConnectionTriggerWithoutTimeoutEvent"},
         {1157, nullptr, "CancelConnectionTrigger"},
+        {1158, nullptr, "SetConnectionLimitForSplay"}, //20.1.0+
+        {1159, nullptr, "ClearConnectionLimitForSplay"}, //20.1.0+
         {1200, nullptr, "IsButtonConfigSupported"},
         {1201, nullptr, "IsButtonConfigEmbeddedSupported"},
         {1202, nullptr, "DeleteButtonConfig"},
@@ -227,16 +233,17 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1289, nullptr, "SetButtonConfigStorageFull"},
         {1290, nullptr, "DeleteButtonConfigStorageRight"},
         {1291, nullptr, "DeleteButtonConfigStorageRight"},
-        {1308, nullptr, "SetButtonConfigVisible"}, // 18.0.0+
-        {1309, nullptr, "IsButtonConfigVisible"}, // 18.0.0+
-        {1320, nullptr, "WakeTouchScreenUp"}, // 17.0.0+
-        {1321, nullptr, "PutTouchScreenToSleep"}, // 17.0.0+
-        {1322, nullptr, "AcquireTouchScreenAsyncWakeCompletedEvent"}, // 20.0.0+
-        {1323, nullptr, "StartTouchScreenAutoTuneForSystemSettings"}, // 21.0.0+
-        {1324, nullptr, "AcquireTouchScreenAutoTuneCompletedEvent"}, // 21.0.0+
-        {1325, nullptr, "IsTouchScreenAutoTuneRequiredForRepairProviderReplacement"}, // 21.0.0+
-        {1326, nullptr, "Unknown1326"}, // 21.0.0+
-        {1420, nullptr, "GetAppletResourceProperty"}, // 19.0.0+
+        {1308, nullptr, "SetButtonConfigVisible"}, //18.0.0+
+        {1309, nullptr, "IsButtonConfigVisible"}, //18.0.0+
+        {1320, nullptr, "WakeTouchScreenUp"}, //17.0.0+
+        {1321, nullptr, "PutTouchScreenToSleep"}, //17.0.0+
+        {1322, nullptr, "AcquireTouchScreenAsyncWakeCompletedEvent"}, //20.0.0+
+        {1323, nullptr, "StartTouchScreenAutoTuneForSystemSettings"}, //21.0.0+
+        {1324, nullptr, "AcquireTouchScreenAutoTuneCompletedEvent"}, //21.0.0+
+        {1325, nullptr, "IsTouchScreenAutoTuneRequiredForRepairProviderReplacement"}, //21.0.0+
+        {1326, nullptr, "SetTouchScreenOffset"}, //21.0.0+
+        {1420, nullptr, "GetAppletResourceProperty"}, //19.0.0+
+        {12010, nullptr, "SetButtonConfigLeft"} //11.0.0-17.0.1
     };
     // clang-format on
 

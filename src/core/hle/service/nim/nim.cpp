@@ -167,57 +167,146 @@ public:
             {81, nullptr, "ListLocalCommunicationSendSystemUpdateTask"},
             {82, nullptr, "GetReceivedSystemDataPath"},
             {83, nullptr, "CalculateApplyDeltaTaskOccupiedSize"},
-            {84, nullptr, "Unknown84"},
+            {84, nullptr, "ReloadErrorSimulation"},
             {85, nullptr, "ListNetworkInstallTaskContentMetaFromInstallMeta"},
             {86, nullptr, "ListNetworkInstallTaskOccupiedSize"},
-            {87, nullptr, "Unknown87"},
-            {88, nullptr, "Unknown88"},
-            {89, nullptr, "Unknown89"},
-            {90, nullptr, "Unknown90"},
-            {91, nullptr, "Unknown91"},
-            {92, nullptr, "Unknown92"},
-            {93, nullptr, "Unknown93"},
-            {94, nullptr, "Unknown94"},
-            {95, nullptr, "Unknown95"},
-            {96, nullptr, "Unknown96"},
-            {97, nullptr, "Unknown97"},
-            {98, nullptr, "Unknown98"},
-            {99, nullptr, "Unknown99"},
-            {100, nullptr, "Unknown100"},
-            {101, nullptr, "Unknown101"},
-            {102, nullptr, "Unknown102"},
-            {103, nullptr, "Unknown103"},
-            {104, nullptr, "Unknown104"},
-            {105, nullptr, "Unknown105"},
-            {106, nullptr, "Unknown106"},
-            {107, nullptr, "Unknown107"},
-            {108, nullptr, "Unknown108"},
-            {109, nullptr, "Unknown109"},
-            {110, nullptr, "Unknown110"},
-            {111, nullptr, "Unknown111"},
-            {112, nullptr, "Unknown112"},
-            {113, nullptr, "Unknown113"},
-            {114, nullptr, "Unknown114"},
-            {115, nullptr, "Unknown115"},
-            {116, nullptr, "Unknown116"},
-            {117, nullptr, "Unknown117"},
-            {118, nullptr, "Unknown118"},
-            {119, nullptr, "Unknown119"},
-            {120, nullptr, "Unknown120"},
-            {121, nullptr, "Unknown121"},
-            {122, nullptr, "Unknown122"},
-            {123, nullptr, "Unknown123"},
-            {124, nullptr, "Unknown124"},
-            {125, nullptr, "Unknown125"},
-            {126, nullptr, "Unknown126"},
-            {127, nullptr, "Unknown127"},
-            {128, nullptr, "Unknown128"},
-            {129, nullptr, "Unknown129"},
-            {130, nullptr, "Unknown130"},
-            {131, nullptr, "Unknown131"},
-            {132, nullptr, "Unknown132"},
-            {133, nullptr, "Unknown133"},
-            {134, nullptr, "Unknown134"},
+            {87, nullptr, "RequestQueryAvailableELicenses"},
+            {88, nullptr, "RequestAssignELicenses"},
+            {89, nullptr, "RequestExtendELicenses"},
+            {90, nullptr, "RequestSyncELicenses"},
+            {91, nullptr, "Unknown91"}, //6.0.0-14.1.2
+            {92, nullptr, "Unknown92"}, //21.0.0+
+            {93, nullptr, "RequestReportActiveELicenses"},
+            {94, nullptr, "RequestReportActiveELicensesPassively"},
+            {95, nullptr, "RequestRegisterDynamicRightsNotificationToken"},
+            {96, nullptr, "RequestAssignAllDeviceLinkedELicenses"},
+            {97, nullptr, "RequestRevokeAllELicenses"},
+            {98, nullptr, "RequestPrefetchForDynamicRights"},
+            {99, nullptr, "CreateNetworkInstallTask"},
+            {100, nullptr, "ListNetworkInstallTaskRightsIds"},
+            {101, nullptr, "RequestDownloadETickets"},
+            {102, nullptr, "RequestQueryDownloadableContents"},
+            {103, nullptr, "DeleteNetworkInstallTaskContentMeta"},
+            {104, nullptr, "RequestIssueEdgeTokenForDebug"},
+            {105, nullptr, "RequestQueryAvailableELicenses2"},
+            {106, nullptr, "RequestAssignELicenses2"},
+            {107, nullptr, "GetNetworkInstallTaskStateCounter"},
+            {108, nullptr, "InvalidateDynamicRightsNaIdTokenCacheForDebug"},
+            {109, nullptr, "ListNetworkInstallTaskPartialInstallContentMeta"},
+            {110, nullptr, "ListNetworkInstallTaskRightsIdsFromIndex"},
+            {111, nullptr, "AddNetworkInstallTaskContentMetaForUser"},
+            {112, nullptr, "RequestAssignELicensesAndDownloadETickets"},
+            {113, nullptr, "RequestQueryAvailableCommonELicenses"},
+            {114, nullptr, "SetNetworkInstallTaskExtendedAttribute"},
+            {115, nullptr, "GetNetworkInstallTaskExtendedAttribute"},
+            {116, nullptr, "GetAllocatorInfo"},
+            {117, nullptr, "RequestQueryDownloadableContentsByApplicationId"},
+            {118, nullptr, "MarkNoDownloadRightsErrorResolved"},
+            {119, nullptr, "GetApplyDeltaTaskAllAppliedContentMeta"},
+            {120, nullptr, "PrioritizeNetworkInstallTask"},
+            {121, nullptr, "RequestQueryAvailableCommonELicenses2"},
+            {122, nullptr, "RequestAssignCommonELicenses"},
+            {123, nullptr, "RequestAssignCommonELicenses2"},
+            {124, nullptr, "IsNetworkInstallTaskFrontOfQueue"},
+            {125, nullptr, "PrioritizeApplyDeltaTask"},
+            {126, nullptr, "RerouteDownloadingPatch"},
+            {127, nullptr, "UnmarkNoDownloadRightsErrorResolved"},
+            {128, nullptr, "RequestContentsSize"},
+            {129, nullptr, "RequestContentsAuthorizationToken"},
+            {130, nullptr, "RequestCdnVendorDiscovery"},
+            {131, nullptr, "RefreshDebugAvailability"},
+            {132, nullptr, "ClearResponseSimulationEntry"},
+            {133, nullptr, "RegisterResponseSimulationEntry"},
+            {134, nullptr, "GetProcessedCdnVendors"},
+            {135, nullptr, "RefreshRuntimeBehaviorsForDebug"},
+            {136, nullptr, "RequestOnlineSubscriptionFreeTrialAvailability"},
+            {137, nullptr, "GetNetworkInstallTaskContentMetaCount"},
+            {138, nullptr, "RequestRevokeELicenses"},
+            {139, nullptr, "EnableNetworkConnectionToUseApplicationCore"},
+            {140, nullptr, "DisableNetworkConnectionToUseApplicationCore"},
+            {141, nullptr, "IsNetworkConnectionEnabledToUseApplicationCore"},
+            {142, nullptr, "RequestCheckSafeSystemVersion"},
+            {143, nullptr, "RequestApplicationIcon"},
+            {144, nullptr, "RequestDownloadIdbeIconFile"},
+            {147, nullptr, "Unknown147"}, //18.0.0+
+            {148, nullptr, "Unknown148"}, //18.0.0+
+            {150, nullptr, "Unknown150"}, //19.0.0+
+            {151, nullptr, "Unknown151"}, //20.0.0+
+            {152, nullptr, "Unknown152"}, //20.0.0+
+            {153, nullptr, "Unknown153"}, //20.0.0+
+            {154, nullptr, "Unknown154"}, //20.0.0+
+            {155, nullptr, "Unknown155"}, //20.0.0+
+            {156, nullptr, "Unknown156"}, //20.0.0+
+            {157, nullptr, "Unknown157"}, //20.0.0+
+            {158, nullptr, "Unknown158"}, //20.0.0+
+            {159, nullptr, "Unknown159"}, //20.0.0+
+            {160, nullptr, "Unknown160"}, //20.0.0+
+            {161, nullptr, "Unknown161"}, //20.0.0+
+            {162, nullptr, "Unknown162"}, //20.0.0+
+            {163, nullptr, "Unknown163"}, //20.0.0+
+            {164, nullptr, "Unknown164"}, //20.0.0+
+            {165, nullptr, "Unknown165"}, //20.0.0+
+            {166, nullptr, "Unknown166"}, //20.0.0+
+            {167, nullptr, "Unknown167"}, //20.0.0+
+            {168, nullptr, "Unknown168"}, //20.0.0+
+            {169, nullptr, "Unknown169"}, //20.0.0+
+            {170, nullptr, "Unknown170"}, //20.0.0+
+            {171, nullptr, "Unknown171"}, //20.0.0+
+            {172, nullptr, "Unknown172"}, //20.0.0+
+            {173, nullptr, "Unknown173"}, //20.0.0+
+            {174, nullptr, "Unknown174"}, //20.0.0+
+            {175, nullptr, "Unknown175"}, //20.0.0+
+            {176, nullptr, "Unknown176"}, //20.0.0+
+            {177, nullptr, "Unknown177"}, //20.0.0+
+            {2000, nullptr, "Unknown2000"}, //20.0.0+
+            {2001, nullptr, "Unknown2001"}, //20.0.0+
+            {2002, nullptr, "Unknown2002"}, //20.0.0+
+            {2003, nullptr, "Unknown2003"}, //20.0.0+
+            {2004, nullptr, "Unknown2004"}, //20.0.0+
+            {2007, nullptr, "Unknown2007"}, //20.0.0+
+            {2011, nullptr, "Unknown2011"}, //20.0.0+
+            {2012, nullptr, "Unknown2012"}, //20.0.0+
+            {2013, nullptr, "Unknown2013"}, //20.0.0+
+            {2014, nullptr, "Unknown2014"}, //20.0.0+
+            {2015, nullptr, "Unknown2015"}, //20.0.0+
+            {2016, nullptr, "Unknown2016"}, //20.0.0+
+            {2017, nullptr, "Unknown2017"}, //20.0.0+
+            {2018, nullptr, "Unknown2018"}, //20.0.0+
+            {2019, nullptr, "Unknown2019"}, //20.0.0+
+            {2020, nullptr, "Unknown2020"}, //20.0.0+
+            {2021, nullptr, "Unknown2021"}, //20.0.0+
+            {2022, nullptr, "Unknown2022"}, //20.0.0+
+            {2023, nullptr, "Unknown2023"}, //20.0.0+
+            {2024, nullptr, "Unknown2024"}, //20.0.0+
+            {2025, nullptr, "Unknown2025"}, //20.0.0+
+            {2026, nullptr, "Unknown2026"}, //20.0.0+
+            {2027, nullptr, "Unknown2027"}, //20.0.0+
+            {2028, nullptr, "Unknown2028"}, //20.0.0+
+            {2029, nullptr, "Unknown2029"}, //20.0.0+
+            {2030, nullptr, "Unknown2030"}, //20.0.0+
+            {2031, nullptr, "Unknown2031"}, //20.0.0+
+            {2032, nullptr, "Unknown2032"}, //20.0.0+
+            {2033, nullptr, "Unknown2033"}, //20.0.0+
+            {2034, nullptr, "Unknown2034"}, //20.0.0+
+            {2035, nullptr, "Unknown2035"}, //20.0.0+
+            {2036, nullptr, "Unknown2036"}, //20.0.0+
+            {2037, nullptr, "Unknown2037"}, //20.0.0+
+            {2038, nullptr, "Unknown2038"}, //20.0.0+
+            {2039, nullptr, "Unknown2039"}, //20.0.0+
+            {2040, nullptr, "Unknown2040"}, //20.0.0+
+            {2041, nullptr, "Unknown2041"}, //20.0.0+
+            {2042, nullptr, "Unknown2042"}, //20.0.0+
+            {2043, nullptr, "Unknown2043"}, //20.0.0+
+            {2044, nullptr, "Unknown2044"}, //20.0.0+
+            {2045, nullptr, "Unknown2045"}, //20.0.0+
+            {2046, nullptr, "Unknown2046"}, //20.0.0+
+            {2047, nullptr, "Unknown2047"}, //20.0.0+
+            {2048, nullptr, "Unknown2048"}, //20.0.0+
+            {2049, nullptr, "Unknown2049"}, //20.0.0+
+            {2050, nullptr, "Unknown2050"}, //20.0.0+
+            {2051, nullptr, "Unknown2051"}, //20.0.0+
+            {3000, nullptr, "RequestLatestApplicationIcon"}, //17.0.0+
+            {3001, nullptr, "RequestDownloadIdbeLatestIconFile"}, //17.0.0+
         };
         // clang-format on
 

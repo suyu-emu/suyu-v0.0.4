@@ -1082,8 +1082,7 @@ BSD::~BSD() {
     }
 }
 
-std::unique_lock<std::mutex> BSD::LockService() {
-    // Do not lock socket IClient instances.
+std::unique_lock<std::mutex> BSD::LockService() noexcept {
     return {};
 }
 

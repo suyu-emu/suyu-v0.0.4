@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -47,25 +50,23 @@ static_assert(ServerSessionCountMax == 0x40,
 class ServiceFrameworkBase : public SessionRequestHandler {
 public:
     /// Returns the string identifier used to connect to the service.
-    std::string GetServiceName() const {
+    [[nodiscard]] std::string_view GetServiceName() const noexcept {
         return service_name;
     }
 
-    /**
-     * Returns the maximum number of sessions that can be connected to this service at the same
-     * time.
-     */
-    u32 GetMaxSessions() const {
+    /// @brief Returns the maximum number of sessions that can be connected to this service at the same
+    /// time.
+    u32 GetMaxSessions() const noexcept {
         return max_sessions;
     }
 
-    /// Invokes a service request routine using the HIPC protocol.
+    /// @brief Invokes a service request routine using the HIPC protocol.
     void InvokeRequest(HLERequestContext& ctx);
 
-    /// Invokes a service request routine using the HIPC protocol.
+    /// @brief Invokes a service request routine using the HIPC protocol.
     void InvokeRequestTipc(HLERequestContext& ctx);
 
-    /// Handles a synchronization request for the service.
+    /// @brief Handles a synchronization request for the service.
     Result HandleSyncRequest(Kernel::KServerSession& session, HLERequestContext& context) override;
 
 protected:
@@ -74,7 +75,7 @@ protected:
     using HandlerFnP = void (Self::*)(HLERequestContext&);
 
     /// Used to gain exclusive access to the service members, e.g. from CoreTiming thread.
-    [[nodiscard]] virtual std::unique_lock<std::mutex> LockService() {
+    [[nodiscard]] virtual std::unique_lock<std::mutex> LockService() noexcept {
         return std::unique_lock{lock_service};
     }
 
@@ -105,20 +106,19 @@ private:
     void RegisterHandlersBaseTipc(const FunctionInfoBase* functions, std::size_t n);
     void ReportUnimplementedFunction(HLERequestContext& ctx, const FunctionInfoBase* info);
 
+    boost::container::flat_map<u32, FunctionInfoBase> handlers;
+    boost::container::flat_map<u32, FunctionInfoBase> handlers_tipc;
+    /// Used to gain exclusive access to the service members, e.g. from CoreTiming thread.
+    std::mutex lock_service;
+    /// Function used to safely up-cast pointers to the derived class before invoking a handler.
+    InvokerFn* handler_invoker;
+
     /// Maximum number of concurrent sessions that this service can handle.
     u32 max_sessions;
 
     /// Flag to store if a port was already create/installed to detect multiple install attempts,
     /// which is not supported.
     bool service_registered = false;
-
-    /// Function used to safely up-cast pointers to the derived class before invoking a handler.
-    InvokerFn* handler_invoker;
-    boost::container::flat_map<u32, FunctionInfoBase> handlers;
-    boost::container::flat_map<u32, FunctionInfoBase> handlers_tipc;
-
-    /// Used to gain exclusive access to the service members, e.g. from CoreTiming thread.
-    std::mutex lock_service;
 };
 
 /**
@@ -142,20 +142,12 @@ protected:
         // TODO(yuriks): This function could be constexpr, but clang is the only compiler that
         // doesn't emit an ICE or a wrong diagnostic because of the static_cast.
 
-        /**
-         * Constructs a FunctionInfo for a function.
-         *
-         * @param expected_header_ request header in the command buffer which will trigger dispatch
-         *     to this handler
-         * @param handler_callback_ member function in this service which will be called to handle
-         *     the request
-         * @param name_ human-friendly name for the request. Used mostly for logging purposes.
-         */
-        FunctionInfoTyped(u32 expected_header_, HandlerFnP<T> handler_callback_, const char* name_)
-            : FunctionInfoBase{
-                  expected_header_,
-                  // Type-erase member function pointer by casting it down to the base class.
-                  static_cast<HandlerFnP<ServiceFrameworkBase>>(handler_callback_), name_} {}
+        /// @brief Constructs a FunctionInfo for a function.
+        /// @param expected_header_ request header in the command buffer which will trigger dispatch to this handler
+        /// @param handler_callback_ member function in this service which will be called to handle the request
+        /// @param name_ human-friendly name for the request. Used mostly for logging purposes.
+        constexpr FunctionInfoTyped(u32 expected_header_, HandlerFnP<T> handler_callback_, const char* name_)
+            : FunctionInfoBase{expected_header_, HandlerFnP<ServiceFrameworkBase>(handler_callback_), name_} {}
     };
     using FunctionInfo = FunctionInfoTyped<Self>;
 

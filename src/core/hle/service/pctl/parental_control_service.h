@@ -51,7 +51,7 @@ private:
     Result IsPlayTimerEnabled(Out<bool> out_is_play_timer_enabled);
     Result GetPlayTimerRemainingTime(Out<s32> out_remaining_time);
     Result IsRestrictedByPlayTimer(Out<bool> out_is_restricted_by_play_timer);
-    Result GetPlayTimerSettingsOld(Out<PlayTimerSettings> out_play_timer_settings);
+    Result GetPlayTimerSettingsOld(Out<PlayTimerSettingsOld> out_play_timer_settings);
     Result GetPlayTimerEventToRequestSuspension(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result IsPlayTimerAlarmDisabled(Out<bool> out_play_timer_alarm_disabled);
     Result GetPlayTimerRemainingTimeDisplayInfo();
@@ -60,6 +60,7 @@ private:
     Result SetStereoVisionRestriction(bool stereo_vision_restriction);
     Result ResetConfirmedStereoVisionPermission();
     Result GetPlayTimerSettings(Out<PlayTimerSettings> out_play_timer_settings);
+    Result SetPlayTimerSettings(PlayTimerSettings out_play_timer_settings);
 
     struct States {
         u64 current_tid{};
@@ -83,6 +84,8 @@ private:
     RestrictionSettings restriction_settings{};
     std::array<char, 8> pin_code{};
     Capability capability{};
+    // TODO: this is RAW as fuck
+    PlayTimerSettings raw_play_timer_settings{};
 
     KernelHelpers::ServiceContext service_context;
     Event synchronization_event;

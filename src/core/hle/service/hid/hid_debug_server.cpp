@@ -125,13 +125,10 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {250, nullptr, "IsVirtual"},
         {251, nullptr, "GetAnalogStickModuleParam"},
         {253, nullptr, "ClearStorageForShipment"}, //19.0.0+
-        {254, nullptr, "Unknown254"},
-        {255, nullptr, "Unknown255"},
-        {256, nullptr, "Unknown256"},
-        {261, nullptr, "UpdateDesignInfo12"},
-        {262, nullptr, "GetUniquePadButtonCount"},
-        {267, nullptr, "Unknown267"},
-        {268, nullptr, "Unknown268"},
+        {261, nullptr, "UpdateDesignInfo12"}, //21.0.0+
+        {262, nullptr, "GetUniquePadButtonCount"}, //21.0.0+
+        {267, nullptr, "SetAnalogStickCalibration"}, //21.0.0+
+        {268, nullptr, "ResetAnalogStickCalibration"}, //21.0.0+
         {301, nullptr, "GetAbstractedPadHandles"},
         {302, nullptr, "GetAbstractedPadState"},
         {303, nullptr, "GetAbstractedPadsState"},
@@ -148,6 +145,8 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {331, nullptr, "DetachHdlsVirtualDevice"},
         {332, nullptr, "SetHdlsState"},
         {350, nullptr, "AddRegisteredDevice"},
+        {351, nullptr, "GetRegisteredDevicesCountDebug"}, //17.0.0-18.1.0
+        {352, nullptr, "DeleteRegisteredDevicesDebug"}, //17.0.0-18.1.0
         {400, nullptr, "DisableExternalMcuOnNxDevice"},
         {401, nullptr, "DisableRailDeviceFiltering"},
         {402, nullptr, "EnableWiredPairing"},
@@ -159,14 +158,30 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {551, nullptr, "GetAnalogStickModelData"},
         {552, nullptr, "ResetAnalogStickModelData"},
         {600, nullptr, "ConvertPadState"},
+        {601, nullptr, "IsButtonConfigSupported"}, //18.0.0+
+        {602, nullptr, "IsButtonConfigEmbeddedSupported"}, //18.0.0+
+        {603, nullptr, "DeleteButtonConfig"}, //18.0.0+
+        {604, nullptr, "DeleteButtonConfigEmbedded"}, //18.0.0+
+        {605, nullptr, "SetButtonConfigEnabled"}, //18.0.0+
+        {606, nullptr, "SetButtonConfigEmbeddedEnabled"}, //18.0.0+
+        {607, nullptr, "IsButtonConfigEnabled"}, //18.0.0+
+        {608, nullptr, "IsButtonConfigEmbeddedEnabled"}, //18.0.0+
+        {609, nullptr, "SetButtonConfigEmbedded"}, //18.0.0+
+        {610, nullptr, "SetButtonConfigFull"}, //18.0.0+
+        {611, nullptr, "SetButtonConfigLeft"}, //18.0.0+
+        {612, nullptr, "SetButtonConfigRight"}, //18.0.0+
+        {613, nullptr, "GetButtonConfigEmbedded"}, //18.0.0+
+        {614, nullptr, "GetButtonConfigFull"}, //18.0.0+
+        {615, nullptr, "GetButtonConfigLeft"}, //18.0.0+
+        {616, nullptr, "GetButtonConfigRight"}, //18.0.0+
         {650, nullptr, "AddButtonPlayData"},
         {651, nullptr, "StartButtonPlayData"},
         {652, nullptr, "StopButtonPlayData"},
-        {700, nullptr, "Unknown700"},
+        {700, nullptr, "GetRailAttachEventCount"}, //21.0.0+
         {2000, nullptr, "DeactivateDigitizer"},
         {2001, nullptr, "SetDigitizerAutoPilotState"},
         {2002, nullptr, "UnsetDigitizerAutoPilotState"},
-        {2002, nullptr, "ReloadFirmwareDebugSettings"},
+        {3000, nullptr, "ReloadFirmwareDebugSettings"},
     };
     // clang-format on
 

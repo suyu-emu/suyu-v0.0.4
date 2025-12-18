@@ -134,7 +134,26 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {406, nullptr, "GetApplicationControlProperty"},
         {407, nullptr, "ListApplicationTitle"},
         {408, nullptr, "ListApplicationIcon"},
+        {411, nullptr, "Unknown411"}, //19.0.0+
+        {412, nullptr, "Unknown412"}, //19.0.0+
+        {413, nullptr, "Unknown413"}, //19.0.0+
+        {414, nullptr, "Unknown414"}, //19.0.0+
+        {415, nullptr, "Unknown415"}, //19.0.0+
+        {416, nullptr, "Unknown416"}, //19.0.0+
+        {417, nullptr, "InvalidateAllApplicationControlCacheOfTheStage"}, //19.0.0+
+        {418, nullptr, "InvalidateApplicationControlCacheOfTheStage"}, //19.0.0+
         {419, D<&IApplicationManagerInterface::RequestDownloadApplicationControlDataInBackground>, "RequestDownloadApplicationControlDataInBackground"},
+        {420, nullptr, "CloneApplicationControlDataCacheForDebug"},
+        {421, nullptr, "Unknown421"}, //20.0.0+
+        {422, nullptr, "Unknown422"}, //20.0.0+
+        {423, nullptr, "Unknown423"}, //20.0.0+
+        {424, nullptr, "Unknown424"}, //20.0.0+
+        {425, nullptr, "Unknown425"}, //20.0.0+
+        {426, nullptr, "Unknown426"}, //20.0.0+
+        {427, nullptr, "Unknown427"}, //20.0.0+
+        {428, nullptr, "Unknown428"}, //21.0.0+
+        {429, nullptr, "Unknown429"}, //21.0.0+
+        {430, nullptr, "Unknown430"}, //21.0.0+
         {502, nullptr, "RequestCheckGameCardRegistration"},
         {503, nullptr, "RequestGameCardRegistrationGoldPoint"},
         {504, nullptr, "RequestRegisterGameCard"},
@@ -146,6 +165,13 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {510, nullptr, "GetGameCardPlatformRegion"},
         {511, D<&IApplicationManagerInterface::GetGameCardWakenReadyEvent>, "GetGameCardWakenReadyEvent"},
         {512, D<&IApplicationManagerInterface::IsGameCardApplicationRunning>, "IsGameCardApplicationRunning"},
+        {513, nullptr, "Unknown513"}, //20.0.0+
+        {514, nullptr, "Unknown514"}, //20.0.0+
+        {515, nullptr, "Unknown515"}, //20.0.0+
+        {516, nullptr, "Unknown516"}, //21.0.0+
+        {517, nullptr, "Unknown517"}, //21.0.0+
+        {518, nullptr, "Unknown518"}, //21.0.0+
+        {519, nullptr, "Unknown519"}, //21.0.0+
         {600, nullptr, "CountApplicationContentMeta"},
         {601, nullptr, "ListApplicationContentMetaStatus"},
         {602, nullptr, "ListAvailableAddOnContent"},
@@ -183,6 +209,22 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {914, nullptr, "HideApplicationRecord"},
         {915, nullptr, "ShowApplicationRecord"},
         {916, nullptr, "IsApplicationAutoDeleteDisabled"},
+        {916, nullptr, "Unknown916"}, //20.0.0+
+        {917, nullptr, "Unknown917"}, //20.0.0+
+        {918, nullptr, "Unknown918"}, //20.0.0+
+        {919, nullptr, "Unknown919"}, //20.0.0+
+        {920, nullptr, "Unknown920"}, //20.0.0+
+        {921, nullptr, "Unknown921"}, //20.0.0+
+        {922, nullptr, "Unknown922"}, //20.0.0+
+        {923, nullptr, "Unknown923"}, //20.0.0+
+        {928, nullptr, "Unknown928"}, //20.0.0+
+        {929, nullptr, "Unknown929"}, //20.0.0+
+        {930, nullptr, "Unknown930"}, //20.0.0+
+        {931, nullptr, "Unknown931"}, //20.0.0+
+        {933, nullptr, "Unknown933"}, //20.0.0+
+        {934, nullptr, "Unknown934"}, //20.0.0+
+        {935, nullptr, "Unknown935"}, //20.0.0+
+        {936, nullptr, "Unknown936"}, //20.0.0+
         {1000, nullptr, "RequestVerifyApplicationDeprecated"},
         {1001, nullptr, "CorruptApplicationForDebug"},
         {1002, nullptr, "RequestVerifyAddOnContentsRights"},
@@ -211,6 +253,11 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {1504, nullptr, "InsertSdCard"},
         {1505, nullptr, "RemoveSdCard"},
         {1506, nullptr, "GetSdCardStartupStatus"},
+        {1508, nullptr, "Unknown1508"}, //20.0.0+
+        {1509, nullptr, "Unknown1509"}, //20.0.0+
+        {1510, nullptr, "Unknown1510"}, //20.0.0+
+        {1511, nullptr, "Unknown1511"}, //20.0.0+
+        {1512, nullptr, "Unknown1512"}, //20.0.0+
         {1600, nullptr, "GetSystemSeedForPseudoDeviceId"},
         {1601, nullptr, "ResetSystemSeedForPseudoDeviceId"},
         {1700, nullptr, "ListApplicationDownloadingContentMeta"},
@@ -247,8 +294,11 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {2016, nullptr, "ListNotCommittedContentMeta"},
         {2017, nullptr, "CreateDownloadTask"},
         {2018, nullptr, "GetApplicationDeliveryInfoHash"},
+        {2019, nullptr, "Unknown2019"}, //20.0.0+
         {2050, D<&IApplicationManagerInterface::GetApplicationRightsOnClient>, "GetApplicationRightsOnClient"},
         {2051, nullptr, "InvalidateRightsIdCache"},
+        {2052, nullptr, "Unknown2052"}, //20.0.0+
+        {2053, nullptr, "Unknown2053"}, //20.0.0+
         {2100, D<&IApplicationManagerInterface::GetApplicationTerminateResult>, "GetApplicationTerminateResult"},
         {2101, nullptr, "GetRawApplicationTerminateResult"},
         {2150, nullptr, "CreateRightsEnvironment"},
@@ -265,6 +315,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {2180, nullptr, "RequestExtendRightsInRightsEnvironment"},
         {2181, nullptr, "GetResultOfExtendRightsInRightsEnvironment"},
         {2182, nullptr, "SetActiveRightsContextUsingStateToRightsEnvironment"},
+        {2183, nullptr, "Unknown2183"}, //20.1.0+
         {2190, nullptr, "GetRightsEnvironmentHandleForApplication"},
         {2199, nullptr, "GetRightsEnvironmentCountForDebug"},
         {2200, nullptr, "GetGameCardApplicationCopyIdentifier"},
@@ -281,6 +332,16 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {2357, nullptr, "EnableMultiCoreDownload"},
         {2358, nullptr, "DisableMultiCoreDownload"},
         {2359, nullptr, "IsMultiCoreDownloadEnabled"},
+        {2360, nullptr, "GetApplicationDownloadTaskCount"}, //19.0.0+
+        {2361, nullptr, "GetMaxApplicationDownloadTaskCount"}, //19.0.0+
+        {2362, nullptr, "Unknown2362"}, //20.0.0+
+        {2363, nullptr, "Unknown2363"}, //20.0.0+
+        {2364, nullptr, "Unknown2364"}, //20.0.0+
+        {2365, nullptr, "Unknown2365"}, //20.0.0+
+        {2366, nullptr, "Unknown2366"}, //20.0.0+
+        {2367, nullptr, "Unknown2367"}, //20.0.0+
+        {2368, nullptr, "Unknown2368"}, //20.0.0+
+        {2369, nullptr, "Unknown2369"}, //21.0.0+
         {2400, nullptr, "GetPromotionInfo"},
         {2401, nullptr, "CountPromotionInfo"},
         {2402, nullptr, "ListPromotionInfo"},
@@ -299,6 +360,9 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {2520, nullptr, "IsQualificationTransitionSupportedByProcessId"},
         {2521, nullptr, "GetRightsUserChangedEvent"},
         {2522, nullptr, "IsRomRedirectionAvailable"},
+        {2523, nullptr, "GetProgramId"}, //17.0.0+
+        {2524, nullptr, "Unknown2524"}, //19.0.0+
+        {2525, nullptr, "Unknown2525"}, //20.0.0+
         {2800, nullptr, "GetApplicationIdOfPreomia"},
         {3000, nullptr, "RegisterDeviceLockKey"},
         {3001, nullptr, "UnregisterDeviceLockKey"},
@@ -316,11 +380,99 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {3013, nullptr, "IsGameCardEnabled"},
         {3014, nullptr, "IsLocalContentShareEnabled"},
         {3050, nullptr, "ListAssignELicenseTaskResult"},
-        {4022, D<&IApplicationManagerInterface::Unknown4022>, "Unknown4022"},
-        {4023, D<&IApplicationManagerInterface::Unknown4023>, "Unknown4023"},
-        {4088, D<&IApplicationManagerInterface::Unknown4022>, "Unknown4088"},
-        {4053, D<&IApplicationManagerInterface::Unknown4053>, "Unknown4053"},
-        {9999, nullptr, "GetApplicationCertificate"},
+        {3104, nullptr, "GetApplicationNintendoLogo"}, //18.0.0+
+        {3105, nullptr, "GetApplicationStartupMovie"}, //18.0.0+
+        {4000, nullptr, "Unknown4000"}, //20.0.0+
+        {4004, nullptr, "Unknown4004"}, //20.0.0+
+        {4006, nullptr, "Unknown4006"}, //20.0.0+
+        {4007, nullptr, "Unknown4007"}, //20.0.0+
+        {4008, nullptr, "Unknown4008"}, //20.0.0+
+        {4009, nullptr, "Unknown4009"}, //20.0.0+
+        {4010, nullptr, "Unknown4010"}, //20.0.0+
+        {4011, nullptr, "Unknown4011"}, //20.0.0+
+        {4012, nullptr, "Unknown4012"}, //20.0.0+
+        {4013, nullptr, "Unknown4013"}, //20.0.0+
+        {4015, nullptr, "Unknown4015"}, //20.0.0+
+        {4017, nullptr, "Unknown4017"}, //20.0.0+
+        {4019, nullptr, "Unknown4019"}, //20.0.0+
+        {4020, nullptr, "Unknown4020"}, //20.0.0+
+        {4021, nullptr, "Unknown4021"}, //20.0.0+
+        {4022, D<&IApplicationManagerInterface::Unknown4022>, "Unknown4022"}, //20.0.0+
+        {4023, D<&IApplicationManagerInterface::Unknown4023>, "Unknown4023"}, //20.0.0+
+        {4024, nullptr, "Unknown4024"}, //20.0.0+
+        {4025, nullptr, "Unknown4025"}, //20.0.0+
+        {4026, nullptr, "Unknown4026"}, //20.0.0+
+        {4027, nullptr, "Unknown4027"}, //20.0.0+
+        {4028, nullptr, "Unknown4028"}, //20.0.0+
+        {4029, nullptr, "Unknown4029"}, //20.0.0+
+        {4030, nullptr, "Unknown4030"}, //20.0.0+
+        {4031, nullptr, "Unknown4031"}, //20.0.0+
+        {4032, nullptr, "Unknown4032"}, //20.0.0+
+        {4033, nullptr, "Unknown4033"}, //20.0.0+
+        {4034, nullptr, "Unknown4034"}, //20.0.0+
+        {4035, nullptr, "Unknown4035"}, //20.0.0+
+        {4037, nullptr, "Unknown4037"}, //20.0.0+
+        {4038, nullptr, "Unknown4038"}, //20.0.0+
+        {4039, nullptr, "Unknown4039"}, //20.0.0+
+        {4040, nullptr, "Unknown4040"}, //20.0.0+
+        {4041, nullptr, "Unknown4041"}, //20.0.0+
+        {4042, nullptr, "Unknown4042"}, //20.0.0+
+        {4043, nullptr, "Unknown4043"}, //20.0.0+
+        {4044, nullptr, "Unknown4044"}, //20.0.0+
+        {4045, nullptr, "Unknown4045"}, //20.0.0+
+        {4046, nullptr, "Unknown4046"}, //20.0.0+
+        {4049, nullptr, "Unknown4049"}, //20.0.0+
+        {4050, nullptr, "Unknown4050"}, //20.0.0+
+        {4051, nullptr, "Unknown4051"}, //20.0.0+
+        {4052, nullptr, "Unknown4052"}, //20.0.0+
+        {4053, D<&IApplicationManagerInterface::Unknown4053>, "Unknown4053"}, //20.0.0+
+        {4054, nullptr, "Unknown4054"}, //20.0.0+
+        {4055, nullptr, "Unknown4055"}, //20.0.0+
+        {4056, nullptr, "Unknown4056"}, //20.0.0+
+        {4057, nullptr, "Unknown4057"}, //20.0.0+
+        {4058, nullptr, "Unknown4058"}, //20.0.0+
+        {4059, nullptr, "Unknown4059"}, //20.0.0+
+        {4060, nullptr, "Unknown4060"}, //20.0.0+
+        {4061, nullptr, "Unknown4061"}, //20.0.0+
+        {4062, nullptr, "Unknown4062"}, //20.0.0+
+        {4063, nullptr, "Unknown4063"}, //20.0.0+
+        {4064, nullptr, "Unknown4064"}, //20.0.0+
+        {4065, nullptr, "Unknown4065"}, //20.0.0+
+        {4066, nullptr, "Unknown4066"}, //20.0.0+
+        {4067, nullptr, "Unknown4067"}, //20.0.0+
+        {4068, nullptr, "Unknown4068"}, //20.0.0+
+        {4069, nullptr, "Unknown4069"}, //20.0.0+
+        {4070, nullptr, "Unknown4070"}, //20.0.0+
+        {4071, nullptr, "Unknown4071"}, //20.0.0+
+        {4072, nullptr, "Unknown4072"}, //20.0.0+
+        {4073, nullptr, "Unknown4073"}, //20.0.0+
+        {4074, nullptr, "Unknown4074"}, //20.0.0+
+        {4075, nullptr, "Unknown4075"}, //20.0.0+
+        {4076, nullptr, "Unknown4076"}, //20.0.0+
+        {4077, nullptr, "Unknown4077"}, //20.0.0+
+        {4078, nullptr, "Unknown4078"}, //20.0.0+
+        {4079, nullptr, "Unknown4079"}, //20.0.0+
+        {4080, nullptr, "Unknown4080"}, //20.0.0+
+        {4081, nullptr, "Unknown4081"}, //20.0.0+
+        {4083, nullptr, "Unknown4083"}, //20.0.0+
+        {4084, nullptr, "Unknown4084"}, //20.0.0+
+        {4085, nullptr, "Unknown4085"}, //20.0.0+
+        {4086, nullptr, "Unknown4086"}, //20.0.0+
+        {4087, nullptr, "Unknown4087"}, //20.0.0+
+        {4088, D<&IApplicationManagerInterface::Unknown4022>, "Unknown4088"}, //20.0.0+
+        {4089, nullptr, "Unknown4089"}, //20.0.0+
+        {4090, nullptr, "Unknown4090"}, //20.0.0+
+        {4091, nullptr, "Unknown4091"}, //20.0.0+
+        {4092, nullptr, "Unknown4092"}, //20.0.0+
+        {4093, nullptr, "Unknown4093"}, //20.0.0+
+        {4094, nullptr, "Unknown4094"}, //20.0.0+
+        {4095, nullptr, "Unknown4095"}, //20.0.0+
+        {4096, nullptr, "Unknown4096"}, //20.0.0+
+        {4097, nullptr, "Unknown4097"}, //20.0.0+
+        {4099, nullptr, "Unknown4099"}, //21.0.0+
+        {5000, nullptr, "Unknown5000"}, //18.0.0+
+        {5001, nullptr, "Unknown5001"}, //18.0.0+
+        {9999, nullptr, "GetApplicationCertificate"}, //10.0.0-10.2.0
     };
     // clang-format on
 

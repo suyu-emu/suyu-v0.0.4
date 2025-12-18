@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,7 +17,8 @@ public:
     ~ITransferTaskListController() override;
 
 private:
-    Result GetNativeHandleHolder(Out<SharedPointer<INativeHandleHolder>> out_holder);
+    Result GetTransferTaskEndEventNativeHandleHolder(Out<SharedPointer<INativeHandleHolder>> out_holder);
+    Result GetTransferTaskStartEventNativeHandleHolder(Out<SharedPointer<INativeHandleHolder>> out_holder);
 };
 
 } // namespace Service::OLSC
