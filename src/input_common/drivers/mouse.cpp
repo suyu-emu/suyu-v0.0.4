@@ -14,7 +14,7 @@
 #include "input_common/drivers/mouse.h"
 
 namespace InputCommon {
-constexpr int update_time = 25; // 40 TPS
+constexpr int update_time = 10;
 constexpr float default_panning_sensitivity = 0.0010f;
 constexpr float default_stick_sensitivity = 0.0006f;
 constexpr float default_deadzone_counterweight = 0.01f;
