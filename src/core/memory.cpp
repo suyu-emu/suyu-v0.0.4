@@ -10,6 +10,7 @@
 #include <mutex>
 #include <span>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 #include "common/assert.h"
@@ -681,22 +682,17 @@ struct Memory::Impl {
         }
     }
 
-    [[nodiscard]] u8* GetPointerImpl(u64 vaddr, auto on_unmapped, auto on_rasterizer) const {
+    template<typename F, typename G>
+    [[nodiscard]] u8* GetPointerImpl(u64 vaddr, F&& on_unmapped, G&& on_rasterizer) const {
         // AARCH64 masks the upper 16 bit of all memory accesses
-        vaddr = vaddr & 0xffffffffffffULL;
-        if (!AddressSpaceContains(*current_page_table, vaddr, 1)) [[unlikely]] {
-            on_unmapped();
-            return nullptr;
-        } else {
+        vaddr &= 0xffffffffffffULL;
+        if (AddressSpaceContains(*current_page_table, vaddr, 1)) [[likely]] {
             // Avoid adding any extra logic to this fast-path block
             const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Raw();
-            if (const uintptr_t pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
+            if (const uintptr_t pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) [[likely]] {
                 return reinterpret_cast<u8*>(pointer + vaddr);
             } else {
                 switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
-                case Common::PageType::Unmapped:
-                    on_unmapped();
-                    return nullptr;
                 case Common::PageType::Memory:
                     ASSERT_MSG(false, "Mapped memory page without a pointer @ 0x{:016X}", vaddr);
                     return nullptr;
@@ -707,11 +703,18 @@ struct Memory::Impl {
                     on_rasterizer();
                     return host_ptr;
                 }
+                case Common::PageType::Unmapped: [[unlikely]] {
+                    on_unmapped();
+                    return nullptr;
+                }
                 default:
                     UNREACHABLE();
                 }
                 return nullptr;
             }
+        } else {
+            on_unmapped();
+            return nullptr;
         }
     }
 
@@ -729,172 +732,38 @@ struct Memory::Impl {
             GetInteger(vaddr), []() {}, []() {});
     }
 
-    /**
-     * Reads a particular data type out of memory at the given virtual address.
-     *
-     * @param vaddr The virtual address to read the data type from.
-     *
-     * @tparam T The data type to read out of memory. This type *must* be
-     *           trivially copyable, otherwise the behavior of this function
-     *           is undefined.
-     *
-     * @returns The instance of T read from the specified virtual address.
-     */
+    /// @brief Reads a particular data type out of memory at the given virtual address.
+    /// @param vaddr The virtual address to read the data type from.
+    /// @tparam T The data type to read out of memory.
+    /// @returns The instance of T read from the specified virtual address.
     template <typename T>
-    T Read(Common::ProcessAddress vaddr) {
-        // Fast path for aligned reads of common sizes
+    inline T Read(Common::ProcessAddress vaddr) noexcept requires(std::is_trivially_copyable_v<T>) {
         const u64 addr = GetInteger(vaddr);
-        if constexpr (std::is_same_v<T, u8> || std::is_same_v<T, s8>) {
-            // 8-bit reads are always aligned
-            const u8* const ptr = GetPointerImpl(
-                addr,
-                [addr]() {
-                    LOG_ERROR(HW_Memory, "Unmapped Read8 @ 0x{:016X}", addr);
-                },
-                [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
-            if (ptr) {
-                return static_cast<T>(*ptr);
-            }
-            return 0;
-        } else if constexpr (std::is_same_v<T, u16_le> || std::is_same_v<T, s16_le>) {
-            // Check alignment for 16-bit reads
-            if ((addr & 1) == 0) {
-                const u8* const ptr = GetPointerImpl(
-                    addr,
-                    [addr]() {
-                        LOG_ERROR(HW_Memory, "Unmapped Read16 @ 0x{:016X}", addr);
-                    },
-                    [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
-                if (ptr) {
-                    return static_cast<T>(*reinterpret_cast<const u16*>(ptr));
-                }
-            }
-        } else if constexpr (std::is_same_v<T, u32_le> || std::is_same_v<T, s32_le>) {
-            // Check alignment for 32-bit reads
-            if ((addr & 3) == 0) {
-                const u8* const ptr = GetPointerImpl(
-                    addr,
-                    [addr]() {
-                        LOG_ERROR(HW_Memory, "Unmapped Read32 @ 0x{:016X}", addr);
-                    },
-                    [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
-                if (ptr) {
-                    return static_cast<T>(*reinterpret_cast<const u32*>(ptr));
-                }
-            }
-        } else if constexpr (std::is_same_v<T, u64_le> || std::is_same_v<T, s64_le>) {
-            // Check alignment for 64-bit reads
-            if ((addr & 7) == 0) {
-                const u8* const ptr = GetPointerImpl(
-                    addr,
-                    [addr]() {
-                        LOG_ERROR(HW_Memory, "Unmapped Read64 @ 0x{:016X}", addr);
-                    },
-                    [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
-                if (ptr) {
-                    return static_cast<T>(*reinterpret_cast<const u64*>(ptr));
-                }
-            }
-        }
-
-        // Fall back to the general case for other types or unaligned access
-        T result = 0;
-        const u8* const ptr = GetPointerImpl(
-            addr,
-            [addr]() {
-                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
-            },
-            [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
-        if (ptr) {
+        if (auto const ptr = GetPointerImpl(addr, [addr]() {
+            LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
+        }, [&]() {
+            HandleRasterizerDownload(addr, sizeof(T));
+        }); ptr) [[likely]] {
+            // It may be tempting to rewrite this particular section to use "reinterpret_cast";
+            // afterall, it's trivially copyable so surely it can be copied ov- Alignment.
+            // Remember, alignment. memcpy() will deal with all the alignment extremely fast.
+            T result{};
             std::memcpy(&result, ptr, sizeof(T));
+            return result;
         }
-        return result;
+        return T{};
     }
 
-    /**
-     * Writes a particular data type to memory at the given virtual address.
-     *
-     * @param vaddr The virtual address to write the data type to.
-     *
-     * @tparam T The data type to write to memory. This type *must* be
-     *           trivially copyable, otherwise the behavior of this function
-     *           is undefined.
-     */
+    /// @brief Writes a particular data type to memory at the given virtual address.
+    /// @param vaddr The virtual address to write the data type to.
+    /// @tparam T The data type to write to memory.
     template <typename T>
-    void Write(Common::ProcessAddress vaddr, const T data) {
-        // Fast path for aligned writes of common sizes
+    inline void Write(Common::ProcessAddress vaddr, const T data) noexcept requires(std::is_trivially_copyable_v<T>) {
         const u64 addr = GetInteger(vaddr);
-        if constexpr (std::is_same_v<T, u8> || std::is_same_v<T, s8>) {
-            // 8-bit writes are always aligned
-            u8* const ptr = GetPointerImpl(
-                addr,
-                [addr, data]() {
-                    LOG_ERROR(HW_Memory, "Unmapped Write8 @ 0x{:016X} = 0x{:02X}", addr,
-                              static_cast<u8>(data));
-                },
-                [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
-            if (ptr) {
-                *ptr = static_cast<u8>(data);
-            }
-            return;
-        } else if constexpr (std::is_same_v<T, u16_le> || std::is_same_v<T, s16_le>) {
-            // Check alignment for 16-bit writes
-            if ((addr & 1) == 0) {
-                u8* const ptr = GetPointerImpl(
-                    addr,
-                    [addr, data]() {
-                        LOG_ERROR(HW_Memory, "Unmapped Write16 @ 0x{:016X} = 0x{:04X}", addr,
-                                  static_cast<u16>(data));
-                    },
-                    [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
-                if (ptr) {
-                    *reinterpret_cast<u16*>(ptr) = static_cast<u16>(data);
-                    return;
-                }
-            }
-        } else if constexpr (std::is_same_v<T, u32_le> || std::is_same_v<T, s32_le>) {
-            // Check alignment for 32-bit writes
-            if ((addr & 3) == 0) {
-                u8* const ptr = GetPointerImpl(
-                    addr,
-                    [addr, data]() {
-                        LOG_ERROR(HW_Memory, "Unmapped Write32 @ 0x{:016X} = 0x{:08X}", addr,
-                                  static_cast<u32>(data));
-                    },
-                    [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
-                if (ptr) {
-                    *reinterpret_cast<u32*>(ptr) = static_cast<u32>(data);
-                    return;
-                }
-            }
-        } else if constexpr (std::is_same_v<T, u64_le> || std::is_same_v<T, s64_le>) {
-            // Check alignment for 64-bit writes
-            if ((addr & 7) == 0) {
-                u8* const ptr = GetPointerImpl(
-                    addr,
-                    [addr, data]() {
-                        LOG_ERROR(HW_Memory, "Unmapped Write64 @ 0x{:016X} = 0x{:016X}", addr,
-                                  static_cast<u64>(data));
-                    },
-                    [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
-                if (ptr) {
-                    *reinterpret_cast<u64*>(ptr) = static_cast<u64>(data);
-                    return;
-                }
-            }
-        }
-
-        // Fall back to the general case for other types or unaligned access
-        u8* const ptr = GetPointerImpl(
-            addr,
-            [addr, data]() {
-                LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8,
-                          addr, static_cast<u64>(data));
-            },
-            [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
-        if (ptr) {
+        if (auto const ptr = GetPointerImpl(addr, [addr, data]() {
+            LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8, addr, u64(data));
+        }, [&]() { HandleRasterizerWrite(addr, sizeof(T)); }); ptr) [[likely]]
             std::memcpy(ptr, &data, sizeof(T));
-        }
     }
 
     template <typename T>
