@@ -55,7 +55,7 @@
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/text_confirmation"
         style="@style/SynthwaveText.Accent"
-        android:layout_width="213dp"
+        android:layout_width="wrap_content"
         android:layout_height="226dp"
         android:paddingHorizontal="16dp"
         android:paddingTop="24dp"
