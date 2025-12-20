@@ -21,6 +21,8 @@
     <string name="overlay_auto_hide">Авто-скрытие оверлея</string>
     <string name="overlay_auto_hide_description">Автоматически скрывает сенсорное управление после определенного времени неактивности.</string>
     <string name="enable_input_overlay_auto_hide">Включить авто-скрытие оверлея</string>
+    <string name="hide_overlay_on_controller_input">Убрать оверлей на контроллере</string>
+    <string name="hide_overlay_on_controller_input_description">Автоматически убирает оверлей контроллера когда используется физический котроллер. Оверлей появляется когда контроллер отсоединен.</string>
 
     <string name="input_overlay_options">Оверлей ввода</string>
     <string name="input_overlay_options_description">Настройка экранного управления</string>
@@ -88,6 +90,8 @@
     <string name="dyna_state">Расширенное динамическое состояние</string>
     <string name="dyna_state_description">Управляет количеством функций, которые можно использовать в расширенном динамическом состоянии. Более высокие значения позволяют использовать больше функций и могут повысить производительность, но могут вызвать проблемы с некоторыми драйверами и производителями. Значение по умолчанию может варьироваться в зависимости от вашей системы и возможностей оборудования. Это значение можно изменять до достижения стабильности и лучшего визуального качества.</string>
     <string name="disabled">Отключено</string>
+    <string name="vertex_input_dynamic_state">Динамическое состояние ввода вершин</string>
+    <string name="vertex_input_dynamic_state_description">Включает функцию динамического состояния ввода вершин для повышения качества и производительности</string>
     <string name="provoking_vertex">Определяющая вершина</string>
     <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только ГПУ с Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Индексирование дескрипторов</string>
@@ -123,6 +127,9 @@
     <string name="memory_layout_description">(ЭКСПЕРИМЕНТАЛЬНО) Изменяет эмулируемое распределение памяти. Эта настройка не увеличивает производительность, но может помочь в играх, использующих высокие разрешения через моды. Не используйте на телефонах с 8 ГБ ОЗУ или меньше.</string>
     <string name="dma_accuracy">Точность DMA</string>
     <string name="dma_accuracy_description">Управляет точностью DMA. Безопасная точность может исправить проблемы в некоторых играх, но в некоторых случаях также может повлиять на производительность. Если не уверены, оставьте значение По умолчанию.</string>
+    <string name="debug_knobs">Настройки отладки</string>
+    <string name="debug_knobs_description">Только для разработчиков</string>
+    <string name="debug_knobs_hint">От 0 до 65535</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Шейдерный бэкенд</string>
@@ -256,9 +263,14 @@
     <string name="folder">Папка</string>
     <string name="dont_show_again">Не показывать снова</string>
     <string name="add_directory_success">Новый каталог игр успешно добавлен</string>
-    <string name="enable_update_checks">Проверять наличия обновлений при запуске приложения.</string>
+    <string name="enable_update_checks">Проверить обновления</string>
+    <string name="enable_update_checks_description">Выполнять проверку обновлений при запуске с возможностью их автоматической загрузки и установки.</string>
     <string name="update_available">Обновление доступно</string>
     <string name="update_available_description">Новая версия приложения доступна:%1$s\n\nНе хотите ли вы скачать его\?</string>
+    <string name="downloading_update">Загрузка обновления</string>
+    <string name="update_download_failed">Не удалось загрузить обновление</string>
+    <string name="update_installed_successfully">Обновление успешно установлено</string>
+    <string name="update_install_failed">Не удалось установить обновление: %1$s</string>
     <string name="home_search">Поиск</string>
     <string name="home_settings">Настройки</string>
     <string name="empty_gamelist">Не найдены файлы или еще не выбрана папка с играми.</string>
@@ -275,6 +287,10 @@
     <string name="install_prod_keys_warning_description">Для эмуляции розничных игр требуются действительные ключи. Если вы продолжите, будут работать только homebrew приложения.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Пропустить добавление прошивки?</string>
+    <string name="emulator_data">Настройка данных эмулятора</string>
+    <string name="emulator_data_description">Ключи необходимы для работы эмулятора, а прошивка рекомендуется и требуется для использования апплета QLaunch</string>
+    <string name="permissions">Предоставить разрешения</string>
+    <string name="permissions_description">Предоставить дополнительные разрешения для использования определённых функций эмулятора</string>
     <string name="install_firmware_warning_description">Многим играм требуется доступ к прошивке для правильной работы.</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Уведомления</string>
@@ -300,6 +316,8 @@
     <string name="error_getting_emulator_info">Ошибка получения информации об эмуляторе</string>
     <string name="memory_info">Информация о памяти</string>
     <string name="total_memory">Общий объем памяти</string>
+    <string name="soc">SOC:</string>
+
     <string name="warning_help">Помощь</string>
     <string name="warning">Предупреждение</string>
     <string name="warning_skip">Пропустить</string>
@@ -320,7 +338,7 @@
     <string name="notification_no_directory_link">Не удалось открыть папку Eden</string>
     <string name="notification_no_directory_link_description">Пожалуйста, найдите папку пользователя с помощью боковой панели файлового менеджера вручную.</string>
     <string name="manage_save_data">Управление данными сохранений</string>
-    <string name="manage_save_data_description">Найдено данные сохранений. Пожалуйста, выберите вариант ниже.</string>
+    <string name="manage_save_data_description">Найдены данные сохранений. Пожалуйста, выберите вариант ниже.</string>
     <string name="import_save_warning">Импортировать сохранения</string>
     <string name="import_save_warning_description">Это перезапишет все существующие данные сохранения выбранным файлом. Вы уверены, что хотите продолжить?</string>
     <string name="save_files_importing">Импорт файлов сохранения…</string>
@@ -419,7 +437,7 @@
     <string name="licenses_description">Проекты, которые сделали Eden для Android возможным</string>
     <string name="build">Сборка</string>
     <string name="user_data">Данные пользователя</string>
-    <string name="user_data_description">Импортировать/экспортировать всё данные приложения.\n\nПри импортировании пользовательских данных, вся существующие пользовательские данные будут удалены!\n\nИмпортирование данных из Citron может вызвать проблемы. Рекоминдовано самим импортировать все данные.</string>
+    <string name="user_data_description">Импорт/экспорт всех данных\n\nПри импорте все текущие данные будут удалены!\n\nИмпорт из Citron может вызвать ошибки. Рекомендуется ручной перенос.</string>
     <string name="exporting_user_data">Экспорт пользовательских данных…</string>
     <string name="importing_user_data">Импорт пользовательских данных…</string>
     <string name="invalid_yuzu_backup">Неверная резервная копия Eden</string>
@@ -504,6 +522,8 @@
     <string name="log">Логирование</string>
     <string name="flush_by_line">Сбрасывать логи отладки построчно</string>
     <string name="flush_by_line_description">Сбрасывает логи отладки после каждой написанной строки, упрощая отладку в случае сбоев или зависаний.</string>
+
+    <string name="general">Общие</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Движок вывода</string>
@@ -684,7 +704,7 @@
     <string name="copy_details">Копировать детали</string>
     <string name="add_ons">Дополнения</string>
     <string name="add_ons_description">Включение модов, обновлений и DLC</string>
-    <string name="playtime">Игровое время: </string>
+    <string name="playtime">Игровое время:</string>
     <string name="reset_playtime">Очистить игровое время</string>
     <string name="reset_playtime_description">Сбрасывает игровое время текущей игры обратно до 0 секунд</string>
     <string name="reset_playtime_warning_description">Это очистит данные о игровом времени текущей игры. Вы уверены\?</string>
@@ -692,6 +712,9 @@
     <string name="edit_playtime">Изменить игровое время</string>
     <string name="hours">Часы</string>
     <string name="minutes">Минуты</string>
+    <string name="hours_abbr">ч</string>
+    <string name="minutes_abbr">м</string>
+    <string name="seconds_abbr">с</string>
     <string name="hours_must_be_between_0_and_9999">Количество часов должно быть от 0 до 9999</string>
     <string name="minutes_must_be_between_0_and_59">Количество минут должно быть от 0 до 59</string>
     <string name="seconds_must_be_between_0_and_59">Количество секунд должно быть от 0 до 59</string>
@@ -872,6 +895,11 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Никакой</string>
 
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">Производительный</string>
+    <string name="renderer_accuracy_medium">Сбалансированный</string>
+    <string name="renderer_accuracy_high">Точный</string>
+
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">По умолчанию</string>
     <string name="dma_accuracy_unsafe">Небезопасно</string>
@@ -992,13 +1020,13 @@
     <string name="cubeb">cubeb</string>
 
     <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
+    <string name="multiplier_x2">2x</string>
+    <string name="multiplier_x4">4x</string>
     <string name="multiplier_x8">x8</string>
     <string name="multiplier_x16">x16</string>
     <string name="multiplier_x32">x32</string>
     <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
+    <string name="multiplier_none">Отключено</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Чёрный фон</string>
@@ -1062,7 +1090,7 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Апплеты</string>
-    <string name="applets_menu_description">(В разработке) Изменить интерфейсы и настройки апплетов</string>
+    <string name="applets_menu_description">Изменение интерфейсов и настроек апплета</string>
 
     <string name="applet_hle">Пользовательский интерфейс</string>
     <string name="applet_lle">Настоящий апплет</string>
@@ -1071,6 +1099,9 @@
 
     <string name="airplane_mode">Режим полета</string>
     <string name="airplane_mode_description">Передает режим полета в ОС Switch</string>
+
+    <string name="enable_overlay">Включить апплет-оверлей</string>
+    <string name="enable_overlay_description">Активирует встроенный в Horizon оверлейный апплет. Для его отображения нажмите и удерживайте кнопку «HOME» в течение одной секунды.</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Лицензии</string>

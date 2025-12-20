@@ -21,7 +21,6 @@
     <string name="overlay_auto_hide">Masquage automatique de l\'overlay</string>
     <string name="overlay_auto_hide_description">Masquer automatiquement l\'overlay des contrôles tactiles après le temps d\'inactivité spécifié.</string>
     <string name="enable_input_overlay_auto_hide">Activer le masquage automatique de l\'overlay</string>
-
     <string name="input_overlay_options">Overlay des entrées</string>
     <string name="input_overlay_options_description">Configurer les contrôles à l\'écran</string>
 
@@ -88,6 +87,8 @@
     <string name="dyna_state">État dynamique étendu</string>
     <string name="dyna_state_description">Contrôle le nombre de fonctionnalités utilisables dans l\'état dynamique étendu. Des valeurs plus élevées permettent plus de fonctionnalités et peuvent augmenter les performances, mais peuvent causer des problèmes avec certains pilotes et fabricants. La valeur par défaut peut varier selon votre système et vos capacités matérielles. Cette valeur peut être modifiée jusqu\'à obtenir une stabilité et une meilleure qualité visuelle.</string>
     <string name="disabled">Désactivé</string>
+    <string name="vertex_input_dynamic_state">État dynamique d\'entrée de sommet</string>
+    <string name="vertex_input_dynamic_state_description">Active la fonctionnalité d\'état dynamique des entrées de sommets pour une meilleure qualité et de meilleures performances.</string>
     <string name="provoking_vertex">Provoque des Vertex</string>
     <string name="provoking_vertex_description">Améliore l`éclairage et la gestion des vertex dans certains jeux. Pris en charge uniquement par les GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexation des descripteurs</string>
@@ -123,6 +124,9 @@
     <string name="memory_layout_description">(EXPÉRIMENTAL) Modifie la disposition de la mémoire émulée.\nCe paramètre n’améliore pas les performances, mais peut aider pour les jeux utilisant des résolutions élevées via des mods. Ne pas utiliser sur les téléphones avec 8 Go de RAM ou moins. Fonctionne uniquement avec le backend Dynarmic (JIT).</string>
     <string name="dma_accuracy">Précision DMA</string>
     <string name="dma_accuracy_description">Contrôle la précision du DMA. Une précision sûre peut résoudre les problèmes dans certains jeux, mais peut aussi affecter les performances dans certains cas. Si vous n\'êtes pas sûr, laissez ce paramètre sur Par défaut.</string>
+    <string name="debug_knobs">Boutons de débogage</string>
+    <string name="debug_knobs_description">À usage de développement uniquement.</string>
+    <string name="debug_knobs_hint">0 à 65535</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Backend shader</string>
@@ -256,9 +260,14 @@
     <string name="folder">Dossier</string>
     <string name="dont_show_again">Ne plus afficher</string>
     <string name="add_directory_success">Nouveau dossier de jeux ajouté</string>
-    <string name="enable_update_checks">Vérifier les mises à jour au démarrage de l’application.</string>
+    <string name="enable_update_checks">Rechercher des mises à jour</string>
+    <string name="enable_update_checks_description">Vérifiez les mises à jour disponibles au lancement, puis téléchargez et installez la nouvelle mise à jour si vous le souhaitez.</string>
     <string name="update_available">Mise à jour disponible</string>
     <string name="update_available_description">Une nouvelle version est disponible : %1$s\n\nVoulez‑vous la télécharger \?</string>
+    <string name="downloading_update">Téléchargement de la mise à jour</string>
+    <string name="update_download_failed">Échec du téléchargement de la mise à jour</string>
+    <string name="update_installed_successfully">Mise à jour installée avec succès</string>
+    <string name="update_install_failed">Échec de l\'installation de la mise à jour : %1$s</string>
     <string name="home_search">Rechercher</string>
     <string name="home_settings">Paramètres</string>
     <string name="empty_gamelist">Aucun fichier n\'a été trouvé ou aucun répertoire de jeu n\'a encore été sélectionné.</string>
@@ -275,6 +284,9 @@
     <string name="install_prod_keys_warning_description">Des clés valides sont nécessaires pour émuler des jeux commerciaux. Seules les applications homebrew fonctionneront si vous continuez.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Ignorer l\'ajout du firmware ?</string>
+    <string name="emulator_data">Configurer les données de l\'émulateur</string>
+    <string name="emulator_data_description">Des clés sont nécessaires pour que l\'émulateur fonctionne et le micrologiciel est recommandé et requis pour utiliser l\'applet QLaunch.</string>
+    <string name="permissions">Accorder des autorisations</string>
     <string name="install_firmware_warning_description">De nombreux jeux nécessitent un accès au firmware pour fonctionner correctement.</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notifications</string>
@@ -664,7 +676,6 @@
     <string name="copy_details">Copier les détails</string>
     <string name="add_ons">Extensions</string>
     <string name="add_ons_description">Activer les mods, mises à jour et DLC</string>
-    <string name="playtime">Temps de jeu :</string>
     <string name="reset_playtime">Réinitialiser le Temps de Jeu</string>
     <string name="reset_playtime_description">Réinitialiser le temps de jeu du jeu actuel à 0 seconde</string>
     <string name="reset_playtime_warning_description">Cela effacera les données de temps de jeu du jeu actuel. Êtes-vous sûr \?</string>
@@ -969,15 +980,6 @@
     <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Arrière-plan noir</string>
     <string name="use_black_backgrounds_description">Lorsque vous utilisez le thème sombre, appliquer un arrière-plan noir.</string>
@@ -1040,8 +1042,6 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Applets</string>
-    <string name="applets_menu_description">(En cours) Modifier les frontends et paramètres des applets</string>
-
     <string name="applet_hle">Frontend personnalisé</string>
     <string name="applet_lle">Applet réel</string>
 

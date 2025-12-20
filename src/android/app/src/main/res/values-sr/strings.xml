@@ -4,7 +4,6 @@
     <string name="notice_notification_channel_name">Обавештења и грешке</string>
     <string name="notice_notification_channel_description">Приказује обавештења када нешто пође по злу.</string>
     <string name="notification_permission_not_granted">Дозвола за обавештавање није одобрена!</string>
-    <!-- Stats Overlay settings -->
     <string name="shaders_prefix">Зграда</string>
     <string name="shaders_suffix">Схадер (с)</string>
     <string name="charging">(Пуњење)</string>
@@ -100,7 +99,6 @@
     <string name="memory_layout_description">(Експериментално) Промените изглед емулираног меморије. Ово постављање неће повећати перформансе, али може помоћи у играма које користе високе резолуције путем модова. Не користите на телефонима са 8 ГБ РАМ-а или мање. Ради само на динамичком (ЈИТ) бацкенд-у.</string>
     <string name="dma_accuracy">DMA тачност</string>
     <string name="dma_accuracy_description">Управља прецизношћу DMA-а. Сигурна прецизност може да исправи проблеме у неким играма, али у неким случајевима може да утиче и на перформансе. Ако нисте сигурни, оставите ово на Подразумевано.</string>
-
     <!-- Shader Backend -->
     <string name="shader_backend">Схадер Бацкенд</string>
     <string name="shader_backend_description">Изаберите како се сјеначици саставе и преведете за ваш ГПУ.</string>
@@ -871,15 +869,6 @@
     <string name="oboe">обоја</string>
     <string name="cubeb">Цубеб</string>
 
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Црна позадина</string>
     <string name="use_black_backgrounds_description">Када користите тамну тему, нанесите црну позадину.</string>
@@ -912,8 +901,6 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Аплетс</string>
-    <string name="applets_menu_description">(ВИП) Промените Апплете Фронтендс и Подешавања</string>
-
     <string name="applet_hle">Прилагођена фронтенд</string>
     <string name="applet_lle">Прави апплет</string>
 

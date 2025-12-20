@@ -109,7 +109,6 @@
     <string name="memory_layout_description">(EXPERIMENTELL) Ändert das emulierte Speicherlayout. Diese Einstellung erhöht nicht die Leistung, kann aber bei Spielen helfen, die hohe Auflösungen über Mods nutzen. Nicht auf Telefonen mit 8 GB RAM oder weniger verwenden.</string>
     <string name="dma_accuracy">DMA-Genauigkeit</string>
     <string name="dma_accuracy_description">Steuert die DMA-Präzisionsgenauigkeit. Sichere Präzision kann Probleme in einigen Spielen beheben, kann aber in einigen Fällen auch die Leistung beeinträchtigen. Im Zweifel lassen Sie dies auf Standard stehen.</string>
-
     <!-- Shader Backend -->
     <string name="shader_backend">Shader-Backend</string>
     <string name="shader_backend_description">Methode zur Shader-Kompilierung</string>
@@ -419,6 +418,10 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
 
     <!-- Graphics settings strings -->
     <string name="backend">Backend</string>
+    <string name="display">Anzeige</string>
+    <string name="processing">Nachbearbeitung</string>
+
+    <string name="renderer_accuracy">Genauigkeitsstufe</string>
     <string name="renderer_resolution">Auflösung (Handheld/Gedockt)</string>
     <string name="renderer_vsync">VSync-Modus</string>
     <string name="renderer_screen_layout">Ausrichtung</string>
@@ -891,15 +894,6 @@ Wirklich fortfahren?</string>
     <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Schwarze Hintergründe</string>
     <string name="use_black_backgrounds_description">Bei Verwendung des dunklen Designs, schwarze Hintergründe verwenden.</string>
@@ -933,8 +927,6 @@ Wirklich fortfahren?</string>
 
     <!-- Applet Modes -->
     <string name="applets_menu">Applets</string>
-    <string name="applets_menu_description">(In Arbeit) Applet-Frontends und Einstellungen ändern</string>
-
     <string name="applet_hle">Benutzerdefinierte Frontend</string>
     <string name="applet_lle">Echtes Applet</string>
 

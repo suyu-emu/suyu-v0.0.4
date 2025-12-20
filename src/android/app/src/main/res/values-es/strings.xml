@@ -21,7 +21,6 @@
     <string name="overlay_auto_hide">Ocultar automáticamente la superposición</string>
     <string name="overlay_auto_hide_description">Ocultar automáticamente la superposición de controles táctiles después del tiempo de inactividad especificado.</string>
     <string name="enable_input_overlay_auto_hide">Habilitar ocultar automáticamente la superposición</string>
-
     <string name="input_overlay_options">Superposición de entrada</string>
     <string name="input_overlay_options_description">Configurar controles en pantalla</string>
 
@@ -123,7 +122,6 @@
     <string name="memory_layout_description">(EXPERIMENTAL) Cambie el diseño de la memoria emulada. Esta configuración no aumentará el rendimiento, pero puede ayudar con los juegos que utilizan altas resoluciones a través de mods. No lo use en teléfonos con 8 GB de RAM o menos. Solo funciona en el backend Dynarmic (JIT).</string>
     <string name="dma_accuracy">Precisión de DMA</string>
     <string name="dma_accuracy_description">Controla la precisión de DMA. La precisión segura puede solucionar problemas en algunos juegos, pero también puede afectar al rendimiento en algunos casos. Si no está seguro, déjelo en Predeterminado.</string>
-
     <!-- Shader Backend -->
     <string name="shader_backend">Backend de sombreador</string>
     <string name="shader_backend_description">Elija cómo se compilan y traducen los sombreadores para su GPU.</string>
@@ -255,7 +253,6 @@
     <string name="folder">Carpeta</string>
     <string name="dont_show_again">No mostrar de nuevo</string>
     <string name="add_directory_success">Nuevo directorio de juegos agregado exitosamente</string>
-    <string name="enable_update_checks">Busque actualizaciones al iniciar la aplicación.</string>
     <string name="update_available">Actualización disponible</string>
     <string name="update_available_description">Hay una nueva versión disponible: %1$s \n\n¿Quieres descargarla\?</string>
     <string name="home_search">Buscar</string>
@@ -956,15 +953,6 @@
     <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Fondos oscuros</string>
     <string name="use_black_backgrounds_description">Cuando utilice el modo oscuro, aplique fondos negros.</string>
@@ -998,8 +986,6 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Applets</string>
-    <string name="applets_menu_description">(En desarrollo) Cambiar frontends y configuraciones de applets</string>
-
     <string name="applet_hle">Frontend personalizado</string>
     <string name="applet_lle">Applet real</string>
 

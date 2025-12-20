@@ -101,7 +101,6 @@
     <string name="memory_layout_description">(실험적) 에뮬레이트된 메모리 레이아웃을 변경합니다. 이 설정은 성능을 높이지 않지만 모드를 통해 고해상도를 사용하는 게임에 도움이 될 수 있습니다. 8GB 이하 RAM의 휴대폰에서는 사용하지 마십시오.</string>
     <string name="dma_accuracy">DMA 정확도</string>
     <string name="dma_accuracy_description">DMA 정밀도 정확도를 제어합니다. 안전한 정밀도는 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능에 영향을 미칠 수도 있습니다. 확실하지 않은 경우 기본값으로 두십시오.</string>
-
     <!-- Shader Backend -->
     <string name="shader_backend">셰이더 백엔드</string>
     <string name="shader_backend_description">셰이더 컴파일 방식 선택</string>
@@ -820,15 +819,6 @@
     <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">검정 배경</string>
     <string name="use_black_backgrounds_description">어두운 테마 사용 시 검정 배경을 적용합니다.</string>
@@ -861,8 +851,6 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">애플릿</string>
-    <string name="applets_menu_description">(작업 중) 애플릿 프론트엔드 및 설정 변경</string>
-
     <string name="applet_hle">사용자 정의 프론트엔드</string>
     <string name="applet_lle">실제 애플릿</string>
 

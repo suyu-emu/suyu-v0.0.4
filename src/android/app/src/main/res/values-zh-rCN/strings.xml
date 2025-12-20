@@ -21,7 +21,6 @@
     <string name="overlay_auto_hide">自动隐藏虚拟按键</string>
     <string name="overlay_auto_hide_description">在指定的时间间隔后自动隐藏触摸控制覆盖层。</string>
     <string name="enable_input_overlay_auto_hide">开启自动隐藏虚拟按键</string>
-
     <string name="input_overlay_options">虚拟按键输入</string>
     <string name="input_overlay_options_description">配置虚拟按键</string>
 
@@ -88,6 +87,8 @@
     <string name="dyna_state">扩展动态状态</string>
     <string name="dyna_state_description">控制扩展动态状态中可使用的功能数量。数值越高，允许的功能越多，并可能提高性能，但可能会导致某些驱动程序和供应商出现问题。默认值可能因系统和硬件能力而异。可以更改此值，直到实现稳定性和更好的视觉质量。</string>
     <string name="disabled">已禁用</string>
+    <string name="vertex_input_dynamic_state">顶点输入动态状态</string>
+    <string name="vertex_input_dynamic_state_description">开启顶点输入动态状态功能来获得更好的质量和性能。</string>
     <string name="provoking_vertex">引发顶点</string>
     <string name="provoking_vertex_description">改善某些游戏中的光照和顶点处理。仅支持Vulkan 1.0+ GPU。</string>
     <string name="descriptor_indexing">描述符索引</string>
@@ -123,6 +124,9 @@
     <string name="memory_layout_description">(实验性) 更改模拟内存布局。此设置不会提高性能，但可能有助于通过模组使用高分辨率的游戏。不要在 RAM 为 8GB 或更少的手机上使用。</string>
     <string name="dma_accuracy">DMA 精度</string>
     <string name="dma_accuracy_description">控制 DMA 精度。安全精度可以修复某些游戏中的问题，但在某些情况下也可能影响性能。如果不确定，请保留为“默认”。</string>
+    <string name="debug_knobs">调试开关</string>
+    <string name="debug_knobs_description">仅用于开发用途。</string>
+    <string name="debug_knobs_hint">0 到 65535</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">着色器后端</string>
@@ -256,9 +260,14 @@
     <string name="folder">文件夹</string>
     <string name="dont_show_again">不再显示</string>
     <string name="add_directory_success">游戏目录新增成功</string>
-    <string name="enable_update_checks">在 app 启动时检查更新。</string>
+    <string name="enable_update_checks">检查更新</string>
+    <string name="enable_update_checks_description">启动时检查更新,并选择是否要下载并安装新的更新。</string>
     <string name="update_available">有可用更新</string>
     <string name="update_available_description">有一个新版本可用: %1$s\n\n您要下载它吗\?</string>
+    <string name="downloading_update">正在下载更新</string>
+    <string name="update_download_failed">下载更新失败</string>
+    <string name="update_installed_successfully">已成功安装更新</string>
+    <string name="update_install_failed">安装更新失败: %1$s</string>
     <string name="home_search">搜索</string>
     <string name="home_settings">设置</string>
     <string name="empty_gamelist">找不到游戏，或者尚未选择游戏文件夹。</string>
@@ -275,6 +284,10 @@
     <string name="install_prod_keys_warning_description">对于商业游戏，需要有效的密钥文件才能运行。如果没有密钥文件，将只能运行自制软件。</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">跳过添加固件？</string>
+    <string name="emulator_data">设置模拟器数据</string>
+    <string name="emulator_data_description">模拟器需要密钥才能运行建议使用固件,并且使用 QLaunch 小程序时需要固件</string>
+    <string name="permissions">授予权限</string>
+    <string name="permissions_description">授予使用模拟器特定功能所需的权限</string>
     <string name="install_firmware_warning_description">许多游戏需要访问固件才能正常运行。</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">通知</string>
@@ -283,6 +296,25 @@
     <string name="permission_denied_description">您曾多次拒绝权限请求，现在您需要在系统设置中手动授予权限。</string>
     <string name="about">关于</string>
     <string name="about_description">开发版本、贡献者、以及更多</string>
+    <string name="system_information">系统信息</string>
+    <string name="system_information_description">查看详细的设备信息</string>
+    <string name="device_manufacturer">制造商</string>
+    <string name="device_model">型号</string>
+    <string name="product">产品</string>
+    <string name="android_version">Android 版本</string>
+    <string name="android_security_patch">安全补丁</string>
+    <string name="build_id">构建 ID</string>
+    <string name="general_information">常规信息</string>
+    <string name="hardware">硬件</string>
+    <string name="supported_abis">支持的 ABI</string>
+    <string name="cpu_info">CPU 信息</string>
+    <string name="gpu_information">GPU 信息</string>
+    <string name="vulkan_driver_version">Vulkan 驱动版本</string>
+    <string name="error_getting_emulator_info">获取模拟器信息错误</string>
+    <string name="memory_info">内存信息</string>
+    <string name="total_memory">总内存</string>
+    <string name="soc">SOC:</string>
+
     <string name="warning_help">帮助</string>
     <string name="warning">警告</string>
     <string name="warning_skip">跳过</string>
@@ -482,6 +514,8 @@
     <string name="flush_by_line">按行刷新调试日志</string>
     <string name="flush_by_line_description">在每行写入时刷新调试日志，使在崩溃或冻结时调试更容易。</string>
 
+    <string name="general">常规</string>
+
     <!-- Audio settings strings -->
     <string name="audio_output_engine">输出引擎</string>
     <string name="audio_volume">音量</string>
@@ -630,6 +664,7 @@
     <string name="installing">安装中……</string>
     <string name="latest">最新</string>
     <string name="recommended_driver">推荐驱动:</string>
+    <string name="gpu_model">GPU 型号</string>
     <string name="unsupported_gpu">GPU不支持</string>
     <string name="unsupported_gpu_warning">您的GPU不支持驱动注入。不建议设置自定义驱动。</string>
 
@@ -660,7 +695,7 @@
     <string name="copy_details">复制明细</string>
     <string name="add_ons">附加项</string>
     <string name="add_ons_description">管理 mod、游戏更新及 DLC</string>
-    <string name="playtime">游戏时间:</string>
+    <string name="playtime">游玩时间:</string>
     <string name="reset_playtime">清除游戏时间</string>
     <string name="reset_playtime_description">将当前游戏的游戏时间重置为 0 秒</string>
     <string name="reset_playtime_warning_description">者会讲出当前游戏的游戏时间数据。您确定吗\?</string>
@@ -668,6 +703,9 @@
     <string name="edit_playtime">编辑游戏时间</string>
     <string name="hours">小时</string>
     <string name="minutes">分钟</string>
+    <string name="hours_abbr">小时</string>
+    <string name="minutes_abbr">分</string>
+    <string name="seconds_abbr">秒</string>
     <string name="hours_must_be_between_0_and_9999">小时必须为 0 到 9999 之间</string>
     <string name="minutes_must_be_between_0_and_59">分钟必须为 0 到 59 之间</string>
     <string name="seconds_must_be_between_0_and_59">秒必须为 0 到 59 之间</string>
@@ -676,6 +714,8 @@
     <string name="clear_shader_cache_description">删除此游戏的所有着色器缓存</string>
     <string name="clear_shader_cache_warning_description">由于着色器缓存需要重新生成，您将遇到更多卡顿</string>
     <string name="cleared_shaders_successfully">着色器缓存清除成功</string>
+    <string name="driver_shader_wipe_dialog_title">已清理着色器</string>
+    <string name="driver_shader_wipe_dialog_message">Eden 已自动清除所有着色器缓存以维护 Vulkan 管线验证。这在切换 GPU 驱动程序时是必需的,以防止崩溃和图形损坏。在着色器重建期间您可能会遇到一些卡顿。</string>
     <string name="addons_game">附加项: %1$s</string>
     <string name="save_data">保存数据</string>
     <string name="save_data_description">管理此游戏的保存数据</string>
@@ -846,6 +886,11 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">无</string>
 
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">性能</string>
+    <string name="renderer_accuracy_medium">平衡</string>
+    <string name="renderer_accuracy_high">精确</string>
+
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">默认</string>
     <string name="dma_accuracy_unsafe">不安全</string>
@@ -972,7 +1017,7 @@
     <string name="multiplier_x16">x16</string>
     <string name="multiplier_x32">x32</string>
     <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
+    <string name="multiplier_none">无</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">使用黑色背景</string>
@@ -1036,7 +1081,7 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">小程序</string>
-    <string name="applets_menu_description">(开发中) 更改小程序前端和设置</string>
+    <string name="applets_menu_description">更改小程序前端和设置</string>
 
     <string name="applet_hle">自定义前端</string>
     <string name="applet_lle">真实小程序</string>
@@ -1045,6 +1090,9 @@
 
     <string name="airplane_mode">飞行模式</string>
     <string name="airplane_mode_description">将飞行模式传递给Switch操作系统</string>
+
+    <string name="enable_overlay">开启覆盖层小程序</string>
+    <string name="enable_overlay_description">开启 Horizon 内置的覆盖层小程序。请按住 home 键 1 秒来显示它。</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">许可证</string>

@@ -21,7 +21,6 @@
     <string name="overlay_auto_hide">Esconder Sobreposição Automaticamente</string>
     <string name="overlay_auto_hide_description">Os controles na tela serão escondidos automaticamente se não houver atividade após o tempo definido.</string>
     <string name="enable_input_overlay_auto_hide">Ativar Esconder Sobreposição Automaticamente</string>
-
     <string name="input_overlay_options">Controles na Tela</string>
     <string name="input_overlay_options_description">Ajustar a disposição dos controles na tela</string>
 
@@ -123,7 +122,6 @@
     <string name="memory_layout_description">(EXPERIMENTAL) Layout da Memória: Altera o layout da memória emulada. Esta configuração não aumenta o desempenho, mas pode ajudar em jogos que utilizam altas resoluções via mods. Não use em celulares com 8 GB de RAM ou menos. Funciona apenas no backend Dynarmic (JIT).</string>
     <string name="dma_accuracy">Precisão do DMA</string>
     <string name="dma_accuracy_description">Controla a precisão das operações de DMA (Acesso Direto à Memória). A precisão Segura pode corrigir problemas em alguns jogos, mas também pode impactar o desempenho em certos casos. Se estiver em dúvida, mantenha na opção Padrão.</string>
-
     <!-- Shader Backend -->
     <string name="shader_backend">Shader Backend</string>
     <string name="shader_backend_description">Escolha como os shaders são compilados e traduzidos para sua GPU.</string>
@@ -255,7 +253,6 @@
     <string name="folder">Pasta</string>
     <string name="dont_show_again">Não Mostrar Novamente</string>
     <string name="add_directory_success">Nova pasta de jogos adicionada com sucesso</string>
-    <string name="enable_update_checks">Procurar por atualizações ao iniciar o aplicativo.</string>
     <string name="update_available">Atualização Disponível</string>
     <string name="update_available_description">Uma nova versão está disponível: %1$s\n\nGostaria de baixá-la\?</string>
     <string name="home_search">Pesquisar</string>
@@ -957,15 +954,6 @@ uma tentativa de mapeamento automático</string>
     <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Planos de fundo pretos</string>
     <string name="use_black_backgrounds_description">Quando usar o tema escuro, aplicar fundos pretos</string>
@@ -999,8 +987,6 @@ uma tentativa de mapeamento automático</string>
 
     <!-- Applet Modes -->
     <string name="applets_menu">Miniaplicativos</string>
-    <string name="applets_menu_description">(Em andamento) Alterar frontends e configurações de applets</string>
-
     <string name="applet_hle">Frontend personalizado</string>
     <string name="applet_lle">Applet real</string>
 

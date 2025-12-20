@@ -21,7 +21,6 @@
     <string name="overlay_auto_hide">Nascondi automaticamente overlay</string>
     <string name="overlay_auto_hide_description">Nascondi automaticamente la sovrapposizione dei controlli touch dopo il tempo di inattività specificato.</string>
     <string name="enable_input_overlay_auto_hide">Abilita nascondi automaticamente overlay</string>
-
     <string name="input_overlay_options">Overlay di input</string>
     <string name="input_overlay_options_description">Configura i controlli sullo schermo</string>
 
@@ -123,7 +122,6 @@
     <string name="memory_layout_description">(SPERIMENTALE) Cambia il layout della memoria emulata. Questa impostazione non aumenta le prestazioni, ma può aiutare nei giochi che utilizzano alte risoluzioni tramite mod. Non usare su telefoni con 8GB di RAM o meno.</string>
     <string name="dma_accuracy">Precisione DMA</string>
     <string name="dma_accuracy_description">Controlla la precisione del DMA. La precisione sicura può risolvere problemi in alcuni giochi, ma in alcuni casi può anche influire sulle prestazioni. In caso di dubbi, lascia questo su Predefinito.</string>
-
     <!-- Shader Backend -->
     <string name="shader_backend">Backend shader</string>
     <string name="shader_backend_description">Scegli come compilare gli shader</string>
@@ -256,7 +254,6 @@
     <string name="folder">Cartella</string>
     <string name="dont_show_again">Non mostrare più</string>
     <string name="add_directory_success">Nuova directory di gioco aggiunta correttamente </string>
-    <string name="enable_update_checks">Controlla la disponibilità di aggiornamenti all\'avvio dell\'app.</string>
     <string name="update_available">Aggiornamento disponibile</string>
     <string name="update_available_description">Una nuova versione è disponibile:%1$s\n\nVuoi scaricarla\?</string>
     <string name="home_search">Cerca</string>
@@ -664,7 +661,6 @@
     <string name="copy_details">Copia dettagli</string>
     <string name="add_ons">Add-on</string>
     <string name="add_ons_description">Gestisci mod, aggiornamenti e DLC</string>
-    <string name="playtime">Tempo di gioco:</string>
     <string name="reset_playtime">Resetta tempo di gioco</string>
     <string name="reset_playtime_description">Resetta il tempo di gioco di quest\'ultimo a 0 secondi</string>
     <string name="reset_playtime_warning_description">In questo modo resetterai il tempo di gioco di quest\'ultimo. Sei sicuro\?</string>
@@ -719,12 +715,12 @@
     <string name="loader_error_encrypted">La tua ROM è criptata</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Segui le guide per ridumpare le tue <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">schede di gioco</a> o <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">titoli digitali</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Per favore assicurati che il file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> sia installato in modo che i giochi possano essere decrittati.]]></string>
-    <string name="loader_error_video_core">È stato riscontrato un errore nell\'inizializzazione del core video</string>
-    <string name="loader_error_video_core_description">Questo è causato solitamente dal driver incompatibile di una GPU. L\'installazione di driver GPU personalizzati potrebbe risolvere questo problema.</string>
+    <string name="loader_error_video_core">Errore durante l\'inizializzazione del componente video di base</string>
+    <string name="loader_error_video_core_description">Di solito ciò è causato da un driver GPU incompatibile. L\'installazione di un driver GPU personalizzato potrebbe risolvere questo problema.</string>
     <string name="loader_error_file_not_found">Il file della ROM non esiste</string>
 
-    <string name="loader_requires_firmware">Il gioco richiede firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Il gioco che stai cercando di avviare richiede firmware per l\'avvio o per superare il menu iniziale. Per favore <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dumpa e installa il firmware</a>, o premi \"OK\" per continuare comunque.]]></string>
+    <string name="loader_requires_firmware">Firmware richiesto</string>
+    <string name="loader_requires_firmware_description"><![CDATA[Il gioco che stai cercando di avviare richiede il firmware per poter partire o per superare il menù iniziale. <a href=\"https://yuzu-mirror.github.io/help/quickstart\">Esegui il dump del firmware e installalo</a>, o premi \"OK\" per continuare lo stesso.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Ricerca del gioco in corso...</string>
@@ -969,15 +965,6 @@
     <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Sfondi neri</string>
     <string name="use_black_backgrounds_description">Quando utilizzi il tema scuro, applica sfondi neri.</string>
@@ -1011,8 +998,6 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Applet</string>
-    <string name="applets_menu_description">(In lavorazione) Cambia frontend e impostazioni degli applet</string>
-
     <string name="applet_hle">Frontend personalizzato</string>
     <string name="applet_lle">Applet reale</string>
 

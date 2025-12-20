@@ -21,6 +21,8 @@
     <string name="overlay_auto_hide">Automatyczne ukrywanie nakładki</string>
     <string name="overlay_auto_hide_description">Włącz automatyczne ukrywanie nakładki sterowania</string>
     <string name="enable_input_overlay_auto_hide">Włącz automatyczne ukrywanie nakładki</string>
+    <string name="hide_overlay_on_controller_input">Ukrywaj nakładkę przy użyciu kontrolera</string>
+    <string name="hide_overlay_on_controller_input_description">Automatycznie ukrywaj nakładkę sterowania dotykowego, gdy używany jest fizyczny kontroler. Nakładka pojawi się ponownie po odłączeniu kontrolera.</string>
 
     <string name="input_overlay_options">Nakładka sterowania</string>
     <string name="input_overlay_options_description">Skonfiguruj sterowanie na ekranie</string>
@@ -88,6 +90,8 @@
     <string name="dyna_state">Rozszerzony stan dynamiczny</string>
     <string name="dyna_state_description">Kontroluje liczbę funkcji, które mogą być używane w Rozszerzonym Stanie Dynamicznym. Wyższe wartości pozwalają na więcej funkcji i mogą zwiększyć wydajność, ale mogą powodować problemy z niektórymi sterownikami i producentami. Wartość domyślna może się różnić w zależności od systemu i możliwości sprzętowych. Tę wartość można zmieniać, aż do osiągnięcia stabilności i lepszej jakości wizualnej.</string>
     <string name="disabled">Wyłączone</string>
+    <string name="vertex_input_dynamic_state">Dynamiczny stan wejścia wierzchołków</string>
+    <string name="vertex_input_dynamic_state_description">Włącza funkcję dynamicznego stanu wejścia wierzchołków, poprawiając jakość i wydajność.</string>
     <string name="provoking_vertex">Wierzchołek prowokujący</string>
     <string name="provoking_vertex_description">Poprawia oświetlenie i obsługę wierzchołków w niektórych grach. Obsługiwane tylko przez GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indeksowanie deskryptorów</string>
@@ -123,6 +127,9 @@
     <string name="memory_layout_description">(EKSPERYMENTALNY) Zmienia emulowany układ pamięci. To ustawienie nie zwiększa wydajności, ale może pomóc w grach wykorzystujących wysokie rozdzielczości poprzez mody. Nie używaj na telefonach z 8GB RAM lub mniej.</string>
     <string name="dma_accuracy">Dokładność DMA</string>
     <string name="dma_accuracy_description">Kontroluje dokładność precyzji DMA. Bezpieczna precyzja może naprawić problemy w niektórych grach, ale w niektórych przypadkach może również wpłynąć na wydajność. Jeśli nie jesteś pewien, pozostaw wartość Domyślną.</string>
+    <string name="debug_knobs">Przełączniki debugowania</string>
+    <string name="debug_knobs_description">Wyłącznie do użytku deweloperskiego.</string>
+    <string name="debug_knobs_hint">0 do 65535</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Backend shaderów</string>
@@ -256,9 +263,14 @@
     <string name="folder">Folder</string>
     <string name="dont_show_again">Nie pokazuj ponownie</string>
     <string name="add_directory_success">Pomyślnie dodano nowy katalog gier</string>
-    <string name="enable_update_checks">Sprawdzaj aktualizacje przy uruchomieniu aplikacji.</string>
+    <string name="enable_update_checks">Sprawdź aktualizacje</string>
+    <string name="enable_update_checks_description">Sprawdzaj dostępność aktualizacji przy uruchomieniu i opcjonalnie pobieraj oraz instaluj nowe wersje.</string>
     <string name="update_available">Dostępna aktualizacja</string>
     <string name="update_available_description">Dostępna jest nowa wersja: %1$s\n\nCzy chcesz ją pobrać\?</string>
+    <string name="downloading_update">Pobieranie aktualizacji</string>
+    <string name="update_download_failed">Nie udało się pobrać aktualizacji</string>
+    <string name="update_installed_successfully">Aktualizację zainstalowano pomyślnie</string>
+    <string name="update_install_failed">Nie udało się zainstalować aktualizacji: %1$s</string>
     <string name="home_search">Szukaj</string>
     <string name="home_settings">Ustawienia</string>
     <string name="empty_gamelist">Nie znaleziono plików, lub nie wybrano jeszcze katalogu zawierającego gry.</string>
@@ -275,6 +287,10 @@
     <string name="install_prod_keys_warning_description">Poprawne klucze są wymagane aby emulować sklepowe gry. Jeśli przejdziesz dalej, jedynie homebrew będą działać.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Pominąć dodawanie firmware?</string>
+    <string name="emulator_data">Skonfiguruj dane emulatora</string>
+    <string name="emulator_data_description">Klucze są wymagane, aby emulator działał, a firmware jest zalecany i wymagany do korzystania z apletu QLaunch</string>
+    <string name="permissions">Nadaj uprawnienia</string>
+    <string name="permissions_description">Nadaj opcjonalne uprawnienia, aby korzystać z określonych funkcji emulatora</string>
     <string name="install_firmware_warning_description">Wiele gier wymaga dostępu do firmware do prawidłowego działania.</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Powiadomienia</string>
@@ -507,6 +523,8 @@
     <string name="flush_by_line">Opróżniaj dzienniki debugowania linia po linii</string>
     <string name="flush_by_line_description">Opróżnia dzienniki debugowania po każdej napisanej linii, ułatwiając debugowanie w przypadku awarii lub zawieszenia.</string>
 
+    <string name="general">Ogólne</string>
+
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Silnik dźwięku</string>
     <string name="audio_volume">Głośność</string>
@@ -694,6 +712,9 @@
     <string name="edit_playtime">Edytuj czas gry</string>
     <string name="hours">Godziny</string>
     <string name="minutes">Minuty</string>
+    <string name="hours_abbr">h</string>
+    <string name="minutes_abbr">m</string>
+    <string name="seconds_abbr">s</string>
     <string name="hours_must_be_between_0_and_9999">Liczba godzin musi mieścić się w zakresie 0–9999</string>
     <string name="minutes_must_be_between_0_and_59">Liczba minut musi mieścić się w zakresie 0–59</string>
     <string name="seconds_must_be_between_0_and_59">Liczba sekund musi mieścić się w zakresie 0–59</string>
@@ -874,6 +895,11 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Żadny</string>
 
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">Wydajność</string>
+    <string name="renderer_accuracy_medium">Zrównoważony</string>
+    <string name="renderer_accuracy_high">Dokładny</string>
+
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">預設</string>
     <string name="dma_accuracy_unsafe">Niezalecane</string>
@@ -1000,7 +1026,7 @@
     <string name="multiplier_x16">x16</string>
     <string name="multiplier_x32">x32</string>
     <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
+    <string name="multiplier_none">Brak</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Czarne tła</string>
@@ -1064,7 +1090,7 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Aplety</string>
-    <string name="applets_menu_description">(W trakcie pracy) Zmień frontendy apletów i ustawienia</string>
+    <string name="applets_menu_description">Zmień frontendy apletów i ustawienia</string>
 
     <string name="applet_hle">Niestandardowy frontend</string>
     <string name="applet_lle">Prawdziwy aplet</string>
@@ -1073,6 +1099,9 @@
 
     <string name="airplane_mode">Tryb samolotowy</string>
     <string name="airplane_mode_description">Przekazuje tryb samolotowy do systemu operacyjnego Switch</string>
+
+    <string name="enable_overlay">Włącz aplet nakładki</string>
+    <string name="enable_overlay_description">Włącza wbudowany aplet nakładki systemu Horizon. Przytrzymaj przycisk Home przez 1 sekundę, aby go wyświetlić.</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licencje</string>

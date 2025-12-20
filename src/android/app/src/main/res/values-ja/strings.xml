@@ -101,7 +101,6 @@
     <string name="memory_layout_description">(実験的) エミュレートされたメモリレイアウトを変更します。この設定はパフォーマンスを向上させませんが、modを介して高解像度を利用するゲームに役立つ場合があります。8GB以下のRAMを搭載した電話では使用しないでください。</string>
     <string name="dma_accuracy">DMA精度</string>
     <string name="dma_accuracy_description">DMAの精度を制御します。安全な精度は一部のゲームの問題を修正できる場合がありますが、場合によってはパフォーマンスに影響を与える可能性もあります。不明な場合は、これをデフォルトのままにしてください。</string>
-
     <!-- Shader Backend -->
     <string name="shader_backend">シェーダーバックエンド</string>
     <string name="shader_backend_description">シェーダーのコンパイル方法</string>
@@ -761,15 +760,6 @@
     <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">完全な黒を使用</string>
     <string name="use_black_backgrounds_description">ダークテーマの背景色に黒が適用されます。</string>
@@ -802,8 +792,6 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">アプレット</string>
-    <string name="applets_menu_description">(作業中) アプレットのフロントエンドと設定を変更</string>
-
     <string name="applet_hle">カスタムフロントエンド</string>
     <string name="applet_lle">リアルアプレット</string>
 

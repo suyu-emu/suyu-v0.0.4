@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Цей програмний засіб запускає ігри для ігрової консолі Nintendo Switch. Він не містить ігор чи ключів.<br /><br />Перш ніж почати, укажіть розташування файлу <![CDATA[<b> prod.keys </b>]]> у пам’яті вашого пристрою.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Дізнатися більше</a>]]></string>
+    <string name="app_disclaimer">Цей застосунок запускає ігри для ігрової консолі Nintendo Switch. Він не містить ігор чи ключів.<br /><br />Перш ніж почати, укажіть розташування файлу <![CDATA[<b> prod.keys </b>]]> у пам’яті вашого пристрою.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Дізнатися більше</a>]]></string>
     <string name="notice_notification_channel_name">Сповіщення та помилки</string>
     <string name="notice_notification_channel_description">Виводить сповіщення у разі виникнення проблем.</string>
     <string name="notification_permission_not_granted">Дозвіл на сповіщення не надано!</string>
@@ -21,6 +21,8 @@
     <string name="overlay_auto_hide">Автоматично приховувати оверлей</string>
     <string name="overlay_auto_hide_description">Автоматично приховувати оверлей сенсорного керування після вказаного часу неактивності.</string>
     <string name="enable_input_overlay_auto_hide">Увімкнути автоматичне приховування оверлею</string>
+    <string name="hide_overlay_on_controller_input">Приховувати оверлей при введенні з контролера</string>
+    <string name="hide_overlay_on_controller_input_description">Автоматично приховувати керування із сенсорного екрана при використанні фізичного контролера. Оверлей знову з’явиться при від’єднанні контролера.</string>
 
     <string name="input_overlay_options">Оверлей введення</string>
     <string name="input_overlay_options_description">Налаштувати наекранне керування</string>
@@ -88,8 +90,10 @@
     <string name="dyna_state">Розширений динамічний стан</string>
     <string name="dyna_state_description">Керує кількістю функцій, які можна використовувати в розширеному динамічному стані. Вищі значення дозволяють більше функцій і можуть підвищити продуктивність, але можуть спричинити проблеми з деякими драйверами та постачальниками. Значення за замовчуванням може відрізнятися залежно від вашої системи та апаратних можливостей. Це значення можна змінювати, док не буде досягнуто стабільності та кращої якості зображення.</string>
     <string name="disabled">Вимкнено</string>
+    <string name="vertex_input_dynamic_state">Динамічний стан введення вершин</string>
+    <string name="vertex_input_dynamic_state_description">Вмикає можливість динамічного стану введення вершин для кращих якості й продуктивності.</string>
     <string name="provoking_vertex">Провокативна вершина</string>
-    <string name="provoking_vertex_description">Покращує освітлення та обробку вершин у деяких іграх. Підтримується лише GPU з Vulkan 1.0+.</string>
+    <string name="provoking_vertex_description">Покращує освітлення та взаємодію з вершинами у деяких іграх. Лише для ГП з підтримкою Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Індексація дескрипторів</string>
     <string name="descriptor_indexing_description">Покращує обробку текстур та буферів, а також шар перекладу Maxwell. Підтримується деякими GPU Vulkan 1.1 та всіма GPU Vulkan 1.2+.</string>
     <string name="sample_shading">Шейдинг зразків</string>
@@ -123,6 +127,9 @@
     <string name="memory_layout_description">(ЕКСПЕРИМЕНТАЛЬНО) Змінює емульований розподіл пам\'яті. Це налаштування не підвищує продуктивність, але може допомогти в іграх, які використовують високу роздільну здатність через моди. Не використовуйте на телефонах з 8 ГБ ОЗУ або менше.</string>
     <string name="dma_accuracy">Точність DMA</string>
     <string name="dma_accuracy_description">Керує точністю DMA. Безпечна точність може виправити проблеми в деяких іграх, але в деяких випадках також може вплинути на продуктивність. Якщо не впевнені, залиште це значення за замовчуванням.</string>
+    <string name="debug_knobs">Зневаджувальні регулятори</string>
+    <string name="debug_knobs_description">Лише для розробників.</string>
+    <string name="debug_knobs_hint">0–65535</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Система обробки шейдерів</string>
@@ -256,9 +263,14 @@
     <string name="folder">Тека</string>
     <string name="dont_show_again">Більше не показувати</string>
     <string name="add_directory_success">Нову теку з іграми успішно додано</string>
-    <string name="enable_update_checks">Перевіряти оновлення при запуску застосунку.</string>
+    <string name="enable_update_checks">Перевіряти оновлення</string>
+    <string name="enable_update_checks_description">Перевіряти при запуску наявність оновлень і за вибором завантажувати й встановлювати їх.</string>
     <string name="update_available">Доступне оновлення</string>
     <string name="update_available_description">Доступна нова версія: %1$s\n\nХочете її завантажити\?</string>
+    <string name="downloading_update">Завантаження оновлення</string>
+    <string name="update_download_failed">Не вдалося завантажити оновлення</string>
+    <string name="update_installed_successfully">Оновлення успішно встановлено</string>
+    <string name="update_install_failed">Не вдалося встановити оновлення: %1$s</string>
     <string name="home_search">Пошук</string>
     <string name="home_settings">Налаштування</string>
     <string name="empty_gamelist">Не знайдено файлів або ще не вибрано теку з іграми.</string>
@@ -275,6 +287,10 @@
     <string name="install_prod_keys_warning_description">Для емуляції роздрібних ігор потрібні дійсні ключі. Якщо ви продовжите, працюватимуть тільки homebrew додатки.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Пропустити додавання прошивки?</string>
+    <string name="emulator_data">Налаштувати дані емулятора</string>
+    <string name="emulator_data_description">Для роботи емулятора потрібні ключі, а для використання аплета QLaunch рекомендується і необхідна прошивка.</string>
+    <string name="permissions">Надати дозволи</string>
+    <string name="permissions_description">Надати додаткові дозволи для використання деяких функцій емулятора</string>
     <string name="install_firmware_warning_description">Багато ігор вимагають доступу до прошивки для правильної роботи.</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Сповіщення</string>
@@ -507,6 +523,8 @@
     <string name="flush_by_line">Скидати логи налагодження по рядках</string>
     <string name="flush_by_line_description">Скидає логи налагодження після кожного написаного рядка, полегшуючи налагодження у випадках збоїв або зависань.</string>
 
+    <string name="general">Загальні</string>
+
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Аудіорушій</string>
     <string name="audio_volume">Гучність</string>
@@ -686,7 +704,7 @@
     <string name="copy_details">Копіювати подробиці</string>
     <string name="add_ons">Доповнення</string>
     <string name="add_ons_description">Перемикати моди, оновлення та доповнення</string>
-    <string name="playtime">Награний час: </string>
+    <string name="playtime">Награний час:</string>
     <string name="reset_playtime">Очистити награний час</string>
     <string name="reset_playtime_description">Скинути награний час поточної гри до 0 секунд</string>
     <string name="reset_playtime_warning_description">Це очистить дані про награний час поточної гри. Ви впевнені\?</string>
@@ -694,6 +712,9 @@
     <string name="edit_playtime">Редагувати награний час</string>
     <string name="hours">Години</string>
     <string name="minutes">Хвилини</string>
+    <string name="hours_abbr">год</string>
+    <string name="minutes_abbr">хв</string>
+    <string name="seconds_abbr">с</string>
     <string name="hours_must_be_between_0_and_9999">Години повинні бути в межах від 0 до 9999</string>
     <string name="minutes_must_be_between_0_and_59">Хвилини повинні бути в межах від 0 до 59</string>
     <string name="seconds_must_be_between_0_and_59">Секунди повинні бути в межах від 0 до 59</string>
@@ -874,6 +895,11 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Вимкнено</string>
 
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">Продуктивність</string>
+    <string name="renderer_accuracy_medium">Збалансовано</string>
+    <string name="renderer_accuracy_high">Точно</string>
+
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Типово</string>
     <string name="dma_accuracy_unsafe">Небезпечно</string>
@@ -1000,7 +1026,7 @@
     <string name="multiplier_x16">x16</string>
     <string name="multiplier_x32">x32</string>
     <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
+    <string name="multiplier_none">Жодного</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Чорний фон</string>
@@ -1064,7 +1090,7 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Аплети</string>
-    <string name="applets_menu_description">(В роботі) Змінити інтерфейси та налаштування аплетів</string>
+    <string name="applets_menu_description">Змінити фронтенди й налаштування аплетів</string>
 
     <string name="applet_hle">Спеціалізований інтерфейс</string>
     <string name="applet_lle">Справжній аплет</string>
@@ -1073,6 +1099,9 @@
 
     <string name="airplane_mode">Режим польоту</string>
     <string name="airplane_mode_description">Передає режим польоту в ОС Switch</string>
+
+    <string name="enable_overlay">Увімкнути аплет оверлея</string>
+    <string name="enable_overlay_description">Вмикає вбудований аплет-оверлей Horizon. Натисніть і утримуйте 1 секунду кнопку «Домівка», щоб показати його.</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Ліцензії</string>

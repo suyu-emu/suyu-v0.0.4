@@ -21,6 +21,8 @@
     <string name="overlay_auto_hide">自動隱藏虛擬按鍵</string>
     <string name="overlay_auto_hide_description">在未使用虛擬按鍵幾秒後自動隱藏</string>
     <string name="enable_input_overlay_auto_hide">啟用自動隱藏虛擬按鍵</string>
+    <string name="hide_overlay_on_controller_input">使用控制器時自動隱藏虛擬按鍵</string>
+    <string name="hide_overlay_on_controller_input_description">在使用控制器時自動隱藏畫面上的虛擬按鍵，會在控制器斷開連接後重新出現</string>
 
     <string name="input_overlay_options">虛擬按鍵設定</string>
     <string name="input_overlay_options_description">虛擬按鍵設定</string>
@@ -88,6 +90,8 @@
     <string name="dyna_state">擴展動態狀態</string>
     <string name="dyna_state_description">控制擴展動態狀態中可使用的功能數量。數值越高，允許的功能越多，並可能提高效能，但可能會導致某些驅動程式和硬體出現問題。預設值可能因系統和硬體能力而異。可以變更此值，直到獲得更佳的穩定性和更好的視覺品質。</string>
     <string name="disabled">已停用</string>
+    <string name="vertex_input_dynamic_state">頂點輸入動態狀態</string>
+    <string name="vertex_input_dynamic_state_description">啟用頂點輸入動態狀態以取得更佳的品質及性能</string>
     <string name="provoking_vertex">引發頂點</string>
     <string name="provoking_vertex_description">改善某些遊戲中的光照和頂點處理。僅支援Vulkan 1.0+ GPU。</string>
     <string name="descriptor_indexing">描述符索引</string>
@@ -123,6 +127,9 @@
     <string name="memory_layout_description">（實驗性）更改模擬記憶體佈局。此設定不會提高效能，但可能有助於使用模組來提高解析度的遊戲的載入。不要在 RAM 為 8GB 或更少的手機上使用。若遊戲崩潰請將進階設定裡偵錯選項中的CPU後端改為 Dynarmic (JIT)</string>
     <string name="dma_accuracy">DMA 準確度</string>
     <string name="dma_accuracy_description">控制 DMA 準確度。安全準確度可以修復某些遊戲中的問題，但在某些情況下也可能影響效能。如果不確定，請保留為「預設」。</string>
+    <string name="debug_knobs">偵錯開關</string>
+    <string name="debug_knobs_description">僅限開發用途</string>
+    <string name="debug_knobs_hint">0到65535</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">著色器後端</string>
@@ -256,9 +263,14 @@
     <string name="folder">資料夾</string>
     <string name="dont_show_again">不再顯示</string>
     <string name="add_directory_success">遊戲目錄新增成功</string>
-    <string name="enable_update_checks">在Eden啟動時檢查更新</string>
+    <string name="enable_update_checks">檢查更新</string>
+    <string name="enable_update_checks_description">在Eden啟動時檢查有無新版本並選擇是否要下載與安裝更新</string>
     <string name="update_available">偵測到新版本</string>
     <string name="update_available_description">有更新可供安裝：%1$s\n\n您要進行更新嗎？</string>
+    <string name="downloading_update">下載更新中</string>
+    <string name="update_download_failed">更新下載失敗</string>
+    <string name="update_installed_successfully">成功安裝更新</string>
+    <string name="update_install_failed">更新安裝失敗：%1$s</string>
     <string name="home_search">搜尋</string>
     <string name="home_settings">設定</string>
     <string name="empty_gamelist">找不到檔案，或者尚未選取遊戲目錄。</string>
@@ -275,6 +287,10 @@
     <string name="install_prod_keys_warning_description">模擬零售遊戲需要有效的金鑰，若要繼續，將僅有自製遊戲可以運作。</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">跳過安裝韌體？</string>
+    <string name="emulator_data">設定模擬器資料</string>
+    <string name="emulator_data_description">模擬器需要金鑰才能正常執行\n建議安裝韌體以啟動QLaunch小程式</string>
+    <string name="permissions">授予權限</string>
+    <string name="permissions_description">授予權限以使用模擬器的特定功能</string>
     <string name="install_firmware_warning_description">許多遊戲需要韌體才能正常運作。</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">通知</string>
@@ -283,6 +299,25 @@
     <string name="permission_denied_description">您曾多次拒絕了權限要求，現在您需要在系統設定中手動授予權限。</string>
     <string name="about">關於</string>
     <string name="about_description">組建版本、製作群、以及更多</string>
+    <string name="system_information">裝置資訊</string>
+    <string name="system_information_description">查看這臺裝置的詳細資料</string>
+    <string name="device_manufacturer">製造商</string>
+    <string name="device_model">型號</string>
+    <string name="product">型號代碼</string>
+    <string name="android_version">安卓版本</string>
+    <string name="android_security_patch">安卓安全性修補程式等級</string>
+    <string name="build_id">版本號碼</string>
+    <string name="general_information">基本資訊</string>
+    <string name="hardware">硬體</string>
+    <string name="supported_abis">支援的ABI</string>
+    <string name="cpu_info">CPU資訊</string>
+    <string name="gpu_information">GPU資訊</string>
+    <string name="vulkan_driver_version">Vulkan驅動程式版本</string>
+    <string name="error_getting_emulator_info">取得裝置資訊失敗</string>
+    <string name="memory_info">記憶體資訊</string>
+    <string name="total_memory">記憶體大小</string>
+    <string name="soc">型號：</string>
+
     <string name="warning_help">說明</string>
     <string name="warning">警告</string>
     <string name="warning_skip">跳過</string>
@@ -298,7 +333,7 @@
     <string name="search_recently_added">最近新增</string>
     <string name="open_user_folder">開啟 Eden 資料夾</string>
     <string name="open_user_folder_description">管理 Eden 的內部檔案</string>
-    <string name="app_settings_description">自訂Eden的主題與外觀</string>
+    <string name="app_settings_description">自訂Eden的主題與介面</string>
     <string name="no_file_manager">找不到檔案管理員</string>
     <string name="notification_no_directory_link">無法開啟 Eden 目錄</string>
     <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
@@ -482,6 +517,8 @@
     <string name="flush_by_line">按行寫入偵錯日誌</string>
     <string name="flush_by_line_description">在每行寫入時重新整理偵錯日誌，讓程式在崩潰或當機時更容易偵錯。</string>
 
+    <string name="general">一般</string>
+
     <!-- Audio settings strings -->
     <string name="audio_output_engine">輸出引擎</string>
     <string name="audio_volume">音量</string>
@@ -630,6 +667,7 @@
     <string name="installing">安裝中…</string>
     <string name="latest">最新</string>
     <string name="recommended_driver">推薦驅動程式：</string>
+    <string name="gpu_model">GPU型號</string>
     <string name="unsupported_gpu">不支援的GPU</string>
     <string name="unsupported_gpu_warning">您的GPU不支援驅動程式注入。不建議嘗試設定自訂驅動程式。</string>
 
@@ -668,6 +706,9 @@
     <string name="edit_playtime">修改遊玩時間</string>
     <string name="hours">小時</string>
     <string name="minutes">分鐘</string>
+    <string name="hours_abbr">小時</string>
+    <string name="minutes_abbr">分鐘</string>
+    <string name="seconds_abbr">秒</string>
     <string name="hours_must_be_between_0_and_9999">必須介於0到9999小時之間</string>
     <string name="minutes_must_be_between_0_and_59">必須介於0到59分鐘之間</string>
     <string name="seconds_must_be_between_0_and_59">必須介於0到59秒之間</string>
@@ -676,6 +717,8 @@
     <string name="clear_shader_cache_description">清除此遊戲所有已編譯的著色器快取</string>
     <string name="clear_shader_cache_warning_description">重新編譯著色器快取的過程中可能會導致遊戲有些微卡頓</string>
     <string name="cleared_shaders_successfully">著色器快取已成功清除</string>
+    <string name="driver_shader_wipe_dialog_title">已刪除著色器快取</string>
+    <string name="driver_shader_wipe_dialog_message">為了維持Vulkan管線驗證，Eden已自動清除所有著色器快取。為了預防閃退和圖形錯誤，這是必須的動作。因為著色器需要重新編譯，您在遊戲過程中可能會遇到些微卡頓的情況</string>
     <string name="addons_game">附加元件：%1$s</string>
     <string name="save_data">儲存資料</string>
     <string name="save_data_description">管理此遊戲的儲存資料</string>
@@ -846,6 +889,11 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">無</string>
 
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">效能</string>
+    <string name="renderer_accuracy_medium">平衡</string>
+    <string name="renderer_accuracy_high">準確</string>
+
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">預設</string>
     <string name="dma_accuracy_unsafe">不安全</string>
@@ -952,7 +1000,7 @@
     <string name="change_app_theme">變更應用程式主題</string>
     <string name="theme_default">預設</string>
     <string name="theme_material_you">質感設計3</string>
-    <string name="app_settings">Eden外觀設定</string>
+    <string name="app_settings">Eden介面設定</string>
     <string name="theme_and_color">主題和顏色</string>
 
     <!-- Theme Modes -->
@@ -972,11 +1020,40 @@
     <string name="multiplier_x16">x16</string>
     <string name="multiplier_x32">x32</string>
     <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
+    <string name="multiplier_none">無</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">黑色背景</string>
     <string name="use_black_backgrounds_description">使用深色主題時，套用黑色背景。</string>
+
+    <!-- App Language -->
+    <string name="app_language">語言</string>
+    <string name="app_language_description">選擇Eden顯示的語言</string>
+    <string name="app_language_system">跟隨系統</string>
+    <string name="app_language_english">英文</string>
+    <string name="app_language_spanish">西班牙文</string>
+    <string name="app_language_french">法文</string>
+    <string name="app_language_german">德文</string>
+    <string name="app_language_italian">義大利文</string>
+    <string name="app_language_portuguese">葡萄牙文</string>
+    <string name="app_language_brazilian_portuguese">葡萄牙文（巴西）</string>
+    <string name="app_language_russian">俄文</string>
+    <string name="app_language_japanese">日文</string>
+    <string name="app_language_korean">韓文</string>
+    <string name="app_language_simplified_chinese">簡體中文</string>
+    <string name="app_language_traditional_chinese">正體中文</string>
+    <string name="app_language_polish">波蘭文</string>
+    <string name="app_language_czech">捷克文</string>
+    <string name="app_language_norwegian">挪威文</string>
+    <string name="app_language_hungarian">匈牙利文</string>
+    <string name="app_language_ukrainian">烏克蘭文</string>
+    <string name="app_language_vietnamese">越南文</string>
+    <string name="app_language_indonesian">印尼文</string>
+    <string name="app_language_arabic">阿拉伯文</string>
+    <string name="app_language_central_kurdish">庫德文</string>
+    <string name="app_language_persian">波斯文</string>
+    <string name="app_language_hebrew">希伯來文</string>
+    <string name="app_language_serbian">塞爾維亞文</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">主題色彩</string>
@@ -1007,7 +1084,7 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">小程式</string>
-    <string name="applets_menu_description">(開發中) 更改小程式前端和設定</string>
+    <string name="applets_menu_description">更改小程式前端和設定</string>
 
     <string name="applet_hle">自訂前端</string>
     <string name="applet_lle">Switch小程式</string>

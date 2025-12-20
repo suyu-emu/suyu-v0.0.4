@@ -101,7 +101,6 @@
     <string name="memory_layout_description">(EKSPERIMENTELL) Endre det emulerte minneoppsettet. Denne innstillingen øker ikke ytelsen, men kan hjelpe spill som bruker høy oppløsning via mods. Ikke bruk på telefoner med 8GB RAM eller mindre.</string>
     <string name="dma_accuracy">DMA-nøyaktighet</string>
     <string name="dma_accuracy_description">Kontrollerer DMA-presisjonsnøyaktigheten. Sikker presisjon kan fikse problemer i noen spill, men kan også påvirke ytelsen i noen tilfeller. Hvis du er usikker, la dette stå på Standard.</string>
-
     <!-- Shader Backend -->
     <string name="shader_backend">Shader-backend</string>
     <string name="shader_backend_description">Velg hvordan shadere kompileres</string>
@@ -723,15 +722,6 @@
     <string name="theme_mode_light">Lys</string>
     <string name="theme_mode_dark">Mørk</string>
 
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
-    <string name="multiplier_none">None</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Svart bakgrunn</string>
     <string name="use_black_backgrounds_description">Bruk svart bakgrunn når du bruker det mørke temaet.</string>
@@ -764,8 +754,6 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Applets</string>
-    <string name="applets_menu_description">(Under arbeid) Endre applet-frontender og innstillinger</string>
-
     <string name="applet_hle">Egendefinert frontend</string>
     <string name="applet_lle">Ekte applet</string>
 
