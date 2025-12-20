@@ -45,8 +45,6 @@ public:
 
     s32 VicFindNvdecFdFromOffset(u64 search_offset) {
         std::scoped_lock l{m_mutex};
-        // Vic does not know which nvdec is producing frames for it, so search all the fds here for
-        // the given offset.
         for (auto& map : m_presentation_order) {
             for (auto& [offset, frame] : map.second) {
                 if (offset == search_offset) {
@@ -54,7 +52,6 @@ public:
                 }
             }
         }
-
         for (auto& map : m_decode_order) {
             for (auto& [offset, frame] : map.second) {
                 if (offset == search_offset) {
@@ -62,7 +59,6 @@ public:
                 }
             }
         }
-
         return -1;
     }
 
@@ -72,6 +68,11 @@ public:
         if (map == m_presentation_order.end()) {
             return;
         }
+
+        if (map->second.size() >= MAX_PRESENT_QUEUE) {
+            map->second.pop_front();
+        }
+
         map->second.emplace_back(offset, std::move(frame));
     }
 
@@ -81,7 +82,14 @@ public:
         if (map == m_decode_order.end()) {
             return;
         }
+
         map->second.insert_or_assign(offset, std::move(frame));
+
+        if (map->second.size() > MAX_DECODE_MAP) {
+            auto it = map->second.begin();
+            std::advance(it, map->second.size() - MAX_DECODE_MAP);
+            map->second.erase(map->second.begin(), it);
+        }
     }
 
     std::shared_ptr<FFmpeg::Frame> GetFrame(s32 fd, u64 offset) {
@@ -90,13 +98,14 @@ public:
         }
 
         std::scoped_lock l{m_mutex};
+
         auto present_map = m_presentation_order.find(fd);
-        if (present_map != m_presentation_order.end() && present_map->second.size() > 0) {
+        if (present_map != m_presentation_order.end() && !present_map->second.empty()) {
             return GetPresentOrderLocked(fd);
         }
 
         auto decode_map = m_decode_order.find(fd);
-        if (decode_map != m_decode_order.end() && decode_map->second.size() > 0) {
+        if (decode_map != m_decode_order.end() && !decode_map->second.empty()) {
             return GetDecodeOrderLocked(fd, offset);
         }
 
@@ -106,9 +115,10 @@ public:
 private:
     std::shared_ptr<FFmpeg::Frame> GetPresentOrderLocked(s32 fd) {
         auto map = m_presentation_order.find(fd);
-        if (map == m_presentation_order.end() || map->second.size() == 0) {
+        if (map == m_presentation_order.end() || map->second.empty()) {
             return {};
         }
+
         auto frame = std::move(map->second.front().second);
         map->second.pop_front();
         return frame;
@@ -116,13 +126,15 @@ private:
 
     std::shared_ptr<FFmpeg::Frame> GetDecodeOrderLocked(s32 fd, u64 offset) {
         auto map = m_decode_order.find(fd);
-        if (map == m_decode_order.end() || map->second.size() == 0) {
+        if (map == m_decode_order.end() || map->second.empty()) {
             return {};
         }
+
         auto it = map->second.find(offset);
         if (it == map->second.end()) {
             return {};
         }
+
         return std::move(map->second.extract(it).mapped());
     }
 
@@ -131,6 +143,9 @@ private:
     std::mutex m_mutex{};
     std::unordered_map<s32, std::deque<std::pair<u64, FramePtr>>> m_presentation_order;
     std::unordered_map<s32, std::unordered_map<u64, FramePtr>> m_decode_order;
+
+    static constexpr size_t MAX_PRESENT_QUEUE = 100;
+    static constexpr size_t MAX_DECODE_MAP = 200;
 };
 
 enum class ChannelType : u32 {
