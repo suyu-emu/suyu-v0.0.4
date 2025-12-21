@@ -17,6 +17,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <fmt/ranges.h>
 #include <mcl/bit/swap.hpp>
 #include "dynarmic/common/common_types.h"
 
