@@ -391,28 +391,15 @@ const std::size_t CACHE_PAGE_SIZE = 4096;
 
 void ArmNce::ClearInstructionCache() {
 #ifdef __aarch64__
-    // Use IC IALLU to actually invalidate L1 instruction cache
+    // Ensure all previous memory operations complete
     asm volatile("dsb ish\n"
-                 "ic iallu\n"
                  "dsb ish\n"
                  "isb" ::: "memory");
 #endif
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {
-#ifdef ARCHITECTURE_arm64
-    // Invalidate instruction cache for specific range instead of full flush
-    constexpr u64 cache_line_size = 64;
-    const u64 aligned_addr = addr & ~(cache_line_size - 1);
-    const u64 end_addr = (addr + size + cache_line_size - 1) & ~(cache_line_size - 1);
-
-    asm volatile("dsb ish" ::: "memory");
-    for (u64 i = aligned_addr; i < end_addr; i += cache_line_size) {
-        asm volatile("ic ivau, %0" :: "r"(i) : "memory");
-    }
-    asm volatile("dsb ish\n"
-                 "isb" ::: "memory");
-#endif
+    this->ClearInstructionCache();
 }
 
 } // namespace Core
