@@ -134,4 +134,4 @@ target_include_directories(dynarmic_tests PRIVATE . ../src)
 target_compile_options(dynarmic_tests PRIVATE ${DYNARMIC_CXX_FLAGS})
 target_compile_definitions(dynarmic_tests PRIVATE FMT_USE_USER_DEFINED_LITERALS=1)
 
-add_test(dynarmic_tests dynarmic_tests --durations yes)
+add_test(NAME dynarmic_tests COMMAND dynarmic_tests --durations yes)
