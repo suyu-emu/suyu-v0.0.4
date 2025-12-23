@@ -18,6 +18,7 @@ plugins {
     id("androidx.navigation.safeargs.kotlin")
     id("org.jlleitschuh.gradle.ktlint") version "11.4.0"
     id("com.github.triplet.play") version "3.8.6"
+    id("idea")
 }
 
 /**
@@ -26,6 +27,8 @@ plugins {
  * next 680 years.
  */
 val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toInt()
+
+val edenDir = project(":Eden").projectDir
 
 @Suppress("UnstableApiUsage")
 android {
@@ -241,11 +244,17 @@ android {
     externalNativeBuild {
         cmake {
             version = "3.22.1"
-            path = file("../../../CMakeLists.txt")
+            path = file("${edenDir}/CMakeLists.txt")
         }
     }
 }
 
+idea {
+    module {
+        // Inclusion to exclude build/ dir from non-Android
+        excludeDirs.add(file("${edenDir}/build"))
+    }
+}
 
 tasks.register<Delete>("ktlintReset", fun Delete.() {
     delete(File(layout.buildDirectory.toString() + File.separator + "intermediates/ktLint"))
@@ -346,7 +355,7 @@ fun getGitVersion(): String {
 }
 
 afterEvaluate {
-    val artifactsDir = layout.projectDirectory.dir("../../../artifacts")
+    val artifactsDir = layout.projectDirectory.dir("${edenDir}/artifacts")
     val outputsDir = layout.buildDirectory.dir("outputs").get()
 
     android.applicationVariants.forEach { variant ->
