@@ -96,8 +96,8 @@
         "package": "VVL",
         "repo": "KhronosGroup/Vulkan-ValidationLayers",
         "tag": "vulkan-sdk-%VERSION%",
-        "git_version": "1.4.328.1",
+        "git_version": "1.4.335.0",
         "artifact": "android-binaries-%VERSION%.zip",
-        "hash": "5ec895a453cb7c2f156830b9766953a0c2bd44dea99e6a3dac4160305041ccd3e87534b4ce0bd102392178d2a8eca48411856298f9395e60117cdfe89f72137e"
+        "hash": "48167c4a17736301bd08f9290f41830443e1f18cce8ad867fc6f289b49e18b40e93c9850b377951af82f51b5b6d7313aa6a884fc5df79f5ce3df82696c1c1244"
     }
 }

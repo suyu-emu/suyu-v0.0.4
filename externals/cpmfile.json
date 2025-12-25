@@ -119,10 +119,10 @@
         "package": "VulkanUtilityLibraries",
         "repo": "scripts/VulkanUtilityHeaders",
         "tag": "%VERSION%",
-        "git_version": "1.4.328",
+        "git_version": "1.4.335",
         "artifact": "VulkanUtilityHeaders.tar.zst",
         "git_host": "git.crueter.xyz",
-        "hash": "9922217b39faf73cd4fc1510f2fdba14a49aa5c0d77f9ee24ee0512cef16b234d0cabc83c1fec861fa5df1d43e7f086ca9b6501753899119f39c5ca530cb0dae"
+        "hash": "16dac0e6586702580c4279e4cd37ffe3cf909c93eb31b5069da7af36436d47b270a9cbaac953bb66c22ed12ed67ffa096688599267f307dfb62be1bc09f79833"
     },
     "spirv-tools": {
         "package": "SPIRV-Tools",
