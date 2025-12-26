@@ -217,7 +217,6 @@ else()
                 --disable-ffmpeg
                 --disable-ffprobe
                 --disable-network
-                --disable-postproc
                 --disable-swresample
                 --enable-decoder=h264
                 --enable-decoder=vp8
