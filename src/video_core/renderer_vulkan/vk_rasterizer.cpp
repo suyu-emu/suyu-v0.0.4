@@ -37,7 +37,6 @@
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/shader_cache.h"
 #include "video_core/texture_cache/texture_cache_base.h"
-#include "video_core/polygon_mode_utils.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -149,8 +148,7 @@ VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u3
     return scissor;
 }
 
-DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances, bool is_indexed,
-                          Maxwell::PolygonMode polygon_mode) {
+DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances, bool is_indexed) {
     DrawParams params{
         .base_instance = draw_state.base_instance,
         .num_instances = num_instances,
@@ -169,21 +167,6 @@ DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances,
         params.num_vertices = (params.num_vertices - 2) / 2 * 6;
         params.base_vertex = 0;
         params.is_indexed = true;
-    }
-    const bool polygon_line =
-        draw_state.topology == Maxwell::PrimitiveTopology::Polygon &&
-        polygon_mode == Maxwell::PolygonMode::Line;
-    if (polygon_line) {
-        if (params.is_indexed) {
-            if (draw_state.index_buffer.count > 1) {
-                params.num_vertices = draw_state.index_buffer.count + 1;
-            }
-        } else if (draw_state.vertex_buffer.count > 1) {
-            params.num_vertices = draw_state.vertex_buffer.count + 1;
-            params.is_indexed = true;
-            params.first_index = 0;
-            params.base_vertex = draw_state.vertex_buffer.first;
-        }
     }
     return params;
 }
@@ -250,8 +233,7 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
     PrepareDraw(is_indexed, [this, is_indexed, instance_count] {
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
         const u32 num_instances{instance_count};
-        const auto polygon_mode = VideoCore::EffectivePolygonMode(maxwell3d->regs);
-        const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed, polygon_mode)};
+        const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
         scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
             if (draw_params.is_indexed) {
                 cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <iostream>
 #include <span>
-#include <string_view>
 
 #include <boost/container/small_vector.hpp>
 #include <boost/container/static_vector.hpp>
@@ -23,7 +22,6 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
-#include "video_core/polygon_mode_utils.h"
 #include "video_core/shader_notify.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/vulkan_common/vulkan_device.h"
@@ -616,10 +614,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         vertex_input_ci.pNext = &input_divisor_ci;
     }
     const bool has_tess_stages = spv_modules[1] || spv_modules[2];
-    const auto polygon_mode =
-        FixedPipelineState::UnpackPolygonMode(key.state.polygon_mode.Value());
-    auto input_assembly_topology =
-        MaxwellToVK::PrimitiveTopology(device, key.state.topology, polygon_mode);
+    auto input_assembly_topology = MaxwellToVK::PrimitiveTopology(device, key.state.topology);
     if (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST) {
         if (!has_tess_stages) {
             LOG_WARNING(Render_Vulkan, "Patch topology used without tessellation, using points");
@@ -633,33 +628,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                         "Patch topology not used with tessellation, using patch list");
             input_assembly_topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
         }
-    }
-    if (key.state.topology == Maxwell::PrimitiveTopology::Polygon) {
-        const auto polygon_mode_name = [polygon_mode]() -> std::string_view {
-            switch (polygon_mode) {
-            case Maxwell::PolygonMode::Fill:
-                return "Fill";
-            case Maxwell::PolygonMode::Line:
-                return "Line";
-            case Maxwell::PolygonMode::Point:
-                return "Point";
-            }
-            return "Unknown";
-        }();
-        const auto vk_topology_name = [input_assembly_topology]() -> std::string_view {
-            switch (input_assembly_topology) {
-            case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-                return "TriangleFan";
-            case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-                return "LineStrip";
-            case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-                return "PointList";
-            default:
-                return "Unexpected";
-            }
-        }();
-        LOG_DEBUG(Render_Vulkan, "Polygon primitive in {} mode mapped to {}", polygon_mode_name,
-                  vk_topology_name);
     }
     const VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,

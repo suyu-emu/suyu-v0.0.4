@@ -7,7 +7,6 @@
 #pragma once
 
 #include <algorithm>
-#include <cstring>
 #include <memory>
 #include <numeric>
 
@@ -16,8 +15,6 @@
 #include "video_core/guest_memory.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/texture_cache/util.h"
-#include "video_core/polygon_mode_utils.h"
-#include "video_core/renderer_vulkan/line_loop_utils.h"
 
 namespace VideoCommon {
 
@@ -356,37 +353,14 @@ void BufferCache<P>::UpdateComputeBuffers() {
 
 template <class P>
 void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed) {
-    const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if (is_indexed) {
         BindHostIndexBuffer();
-    } else {
-        if constexpr (!P::IS_OPENGL) {
-            const auto polygon_mode = VideoCore::EffectivePolygonMode(maxwell3d->regs);
-            if (draw_state.topology == Maxwell::PrimitiveTopology::Polygon &&
-                polygon_mode == Maxwell::PolygonMode::Line && draw_state.vertex_buffer.count > 1) {
-                const u32 vertex_count = draw_state.vertex_buffer.count;
-                const u32 generated_count = vertex_count + 1;
-                const bool use_u16 = vertex_count <= 0x10000;
-                const u32 element_size = use_u16 ? sizeof(u16) : sizeof(u32);
-                auto staging = runtime.UploadStagingBuffer(
-                    static_cast<size_t>(generated_count) * element_size);
-                std::span<u8> dst_span{staging.mapped_span.data(),
-                                       generated_count * static_cast<size_t>(element_size)};
-                Vulkan::LineLoop::GenerateSequentialWithClosureRaw(dst_span, element_size);
-                const auto synthetic_format = use_u16 ? Maxwell::IndexFormat::UnsignedShort
-                                                      : Maxwell::IndexFormat::UnsignedInt;
-                runtime.BindIndexBuffer(draw_state.topology, synthetic_format,
-                                        draw_state.vertex_buffer.first, generated_count,
-                                        staging.buffer, static_cast<u32>(staging.offset),
-                                        generated_count * element_size);
-            }
-        }
-        if constexpr (!HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
-            if (draw_state.topology == Maxwell::PrimitiveTopology::Quads ||
-                draw_state.topology == Maxwell::PrimitiveTopology::QuadStrip) {
-                runtime.BindQuadIndexBuffer(draw_state.topology, draw_state.vertex_buffer.first,
-                                            draw_state.vertex_buffer.count);
-            }
+    } else if constexpr (!HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
+        const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+        if (draw_state.topology == Maxwell::PrimitiveTopology::Quads ||
+            draw_state.topology == Maxwell::PrimitiveTopology::QuadStrip) {
+            runtime.BindQuadIndexBuffer(draw_state.topology, draw_state.vertex_buffer.first,
+                                        draw_state.vertex_buffer.count);
         }
     }
     BindHostVertexBuffers();
@@ -715,44 +689,6 @@ void BufferCache<P>::BindHostIndexBuffer() {
     const u32 offset = buffer.Offset(channel_state->index_buffer.device_addr);
     const u32 size = channel_state->index_buffer.size;
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-    if constexpr (!P::IS_OPENGL) {
-        const auto polygon_mode = VideoCore::EffectivePolygonMode(maxwell3d->regs);
-        const bool polygon_line =
-            draw_state.topology == Maxwell::PrimitiveTopology::Polygon &&
-            polygon_mode == Maxwell::PolygonMode::Line;
-        if (polygon_line && draw_state.index_buffer.count > 1) {
-            const u32 element_size = draw_state.index_buffer.FormatSizeInBytes();
-            const size_t src_bytes = static_cast<size_t>(draw_state.index_buffer.count) * element_size;
-            const size_t total_bytes = src_bytes + element_size;
-            auto staging = runtime.UploadStagingBuffer(total_bytes);
-            std::span<u8> dst_span{staging.mapped_span.data(), total_bytes};
-            std::span<const u8> src_span;
-            if (!draw_state.inline_index_draw_indexes.empty()) {
-                const u8* const src =
-                    draw_state.inline_index_draw_indexes.data() +
-                    static_cast<size_t>(draw_state.index_buffer.first) * element_size;
-                src_span = {src, src_bytes};
-            } else if (const u8* const cpu_base =
-                           device_memory.GetPointer<u8>(channel_state->index_buffer.device_addr)) {
-                const u8* const src = cpu_base +
-                                      static_cast<size_t>(draw_state.index_buffer.first) * element_size;
-                src_span = {src, src_bytes};
-            } else {
-                const DAddr src_addr =
-                    channel_state->index_buffer.device_addr +
-                    static_cast<DAddr>(draw_state.index_buffer.first) * element_size;
-                device_memory.ReadBlockUnsafe(src_addr, dst_span.data(), src_bytes);
-                src_span = {dst_span.data(), src_bytes};
-            }
-            Vulkan::LineLoop::CopyWithClosureRaw(dst_span, src_span, element_size);
-            buffer.MarkUsage(offset, size);
-            runtime.BindIndexBuffer(draw_state.topology, draw_state.index_buffer.format,
-                                    draw_state.index_buffer.first, draw_state.index_buffer.count + 1,
-                                    staging.buffer, static_cast<u32>(staging.offset),
-                                    static_cast<u32>(total_bytes));
-            return;
-        }
-    }
     if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
         if constexpr (USE_MEMORY_MAPS_FOR_UPLOADS) {
             auto upload_staging = runtime.UploadStagingBuffer(size);

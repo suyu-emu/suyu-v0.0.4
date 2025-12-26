@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -326,9 +323,44 @@ VkShaderStageFlagBits ShaderStage(Shader::Stage stage) {
 }
 
 VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const Device& device,
-                                      Maxwell::PrimitiveTopology topology,
-                                      Maxwell::PolygonMode polygon_mode) {
-    return detail::PrimitiveTopologyNoDevice(topology, polygon_mode);
+                                      Maxwell::PrimitiveTopology topology) {
+    switch (topology) {
+    case Maxwell::PrimitiveTopology::Points:
+        return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+    case Maxwell::PrimitiveTopology::Lines:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    case Maxwell::PrimitiveTopology::LineLoop:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    case Maxwell::PrimitiveTopology::LineStrip:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+    case Maxwell::PrimitiveTopology::Triangles:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    case Maxwell::PrimitiveTopology::TriangleStrip:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    case Maxwell::PrimitiveTopology::TriangleFan:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+    case Maxwell::PrimitiveTopology::LinesAdjacency:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
+    case Maxwell::PrimitiveTopology::LineStripAdjacency:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
+    case Maxwell::PrimitiveTopology::TrianglesAdjacency:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
+    case Maxwell::PrimitiveTopology::TriangleStripAdjacency:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+    case Maxwell::PrimitiveTopology::Quads:
+    case Maxwell::PrimitiveTopology::QuadStrip:
+        // TODO: Use VK_PRIMITIVE_TOPOLOGY_QUAD_LIST_EXT/VK_PRIMITIVE_TOPOLOGY_QUAD_STRIP_EXT
+        // whenever it releases
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    case Maxwell::PrimitiveTopology::Patches:
+        return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+    case Maxwell::PrimitiveTopology::Polygon:
+        LOG_WARNING(Render_Vulkan, "Draw mode is Polygon with a polygon mode of lines should be a "
+                                   "single body and not a bunch of triangles.");
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+    }
+    UNIMPLEMENTED_MSG("Unimplemented topology={}", topology);
+    return {};
 }
 
 VkFormat VertexFormat(const Device& device, Maxwell::VertexAttribute::Type type,

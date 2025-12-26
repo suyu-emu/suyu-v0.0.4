@@ -15,7 +15,6 @@
 #include "video_core/engines/draw_manager.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
-#include "video_core/polygon_mode_utils.h"
 
 namespace Vulkan {
 namespace {
@@ -66,7 +65,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
-    polygon_mode.Assign(PackPolygonMode(VideoCore::EffectivePolygonMode(regs)));
+    polygon_mode.Assign(PackPolygonMode(regs.polygon_mode_front));
     tessellation_primitive.Assign(static_cast<u32>(regs.tessellation.params.domain_type.Value()));
     tessellation_spacing.Assign(static_cast<u32>(regs.tessellation.params.spacing.Value()));
     tessellation_clockwise.Assign(regs.tessellation.params.output_primitives.Value() ==

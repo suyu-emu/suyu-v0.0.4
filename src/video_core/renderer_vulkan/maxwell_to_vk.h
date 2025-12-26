@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,52 +14,6 @@ namespace Vulkan::MaxwellToVK {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using PixelFormat = VideoCore::Surface::PixelFormat;
-
-namespace detail {
-constexpr VkPrimitiveTopology PrimitiveTopologyNoDevice(Maxwell::PrimitiveTopology topology,
-                                                        Maxwell::PolygonMode polygon_mode) {
-    switch (topology) {
-    case Maxwell::PrimitiveTopology::Points:
-        return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-    case Maxwell::PrimitiveTopology::Lines:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-    case Maxwell::PrimitiveTopology::LineLoop:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-    case Maxwell::PrimitiveTopology::LineStrip:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-    case Maxwell::PrimitiveTopology::Triangles:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    case Maxwell::PrimitiveTopology::TriangleStrip:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-    case Maxwell::PrimitiveTopology::TriangleFan:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
-    case Maxwell::PrimitiveTopology::LinesAdjacency:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
-    case Maxwell::PrimitiveTopology::LineStripAdjacency:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
-    case Maxwell::PrimitiveTopology::TrianglesAdjacency:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
-    case Maxwell::PrimitiveTopology::TriangleStripAdjacency:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
-    case Maxwell::PrimitiveTopology::Quads:
-    case Maxwell::PrimitiveTopology::QuadStrip:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    case Maxwell::PrimitiveTopology::Patches:
-        return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
-    case Maxwell::PrimitiveTopology::Polygon:
-        switch (polygon_mode) {
-        case Maxwell::PolygonMode::Fill:
-            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
-        case Maxwell::PolygonMode::Line:
-            return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-        case Maxwell::PolygonMode::Point:
-            return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-        }
-        break;
-    }
-    return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-}
-} // namespace detail
 
 namespace Sampler {
 
@@ -95,8 +46,7 @@ struct FormatInfo {
 
 VkShaderStageFlagBits ShaderStage(Shader::Stage stage);
 
-VkPrimitiveTopology PrimitiveTopology(const Device& device, Maxwell::PrimitiveTopology topology,
-                                      Maxwell::PolygonMode polygon_mode);
+VkPrimitiveTopology PrimitiveTopology(const Device& device, Maxwell::PrimitiveTopology topology);
 
 VkFormat VertexFormat(const Device& device, Maxwell::VertexAttribute::Type type,
                       Maxwell::VertexAttribute::Size size);
