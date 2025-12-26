@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -214,7 +217,7 @@ private:
 
     bool mapping_active{};
     int blink_counter{};
-    int callback_key;
+    int callback_key{};
     QColor button_color{};
     ColorMapping colors{};
     Core::HID::LedPattern led_pattern{0, 0, 0, 0};

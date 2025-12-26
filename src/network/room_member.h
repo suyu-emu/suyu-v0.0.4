@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -53,7 +56,7 @@ struct ChatEntry {
 
 /// Represents a system status message.
 struct StatusMessageEntry {
-    StatusMessageTypes type; ///< Type of the message
+    StatusMessageTypes type{}; ///< Type of the message
     /// Subject of the message. i.e. the user who is joining/leaving/being banned, etc.
     std::string nickname;
     std::string username;

@@ -21,7 +21,7 @@ namespace Core::Frontend {
 struct CabinetParameters {
     Service::NFP::TagInfo tag_info;
     Service::NFP::RegisterInfo register_info;
-    Service::NFP::CabinetMode mode;
+    Service::NFP::CabinetMode mode{};
 };
 
 using CabinetCallback = std::function<void(bool, const std::string&)>;

@@ -34,8 +34,8 @@ struct Member {
 struct RoomInformation {
     std::string name;          ///< Name of the server
     std::string description;   ///< Server description
-    u32 member_slots;          ///< Maximum number of members in this room
-    u16 port;                  ///< The port of this room
+    u32 member_slots{};        ///< Maximum number of members in this room
+    u16 port{};                ///< The port of this room
     GameInfo preferred_game;   ///< Game to advertise that you want to play
     std::string host_username; ///< Forum username of the host
 };
@@ -46,8 +46,8 @@ struct Room {
     std::string id;
     std::string verify_uid; ///< UID used for verification
     std::string ip;
-    u32 net_version;
-    bool has_password;
+    u32 net_version{};
+    bool has_password = false;
 
     std::vector<Member> members;
 };

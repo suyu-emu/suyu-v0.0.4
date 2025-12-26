@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -79,7 +82,7 @@ using DeviceHandle = u64;
 
 // This is nn::nfc::TagInfo
 struct TagInfo {
-    UniqueSerialNumber uuid;
+    UniqueSerialNumber uuid{};
     u8 uuid_length;
     INSERT_PADDING_BYTES(0x15);
     NfcProtocol protocol;

@@ -164,7 +164,7 @@ IPlatformServiceManager::IPlatformServiceManager(Core::System& system_, const ch
     // Rebuild shared fonts from data ncas or synthesize
 
     impl->shared_font = std::make_shared<Kernel::PhysicalMemory>(SHARED_FONT_MEM_SIZE);
-    for (auto font : SHARED_FONTS) {
+    for (auto& font : SHARED_FONTS) {
         FileSys::VirtualFile romfs;
         const auto nca =
             nand->GetEntry(static_cast<u64>(font.first), FileSys::ContentRecordType::Data);
@@ -261,7 +261,7 @@ Result IPlatformServiceManager::GetSharedFontInOrderOfPriority(
                                     out_font_sizes.size(), impl->shared_font_regions.size()});
 
     for (size_t i = 0; i < max_size; i++) {
-        auto region = impl->GetSharedFontRegion(i);
+        auto& region = impl->GetSharedFontRegion(i);
 
         out_font_codes[i] = static_cast<u32>(i);
         out_font_offsets[i] = region.offset;

@@ -482,13 +482,13 @@ private:
 
     MultiplayerState* multiplayer_state = nullptr;
 
-    GRenderWindow* render_window;
-    GameList* game_list;
-    LoadingScreen* loading_screen;
+    GRenderWindow* render_window = nullptr;
+    GameList* game_list = nullptr;
+    LoadingScreen* loading_screen = nullptr;
     QTimer shutdown_timer;
     OverlayDialog* shutdown_dialog{};
 
-    GameListPlaceholder* game_list_placeholder;
+    GameListPlaceholder* game_list_placeholder = nullptr;
 
     std::vector<VkDeviceInfo::Record> vk_device_records;
 
@@ -531,7 +531,7 @@ private:
     QString startup_icon_theme;
 
     // Debugger panes
-    ControllerDialog* controller_dialog;
+    ControllerDialog* controller_dialog = nullptr;
 
     QAction* actions_recent_files[max_recent_files_item];
 
@@ -543,7 +543,7 @@ private:
     QTranslator translator;
 
     // Install progress dialog
-    QProgressDialog* install_progress;
+    QProgressDialog* install_progress = nullptr;
 
     // Last game booted, used for multi-process apps
     QString last_filename_booted;

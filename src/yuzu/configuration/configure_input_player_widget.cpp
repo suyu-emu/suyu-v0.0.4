@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -689,10 +692,10 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
     {
         // Draw joysticks
         using namespace Settings::NativeAnalog;
-        const auto l_stick = QPointF(stick_values[LStick].x.value, stick_values[LStick].y.value);
-        const auto l_button = button_values[Settings::NativeButton::LStick];
-        const auto r_stick = QPointF(stick_values[RStick].x.value, stick_values[RStick].y.value);
-        const auto r_button = button_values[Settings::NativeButton::RStick];
+        const auto& l_stick = QPointF(stick_values[LStick].x.value, stick_values[LStick].y.value);
+        const auto& l_button = button_values[Settings::NativeButton::LStick];
+        const auto& r_stick = QPointF(stick_values[RStick].x.value, stick_values[RStick].y.value);
+        const auto& r_button = button_values[Settings::NativeButton::RStick];
 
         DrawJoystick(p, center + QPointF(-171, -41) + (l_stick * 4), 1.0f, l_button);
         DrawJoystick(p, center + QPointF(171, 8) + (r_stick * 4), 1.0f, r_button);

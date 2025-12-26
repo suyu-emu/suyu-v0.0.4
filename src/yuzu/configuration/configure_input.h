@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -71,11 +74,11 @@ private:
 
     std::unique_ptr<InputProfiles> profiles;
 
-    std::array<ConfigureInputPlayer*, 8> player_controllers;
-    std::array<QWidget*, 8> player_tabs;
+    std::array<ConfigureInputPlayer*, 8> player_controllers{};
+    std::array<QWidget*, 8> player_tabs{};
     // Checkboxes representing the "Connected Controllers".
-    std::array<QCheckBox*, 8> connected_controller_checkboxes;
-    ConfigureInputAdvanced* advanced;
+    std::array<QCheckBox*, 8> connected_controller_checkboxes{};
+    ConfigureInputAdvanced* advanced = nullptr;
 
     Core::System& system;
 };

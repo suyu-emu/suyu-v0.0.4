@@ -48,7 +48,7 @@ private:
     void Save();
 
     PlayTimeDatabase database;
-    u64 running_program_id;
+    u64 running_program_id{};
     std::jthread play_time_thread;
 };
 
