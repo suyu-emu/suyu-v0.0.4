@@ -32,7 +32,6 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
     auto yuzu_volume = Settings::Volume();
     if (yuzu_volume > 1.0f)
         yuzu_volume = 0.6f + 20.0f * std::log10(yuzu_volume);
-    yuzu_volume = std::max(yuzu_volume, 0.001f);
     auto const volume = system_volume * device_volume * yuzu_volume;
 
     if (system_channels > device_channels) {
