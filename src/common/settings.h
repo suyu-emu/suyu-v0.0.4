@@ -556,6 +556,11 @@ struct Values {
                                                     linkage, false, "disable_shader_loop_safety_checks", Category::RendererDebug};
     Setting<bool> enable_renderdoc_hotkey{linkage, false, "renderdoc_hotkey",
                                           Category::RendererDebug};
+#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+    // Debug override for automatic BCn patching detection
+    Setting<bool> patch_old_qcom_drivers{linkage, true, "patch_old_qcom_drivers",
+                                         Category::RendererDebug};
+#endif
     SwitchableSetting<bool> disable_buffer_reorder{linkage, false, "disable_buffer_reorder",
                                          Category::RendererDebug,
                                          Specialization::Default,

@@ -524,6 +524,8 @@
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Graphics debugging</string>
     <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
+    <string name="patch_old_qcom_drivers">BCn Texture Patching</string>
+    <string name="patch_old_qcom_drivers_description">Override automatic BCn texture format detection on Adreno GPUs. Normally auto-detected based on Android version (enabled on API 28+).</string>
     <string name="fastmem">Fastmem</string>
 
     <string name="log">Logging</string>

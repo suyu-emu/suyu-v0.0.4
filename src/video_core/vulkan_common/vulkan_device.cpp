@@ -24,6 +24,7 @@
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
 #include <adrenotools/bcenabler.h>
+#include <android/api-level.h>
 #endif
 
 namespace Vulkan {
@@ -502,24 +503,45 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.features.shaderInt64 = false;
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
-        // Patch the driver to enable BCn textures.
+        // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
         const auto major = (properties.properties.driverVersion >> 24) << 2;
         const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
         const auto vendor = properties.properties.vendorID;
         const auto patch_status = adrenotools_get_bcn_type(major, minor, vendor);
+        const int api_level = android_get_device_api_level();
+
+        bool should_patch_bcn = api_level >= 28;
+        const bool bcn_debug_override = Settings::values.patch_old_qcom_drivers.GetValue();
+        if (bcn_debug_override != should_patch_bcn) {
+            LOG_WARNING(Render_Vulkan,
+                "BCn patch debug override active: {} (auto-detected: {})",
+                bcn_debug_override, should_patch_bcn);
+            should_patch_bcn = bcn_debug_override;
+        }
 
         if (patch_status == ADRENOTOOLS_BCN_PATCH) {
-            LOG_INFO(Render_Vulkan, "Patching Adreno driver to support BCn texture formats");
-            if (adrenotools_patch_bcn(
-                    reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
-                OverrideBcnFormats(format_properties);
+            if (should_patch_bcn) {
+                LOG_INFO(Render_Vulkan,
+                    "Patching Adreno driver to support BCn texture formats "
+                    "(Android API {}, Driver {}.{})", api_level, major, minor);
+                if (adrenotools_patch_bcn(
+                        reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
+                    OverrideBcnFormats(format_properties);
+                } else {
+                    LOG_ERROR(Render_Vulkan, "BCn patch failed! Driver code may now crash");
+                }
             } else {
-                LOG_ERROR(Render_Vulkan, "Patch failed! Driver code may now crash");
+                LOG_WARNING(Render_Vulkan,
+                    "BCn texture patching skipped for stability (Android API {} < 28). "
+                    "Driver version {}.{} would support patching, but may crash on older Android.",
+                    api_level, major, minor);
             }
         } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
-            LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures without patches");
+            LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures natively (no patch needed)");
         } else {
-            LOG_WARNING(Render_Vulkan, "Adreno driver can't be patched to enable BCn textures");
+            LOG_INFO(Render_Vulkan,
+                "Adreno driver does not support BCn texture patching (Android API {}, Driver {}.{})",
+                api_level, major, minor);
         }
 #endif
     }

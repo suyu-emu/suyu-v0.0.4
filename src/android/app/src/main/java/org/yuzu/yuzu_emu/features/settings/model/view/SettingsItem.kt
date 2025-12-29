@@ -766,6 +766,14 @@ abstract class SettingsItem(
                     descriptionId = R.string.renderer_debug_description
                 )
             )
+            // BCn texture patching debug override
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_PATCH_OLD_QCOM_DRIVERS,
+                    titleId = R.string.patch_old_qcom_drivers,
+                    descriptionId = R.string.patch_old_qcom_drivers_description
+                )
+            )
             put(
                 SwitchSetting(
                     BooleanSetting.USE_AUTO_STUB,

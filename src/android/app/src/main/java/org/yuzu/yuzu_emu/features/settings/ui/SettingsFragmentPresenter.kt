@@ -1161,6 +1161,7 @@ class SettingsFragmentPresenter(
             add(HeaderSetting(R.string.gpu))
             add(IntSetting.RENDERER_BACKEND.key)
             add(BooleanSetting.RENDERER_DEBUG.key)
+            add(BooleanSetting.RENDERER_PATCH_OLD_QCOM_DRIVERS.key)
 
             add(HeaderSetting(R.string.cpu))
             add(IntSetting.CPU_BACKEND.key)
