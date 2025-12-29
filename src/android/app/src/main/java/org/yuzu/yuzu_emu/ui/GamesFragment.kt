@@ -186,6 +186,10 @@ class GamesFragment : Fragment() {
             val currentViewType = getCurrentViewType()
             val savedViewType = if (isLandscape || currentViewType != GameAdapter.VIEW_TYPE_CAROUSEL) currentViewType else GameAdapter.VIEW_TYPE_GRID
 
+            //This prevents Grid/List views from reusing scaled or otherwise modified ViewHolders left over from the carousel.
+            adapter = null
+            recycledViewPool.clear()
+
             gameAdapter.setViewType(savedViewType)
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
 
