@@ -374,8 +374,10 @@ void CommandGenerator::GenerateBiquadFilterEffectCommand(const s16 buffer_offset
             LOG_ERROR(Service_Audio, "Biquad filter parameter is null");
             return;
         }
-        param_state = parameter->state;
-        channel_count = parameter->channel_count;
+        if (parameter->state <= EffectInfoBase::ParameterState::Updated) {
+            param_state = parameter->state;
+            channel_count = parameter->channel_count;
+        }
     } else {
         const auto* parameter =
             reinterpret_cast<const BiquadFilterInfo::ParameterVersion1*>(effect_info.GetParameter());
