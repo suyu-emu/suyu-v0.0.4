@@ -251,7 +251,7 @@ else()
     target_link_libraries(common PUBLIC Boost::headers)
 endif()
 
-target_link_libraries(common PUBLIC Boost::filesystem)
+target_link_libraries(common PUBLIC Boost::filesystem Boost::context)
 
 if (lz4_ADDED)
     target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)
