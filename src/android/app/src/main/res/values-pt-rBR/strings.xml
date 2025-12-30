@@ -80,10 +80,7 @@
     <string name="show_fw_version_description">Exibir a versão do firmware instalado</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">Véu do Éden</string>
-    <string name="eden_veil_description">Configurações experimentais que podem melhorar a performance e recursos do emulador. Essas configurações podem causar telas pretas ou outros problemas durante o jogo.</string>
 
-    <string name="veil_extensions">Extensões da GPU</string>
     <string name="dyna_state">Extended Dynamic State</string>
     <string name="dyna_state_description">Estado Dinâmico Estendido: Controla o nível de recursos que podem ser usados no Extended Dynamic State. Níveis mais altos permitem mais recursos e podem melhorar o desempenho, mas podem causar problemas com alguns drivers e fabricantes. O nível padrão pode variar dependendo do seu sistema e das capacidades do hardware. Este valor pode ser ajustado até que se alcance estabilidade e melhor qualidade visual.</string>
     <string name="disabled">Desativado</string>
@@ -91,24 +88,18 @@
     <string name="provoking_vertex_description">Vértice Provocante: Melhora a iluminação e o processamento de vértices em certos jogos. Suportado apenas em GPUs com Vulkan 1.0 ou superior.</string>
     <string name="descriptor_indexing">Descriptor Indexing</string>
     <string name="descriptor_indexing_description">Indexação de Descritores: Melhora o processamento de texturas e buffers, assim como a camada de tradução Maxwell. Suportado por algumas GPUs Vulkan 1.1 e todas as GPUs Vulkan 1.2 ou superiores.</string>
-    <string name="sample_shading">Sample Shading</string>
-    <string name="sample_shading_description">Amostragem de Sombreamento: Permite que o shader de fragmento seja processado por cada amostra em fragmentos multiamostrados, em vez de executar uma vez por fragmento, melhorando a qualidade gráfica, porém impactando levemente o desempenho. Funciona apenas em dispositivos Vulkan 1.1 ou superiores.</string>
     <string name="sample_shading_fraction">Sample Shading Fraction</string>
     <string name="sample_shading_fraction_description">Fração de Sombreamento de Amostra: Define a intensidade do sample shading. Quanto maior, melhor a qualidade, mas maior o impacto no desempenho.</string>
 
-    <string name="veil_renderer">Renderizador</string>
     <string name="sync_memory_operations">Sincronizar Operações de Memória</string>
     <string name="sync_memory_operations_description">Garante a consistência de dados entre operações de computação e memória. Esta opção pode corrigir problemas em alguns jogos, mas também pode reduzir o desempenho, sendo os jogos da Unreal Engine 4 os mais afetados.</string>
     <string name="buffer_reorder_disable">Desativar Reordenação de Buffers</string>
     <string name="buffer_reorder_disable_description">Quando marcado, desativa a reordenação de uploads de memória mapeada, permitindo associar uploads a desenhos específicos. Pode reduzir o desempenho em alguns casos.</string>
 
-    <string name="veil_misc">CPU e Memória</string>
     <string name="use_sync_core">Sincronizar Velocidade do Núcleo</string>
     <string name="use_sync_core_description">Aumenta a velocidade do ciclo do núcleo até o máximo para melhorar o desempenho, mantendo a velocidade real do jogo inalterada.</string>
     <string name="use_lru_cache">Ativar Cache LRU</string>
     <string name="use_lru_cache_description">O cache Least Recently Used (LRU, ou Itens Menos Usados) aumenta o desempenho, economizando o uso do processador. Alguns jogos podem apresentar problemas com esta configuração. Desative-a caso o jogo não inicie ou trave aleatoriamente.</string>
-    <string name="use_fast_cpu_time">Tempo Rápido na CPU</string>
-    <string name="use_fast_cpu_time_description">Força a CPU emulada a rodar em um clock mais alto, reduzindo certos limitadores de FPS. Esta opção é instável e pode causar problemas. CPUs mais fracas podem ter desempenho reduzido.</string>
     <string name="custom_cpu_ticks">Ciclos da CPU Personalizados</string>
     <string name="custom_cpu_ticks_description">Defina um valor personalizado de ciclos da CPU. Valores mais altos podem aumentar o desempenho, mas também podem fazer o jogo travar. Recomenda-se usar valores entre 77 e 21000.</string>
     <string name="cpu_ticks">Ciclos</string>
@@ -435,9 +426,7 @@
     <string name="network">Rede</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">Backend</string>
     <string name="display">Tela</string>
-    <string name="processing">Pós-Processamento</string>
 
     <string name="renderer_accuracy">Nível de precisão</string>
     <string name="renderer_resolution">Resolução (Portátil/Modo TV)</string>
@@ -454,8 +443,6 @@
     <string name="renderer_optimize_spirv_output_description">Otimiza o shader compilado para melhorar a eficiência da GPU.</string>
     <string name="renderer_asynchronous_shaders">Usar shaders assíncronos </string>
     <string name="renderer_asynchronous_shaders_description">Compila shaders de forma assíncrona. Isso pode reduzir engasgos, mas também pode introduzir falhas gráficas.</string>
-    <string name="use_fast_gpu_time">Usar tempo rápido de GPU</string>
-    <string name="use_fast_gpu_time_description">Força a maioria dos jogos a rodar em sua resolução nativa máxima. Esta opção é instável e pode causar problemas.</string>
     <string name="fast_gpu_time">Fator de overclock da GPU</string>
     <string name="fast_gpu_time_description">Use 128 para desempenho máximo e 512 para fidelidade gráfica máxima.</string>
     <string name="renderer_reactive_flushing">Usar flushing reativo</string>
@@ -814,9 +801,8 @@ uma tentativa de mapeamento automático</string>
     <string name="clock_fast">Rápido (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">Baixo (128)</string>
-    <string name="gpu_medium">Médio (256)</string>
-    <string name="gpu_high">Alto (512)</string>
+    <string name="fast_gpu_medium">Médio (256)</string>
+    <string name="fast_gpu_high">Alto (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>

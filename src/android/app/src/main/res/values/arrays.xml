@@ -34,6 +34,7 @@
     </integer-array>
 
     <string-array name="clockNames">
+        <item>@string/off</item>
         <item>@string/clock_boost</item>
         <item>@string/clock_fast</item>
     </string-array>
@@ -41,6 +42,7 @@
     <integer-array name="clockValues">
         <item>0</item>
         <item>1</item>
+        <item>2</item>
     </integer-array>
 
     <string-array name="languageNames">
@@ -502,6 +504,9 @@
         <item>3</item>
         <item>4</item>
         <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
     </integer-array>
 
     <string-array name="verticalAlignmentEntries">
@@ -548,9 +553,9 @@
     </integer-array>
 
     <string-array name="gpuEntries">
-        <item>@string/gpu_low</item>
-        <item>@string/gpu_medium</item>
-        <item>@string/gpu_high</item>
+        <item>@string/off</item>
+        <item>@string/fast_gpu_medium</item>
+        <item>@string/fast_gpu_high</item>
     </string-array>
 
     <integer-array name="gpuValues">
@@ -571,9 +576,9 @@
 
     <string-array name="dynaStateEntries">
         <item>@string/disabled</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
+        <item>ExtendedDynamicState 1</item>
+        <item>ExtendedDynamicState 2</item>
+        <item>ExtendedDynamicState 3</item>
     </string-array>
 
     <integer-array name="dynaStateValues">

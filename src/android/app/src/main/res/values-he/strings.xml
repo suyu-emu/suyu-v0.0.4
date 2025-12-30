@@ -59,10 +59,7 @@
     <string name="show_fw_version_description">מציג את גרסת הקושחה המותקנת</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">עדן וייל</string>
-    <string name="eden_veil_description">הגדרות ניסיוניות לשיפור ביצועים ויכולות. הגדרות אלו עלולות לגרום למסכים שחורים או לבעיות אחרות במשחק.</string>
 
-    <string name="veil_extensions">הרחבות GPU</string>
     <string name="dyna_state">מצב דינמי מורחב</string>
     <string name="dyna_state_description">שולט במספר התכונות שניתן להשתמש בהן במצב דינמי מורחב. מספרים גבוהים יותר מאפשרים יותר תכונות ויכולים לשפר את הביצועים, אך עלולים לגרום לבעיות עם כמה מנהלי התקנים וספקים. הערך המוגדר כברירת מחדל עשוי להשתנות בהתאם למערכת שלך ויכולות החומרה. ניתן לשנות ערך זה עד להשגת יציבות ואיכות ויזואלית טובה יותר.</string>
     <string name="disabled">מושבת</string>
@@ -70,24 +67,18 @@
     <string name="provoking_vertex_description">משפר תאורה וטיפול בקודקודים במשחקים מסוימים. נתמך רק בכרטיסי מסך עם Vulkan 1.0+.</string>
     <string name="descriptor_indexing">אינדוקס תיאורים</string>
     <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
-    <string name="sample_shading">דגימת צל</string>
-    <string name="sample_shading_description">מאפשר לשברי הצללה לרוץ לכל דגימה בקטע רב-דגימות במקום פעם אחת לקטע. משפר את איכות הגרפיקה במחיר של ביצועים. רק מכשירי Vulkan 1.1+ תומכים בהרחבה זו.</string>
     <string name="sample_shading_fraction">שבר הצללה לדוגמה</string>
     <string name="sample_shading_fraction_description">עוצמת מעבר ההצללה לדוגמה. ערכים גבוהים יותר משפרים את האיכות יותר אך גם מפחיתים את הביצועים במידה רבה יותר.</string>
 
-    <string name="veil_renderer">רנדרר</string>
     <string name="sync_memory_operations">סנכרון פעולות זיכרון</string>
     <string name="sync_memory_operations_description">מבטיח עקביות נתונים בין פעולות חישוב וזיכרון. אפשרות זו אמורה לתקן בעיות במשחקים מסוימים, אך עלולה להפחית ביצועים במקרים מסוימים. נראה שהמשחקים עם Unreal Engine 4 הם המושפעים ביותר.</string>
     <string name="buffer_reorder_disable">השבת סידור מחדש של חוצץ</string>
     <string name="buffer_reorder_disable_description">כאשר מסומן, מבטל את סידור מחדש של העלאות זיכרון ממופה המאפשר לשייך העלאות עם ציורים ספציפיים. עלול להפחית ביצועים במקרים מסוימים.</string>
 
-    <string name="veil_misc">מעבד וזיכרון</string>
     <string name="use_sync_core">סנכרון מהירות ליבה</string>
     <string name="use_sync_core_description">סנכרן את מהירות הליבה לאחוז המהירות המרבי כדי לשפר ביצועים מבלי לשנות את מהירות המשחק בפועל.</string>
     <string name="use_lru_cache">הפעלת מטמון LRU</string>
     <string name="use_lru_cache_description">הפעל או השבת מטמון LRU לשיפור ביצועים על ידי חיסכון בשימוש במעבד. לחלק מהמשחקים כמו TotK 1.2.1 יש בעיות - השבת אם המשחק לא עולה או קורס באקראי.</string>
-    <string name="use_fast_cpu_time">זמן CPU מהיר</string>
-    <string name="use_fast_cpu_time_description">מכריח את ה-CPU המדומה לפעול במהירות שעון גבוהה יותר, מה שמפחית חלק ממגבילי ה-FPS. אפשרות זו אינה יציבה ועלולה לגרום לבעיות, ומעבדים חלשים יותר עשויים לראות ירידה בביצועים.</string>
     <string name="custom_cpu_ticks">טיקי CPU מותאמים</string>
     <string name="custom_cpu_ticks_description">הגדר ערך מותאם לטיקי CPU. ערכים גבוהים יותר עשויים לשפר ביצועים, אך גם עלולים לגרום להקפאת המשחק. מומלץ טווח של 77-21000.</string>
     <string name="cpu_ticks">טיקים</string>
@@ -397,9 +388,7 @@
     <string name="network">רשת</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">בקאנד</string>
     <string name="display">תצוגה</string>
-    <string name="processing">עיבוד לאחר</string>
 
     <string name="renderer_accuracy">רמת דיוק</string>
     <string name="renderer_resolution">רזולוציה (מעוגן/נייד)</string>
@@ -416,8 +405,6 @@
     <string name="renderer_optimize_spirv_output_description">משפר את השאדר המהודר כדי להגביר את יעילות ה-GPU.</string>
     <string name="renderer_asynchronous_shaders">השתמש בשיידרים אסינכרונים</string>
     <string name="renderer_asynchronous_shaders_description">מקמפל שיידרים באופן אסינכרוני. זה עשוי להפחית קפיצות אך גם עלול לגרום לתקלות גרפיות.</string>
-    <string name="use_fast_gpu_time">השתמש בזמן GPU מהיר</string>
-    <string name="use_fast_gpu_time_description">מאלץ את רוב המשחקים לרוץ ברזולוציה המקורית הגבוהה ביותר שלהם. אפשרות זו עלולה לגרום לבעיות.</string>
     <string name="fast_gpu_time">גורם אובר-קלוק ל-GPU</string>
     <string name="fast_gpu_time_description">השתמש ב-128 לביצועים מקסימליים וב-512 לנאמנות גרפית מקסימלית.</string>
     <string name="renderer_reactive_flushing">השתמש בהבהוב תגובתי</string>
@@ -642,9 +629,8 @@
     <string name="clock_fast">מהיר (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">נמוך (128)</string>
-    <string name="gpu_medium">בינוני (256)</string>
-    <string name="gpu_high">גבוה (512)</string>
+    <string name="fast_gpu_medium">בינוני (256)</string>
+    <string name="fast_gpu_high">גבוה (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">צלזיוס</string>

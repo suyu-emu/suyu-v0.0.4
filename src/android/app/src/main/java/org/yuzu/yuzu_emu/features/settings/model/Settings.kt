@@ -26,7 +26,6 @@ object Settings {
         SECTION_INPUT_PLAYER_EIGHT,
         SECTION_APP_SETTINGS(R.string.app_settings),
         SECTION_DEBUG(R.string.preferences_debug),
-        SECTION_EDEN_VEIL(R.string.eden_veil),
         SECTION_APPLETS(R.string.applets_menu);
     }
 

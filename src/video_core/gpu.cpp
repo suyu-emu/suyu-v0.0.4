@@ -13,6 +13,7 @@
 
 #include "common/assert.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
@@ -200,12 +201,10 @@ struct GPU::Impl {
 
     [[nodiscard]] u64 GetTicks() const {
         u64 gpu_tick = system.CoreTiming().GetGPUTicks();
+        Settings::GpuOverclock overclock = Settings::values.fast_gpu_time.GetValue();
 
-        if (Settings::values.use_fast_gpu_time.GetValue()) {
-            gpu_tick /= (u64) (128
-                               * std::pow(2,
-                                          static_cast<u32>(
-                                              Settings::values.fast_gpu_time.GetValue())));
+        if (overclock != Settings::GpuOverclock::Normal) {
+            gpu_tick /= 256 * u64(overclock);
         }
 
         return gpu_tick;

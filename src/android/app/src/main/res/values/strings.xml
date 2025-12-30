@@ -88,60 +88,24 @@
     <string name="show_fw_version_description">Display the installed firmware version</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">Eden\'s Veil</string>
-    <string name="eden_veil_description">Experimental settings to improve performance and capability. These settings may cause black screens or other game issues.</string>
-
-    <string name="veil_extensions">GPU Extensions</string>
-    <string name="dyna_state">Extended Dynamic State</string>
-    <string name="dyna_state_description">Controls the number of features that can be used in Extended Dynamic State. Higher numbers allow for more features and can increase performance, but may cause issues with some drivers and vendors. The default value may vary depending on your system and hardware capabilities. This value can be changed until stability and a better visual quality are achieved.</string>
-    <string name="disabled">Disabled</string>
-    <string name="vertex_input_dynamic_state">Vertex Input Dynamic State</string>
-    <string name="vertex_input_dynamic_state_description">Enables vertex input dynamic state feature for better quality and performance.</string>
-    <string name="provoking_vertex">Provoking Vertex</string>
-    <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
-    <string name="descriptor_indexing">Descriptor Indexing</string>
-    <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
-    <string name="sample_shading">Sample Shading</string>
-    <string name="sample_shading_description">Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance. Only Vulkan 1.1+ devices support this extension.</string>
-    <string name="sample_shading_fraction">Sample Shading Fraction</string>
-    <string name="sample_shading_fraction_description">The intensity of the sample shading pass. Higher values improve quality more but also reduce performance to a greater extent.</string>
-
-    <string name="veil_renderer">Renderer</string>
-    <string name="sync_memory_operations">Sync Memory Operations</string>
-    <string name="sync_memory_operations_description">Ensures data consistency between compute and memory operations. This option should fix issues in some games, but may also reduce performance in some cases. Unreal Engine 4 games often see the most significant changes thereof.</string>
     <string name="buffer_reorder_disable">Disable Buffer Reorder</string>
     <string name="buffer_reorder_disable_description">When checked, disables reordering of mapped memory uploads which allows to associate uploads with specific draws. May reduce performance in some cases.</string>
 
-    <string name="veil_misc">CPU and Memory</string>
     <string name="use_sync_core">Synchronize Core Speed</string>
     <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the game\'s actual speed.</string>
     <string name="use_lru_cache">Enable LRU Cache</string>
     <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games may see issues with this setting, so disable it if the game doesn\'t boot or crashes randomly.</string>
-    <string name="use_fast_cpu_time">Fast CPU Time</string>
-    <string name="use_fast_cpu_time_description">Forces the emulated CPU to run at a higher clock, reducing certain FPS limiters. This option is hacky and may cause issues, and weaker CPUs may see reduced performance.</string>
-    <string name="custom_cpu_ticks">Custom CPU Ticks</string>
-    <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</string>
-    <string name="cpu_ticks">Ticks</string>
-    <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
-    <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Enable Host MMU Emulation</string>
     <string name="cpuopt_unsafe_host_mmu_description">This optimization speeds up memory accesses by the guest program. Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host\'s MMU. Disabling this forces all memory accesses to use Software MMU Emulation.</string>
-    <string name="fast_cpu_time">CPU Clock</string>
-    <string name="fast_cpu_time_description">Use Boost (1700MHz) to run at the Switch\'s highest native clock, or Fast (2000MHz) to run at 2x clock.</string>
-    <string name="memory_layout">Memory Layout</string>
-    <string name="memory_layout_description">(EXPERIMENTAL) Change the emulated memory layout. This setting will not increase performance, but may help with games utilizing high resolutions via mods. Do not use on phones with 8GB of RAM or less. Only works on the Dynarmic (JIT) backend.</string>
-    <string name="dma_accuracy">DMA Accuracy</string>
-    <string name="dma_accuracy_description">Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave this on Default.</string>
     <string name="debug_knobs">Debug knobs</string>
     <string name="debug_knobs_description">For development use only.</string>
     <string name="debug_knobs_hint">0 to 65535</string>
 
     <!-- Shader Backend -->
-    <string name="shader_backend">Shader Backend</string>
-    <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
+    <string name="shader_backend_spirv">SPIRV</string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC Emulation</string>
@@ -150,7 +114,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">None</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Never</string>
     <string name="on_load">On Load</string>
     <string name="always">Always</string>
@@ -473,6 +437,15 @@
     <string name="use_custom_rtc_description">Allows you to set a custom real-time clock separate from your current system time.</string>
     <string name="set_custom_rtc">Set custom RTC</string>
 
+    <!-- CPU -->
+    <string name="fast_cpu_time">CPU Overclock</string>
+    <string name="fast_cpu_time_description">Forces the emulated CPU to run at a higher clock, reducing certain FPS limiters. Use Boost (1700MHz) to run at the Switch\'s highest native clock, or Fast (2000MHz) to run at 2x clock.</string>
+    <string name="custom_cpu_ticks">Custom CPU Ticks</string>
+    <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</string>
+    <string name="cpu_ticks">Ticks</string>
+    <string name="memory_layout">Memory Layout</string>
+    <string name="memory_layout_description">(EXPERIMENTAL) Change the emulated memory layout. This setting will not increase performance, but may help with games utilizing high resolutions via mods. Do not use on phones with 8GB of RAM or less. Only works on the Dynarmic (JIT) backend.</string>
+
     <string name="generate">Generate</string>
 
     <!-- Network settings strings -->
@@ -483,35 +456,73 @@
     <string name="network">Network</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">Backend</string>
-    <string name="display">Display</string>
-    <string name="processing">Post-Processing</string>
-
-    <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>
-    <string name="renderer_screen_layout">Orientation</string>
-    <string name="renderer_aspect_ratio">Aspect ratio</string>
+    <string name="shader_backend">Shader Backend</string>
+    <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
     <string name="renderer_scaling_filter">Window adapting filter</string>
     <string name="fsr_sharpness">FSR sharpness</string>
     <string name="fsr_sharpness_description">Determines how sharpened the image will look while using FSR\'s dynamic contrast</string>
     <string name="renderer_anti_aliasing">Anti-aliasing method</string>
-    <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
-    <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
-    <string name="renderer_optimize_spirv_output">Optimize Spir-V output</string>
+    <string name="renderer_optimize_spirv_output">Optimize SPIRV output</string>
     <string name="renderer_optimize_spirv_output_description">Optimizes compiled shaders to improve GPU efficiency, but may introduce longer loading times and initial slowdowns.</string>
-    <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
-    <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously. This may reduce stutters but may also introduce glitches.</string>
-    <string name="use_fast_gpu_time">Use Fast GPU Time</string>
-    <string name="use_fast_gpu_time_description">Forces most games to run at their highest native resolution. This option is hacky and may cause issues.</string>
-    <string name="fast_gpu_time">GPU Overclock Factor</string>
-    <string name="fast_gpu_time_description">Use 128 for maximal performance and 512 for maximal graphics fidelity.</string>
-    <string name="renderer_reactive_flushing">Use reactive flushing</string>
-    <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
-    <string name="use_disk_shader_cache">Disk shader cache</string>
-    <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
+
+
+    <string name="advanced">Advanced</string>
+
+    <string name="renderer_accuracy">Accuracy level</string>
+    <string name="dma_accuracy">DMA Accuracy</string>
+    <string name="dma_accuracy_description">Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave this on Default.</string>
     <string name="anisotropic_filtering">Anisotropic filtering</string>
     <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
+    <string name="vram_usage_mode">VRAM Usage Mode</string>
+    <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
+    <string name="accelerate_astc">ASTC Decoding Method</string>
+    <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering: CPU (slow, safe), GPU (fast, recommended), or CPU Async (no stutters, may cause issues)</string>
+    <string name="astc_recompression">ASTC Recompression Method</string>
+    <string name="astc_recompression_description">Choose how ASTC textures are recompressed to improve compatibility and performance. Enabling this option saves VRAM but may lower texture quality.</string>
+
+    <string name="sync_memory_operations">Sync Memory Operations</string>
+    <string name="sync_memory_operations_description">Ensures data consistency between compute and memory operations. This option should fix issues in some games, but may also reduce performance in some cases. Unreal Engine 4 games often see the most significant changes thereof.</string>
+    <string name="use_disk_shader_cache">Disk shader cache</string>
+    <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
+    <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
+    <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
+    <string name="renderer_reactive_flushing">Use reactive flushing</string>
+    <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
+
+
+    <string name="hacks">Hacks</string>
+
+    <string name="fast_gpu_time">Fast GPU Time</string>
+    <string name="fast_gpu_time_description">Forces most games to run at their highest native resolution. Use 256 for maximal performance and 512 for maximal graphics fidelity.</string>
+    <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
+    <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
+    <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
+    <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously. This may reduce stutters but may also introduce glitches.</string>
+
+    <string name="extensions">Extensions</string>
+
+    <string name="dyna_state">Extended Dynamic State</string>
+    <string name="dyna_state_description">Controls the number of features that can be used in Extended Dynamic State. Higher numbers allow for more features and can increase performance, but may cause issues with some drivers and vendors.</string>
+    <string name="disabled">Disabled</string>
+    <string name="vertex_input_dynamic_state">Vertex Input Dynamic State</string>
+    <string name="vertex_input_dynamic_state_description">Enables vertex input dynamic state feature for better quality and performance.</string>
+    <string name="provoking_vertex">Provoking Vertex</string>
+    <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
+    <string name="descriptor_indexing">Descriptor Indexing</string>
+    <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
+    <string name="sample_shading_fraction">Sample Shading</string>
+    <string name="sample_shading_fraction_description">Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance.</string>
+
+
+    <string name="display">Display</string>
+
+    <string name="renderer_screen_layout">Orientation</string>
+    <string name="renderer_aspect_ratio">Aspect ratio</string>
+    <string name="vertical_alignment">Vertical alignment</string>
+    <string name="picture_in_picture">Picture in Picture</string>
+    <string name="picture_in_picture_description">Minimize window when placed in the background</string>
 
     <string name="warning_resolution">Resolution scaling to 2x or higher is known to cause issues, and may result in significant slowdowns of your device.</string>
 
@@ -884,9 +895,9 @@
     <string name="clock_fast">Fast (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">Low (128)</string>
-    <string name="gpu_medium">Medium (256)</string>
-    <string name="gpu_high">High (512)</string>
+    <string name="off">Off</string>
+    <string name="fast_gpu_medium">Medium (256)</string>
+    <string name="fast_gpu_high">High (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
@@ -936,18 +947,10 @@
     <string name="dma_accuracy_unsafe">Unsafe</string>
     <string name="dma_accuracy_safe">Safe</string>
 
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC Decoding Method</string>
-    <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering: CPU (slow, safe), GPU (fast, recommended), or CPU Async (no stutters, may cause issues)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU Asynchronously</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC Recompression Method</string>
-    <string name="astc_recompression_description">Choose how ASTC textures are recompressed to improve compatibility and performance. Enabling this option saves VRAM but may lower texture quality.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Uncompressed</string>
@@ -955,8 +958,6 @@
     <string name="astc_recompression_bc3">BC3 (Medium Quality)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">VRAM Usage Mode</string>
-    <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
     <string name="vram_usage_conservative">Conservative</string>
     <string name="vram_usage_aggressive">Aggressive</string>
 
@@ -1106,15 +1107,12 @@
     <string name="gray">Gray</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">Picture in Picture</string>
-    <string name="picture_in_picture_description">Minimize window when placed in the background</string>
     <string name="pause">Pause</string>
     <string name="play">Play</string>
     <string name="mute">Mute</string>
     <string name="unmute">Unmute</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">Vertical alignment</string>
     <string name="top">Top</string>
     <string name="center">Center</string>
     <string name="bottom">Bottom</string>

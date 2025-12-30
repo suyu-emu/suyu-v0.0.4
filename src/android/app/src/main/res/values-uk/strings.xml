@@ -83,10 +83,7 @@
     <string name="show_fw_version_description">Відображає встановлену версію прошивки</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">Завіса Eden</string>
-    <string name="eden_veil_description">Експериментальні налаштування для покращення продуктивності та сумісності. Ці налаштування можуть викликати збої, зокрема чорний екран.</string>
 
-    <string name="veil_extensions">Розширення GPU</string>
     <string name="dyna_state">Розширений динамічний стан</string>
     <string name="dyna_state_description">Керує кількістю функцій, які можна використовувати в розширеному динамічному стані. Вищі значення дозволяють більше функцій і можуть підвищити продуктивність, але можуть спричинити проблеми з деякими драйверами та постачальниками. Значення за замовчуванням може відрізнятися залежно від вашої системи та апаратних можливостей. Це значення можна змінювати, док не буде досягнуто стабільності та кращої якості зображення.</string>
     <string name="disabled">Вимкнено</string>
@@ -96,24 +93,18 @@
     <string name="provoking_vertex_description">Покращує освітлення та взаємодію з вершинами у деяких іграх. Лише для ГП з підтримкою Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Індексація дескрипторів</string>
     <string name="descriptor_indexing_description">Покращує обробку текстур та буферів, а також шар перекладу Maxwell. Підтримується деякими GPU Vulkan 1.1 та всіма GPU Vulkan 1.2+.</string>
-    <string name="sample_shading">Шейдинг зразків</string>
-    <string name="sample_shading_description">Дозволяє шейдеру фрагментів виконуватися на кожен семпл у багатосемпловому фрагменті замість одного разу на фрагмент. Покращує якість графіки за рахунок продуктивності. Лише пристрої з Vulkan 1.1+ підтримують це розширення.</string>
     <string name="sample_shading_fraction">Частка затінення зразка</string>
     <string name="sample_shading_fraction_description">Інтенсивність проходу затінення зразка. Вищі значення покращують якість, але й сильніше знижують продуктивність.</string>
 
-    <string name="veil_renderer">Візуалізатор</string>
     <string name="sync_memory_operations">Синхронізація операцій з пам\'яттю</string>
     <string name="sync_memory_operations_description">Забезпечує узгодженість даних між обчислювальними операціями та операціями з пам\'яттю. Ця опція має виправляти проблеми в деяких іграх, але може знижувати продуктивність у деяких випадках. Ігри на Unreal Engine 4, здається, найбільш постраждалі.</string>
     <string name="buffer_reorder_disable">Вимкнути переупорядкування буфера</string>
     <string name="buffer_reorder_disable_description">Якщо позначено, вимикає переупорядкування завантажень відображеної пам\'яті, що дозволяє пов\'язувати завантаження з конкретними малюваннями. Може знизити продуктивність у деяких випадках.</string>
 
-    <string name="veil_misc">Процесор і пам\'ять</string>
     <string name="use_sync_core">Синхронізувати швидкість ядра</string>
     <string name="use_sync_core_description">Синхронізує швидкість ядра з максимальним відсотком швидкості для покращення продуктивності без зміни реальної швидкості гри.</string>
     <string name="use_lru_cache">Увімкнути LRU-кеш</string>
     <string name="use_lru_cache_description">Увімкніть або вимкніть кеш LRU (Least Recently Used) для покращення продуктивності шляхом зменшення навантаження на CPU. Деякі ігри (зокрема TotK 1.2.1) можуть працювати некоректно - вимкніть, якщо гра не запускається або раптово вилітає.</string>
-    <string name="use_fast_cpu_time">Швидкий час CPU</string>
-    <string name="use_fast_cpu_time_description">Змушує емульований процесор працювати на вищій тактовій частоті, зменшуючи деякі обмежувачі FPS. Ця опція нестабільна і може спричинити проблеми, а слабші CPU можуть мати знижену продуктивність.</string>
     <string name="custom_cpu_ticks">Користувацькі такти CPU</string>
     <string name="custom_cpu_ticks_description">Встановіть користувацьке значення тактів CPU. Вищі значення можуть покращити продуктивність, але також можуть спричинити зависання гри. Рекомендується діапазон 77–21000.</string>
     <string name="cpu_ticks">Такти</string>
@@ -476,9 +467,7 @@
     <string name="network">Мережа</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">Бекенд</string>
     <string name="display">Дисплей</string>
-    <string name="processing">Постобробка</string>
 
     <string name="renderer_accuracy">Рівень точності</string>
     <string name="renderer_resolution">Роздільна здатність (Портативний/Док)</string>
@@ -495,8 +484,6 @@
     <string name="renderer_optimize_spirv_output_description">Оптимізує скомпільований шейдер для покращення ефективності GPU.</string>
     <string name="renderer_asynchronous_shaders">Асинхронні шейдери</string>
     <string name="renderer_asynchronous_shaders_description">Компілює шейдери асинхронно. Це може зменшити затримки, але також може спричинити графічні баги.</string>
-    <string name="use_fast_gpu_time">Використовувати швидкий час GPU</string>
-    <string name="use_fast_gpu_time_description">Змушує більшість ігор працювати з найвищою нативною роздільною здатністю. Цей параметр є нестабільним і може призвести до збоїв.</string>
     <string name="fast_gpu_time">Фактор розгону GPU</string>
     <string name="fast_gpu_time_description">Використовуйте 128 для максимальної продуктивності та 512 для максимальної графічної точності.</string>
     <string name="renderer_reactive_flushing">Реактивне очищення</string>
@@ -874,9 +861,8 @@
     <string name="clock_fast">Швидка (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">Низький (128)</string>
-    <string name="gpu_medium">Середній (256)</string>
-    <string name="gpu_high">Високий (512)</string>
+    <string name="fast_gpu_medium">Середній (256)</string>
+    <string name="fast_gpu_high">Високий (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Цельсій</string>

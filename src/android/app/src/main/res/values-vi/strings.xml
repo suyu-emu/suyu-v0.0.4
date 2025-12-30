@@ -59,10 +59,7 @@
     <string name="show_fw_version_description">Hiển thị phiên bản firmware đã cài đặt</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">Mành che của Eden</string>
-    <string name="eden_veil_description">Cài đặt thử nghiệm để cải thiện hiệu suất và khả năng. Những cài đặt này có thể gây ra màn hình đen hoặc các vấn đề khác trong trò chơi.</string>
 
-    <string name="veil_extensions">Tiện ích mở rộng GPU</string>
     <string name="dyna_state">Trạng thái động mở rộng</string>
     <string name="dyna_state_description">Điều khiển số tính năng có thể được sử dụng trong Trạng thái Động Mở rộng. Giá trị cao hơn cho phép nhiều tính năng hơn và có thể tăng hiệu suất, nhưng có thể gây ra sự cố với một số trình điều khiển và nhà cung cấp. Giá trị mặc định có thể thay đổi tùy thuộc vào hệ thống và khả năng phần cứng của bạn. Giá trị này có thể được thay đổi cho đến khi đạt được độ ổn định và chất lượng hình ảnh tốt hơn.</string>
     <string name="disabled">Đã tắt</string>
@@ -70,24 +67,18 @@
     <string name="provoking_vertex_description">Cải thiện ánh sáng và xử lý đỉnh trong một số trò chơi. Chỉ được hỗ trợ trên GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Lập chỉ mục bộ mô tả</string>
     <string name="descriptor_indexing_description">Cải thiện xử lý kết cấu và bộ đệm, cũng như lớp dịch Maxwell. Được hỗ trợ bởi một số GPU Vulkan 1.1 và tất cả GPU Vulkan 1.2+.</string>
-    <string name="sample_shading">Tô bóng mẫu</string>
-    <string name="sample_shading_description">Cho phép fragment shader thực thi trên mỗi mẫu trong một fragment đa mẫu thay vì một lần mỗi fragment. Cải thiện chất lượng đồ họa với chi phí hiệu suất. Chỉ thiết bị Vulkan 1.1+ hỗ trợ tiện ích mở rộng này.</string>
     <string name="sample_shading_fraction">Phần trăm tô bóng mẫu</string>
     <string name="sample_shading_fraction_description">Cường độ của bước tô bóng mẫu. Giá trị cao hơn cải thiện chất lượng tốt hơn nhưng cũng giảm hiệu suất nhiều hơn.</string>
 
-    <string name="veil_renderer">Trình kết xuất</string>
     <string name="sync_memory_operations">Đồng bộ hoá thao tác bộ nhớ</string>
     <string name="sync_memory_operations_description">Đảm bảo tính nhất quán dữ liệu giữa các thao tác tính toán và bộ nhớ. Tùy chọn này nên khắc phục sự cố trong một số trò chơi, nhưng có thể làm giảm hiệu suất trong một số trường hợp. Các trò chơi với Unreal Engine 4 có vẻ bị ảnh hưởng nhiều nhất.</string>
     <string name="buffer_reorder_disable">Tắt sắp xếp lại bộ đệm</string>
     <string name="buffer_reorder_disable_description">Khi được chọn, sẽ tắt tính năng sắp xếp lại các lần tải lên bộ nhớ đã ánh xạ, cho phép liên kết các lần tải lên với các bản vẽ cụ thể. Có thể làm giảm hiệu suất trong một số trường hợp.</string>
 
-    <string name="veil_misc">CPU và Bộ nhớ</string>
     <string name="use_sync_core">Đồng bộ tốc độ lõi</string>
     <string name="use_sync_core_description">Đồng bộ tốc độ lõi với tỷ lệ phần trăm tốc độ tối đa để cải thiện hiệu suất mà không làm thay đổi tốc độ thực tế của trò chơi.</string>
     <string name="use_lru_cache">Bật bộ nhớ đệm LRU</string>
     <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU để cải thiện hiệu suất bằng cách tiết kiệm quy trình sử dụng CPU. Một số trò chơi như TotK 1.2.1 có vấn đề - hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
-    <string name="use_fast_cpu_time">Thời gian CPU nhanh</string>
-    <string name="use_fast_cpu_time_description">Buộc CPU mô phỏng chạy ở tốc độ xung nhịp cao hơn, giảm một số giới hạn FPS. Tùy chọn này không ổn định và có thể gây ra sự cố, và CPU yếu hơn có thể thấy hiệu suất giảm.</string>
     <string name="custom_cpu_ticks">Tích CPU tùy chỉnh</string>
     <string name="custom_cpu_ticks_description">Đặt giá trị tích CPU tùy chỉnh. Giá trị cao hơn có thể tăng hiệu suất, nhưng cũng có thể khiến trò chơi bị đơ. Phạm vi 77–21000 được khuyến nghị.</string>
     <string name="cpu_ticks">Tích</string>
@@ -371,9 +362,7 @@
     <string name="network">Mạng</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">Backend</string>
     <string name="display">Hiển thị</string>
-    <string name="processing">Hậu xử lý</string>
 
     <string name="renderer_accuracy">Mức độ chính xác</string>
     <string name="renderer_resolution">Độ phân giải (Handheld/Docked)</string>
@@ -390,8 +379,6 @@
     <string name="renderer_optimize_spirv_output_description">Tối ưu hóa shader đã biên dịch để cải thiện hiệu suất GPU.</string>
     <string name="renderer_asynchronous_shaders">Dùng các shader bất đồng bộ</string>
     <string name="renderer_asynchronous_shaders_description">Biên dịch shader không đồng bộ. Điều này có thể giảm giật lag nhưng cũng có thể gây ra lỗi đồ họa.</string>
-    <string name="use_fast_gpu_time">Sử dụng thời gian GPU nhanh</string>
-    <string name="use_fast_gpu_time_description">Buộc hầu hết các trò chơi chạy ở độ phân giải gốc cao nhất. Tùy chọn này có thể gây ra sự cố.</string>
     <string name="fast_gpu_time">Hệ số ép xung GPU</string>
     <string name="fast_gpu_time_description">Sử dụng 128 để có hiệu suất tối đa và 512 để có độ trung thực đồ họa tối đa.</string>
     <string name="renderer_reactive_flushing">Bật xả tương ứng</string>
@@ -620,9 +607,8 @@
     <string name="clock_fast">Nhanh (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">Thấp (128)</string>
-    <string name="gpu_medium">Trung bình (256)</string>
-    <string name="gpu_high">Cao (512)</string>
+    <string name="fast_gpu_medium">Trung bình (256)</string>
+    <string name="fast_gpu_high">Cao (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>

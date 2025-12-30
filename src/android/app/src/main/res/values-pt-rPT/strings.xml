@@ -59,10 +59,7 @@
     <string name="show_fw_version_description">Mostra a versão do firmware instalado</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">Véu do Éden</string>
-    <string name="eden_veil_description">Definições experimentais para melhorar o desempenho e capacidade. Estas definições podem causar ecrãs pretos ou outros problemas no jogo.</string>
 
-    <string name="veil_extensions">Extensões da GPU</string>
     <string name="dyna_state">Estado Dinâmico Estendido</string>
     <string name="dyna_state_description">Controla o número de funcionalidades que podem ser utilizadas no Estado Dinâmico Alargado. Valores mais elevados permitem mais funcionalidades e podem aumentar o desempenho, mas podem causar problemas com alguns controladores e fabricantes. O valor predefinido pode variar consoante o seu sistema e capacidades de hardware. Este valor pode ser alterado até ser alcançada a estabilidade e uma melhor qualidade visual.</string>
     <string name="disabled">Desativado</string>
@@ -70,24 +67,18 @@
     <string name="provoking_vertex_description">Melhora a iluminação e o tratamento de vértices em certos jogos. Suportado apenas em GPUs Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexação de descritores</string>
     <string name="descriptor_indexing_description">Melhora o tratamento de texturas e buffers, assim como a camada de tradução Maxwell. Suportado por algumas GPUs Vulkan 1.1 e todas Vulkan 1.2+.</string>
-    <string name="sample_shading">Amostragem de sombreamento</string>
-    <string name="sample_shading_description">Permite que o fragment shader seja executado por amostra num fragmento multi-amostrado em vez de uma vez por fragmento. Melhora a qualidade gráfica à custa de desempenho. Apenas dispositivos Vulkan 1.1+ suportam esta extensão.</string>
     <string name="sample_shading_fraction">Fração de Sombreamento de Amostra</string>
     <string name="sample_shading_fraction_description">A intensidade da passagem de sombreamento de amostra. Valores mais elevados melhoram a qualidade, mas também reduzem o desempenho numa maior medida.</string>
 
-    <string name="veil_renderer">Renderizador</string>
     <string name="sync_memory_operations">Sincronizar Operações de Memória</string>
     <string name="sync_memory_operations_description">Garante a consistência dos dados entre operações de computação e memória. Esta opção deve corrigir problemas em alguns jogos, mas pode reduzir o desempenho nalguns casos. Os jogos com Unreal Engine 4 parecem ser os mais afectados.</string>
     <string name="buffer_reorder_disable">Desativar reordenação de buffer</string>
     <string name="buffer_reorder_disable_description">Quando assinalado, desativa a reordenação de carregamentos de memória mapeada, permitindo associar carregamentos a desenhos específicos. Pode reduzir o desempenho nalguns casos.</string>
 
-    <string name="veil_misc">CPU e Memória</string>
     <string name="use_sync_core">Sincronizar velocidade do núcleo</string>
     <string name="use_sync_core_description">Sincroniza a velocidade do núcleo com a percentagem máxima de velocidade para melhorar o desempenho sem alterar a velocidade real do jogo.</string>
     <string name="use_lru_cache">Ativar cache LRU</string>
     <string name="use_lru_cache_description">Ative ou desative a cache LRU para melhorar desempenho poupando uso do processador. Alguns jogos como TotK 1.2.1 têm problemas - desative se o jogo não iniciar ou falhar aleatoriamente.</string>
-    <string name="use_fast_cpu_time">Tempo de CPU rápido</string>
-    <string name="use_fast_cpu_time_description">Força a CPU emulada a funcionar a uma velocidade de relógio mais alta, reduzindo certos limitadores de FPS. Esta opção é instável e pode causar problemas, e CPUs mais fracas podem ter desempenho reduzido.</string>
     <string name="custom_cpu_ticks">Ticks de CPU personalizados</string>
     <string name="custom_cpu_ticks_description">Defina um valor personalizado para ticks de CPU. Valores mais altos podem aumentar o desempenho, mas também podem causar bloqueios no jogo. Um intervalo de 77–21000 é recomendado.</string>
     <string name="cpu_ticks">Ticks</string>
@@ -396,9 +387,7 @@
     <string name="network">Rede</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">Backend</string>
     <string name="display">Ecrã</string>
-    <string name="processing">Pós-processamento</string>
 
     <string name="renderer_accuracy">Nível de precisão</string>
     <string name="renderer_resolution">Resolução (Portátil/Ancorado)</string>
@@ -415,8 +404,6 @@
     <string name="renderer_optimize_spirv_output_description">Otimiza o shader compilado para melhorar a eficiência da GPU.</string>
     <string name="renderer_asynchronous_shaders">Usa shaders assíncronos </string>
     <string name="renderer_asynchronous_shaders_description">Compila shaders de forma assíncrona. Isto pode reduzir engasgadelas, mas também pode introduzir falhas gráficas.</string>
-    <string name="use_fast_gpu_time">Usar tempo rápido de GPU</string>
-    <string name="use_fast_gpu_time_description">Força a maioria dos jogos a executar na sua resolução nativa mais alta. Esta opção é instável e pode causar problemas.</string>
     <string name="fast_gpu_time">Fator de overclock da GPU</string>
     <string name="fast_gpu_time_description">Use 128 para desempenho máximo e 512 para fidelidade gráfica máxima.</string>
     <string name="renderer_reactive_flushing">Usar flushing reativo</string>
@@ -749,9 +736,8 @@ uma tentativa de mapeamento automático</string>
     <string name="clock_fast">Rápido (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">Baixo (128)</string>
-    <string name="gpu_medium">Médio (256)</string>
-    <string name="gpu_high">Alto (512)</string>
+    <string name="fast_gpu_medium">Médio (256)</string>
+    <string name="fast_gpu_high">Alto (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>

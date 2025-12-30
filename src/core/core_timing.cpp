@@ -195,19 +195,20 @@ u64 CoreTiming::GetClockTicks() const {
     u64 fres;
     if (is_multicore) [[likely]] {
         fres = clock->GetCNTPCT();
-     } else {
-         fres = Common::WallClock::CPUTickToCNTPCT(cpu_ticks);
-     }
+    } else {
+        fres = Common::WallClock::CPUTickToCNTPCT(cpu_ticks);
+    }
 
-     if (Settings::values.use_fast_cpu_time) {
-         fres = (u64) ((double) fres
-                       * (1.7 + 0.3 * (u32) Settings::values.fast_cpu_time.GetValue()));
+    const auto overclock = Settings::values.fast_cpu_time.GetValue();
+
+     if (overclock != Settings::CpuClock::Off) {
+         fres = (u64) ((double) fres * (1.7 + 0.3 * u32(overclock)));
      }
 
      if (Settings::values.sync_core_speed.GetValue()) {
-         const double ticks = static_cast<double>(fres);
-         const double speed_limit = static_cast<double>(Settings::values.speed_limit.GetValue())*0.01;
-         return static_cast<u64>(ticks/speed_limit);
+         const auto ticks = double(fres);
+         const auto speed_limit = double(Settings::values.speed_limit.GetValue())*0.01;
+         return u64(ticks/speed_limit);
      } else {
          return fres;
      }

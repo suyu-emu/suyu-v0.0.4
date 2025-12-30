@@ -27,6 +27,8 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     RENDERER_SCREEN_LAYOUT("screen_layout"),
     RENDERER_ASPECT_RATIO("aspect_ratio"),
     RENDERER_OPTIMIZE_SPIRV_OUTPUT("optimize_spirv_output"),
+
+    RENDERER_DYNA_STATE("dyna_state"),
     DMA_ACCURACY("dma_accuracy"),
     AUDIO_OUTPUT_ENGINE("output_engine"),
     MAX_ANISOTROPY("max_anisotropy"),
@@ -41,7 +43,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     SOC_OVERLAY_POSITION("soc_overlay_position"),
     MEMORY_LAYOUT("memory_layout_mode"),
     FSR_SHARPENING_SLIDER("fsr_sharpening_slider"),
-    RENDERER_SAMPLE_SHADING_FRACTION("sample_shading_fraction"),
+    RENDERER_SAMPLE_SHADING("sample_shading_fraction"),
     FAST_CPU_TIME("fast_cpu_time"),
     CPU_TICKS("cpu_ticks"),
     FAST_GPU_TIME("fast_gpu_time"),

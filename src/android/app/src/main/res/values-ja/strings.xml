@@ -59,10 +59,7 @@
     <string name="show_fw_version_description">インストールされているファームウェアのバージョンを表示</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">エデンのベール</string>
-    <string name="eden_veil_description">パフォーマンスと機能を向上させる実験的な設定。この設定は黒画面やその他のゲームの問題を引き起こす可能性があります。</string>
 
-    <string name="veil_extensions">GPU拡張機能</string>
     <string name="dyna_state">拡張ダイナミックステート</string>
     <string name="dyna_state_description">拡張ダイナミックステートで使用できる機能の数を制御します。数値が高いほどより多くの機能が使用可能になり、パフォーマンスが向上する可能性がありますが、一部のドライバーやベンダーで問題が発生する可能性があります。デフォルト値は、お使いのシステムとハードウェアの機能によって異なります。安定性とより良い画質が得られるまでこの値を変更できます。</string>
     <string name="disabled">無効</string>
@@ -70,24 +67,18 @@
     <string name="provoking_vertex_description">特定のゲームで照明と頂点処理を改善します。Vulkan 1.0+ GPUでのみサポートされています。</string>
     <string name="descriptor_indexing">ディスクリプタインデキシング</string>
     <string name="descriptor_indexing_description">テクスチャとバッファの処理、およびMaxwell翻訳レイヤーを改善します。一部のVulkan 1.1 GPUとすべてのVulkan 1.2+ GPUでサポートされています。</string>
-    <string name="sample_shading">サンプルシェーディング</string>
-    <string name="sample_shading_description">マルチサンプルフラグメントでフラグメントシェーダーをフラグメントごとではなくサンプルごとに実行できるようにします。パフォーマンスを犠牲にしてグラフィック品質を向上させます。Vulkan 1.1+デバイスのみがこの拡張機能をサポートしています。</string>
     <string name="sample_shading_fraction">サンプルシェーディング率</string>
     <string name="sample_shading_fraction_description">サンプルシェーディング処理の強度。高い値ほど品質は向上しますが、パフォーマンスも大きく低下します。</string>
 
-    <string name="veil_renderer">レンダラー</string>
     <string name="sync_memory_operations">メモリ操作の同期</string>
     <string name="sync_memory_operations_description">計算処理とメモリ操作間のデータ一貫性を保証します。 このオプションは一部のゲームの問題を修正しますが、場合によってはパフォーマンスが低下する可能性があります。 Unreal Engine 4のゲームが最も影響を受けるようです。</string>
     <string name="buffer_reorder_disable">バッファの再並べ替えを無効化</string>
     <string name="buffer_reorder_disable_description">チェック時、マップされたメモリのアップロードの再並べ替えを無効化し、特定の描画に関連付けることができます。場合によってはパフォーマンスが低下する可能性があります。</string>
 
-    <string name="veil_misc">CPUとメモリ</string>
     <string name="use_sync_core">コア速度の同期</string>
     <string name="use_sync_core_description">コアの速度を最大速度パーセンテージに同期させ、ゲームの実際の速度を変えずにパフォーマンスを向上させます。</string>
     <string name="use_lru_cache">LRUキャッシュを有効化</string>
     <string name="use_lru_cache_description">LRUキャッシュを有効/無効にし、CPUプロセスの使用を節約してパフォーマンスを向上させます。TotK 1.2.1など一部のゲームで問題が発生する可能性があるため、ゲームが起動しない場合やランダムにクラッシュする場合は無効にしてください。</string>
-    <string name="use_fast_cpu_time">高速CPU時間</string>
-    <string name="use_fast_cpu_time_description">エミュレートされたCPUをより高いクロックで動作させ、特定のFPSリミッターを削減します。このオプションは不安定で問題を引き起こす可能性があり、弱いCPUではパフォーマンスが低下する可能性があります。</string>
     <string name="custom_cpu_ticks">カスタムCPUティック</string>
     <string name="custom_cpu_ticks_description">CPUティックのカスタム値を設定します。高い値はパフォーマンスを向上させる可能性がありますが、ゲームがフリーズする可能性もあります。77〜21000の範囲が推奨されます。</string>
     <string name="cpu_ticks">ティック</string>
@@ -226,7 +217,7 @@
     <string name="view_grid">グリッド表示</string>
     <string name="view_grid_compact">コンパクトグリッド</string>
     <string name="view_carousel">カルーセル</string>
-    <string name="game_image_desc"> のスクリーンショット  %1$s</string>
+    <string name="game_image_desc"> のスクリーンショット  %1$s</string>
     <string name="folder">フォルダ</string>
     <string name="dont_show_again">再表示しない</string>
     <string name="home_search">検索</string>
@@ -273,7 +264,7 @@
     <string name="import_save_warning">セーブデータをインポート</string>
     <string name="import_save_warning_description">警告：選択したファイルで全てのセーブファイルを上書きします。そのまま続きましょうか？</string>
     <string name="save_files_importing">セーブファイルをインポート中...</string>
-    <string name="save_files_exporting">セーブファイルを エクスポート </string>
+    <string name="save_files_exporting">セーブファイルを エクスポート </string>
     <string name="save_file_imported_success">インポートが完了しました</string>
     <string name="save_file_invalid_zip_structure">セーブデータのディレクトリ構造が無効</string>
     <string name="save_file_invalid_zip_structure_description">最初のサブフォルダ名は、ゲームのタイトルIDである必要があります。</string>
@@ -392,9 +383,7 @@
     <string name="network">ネットワーク</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">バックエンド</string>
     <string name="display">ディスプレイ</string>
-    <string name="processing">後処理</string>
 
     <string name="renderer_accuracy">精度</string>
     <string name="renderer_resolution">解像度（携帯モード/TVモード）</string>
@@ -409,8 +398,6 @@
     <string name="renderer_optimize_spirv_output_description">コンパイル済みシェーダーを最適化し、GPUの効率を向上させます。</string>
     <string name="renderer_asynchronous_shaders">非同期シェーダー</string>
     <string name="renderer_asynchronous_shaders_description">シェーダーを非同期でコンパイルします。これによりカクつきが減る可能性がありますが、グラフィックの不具合が発生する場合もあります。</string>
-    <string name="use_fast_gpu_time">高速GPU時間を使用</string>
-    <string name="use_fast_gpu_time_description">ほとんどのゲームを最高のネイティブ解像度で強制的に実行します。このオプションは不安定で問題を引き起こす可能性があります。</string>
     <string name="fast_gpu_time">GPUオーバークロック係数</string>
     <string name="fast_gpu_time_description">最大パフォーマンスには128、最大グラフィック忠実度には512を使用します。</string>
     <string name="renderer_reactive_flushing">即時書き込み</string>
@@ -642,9 +629,8 @@
     <string name="clock_fast">高速 (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">低 (128)</string>
-    <string name="gpu_medium">中 (256)</string>
-    <string name="gpu_high">高 (512)</string>
+    <string name="fast_gpu_medium">中 (256)</string>
+    <string name="fast_gpu_high">高 (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">摂氏</string>

@@ -34,8 +34,18 @@ ConfigureGraphicsAdvanced::~ConfigureGraphicsAdvanced() = default;
 void ConfigureGraphicsAdvanced::SetConfiguration() {}
 
 void ConfigureGraphicsAdvanced::Setup(const ConfigurationShared::Builder& builder) {
-    auto& layout = *ui->populate_target->layout();
-    std::map<u32, QWidget*> hold{}; // A map will sort the data for us
+    auto& normal_layout = *ui->normal_target->layout();
+    auto& hacks_layout = *ui->hacks_target->layout();
+
+    // A map will sort the data for us
+    std::map<u32, QWidget*> normal_hold{};
+    std::map<u32, QWidget*> hacks_hold{};
+
+    // These options are hacks and should probably be changed with caution.
+    // TODO(crueter) maybe make a separate category RendererHacks?
+    QList<u32> hacks = {
+        Settings::values.skip_cpu_inner_invalidation.Id(), Settings::values.async_presentation.Id(),
+        Settings::values.use_asynchronous_shaders.Id(), Settings::values.fast_gpu_time.Id()};
 
     for (auto setting :
          Settings::values.linkage.by_category[Settings::Category::RendererAdvanced]) {
@@ -49,15 +59,26 @@ void ConfigureGraphicsAdvanced::Setup(const ConfigurationShared::Builder& builde
             continue;
         }
 
-        hold.emplace(setting->Id(), widget);
+        const auto id = setting->Id();
+
+        if (hacks.contains(id)) {
+            hacks_hold.emplace(id, widget);
+        } else {
+            normal_hold.emplace(id, widget);
+        }
 
         // Keep track of enable_compute_pipelines so we can display it when needed
         if (setting->Id() == Settings::values.enable_compute_pipelines.Id()) {
             checkbox_enable_compute_pipelines = widget;
         }
     }
-    for (const auto& [id, widget] : hold) {
-        layout.addWidget(widget);
+
+    for (const auto& [id, widget] : normal_hold) {
+        normal_layout.addWidget(widget);
+    }
+
+    for (const auto& [id, widget] : hacks_hold) {
+        hacks_layout.addWidget(widget);
     }
 }
 

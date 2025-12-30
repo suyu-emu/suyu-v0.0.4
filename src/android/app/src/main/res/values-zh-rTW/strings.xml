@@ -83,10 +83,7 @@
     <string name="show_fw_version_description">顯示已安裝的韌體版本</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">伊甸之幕</string>
-    <string name="eden_veil_description">實驗性設定以提高效能和相容性。這些設定可能會導致黑螢幕或其他遊戲問題。</string>
 
-    <string name="veil_extensions">GPU擴充功能</string>
     <string name="dyna_state">擴展動態狀態</string>
     <string name="dyna_state_description">控制擴展動態狀態中可使用的功能數量。數值越高，允許的功能越多，並可能提高效能，但可能會導致某些驅動程式和硬體出現問題。預設值可能因系統和硬體能力而異。可以變更此值，直到獲得更佳的穩定性和更好的視覺品質。</string>
     <string name="disabled">已停用</string>
@@ -96,24 +93,18 @@
     <string name="provoking_vertex_description">改善某些遊戲中的光照和頂點處理。僅支援Vulkan 1.0+ GPU。</string>
     <string name="descriptor_indexing">描述符索引</string>
     <string name="descriptor_indexing_description">改進紋理和緩衝區處理以及Maxwell轉換層。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支援。</string>
-    <string name="sample_shading">取樣著色</string>
-    <string name="sample_shading_description">允許片段著色器在多取樣片段中每個樣本執行一次，而不是每個片段執行一次。以提高效能為代價改善圖形品質。僅Vulkan 1.1+裝置支援此擴充功能。</string>
     <string name="sample_shading_fraction">採樣著色比例</string>
     <string name="sample_shading_fraction_description">採樣著色處理的強度。數值越高，品質改善越多，但效能降低也越明顯。</string>
 
-    <string name="veil_renderer">渲染器</string>
     <string name="sync_memory_operations">同步記憶體操作</string>
     <string name="sync_memory_operations_description">確保計算和記憶體操作之間的資料一致性。 此選項應能修復某些遊戲中的問題，但在某些情況下可能會降低效能。 使用Unreal Engine 4的遊戲似乎受影響最大。</string>
     <string name="buffer_reorder_disable">停用緩衝區重新排序</string>
     <string name="buffer_reorder_disable_description">勾選時，停用映射記憶體上傳的重新排序功能，允許將上傳與特定繪製關聯。某些情況下可能會降低效能。</string>
 
-    <string name="veil_misc">CPU與記憶體</string>
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能。</string>
     <string name="use_lru_cache">啟用LRU快取</string>
     <string name="use_lru_cache_description">啟用或停用LRU快取，透過節省CPU進程使用率來提高效能。某些遊戲可能存在問題，特別是薩爾達傳說：王國之淚 v1.2.1（更新），如果遊戲無法啟動或隨機崩潰，請停用此選項。</string>
-    <string name="use_fast_cpu_time">快速 CPU 時間</string>
-    <string name="use_fast_cpu_time_description">強制模擬 CPU 以更高的時脈運行，減少某些 FPS 限制。此選項不穩定，可能會導致問題，較弱的 CPU 可能會看到效能下降。</string>
     <string name="custom_cpu_ticks">自訂CPU時脈</string>
     <string name="custom_cpu_ticks_description">自訂CPU時脈。更高的值可能提高效能，但也可能導致遊戲卡死。建議範圍為77-21000。</string>
     <string name="cpu_ticks">時脈</string>
@@ -470,9 +461,7 @@
     <string name="network">網路</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">後端</string>
     <string name="display">顯示</string>
-    <string name="processing">後處理</string>
 
     <string name="renderer_accuracy">準確度層級</string>
     <string name="renderer_resolution">解析度 (手提/底座)</string>
@@ -489,8 +478,6 @@
     <string name="renderer_optimize_spirv_output_description">最佳化編譯後的著色器以提高GPU效率。</string>
     <string name="renderer_asynchronous_shaders">使用非同步著色器</string>
     <string name="renderer_asynchronous_shaders_description">非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
-    <string name="use_fast_gpu_time">使用快速GPU時間</string>
-    <string name="use_fast_gpu_time_description">強制大多數遊戲以最高原生解析度運行。此選項不穩定，可能導致問題。</string>
     <string name="fast_gpu_time">GPU 超頻係數</string>
     <string name="fast_gpu_time_description">使用 128 以獲得最大效能，使用 512 以獲得最大圖形保真度。</string>
     <string name="renderer_reactive_flushing">使用重新啟用排清</string>
@@ -868,9 +855,8 @@
     <string name="clock_fast">快速 (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">低 (128)</string>
-    <string name="gpu_medium">中 (256)</string>
-    <string name="gpu_high">高 (512)</string>
+    <string name="fast_gpu_medium">中 (256)</string>
+    <string name="fast_gpu_high">高 (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">攝氏度</string>

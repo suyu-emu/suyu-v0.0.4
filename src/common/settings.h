@@ -241,21 +241,13 @@ struct Values {
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage, CpuAccuracy::Auto,
                                                       "cpu_accuracy", Category::Cpu};
     SwitchableSetting<bool> vtable_bouncing{linkage, true, "vtable_bouncing", Category::Cpu};
-    SwitchableSetting<bool> use_fast_cpu_time{linkage,
-                                              false,
-                                              "use_fast_cpu_time",
-                                              Category::Cpu,
-                                              Specialization::Paired,
-                                              true,
-                                              true};
     SwitchableSetting<CpuClock> fast_cpu_time{linkage,
-                                              CpuClock::Boost,
+                                              CpuClock::Off,
                                               "fast_cpu_time",
                                               Category::Cpu,
                                               Specialization::Default,
                                               true,
-                                              true,
-                                              &use_fast_cpu_time};
+                                              true};
 
     SwitchableSetting<bool> use_custom_cpu_ticks{linkage,
                                                  false,
@@ -334,28 +326,58 @@ struct Values {
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
                                          Specialization::RuntimeList};
 
-    SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
-                                                  Category::Renderer};
+    // Graphics Settings
+    ResolutionScalingInfo resolution_info{};
+    SwitchableSetting<ResolutionSetup> resolution_setup{linkage, ResolutionSetup::Res1X,
+                                                        "resolution_setup", Category::Renderer};
+
+    SwitchableSetting<VSyncMode, true> vsync_mode{linkage,
+                                                  VSyncMode::Fifo,
+                                                  "use_vsync",
+                                                  Category::Renderer,
+                                                  Specialization::RuntimeList,
+                                                  true,
+                                                  true};
+
+    SwitchableSetting<ScalingFilter> scaling_filter{linkage,
+                                                    ScalingFilter::Bilinear,
+                                                    "scaling_filter",
+                                                    Category::Renderer,
+                                                    Specialization::Default,
+                                                    true,
+                                                    true};
+    SwitchableSetting<int, true> fsr_sharpening_slider{linkage,
+                                                       25,
+                                                       0,
+                                                       200,
+                                                       "fsr_sharpening_slider",
+                                                       Category::Renderer,
+                                                       Specialization::Scalar |
+                                                           Specialization::Percentage,
+                                                       true,
+                                                       true};
+    SwitchableSetting<AspectRatio, true> aspect_ratio{linkage,
+                                                      AspectRatio::R16_9,
+                                                      "aspect_ratio",
+                                                      Category::Renderer,
+                                                      Specialization::Default,
+                                                      true,
+                                                      true};
+
+    SwitchableSetting<AntiAliasing> anti_aliasing{linkage,
+                                                  AntiAliasing::None,
+                                                  "anti_aliasing",
+                                                  Category::Renderer,
+                                                  Specialization::Default,
+                                                  true,
+                                                  true};
+
     SwitchableSetting<SpirvOptimizeMode, true> optimize_spirv_output{linkage,
                                                                      SpirvOptimizeMode::Never,
                                                                      "optimize_spirv_output",
                                                                      Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
                                                            linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
-    SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
-#ifdef ANDROID
-                                                            AstcDecodeMode::Cpu,
-#else
-                                                            AstcDecodeMode::Gpu,
-#endif
-                                                            "accelerate_astc",
-                                                            Category::Renderer};
-    SwitchableSetting<VSyncMode, true> vsync_mode{
-                                                  linkage,     VSyncMode::Fifo,
-                                                  "use_vsync", Category::Renderer, Specialization::RuntimeList, true,
-                                                  true};
-    SwitchableSetting<NvdecEmulation> nvdec_emulation{linkage, NvdecEmulation::Gpu,
-                                                      "nvdec_emulation", Category::Renderer};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.
     SwitchableSetting<FullscreenMode, true> fullscreen_mode{linkage,
@@ -369,41 +391,6 @@ struct Values {
                                                             Specialization::Default,
                                                             true,
                                                             true};
-    SwitchableSetting<AspectRatio, true> aspect_ratio{linkage,
-                                                      AspectRatio::R16_9,
-                                                      "aspect_ratio",
-                                                      Category::Renderer,
-                                                      Specialization::Default,
-                                                      true,
-                                                      true};
-
-    ResolutionScalingInfo resolution_info{};
-    SwitchableSetting<ResolutionSetup> resolution_setup{linkage, ResolutionSetup::Res1X,
-                                                        "resolution_setup", Category::Renderer};
-    SwitchableSetting<ScalingFilter> scaling_filter{linkage,
-                                                    ScalingFilter::Bilinear,
-                                                    "scaling_filter",
-                                                    Category::Renderer,
-                                                    Specialization::Default,
-                                                    true,
-                                                    true};
-    SwitchableSetting<AntiAliasing> anti_aliasing{linkage,
-                                                  AntiAliasing::None,
-                                                  "anti_aliasing",
-                                                  Category::Renderer,
-                                                  Specialization::Default,
-                                                  true,
-                                                  true};
-    SwitchableSetting<int, true> fsr_sharpening_slider{linkage,
-                                                       25,
-                                                       0,
-                                                       200,
-                                                       "fsr_sharpening_slider",
-                                                       Category::Renderer,
-                                                       Specialization::Scalar |
-                                                           Specialization::Percentage,
-                                                       true,
-                                                       true};
 
     SwitchableSetting<u8, false> bg_red{
                                         linkage, 0, "bg_red", Category::Renderer, Specialization::Default, true, true};
@@ -434,6 +421,14 @@ struct Values {
                                                       true,
                                                       true};
 
+    SwitchableSetting<VramUsageMode, true> vram_usage_mode{linkage,
+                                                           VramUsageMode::Conservative,
+                                                           "vram_usage_mode",
+                                                           Category::RendererAdvanced};
+
+    SwitchableSetting<NvdecEmulation> nvdec_emulation{linkage, NvdecEmulation::Gpu,
+                                                      "nvdec_emulation", Category::RendererAdvanced};
+
     SwitchableSetting<AnisotropyMode, true> max_anisotropy{linkage,
 #ifdef ANDROID
                                                            AnisotropyMode::Default,
@@ -442,21 +437,21 @@ struct Values {
 #endif
                                                            "max_anisotropy",
                                                            Category::RendererAdvanced};
+    SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
+#ifdef ANDROID
+                                                            AstcDecodeMode::Cpu,
+#else
+                                                            AstcDecodeMode::Gpu,
+#endif
+                                                            "accelerate_astc",
+                                                            Category::RendererAdvanced};
+
     SwitchableSetting<AstcRecompression, true> astc_recompression{linkage,
                                                                   AstcRecompression::Uncompressed,
                                                                   "astc_recompression",
                                                                   Category::RendererAdvanced};
-    SwitchableSetting<VramUsageMode, true> vram_usage_mode{linkage,
-                                                           VramUsageMode::Conservative,
-                                                           "vram_usage_mode",
-                                                           Category::RendererAdvanced};
-    SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
-                                                        false,
-                                                        "skip_cpu_inner_invalidation",
-                                                        Category::RendererAdvanced,
-                                                        Specialization::Default,
-                                                        true,
-                                                        true};
+
+
     SwitchableSetting<bool> sync_memory_operations{linkage,
                                                    false,
                                                    "sync_memory_operations",
@@ -464,15 +459,23 @@ struct Values {
                                                    Specialization::Default,
                                                    true,
                                                    true};
-    SwitchableSetting<bool> async_presentation{linkage,
-#ifdef ANDROID
-                                               true,
-#else
-                                               false,
-#endif
-                                               "async_presentation", Category::RendererAdvanced};
+
     SwitchableSetting<bool> renderer_force_max_clock{linkage, false, "force_max_clock",
                                                      Category::RendererAdvanced};
+
+    SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
+                                                  Category::RendererAdvanced};
+
+    SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{
+        linkage, true, "use_vulkan_driver_pipeline_cache", Category::RendererAdvanced,
+        Specialization::Default};
+
+    SwitchableSetting<bool> enable_compute_pipelines{linkage, false, "enable_compute_pipelines",
+                                                     Category::RendererAdvanced};
+
+    SwitchableSetting<bool> use_video_framerate{linkage, false, "use_video_framerate",
+                                                Category::RendererAdvanced};
+
     SwitchableSetting<bool> use_reactive_flushing{linkage,
 #ifdef ANDROID
                                                   false,
@@ -481,71 +484,61 @@ struct Values {
 #endif
                                                   "use_reactive_flushing",
                                                   Category::RendererAdvanced};
-    SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
-                                                     Category::RendererAdvanced};
-    SwitchableSetting<bool> use_fast_gpu_time{linkage,
-                                              true,
-                                              "use_fast_gpu_time",
-                                              Category::RendererAdvanced,
-                                              Specialization::Paired,
-                                              true,
-                                              true};
 
-    SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
-                                                  GpuOverclock::Low,
-                                                  "fast_gpu_time",
-                                                  Category::RendererAdvanced,
-                                                  Specialization::Default,
-                                                  true,
-                                                  true,
-                                                  &use_fast_gpu_time};
-
-    SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{linkage,
-                                                             true,
-                                                             "use_vulkan_driver_pipeline_cache",
-                                                             Category::RendererAdvanced,
-                                                             Specialization::Default,
-                                                             true,
-                                                             true};
-    SwitchableSetting<bool> enable_compute_pipelines{linkage, false, "enable_compute_pipelines",
-                                                     Category::RendererAdvanced};
-    SwitchableSetting<bool> use_video_framerate{linkage, false, "use_video_framerate",
-                                                Category::RendererAdvanced};
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
                                                    Category::RendererAdvanced};
 
-    SwitchableSetting<u8, true> dyna_state{linkage,
-#if defined (_WIN32)
-                                           3,
-#elif defined (__FreeBSD__)
-                                           3,
-#elif defined (ANDROID)
-                                           0,
-#elif defined (__APPLE__)
-                                           0,
+    // Renderer Hacks //
+    SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
+                                                  GpuOverclock::Medium,
+                                                  "fast_gpu_time",
+                                                  Category::RendererAdvanced,
+                                                  Specialization::Default};
+
+    SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
+                                                        false,
+                                                        "skip_cpu_inner_invalidation",
+                                                        Category::RendererAdvanced,
+                                                        Specialization::Default,
+                                                        true,
+                                                        true};
+    SwitchableSetting<bool> async_presentation{linkage,
+#ifdef ANDROID
+                                               true,
 #else
-                                           2,
+                                               false,
 #endif
-                                           0,
-                                           3,
+                                               "async_presentation", Category::RendererAdvanced};
+
+    SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
+                                                     Category::RendererAdvanced};
+
+    SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
+#if defined (_WIN32)
+                                           ExtendedDynamicState::EDS3,
+#elif defined (__FreeBSD__)
+                                           ExtendedDynamicState::EDS3,
+#elif defined (ANDROID)
+                                           ExtendedDynamicState::Disabled,
+#elif defined (__APPLE__)
+                                           ExtendedDynamicState::Disabled,
+#else
+                                           ExtendedDynamicState::EDS2,
+#endif
                                            "dyna_state",
-                                           Category::RendererExtensions,
-                                           Specialization::Scalar};
+                                           Category::RendererExtensions};
+
+    SwitchableSetting<u32, true> sample_shading{linkage,
+                                                0,
+                                                0,
+                                                100,
+                                                "sample_shading_fraction",
+                                                Category::RendererExtensions,
+                                                Specialization::Scalar};
 
     SwitchableSetting<bool> vertex_input_dynamic_state{linkage, true, "vertex_input_dynamic_state", Category::RendererExtensions};
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
-    SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions, Specialization::Paired};
-    SwitchableSetting<u32, true> sample_shading_fraction{linkage,
-                                                         50,
-                                                         0,
-                                                         100,
-                                                         "sample_shading_fraction",
-                                                         Category::RendererExtensions,
-                                                         Specialization::Scalar,
-                                                         true,
-                                                         false,
-                                                         &sample_shading};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
@@ -749,9 +742,10 @@ struct Values {
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> eden_username{linkage, std::string(), "eden_username",
+    Setting<std::string> eden_username{linkage, "Eden", "eden_username",
                                        Category::WebService};
-    Setting<std::string> eden_token{linkage, std::string(), "eden_token", Category::WebService};
+    Setting<std::string> eden_token{linkage, "njausoolxygtpvraofqunuufhmupriifnpfggjxefntlyglr",
+                                    "eden_token", Category::WebService};
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;

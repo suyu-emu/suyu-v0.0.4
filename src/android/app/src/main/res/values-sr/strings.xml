@@ -57,10 +57,7 @@
     <string name="show_fw_version_description">Приказује инсталирану верзију фирмвера</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">Еденова аукција</string>
-    <string name="eden_veil_description">Експериментална подешавања за побољшање перформанси и способности. Ова подешавања могу изазвати црне екране или друге проблеме у игри.</string>
 
-    <string name="veil_extensions">ГПУ екстензије</string>
     <string name="dyna_state">Проширена динамичка држава</string>
     <string name="dyna_state_description">Управља бројем функција које се могу користити у Проширеном динамичком стању. Веће вредности омогућавају више функција и могу повећати перформансе, али могу изазвати проблеме са неким драјверима и произвођачима. Подразумевана вредност може се разликовати у зависности од вашег система и хардверских могућности. Ова вредност се може мењати док се не постигне стабилност и бољи визуелни квалитет.</string>
     <string name="disabled">Искључено</string>
@@ -68,24 +65,18 @@
     <string name="provoking_vertex_description">Побољшава осветљење и вертификат руковања у одређеним играма. Подржан само на Вулкану 1.0+ ГПУ-у.</string>
     <string name="descriptor_indexing">Индексирање дескриптора</string>
     <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
-    <string name="sample_shading">Семпловање сенчења</string>
-    <string name="sample_shading_description">Омогућава фрагмент шејдеру да се извршава по узорку у вишеузорачном фрагменту уместо једном по фрагменту. Побољшава квалитет графике на рачун перформанси. Само Vulkan 1.1+ уређаји подржавају ову екстензију.</string>
     <string name="sample_shading_fraction">Удео сенчења узорка</string>
     <string name="sample_shading_fraction_description">Интензитет проласка сенчења узорка. Веће вредности побољшавају квалитет више, али такође више смањују перформансе.</string>
 
-    <string name="veil_renderer">Рендерер</string>
     <string name="sync_memory_operations">Синхронизација меморијских операција</string>
     <string name="sync_memory_operations_description">Осигурава конзистентност података између рачунских и меморијских операција. Ова опција би требало да поправи проблеме у неким играма, али може смањити перформансе у неким случајевима. Чини се да су игре са Unreal Engine 4 највише погођене.</string>
     <string name="buffer_reorder_disable">Онемогући преуређивање бафера</string>
     <string name="buffer_reorder_disable_description">Када је означено, онемогућава преуређивање учитавања мапиране меморије што омогућава повезивање учитавања са одређеним цртањима. Може у неким случајевима смањити перформансе.</string>
 
-    <string name="veil_misc">CPU и меморија</string>
     <string name="use_sync_core">Синхронизујте брзину језгре</string>
     <string name="use_sync_core_description">Синхронизујте језгро Тицк Брзина брзине максималне брзине да бисте побољшали перформансе без измене стварне брзине игре.</string>
     <string name="use_lru_cache">Омогући ЛРУ кеш</string>
     <string name="use_lru_cache_description">Омогућите или онемогућите најмање недавно коришћене (ЛРУ) кеш меморије, све веће перформансе штедећи употребу процеса ЦПУ-а. Неке игре са њом имају проблеме, посебно тотк 1.2.1, тако да онемогућите ако се игра не покрене или се руши насумично.</string>
-    <string name="use_fast_cpu_time">Брзо време ЦПУ-а</string>
-    <string name="use_fast_cpu_time_description">Присиљава опомена ЦПУ-а како би се покренуло на вишим сатима, смањујући одређене ФПС ограничења. Ова опција је хакира и може проузроковати проблеме и слабији ЦПУ-ови могу видети смањене перформансе.</string>
     <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
     <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
     <string name="cpu_ticks">Тактови</string>
@@ -395,9 +386,7 @@
     <string name="network">Мрежа</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">Бекенд</string>
     <string name="display">Приказ</string>
-    <string name="processing">Постпроцесирање</string>
 
     <string name="renderer_accuracy">Ниво тачности</string>
     <string name="renderer_resolution">Резолуција (ручно / прикључено)</string>
@@ -414,8 +403,6 @@
     <string name="renderer_optimize_spirv_output_description">Оптимизира састављена схадер за побољшање ефикасности ГПУ-а.</string>
     <string name="renderer_asynchronous_shaders">Користите асинхроне схадера</string>
     <string name="renderer_asynchronous_shaders_description">Саставља схадера асинхроно. Ово може умањити затезаче, али могу такође да уведе пропусте.</string>
-    <string name="use_fast_gpu_time">Користите брзи ГПУ време</string>
-    <string name="use_fast_gpu_time_description">Присиљава већину игара да се покрене у својој највишој родној резолуцији. Ова опција је хаковна и може проузроковати проблеме.</string>
     <string name="fast_gpu_time">ГПУ оверклок фактора</string>
     <string name="fast_gpu_time_description">Користите 128 за максималне перформансе и 512 за максималну верност графике.</string>
     <string name="renderer_reactive_flushing">Користите реактивно испирање</string>
@@ -746,9 +733,8 @@
     <string name="clock_fast">Брзи (2000МХз)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">Ниско (128)</string>
-    <string name="gpu_medium">Средња (256)</string>
-    <string name="gpu_high">Висок (512)</string>
+    <string name="fast_gpu_medium">Средња (256)</string>
+    <string name="fast_gpu_high">Висок (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Целзијус</string>

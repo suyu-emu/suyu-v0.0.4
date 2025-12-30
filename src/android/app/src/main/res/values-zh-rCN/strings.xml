@@ -80,10 +80,7 @@
     <string name="show_fw_version_description">显示已安装的固件版本</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">伊甸之幕</string>
-    <string name="eden_veil_description">实验性设置以提高性能和能力。这些设置可能会导致黑屏或其他游戏问题。</string>
 
-    <string name="veil_extensions">GPU扩展</string>
     <string name="dyna_state">扩展动态状态</string>
     <string name="dyna_state_description">控制扩展动态状态中可使用的功能数量。数值越高，允许的功能越多，并可能提高性能，但可能会导致某些驱动程序和供应商出现问题。默认值可能因系统和硬件能力而异。可以更改此值，直到实现稳定性和更好的视觉质量。</string>
     <string name="disabled">已禁用</string>
@@ -93,24 +90,18 @@
     <string name="provoking_vertex_description">改善某些游戏中的光照和顶点处理。仅支持Vulkan 1.0+ GPU。</string>
     <string name="descriptor_indexing">描述符索引</string>
     <string name="descriptor_indexing_description">改进纹理和缓冲区处理以及Maxwell转换层。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支持。</string>
-    <string name="sample_shading">采样着色</string>
-    <string name="sample_shading_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。仅Vulkan 1.1+设备支持此扩展。</string>
     <string name="sample_shading_fraction">采样着色比例</string>
     <string name="sample_shading_fraction_description">采样着色处理的强度。值越高，质量改善越多，但性能降低也越明显。</string>
 
-    <string name="veil_renderer">渲染器</string>
     <string name="sync_memory_operations">同步内存操作</string>
     <string name="sync_memory_operations_description">确保计算和内存操作之间的数据一致性。 此选项应能修复某些游戏中的问题，但在某些情况下可能会降低性能。 使用Unreal Engine 4的游戏似乎受影响最大。</string>
     <string name="buffer_reorder_disable">禁用缓冲重排序</string>
     <string name="buffer_reorder_disable_description">勾选时，禁用映射内存上传的重排序功能，允许将上传与特定绘制关联。在某些情况下可能会降低性能。</string>
 
-    <string name="veil_misc">CPU和内存</string>
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">将核心速度与最大速度百分比同步，在不改变游戏实际速度的情况下提高性能。</string>
     <string name="use_lru_cache">启用LRU缓存</string>
     <string name="use_lru_cache_description">启用或禁用LRU缓存，通过节省CPU进程使用来提高性能。某些游戏可能存在问题，特别是TotK 1.2.1，如果游戏无法启动或随机崩溃，请禁用此选项。</string>
-    <string name="use_fast_cpu_time">快速 CPU 时间</string>
-    <string name="use_fast_cpu_time_description">强制模拟 CPU 以更高的时钟速度运行，减少某些 FPS 限制器。此选项不稳定，可能会导致问题，较弱的 CPU 可能会看到性能下降。</string>
     <string name="custom_cpu_ticks">自定义CPU时钟</string>
     <string name="custom_cpu_ticks_description">设置自定义的CPU时钟值。更高的值可能提高性能，但也可能导致游戏卡顿。建议范围为77-21000。</string>
     <string name="cpu_ticks">时钟</string>
@@ -467,9 +458,7 @@
     <string name="network">网络</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">后端</string>
     <string name="display">显示</string>
-    <string name="processing">后处理</string>
 
     <string name="renderer_accuracy">精度等级</string>
     <string name="renderer_resolution">分辨率 (掌机模式/主机模式)</string>
@@ -486,8 +475,6 @@
     <string name="renderer_optimize_spirv_output_description">优化编译后的着色器以提高GPU效率。</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
     <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
-    <string name="use_fast_gpu_time">使用快速GPU时间</string>
-    <string name="use_fast_gpu_time_description">强制大多数游戏以最高原生分辨率运行。此选项不稳定，可能导致问题。</string>
     <string name="fast_gpu_time">GPU 超频系数</string>
     <string name="fast_gpu_time_description">使用 128 以获得最大性能，使用 512 以获得最大图形保真度。</string>
     <string name="renderer_reactive_flushing">启用反应性刷新</string>
@@ -865,9 +852,8 @@
     <string name="clock_fast">快速 (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">低 (128)</string>
-    <string name="gpu_medium">中 (256)</string>
-    <string name="gpu_high">高 (512)</string>
+    <string name="fast_gpu_medium">中 (256)</string>
+    <string name="fast_gpu_high">高 (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">摄氏度</string>

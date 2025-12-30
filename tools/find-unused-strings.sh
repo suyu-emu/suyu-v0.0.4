@@ -3,6 +3,9 @@
 # SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# TODO: rewrite this to get a list of every string used in $ANDROID
+# then search strings.xml
+#
 ANDROID=src/android/app/src/main
 STRINGS=$ANDROID/res/values/strings.xml
 
@@ -21,3 +24,5 @@ while IFS= read -r str; do
 done < "$SRC"
 
 rm -rf "$TMP_DIR"
+
+tools/stale-translations.sh

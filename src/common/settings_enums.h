@@ -137,7 +137,7 @@ ENUM(GpuAccuracy, Low, Medium, High);
 ENUM(DmaAccuracy, Default, Unsafe, Safe);
 ENUM(CpuBackend, Dynarmic, Nce);
 ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid, Debugging);
-ENUM(CpuClock, Boost, Fast)
+ENUM(CpuClock, Off, Boost, Fast)
 ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb, Memory_10Gb, Memory_12Gb);
 ENUM(ConfirmStop, Ask_Always, Ask_Based_On_Game, Ask_Never);
 ENUM(FullscreenMode, Borderless, Exclusive);
@@ -149,8 +149,9 @@ ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 ENUM(ConsoleMode, Handheld, Docked);
 ENUM(AppletMode, HLE, LLE);
 ENUM(SpirvOptimizeMode, Never, OnLoad, Always);
-ENUM(GpuOverclock, Low, Medium, High)
+ENUM(GpuOverclock, Normal, Medium, High)
 ENUM(TemperatureUnits, Celsius, Fahrenheit)
+ENUM(ExtendedDynamicState, Disabled, EDS1, EDS2, EDS3);
 
 template <typename Type>
 inline std::string_view CanonicalizeEnum(Type id) {

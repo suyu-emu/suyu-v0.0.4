@@ -59,10 +59,7 @@
     <string name="show_fw_version_description">설치된 펌웨어 버전을 표시합니다</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">에덴의 베일</string>
-    <string name="eden_veil_description">성능 및 기능을 향상시키기 위한 실험적 설정. 이 설정은 검은 화면 또는 기타 게임 문제를 일으킬 수 있습니다.</string>
 
-    <string name="veil_extensions">GPU 확장 기능</string>
     <string name="dyna_state">확장 동적 상태</string>
     <string name="dyna_state_description">확장 동적 상태에서 사용할 수 있는 기능의 수를 제어합니다. 높은 값은 더 많은 기능을 허용하고 성능을 높일 수 있지만, 일부 드라이버 및 벤더에서 문제를 일으킬 수 있습니다. 기본값은 시스템 및 하드웨어 기능에 따라 다를 수 있습니다. 안정성과 더 나은 시각적 품질이 달성될 때까지 이 값을 변경할 수 있습니다.</string>
     <string name="disabled">비활성화됨</string>
@@ -70,24 +67,18 @@
     <string name="provoking_vertex_description">일부 게임에서 조명과 버텍스 처리를 개선합니다. Vulkan 1.0+ GPU에서만 지원됩니다.</string>
     <string name="descriptor_indexing">디스크립터 인덱싱</string>
     <string name="descriptor_indexing_description">텍스처 및 버퍼 처리와 Maxwell 변환 레이어를 개선합니다. 일부 Vulkan 1.1 GPU 및 모든 Vulkan 1.2+ GPU에서 지원됩니다.</string>
-    <string name="sample_shading">샘플 쉐이딩</string>
-    <string name="sample_shading_description">멀티샘플 프래그먼트에서 프래그먼트 쉐이더가 프래그먼트당 한 번이 아니라 샘플당 실행되도록 합니다. 성능을 희생하여 그래픽 품질을 향상시킵니다. Vulkan 1.1+ 장치만 이 확장을 지원합니다.</string>
     <string name="sample_shading_fraction">샘플 쉐이딩 비율</string>
     <string name="sample_shading_fraction_description">샘플 쉐이딩 패스의 강도. 값이 높을수록 품질이 더 향상되지만 성능도 더 크게 저하됩니다.</string>
 
-    <string name="veil_renderer">렌더러</string>
     <string name="sync_memory_operations">메모리 작업 동기화</string>
     <string name="sync_memory_operations_description">컴퓨팅 및 메모리 작업 간 데이터 일관성을 보장합니다. 이 옵션은 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능이 저하될 수 있습니다. Unreal Engine 4 게임이 가장 큰 영향을 받는 것으로 보입니다.</string>
     <string name="buffer_reorder_disable">버퍼 재정렬 비활성화</string>
     <string name="buffer_reorder_disable_description">체크 시, 매핑된 메모리 업로드의 재정렬을 비활성화하여 특정 그리기와 업로드를 연결할 수 있습니다. 경우에 따라 성능이 저하될 수 있습니다.</string>
 
-    <string name="veil_misc">CPU 및 메모리</string>
     <string name="use_sync_core">코어 속도 동기화</string>
     <string name="use_sync_core_description">코어 틱 속도를 최대 속도 백분율과 동기화하여 게임의 실제 속도를 변경하지 않고 성능을 향상시킵니다.</string>
     <string name="use_lru_cache">LRU 캐시 사용</string>
     <string name="use_lru_cache_description">LRU 캐시를 활성화 또는 비활성화하여 CPU 프로세스 사용을 절약하고 성능을 향상시킵니다. TotK 1.2.1을 포함한 일부 게임에서 문제가 발생할 수 있으므로 게임이 부팅되지 않거나 무작위로 충돌하는 경우 비활성화하세요.</string>
-    <string name="use_fast_cpu_time">빠른 CPU 시간</string>
-    <string name="use_fast_cpu_time_description">에뮬레이트된 CPU를 더 높은 클럭으로 실행하여 특정 FPS 제한기를 줄입니다. 이 옵션은 불안정하며 문제를 일으킬 수 있고, 약한 CPU는 성능 저하를 볼 수 있습니다.</string>
     <string name="custom_cpu_ticks">사용자 정의 CPU 틱</string>
     <string name="custom_cpu_ticks_description">CPU 틱의 사용자 정의 값을 설정합니다. 높은 값은 성능을 향상시킬 수 있지만 게임이 멈출 수도 있습니다. 77~21000 범위를 권장합니다.</string>
     <string name="cpu_ticks">틱</string>
@@ -392,9 +383,7 @@
     <string name="network">네트워크</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">백엔드</string>
     <string name="display">디스플레이</string>
-    <string name="processing">후처리</string>
 
     <string name="renderer_accuracy">정확도 수준</string>
     <string name="renderer_resolution">해상도 (휴대 모드/독 모드)</string>
@@ -409,8 +398,6 @@
     <string name="renderer_optimize_spirv_output_description">컴파일된 셰이더를 최적화하여 GPU 효율성을 향상시킵니다.</string>
     <string name="renderer_asynchronous_shaders">비동기 셰이더 사용</string>
     <string name="renderer_asynchronous_shaders_description">셰이더를 비동기적으로 컴파일합니다. 이로 인해 끊김 현상이 줄어들 수 있지만 그래픽 오류가 발생할 수도 있습니다.</string>
-    <string name="use_fast_gpu_time">빠른 GPU 시간 사용</string>
-    <string name="use_fast_gpu_time_description">대부분의 게임을 최고 네이티브 해상도로 강제 실행합니다. 이 옵션은 불안정하여 문제를 일으킬 수 있습니다.</string>
     <string name="fast_gpu_time">GPU 오버클럭 팩터</string>
     <string name="fast_gpu_time_description">최대 성능을 위해 128을, 최대 그래픽 충실도를 위해 512를 사용하십시오.</string>
     <string name="renderer_reactive_flushing">반응형 플러싱 사용</string>
@@ -696,9 +683,8 @@
     <string name="clock_fast">빠름 (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">낮음 (128)</string>
-    <string name="gpu_medium">중간 (256)</string>
-    <string name="gpu_high">높음 (512)</string>
+    <string name="fast_gpu_medium">중간 (256)</string>
+    <string name="fast_gpu_high">높음 (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">섭씨</string>

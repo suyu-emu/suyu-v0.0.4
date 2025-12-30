@@ -80,10 +80,7 @@
     <string name="show_fw_version_description">Menampilkan versi firmware yang terinstal</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">Eden\'s Veil</string>
-    <string name="eden_veil_description">Pengaturan eksperimental untuk meningkatkan kinerja dan kemampuan. Pengaturan ini dapat menyebabkan layar hitam atau masalah game lainnya.</string>
 
-    <string name="veil_extensions">Ekstensi GPU</string>
     <string name="dyna_state">Status Dinamis Ekstensi</string>
     <string name="dyna_state_description">Mengontrol jumlah fitur yang dapat digunakan dalam Extended Dynamic State. Angka yang lebih tinggi memungkinkan lebih banyak fitur dan dapat meningkatkan performa, tetapi dapat menyebabkan masalah dengan beberapa driver dan vendor. Nilai default dapat bervariasi tergantung pada sistem dan kemampuan hardware Anda. Nilai ini dapat diubah hingga stabilitas dan kualitas visual yang lebih baik tercapai.</string>
     <string name="disabled">Dinonaktifkan</string>
@@ -91,24 +88,18 @@
     <string name="provoking_vertex_description">Meningkatkan pencahayaan dan penanganan vertex di beberapa game. Hanya didukung di GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Pengindeks Deskriptor</string>
     <string name="descriptor_indexing_description">Meningkatkan penanganan tekstur dan buffer, serta lapisan terjemahan Maxwell. Didukung oleh beberapa GPU Vulkan 1.1 dan semua GPU Vulkan 1.2+.</string>
-    <string name="sample_shading">Pencahayaan Sampel</string>
-    <string name="sample_shading_description">Memungkinkan fragment shader dieksekusi per sampel dalam fragmen multisampel alih-alih sekali per fragmen. Meningkatkan kualitas grafis dengan mengorbankan kinerja. Hanya perangkat Vulkan 1.1+ yang mendukung ekstensi ini.</string>
     <string name="sample_shading_fraction">Fraksi Pencahayaan Sampel</string>
     <string name="sample_shading_fraction_description">Intensitas proses pencahayaan sampel. Nilai lebih tinggi meningkatkan kualitas lebih baik tetapi juga mengurangi performa lebih besar.</string>
 
-    <string name="veil_renderer">Renderer</string>
     <string name="sync_memory_operations">Sinkronisasi Operasi Memori</string>
     <string name="sync_memory_operations_description">Memastikan konsistensi data antara operasi komputasi dan memori. Opsi ini seharusnya memperbaiki masalah di beberapa game, tetapi mungkin mengurangi performa dalam beberapa kasus. Game dengan Unreal Engine 4 tampaknya yang paling terpengaruh.</string>
     <string name="buffer_reorder_disable">Nonaktifkan Penyusunan Ulang Buffer</string>
     <string name="buffer_reorder_disable_description">Ketika dicentang, menonaktifkan penyusunan ulang unggahan memori yang dipetakan yang memungkinkan mengaitkan unggahan dengan gambar tertentu. Dapat mengurangi kinerja dalam beberapa kasus.</string>
 
-    <string name="veil_misc">CPU dan Memori</string>
     <string name="use_sync_core">Sinkronisasi Kecepatan Inti</string>
     <string name="use_sync_core_description">Sinkronkan kecepatan inti dengan persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan sebenarnya dari permainan.</string>
     <string name="use_lru_cache">Aktifkan LRU Cache</string>
     <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU untuk meningkatkan performa dengan mengurangi penggunaan proses CPU. Beberapa game seperti TotK 1.2.1 memiliki masalah - nonaktifkan jika game tidak mau berjalan atau crash acak.</string>
-    <string name="use_fast_cpu_time">Waktu CPU Cepat</string>
-    <string name="use_fast_cpu_time_description">Memaksa CPU emulasi berjalan pada kecepatan clock yang lebih tinggi, mengurangi beberapa pembatas FPS. Opsi ini tidak stabil dan dapat menyebabkan masalah, dan CPU yang lebih lemah mungkin mengalami penurunan kinerja.</string>
     <string name="custom_cpu_ticks">Ticks CPU Kustom</string>
     <string name="custom_cpu_ticks_description">Atur nilai ticks CPU kustom. Nilai yang lebih tinggi dapat meningkatkan kinerja, tetapi juga dapat menyebabkan game membeku. Kisaran 77–21000 direkomendasikan.</string>
     <string name="cpu_ticks">Ticks</string>
@@ -427,9 +418,7 @@
     <string name="network">Jaringan</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">Backend</string>
     <string name="display">Tampilan</string>
-    <string name="processing">Pascaproses</string>
 
     <string name="renderer_accuracy">Tingkatan Akurasi</string>
     <string name="renderer_resolution">Resolusi (Handheld/Docked)</string>
@@ -446,8 +435,6 @@
     <string name="renderer_optimize_spirv_output_description">Mengoptimalkan shader yang dikompilasi untuk meningkatkan efisiensi GPU.</string>
     <string name="renderer_asynchronous_shaders">Gunakan shader asinkron</string>
     <string name="renderer_asynchronous_shaders_description">Kompilasi shader secara asinkron. Ini dapat mengurangi lag tetapi juga dapat menyebabkan glitch.</string>
-    <string name="use_fast_gpu_time">Gunakan Waktu GPU Cepat</string>
-    <string name="use_fast_gpu_time_description">Memaksa sebagian besar game berjalan pada resolusi asli tertinggi. Opsi ini mungkin menyebabkan masalah.</string>
     <string name="fast_gpu_time">Faktor Overclock GPU</string>
     <string name="fast_gpu_time_description">Gunakan 128 untuk kinerja maksimal dan 512 untuk kesetiaan grafis maksimal.</string>
     <string name="renderer_reactive_flushing">Gunakan reactive flushing</string>
@@ -786,9 +773,8 @@
     <string name="clock_fast">Cepat (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">Rendah (128)</string>
-    <string name="gpu_medium">Sedang (256)</string>
-    <string name="gpu_high">Tinggi (512)</string>
+    <string name="fast_gpu_medium">Sedang (256)</string>
+    <string name="fast_gpu_high">Tinggi (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>

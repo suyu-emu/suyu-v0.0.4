@@ -132,7 +132,7 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
-                    ByteSetting.RENDERER_DYNA_STATE,
+                    IntSetting.RENDERER_DYNA_STATE,
                     titleId = R.string.dyna_state,
                     descriptionId = R.string.dyna_state_description,
                     choicesId = R.array.dynaStateEntries,
@@ -161,15 +161,8 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_SAMPLE_SHADING,
-                    titleId = R.string.sample_shading,
-                    descriptionId = R.string.sample_shading_description
-                )
-            )
-            put(
                 SliderSetting(
-                    IntSetting.RENDERER_SAMPLE_SHADING_FRACTION,
+                    IntSetting.RENDERER_SAMPLE_SHADING,
                     titleId = R.string.sample_shading_fraction,
                     descriptionId = R.string.sample_shading_fraction_description,
                     units = "%"
@@ -627,26 +620,12 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_FAST_GPU,
-                    titleId = R.string.use_fast_gpu_time,
-                    descriptionId = R.string.use_fast_gpu_time_description
-                )
-            )
-            put(
                 SingleChoiceSetting(
                     IntSetting.FAST_GPU_TIME,
                     titleId = R.string.fast_gpu_time,
                     descriptionId = R.string.fast_gpu_time_description,
                     choicesId = R.array.gpuEntries,
                     valuesId = R.array.gpuValues
-                )
-            )
-            put(
-                SwitchSetting(
-                    BooleanSetting.USE_FAST_CPU_TIME,
-                    titleId = R.string.use_fast_cpu_time,
-                    descriptionId = R.string.use_fast_cpu_time_description
                 )
             )
             put(

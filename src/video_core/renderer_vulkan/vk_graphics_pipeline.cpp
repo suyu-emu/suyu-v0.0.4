@@ -744,8 +744,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .flags = 0,
         .rasterizationSamples = MaxwellToVK::MsaaMode(key.state.msaa_mode),
-        .sampleShadingEnable = Settings::values.sample_shading.GetValue() ? VK_TRUE : VK_FALSE,
-        .minSampleShading = static_cast<float>(Settings::values.sample_shading_fraction.GetValue()) / 100.0f,
+        .sampleShadingEnable = Settings::values.sample_shading.GetValue() > 0 ? VK_TRUE : VK_FALSE,
+        .minSampleShading = f32(Settings::values.sample_shading.GetValue()) / 100.0f,
         .pSampleMask = nullptr,
         .alphaToCoverageEnable = key.state.alpha_to_coverage_enabled != 0 ? VK_TRUE : VK_FALSE,
         .alphaToOneEnable = key.state.alpha_to_one_enabled != 0 ? VK_TRUE : VK_FALSE,
@@ -763,8 +763,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .stencilTestEnable = dynamic.stencil_enable,
         .front = GetStencilFaceState(dynamic.front),
         .back = GetStencilFaceState(dynamic.back),
-        .minDepthBounds = static_cast<f32>(key.state.depth_bounds_min),
-        .maxDepthBounds = static_cast<f32>(key.state.depth_bounds_max),
+        .minDepthBounds = f32(key.state.depth_bounds_min),
+        .maxDepthBounds = f32(key.state.depth_bounds_max),
     };
     if (dynamic.depth_bounds_enable && !device.IsDepthBoundsSupported()) {
         LOG_WARNING(Render_Vulkan, "Depth bounds is enabled but not supported");

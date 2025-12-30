@@ -94,10 +94,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Change the accuracy of the emulated CPU (for debugging only)."));
     INSERT(Settings, cpu_backend, tr("Backend:"), QString());
 
-    INSERT(Settings, use_fast_cpu_time, QString(), QString());
     INSERT(Settings,
            fast_cpu_time,
-           tr("Fast CPU Time"),
+           tr("CPU Overclock"),
            tr("Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, "
               "and certain games may behave improperly.\nUse Boost (1700MHz) to run at the Switch's highest native "
               "clock, or Fast (2000MHz) to run at 2x clock."));
@@ -208,11 +207,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Runs an additional optimization pass over generated SPIRV shaders.\n"
               "Will increase time required for shader compilation.\nMay slightly improve "
               "performance.\nThis feature is experimental."));
-    INSERT(
-        Settings,
-        use_asynchronous_gpu_emulation,
-        tr("Use asynchronous GPU emulation"),
-        tr("Uses an extra CPU thread for rendering.\nThis option should always remain enabled."));
     INSERT(Settings,
            nvdec_emulation,
            tr("NVDEC emulation:"),
@@ -258,6 +252,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings, bg_blue, QString(), QString());
 
     // Renderer (Advanced Graphics)
+    INSERT(Settings, use_asynchronous_gpu_emulation, QString(), QString());
+
     INSERT(Settings, sync_memory_operations, tr("Sync Memory Operations"),
            tr("Ensures data consistency between compute and memory operations.\nThis option fixes issues in games, but may degrade performance.\nUnreal Engine 4 games often see the most significant changes thereof."));
     INSERT(Settings,
@@ -285,14 +281,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Controls the DMA precision accuracy. Safe precision fixes issues in some games but may degrade performance."));
     INSERT(Settings,
            use_asynchronous_shaders,
-           tr("Enable asynchronous shader compilation (Hack)"),
+           tr("Enable asynchronous shader compilation"),
            tr("May reduce shader stutter."));
-    INSERT(Settings, use_fast_gpu_time, QString(), QString());
     INSERT(Settings,
            fast_gpu_time,
-           tr("Fast GPU Time (Hack)"),
+           tr("Fast GPU Time"),
            tr("Overclocks the emulated GPU to increase dynamic resolution and render "
-              "distance.\nUse 128 for maximal performance and 512 for maximal graphics fidelity."));
+              "distance.\nUse 256 for maximal performance and 512 for maximal graphics fidelity."));
 
     INSERT(Settings,
            use_vulkan_driver_pipeline_cache,
@@ -324,10 +319,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Improves rendering of transparency effects in specific games."));
 
     // Renderer (Extensions)
-    INSERT(Settings,
-           dyna_state,
-           tr("Extended Dynamic State"),
-           tr("Controls the number of features that can be used in Extended Dynamic State.\nHigher numbers allow for more features and can increase performance, but may cause issues.\nThe default value is per-system."));
+    INSERT(Settings, dyna_state, tr("Extended Dynamic State"),
+           tr("Controls the number of features that can be used in Extended Dynamic State.\n"
+              "Higher numbers allow for more features and can increase performance, but may cause "
+              "additional graphical issues."));
 
     INSERT(Settings,
            vertex_input_dynamic_state,
@@ -346,10 +341,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
               "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
 
-    INSERT(Settings, sample_shading, QString(), QString());
-
     INSERT(Settings,
-           sample_shading_fraction,
+           sample_shading,
            tr("Sample Shading"),
            tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "
               "instead of once per fragment. Improves graphics quality at the cost of performance.\n"
@@ -709,6 +702,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                           }});
     translations->insert({Settings::EnumMetadata<Settings::CpuClock>::Index(),
                           {
+                              PAIR(CpuClock, Off, tr("Off")),
                               PAIR(CpuClock, Boost, tr("Boost (1700MHz)")),
                               PAIR(CpuClock, Fast, tr("Fast (2000MHz)")),
                           }});
@@ -721,9 +715,17 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
          }});
     translations->insert({Settings::EnumMetadata<Settings::GpuOverclock>::Index(),
                           {
-                              PAIR(GpuOverclock, Low, tr("Low (128)")),
+                              PAIR(GpuOverclock, Normal, tr("Off")),
                               PAIR(GpuOverclock, Medium, tr("Medium (256)")),
                               PAIR(GpuOverclock, High, tr("High (512)")),
+                          }});
+
+    translations->insert({Settings::EnumMetadata<Settings::ExtendedDynamicState>::Index(),
+                          {
+                              PAIR(ExtendedDynamicState, Disabled, tr("Disabled")),
+                              PAIR(ExtendedDynamicState, EDS1, tr("ExtendedDynamicState 1")),
+                              PAIR(ExtendedDynamicState, EDS2, tr("ExtendedDynamicState 2")),
+                              PAIR(ExtendedDynamicState, EDS3, tr("ExtendedDynamicState 3")),
                           }});
 
 #undef PAIR

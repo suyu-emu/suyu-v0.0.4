@@ -83,10 +83,7 @@
     <string name="show_fw_version_description">عرض إصدار الفيرموير المثبت</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">ميزات Eden</string>
-    <string name="eden_veil_description">إعدادات تجريبية لتحسين الأداء والقدرة. قد تتسبب هذه الإعدادات في ظهور شاشات سوداء أو مشكلات أخرى في اللعبة.</string>
 
-    <string name="veil_extensions">ملحقات وحدة معالجة الرسومات</string>
     <string name="dyna_state">الحالة الديناميكية الموسعة</string>
     <string name="dyna_state_description">يتحكم في عدد المميزات التي يمكن استخدامها في الحالة الديناميكية الموسعة. الأرقام الأعلى تسمح بميزات أكثر ويمكن أن تعزز الأداء، ولكن قد تسبب مشكلات مع بعض السائقين والبائعين. قد تختلف القيمة الافتراضية بحسب نظامك وقدرات الأجهزة. يمكن تغيير هذه القيمة حتى يتم تحقيق الاستقرار وجودة الصورة الأفضل.</string>
     <string name="disabled">معطل</string>
@@ -96,24 +93,18 @@
     <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات Vulkan 1.0+.</string>
     <string name="descriptor_indexing">فهرسة الوصف</string>
     <string name="descriptor_indexing_description">يحسن معالجة النسيج والمخزن المؤقت، بالإضافة إلى طبقة الترجمة Maxwell. مدعوم من بعض وحدات معالجة الرسومات Vulkan 1.1 وجميع وحدات معالجة الرسومات Vulkan 1.2+.</string>
-    <string name="sample_shading">تظليل العينة</string>
-    <string name="sample_shading_description">يسمح لتظلل الأجزاء بتنفيذ كل عينة في جزء متعدد العينات بدلاً من مرة واحدة لكل جزء. يحسن جودة الرسومات على حساب بعض الأداء. لا تدعم هذه الإضافة سوى أجهزة Vulkan 1.1+ فقط.</string>
     <string name="sample_shading_fraction">نسبة التظليل النموذجية</string>
     <string name="sample_shading_fraction_description">كثافة تمرير تظليل العينة. تؤدي القيم الأعلى إلى تحسين الجودة بشكل أكبر، ولكنها تقلل أيضًا من الأداء إلى حد كبير.</string>
 
-    <string name="veil_renderer">العارض</string>
     <string name="sync_memory_operations">مزامنة عمليات الذاكرة</string>
     <string name="sync_memory_operations_description">يضمن اتساق البيانات بين عمليات الحوسبة والذاكرة. هذا الخيار قد يحل المشكلات في بعض الألعاب، ولكن قد يقلل الأداء في بعض الحالات. يبدو أن الألعاب التي تستخدم Unreal Engine 4 هي الأكثر تأثرًا.</string>
     <string name="buffer_reorder_disable">تعطيل إعادة ترتيب المخزن المؤقت</string>
     <string name="buffer_reorder_disable_description">عند تحديده، يتم تعطيل إعادة ترتيب تحميلات الذاكرة المعينة، مما يسمح بربط التحميلات بعمليات سحب محددة. قد يؤدي ذلك إلى انخفاض الأداء في بعض الحالات.</string>
 
-    <string name="veil_misc">وحدة المعالجة المركزية والذاكرة</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
     <string name="use_sync_core_description">قم بمزامنة سرعة النواة مع النسبة المئوية للسرعة القصوى لتحسين الأداء دون تغيير السرعة الفعلية للعبة.</string>
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقتة LRU</string>
     <string name="use_lru_cache_description">قم بتمكين أو تعطيل ذاكرة التخزين المؤقتة الأقل استخدامًا (LRU)، مما يزيد من الأداء عن طريق توفير استخدام معالج وحدة المعالجة المركزية. قد تواجه بعض الألعاب مشكلات مع هذا الإعداد، لذا قم بتعطيله إذا لم يتم تشغيل اللعبة أو تعطلت بشكل عشوائي.</string>
-    <string name="use_fast_cpu_time">وقت وحدة المعالجة المركزية السريع</string>
-    <string name="use_fast_cpu_time_description">يجبر وحدة المعالجة المركزية المحاكاة على العمل بسرعة أعلى، مما يقلل من بعض محددات معدل الإطارات. هذا الخيار غير مستقر وقد يسبب مشاكل، وقد يرى المستخدمون بأجهزة أضعف انخفاضًا في الأداء.</string>
     <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
     <string name="custom_cpu_ticks_description">قم بتعيين قيمة مخصصة لدورات المعالج. القيم الأعلى يمكن أن تزيد من الأداء، ولكنها قد تتسبب أيضًا في تجميد اللعبة. يوصى باستخدام نطاق 77-21000.</string>
     <string name="cpu_ticks">دورات</string>
@@ -480,9 +471,7 @@
     <string name="network">الشبكة</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">الخلفية</string>
     <string name="display">الشاشة</string>
-    <string name="processing">تأثيرات بعد المعالجة</string>
 
     <string name="renderer_accuracy">مستوى الدقة</string>
     <string name="renderer_resolution">الدقة (الإرساء/محمول)</string>
@@ -499,8 +488,6 @@
     <string name="renderer_optimize_spirv_output_description">يعمل على تحسين أداء برامج التظليل المجمعة لتحسين كفاءة وحدة معالجة الرسومات، ولكنه قد يؤدي إلى زيادة وقت التحميل وإبطاء السرعة في البداية.</string>
     <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
     <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
-    <string name="use_fast_gpu_time">استخدم وقت المعالج الرسومي السريع</string>
-    <string name="use_fast_gpu_time_description">يجبر معظم الألعاب على التشغيل بأعلى دقة أصلية لها. هذا الخيار غير آمن وقد يتسبب في مشاكل.</string>
     <string name="fast_gpu_time">عامل زيادة تردد وحدة معالجة الرسومات</string>
     <string name="fast_gpu_time_description">استخدم 128 لأقصى أداء و512 لأقصى دقة رسومية.</string>
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
@@ -878,9 +865,8 @@
     <string name="clock_fast">سريع (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">منخفض (128)</string>
-    <string name="gpu_medium">متوسط (256)</string>
-    <string name="gpu_high">مرتفع (512)</string>
+    <string name="fast_gpu_medium">متوسط (256)</string>
+    <string name="fast_gpu_high">مرتفع (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">مئوية</string>

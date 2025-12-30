@@ -17,6 +17,7 @@
 #include "common/literals.h"
 #include <ranges>
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "video_core/vulkan_common/nsight_aftermath_tracker.h"
 #include "video_core/vulkan_common/vma.h"
 #include "video_core/vulkan_common/vulkan_device.h"
@@ -418,12 +419,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     const VkDriverId driver_id = properties.driver.driverID;
     const auto device_id = properties.properties.deviceID;
+
     const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
     const bool is_amd_driver =
         driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
     const bool is_amd = is_amd_driver || is_radv;
+
     const bool is_intel_windows = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
     const bool is_intel_anv = driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA;
+
     const bool is_nvidia = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
@@ -482,6 +486,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     is_virtual = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
     is_non_gpu = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER ||
                  properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
+
+    const bool is_intel_igpu = is_integrated && (is_intel_anv || is_intel_windows);
 
     supports_d24_depth =
         IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT,
@@ -662,16 +668,18 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = false;
     }
 
+    const auto dyna_state = u32(Settings::values.dyna_state.GetValue());
+
     // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it affects other iGPUs
     // ALSO affects ALL versions of UHD drivers on Windows 10+, seems to cause even worse issues like straight up crashing
     // So... Yeah, UHD drivers fucking suck -- maybe one day we can work past this, maybe; some driver hacking?
     // And then we can rest in peace by doing `< VK_MAKE_API_VERSION(26, 0, 0)` for our beloved mesa drivers... one day
-    if ((is_mvk || (is_integrated && is_intel_anv) || (is_integrated && is_intel_windows)) && Settings::values.dyna_state.GetValue() != 0) {
+    if ((is_mvk || is_intel_igpu) && dyna_state != 0) {
         LOG_WARNING(Render_Vulkan, "Driver has broken dynamic state, forcing to 0 to prevent graphical issues");
-        Settings::values.dyna_state.SetValue(0);
+        Settings::values.dyna_state.SetValue(Settings::ExtendedDynamicState::Disabled);
     }
 
-    switch (Settings::values.dyna_state.GetValue()) {
+    switch (dyna_state) {
     case 0:
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         [[fallthrough]];

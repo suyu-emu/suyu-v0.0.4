@@ -59,10 +59,7 @@
     <string name="show_fw_version_description">Viser den installerte firmwareversjonen</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">Edens slør</string>
-    <string name="eden_veil_description">Eksperimentelle innstillinger for å forbedre ytelse og funksjonalitet. Disse innstillingene kan forårsake svarte skjermer eller andre spillproblemer.</string>
 
-    <string name="veil_extensions">GPU-utvidelser</string>
     <string name="dyna_state">Utvidet dynamisk tilstand</string>
     <string name="dyna_state_description">Kontrollerer antall funksjoner som kan brukes i Utvidet Dynamisk Tilstand. Høyere tall tillater flere funksjoner og kan øke ytelsen, men kan forårsake problemer med noen drivere og leverandører. Standardverdien kan variere avhengig av systemet og maskinvareevnene dine. Denne verdien kan endres til stabilitet og bedre visuell kvalitet er oppnådd.</string>
     <string name="disabled">Deaktivert</string>
@@ -70,24 +67,18 @@
     <string name="provoking_vertex_description">Forbedrer belysning og vertexhåndtering i enkelte spill. Støttes kun på Vulkan 1.0+ GPU-er.</string>
     <string name="descriptor_indexing">Beskrivelsesindeksering</string>
     <string name="descriptor_indexing_description">Forbedrer tekstur- og bufferhåndtering, samt Maxwell-oversettelseslaget. Støttes av noen Vulkan 1.1 GPU-er og alle Vulkan 1.2+ GPU-er.</string>
-    <string name="sample_shading">Prøvegjengivelse</string>
-    <string name="sample_shading_description">Lar fragment-shaderen kjøres per prøve i et flerprøvefragment i stedet for en gang per fragment. Forbedrer grafikkvaliteten på bekostning av ytelse. Bare Vulkan 1.1+-enheter støtter denne utvidelsen.</string>
     <string name="sample_shading_fraction">Prøveskyggebrøk</string>
     <string name="sample_shading_fraction_description">Intensiteten til prøveskyggepasseringen. Høyere verdier forbedrer kvaliteten mer, men reduserer også ytelsen i større grad.</string>
 
-    <string name="veil_renderer">Renderer</string>
     <string name="sync_memory_operations">Synkroniser minneoperasjoner</string>
     <string name="sync_memory_operations_description">Sikrer datakonsistens mellom beregnings- og minneoperasjoner. Dette alternativet bør fikse problemer i noen spill, men kan redusere ytelsen i noen tilfeller. Spill med Unreal Engine 4 ser ut til å være de mest berørte.</string>
     <string name="buffer_reorder_disable">Deaktiver bufferomorganisering</string>
     <string name="buffer_reorder_disable_description">Når merket, deaktiveres omorganisering av kartlagt minneopplasting som tillater å knytte opplastinger til spesifikke tegninger. Kan redusere ytelsen i noen tilfeller.</string>
 
-    <string name="veil_misc">CPU og minne</string>
     <string name="use_sync_core">Synkroniser kjernespeed</string>
     <string name="use_sync_core_description">Synkroniser kjernens hastighet med maksimal hastighetsprosent for å forbedre ytelsen uten å endre spillets faktiske hastighet.</string>
     <string name="use_lru_cache">Aktiver LRU-mellomlager</string>
     <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager for å forbedre ytelsen ved å spare CPU-prosessorbruk. Noen spill som TotK 1.2.1 har problemer med dette - deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
-    <string name="use_fast_cpu_time">Rask CPU-tid</string>
-    <string name="use_fast_cpu_time_description">Tvinger den emulerte CPU-en til å kjøre med høyere klokkehastighet, noe som reduserer visse FPS-begrensninger. Dette alternativet er ustabilt og kan forårsake problemer, og svakere CPU-er kan oppleve redusert ytelse.</string>
     <string name="custom_cpu_ticks">Egendefinerte CPU-takter</string>
     <string name="custom_cpu_ticks_description">Angi en egendefinert verdi for CPU-takter. Høyere verdier kan øke ytelsen, men kan også føre til at spret fryser. Et område på 77–21000 anbefales.</string>
     <string name="cpu_ticks">Takter</string>
@@ -373,9 +364,7 @@
     <string name="network">Nettverk</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">Backend</string>
     <string name="display">Skjerm</string>
-    <string name="processing">Etterbehandling</string>
 
     <string name="renderer_accuracy">Nøyaktighetsnivå</string>
     <string name="renderer_resolution">Oppløsning (håndholdt/dokket)</string>
@@ -392,8 +381,6 @@
     <string name="renderer_optimize_spirv_output_description">Optimaliserer den kompilerte shaderen for å forbedre GPU-effektiviteten.</string>
     <string name="renderer_asynchronous_shaders">Bruk asynkrone shaders</string>
     <string name="renderer_asynchronous_shaders_description">Kompilerer shadere asynkront. Dette kan redusere rykk, men kan også forårsake grafiske feil.</string>
-    <string name="use_fast_gpu_time">Bruk rask GPU-tid</string>
-    <string name="use_fast_gpu_time_description">Tvinger de fleste spill til å kjøre i høyeste oppløsning. Dette alternativet er ustabilt og kan forårsake problemer.</string>
     <string name="fast_gpu_time">GPU-overklokkingsfaktor</string>
     <string name="fast_gpu_time_description">Bruk 128 for maksimal ytelse og 512 for maksimal grafikkvalitet.</string>
     <string name="renderer_reactive_flushing">Bruk reaktiv spyling</string>
@@ -620,9 +607,8 @@
     <string name="clock_fast">Rask (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">Lav (128)</string>
-    <string name="gpu_medium">Middels (256)</string>
-    <string name="gpu_high">Høy (512)</string>
+    <string name="fast_gpu_medium">Middels (256)</string>
+    <string name="fast_gpu_high">Høy (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>

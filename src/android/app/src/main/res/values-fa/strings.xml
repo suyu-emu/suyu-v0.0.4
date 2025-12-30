@@ -60,11 +60,6 @@
     <string name="show_fw_version_description">نسخه نصب شده فریمور را نمایش می‌دهد</string>
 
     <!-- Eden\'s Veil -->
-    <string name="veil_extensions">افزونه‌های GPU</string>
-    <string name="veil_renderer">رندرر</string>
-    <string name="veil_misc">پردازنده و حافظه</string>
-    <string name="eden_veil">پرده عدن</string>
-    <string name="eden_veil_description">تنظیمات آزمایشی برای بهبود عملکرد و قابلیت. این تنظیمات ممکن است باعث نمایش صفحه سیاه یا سایر مشکلات بازی شود.</string>
     <string name="sync_memory_operations">همگام‌سازی عملیات حافظه</string>
     <string name="sync_memory_operations_description">اطمینان از سازگاری داده‌ها بین عملیات محاسباتی و حافظه. این گزینه ممکن است مشکلات برخی بازی‌ها را رفع کند، اما در برخی موارد ممکن است عملکرد را کاهش دهد. به نظر می‌رسد بازی‌های با Unreal Engine 4 بیشترین تأثیر را داشته باشند.</string>
     <string name="buffer_reorder_disable">غیرفعال کردن مرتب‌سازی مجدد بافر</string>
@@ -86,26 +81,19 @@
     <string name="provoking_vertex_description">نورپردازی و مدیریت رأس را در برخی بازی‌ها بهبود می‌بخشد. فقط در کارت‌های گرافیک با پشتیبانی از ولکان 1.0+ قابل استفاده است</string>
     <string name="descriptor_indexing">نمایه‌سازی توصیفگر</string>
     <string name="descriptor_indexing_description">مدیریت بافت‌ها و بافرها و همچنین لایه ترجمه ماکسول را بهبود می‌بخشد. توسط برخی کارت‌های گرافیک ولکان 1.1 و تمام کارت‌های گرافیک ولکان 1.2+ پشتیبانی می‌شود</string>
-    <string name="use_fast_gpu_time">استفاده از زمان سریع GPU</string>
-    <string name="use_fast_gpu_time_description">باعث می‌شود بیشتر بازی‌ها با بالاترین رزولوشن اصلی اجرا شوند. این گزینه ممکن است مشکلاتی ایجاد کند.</string>
     <string name="fast_gpu_time">فاکتور اورکلاک GPU</string>
     <string name="fast_gpu_time_description">برای حداکثر عملکرد از 128 و برای حداکثر وفاداری گرافیکی از 512 استفاده کنید.</string>
-    <string name="gpu_low">پایین (128)</string>
-    <string name="gpu_medium">متوسط (256)</string>
-    <string name="gpu_high">بالا (512)</string>
+    <string name="fast_gpu_medium">متوسط (256)</string>
+    <string name="fast_gpu_high">بالا (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">سلسیوس</string>
     <string name="temperature_fahrenheit">فارنهایت</string>
 
-    <string name="use_fast_cpu_time">زمان CPU سریع</string>
-    <string name="use_fast_cpu_time_description">CPU شبیه‌سازی شده را مجبور می‌کند با سرعت کلاک بالاتر کار کند، که برخی محدودکننده‌های FPS را کاهش می‌دهد. این گزینه ناپایدار است و ممکن است باعث مشکلات شود و CPUهای ضعیف‌تر ممکن است کاهش عملکرد را تجربه کنند.</string>
     <string name="fast_cpu_time">سرعت کلاک CPU</string>
     <string name="fast_cpu_time_description">از Boost (1700MHz) برای کار با بالاترین سرعت کلاک بومی سوئیچ یا Fast (2000MHz) برای کار با دو برابر سرعت استفاده کنید.</string>
     <string name="memory_layout">چیدمان حافظه</string>
     <string name="memory_layout_description">(آزمایشی) چیدمان حافظه شبیه‌سازی شده را تغییر می‌دهد. این تنظیم عملکرد را افزایش نمی‌دهد، اما ممکن است به بازی‌هایی که از رزولوشن بالا با استفاده از مادها استفاده می‌کنند کمک کند. در تلفن‌های با 8 گیگابایت رم یا کمتر استفاده نشود.</string>
-    <string name="sample_shading">سایه‌زنی نمونه</string>
-    <string name="sample_shading_description">اجازه می‌دهد شیدر قطعه در هر نمونه از یک قطعه چندنمونه‌ای اجرا شود به جای یک بار برای هر قطعه. کیفیت گرافیک را به بهای کاهش عملکرد بهبود می‌بخشد. فقط دستگاه‌های Vulkan 1.1+ از این افزونه پشتیبانی می‌کنند.</string>
     <string name="sample_shading_fraction">کسر سایه‌زنی نمونه</string>
     <string name="sample_shading_fraction_description">شدت مرحله سایه‌زنی نمونه. مقادیر بالاتر کیفیت را بیشتر بهبود می‌بخشد اما عملکرد را نیز به میزان بیشتری کاهش می‌دهد.</string>
     <string name="custom_cpu_ticks">تیک‌های CPU سفارشی</string>
@@ -448,9 +436,7 @@
     <string name="network">شبکه</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">بک‌اند</string>
     <string name="display">نمایش</string>
-    <string name="processing">پس‌پردازش</string>
     <string name="renderer_accuracy">سطح دقت</string>
     <string name="renderer_resolution">وضوح تصویر (دستی/متصل)</string>
     <string name="renderer_vsync">حالت VSync</string>

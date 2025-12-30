@@ -59,10 +59,7 @@
     <string name="show_fw_version_description">وەشانی فریموێری نەصبکراو پیشان بدە</string>
 
     <!-- Eden\'s Veil -->
-    <string name="eden_veil">حجاب عدن</string>
-    <string name="eden_veil_description">ڕێکخستنە تاقیکارییەکان بۆ باشترکردنی کارایی و توانا. ئەم ڕێکخستنانە لەوانەیە ببێتە هۆی شاشە ڕەشەکان یان کێشەیتری یاری.</string>
 
-    <string name="veil_extensions">پاشکۆکانی GPU</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
     <string name="dyna_state_description">کۆntrolی ژمارەی تایبەتمەندییەکان دەکات کە دەتوانرێت لە دۆخی هایپرDynamic بەکاربهێنرێت. ژمارەی زیاتر ڕێگە بە تایبەتمەندییەکی زیاتر دەدات و دەتوانێت کارایی باشتر بکات، بەڵام لەوانەیە کێشە دروست بکات لەگەڵ هەندێک لە درایڤەرەکان و فرۆشەکان. نرخی گریمانەیی دەگۆڕێت بەپێی سیستەم و تواناکانی hardwareی تۆ. دەتوانیت ئەم نرخە بگۆڕیت تا جێگیری و جێیەکی بینینی باشتر دەستبکەوێت.</string>
     <string name="disabled">ناچالاک</string>
@@ -70,24 +67,18 @@
     <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.0+.</string>
     <string name="descriptor_indexing">فهرسة الواصفات</string>
     <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
-    <string name="sample_shading">سێبەندی نمونە</string>
-    <string name="sample_shading_description">ڕێگە بە شێدەری پارچە دەدات کە بۆ هەر نمونەیەک لە پارچەی فرە نمونەیدا جێبەجێ بکات لە جیاتی جێبەجێکردنی بۆ هەر پارچەیەک. جۆرایی گرافیک باشتر دەکات بە بەهای هەندێک لە کارایی. تەنها ئامێرەکانی Vulkan 1.1+ پشتگیری ئەم درێژکراوە دەکەن.</string>
     <string name="sample_shading_fraction">پێکهاتەی سێبەرکردنی نموونە</string>
     <string name="sample_shading_fraction_description">چڕی تێپەڕاندنی سێبەرکردنی نموونە. بەهای زیاتر کوالێتی باشتر دەکات بەڵام کارایی زیاتر کەم دەکاتەوە.</string>
 
-    <string name="veil_renderer">رێندرەر</string>
     <string name="sync_memory_operations">هاوبەشیی کردارەکانی بیرگە</string>
     <string name="sync_memory_operations_description">دڵنیایی داتا لە نێوان کردارەکانی کۆمپیوتەر و بیرگە. ئەم هەڵبژاردە کێشەکان لە هەندێک یاری چارەسەر دەکات، بەڵام لە هەندێک حاڵەت کارایی کەم دەکاتەوە. وا دیارە یارییەکانی Unreal Engine 4 زۆرترین کاریگەریان هەیە.</string>
     <string name="buffer_reorder_disable">ڕێکخستنەوەی بافر ناچالاک بکە</string>
     <string name="buffer_reorder_disable_description">کە دیاریکرا، ڕێکخستنەوەی بارکردنی بیرگەی نەخشەکراو ناچالاک دەکات کە ڕێگەدەدات بارکردنەکان بە ڕەسمی دیاریکراو ببەسترێت. لە هەندێک حاڵەتدا کاراییمان دەکاتەوە.</string>
 
-    <string name="veil_misc">CPU و بیرگە</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
     <string name="use_sync_core_description">خێرایی تیکەکانی ناوک ڕێکبخە لەگەڵ ڕێژەی خێرایی بەرزترین بۆ باشترکردنی کارایی بەبێ گۆڕینی خێرایی ڕاستەقینەی یارییەکە.</string>
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
     <string name="use_lru_cache_description">چالاک یان ناچالاککردنی کاشەی LRU، کارایی باشتر دەکات بە هەڵگرتنی بەکارهێنانی پرۆسەی CPU. هەندێک یاری کێشەی لەگەڵ هەیە، بەتایبەتی TotK 1.2.1، بۆیە بیخەوێنە ئەگەر یاریەکە نەگەڕێت یان بە هەڕەمەکی بشکێت.</string>
-    <string name="use_fast_cpu_time">کاتی CPU خێرا</string>
-    <string name="use_fast_cpu_time_description">CPUی شبیهسازیکراو بە زۆرکردنی کاتژمێر وادەکات بە خێرایی زیاتر کاربکات، ئەمەش هەندێک لە سنووردارکەرانی FPS کەم دەکاتەوە. ئەم هەڵبژاردە هەڵە و لەوانەیە کێشە دروست بکات، و لەوانەیە کەسی بە CPUی بێهێز کارایی کەمتر ببینێت.</string>
     <string name="custom_cpu_ticks">تیکی CPU هەڵبژێردراو</string>
     <string name="custom_cpu_ticks_description">بەهای هەڵبژێردراوی تیکی CPU دابنێ. بەهای زیاتر دەتوانن کارایی زیاد بکەن، بەڵام لەوانەیە بووەستانی یاریش دروست بکەن. ئامۆژگاری بە نێوان 77-21000 دەکرێت.</string>
     <string name="cpu_ticks">تیک</string>
@@ -373,9 +364,7 @@
     <string name="network">تۆڕ</string>
 
     <!-- Graphics settings strings -->
-    <string name="backend">پاشبنەما</string>
     <string name="display">پیشاندان</string>
-    <string name="processing">پاشپڕۆسەکردن</string>
 
     <string name="renderer_accuracy">ئاستی وردبینی</string>
     <string name="renderer_resolution">ڕوونی (دۆخی دەستی/دۆخی دۆک)</string>
@@ -392,8 +381,6 @@
     <string name="renderer_optimize_spirv_output_description">شێیدەرە کۆمپایلکراوەکان باش دەکات بۆ باشترکردنی کارایی GPU.</string>
     <string name="renderer_asynchronous_shaders">بەکارهێنانی سێبەری ناهاوسەنگ</string>
     <string name="renderer_asynchronous_shaders_description">کۆمپایلکردنی شادەرەکان بەشێوەی ناڕێک. ئەمە ڕەنگە کەمکردنەوەی ستەتەر بکات بەڵام لەوانەیە هەڵەش دروست بکات.</string>
-    <string name="use_fast_gpu_time">بەکارهێنانی کاتی GPU خێرا</string>
-    <string name="use_fast_gpu_time_description">زۆربەی یارییەکان بەرزی ڕەزولوشنی ڕەسەنی خۆیان دادەمەزرێنێت. ئەم هەڵبژاردە هەڵەیە و لەوانەیە کێشە دروست بکات.</string>
     <string name="fast_gpu_time">فاکتۆری خێراکردنی GPU</string>
     <string name="fast_gpu_time_description">128 بەکاربهێنە بۆ باشترین کارایی و 512 بۆ باشترین وردی گرافیک.</string>
     <string name="renderer_reactive_flushing">بەکارهێنانی بەرپێچدەرەوە</string>
@@ -607,9 +594,8 @@
     <string name="clock_fast">خێرا (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="gpu_low">نزم (128)</string>
-    <string name="gpu_medium">ناوەند (256)</string>
-    <string name="gpu_high">بەرز (512)</string>
+    <string name="fast_gpu_medium">ناوەند (256)</string>
+    <string name="fast_gpu_high">بەرز (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">سیلیزی</string>

@@ -107,7 +107,6 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_INPUT_PLAYER_EIGHT -> addInputPlayer(sl, 7)
             MenuTag.SECTION_APP_SETTINGS -> addThemeSettings(sl)
             MenuTag.SECTION_DEBUG -> addDebugSettings(sl)
-            MenuTag.SECTION_EDEN_VEIL -> addEdenVeilSettings(sl)
             MenuTag.SECTION_APPLETS -> addAppletSettings(sl)
         }
         settingsList = sl
@@ -181,14 +180,6 @@ class SettingsFragmentPresenter(
             )
             add(
                 SubmenuSetting(
-                    titleId = R.string.eden_veil,
-                    descriptionId = R.string.eden_veil_description,
-                    iconId = R.drawable.ic_eden_veil,
-                    menuKey = MenuTag.SECTION_EDEN_VEIL
-                )
-            )
-            add(
-                SubmenuSetting(
                     titleId = R.string.applets_menu,
                     descriptionId = R.string.applets_menu_description,
                     iconId = R.drawable.ic_applet,
@@ -217,30 +208,61 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.USE_CUSTOM_RTC.key)
             add(LongSetting.CUSTOM_RTC.key)
 
+            add(HeaderSetting(R.string.cpu))
+            add(IntSetting.FAST_CPU_TIME.key)
+            add(BooleanSetting.USE_LRU_CACHE.key)
+            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
+
+            add(IntSetting.MEMORY_LAYOUT.key)
+            add(BooleanSetting.USE_CUSTOM_CPU_TICKS.key)
+            add(IntSetting.CPU_TICKS.key)
+
             add(HeaderSetting(R.string.network))
             add(StringSetting.WEB_TOKEN.key)
             add(StringSetting.WEB_USERNAME.key)
         }
     }
 
+    // TODO(crueter): sub-submenus?
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
-            add(HeaderSetting(R.string.backend))
+            // add(IntSetting.RENDERER_NVDEC_EMULATION.key)
 
-            add(IntSetting.RENDERER_ACCURACY.key)
             add(IntSetting.RENDERER_RESOLUTION.key)
-            add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
-            add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
-            add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
-            add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
-
-            add(HeaderSetting(R.string.processing))
-
             add(IntSetting.RENDERER_VSYNC.key)
-            add(IntSetting.RENDERER_ANTI_ALIASING.key)
-            add(IntSetting.MAX_ANISOTROPY.key)
+            add(IntSetting.RENDERER_SHADER_BACKEND.key)
             add(IntSetting.RENDERER_SCALING_FILTER.key)
             add(IntSetting.FSR_SHARPENING_SLIDER.key)
+            add(IntSetting.RENDERER_ANTI_ALIASING.key)
+            add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
+
+            add(HeaderSetting(R.string.advanced))
+
+            add(IntSetting.RENDERER_ACCURACY.key)
+            add(IntSetting.DMA_ACCURACY.key)
+            add(IntSetting.MAX_ANISOTROPY.key)
+            add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
+            add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
+            add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
+
+            add(BooleanSetting.SYNC_MEMORY_OPERATIONS.key)
+            add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
+            add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
+            add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
+
+            add(HeaderSetting(R.string.hacks))
+
+            add(IntSetting.FAST_GPU_TIME.key)
+            add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
+            add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
+
+            add(HeaderSetting(R.string.extensions))
+
+            add(IntSetting.RENDERER_DYNA_STATE.key)
+            add(BooleanSetting.RENDERER_VERTEX_INPUT_DYNAMIC_STATE.key)
+            add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
+            add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
+            add(IntSetting.RENDERER_SAMPLE_SHADING.key)
 
             add(HeaderSetting(R.string.display))
 
@@ -447,42 +469,6 @@ class SettingsFragmentPresenter(
             override val isRuntimeModifiable = true
 
             override val isSaveable = true
-        }
-    }
-
-    private fun addEdenVeilSettings(sl: ArrayList<SettingsItem>) {
-        sl.apply {
-            add(HeaderSetting(R.string.veil_extensions))
-            add(ByteSetting.RENDERER_DYNA_STATE.key)
-            add(BooleanSetting.RENDERER_VERTEX_INPUT_DYNAMIC_STATE.key)
-            add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
-            add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
-            add(BooleanSetting.RENDERER_SAMPLE_SHADING.key)
-            add(IntSetting.RENDERER_SAMPLE_SHADING_FRACTION.key)
-
-            add(HeaderSetting(R.string.veil_renderer))
-            add(IntSetting.DMA_ACCURACY.key)
-            add(BooleanSetting.BUFFER_REORDER_DISABLE.key)
-            add(BooleanSetting.RENDERER_FAST_GPU.key)
-            add(IntSetting.FAST_GPU_TIME.key)
-            add(IntSetting.RENDERER_SHADER_BACKEND.key)
-            add(IntSetting.RENDERER_NVDEC_EMULATION.key)
-            add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
-            add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
-            add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
-            add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
-
-            add(HeaderSetting(R.string.veil_misc))
-            add(BooleanSetting.USE_FAST_CPU_TIME.key)
-            add(IntSetting.FAST_CPU_TIME.key)
-            add(BooleanSetting.USE_CUSTOM_CPU_TICKS.key)
-            add(IntSetting.CPU_TICKS.key)
-            add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
-            add(BooleanSetting.CPUOPT_UNSAFE_HOST_MMU.key)
-            add(BooleanSetting.USE_LRU_CACHE.key)
-            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
-            add(BooleanSetting.SYNC_MEMORY_OPERATIONS.key)
-            add(IntSetting.MEMORY_LAYOUT.key)
         }
     }
 
@@ -1159,18 +1145,26 @@ class SettingsFragmentPresenter(
     private fun addDebugSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
             add(HeaderSetting(R.string.gpu))
+
             add(IntSetting.RENDERER_BACKEND.key)
             add(BooleanSetting.RENDERER_DEBUG.key)
             add(BooleanSetting.RENDERER_PATCH_OLD_QCOM_DRIVERS.key)
+            add(BooleanSetting.BUFFER_REORDER_DISABLE.key)
 
             add(HeaderSetting(R.string.cpu))
+
             add(IntSetting.CPU_BACKEND.key)
             add(IntSetting.CPU_ACCURACY.key)
             add(BooleanSetting.USE_AUTO_STUB.key)
             add(SettingsItem.FASTMEM_COMBINED)
+            add(BooleanSetting.CPUOPT_UNSAFE_HOST_MMU.key)
+
             add(HeaderSetting(R.string.log))
+
             add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
+
             add(HeaderSetting(R.string.general))
+
             add(IntSetting.DEBUG_KNOBS.key)
         }
     }
