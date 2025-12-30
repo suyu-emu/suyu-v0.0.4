@@ -1343,7 +1343,7 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::D32_FLOAT_S8_UINT:
     case PixelFormat::Invalid:
     default:
-        LOG_ERROR(Render_Vulkan, "Unimplemented texture conversion from {} to {} format type", src_view.format, dst_view.format);
+        LOG_DEBUG(Render_Vulkan, "Unimplemented texture conversion from {} to {} format type", src_view.format, dst_view.format);
         break;
     }
 }
