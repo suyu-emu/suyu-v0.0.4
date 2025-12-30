@@ -663,6 +663,7 @@
     <string name="select_gpu_driver_default">Default</string>
     <string name="select_gpu_driver_error">Invalid driver selected</string>
     <string name="driver_already_installed">Driver already installed</string>
+    <string name="installed_label">%1$s (Installed)</string>
     <string name="system_gpu_driver">System GPU driver</string>
     <string name="installing_driver">Installing driver…</string>
 

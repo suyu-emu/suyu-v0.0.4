@@ -238,4 +238,18 @@ object GpuDriverHelper {
             driverStorageDirectory.mkdirs()
         }
     }
+
+    /**
+     * Checks if a driver zip with the given filename is already present and valid in the
+     * internal driver storage directory. Validation requires a readable meta.json with a name.
+     */
+    fun isDriverZipInstalledByName(fileName: String): Boolean {
+        // Normalize separators in case upstream sent a path
+        val baseName = fileName.substringAfterLast('/')
+            .substringAfterLast('\\')
+        val candidate = File("$driverStoragePath$baseName")
+        if (!candidate.exists() || candidate.length() == 0L) return false
+        val metadata = getMetadataFromZip(candidate)
+        return metadata.name != null
+    }
 }
