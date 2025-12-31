@@ -74,7 +74,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
     ui->tabWidget->addTab(general_tab.get(), tr("General"));
     ui->tabWidget->addTab(graphics_tab.get(), tr("Graphics"));
     ui->tabWidget->addTab(graphics_advanced_tab.get(), tr("GraphicsAdvanced"));
-    ui->tabWidget->addTab(graphics_extensions_tab.get(), tr("GraphicsExtensions"));
+    ui->tabWidget->addTab(graphics_extensions_tab.get(), tr("GraphicsExtra"));
     ui->tabWidget->addTab(hotkeys_tab.get(), tr("Hotkeys"));
     ui->tabWidget->addTab(input_tab.get(), tr("Controls"));
     ui->tabWidget->addTab(profile_tab.get(), tr("Profiles"));

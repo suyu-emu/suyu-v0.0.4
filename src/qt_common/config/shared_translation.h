@@ -61,7 +61,7 @@ static const std::map<Settings::ConsoleMode, QString> use_docked_mode_texts_map 
 };
 
 static const std::map<Settings::GpuAccuracy, QString> gpu_accuracy_texts_map = {
-    {Settings::GpuAccuracy::Low, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Performance"))},
+    {Settings::GpuAccuracy::Low, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Fast"))},
     {Settings::GpuAccuracy::Medium, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Balanced"))},
     {Settings::GpuAccuracy::High, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Accurate"))},
 };

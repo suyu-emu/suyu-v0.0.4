@@ -77,7 +77,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     ui->tabWidget->addTab(cpu_tab.get(), tr("CPU"));
     ui->tabWidget->addTab(graphics_tab.get(), tr("Graphics"));
     ui->tabWidget->addTab(graphics_advanced_tab.get(), tr("Adv. Graphics"));
-    ui->tabWidget->addTab(graphics_extensions_tab.get(), tr("GPU Extensions"));
+    ui->tabWidget->addTab(graphics_extensions_tab.get(), tr("Ext. Graphics"));
     ui->tabWidget->addTab(audio_tab.get(), tr("Audio"));
     ui->tabWidget->addTab(input_tab.get(), tr("Input Profiles"));
     ui->tabWidget->addTab(network_tab.get(), tr("Network"));

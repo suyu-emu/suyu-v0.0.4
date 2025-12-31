@@ -492,13 +492,13 @@ struct Values {
     SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
                                                   GpuOverclock::Medium,
                                                   "fast_gpu_time",
-                                                  Category::RendererAdvanced,
+                                                  Category::RendererHacks,
                                                   Specialization::Default};
 
     SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
                                                         false,
                                                         "skip_cpu_inner_invalidation",
-                                                        Category::RendererAdvanced,
+                                                        Category::RendererHacks,
                                                         Specialization::Default,
                                                         true,
                                                         true};
@@ -508,10 +508,10 @@ struct Values {
 #else
                                                false,
 #endif
-                                               "async_presentation", Category::RendererAdvanced};
+                                               "async_presentation", Category::RendererHacks};
 
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
-                                                     Category::RendererAdvanced};
+                                                     Category::RendererHacks};
 
     SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
 #if defined (_WIN32)

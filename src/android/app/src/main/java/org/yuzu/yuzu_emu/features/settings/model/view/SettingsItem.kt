@@ -306,6 +306,7 @@ abstract class SettingsItem(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_ACCURACY,
                     titleId = R.string.renderer_accuracy,
+                    descriptionId = R.string.renderer_accuracy_description,
                     choicesId = R.array.rendererAccuracyNames,
                     valuesId = R.array.rendererAccuracyValues
                 )

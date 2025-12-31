@@ -231,6 +231,7 @@ const char* TranslateCategory(Category category) {
         return "Overlay";
     case Category::Renderer:
     case Category::RendererAdvanced:
+    case Category::RendererHacks:
     case Category::RendererDebug:
     case Category::RendererExtensions:
         return "Renderer";

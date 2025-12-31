@@ -35,6 +35,7 @@ void ConfigureGraphicsExtensions::SetConfiguration() {}
 
 void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& builder) {
     auto& layout = *ui->populate_target->layout();
+
     std::map<u32, QWidget*> hold{}; // A map will sort the data for us
 
     for (auto setting :
@@ -70,6 +71,28 @@ void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& buil
 
     for (const auto& [id, widget] : hold) {
         layout.addWidget(widget);
+    }
+
+    auto& hacks = *ui->hacks_target->layout();
+    std::map<u32, QWidget*> hacks_hold{}; // A map will sort the data for us
+
+    for (auto setting : Settings::values.linkage.by_category[Settings::Category::RendererHacks]) {
+        auto* widget = builder.BuildWidget(setting, apply_funcs);
+
+        if (widget == nullptr) {
+            continue;
+        }
+
+        if (!widget->Valid()) {
+            widget->deleteLater();
+            continue;
+        }
+
+        hacks_hold.emplace(setting->Id(), widget);
+    }
+
+    for (const auto& [id, widget] : hacks_hold) {
+        hacks.addWidget(widget);
     }
 }
 

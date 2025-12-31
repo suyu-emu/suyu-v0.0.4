@@ -473,7 +473,8 @@
 
     <string name="advanced">Advanced</string>
 
-    <string name="renderer_accuracy">Accuracy level</string>
+    <string name="renderer_accuracy">GPU Mode</string>
+    <string name="renderer_accuracy_description">Controls the GPU emulation mode. Most games render fine with Fast or Balanced modes, but Accurate is still required for some. Particles tend to only render correctly with Accurate mode.</string>
     <string name="dma_accuracy">DMA Accuracy</string>
     <string name="dma_accuracy_description">Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave this on Default.</string>
     <string name="anisotropic_filtering">Anisotropic filtering</string>
@@ -721,18 +722,12 @@
     <!-- Custom Paths settings -->
     <string name="custom_save_directory">Save Data Directory</string>
     <string name="custom_save_directory_description">Set a custom path for save data storage</string>
-    <string name="select_directory">Select Directory</string>
-    <string name="choose_save_directory_action">Choose an action for the save directory:</string>
-    <string name="set_custom_path">Set Custom Path</string>
     <string name="reset_to_nand">Reset to Default</string>
     <string name="migrate_save_data">Migrate Save Data</string>
     <string name="migrate_save_data_question">Do you want to migrate existing save data to the new location?</string>
-    <string name="migrate_save_data_description">This will copy your save files from the old location to the new one.</string>
-    <string name="migrating_save_data">Migrating save data…</string>
     <string name="save_migration_complete">Save data migrated successfully</string>
     <string name="save_migration_failed">Save data migration failed</string>
     <string name="save_directory_set">Save directory set</string>
-    <string name="save_directory_reset">Save directory reset to default</string>
     <string name="destination_has_saves">The destination already contains data. Do you want to overwrite it?</string>
     <string name="all_files_permission_required">All Files Access permission is required for custom paths</string>
     <string name="grant_permission">Grant Permission</string>
@@ -970,7 +965,7 @@
     <string name="renderer_none">None</string>
 
     <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_low">Performance</string>
+    <string name="renderer_accuracy_low">Fast</string>
     <string name="renderer_accuracy_medium">Balanced</string>
     <string name="renderer_accuracy_high">Accurate</string>
 

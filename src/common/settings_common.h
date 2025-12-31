@@ -24,6 +24,7 @@ enum class Category : u32 {
     Overlay,
     Renderer,
     RendererAdvanced,
+    RendererHacks,
     RendererExtensions,
     RendererDebug,
     System,

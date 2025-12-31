@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>404</width>
+    <width>465</width>
     <height>376</height>
    </rect>
   </property>
@@ -26,43 +26,6 @@
       <item>
        <widget class="QWidget" name="normal_target" native="true">
         <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-        </layout>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="hacks">
-     <property name="title">
-      <string>Hacks</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Changing these options from their default may cause issues. Novitii cavete!</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QWidget" name="hacks_target" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="spacing">
-          <number>6</number>
-         </property>
          <property name="leftMargin">
           <number>0</number>
          </property>
