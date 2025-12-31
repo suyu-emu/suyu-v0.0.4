@@ -1,6 +1,8 @@
-# Cross Compile
+# Cross compiling
 
-## ARM64
+General guide for cross compiling.
+
+## Debian ARM64
 
 A painless guide for cross compilation (or to test NCE) from a x86_64 system without polluting your main.
 
