@@ -1125,14 +1125,16 @@ class SettingsFragmentPresenter(
                 )
             )
 
-            add(
-                SingleChoiceSetting(
-                    staticThemeColor,
-                    titleId = R.string.static_theme_color,
-                    choicesId = R.array.staticThemeNames,
-                    valuesId = R.array.staticThemeValues
+            if (IntSetting.THEME.getInt() != 1) {
+                add(
+                    SingleChoiceSetting(
+                        staticThemeColor,
+                        titleId = R.string.static_theme_color,
+                        choicesId = R.array.staticThemeNames,
+                        valuesId = R.array.staticThemeValues
+                    )
                 )
-            )
+            }
 
             val blackBackgrounds: AbstractBooleanSetting = object : AbstractBooleanSetting {
                 override fun getBoolean(needsGlobal: Boolean): Boolean =
