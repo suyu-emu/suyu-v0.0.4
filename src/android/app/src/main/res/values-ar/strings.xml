@@ -18,6 +18,13 @@
 
 
     <!-- Input Overlay -->
+    <string name="show_input_overlay">عرض طبقة الإدخال</string>
+    <string name="show_input_overlay_description">عرض طبقة عناصر التحكم باللمس أثناء المحاكاة</string>
+    <string name="overlay_snap_to_grid">محاذاة للشبكة</string>
+    <string name="overlay_snap_to_grid_description">ثبت عناصر التحكم في الطبقات على شبكة عند التعديل</string>
+    <string name="overlay_grid_size">حجم الشبكة</string>
+    <string name="overlay_grid_size_description">حجم خلايا الشبكة بوحدة البكسل</string>
+    <string name="input_overlay_behavior">السلوك</string>
     <string name="overlay_auto_hide">إخفاء الطبقة تلقائيًا</string>
     <string name="overlay_auto_hide_description">إخفاء طبقة ذراع التحكم باللمس تلقائيًا بعد مرور الوقت المحدد من عدم النشاط.</string>
     <string name="enable_input_overlay_auto_hide">تمكين إخفاء الطبقة تلقائيًا</string>
@@ -26,6 +33,8 @@
 
     <string name="input_overlay_options">طبقة الإدخال</string>
     <string name="input_overlay_options_description">ضبط ذراع التحكم على الشاشة</string>
+    <string name="edit_overlay_layout">تعديل تخطيط الطبقات</string>
+    <string name="edit_overlay_layout_description">ضبط موضع وحجم عناصر التحكم التي تظهر على الشاشة</string>
 
 
     <!-- Stats Overlay settings -->
@@ -77,21 +86,6 @@
     <string name="show_fw_version">عرض إصدار الفيرموير</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">الحالة الديناميكية الموسعة</string>
-    <string name="dyna_state_description">يتحكم في عدد المميزات التي يمكن استخدامها في الحالة الديناميكية الموسعة. الأرقام الأعلى تسمح بميزات أكثر ويمكن أن تعزز الأداء، ولكن قد تسبب مشكلات مع بعض السائقين والبائعين. قد تختلف القيمة الافتراضية بحسب نظامك وقدرات الأجهزة. يمكن تغيير هذه القيمة حتى يتم تحقيق الاستقرار وجودة الصورة الأفضل.</string>
-    <string name="disabled">معطل</string>
-    <string name="vertex_input_dynamic_state">حالة ديناميكية لإدخال الرأس</string>
-    <string name="vertex_input_dynamic_state_description">يتيح ميزة الحالة الديناميكية لإدخال الرأس لتحسين الجودة والأداء.</string>
-    <string name="provoking_vertex">الرأس المثير</string>
-    <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">فهرسة الوصف</string>
-    <string name="descriptor_indexing_description">يحسن معالجة النسيج والمخزن المؤقت، بالإضافة إلى طبقة الترجمة Maxwell. مدعوم من بعض وحدات معالجة الرسومات Vulkan 1.1 وجميع وحدات معالجة الرسومات Vulkan 1.2+.</string>
-    <string name="sample_shading_fraction">نسبة التظليل النموذجية</string>
-    <string name="sample_shading_fraction_description">كثافة تمرير تظليل العينة. تؤدي القيم الأعلى إلى تحسين الجودة بشكل أكبر، ولكنها تقلل أيضًا من الأداء إلى حد كبير.</string>
-
-    <string name="sync_memory_operations">مزامنة عمليات الذاكرة</string>
-    <string name="sync_memory_operations_description">يضمن اتساق البيانات بين عمليات الحوسبة والذاكرة. هذا الخيار قد يحل المشكلات في بعض الألعاب، ولكن قد يقلل الأداء في بعض الحالات. يبدو أن الألعاب التي تستخدم Unreal Engine 4 هي الأكثر تأثرًا.</string>
     <string name="buffer_reorder_disable">تعطيل إعادة ترتيب المخزن المؤقت</string>
     <string name="buffer_reorder_disable_description">عند تحديده، يتم تعطيل إعادة ترتيب تحميلات الذاكرة المعينة، مما يسمح بربط التحميلات بعمليات سحب محددة. قد يؤدي ذلك إلى انخفاض الأداء في بعض الحالات.</string>
 
@@ -99,29 +93,17 @@
     <string name="use_sync_core_description">قم بمزامنة سرعة النواة مع النسبة المئوية للسرعة القصوى لتحسين الأداء دون تغيير السرعة الفعلية للعبة.</string>
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقتة LRU</string>
     <string name="use_lru_cache_description">قم بتمكين أو تعطيل ذاكرة التخزين المؤقتة الأقل استخدامًا (LRU)، مما يزيد من الأداء عن طريق توفير استخدام معالج وحدة المعالجة المركزية. قد تواجه بعض الألعاب مشكلات مع هذا الإعداد، لذا قم بتعطيله إذا لم يتم تشغيل اللعبة أو تعطلت بشكل عشوائي.</string>
-    <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
-    <string name="custom_cpu_ticks_description">قم بتعيين قيمة مخصصة لدورات المعالج. القيم الأعلى يمكن أن تزيد من الأداء، ولكنها قد تتسبب أيضًا في تجميد اللعبة. يوصى باستخدام نطاق 77-21000.</string>
-    <string name="cpu_ticks">دورات</string>
-    <string name="skip_cpu_inner_invalidation">تخطي إبطال صلاحية وحدة المعالجة المركزية الداخلية</string>
-    <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة من جانب وحدة المعالجة المركزية أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسن أداءها. قد يتسبب ذلك في حدوث أعطال أو تعطل في بعض الألعاب.</string>
+
     <string name="cpuopt_unsafe_host_mmu">تمكين محاكاة MMU المضيف</string>
     <string name="cpuopt_unsafe_host_mmu_description">يعمل هذا التحسين على تسريع وصول الذاكرة بواسطة البرنامج الضيف. يؤدي تمكينه إلى إجراء عمليات قراءة/كتابة ذاكرة الضيف مباشرة في الذاكرة والاستفادة من MMU المضيف. يؤدي تعطيل هذا إلى إجبار جميع عمليات الوصول إلى الذاكرة على استخدام محاكاة MMU البرمجية.</string>
-    <string name="fast_cpu_time">CPU Clock</string>
-    <string name="fast_cpu_time_description">استخدم تعزيز (1700MHz) للتشغيل بأعلى سرعة أصلية لـ Switch، أو سريع (2000MHz) للتشغيل بضعف السرعة.</string>
-    <string name="memory_layout">تخطيط الذاكرة</string>
-    <string name="memory_layout_description">(تجريبي) تغيير تخطيط الذاكرة المحاكي. هذا الإعداد لن يزيد من الأداء، ولكن قد يساعد في الألعاب باستخدام قرارات عالية عبر التعديلات. لا تستخدم على الهواتف التي تحتوي على 8GB من ذاكرة الوصول العشوائي أو أقل. يعمل فقط على الواجهة الخلفية الديناميكية (JIT).</string>
-    <string name="dma_accuracy">دقة DMA</string>
-    <string name="dma_accuracy_description">يتحكم في دقة DMA. يمكن أن تؤدي الدقة الآمنة إلى حل المشكلات في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا لم تكن متأكدًا، فاترك هذا الخيار على الإعداد الافتراضي.</string>
-    <string name="debug_knobs">أزرار تصحيح الأخطاء</string>
+    <string name="debug_knobs">مقابض تصحيح الأخطاء</string>
     <string name="debug_knobs_description">للإستخدام في التطوير فقط.</string>
     <string name="debug_knobs_hint">0 إلى 65535</string>
 
     <!-- Shader Backend -->
-    <string name="shader_backend">واجهة برمجة التظليل</string>
-    <string name="shader_backend_description">حدد كيفية تجميع وترجمة برامج التظليل لوحدة معالجة الرسومات الخاصة بك.</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
+    <string name="shader_backend_spirv">SPIRV</string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">محاكاة NVDEC</string>
@@ -130,7 +112,7 @@
     <string name="nvdec_emulation_gpu">وحدة المعالجة الرسومية</string>
     <string name="nvdec_emulation_none">لا شيء</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">أبداً</string>
     <string name="on_load">عند التحميل</string>
     <string name="always">دائماً</string>
@@ -455,6 +437,15 @@
     <string name="use_custom_rtc_description">يسمح لك بتعيين ساعة مخصصة في الوقت الفعلي منفصلة عن وقت النظام الحالي لديك</string>
     <string name="set_custom_rtc">تعيين ساعة مخصصة في الوقت الحقيقي</string>
 
+    <!-- CPU -->
+    <string name="fast_cpu_time">رفع تردد المعالج</string>
+    <string name="fast_cpu_time_description">يُجبر هذا الخيار المعالج المُحاكى على العمل بتردد أعلى، مما يُقلل من بعض مُحددات معدل الإطارات. استخدم وضع Boost (1700 ميجاهرتز) للتشغيل بأعلى تردد أصلي لجهاز Switch، أو وضع Fast (2000 ميجاهرتز) للتشغيل بتردد مُضاعف.</string>
+    <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
+    <string name="custom_cpu_ticks_description">قم بتعيين قيمة مخصصة لدورات المعالج. القيم الأعلى يمكن أن تزيد من الأداء، ولكنها قد تتسبب أيضًا في تجميد اللعبة. يوصى باستخدام نطاق 77-21000.</string>
+    <string name="cpu_ticks">دورات</string>
+    <string name="memory_layout">تخطيط الذاكرة</string>
+    <string name="memory_layout_description">(تجريبي) تغيير تخطيط الذاكرة المحاكي. هذا الإعداد لن يزيد من الأداء، ولكن قد يساعد في الألعاب باستخدام قرارات عالية عبر التعديلات. لا تستخدم على الهواتف التي تحتوي على 8GB من ذاكرة الوصول العشوائي أو أقل. يعمل فقط على الواجهة الخلفية الديناميكية (JIT).</string>
+
     <string name="generate">إنشاء</string>
 
     <!-- Network settings strings -->
@@ -465,31 +456,72 @@
     <string name="network">الشبكة</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">الشاشة</string>
-
-    <string name="renderer_accuracy">مستوى الدقة</string>
     <string name="renderer_resolution">الدقة (الإرساء/محمول)</string>
     <string name="renderer_vsync">VSync وضع</string>
-    <string name="renderer_screen_layout">اتجاه العرض</string>
-    <string name="renderer_aspect_ratio">نسبة العرض إلى الارتفاع</string>
+    <string name="shader_backend">واجهة برمجة التظليل</string>
+    <string name="shader_backend_description">حدد كيفية تجميع وترجمة برامج التظليل لوحدة معالجة الرسومات الخاصة بك.</string>
     <string name="renderer_scaling_filter">مرشح ملائم للنافذة</string>
     <string name="fsr_sharpness">حدة FSR</string>
     <string name="fsr_sharpness_description">يحدد مدى وضوح الصورة عند استخدام التباين الديناميكي لـ FSR</string>
     <string name="renderer_anti_aliasing">طريقة مضاد التعرج</string>
-    <string name="renderer_force_max_clock">إجبار السرعة القصوى (لأجهزة Adreno فقط)</string>
-    <string name="renderer_force_max_clock_description">يجبر وحدة معالجة الرسومات على العمل بأقصى سرعة ممكنة (سيظل يتم تطبيق القيود الحرارية).</string>
-    <string name="renderer_optimize_spirv_output">تحسين إخراج Spir-V</string>
+    <string name="renderer_optimize_spirv_output">تحسين مخرجات SPIRV</string>
     <string name="renderer_optimize_spirv_output_description">يعمل على تحسين أداء برامج التظليل المجمعة لتحسين كفاءة وحدة معالجة الرسومات، ولكنه قد يؤدي إلى زيادة وقت التحميل وإبطاء السرعة في البداية.</string>
-    <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
-    <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
-    <string name="fast_gpu_time">عامل زيادة تردد وحدة معالجة الرسومات</string>
-    <string name="fast_gpu_time_description">استخدم 128 لأقصى أداء و512 لأقصى دقة رسومية.</string>
-    <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
-    <string name="renderer_reactive_flushing_description">يحسن دقة العرض في بعض الألعاب على حساب الأداء.</string>
-    <string name="use_disk_shader_cache">ذاكرة التخزين المؤقتة لتظلل القرص</string>
-    <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
+
+
+    <string name="advanced">متقدم</string>
+
+    <string name="dma_accuracy">دقة DMA</string>
+    <string name="dma_accuracy_description">يتحكم في دقة DMA. يمكن أن تؤدي الدقة الآمنة إلى حل المشكلات في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا لم تكن متأكدًا، فاترك هذا الخيار على الإعداد الافتراضي.</string>
     <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
     <string name="anisotropic_filtering_description">يحسن جودة الأنسجة عند عرضها بزوايا مائلة</string>
+    <string name="vram_usage_mode">وضع استخدام ذاكرة VRAM</string>
+    <string name="vram_usage_mode_description">تحكم في مدى قوة تخصيص المحاكي لذاكرة وحدة معالجة الرسومات وتحريرها.</string>
+    <string name="accelerate_astc">طريقة فك ضغط ASTC</string>
+    <string name="accelerate_astc_description">حدد كيفية فك ضغط نسيج ASTC للعرض: CPU (بطيء، آمن)، GPU (سريع، موصى به)، أو CPU Async (بدون توقف، قد يسبب مشاكل)</string>
+    <string name="astc_recompression">طريقة إعادة ضغط ASTC</string>
+    <string name="astc_recompression_description">حدد كيفية إعادة ضغط نسيج ASTC لتحسين التوافق والأداء. تمكين هذا الخيار يوفر VRAM ولكن قد يقلل من جودة النسيج.</string>
+
+    <string name="sync_memory_operations">مزامنة عمليات الذاكرة</string>
+    <string name="sync_memory_operations_description">يضمن اتساق البيانات بين عمليات الحوسبة والذاكرة. هذا الخيار قد يحل المشكلات في بعض الألعاب، ولكن قد يقلل الأداء في بعض الحالات. يبدو أن الألعاب التي تستخدم Unreal Engine 4 هي الأكثر تأثرًا.</string>
+    <string name="use_disk_shader_cache">ذاكرة التخزين المؤقتة لتظلل القرص</string>
+    <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
+    <string name="renderer_force_max_clock">إجبار السرعة القصوى (لأجهزة Adreno فقط)</string>
+    <string name="renderer_force_max_clock_description">يجبر وحدة معالجة الرسومات على العمل بأقصى سرعة ممكنة (سيظل يتم تطبيق القيود الحرارية).</string>
+    <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
+    <string name="renderer_reactive_flushing_description">يحسن دقة العرض في بعض الألعاب على حساب الأداء.</string>
+
+
+    <string name="hacks">اختراقات</string>
+
+    <string name="fast_gpu_time">وقت معالجة الرسومات السريع</string>
+    <string name="fast_gpu_time_description">يُجبر هذا الخيار معظم الألعاب على العمل بأعلى دقة عرض أصلية. استخدم 256 للحصول على أقصى أداء و512 للحصول على أعلى جودة رسومات.</string>
+    <string name="skip_cpu_inner_invalidation">تخطي إبطال صلاحية وحدة المعالجة المركزية الداخلية</string>
+    <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة من جانب وحدة المعالجة المركزية أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسن أداءها. قد يتسبب ذلك في حدوث أعطال أو تعطل في بعض الألعاب.</string>
+    <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
+    <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
+
+    <string name="extensions">إضافات</string>
+
+    <string name="dyna_state">الحالة الديناميكية الموسعة</string>
+    <string name="dyna_state_description">يتحكم هذا الخيار في عدد الميزات التي يمكن استخدامها في حالة الديناميكية الموسعة. تسمح الأرقام الأعلى بمزيد من الميزات ويمكن أن تزيد من الأداء، ولكنها قد تسبب مشاكل مع بعض برامج التشغيل والأجهزة.</string>
+    <string name="disabled">معطل</string>
+    <string name="vertex_input_dynamic_state">حالة ديناميكية لإدخال الرأس</string>
+    <string name="vertex_input_dynamic_state_description">يتيح ميزة الحالة الديناميكية لإدخال الرأس لتحسين الجودة والأداء.</string>
+    <string name="provoking_vertex">الرأس المثير</string>
+    <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">فهرسة الوصف</string>
+    <string name="descriptor_indexing_description">يحسن معالجة النسيج والمخزن المؤقت، بالإضافة إلى طبقة الترجمة Maxwell. مدعوم من بعض وحدات معالجة الرسومات Vulkan 1.1 وجميع وحدات معالجة الرسومات Vulkan 1.2+.</string>
+    <string name="sample_shading_fraction">تظليل العينة</string>
+    <string name="sample_shading_fraction_description">يسمح هذا الخيار بتنفيذ مُظلل الأجزاء لكل عينة في جزء متعدد العينات بدلاً من تنفيذه مرة واحدة لكل جزء. يُحسّن هذا من جودة الرسومات على حساب بعض الأداء.</string>
+
+
+    <string name="display">الشاشة</string>
+
+    <string name="renderer_screen_layout">اتجاه العرض</string>
+    <string name="renderer_aspect_ratio">نسبة العرض إلى الارتفاع</string>
+    <string name="vertical_alignment">محاذاة عمودية</string>
+    <string name="picture_in_picture">صورة داخل صورة</string>
+    <string name="picture_in_picture_description">تصغير النافذة عند وضعها في الخلفية</string>
 
     <string name="warning_resolution">من المعروف أن تغيير الدقة إلى 2x أو أعلى يسبب مشاكل وقد يؤدي إلى إبطاء كبير في أداء جهازك.</string>
 
@@ -502,6 +534,8 @@
     <string name="renderer_api">واجهة برمجة التطبيقات</string>
     <string name="renderer_debug">تصحيح الأخطاء الرسومية</string>
     <string name="renderer_debug_description">يضبط واجهة برمجة التطبيقات الرسومية على وضع تصحيح الأخطاء البطيء.</string>
+    <string name="patch_old_qcom_drivers">تصحيح نسيج BCn</string>
+    <string name="patch_old_qcom_drivers_description">تجاوز الكشف التلقائي عن تنسيق نسيج BCn على وحدات معالجة الرسومات Adreno. عادةً ما يتم الكشف التلقائي بناءً على إصدار Android (ممكّن على API 28+).</string>
     <string name="fastmem">Fastmem</string>
 
     <string name="log">السجلات</string>
@@ -538,7 +572,7 @@
     <string name="pressed">مضغوط</string>
     <string name="range">النطاق</string>
     <string name="deadzone">المنطقة الميتة</string>
-    <string name="modifier">تعديل</string>
+    <string name="modifier">معدل</string>
     <string name="modifier_range">تعديل النطاق</string>
     <string name="triggers">المحفزات</string>
     <string name="button_l">L</string>
@@ -601,6 +635,7 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">افتراضي</string>
+    <string name="default_string">الافتراضي</string>
     <string name="loading">جارٍ التحميل…</string>
     <string name="shutting_down">جارٍ إيقاف التشغيل...</string>
     <string name="reset_setting_confirmation">هل تريد إعادة تعيين هذا الإعداد إلى قيمته الافتراضية؟</string>
@@ -639,6 +674,7 @@
     <string name="select_gpu_driver_default">افتراضي</string>
     <string name="select_gpu_driver_error">تم تحديد برنامج تشغيل غير صالح</string>
     <string name="driver_already_installed">برنامج التشغيل مثبت بالفعل</string>
+    <string name="installed_label">%1$s (تم التثبيت)</string>
     <string name="system_gpu_driver">برنامج تشغيل وحدة معالجة الرسومات للنظام</string>
     <string name="installing_driver">جارٍ تثبيت برنامج التشغيل…</string>
 
@@ -675,6 +711,27 @@
     <string name="preferences_player">اللاعب %d</string>
     <string name="preferences_debug">تصحيح الأخطاء</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
+    <string name="preferences_custom_paths">مسارات مخصصة</string>
+    <string name="preferences_custom_paths_description">حفظ مجلد البيانات</string>
+
+    <!-- Custom Paths settings -->
+    <string name="custom_save_directory">حفظ مجلد البيانات</string>
+    <string name="custom_save_directory_description">تعيين مسار مخصص لتخزين بيانات الحفظ</string>
+    <string name="reset_to_nand">إعادة التعيين إلى الإعدادات الافتراضية</string>
+    <string name="migrate_save_data">نقل بيانات الحفظ</string>
+    <string name="migrate_save_data_question">هل تريد نقل بيانات الحفظ الحالية إلى الموقع الجديد؟</string>
+    <string name="save_migration_complete">تم نقل بيانات الحفظ بنجاح</string>
+    <string name="save_migration_failed">فشل نقل بيانات الحفظ</string>
+    <string name="save_directory_set">تم تعيين مجلد الحفظ</string>
+    <string name="destination_has_saves">الوجهة تحتوي بالفعل على بيانات. هل تريد استبدالها؟</string>
+    <string name="all_files_permission_required">مطلوب إذن الوصول إلى جميع الملفات للمسارات المخصصة</string>
+    <string name="grant_permission">منح الإذن</string>
+    <string name="custom_nand_directory">مجلد الذاكرة الداخلية</string>
+    <string name="custom_nand_directory_description">تعيين مسار مخصص لتخزين الذاكرة الداخلية</string>
+    <string name="custom_sdmc_directory">مجلد بطاقة SD</string>
+    <string name="custom_sdmc_directory_description">تعيين مسار مخصص لتخزين بطاقة SD الافتراضية</string>
+    <string name="path_set">تم تعيين المسار بنجاح</string>
+    <string name="skip_migration">تخطي</string>
 
     <!-- Game properties -->
     <string name="info">معلومات</string>
@@ -793,7 +850,7 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">خروج من المحاكاة</string>
     <string name="emulation_done">إنهاء</string>
-    <string name="emulation_toggle_controls">تبديل ذراع التحكم</string>
+    <string name="emulation_toggle_controls">تبديل أزرار التحكم</string>
     <string name="emulation_rel_stick_center">مركز العصا النسبي</string>
     <string name="emulation_dpad_slide">انزلاق الأسهم</string>
     <string name="emulation_haptics">الاهتزازات الديناميكية</string>
@@ -805,6 +862,7 @@
     <string name="emulation_control_opacity">الشفافية</string>
     <string name="emulation_touch_overlay_reset">إعادة تعيين الطبقة</string>
     <string name="emulation_touch_overlay_edit">تعديل الطبقة</string>
+    <string name="emulation_snap_to_grid">محاذاة للشبكة</string>
     <string name="emulation_pause">إيقاف المحاكاة مؤقتًا</string>
     <string name="emulation_unpause">إلغاء الإيقاف المؤقت للمحاكاة</string>
     <string name="emulation_input_overlay">خيارات الطبقة</string>
@@ -859,6 +917,7 @@
     <string name="clock_fast">سريع (2000MHz)</string>
 
     <!-- GPU overclock factors -->
+    <string name="off">تعطيل</string>
     <string name="fast_gpu_medium">متوسط (256)</string>
     <string name="fast_gpu_high">مرتفع (512)</string>
 
@@ -879,28 +938,18 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">لاشيء</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_low">الأداء</string>
     <string name="renderer_accuracy_medium">متوازن</string>
-    <string name="renderer_accuracy_high">دقه</string>
+    <string name="renderer_accuracy_high">دقيق</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">افتراضي</string>
     <string name="dma_accuracy_unsafe">غير آمن</string>
     <string name="dma_accuracy_safe">آمن</string>
 
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">طريقة فك ضغط ASTC</string>
-    <string name="accelerate_astc_description">حدد كيفية فك ضغط نسيج ASTC للعرض: CPU (بطيء، آمن)، GPU (سريع، موصى به)، أو CPU Async (بدون توقف، قد يسبب مشاكل)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">وحدة المعالجة المركزية</string>
     <string name="accelerate_astc_gpu">وحدة معالجة الرسومات</string>
     <string name="accelerate_astc_async">وحدة المعالجة المركزية غير المتزامنة</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">طريقة إعادة ضغط ASTC</string>
-    <string name="astc_recompression_description">حدد كيفية إعادة ضغط نسيج ASTC لتحسين التوافق والأداء. تمكين هذا الخيار يوفر VRAM ولكن قد يقلل من جودة النسيج.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">غير مضغوط</string>
@@ -908,8 +957,6 @@
     <string name="astc_recompression_bc3">BC3 (جودة متوسطة)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">وضع استخدام ذاكرة VRAM</string>
-    <string name="vram_usage_mode_description">تحكم في مدى قوة تخصيص المحاكي لذاكرة وحدة معالجة الرسومات وتحريرها.</string>
     <string name="vram_usage_conservative">محافظ</string>
     <string name="vram_usage_aggressive">عدواني</string>
 
@@ -971,7 +1018,7 @@
     <string name="cpu_backend_nce">تنفيذ التعليمات البرمجية الأصلية (NCE)</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_accurate">دقه</string>
+    <string name="cpu_accuracy_accurate">دقيق</string>
     <string name="cpu_accuracy_unsafe">غير آمن</string>
     <string name="cpu_accuracy_paranoid">Paranoid</string>
     <string name="cpu_accuracy_debugging">تصحيح الأخطاء</string>
@@ -1059,15 +1106,12 @@
     <string name="gray">رمادي</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">صورة داخل صورة</string>
-    <string name="picture_in_picture_description">تصغير النافذة عند وضعها في الخلفية</string>
     <string name="pause">إيقاف مؤقت</string>
     <string name="play">تشغيل</string>
     <string name="mute">كتم الصوت</string>
     <string name="unmute">إلغاء كتم الصوت</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">محاذاة عمودية</string>
     <string name="top">أعلى</string>
     <string name="center">منتصف</string>
     <string name="bottom">أسفل</string>
@@ -1082,7 +1126,7 @@
     <string name="swkbd_applet">لوحة المفاتيح البرمجية</string>
 
     <string name="airplane_mode">وضع الطيران</string>
-    <string name="airplane_mode_description">ينقل وضع الطيران إلى نظام التشغيل Switch</string>
+    <string name="airplane_mode_description">يمرر وضع الطيران إلى نظام تشغيل Switch</string>
 
     <string name="enable_overlay">تمكين التطبيق الصغير للطبقة</string>
     <string name="enable_overlay_description">تمكين التطبيق الصغير المدمج في Horizon. اضغط مع الاستمرار على زر الشاشة الرئيسية لمدة 1 ثانية لإظهاره.</string>

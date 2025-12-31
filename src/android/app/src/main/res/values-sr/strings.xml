@@ -51,19 +51,6 @@
     <string name="show_fw_version">Прикажи верзију фирмвера</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">Проширена динамичка држава</string>
-    <string name="dyna_state_description">Управља бројем функција које се могу користити у Проширеном динамичком стању. Веће вредности омогућавају више функција и могу повећати перформансе, али могу изазвати проблеме са неким драјверима и произвођачима. Подразумевана вредност може се разликовати у зависности од вашег система и хардверских могућности. Ова вредност се може мењати док се не постигне стабилност и бољи визуелни квалитет.</string>
-    <string name="disabled">Искључено</string>
-    <string name="provoking_vertex">Провоцирајући врх</string>
-    <string name="provoking_vertex_description">Побољшава осветљење и вертификат руковања у одређеним играма. Подржан само на Вулкану 1.0+ ГПУ-у.</string>
-    <string name="descriptor_indexing">Индексирање дескриптора</string>
-    <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
-    <string name="sample_shading_fraction">Удео сенчења узорка</string>
-    <string name="sample_shading_fraction_description">Интензитет проласка сенчења узорка. Веће вредности побољшавају квалитет више, али такође више смањују перформансе.</string>
-
-    <string name="sync_memory_operations">Синхронизација меморијских операција</string>
-    <string name="sync_memory_operations_description">Осигурава конзистентност података између рачунских и меморијских операција. Ова опција би требало да поправи проблеме у неким играма, али може смањити перформансе у неким случајевима. Чини се да су игре са Unreal Engine 4 највише погођене.</string>
     <string name="buffer_reorder_disable">Онемогући преуређивање бафера</string>
     <string name="buffer_reorder_disable_description">Када је означено, онемогућава преуређивање учитавања мапиране меморије што омогућава повезивање учитавања са одређеним цртањима. Може у неким случајевима смањити перформансе.</string>
 
@@ -71,26 +58,12 @@
     <string name="use_sync_core_description">Синхронизујте језгро Тицк Брзина брзине максималне брзине да бисте побољшали перформансе без измене стварне брзине игре.</string>
     <string name="use_lru_cache">Омогући ЛРУ кеш</string>
     <string name="use_lru_cache_description">Омогућите или онемогућите најмање недавно коришћене (ЛРУ) кеш меморије, све веће перформансе штедећи употребу процеса ЦПУ-а. Неке игре са њом имају проблеме, посебно тотк 1.2.1, тако да онемогућите ако се игра не покрене или се руши насумично.</string>
-    <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
-    <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
-    <string name="cpu_ticks">Тактови</string>
-    <string name="skip_cpu_inner_invalidation">Preskoči unutrašnje poništavanje CPU-a</string>
-    <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Омогући емулацију MMU домаћина</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ова оптимизација убрзава приступ меморији од стране гостујућег програма. Укључивање изазива да се читања/уписа меморије госта обављају директно у меморији и користе MMU домаћина. Искључивање присиљава све приступе меморији да користе софтверску емулацију MMU.</string>
-    <string name="fast_cpu_time">ЦПУ сат</string>
-    <string name="fast_cpu_time_description">Користите појачање (1700МХз) да бисте се покренули на највишим матичним тактом Свитцх \ 2000МХз (2000МХз) да бисте покренули на 2к сату.</string>
-    <string name="memory_layout">Изглед меморије</string>
-    <string name="memory_layout_description">(Експериментално) Промените изглед емулираног меморије. Ово постављање неће повећати перформансе, али може помоћи у играма које користе високе резолуције путем модова. Не користите на телефонима са 8 ГБ РАМ-а или мање. Ради само на динамичком (ЈИТ) бацкенд-у.</string>
-    <string name="dma_accuracy">DMA тачност</string>
-    <string name="dma_accuracy_description">Управља прецизношћу DMA-а. Сигурна прецизност може да исправи проблеме у неким играма, али у неким случајевима може да утиче и на перформансе. Ако нисте сигурни, оставите ово на Подразумевано.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">Схадер Бацкенд</string>
-    <string name="shader_backend_description">Изаберите како се сјеначици саставе и преведете за ваш ГПУ.</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">НВДЕЦ Емулација</string>
     <string name="nvdec_emulation_description">Изаберите како се видео декодирање (НВДЕЦ) обрађује током секс и увозних интросија.</string>
@@ -98,7 +71,7 @@
     <string name="nvdec_emulation_gpu">ГПУ</string>
     <string name="nvdec_emulation_none">Ниједан</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Невер</string>
     <string name="on_load">На оптерећење</string>
     <string name="always">Увек</string>
@@ -370,6 +343,12 @@
     <string name="use_custom_rtc_description">Омогућава вам да поставите прилагођени сат у реалном времену одвојено од тренутног времена система.</string>
     <string name="set_custom_rtc">Подесите прилагођени РТЦ</string>
 
+    <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
+    <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
+    <string name="cpu_ticks">Тактови</string>
+    <string name="memory_layout">Изглед меморије</string>
+    <string name="memory_layout_description">(Експериментално) Промените изглед емулираног меморије. Ово постављање неће повећати перформансе, али може помоћи у играма које користе високе резолуције путем модова. Не користите на телефонима са 8 ГБ РАМ-а или мање. Ради само на динамичком (ЈИТ) бацкенд-у.</string>
+
     <string name="generate">Генериши</string>
 
     <!-- Network settings strings -->
@@ -380,31 +359,56 @@
     <string name="network">Мрежа</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">Приказ</string>
-
-    <string name="renderer_accuracy">Ниво тачности</string>
     <string name="renderer_resolution">Резолуција (ручно / прикључено)</string>
     <string name="renderer_vsync">Всинц мод</string>
-    <string name="renderer_screen_layout">Оријентација</string>
-    <string name="renderer_aspect_ratio">Омјер аспекта</string>
+    <string name="shader_backend">Схадер Бацкенд</string>
+    <string name="shader_backend_description">Изаберите како се сјеначици саставе и преведете за ваш ГПУ.</string>
     <string name="renderer_scaling_filter">Филтер прилагођавања прозора</string>
     <string name="fsr_sharpness">ФСР оштрина</string>
     <string name="fsr_sharpness_description">Одређује колико ће се слика наоштрен трајати док користи \"ФСР\" динамички контраст</string>
     <string name="renderer_anti_aliasing">Метода против алиасирања</string>
-    <string name="renderer_force_max_clock">Формирајте максималне сатове (само адрено)</string>
-    <string name="renderer_force_max_clock_description">Снагује ГПУ да се покреће максималним могућим сатовима (топлотна ограничења ће се и даље примењивати).</string>
-    <string name="renderer_optimize_spirv_output">Оптимизирајте Спирев излаз</string>
     <string name="renderer_optimize_spirv_output_description">Оптимизира састављена схадер за побољшање ефикасности ГПУ-а.</string>
-    <string name="renderer_asynchronous_shaders">Користите асинхроне схадера</string>
-    <string name="renderer_asynchronous_shaders_description">Саставља схадера асинхроно. Ово може умањити затезаче, али могу такође да уведе пропусте.</string>
-    <string name="fast_gpu_time">ГПУ оверклок фактора</string>
-    <string name="fast_gpu_time_description">Користите 128 за максималне перформансе и 512 за максималну верност графике.</string>
-    <string name="renderer_reactive_flushing">Користите реактивно испирање</string>
-    <string name="renderer_reactive_flushing_description">Побољшава тачност приказивања у неким играма по цени перформанси.</string>
-    <string name="use_disk_shader_cache">Предмеморија сјена диска</string>
-    <string name="use_disk_shader_cache_description">Смањује муцање локалном чувањем и учитавањем генерисаних схадера.</string>
+
+
+    <string name="dma_accuracy">DMA тачност</string>
+    <string name="dma_accuracy_description">Управља прецизношћу DMA-а. Сигурна прецизност може да исправи проблеме у неким играма, али у неким случајевима може да утиче и на перформансе. Ако нисте сигурни, оставите ово на Подразумевано.</string>
     <string name="anisotropic_filtering">Анисотропни филтрирање</string>
     <string name="anisotropic_filtering_description">Побољшава квалитет текстура када се посматра у косим угловима</string>
+    <string name="vram_usage_mode">ВРАМ режим употребе</string>
+    <string name="vram_usage_mode_description">Контролишите колико агресивно емулатор додељује и ослобађа ГПУ меморију.</string>
+    <string name="accelerate_astc">АСТЦ метода декодирања</string>
+    <string name="accelerate_astc_description">Изаберите како су текстуре са компримираним текстовима декодиране за приказивање: ЦПУ (споро, сигуран), ГПУ (Фаст, Препоручи) или ЦПУ АСИНЦ (без затезача, могу да изазове питања)</string>
+    <string name="astc_recompression">Метода рекомпресије АСТЦ-а</string>
+    <string name="astc_recompression_description">Изаберите како се текстуре АСТЦ препоручују да би се побољшале компатибилност и перформансе. Омогућавање ове опције штеди ВРАМ, али може смањити квалитет текстуре.</string>
+
+    <string name="sync_memory_operations">Синхронизација меморијских операција</string>
+    <string name="sync_memory_operations_description">Осигурава конзистентност података између рачунских и меморијских операција. Ова опција би требало да поправи проблеме у неким играма, али може смањити перформансе у неким случајевима. Чини се да су игре са Unreal Engine 4 највише погођене.</string>
+    <string name="use_disk_shader_cache">Предмеморија сјена диска</string>
+    <string name="use_disk_shader_cache_description">Смањује муцање локалном чувањем и учитавањем генерисаних схадера.</string>
+    <string name="renderer_force_max_clock">Формирајте максималне сатове (само адрено)</string>
+    <string name="renderer_force_max_clock_description">Снагује ГПУ да се покреће максималним могућим сатовима (топлотна ограничења ће се и даље примењивати).</string>
+    <string name="renderer_reactive_flushing">Користите реактивно испирање</string>
+    <string name="renderer_reactive_flushing_description">Побољшава тачност приказивања у неким играма по цени перформанси.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">Preskoči unutrašnje poništavanje CPU-a</string>
+    <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
+    <string name="renderer_asynchronous_shaders">Користите асинхроне схадера</string>
+    <string name="renderer_asynchronous_shaders_description">Саставља схадера асинхроно. Ово може умањити затезаче, али могу такође да уведе пропусте.</string>
+
+    <string name="dyna_state">Проширена динамичка држава</string>
+    <string name="disabled">Искључено</string>
+    <string name="provoking_vertex">Провоцирајући врх</string>
+    <string name="provoking_vertex_description">Побољшава осветљење и вертификат руковања у одређеним играма. Подржан само на Вулкану 1.0+ ГПУ-у.</string>
+    <string name="descriptor_indexing">Индексирање дескриптора</string>
+    <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
+    <string name="display">Приказ</string>
+
+    <string name="renderer_screen_layout">Оријентација</string>
+    <string name="renderer_aspect_ratio">Омјер аспекта</string>
+    <string name="vertical_alignment">Вертикално поравнање</string>
+    <string name="picture_in_picture">Слика на слици</string>
+    <string name="picture_in_picture_description">Смањите прозор када се постави у позадини</string>
 
     <string name="warning_resolution">Познато је да скалирање резолуције на 2x или више изазива проблеме и може довести до значајног успоравања вашег уређаја.</string>
 
@@ -585,7 +589,6 @@
     <string name="preferences_player">Играч%d</string>
     <string name="preferences_debug">Ослободити збрајања</string>
     <string name="preferences_debug_description">ЦПУ / ГПУ уклањање погрешака, графички АПИ, ФастМем</string>
-
     <!-- Game properties -->
     <string name="info">Информације</string>
     <string name="info_description">ИД програма, програмер, верзија</string>
@@ -726,10 +729,6 @@
     <string name="clock_boost">Боост (1700МХз)</string>
     <string name="clock_fast">Брзи (2000МХз)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Средња (256)</string>
-    <string name="fast_gpu_high">Висок (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Целзијус</string>
     <string name="temperature_fahrenheit">Фаренхајт</string>
@@ -749,18 +748,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Подразумевано</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">АСТЦ метода декодирања</string>
-    <string name="accelerate_astc_description">Изаберите како су текстуре са компримираним текстовима декодиране за приказивање: ЦПУ (споро, сигуран), ГПУ (Фаст, Препоручи) или ЦПУ АСИНЦ (без затезача, могу да изазове питања)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">ЦПУ</string>
     <string name="accelerate_astc_gpu">ГПУ</string>
     <string name="accelerate_astc_async">ЦПУ асинхроно</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">Метода рекомпресије АСТЦ-а</string>
-    <string name="astc_recompression_description">Изаберите како се текстуре АСТЦ препоручују да би се побољшале компатибилност и перформансе. Омогућавање ове опције штеди ВРАМ, али може смањити квалитет текстуре.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Некомпримован</string>
@@ -768,8 +759,6 @@
     <string name="astc_recompression_bc3">БЦ3 (средњи квалитет)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">ВРАМ режим употребе</string>
-    <string name="vram_usage_mode_description">Контролишите колико агресивно емулатор додељује и ослобађа ГПУ меморију.</string>
     <string name="vram_usage_conservative">Конзервативан</string>
     <string name="vram_usage_aggressive">Агресиван</string>
 
@@ -866,15 +855,12 @@
     <string name="gray">Сива</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">Слика на слици</string>
-    <string name="picture_in_picture_description">Смањите прозор када се постави у позадини</string>
     <string name="pause">Пауза</string>
     <string name="play">Играње</string>
     <string name="mute">Немирати</string>
     <string name="unmute">Имуцати</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">Вертикално поравнање</string>
     <string name="top">На врху</string>
     <string name="center">Центер</string>
     <string name="bottom">Дно</string>

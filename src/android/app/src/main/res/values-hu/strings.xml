@@ -53,19 +53,6 @@
     <string name="show_fw_version">Firmver verzió megjelenítése</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">Kiterjesztett Dinamikus Állapot</string>
-    <string name="dyna_state_description">Szabályozza a Kiterjesztett Dynamikus Állapotban használható funkciók számát. A magasabb értékek több funkciót tesznek lehetővé és növelhetik a teljesítményt, de problémákat okozhatnak egyes meghajtókkal és gyártókkal. Az alapértelmezett érték eltérő lehet a rendszertől és a hardverképességektől függően. Ez az érték módosítható, amíg el nem éri a stabilitást és a jobb vizuális minőséget.</string>
-    <string name="disabled">Letiltva</string>
-    <string name="provoking_vertex">Provokáló csúcs</string>
-    <string name="provoking_vertex_description">Javítja a világítást és a csúcskezelést bizonyos játékokban. Csak Vulkan 1.0+ GPU-kon támogatott.</string>
-    <string name="descriptor_indexing">Deskriptor Indexelés</string>
-    <string name="descriptor_indexing_description">Javítja a textúrák és pufferek kezelését, valamint a Maxwell fordítási réteget. Néhány Vulkan 1.1 GPU és minden Vulkan 1.2+ GPU támogatja.</string>
-    <string name="sample_shading_fraction">Mintavételezés árnyékolási hányad</string>
-    <string name="sample_shading_fraction_description">A mintavételezés árnyékolási lépés intenzitása. A magasabb értékek jobb minőséget eredményeznek, de nagyobb mértékben csökkentik a teljesítményt.</string>
-
-    <string name="sync_memory_operations">Memória-műveletek szinkronizálása</string>
-    <string name="sync_memory_operations_description">Biztosítja az adatok konzisztenciáját a számítási és memória-műveletek között. Ez az opciónak javítania kell néhány játékban előforduló problémát, de bizonyos esetekben csökkentheti a teljesítményt. Az Unreal Engine 4-et használó játékok látszanak a legérintettebbek.</string>
     <string name="buffer_reorder_disable">Puffer újrarendezés letiltása</string>
     <string name="buffer_reorder_disable_description">Ha be van jelölve, letiltja a leképezett memória feltöltéseinek újrarendezését, lehetővé téve a feltöltések összerendelését konkrét rajzolásokkal. Bizonyos esetekben csökkentheti a teljesítményt.</string>
 
@@ -73,26 +60,12 @@
     <string name="use_sync_core_description">A mag sebességének szinkronizálása a maximális sebesség százalékával a teljesítmény javítása érdekében a játék tényleges sebességének megváltoztatása nélkül.</string>
     <string name="use_lru_cache">LRU gyorsítótár engedélyezése</string>
     <string name="use_lru_cache_description">Engedélyezi vagy letiltja az LRU gyorsítótárat, növelve a teljesítményt a CPU használat csökkentésével. Néhány játéknak (különösen a TotK 1.2.1-nek) problémája lehet vele - tiltsa le, ha a játék nem indul el vagy véletlenszerűen összeomlik.</string>
-    <string name="custom_cpu_ticks">Egyéni CPU tick-ek</string>
-    <string name="custom_cpu_ticks_description">Egyéni CPU tick érték beállítása. A magasabb értékek növelhetik a teljesítményt, de a játék befagyását is okozhatják. 77–21000 közötti tartomány ajánlott.</string>
-    <string name="cpu_ticks">Tick-ek</string>
-    <string name="skip_cpu_inner_invalidation">CPU belső érvénytelenítés kihagyása</string>
-    <string name="skip_cpu_inner_invalidation_description">Kihagy néhány CPU-oldali gyorsítótár-érvénytelenítést memóriafrissítések közben, csökkentve a CPU használatát és javítva a teljesítményt. Néhány játékban hibákat vagy összeomlást okozhat.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Gazda MMU emuláció engedélyezése</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ez az optimalizáció gyorsítja a vendégprogram memória-hozzáférését. Engedélyezése esetén a vendég memóriaolvasási/írási műveletei közvetlenül a memóriában történnek, és kihasználják a gazda MMU-ját. Letiltás esetén minden memória-hozzáférés a szoftveres MMU emulációt használja.</string>
-    <string name="fast_cpu_time">CPU órajel</string>
-    <string name="fast_cpu_time_description">Használd a Boost (1700MHz) opciót a Switch legmagasabb natív órajelén való futáshoz, vagy a Fast (2000MHz) opciót a dupla órajelen való futáshoz.</string>
-    <string name="memory_layout">Memórialayout</string>
-    <string name="memory_layout_description">(KÍSÉRLETI) Megváltoztatja az emulált memórialayoutot. Ez a beállítás nem növeli a teljesítményt, de segíthet a magas felbontást használó játékokban modok segítségével. Ne használd 8GB RAM vagy kevesebb rendelkező telefonokon.</string>
-    <string name="dma_accuracy">DMA pontosság</string>
-    <string name="dma_accuracy_description">Szabályozza a DMA pontosságát. A biztonságos pontosság megoldhat néhány játék problémáit, de bizonyos esetekben befolyásolhatja a teljesítményt. Ha bizonytalan, hagyja Alapértelmezett beállításon.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">Shader backend</string>
-    <string name="shader_backend_description">Shaderek fordításának módja</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC emuláció</string>
     <string name="nvdec_emulation_description">Videódekódolás kezelése</string>
@@ -100,7 +73,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Nincs</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Soha</string>
     <string name="on_load">Betöltéskor</string>
     <string name="always">Mindig</string>
@@ -367,6 +340,12 @@
     <string name="use_custom_rtc_description">Megadhatsz egy valós idejű órát, amely eltér a rendszer által használt órától.</string>
     <string name="set_custom_rtc">Egyéni RTC beállítása</string>
 
+    <string name="custom_cpu_ticks">Egyéni CPU tick-ek</string>
+    <string name="custom_cpu_ticks_description">Egyéni CPU tick érték beállítása. A magasabb értékek növelhetik a teljesítményt, de a játék befagyását is okozhatják. 77–21000 közötti tartomány ajánlott.</string>
+    <string name="cpu_ticks">Tick-ek</string>
+    <string name="memory_layout">Memórialayout</string>
+    <string name="memory_layout_description">(KÍSÉRLETI) Megváltoztatja az emulált memórialayoutot. Ez a beállítás nem növeli a teljesítményt, de segíthet a magas felbontást használó játékokban modok segítségével. Ne használd 8GB RAM vagy kevesebb rendelkező telefonokon.</string>
+
     <string name="generate">Generálás</string>
 
     <!-- Network settings strings -->
@@ -377,31 +356,56 @@
     <string name="network">Hálózat</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">Kijelző</string>
-
-    <string name="renderer_accuracy">Pontosság szintje</string>
     <string name="renderer_resolution">Felbontás (Kézi/Dockolt)</string>
     <string name="renderer_vsync">VSync mód</string>
-    <string name="renderer_screen_layout">Orientáció</string>
-    <string name="renderer_aspect_ratio">Képarány</string>
+    <string name="shader_backend">Shader backend</string>
+    <string name="shader_backend_description">Shaderek fordításának módja</string>
     <string name="renderer_scaling_filter">Ablakhoz alkalmazkodó szűrő</string>
     <string name="fsr_sharpness">FSR élesség</string>
     <string name="fsr_sharpness_description">Meghatározza, milyen éles lesz a kép az FSR dinamikus kontraszt használata közben.</string>
     <string name="renderer_anti_aliasing">Élsimítási módszer</string>
-    <string name="renderer_force_max_clock">Maximum órajel kényszerítése (csak Adreno)</string>
-    <string name="renderer_force_max_clock_description">Kényszeríti a GPU-t a lehető legnagyobb órajelen működésre (a hőmérséklet korlátozások továbbra is érvényben maradnak).</string>
-    <string name="renderer_optimize_spirv_output">Spir-V optimalizálás</string>
     <string name="renderer_optimize_spirv_output_description">Optimalizálja a lefordított shadert a GPU hatékonyságának javításáért.</string>
-    <string name="renderer_asynchronous_shaders">Aszinkron árnyékolók használata</string>
-    <string name="renderer_asynchronous_shaders_description">A shaderek aszinkron fordítása. Csökkentheti a belassulásokat, de hibákat is okozhat.</string>
-    <string name="fast_gpu_time">GPU túlóra faktor</string>
-    <string name="fast_gpu_time_description">Használj 128-at a maximális teljesítményért és 512-t a maximális grafikai minőségért.</string>
-    <string name="renderer_reactive_flushing">Reaktív ürítés használata</string>
-    <string name="renderer_reactive_flushing_description">Javítja a renderelési pontosságot néhány játékban a teljesítmény rovására.</string>
-    <string name="use_disk_shader_cache">Lemez árnyékoló gyorsítótár</string>
-    <string name="use_disk_shader_cache_description">Csökkenti az akadásokat azáltal, hogy helyileg tárolja és tölti be a generált árnyékolókat.</string>
+
+
+    <string name="dma_accuracy">DMA pontosság</string>
+    <string name="dma_accuracy_description">Szabályozza a DMA pontosságát. A biztonságos pontosság megoldhat néhány játék problémáit, de bizonyos esetekben befolyásolhatja a teljesítményt. Ha bizonytalan, hagyja Alapértelmezett beállításon.</string>
     <string name="anisotropic_filtering">Anizotropikus szűrés</string>
     <string name="anisotropic_filtering_description">Javítja a ferdén megjelenő textúrák minőségét</string>
+    <string name="vram_usage_mode">VRAM használati mód</string>
+    <string name="vram_usage_mode_description">GPU memória kezelésének módja</string>
+    <string name="accelerate_astc">ASTC dekódolási módszer</string>
+    <string name="accelerate_astc_description">Válassza ki, hogyan legyenek dekódolva az ASTC tömörített textúrák a rendereléshez: CPU (lassú, biztonságos), GPU (gyors, ajánlott) vagy CPU Async (nincs megakadás, de problémákat okozhat)</string>
+    <string name="astc_recompression">ASTC újratömörítési módszer</string>
+    <string name="astc_recompression_description">Válassza ki, hogyan történik az ASTC textúrák újratömörítése a kompatibilitás és a teljesítmény javításáért. Ez az opció VRAM-ot takarít meg, de csökkentheti a textúra minőségét.</string>
+
+    <string name="sync_memory_operations">Memória-műveletek szinkronizálása</string>
+    <string name="sync_memory_operations_description">Biztosítja az adatok konzisztenciáját a számítási és memória-műveletek között. Ez az opciónak javítania kell néhány játékban előforduló problémát, de bizonyos esetekben csökkentheti a teljesítményt. Az Unreal Engine 4-et használó játékok látszanak a legérintettebbek.</string>
+    <string name="use_disk_shader_cache">Lemez árnyékoló gyorsítótár</string>
+    <string name="use_disk_shader_cache_description">Csökkenti az akadásokat azáltal, hogy helyileg tárolja és tölti be a generált árnyékolókat.</string>
+    <string name="renderer_force_max_clock">Maximum órajel kényszerítése (csak Adreno)</string>
+    <string name="renderer_force_max_clock_description">Kényszeríti a GPU-t a lehető legnagyobb órajelen működésre (a hőmérséklet korlátozások továbbra is érvényben maradnak).</string>
+    <string name="renderer_reactive_flushing">Reaktív ürítés használata</string>
+    <string name="renderer_reactive_flushing_description">Javítja a renderelési pontosságot néhány játékban a teljesítmény rovására.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">CPU belső érvénytelenítés kihagyása</string>
+    <string name="skip_cpu_inner_invalidation_description">Kihagy néhány CPU-oldali gyorsítótár-érvénytelenítést memóriafrissítések közben, csökkentve a CPU használatát és javítva a teljesítményt. Néhány játékban hibákat vagy összeomlást okozhat.</string>
+    <string name="renderer_asynchronous_shaders">Aszinkron árnyékolók használata</string>
+    <string name="renderer_asynchronous_shaders_description">A shaderek aszinkron fordítása. Csökkentheti a belassulásokat, de hibákat is okozhat.</string>
+
+    <string name="dyna_state">Kiterjesztett Dinamikus Állapot</string>
+    <string name="disabled">Letiltva</string>
+    <string name="provoking_vertex">Provokáló csúcs</string>
+    <string name="provoking_vertex_description">Javítja a világítást és a csúcskezelést bizonyos játékokban. Csak Vulkan 1.0+ GPU-kon támogatott.</string>
+    <string name="descriptor_indexing">Deskriptor Indexelés</string>
+    <string name="descriptor_indexing_description">Javítja a textúrák és pufferek kezelését, valamint a Maxwell fordítási réteget. Néhány Vulkan 1.1 GPU és minden Vulkan 1.2+ GPU támogatja.</string>
+    <string name="display">Kijelző</string>
+
+    <string name="renderer_screen_layout">Orientáció</string>
+    <string name="renderer_aspect_ratio">Képarány</string>
+    <string name="vertical_alignment">Függőleges elrendezés</string>
+    <string name="picture_in_picture">Kép a képben</string>
+    <string name="picture_in_picture_description">Ablak minimalizálása, amikor háttérbe kerül</string>
 
     <string name="warning_resolution">A 2x vagy nagyobb felbontásméretezés problémákat okozhat, és jelentős lassulást eredményezhet az eszközön.</string>
 
@@ -577,7 +581,6 @@
     <string name="preferences_player">Játékos %d</string>
     <string name="preferences_debug">Hibakeresés</string>
     <string name="preferences_debug_description">CPU/GPU hibakeresés, grafikus API, fastmem</string>
-
     <!-- Game properties -->
     <string name="info">Infó</string>
     <string name="info_description">Program ID, fejlesztő, verzió</string>
@@ -717,10 +720,6 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Gyors (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Közepes (256)</string>
-    <string name="fast_gpu_high">Magas (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
@@ -740,18 +739,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Alapértelmezett</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC dekódolási módszer</string>
-    <string name="accelerate_astc_description">Válassza ki, hogyan legyenek dekódolva az ASTC tömörített textúrák a rendereléshez: CPU (lassú, biztonságos), GPU (gyors, ajánlott) vagy CPU Async (nincs megakadás, de problémákat okozhat)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU aszinkron</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC újratömörítési módszer</string>
-    <string name="astc_recompression_description">Válassza ki, hogyan történik az ASTC textúrák újratömörítése a kompatibilitás és a teljesítmény javításáért. Ez az opció VRAM-ot takarít meg, de csökkentheti a textúra minőségét.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Tömörítetlen</string>
@@ -759,8 +750,6 @@
     <string name="astc_recompression_bc3">BC3 (közepes minőség)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">VRAM használati mód</string>
-    <string name="vram_usage_mode_description">GPU memória kezelésének módja</string>
     <string name="vram_usage_conservative">Konzervatív</string>
     <string name="vram_usage_aggressive">Aggresszív</string>
 
@@ -854,15 +843,12 @@
     <string name="gray">Szürke</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">Kép a képben</string>
-    <string name="picture_in_picture_description">Ablak minimalizálása, amikor háttérbe kerül</string>
     <string name="pause">Szünet</string>
     <string name="play">Lejátszás</string>
     <string name="mute">Némítás</string>
     <string name="unmute">Némítás feloldása</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">Függőleges elrendezés</string>
     <string name="top">Felül</string>
     <string name="center">Középen</string>
     <string name="bottom">Alul</string>

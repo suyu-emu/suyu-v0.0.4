@@ -53,19 +53,6 @@
     <string name="show_fw_version">펌웨어 버전 표시</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">확장 동적 상태</string>
-    <string name="dyna_state_description">확장 동적 상태에서 사용할 수 있는 기능의 수를 제어합니다. 높은 값은 더 많은 기능을 허용하고 성능을 높일 수 있지만, 일부 드라이버 및 벤더에서 문제를 일으킬 수 있습니다. 기본값은 시스템 및 하드웨어 기능에 따라 다를 수 있습니다. 안정성과 더 나은 시각적 품질이 달성될 때까지 이 값을 변경할 수 있습니다.</string>
-    <string name="disabled">비활성화됨</string>
-    <string name="provoking_vertex">프로보킹 버텍스</string>
-    <string name="provoking_vertex_description">일부 게임에서 조명과 버텍스 처리를 개선합니다. Vulkan 1.0+ GPU에서만 지원됩니다.</string>
-    <string name="descriptor_indexing">디스크립터 인덱싱</string>
-    <string name="descriptor_indexing_description">텍스처 및 버퍼 처리와 Maxwell 변환 레이어를 개선합니다. 일부 Vulkan 1.1 GPU 및 모든 Vulkan 1.2+ GPU에서 지원됩니다.</string>
-    <string name="sample_shading_fraction">샘플 쉐이딩 비율</string>
-    <string name="sample_shading_fraction_description">샘플 쉐이딩 패스의 강도. 값이 높을수록 품질이 더 향상되지만 성능도 더 크게 저하됩니다.</string>
-
-    <string name="sync_memory_operations">메모리 작업 동기화</string>
-    <string name="sync_memory_operations_description">컴퓨팅 및 메모리 작업 간 데이터 일관성을 보장합니다. 이 옵션은 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능이 저하될 수 있습니다. Unreal Engine 4 게임이 가장 큰 영향을 받는 것으로 보입니다.</string>
     <string name="buffer_reorder_disable">버퍼 재정렬 비활성화</string>
     <string name="buffer_reorder_disable_description">체크 시, 매핑된 메모리 업로드의 재정렬을 비활성화하여 특정 그리기와 업로드를 연결할 수 있습니다. 경우에 따라 성능이 저하될 수 있습니다.</string>
 
@@ -73,26 +60,12 @@
     <string name="use_sync_core_description">코어 틱 속도를 최대 속도 백분율과 동기화하여 게임의 실제 속도를 변경하지 않고 성능을 향상시킵니다.</string>
     <string name="use_lru_cache">LRU 캐시 사용</string>
     <string name="use_lru_cache_description">LRU 캐시를 활성화 또는 비활성화하여 CPU 프로세스 사용을 절약하고 성능을 향상시킵니다. TotK 1.2.1을 포함한 일부 게임에서 문제가 발생할 수 있으므로 게임이 부팅되지 않거나 무작위로 충돌하는 경우 비활성화하세요.</string>
-    <string name="custom_cpu_ticks">사용자 정의 CPU 틱</string>
-    <string name="custom_cpu_ticks_description">CPU 틱의 사용자 정의 값을 설정합니다. 높은 값은 성능을 향상시킬 수 있지만 게임이 멈출 수도 있습니다. 77~21000 범위를 권장합니다.</string>
-    <string name="cpu_ticks">틱</string>
-    <string name="skip_cpu_inner_invalidation">CPU 내부 무효화 건너뛰기</string>
-    <string name="skip_cpu_inner_invalidation_description">메모리 업데이트 시 일부 CPU 측 캐시 무효화를 건너뛰어 CPU 사용량을 줄이고 성능을 향상시킵니다. 일부 게임에서 오류 또는 충돌을 일으킬 수 있습니다.</string>
+
     <string name="cpuopt_unsafe_host_mmu">호스트 MMU 에뮬레이션 사용</string>
     <string name="cpuopt_unsafe_host_mmu_description">이 최적화는 게스트 프로그램의 메모리 접근 속도를 높입니다. 활성화하면 게스트의 메모리 읽기/쓰기가 메모리에서 직접 수행되고 호스트의 MMU를 활용합니다. 비활성화하면 모든 메모리 접근에 소프트웨어 MMU 에뮬레이션을 사용하게 됩니다.</string>
-    <string name="fast_cpu_time">CPU 클럭</string>
-    <string name="fast_cpu_time_description">Boost (1700MHz)를 사용하여 Switch의 최고 네이티브 클럭으로 실행하거나 Fast (2000MHz)를 사용하여 2배 클럭으로 실행합니다.</string>
-    <string name="memory_layout">메모리 레이아웃</string>
-    <string name="memory_layout_description">(실험적) 에뮬레이트된 메모리 레이아웃을 변경합니다. 이 설정은 성능을 높이지 않지만 모드를 통해 고해상도를 사용하는 게임에 도움이 될 수 있습니다. 8GB 이하 RAM의 휴대폰에서는 사용하지 마십시오.</string>
-    <string name="dma_accuracy">DMA 정확도</string>
-    <string name="dma_accuracy_description">DMA 정밀도 정확도를 제어합니다. 안전한 정밀도는 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능에 영향을 미칠 수도 있습니다. 확실하지 않은 경우 기본값으로 두십시오.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">셰이더 백엔드</string>
-    <string name="shader_backend_description">셰이더 컴파일 방식 선택</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC 에뮬레이션</string>
     <string name="nvdec_emulation_description">비디오 디코딩 처리 방식 선택</string>
@@ -100,7 +73,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">없음</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">안 함</string>
     <string name="on_load">로드 시</string>
     <string name="always">항상</string>
@@ -367,6 +340,12 @@
     <string name="use_custom_rtc_description">현재 시스템 시간과 별도로 사용자 지정 RTC를 설정할 수 있습니다.</string>
     <string name="set_custom_rtc">사용자 지정 RTC 설정</string>
 
+    <string name="custom_cpu_ticks">사용자 정의 CPU 틱</string>
+    <string name="custom_cpu_ticks_description">CPU 틱의 사용자 정의 값을 설정합니다. 높은 값은 성능을 향상시킬 수 있지만 게임이 멈출 수도 있습니다. 77~21000 범위를 권장합니다.</string>
+    <string name="cpu_ticks">틱</string>
+    <string name="memory_layout">메모리 레이아웃</string>
+    <string name="memory_layout_description">(실험적) 에뮬레이트된 메모리 레이아웃을 변경합니다. 이 설정은 성능을 높이지 않지만 모드를 통해 고해상도를 사용하는 게임에 도움이 될 수 있습니다. 8GB 이하 RAM의 휴대폰에서는 사용하지 마십시오.</string>
+
     <string name="generate">생성</string>
 
     <!-- Network settings strings -->
@@ -377,29 +356,54 @@
     <string name="network">네트워크</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">디스플레이</string>
-
-    <string name="renderer_accuracy">정확도 수준</string>
     <string name="renderer_resolution">해상도 (휴대 모드/독 모드)</string>
     <string name="renderer_vsync">수직동기화 모드</string>
-    <string name="renderer_screen_layout">화면 방향</string>
-    <string name="renderer_aspect_ratio">화면비</string>
+    <string name="shader_backend">셰이더 백엔드</string>
+    <string name="shader_backend_description">셰이더 컴파일 방식 선택</string>
     <string name="renderer_scaling_filter">윈도우 적응 필터</string>
     <string name="renderer_anti_aliasing">안티에일리어싱 방법</string>
-    <string name="renderer_force_max_clock">최대 클럭 강제 설정 (아드레노 전용)</string>
-    <string name="renderer_force_max_clock_description">GPU가 가능한 최대 클럭으로 실행되도록 강제합니다 (열 제약 조건은 여전히 적용됩니다).</string>
-    <string name="renderer_optimize_spirv_output">Spir-V 출력 최적화</string>
     <string name="renderer_optimize_spirv_output_description">컴파일된 셰이더를 최적화하여 GPU 효율성을 향상시킵니다.</string>
-    <string name="renderer_asynchronous_shaders">비동기 셰이더 사용</string>
-    <string name="renderer_asynchronous_shaders_description">셰이더를 비동기적으로 컴파일합니다. 이로 인해 끊김 현상이 줄어들 수 있지만 그래픽 오류가 발생할 수도 있습니다.</string>
-    <string name="fast_gpu_time">GPU 오버클럭 팩터</string>
-    <string name="fast_gpu_time_description">최대 성능을 위해 128을, 최대 그래픽 충실도를 위해 512를 사용하십시오.</string>
-    <string name="renderer_reactive_flushing">반응형 플러싱 사용</string>
-    <string name="renderer_reactive_flushing_description">일부 게임에서 성능 저하를 감수하고 렌더링 정확도를 향상합니다.</string>
-    <string name="use_disk_shader_cache">디스크 셰이더 캐시</string>
-    <string name="use_disk_shader_cache_description">생성된 셰이더를 로컬에 저장하고 로드하여 끊김 현상을 줄입니다.</string>
+
+
+    <string name="dma_accuracy">DMA 정확도</string>
+    <string name="dma_accuracy_description">DMA 정밀도 정확도를 제어합니다. 안전한 정밀도는 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능에 영향을 미칠 수도 있습니다. 확실하지 않은 경우 기본값으로 두십시오.</string>
     <string name="anisotropic_filtering">비등방성 필터링</string>
     <string name="anisotropic_filtering_description">경사각에서 보이는 텍스처의 품질을 향상시킵니다.</string>
+    <string name="vram_usage_mode">VRAM 사용 모드</string>
+    <string name="vram_usage_mode_description">GPU 메모리 할당/해제 방식 선택</string>
+    <string name="accelerate_astc">ASTC 디코딩 방법</string>
+    <string name="accelerate_astc_description">ASTC 압축 텍스처의 디코딩 방식을 선택하세요: CPU (느림, 안전), GPU (빠름, 권장), 또는 CPU 비동기 (끊김 없음, 문제 발생 가능)</string>
+    <string name="astc_recompression">ASTC 재압축 방법</string>
+    <string name="astc_recompression_description">ASTC 텍스처의 재압축 방식을 선택하여 호환성과 성능을 향상시킵니다. 이 옵션을 활성화하면 VRAM을 절약할 수 있지만 텍스처 품질이 저하될 수 있습니다.</string>
+
+    <string name="sync_memory_operations">메모리 작업 동기화</string>
+    <string name="sync_memory_operations_description">컴퓨팅 및 메모리 작업 간 데이터 일관성을 보장합니다. 이 옵션은 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능이 저하될 수 있습니다. Unreal Engine 4 게임이 가장 큰 영향을 받는 것으로 보입니다.</string>
+    <string name="use_disk_shader_cache">디스크 셰이더 캐시</string>
+    <string name="use_disk_shader_cache_description">생성된 셰이더를 로컬에 저장하고 로드하여 끊김 현상을 줄입니다.</string>
+    <string name="renderer_force_max_clock">최대 클럭 강제 설정 (아드레노 전용)</string>
+    <string name="renderer_force_max_clock_description">GPU가 가능한 최대 클럭으로 실행되도록 강제합니다 (열 제약 조건은 여전히 적용됩니다).</string>
+    <string name="renderer_reactive_flushing">반응형 플러싱 사용</string>
+    <string name="renderer_reactive_flushing_description">일부 게임에서 성능 저하를 감수하고 렌더링 정확도를 향상합니다.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">CPU 내부 무효화 건너뛰기</string>
+    <string name="skip_cpu_inner_invalidation_description">메모리 업데이트 시 일부 CPU 측 캐시 무효화를 건너뛰어 CPU 사용량을 줄이고 성능을 향상시킵니다. 일부 게임에서 오류 또는 충돌을 일으킬 수 있습니다.</string>
+    <string name="renderer_asynchronous_shaders">비동기 셰이더 사용</string>
+    <string name="renderer_asynchronous_shaders_description">셰이더를 비동기적으로 컴파일합니다. 이로 인해 끊김 현상이 줄어들 수 있지만 그래픽 오류가 발생할 수도 있습니다.</string>
+
+    <string name="dyna_state">확장 동적 상태</string>
+    <string name="disabled">비활성화됨</string>
+    <string name="provoking_vertex">프로보킹 버텍스</string>
+    <string name="provoking_vertex_description">일부 게임에서 조명과 버텍스 처리를 개선합니다. Vulkan 1.0+ GPU에서만 지원됩니다.</string>
+    <string name="descriptor_indexing">디스크립터 인덱싱</string>
+    <string name="descriptor_indexing_description">텍스처 및 버퍼 처리와 Maxwell 변환 레이어를 개선합니다. 일부 Vulkan 1.1 GPU 및 모든 Vulkan 1.2+ GPU에서 지원됩니다.</string>
+    <string name="display">디스플레이</string>
+
+    <string name="renderer_screen_layout">화면 방향</string>
+    <string name="renderer_aspect_ratio">화면비</string>
+    <string name="vertical_alignment">수직 정렬</string>
+    <string name="picture_in_picture">픽처 인 픽처 (Picture-in-Picture)</string>
+    <string name="picture_in_picture_description">앱을 백그라운드에서 실행할 때 창을 최소화합니다.</string>
 
     <string name="warning_resolution">해상도를 2x 이상으로 스케일링하면 문제가 발생할 수 있으며 기기가 크게 느려질 수 있습니다.</string>
 
@@ -535,7 +539,6 @@
     <string name="preferences_controls">조작</string>
     <string name="preferences_debug">디버그</string>
     <string name="preferences_debug_description">CPU/GPU 디버깅, 그래픽 API, Fastmem</string>
-
     <!-- Game properties -->
     <string name="info">정보</string>
     <string name="info_description">프로그램 ID, 개발자, 버전</string>
@@ -676,10 +679,6 @@
     <string name="clock_boost">부스트 (1700MHz)</string>
     <string name="clock_fast">빠름 (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">중간 (256)</string>
-    <string name="fast_gpu_high">높음 (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">섭씨</string>
     <string name="temperature_fahrenheit">화씨</string>
@@ -699,18 +698,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">기본값</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC 디코딩 방법</string>
-    <string name="accelerate_astc_description">ASTC 압축 텍스처의 디코딩 방식을 선택하세요: CPU (느림, 안전), GPU (빠름, 권장), 또는 CPU 비동기 (끊김 없음, 문제 발생 가능)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU 비동기</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC 재압축 방법</string>
-    <string name="astc_recompression_description">ASTC 텍스처의 재압축 방식을 선택하여 호환성과 성능을 향상시킵니다. 이 옵션을 활성화하면 VRAM을 절약할 수 있지만 텍스처 품질이 저하될 수 있습니다.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">비압축</string>
@@ -718,8 +709,6 @@
     <string name="astc_recompression_bc3">BC3 (중화질)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">VRAM 사용 모드</string>
-    <string name="vram_usage_mode_description">GPU 메모리 할당/해제 방식 선택</string>
     <string name="vram_usage_conservative">보수적</string>
     <string name="vram_usage_aggressive">적극적</string>
 
@@ -816,15 +805,12 @@
     <string name="gray">회색</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">픽처 인 픽처 (Picture-in-Picture)</string>
-    <string name="picture_in_picture_description">앱을 백그라운드에서 실행할 때 창을 최소화합니다.</string>
     <string name="pause">일시중지</string>
     <string name="play">재생</string>
     <string name="mute">음소거</string>
     <string name="unmute">음소거 해제</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">수직 정렬</string>
     <string name="top">상단</string>
     <string name="center">중앙</string>
     <string name="bottom">하단</string>

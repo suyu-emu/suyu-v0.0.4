@@ -53,19 +53,6 @@
     <string name="show_fw_version">نیشاندانی وەشانی فریموێر</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">الحالة الديناميكية الممتدة</string>
-    <string name="dyna_state_description">کۆntrolی ژمارەی تایبەتمەندییەکان دەکات کە دەتوانرێت لە دۆخی هایپرDynamic بەکاربهێنرێت. ژمارەی زیاتر ڕێگە بە تایبەتمەندییەکی زیاتر دەدات و دەتوانێت کارایی باشتر بکات، بەڵام لەوانەیە کێشە دروست بکات لەگەڵ هەندێک لە درایڤەرەکان و فرۆشەکان. نرخی گریمانەیی دەگۆڕێت بەپێی سیستەم و تواناکانی hardwareی تۆ. دەتوانیت ئەم نرخە بگۆڕیت تا جێگیری و جێیەکی بینینی باشتر دەستبکەوێت.</string>
-    <string name="disabled">ناچالاک</string>
-    <string name="provoking_vertex">الرأس المثير</string>
-    <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.0+.</string>
-    <string name="descriptor_indexing">فهرسة الواصفات</string>
-    <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
-    <string name="sample_shading_fraction">پێکهاتەی سێبەرکردنی نموونە</string>
-    <string name="sample_shading_fraction_description">چڕی تێپەڕاندنی سێبەرکردنی نموونە. بەهای زیاتر کوالێتی باشتر دەکات بەڵام کارایی زیاتر کەم دەکاتەوە.</string>
-
-    <string name="sync_memory_operations">هاوبەشیی کردارەکانی بیرگە</string>
-    <string name="sync_memory_operations_description">دڵنیایی داتا لە نێوان کردارەکانی کۆمپیوتەر و بیرگە. ئەم هەڵبژاردە کێشەکان لە هەندێک یاری چارەسەر دەکات، بەڵام لە هەندێک حاڵەت کارایی کەم دەکاتەوە. وا دیارە یارییەکانی Unreal Engine 4 زۆرترین کاریگەریان هەیە.</string>
     <string name="buffer_reorder_disable">ڕێکخستنەوەی بافر ناچالاک بکە</string>
     <string name="buffer_reorder_disable_description">کە دیاریکرا، ڕێکخستنەوەی بارکردنی بیرگەی نەخشەکراو ناچالاک دەکات کە ڕێگەدەدات بارکردنەکان بە ڕەسمی دیاریکراو ببەسترێت. لە هەندێک حاڵەتدا کاراییمان دەکاتەوە.</string>
 
@@ -73,26 +60,12 @@
     <string name="use_sync_core_description">خێرایی تیکەکانی ناوک ڕێکبخە لەگەڵ ڕێژەی خێرایی بەرزترین بۆ باشترکردنی کارایی بەبێ گۆڕینی خێرایی ڕاستەقینەی یارییەکە.</string>
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
     <string name="use_lru_cache_description">چالاک یان ناچالاککردنی کاشەی LRU، کارایی باشتر دەکات بە هەڵگرتنی بەکارهێنانی پرۆسەی CPU. هەندێک یاری کێشەی لەگەڵ هەیە، بەتایبەتی TotK 1.2.1، بۆیە بیخەوێنە ئەگەر یاریەکە نەگەڕێت یان بە هەڕەمەکی بشکێت.</string>
-    <string name="custom_cpu_ticks">تیکی CPU هەڵبژێردراو</string>
-    <string name="custom_cpu_ticks_description">بەهای هەڵبژێردراوی تیکی CPU دابنێ. بەهای زیاتر دەتوانن کارایی زیاد بکەن، بەڵام لەوانەیە بووەستانی یاریش دروست بکەن. ئامۆژگاری بە نێوان 77-21000 دەکرێت.</string>
-    <string name="cpu_ticks">تیک</string>
-    <string name="skip_cpu_inner_invalidation">بازنەکردنی ناوەکی CPU</string>
-    <string name="skip_cpu_inner_invalidation_description">هەندێک لە بازنەکردنەکانی هەڵگر لە کاتی نوێکردنەوەی بیرگە دەنێرێت، کەمکردنەوەی بەکارهێنانی CPU و باشترکردنی کارایی. لەوانەیە لە هەندێک یاری کێشە درووست بکات.</string>
+
     <string name="cpuopt_unsafe_host_mmu">چالاککردنی میمیکردنی MMU میواندە</string>
     <string name="cpuopt_unsafe_host_mmu_description">ئەم باشکردنە خێرایی دەستکەوتنی بیرگە لەلایەن پرۆگرامی میوانەکە زیاد دەکات. چالاککردنی وای لێدەکات کە خوێندنەوە/نووسینەکانی بیرگەی میوانەکە ڕاستەوخۆ لە بیرگە ئەنجام بدرێت و میمیکردنی MMU میواندە بەکاربهێنێت. ناچالاککردنی ئەمە هەموو دەستکەوتنەکانی بیرگە ڕەت دەکاتەوە لە بەکارهێنانی میمیکردنی MMU نەرمەکاڵا.</string>
-    <string name="fast_cpu_time">کاتژمێری CPU</string>
-    <string name="fast_cpu_time_description">Boost (1700MHz) بەکاربهێنە بۆ کارکردن بە بەرزترین کاتژمێری نەیتیڤی سوویچ، یان Fast (2000MHz) بۆ کارکردن بە دوو هێندەی کاتژمێر.</string>
-    <string name="memory_layout">ڕێکخستنی بیرگە</string>
-    <string name="memory_layout_description">(تاقیکاری) گۆڕینی ڕێکخستنی بیرگەی شبیهسازیکراو. ئەم ڕێکخستنە کارایی زیاد ناکات، بەڵام لەوانەیە یارمەتی یارییەکان بدات کە بەرزی ڕێزۆلۆشن بەکاردهێنن بە هۆی مۆدەکان. لەسەر مۆبایلەکانی کە 8GB یان کەمتر RAMیان هەیە بەکارمەهێنە.</string>
-    <string name="dma_accuracy">وردیی DMA</string>
-    <string name="dma_accuracy_description">کۆنتڕۆڵی وردیی وردیی DMA دەکات. وردییی پارێزراو دەتوانێت کێشەکان لە هەندێک یاری چارەسەر بکات، بەڵام لە هەندێک حاڵەتدا کاریگەری لەسەر کارایی هەیە. ئەگەر دڵنیا نیت، ئەمە بە سەر ڕەھەوادا بهێڵە.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">شادەر باکند</string>
-    <string name="shader_backend_description">هەڵبژاردنی ڕێگای پێکهێنانی شادەر</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">ئیمولەیشنی NVDEC</string>
     <string name="nvdec_emulation_description">هەڵبژاردنی ڕێگای دیکۆدکردنی ڤیدیۆ</string>
@@ -100,7 +73,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">هیچ</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">هەرگیز</string>
     <string name="on_load">لەسەر بارکردن</string>
     <string name="always">هەمیشە</string>
@@ -348,6 +321,12 @@
     <string name="use_custom_rtc_description">ڕێگەت پێدەدات کاتژمێرێکی کاتی ڕاستەقینەی تایبەتمەند دابنێیت کە جیاوازە لە کاتی ئێستای سیستەمەکەت.</string>
     <string name="set_custom_rtc">دانانی RTCی تایبەتمەند</string>
 
+    <string name="custom_cpu_ticks">تیکی CPU هەڵبژێردراو</string>
+    <string name="custom_cpu_ticks_description">بەهای هەڵبژێردراوی تیکی CPU دابنێ. بەهای زیاتر دەتوانن کارایی زیاد بکەن، بەڵام لەوانەیە بووەستانی یاریش دروست بکەن. ئامۆژگاری بە نێوان 77-21000 دەکرێت.</string>
+    <string name="cpu_ticks">تیک</string>
+    <string name="memory_layout">ڕێکخستنی بیرگە</string>
+    <string name="memory_layout_description">(تاقیکاری) گۆڕینی ڕێکخستنی بیرگەی شبیهسازیکراو. ئەم ڕێکخستنە کارایی زیاد ناکات، بەڵام لەوانەیە یارمەتی یارییەکان بدات کە بەرزی ڕێزۆلۆشن بەکاردهێنن بە هۆی مۆدەکان. لەسەر مۆبایلەکانی کە 8GB یان کەمتر RAMیان هەیە بەکارمەهێنە.</string>
+
     <string name="generate">بەرهەم هێنان</string>
 
     <!-- Network settings strings -->
@@ -358,31 +337,56 @@
     <string name="network">تۆڕ</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">پیشاندان</string>
-
-    <string name="renderer_accuracy">ئاستی وردبینی</string>
     <string name="renderer_resolution">ڕوونی (دۆخی دەستی/دۆخی دۆک)</string>
     <string name="renderer_vsync">دۆخی VSync</string>
-    <string name="renderer_screen_layout">ڕێکخستنی شاشە</string>
-    <string name="renderer_aspect_ratio">ڕێژەی ڕووبەری شاشە</string>
+    <string name="shader_backend">شادەر باکند</string>
+    <string name="shader_backend_description">هەڵبژاردنی ڕێگای پێکهێنانی شادەر</string>
     <string name="renderer_scaling_filter">فلتەری گونجاندنی پەنجەرە</string>
     <string name="fsr_sharpness">تیژی FSR</string>
     <string name="fsr_sharpness_description">دیاریکردنی تیژی وێنە لە کاتی بەکارهێنانی FSR</string>
     <string name="renderer_anti_aliasing">شێوازی دژە-خاوڕۆیی</string>
-    <string name="renderer_force_max_clock">ناچاریکردن بۆ زۆرترین کاتژمێر (تەنها ئەدرینۆ)</string>
-    <string name="renderer_force_max_clock_description">GPU ناچار دەکات بە زۆرترین کاتژمێر کاربکات (هێشتا سنووردارکردنی گەرمی جێبەجێ دەکرێت).</string>
-    <string name="renderer_optimize_spirv_output">باشترکردنی دەرچوونی Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">شێیدەرە کۆمپایلکراوەکان باش دەکات بۆ باشترکردنی کارایی GPU.</string>
-    <string name="renderer_asynchronous_shaders">بەکارهێنانی سێبەری ناهاوسەنگ</string>
-    <string name="renderer_asynchronous_shaders_description">کۆمپایلکردنی شادەرەکان بەشێوەی ناڕێک. ئەمە ڕەنگە کەمکردنەوەی ستەتەر بکات بەڵام لەوانەیە هەڵەش دروست بکات.</string>
-    <string name="fast_gpu_time">فاکتۆری خێراکردنی GPU</string>
-    <string name="fast_gpu_time_description">128 بەکاربهێنە بۆ باشترین کارایی و 512 بۆ باشترین وردی گرافیک.</string>
-    <string name="renderer_reactive_flushing">بەکارهێنانی بەرپێچدەرەوە</string>
-    <string name="renderer_reactive_flushing_description">وردی ڕێندەرکردن لە هەندێک یاریدا باشتر دەکات لەسەر تێچووی کارایی.</string>
-    <string name="use_disk_shader_cache">بیرگەخێرای سێبەری دیسک</string>
-    <string name="use_disk_shader_cache_description">پچڕپچڕی کەمدەکاتەوە بە هەڵگرتن و بارکردنی سێبەری دروستکراو لە ناوخۆدا.</string>
+
+
+    <string name="dma_accuracy">وردیی DMA</string>
+    <string name="dma_accuracy_description">کۆنتڕۆڵی وردیی وردیی DMA دەکات. وردییی پارێزراو دەتوانێت کێشەکان لە هەندێک یاری چارەسەر بکات، بەڵام لە هەندێک حاڵەتدا کاریگەری لەسەر کارایی هەیە. ئەگەر دڵنیا نیت، ئەمە بە سەر ڕەھەوادا بهێڵە.</string>
     <string name="anisotropic_filtering">فلتەری anisotropic</string>
     <string name="anisotropic_filtering_description">کوالێتی تێکستەرەکان باشتر دەکات لە کاتی سەیرکردنی لە گۆشە.</string>
+    <string name="vram_usage_mode">دۆخی بەکارهێنانی VRAM</string>
+    <string name="vram_usage_mode_description">کۆنتڕۆڵی بەکارهێنانی VRAM</string>
+    <string name="accelerate_astc">ڕێگای دیکۆدکردنی ASTC</string>
+    <string name="accelerate_astc_description">هەڵبژێرە چۆن تێکستوورە پەستووکراوەکانی ASTC دەکرێنەوە بۆ ڕێندرکردن: CPU (هێواش، سەلامەت)، GPU (خێرا، پێشنیارکراو)، یان CPU Async (بێ ستەتەر، لەوانەیە کێشە دروست بکات)</string>
+    <string name="astc_recompression">ڕێگای پێکهێنانەوەی ASTC</string>
+    <string name="astc_recompression_description">هەڵبژێرە چۆن تێکستوورەکانی ASTC پەستوو دەکرێنەوە بۆ باشترکردنی گونجاندن و کارایی. چالاککردنی ئەم هەڵبژاردە VRAM هەڵدەگرێت بەڵام لەوانەیە کەمکردنەوەی کوالێتی تێکستوور بکات.</string>
+
+    <string name="sync_memory_operations">هاوبەشیی کردارەکانی بیرگە</string>
+    <string name="sync_memory_operations_description">دڵنیایی داتا لە نێوان کردارەکانی کۆمپیوتەر و بیرگە. ئەم هەڵبژاردە کێشەکان لە هەندێک یاری چارەسەر دەکات، بەڵام لە هەندێک حاڵەت کارایی کەم دەکاتەوە. وا دیارە یارییەکانی Unreal Engine 4 زۆرترین کاریگەریان هەیە.</string>
+    <string name="use_disk_shader_cache">بیرگەخێرای سێبەری دیسک</string>
+    <string name="use_disk_shader_cache_description">پچڕپچڕی کەمدەکاتەوە بە هەڵگرتن و بارکردنی سێبەری دروستکراو لە ناوخۆدا.</string>
+    <string name="renderer_force_max_clock">ناچاریکردن بۆ زۆرترین کاتژمێر (تەنها ئەدرینۆ)</string>
+    <string name="renderer_force_max_clock_description">GPU ناچار دەکات بە زۆرترین کاتژمێر کاربکات (هێشتا سنووردارکردنی گەرمی جێبەجێ دەکرێت).</string>
+    <string name="renderer_reactive_flushing">بەکارهێنانی بەرپێچدەرەوە</string>
+    <string name="renderer_reactive_flushing_description">وردی ڕێندەرکردن لە هەندێک یاریدا باشتر دەکات لەسەر تێچووی کارایی.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">بازنەکردنی ناوەکی CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">هەندێک لە بازنەکردنەکانی هەڵگر لە کاتی نوێکردنەوەی بیرگە دەنێرێت، کەمکردنەوەی بەکارهێنانی CPU و باشترکردنی کارایی. لەوانەیە لە هەندێک یاری کێشە درووست بکات.</string>
+    <string name="renderer_asynchronous_shaders">بەکارهێنانی سێبەری ناهاوسەنگ</string>
+    <string name="renderer_asynchronous_shaders_description">کۆمپایلکردنی شادەرەکان بەشێوەی ناڕێک. ئەمە ڕەنگە کەمکردنەوەی ستەتەر بکات بەڵام لەوانەیە هەڵەش دروست بکات.</string>
+
+    <string name="dyna_state">الحالة الديناميكية الممتدة</string>
+    <string name="disabled">ناچالاک</string>
+    <string name="provoking_vertex">الرأس المثير</string>
+    <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.0+.</string>
+    <string name="descriptor_indexing">فهرسة الواصفات</string>
+    <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
+    <string name="display">پیشاندان</string>
+
+    <string name="renderer_screen_layout">ڕێکخستنی شاشە</string>
+    <string name="renderer_aspect_ratio">ڕێژەی ڕووبەری شاشە</string>
+    <string name="vertical_alignment">ڕێکخستنی ستوونی</string>
+    <string name="picture_in_picture">وێنە لە ناو وێنە</string>
+    <string name="picture_in_picture_description">پەنجەرە بچووک دەکاتەوە کاتێک لە پاشبنەیە.</string>
 
     <string name="warning_resolution">گۆرینی رێزلوشن بۆ 2x یان زیاتر دەبێتە هۆی کێشە، و لەوانەیە ببێتە هۆی خاوبوونەوەی بەرچاوی ئامێرەکەت.</string>
 
@@ -587,10 +591,6 @@
     <string name="clock_boost">زۆرکردن (1700MHz)</string>
     <string name="clock_fast">خێرا (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">ناوەند (256)</string>
-    <string name="fast_gpu_high">بەرز (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">سیلیزی</string>
     <string name="temperature_fahrenheit">فارینهایت</string>
@@ -604,18 +604,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">بنەڕەتی</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ڕێگای دیکۆدکردنی ASTC</string>
-    <string name="accelerate_astc_description">هەڵبژێرە چۆن تێکستوورە پەستووکراوەکانی ASTC دەکرێنەوە بۆ ڕێندرکردن: CPU (هێواش، سەلامەت)، GPU (خێرا، پێشنیارکراو)، یان CPU Async (بێ ستەتەر، لەوانەیە کێشە دروست بکات)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPUی ناڕێک</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ڕێگای پێکهێنانەوەی ASTC</string>
-    <string name="astc_recompression_description">هەڵبژێرە چۆن تێکستوورەکانی ASTC پەستوو دەکرێنەوە بۆ باشترکردنی گونجاندن و کارایی. چالاککردنی ئەم هەڵبژاردە VRAM هەڵدەگرێت بەڵام لەوانەیە کەمکردنەوەی کوالێتی تێکستوور بکات.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">پێکهێنەنەوە</string>
@@ -623,8 +615,6 @@
     <string name="astc_recompression_bc3">BC3 (کوالیتی مامناوەند)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">دۆخی بەکارهێنانی VRAM</string>
-    <string name="vram_usage_mode_description">کۆنتڕۆڵی بەکارهێنانی VRAM</string>
     <string name="vram_usage_conservative">پارێزەر</string>
     <string name="vram_usage_aggressive">توند</string>
 
@@ -706,15 +696,12 @@
     <string name="gray">ڕەساسی</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">وێنە لە ناو وێنە</string>
-    <string name="picture_in_picture_description">پەنجەرە بچووک دەکاتەوە کاتێک لە پاشبنەیە.</string>
     <string name="pause">وەستان</string>
     <string name="play">یاریکردن</string>
     <string name="mute">بێدەنگ</string>
     <string name="unmute">لادانی بێدەنگی</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">ڕێکخستنی ستوونی</string>
     <string name="top">سەرەوە</string>
     <string name="center">ناوەند</string>
     <string name="bottom">خوارەوە</string>

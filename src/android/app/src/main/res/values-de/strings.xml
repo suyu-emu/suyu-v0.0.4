@@ -61,19 +61,6 @@
     <string name="show_fw_version">Firmware-Version anzeigen</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">Erweiterter dynamischer Status</string>
-    <string name="dyna_state_description">Steuert die Anzahl der Funktionen, die im Erweiterten Dynamischen Zustand verwendet werden können. Höhere Werte ermöglichen mehr Funktionen und können die Leistung steigern, können jedoch bei einigen Treibern und Herstellern zu Problemen führen. Der Standardwert kann je nach System und Hardwarefähigkeiten variieren. Dieser Wert kann geändert werden, bis Stabilität und eine bessere visuelle Qualität erreicht sind.</string>
-    <string name="disabled">Deaktiviert</string>
-    <string name="provoking_vertex">Provokanter Vertex</string>
-    <string name="provoking_vertex_description">Verbessert die Beleuchtung und die Vertex-Verarbeitung in einigen Spielen. Wird nur von GPUs mit Vulkan 1.0+ unterstützt.</string>
-    <string name="descriptor_indexing">Deskriptor-Indizierung</string>
-    <string name="descriptor_indexing_description">Verbessert die Textur- und Puffer-Verarbeitung sowie die Maxwell-Übersetzungsschicht. Wird von einigen Vulkan 1.1-GPUs und allen Vulkan 1.2+-GPUs unterstützt.</string>
-    <string name="sample_shading_fraction">Sample-Shading-Anteil</string>
-    <string name="sample_shading_fraction_description">Die Intensität des Sample-Shading-Durchgangs. Höhere Werte verbessern die Qualität stärker, beeinträchtigen aber auch die Leistung stärker.</string>
-
-    <string name="sync_memory_operations">Speicheroperationen synchronisieren</string>
-    <string name="sync_memory_operations_description">Stellt die Datenkonsistenz zwischen Compute- und Speicheroperationen sicher. Diese Option sollte Probleme in einigen Spielen beheben, kann aber in einigen Fällen die Leistung verringern. Spiele mit Unreal Engine 4 scheinen am stärksten betroffen zu sein.</string>
     <string name="buffer_reorder_disable">Puffer-Neuanordnung deaktivieren</string>
     <string name="buffer_reorder_disable_description">Wenn aktiviert, wird die Neuanordnung von gemappten Speicher-Uploads deaktiviert, was die Zuordnung von Uploads zu bestimmten Zeichenvorgängen ermöglicht. Kann in einigen Fällen die Leistung verringern.</string>
 
@@ -81,26 +68,12 @@
     <string name="use_sync_core_description">Synchronisiert die Taktrate des Kerns mit der maximalen Geschwindigkeit, um die Leistung zu verbessern, ohne die tatsächliche Spielgeschwindigkeit zu verändern.</string>
     <string name="use_lru_cache">LRU-Cache aktivieren</string>
     <string name="use_lru_cache_description">Aktivieren oder deaktivieren Sie den LRU-Cache, um die Leistung durch Einsparung von CPU-Prozessorauslastung zu verbessern. Einige Spiele haben Probleme damit, insbesondere TotK 1.2.1, deaktivieren Sie es also, wenn das Spiel nicht startet oder zufällig abstürzt.</string>
-    <string name="custom_cpu_ticks">Benutzerdefinierte CPU-Ticks</string>
-    <string name="custom_cpu_ticks_description">Legen Sie einen benutzerdefinierten Wert für CPU-Ticks fest. Höhere Werte können die Leistung steigern, aber auch zum Einfrieren des Spiels führen. Ein Bereich von 77–21000 wird empfohlen.</string>
-    <string name="cpu_ticks">Ticks</string>
-    <string name="skip_cpu_inner_invalidation">CPU-interne Invalidierung überspringen</string>
-    <string name="skip_cpu_inner_invalidation_description">Überspringt bestimmte Cache-Invalidierungen auf CPU-Seite während Speicherupdates, reduziert die CPU-Auslastung und verbessert die Leistung. Kann in einigen Spielen zu Fehlern oder Abstürzen führen.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Host-MMU-Emulation aktivieren</string>
     <string name="cpuopt_unsafe_host_mmu_description">Diese Optimierung beschleunigt Speicherzugriffe durch das Gastprogramm. Wenn aktiviert, erfolgen Speicherlese- und -schreibvorgänge des Gastes direkt im Speicher und nutzen die MMU des Hosts. Das Deaktivieren erzwingt die Verwendung der Software-MMU-Emulation für alle Speicherzugriffe.</string>
-    <string name="fast_cpu_time">CPU-Takt</string>
-    <string name="fast_cpu_time_description">Verwenden Sie Boost (1700MHz), um mit der höchsten nativen Taktrate des Switch zu laufen, oder Fast (2000MHz), um mit der doppelten Taktrate zu laufen.</string>
-    <string name="memory_layout">Speicherlayout</string>
-    <string name="memory_layout_description">(EXPERIMENTELL) Ändert das emulierte Speicherlayout. Diese Einstellung erhöht nicht die Leistung, kann aber bei Spielen helfen, die hohe Auflösungen über Mods nutzen. Nicht auf Telefonen mit 8 GB RAM oder weniger verwenden.</string>
-    <string name="dma_accuracy">DMA-Genauigkeit</string>
-    <string name="dma_accuracy_description">Steuert die DMA-Präzisionsgenauigkeit. Sichere Präzision kann Probleme in einigen Spielen beheben, kann aber in einigen Fällen auch die Leistung beeinträchtigen. Im Zweifel lassen Sie dies auf Standard stehen.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">Shader-Backend</string>
-    <string name="shader_backend_description">Methode zur Shader-Kompilierung</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC-Emulation</string>
     <string name="nvdec_emulation_description">Methode zur Videodekodierung</string>
@@ -108,7 +81,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Keine</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Nie</string>
     <string name="on_load">Beim Laden</string>
     <string name="always">Immer</string>
@@ -392,6 +365,12 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="use_custom_rtc_description">Ermöglicht Ihnen, eine benutzerdefinierte Echtzeituhr unabhängig von Ihrer aktuellen Systemzeit einzustellen.</string>
     <string name="set_custom_rtc">Legen Sie eine benutzerdefinierte Echtzeituhr fest</string>
 
+    <string name="custom_cpu_ticks">Benutzerdefinierte CPU-Ticks</string>
+    <string name="custom_cpu_ticks_description">Legen Sie einen benutzerdefinierten Wert für CPU-Ticks fest. Höhere Werte können die Leistung steigern, aber auch zum Einfrieren des Spiels führen. Ein Bereich von 77–21000 wird empfohlen.</string>
+    <string name="cpu_ticks">Ticks</string>
+    <string name="memory_layout">Speicherlayout</string>
+    <string name="memory_layout_description">(EXPERIMENTELL) Ändert das emulierte Speicherlayout. Diese Einstellung erhöht nicht die Leistung, kann aber bei Spielen helfen, die hohe Auflösungen über Mods nutzen. Nicht auf Telefonen mit 8 GB RAM oder weniger verwenden.</string>
+
     <string name="generate">Generieren</string>
 
     <!-- Network settings strings -->
@@ -402,31 +381,56 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="network">Netzwerk</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">Anzeige</string>
-
-    <string name="renderer_accuracy">Genauigkeitsstufe</string>
     <string name="renderer_resolution">Auflösung (Handheld/Gedockt)</string>
     <string name="renderer_vsync">VSync-Modus</string>
-    <string name="renderer_screen_layout">Ausrichtung</string>
-    <string name="renderer_aspect_ratio">Seitenverhältnis</string>
+    <string name="shader_backend">Shader-Backend</string>
+    <string name="shader_backend_description">Methode zur Shader-Kompilierung</string>
     <string name="renderer_scaling_filter">Skalierungsfilter</string>
     <string name="fsr_sharpness">FSR-Schärfe</string>
     <string name="fsr_sharpness_description">Bestimmt die Schärfe bei FSR-Nutzung.</string>
     <string name="renderer_anti_aliasing">Kantenglättung</string>
-    <string name="renderer_force_max_clock">Maximale Taktfrequenz erzwingen (nur Adreno)</string>
-    <string name="renderer_force_max_clock_description">Erzwingt maximale GPU-Taktfrequenz. (thermische Einschränkungen werden weiterhin angewendet).</string>
-    <string name="renderer_optimize_spirv_output">Spir-V-Optimierung</string>
     <string name="renderer_optimize_spirv_output_description">Optimiert den kompilierten Shader, um die GPU-Effizienz zu verbessern.</string>
-    <string name="renderer_asynchronous_shaders">Asynchrone Shader</string>
-    <string name="renderer_asynchronous_shaders_description">Kompiliert Shader asynchron. Dies kann Ruckler reduzieren, aber auch Grafikfehler verursachen.</string>
-    <string name="fast_gpu_time">GPU-Übertaktungsfaktor</string>
-    <string name="fast_gpu_time_description">Verwenden Sie 128 für maximale Leistung und 512 für maximale Grafikqualität.</string>
-    <string name="renderer_reactive_flushing">Reaktives Flushing</string>
-    <string name="renderer_reactive_flushing_description">Verbessert die Genauigkeit in einigen Spielen.</string>
-    <string name="use_disk_shader_cache">Shader-Cache auf Festplatte</string>
-    <string name="use_disk_shader_cache_description">Reduziert Ruckler durch Shader-Caching.</string>
+
+
+    <string name="dma_accuracy">DMA-Genauigkeit</string>
+    <string name="dma_accuracy_description">Steuert die DMA-Präzisionsgenauigkeit. Sichere Präzision kann Probleme in einigen Spielen beheben, kann aber in einigen Fällen auch die Leistung beeinträchtigen. Im Zweifel lassen Sie dies auf Standard stehen.</string>
     <string name="anisotropic_filtering">Anisotrope Filterung</string>
     <string name="anisotropic_filtering_description">Verbessert die Texturenqualität.</string>
+    <string name="vram_usage_mode">VRAM-Nutzung</string>
+    <string name="vram_usage_mode_description">Steuerung der GPU-Speicherzuweisung</string>
+    <string name="accelerate_astc">ASTC-Decodierung</string>
+    <string name="accelerate_astc_description">Wählen Sie aus, wie ASTC-komprimierte Texturen für das Rendering decodiert werden: CPU (langsam, sicher), GPU (schnell, empfohlen) oder CPU Async (kein Ruckeln, kann Probleme verursachen)</string>
+    <string name="astc_recompression">ASTC-Neukompression</string>
+    <string name="astc_recompression_description">Wählen Sie, wie ASTC-Texturen neu komprimiert werden, um die Kompatibilität und Leistung zu verbessern. Diese Option spart VRAM, kann aber die Texturqualität verringern.</string>
+
+    <string name="sync_memory_operations">Speicheroperationen synchronisieren</string>
+    <string name="sync_memory_operations_description">Stellt die Datenkonsistenz zwischen Compute- und Speicheroperationen sicher. Diese Option sollte Probleme in einigen Spielen beheben, kann aber in einigen Fällen die Leistung verringern. Spiele mit Unreal Engine 4 scheinen am stärksten betroffen zu sein.</string>
+    <string name="use_disk_shader_cache">Shader-Cache auf Festplatte</string>
+    <string name="use_disk_shader_cache_description">Reduziert Ruckler durch Shader-Caching.</string>
+    <string name="renderer_force_max_clock">Maximale Taktfrequenz erzwingen (nur Adreno)</string>
+    <string name="renderer_force_max_clock_description">Erzwingt maximale GPU-Taktfrequenz. (thermische Einschränkungen werden weiterhin angewendet).</string>
+    <string name="renderer_reactive_flushing">Reaktives Flushing</string>
+    <string name="renderer_reactive_flushing_description">Verbessert die Genauigkeit in einigen Spielen.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">CPU-interne Invalidierung überspringen</string>
+    <string name="skip_cpu_inner_invalidation_description">Überspringt bestimmte Cache-Invalidierungen auf CPU-Seite während Speicherupdates, reduziert die CPU-Auslastung und verbessert die Leistung. Kann in einigen Spielen zu Fehlern oder Abstürzen führen.</string>
+    <string name="renderer_asynchronous_shaders">Asynchrone Shader</string>
+    <string name="renderer_asynchronous_shaders_description">Kompiliert Shader asynchron. Dies kann Ruckler reduzieren, aber auch Grafikfehler verursachen.</string>
+
+    <string name="dyna_state">Erweiterter dynamischer Status</string>
+    <string name="disabled">Deaktiviert</string>
+    <string name="provoking_vertex">Provokanter Vertex</string>
+    <string name="provoking_vertex_description">Verbessert die Beleuchtung und die Vertex-Verarbeitung in einigen Spielen. Wird nur von GPUs mit Vulkan 1.0+ unterstützt.</string>
+    <string name="descriptor_indexing">Deskriptor-Indizierung</string>
+    <string name="descriptor_indexing_description">Verbessert die Textur- und Puffer-Verarbeitung sowie die Maxwell-Übersetzungsschicht. Wird von einigen Vulkan 1.1-GPUs und allen Vulkan 1.2+-GPUs unterstützt.</string>
+    <string name="display">Anzeige</string>
+
+    <string name="renderer_screen_layout">Ausrichtung</string>
+    <string name="renderer_aspect_ratio">Seitenverhältnis</string>
+    <string name="vertical_alignment">Vertikale Ausrichtung</string>
+    <string name="picture_in_picture">Bild im Bild</string>
+    <string name="picture_in_picture_description">Minimiere das Fenster wenn die Anwendung im Hintergrund läuft</string>
 
     <string name="warning_resolution">Eine Skalierung der Auflösung auf 2x oder höher kann Probleme verursachen und zu erheblichen Verlangsamungen Ihres Geräts führen.</string>
 
@@ -608,7 +612,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="preferences_player">Spieler %d</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">CPU/GPU-Debugging, Grafik-API, Fastmem</string>
-
     <!-- Game properties -->
     <string name="info">Info</string>
     <string name="info_description">Programm-ID, Entwickler, Version</string>
@@ -750,10 +753,6 @@ Wirklich fortfahren?</string>
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Schnell (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Mittel (256)</string>
-    <string name="fast_gpu_high">Hoch (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
@@ -773,18 +772,10 @@ Wirklich fortfahren?</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC-Decodierung</string>
-    <string name="accelerate_astc_description">Wählen Sie aus, wie ASTC-komprimierte Texturen für das Rendering decodiert werden: CPU (langsam, sicher), GPU (schnell, empfohlen) oder CPU Async (kein Ruckeln, kann Probleme verursachen)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU Asynchron</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC-Neukompression</string>
-    <string name="astc_recompression_description">Wählen Sie, wie ASTC-Texturen neu komprimiert werden, um die Kompatibilität und Leistung zu verbessern. Diese Option spart VRAM, kann aber die Texturqualität verringern.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Unkomprimiert</string>
@@ -792,8 +783,6 @@ Wirklich fortfahren?</string>
     <string name="astc_recompression_bc3">BC3 (Mittlere Qualität)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">VRAM-Nutzung</string>
-    <string name="vram_usage_mode_description">Steuerung der GPU-Speicherzuweisung</string>
     <string name="vram_usage_conservative">Konservativ</string>
     <string name="vram_usage_aggressive">Aggressiv</string>
 
@@ -892,15 +881,12 @@ Wirklich fortfahren?</string>
     <string name="gray">Grau</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">Bild im Bild</string>
-    <string name="picture_in_picture_description">Minimiere das Fenster wenn die Anwendung im Hintergrund läuft</string>
     <string name="pause">Pause</string>
     <string name="play">Spielen</string>
     <string name="mute">Stummschalten</string>
     <string name="unmute">Ton aktivieren</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">Vertikale Ausrichtung</string>
     <string name="top">Oben</string>
     <string name="center">Mitte</string>
     <string name="bottom">Unten</string>

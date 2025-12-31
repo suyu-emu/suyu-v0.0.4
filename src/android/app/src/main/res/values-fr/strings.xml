@@ -17,14 +17,11 @@
     <string name="invalid_value">Valeur invalide</string>
 
 
-    <!-- Input Overlay -->
     <string name="overlay_auto_hide">Masquage automatique de l\'overlay</string>
     <string name="overlay_auto_hide_description">Masquer automatiquement l\'overlay des contrôles tactiles après le temps d\'inactivité spécifié.</string>
     <string name="enable_input_overlay_auto_hide">Activer le masquage automatique de l\'overlay</string>
     <string name="input_overlay_options">Overlay des entrées</string>
     <string name="input_overlay_options_description">Configurer les contrôles à l\'écran</string>
-
-
     <!-- Stats Overlay settings -->
     <string name="process_ram">RAM processus: %1$d Mo</string>
     <string name="shaders_prefix">Compilation</string>
@@ -74,21 +71,6 @@
     <string name="show_fw_version">Afficher la version du firmware</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">État dynamique étendu</string>
-    <string name="dyna_state_description">Contrôle le nombre de fonctionnalités utilisables dans l\'état dynamique étendu. Des valeurs plus élevées permettent plus de fonctionnalités et peuvent augmenter les performances, mais peuvent causer des problèmes avec certains pilotes et fabricants. La valeur par défaut peut varier selon votre système et vos capacités matérielles. Cette valeur peut être modifiée jusqu\'à obtenir une stabilité et une meilleure qualité visuelle.</string>
-    <string name="disabled">Désactivé</string>
-    <string name="vertex_input_dynamic_state">État dynamique d\'entrée de sommet</string>
-    <string name="vertex_input_dynamic_state_description">Active la fonctionnalité d\'état dynamique des entrées de sommets pour une meilleure qualité et de meilleures performances.</string>
-    <string name="provoking_vertex">Provoque des Vertex</string>
-    <string name="provoking_vertex_description">Améliore l`éclairage et la gestion des vertex dans certains jeux. Pris en charge uniquement par les GPU Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Indexation des descripteurs</string>
-    <string name="descriptor_indexing_description">Améliore la gestion des textures et des tampons, ainsi que la couche de traduction Maxwell. Pris en charge par certains GPU Vulkan 1.1 et tous les GPU Vulkan 1.2+.</string>
-    <string name="sample_shading_fraction">Fraction d\'ombrage d\'échantillon</string>
-    <string name="sample_shading_fraction_description">L\'intensité de la passe d\'ombrage d\'échantillon. Des valeurs plus élevées améliorent davantage la qualité mais réduisent aussi plus fortement les performances.</string>
-
-    <string name="sync_memory_operations">Synchroniser les opérations mémoire</string>
-    <string name="sync_memory_operations_description">Garantit la cohérence des données entre les opérations de calcul et de mémoire. Cette option devrait résoudre les problèmes dans certains jeux, mais peut réduire les performances dans certains cas. Les jeux utilisant Unreal Engine 4 semblent être les plus affectés.</string>
     <string name="buffer_reorder_disable">Désactiver le réordonnancement du tampon</string>
     <string name="buffer_reorder_disable_description">Lorsqu\'il est coché, désactive le réordonnancement des téléchargements de mémoire mappée, permettant d\'associer les téléchargements à des dessins spécifiques. Peut réduire les performances dans certains cas.</string>
 
@@ -96,30 +78,16 @@
     <string name="use_sync_core_description">Synchronise la vitesse du cœur avec le pourcentage de vitesse maximal pour améliorer les performances sans modifier la vitesse réelle du jeu.</string>
     <string name="use_lru_cache">Activer le cache LRU</string>
     <string name="use_lru_cache_description">Active ou désactive le cache LRU (Least Recently Used) pour améliorer les performances en réduisant l’utilisation du processeur. Certains jeux peuvent rencontrer des problèmes avec ce réglage ; désactivez-le si le jeu ne démarre pas ou plante de manière aléatoire.</string>
-    <string name="custom_cpu_ticks">Ticks CPU personnalisés</string>
-    <string name="custom_cpu_ticks_description">Définissez une valeur personnalisée de ticks CPU. Des valeurs plus élevées peuvent améliorer les performances, mais peuvent aussi provoquer des gels du jeu. Une plage de 77 à 21000 est recommandée.</string>
-    <string name="cpu_ticks">Ticks</string>
-    <string name="skip_cpu_inner_invalidation">Ignorer l\'invalidation interne du CPU</string>
-    <string name="skip_cpu_inner_invalidation_description">Ignore certaines invalidations de cache côté CPU lors des mises à jour mémoire, réduisant l\'utilisation du CPU et améliorant ses performances. Peut causer des bugs ou plantages sur certains jeux.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Activer l\'émulation de la MMU hôte</string>
     <string name="cpuopt_unsafe_host_mmu_description">Cette optimisation accélère les accès mémoire par le programme invité. L\'activer entraîne que les lectures/écritures mémoire de l\'invité sont effectuées directement en mémoire et utilisent la MMU de l\'hôte. Désactiver cela force tous les accès mémoire à utiliser l\'émulation logicielle de la MMU.</string>
-    <string name="fast_cpu_time">Fréquence CPU</string>
-    <string name="fast_cpu_time_description">Utilisez Boost (1700MHz) pour fonctionner à la fréquence native la plus élevée de la Switch, ou Fast (2000MHz) pour fonctionner à double fréquence.</string>
-    <string name="memory_layout">Disposition de la mémoire</string>
-    <string name="memory_layout_description">(EXPÉRIMENTAL) Modifie la disposition de la mémoire émulée.\nCe paramètre n’améliore pas les performances, mais peut aider pour les jeux utilisant des résolutions élevées via des mods. Ne pas utiliser sur les téléphones avec 8 Go de RAM ou moins. Fonctionne uniquement avec le backend Dynarmic (JIT).</string>
-    <string name="dma_accuracy">Précision DMA</string>
-    <string name="dma_accuracy_description">Contrôle la précision du DMA. Une précision sûre peut résoudre les problèmes dans certains jeux, mais peut aussi affecter les performances dans certains cas. Si vous n\'êtes pas sûr, laissez ce paramètre sur Par défaut.</string>
     <string name="debug_knobs">Boutons de débogage</string>
     <string name="debug_knobs_description">À usage de développement uniquement.</string>
     <string name="debug_knobs_hint">0 à 65535</string>
 
     <!-- Shader Backend -->
-    <string name="shader_backend">Backend shader</string>
-    <string name="shader_backend_description">Méthode de compilation</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Émulation NVDEC</string>
     <string name="nvdec_emulation_description">Sélectionnez la manière dont le décodage vidéo (NVDEC) est géré pendant les cinématiques et les intros.</string>
@@ -127,7 +95,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Aucun</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Jamais</string>
     <string name="on_load">Au chargement</string>
     <string name="always">Toujours</string>
@@ -426,6 +394,12 @@
     <string name="use_custom_rtc_description">Vous permet de définir une horloge en temps réel personnalisée distincte de l\'heure actuelle de votre système.</string>
     <string name="set_custom_rtc">Définir l\'horloge RTC personnalisée</string>
 
+    <string name="custom_cpu_ticks">Ticks CPU personnalisés</string>
+    <string name="custom_cpu_ticks_description">Définissez une valeur personnalisée de ticks CPU. Des valeurs plus élevées peuvent améliorer les performances, mais peuvent aussi provoquer des gels du jeu. Une plage de 77 à 21000 est recommandée.</string>
+    <string name="cpu_ticks">Ticks</string>
+    <string name="memory_layout">Disposition de la mémoire</string>
+    <string name="memory_layout_description">(EXPÉRIMENTAL) Modifie la disposition de la mémoire émulée.\nCe paramètre n’améliore pas les performances, mais peut aider pour les jeux utilisant des résolutions élevées via des mods. Ne pas utiliser sur les téléphones avec 8 Go de RAM ou moins. Fonctionne uniquement avec le backend Dynarmic (JIT).</string>
+
     <string name="generate">Générer</string>
 
     <!-- Network settings strings -->
@@ -436,31 +410,58 @@
     <string name="network">Réseau</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">Affichage</string>
-
-    <string name="renderer_accuracy">Niveau de précision</string>
     <string name="renderer_resolution">Résolution (Mode Portable/Mode TV)</string>
     <string name="renderer_vsync">Mode VSync</string>
-    <string name="renderer_screen_layout">Orientation</string>
-    <string name="renderer_aspect_ratio">Format</string>
+    <string name="shader_backend">Backend shader</string>
+    <string name="shader_backend_description">Méthode de compilation</string>
     <string name="renderer_scaling_filter">Filtre de fenêtre adaptatif</string>
     <string name="fsr_sharpness">Netteté FSR</string>
     <string name="fsr_sharpness_description">Détermine à quel point l\'image sera affinée lors de l\'utilisation du contraste dynamique FSR.</string>
     <string name="renderer_anti_aliasing">Méthode d\'anticrénelage</string>
-    <string name="renderer_force_max_clock">Forcer les fréquences maximales (Adreno uniquement)</string>
-    <string name="renderer_force_max_clock_description">Forcer le GPU à fonctionner à ses fréquences maximales possibles (les contraintes thermiques seront toujours appliquées).</string>
-    <string name="renderer_optimize_spirv_output">Optimiser Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">Optimise le shader compilé pour améliorer l\'efficacité du GPU.</string>
-    <string name="renderer_asynchronous_shaders">Utiliser les shaders asynchrones</string>
-    <string name="renderer_asynchronous_shaders_description">Compile les shaders de manière asynchrone. Cela peut réduire les saccades mais peut aussi provoquer des problèmes graphiques.</string>
-    <string name="fast_gpu_time">Facteur d\'overclocking GPU</string>
-    <string name="fast_gpu_time_description">Utilisez 128 pour des performances maximales et 512 pour une fidélité graphique maximale.</string>
-    <string name="renderer_reactive_flushing">Utiliser le vidage réactif</string>
-    <string name="renderer_reactive_flushing_description">Améliore la précision du rendu dans certains jeux au détriment des performances.</string>
-    <string name="use_disk_shader_cache">Utiliser les shader cache</string>
-    <string name="use_disk_shader_cache_description">Réduire les saccades en stockant et en chargeant localement les shaders générés</string>
+
+
+    <string name="dma_accuracy">Précision DMA</string>
+    <string name="dma_accuracy_description">Contrôle la précision du DMA. Une précision sûre peut résoudre les problèmes dans certains jeux, mais peut aussi affecter les performances dans certains cas. Si vous n\'êtes pas sûr, laissez ce paramètre sur Par défaut.</string>
     <string name="anisotropic_filtering">Filtrage anisotropique</string>
     <string name="anisotropic_filtering_description">Améliore la qualité des textures lorsqu\'elles sont visualisées sous des angles obliques</string>
+    <string name="vram_usage_mode">Mode VRAM</string>
+    <string name="vram_usage_mode_description">Gestion de la mémoire GPU</string>
+    <string name="accelerate_astc">Méthode ASTC</string>
+    <string name="accelerate_astc_description">Choisissez comment les textures compressées ASTC sont décodées pour le rendu : CPU (lent, sûr), GPU (rapide, recommandé) ou CPU Async (pas de saccades, peut causer des problèmes)</string>
+    <string name="astc_recompression">Recompression ASTC</string>
+    <string name="astc_recompression_description">Choisissez comment les textures ASTC sont recompressées pour améliorer la compatibilité et les performances. Activer cette option économise la VRAM mais peut réduire la qualité des textures.</string>
+
+    <string name="sync_memory_operations">Synchroniser les opérations mémoire</string>
+    <string name="sync_memory_operations_description">Garantit la cohérence des données entre les opérations de calcul et de mémoire. Cette option devrait résoudre les problèmes dans certains jeux, mais peut réduire les performances dans certains cas. Les jeux utilisant Unreal Engine 4 semblent être les plus affectés.</string>
+    <string name="use_disk_shader_cache">Utiliser les shader cache</string>
+    <string name="use_disk_shader_cache_description">Réduire les saccades en stockant et en chargeant localement les shaders générés</string>
+    <string name="renderer_force_max_clock">Forcer les fréquences maximales (Adreno uniquement)</string>
+    <string name="renderer_force_max_clock_description">Forcer le GPU à fonctionner à ses fréquences maximales possibles (les contraintes thermiques seront toujours appliquées).</string>
+    <string name="renderer_reactive_flushing">Utiliser le vidage réactif</string>
+    <string name="renderer_reactive_flushing_description">Améliore la précision du rendu dans certains jeux au détriment des performances.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">Ignorer l\'invalidation interne du CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Ignore certaines invalidations de cache côté CPU lors des mises à jour mémoire, réduisant l\'utilisation du CPU et améliorant ses performances. Peut causer des bugs ou plantages sur certains jeux.</string>
+    <string name="renderer_asynchronous_shaders">Utiliser les shaders asynchrones</string>
+    <string name="renderer_asynchronous_shaders_description">Compile les shaders de manière asynchrone. Cela peut réduire les saccades mais peut aussi provoquer des problèmes graphiques.</string>
+
+    <string name="dyna_state">État dynamique étendu</string>
+    <string name="disabled">Désactivé</string>
+    <string name="vertex_input_dynamic_state">État dynamique d\'entrée de sommet</string>
+    <string name="vertex_input_dynamic_state_description">Active la fonctionnalité d\'état dynamique des entrées de sommets pour une meilleure qualité et de meilleures performances.</string>
+    <string name="provoking_vertex">Provoque des Vertex</string>
+    <string name="provoking_vertex_description">Améliore l`éclairage et la gestion des vertex dans certains jeux. Pris en charge uniquement par les GPU Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Indexation des descripteurs</string>
+    <string name="descriptor_indexing_description">Améliore la gestion des textures et des tampons, ainsi que la couche de traduction Maxwell. Pris en charge par certains GPU Vulkan 1.1 et tous les GPU Vulkan 1.2+.</string>
+    <string name="display">Affichage</string>
+
+    <string name="renderer_screen_layout">Orientation</string>
+    <string name="renderer_aspect_ratio">Format</string>
+    <string name="vertical_alignment">Alignement vertical</string>
+    <string name="picture_in_picture">Lecteur réduit</string>
+    <string name="picture_in_picture_description">Réduire la fenêtre lorsqu\'elle est placée en arrière-plan</string>
 
     <string name="warning_resolution">Un changement d\'échelle de résolution à 2x ou plus peut causer des problèmes et ralentir considérablement votre appareil.</string>
 
@@ -643,7 +644,6 @@
     <string name="preferences_player">Joueur %d</string>
     <string name="preferences_debug">Débogage</string>
     <string name="preferences_debug_description">Débogage CPU/GPU, API graphique, fastmem</string>
-
     <!-- Game properties -->
     <string name="info">Info</string>
     <string name="info_description">ID du programme, développeur, version</string>
@@ -820,10 +820,6 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Rapide (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Moyen (256)</string>
-    <string name="fast_gpu_high">Élevé (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
@@ -846,18 +842,10 @@
     <string name="dma_accuracy_unsafe">Dangereux</string>
     <string name="dma_accuracy_safe">Sûr</string>
 
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">Méthode ASTC</string>
-    <string name="accelerate_astc_description">Choisissez comment les textures compressées ASTC sont décodées pour le rendu : CPU (lent, sûr), GPU (rapide, recommandé) ou CPU Async (pas de saccades, peut causer des problèmes)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU async</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">Recompression ASTC</string>
-    <string name="astc_recompression_description">Choisissez comment les textures ASTC sont recompressées pour améliorer la compatibilité et les performances. Activer cette option économise la VRAM mais peut réduire la qualité des textures.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Non compressé</string>
@@ -865,8 +853,6 @@
     <string name="astc_recompression_bc3">BC3 (qualité moyenne)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">Mode VRAM</string>
-    <string name="vram_usage_mode_description">Gestion de la mémoire GPU</string>
     <string name="vram_usage_conservative">Conservateur</string>
     <string name="vram_usage_aggressive">Agressif</string>
 
@@ -1007,15 +993,12 @@
     <string name="gray">Gris</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">Lecteur réduit</string>
-    <string name="picture_in_picture_description">Réduire la fenêtre lorsqu\'elle est placée en arrière-plan</string>
     <string name="pause">Pause</string>
     <string name="play">Jouer</string>
     <string name="mute">Couper le son</string>
     <string name="unmute">Remettre le son</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">Alignement vertical</string>
     <string name="top">Haut</string>
     <string name="center">Centre</string>
     <string name="bottom">Bas</string>

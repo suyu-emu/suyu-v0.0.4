@@ -17,7 +17,6 @@
     <string name="invalid_value">無效的範圍</string>
 
 
-    <!-- Input Overlay -->
     <string name="overlay_auto_hide">自動隱藏虛擬按鍵</string>
     <string name="overlay_auto_hide_description">在未使用虛擬按鍵幾秒後自動隱藏</string>
     <string name="enable_input_overlay_auto_hide">啟用自動隱藏虛擬按鍵</string>
@@ -26,8 +25,6 @@
 
     <string name="input_overlay_options">虛擬按鍵設定</string>
     <string name="input_overlay_options_description">虛擬按鍵設定</string>
-
-
     <!-- Stats Overlay settings -->
     <string name="process_ram">記憶體使用量 %1$d MB</string>
     <string name="shaders_prefix">正在編譯</string>
@@ -77,21 +74,6 @@
     <string name="show_fw_version">顯示韌體版本</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">擴展動態狀態</string>
-    <string name="dyna_state_description">控制擴展動態狀態中可使用的功能數量。數值越高，允許的功能越多，並可能提高效能，但可能會導致某些驅動程式和硬體出現問題。預設值可能因系統和硬體能力而異。可以變更此值，直到獲得更佳的穩定性和更好的視覺品質。</string>
-    <string name="disabled">已停用</string>
-    <string name="vertex_input_dynamic_state">頂點輸入動態狀態</string>
-    <string name="vertex_input_dynamic_state_description">啟用頂點輸入動態狀態以取得更佳的品質及性能</string>
-    <string name="provoking_vertex">引發頂點</string>
-    <string name="provoking_vertex_description">改善某些遊戲中的光照和頂點處理。僅支援Vulkan 1.0+ GPU。</string>
-    <string name="descriptor_indexing">描述符索引</string>
-    <string name="descriptor_indexing_description">改進紋理和緩衝區處理以及Maxwell轉換層。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支援。</string>
-    <string name="sample_shading_fraction">採樣著色比例</string>
-    <string name="sample_shading_fraction_description">採樣著色處理的強度。數值越高，品質改善越多，但效能降低也越明顯。</string>
-
-    <string name="sync_memory_operations">同步記憶體操作</string>
-    <string name="sync_memory_operations_description">確保計算和記憶體操作之間的資料一致性。 此選項應能修復某些遊戲中的問題，但在某些情況下可能會降低效能。 使用Unreal Engine 4的遊戲似乎受影響最大。</string>
     <string name="buffer_reorder_disable">停用緩衝區重新排序</string>
     <string name="buffer_reorder_disable_description">勾選時，停用映射記憶體上傳的重新排序功能，允許將上傳與特定繪製關聯。某些情況下可能會降低效能。</string>
 
@@ -99,30 +81,16 @@
     <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能。</string>
     <string name="use_lru_cache">啟用LRU快取</string>
     <string name="use_lru_cache_description">啟用或停用LRU快取，透過節省CPU進程使用率來提高效能。某些遊戲可能存在問題，特別是薩爾達傳說：王國之淚 v1.2.1（更新），如果遊戲無法啟動或隨機崩潰，請停用此選項。</string>
-    <string name="custom_cpu_ticks">自訂CPU時脈</string>
-    <string name="custom_cpu_ticks_description">自訂CPU時脈。更高的值可能提高效能，但也可能導致遊戲卡死。建議範圍為77-21000。</string>
-    <string name="cpu_ticks">時脈</string>
-    <string name="skip_cpu_inner_invalidation">跳過CPU內部失效處理</string>
-    <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取的失效處理，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
+
     <string name="cpuopt_unsafe_host_mmu">啟用主機 MMU 模擬</string>
     <string name="cpuopt_unsafe_host_mmu_description">此最佳化可加速來賓程式的記憶體存取。啟用後，來賓記憶體讀取/寫入將直接在記憶體中執行並利用主機的 MMU。停用此功能將強制所有記憶體存取使用軟體 MMU 模擬。</string>
-    <string name="fast_cpu_time">CPU時脈</string>
-    <string name="fast_cpu_time_description">使用 Boost (1700MHz) 以 Switch 的最高原生時脈運行，或 Fast (2000MHz) 以雙倍時脈運行。</string>
-    <string name="memory_layout">記憶體佈局</string>
-    <string name="memory_layout_description">（實驗性）更改模擬記憶體佈局。此設定不會提高效能，但可能有助於使用模組來提高解析度的遊戲的載入。不要在 RAM 為 8GB 或更少的手機上使用。若遊戲崩潰請將進階設定裡偵錯選項中的CPU後端改為 Dynarmic (JIT)</string>
-    <string name="dma_accuracy">DMA 準確度</string>
-    <string name="dma_accuracy_description">控制 DMA 準確度。安全準確度可以修復某些遊戲中的問題，但在某些情況下也可能影響效能。如果不確定，請保留為「預設」。</string>
     <string name="debug_knobs">偵錯開關</string>
     <string name="debug_knobs_description">僅限開發用途</string>
     <string name="debug_knobs_hint">0到65535</string>
 
     <!-- Shader Backend -->
-    <string name="shader_backend">著色器後端</string>
-    <string name="shader_backend_description">選擇著色器的編譯與轉譯方式</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC模擬</string>
     <string name="nvdec_emulation_description">選擇影片解碼（NVDEC）的方式</string>
@@ -130,7 +98,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">無</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">永不</string>
     <string name="on_load">載入時</string>
     <string name="always">總是</string>
@@ -285,7 +253,7 @@
     <string name="about">關於</string>
     <string name="about_description">組建版本、製作群、以及更多</string>
     <string name="system_information">裝置資訊</string>
-    <string name="system_information_description">查看這臺裝置的詳細資料</string>
+    <string name="system_information_description">查看這臺裝置的詳細資訊</string>
     <string name="device_manufacturer">製造商</string>
     <string name="device_model">型號</string>
     <string name="product">型號代碼</string>
@@ -327,7 +295,7 @@
     <string name="import_save_warning">導入儲存資料</string>
     <string name="import_save_warning_description">這將會以提供的檔案覆寫所有現有的儲存資料，您確定要繼續嗎？</string>
     <string name="save_files_importing">正在導入儲存資料…</string>
-    <string name="save_files_exporting">正在匯出儲存檔案…</string>
+    <string name="save_files_exporting">正在導出儲存資料…</string>
     <string name="save_file_imported_success">已成功導入</string>
     <string name="save_file_invalid_zip_structure">無效的儲存目錄結構</string>
     <string name="save_file_invalid_zip_structure_description">首個子資料夾名稱必須為遊戲標題 ID。</string>
@@ -420,7 +388,7 @@
     <string name="exporting_user_data">正在導出使用者資料…</string>
     <string name="importing_user_data">正在導入使用者資料…</string>
     <string name="invalid_yuzu_backup">無效的 Eden 備份</string>
-    <string name="user_data_export_success">使用者資料匯出成功</string>
+    <string name="user_data_export_success">使用者資料導出成功</string>
     <string name="user_data_import_success">使用者資料導入成功</string>
     <string name="user_data_export_cancelled">導出已取消</string>
     <string name="user_data_import_failed_description">請確保使用者資料夾位於 zip 壓縮檔的根目錄，並在 config/config.ini 路徑中包含組態檔案，並再試一次。</string>
@@ -445,6 +413,12 @@
     <string name="use_custom_rtc_description">允許您設定與您的目前系統時間相互獨立的自訂時間。</string>
     <string name="set_custom_rtc">設定自訂 RTC</string>
 
+    <string name="custom_cpu_ticks">自訂CPU時脈</string>
+    <string name="custom_cpu_ticks_description">自訂CPU時脈。更高的值可能提高效能，但也可能導致遊戲卡死。建議範圍為77-21000。</string>
+    <string name="cpu_ticks">時脈</string>
+    <string name="memory_layout">記憶體佈局</string>
+    <string name="memory_layout_description">（實驗性）更改模擬記憶體佈局。此設定不會提高效能，但可能有助於使用模組來提高解析度的遊戲的載入。不要在 RAM 為 8GB 或更少的手機上使用。若遊戲崩潰請將進階設定裡偵錯選項中的CPU後端改為 Dynarmic (JIT)</string>
+
     <string name="generate">生成</string>
 
     <!-- Network settings strings -->
@@ -455,31 +429,58 @@
     <string name="network">網路</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">顯示</string>
-
-    <string name="renderer_accuracy">準確度層級</string>
     <string name="renderer_resolution">解析度 (手提/底座)</string>
     <string name="renderer_vsync">垂直同步</string>
-    <string name="renderer_screen_layout">方向</string>
-    <string name="renderer_aspect_ratio">長寬比</string>
+    <string name="shader_backend">著色器後端</string>
+    <string name="shader_backend_description">選擇著色器的編譯與轉譯方式</string>
     <string name="renderer_scaling_filter">視窗適應過濾器</string>
     <string name="fsr_sharpness">FSR 銳化度</string>
     <string name="fsr_sharpness_description">使用 FSR 時圖片的銳化程度</string>
     <string name="renderer_anti_aliasing">抗鋸齒</string>
-    <string name="renderer_force_max_clock">強制使用最大時脈 (僅限Adreno)</string>
-    <string name="renderer_force_max_clock_description">強制 GPU 以可能的最大時脈執行 (熱溫限制仍會被套用)。</string>
-    <string name="renderer_optimize_spirv_output">最佳化Spir-V輸出</string>
     <string name="renderer_optimize_spirv_output_description">最佳化編譯後的著色器以提高GPU效率。</string>
-    <string name="renderer_asynchronous_shaders">使用非同步著色器</string>
-    <string name="renderer_asynchronous_shaders_description">非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
-    <string name="fast_gpu_time">GPU 超頻係數</string>
-    <string name="fast_gpu_time_description">使用 128 以獲得最大效能，使用 512 以獲得最大圖形保真度。</string>
-    <string name="renderer_reactive_flushing">使用重新啟用排清</string>
-    <string name="renderer_reactive_flushing_description">犧牲效能，以改善部分遊戲的轉譯準確度。</string>
-    <string name="use_disk_shader_cache">磁碟著色器快取</string>
-    <string name="use_disk_shader_cache_description">將產生的著色器快取儲存至硬碟以減少中斷。</string>
+
+
+    <string name="dma_accuracy">DMA 準確度</string>
+    <string name="dma_accuracy_description">控制 DMA 準確度。安全準確度可以修復某些遊戲中的問題，但在某些情況下也可能影響效能。如果不確定，請保留為「預設」。</string>
     <string name="anisotropic_filtering">各向異性過濾</string>
     <string name="anisotropic_filtering_description">改善斜角檢視時的紋理品質</string>
+    <string name="vram_usage_mode">VRAM使用模式</string>
+    <string name="vram_usage_mode_description">控制GPU記憶體的分配與釋放策略</string>
+    <string name="accelerate_astc">ASTC解碼方式</string>
+    <string name="accelerate_astc_description">選擇ASTC壓縮紋理的解碼方式：CPU（慢速、安全）、GPU（快速、推薦）或CPU非同步（無卡頓，可能導致問題）</string>
+    <string name="astc_recompression">ASTC重新壓縮方式</string>
+    <string name="astc_recompression_description">選擇ASTC紋理的重新壓縮方式以提高相容性和效能。啟用此選項可節省VRAM，但可能會降低紋理品質。</string>
+
+    <string name="sync_memory_operations">同步記憶體操作</string>
+    <string name="sync_memory_operations_description">確保計算和記憶體操作之間的資料一致性。 此選項應能修復某些遊戲中的問題，但在某些情況下可能會降低效能。 使用Unreal Engine 4的遊戲似乎受影響最大。</string>
+    <string name="use_disk_shader_cache">磁碟著色器快取</string>
+    <string name="use_disk_shader_cache_description">將產生的著色器快取儲存至硬碟以減少中斷。</string>
+    <string name="renderer_force_max_clock">強制使用最大時脈 (僅限Adreno)</string>
+    <string name="renderer_force_max_clock_description">強制 GPU 以可能的最大時脈執行 (熱溫限制仍會被套用)。</string>
+    <string name="renderer_reactive_flushing">使用重新啟用排清</string>
+    <string name="renderer_reactive_flushing_description">犧牲效能，以改善部分遊戲的轉譯準確度。</string>
+
+
+    <string name="skip_cpu_inner_invalidation">跳過CPU內部失效處理</string>
+    <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取的失效處理，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
+    <string name="renderer_asynchronous_shaders">使用非同步著色器</string>
+    <string name="renderer_asynchronous_shaders_description">非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
+
+    <string name="dyna_state">擴展動態狀態</string>
+    <string name="disabled">已停用</string>
+    <string name="vertex_input_dynamic_state">頂點輸入動態狀態</string>
+    <string name="vertex_input_dynamic_state_description">啟用頂點輸入動態狀態以取得更佳的品質及性能</string>
+    <string name="provoking_vertex">引發頂點</string>
+    <string name="provoking_vertex_description">改善某些遊戲中的光照和頂點處理。僅支援Vulkan 1.0+ GPU。</string>
+    <string name="descriptor_indexing">描述符索引</string>
+    <string name="descriptor_indexing_description">改進紋理和緩衝區處理以及Maxwell轉換層。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支援。</string>
+    <string name="display">顯示</string>
+
+    <string name="renderer_screen_layout">方向</string>
+    <string name="renderer_aspect_ratio">長寬比</string>
+    <string name="vertical_alignment">垂直對齊</string>
+    <string name="picture_in_picture">子母畫面</string>
+    <string name="picture_in_picture_description">位於背景時最小化視窗</string>
 
     <string name="warning_resolution">解析度縮放到2倍或更高可能會導致問題，並可能顯著降低設備速度。</string>
 
@@ -665,7 +666,6 @@
     <string name="preferences_player">玩家 %d</string>
     <string name="preferences_debug">偵錯</string>
     <string name="preferences_debug_description">CPU/GPU 偵錯、圖形 API 及 fastmem</string>
-
     <!-- Game properties -->
     <string name="info">資訊</string>
     <string name="info_description">程式 ID、開發人員及版本資訊</string>
@@ -848,10 +848,6 @@
     <string name="clock_boost">加速 (1700MHz)</string>
     <string name="clock_fast">快速 (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">中 (256)</string>
-    <string name="fast_gpu_high">高 (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">攝氏度</string>
     <string name="temperature_fahrenheit">華氏度</string>
@@ -869,8 +865,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">無</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_low">效能</string>
     <string name="renderer_accuracy_medium">平衡</string>
     <string name="renderer_accuracy_high">準確</string>
 
@@ -879,18 +873,10 @@
     <string name="dma_accuracy_unsafe">不安全</string>
     <string name="dma_accuracy_safe">安全</string>
 
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC解碼方式</string>
-    <string name="accelerate_astc_description">選擇ASTC壓縮紋理的解碼方式：CPU（慢速、安全）、GPU（快速、推薦）或CPU非同步（無卡頓，可能導致問題）</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU非同步</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC重新壓縮方式</string>
-    <string name="astc_recompression_description">選擇ASTC紋理的重新壓縮方式以提高相容性和效能。啟用此選項可節省VRAM，但可能會降低紋理品質。</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">未壓縮</string>
@@ -898,8 +884,6 @@
     <string name="astc_recompression_bc3">BC3（中品質）</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">VRAM使用模式</string>
-    <string name="vram_usage_mode_description">控制GPU記憶體的分配與釋放策略</string>
     <string name="vram_usage_conservative">保守</string>
     <string name="vram_usage_aggressive">積極</string>
 
@@ -1049,15 +1033,12 @@
     <string name="gray">灰色</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">子母畫面</string>
-    <string name="picture_in_picture_description">位於背景時最小化視窗</string>
     <string name="pause">暫停</string>
     <string name="play">開始</string>
     <string name="mute">靜音</string>
     <string name="unmute">取消靜音</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">垂直對齊</string>
     <string name="top">頂部</string>
     <string name="center">中心</string>
     <string name="bottom">底部</string>

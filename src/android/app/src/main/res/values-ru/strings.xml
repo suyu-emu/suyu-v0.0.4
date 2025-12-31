@@ -17,7 +17,6 @@
     <string name="invalid_value">Неверная величина</string>
 
 
-    <!-- Input Overlay -->
     <string name="overlay_auto_hide">Авто-скрытие оверлея</string>
     <string name="overlay_auto_hide_description">Автоматически скрывает сенсорное управление после определенного времени неактивности.</string>
     <string name="enable_input_overlay_auto_hide">Включить авто-скрытие оверлея</string>
@@ -26,8 +25,6 @@
 
     <string name="input_overlay_options">Оверлей ввода</string>
     <string name="input_overlay_options_description">Настройка экранного управления</string>
-
-
     <!-- Stats Overlay settings -->
     <string name="process_ram">ОЗУ процесса: %1$d МБ</string>
     <string name="shaders_prefix">Компиляция</string>
@@ -77,21 +74,6 @@
     <string name="show_fw_version">Показать версию прошивки</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">Расширенное динамическое состояние</string>
-    <string name="dyna_state_description">Управляет количеством функций, которые можно использовать в расширенном динамическом состоянии. Более высокие значения позволяют использовать больше функций и могут повысить производительность, но могут вызвать проблемы с некоторыми драйверами и производителями. Значение по умолчанию может варьироваться в зависимости от вашей системы и возможностей оборудования. Это значение можно изменять до достижения стабильности и лучшего визуального качества.</string>
-    <string name="disabled">Отключено</string>
-    <string name="vertex_input_dynamic_state">Динамическое состояние ввода вершин</string>
-    <string name="vertex_input_dynamic_state_description">Включает функцию динамического состояния ввода вершин для повышения качества и производительности</string>
-    <string name="provoking_vertex">Определяющая вершина</string>
-    <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только ГПУ с Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Индексирование дескрипторов</string>
-    <string name="descriptor_indexing_description">Улучшает обработку текстур и буферов, а также слой перевода Maxwell. Поддерживается некоторыми ГПУ Vulkan 1.1 и всеми ГПУ Vulkan 1.2+.</string>
-    <string name="sample_shading_fraction">Доля сэмплового затенения</string>
-    <string name="sample_shading_fraction_description">Интенсивность прохода сэмплового затенения. Более высокие значения улучшают качество, но и сильнее снижают производительность.</string>
-
-    <string name="sync_memory_operations">Синхронизация операций с памятью</string>
-    <string name="sync_memory_operations_description">Обеспечивает согласованность данных между вычислительными операциями и операциями с памятью. Эта опция должна исправлять проблемы в некоторых играх, но может снижать производительность в некоторых случаях. Наиболее сильно это затрагивает игры на Unreal Engine 4.</string>
     <string name="buffer_reorder_disable">Отключить переупорядочивание буфера</string>
     <string name="buffer_reorder_disable_description">При включении отключает переупорядочивание загрузки отображенной памяти, позволяя связывать загрузки с конкретными отрисовками. В некоторых случаях может снизить производительность.</string>
 
@@ -99,30 +81,16 @@
     <string name="use_sync_core_description">Синхронизирует скорость ядра с максимальным процентом скорости для улучшения производительности без изменения фактической скорости игры.</string>
     <string name="use_lru_cache">Включить LRU-кеш</string>
     <string name="use_lru_cache_description">Включите или отключите кэш LRU (наименее недавно использованный), повышая производительность за счёт снижения нагрузки на ЦП. Некоторые игры могут работать с ним некорректно (например, TotK 1.2.1), поэтому отключите, если игра не запускается или случайно вылетает.</string>
-    <string name="custom_cpu_ticks">Пользовательские такты ЦП</string>
-    <string name="custom_cpu_ticks_description">Установите пользовательское значение тактов ЦП. Более высокие значения могут увеличить производительность, но также могут вызвать зависание игры. Рекомендуется диапазон 77–21000.</string>
-    <string name="cpu_ticks">Такты</string>
-    <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
-    <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Включить эмуляцию MMU хоста</string>
     <string name="cpuopt_unsafe_host_mmu_description">Эта оптимизация ускоряет доступ к памяти гостевой программой. При включении операции чтения/записи памяти гостя выполняются напрямую в памяти с использованием MMU хоста. Отключение заставляет все обращения к памяти использовать программную эмуляцию MMU.</string>
-    <string name="fast_cpu_time">Тактовая частота ЦП</string>
-    <string name="fast_cpu_time_description">Используйте Разгон (1700MHz) для работы на максимальной нативной частоте Switch или Быстрая (2000MHz) для работы на удвоенной частоте.</string>
-    <string name="memory_layout">Распределение памяти</string>
-    <string name="memory_layout_description">(ЭКСПЕРИМЕНТАЛЬНО) Изменяет эмулируемое распределение памяти. Эта настройка не увеличивает производительность, но может помочь в играх, использующих высокие разрешения через моды. Не используйте на телефонах с 8 ГБ ОЗУ или меньше.</string>
-    <string name="dma_accuracy">Точность DMA</string>
-    <string name="dma_accuracy_description">Управляет точностью DMA. Безопасная точность может исправить проблемы в некоторых играх, но в некоторых случаях также может повлиять на производительность. Если не уверены, оставьте значение По умолчанию.</string>
     <string name="debug_knobs">Настройки отладки</string>
     <string name="debug_knobs_description">Только для разработчиков</string>
     <string name="debug_knobs_hint">От 0 до 65535</string>
 
     <!-- Shader Backend -->
-    <string name="shader_backend">Шейдерный бэкенд</string>
-    <string name="shader_backend_description">Метод компиляции шейдеров</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Эмуляция NVDEC</string>
     <string name="nvdec_emulation_description">Обработка видео (ролики, интро)</string>
@@ -130,7 +98,7 @@
     <string name="nvdec_emulation_gpu">ГПУ</string>
     <string name="nvdec_emulation_none">Отключено</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Никогда</string>
     <string name="on_load">При загрузке</string>
     <string name="always">Всегда</string>
@@ -451,6 +419,12 @@
     <string name="use_custom_rtc_description">Позволяет установить пользовательские часы реального времени отдельно от текущего системного времени.</string>
     <string name="set_custom_rtc">Установить пользовательский RTC</string>
 
+    <string name="custom_cpu_ticks">Пользовательские такты ЦП</string>
+    <string name="custom_cpu_ticks_description">Установите пользовательское значение тактов ЦП. Более высокие значения могут увеличить производительность, но также могут вызвать зависание игры. Рекомендуется диапазон 77–21000.</string>
+    <string name="cpu_ticks">Такты</string>
+    <string name="memory_layout">Распределение памяти</string>
+    <string name="memory_layout_description">(ЭКСПЕРИМЕНТАЛЬНО) Изменяет эмулируемое распределение памяти. Эта настройка не увеличивает производительность, но может помочь в играх, использующих высокие разрешения через моды. Не используйте на телефонах с 8 ГБ ОЗУ или меньше.</string>
+
     <string name="generate">Создать</string>
 
     <!-- Network settings strings -->
@@ -461,31 +435,58 @@
     <string name="network">Сеть</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">Дисплей</string>
-
-    <string name="renderer_accuracy">Уровень точности</string>
     <string name="renderer_resolution">Разрешение (портативное/в док-станции)</string>
     <string name="renderer_vsync">Режим верт. синхронизации</string>
-    <string name="renderer_screen_layout">Ориентация</string>
-    <string name="renderer_aspect_ratio">Соотношение сторон</string>
+    <string name="shader_backend">Шейдерный бэкенд</string>
+    <string name="shader_backend_description">Метод компиляции шейдеров</string>
     <string name="renderer_scaling_filter">Фильтр адаптации окна</string>
     <string name="fsr_sharpness">Резкость FSR</string>
     <string name="fsr_sharpness_description">Определяет, насколько чётким будет изображение при использовании динамического контраста FSR.</string>
     <string name="renderer_anti_aliasing">Метод сглаживания</string>
-    <string name="renderer_force_max_clock">Принудительно заставить максимальную тактовую частоту (только для Adreno)</string>
-    <string name="renderer_force_max_clock_description">Заставляет ГП работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
-    <string name="renderer_optimize_spirv_output">Оптимизация Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">Оптимизирует скомпилированный шейдер для повышения эффективности ГПУ.</string>
-    <string name="renderer_asynchronous_shaders">Использовать асинхронные шейдеры</string>
-    <string name="renderer_asynchronous_shaders_description">Компилирует шейдеры асинхронно. Это может уменьшить подтормаживания, но также может вызвать графические артефакты.</string>
-    <string name="fast_gpu_time">Фактор разгона ГПУ</string>
-    <string name="fast_gpu_time_description">Используйте 128 для максимальной производительности и 512 для максимальной графической точности.</string>
-    <string name="renderer_reactive_flushing">Реактивная очистка</string>
-    <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
-    <string name="use_disk_shader_cache">Кэш шейдеров на диске</string>
-    <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
+
+
+    <string name="dma_accuracy">Точность DMA</string>
+    <string name="dma_accuracy_description">Управляет точностью DMA. Безопасная точность может исправить проблемы в некоторых играх, но в некоторых случаях также может повлиять на производительность. Если не уверены, оставьте значение По умолчанию.</string>
     <string name="anisotropic_filtering">Анизотропная фильтрация</string>
     <string name="anisotropic_filtering_description">Улучшает качество текстур под углом</string>
+    <string name="vram_usage_mode">Режим VRAM</string>
+    <string name="vram_usage_mode_description">Стратегия управления видеопамятью</string>
+    <string name="accelerate_astc">Метод декодирования ASTC</string>
+    <string name="accelerate_astc_description">Выберите способ декодирования сжатых текстур ASTC для рендеринга: ЦП (медленно, безопасно), ГПУ (быстро, рекомендуется) или ЦП асинхронно (без заиканий, могут возникнуть проблемы)</string>
+    <string name="astc_recompression">Метод пережатия ASTC</string>
+    <string name="astc_recompression_description">Выберите способ пересжатия текстур ASTC для улучшения совместимости и производительности. Включение этой опции экономит VRAM, но может снизить качество текстур.</string>
+
+    <string name="sync_memory_operations">Синхронизация операций с памятью</string>
+    <string name="sync_memory_operations_description">Обеспечивает согласованность данных между вычислительными операциями и операциями с памятью. Эта опция должна исправлять проблемы в некоторых играх, но может снижать производительность в некоторых случаях. Наиболее сильно это затрагивает игры на Unreal Engine 4.</string>
+    <string name="use_disk_shader_cache">Кэш шейдеров на диске</string>
+    <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
+    <string name="renderer_force_max_clock">Принудительно заставить максимальную тактовую частоту (только для Adreno)</string>
+    <string name="renderer_force_max_clock_description">Заставляет ГП работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
+    <string name="renderer_reactive_flushing">Реактивная очистка</string>
+    <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
+    <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
+    <string name="renderer_asynchronous_shaders">Использовать асинхронные шейдеры</string>
+    <string name="renderer_asynchronous_shaders_description">Компилирует шейдеры асинхронно. Это может уменьшить подтормаживания, но также может вызвать графические артефакты.</string>
+
+    <string name="dyna_state">Расширенное динамическое состояние</string>
+    <string name="disabled">Отключено</string>
+    <string name="vertex_input_dynamic_state">Динамическое состояние ввода вершин</string>
+    <string name="vertex_input_dynamic_state_description">Включает функцию динамического состояния ввода вершин для повышения качества и производительности</string>
+    <string name="provoking_vertex">Определяющая вершина</string>
+    <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только ГПУ с Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Индексирование дескрипторов</string>
+    <string name="descriptor_indexing_description">Улучшает обработку текстур и буферов, а также слой перевода Maxwell. Поддерживается некоторыми ГПУ Vulkan 1.1 и всеми ГПУ Vulkan 1.2+.</string>
+    <string name="display">Дисплей</string>
+
+    <string name="renderer_screen_layout">Ориентация</string>
+    <string name="renderer_aspect_ratio">Соотношение сторон</string>
+    <string name="vertical_alignment">Вертикальное выравнивание</string>
+    <string name="picture_in_picture">Картинка в картинке</string>
+    <string name="picture_in_picture_description">Свернуть окно при размещении в фоновом режиме</string>
 
     <string name="warning_resolution">Масштабирование разрешения до 2x или выше может вызвать проблемы и привести к значительному замедлению работы устройства.</string>
 
@@ -671,7 +672,6 @@
     <string name="preferences_player">Игрок %d</string>
     <string name="preferences_debug">Отладка</string>
     <string name="preferences_debug_description">Отладка ЦП/ГП, графический API, fastmem</string>
-
     <!-- Game properties -->
     <string name="info">Информация</string>
     <string name="info_description">ID программы, для разработчиков, версия</string>
@@ -854,10 +854,6 @@
     <string name="clock_boost">Разгон (1700MHz)</string>
     <string name="clock_fast">Быстрая (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Средний (256)</string>
-    <string name="fast_gpu_high">Высокий (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Цельсий</string>
     <string name="temperature_fahrenheit">Фаренгейт</string>
@@ -875,8 +871,6 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Никакой</string>
 
-    <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_low">Производительный</string>
     <string name="renderer_accuracy_medium">Сбалансированный</string>
     <string name="renderer_accuracy_high">Точный</string>
 
@@ -885,18 +879,10 @@
     <string name="dma_accuracy_unsafe">Небезопасно</string>
     <string name="dma_accuracy_safe">Безопасный</string>
 
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">Метод декодирования ASTC</string>
-    <string name="accelerate_astc_description">Выберите способ декодирования сжатых текстур ASTC для рендеринга: ЦП (медленно, безопасно), ГПУ (быстро, рекомендуется) или ЦП асинхронно (без заиканий, могут возникнуть проблемы)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">ЦП</string>
     <string name="accelerate_astc_gpu">ГПУ</string>
     <string name="accelerate_astc_async">ЦП (асинхронно)</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">Метод пережатия ASTC</string>
-    <string name="astc_recompression_description">Выберите способ пересжатия текстур ASTC для улучшения совместимости и производительности. Включение этой опции экономит VRAM, но может снизить качество текстур.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Без сжатия</string>
@@ -904,8 +890,6 @@
     <string name="astc_recompression_bc3">BC3 (среднее качество)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">Режим VRAM</string>
-    <string name="vram_usage_mode_description">Стратегия управления видеопамятью</string>
     <string name="vram_usage_conservative">Консервативный</string>
     <string name="vram_usage_aggressive">Агрессивный</string>
 
@@ -1055,15 +1039,12 @@
     <string name="gray">Серый</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">Картинка в картинке</string>
-    <string name="picture_in_picture_description">Свернуть окно при размещении в фоновом режиме</string>
     <string name="pause">Пауза</string>
     <string name="play">Играть</string>
     <string name="mute">Выключить звук</string>
     <string name="unmute">Включить звук</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">Вертикальное выравнивание</string>
     <string name="top">Верх</string>
     <string name="center">Центр</string>
     <string name="bottom">Низ</string>

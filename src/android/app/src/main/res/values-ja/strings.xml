@@ -53,19 +53,6 @@
     <string name="show_fw_version">ファームウェアバージョンを表示</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">拡張ダイナミックステート</string>
-    <string name="dyna_state_description">拡張ダイナミックステートで使用できる機能の数を制御します。数値が高いほどより多くの機能が使用可能になり、パフォーマンスが向上する可能性がありますが、一部のドライバーやベンダーで問題が発生する可能性があります。デフォルト値は、お使いのシステムとハードウェアの機能によって異なります。安定性とより良い画質が得られるまでこの値を変更できます。</string>
-    <string name="disabled">無効</string>
-    <string name="provoking_vertex">プロボーキング頂点</string>
-    <string name="provoking_vertex_description">特定のゲームで照明と頂点処理を改善します。Vulkan 1.0+ GPUでのみサポートされています。</string>
-    <string name="descriptor_indexing">ディスクリプタインデキシング</string>
-    <string name="descriptor_indexing_description">テクスチャとバッファの処理、およびMaxwell翻訳レイヤーを改善します。一部のVulkan 1.1 GPUとすべてのVulkan 1.2+ GPUでサポートされています。</string>
-    <string name="sample_shading_fraction">サンプルシェーディング率</string>
-    <string name="sample_shading_fraction_description">サンプルシェーディング処理の強度。高い値ほど品質は向上しますが、パフォーマンスも大きく低下します。</string>
-
-    <string name="sync_memory_operations">メモリ操作の同期</string>
-    <string name="sync_memory_operations_description">計算処理とメモリ操作間のデータ一貫性を保証します。 このオプションは一部のゲームの問題を修正しますが、場合によってはパフォーマンスが低下する可能性があります。 Unreal Engine 4のゲームが最も影響を受けるようです。</string>
     <string name="buffer_reorder_disable">バッファの再並べ替えを無効化</string>
     <string name="buffer_reorder_disable_description">チェック時、マップされたメモリのアップロードの再並べ替えを無効化し、特定の描画に関連付けることができます。場合によってはパフォーマンスが低下する可能性があります。</string>
 
@@ -73,26 +60,12 @@
     <string name="use_sync_core_description">コアの速度を最大速度パーセンテージに同期させ、ゲームの実際の速度を変えずにパフォーマンスを向上させます。</string>
     <string name="use_lru_cache">LRUキャッシュを有効化</string>
     <string name="use_lru_cache_description">LRUキャッシュを有効/無効にし、CPUプロセスの使用を節約してパフォーマンスを向上させます。TotK 1.2.1など一部のゲームで問題が発生する可能性があるため、ゲームが起動しない場合やランダムにクラッシュする場合は無効にしてください。</string>
-    <string name="custom_cpu_ticks">カスタムCPUティック</string>
-    <string name="custom_cpu_ticks_description">CPUティックのカスタム値を設定します。高い値はパフォーマンスを向上させる可能性がありますが、ゲームがフリーズする可能性もあります。77〜21000の範囲が推奨されます。</string>
-    <string name="cpu_ticks">ティック</string>
-    <string name="skip_cpu_inner_invalidation">CPU内部無効化をスキップ</string>
-    <string name="skip_cpu_inner_invalidation_description">メモリ更新時のCPU側キャッシュ無効化をスキップし、CPU使用率を減らして性能を向上させます。一部のゲームで不具合やクラッシュが発生する可能性があります。</string>
+
     <string name="cpuopt_unsafe_host_mmu">ホストMMUエミュレーションを有効化</string>
     <string name="cpuopt_unsafe_host_mmu_description">この最適化により、ゲストプログラムによるメモリアクセスが高速化されます。有効にすると、ゲストのメモリ読み書きが直接メモリ内で実行され、ホストのMMUを利用します。無効にすると、すべてのメモリアクセスでソフトウェアMMUエミュレーションが使用されます。</string>
-    <string name="fast_cpu_time">CPUクロック</string>
-    <string name="fast_cpu_time_description">Boost (1700MHz)を使用してSwitchの最高ネイティブクロックで動作させるか、Fast (2000MHz)を使用して2倍のクロックで動作させます。</string>
-    <string name="memory_layout">メモリレイアウト</string>
-    <string name="memory_layout_description">(実験的) エミュレートされたメモリレイアウトを変更します。この設定はパフォーマンスを向上させませんが、modを介して高解像度を利用するゲームに役立つ場合があります。8GB以下のRAMを搭載した電話では使用しないでください。</string>
-    <string name="dma_accuracy">DMA精度</string>
-    <string name="dma_accuracy_description">DMAの精度を制御します。安全な精度は一部のゲームの問題を修正できる場合がありますが、場合によってはパフォーマンスに影響を与える可能性もあります。不明な場合は、これをデフォルトのままにしてください。</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">シェーダーバックエンド</string>
-    <string name="shader_backend_description">シェーダーのコンパイル方法</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDECエミュレーション</string>
     <string name="nvdec_emulation_description">ビデオデコード方法</string>
@@ -100,7 +73,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">無効</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">無効</string>
     <string name="on_load">ロード時</string>
     <string name="always">常に</string>
@@ -211,7 +184,7 @@
     <string name="view_grid">グリッド表示</string>
     <string name="view_grid_compact">コンパクトグリッド</string>
     <string name="view_carousel">カルーセル</string>
-    <string name="game_image_desc"> のスクリーンショット  %1$s</string>
+    <string name="game_image_desc"> のスクリーンショット  %1$s</string>
     <string name="folder">フォルダ</string>
     <string name="dont_show_again">再表示しない</string>
     <string name="home_search">検索</string>
@@ -258,7 +231,7 @@
     <string name="import_save_warning">セーブデータをインポート</string>
     <string name="import_save_warning_description">警告：選択したファイルで全てのセーブファイルを上書きします。そのまま続きましょうか？</string>
     <string name="save_files_importing">セーブファイルをインポート中...</string>
-    <string name="save_files_exporting">セーブファイルを エクスポート </string>
+    <string name="save_files_exporting">セーブファイルを エクスポート </string>
     <string name="save_file_imported_success">インポートが完了しました</string>
     <string name="save_file_invalid_zip_structure">セーブデータのディレクトリ構造が無効</string>
     <string name="save_file_invalid_zip_structure_description">最初のサブフォルダ名は、ゲームのタイトルIDである必要があります。</string>
@@ -367,6 +340,12 @@
     <string name="use_custom_rtc_description">現在のシステム時間とは別に、任意のリアルタイムクロックを設定できます。</string>
     <string name="set_custom_rtc">カスタムRTCを設定</string>
 
+    <string name="custom_cpu_ticks">カスタムCPUティック</string>
+    <string name="custom_cpu_ticks_description">CPUティックのカスタム値を設定します。高い値はパフォーマンスを向上させる可能性がありますが、ゲームがフリーズする可能性もあります。77〜21000の範囲が推奨されます。</string>
+    <string name="cpu_ticks">ティック</string>
+    <string name="memory_layout">メモリレイアウト</string>
+    <string name="memory_layout_description">(実験的) エミュレートされたメモリレイアウトを変更します。この設定はパフォーマンスを向上させませんが、modを介して高解像度を利用するゲームに役立つ場合があります。8GB以下のRAMを搭載した電話では使用しないでください。</string>
+
     <string name="generate">生成</string>
 
     <!-- Network settings strings -->
@@ -377,29 +356,54 @@
     <string name="network">ネットワーク</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">ディスプレイ</string>
-
-    <string name="renderer_accuracy">精度</string>
     <string name="renderer_resolution">解像度（携帯モード/TVモード）</string>
     <string name="renderer_vsync">垂直同期モード</string>
-    <string name="renderer_screen_layout">画面の向き</string>
-    <string name="renderer_aspect_ratio">アスペクト比</string>
+    <string name="shader_backend">シェーダーバックエンド</string>
+    <string name="shader_backend_description">シェーダーのコンパイル方法</string>
     <string name="renderer_scaling_filter">ウィンドウ適応フィルター</string>
     <string name="renderer_anti_aliasing">アンチエイリアス方式</string>
-    <string name="renderer_force_max_clock">最大クロックを強制 (Adrenoのみ)</string>
-    <string name="renderer_force_max_clock_description">GPUを最大限可能な周波数で動作させます (過熱制限は引き続き適用されます)。</string>
-    <string name="renderer_optimize_spirv_output">Spir-V最適化</string>
     <string name="renderer_optimize_spirv_output_description">コンパイル済みシェーダーを最適化し、GPUの効率を向上させます。</string>
-    <string name="renderer_asynchronous_shaders">非同期シェーダー</string>
-    <string name="renderer_asynchronous_shaders_description">シェーダーを非同期でコンパイルします。これによりカクつきが減る可能性がありますが、グラフィックの不具合が発生する場合もあります。</string>
-    <string name="fast_gpu_time">GPUオーバークロック係数</string>
-    <string name="fast_gpu_time_description">最大パフォーマンスには128、最大グラフィック忠実度には512を使用します。</string>
-    <string name="renderer_reactive_flushing">即時書き込み</string>
-    <string name="renderer_reactive_flushing_description">一部のゲームにおいて、パフォーマンスを犠牲にしながらも、レンダリング精度を向上させます。</string>
-    <string name="use_disk_shader_cache">ディスクシェーダーキャッシュ</string>
-    <string name="use_disk_shader_cache_description">生成したシェーダーを端末に保存して読み込み、コマ落ちを軽減します。</string>
+
+
+    <string name="dma_accuracy">DMA精度</string>
+    <string name="dma_accuracy_description">DMAの精度を制御します。安全な精度は一部のゲームの問題を修正できる場合がありますが、場合によってはパフォーマンスに影響を与える可能性もあります。不明な場合は、これをデフォルトのままにしてください。</string>
     <string name="anisotropic_filtering">異方性フィルタリング</string>
     <string name="anisotropic_filtering_description">斜めから見たときのテクスチャーの質感を向上させます</string>
+    <string name="vram_usage_mode">VRAM使用モード</string>
+    <string name="vram_usage_mode_description">VRAMの使用効率を設定</string>
+    <string name="accelerate_astc">ASTCデコード方法</string>
+    <string name="accelerate_astc_description">ASTC圧縮テクスチャのデコード方法を選択: CPU (低速、安全)、GPU (高速、推奨)、またはCPU非同期 (カクつきなし、問題が発生する可能性あり)</string>
+    <string name="astc_recompression">ASTC再圧縮方法</string>
+    <string name="astc_recompression_description">ASTCテクスチャの再圧縮方法を選択して互換性とパフォーマンスを向上させます。このオプションを有効にするとVRAMを節約できますが、テクスチャ品質が低下する可能性があります。</string>
+
+    <string name="sync_memory_operations">メモリ操作の同期</string>
+    <string name="sync_memory_operations_description">計算処理とメモリ操作間のデータ一貫性を保証します。 このオプションは一部のゲームの問題を修正しますが、場合によってはパフォーマンスが低下する可能性があります。 Unreal Engine 4のゲームが最も影響を受けるようです。</string>
+    <string name="use_disk_shader_cache">ディスクシェーダーキャッシュ</string>
+    <string name="use_disk_shader_cache_description">生成したシェーダーを端末に保存して読み込み、コマ落ちを軽減します。</string>
+    <string name="renderer_force_max_clock">最大クロックを強制 (Adrenoのみ)</string>
+    <string name="renderer_force_max_clock_description">GPUを最大限可能な周波数で動作させます (過熱制限は引き続き適用されます)。</string>
+    <string name="renderer_reactive_flushing">即時書き込み</string>
+    <string name="renderer_reactive_flushing_description">一部のゲームにおいて、パフォーマンスを犠牲にしながらも、レンダリング精度を向上させます。</string>
+
+
+    <string name="skip_cpu_inner_invalidation">CPU内部無効化をスキップ</string>
+    <string name="skip_cpu_inner_invalidation_description">メモリ更新時のCPU側キャッシュ無効化をスキップし、CPU使用率を減らして性能を向上させます。一部のゲームで不具合やクラッシュが発生する可能性があります。</string>
+    <string name="renderer_asynchronous_shaders">非同期シェーダー</string>
+    <string name="renderer_asynchronous_shaders_description">シェーダーを非同期でコンパイルします。これによりカクつきが減る可能性がありますが、グラフィックの不具合が発生する場合もあります。</string>
+
+    <string name="dyna_state">拡張ダイナミックステート</string>
+    <string name="disabled">無効</string>
+    <string name="provoking_vertex">プロボーキング頂点</string>
+    <string name="provoking_vertex_description">特定のゲームで照明と頂点処理を改善します。Vulkan 1.0+ GPUでのみサポートされています。</string>
+    <string name="descriptor_indexing">ディスクリプタインデキシング</string>
+    <string name="descriptor_indexing_description">テクスチャとバッファの処理、およびMaxwell翻訳レイヤーを改善します。一部のVulkan 1.1 GPUとすべてのVulkan 1.2+ GPUでサポートされています。</string>
+    <string name="display">ディスプレイ</string>
+
+    <string name="renderer_screen_layout">画面の向き</string>
+    <string name="renderer_aspect_ratio">アスペクト比</string>
+    <string name="vertical_alignment">垂直位置</string>
+    <string name="picture_in_picture">ピクチャーインピクチャー</string>
+    <string name="picture_in_picture_description">バックグラウンド時にウインドウを最小化する</string>
 
     <string name="warning_resolution">解像度を2倍以上にスケーリングすると問題が発生する可能性があり、デバイスが大幅に遅くなる場合があります。</string>
 
@@ -622,10 +626,6 @@
     <string name="clock_boost">ブースト (1700MHz)</string>
     <string name="clock_fast">高速 (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">中 (256)</string>
-    <string name="fast_gpu_high">高 (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">摂氏</string>
     <string name="temperature_fahrenheit">華氏</string>
@@ -645,18 +645,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">デフォルト</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTCデコード方法</string>
-    <string name="accelerate_astc_description">ASTC圧縮テクスチャのデコード方法を選択: CPU (低速、安全)、GPU (高速、推奨)、またはCPU非同期 (カクつきなし、問題が発生する可能性あり)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU非同期</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC再圧縮方法</string>
-    <string name="astc_recompression_description">ASTCテクスチャの再圧縮方法を選択して互換性とパフォーマンスを向上させます。このオプションを有効にするとVRAMを節約できますが、テクスチャ品質が低下する可能性があります。</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">非圧縮</string>
@@ -664,8 +656,6 @@
     <string name="astc_recompression_bc3">BC3（中品質）</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">VRAM使用モード</string>
-    <string name="vram_usage_mode_description">VRAMの使用効率を設定</string>
     <string name="vram_usage_conservative">保守的</string>
     <string name="vram_usage_aggressive">積極的</string>
 
@@ -757,15 +747,12 @@
     <string name="gray">グレー</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">ピクチャーインピクチャー</string>
-    <string name="picture_in_picture_description">バックグラウンド時にウインドウを最小化する</string>
     <string name="pause">中断</string>
     <string name="play">プレイ</string>
     <string name="mute">消音</string>
     <string name="unmute">消音解除</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">垂直位置</string>
     <string name="top">上</string>
     <string name="center">中央</string>
     <string name="bottom">下</string>

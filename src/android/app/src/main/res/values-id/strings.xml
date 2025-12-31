@@ -17,14 +17,11 @@
     <string name="invalid_value">Nilai invalid</string>
 
 
-    <!-- Input Overlay -->
     <string name="overlay_auto_hide">Sembunyikan otomatis Overlay</string>
     <string name="overlay_auto_hide_description">Otomatis menyembunyikan overlay kontrol layar sentuh setelah beberapa waktu spesifik.</string>
     <string name="enable_input_overlay_auto_hide">Aktifkan \"Sembunyikan otomatis Overlay\"</string>
     <string name="input_overlay_options">Overlay Input</string>
     <string name="input_overlay_options_description">Konfigurasi kontrol di layar</string>
-
-
     <!-- Stats Overlay settings -->
     <string name="process_ram">RAM Proses: %1$d MB</string>
     <string name="shaders_prefix">Membangun</string>
@@ -74,19 +71,6 @@
     <string name="show_fw_version">Tampilkan Versi Firmware</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">Status Dinamis Ekstensi</string>
-    <string name="dyna_state_description">Mengontrol jumlah fitur yang dapat digunakan dalam Extended Dynamic State. Angka yang lebih tinggi memungkinkan lebih banyak fitur dan dapat meningkatkan performa, tetapi dapat menyebabkan masalah dengan beberapa driver dan vendor. Nilai default dapat bervariasi tergantung pada sistem dan kemampuan hardware Anda. Nilai ini dapat diubah hingga stabilitas dan kualitas visual yang lebih baik tercapai.</string>
-    <string name="disabled">Dinonaktifkan</string>
-    <string name="provoking_vertex">Vertex Provokasi</string>
-    <string name="provoking_vertex_description">Meningkatkan pencahayaan dan penanganan vertex di beberapa game. Hanya didukung di GPU Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Pengindeks Deskriptor</string>
-    <string name="descriptor_indexing_description">Meningkatkan penanganan tekstur dan buffer, serta lapisan terjemahan Maxwell. Didukung oleh beberapa GPU Vulkan 1.1 dan semua GPU Vulkan 1.2+.</string>
-    <string name="sample_shading_fraction">Fraksi Pencahayaan Sampel</string>
-    <string name="sample_shading_fraction_description">Intensitas proses pencahayaan sampel. Nilai lebih tinggi meningkatkan kualitas lebih baik tetapi juga mengurangi performa lebih besar.</string>
-
-    <string name="sync_memory_operations">Sinkronisasi Operasi Memori</string>
-    <string name="sync_memory_operations_description">Memastikan konsistensi data antara operasi komputasi dan memori. Opsi ini seharusnya memperbaiki masalah di beberapa game, tetapi mungkin mengurangi performa dalam beberapa kasus. Game dengan Unreal Engine 4 tampaknya yang paling terpengaruh.</string>
     <string name="buffer_reorder_disable">Nonaktifkan Penyusunan Ulang Buffer</string>
     <string name="buffer_reorder_disable_description">Ketika dicentang, menonaktifkan penyusunan ulang unggahan memori yang dipetakan yang memungkinkan mengaitkan unggahan dengan gambar tertentu. Dapat mengurangi kinerja dalam beberapa kasus.</string>
 
@@ -94,26 +78,12 @@
     <string name="use_sync_core_description">Sinkronkan kecepatan inti dengan persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan sebenarnya dari permainan.</string>
     <string name="use_lru_cache">Aktifkan LRU Cache</string>
     <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU untuk meningkatkan performa dengan mengurangi penggunaan proses CPU. Beberapa game seperti TotK 1.2.1 memiliki masalah - nonaktifkan jika game tidak mau berjalan atau crash acak.</string>
-    <string name="custom_cpu_ticks">Ticks CPU Kustom</string>
-    <string name="custom_cpu_ticks_description">Atur nilai ticks CPU kustom. Nilai yang lebih tinggi dapat meningkatkan kinerja, tetapi juga dapat menyebabkan game membeku. Kisaran 77–21000 direkomendasikan.</string>
-    <string name="cpu_ticks">Ticks</string>
-    <string name="skip_cpu_inner_invalidation">Lewati Pembatalan Internal CPU</string>
-    <string name="skip_cpu_inner_invalidation_description">Melewati beberapa pembatalan cache sisi CPU selama pembaruan memori, mengurangi penggunaan CPU dan meningkatkan kinerjanya. Mungkin menyebabkan gangguan atau crash pada beberapa game.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Aktifkan Emulasi MMU Host</string>
     <string name="cpuopt_unsafe_host_mmu_description">Optimasi ini mempercepat akses memori oleh program tamu. Mengaktifkannya menyebabkan pembacaan/penulisan memori tamu dilakukan langsung ke memori dan memanfaatkan MMU Host. Menonaktifkan ini memaksa semua akses memori menggunakan Emulasi MMU Perangkat Lunak.</string>
-    <string name="fast_cpu_time">Kecepatan Clock CPU</string>
-    <string name="fast_cpu_time_description">Gunakan Boost (1700MHz) untuk berjalan pada kecepatan clock asli tertinggi Switch, atau Fast (2000MHz) untuk berjalan pada kecepatan ganda.</string>
-    <string name="memory_layout">Tata Letak Memori</string>
-    <string name="memory_layout_description">(EKSPERIMENTAL) Ubah tata letak memori emulasi. Pengaturan ini tidak meningkatkan kinerja, tetapi dapat membantu game yang menggunakan resolusi tinggi melalui mod. Jangan gunakan pada ponsel dengan RAM 8GB atau kurang.</string>
-    <string name="dma_accuracy">Akurasi DMA</string>
-    <string name="dma_accuracy_description">Mengontrol keakuratan presisi DMA. Presisi aman dapat memperbaiki masalah di beberapa game, tetapi juga dapat memengaruhi kinerja dalam beberapa kasus. Jika tidak yakin, biarkan ini pada Bawaan.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">Backend Shader</string>
-    <string name="shader_backend_description">Pilih cara shader dikompilasi dan diterjemahkan untuk GPU Anda.</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulasi NVDEC</string>
     <string name="nvdec_emulation_description">Pilih cara decoding video (NVDEC) ditangani selama cutscene dan intro.</string>
@@ -121,7 +91,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Tidak Ada</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Tidak Pernah</string>
     <string name="on_load">Saat Memuat</string>
     <string name="always">Selalu</string>
@@ -402,6 +372,12 @@
     <string name="use_custom_rtc_description">Memungkinkan Anda untuk mengatur jam waktu nyata kustom yang terpisah dari waktu sistem saat ini Anda.</string>
     <string name="set_custom_rtc">Setel RTC Kustom</string>
 
+    <string name="custom_cpu_ticks">Ticks CPU Kustom</string>
+    <string name="custom_cpu_ticks_description">Atur nilai ticks CPU kustom. Nilai yang lebih tinggi dapat meningkatkan kinerja, tetapi juga dapat menyebabkan game membeku. Kisaran 77–21000 direkomendasikan.</string>
+    <string name="cpu_ticks">Ticks</string>
+    <string name="memory_layout">Tata Letak Memori</string>
+    <string name="memory_layout_description">(EKSPERIMENTAL) Ubah tata letak memori emulasi. Pengaturan ini tidak meningkatkan kinerja, tetapi dapat membantu game yang menggunakan resolusi tinggi melalui mod. Jangan gunakan pada ponsel dengan RAM 8GB atau kurang.</string>
+
     <string name="generate">Hasilkan</string>
 
     <!-- Network settings strings -->
@@ -412,31 +388,56 @@
     <string name="network">Jaringan</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">Tampilan</string>
-
-    <string name="renderer_accuracy">Tingkatan Akurasi</string>
     <string name="renderer_resolution">Resolusi (Handheld/Docked)</string>
     <string name="renderer_vsync">Mode Sinkronisasi Vertikal</string>
-    <string name="renderer_screen_layout">Orientasi</string>
-    <string name="renderer_aspect_ratio">Rasio Aspek</string>
+    <string name="shader_backend">Backend Shader</string>
+    <string name="shader_backend_description">Pilih cara shader dikompilasi dan diterjemahkan untuk GPU Anda.</string>
     <string name="renderer_scaling_filter">Filter penyesuaian jendela</string>
     <string name="fsr_sharpness">Ketajaman FSR</string>
     <string name="fsr_sharpness_description">Menentukan seberapa tajam gambar akan terlihat saat menggunakan kontras dinamis FSR</string>
     <string name="renderer_anti_aliasing">Metode anti-aliasing</string>
-    <string name="renderer_force_max_clock">Paksa jam maximum (hanya untuk Adreno)</string>
-    <string name="renderer_force_max_clock_description">Memaksa GPU untuk berjalan pada kecepatan maksimum yang mungkin (batasan termal masih akan diterapkan).</string>
-    <string name="renderer_optimize_spirv_output">Optimalkan Output Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">Mengoptimalkan shader yang dikompilasi untuk meningkatkan efisiensi GPU.</string>
-    <string name="renderer_asynchronous_shaders">Gunakan shader asinkron</string>
-    <string name="renderer_asynchronous_shaders_description">Kompilasi shader secara asinkron. Ini dapat mengurangi lag tetapi juga dapat menyebabkan glitch.</string>
-    <string name="fast_gpu_time">Faktor Overclock GPU</string>
-    <string name="fast_gpu_time_description">Gunakan 128 untuk kinerja maksimal dan 512 untuk kesetiaan grafis maksimal.</string>
-    <string name="renderer_reactive_flushing">Gunakan reactive flushing</string>
-    <string name="renderer_reactive_flushing_description">Meningkatkan akurasi rendering dalam beberapa permainan dengan mengorbankan performa.</string>
-    <string name="use_disk_shader_cache">Cache shader disk</string>
-    <string name="use_disk_shader_cache_description">Mengurangi Tutup Paksa dengan menyimpan dan memuat yang dihasilkan secara lokal</string>
+
+
+    <string name="dma_accuracy">Akurasi DMA</string>
+    <string name="dma_accuracy_description">Mengontrol keakuratan presisi DMA. Presisi aman dapat memperbaiki masalah di beberapa game, tetapi juga dapat memengaruhi kinerja dalam beberapa kasus. Jika tidak yakin, biarkan ini pada Bawaan.</string>
     <string name="anisotropic_filtering">Penyaringan Anisotropik</string>
     <string name="anisotropic_filtering_description">Meningkatkan kualitas tekstur bila dilihat pada sudut miring</string>
+    <string name="vram_usage_mode">Mode Penggunaan VRAM</string>
+    <string name="vram_usage_mode_description">Kontrol seberapa agresif emulator mengalokasikan dan membebaskan memori GPU.</string>
+    <string name="accelerate_astc">Metode Dekoding ASTC</string>
+    <string name="accelerate_astc_description">Pilih cara tekstur terkompresi ASTC didekode untuk rendering: CPU (lambat, aman), GPU (cepat, direkomendasikan), atau CPU Async (tanpa lag, mungkin menyebabkan masalah)</string>
+    <string name="astc_recompression">Metode Rekompresi ASTC</string>
+    <string name="astc_recompression_description">Pilih cara tekstur ASTC dikompresi ulang untuk meningkatkan kompatibilitas dan performa. Mengaktifkan opsi ini menghemat VRAM tetapi dapat menurunkan kualitas tekstur.</string>
+
+    <string name="sync_memory_operations">Sinkronisasi Operasi Memori</string>
+    <string name="sync_memory_operations_description">Memastikan konsistensi data antara operasi komputasi dan memori. Opsi ini seharusnya memperbaiki masalah di beberapa game, tetapi mungkin mengurangi performa dalam beberapa kasus. Game dengan Unreal Engine 4 tampaknya yang paling terpengaruh.</string>
+    <string name="use_disk_shader_cache">Cache shader disk</string>
+    <string name="use_disk_shader_cache_description">Mengurangi Tutup Paksa dengan menyimpan dan memuat yang dihasilkan secara lokal</string>
+    <string name="renderer_force_max_clock">Paksa jam maximum (hanya untuk Adreno)</string>
+    <string name="renderer_force_max_clock_description">Memaksa GPU untuk berjalan pada kecepatan maksimum yang mungkin (batasan termal masih akan diterapkan).</string>
+    <string name="renderer_reactive_flushing">Gunakan reactive flushing</string>
+    <string name="renderer_reactive_flushing_description">Meningkatkan akurasi rendering dalam beberapa permainan dengan mengorbankan performa.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">Lewati Pembatalan Internal CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Melewati beberapa pembatalan cache sisi CPU selama pembaruan memori, mengurangi penggunaan CPU dan meningkatkan kinerjanya. Mungkin menyebabkan gangguan atau crash pada beberapa game.</string>
+    <string name="renderer_asynchronous_shaders">Gunakan shader asinkron</string>
+    <string name="renderer_asynchronous_shaders_description">Kompilasi shader secara asinkron. Ini dapat mengurangi lag tetapi juga dapat menyebabkan glitch.</string>
+
+    <string name="dyna_state">Status Dinamis Ekstensi</string>
+    <string name="disabled">Dinonaktifkan</string>
+    <string name="provoking_vertex">Vertex Provokasi</string>
+    <string name="provoking_vertex_description">Meningkatkan pencahayaan dan penanganan vertex di beberapa game. Hanya didukung di GPU Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Pengindeks Deskriptor</string>
+    <string name="descriptor_indexing_description">Meningkatkan penanganan tekstur dan buffer, serta lapisan terjemahan Maxwell. Didukung oleh beberapa GPU Vulkan 1.1 dan semua GPU Vulkan 1.2+.</string>
+    <string name="display">Tampilan</string>
+
+    <string name="renderer_screen_layout">Orientasi</string>
+    <string name="renderer_aspect_ratio">Rasio Aspek</string>
+    <string name="vertical_alignment">Penyelarasan vertikal</string>
+    <string name="picture_in_picture">Gambar dalam gambar</string>
+    <string name="picture_in_picture_description">Meminimalkan jendela apabila ditempatkan di latar belakang</string>
 
     <string name="warning_resolution">Penskalaan resolusi ke 2x atau lebih tinggi diketahui menyebabkan masalah, dan dapat mengakibatkan perlambatan signifikan pada perangkat Anda.</string>
 
@@ -618,7 +619,6 @@
     <string name="preferences_player">Player %d</string>
     <string name="preferences_debug">Awakutu</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
-
     <!-- Game properties -->
     <string name="info">Info</string>
     <string name="info_description">ID program, pengembang, versi</string>
@@ -766,10 +766,6 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Cepat (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Sedang (256)</string>
-    <string name="fast_gpu_high">Tinggi (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
@@ -789,18 +785,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Bawaan</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">Metode Dekoding ASTC</string>
-    <string name="accelerate_astc_description">Pilih cara tekstur terkompresi ASTC didekode untuk rendering: CPU (lambat, aman), GPU (cepat, direkomendasikan), atau CPU Async (tanpa lag, mungkin menyebabkan masalah)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU Secara Asinkron</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">Metode Rekompresi ASTC</string>
-    <string name="astc_recompression_description">Pilih cara tekstur ASTC dikompresi ulang untuk meningkatkan kompatibilitas dan performa. Mengaktifkan opsi ini menghemat VRAM tetapi dapat menurunkan kualitas tekstur.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Tidak Dikompresi</string>
@@ -808,8 +796,6 @@
     <string name="astc_recompression_bc3">BC3 (Kualitas Menengah)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">Mode Penggunaan VRAM</string>
-    <string name="vram_usage_mode_description">Kontrol seberapa agresif emulator mengalokasikan dan membebaskan memori GPU.</string>
     <string name="vram_usage_conservative">Konservatif</string>
     <string name="vram_usage_aggressive">Agresif</string>
 
@@ -908,15 +894,12 @@
     <string name="gray">Abu-abu</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">Gambar dalam gambar</string>
-    <string name="picture_in_picture_description">Meminimalkan jendela apabila ditempatkan di latar belakang</string>
     <string name="pause">Jeda</string>
     <string name="play">Bermain</string>
     <string name="mute">Bisukan</string>
     <string name="unmute">Membunyikan</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">Penyelarasan vertikal</string>
     <string name="top">Atas</string>
     <string name="center">Pusat</string>
     <string name="bottom">Bawah</string>

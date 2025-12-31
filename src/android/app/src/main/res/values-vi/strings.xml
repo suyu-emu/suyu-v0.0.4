@@ -53,19 +53,6 @@
     <string name="show_fw_version">Hiển thị phiên bản firmware</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">Trạng thái động mở rộng</string>
-    <string name="dyna_state_description">Điều khiển số tính năng có thể được sử dụng trong Trạng thái Động Mở rộng. Giá trị cao hơn cho phép nhiều tính năng hơn và có thể tăng hiệu suất, nhưng có thể gây ra sự cố với một số trình điều khiển và nhà cung cấp. Giá trị mặc định có thể thay đổi tùy thuộc vào hệ thống và khả năng phần cứng của bạn. Giá trị này có thể được thay đổi cho đến khi đạt được độ ổn định và chất lượng hình ảnh tốt hơn.</string>
-    <string name="disabled">Đã tắt</string>
-    <string name="provoking_vertex">Đỉnh kích hoạt</string>
-    <string name="provoking_vertex_description">Cải thiện ánh sáng và xử lý đỉnh trong một số trò chơi. Chỉ được hỗ trợ trên GPU Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Lập chỉ mục bộ mô tả</string>
-    <string name="descriptor_indexing_description">Cải thiện xử lý kết cấu và bộ đệm, cũng như lớp dịch Maxwell. Được hỗ trợ bởi một số GPU Vulkan 1.1 và tất cả GPU Vulkan 1.2+.</string>
-    <string name="sample_shading_fraction">Phần trăm tô bóng mẫu</string>
-    <string name="sample_shading_fraction_description">Cường độ của bước tô bóng mẫu. Giá trị cao hơn cải thiện chất lượng tốt hơn nhưng cũng giảm hiệu suất nhiều hơn.</string>
-
-    <string name="sync_memory_operations">Đồng bộ hoá thao tác bộ nhớ</string>
-    <string name="sync_memory_operations_description">Đảm bảo tính nhất quán dữ liệu giữa các thao tác tính toán và bộ nhớ. Tùy chọn này nên khắc phục sự cố trong một số trò chơi, nhưng có thể làm giảm hiệu suất trong một số trường hợp. Các trò chơi với Unreal Engine 4 có vẻ bị ảnh hưởng nhiều nhất.</string>
     <string name="buffer_reorder_disable">Tắt sắp xếp lại bộ đệm</string>
     <string name="buffer_reorder_disable_description">Khi được chọn, sẽ tắt tính năng sắp xếp lại các lần tải lên bộ nhớ đã ánh xạ, cho phép liên kết các lần tải lên với các bản vẽ cụ thể. Có thể làm giảm hiệu suất trong một số trường hợp.</string>
 
@@ -73,26 +60,12 @@
     <string name="use_sync_core_description">Đồng bộ tốc độ lõi với tỷ lệ phần trăm tốc độ tối đa để cải thiện hiệu suất mà không làm thay đổi tốc độ thực tế của trò chơi.</string>
     <string name="use_lru_cache">Bật bộ nhớ đệm LRU</string>
     <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU để cải thiện hiệu suất bằng cách tiết kiệm quy trình sử dụng CPU. Một số trò chơi như TotK 1.2.1 có vấn đề - hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
-    <string name="custom_cpu_ticks">Tích CPU tùy chỉnh</string>
-    <string name="custom_cpu_ticks_description">Đặt giá trị tích CPU tùy chỉnh. Giá trị cao hơn có thể tăng hiệu suất, nhưng cũng có thể khiến trò chơi bị đơ. Phạm vi 77–21000 được khuyến nghị.</string>
-    <string name="cpu_ticks">Tích</string>
-    <string name="skip_cpu_inner_invalidation">Bỏ qua vô hiệu hóa bên trong CPU</string>
-    <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Bật giả lập MMU Máy chủ</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tối ưu hóa này tăng tốc độ truy cập bộ nhớ của chương trình khách. Bật nó lên khiến các thao tác đọc/ghi bộ nhớ khách được thực hiện trực tiếp vào bộ nhớ và sử dụng MMU của Máy chủ. Tắt tính năng này buộc tất cả quyền truy cập bộ nhớ phải sử dụng Giả lập MMU Phần mềm.</string>
-    <string name="fast_cpu_time">Tốc độ xung nhịp CPU</string>
-    <string name="fast_cpu_time_description">Sử dụng Boost (1700MHz) để chạy ở tốc độ xung nhịp gốc cao nhất của Switch hoặc Fast (2000MHz) để chạy ở tốc độ gấp đôi.</string>
-    <string name="memory_layout">Bố cục bộ nhớ</string>
-    <string name="memory_layout_description">(THỬ NGHIỆM) Thay đổi bố cục bộ nhớ mô phỏng. Cài đặt này không tăng hiệu suất, nhưng có thể giúp ích cho các trò chơi sử dụng độ phân giải cao thông qua mod. Không sử dụng trên điện thoại có 8GB RAM trở xuống.</string>
-    <string name="dma_accuracy">Độ chính xác DMA</string>
-    <string name="dma_accuracy_description">Điều khiển độ chính xác của DMA. Độ chính xác an toàn có thể khắc phục sự cố trong một số trò chơi, nhưng trong một số trường hợp cũng có thể ảnh hưởng đến hiệu suất. Nếu không chắc chắn, hãy để giá trị này ở Mặc định.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">Backend Shader</string>
-    <string name="shader_backend_description">Chọn cách biên dịch shader</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Giả lập NVDEC</string>
     <string name="nvdec_emulation_description">Chọn cách xử lý giải mã video</string>
@@ -100,7 +73,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Tắt</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Không</string>
     <string name="on_load">Khi tải</string>
     <string name="always">Luôn</string>
@@ -346,6 +319,12 @@
     <string name="use_custom_rtc_description">Cho phép bạn thiết lập một đồng hồ thời gian thực tùy chỉnh riêng biệt so với thời gian hệ thống hiện tại.</string>
     <string name="set_custom_rtc">Thiết lập RTC tùy chỉnh</string>
 
+    <string name="custom_cpu_ticks">Tích CPU tùy chỉnh</string>
+    <string name="custom_cpu_ticks_description">Đặt giá trị tích CPU tùy chỉnh. Giá trị cao hơn có thể tăng hiệu suất, nhưng cũng có thể khiến trò chơi bị đơ. Phạm vi 77–21000 được khuyến nghị.</string>
+    <string name="cpu_ticks">Tích</string>
+    <string name="memory_layout">Bố cục bộ nhớ</string>
+    <string name="memory_layout_description">(THỬ NGHIỆM) Thay đổi bố cục bộ nhớ mô phỏng. Cài đặt này không tăng hiệu suất, nhưng có thể giúp ích cho các trò chơi sử dụng độ phân giải cao thông qua mod. Không sử dụng trên điện thoại có 8GB RAM trở xuống.</string>
+
     <string name="generate">Tạo</string>
 
     <!-- Network settings strings -->
@@ -356,32 +335,53 @@
     <string name="network">Mạng</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">Hiển thị</string>
-
-    <string name="renderer_accuracy">Mức độ chính xác</string>
     <string name="renderer_resolution">Độ phân giải (Handheld/Docked)</string>
     <string name="renderer_vsync">Chế độ VSync</string>
-    <string name="renderer_screen_layout">Hướng màn hình</string>
-    <string name="renderer_aspect_ratio">Tỉ lệ khung hình</string>
+    <string name="shader_backend">Backend Shader</string>
+    <string name="shader_backend_description">Chọn cách biên dịch shader</string>
     <string name="renderer_scaling_filter">Bộ lọc điều chỉnh cửa sổ</string>
     <string name="fsr_sharpness">Độ sắc nét FSR</string>
     <string name="fsr_sharpness_description">Độ sắc nét khi dùng FSR</string>
     <string name="renderer_anti_aliasing">Phương pháp khử răng cưa</string>
-    <string name="renderer_force_max_clock">Buộc chạy ở xung nhịp tối đa (chỉ Adreno)</string>
-    <string name="renderer_force_max_clock_description">Buộc GPU hoạt động ở xung nhịp tối đa có thể (ràng buộc nhiệt độ vẫn sẽ được áp dụng).</string>
-    <string name="renderer_optimize_spirv_output">Tối ưu Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">Tối ưu hóa shader đã biên dịch để cải thiện hiệu suất GPU.</string>
-    <string name="renderer_asynchronous_shaders">Dùng các shader bất đồng bộ</string>
-    <string name="renderer_asynchronous_shaders_description">Biên dịch shader không đồng bộ. Điều này có thể giảm giật lag nhưng cũng có thể gây ra lỗi đồ họa.</string>
-    <string name="fast_gpu_time">Hệ số ép xung GPU</string>
-    <string name="fast_gpu_time_description">Sử dụng 128 để có hiệu suất tối đa và 512 để có độ trung thực đồ họa tối đa.</string>
-    <string name="renderer_reactive_flushing">Bật xả tương ứng</string>
-    <string name="renderer_reactive_flushing_description">Cải thiện độ chính xác hiển thị trong một số trò chơi nhưng đồng thời giảm hiệu suất chơi.</string>
-    <string name="use_disk_shader_cache">Lưu bộ nhớ đệm shader trên ổ cứng</string>
-    <string name="use_disk_shader_cache_description">Giảm tình trạng giật lag bằng cách lưu trữ và tải các shader được tạo ra nội bộ.</string>
+
+
+    <string name="dma_accuracy">Độ chính xác DMA</string>
+    <string name="dma_accuracy_description">Điều khiển độ chính xác của DMA. Độ chính xác an toàn có thể khắc phục sự cố trong một số trò chơi, nhưng trong một số trường hợp cũng có thể ảnh hưởng đến hiệu suất. Nếu không chắc chắn, hãy để giá trị này ở Mặc định.</string>
     <string name="anisotropic_filtering">Lọc dị hướng</string>
     <string name="anisotropic_filtering_description">Cải thiện chất lượng texture</string>
+    <string name="vram_usage_mode">Chế độ sử dụng VRAM</string>
+    <string name="vram_usage_mode_description">Kiểm soát cách cấp phát bộ nhớ GPU</string>
+    <string name="accelerate_astc">Phương thức giải mã ASTC</string>
+    <string name="accelerate_astc_description">Chọn cách giải mã texture nén ASTC để kết xuất: CPU (chậm, an toàn), GPU (nhanh, khuyên dùng) hoặc CPU Async (không giật, có thể gây ra sự cố)</string>
+    <string name="astc_recompression">Phương thức nén lại ASTC</string>
+    <string name="astc_recompression_description">Chọn cách nén lại texture ASTC để cải thiện khả năng tương thích và hiệu suất. Bật tùy chọn này tiết kiệm VRAM nhưng có thể làm giảm chất lượng texture.</string>
 
+    <string name="sync_memory_operations">Đồng bộ hoá thao tác bộ nhớ</string>
+    <string name="sync_memory_operations_description">Đảm bảo tính nhất quán dữ liệu giữa các thao tác tính toán và bộ nhớ. Tùy chọn này nên khắc phục sự cố trong một số trò chơi, nhưng có thể làm giảm hiệu suất trong một số trường hợp. Các trò chơi với Unreal Engine 4 có vẻ bị ảnh hưởng nhiều nhất.</string>
+    <string name="use_disk_shader_cache">Lưu bộ nhớ đệm shader trên ổ cứng</string>
+    <string name="use_disk_shader_cache_description">Giảm tình trạng giật lag bằng cách lưu trữ và tải các shader được tạo ra nội bộ.</string>
+    <string name="renderer_force_max_clock">Buộc chạy ở xung nhịp tối đa (chỉ Adreno)</string>
+    <string name="renderer_force_max_clock_description">Buộc GPU hoạt động ở xung nhịp tối đa có thể (ràng buộc nhiệt độ vẫn sẽ được áp dụng).</string>
+    <string name="renderer_reactive_flushing">Bật xả tương ứng</string>
+    <string name="renderer_reactive_flushing_description">Cải thiện độ chính xác hiển thị trong một số trò chơi nhưng đồng thời giảm hiệu suất chơi.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">Bỏ qua vô hiệu hóa bên trong CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
+    <string name="renderer_asynchronous_shaders">Dùng các shader bất đồng bộ</string>
+    <string name="renderer_asynchronous_shaders_description">Biên dịch shader không đồng bộ. Điều này có thể giảm giật lag nhưng cũng có thể gây ra lỗi đồ họa.</string>
+
+    <string name="dyna_state">Trạng thái động mở rộng</string>
+    <string name="disabled">Đã tắt</string>
+    <string name="provoking_vertex">Đỉnh kích hoạt</string>
+    <string name="provoking_vertex_description">Cải thiện ánh sáng và xử lý đỉnh trong một số trò chơi. Chỉ được hỗ trợ trên GPU Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Lập chỉ mục bộ mô tả</string>
+    <string name="descriptor_indexing_description">Cải thiện xử lý kết cấu và bộ đệm, cũng như lớp dịch Maxwell. Được hỗ trợ bởi một số GPU Vulkan 1.1 và tất cả GPU Vulkan 1.2+.</string>
+    <string name="display">Hiển thị</string>
+
+    <string name="renderer_screen_layout">Hướng màn hình</string>
+    <string name="renderer_aspect_ratio">Tỉ lệ khung hình</string>
     <string name="warning_resolution">Phóng to độ phân giải lên 2x hoặc cao hơn có thể gây ra sự cố và làm thiết bị chậm đáng kể.</string>
 
     <!-- Debug settings strings -->
@@ -600,10 +600,6 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Nhanh (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Trung bình (256)</string>
-    <string name="fast_gpu_high">Cao (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
@@ -617,18 +613,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Mặc định</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">Phương thức giải mã ASTC</string>
-    <string name="accelerate_astc_description">Chọn cách giải mã texture nén ASTC để kết xuất: CPU (chậm, an toàn), GPU (nhanh, khuyên dùng) hoặc CPU Async (không giật, có thể gây ra sự cố)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU bất đồng bộ</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">Phương thức nén lại ASTC</string>
-    <string name="astc_recompression_description">Chọn cách nén lại texture ASTC để cải thiện khả năng tương thích và hiệu suất. Bật tùy chọn này tiết kiệm VRAM nhưng có thể làm giảm chất lượng texture.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Không nén</string>
@@ -636,8 +624,6 @@
     <string name="astc_recompression_bc3">BC3 (Chất lượng trung bình)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">Chế độ sử dụng VRAM</string>
-    <string name="vram_usage_mode_description">Kiểm soát cách cấp phát bộ nhớ GPU</string>
     <string name="vram_usage_conservative">Bảo thủ</string>
     <string name="vram_usage_aggressive">Mạnh</string>
 

@@ -53,19 +53,6 @@
     <string name="show_fw_version">Zobrazit verzi firmwaru</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">Rozšířený dynamický stav</string>
-    <string name="dyna_state_description">Ovládá počet funkcí, které lze použít v rozšířeném dynamickém stavu. Vyšší hodnoty umožňují více funkcí a mohou zvýšit výkon, ale mohou způsobit problémy s některými ovladači a výrobci. Výchozí hodnota se může lišit v závislosti na vašem systému a hardwarových schopnostech. Tuto hodnotu lze měnit, dokud nedosáhnete stability a lepší vizuální kvality.</string>
-    <string name="disabled">Vypnuto</string>
-    <string name="provoking_vertex">Provokující vertex</string>
-    <string name="provoking_vertex_description">Zlepšuje osvětlení a zpracování vertexů v některých hrách. Podporováno pouze na GPU s Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Indexování deskriptorů</string>
-    <string name="descriptor_indexing_description">Zlepšuje zpracování textur a bufferů, stejně jako Maxwell překladovou vrstvu. Podporováno některými GPU s Vulkan 1.1 a všemi GPU s Vulkan 1.2+.</string>
-    <string name="sample_shading_fraction">Podíl stínování vzorku</string>
-    <string name="sample_shading_fraction_description">Intenzita průchodu stínování vzorku. Vyšší hodnoty zlepšují kvalitu, ale také výrazněji snižují výkon.</string>
-
-    <string name="sync_memory_operations">Synchronizace paměťových operací</string>
-    <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Nejvíce postižené se zdají být hry s Unreal Engine 4.</string>
     <string name="buffer_reorder_disable">Zakázat přeřazování vyrovnávací paměti</string>
     <string name="buffer_reorder_disable_description">Při zaškrtnutí zakáže přeřazování nahrání mapované paměti, což umožňuje spojit nahrání s konkrétními vykresleními. V některých případech může snížit výkon.</string>
 
@@ -73,26 +60,12 @@
     <string name="use_sync_core_description">Synchronizuje rychlost jádra s maximálním procentem rychlosti, aby se zlepšil výkon bez změny skutečné rychlosti hry.</string>
     <string name="use_lru_cache">Povolit LRU mezipaměť</string>
     <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU, čímž zvýšíte výkon snížením využití procesoru CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, takže ji deaktivujte, pokud hra neběží nebo náhodně padá.</string>
-    <string name="custom_cpu_ticks">Vlastní CPU takty</string>
-    <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu CPU taktů. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučuje se rozsah 77–21000.</string>
-    <string name="cpu_ticks">Takty</string>
-    <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
-    <string name="skip_cpu_inner_invalidation_description">Přeskočí některé invalidace mezipaměti na straně CPU během aktualizací paměti, čímž sníží zatížení CPU a zlepší jeho výkon. Může způsobit chyby nebo pády v některých hrách.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Povolit emulaci hostitelské MMU</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tato optimalizace zrychluje přístup do paměti hostovaného programu. Její povolení způsobí, že čtení a zápisy do paměti hosta se provádějí přímo v paměti a využívají hostitelskou MMU. Zakázání této funkce vynutí použití softwarové emulace MMU pro všechny přístupy do paměti.</string>
-    <string name="fast_cpu_time">Taktování CPU</string>
-    <string name="fast_cpu_time_description">Použijte Boost (1700MHz) pro běh na nejvyšším nativním taktu Switch nebo Fast (2000MHz) pro běh na dvojnásobném taktu.</string>
-    <string name="memory_layout">Rozložení paměti</string>
-    <string name="memory_layout_description">(EXPERIMENTÁLNÍ) Změna emulovaného rozložení paměti. Toto nastavení nezvyšuje výkon, ale může pomoci hrám využívajícím vysoké rozlišení pomocí modů. Nepoužívejte na telefonech s 8GB RAM nebo méně.</string>
-    <string name="dma_accuracy">Přesnost DMA</string>
-    <string name="dma_accuracy_description">Ovládá přesnost DMA. Bezpečná přesnost může opravit problémy v některých hrách, ale v některých případech může také ovlivnit výkon. Pokud si nejste jisti, ponechte to na výchozím nastavení.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">Backend shaderů</string>
-    <string name="shader_backend_description">Způsob kompilace shaderů</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulace NVDEC</string>
     <string name="nvdec_emulation_description">Zpracování dekódování videa</string>
@@ -100,7 +73,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Žádné</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Nikdy</string>
     <string name="on_load">Při načtení</string>
     <string name="always">Vždy</string>
@@ -336,6 +309,12 @@
     <string name="use_custom_rtc_description">Vlastní nastavení času</string>
     <string name="set_custom_rtc">Nastavit vlastní RTC</string>
 
+    <string name="custom_cpu_ticks">Vlastní CPU takty</string>
+    <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu CPU taktů. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučuje se rozsah 77–21000.</string>
+    <string name="cpu_ticks">Takty</string>
+    <string name="memory_layout">Rozložení paměti</string>
+    <string name="memory_layout_description">(EXPERIMENTÁLNÍ) Změna emulovaného rozložení paměti. Toto nastavení nezvyšuje výkon, ale může pomoci hrám využívajícím vysoké rozlišení pomocí modů. Nepoužívejte na telefonech s 8GB RAM nebo méně.</string>
+
     <string name="generate">Generovat</string>
 
     <!-- Network settings strings -->
@@ -346,31 +325,56 @@
     <string name="network">Síť</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">Zobrazení</string>
-
-    <string name="renderer_accuracy">Úroveň přesnosti</string>
     <string name="renderer_resolution">Rozlišení (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync režim</string>
-    <string name="renderer_screen_layout">Orientace</string>
-    <string name="renderer_aspect_ratio">Poměr stran</string>
+    <string name="shader_backend">Backend shaderů</string>
+    <string name="shader_backend_description">Způsob kompilace shaderů</string>
     <string name="renderer_scaling_filter">Filtr přizpůsobení</string>
     <string name="fsr_sharpness">Ostrost FSR</string>
     <string name="fsr_sharpness_description">Nastavení ostrosti pro FSR</string>
     <string name="renderer_anti_aliasing">Anti-aliasing</string>
-    <string name="renderer_force_max_clock">Maximální takt (Adreno)</string>
-    <string name="renderer_force_max_clock_description">Maximální výkon GPU</string>
-    <string name="renderer_optimize_spirv_output">Optimalizovat Spir-V výstup</string>
     <string name="renderer_optimize_spirv_output_description">Optimalizuje zkompilovaný shader pro zvýšení efektivity GPU.</string>
-    <string name="renderer_asynchronous_shaders">Asynchronní shadery</string>
-    <string name="renderer_asynchronous_shaders_description">Kompiluje stínovače asynchronně. Může to snížit trhání, ale také způsobit grafické chyby.</string>
-    <string name="fast_gpu_time">Faktor přetaktování GPU</string>
-    <string name="fast_gpu_time_description">Použijte 128 pro maximální výkon a 512 pro maximální věrnost grafiky.</string>
-    <string name="renderer_reactive_flushing">Reaktivní flushing</string>
-    <string name="renderer_reactive_flushing_description">Zlepšení přesnosti vykreslování</string>
-    <string name="use_disk_shader_cache">Shader cache na disku</string>
-    <string name="use_disk_shader_cache_description">Snížení trhání ukládáním shaderů</string>
+
+
+    <string name="dma_accuracy">Přesnost DMA</string>
+    <string name="dma_accuracy_description">Ovládá přesnost DMA. Bezpečná přesnost může opravit problémy v některých hrách, ale v některých případech může také ovlivnit výkon. Pokud si nejste jisti, ponechte to na výchozím nastavení.</string>
     <string name="anisotropic_filtering">Anizotropní filtrování</string>
     <string name="anisotropic_filtering_description">Zlepšení kvality textur</string>
+    <string name="vram_usage_mode">Režim využití VRAM</string>
+    <string name="vram_usage_mode_description">Správa alokace GPU paměti</string>
+    <string name="accelerate_astc">Metoda dekódování ASTC</string>
+    <string name="accelerate_astc_description">Vyberte způsob dekódování textur komprimovaných pomocí ASTC pro vykreslování: CPU (pomalé, bezpečné), GPU (rychlé, doporučené) nebo CPU Async (žádné zasekávání, ale mohou nastat problémy)</string>
+    <string name="astc_recompression">Metoda rekomprese ASTC</string>
+    <string name="astc_recompression_description">Vyberte způsob rekomprese textur ASTC pro zlepšení kompatibility a výkonu. Zapnutí této volby ušetří VRAM, ale může snížit kvalitu textur.</string>
+
+    <string name="sync_memory_operations">Synchronizace paměťových operací</string>
+    <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Nejvíce postižené se zdají být hry s Unreal Engine 4.</string>
+    <string name="use_disk_shader_cache">Shader cache na disku</string>
+    <string name="use_disk_shader_cache_description">Snížení trhání ukládáním shaderů</string>
+    <string name="renderer_force_max_clock">Maximální takt (Adreno)</string>
+    <string name="renderer_force_max_clock_description">Maximální výkon GPU</string>
+    <string name="renderer_reactive_flushing">Reaktivní flushing</string>
+    <string name="renderer_reactive_flushing_description">Zlepšení přesnosti vykreslování</string>
+
+
+    <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Přeskočí některé invalidace mezipaměti na straně CPU během aktualizací paměti, čímž sníží zatížení CPU a zlepší jeho výkon. Může způsobit chyby nebo pády v některých hrách.</string>
+    <string name="renderer_asynchronous_shaders">Asynchronní shadery</string>
+    <string name="renderer_asynchronous_shaders_description">Kompiluje stínovače asynchronně. Může to snížit trhání, ale také způsobit grafické chyby.</string>
+
+    <string name="dyna_state">Rozšířený dynamický stav</string>
+    <string name="disabled">Vypnuto</string>
+    <string name="provoking_vertex">Provokující vertex</string>
+    <string name="provoking_vertex_description">Zlepšuje osvětlení a zpracování vertexů v některých hrách. Podporováno pouze na GPU s Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Indexování deskriptorů</string>
+    <string name="descriptor_indexing_description">Zlepšuje zpracování textur a bufferů, stejně jako Maxwell překladovou vrstvu. Podporováno některými GPU s Vulkan 1.1 a všemi GPU s Vulkan 1.2+.</string>
+    <string name="display">Zobrazení</string>
+
+    <string name="renderer_screen_layout">Orientace</string>
+    <string name="renderer_aspect_ratio">Poměr stran</string>
+    <string name="vertical_alignment">Vertikální zarovnání</string>
+    <string name="picture_in_picture">Obraz v obraze</string>
+    <string name="picture_in_picture_description">Minimalizace při pozadí</string>
 
     <string name="warning_resolution">Zvětšení rozlišení na 2x nebo více může způsobit problémy a výrazné zpomalení zařízení.</string>
 
@@ -577,10 +581,6 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Rychlé (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Střední (256)</string>
-    <string name="fast_gpu_high">Vysoké (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsia</string>
     <string name="temperature_fahrenheit">Fahrenheita</string>
@@ -591,18 +591,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Výchozí</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">Metoda dekódování ASTC</string>
-    <string name="accelerate_astc_description">Vyberte způsob dekódování textur komprimovaných pomocí ASTC pro vykreslování: CPU (pomalé, bezpečné), GPU (rychlé, doporučené) nebo CPU Async (žádné zasekávání, ale mohou nastat problémy)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU asynchronně</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">Metoda rekomprese ASTC</string>
-    <string name="astc_recompression_description">Vyberte způsob rekomprese textur ASTC pro zlepšení kompatibility a výkonu. Zapnutí této volby ušetří VRAM, ale může snížit kvalitu textur.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Nekomprimované</string>
@@ -610,8 +602,6 @@
     <string name="astc_recompression_bc3">BC3 (střední kvalita)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">Režim využití VRAM</string>
-    <string name="vram_usage_mode_description">Správa alokace GPU paměti</string>
     <string name="vram_usage_conservative">Konzervativní</string>
     <string name="vram_usage_aggressive">Agresivní</string>
 
@@ -672,15 +662,12 @@
     <string name="gray">Šedá</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">Obraz v obraze</string>
-    <string name="picture_in_picture_description">Minimalizace při pozadí</string>
     <string name="pause">Pauza</string>
     <string name="play">Přehrát</string>
     <string name="mute">Ztlumit</string>
     <string name="unmute">Zrušit ztlumení</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">Vertikální zarovnání</string>
     <string name="top">Nahoru</string>
     <string name="center">Na střed</string>
     <string name="bottom">Dolů</string>

@@ -53,19 +53,6 @@
     <string name="show_fw_version">Vis firmwareversjon</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">Utvidet dynamisk tilstand</string>
-    <string name="dyna_state_description">Kontrollerer antall funksjoner som kan brukes i Utvidet Dynamisk Tilstand. Høyere tall tillater flere funksjoner og kan øke ytelsen, men kan forårsake problemer med noen drivere og leverandører. Standardverdien kan variere avhengig av systemet og maskinvareevnene dine. Denne verdien kan endres til stabilitet og bedre visuell kvalitet er oppnådd.</string>
-    <string name="disabled">Deaktivert</string>
-    <string name="provoking_vertex">Provoserende vertex</string>
-    <string name="provoking_vertex_description">Forbedrer belysning og vertexhåndtering i enkelte spill. Støttes kun på Vulkan 1.0+ GPU-er.</string>
-    <string name="descriptor_indexing">Beskrivelsesindeksering</string>
-    <string name="descriptor_indexing_description">Forbedrer tekstur- og bufferhåndtering, samt Maxwell-oversettelseslaget. Støttes av noen Vulkan 1.1 GPU-er og alle Vulkan 1.2+ GPU-er.</string>
-    <string name="sample_shading_fraction">Prøveskyggebrøk</string>
-    <string name="sample_shading_fraction_description">Intensiteten til prøveskyggepasseringen. Høyere verdier forbedrer kvaliteten mer, men reduserer også ytelsen i større grad.</string>
-
-    <string name="sync_memory_operations">Synkroniser minneoperasjoner</string>
-    <string name="sync_memory_operations_description">Sikrer datakonsistens mellom beregnings- og minneoperasjoner. Dette alternativet bør fikse problemer i noen spill, men kan redusere ytelsen i noen tilfeller. Spill med Unreal Engine 4 ser ut til å være de mest berørte.</string>
     <string name="buffer_reorder_disable">Deaktiver bufferomorganisering</string>
     <string name="buffer_reorder_disable_description">Når merket, deaktiveres omorganisering av kartlagt minneopplasting som tillater å knytte opplastinger til spesifikke tegninger. Kan redusere ytelsen i noen tilfeller.</string>
 
@@ -73,26 +60,12 @@
     <string name="use_sync_core_description">Synkroniser kjernens hastighet med maksimal hastighetsprosent for å forbedre ytelsen uten å endre spillets faktiske hastighet.</string>
     <string name="use_lru_cache">Aktiver LRU-mellomlager</string>
     <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager for å forbedre ytelsen ved å spare CPU-prosessorbruk. Noen spill som TotK 1.2.1 har problemer med dette - deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
-    <string name="custom_cpu_ticks">Egendefinerte CPU-takter</string>
-    <string name="custom_cpu_ticks_description">Angi en egendefinert verdi for CPU-takter. Høyere verdier kan øke ytelsen, men kan også føre til at spret fryser. Et område på 77–21000 anbefales.</string>
-    <string name="cpu_ticks">Takter</string>
-    <string name="skip_cpu_inner_invalidation">Hopp over CPU intern invalidering</string>
-    <string name="skip_cpu_inner_invalidation_description">Hopper over enkelte CPU-side cache-invalideringer under minneoppdateringer, reduserer CPU-bruk og forbedrer ytelsen. Kan forårsake feil eller krasj i noen spill.</string>
+
     <string name="cpuopt_unsafe_host_mmu">Aktiver verts-MMU-emulering</string>
     <string name="cpuopt_unsafe_host_mmu_description">Denne optimaliseringen fremskynder minnetilgang av gjesteprogrammet. Hvis aktivert, utføres gjestens minnelesing/skriving direkte i minnet og bruker vertens MMU. Deaktivering tvinger alle minnetilganger til å bruke programvarebasert MMU-emulering.</string>
-    <string name="fast_cpu_time">CPU-klokkehastighet</string>
-    <string name="fast_cpu_time_description">Bruk Boost (1700MHz) for å kjøre med Switch\'s høyeste native klokkehastighet, eller Fast (2000MHz) for å kjøre med dobbel hastighet.</string>
-    <string name="memory_layout">Minneoppsett</string>
-    <string name="memory_layout_description">(EKSPERIMENTELL) Endre det emulerte minneoppsettet. Denne innstillingen øker ikke ytelsen, men kan hjelpe spill som bruker høy oppløsning via mods. Ikke bruk på telefoner med 8GB RAM eller mindre.</string>
-    <string name="dma_accuracy">DMA-nøyaktighet</string>
-    <string name="dma_accuracy_description">Kontrollerer DMA-presisjonsnøyaktigheten. Sikker presisjon kan fikse problemer i noen spill, men kan også påvirke ytelsen i noen tilfeller. Hvis du er usikker, la dette stå på Standard.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">Shader-backend</string>
-    <string name="shader_backend_description">Velg hvordan shadere kompileres</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC-emulering</string>
     <string name="nvdec_emulation_description">Velg hvordan videodekoding håndteres</string>
@@ -100,7 +73,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Ingen</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">Aldri</string>
     <string name="on_load">Ved lasting</string>
     <string name="always">Alltid</string>
@@ -348,6 +321,12 @@
     <string name="use_custom_rtc_description">Gjør det mulig å stille inn en egendefinert sanntidsklokke separat fra den gjeldende systemtiden.</string>
     <string name="set_custom_rtc">Angi tilpasset RTC</string>
 
+    <string name="custom_cpu_ticks">Egendefinerte CPU-takter</string>
+    <string name="custom_cpu_ticks_description">Angi en egendefinert verdi for CPU-takter. Høyere verdier kan øke ytelsen, men kan også føre til at spret fryser. Et område på 77–21000 anbefales.</string>
+    <string name="cpu_ticks">Takter</string>
+    <string name="memory_layout">Minneoppsett</string>
+    <string name="memory_layout_description">(EKSPERIMENTELL) Endre det emulerte minneoppsettet. Denne innstillingen øker ikke ytelsen, men kan hjelpe spill som bruker høy oppløsning via mods. Ikke bruk på telefoner med 8GB RAM eller mindre.</string>
+
     <string name="generate">Generer</string>
 
     <!-- Network settings strings -->
@@ -358,31 +337,56 @@
     <string name="network">Nettverk</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">Skjerm</string>
-
-    <string name="renderer_accuracy">Nøyaktighetsnivå</string>
     <string name="renderer_resolution">Oppløsning (håndholdt/dokket)</string>
     <string name="renderer_vsync">VSync-modus</string>
-    <string name="renderer_screen_layout">Orientering</string>
-    <string name="renderer_aspect_ratio">Størrelsesforhold</string>
+    <string name="shader_backend">Shader-backend</string>
+    <string name="shader_backend_description">Velg hvordan shadere kompileres</string>
     <string name="renderer_scaling_filter">Filter for vindustilpasning</string>
     <string name="fsr_sharpness">FSR-skarphet</string>
     <string name="fsr_sharpness_description">Bestemmer bildekvalitet med FSR</string>
     <string name="renderer_anti_aliasing">Anti-aliasing-metode</string>
-    <string name="renderer_force_max_clock">Tving fram maksimal klokkefrekvens (kun Adreno)</string>
-    <string name="renderer_force_max_clock_description">Tvinger GPU-en til å kjøre med maksimal klokkefrekvens (termiske begrensninger vil fortsatt gjelde).</string>
-    <string name="renderer_optimize_spirv_output">Optimaliser Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">Optimaliserer den kompilerte shaderen for å forbedre GPU-effektiviteten.</string>
-    <string name="renderer_asynchronous_shaders">Bruk asynkrone shaders</string>
-    <string name="renderer_asynchronous_shaders_description">Kompilerer shadere asynkront. Dette kan redusere rykk, men kan også forårsake grafiske feil.</string>
-    <string name="fast_gpu_time">GPU-overklokkingsfaktor</string>
-    <string name="fast_gpu_time_description">Bruk 128 for maksimal ytelse og 512 for maksimal grafikkvalitet.</string>
-    <string name="renderer_reactive_flushing">Bruk reaktiv spyling</string>
-    <string name="renderer_reactive_flushing_description">Forbedrer gjengivelsesnøyaktigheten i enkelte spill på bekostning av ytelsen.</string>
-    <string name="use_disk_shader_cache">Disk shader-hurtigbuffer</string>
-    <string name="use_disk_shader_cache_description">Reduserer hakking ved å lagre og laste inn genererte shaders lokalt.</string>
+
+
+    <string name="dma_accuracy">DMA-nøyaktighet</string>
+    <string name="dma_accuracy_description">Kontrollerer DMA-presisjonsnøyaktigheten. Sikker presisjon kan fikse problemer i noen spill, men kan også påvirke ytelsen i noen tilfeller. Hvis du er usikker, la dette stå på Standard.</string>
     <string name="anisotropic_filtering">Anisotropisk filtrering</string>
     <string name="anisotropic_filtering_description">Forbedrer teksturkvalitet</string>
+    <string name="vram_usage_mode">VRAM-bruk</string>
+    <string name="vram_usage_mode_description">Kontroller minnetildeling for GPU</string>
+    <string name="accelerate_astc">ASTC-dekoding</string>
+    <string name="accelerate_astc_description">Velg hvordan ASTC-komprimerte teksturer skal dekodes for rendering: CPU (tregt, sikkert), GPU (raskt, anbefalt) eller CPU Async (ingen stuttering, kan forårsake problemer)</string>
+    <string name="astc_recompression">ASTC-komprimering</string>
+    <string name="astc_recompression_description">Velg hvordan ASTC-teksturer komprimeres på nytt for å forbedre kompatibilitet og ytelse. Å aktivere dette alternativet sparer VRAM, men kan redusere teksturkvaliteten.</string>
+
+    <string name="sync_memory_operations">Synkroniser minneoperasjoner</string>
+    <string name="sync_memory_operations_description">Sikrer datakonsistens mellom beregnings- og minneoperasjoner. Dette alternativet bør fikse problemer i noen spill, men kan redusere ytelsen i noen tilfeller. Spill med Unreal Engine 4 ser ut til å være de mest berørte.</string>
+    <string name="use_disk_shader_cache">Disk shader-hurtigbuffer</string>
+    <string name="use_disk_shader_cache_description">Reduserer hakking ved å lagre og laste inn genererte shaders lokalt.</string>
+    <string name="renderer_force_max_clock">Tving fram maksimal klokkefrekvens (kun Adreno)</string>
+    <string name="renderer_force_max_clock_description">Tvinger GPU-en til å kjøre med maksimal klokkefrekvens (termiske begrensninger vil fortsatt gjelde).</string>
+    <string name="renderer_reactive_flushing">Bruk reaktiv spyling</string>
+    <string name="renderer_reactive_flushing_description">Forbedrer gjengivelsesnøyaktigheten i enkelte spill på bekostning av ytelsen.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">Hopp over CPU intern invalidering</string>
+    <string name="skip_cpu_inner_invalidation_description">Hopper over enkelte CPU-side cache-invalideringer under minneoppdateringer, reduserer CPU-bruk og forbedrer ytelsen. Kan forårsake feil eller krasj i noen spill.</string>
+    <string name="renderer_asynchronous_shaders">Bruk asynkrone shaders</string>
+    <string name="renderer_asynchronous_shaders_description">Kompilerer shadere asynkront. Dette kan redusere rykk, men kan også forårsake grafiske feil.</string>
+
+    <string name="dyna_state">Utvidet dynamisk tilstand</string>
+    <string name="disabled">Deaktivert</string>
+    <string name="provoking_vertex">Provoserende vertex</string>
+    <string name="provoking_vertex_description">Forbedrer belysning og vertexhåndtering i enkelte spill. Støttes kun på Vulkan 1.0+ GPU-er.</string>
+    <string name="descriptor_indexing">Beskrivelsesindeksering</string>
+    <string name="descriptor_indexing_description">Forbedrer tekstur- og bufferhåndtering, samt Maxwell-oversettelseslaget. Støttes av noen Vulkan 1.1 GPU-er og alle Vulkan 1.2+ GPU-er.</string>
+    <string name="display">Skjerm</string>
+
+    <string name="renderer_screen_layout">Orientering</string>
+    <string name="renderer_aspect_ratio">Størrelsesforhold</string>
+    <string name="vertical_alignment">Vertikal justering</string>
+    <string name="picture_in_picture">Bilde-i-bilde</string>
+    <string name="picture_in_picture_description">Minimer vindu i bakgrunnen</string>
 
     <string name="warning_resolution">Oppskalering av oppløsning til 2x eller høyere kan forårsake problemer og føre til betydelig treghet på enheten.</string>
 
@@ -600,10 +604,6 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Rask (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Middels (256)</string>
-    <string name="fast_gpu_high">Høy (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
@@ -617,18 +617,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC-dekoding</string>
-    <string name="accelerate_astc_description">Velg hvordan ASTC-komprimerte teksturer skal dekodes for rendering: CPU (tregt, sikkert), GPU (raskt, anbefalt) eller CPU Async (ingen stuttering, kan forårsake problemer)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU asynkront</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC-komprimering</string>
-    <string name="astc_recompression_description">Velg hvordan ASTC-teksturer komprimeres på nytt for å forbedre kompatibilitet og ytelse. Å aktivere dette alternativet sparer VRAM, men kan redusere teksturkvaliteten.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Ukomprimert</string>
@@ -636,8 +628,6 @@
     <string name="astc_recompression_bc3">BC3 (middels kvalitet)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">VRAM-bruk</string>
-    <string name="vram_usage_mode_description">Kontroller minnetildeling for GPU</string>
     <string name="vram_usage_conservative">Konservativ</string>
     <string name="vram_usage_aggressive">Aggressiv</string>
 
@@ -719,15 +709,12 @@
     <string name="gray">Grå</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">Bilde-i-bilde</string>
-    <string name="picture_in_picture_description">Minimer vindu i bakgrunnen</string>
     <string name="pause">Pause</string>
     <string name="play">Spill</string>
     <string name="mute">Lydløs</string>
     <string name="unmute">Lyd på</string>
 
     <!-- Emulation vertical alignment -->
-    <string name="vertical_alignment">Vertikal justering</string>
     <string name="top">Topp</string>
     <string name="center">Midt</string>
     <string name="bottom">Bunn</string>

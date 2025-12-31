@@ -53,19 +53,6 @@
     <string name="show_fw_version">הצג גרסת קושחה</string>
 
     <!-- Eden\'s Veil -->
-
-    <string name="dyna_state">מצב דינמי מורחב</string>
-    <string name="dyna_state_description">שולט במספר התכונות שניתן להשתמש בהן במצב דינמי מורחב. מספרים גבוהים יותר מאפשרים יותר תכונות ויכולים לשפר את הביצועים, אך עלולים לגרום לבעיות עם כמה מנהלי התקנים וספקים. הערך המוגדר כברירת מחדל עשוי להשתנות בהתאם למערכת שלך ויכולות החומרה. ניתן לשנות ערך זה עד להשגת יציבות ואיכות ויזואלית טובה יותר.</string>
-    <string name="disabled">מושבת</string>
-    <string name="provoking_vertex">קודקוד מעורר</string>
-    <string name="provoking_vertex_description">משפר תאורה וטיפול בקודקודים במשחקים מסוימים. נתמך רק בכרטיסי מסך עם Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">אינדוקס תיאורים</string>
-    <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
-    <string name="sample_shading_fraction">שבר הצללה לדוגמה</string>
-    <string name="sample_shading_fraction_description">עוצמת מעבר ההצללה לדוגמה. ערכים גבוהים יותר משפרים את האיכות יותר אך גם מפחיתים את הביצועים במידה רבה יותר.</string>
-
-    <string name="sync_memory_operations">סנכרון פעולות זיכרון</string>
-    <string name="sync_memory_operations_description">מבטיח עקביות נתונים בין פעולות חישוב וזיכרון. אפשרות זו אמורה לתקן בעיות במשחקים מסוימים, אך עלולה להפחית ביצועים במקרים מסוימים. נראה שהמשחקים עם Unreal Engine 4 הם המושפעים ביותר.</string>
     <string name="buffer_reorder_disable">השבת סידור מחדש של חוצץ</string>
     <string name="buffer_reorder_disable_description">כאשר מסומן, מבטל את סידור מחדש של העלאות זיכרון ממופה המאפשר לשייך העלאות עם ציורים ספציפיים. עלול להפחית ביצועים במקרים מסוימים.</string>
 
@@ -73,26 +60,12 @@
     <string name="use_sync_core_description">סנכרן את מהירות הליבה לאחוז המהירות המרבי כדי לשפר ביצועים מבלי לשנות את מהירות המשחק בפועל.</string>
     <string name="use_lru_cache">הפעלת מטמון LRU</string>
     <string name="use_lru_cache_description">הפעל או השבת מטמון LRU לשיפור ביצועים על ידי חיסכון בשימוש במעבד. לחלק מהמשחקים כמו TotK 1.2.1 יש בעיות - השבת אם המשחק לא עולה או קורס באקראי.</string>
-    <string name="custom_cpu_ticks">טיקי CPU מותאמים</string>
-    <string name="custom_cpu_ticks_description">הגדר ערך מותאם לטיקי CPU. ערכים גבוהים יותר עשויים לשפר ביצועים, אך גם עלולים לגרום להקפאת המשחק. מומלץ טווח של 77-21000.</string>
-    <string name="cpu_ticks">טיקים</string>
-    <string name="skip_cpu_inner_invalidation">דלג על איפוס מטמון פנימי של המעבד</string>
-    <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
+
     <string name="cpuopt_unsafe_host_mmu">הפעל אמולציית MMU מארח</string>
     <string name="cpuopt_unsafe_host_mmu_description">אופטימיזציה זו מאיצה את גישת הזיכרון על ידי התוכנית האורחת. הפעלתה גורמת לכך שפעולות קריאה/כתיבה לזיכרון האורח מתבצעות ישירות לזיכרון ומשתמשות ב-MMU של המארח. השבתת זאת מאלצת את כל גישות הזיכרון להשתמש באמולציית MMU תוכנתית.</string>
-    <string name="fast_cpu_time">מהירות שעון CPU</string>
-    <string name="fast_cpu_time_description">השתמש ב-Boost (1700MHz) כדי לפעול במהירות השעון הגבוהה ביותר של ה-Switch, או Fast (2000MHz) כדי לפעול במהירות כפולה.</string>
-    <string name="memory_layout">מבנה זיכרון</string>
-    <string name="memory_layout_description">(ניסיוני) שנה את מבנה הזיכרון המדומה. הגדרה זו לא תגדיל את הביצועים, אך עשויה לעזור במשחקים המשתמשים ברזולוציות גבוהות באמצעות מודים. אל תשתמש בטלפונים עם 8GB זיכרון RAM או פחות.</string>
-    <string name="dma_accuracy">דיוק DMA</string>
-    <string name="dma_accuracy_description">שולט בדיוק הדיוק של DMA. דיוק בטוח יכול לתקן בעיות בחלק מהמשחקים, אך הוא עלול גם להשפיע על הביצועים במקרים מסוימים. אם אינך בטוח, השאר זאת על ברירת מחדל.</string>
     <!-- Shader Backend -->
-    <string name="shader_backend">מנוע שיידרים</string>
-    <string name="shader_backend_description">בחר כיצד לקמפל שיידרים</string>
     <string name="shader_backend_glsl">GLSL</string>
     <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">אמולציית NVDEC</string>
     <string name="nvdec_emulation_description">בחר כיצד לטפל בפענוח וידאו</string>
@@ -100,7 +73,7 @@
     <string name="nvdec_emulation_gpu">כרטיס מסך</string>
     <string name="nvdec_emulation_none">ללא</string>
 
-    <!-- Optimize Spir-V output -->
+    <!-- Optimize SPIRV output -->
     <string name="never">לעולם לא</string>
     <string name="on_load">בטעינה</string>
     <string name="always">תמיד</string>
@@ -372,6 +345,12 @@
     <string name="use_custom_rtc_description">מאפשר לך לקבוע שעון זמן אמת נפרד משעון המערכת שלך.</string>
     <string name="set_custom_rtc">קבע RTC מותאם אישית</string>
 
+    <string name="custom_cpu_ticks">טיקי CPU מותאמים</string>
+    <string name="custom_cpu_ticks_description">הגדר ערך מותאם לטיקי CPU. ערכים גבוהים יותר עשויים לשפר ביצועים, אך גם עלולים לגרום להקפאת המשחק. מומלץ טווח של 77-21000.</string>
+    <string name="cpu_ticks">טיקים</string>
+    <string name="memory_layout">מבנה זיכרון</string>
+    <string name="memory_layout_description">(ניסיוני) שנה את מבנה הזיכרון המדומה. הגדרה זו לא תגדיל את הביצועים, אך עשויה לעזור במשחקים המשתמשים ברזולוציות גבוהות באמצעות מודים. אל תשתמש בטלפונים עם 8GB זיכרון RAM או פחות.</string>
+
     <string name="generate">יצירה</string>
 
     <!-- Network settings strings -->
@@ -382,31 +361,55 @@
     <string name="network">רשת</string>
 
     <!-- Graphics settings strings -->
-    <string name="display">תצוגה</string>
-
-    <string name="renderer_accuracy">רמת דיוק</string>
     <string name="renderer_resolution">רזולוציה (מעוגן/נייד)</string>
     <string name="renderer_vsync">מצב VSync</string>
-    <string name="renderer_screen_layout">כיוון</string>
-    <string name="renderer_aspect_ratio">יחס רוחב גובה</string>
+    <string name="shader_backend">מנוע שיידרים</string>
+    <string name="shader_backend_description">בחר כיצד לקמפל שיידרים</string>
     <string name="renderer_scaling_filter">פילטר מתאם חלון</string>
     <string name="fsr_sharpness">חדות FSR</string>
     <string name="fsr_sharpness_description">קובע את מידת החדות בעת שימוש ב-FSR.</string>
     <string name="renderer_anti_aliasing">שיטת Anti-aliasing</string>
-    <string name="renderer_force_max_clock">החזק מהירות שעון מקסימלית (רק ל Adreno)</string>
-    <string name="renderer_force_max_clock_description">מכריח לדחוף את מהירויות המעבד הגרפי למקסימום (הגבלות חום ימשיכו לתפקד).</string>
-    <string name="renderer_optimize_spirv_output">אופטימיזציית Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">משפר את השאדר המהודר כדי להגביר את יעילות ה-GPU.</string>
-    <string name="renderer_asynchronous_shaders">השתמש בשיידרים אסינכרונים</string>
-    <string name="renderer_asynchronous_shaders_description">מקמפל שיידרים באופן אסינכרוני. זה עשוי להפחית קפיצות אך גם עלול לגרום לתקלות גרפיות.</string>
-    <string name="fast_gpu_time">גורם אובר-קלוק ל-GPU</string>
-    <string name="fast_gpu_time_description">השתמש ב-128 לביצועים מקסימליים וב-512 לנאמנות גרפית מקסימלית.</string>
-    <string name="renderer_reactive_flushing">השתמש בהבהוב תגובתי</string>
-    <string name="renderer_reactive_flushing_description">משפר את הדיוק של האמולציה במשחקים מסויימים במחיר של ביצועים.</string>
-    <string name="use_disk_shader_cache">מטמון השיידר של הדיסק</string>
-    <string name="use_disk_shader_cache_description">מפחית בתקיעות על ידי אחסון מקומי וטעינה של שיידרים הנוצרים. </string>
+
+
+    <string name="dma_accuracy">דיוק DMA</string>
+    <string name="dma_accuracy_description">שולט בדיוק הדיוק של DMA. דיוק בטוח יכול לתקן בעיות בחלק מהמשחקים, אך הוא עלול גם להשפיע על הביצועים במקרים מסוימים. אם אינך בטוח, השאר זאת על ברירת מחדל.</string>
     <string name="anisotropic_filtering">סינון אנאיזוטרופי</string>
     <string name="anisotropic_filtering_description">משפר איכות טקסטורות בזוויות.</string>
+    <string name="vram_usage_mode">מצב שימוש ב-VRAM</string>
+    <string name="vram_usage_mode_description">שליטה בקצב הקצאת ושחרור זיכרון GPU</string>
+    <string name="accelerate_astc">שיטת פענוח ASTC</string>
+    <string name="accelerate_astc_description">בחר כיצד לפרק את הטקסטורות הדחוסות ב-ASTC עבור רינדור: CPU (איטי, בטוח), GPU (מהיר, מומלץ) או CPU Async (ללא קפיצות, עלול לגרום לבעיות)</string>
+    <string name="astc_recompression">שיטת דחיסת ASTC</string>
+    <string name="astc_recompression_description">בחר כיצד דחיסה מחדש של טקסטורות ASTC משפרת תאימות וביצועים. הפעלת אפשרות זו חוסכת VRAM אך עלולה להוריד את איכות הטקסטורה.</string>
+
+    <string name="sync_memory_operations">סנכרון פעולות זיכרון</string>
+    <string name="sync_memory_operations_description">מבטיח עקביות נתונים בין פעולות חישוב וזיכרון. אפשרות זו אמורה לתקן בעיות במשחקים מסוימים, אך עלולה להפחית ביצועים במקרים מסוימים. נראה שהמשחקים עם Unreal Engine 4 הם המושפעים ביותר.</string>
+    <string name="use_disk_shader_cache">מטמון השיידר של הדיסק</string>
+    <string name="use_disk_shader_cache_description">מפחית בתקיעות על ידי אחסון מקומי וטעינה של שיידרים הנוצרים. </string>
+    <string name="renderer_force_max_clock">החזק מהירות שעון מקסימלית (רק ל Adreno)</string>
+    <string name="renderer_force_max_clock_description">מכריח לדחוף את מהירויות המעבד הגרפי למקסימום (הגבלות חום ימשיכו לתפקד).</string>
+    <string name="renderer_reactive_flushing">השתמש בהבהוב תגובתי</string>
+    <string name="renderer_reactive_flushing_description">משפר את הדיוק של האמולציה במשחקים מסויימים במחיר של ביצועים.</string>
+
+
+    <string name="skip_cpu_inner_invalidation">דלג על איפוס מטמון פנימי של המעבד</string>
+    <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
+    <string name="renderer_asynchronous_shaders">השתמש בשיידרים אסינכרונים</string>
+    <string name="renderer_asynchronous_shaders_description">מקמפל שיידרים באופן אסינכרוני. זה עשוי להפחית קפיצות אך גם עלול לגרום לתקלות גרפיות.</string>
+
+    <string name="dyna_state">מצב דינמי מורחב</string>
+    <string name="disabled">מושבת</string>
+    <string name="provoking_vertex">קודקוד מעורר</string>
+    <string name="provoking_vertex_description">משפר תאורה וטיפול בקודקודים במשחקים מסוימים. נתמך רק בכרטיסי מסך עם Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">אינדוקס תיאורים</string>
+    <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
+    <string name="display">תצוגה</string>
+
+    <string name="renderer_screen_layout">כיוון</string>
+    <string name="renderer_aspect_ratio">יחס רוחב גובה</string>
+    <string name="picture_in_picture">תמונה בתוך תמונה</string>
+    <string name="picture_in_picture_description">הקטן את החלון כאשר נמצא ברקע</string>
 
     <string name="warning_resolution">שינוי רזולוציה ל-2x או יותר עלול לגרום לבעיות ולעיכובים משמעותיים במכשיר שלך.</string>
 
@@ -521,7 +524,6 @@
     <string name="preferences_audio_description">מנוע פלט, עוצמת שמע</string>
     <string name="preferences_debug">דיבאג</string>
     <string name="preferences_debug_description">דיבאגינג עבור מעבד/מעבד גרפי, ממשק תוכנה עבור הגרפיקות, fastmem</string>
-
     <!-- Game properties -->
     <string name="info">מידע</string>
     <string name="path">דרך</string>
@@ -622,10 +624,6 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">מהיר (2000MHz)</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">בינוני (256)</string>
-    <string name="fast_gpu_high">גבוה (512)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">צלזיוס</string>
     <string name="temperature_fahrenheit">פרנהייט</string>
@@ -645,18 +643,10 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">ברירת מחדל</string>
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">שיטת פענוח ASTC</string>
-    <string name="accelerate_astc_description">בחר כיצד לפרק את הטקסטורות הדחוסות ב-ASTC עבור רינדור: CPU (איטי, בטוח), GPU (מהיר, מומלץ) או CPU Async (ללא קפיצות, עלול לגרום לבעיות)</string>
-
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">מעבד</string>
     <string name="accelerate_astc_gpu">כרטיס מסך</string>
     <string name="accelerate_astc_async">מעבד (א-סינכרוני)</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">שיטת דחיסת ASTC</string>
-    <string name="astc_recompression_description">בחר כיצד דחיסה מחדש של טקסטורות ASTC משפרת תאימות וביצועים. הפעלת אפשרות זו חוסכת VRAM אך עלולה להוריד את איכות הטקסטורה.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">לא דחוס</string>
@@ -664,8 +654,6 @@
     <string name="astc_recompression_bc3">BC3 (איכות בינונית)</string>
 
     <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">מצב שימוש ב-VRAM</string>
-    <string name="vram_usage_mode_description">שליטה בקצב הקצאת ושחרור זיכרון GPU</string>
     <string name="vram_usage_conservative">שמרני</string>
     <string name="vram_usage_aggressive">אגרסיבי</string>
 
@@ -755,8 +743,6 @@
     <string name="gray">אפור</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">תמונה בתוך תמונה</string>
-    <string name="picture_in_picture_description">הקטן את החלון כאשר נמצא ברקע</string>
     <string name="pause">עצור</string>
     <string name="play">שחק</string>
     <string name="mute">השתק</string>
