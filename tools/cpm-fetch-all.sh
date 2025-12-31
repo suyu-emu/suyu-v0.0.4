@@ -8,10 +8,7 @@
 
 # provided for workflow compat
 
-# shellcheck disable=SC1091
-. tools/cpm/common.sh
-
-chmod +x tools/cpm/fetch.sh
+find tools/ -name '*.sh' -type f -exec chmod +x {} \;
 
 # shellcheck disable=SC2086
-tools/cpm/fetch.sh $LIBS
+tools/cpmutil.sh package fetch -a

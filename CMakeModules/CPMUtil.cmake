@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: Copyright 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-if (MSVC OR ANDROID)
+set(CPM_SOURCE_CACHE "${PROJECT_SOURCE_DIR}/.cache/cpm" CACHE STRING "" FORCE)
+
+if(MSVC OR ANDROID)
     set(BUNDLED_DEFAULT ON)
 else()
     set(BUNDLED_DEFAULT OFF)
@@ -19,7 +21,7 @@ include(CPM)
 # cpmfile parsing
 set(CPMUTIL_JSON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json")
 
-if (EXISTS ${CPMUTIL_JSON_FILE})
+if(EXISTS ${CPMUTIL_JSON_FILE})
     file(READ ${CPMUTIL_JSON_FILE} CPMFILE_CONTENT)
 else()
     message(WARNING "[CPMUtil] cpmfile ${CPMUTIL_JSON_FILE} does not exist, AddJsonPackage will be a no-op")
@@ -45,14 +47,14 @@ endfunction()
 function(get_json_element object out member default)
     string(JSON out_type ERROR_VARIABLE err TYPE "${object}" ${member})
 
-    if (err)
+    if(err)
         set("${out}" "${default}" PARENT_SCOPE)
         return()
     endif()
 
     string(JSON outvar GET "${object}" ${member})
 
-    if (out_type STREQUAL "ARRAY")
+    if(out_type STREQUAL "ARRAY")
         string(JSON _len LENGTH "${object}" ${member})
         # array_to_list("${outvar}" ${_len} outvar)
         set("${out}_LENGTH" "${_len}" PARENT_SCOPE)
@@ -74,7 +76,7 @@ function(AddJsonPackage)
     set(multiValueArgs OPTIONS)
 
     cmake_parse_arguments(JSON "" "${oneValueArgs}" "${multiValueArgs}"
-                          "${ARGN}")
+        "${ARGN}")
 
     list(LENGTH ARGN argnLength)
 
@@ -83,18 +85,18 @@ function(AddJsonPackage)
         set(JSON_NAME "${ARGV0}")
     endif()
 
-    if (NOT DEFINED CPMFILE_CONTENT)
+    if(NOT DEFINED CPMFILE_CONTENT)
         cpm_utils_message(WARNING ${name} "No cpmfile, AddJsonPackage is a no-op")
         return()
     endif()
 
-    if (NOT DEFINED JSON_NAME)
+    if(NOT DEFINED JSON_NAME)
         cpm_utils_message(FATAL_ERROR "json package" "No name specified")
     endif()
 
     string(JSON object ERROR_VARIABLE err GET "${CPMFILE_CONTENT}" "${JSON_NAME}")
 
-    if (err)
+    if(err)
         cpm_utils_message(FATAL_ERROR ${JSON_NAME} "Not found in cpmfile")
     endif()
 
@@ -103,13 +105,13 @@ function(AddJsonPackage)
     get_json_element("${object}" ci ci OFF)
     get_json_element("${object}" version version "")
 
-    if (ci)
+    if(ci)
         get_json_element("${object}" name name "${JSON_NAME}")
         get_json_element("${object}" extension extension "tar.zst")
         get_json_element("${object}" min_version min_version "")
         get_json_element("${object}" raw_disabled disabled_platforms "")
 
-        if (raw_disabled)
+        if(raw_disabled)
             array_to_list("${raw_disabled}" ${raw_disabled_LENGTH} disabled_platforms)
         else()
             set(disabled_platforms "")
@@ -154,31 +156,31 @@ function(AddJsonPackage)
     # first: tag gets %VERSION% replaced if applicable, with either git_version (preferred) or version
     # second: artifact gets %VERSION% and %TAG% replaced accordingly (same rules for VERSION)
 
-    if (git_version)
+    if(git_version)
         set(version_replace ${git_version})
     else()
         set(version_replace ${version})
     endif()
 
     # TODO(crueter): fmt module for cmake
-    if (tag)
+    if(tag)
         string(REPLACE "%VERSION%" "${version_replace}" tag ${tag})
     endif()
 
-    if (artifact)
+    if(artifact)
         string(REPLACE "%VERSION%" "${version_replace}" artifact ${artifact})
         string(REPLACE "%TAG%" "${tag}" artifact ${artifact})
     endif()
 
     # format patchdir
-    if (raw_patches)
+    if(raw_patches)
         math(EXPR range "${raw_patches_LENGTH} - 1")
 
         foreach(IDX RANGE ${range})
             string(JSON _patch GET "${raw_patches}" "${IDX}")
 
             set(full_patch "${CMAKE_SOURCE_DIR}/.patch/${JSON_NAME}/${_patch}")
-            if (NOT EXISTS ${full_patch})
+            if(NOT EXISTS ${full_patch})
                 cpm_utils_message(FATAL_ERROR ${JSON_NAME} "specifies patch ${full_patch} which does not exist")
             endif()
 
@@ -190,7 +192,7 @@ function(AddJsonPackage)
     # options
     get_json_element("${object}" raw_options options "")
 
-    if (raw_options)
+    if(raw_options)
         array_to_list("${raw_options}" ${raw_options_LENGTH} options)
     endif()
 
@@ -198,7 +200,7 @@ function(AddJsonPackage)
     # end options
 
     # system/bundled
-    if (bundled STREQUAL "unset" AND DEFINED JSON_BUNDLED_PACKAGE)
+    if(bundled STREQUAL "unset" AND DEFINED JSON_BUNDLED_PACKAGE)
         set(bundled ${JSON_BUNDLED_PACKAGE})
     endif()
 
@@ -284,37 +286,37 @@ function(AddPackage)
     set(multiValueArgs OPTIONS PATCHES)
 
     cmake_parse_arguments(PKG_ARGS "" "${oneValueArgs}" "${multiValueArgs}"
-                          "${ARGN}")
+        "${ARGN}")
 
-    if (NOT DEFINED PKG_ARGS_NAME)
+    if(NOT DEFINED PKG_ARGS_NAME)
         cpm_utils_message(FATAL_ERROR "package" "No package name defined")
     endif()
 
     option(${PKG_ARGS_NAME}_FORCE_SYSTEM "Force the system package for ${PKG_ARGS_NAME}")
     option(${PKG_ARGS_NAME}_FORCE_BUNDLED "Force the bundled package for ${PKG_ARGS_NAME}")
 
-    if (NOT DEFINED PKG_ARGS_GIT_HOST)
+    if(NOT DEFINED PKG_ARGS_GIT_HOST)
         set(git_host github.com)
     else()
         set(git_host ${PKG_ARGS_GIT_HOST})
     endif()
 
-    if (DEFINED PKG_ARGS_URL)
+    if(DEFINED PKG_ARGS_URL)
         set(pkg_url ${PKG_ARGS_URL})
 
-        if (DEFINED PKG_ARGS_REPO)
+        if(DEFINED PKG_ARGS_REPO)
             set(pkg_git_url https://${git_host}/${PKG_ARGS_REPO})
         else()
-            if (DEFINED PKG_ARGS_GIT_URL)
+            if(DEFINED PKG_ARGS_GIT_URL)
                 set(pkg_git_url ${PKG_ARGS_GIT_URL})
             else()
                 set(pkg_git_url ${pkg_url})
             endif()
         endif()
-    elseif (DEFINED PKG_ARGS_REPO)
+    elseif(DEFINED PKG_ARGS_REPO)
         set(pkg_git_url https://${git_host}/${PKG_ARGS_REPO})
 
-        if (DEFINED PKG_ARGS_TAG)
+        if(DEFINED PKG_ARGS_TAG)
             set(pkg_key ${PKG_ARGS_TAG})
 
             if(DEFINED PKG_ARGS_ARTIFACT)
@@ -324,14 +326,14 @@ function(AddPackage)
                 set(pkg_url
                     ${pkg_git_url}/archive/refs/tags/${PKG_ARGS_TAG}.tar.gz)
             endif()
-        elseif (DEFINED PKG_ARGS_SHA)
+        elseif(DEFINED PKG_ARGS_SHA)
             set(pkg_url "${pkg_git_url}/archive/${PKG_ARGS_SHA}.tar.gz")
         else()
-            if (DEFINED PKG_ARGS_BRANCH)
+            if(DEFINED PKG_ARGS_BRANCH)
                 set(PKG_BRANCH ${PKG_ARGS_BRANCH})
             else()
                 cpm_utils_message(WARNING ${PKG_ARGS_NAME}
-                            "REPO defined but no TAG, SHA, BRANCH, or URL specified, defaulting to master")
+                    "REPO defined but no TAG, SHA, BRANCH, or URL specified, defaulting to master")
                 set(PKG_BRANCH master)
             endif()
 
@@ -343,72 +345,72 @@ function(AddPackage)
 
     cpm_utils_message(STATUS ${PKG_ARGS_NAME} "Download URL is ${pkg_url}")
 
-    if (NOT DEFINED PKG_ARGS_KEY)
-        if (DEFINED PKG_ARGS_SHA)
+    if(NOT DEFINED PKG_ARGS_KEY)
+        if(DEFINED PKG_ARGS_SHA)
             string(SUBSTRING ${PKG_ARGS_SHA} 0 4 pkg_key)
             cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
-                        "No custom key defined, using ${pkg_key} from sha")
+                "No custom key defined, using ${pkg_key} from sha")
         elseif(DEFINED PKG_ARGS_GIT_VERSION)
             set(pkg_key ${PKG_ARGS_GIT_VERSION})
             cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
-                        "No custom key defined, using ${pkg_key}")
-        elseif (DEFINED PKG_ARGS_TAG)
+                "No custom key defined, using ${pkg_key}")
+        elseif(DEFINED PKG_ARGS_TAG)
             set(pkg_key ${PKG_ARGS_TAG})
             cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
-                        "No custom key defined, using ${pkg_key}")
-        elseif (DEFINED PKG_ARGS_VERSION)
+                "No custom key defined, using ${pkg_key}")
+        elseif(DEFINED PKG_ARGS_VERSION)
             set(pkg_key ${PKG_ARGS_VERSION})
             cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
-                        "No custom key defined, using ${pkg_key}")
+                "No custom key defined, using ${pkg_key}")
         else()
             cpm_utils_message(WARNING ${PKG_ARGS_NAME}
-                        "Could not determine cache key, using CPM defaults")
+                "Could not determine cache key, using CPM defaults")
         endif()
     else()
         set(pkg_key ${PKG_ARGS_KEY})
     endif()
 
-    if (DEFINED PKG_ARGS_HASH_ALGO)
+    if(DEFINED PKG_ARGS_HASH_ALGO)
         set(hash_algo ${PKG_ARGS_HASH_ALGO})
     else()
         set(hash_algo SHA512)
     endif()
 
-    if (DEFINED PKG_ARGS_HASH)
+    if(DEFINED PKG_ARGS_HASH)
         set(pkg_hash "${hash_algo}=${PKG_ARGS_HASH}")
-    elseif (DEFINED PKG_ARGS_HASH_SUFFIX)
+    elseif(DEFINED PKG_ARGS_HASH_SUFFIX)
         # funny sanity check
         string(TOLOWER ${hash_algo} hash_algo_lower)
         string(TOLOWER ${PKG_ARGS_HASH_SUFFIX} suffix_lower)
-        if (NOT ${suffix_lower} MATCHES ${hash_algo_lower})
+        if(NOT ${suffix_lower} MATCHES ${hash_algo_lower})
             cpm_utils_message(WARNING
-                        "Hash algorithm and hash suffix do not match, errors may occur")
+                "Hash algorithm and hash suffix do not match, errors may occur")
         endif()
 
         set(hash_url ${pkg_url}.${PKG_ARGS_HASH_SUFFIX})
-    elseif (DEFINED PKG_ARGS_HASH_URL)
+    elseif(DEFINED PKG_ARGS_HASH_URL)
         set(hash_url ${PKG_ARGS_HASH_URL})
     else()
         cpm_utils_message(WARNING ${PKG_ARGS_NAME}
-                    "No hash or hash URL found")
+            "No hash or hash URL found")
     endif()
 
-    if (DEFINED hash_url)
+    if(DEFINED hash_url)
         set(outfile ${CMAKE_CURRENT_BINARY_DIR}/${PKG_ARGS_NAME}.hash)
 
         # TODO(crueter): This is kind of a bad solution
         # because "technically" the hash is invalidated each week
         # but it works for now kjsdnfkjdnfjksdn
         string(TOLOWER ${PKG_ARGS_NAME} lowername)
-        if (NOT EXISTS ${outfile} AND NOT EXISTS ${CPM_SOURCE_CACHE}/${lowername}/${pkg_key})
+        if(NOT EXISTS ${outfile} AND NOT EXISTS ${CPM_SOURCE_CACHE}/${lowername}/${pkg_key})
             file(DOWNLOAD ${hash_url} ${outfile})
         endif()
 
-        if (EXISTS ${outfile})
+        if(EXISTS ${outfile})
             file(READ ${outfile} pkg_hash_tmp)
         endif()
 
-        if (DEFINED ${pkg_hash_tmp})
+        if(DEFINED ${pkg_hash_tmp})
             set(pkg_hash "${hash_algo}=${pkg_hash_tmp}")
         endif()
     endif()
@@ -426,19 +428,19 @@ function(AddPackage)
         - CPMUTIL_FORCE_BUNDLED
         - BUNDLED_PACKAGE
         - default to allow local
-    ]]#
-    if (PKG_ARGS_FORCE_BUNDLED_PACKAGE)
+    ]]    #
+    if(PKG_ARGS_FORCE_BUNDLED_PACKAGE)
         set_precedence(OFF OFF)
-    elseif (${PKG_ARGS_NAME}_FORCE_SYSTEM)
+    elseif(${PKG_ARGS_NAME}_FORCE_SYSTEM)
         set_precedence(ON ON)
-    elseif (${PKG_ARGS_NAME}_FORCE_BUNDLED)
+    elseif(${PKG_ARGS_NAME}_FORCE_BUNDLED)
         set_precedence(OFF OFF)
-    elseif (CPMUTIL_FORCE_SYSTEM)
+    elseif(CPMUTIL_FORCE_SYSTEM)
         set_precedence(ON ON)
     elseif(CPMUTIL_FORCE_BUNDLED)
         set_precedence(OFF OFF)
-    elseif (DEFINED PKG_ARGS_BUNDLED_PACKAGE AND NOT PKG_ARGS_BUNDLED_PACKAGE STREQUAL "unset")
-        if (PKG_ARGS_BUNDLED_PACKAGE)
+    elseif(DEFINED PKG_ARGS_BUNDLED_PACKAGE AND NOT PKG_ARGS_BUNDLED_PACKAGE STREQUAL "unset")
+        if(PKG_ARGS_BUNDLED_PACKAGE)
             set(local OFF)
         else()
             set(local ON)
@@ -449,7 +451,7 @@ function(AddPackage)
         set_precedence(ON OFF)
     endif()
 
-    if (DEFINED PKG_ARGS_VERSION)
+    if(DEFINED PKG_ARGS_VERSION)
         list(APPEND EXTRA_ARGS
             VERSION ${PKG_ARGS_VERSION}
         )
@@ -475,32 +477,32 @@ function(AddPackage)
     set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${PKG_ARGS_NAME})
     set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${pkg_git_url})
 
-    if (${PKG_ARGS_NAME}_ADDED)
-        if (DEFINED PKG_ARGS_SHA)
+    if(${PKG_ARGS_NAME}_ADDED)
+        if(DEFINED PKG_ARGS_SHA)
             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                         ${PKG_ARGS_SHA})
-         elseif (DEFINED PKG_ARGS_GIT_VERSION)
-             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                          ${PKG_ARGS_GIT_VERSION})
-        elseif (DEFINED PKG_ARGS_TAG)
+                ${PKG_ARGS_SHA})
+        elseif(DEFINED PKG_ARGS_GIT_VERSION)
             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                         ${PKG_ARGS_TAG})
-         elseif(DEFINED PKG_ARGS_VERSION)
-             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                          ${PKG_ARGS_VERSION})
+                ${PKG_ARGS_GIT_VERSION})
+        elseif(DEFINED PKG_ARGS_TAG)
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
+                ${PKG_ARGS_TAG})
+        elseif(DEFINED PKG_ARGS_VERSION)
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
+                ${PKG_ARGS_VERSION})
         else()
             cpm_utils_message(WARNING ${PKG_ARGS_NAME}
-                        "Package has no specified sha, tag, or version")
+                "Package has no specified sha, tag, or version")
             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS "unknown")
         endif()
     else()
-        if (DEFINED CPM_PACKAGE_${PKG_ARGS_NAME}_VERSION AND NOT
+        if(DEFINED CPM_PACKAGE_${PKG_ARGS_NAME}_VERSION AND NOT
             "${CPM_PACKAGE_${PKG_ARGS_NAME}_VERSION}" STREQUAL "")
             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                         "${CPM_PACKAGE_${PKG_ARGS_NAME}_VERSION} (system)")
+                "${CPM_PACKAGE_${PKG_ARGS_NAME}_VERSION} (system)")
         else()
             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                         "unknown (system)")
+                "unknown (system)")
         endif()
     endif()
 
@@ -561,7 +563,7 @@ function(AddCIPackage)
         message(FATAL_ERROR "[CPMUtil] PACKAGE is required")
     endif()
 
-    if (NOT DEFINED PKG_ARGS_CMAKE_FILENAME)
+    if(NOT DEFINED PKG_ARGS_CMAKE_FILENAME)
         set(ARTIFACT_CMAKE ${PKG_ARGS_NAME})
     else()
         set(ARTIFACT_CMAKE ${PKG_ARGS_CMAKE_FILENAME})
@@ -573,11 +575,11 @@ function(AddCIPackage)
         set(ARTIFACT_EXT ${PKG_ARGS_EXTENSION})
     endif()
 
-    if (DEFINED PKG_ARGS_MIN_VERSION)
+    if(DEFINED PKG_ARGS_MIN_VERSION)
         set(ARTIFACT_MIN_VERSION ${PKG_ARGS_MIN_VERSION})
     endif()
 
-    if (DEFINED PKG_ARGS_DISABLED_PLATFORMS)
+    if(DEFINED PKG_ARGS_DISABLED_PLATFORMS)
         set(DISABLED_PLATFORMS ${PKG_ARGS_DISABLED_PLATFORMS})
     endif()
 
@@ -587,19 +589,19 @@ function(AddCIPackage)
     set(ARTIFACT_REPO ${PKG_ARGS_REPO})
     set(ARTIFACT_PACKAGE ${PKG_ARGS_PACKAGE})
 
-    if ((MSVC AND ARCHITECTURE_x86_64) AND NOT "windows-amd64" IN_LIST DISABLED_PLATFORMS)
+    if((MSVC AND ARCHITECTURE_x86_64) AND NOT "windows-amd64" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(windows-amd64)
     endif()
 
-    if ((MSVC AND ARCHITECTURE_arm64) AND NOT "windows-arm64" IN_LIST DISABLED_PLATFORMS)
+    if((MSVC AND ARCHITECTURE_arm64) AND NOT "windows-arm64" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(windows-arm64)
     endif()
 
-    if ((MINGW AND ARCHITECTURE_x86_64) AND NOT "mingw-amd64" IN_LIST DISABLED_PLATFORMS)
+    if((MINGW AND ARCHITECTURE_x86_64) AND NOT "mingw-amd64" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(mingw-amd64)
     endif()
 
-    if ((MINGW AND ARCHITECTURE_arm64) AND NOT "mingw-arm64" IN_LIST DISABLED_PLATFORMS)
+    if((MINGW AND ARCHITECTURE_arm64) AND NOT "mingw-arm64" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(mingw-arm64)
     endif()
 
@@ -628,11 +630,11 @@ function(AddCIPackage)
     endif()
 
     # TODO(crueter): macOS amd64/aarch64 split mayhaps
-    if (APPLE AND NOT "macos-universal" IN_LIST DISABLED_PLATFORMS)
+    if(APPLE AND NOT "macos-universal" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(macos-universal)
     endif()
 
-    if (DEFINED ARTIFACT_DIR)
+    if(DEFINED ARTIFACT_DIR)
         set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
         set(${ARTIFACT_PACKAGE}_SOURCE_DIR "${ARTIFACT_DIR}" PARENT_SCOPE)
     else()

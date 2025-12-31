@@ -3,15 +3,34 @@
 # SPDX-FileCopyrightText: Copyright 2025 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+# shellcheck disable=SC1091
+
+ROOTDIR=$(CDPATH='' cd -- "$(dirname -- "$0")/cpm" && pwd)
+SCRIPTS="$ROOTDIR"
+
+. "$SCRIPTS"/common.sh
+
 RETURN=0
+
+die() {
+	echo "-- $*" >&2
+	exit 1
+}
 
 usage() {
 	cat <<EOF
-Usage: cpmutil.sh package [command]
+Usage: $0 [command]
 
-Operate on a package or packages.
+General command-line utility for CPMUtil operations.
 
 Commands:
+    package Run operations on a package or packages
+    format  Format all cpmfiles
+    update  Update CPMUtil and its tooling
+    ls      List all cpmfiles
+    migrate Convert submodules to a basic cpmfile
+
+Package commands:
     hash    	Verify the hash of a package, and update it if needed
     update  	Check for updates for a package
     fetch   	Fetch a package and place it in the cache
@@ -26,53 +45,32 @@ EOF
 	exit $RETURN
 }
 
-SCRIPTS=$(CDPATH='' cd -- "$(dirname -- "$0")/package" && pwd)
-export SCRIPTS
+export ROOTDIR
 
 while :; do
 	case "$1" in
-	hash)
-		shift
-		"$SCRIPTS"/hash.sh "$@"
+	-h | --help) usage ;;
+	ls)
+		echo "$CPMFILES" | tr ' ' '\n'
+		break
+		;;
+	format)
+		"$SCRIPTS"/format.sh
 		break
 		;;
 	update)
-		shift
-		"$SCRIPTS"/update.sh "$@"
+		"$SCRIPTS"/update.sh
 		break
 		;;
-	fetch)
-		shift
-		"$SCRIPTS"/fetch.sh "$@"
+	migrate)
+		"$SCRIPTS"/migrate.sh
 		break
 		;;
-	add)
+	package)
 		shift
-		"$SCRIPTS"/add.sh "$@"
+		"$SCRIPTS"/package.sh "$@"
 		break
 		;;
-	rm)
-		shift
-		"$SCRIPTS"/rm.sh "$@"
-		break
-		;;
-	version)
-		shift
-		"$SCRIPTS"/version.sh "$@"
-		break
-		;;
-	which)
-		shift
-		"$SCRIPTS"/which.sh "$@"
-		break
-		;;
-	download)
-		shift
-		"$SCRIPTS"/download.sh "$@"
-		break
-		;;
-	-h | --help) usage ;;
-	"") usage ;;
 	*) usage ;;
 	esac
 

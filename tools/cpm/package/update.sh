@@ -1,12 +1,7 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: 2025 crueter
-# SPDX-License-Identifier: GPL-3.0-or-later
-
-# shellcheck disable=SC1091
-. tools/cpm/common.sh
-
-RETURN=0
+# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-License-Identifier: LGPL-3.0-or-later
 
 filter_out() {
 	TAGS=$(echo "$TAGS" | jq "[.[] | select(.name | test(\"$1\"; \"i\") | not)]")
@@ -17,53 +12,57 @@ filter_in() {
 }
 
 usage() {
-	cat << EOF
-Usage: $0 [uf] [PACKAGE]...
+	cat <<EOF
+Usage: cpmutil.sh package update [-n|--dry-run] [-a|--all] [PACKAGE]...
+
 Check a specific package or packages for updates.
 
 Options:
-    -u, --update	Update the package if a new version is available.
-                	This will also update the hash if provided.
+    -n, --dry-run 	Do not update the package if it has an update available
+    -a, --all       Operate on all packages in this project.
 
-    -f, --force 	Forcefully update the package version (implies -u)
-                	This is seldom useful, and should only be used in cases of
-                	severe corruption.
-
-This project has defined the following as valid cpmfiles:
 EOF
 
-	for file in $CPMFILES; do
-		echo "- $file"
-	done
-
-	exit $RETURN
+	exit 0
 }
 
-while true; do
+while :; do
 	case "$1" in
-	-f | --force)
-		UPDATE=true
-		FORCE=true
-		shift
-		continue
+	-[a-z]*)
+		opt=$(printf '%s' "$1" | sed 's/^-//')
+		while [ -n "$opt" ]; do
+			# cut out first char from the optstring
+			char=$(echo "$opt" | cut -c1)
+			opt=$(echo "$opt" | cut -c2-)
+
+			case "$char" in
+			a) ALL=1 ;;
+			n) DRY=1 ;;
+			h) usage ;;
+			*) die "Invalid option -$char" ;;
+			esac
+		done
 		;;
-	-u | --update)
-		UPDATE=true
-		shift
-		continue
-		;;
-	-h) usage ;;
+	--dry-run) DRY=1 ;;
+	--all) ALL=1 ;;
+	--help) usage ;;
 	"$0") break ;;
 	"") break ;;
+	*) packages="$packages $1" ;;
 	esac
 
-	PACKAGE="$1"
-
 	shift
+done
 
+[ "$ALL" = 1 ] && packages="${LIBS:-$packages}"
+[ "$DRY" = 1 ] && UPDATE=false || UPDATE=true
+[ -z "$packages" ] && usage
+
+for pkg in $packages; do
+	PACKAGE="$pkg"
 	export PACKAGE
 	# shellcheck disable=SC1091
-	. tools/cpm/package.sh
+	. "$SCRIPTS"/vars.sh
 
 	SKIP=$(value "skip_updates")
 
@@ -72,10 +71,9 @@ while true; do
 	[ "$REPO" = null ] && continue
 	[ "$GIT_HOST" != "github.com" ] && continue # TODO
 
-	if [ "$CI" = "true" ]; then
-		TAG="v$VERSION"
-	fi
+	[ "$CI" = "true" ] && continue
 
+	# shellcheck disable=SC2153
 	[ "$TAG" = null ] && continue
 
 	echo "-- Package $PACKAGE"
@@ -93,8 +91,6 @@ while true; do
 		filter_out vulkan-sdk
 	fi
 
-	[ "$CI" = "true" ] && filter_in "-"
-
 	filter_out yotta # mbedtls
 
 	# ignore betas/alphas (remove if needed)
@@ -110,8 +106,6 @@ while true; do
 	[ "$LATEST" = "null" ] && echo "-- * Up-to-date" && continue
 	[ "$LATEST" = "$TAG" ] && [ "$FORCE" != "true" ] && echo "-- * Up-to-date" && continue
 
-	RETURN=1
-
 	if [ "$HAS_REPLACE" = "true" ]; then
 		# this just extracts the tag prefix
 		VERSION_PREFIX=$(echo "$ORIGINAL_TAG" | cut -d"%" -f1)
@@ -126,23 +120,15 @@ while true; do
 
 	echo "-- * Version $LATEST available, current is $TAG"
 
-	HASH=$(tools/cpm/hash.sh "$REPO" "$LATEST")
-
-	echo "-- * New hash: $HASH"
-
 	if [ "$UPDATE" = "true" ]; then
-		RETURN=0
-
 		if [ "$HAS_REPLACE" = "true" ]; then
-			NEW_JSON=$(echo "$JSON" | jq ".hash = \"$HASH\" | .git_version = \"$NEW_GIT_VERSION\"")
+			NEW_JSON=$(echo "$JSON" | jq ".git_version = \"$NEW_GIT_VERSION\"")
 		else
-			NEW_JSON=$(echo "$JSON" | jq ".hash = \"$HASH\" | .tag = \"$LATEST\"")
+			NEW_JSON=$(echo "$JSON" | jq ".tag = \"$LATEST\"")
 		fi
 
-		export NEW_JSON
+		"$SCRIPTS"/util/replace.sh "$PACKAGE" "$NEW_JSON"
 
-		tools/cpm/replace.sh
+		QUIET=true "$SCRIPTS"/util/fix-hash.sh
 	fi
 done
-
-exit $RETURN

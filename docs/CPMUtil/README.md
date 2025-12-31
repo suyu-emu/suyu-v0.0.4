@@ -10,12 +10,13 @@ Global Options:
 
 You are highly encouraged to read AddPackage first, even if you plan to only interact with CPMUtil via `AddJsonPackage`.
 
-<!-- TOC -->
 - [AddPackage](#addpackage)
 - [AddCIPackage](#addcipackage)
 - [AddJsonPackage](#addjsonpackage)
 - [Lists](#lists)
-<!-- /TOC -->
+- [For Packagers](#for-packagers)
+  - [Network Sandbox](#network-sandbox)
+  - [Unsandboxed](#unsandboxed)
 
 ## AddPackage
 
@@ -44,3 +45,15 @@ For an example of how this might be implemented in an application, see Eden's im
 - [`dep_hashes.h.in`](https://git.eden-emu.dev/eden-emu/eden/src/branch/master/src/dep_hashes.h.in)
 - [`GenerateDepHashes.cmake`](https://git.eden-emu.dev/eden-emu/eden/src/branch/master/CMakeModules/GenerateDepHashes.cmake)
 - [`deps_dialog.cpp`](https://git.eden-emu.dev/eden-emu/eden/src/branch/master/src/yuzu/deps_dialog.cpp)
+
+## For Packagers
+
+If you are packaging a project that uses CPMUtil, read this!
+
+### Network Sandbox
+
+For sandboxed environments (e.g. Gentoo, nixOS) you must install all dependencies to the system beforehand and set `-DCPMUTIL_FORCE_SYSTEM=ON`. If a dependency is missing, get creating!
+
+### Unsandboxed
+
+For others (AUR, MPR, etc). CPMUtil will handle everything for you, including if some of the project's dependencies are missing from your distribution's repositories. That is pretty much half the reason I created this behemoth, after all.
