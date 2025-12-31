@@ -76,21 +76,20 @@ public:
             TryReleasePendingFences<false>();
         }
         const bool should_flush = ShouldFlush();
+        const bool delay_fence = Settings::IsGPULevelHigh() || (Settings::IsGPULevelMedium() && should_flush);
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
         if constexpr (can_async_check) {
             guard.lock();
         }
-        if (Settings::IsGPULevelLow() || (Settings::IsGPULevelMedium() && !should_flush)) {
-            func();
-        } else {
+        if (delay_fence) {
             uncommitted_operations.emplace_back(std::move(func));
         }
-        if (!uncommitted_operations.empty()) {
-            pending_operations.emplace_back(std::move(uncommitted_operations));
-            uncommitted_operations.clear();
-        }
+        pending_operations.emplace_back(std::move(uncommitted_operations));
         QueueFence(new_fence);
+        if (!delay_fence) {
+            func();
+        }
         fences.push(std::move(new_fence));
         if (should_flush) {
             rasterizer.FlushCommands();
