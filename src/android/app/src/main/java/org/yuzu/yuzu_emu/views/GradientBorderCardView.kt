@@ -35,6 +35,14 @@ class GradientBorderCardView @JvmOverloads constructor(
         updateThemeState()
     }
 
+    private fun updateBorderState() {
+        val shouldShow = isPressed || isFocused || isSelected
+        if (showGradientBorder != shouldShow) {
+            showGradientBorder = shouldShow
+            invalidate()
+        }
+    }
+
     private fun updateThemeState() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val themeIndex = try {
@@ -43,6 +51,7 @@ class GradientBorderCardView @JvmOverloads constructor(
             0 // Default to Eden theme if error
         }
         isEdenTheme = themeIndex == 0
+        invalidate()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -93,27 +102,22 @@ class GradientBorderCardView @JvmOverloads constructor(
 
     override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
-        showGradientBorder = gainFocus
-        invalidate()
+        updateBorderState()
     }
 
     override fun setSelected(selected: Boolean) {
         super.setSelected(selected)
-        showGradientBorder = selected
-        invalidate()
+        updateBorderState()
     }
 
     override fun setPressed(pressed: Boolean) {
         super.setPressed(pressed)
-        if (pressed) {
-            showGradientBorder = true
-            invalidate()
-        }
+        updateBorderState()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (showGradientBorder && !isPressed) {
+        if (showGradientBorder) {
             canvas.drawPath(borderPath, borderPaint)
         }
     }
@@ -121,6 +125,5 @@ class GradientBorderCardView @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         updateThemeState()
-        requestLayout()
     }
 }
