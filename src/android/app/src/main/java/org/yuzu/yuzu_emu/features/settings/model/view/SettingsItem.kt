@@ -448,7 +448,7 @@ abstract class SettingsItem(
                 SwitchSetting(
                     BooleanSetting.SHOW_FRAMETIME,
                     R.string.show_frametime,
-                    descriptionId = R.string.show_frametime_description
+                    descriptionId = 0
                 )
             )
             put(
@@ -469,7 +469,7 @@ abstract class SettingsItem(
                 SwitchSetting(
                     BooleanSetting.SHOW_BAT_TEMPERATURE,
                     R.string.show_bat_temperature,
-                    descriptionId = R.string.show_bat_temperature_description
+                    descriptionId = 0
                 )
             )
             put(
@@ -499,21 +499,21 @@ abstract class SettingsItem(
                 SwitchSetting(
                     BooleanSetting.SHOW_SOC_OVERLAY,
                     R.string.enable_soc_overlay,
-                    descriptionId = R.string.soc_overlay_options_description
+                    descriptionId = 0
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.SOC_OVERLAY_BACKGROUND,
                     R.string.perf_overlay_background,
-                    descriptionId = R.string.perf_overlay_background_description
+                    descriptionId = 0
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.SOC_OVERLAY_POSITION,
                     titleId = R.string.overlay_position,
-                    descriptionId = R.string.overlay_position_description,
+                    descriptionId = 0,
                     choicesId = R.array.statsPosition,
                     valuesId = R.array.staticThemeValues
                 )
@@ -523,28 +523,28 @@ abstract class SettingsItem(
                 SwitchSetting(
                     BooleanSetting.SHOW_DEVICE_MODEL,
                     titleId = R.string.show_device_model,
-                    descriptionId = R.string.show_device_model_description
+                    descriptionId = 0
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.SHOW_GPU_MODEL,
                     titleId = R.string.show_gpu_model,
-                    descriptionId = R.string.show_gpu_model_description
+                    descriptionId = 0
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.SHOW_SOC_MODEL,
                     titleId = R.string.show_soc_model,
-                    descriptionId = R.string.show_soc_model_description
+                    descriptionId = 0
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.SHOW_FW_VERSION,
                     titleId = R.string.show_fw_version,
-                    descriptionId = R.string.show_fw_version_description
+                    descriptionId = 0
                 )
             )
 

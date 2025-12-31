@@ -20,13 +20,11 @@
     <string name="show_fps">نیشاندانی FPS</string>
     <string name="show_fps_description">نیشاندانی ژمارەی فرەییم لە چرکە</string>
     <string name="show_frametime">نیشاندانی کاتی فرەییم</string>
-    <string name="show_frametime_description">نیشاندانی کاتی فرەییم</string>
     <string name="show_app_ram_usage">نیشاندانی بەکارهێنانی RAMی ئەپ</string>
     <string name="show_app_ram_usage_description">نیشاندانی بڕی RAM کە ئێمولاتۆر بەکاردەهێنێت</string>
     <string name="show_system_ram_usage">نیشاندانی بەکارهێنانی RAMی سیستەم</string>
     <string name="show_system_ram_usage_description">نیشاندانی بڕی RAM کە سیستم بەکاردەهێنێت</string>
     <string name="show_bat_temperature">نیشاندانی پلەی گەرمی بەتری</string>
-    <string name="show_bat_temperature_description">پیشاندانی پلەی گەرمی بەترییەکەی ئێستا</string>
     <string name="bat_temperature_unit">یەکەکانی پلەی گەرمی بەتری</string>
     <string name="show_power_info">پیشاندانی زانیاری بەتری</string>
     <string name="show_power_info_description">پیشاندانی بەکارهێنانی وزە و توانای ماوە لەسەر بەتری</string>
@@ -50,13 +48,9 @@
     <string name="soc_overlay_options_description">ڕێکخستنی زانیارییەکانی نیشاندراو لە ئامێرەکە</string>
 
     <string name="show_device_model">نیشاندانی مۆدێلی ئامێر</string>
-    <string name="show_device_model_description">نیشاندانی مۆدێلی ئامێری میواندار</string>
     <string name="show_gpu_model">نیشاندانی مۆدێلی GPU</string>
-    <string name="show_gpu_model_description">نیشاندانی مۆدێلی GPUی میواندار</string>
     <string name="show_soc_model">نیشاندانی مۆدێلی SoC</string>
-    <string name="show_soc_model_description">نیشاندانی مۆدێلی SoCی میواندار</string>
     <string name="show_fw_version">نیشاندانی وەشانی فریموێر</string>
-    <string name="show_fw_version_description">وەشانی فریموێری نەصبکراو پیشان بدە</string>
 
     <!-- Eden\'s Veil -->
 

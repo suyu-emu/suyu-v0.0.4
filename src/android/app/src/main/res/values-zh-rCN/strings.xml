@@ -41,13 +41,11 @@
     <string name="show_fps">显示帧率</string>
     <string name="show_fps_description">显示当前帧率(FPS)</string>
     <string name="show_frametime">显示帧时间</string>
-    <string name="show_frametime_description">显示当前帧时间</string>
     <string name="show_app_ram_usage">显示应用内存占用</string>
     <string name="show_app_ram_usage_description">显示模拟器正在使用的内存量</string>
     <string name="show_system_ram_usage">显示系统内存占用</string>
     <string name="show_system_ram_usage_description">显示系统使用的内存量</string>
     <string name="show_bat_temperature">显示电池温度</string>
-    <string name="show_bat_temperature_description">显示当前电池温度</string>
     <string name="bat_temperature_unit">电池温度单位</string>
     <string name="show_power_info">显示电池信息</string>
     <string name="show_power_info_description">显示当前功耗和电池剩余容量</string>
@@ -71,13 +69,9 @@
     <string name="soc_overlay_options_description">配置设备叠加层中显示的信息</string>
 
     <string name="show_device_model">显示设备型号</string>
-    <string name="show_device_model_description">显示主机设备型号</string>
     <string name="show_gpu_model">显示GPU型号</string>
-    <string name="show_gpu_model_description">显示主机GPU型号</string>
     <string name="show_soc_model">显示SoC型号</string>
-    <string name="show_soc_model_description">显示主机SoC型号</string>
     <string name="show_fw_version">显示固件版本</string>
-    <string name="show_fw_version_description">显示已安装的固件版本</string>
 
     <!-- Eden\'s Veil -->
 

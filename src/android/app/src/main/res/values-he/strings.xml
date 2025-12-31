@@ -20,13 +20,11 @@
     <string name="show_fps">הצג FPS</string>
     <string name="show_fps_description">מציג מספר פריימים לשנייה</string>
     <string name="show_frametime">הצג זמן פריים</string>
-    <string name="show_frametime_description">מציג את זמן העיבוד לפריים</string>
     <string name="show_app_ram_usage">הצג שימוש זיכרון</string>
     <string name="show_app_ram_usage_description">הצג את כמות ה-RAM שהאמולטור משתמש בה</string>
     <string name="show_system_ram_usage">הצג שימוש זיכרון מערכת</string>
     <string name="show_system_ram_usage_description">הצג את כמות ה-RAM שבה המערכת משתמשת</string>
     <string name="show_bat_temperature">הצג טמפרטורת סוללה</string>
-    <string name="show_bat_temperature_description">הצג טמפרטורת סוללה נוכחית</string>
     <string name="bat_temperature_unit">יחידות טמפרטורת סוללה</string>
     <string name="show_power_info">הצג מידע סוללה</string>
     <string name="show_power_info_description">הצג צריכת חשמל נוכחית וקיבולת סוללה remaining</string>
@@ -50,13 +48,9 @@
     <string name="soc_overlay_options_description">הגדר אילו פרטים יוצגו בהצגת המידע על המכשיר</string>
 
     <string name="show_device_model">הצג דגם מכשיר</string>
-    <string name="show_device_model_description">הצג את דגם המכשיר המארח</string>
     <string name="show_gpu_model">הצג דגם GPU</string>
-    <string name="show_gpu_model_description">הצג את דגם ה-GPU המארח</string>
     <string name="show_soc_model">הצג דגם SoC</string>
-    <string name="show_soc_model_description">הצג את דגם ה-SoC המארח</string>
     <string name="show_fw_version">הצג גרסת קושחה</string>
-    <string name="show_fw_version_description">מציג את גרסת הקושחה המותקנת</string>
 
     <!-- Eden\'s Veil -->
 

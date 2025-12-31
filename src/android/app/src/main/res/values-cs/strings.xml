@@ -20,13 +20,11 @@
     <string name="show_fps">Zobrazit FPS</string>
     <string name="show_fps_description">Aktuální počet snímků za sekundu</string>
     <string name="show_frametime">Zobrazit čas snímku</string>
-    <string name="show_frametime_description">Aktuální čas snímku</string>
     <string name="show_app_ram_usage">Zobrazit využití RAM aplikace</string>
     <string name="show_app_ram_usage_description">Zobrazit množství RAM, které emulátor používá</string>
     <string name="show_system_ram_usage">Zobrazit využití systémové RAM</string>
     <string name="show_system_ram_usage_description">Zobrazit množství RAM využívané systémem</string>
     <string name="show_bat_temperature">Zobrazit teplotu baterie</string>
-    <string name="show_bat_temperature_description">Zobrazit aktuální teplotu baterie</string>
     <string name="bat_temperature_unit">Jednotky teploty baterie</string>
     <string name="show_power_info">Zobrazit informace o baterii</string>
     <string name="show_power_info_description">Zobrazit aktuální odběr energie a zbývající kapacitu baterie</string>
@@ -50,13 +48,9 @@
     <string name="soc_overlay_options_description">Konfigurovat, jaké informace se zobrazí v překryvu zařízení</string>
 
     <string name="show_device_model">Zobrazit model zařízení</string>
-    <string name="show_device_model_description">Zobrazit model hostitelského zařízení</string>
     <string name="show_gpu_model">Zobrazit model GPU</string>
-    <string name="show_gpu_model_description">Zobrazit model hostitelské GPU</string>
     <string name="show_soc_model">Zobrazit model SoC</string>
-    <string name="show_soc_model_description">Zobrazit model hostitelského SoC</string>
     <string name="show_fw_version">Zobrazit verzi firmwaru</string>
-    <string name="show_fw_version_description">Zobrazí nainstalovanou verzi firmwaru</string>
 
     <!-- Eden\'s Veil -->
 

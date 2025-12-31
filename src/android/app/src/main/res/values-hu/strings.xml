@@ -20,13 +20,11 @@
     <string name="show_fps">FPS mutatása</string>
     <string name="show_fps_description">Aktuális képkockák másodpercenként</string>
     <string name="show_frametime">Képkockaidő mutatása</string>
-    <string name="show_frametime_description">Aktuális képkockaidő</string>
     <string name="show_app_ram_usage">Alkalmazás RAM-használat</string>
     <string name="show_app_ram_usage_description">Az emulátor által használt RAM mennyiségének megjelenítése</string>
     <string name="show_system_ram_usage">Rendszer RAM-használat</string>
     <string name="show_system_ram_usage_description">A rendszer által használt RAM mennyiségének megjelenítése</string>
     <string name="show_bat_temperature">Akkumulátor hőmérséklet</string>
-    <string name="show_bat_temperature_description">Az akkumulátor jelenlegi hőmérsékletének megjelenítése</string>
     <string name="bat_temperature_unit">Akkumulátor hőmérséklet egységek</string>
     <string name="show_power_info">Akkumulátor információk</string>
     <string name="show_power_info_description">Jelenlegi energiafelhasználás és remaining kapacitás megjelenítése</string>
@@ -50,13 +48,9 @@
     <string name="soc_overlay_options_description">Állítsd be, milyen információk jelenjenek meg az eszköz információiban</string>
 
     <string name="show_device_model">Eszköz modell megjelenítése</string>
-    <string name="show_device_model_description">A gazdaeszköz modelljének megjelenítése</string>
     <string name="show_gpu_model">GPU modell megjelenítése</string>
-    <string name="show_gpu_model_description">A gazda GPU modelljének megjelenítése</string>
     <string name="show_soc_model">SoC modell megjelenítése</string>
-    <string name="show_soc_model_description">A gazda SoC modelljének megjelenítése</string>
     <string name="show_fw_version">Firmver verzió megjelenítése</string>
-    <string name="show_fw_version_description">A telepített firmver verziójának megjelenítése</string>
 
     <!-- Eden\'s Veil -->
 

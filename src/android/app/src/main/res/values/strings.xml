@@ -58,13 +58,11 @@
     <string name="show_fps">Show FPS</string>
     <string name="show_fps_description">Display current frames per second</string>
     <string name="show_frametime">Show Frametime</string>
-    <string name="show_frametime_description">Display current frametime</string>
     <string name="show_app_ram_usage">Show App Memory Usage</string>
     <string name="show_app_ram_usage_description">Display the amount of RAM the emulator is using</string>
     <string name="show_system_ram_usage">Show System Memory Usage</string>
     <string name="show_system_ram_usage_description">Display the amount of RAM used by the system</string>
     <string name="show_bat_temperature">Show Battery Temperature</string>
-    <string name="show_bat_temperature_description">Display current battery temperature</string>
     <string name="bat_temperature_unit">Battery Temperature Units</string>
     <string name="show_power_info">Show Battery Info</string>
     <string name="show_power_info_description">Display current power draw and remaining capacity on battery</string>
@@ -88,13 +86,9 @@
     <string name="soc_overlay_options_description">Configure what information is shown in the device overlay</string>
 
     <string name="show_device_model">Show Device Model</string>
-    <string name="show_device_model_description">Display the host device model</string>
     <string name="show_gpu_model">Show GPU Model</string>
-    <string name="show_gpu_model_description">Display the host GPU model</string>
     <string name="show_soc_model">Show SoC Model</string>
-    <string name="show_soc_model_description">Display the host SoC model</string>
     <string name="show_fw_version">Show Firmware Version</string>
-    <string name="show_fw_version_description">Display the installed firmware version</string>
 
     <!-- Eden\'s Veil -->
     <string name="buffer_reorder_disable">Disable Buffer Reorder</string>

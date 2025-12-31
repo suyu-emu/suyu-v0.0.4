@@ -41,13 +41,11 @@
     <string name="show_fps">Mostrar FPS</string>
     <string name="show_fps_description">Mostrar fotogramas por segundo</string>
     <string name="show_frametime">Mostrar tiempo de fotograma</string>
-    <string name="show_frametime_description">Mostrar tiempo de fotograma actual</string>
     <string name="show_app_ram_usage">Mostrar el uso de la memoria de la aplicación</string>
     <string name="show_app_ram_usage_description">Muestra la cantidad de RAM que está usando el emulador</string>
     <string name="show_system_ram_usage">Mostrar el uso de la memoria del sistema</string>
     <string name="show_system_ram_usage_description">Mostrar la cantidad de RAM usada por el sistema</string>
     <string name="show_bat_temperature">Mostrar temperatura de la batería</string>
-    <string name="show_bat_temperature_description">Mostrar temperatura actual de la batería</string>
     <string name="bat_temperature_unit">Unidades de temperatura de la batería</string>
     <string name="show_power_info">Mostrar información de la batería</string>
     <string name="show_power_info_description">Muestra el consumo de energía actual y la capacidad restante de la batería</string>
@@ -71,13 +69,9 @@
     <string name="soc_overlay_options_description">Configurar qué información se muestra en la superposición del dispositivo</string>
 
     <string name="show_device_model">Mostrar modelo del dispositivo</string>
-    <string name="show_device_model_description">Mostrar el modelo del dispositivo anfitrión</string>
     <string name="show_gpu_model">Mostrar modelo de la GPU</string>
-    <string name="show_gpu_model_description">Mostrar el modelo de la GPU del anfitrión</string>
     <string name="show_soc_model">Mostrar modelo del SoC</string>
-    <string name="show_soc_model_description">Mostrar el modelo del SoC del anfitrión</string>
     <string name="show_fw_version">Mostrar versión del firmware</string>
-    <string name="show_fw_version_description">Muestra la versión del firmware instalado</string>
 
     <!-- Eden\'s Veil -->
 

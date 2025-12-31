@@ -21,13 +21,11 @@
     <string name="show_fps">نمایش FPS</string>
     <string name="show_fps_description">نمایش فریم در ثانیه</string>
     <string name="show_frametime">نمایش زمان فریم</string>
-    <string name="show_frametime_description">نمایش زمان هر فریم</string>
     <string name="show_app_ram_usage">نمایش مصرف رم برنامه</string>
     <string name="show_app_ram_usage_description">نمایش میزان رم مورد استفاده شبیه‌ساز</string>
     <string name="show_system_ram_usage">نمایش مصرف رم سیستم</string>
     <string name="show_system_ram_usage_description">نمایش میزان رم استفاده شده توسط سیستم</string>
     <string name="show_bat_temperature">نمایش دمای باتری</string>
-    <string name="show_bat_temperature_description">نمایش دمای فعلی باتری</string>
     <string name="bat_temperature_unit">واحدهای دمای باتری</string>
     <string name="show_power_info">نمایش اطلاعات باتری</string>
     <string name="show_power_info_description">نمایش مصرف فعلی برق و ظرفیت باقی‌مانده باتری</string>
@@ -51,13 +49,9 @@
     <string name="soc_overlay_options_description">تنظیم اطلاعات نمایش داده شده در نمایشگر دستگاه</string>
 
     <string name="show_device_model">نمایش مدل دستگاه</string>
-    <string name="show_device_model_description">نمایش مدل دستگاه میزبان</string>
     <string name="show_gpu_model">نمایش مدل GPU</string>
-    <string name="show_gpu_model_description">نمایش مدل GPU میزبان</string>
     <string name="show_soc_model">نمایش مدل SoC</string>
-    <string name="show_soc_model_description">نمایش مدل SoC میزبان</string>
     <string name="show_fw_version">نمایش نسخه فریمور</string>
-    <string name="show_fw_version_description">نسخه نصب شده فریمور را نمایش می‌دهد</string>
 
     <!-- Eden\'s Veil -->
     <string name="sync_memory_operations">همگام‌سازی عملیات حافظه</string>

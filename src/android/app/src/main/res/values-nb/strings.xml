@@ -20,13 +20,11 @@
     <string name="show_fps">Vis FPS</string>
     <string name="show_fps_description">Vis bilder per sekund</string>
     <string name="show_frametime">Vis rammetid</string>
-    <string name="show_frametime_description">Vis nåværende rammetid</string>
     <string name="show_app_ram_usage">Vis appminnebruk</string>
     <string name="show_app_ram_usage_description">Vis hvor mye RAM emulatoren bruker</string>
     <string name="show_system_ram_usage">Vis systemminnebruk</string>
     <string name="show_system_ram_usage_description">Vis hvor mye RAM systemet bruker</string>
     <string name="show_bat_temperature">Vis batteritemperatur</string>
-    <string name="show_bat_temperature_description">Vis gjeldende batteritemperatur</string>
     <string name="bat_temperature_unit">Batteritemperatursenheter</string>
     <string name="show_power_info">Vis batteriinfo</string>
     <string name="show_power_info_description">Vis gjeldende strømforbruk og gjenværende batterikapasitet</string>
@@ -50,13 +48,9 @@
     <string name="soc_overlay_options_description">Konfigurer hvilken informasjon som vises i enhetsoverlegget</string>
 
     <string name="show_device_model">Vis enhetsmodell</string>
-    <string name="show_device_model_description">Vis vertsenhetens modell</string>
     <string name="show_gpu_model">Vis GPU-modell</string>
-    <string name="show_gpu_model_description">Vis verts-GPUens modell</string>
     <string name="show_soc_model">Vis SoC-modell</string>
-    <string name="show_soc_model_description">Vis verts-SoCens modell</string>
     <string name="show_fw_version">Vis firmwareversjon</string>
-    <string name="show_fw_version_description">Viser den installerte firmwareversjonen</string>
 
     <!-- Eden\'s Veil -->
 

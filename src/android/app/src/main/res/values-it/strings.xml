@@ -41,13 +41,11 @@
     <string name="show_fps">Mostra FPS</string>
     <string name="show_fps_description">Mostra frame al secondo</string>
     <string name="show_frametime">Mostra frametime</string>
-    <string name="show_frametime_description">Mostra tempo per frame</string>
     <string name="show_app_ram_usage">Mostra RAM app</string>
     <string name="show_app_ram_usage_description">Mostra la quantità di RAM utilizzata dall\'emulatore</string>
     <string name="show_system_ram_usage">Mostra RAM sistema</string>
     <string name="show_system_ram_usage_description">Mostra la quantità di RAM utilizzata dal sistema</string>
     <string name="show_bat_temperature">Mostra temperatura batteria</string>
-    <string name="show_bat_temperature_description">Mostra temperatura attuale della batteria</string>
     <string name="bat_temperature_unit">Unità temperatura batteria</string>
     <string name="show_power_info">Mostra informazioni batteria</string>
     <string name="show_power_info_description">Mostra consumo energetico attuale e capacità rimanente della batteria</string>
@@ -71,13 +69,9 @@
     <string name="soc_overlay_options_description">Configura quali informazioni mostrare nell\'overlay del dispositivo</string>
 
     <string name="show_device_model">Mostra modello dispositivo</string>
-    <string name="show_device_model_description">Mostra il modello del dispositivo host</string>
     <string name="show_gpu_model">Mostra modello GPU</string>
-    <string name="show_gpu_model_description">Mostra il modello della GPU host</string>
     <string name="show_soc_model">Mostra modello SoC</string>
-    <string name="show_soc_model_description">Mostra il modello del SoC host</string>
     <string name="show_fw_version">Mostra versione firmware</string>
-    <string name="show_fw_version_description">Visualizza la versione del firmware installato</string>
 
     <!-- Eden\'s Veil -->
 

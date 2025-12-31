@@ -44,13 +44,11 @@
     <string name="show_fps">عرض معدل الإطارات</string>
     <string name="show_fps_description">عرض معدل الإطارات الحالي</string>
     <string name="show_frametime">عرض وقت الإطار</string>
-    <string name="show_frametime_description">عرض وقت الإطار الحالي</string>
     <string name="show_app_ram_usage">عرض استخدام ذاكرة التطبيق</string>
     <string name="show_app_ram_usage_description">عرض كمية ذاكرة الوصول العشوائي التي يستخدمها المحاكي</string>
     <string name="show_system_ram_usage">عرض استخدام ذاكرة النظام</string>
     <string name="show_system_ram_usage_description">عرض كمية ذاكرة الوصول العشوائي المستخدمة من قبل النظام</string>
     <string name="show_bat_temperature">عرض درجة حرارة البطارية</string>
-    <string name="show_bat_temperature_description">عرض درجة حرارة البطارية الحالية</string>
     <string name="bat_temperature_unit">وحدات قياس درجة حرارة البطارية</string>
     <string name="show_power_info">عرض معلومات البطارية</string>
     <string name="show_power_info_description">عرض استهلاك الطاقة الحالي والسعة المتبقية في البطارية</string>
@@ -74,13 +72,9 @@
     <string name="soc_overlay_options_description">ضبط المعلومات التي يتم عرضها في طبقة الجهاز</string>
 
     <string name="show_device_model">عرض طراز الجهاز</string>
-    <string name="show_device_model_description">عرض طراز الجهاز المضيف</string>
     <string name="show_gpu_model">عرض طراز وحدة معالجة الرسومات</string>
-    <string name="show_gpu_model_description">عرض طراز وحدة معالجة الرسومات المضيفة</string>
     <string name="show_soc_model">عرض طراز الرقائق</string>
-    <string name="show_soc_model_description">عرض طراز رقائق المضيف</string>
     <string name="show_fw_version">عرض إصدار الفيرموير</string>
-    <string name="show_fw_version_description">عرض إصدار الفيرموير المثبت</string>
 
     <!-- Eden\'s Veil -->
 

@@ -20,13 +20,11 @@
     <string name="show_fps">FPS表示</string>
     <string name="show_fps_description">現在のFPSを表示</string>
     <string name="show_frametime">フレーム時間表示</string>
-    <string name="show_frametime_description">現在のフレーム時間を表示</string>
     <string name="show_app_ram_usage">アプリRAM使用量</string>
     <string name="show_app_ram_usage_description">エミュレーターが使用しているRAMの量を表示</string>
     <string name="show_system_ram_usage">システムRAM使用量</string>
     <string name="show_system_ram_usage_description">システムが使用しているRAMの量を表示</string>
     <string name="show_bat_temperature">バッテリー温度</string>
-    <string name="show_bat_temperature_description">現在のバッテリー温度を表示</string>
     <string name="bat_temperature_unit">バッテリー温度単位</string>
     <string name="show_power_info">バッテリー情報を表示</string>
     <string name="show_power_info_description">現在の電力消費量とバッテリー残量を表示</string>
@@ -50,13 +48,9 @@
     <string name="soc_overlay_options_description">デバイスオーバーレイに表示される情報を設定</string>
 
     <string name="show_device_model">デバイスモデルを表示</string>
-    <string name="show_device_model_description">ホストデバイスのモデルを表示</string>
     <string name="show_gpu_model">GPUモデルを表示</string>
-    <string name="show_gpu_model_description">ホストGPUのモデルを表示</string>
     <string name="show_soc_model">SoCモデルを表示</string>
-    <string name="show_soc_model_description">ホストSoCのモデルを表示</string>
     <string name="show_fw_version">ファームウェアバージョンを表示</string>
-    <string name="show_fw_version_description">インストールされているファームウェアのバージョンを表示</string>
 
     <!-- Eden\'s Veil -->
 

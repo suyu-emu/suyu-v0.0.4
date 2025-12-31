@@ -20,13 +20,11 @@
     <string name="show_fps">FPS 표시</string>
     <string name="show_fps_description">현재 초당 프레임 수 표시</string>
     <string name="show_frametime">프레임 시간 표시</string>
-    <string name="show_frametime_description">현재 프레임 시간 표시</string>
     <string name="show_app_ram_usage">앱 RAM 사용량 표시</string>
     <string name="show_app_ram_usage_description">에뮬레이터가 사용 중인 RAM 양 표시</string>
     <string name="show_system_ram_usage">시스템 RAM 사용량 표시</string>
     <string name="show_system_ram_usage_description">시스템이 사용 중인 RAM 양 표시</string>
     <string name="show_bat_temperature">배터리 온도 표시</string>
-    <string name="show_bat_temperature_description">현재 배터리 온도 표시</string>
     <string name="bat_temperature_unit">배터리 온도 단위</string>
     <string name="show_power_info">배터리 정보 표시</string>
     <string name="show_power_info_description">현재 전력 소모량 및 배터리 잔량 표시</string>
@@ -50,13 +48,9 @@
     <string name="soc_overlay_options_description">장치 오버레이에 표시할 정보 구성</string>
 
     <string name="show_device_model">장치 모델 표시</string>
-    <string name="show_device_model_description">호스트 장치 모델 표시</string>
     <string name="show_gpu_model">GPU 모델 표시</string>
-    <string name="show_gpu_model_description">호스트 GPU 모델 표시</string>
     <string name="show_soc_model">SoC 모델 표시</string>
-    <string name="show_soc_model_description">호스트 SoC 모델 표시</string>
     <string name="show_fw_version">펌웨어 버전 표시</string>
-    <string name="show_fw_version_description">설치된 펌웨어 버전을 표시합니다</string>
 
     <!-- Eden\'s Veil -->
 

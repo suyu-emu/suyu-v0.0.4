@@ -28,13 +28,11 @@
     <string name="show_fps">FPS anzeigen</string>
     <string name="show_fps_description">Aktuelle Bilder pro Sekunde</string>
     <string name="show_frametime">Frametime anzeigen</string>
-    <string name="show_frametime_description">Aktuelle Frametime</string>
     <string name="show_app_ram_usage">App-RAM-Nutzung anzeigen</string>
     <string name="show_app_ram_usage_description">Zeigt den RAM-Verbrauch des Emulators an</string>
     <string name="show_system_ram_usage">System-RAM-Nutzung anzeigen</string>
     <string name="show_system_ram_usage_description">Zeigt den vom System genutzten RAM an</string>
     <string name="show_bat_temperature">Batterietemperatur anzeigen</string>
-    <string name="show_bat_temperature_description">Aktuelle Batterietemperatur anzeigen</string>
     <string name="bat_temperature_unit">Batterietemperatur-Einheiten</string>
     <string name="show_power_info">Batterieinfo anzeigen</string>
     <string name="show_power_info_description">Aktuellen Stromverbrauch und verbleibende Kapazität der Batterie anzeigen</string>
@@ -58,13 +56,9 @@
     <string name="soc_overlay_options_description">Konfigurieren Sie, welche Informationen im Geräte-Overlay angezeigt werden</string>
 
     <string name="show_device_model">Gerätemodell anzeigen</string>
-    <string name="show_device_model_description">Modell des Host-Geräts anzeigen</string>
     <string name="show_gpu_model">GPU-Modell anzeigen</string>
-    <string name="show_gpu_model_description">Modell der Host-GPU anzeigen</string>
     <string name="show_soc_model">SoC-Modell anzeigen</string>
-    <string name="show_soc_model_description">Modell des Host-SoC anzeigen</string>
     <string name="show_fw_version">Firmware-Version anzeigen</string>
-    <string name="show_fw_version_description">Zeigt die installierte Firmware-Version an</string>
 
     <!-- Eden\'s Veil -->
 

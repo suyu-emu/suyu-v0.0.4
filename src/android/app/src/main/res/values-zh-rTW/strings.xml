@@ -44,13 +44,11 @@
     <string name="show_fps">顯示FPS</string>
     <string name="show_fps_description">顯示當前幀率</string>
     <string name="show_frametime">顯示幀時間</string>
-    <string name="show_frametime_description">顯示當前幀時間</string>
     <string name="show_app_ram_usage">顯示應用程式的記憶體用量</string>
     <string name="show_app_ram_usage_description">顯示模擬器正在使用的記憶體量</string>
     <string name="show_system_ram_usage">顯示系統記憶體用量</string>
     <string name="show_system_ram_usage_description">顯示系統使用的記憶體量</string>
     <string name="show_bat_temperature">顯示電池溫度</string>
-    <string name="show_bat_temperature_description">顯示電池溫度</string>
     <string name="bat_temperature_unit">電池溫度單位</string>
     <string name="show_power_info">顯示電池資訊</string>
     <string name="show_power_info_description">顯示當前功耗和電池可續航時間</string>
@@ -74,13 +72,9 @@
     <string name="soc_overlay_options_description">設定裝置浮層中顯示的資訊</string>
 
     <string name="show_device_model">顯示裝置型號</string>
-    <string name="show_device_model_description">顯示主機裝置型號</string>
     <string name="show_gpu_model">顯示GPU型號</string>
-    <string name="show_gpu_model_description">顯示主機GPU型號</string>
     <string name="show_soc_model">顯示SoC型號</string>
-    <string name="show_soc_model_description">顯示主機SoC型號</string>
     <string name="show_fw_version">顯示韌體版本</string>
-    <string name="show_fw_version_description">顯示已安裝的韌體版本</string>
 
     <!-- Eden\'s Veil -->
 

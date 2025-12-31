@@ -18,13 +18,11 @@
     <string name="show_fps">Прикажи фпс</string>
     <string name="show_fps_description">Прикажите тренутне оквире у секунди</string>
     <string name="show_frametime">Показати фраметиме</string>
-    <string name="show_frametime_description">Прикажи тренутни фрамети</string>
     <string name="show_app_ram_usage">Прикажи употребу апликације меморије</string>
     <string name="show_app_ram_usage_description">Прикажи количину РАМ-а Емулатор користи</string>
     <string name="show_system_ram_usage">Прикажи употребу система меморије</string>
     <string name="show_system_ram_usage_description">Прикажите износ РАМ-а који користи систем</string>
     <string name="show_bat_temperature">Прикажи температуру батерије</string>
-    <string name="show_bat_temperature_description">Прикажи тренутну температуру батерије</string>
     <string name="bat_temperature_unit">Јединице за температуру батерије</string>
     <string name="show_power_info">Прикажи информације о батерији</string>
     <string name="show_power_info_description">Приказ тренутне потрошње енергије и преостали капацитет батерије</string>
@@ -48,13 +46,9 @@
     <string name="soc_overlay_options_description">Конфигуришите које се информације приказују у прекривању уређаја</string>
 
     <string name="show_device_model">Прикажи модел уређаја</string>
-    <string name="show_device_model_description">Прикажите модел уређаја за хост</string>
     <string name="show_gpu_model">Прикажи ГПУ модел</string>
-    <string name="show_gpu_model_description">Прикажите модел ГПУ-а у хосту</string>
     <string name="show_soc_model">Прикажи соц модел</string>
-    <string name="show_soc_model_description">Прикажите модел домаћина СоЦ</string>
     <string name="show_fw_version">Прикажи верзију фирмвера</string>
-    <string name="show_fw_version_description">Приказује инсталирану верзију фирмвера</string>
 
     <!-- Eden\'s Veil -->
 

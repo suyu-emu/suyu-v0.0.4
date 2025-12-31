@@ -20,13 +20,11 @@
     <string name="show_fps">Hiển thị FPS</string>
     <string name="show_fps_description">Hiển thị số khung hình mỗi giây</string>
     <string name="show_frametime">Hiển thị Frametime</string>
-    <string name="show_frametime_description">Hiển thị thời gian mỗi khung hình</string>
     <string name="show_app_ram_usage">Hiển thị RAM ứng dụng</string>
     <string name="show_app_ram_usage_description">Hiển thị lượng RAM mà trình giả lập đang sử dụng</string>
     <string name="show_system_ram_usage">Hiển thị RAM hệ thống</string>
     <string name="show_system_ram_usage_description">Hiển thị lượng RAM được hệ thống sử dụng</string>
     <string name="show_bat_temperature">Hiển thị nhiệt độ pin</string>
-    <string name="show_bat_temperature_description">Hiển thị nhiệt độ pin hiện tại</string>
     <string name="bat_temperature_unit">Đơn vị nhiệt độ pin</string>
     <string name="show_power_info">Hiển thị thông tin pin</string>
     <string name="show_power_info_description">Hiển thị mức tiêu thụ điện hiện tại và dung lượng pin còn lại</string>
@@ -50,13 +48,9 @@
     <string name="soc_overlay_options_description">Cấu hình thông tin hiển thị trong lớp phủ thiết bị</string>
 
     <string name="show_device_model">Hiển thị model thiết bị</string>
-    <string name="show_device_model_description">Hiển thị model thiết bị chủ</string>
     <string name="show_gpu_model">Hiển thị model GPU</string>
-    <string name="show_gpu_model_description">Hiển thị model GPU chủ</string>
     <string name="show_soc_model">Hiển thị model SoC</string>
-    <string name="show_soc_model_description">Hiển thị model SoC chủ</string>
     <string name="show_fw_version">Hiển thị phiên bản firmware</string>
-    <string name="show_fw_version_description">Hiển thị phiên bản firmware đã cài đặt</string>
 
     <!-- Eden\'s Veil -->
 

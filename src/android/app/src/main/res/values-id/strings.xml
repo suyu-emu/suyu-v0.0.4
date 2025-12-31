@@ -41,13 +41,11 @@
     <string name="show_fps">Tampilkan FPS</string>
     <string name="show_fps_description">Tampilkan frame per detik saat ini</string>
     <string name="show_frametime">Tampilkan Frametime</string>
-    <string name="show_frametime_description">Tampilkan frametime saat ini</string>
     <string name="show_app_ram_usage">Tampilkan Penggunaan RAM Aplikasi</string>
     <string name="show_app_ram_usage_description">Tampilkan jumlah RAM yang digunakan emulator</string>
     <string name="show_system_ram_usage">Tampilkan Penggunaan RAM Sistem</string>
     <string name="show_system_ram_usage_description">Tampilkan jumlah RAM yang digunakan oleh sistem</string>
     <string name="show_bat_temperature">Tampilkan Suhu Baterai</string>
-    <string name="show_bat_temperature_description">Tampilkan suhu baterai saat ini</string>
     <string name="bat_temperature_unit">Satuan Suhu Baterai</string>
     <string name="show_power_info">Tampilkan Info Baterai</string>
     <string name="show_power_info_description">Tampilkan pengeluaran daya saat ini dan kapasitas baterai yang tersisa</string>
@@ -71,13 +69,9 @@
     <string name="soc_overlay_options_description">Konfigurasi informasi yang ditampilkan di overlay perangkat</string>
 
     <string name="show_device_model">Tampilkan Model Perangkat</string>
-    <string name="show_device_model_description">Tampilkan model perangkat host</string>
     <string name="show_gpu_model">Tampilkan Model GPU</string>
-    <string name="show_gpu_model_description">Tampilkan model GPU host</string>
     <string name="show_soc_model">Tampilkan Model SoC</string>
-    <string name="show_soc_model_description">Tampilkan model SoC host</string>
     <string name="show_fw_version">Tampilkan Versi Firmware</string>
-    <string name="show_fw_version_description">Menampilkan versi firmware yang terinstal</string>
 
     <!-- Eden\'s Veil -->
 

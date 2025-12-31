@@ -44,13 +44,11 @@
     <string name="show_fps">Показать FPS</string>
     <string name="show_fps_description">Текущее количество кадров в секунду</string>
     <string name="show_frametime">Показать Frametime</string>
-    <string name="show_frametime_description">Текущее время кадра</string>
     <string name="show_app_ram_usage">Показать RAM эмулятора</string>
     <string name="show_app_ram_usage_description">Показать объем оперативной памяти, используемой эмулятором</string>
     <string name="show_system_ram_usage">Показать RAM системы</string>
     <string name="show_system_ram_usage_description">Показать объем оперативной памяти, используемой системой</string>
     <string name="show_bat_temperature">Показать температуру батареи</string>
-    <string name="show_bat_temperature_description">Показать текущую температуру аккумулятора</string>
     <string name="bat_temperature_unit">Единицы температуры аккумулятора</string>
     <string name="show_power_info">Показать информацию о батарее</string>
     <string name="show_power_info_description">Показать текущее энергопотребление и оставшуюся емкость аккумулятора</string>
@@ -74,13 +72,9 @@
     <string name="soc_overlay_options_description">Настроить, какая информация отображается в оверлее устройства</string>
 
     <string name="show_device_model">Показать модель устройства</string>
-    <string name="show_device_model_description">Отобразить модель хостового устройства</string>
     <string name="show_gpu_model">Показать модель ГПУ</string>
-    <string name="show_gpu_model_description">Отобразить модель хостовой ГПУ</string>
     <string name="show_soc_model">Показать модель SoC</string>
-    <string name="show_soc_model_description">Отобразить модель хостового SoC</string>
     <string name="show_fw_version">Показать версию прошивки</string>
-    <string name="show_fw_version_description">Отображает установленную версию прошивки</string>
 
     <!-- Eden\'s Veil -->
 
