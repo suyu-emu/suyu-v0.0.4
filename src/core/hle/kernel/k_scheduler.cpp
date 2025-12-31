@@ -527,35 +527,27 @@ void KScheduler::ClearPreviousThread(KernelCore& kernel, KThread* thread) {
 
 void KScheduler::OnThreadStateChanged(KernelCore& kernel, KThread* thread, ThreadState old_state) {
     ASSERT(IsSchedulerLockedByCurrentThread(kernel));
-
     // Check if the state has changed, because if it hasn't there's nothing to do.
-    const ThreadState cur_state = thread->GetRawState();
-    if (cur_state == old_state) {
-        return;
-    }
-
-    // Update the priority queues.
-    if (old_state == ThreadState::Runnable) {
-        // If we were previously runnable, then we're not runnable now, and we should remove.
-        GetPriorityQueue(kernel).Remove(thread);
-        IncrementScheduledCount(thread);
-        SetSchedulerUpdateNeeded(kernel);
-
-        if (thread->IsDummyThread()) {
+    if (const ThreadState cur_state = thread->GetRawState(); cur_state != old_state) {
+        // Update the priority queues.
+        if (old_state == ThreadState::Runnable) {
+            // If we were previously runnable, then we're not runnable now, and we should remove.
+            GetPriorityQueue(kernel).Remove(thread);
+            IncrementScheduledCount(thread);
+            SetSchedulerUpdateNeeded(kernel);
             // HACK: if this is a dummy thread, it should no longer wake up when the
             // scheduler lock is released.
-            kernel.GlobalSchedulerContext().UnregisterDummyThreadForWakeup(thread);
-        }
-    } else if (cur_state == ThreadState::Runnable) {
-        // If we're now runnable, then we weren't previously, and we should add.
-        GetPriorityQueue(kernel).PushBack(thread);
-        IncrementScheduledCount(thread);
-        SetSchedulerUpdateNeeded(kernel);
-
-        if (thread->IsDummyThread()) {
+            if (thread->IsDummyThread())
+                kernel.GlobalSchedulerContext().UnregisterDummyThreadForWakeup(thread);
+        } else if (cur_state == ThreadState::Runnable) {
+            // If we're now runnable, then we weren't previously, and we should add.
+            GetPriorityQueue(kernel).PushBack(thread);
+            IncrementScheduledCount(thread);
+            SetSchedulerUpdateNeeded(kernel);
             // HACK: if this is a dummy thread, it should wake up when the scheduler
             // lock is released.
-            kernel.GlobalSchedulerContext().RegisterDummyThreadForWakeup(thread);
+            if (thread->IsDummyThread())
+                kernel.GlobalSchedulerContext().RegisterDummyThreadForWakeup(thread);
         }
     }
 }
