@@ -44,12 +44,11 @@
 
             <ImageView
                 android:id="@+id/image_logo"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="28dp"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:layout_marginVertical="24dp"
                 android:layout_gravity="center_horizontal"
-                android:src="@drawable/ic_yuzu_title" />
+                android:src="@drawable/ic_yuzu_named" />
 
             <com.google.android.material.card.MaterialCardView
                 style="@style/EdenCard"

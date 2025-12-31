@@ -5,33 +5,72 @@
 
 # Updates main icons for eden
 
-#which png2icns || (which yay && yay libicns) || exit
 which magick || exit
+which optipng || exit
 
-EDEN_BASE_SVG="dist/icon_variations/base.svg"
-#EDEN_SMALL_SVG="dist/icon_variations/base_small.svg"
-EDEN_NAMED_SVG="dist/icon_variations/base_named.svg"
+VARIATION=${VARIATION:-base}
 
-magick -density 256x256 -background transparent $EDEN_BASE_SVG -define icon:auto-resize -colors 256 dist/eden.ico || exit
-convert -density 256x256 -resize 256x256 -background transparent $EDEN_BASE_SVG dist/yuzu.bmp || exit
+EDEN_BASE_SVG="dist/icon_variations/${VARIATION}.svg"
+EDEN_NAMED_SVG="dist/icon_variations/${VARIATION}_named.svg"
+EDEN_BG_COLOR="dist/icon_variations/${VARIATION}_bgcolor"
+# TODO: EDEN_MONOCHROME_SVG Variation
 
-magick -size 256x256 -background transparent $EDEN_BASE_SVG dist/qt_themes/default/icons/256x256/eden.png || exit
-magick -size 256x256 -background transparent $EDEN_NAMED_SVG dist/qt_themes/default/icons/256x256/eden_named.png || exit
-magick dist/qt_themes/default/icons/256x256/eden.png -resize 256x256! dist/qt_themes/default/icons/256x256/eden.png || exit
-magick dist/qt_themes/default/icons/256x256/eden_named.png -resize 256x256! dist/qt_themes/default/icons/256x256/eden_named.png || exit
+[ -f "$EDEN_BASE_SVG" ] && [ -f "$EDEN_NAMED_SVG" ] && [ -f "$EDEN_BG_COLOR" ] || { echo "Error: missing ${VARIATION}.svg/${VARIATION}_named.svg/${VARIATION}_bgcolor" >&2; exit; }
 
-# Now do more fancy things (like composition)
-TMP_PNG="dist/eden-tmp.png"
-magick -size 1024x1024 -background transparent $EDEN_BASE_SVG $TMP_PNG || exit
-composite $TMP_PNG -gravity center -geometry 2048x2048+0+0 \
-    src/android/app/src/main/res/drawable/ic_icon_bg_orig.png \
-    src/android/app/src/main/res/drawable/ic_launcher.png || exit
-magick src/android/app/src/main/res/drawable/ic_launcher.png -resize 512x512! src/android/app/src/main/res/drawable/ic_launcher.png || exit
+# Desktop / Windows / Qt icons
 
-optipng -o7 src/android/app/src/main/res/drawable/ic_launcher.png
-optipng -o7 dist/qt_themes/default/icons/256x256/eden_named.png
+EDEN_DESKTOP_SVG="dist/dev.eden_emu.eden.svg"
+
+cp "$EDEN_BASE_SVG" "$EDEN_DESKTOP_SVG"
+
+magick -density 256x256 -background transparent "$EDEN_BASE_SVG" -define icon:auto-resize -colors 256 dist/eden.ico || exit
+magick -density 256x256 -background transparent "$EDEN_BASE_SVG" -resize 256x256 dist/eden.bmp || exit
+
+magick -size 256x256 -background transparent "$EDEN_BASE_SVG" -resize 256x256 dist/qt_themes/default/icons/256x256/eden.png || exit
+magick -size 256x256 -background transparent "$EDEN_NAMED_SVG" -resize 256x256 dist/qt_themes/default/icons/256x256/eden_named.png || exit
+
 optipng -o7 dist/qt_themes/default/icons/256x256/eden.png
+optipng -o7 dist/qt_themes/default/icons/256x256/eden_named.png
 
-png2icns dist/eden.icns $TMP_PNG || echo 'non fatal'
-cp dist/eden.icns dist/yuzu.icns
-rm $TMP_PNG
+# Android adaptive icon (API 26+)
+
+EDEN_ANDROID_RES="src/android/app/src/main/res"
+EDEN_ANDROID_FG="$EDEN_ANDROID_RES/drawable/ic_launcher_foreground.png"
+EDEN_ANDROID_BG_COLOR=$(cat $EDEN_BG_COLOR)
+
+# Update Icon Background Color
+echo "<?xml version='1.0' encoding='utf-8'?><resources><color name='ic_launcher_background'>${EDEN_ANDROID_BG_COLOR}</color></resources>" > "$EDEN_ANDROID_RES/values/colors.xml"
+
+magick -size 1080x1080 -background transparent "$EDEN_BASE_SVG" -gravity center -resize 660x660 -extent 1080x1080 "$EDEN_ANDROID_FG" || exit
+magick -background transparent "$EDEN_BASE_SVG" -gravity center -resize 512x512 "$EDEN_ANDROID_RES/drawable/ic_yuzu.png" || exit
+magick -size 512x512 -background transparent "$EDEN_BASE_SVG" -gravity center -resize 338x338 -extent 512x512 "$EDEN_ANDROID_RES/drawable/ic_yuzu_splash.png" || exit
+magick -background transparent "$EDEN_NAMED_SVG" -gravity center -resize 512x512 "$EDEN_ANDROID_RES/drawable/ic_yuzu_named.png" || exit
+
+optipng -o7 "$EDEN_ANDROID_FG"
+optipng -o7 "$EDEN_ANDROID_RES/drawable/ic_yuzu.png"
+optipng -o7 "$EDEN_ANDROID_RES/drawable/ic_yuzu_splash.png"
+optipng -o7 "$EDEN_ANDROID_RES/drawable/ic_yuzu_named.png"
+
+# Android legacy launcher icon (API <= 24)
+
+BASE_LEGACY="$EDEN_ANDROID_RES/mipmap-xxxhdpi/ic_launcher.png"
+
+magick -size 512x512 xc:${EDEN_ANDROID_BG_COLOR} "$EDEN_ANDROID_FG" -gravity center -resize 384x384 -composite "$BASE_LEGACY" || exit
+
+magick "$BASE_LEGACY" -resize 192x192 "$EDEN_ANDROID_RES/mipmap-xxhdpi/ic_launcher.png"
+magick "$BASE_LEGACY" -resize 144x144 "$EDEN_ANDROID_RES/mipmap-xhdpi/ic_launcher.png"
+magick "$BASE_LEGACY" -resize 96x96 "$EDEN_ANDROID_RES/mipmap-hdpi/ic_launcher.png"
+magick "$BASE_LEGACY" -resize 72x72 "$EDEN_ANDROID_RES/mipmap-mdpi/ic_launcher.png"
+
+optipng -o7 "$EDEN_ANDROID_RES"/mipmap-*/ic_launcher.png
+
+# macOS
+# TODO: Update Assets.car too
+
+TMP_PNG="dist/eden-tmp.png"
+
+magick -size 1024x1024 -background none "$EDEN_BASE_SVG" "$TMP_PNG" || exit
+
+png2icns dist/eden.icns "$TMP_PNG" || echo 'non fatal'
+
+rm "$TMP_PNG"
