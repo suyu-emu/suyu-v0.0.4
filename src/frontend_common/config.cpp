@@ -290,6 +290,13 @@ void Config::ReadDataStorageValues() {
     setPath(EdenPath::DumpDir, "dump_directory");
     setPath(EdenPath::TASDir, "tas_directory");
 
+    const auto save_dir_setting = ReadStringSetting(std::string("save_directory"));
+    if (save_dir_setting.empty()) {
+        SetEdenPath(EdenPath::SaveDir, GetEdenPathString(EdenPath::NANDDir));
+    } else {
+        SetEdenPath(EdenPath::SaveDir, save_dir_setting);
+    }
+
     ReadCategory(Settings::Category::DataStorage);
 
     EndGroup();
@@ -582,6 +589,16 @@ void Config::SaveDataStorageValues() {
     writePath("load_directory", EdenPath::LoadDir);
     writePath("dump_directory", EdenPath::DumpDir);
     writePath("tas_directory", EdenPath::TASDir);
+
+    const auto save_path = FS::GetEdenPathString(EdenPath::SaveDir);
+    const auto nand_path = FS::GetEdenPathString(EdenPath::NANDDir);
+    if (save_path == nand_path) {
+        WriteStringSetting(std::string("save_directory"), std::string(""),
+                           std::make_optional(std::string("")));
+    } else {
+        WriteStringSetting(std::string("save_directory"), save_path,
+                           std::make_optional(std::string("")));
+    }
 
     WriteCategory(Settings::Category::DataStorage);
 

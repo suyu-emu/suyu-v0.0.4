@@ -138,6 +138,7 @@ void LogSettings() {
     log_path("DataStorage_ConfigDir", Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir));
     log_path("DataStorage_LoadDir", Common::FS::GetEdenPath(Common::FS::EdenPath::LoadDir));
     log_path("DataStorage_NANDDir", Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir));
+    log_path("DataStorage_SaveDir", Common::FS::GetEdenPath(Common::FS::EdenPath::SaveDir));
     log_path("DataStorage_SDMCDir", Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir));
 }
 

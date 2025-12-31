@@ -456,7 +456,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         val filterNCA = FilenameFilter { _, dirName -> dirName.endsWith(".nca") }
 
         val firmwarePath =
-            File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
+            File(NativeConfig.getNandDir() + "/system/Contents/registered/")
         val cacheFirmwareDir = File("${cacheDir.path}/registered/")
 
         ProgressDialogFragment.newInstance(
@@ -499,7 +499,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     fun uninstallFirmware() {
         val firmwarePath =
-            File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
+            File(NativeConfig.getNandDir() + "/system/Contents/registered/")
         ProgressDialogFragment.newInstance(
             this,
             R.string.firmware_uninstalling

@@ -29,6 +29,7 @@ import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
@@ -109,6 +110,7 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_APP_SETTINGS -> addThemeSettings(sl)
             MenuTag.SECTION_DEBUG -> addDebugSettings(sl)
             MenuTag.SECTION_APPLETS -> addAppletSettings(sl)
+            MenuTag.SECTION_CUSTOM_PATHS -> addCustomPathsSettings(sl)
         }
         settingsList = sl
         adapter.submitList(settingsList) {
@@ -187,6 +189,16 @@ class SettingsFragmentPresenter(
                     menuKey = MenuTag.SECTION_APPLETS
                 )
             )
+            if (!NativeConfig.isPerGameConfigLoaded()) {
+                add(
+                    SubmenuSetting(
+                        titleId = R.string.preferences_custom_paths,
+                        descriptionId = R.string.preferences_custom_paths_description,
+                        iconId = R.drawable.ic_folder_open,
+                        menuKey = MenuTag.SECTION_CUSTOM_PATHS
+                    )
+                )
+            }
             add(
                 RunnableSetting(
                     titleId = R.string.reset_to_default,
@@ -1180,6 +1192,44 @@ class SettingsFragmentPresenter(
             add(HeaderSetting(R.string.general))
 
             add(IntSetting.DEBUG_KNOBS.key)
+        }
+    }
+
+    private fun addCustomPathsSettings(sl: ArrayList<SettingsItem>) {
+        sl.apply {
+            add(
+                PathSetting(
+                    titleId = R.string.custom_save_directory,
+                    descriptionId = R.string.custom_save_directory_description,
+                    iconId = R.drawable.ic_save,
+                    pathType = PathSetting.PathType.SAVE_DATA,
+                    defaultPathGetter = { NativeConfig.getDefaultSaveDir() },
+                    currentPathGetter = { NativeConfig.getSaveDir() },
+                    pathSetter = { path -> NativeConfig.setSaveDir(path) }
+                )
+            )
+            add(
+                PathSetting(
+                    titleId = R.string.custom_nand_directory,
+                    descriptionId = R.string.custom_nand_directory_description,
+                    iconId = R.drawable.ic_folder_open,
+                    pathType = PathSetting.PathType.NAND,
+                    defaultPathGetter = { DirectoryInitialization.userDirectory + "/nand" },
+                    currentPathGetter = { NativeConfig.getNandDir() },
+                    pathSetter = { path -> NativeConfig.setNandDir(path) }
+                )
+            )
+            add(
+                PathSetting(
+                    titleId = R.string.custom_sdmc_directory,
+                    descriptionId = R.string.custom_sdmc_directory_description,
+                    iconId = R.drawable.ic_folder_open,
+                    pathType = PathSetting.PathType.SDMC,
+                    defaultPathGetter = { DirectoryInitialization.userDirectory + "/sdmc" },
+                    currentPathGetter = { NativeConfig.getSdmcDir() },
+                    pathSetter = { path -> NativeConfig.setSdmcDir(path) }
+                )
+            )
         }
     }
 }

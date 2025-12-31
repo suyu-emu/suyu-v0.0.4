@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -183,4 +186,22 @@ object NativeConfig {
      */
     @Synchronized
     external fun saveControlPlayerValues()
+
+    /**
+     * Directory paths getters and setters
+     */
+    @Synchronized
+    external fun getSaveDir(): String
+    @Synchronized
+    external fun getDefaultSaveDir(): String
+    @Synchronized
+    external fun setSaveDir(path: String)
+    @Synchronized
+    external fun getNandDir(): String
+    @Synchronized
+    external fun setNandDir(path: String)
+    @Synchronized
+    external fun getSdmcDir(): String
+    @Synchronized
+    external fun setSdmcDir(path: String)
 }

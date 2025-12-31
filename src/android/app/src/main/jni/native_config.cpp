@@ -4,6 +4,7 @@
 #include <string>
 
 #include <jni.h>
+#include <common/fs/path_util.h>
 
 #include "android_config.h"
 #include "android_settings.h"
@@ -543,6 +544,41 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveControlPlayerValues(JNIEnv* 
     for (size_t index = 0; index < Settings::values.players.GetValue().size(); ++index) {
         per_game_config->SaveAndroidControlPlayerValues(index);
     }
+}
+
+jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getSaveDir(JNIEnv* env, jobject obj) {
+    return Common::Android::ToJString(env,
+        Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir));
+}
+
+jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getDefaultSaveDir(JNIEnv* env, jobject obj) {
+    return Common::Android::ToJString(env,
+        Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setSaveDir(JNIEnv* env, jobject obj, jstring jpath) {
+    auto path = Common::Android::GetJString(env, jpath);
+    Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir, path);
+}
+
+jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getNandDir(JNIEnv* env, jobject obj) {
+    return Common::Android::ToJString(env,
+        Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setNandDir(JNIEnv* env, jobject obj, jstring jpath) {
+    auto path = Common::Android::GetJString(env, jpath);
+    Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir, path);
+}
+
+jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getSdmcDir(JNIEnv* env, jobject obj) {
+    return Common::Android::ToJString(env,
+        Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir));
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setSdmcDir(JNIEnv* env, jobject obj, jstring jpath) {
+    auto path = Common::Android::GetJString(env, jpath);
+    Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir, path);
 }
 
 } // extern "C"

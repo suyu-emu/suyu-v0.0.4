@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <common/fs/path_util.h>
 #include <common/logging/log.h>
 #include <input_common/main.h>
 #include "android_config.h"
@@ -67,6 +68,24 @@ void AndroidConfig::ReadPathValues() {
         AndroidSettings::values.game_dirs.push_back(game_dir);
     }
     EndArray();
+
+    const auto nand_dir_setting = ReadStringSetting(std::string("nand_directory"));
+    if (!nand_dir_setting.empty()) {
+        Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir, nand_dir_setting);
+    }
+
+    const auto sdmc_dir_setting = ReadStringSetting(std::string("sdmc_directory"));
+    if (!sdmc_dir_setting.empty()) {
+        Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir, sdmc_dir_setting);
+    }
+
+    const auto save_dir_setting = ReadStringSetting(std::string("save_directory"));
+    if (save_dir_setting.empty()) {
+        Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir,
+            Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+    } else {
+        Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir, save_dir_setting);
+    }
 
     EndGroup();
 }
@@ -221,6 +240,26 @@ void AndroidConfig::SavePathValues() {
                             std::make_optional(false));
     }
     EndArray();
+
+    // Save custom NAND directory
+    const auto nand_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir);
+    WriteStringSetting(std::string("nand_directory"), nand_path,
+                       std::make_optional(std::string("")));
+
+    // Save custom SDMC directory
+    const auto sdmc_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir);
+    WriteStringSetting(std::string("sdmc_directory"), sdmc_path,
+                       std::make_optional(std::string("")));
+
+    // Save custom save directory
+    const auto save_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir);
+    if (save_path == nand_path) {
+        WriteStringSetting(std::string("save_directory"), std::string(""),
+                           std::make_optional(std::string("")));
+    } else {
+        WriteStringSetting(std::string("save_directory"), save_path,
+                           std::make_optional(std::string("")));
+    }
 
     EndGroup();
 }

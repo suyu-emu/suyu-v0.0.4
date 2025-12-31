@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,12 +33,15 @@ private:
     enum class DirectoryTarget {
         NAND,
         SD,
+        Save,
         Gamecard,
         Dump,
         Load,
     };
 
     void SetDirectory(DirectoryTarget target, QLineEdit* edit);
+    void SetSaveDirectory();
+    void PromptSaveMigration(const QString& from_path, const QString& to_path);
     void ResetMetadata();
     void UpdateEnabledControls();
 

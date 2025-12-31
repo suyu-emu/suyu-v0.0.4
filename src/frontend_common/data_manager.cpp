@@ -13,10 +13,11 @@ namespace fs = std::filesystem;
 const fs::path GetDataDir(DataDir dir, const std::string &user_id)
 {
     const fs::path nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
+    const fs::path save_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::SaveDir);
 
     switch (dir) {
     case DataDir::Saves:
-        return (nand_dir / "user" / "save" / "0000000000000000" / user_id).string();
+        return (save_dir / "user" / "save" / "0000000000000000" / user_id).string();
     case DataDir::UserNand:
         return (nand_dir / "user" / "Contents" / "registered").string();
     case DataDir::SysNand:

@@ -96,6 +96,10 @@ class SettingsAdapter(
             SettingsItem.TYPE_LAUNCHABLE -> {
                 LaunchableViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
+			
+            SettingsItem.TYPE_PATH -> {
+                PathViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
             else -> {
                 HeaderViewHolder(ListItemSettingsHeaderBinding.inflate(inflater), this)
             }
@@ -448,6 +452,18 @@ class SettingsAdapter(
         item.setting.global = true
         notifyItemChanged(position)
         settingsViewModel.setShouldReloadSettingsList(true)
+    }
+
+    fun onPathClick(item: PathSetting, position: Int) {
+        settingsViewModel.clickedItem = item
+        settingsViewModel.setPathSettingPosition(position)
+        settingsViewModel.setShouldShowPathPicker(true)
+    }
+
+    fun onPathReset(item: PathSetting, position: Int) {
+        settingsViewModel.clickedItem = item
+        settingsViewModel.setPathSettingPosition(position)
+        settingsViewModel.setShouldShowPathResetDialog(true)
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<SettingsItem>() {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,6 +18,7 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FileUtil
+import org.yuzu.yuzu_emu.utils.NativeConfig
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -57,8 +61,7 @@ class Game(
         }.zip"
 
     val saveDir: String
-        get() = DirectoryInitialization.userDirectory + "/nand" +
-            NativeLibrary.getSavePath(programId)
+        get() = NativeConfig.getSaveDir() + NativeLibrary.getSavePath(programId)
 
     val addonDir: String
         get() = DirectoryInitialization.userDirectory + "/load/" + programIdHex + "/"

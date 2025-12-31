@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -31,6 +31,7 @@ import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FileUtil
+import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.collect
 import java.io.BufferedOutputStream
@@ -99,11 +100,11 @@ class InstallableFragment : Fragment() {
                 },
                 export = {
                     val oldSaveDataFolder = File(
-                        "${DirectoryInitialization.userDirectory}/nand" +
+                        NativeConfig.getSaveDir() +
                             NativeLibrary.getDefaultProfileSaveDataRoot(false)
                     )
                     val futureSaveDataFolder = File(
-                        "${DirectoryInitialization.userDirectory}/nand" +
+                        NativeConfig.getSaveDir() +
                             NativeLibrary.getDefaultProfileSaveDataRoot(true)
                     )
                     if (!oldSaveDataFolder.exists() && !futureSaveDataFolder.exists()) {
@@ -213,7 +214,7 @@ class InstallableFragment : Fragment() {
                                 }
 
                                 val internalSaveFolder = File(
-                                    "${DirectoryInitialization.userDirectory}/nand$baseSaveDir"
+                                    "${NativeConfig.getSaveDir()}$baseSaveDir"
                                 )
                                 internalSaveFolder.deleteRecursively()
                                 internalSaveFolder.mkdir()
@@ -290,7 +291,7 @@ class InstallableFragment : Fragment() {
             cacheSaveDir.mkdir()
 
             val oldSaveDataFolder = File(
-                "${DirectoryInitialization.userDirectory}/nand" +
+                NativeConfig.getSaveDir() +
                     NativeLibrary.getDefaultProfileSaveDataRoot(false)
             )
             if (oldSaveDataFolder.exists()) {
@@ -298,7 +299,7 @@ class InstallableFragment : Fragment() {
             }
 
             val futureSaveDataFolder = File(
-                "${DirectoryInitialization.userDirectory}/nand" +
+                NativeConfig.getSaveDir() +
                     NativeLibrary.getDefaultProfileSaveDataRoot(true)
             )
             if (futureSaveDataFolder.exists()) {

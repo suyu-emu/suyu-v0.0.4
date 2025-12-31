@@ -1389,12 +1389,12 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject j
     const auto user_id = manager.GetUser(static_cast<std::size_t>(0));
     ASSERT(user_id);
 
-    const auto nandDir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
-    auto vfsNandDir = system.GetFilesystem()->OpenDirectory(Common::FS::PathToUTF8String(nandDir),
+    const auto saveDir = Common::FS::GetEdenPath(Common::FS::EdenPath::SaveDir);
+    auto vfsSaveDir = system.GetFilesystem()->OpenDirectory(Common::FS::PathToUTF8String(saveDir),
                                                             FileSys::OpenMode::Read);
 
     const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-        {}, vfsNandDir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account, program_id,
+        {}, vfsSaveDir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account, program_id,
         user_id->AsU128(), 0);
     return Common::Android::ToJString(env, user_save_data_path);
 }

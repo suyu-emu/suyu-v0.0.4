@@ -59,6 +59,16 @@ class SettingsViewModel : ViewModel() {
 
     private val _shouldRecreateForLanguageChange = MutableStateFlow(false)
     val shouldRecreateForLanguageChange = _shouldRecreateForLanguageChange.asStateFlow()
+
+    private val _shouldShowPathPicker = MutableStateFlow(false)
+    val shouldShowPathPicker = _shouldShowPathPicker.asStateFlow()
+
+    private val _shouldShowPathResetDialog = MutableStateFlow(false)
+    val shouldShowPathResetDialog = _shouldShowPathResetDialog.asStateFlow()
+
+    private val _pathSettingPosition = MutableStateFlow(-1)
+    val pathSettingPosition = _pathSettingPosition.asStateFlow()
+
     fun setShouldRecreate(value: Boolean) {
         _shouldRecreate.value = value
     }
@@ -110,6 +120,18 @@ class SettingsViewModel : ViewModel() {
 
     fun setShouldRecreateForLanguageChange(value: Boolean) {
         _shouldRecreateForLanguageChange.value = value
+    }
+
+    fun setShouldShowPathPicker(value: Boolean) {
+        _shouldShowPathPicker.value = value
+    }
+
+    fun setShouldShowPathResetDialog(value: Boolean) {
+        _shouldShowPathResetDialog.value = value
+    }
+
+    fun setPathSettingPosition(value: Int) {
+        _pathSettingPosition.value = value
     }
 
     fun getCurrentDeviceParams(defaultParams: ParamPackage): ParamPackage =

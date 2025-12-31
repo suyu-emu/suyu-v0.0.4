@@ -98,6 +98,7 @@ abstract class SettingsItem(
         const val TYPE_STRING_INPUT = 11
         const val TYPE_SPINBOX = 12
         const val TYPE_LAUNCHABLE = 13
+        const val TYPE_PATH = 14
 
         const val FASTMEM_COMBINED = "fastmem_combined"
 
