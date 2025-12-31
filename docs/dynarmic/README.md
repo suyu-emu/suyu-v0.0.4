@@ -49,7 +49,7 @@ Important API Changes in v6.x Series
 Documentation
 -------------
 
-Design documentation can be found at [docs/Design.md](docs/Design.md).
+Design documentation can be found at [./Design.md](./Design.md).
 
 
 Usage Example
