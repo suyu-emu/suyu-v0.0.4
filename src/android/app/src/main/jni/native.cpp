@@ -1166,11 +1166,8 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerInit(JNIEnv* env, jobject obj) {
     // for some reason the full user directory isnt initialized in Android, so we need to create it
     const auto play_time_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::PlayTimeDir);
-    if (!Common::FS::IsDir(play_time_dir)) {
-        if (!Common::FS::CreateDir(play_time_dir)) {
-            LOG_WARNING(Frontend, "Failed to create play time directory");
-        }
-    }
+    if (!Common::FS::IsDir(play_time_dir) && !Common::FS::CreateDir(play_time_dir))
+        LOG_WARNING(Frontend, "Failed to create play time directory");
 
     play_time_manager = std::make_unique<PlayTime::PlayTimeManager>();
 }
@@ -1183,13 +1180,16 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerStart(JNIEnv* env, job
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerStop(JNIEnv* env, jobject obj) {
-    play_time_manager->Stop();
+    if (play_time_manager)
+        play_time_manager->Stop();
 }
 
-jlong Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerGetPlayTime(JNIEnv* env, jobject obj,
-                                                                       jstring jprogramId) {
-    u64 program_id = EmulationSession::GetProgramId(env, jprogramId);
-    return play_time_manager->GetPlayTime(program_id);
+jlong Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerGetPlayTime(JNIEnv* env, jobject obj, jstring jprogramId) {
+    if (play_time_manager) {
+        u64 program_id = EmulationSession::GetProgramId(env, jprogramId);
+        return play_time_manager->GetPlayTime(program_id);
+    }
+    return 0UL;
 }
 
 jlong Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerGetCurrentTitleId(JNIEnv* env,
@@ -1199,17 +1199,17 @@ jlong Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerGetCurrentTitleId(JNI
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerResetProgramPlayTime(JNIEnv* env, jobject obj,
                                                                 jstring jprogramId) {
-    u64 program_id = EmulationSession::GetProgramId(env, jprogramId);
     if (play_time_manager) {
+        u64 program_id = EmulationSession::GetProgramId(env, jprogramId);
         play_time_manager->ResetProgramPlayTime(program_id);
     }
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerSetPlayTime(JNIEnv* env, jobject obj,
                                                                 jstring jprogramId, jlong playTimeSeconds) {
-    u64 program_id = EmulationSession::GetProgramId(env, jprogramId);
     if (play_time_manager) {
-        play_time_manager->SetPlayTime(program_id, static_cast<u64>(playTimeSeconds));
+        u64 program_id = EmulationSession::GetProgramId(env, jprogramId);
+        play_time_manager->SetPlayTime(program_id, u64(playTimeSeconds));
     }
 }
 
