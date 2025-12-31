@@ -43,90 +43,66 @@ void DmaPusher::DispatchCalls() {
 
 bool DmaPusher::Step() {
     if (!ib_enable || dma_pushbuffer.empty()) {
-        // pushbuffer empty and IB empty or nonexistent - nothing to do
         return false;
     }
 
-    CommandList& command_list{dma_pushbuffer.front()};
+    CommandList& command_list = dma_pushbuffer.front();
 
-    ASSERT_OR_EXECUTE(
-        command_list.command_lists.size() || command_list.prefetch_command_list.size(), {
-            // Somehow the command_list is empty, in order to avoid a crash
-            // We ignore it and assume its size is 0.
-            dma_pushbuffer.pop();
-            dma_pushbuffer_subindex = 0;
-            return true;
-        });
+    const size_t prefetch_size = command_list.prefetch_command_list.size();
+    const size_t command_list_size = command_list.command_lists.size();
 
-    if (command_list.prefetch_command_list.size()) {
-        // Prefetched command list from nvdrv, used for things like synchronization
-        ProcessCommands(VideoCommon::FixSmallVectorADL(command_list.prefetch_command_list));
+    if (prefetch_size == 0 && command_list_size == 0) {
         dma_pushbuffer.pop();
-    } else {
-        const CommandListHeader command_list_header{
-            command_list.command_lists[dma_pushbuffer_subindex++]};
+        dma_pushbuffer_subindex = 0;
+        return true;
+    }
 
-        if (signal_sync) {
-            std::unique_lock lk(sync_mutex);
-            sync_cv.wait(lk, [this]() { return synced; });
-            signal_sync = false;
-            synced = false;
-        }
+    if (prefetch_size > 0) {
+        ProcessCommands(command_list.prefetch_command_list);
+        dma_pushbuffer.pop();
+        return true;
+    }
 
-        dma_state.dma_get = command_list_header.addr;
+    auto& current_command = command_list.command_lists[dma_pushbuffer_subindex];
+    const CommandListHeader& header = current_command;
+    dma_state.dma_get = header.addr;
 
-        if (command_list_header.size == 0) {
-            return true;
-        }
+    if (signal_sync && !synced) {
+        std::unique_lock lk(sync_mutex);
+        sync_cv.wait(lk, [this]() { return synced; });
+        signal_sync = false;
+        synced = false;
+    }
 
-        // Push buffer non-empty, read a word
-        if (dma_state.method >= MacroRegistersStart) {
-            if (subchannels[dma_state.subchannel]) {
-                subchannels[dma_state.subchannel]->current_dirty = memory_manager.IsMemoryDirty(
-                    dma_state.dma_get, command_list_header.size * sizeof(u32));
-            }
-        }
+    if (header.size > 0 && dma_state.method >= MacroRegistersStart && subchannels[dma_state.subchannel]) {
+        subchannels[dma_state.subchannel]->current_dirty = memory_manager.IsMemoryDirty(dma_state.dma_get, header.size * sizeof(u32));
+    }
 
-        const auto safe_process = [&] {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
-                                          Tegra::Memory::GuestMemoryFlags::SafeRead>
-                headers(memory_manager, dma_state.dma_get, command_list_header.size,
-                        &command_headers);
+    if (header.size > 0) {
+        if (Settings::IsDMALevelDefault() ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) : Settings::IsDMALevelSafe()) {
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
             ProcessCommands(headers);
-        };
-
-        const auto unsafe_process = [&] {
-            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
-                                          Tegra::Memory::GuestMemoryFlags::UnsafeRead>
-                headers(memory_manager, dma_state.dma_get, command_list_header.size,
-                        &command_headers);
-            ProcessCommands(headers);
-        };
-
-        const bool use_safe = Settings::IsDMALevelDefault() ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) : Settings::IsDMALevelSafe();
-
-        if (use_safe) {
-            safe_process();
         } else {
-            unsafe_process();
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
+            ProcessCommands(headers);
         }
+    }
 
-        if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
-            // We've gone through the current list, remove it from the queue
-            dma_pushbuffer.pop();
-            dma_pushbuffer_subindex = 0;
-        } else if (command_list.command_lists[dma_pushbuffer_subindex].sync && Settings::values.sync_memory_operations.GetValue()) {
-            signal_sync = true;
-        }
+    if (++dma_pushbuffer_subindex >= command_list_size) {
+        dma_pushbuffer.pop();
+        dma_pushbuffer_subindex = 0;
+    } else {
+        signal_sync = command_list.command_lists[dma_pushbuffer_subindex].sync && Settings::values.sync_memory_operations.GetValue();
+    }
 
-        if (signal_sync) {
-            rasterizer->SignalFence([this]() {
+    if (signal_sync) {
+        rasterizer->SignalFence([this]() {
             std::scoped_lock lk(sync_mutex);
             synced = true;
             sync_cv.notify_all();
-            });
-        }
+        });
     }
+
     return true;
 }
 
