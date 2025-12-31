@@ -1227,32 +1227,28 @@ static void DeadCodeElimination(IR::Block& block) {
 }
 
 static void IdentityRemovalPass(IR::Block& block) {
-    boost::container::small_vector<IR::Inst*, 128> to_invalidate;
-
-    auto iter = block.begin();
-    while (iter != block.end()) {
-        IR::Inst& inst = *iter;
-
-        const size_t num_args = inst.NumArgs();
-        for (size_t i = 0; i < num_args; i++) {
-            while (true) {
-                IR::Value arg = inst.GetArg(i);
-                if (!arg.IsIdentity())
-                    break;
-                inst.SetArg(i, arg.GetInst()->GetArg(0));
+    boost::container::small_vector<IR::Inst*, 16> to_invalidate;
+    for (auto it = block.begin(); it != block.end();) {
+        const size_t num_args = it->NumArgs();
+        for (size_t i = 0; i < num_args; ++i) {
+            IR::Value arg = it->GetArg(i);
+            if (arg.IsIdentity()) {
+                do {
+                    arg = arg.GetInst()->GetArg(0);
+                } while (arg.IsIdentity());
+                it->SetArg(i, arg);
             }
         }
 
-        if (inst.GetOpcode() == IR::Opcode::Identity || inst.GetOpcode() == IR::Opcode::Void) {
-            iter = block.Instructions().erase(inst);
-            to_invalidate.push_back(&inst);
+        if (it->GetOpcode() == IR::Opcode::Identity || it->GetOpcode() == IR::Opcode::Void) {
+            to_invalidate.push_back(&*it);
+            it = block.Instructions().erase(it);
         } else {
-            ++iter;
+            ++it;
         }
     }
-    for (IR::Inst* inst : to_invalidate) {
+    for (IR::Inst* const inst : to_invalidate)
         inst->Invalidate();
-    }
 }
 
 static void NamingPass(IR::Block& block) {

@@ -1,7 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <vector>
+#include <boost/container/small_vector.hpp>
 
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/value.h"
@@ -10,28 +14,30 @@
 namespace Shader::Optimization {
 
 void IdentityRemovalPass(IR::Program& program) {
-    std::vector<IR::Inst*> to_invalidate;
+    boost::container::small_vector<IR::Inst*, 16> to_invalidate;
     for (IR::Block* const block : program.blocks) {
-        for (auto inst = block->begin(); inst != block->end();) {
-            const size_t num_args{inst->NumArgs()};
+        for (auto it = block->begin(); it != block->end();) {
+            const size_t num_args{it->NumArgs()};
             for (size_t i = 0; i < num_args; ++i) {
-                IR::Value arg;
-                while ((arg = inst->Arg(i)).IsIdentity()) {
-                    inst->SetArg(i, arg.Inst()->Arg(0));
+                IR::Value arg = it->Arg(i);
+                if (arg.IsIdentity()) {
+                    do { // Pointer chasing (3-derefs)
+                        arg = arg.Inst()->Arg(0);
+                    } while (arg.IsIdentity());
+                    it->SetArg(i, arg);
                 }
             }
-            if (inst->GetOpcode() == IR::Opcode::Identity ||
-                inst->GetOpcode() == IR::Opcode::Void) {
-                to_invalidate.push_back(&*inst);
-                inst = block->Instructions().erase(inst);
+
+            if (it->GetOpcode() == IR::Opcode::Identity || it->GetOpcode() == IR::Opcode::Void) {
+                to_invalidate.push_back(&*it);
+                it = block->Instructions().erase(it);
             } else {
-                ++inst;
+                ++it;
             }
         }
     }
-    for (IR::Inst* const inst : to_invalidate) {
+    for (IR::Inst* const inst : to_invalidate)
         inst->Invalidate();
-    }
 }
 
 } // namespace Shader::Optimization

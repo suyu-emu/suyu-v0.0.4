@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,12 +17,6 @@ public:
     virtual ~AntiAliasPass() = default;
     virtual void Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
                       VkImageView* inout_image_view) = 0;
-};
-
-class NoAA final : public AntiAliasPass {
-public:
-    void Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
-              VkImageView* inout_image_view) override {}
 };
 
 } // namespace Vulkan

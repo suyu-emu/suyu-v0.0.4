@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -41,25 +44,18 @@ FSR::FSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_c
 void FSR::CreateImages() {
     m_dynamic_images.resize(m_image_count);
     for (auto& images : m_dynamic_images) {
-        images.images[Easu] =
-            CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
-        images.images[Rcas] =
-            CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
-        images.image_views[Easu] =
-            CreateWrappedImageView(m_device, images.images[Easu], VK_FORMAT_R16G16B16A16_SFLOAT);
-        images.image_views[Rcas] =
-            CreateWrappedImageView(m_device, images.images[Rcas], VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.images[Easu] = CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.images[Rcas] = CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.image_views[Easu] = CreateWrappedImageView(m_device, images.images[Easu], VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.image_views[Rcas] = CreateWrappedImageView(m_device, images.images[Rcas], VK_FORMAT_R16G16B16A16_SFLOAT);
     }
 }
 
 void FSR::CreateRenderPasses() {
     m_renderpass = CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16B16A16_SFLOAT);
-
     for (auto& images : m_dynamic_images) {
-        images.framebuffers[Easu] =
-            CreateWrappedFramebuffer(m_device, m_renderpass, images.image_views[Easu], m_extent);
-        images.framebuffers[Rcas] =
-            CreateWrappedFramebuffer(m_device, m_renderpass, images.image_views[Rcas], m_extent);
+        images.framebuffers[Easu] = CreateWrappedFramebuffer(m_device, m_renderpass, images.image_views[Easu], m_extent);
+        images.framebuffers[Rcas] = CreateWrappedFramebuffer(m_device, m_renderpass, images.image_views[Rcas], m_extent);
     }
 }
 
@@ -87,16 +83,13 @@ void FSR::CreateDescriptorPool() {
 }
 
 void FSR::CreateDescriptorSetLayout() {
-    m_descriptor_set_layout =
-        CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
+    m_descriptor_set_layout = CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 }
 
 void FSR::CreateDescriptorSets() {
     std::vector<VkDescriptorSetLayout> layouts(MaxFsrStage, *m_descriptor_set_layout);
-
-    for (auto& images : m_dynamic_images) {
+    for (auto& images : m_dynamic_images)
         images.descriptor_sets = CreateWrappedDescriptorSets(m_descriptor_pool, layouts);
-    }
 }
 
 void FSR::CreatePipelineLayouts() {
@@ -128,31 +121,24 @@ void FSR::CreatePipelines() {
 void FSR::UpdateDescriptorSets(VkImageView image_view, size_t image_index) {
     Images& images = m_dynamic_images[image_index];
     std::vector<VkDescriptorImageInfo> image_infos;
-    std::vector<VkWriteDescriptorSet> updates;
-    image_infos.reserve(2);
-
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, image_view,
-                                               images.descriptor_sets[Easu], 0));
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, *images.image_views[Easu],
-                                               images.descriptor_sets[Rcas], 0));
-
+    std::vector<VkWriteDescriptorSet> updates{
+        CreateWriteDescriptorSet(image_infos, *m_sampler, image_view, images.descriptor_sets[Easu], 0),
+        CreateWriteDescriptorSet(image_infos, *m_sampler, *images.image_views[Easu], images.descriptor_sets[Rcas], 0)
+    };
     m_device.GetLogical().UpdateDescriptorSets(updates, {});
 }
 
 void FSR::UploadImages(Scheduler& scheduler) {
-    if (m_images_ready) {
-        return;
+    if (!m_images_ready) {
+        m_images_ready = true;
+        scheduler.Record([&](vk::CommandBuffer cmdbuf) {
+            for (auto& image : m_dynamic_images) {
+                ClearColorImage(cmdbuf, *image.images[Easu]);
+                ClearColorImage(cmdbuf, *image.images[Rcas]);
+            }
+        });
+        scheduler.Finish();
     }
-
-    scheduler.Record([&](vk::CommandBuffer cmdbuf) {
-        for (auto& image : m_dynamic_images) {
-            ClearColorImage(cmdbuf, *image.images[Easu]);
-            ClearColorImage(cmdbuf, *image.images[Rcas]);
-        }
-    });
-    scheduler.Finish();
-
-    m_images_ready = true;
 }
 
 VkImageView FSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
