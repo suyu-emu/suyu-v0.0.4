@@ -275,28 +275,24 @@ void CommandBuffer::GenerateBiquadFilterCommand(const s32 node_id, EffectInfoBas
         const auto& parameter{
             *reinterpret_cast<BiquadFilterInfo::ParameterVersion2*>(effect_info.GetParameter())};
 
-        if (parameter.state <= EffectInfoBase::ParameterState::Updated && IsChannelCountValid(parameter.channel_count) && channel >= 0 && channel < parameter.channel_count) {
-            cmd.input = buffer_offset + parameter.inputs[channel];
-            cmd.output = buffer_offset + parameter.outputs[channel];
+        cmd.input = buffer_offset + parameter.inputs[channel];
+        cmd.output = buffer_offset + parameter.outputs[channel];
 
-            // Convert float coefficients to Q2.14 fixed-point as expected by the legacy DSP path.
-            cmd.biquad.b[0] = ToQ14Clamped(parameter.b[0]);
-            cmd.biquad.b[1] = ToQ14Clamped(parameter.b[1]);
-            cmd.biquad.b[2] = ToQ14Clamped(parameter.b[2]);
-            cmd.biquad.a[0] = ToQ14Clamped(parameter.a[0]);
-            cmd.biquad.a[1] = ToQ14Clamped(parameter.a[1]);
-        }
+        // Convert float coefficients to Q2.14 fixed-point as expected by the legacy DSP path.
+        cmd.biquad.b[0] = ToQ14Clamped(parameter.b[0]);
+        cmd.biquad.b[1] = ToQ14Clamped(parameter.b[1]);
+        cmd.biquad.b[2] = ToQ14Clamped(parameter.b[2]);
+        cmd.biquad.a[0] = ToQ14Clamped(parameter.a[0]);
+        cmd.biquad.a[1] = ToQ14Clamped(parameter.a[1]);
     } else {
         const auto& parameter{
             *reinterpret_cast<BiquadFilterInfo::ParameterVersion1*>(effect_info.GetParameter())};
 
-        if (IsChannelCountValid(parameter.channel_count) && channel >= 0 && channel < parameter.channel_count) {
-            cmd.input = buffer_offset + parameter.inputs[channel];
-            cmd.output = buffer_offset + parameter.outputs[channel];
+        cmd.input = buffer_offset + parameter.inputs[channel];
+        cmd.output = buffer_offset + parameter.outputs[channel];
 
-            cmd.biquad.b = parameter.b;
-            cmd.biquad.a = parameter.a;
-        }
+        cmd.biquad.b = parameter.b;
+        cmd.biquad.a = parameter.a;
     }
 
     // Effects always use the fixed-point coefficient path on the DSP.
