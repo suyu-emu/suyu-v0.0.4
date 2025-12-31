@@ -639,6 +639,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
 
     companion object {
         const val EXTRA_SELECTED_GAME = "SelectedGame"
+        const val EXTRA_OVERLAY_GAMELESS_EDIT_MODE = "overlayGamelessEditMode"
 
         fun stopForegroundService(activity: Activity) {
             val startIntent = Intent(activity, ForegroundService::class.java)
@@ -650,6 +651,12 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
             val launcher = Intent(activity, EmulationActivity::class.java)
             launcher.putExtra(EXTRA_SELECTED_GAME, game)
             activity.startActivity(launcher)
+        }
+
+        fun launchForOverlayEdit(context: Context): Intent {
+            return Intent(context, EmulationActivity::class.java).apply {
+                putExtra(EXTRA_OVERLAY_GAMELESS_EDIT_MODE, true)
+            }
         }
 
         private fun areCoordinatesOutside(view: View?, x: Float, y: Float): Boolean {

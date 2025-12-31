@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,6 +14,8 @@ import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
 import org.yuzu.yuzu_emu.features.input.NativeInput.ButtonState
 import org.yuzu.yuzu_emu.features.input.model.NativeButton
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
 
 /**
@@ -121,17 +126,34 @@ class InputOverlayDrawableButton(
             MotionEvent.ACTION_MOVE -> {
                 controlPositionX += fingerPositionX - previousTouchX
                 controlPositionY += fingerPositionY - previousTouchY
+
+                val finalX = if (BooleanSetting.OVERLAY_SNAP_TO_GRID.getBoolean()) {
+                    snapToGrid(controlPositionX)
+                } else {
+                    controlPositionX
+                }
+                val finalY = if (BooleanSetting.OVERLAY_SNAP_TO_GRID.getBoolean()) {
+                    snapToGrid(controlPositionY)
+                } else {
+                    controlPositionY
+                }
+
                 setBounds(
-                    controlPositionX,
-                    controlPositionY,
-                    width + controlPositionX,
-                    height + controlPositionY
+                    finalX,
+                    finalY,
+                    width + finalX,
+                    height + finalY
                 )
                 previousTouchX = fingerPositionX
                 previousTouchY = fingerPositionY
             }
         }
         return true
+    }
+
+    private fun snapToGrid(value: Int): Int {
+        val gridSize = IntSetting.OVERLAY_GRID_SIZE.getInt()
+        return ((value + gridSize / 2) / gridSize) * gridSize
     }
 
     fun setBounds(left: Int, top: Int, right: Int, bottom: Int) {

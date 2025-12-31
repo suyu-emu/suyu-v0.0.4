@@ -40,6 +40,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     DPAD_SLIDE("dpad_slide"),
     HAPTIC_FEEDBACK("haptic_feedback"),
     SHOW_INPUT_OVERLAY("show_input_overlay"),
+    OVERLAY_SNAP_TO_GRID("overlay_snap_to_grid"),
     TOUCHSCREEN("touchscreen"),
     AIRPLANE_MODE("airplane_mode"),
 

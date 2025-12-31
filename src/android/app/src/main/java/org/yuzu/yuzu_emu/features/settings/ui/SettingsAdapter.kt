@@ -93,6 +93,9 @@ class SettingsAdapter(
                 StringInputViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
 
+            SettingsItem.TYPE_LAUNCHABLE -> {
+                LaunchableViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
             else -> {
                 HeaderViewHolder(ListItemSettingsHeaderBinding.inflate(inflater), this)
             }
@@ -207,6 +210,11 @@ class SettingsAdapter(
     fun onSubmenuClick(item: SubmenuSetting) {
         val action = SettingsNavigationDirections.actionGlobalSettingsFragment(item.menuKey, null)
         fragment.view?.findNavController()?.navigate(action)
+    }
+
+    fun onLaunchableClick(item: LaunchableSetting) {
+        val intent = item.launchIntent(context)
+        fragment.requireActivity().startActivity(intent)
     }
 
     fun onInputProfileClick(item: InputProfileSetting, position: Int) {

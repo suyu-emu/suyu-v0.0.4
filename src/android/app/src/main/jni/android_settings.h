@@ -146,6 +146,10 @@ namespace AndroidSettings {
 
         Settings::Setting<bool> show_input_overlay{linkage, true, "show_input_overlay",
                                                    Settings::Category::Overlay};
+        Settings::Setting<bool> overlay_snap_to_grid{linkage, false, "overlay_snap_to_grid",
+                                                     Settings::Category::Overlay};
+        Settings::Setting<s32> overlay_grid_size{linkage, 32, "overlay_grid_size",
+                                                 Settings::Category::Overlay};
         Settings::Setting<bool> touchscreen{linkage, true, "touchscreen",
                                             Settings::Category::Overlay};
         Settings::Setting<s32> lock_drawer{linkage, false, "lock_drawer",

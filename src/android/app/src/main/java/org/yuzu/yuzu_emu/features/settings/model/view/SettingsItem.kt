@@ -97,6 +97,7 @@ abstract class SettingsItem(
         const val TYPE_INPUT_PROFILE = 10
         const val TYPE_STRING_INPUT = 11
         const val TYPE_SPINBOX = 12
+        const val TYPE_LAUNCHABLE = 13
 
         const val FASTMEM_COMBINED = "fastmem_combined"
 
@@ -362,6 +363,30 @@ abstract class SettingsItem(
                     valuesId = R.array.rendererResolutionValues,
                     warnChoices = (5..7).toList(),
                     warningMessage = R.string.warning_resolution
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_INPUT_OVERLAY,
+                    titleId = R.string.show_input_overlay,
+                    descriptionId = R.string.show_input_overlay_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.OVERLAY_SNAP_TO_GRID,
+                    titleId = R.string.overlay_snap_to_grid,
+                    descriptionId = R.string.overlay_snap_to_grid_description
+                )
+            )
+            put(
+                SliderSetting(
+                    IntSetting.OVERLAY_GRID_SIZE,
+                    titleId = R.string.overlay_grid_size,
+                    descriptionId = R.string.overlay_grid_size_description,
+                    min = 16,
+                    max = 128,
+                    units = "px"
                 )
             )
             put(

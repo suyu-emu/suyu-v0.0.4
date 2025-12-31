@@ -23,6 +23,13 @@
 
 
     <!-- Input Overlay -->
+    <string name="show_input_overlay">Show Input Overlay</string>
+    <string name="show_input_overlay_description">Display touch controls overlay during emulation</string>
+    <string name="overlay_snap_to_grid">Snap to Grid</string>
+    <string name="overlay_snap_to_grid_description">Snap overlay controls to a grid when editing</string>
+    <string name="overlay_grid_size">Grid Size</string>
+    <string name="overlay_grid_size_description">Size of the grid cells in pixels</string>
+    <string name="input_overlay_behavior">Behavior</string>
     <string name="overlay_auto_hide">Overlay Auto Hide</string>
     <string name="overlay_auto_hide_description">Automatically hide the touch controls overlay after the specified time of inactivity.</string>
     <string name="enable_input_overlay_auto_hide">Enable Overlay Auto Hide</string>
@@ -31,6 +38,8 @@
 
     <string name="input_overlay_options">Input Overlay</string>
     <string name="input_overlay_options_description">Configure on-screen controls</string>
+    <string name="edit_overlay_layout">Edit Overlay Layout</string>
+    <string name="edit_overlay_layout_description">Adjust the position and scale of on-screen controls</string>
 
 
     <!-- Stats Overlay settings -->
@@ -841,6 +850,7 @@
     <string name="emulation_control_opacity">Opacity</string>
     <string name="emulation_touch_overlay_reset">Reset overlay</string>
     <string name="emulation_touch_overlay_edit">Edit overlay</string>
+    <string name="emulation_snap_to_grid">Snap to grid</string>
     <string name="emulation_pause">Pause emulation</string>
     <string name="emulation_unpause">Unpause emulation</string>
     <string name="emulation_input_overlay">Overlay options</string>

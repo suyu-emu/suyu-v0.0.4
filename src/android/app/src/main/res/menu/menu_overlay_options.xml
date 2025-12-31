@@ -16,6 +16,11 @@
         android:title="@string/emulation_touch_overlay_edit" />
 
     <item
+        android:id="@+id/menu_snap_to_grid"
+        android:title="@string/emulation_snap_to_grid"
+        android:checkable="true" />
+
+    <item
         android:id="@+id/menu_adjust_overlay"
         android:title="@string/emulation_control_adjust" />
 
