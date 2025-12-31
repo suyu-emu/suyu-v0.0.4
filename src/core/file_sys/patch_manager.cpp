@@ -341,8 +341,7 @@ std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(const BuildI
     }
     // Uncareless user-friendly loading of patches (must start with 'cheat_')
     // <mod dir> / <cheat file>.txt
-    auto const patch_files = load_dir->GetFiles();
-    for (auto const& f : patch_files) {
+    for (auto const& f : load_dir->GetFiles()) {
         auto const name = f->GetName();
         if (name.starts_with("cheat_") && std::find(disabled.cbegin(), disabled.cend(), name) == disabled.cend()) {
             std::vector<u8> data(f->GetSize());
@@ -525,6 +524,19 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     // General Mods (LayeredFS and IPS)
     const auto mod_dir = fs_controller.GetModificationLoadRoot(title_id);
     if (mod_dir != nullptr) {
+        for (auto const& f : mod_dir->GetFiles())
+            if (auto const name = f->GetName(); name.starts_with("cheat_")) {
+                auto const mod_disabled = std::find(disabled.begin(), disabled.end(), name) != disabled.end();
+                out.push_back({
+                    .enabled = !mod_disabled,
+                    .name = name,
+                    .version = "Cheats",
+                    .type = PatchType::Mod,
+                    .program_id = title_id,
+                    .title_id = title_id
+                });
+            }
+
         for (const auto& mod : mod_dir->GetSubdirectories()) {
             std::string types;
 
@@ -561,8 +573,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
             if (types.empty())
                 continue;
 
-            const auto mod_disabled =
-                std::find(disabled.begin(), disabled.end(), mod->GetName()) != disabled.end();
+            const auto mod_disabled = std::find(disabled.begin(), disabled.end(), mod->GetName()) != disabled.end();
             out.push_back({.enabled = !mod_disabled,
                            .name = mod->GetName(),
                            .version = types,

@@ -226,14 +226,16 @@ CheatEngine::CheatEngine(System& system_, std::vector<CheatEntry> cheats_,
 }
 
 CheatEngine::~CheatEngine() {
-    core_timing.UnscheduleEvent(event);
+    if (event)
+        core_timing.UnscheduleEvent(event);
+    else
+        LOG_ERROR(CheatEngine, "~CheatEngine before event was registered");
 }
 
 void CheatEngine::Initialize() {
     event = Core::Timing::CreateEvent(
         "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
-        [this](s64 time,
-               std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+        [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
             FrameCallback(ns_late);
             return std::nullopt;
         });
