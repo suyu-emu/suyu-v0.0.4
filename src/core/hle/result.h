@@ -12,7 +12,7 @@
 #include "common/common_types.h"
 #include "common/expected.h"
 
-// All the constants in this file come from <https://switchbrew.org/wiki/Error_codes>
+// All the constants in this file come from <http://switchbrew.org/index.php?title=Error_codes>
 
 /**
  * Identifies the module which caused the error. Error codes can be propagated through a call
@@ -43,7 +43,7 @@ enum class ErrorModule : u32 {
     NCMContent = 20,
     SM = 21,
     RO = 22,
-    Gc = 23,
+    GC = 23,
     SDMMC = 24,
     OVLN = 25,
     SPL = 26,
@@ -72,7 +72,7 @@ enum class ErrorModule : u32 {
     Bluetooth = 113,
     VI = 114,
     NFP = 115,
-    TimeService = 116,
+    Time = 116,
     FGM = 117,
     OE = 118,
     BH1730FVC = 119,

@@ -4,12 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <variant>
 #include "video_core/present.h"
-#include "video_core/renderer_vulkan/present/anti_alias_pass.h"
-/* X11 defines */
-#undef Success
-#undef BadValue
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
 
 #include "common/settings.h"
@@ -63,7 +58,7 @@ Layer::Layer(const Device& device_, MemoryAllocator& memory_allocator_, Schedule
     CreateDescriptorPool();
     CreateDescriptorSets(layout);
     if (filters.get_scaling_filter() == Settings::ScalingFilter::Fsr) {
-        fsr.emplace(device, memory_allocator, image_count, output_size);
+        CreateFSR(output_size);
     }
 }
 
@@ -102,11 +97,7 @@ void Layer::ConfigureDraw(PresentPushConstants* out_push_constants,
     VkImageView source_image_view =
         texture_info ? texture_info->image_view : *raw_image_views[image_index];
 
-    if (std::holds_alternative<FXAA>(anti_alias)) {
-        std::get<FXAA>(anti_alias).Draw(scheduler, image_index, &source_image, &source_image_view);
-    } else if (std::holds_alternative<SMAA>(anti_alias)) {
-        std::get<SMAA>(anti_alias).Draw(scheduler, image_index, &source_image, &source_image_view);
-    }
+    anti_alias->Draw(scheduler, image_index, &source_image, &source_image_view);
 
     auto crop_rect = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
     const VkExtent2D render_extent{
@@ -165,6 +156,10 @@ void Layer::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
     }
 }
 
+void Layer::CreateFSR(VkExtent2D output_size) {
+    fsr = std::make_unique<FSR>(device, memory_allocator, image_count, output_size);
+}
+
 void Layer::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
     if (framebuffer.width == raw_width && framebuffer.height == raw_height &&
         framebuffer.pixel_format == pixel_format && !raw_images.empty()) {
@@ -174,7 +169,7 @@ void Layer::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
     raw_width = framebuffer.width;
     raw_height = framebuffer.height;
     pixel_format = framebuffer.pixel_format;
-    anti_alias.emplace<std::monostate>();
+    anti_alias.reset();
 
     ReleaseRawImages();
     CreateStagingBuffer(framebuffer);
@@ -182,8 +177,9 @@ void Layer::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
 }
 
 void Layer::SetAntiAliasPass() {
-    if (!std::holds_alternative<std::monostate>(anti_alias) && anti_alias_setting == filters.get_anti_aliasing())
+    if (anti_alias && anti_alias_setting == filters.get_anti_aliasing()) {
         return;
+    }
 
     anti_alias_setting = filters.get_anti_aliasing();
 
@@ -194,13 +190,13 @@ void Layer::SetAntiAliasPass() {
 
     switch (anti_alias_setting) {
     case Settings::AntiAliasing::Fxaa:
-        anti_alias.emplace<FXAA>(device, memory_allocator, image_count, render_area);
+        anti_alias = std::make_unique<FXAA>(device, memory_allocator, image_count, render_area);
         break;
     case Settings::AntiAliasing::Smaa:
-        anti_alias.emplace<SMAA>(device, memory_allocator, image_count, render_area);
+        anti_alias = std::make_unique<SMAA>(device, memory_allocator, image_count, render_area);
         break;
     default:
-        anti_alias.emplace<std::monostate>();
+        anti_alias = std::make_unique<NoAA>();
         break;
     }
 }

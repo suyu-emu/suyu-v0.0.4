@@ -30,19 +30,32 @@
 
 namespace Vulkan {
 
+namespace {
+
+vk::ShaderModule SelectScaleForceShader(const Device& device) {
+    if (device.IsFloat16Supported()) {
+        return BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FP16_FRAG_SPV);
+    } else {
+        return BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FP32_FRAG_SPV);
+    }
+}
+
+} // Anonymous namespace
+
 std::unique_ptr<WindowAdaptPass> MakeNearestNeighbor(const Device& device, VkFormat frame_format) {
-    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateNearestNeighborSampler(device),
-        BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
+    return std::make_unique<WindowAdaptPass>(device, frame_format,
+                                             CreateNearestNeighborSampler(device),
+                                             BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device, VkFormat frame_format) {
     return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
-        BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
+                                             BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeSpline1(const Device& device, VkFormat frame_format) {
     return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
-        BuildShader(device, PRESENT_SPLINE1_FRAG_SPV));
+                                             BuildShader(device, PRESENT_SPLINE1_FRAG_SPV));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format, VkCubicFilterWeightsQCOM qcom_weights) {
@@ -71,26 +84,22 @@ std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat fram
 
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat frame_format) {
     return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
-        BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV));
+                                             BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeLanczos(const Device& device, VkFormat frame_format) {
     return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
-        BuildShader(device, PRESENT_LANCZOS_FRAG_SPV));
+                                             BuildShader(device, PRESENT_LANCZOS_FRAG_SPV));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device, VkFormat frame_format) {
-    auto const select_fn = [&]() {
-        return device.IsFloat16Supported()
-            ? BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FP16_FRAG_SPV)
-            : BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FP32_FRAG_SPV);
-    };
-    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device), select_fn());
+    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
+                                             SelectScaleForceShader(device));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeArea(const Device& device, VkFormat frame_format) {
     return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
-        BuildShader(device, PRESENT_AREA_FRAG_SPV));
+                                             BuildShader(device, PRESENT_AREA_FRAG_SPV));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeMmpx(const Device& device, VkFormat frame_format) {

@@ -1,20 +1,13 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <optional>
-#include <variant>
+#include <memory>
 #include <vector>
 
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
-#include "video_core/renderer_opengl/present/smaa.h"
-#include "video_core/renderer_opengl/present/fxaa.h"
-#include "video_core/renderer_opengl/present/fsr.h"
 
 namespace Layout {
 struct FramebufferLayout;
@@ -33,8 +26,11 @@ struct FramebufferConfig;
 namespace OpenGL {
 
 struct FramebufferTextureInfo;
+class FSR;
+class FXAA;
 class ProgramManager;
 class RasterizerOpenGL;
+class SMAA;
 
 /// Structure used for storing information about the textures for the Switch screen
 struct TextureInfo {
@@ -80,8 +76,9 @@ private:
     /// Display information for Switch screen
     TextureInfo framebuffer_texture;
 
-    std::optional<FSR> fsr;
-    std::variant<std::monostate, FXAA, SMAA> anti_alias;
+    std::unique_ptr<FSR> fsr;
+    std::unique_ptr<FXAA> fxaa;
+    std::unique_ptr<SMAA> smaa;
 };
 
 } // namespace OpenGL
