@@ -17,6 +17,13 @@ add_executable(suyu
     about_dialog.cpp
     about_dialog.h
     aboutdialog.ui
+    data_dialog.cpp
+    data_dialog.h
+    data_dialog.ui
+    data_widget.ui
+    deps_dialog.cpp
+    deps_dialog.h
+    deps_dialog.ui
     applets/qt_amiibo_settings.cpp
     applets/qt_amiibo_settings.h
     applets/qt_amiibo_settings.ui
@@ -79,6 +86,9 @@ add_executable(suyu
     configuration/configure_graphics_advanced.cpp
     configuration/configure_graphics_advanced.h
     configuration/configure_graphics_advanced.ui
+    configuration/configure_graphics_extensions.cpp
+    configuration/configure_graphics_extensions.h
+    configuration/configure_graphics_extensions.ui
     configuration/configure_hotkeys.cpp
     configuration/configure_hotkeys.h
     configuration/configure_hotkeys.ui
