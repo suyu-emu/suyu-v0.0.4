@@ -10,8 +10,7 @@ set(CMAKE_XCODE_EMIT_RELATIVE_PATH YES)
 
 project(suyu)
 
-# Use improved CMake modules from eden subdirectory with fallback
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/eden")
+# CMake module paths
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 
