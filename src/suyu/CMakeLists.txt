@@ -187,6 +187,10 @@ add_executable(suyu
     main.cpp
     main.h
     main.ui
+    migration_dialog.cpp
+    migration_dialog.h
+    migration_worker.cpp
+    migration_worker.h
     multiplayer/chat_room.cpp
     multiplayer/chat_room.h
     multiplayer/chat_room.ui
@@ -216,10 +220,18 @@ add_executable(suyu
     precompiled_headers.h
     qt_common.cpp
     qt_common.h
+    ryujinx_dialog.cpp
+    ryujinx_dialog.h
+    ryujinx_dialog.ui
+    set_play_time_dialog.cpp
+    set_play_time_dialog.h
+    set_play_time_dialog.ui
     startup_checks.cpp
     startup_checks.h
     uisettings.cpp
     uisettings.h
+    user_data_migration.cpp
+    user_data_migration.h
     util/clickable_label.cpp
     util/clickable_label.h
     util/controller_navigation.cpp
