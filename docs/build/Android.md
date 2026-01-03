@@ -76,12 +76,12 @@ The APK and AAB will be output into "artifacts".
 
 Examples:
 
-* Build legacy release with update checker for ChromeOS:
-  * `.ci/android/build.sh -c -r -t legacy`
+* Build legacy release with update checker:
+  * `.ci/android/build.sh -r -t legacy`
 * Build standard release with debug info without update checker for phones:
   * `.ci/android/build.sh -b RelWithDebInfo`
-* Build optimized release with update checker:
-  * `.ci/android/build.sh -r -t optimized`
+* Build optimized release with update checker for ChromeOS:
+  * `.ci/android/build.sh -c -r -t optimized`
 
 ### Additional Resources
 
