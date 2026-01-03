@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "yuzu/set_play_time_dialog.h"
+#include "set_play_time_dialog.h"
 #include "frontend_common/play_time_manager.h"
 #include "ui_set_play_time_dialog.h"
 

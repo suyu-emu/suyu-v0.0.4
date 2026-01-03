@@ -12,7 +12,7 @@
 #include <QTranslator>
 #include "common/fs/path_util.h"
 #include "qt_common/qt_string_lookup.h"
-#include "yuzu/migration_dialog.h"
+#include "migration_dialog.h"
 
 // Needs to be included at the end due to https://bugreports.qt.io/browse/QTBUG-73263
 #include <QButtonGroup>
@@ -32,7 +32,7 @@ UserDataMigrator::UserDataMigrator(QMainWindow *main_window)
     // Check migration if config directory does not exist
     // TODO: ProfileManager messes with us a bit here, and force-creates the /nand/system/save/8000000000000010/su/avators/profiles.dat
     // file. Find a way to reorder operations and have it create after this guy runs.
-    if (!fs::is_directory(Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir))) {
+    if (!fs::is_directory(Common::FS::GetSuyuPath(Common::FS::SuyuPath::ConfigDir))) {
         ShowMigrationPrompt(main_window);
     }
 }
@@ -155,8 +155,8 @@ void UserDataMigrator::ShowMigrationCancelledMessage(QMainWindow *main_window)
                              QObject::tr("Migration"),
                              QObject::tr("You can manually re-trigger this prompt by deleting the "
                                          "new config directory:\n%1")
-                                 .arg(QString::fromStdString(Common::FS::GetEdenPathString(
-                                     Common::FS::EdenPath::ConfigDir))),
+                                 .arg(QString::fromStdString(Common::FS::GetSuyuPathString(
+                                     Common::FS::SuyuPath::ConfigDir))),
                              QMessageBox::Ok);
 }
 

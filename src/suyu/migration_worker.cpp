@@ -30,13 +30,13 @@ void MigrationWorker::process()
     const fs::path legacy_cache_dir = selected_legacy_emu.get_cache_dir();
 
     // TODO(crueter): Make these constexpr since they're defaulted
-    const fs::path eden_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir);
-    const fs::path config_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
-    const fs::path cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
-    const fs::path shader_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    const fs::path suyu_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::SuyuDir);
+    const fs::path config_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::ConfigDir);
+    const fs::path cache_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir);
+    const fs::path shader_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::ShaderDir);
 
     try {
-        fs::remove_all(eden_dir);
+        fs::remove_all(suyu_dir);
     } catch (fs::filesystem_error &_) {
         // ignore because linux does stupid crap sometimes
     }
@@ -47,7 +47,7 @@ void MigrationWorker::process()
 
         // Windows 11 has random permission nonsense to deal with.
         try {
-            Common::FS::CreateSymlink(legacy_user_dir, eden_dir);
+            Common::FS::CreateSymlink(legacy_user_dir, suyu_dir);
         } catch (const fs::filesystem_error &e) {
             emit error(tr("Linking the old directory failed. You may need to re-run with "
                           "administrative privileges on Windows.\nOS gave error: %1")
@@ -70,14 +70,14 @@ void MigrationWorker::process()
         success_text.append(tr("\n\nNote that your configuration and data will be shared with %1.\n"
                                "If this is not desirable, delete the following files:\n%2\n%3\n%4")
                                 .arg(selected_legacy_emu.name(),
-                                     QString::fromStdString(eden_dir.string()),
+                                     QString::fromStdString(suyu_dir.string()),
                                      QString::fromStdString(config_dir.string()),
                                      QString::fromStdString(cache_dir.string())));
 
         break;
     case MigrationStrategy::Move:
         // Rename directories if deletion is requested (achieves the same result)
-        fs::rename(legacy_user_dir, eden_dir);
+        fs::rename(legacy_user_dir, suyu_dir);
 
 // Windows doesn't need any more renames, because cache and config
 // are already children of the root directory
@@ -94,7 +94,7 @@ void MigrationWorker::process()
     case MigrationStrategy::Copy:
     default:
         // Default behavior: copy
-        fs::copy(legacy_user_dir, eden_dir, copy_options);
+        fs::copy(legacy_user_dir, suyu_dir, copy_options);
 
 // Windows doesn't need any more copies, because cache and config
 // are already children of the root directory
