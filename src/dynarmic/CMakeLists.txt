@@ -9,6 +9,8 @@ set(dynarmic_VERSION_PATCH 0)
 
 set(dynarmic_VERSION ${dynarmic_VERSION_MAJOR}.${dynarmic_VERSION_MINOR}.${dynarmic_VERSION_PATCH})
 
+project(dynarmic LANGUAGES C CXX ASM VERSION ${dynarmic_VERSION})
+
 # Determine if we're built as a subproject (using add_subdirectory)
 # or if this is the master project.
 set(MASTER_PROJECT OFF)
