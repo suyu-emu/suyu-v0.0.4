@@ -1,7 +1,9 @@
-vcpkg_from_git(
+vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    URL https://git.eden-emu.dev/eden-emu/dynarmic.git
-    REF master
+    REPO yuzu-mirror/dynarmic
+    REF ba8192d
+    SHA512 8F840DD480556A265473CB467EB9AA30CE9D27F2B22CCFA79BCF39B3E3E3E40C4F1FCBEC78017E43EB289E5095608EE07C3DF087C0FD20BCC6B9A5D9626A561D
+    HEAD_REF master
 )
 
 vcpkg_cmake_configure(
