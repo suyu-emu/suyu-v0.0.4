@@ -338,7 +338,9 @@ endif()
 
 find_package(enet 1.3 MODULE)
 find_package(fmt 9 REQUIRED)
-find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
+# LLVM is optional and only used for demangling in debug/logging
+# Commented out as it's no longer in vcpkg dependencies and can cause build issues
+# find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
 find_package(lz4 REQUIRED)
 find_package(nlohmann_json 3.8 REQUIRED)
 find_package(Opus 1.3 MODULE)
