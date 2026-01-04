@@ -10,6 +10,7 @@ vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DDYNARMIC_TESTS=OFF
+        -DDYNARMIC_USE_LLVM=OFF
 )
 
 vcpkg_cmake_build()
