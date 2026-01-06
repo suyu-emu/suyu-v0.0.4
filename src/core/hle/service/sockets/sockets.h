@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -82,6 +85,10 @@ enum class OptName : u32 {
     RCVTIMEO = 0x1006,
     ERROR_ = 0x1007,   // avoid name collision with Windows macro
     NOSIGPIPE = 0x800, // at least according to libnx
+    ACCEPTFILTER = 0x1000,
+    BINTIME = 0x2000,
+    NO_OFFLOAD = 0x4000,
+    NO_DDP = 0x8000,
 };
 
 enum class ShutdownHow : s32 {

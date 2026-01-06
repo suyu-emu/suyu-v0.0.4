@@ -36,19 +36,20 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {11, D<&ICommonStateGetter::ReleaseSleepLock>, "ReleaseSleepLock"},
         {12, D<&ICommonStateGetter::ReleaseSleepLockTransiently>, "ReleaseSleepLockTransiently"},
         {13, D<&ICommonStateGetter::GetAcquiredSleepLockEvent>, "GetAcquiredSleepLockEvent"},
-        {14, nullptr, "GetWakeupCount"},
+        {14, nullptr, "GetWakeupCount"}, //11.0.0+
+        {15, nullptr, "Unknown15"}, //19.0.0+
         {20, D<&ICommonStateGetter::PushToGeneralChannel>, "PushToGeneralChannel"},
         {30, nullptr, "GetHomeButtonReaderLockAccessor"},
-        {31, D<&ICommonStateGetter::GetReaderLockAccessorEx>, "GetReaderLockAccessorEx"},
-        {32, D<&ICommonStateGetter::GetWriterLockAccessorEx>, "GetWriterLockAccessorEx"},
-        {40, nullptr, "GetCradleFwVersion"},
-        {50, D<&ICommonStateGetter::IsVrModeEnabled>, "IsVrModeEnabled"},
-        {51, D<&ICommonStateGetter::SetVrModeEnabled>, "SetVrModeEnabled"},
-        {52, D<&ICommonStateGetter::SetLcdBacklighOffEnabled>, "SetLcdBacklighOffEnabled"},
-        {53, D<&ICommonStateGetter::BeginVrModeEx>, "BeginVrModeEx"},
-        {54, D<&ICommonStateGetter::EndVrModeEx>, "EndVrModeEx"},
-        {55, D<&ICommonStateGetter::IsInControllerFirmwareUpdateSection>, "IsInControllerFirmwareUpdateSection"},
-        {59, nullptr, "SetVrPositionForDebug"},
+        {31, D<&ICommonStateGetter::GetReaderLockAccessorEx>, "GetReaderLockAccessorEx"}, //2.0.0+
+        {32, D<&ICommonStateGetter::GetWriterLockAccessorEx>, "GetWriterLockAccessorEx"}, //7.0.0+
+        {40, nullptr, "GetCradleFwVersion"}, //2.0.0+
+        {50, D<&ICommonStateGetter::IsVrModeEnabled>, "IsVrModeEnabled"}, //3.0.0+
+        {51, D<&ICommonStateGetter::SetVrModeEnabled>, "SetVrModeEnabled"}, //3.0.0+
+        {52, D<&ICommonStateGetter::SetLcdBacklighOffEnabled>, "SetLcdBacklighOffEnabled"}, //4.0.0+
+        {53, D<&ICommonStateGetter::BeginVrModeEx>, "BeginVrModeEx"}, //7.0.0+
+        {54, D<&ICommonStateGetter::EndVrModeEx>, "EndVrModeEx"}, //7.0.0+
+        {55, D<&ICommonStateGetter::IsInControllerFirmwareUpdateSection>, "IsInControllerFirmwareUpdateSection"}, //3.0.0+
+        {59, nullptr, "SetVrPositionForDebug"}, //1.0.0+
         {60, D<&ICommonStateGetter::GetDefaultDisplayResolution>, "GetDefaultDisplayResolution"},
         {61, D<&ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent>, "GetDefaultDisplayResolutionChangeEvent"},
         {62, D<&ICommonStateGetter::GetHdcpAuthenticationState>, "GetHdcpAuthenticationState"},
@@ -63,7 +64,8 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {91, nullptr, "GetCurrentPerformanceConfiguration"},
         {100, D<&ICommonStateGetter::SetHandlingHomeButtonShortPressedEnabled>, "SetHandlingHomeButtonShortPressedEnabled"},
         {110, nullptr, "OpenMyGpuErrorHandler"},
-        {120, D<&ICommonStateGetter::GetAppletLaunchedHistory>, "GetAppletLaunchedHistory"},
+        {120, D<&ICommonStateGetter::GetAppletLaunchedHistory>, "GetAppletLaunchedHistory"}, //13.0.0+
+        {130, nullptr, "Unknown130"}, //21.0.0+
         {200, D<&ICommonStateGetter::GetOperationModeSystemInfo>, "GetOperationModeSystemInfo"},
         {300, D<&ICommonStateGetter::GetSettingsPlatformRegion>, "GetSettingsPlatformRegion"},
         {400, nullptr, "ActivateMigrationService"},
@@ -72,7 +74,13 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {501, nullptr, "SuppressDisablingSleepTemporarily"},
         {502, nullptr, "IsSleepEnabled"},
         {503, nullptr, "IsDisablingSleepSuppressed"},
-        {900, D<&ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled>, "SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled"},
+        {600, nullptr, "Unknown600"}, //20.0.0+
+        {610, nullptr, "Unknown610"}, //21.0.0+
+        {900, D<&ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled>, "SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled"}, //11.0.0+
+        {910, nullptr, "GetLaunchRequiredTick"}, //17.0.0+
+        {1000, nullptr, "BeginVrMode3d"}, //19.0.0+
+        {1001, nullptr, "EndVrMode3d"}, //19.0.0+
+        {1002, nullptr, "IsVrModeEnabled3d"}, //19.0.0+
     };
     // clang-format on
 

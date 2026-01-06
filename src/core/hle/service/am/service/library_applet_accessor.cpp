@@ -27,8 +27,10 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
         {25, D<&ILibraryAppletAccessor::Terminate>, "Terminate"},
         {30, D<&ILibraryAppletAccessor::GetResult>, "GetResult"},
         {50, nullptr, "SetOutOfFocusApplicationSuspendingEnabled"},
-        {60, D<&ILibraryAppletAccessor::PresetLibraryAppletGpuTimeSliceZero>, "PresetLibraryAppletGpuTimeSliceZero"},
-        {90, D<&ILibraryAppletAccessor::Unknown90>, "Unknown90"},
+        {60, D<&ILibraryAppletAccessor::PresetLibraryAppletGpuTimeSliceZero>, "PresetLibraryAppletGpuTimeSliceZero"}, //10.0.0+
+        {80, nullptr, "RequestForLibraryAppletToGetForeground"}, //19.0.0+
+        {81, nullptr, "GetCurrentChildLibraryApplet"}, //19.0.0+
+        {90, D<&ILibraryAppletAccessor::Unknown90>, "Unknown90"}, //20.0.0+
         {100, D<&ILibraryAppletAccessor::PushInData>, "PushInData"},
         {101, D<&ILibraryAppletAccessor::PopOutData>, "PopOutData"},
         {102, nullptr, "PushExtraStorage"},
@@ -39,7 +41,7 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
         {110, nullptr, "NeedsToExitProcess"},
         {120, nullptr, "GetLibraryAppletInfo"},
         {150, nullptr, "RequestForAppletToGetForeground"},
-        {160, D<&ILibraryAppletAccessor::GetIndirectLayerConsumerHandle>, "GetIndirectLayerConsumerHandle"},
+        {160, D<&ILibraryAppletAccessor::GetIndirectLayerConsumerHandle>, "GetIndirectLayerConsumerHandle"}, //2.0.0+
     };
     // clang-format on
 

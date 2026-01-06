@@ -19,16 +19,13 @@
 namespace Service {
 
 /// @brief Creates a function string for logging, complete with the name (or header code, depending
-/// on what's passed in) the port name, and all the cmd_buff arguments.
-[[maybe_unused]] static std::string MakeFunctionString(std::string_view name, std::string_view port_name, const u32* cmd_buff) {
+/// on what's passed in) the port name, and all the cmd_buf arguments.
+[[maybe_unused]] static std::string MakeFunctionString(std::string_view name, std::string_view port_name, const u32* cmd_buf) {
     // Number of params == bits 0-5 + bits 6-11
-    int num_params = (cmd_buff[0] & 0x3F) + ((cmd_buff[0] >> 6) & 0x3F);
-
-    std::string function_string = fmt::format("function '{}': port={}", name, port_name);
-
+    int num_params = (cmd_buf[0] & 0x3F) + ((cmd_buf[0] >> 6) & 0x3F);
+    std::string function_string = fmt::format("fn '{}': port={}", name, port_name);
     for (int i = 1; i <= num_params; ++i)
-        function_string += fmt::format(", cmd_buff[{}]={:#X}", i, cmd_buff[i]);
-
+        function_string += fmt::format(", cmd_buf[{}]={:#X}", i, cmd_buf[i]);
     return function_string;
 }
 

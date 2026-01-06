@@ -100,6 +100,7 @@ public:
             {133, nullptr, "GetNintendoAccountVerificationUrlCache"}, // 9.0.0+
             {134, nullptr, "RefreshNintendoAccountVerificationUrlCache"}, // 9.0.0+
             {135, nullptr, "RefreshNintendoAccountVerificationUrlCacheAsyncIfSecondsElapsed"}, // 9.0.0+
+            {136, nullptr, "GetNintendoAccountUserResourceCache"}, // 19.0.0+
             {140, nullptr, "GetNetworkServiceLicenseCache"}, // 5.0.0+
             {141, nullptr, "RefreshNetworkServiceLicenseCacheAsync"}, // 5.0.0+
             {142, nullptr, "RefreshNetworkServiceLicenseCacheAsyncIfSecondsElapsed"}, // 5.0.0+

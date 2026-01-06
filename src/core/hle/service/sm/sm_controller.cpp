@@ -119,7 +119,7 @@ Controller::Controller(Core::System& system_) : ServiceFramework{system_, "IpcCo
         {2, &Controller::CloneCurrentObject, "CloneCurrentObject"},
         {3, &Controller::QueryPointerBufferSize, "QueryPointerBufferSize"},
         {4, &Controller::CloneCurrentObjectEx, "CloneCurrentObjectEx"},
-        {5, &Controller::SetPointerBufferSize, "SetPointerBufferSize"},
+        {5, &Controller::SetPointerBufferSize, "SetPointerBufferSize"}, //TODO: where does this come from
     };
     RegisterHandlers(functions);
 }

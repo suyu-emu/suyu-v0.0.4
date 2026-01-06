@@ -80,6 +80,7 @@ private:
     Result GetNotificationStorageChannelEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetHealthWarningDisappearedSystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetUnknownEvent210(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result Unknown330(Out<u8> out);
     Result PrepareForJit();
 
     const std::shared_ptr<Applet> m_applet;

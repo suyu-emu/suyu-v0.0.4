@@ -1015,11 +1015,23 @@ BSD::BSD(Core::System& system_, const char* name)
         {26, &BSD::Close, "Close"},
         {27, &BSD::DuplicateSocket, "DuplicateSocket"},
         {28, nullptr, "GetResourceStatistics"},
-        {29, nullptr, "RecvMMsg"},
-        {30, nullptr, "SendMMsg"},
-        {31, &BSD::EventFd, "EventFd"},
-        {32, nullptr, "RegisterResourceStatisticsName"},
-        {33, nullptr, "Initialize2"},
+        {29, nullptr, "RecvMMsg"}, //3.0.0+
+        {30, nullptr, "SendMMsg"}, //3.0.0+
+        {31, &BSD::EventFd, "EventFd"}, //7.0.0+
+        {32, nullptr, "RegisterResourceStatisticsName"}, //7.0.0+
+        {33, nullptr, "RegisterClientShared"}, //10.0.0+
+        {34, nullptr, "GetSocketStatistics"}, //15.0.0+
+        {35, nullptr, "NifIoctl"}, //17.0.0+
+        {36, nullptr, "Unknown36"}, //18.0.0+
+        {37, nullptr, "Unknown37"}, //18.0.0+
+        {38, nullptr, "Unknown38"}, //18.0.0+
+        {39, nullptr, "Unknown39"}, //20.0.0+
+        {40, nullptr, "Unknown40"}, //20.0.0+
+        {41, nullptr, "Unknown41"}, //21.0.0+
+        {42, nullptr, "Unknown42"}, //21.0.0+
+        {43, nullptr, "Unknown43"}, //21.0.0+
+        {200, nullptr, "SetThreadCoreMask"}, //15.0.0+
+        {201, nullptr, "GetThreadCoreMask"}, //15.0.0+
     };
     // clang-format on
 
