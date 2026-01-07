@@ -682,11 +682,6 @@ public:
         return dynamic_state3_alpha_to_one;
     }
 
-    /// Returns true when the user enabled extended core dynamic states (level > 0).
-    bool UsesAdvancedCoreDynamicState() const {
-        return u32(Settings::values.dyna_state.GetValue()) > 0;
-    }
-
     /// Returns true if the device supports VK_EXT_vertex_input_dynamic_state.
     bool IsExtVertexInputDynamicStateSupported() const {
         return extensions.vertex_input_dynamic_state;
