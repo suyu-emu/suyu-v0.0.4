@@ -156,19 +156,6 @@ public:
 
         ReserveHostQuery();
 
-        // Ensure outside render pass
-        scheduler.RequestOutsideRenderPassOperationContext();
-
-        // Reset query pool outside render pass
-        scheduler.Record([query_pool = current_query_pool,
-                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
-            cmdbuf.ResetQueryPool(query_pool, static_cast<u32>(query_index), 1);
-        });
-
-        // Manually restart the render pass (required for vkCmdClearAttachments, etc.)
-        scheduler.RequestRenderpass(texture_cache.GetFramebuffer());
-
-        // Begin query inside the newly started render pass
         scheduler.Record([query_pool = current_query_pool,
                                  query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             const bool use_precise = Settings::IsGPULevelHigh();

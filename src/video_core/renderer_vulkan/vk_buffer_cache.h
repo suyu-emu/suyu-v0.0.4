@@ -127,15 +127,9 @@ public:
 
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
-    std::span<u8> BindMappedUniformBuffer([[maybe_unused]] size_t /*stage*/,
-                                          [[maybe_unused]] u32 /*binding_index*/,
+    std::span<u8> BindMappedUniformBuffer([[maybe_unused]] size_t stage,
+                                          [[maybe_unused]] u32 binding_index,
                                           u32 size) {
-        u32 offset = 0;
-        if (auto span = uniform_ring.Alloc(size, offset); !span.empty()) {
-            BindBuffer(*uniform_ring.buffers[uniform_ring.current_frame], offset, size);
-            return span;
-        }
-        // Fallback for giant requests
         const StagingBufferRef ref = staging_pool.Request(size, MemoryUsage::Upload);
         BindBuffer(ref.buffer, static_cast<u32>(ref.offset), size);
         return ref.mapped_span;
@@ -162,24 +156,6 @@ private:
 
     void ReserveNullBuffer();
     vk::Buffer CreateNullBuffer();
-
-    struct UniformRing {
-        static constexpr size_t NUM_FRAMES = 3;
-        std::array<vk::Buffer, NUM_FRAMES> buffers{};
-        std::array<u8*, NUM_FRAMES> mapped{};
-        u64 size = 0;
-        u64 head = 0;
-        u32 align = 256;
-        size_t current_frame = 0;
-
-        void Init(MemoryAllocator& alloc, u64 bytes, u32 alignment);
-        void BeginFrame() {
-            current_frame = (current_frame + 1) % NUM_FRAMES;
-            head = 0;
-        }
-        std::span<u8> Alloc(u32 bytes, u32& out_offset);
-    };
-    UniformRing uniform_ring;
 
     const Device& device;
     MemoryAllocator& memory_allocator;

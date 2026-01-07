@@ -121,7 +121,6 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdEndConditionalRenderingEXT);
     X(vkCmdEndQuery);
     X(vkCmdEndRenderPass);
-    X(vkCmdResetQueryPool);
     X(vkCmdEndTransformFeedbackEXT);
     X(vkCmdEndDebugUtilsLabelEXT);
     X(vkCmdFillBuffer);

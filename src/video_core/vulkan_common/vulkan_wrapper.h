@@ -221,7 +221,6 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdEndConditionalRenderingEXT vkCmdEndConditionalRenderingEXT{};
     PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT{};
     PFN_vkCmdEndQuery vkCmdEndQuery{};
-    PFN_vkCmdResetQueryPool vkCmdResetQueryPool{};
     PFN_vkCmdEndRenderPass vkCmdEndRenderPass{};
     PFN_vkCmdEndTransformFeedbackEXT vkCmdEndTransformFeedbackEXT{};
     PFN_vkCmdFillBuffer vkCmdFillBuffer{};
@@ -1143,9 +1142,6 @@ public:
 
     VkCommandBuffer operator*() const noexcept {
         return handle;
-    }
-    void ResetQueryPool(VkQueryPool query_pool, uint32_t first, uint32_t count) const noexcept {
-        dld->vkCmdResetQueryPool(handle, query_pool, first, count);
     }
     void Begin(const VkCommandBufferBeginInfo& begin_info) const {
         Check(dld->vkBeginCommandBuffer(handle, &begin_info));

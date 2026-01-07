@@ -338,11 +338,6 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
         uint8_pass = std::make_unique<Uint8Pass>(device, scheduler, descriptor_pool, staging_pool,
                                                  compute_pass_descriptor_queue);
     }
-    const u32 ubo_align = static_cast<u32>(
-            device.GetUniformBufferAlignment() //check if the device has it
-    );
-    // add the ability to change the size in settings in future
-    uniform_ring.Init(memory_allocator, 8 * 1024 * 1024 /* 8 MiB */, ubo_align ? ubo_align : 256);
     quad_array_index_buffer = std::make_shared<QuadArrayIndexBuffer>(device_, memory_allocator_,
                                                                      scheduler_, staging_pool_);
     quad_strip_index_buffer = std::make_shared<QuadStripIndexBuffer>(device_, memory_allocator_,
@@ -359,41 +354,6 @@ StagingBufferRef BufferCacheRuntime::DownloadStagingBuffer(size_t size, bool def
 
 void BufferCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
     staging_pool.FreeDeferred(ref);
-}
-
-void BufferCacheRuntime::UniformRing::Init(MemoryAllocator& alloc, u64 bytes, u32 alignment)
-{
-    for (size_t i = 0; i < NUM_FRAMES; ++i) {
-        VkBufferCreateInfo ci{
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .size  = bytes,
-            .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0,
-            .pQueueFamilyIndices = nullptr,
-        };
-        buffers[i] = alloc.CreateBuffer(ci, MemoryUsage::Upload);
-        mapped[i] = buffers[i].Mapped().data();
-    }
-    size   = bytes;
-    align  = alignment ? alignment : 256;
-    head   = 0;
-    current_frame = 0;
-}
-
-std::span<u8> BufferCacheRuntime::UniformRing::Alloc(u32 bytes, u32& out_offset) {
-    const u64 aligned = Common::AlignUp(head, static_cast<u64>(align));
-    u64 end = aligned + bytes;
-
-    if (end > size) {
-       return {}; // Fallback to staging pool
-    }
-
-    out_offset = static_cast<u32>(aligned);
-    head = end;
-    return {mapped[current_frame] + out_offset, bytes};
 }
 
 u64 BufferCacheRuntime::GetDeviceLocalMemory() const {
@@ -416,7 +376,6 @@ void BufferCacheRuntime::TickFrame(Common::SlotVector<Buffer>& slot_buffers) noe
     for (auto it = slot_buffers.begin(); it != slot_buffers.end(); it++) {
         it->ResetUsageTracking();
     }
-    uniform_ring.BeginFrame();
 }
 
 void BufferCacheRuntime::Finish() {

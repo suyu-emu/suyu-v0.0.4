@@ -302,8 +302,6 @@ void Scheduler::EndRenderPass()
                        images = renderpass_images,
                        ranges = renderpass_image_ranges](vk::CommandBuffer cmdbuf) {
             std::array<VkImageMemoryBarrier, 9> barriers;
-            VkPipelineStageFlags src_stages = 0;
-
             for (size_t i = 0; i < num_images; ++i) {
                 const VkImageSubresourceRange& range = ranges[i];
                 const bool is_color = (range.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) != 0;
@@ -312,20 +310,14 @@ void Scheduler::EndRenderPass()
                                                  | VK_IMAGE_ASPECT_STENCIL_BIT)) !=0;
 
                 VkAccessFlags src_access = 0;
-                VkPipelineStageFlags this_stage = 0;
 
-                if (is_color) {
+                if (is_color)
                     src_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                    this_stage |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                }
-
-                if (is_depth_stencil) {
+                else if (is_depth_stencil)
                     src_access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                    this_stage |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
-                                  | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-                }
-
-                src_stages |= this_stage;
+                else
+                    src_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                                  | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
                 barriers[i] = VkImageMemoryBarrier{
                         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -344,15 +336,10 @@ void Scheduler::EndRenderPass()
                         .subresourceRange = range,
                 };
             }
-
-            // Graft: ensure explicit fragment tests + color output stages are always synchronized (AMD/Windows fix)
-            src_stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-                    VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
             cmdbuf.EndRenderPass();
-
-            cmdbuf.PipelineBarrier(src_stages,
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                                   VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+                                   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                    0,
                                    nullptr,
