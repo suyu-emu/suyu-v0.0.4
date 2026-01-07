@@ -54,6 +54,7 @@ enum : u8 {
     PrimitiveRestartEnable,
     RasterizerDiscardEnable,
     ConservativeRasterizationMode,
+    LineRasterizationMode,
     LineStippleEnable,
     LineStippleParams,
     DepthBiasEnable,
@@ -61,6 +62,8 @@ enum : u8 {
     LogicOp,
     LogicOpEnable,
     DepthClampEnable,
+    AlphaToCoverageEnable,
+    AlphaToOneEnable,
 
     Blending,
     BlendEnable,
@@ -92,6 +95,10 @@ public:
 
     void InvalidateScissors() {
         (*flags)[Dirty::Scissors] = true;
+    }
+
+    void InvalidateStateEnableFlag() {
+        (*flags)[Dirty::StateEnable] = true;
     }
 
     bool TouchViewports() {
@@ -225,6 +232,14 @@ public:
         return Exchange(Dirty::DepthClampEnable, false);
     }
 
+    bool TouchAlphaToCoverageEnable() {
+        return Exchange(Dirty::AlphaToCoverageEnable, false);
+    }
+
+    bool TouchAlphaToOneEnable() {
+        return Exchange(Dirty::AlphaToOneEnable, false);
+    }
+
     bool TouchDepthCompareOp() {
         return Exchange(Dirty::DepthCompareOp, false);
     }
@@ -259,6 +274,10 @@ public:
 
     bool TouchLogicOp() {
         return Exchange(Dirty::LogicOp, false);
+    }
+
+    bool TouchLineRasterizationMode() {
+        return Exchange(Dirty::LineRasterizationMode, false);
     }
 
     bool ChangePrimitiveTopology(Maxwell::PrimitiveTopology new_topology) {

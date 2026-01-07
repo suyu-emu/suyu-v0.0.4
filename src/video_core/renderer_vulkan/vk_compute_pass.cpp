@@ -418,6 +418,9 @@ ConditionalRenderingResolvePass::ConditionalRenderingResolvePass(
 
 void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_buffer,
                                               u32 src_offset, bool compare_to_zero) {
+    if (!device.IsExtConditionalRendering()) {
+        return;
+    }
     const size_t compare_size = compare_to_zero ? 8 : 24;
 
     compute_pass_descriptor_queue.Acquire();
@@ -448,7 +451,7 @@ void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *layout, 0, set, {});
         cmdbuf.Dispatch(1, 1, 1);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT, 0, write_barrier);
+                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, write_barrier);
     });
 }
 
@@ -470,6 +473,14 @@ QueriesPrefixScanPass::QueriesPrefixScanPass(
 void QueriesPrefixScanPass::Run(VkBuffer accumulation_buffer, VkBuffer dst_buffer,
                                 VkBuffer src_buffer, size_t number_of_sums,
                                 size_t min_accumulation_limit, size_t max_accumulation_limit) {
+    constexpr VkAccessFlags BASE_DST_ACCESS = VK_ACCESS_SHADER_READ_BIT |
+                                              VK_ACCESS_TRANSFER_READ_BIT |
+                                              VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+                                              VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+                                              VK_ACCESS_INDEX_READ_BIT |
+                                              VK_ACCESS_UNIFORM_READ_BIT;
+    const VkAccessFlags conditional_access =
+        device.IsExtConditionalRendering() ? VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT : 0;
     size_t current_runs = number_of_sums;
     size_t offset = 0;
     while (current_runs != 0) {
@@ -486,22 +497,18 @@ void QueriesPrefixScanPass::Run(VkBuffer accumulation_buffer, VkBuffer dst_buffe
 
         scheduler.RequestOutsideRenderPassOperationContext();
         scheduler.Record([this, descriptor_data, min_accumulation_limit, max_accumulation_limit,
-                          runs_to_do, used_offset](vk::CommandBuffer cmdbuf) {
+                          runs_to_do, used_offset, conditional_access](vk::CommandBuffer cmdbuf) {
             static constexpr VkMemoryBarrier read_barrier{
                 .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
                 .pNext = nullptr,
                 .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
                 .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
             };
-            static constexpr VkMemoryBarrier write_barrier{
+            const VkMemoryBarrier write_barrier{
                 .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
                 .pNext = nullptr,
                 .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT |
-                                 VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
-                                 VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_INDEX_READ_BIT |
-                                 VK_ACCESS_UNIFORM_READ_BIT |
-                                 VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT,
+                .dstAccessMask = BASE_DST_ACCESS | conditional_access,
             };
             const QueriesPrefixScanPushConstants uniforms{
                 .min_accumulation_base = static_cast<u32>(min_accumulation_limit),
@@ -519,8 +526,7 @@ void QueriesPrefixScanPass::Run(VkBuffer accumulation_buffer, VkBuffer dst_buffe
             cmdbuf.PushConstants(*layout, VK_SHADER_STAGE_COMPUTE_BIT, uniforms);
             cmdbuf.Dispatch(1, 1, 1);
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                   VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT, 0,
-                                   write_barrier);
+                                   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, write_barrier);
         });
     }
 }

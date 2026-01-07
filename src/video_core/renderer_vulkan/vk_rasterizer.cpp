@@ -197,6 +197,11 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache, device, scheduler),
       wfi_event(device.GetLogical().CreateEvent()) {
     scheduler.SetQueryCache(query_cache);
+
+    // Log multi-draw support
+    if (device.IsExtMultiDrawSupported()) {
+        LOG_INFO(Render_Vulkan, "VK_EXT_multi_draw is enabled for optimized draw calls");
+    }
 }
 
 RasterizerVulkan::~RasterizerVulkan() = default;
@@ -234,16 +239,44 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
         const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
         const u32 num_instances{instance_count};
         const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
-        scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
-            if (draw_params.is_indexed) {
-                cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
-                                   draw_params.first_index, draw_params.base_vertex,
-                                   draw_params.base_instance);
-            } else {
-                cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
-                            draw_params.base_vertex, draw_params.base_instance);
-            }
-        });
+
+        // Use VK_EXT_multi_draw if available (single draw becomes multi-draw with count=1)
+        if (device.IsExtMultiDrawSupported()) {
+            scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
+                if (draw_params.is_indexed) {
+                    // Use multi-draw indexed with single draw
+                    const VkMultiDrawIndexedInfoEXT multi_draw_info{
+                        .firstIndex = draw_params.first_index,
+                        .indexCount = draw_params.num_vertices,
+                    };
+                    const int32_t vertex_offset = static_cast<int32_t>(draw_params.base_vertex);
+                    cmdbuf.DrawMultiIndexedEXT(1, &multi_draw_info, draw_params.num_instances,
+                                               draw_params.base_instance,
+                                               sizeof(VkMultiDrawIndexedInfoEXT), &vertex_offset);
+                } else {
+                    // Use multi-draw with single draw
+                    const VkMultiDrawInfoEXT multi_draw_info{
+                        .firstVertex = draw_params.base_vertex,
+                        .vertexCount = draw_params.num_vertices,
+                    };
+                    cmdbuf.DrawMultiEXT(1, &multi_draw_info, draw_params.num_instances,
+                                        draw_params.base_instance,
+                                        sizeof(VkMultiDrawInfoEXT));
+                }
+            });
+        } else {
+            // Fallback to standard draw calls
+            scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
+                if (draw_params.is_indexed) {
+                    cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
+                                       draw_params.first_index, draw_params.base_vertex,
+                                       draw_params.base_instance);
+                } else {
+                    cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
+                                draw_params.base_vertex, draw_params.base_instance);
+                }
+            });
+        }
     });
 }
 
@@ -386,13 +419,48 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         .baseArrayLayer = regs.clear_surface.layer,
         .layerCount = layer_count,
     };
-    if (clear_rect.rect.extent.width == 0 || clear_rect.rect.extent.height == 0) {
+    const auto clamp_rect_to_render_area = [render_area](VkRect2D& rect) -> bool {
+        const auto clamp_axis = [](s32& offset, u32& extent, u32 limit) {
+            auto clamp_offset = [&offset, limit]() {
+                if (limit == 0) {
+                    offset = 0;
+                    return;
+                }
+                offset = std::clamp(offset, 0, static_cast<s32>(limit));
+            };
+
+            if (extent == 0) {
+                clamp_offset();
+                return;
+            }
+            if (offset < 0) {
+                const u32 shrink = (std::min)(extent, static_cast<u32>(-offset));
+                extent -= shrink;
+                offset = 0;
+            }
+            if (limit == 0) {
+                extent = 0;
+                offset = 0;
+                return;
+            }
+            if (offset >= static_cast<s32>(limit)) {
+                offset = static_cast<s32>(limit);
+                extent = 0;
+                return;
+            }
+            const u64 end_coord = static_cast<u64>(offset) + extent;
+            if (end_coord > limit) {
+                extent = limit - static_cast<u32>(offset);
+            }
+        };
+
+        clamp_axis(rect.offset.x, rect.extent.width, render_area.width);
+        clamp_axis(rect.offset.y, rect.extent.height, render_area.height);
+        return rect.extent.width != 0 && rect.extent.height != 0;
+    };
+    if (!clamp_rect_to_render_area(clear_rect.rect)) {
         return;
     }
-    clear_rect.rect.extent = VkExtent2D{
-        .width = (std::min)(clear_rect.rect.extent.width, render_area.width),
-        .height = (std::min)(clear_rect.rect.extent.height, render_area.height),
-    };
 
     const u32 color_attachment = regs.clear_surface.RT;
     if (use_color && framebuffer->HasAspectColorBit(color_attachment)) {
@@ -839,23 +907,21 @@ void RasterizerVulkan::LoadDiskResources(u64 title_id, std::stop_token stop_load
 
 void RasterizerVulkan::FlushWork() {
 #ifdef ANDROID
-    static constexpr u32 DRAWS_TO_DISPATCH = 1024;
+    static constexpr u32 DRAWS_TO_DISPATCH = 512;
+    static constexpr u32 CHECK_MASK = 3;
 #else
     static constexpr u32 DRAWS_TO_DISPATCH = 4096;
+    static constexpr u32 CHECK_MASK = 7;
 #endif // ANDROID
 
-    // Only check multiples of 8 draws
-    static_assert(DRAWS_TO_DISPATCH % 8 == 0);
-    if ((++draw_counter & 7) != 7) {
+    static_assert(DRAWS_TO_DISPATCH % (CHECK_MASK + 1) == 0);
+    if ((++draw_counter & CHECK_MASK) != CHECK_MASK) {
         return;
     }
     if (draw_counter < DRAWS_TO_DISPATCH) {
-        // Send recorded tasks to the worker thread
         scheduler.DispatchWork();
         return;
     }
-    // Otherwise (every certain number of draws) flush execution.
-    // This submits commands to the Vulkan driver.
     scheduler.Flush();
     draw_counter = 0;
 }
@@ -921,6 +987,8 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
+
+    // Core Dynamic States (Vulkan 1.0) - Always active regardless of dyna_state setting
     UpdateViewportsState(regs);
     UpdateScissorsState(regs);
     UpdateDepthBias(regs);
@@ -928,6 +996,8 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
+
+    // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
@@ -938,40 +1008,52 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthTestEnable(regs);
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
-            if (device.IsExtExtendedDynamicState2Supported()) {
-                UpdatePrimitiveRestartEnable(regs);
-                UpdateRasterizerDiscardEnable(regs);
-                UpdateDepthBiasEnable(regs);
-            }
-            if (device.IsExtExtendedDynamicState3EnablesSupported()) {
-                using namespace Tegra::Engines;
-                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
-                    const auto has_float = std::any_of(
-                        regs.vertex_attrib_format.begin(),
-                        regs.vertex_attrib_format.end(),
-                        [](const auto& attrib) {
-                            return attrib.type == Maxwell3D::Regs::VertexAttribute::Type::Float;
-                        }
-                    );
-                    if (regs.logic_op.enable) {
-                        regs.logic_op.enable = static_cast<u32>(!has_float);
-                    }
-                }
-                UpdateLogicOpEnable(regs);
-                UpdateDepthClampEnable(regs);
-            }
-        }
-        if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
-            UpdateLogicOp(regs);
-        }
-        if (device.IsExtExtendedDynamicState3BlendingSupported()) {
-            UpdateBlending(regs);
-        }
-        if (device.IsExtExtendedDynamicState3EnablesSupported()) {
-            UpdateLineStippleEnable(regs);
-            UpdateConservativeRasterizationMode(regs);
         }
     }
+
+    // EDS2: PrimitiveRestart, RasterizerDiscard, DepthBias enable/disable
+    if (device.IsExtExtendedDynamicState2Supported()) {
+        UpdatePrimitiveRestartEnable(regs);
+        UpdateRasterizerDiscardEnable(regs);
+        UpdateDepthBiasEnable(regs);
+    }
+
+    // EDS2 Extras: LogicOp operation selection
+    if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
+        UpdateLogicOp(regs);
+    }
+
+    // EDS3 Enables: LogicOpEnable, DepthClamp, LineStipple, ConservativeRaster
+    if (device.IsExtExtendedDynamicState3EnablesSupported()) {
+        using namespace Tegra::Engines;
+        // AMD Workaround: LogicOp incompatible with float render targets
+        if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE ||
+            device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
+            const auto has_float = std::any_of(
+                regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(),
+                [](const auto& attrib) {
+                    return attrib.type == Maxwell3D::Regs::VertexAttribute::Type::Float;
+                }
+            );
+            if (regs.logic_op.enable) {
+                regs.logic_op.enable = static_cast<u32>(!has_float);
+            }
+        }
+        UpdateLogicOpEnable(regs);
+        UpdateDepthClampEnable(regs);
+        UpdateLineRasterizationMode(regs);
+        UpdateLineStippleEnable(regs);
+        UpdateConservativeRasterizationMode(regs);
+        UpdateAlphaToCoverageEnable(regs);
+        UpdateAlphaToOneEnable(regs);
+    }
+
+    // EDS3 Blending: ColorBlendEnable, ColorBlendEquation, ColorWriteMask
+    if (device.IsExtExtendedDynamicState3BlendingSupported()) {
+        UpdateBlending(regs);
+    }
+
+    // Vertex Input Dynamic State: Independent from EDS levels
     if (device.IsExtVertexInputDynamicStateSupported()) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
             UpdateVertexInput(regs);
@@ -984,9 +1066,16 @@ void RasterizerVulkan::HandleTransformFeedback() {
 
     const auto& regs = maxwell3d->regs;
     if (!device.IsExtTransformFeedbackSupported()) {
-        std::call_once(warn_unsupported, [&] {
-            LOG_ERROR(Render_Vulkan, "Transform feedbacks used but not supported");
-        });
+        // If the guest enabled transform feedback, warn once that the device lacks support.
+        if (regs.transform_feedback_enabled != 0) {
+            std::call_once(warn_unsupported, [&] {
+                LOG_WARNING(Render_Vulkan, "Transform feedback requested by guest but VK_EXT_transform_feedback is unavailable; queries disabled");
+            });
+        } else {
+            std::call_once(warn_unsupported, [&] {
+                LOG_INFO(Render_Vulkan, "VK_EXT_transform_feedback not available on device");
+            });
+        }
         return;
     }
     query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount,
@@ -1144,6 +1233,9 @@ void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& reg
     if (!state_tracker.TouchBlendConstants()) {
         return;
     }
+    if (!device.UsesAdvancedCoreDynamicState()) {
+        return;
+    }
     const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
                                     regs.blend_color.a};
     scheduler.Record(
@@ -1154,12 +1246,19 @@ void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) 
     if (!state_tracker.TouchDepthBounds()) {
         return;
     }
+    if (!device.UsesAdvancedCoreDynamicState() || !device.IsDepthBoundsSupported()) {
+        return;
+    }
     scheduler.Record([min = regs.depth_bounds[0], max = regs.depth_bounds[1]](
                          vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBounds(min, max); });
 }
 
 void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchStencilProperties()) {
+        return;
+    }
+    if (!device.UsesAdvancedCoreDynamicState()) {
+        state_tracker.ClearStencilReset();
         return;
     }
     bool update_references = state_tracker.TouchStencilReference();
@@ -1324,6 +1423,10 @@ void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwe
         return;
     }
 
+    if (!device.SupportsDynamicState3ConservativeRasterizationMode()) {
+        return;
+    }
+
     scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetConservativeRasterizationModeEXT(
             enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
@@ -1336,23 +1439,50 @@ void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& 
         return;
     }
 
+    if (!device.SupportsDynamicState3LineStippleEnable()) {
+        return;
+    }
+
     scheduler.Record([enable = regs.line_stipple_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetLineStippleEnableEXT(enable);
     });
 }
 
 void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
-    // if (!state_tracker.TouchLi()) {
-    //     return;
-    // }
+    if (!device.IsExtLineRasterizationSupported()) {
+        return;
+    }
+    if (!state_tracker.TouchLineRasterizationMode()) {
+        return;
+    }
 
-    // TODO: The maxwell emulator does not capture line rasters
+    if (!device.SupportsDynamicState3LineRasterizationMode()) {
+        static std::once_flag warn_missing_rect;
+        std::call_once(warn_missing_rect, [] {
+            LOG_WARNING(Render_Vulkan,
+                        "Driver lacks rectangular line rasterization support; skipping dynamic "
+                        "line state updates");
+        });
+        return;
+    }
 
-    // scheduler.Record([enable = regs.line](vk::CommandBuffer cmdbuf) {
-    //     cmdbuf.SetConservativeRasterizationModeEXT(
-    //         enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_UNDERESTIMATE_EXT
-    //                : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
-    // });
+    const bool wants_smooth = regs.line_anti_alias_enable != 0;
+    VkLineRasterizationModeEXT mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+    if (wants_smooth) {
+        if (device.SupportsSmoothLines()) {
+            mode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT;
+        } else {
+            static std::once_flag warn_missing_smooth;
+            std::call_once(warn_missing_smooth, [] {
+                LOG_WARNING(Render_Vulkan,
+                            "Line anti-aliasing requested but smoothLines feature unavailable; "
+                            "using rectangular rasterization");
+            });
+        }
+    }
+    scheduler.Record([mode](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetLineRasterizationModeEXT(mode);
+    });
 }
 
 void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1394,6 +1524,9 @@ void RasterizerVulkan::UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs
     if (!state_tracker.TouchLogicOpEnable()) {
         return;
     }
+    if (!device.SupportsDynamicState3LogicOpEnable()) {
+        return;
+    }
     scheduler.Record([enable = regs.logic_op.enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetLogicOpEnableEXT(enable != 0);
     });
@@ -1401,6 +1534,9 @@ void RasterizerVulkan::UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs
 
 void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchDepthClampEnable()) {
+        return;
+    }
+    if (!device.SupportsDynamicState3DepthClampEnable()) {
         return;
     }
     bool is_enabled = !(regs.viewport_clip_control.geometry_clip ==
@@ -1411,6 +1547,41 @@ void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& r
                             Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
     scheduler.Record(
         [is_enabled](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthClampEnableEXT(is_enabled); });
+}
+
+void RasterizerVulkan::UpdateAlphaToCoverageEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchAlphaToCoverageEnable()) {
+        return;
+    }
+    if (!device.SupportsDynamicState3AlphaToCoverageEnable()) {
+        return;
+    }
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    const bool enable = pipeline != nullptr && pipeline->SupportsAlphaToCoverage() &&
+                        regs.anti_alias_alpha_control.alpha_to_coverage != 0;
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetAlphaToCoverageEnableEXT(enable ? VK_TRUE : VK_FALSE);
+    });
+}
+
+void RasterizerVulkan::UpdateAlphaToOneEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchAlphaToOneEnable()) {
+        return;
+    }
+    if (!device.SupportsDynamicState3AlphaToOneEnable()) {
+        static std::once_flag warn_alpha_to_one;
+        std::call_once(warn_alpha_to_one, [] {
+            LOG_WARNING(Render_Vulkan,
+                        "Alpha-to-one is not supported on this device; forcing it disabled");
+        });
+        return;
+    }
+    GraphicsPipeline* const pipeline = pipeline_cache.CurrentGraphicsPipeline();
+    const bool enable = pipeline != nullptr && pipeline->SupportsAlphaToOne() &&
+                        regs.anti_alias_alpha_control.alpha_to_one != 0;
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetAlphaToOneEnableEXT(enable ? VK_TRUE : VK_FALSE);
+    });
 }
 
 void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs) {

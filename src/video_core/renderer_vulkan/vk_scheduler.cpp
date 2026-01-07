@@ -13,6 +13,7 @@
 
 #include "common/thread.h"
 #include "video_core/renderer_vulkan/vk_command_pool.h"
+#include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
@@ -130,9 +131,27 @@ void Scheduler::RequestOutsideRenderPassOperationContext() {
 
 bool Scheduler::UpdateGraphicsPipeline(GraphicsPipeline* pipeline) {
     if (state.graphics_pipeline == pipeline) {
+        if (pipeline && pipeline->UsesExtendedDynamicState() &&
+            state.needs_state_enable_refresh) {
+            state_tracker.InvalidateStateEnableFlag();
+            state.needs_state_enable_refresh = false;
+        }
         return false;
     }
+
     state.graphics_pipeline = pipeline;
+
+    if (!pipeline) {
+        return true;
+    }
+
+    if (!pipeline->UsesExtendedDynamicState()) {
+        state.needs_state_enable_refresh = true;
+    } else if (state.needs_state_enable_refresh) {
+        state_tracker.InvalidateStateEnableFlag();
+        state.needs_state_enable_refresh = false;
+    }
+
     return true;
 }
 

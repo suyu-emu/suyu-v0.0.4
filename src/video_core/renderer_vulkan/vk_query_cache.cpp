@@ -872,17 +872,18 @@ private:
             return;
         }
         has_flushed_end_pending = true;
+        // Refresh buffers state before beginning transform feedback so counters are up-to-date
+        UpdateBuffers();
         if (!has_started || buffers_count == 0) {
+            // No counter buffers available: begin without counters
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
                 cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr);
             });
-            UpdateBuffers();
             return;
         }
         scheduler.Record([this, total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
             cmdbuf.BeginTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
         });
-        UpdateBuffers();
     }
 
     void FlushEndTFB() {
@@ -892,11 +893,15 @@ private:
         }
         has_flushed_end_pending = false;
 
+        // Refresh buffer state before ending transform feedback to ensure counters_count is up-to-date.
+        UpdateBuffers();
         if (buffers_count == 0) {
+            LOG_DEBUG(Render_Vulkan, "EndTransformFeedbackEXT called with no counters (buffers_count=0)");
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
                 cmdbuf.EndTransformFeedbackEXT(0, 0, nullptr, nullptr);
             });
         } else {
+            LOG_DEBUG(Render_Vulkan, "EndTransformFeedbackEXT called with counters (buffers_count={})", buffers_count);
             scheduler.Record([this,
                               total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
                 cmdbuf.EndTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
@@ -907,6 +912,7 @@ private:
     void UpdateBuffers() {
         last_queries.fill(0);
         last_queries_stride.fill(1);
+        streams_mask = 0; // reset previously recorded streams
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             buffers_count = 0;
             out_topology = maxwell3d.draw_manager->GetDrawState().topology;
@@ -916,6 +922,10 @@ private:
                     continue;
                 }
                 const size_t stream = tf.controls[i].stream;
+                if (stream >= last_queries_stride.size()) {
+                    LOG_WARNING(Render_Vulkan, "TransformFeedback stream {} out of range", stream);
+                    continue;
+                }
                 last_queries_stride[stream] = tf.controls[i].stride;
                 streams_mask |= 1ULL << stream;
                 buffers_count = std::max<size_t>(buffers_count, stream + 1);
@@ -1116,16 +1126,21 @@ public:
 
             query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             u64 num_vertices = 0;
+            // Protect against stride == 0 (avoid divide-by-zero). Use fallback stride=1 and warn.
+            u64 safe_stride = query->stride == 0 ? 1 : query->stride;
+            if (query->stride == 0) {
+                LOG_WARNING(Render_Vulkan, "TransformFeedback query has stride 0; using 1 to avoid div-by-zero (addr=0x{:x})", query->dependant_address);
+            }
             if (query->dependant_manage) {
                 auto* dependant_query = tfb_streamer.GetQuery(query->dependant_index);
-                num_vertices = dependant_query->value / query->stride;
+                num_vertices = dependant_query->value / safe_stride;
                 tfb_streamer.Free(query->dependant_index);
             } else {
                 u8* pointer = device_memory.GetPointer<u8>(query->dependant_address);
                 if (pointer != nullptr) {
                     u32 result;
                     std::memcpy(&result, pointer, sizeof(u32));
-                    num_vertices = static_cast<u64>(result) / query->stride;
+                    num_vertices = static_cast<u64>(result) / safe_stride;
                 }
             }
             query->value = [&]() -> u64 {

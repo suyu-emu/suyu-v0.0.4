@@ -22,6 +22,17 @@
 
 #include <vulkan/vulkan.h>
 
+// Define maintenance 7-9 extension names (not yet in official Vulkan headers)
+#ifndef VK_KHR_MAINTENANCE_7_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE_7_EXTENSION_NAME "VK_KHR_maintenance7"
+#endif
+#ifndef VK_KHR_MAINTENANCE_8_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE_8_EXTENSION_NAME "VK_KHR_maintenance8"
+#endif
+#ifndef VK_KHR_MAINTENANCE_9_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE_9_EXTENSION_NAME "VK_KHR_maintenance9"
+#endif
+
 // Sanitize macros
 #undef CreateEvent
 #undef CreateSemaphore

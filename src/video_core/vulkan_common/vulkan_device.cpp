@@ -294,9 +294,10 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(vk::Physica
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
 void OverrideBcnFormats(std::unordered_map<VkFormat, VkFormatProperties>& format_properties) {
     // These properties are extracted from Adreno driver 512.687.0
-    constexpr VkFormatFeatureFlags tiling_features{
-                                                   VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT |
-                                                   VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+    constexpr VkFormatFeatureFlags tiling_features{VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
+                                                   VK_FORMAT_FEATURE_BLIT_SRC_BIT |
+                                                   VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT |
+                                                   VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
                                                    VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
 
     constexpr VkFormatFeatureFlags buffer_features{VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT};
@@ -418,7 +419,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_suitable = GetSuitability(surface != nullptr);
 
     const VkDriverId driver_id = properties.driver.driverID;
-    const auto device_id = properties.properties.deviceID;
 
     const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
     const bool is_amd_driver =
@@ -432,8 +432,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
-    const bool is_s8gen2 = device_id == 0x43050a01;
-    //const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
+    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if (!is_suitable)
         LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
@@ -487,8 +486,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     is_non_gpu = properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER ||
                  properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
 
-    const bool is_intel_igpu = is_integrated && (is_intel_anv || is_intel_windows);
-
     supports_d24_depth =
         IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT,
                           VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, FormatType::Optimal);
@@ -499,6 +496,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
+        // Qualcomm Adreno GPUs doesn't handle scaled vertex attributes; keep emulation enabled
+        must_emulate_scaled_formats = true;
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
+
         LOG_WARNING(Render_Vulkan,
                     "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
@@ -561,33 +563,29 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
 
         if (nv_major_version >= 510) {
-            LOG_WARNING(Render_Vulkan, "NVIDIA Drivers >= 510 do not support MSAA image blits");
+            LOG_WARNING(Render_Vulkan,
+                        "NVIDIA Drivers >= 510 do not support MSAA->MSAA image blits. "
+                        "MSAA scaling will use 3D helpers. MSAA resolves work normally.");
             cant_blit_msaa = true;
         }
-    }
 
-    if (extensions.extended_dynamic_state3 && is_radv) {
-        LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
+        // Mali/ NVIDIA proprietary drivers: Shader stencil export not supported
+        // Use hardware depth/stencil blits instead when available
+        if (!extensions.shader_stencil_export) {
+            LOG_INFO(Render_Vulkan,
+                     "NVIDIA: VK_EXT_shader_stencil_export not supported, using hardware blits "
+                     "for depth/stencil operations");
+            LOG_INFO(Render_Vulkan, "  D24S8 hardware blit support: {}",
+                     is_blit_depth24_stencil8_supported);
+            LOG_INFO(Render_Vulkan, "  D32S8 hardware blit support: {}",
+                     is_blit_depth32_stencil8_supported);
 
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 23, 1, 0)) {
-            LOG_WARNING(Render_Vulkan,
-                        "RADV versions older than 23.1.0 have broken depth clamp dynamic state");
-            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
-            dynamic_state3_enables = false;
+            if (!is_blit_depth24_stencil8_supported && !is_blit_depth32_stencil8_supported) {
+                LOG_WARNING(Render_Vulkan,
+                            "NVIDIA: Neither shader export nor hardware blits available for "
+                            "depth/stencil. Performance may be degraded.");
+            }
         }
-    }
-
-    if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
-        // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
-        LOG_WARNING(Render_Vulkan,
-                    "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
     }
 
     sets_per_pool = 64;
@@ -626,15 +624,27 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_intel_windows) {
-        LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
+        LOG_WARNING(Render_Vulkan,
+                    "Intel proprietary drivers do not support MSAA->MSAA image blits. "
+                    "MSAA scaling will use 3D helpers. MSAA resolves work normally.");
         cant_blit_msaa = true;
     }
 
     has_broken_compute =
         CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
         !Settings::values.enable_compute_pipelines.GetValue();
-    if (is_intel_anv || (is_qualcomm && !is_s8gen2)) {
-        LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
+    must_emulate_bgr565 = false; // Default: assume emulation isn't required
+
+    if (is_intel_anv) {
+        LOG_WARNING(Render_Vulkan, "Intel ANV driver does not support native BGR format");
+        must_emulate_bgr565 = true;
+    } else if (is_qualcomm) {
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
+        must_emulate_bgr565 = true;
+    } else if (is_arm) {
+        LOG_WARNING(Render_Vulkan,
+                    "ARM Mali driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
         must_emulate_bgr565 = true;
     }
 
@@ -647,53 +657,57 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             (std::min)(properties.properties.limits.maxVertexInputBindings, 16U);
     }
 
-    if (is_turnip) {
-        LOG_WARNING(Render_Vulkan, "Turnip requires higher-than-reported binding limits");
+    if (is_turnip || is_qualcomm) {
+        LOG_WARNING(Render_Vulkan, "Driver requires higher-than-reported binding limits");
         properties.properties.limits.maxVertexInputBindings = 32;
     }
 
-    if (!extensions.extended_dynamic_state && extensions.extended_dynamic_state2) {
-        LOG_INFO(Render_Vulkan,
-                 "Removing extendedDynamicState2 due to missing extendedDynamicState");
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-    }
+    const auto dyna_state = Settings::values.dyna_state.GetValue();
 
-    if (!extensions.extended_dynamic_state2 && extensions.extended_dynamic_state3) {
-        LOG_INFO(Render_Vulkan,
-                 "Removing extendedDynamicState3 due to missing extendedDynamicState2");
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
-    }
-
-    const auto dyna_state = u32(Settings::values.dyna_state.GetValue());
-
-    // Mesa Intel drivers on UHD 620 have broken EDS causing extreme flickering - unknown if it affects other iGPUs
-    // ALSO affects ALL versions of UHD drivers on Windows 10+, seems to cause even worse issues like straight up crashing
-    // So... Yeah, UHD drivers fucking suck -- maybe one day we can work past this, maybe; some driver hacking?
-    // And then we can rest in peace by doing `< VK_MAKE_API_VERSION(26, 0, 0)` for our beloved mesa drivers... one day
-    if ((is_mvk || is_intel_igpu) && dyna_state != 0) {
-        LOG_WARNING(Render_Vulkan, "Driver has broken dynamic state, forcing to 0 to prevent graphical issues");
-        Settings::values.dyna_state.SetValue(Settings::ExtendedDynamicState::Disabled);
-    }
+    // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
+    // This slider controls EXTENDED dynamic states with accumulative levels per Vulkan specs:
+    //   Level 0 = Core Dynamic States only (Vulkan 1.0)
+    //   Level 1 = Core + VK_EXT_extended_dynamic_state
+    //   Level 2 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2
+    //   Level 3 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2 + VK_EXT_extended_dynamic_state3
 
     switch (dyna_state) {
-    case 0:
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-        [[fallthrough]];
-    case 1:
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-        [[fallthrough]];
-    case 2:
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    case Settings::ExtendedDynamicState::Disabled:
+        // Level 0: Disable all extended dynamic state extensions
+        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
         break;
+    case Settings::ExtendedDynamicState::EDS1:
+        // Level 1: Enable EDS1, disable EDS2 and EDS3
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
+        break;
+    case Settings::ExtendedDynamicState::EDS2:
+        // Level 2: Enable EDS1 + EDS2, disable EDS3
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
+                              VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
+        break;
+    case Settings::ExtendedDynamicState::EDS3:
+    default:
+        // Level 3: Enable all (EDS1 + EDS2 + EDS3)
+        break;
     }
 
-    if (!Settings::values.vertex_input_dynamic_state.GetValue() || !extensions.extended_dynamic_state) {
+    // VK_EXT_vertex_input_dynamic_state is independent from EDS
+    // It can be enabled even without extended_dynamic_state
+    if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
@@ -781,8 +795,8 @@ void Device::SaveShader(std::span<const u32> spirv) const {
 }
 
 bool Device::ComputeIsOptimalAstcSupported() const {
-    // Disable for now to avoid converting ASTC twice.
-    static constexpr std::array astc_formats = {
+    // Verify hardware supports all ASTC formats with optimal tiling to avoid software conversion
+    static constexpr std::array<VkFormat, 28> astc_formats = {
         VK_FORMAT_ASTC_4x4_UNORM_BLOCK,   VK_FORMAT_ASTC_4x4_SRGB_BLOCK,
         VK_FORMAT_ASTC_5x4_UNORM_BLOCK,   VK_FORMAT_ASTC_5x4_SRGB_BLOCK,
         VK_FORMAT_ASTC_5x5_UNORM_BLOCK,   VK_FORMAT_ASTC_5x5_SRGB_BLOCK,
@@ -801,9 +815,10 @@ bool Device::ComputeIsOptimalAstcSupported() const {
     if (!features.features.textureCompressionASTC_LDR) {
         return false;
     }
-    const auto format_feature_usage{
-                                    VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT |
-                                    VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+    const auto format_feature_usage{VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
+                                    VK_FORMAT_FEATURE_BLIT_SRC_BIT |
+                                    VK_FORMAT_FEATURE_BLIT_DST_BIT |
+                                    VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
                                     VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
     for (const auto format : astc_formats) {
         const auto physical_format_properties{physical.GetFormatProperties(format)};
@@ -1000,7 +1015,7 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Set next pointer.
     void** next = &features2.pNext;
 
-    // Vulkan 1.2, 1.3 and 1.4 features
+    // Vulkan 1.2 and 1.3 features
     if (instance_version >= VK_API_VERSION_1_2) {
         features_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         features_1_3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
@@ -1106,6 +1121,16 @@ bool Device::GetSuitability(bool requires_swapchain) {
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT;
         SetNext(next, properties.transform_feedback);
     }
+    if (extensions.maintenance5) {
+        properties.maintenance5.sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR;
+        SetNext(next, properties.maintenance5);
+    }
+    if (extensions.multi_draw) {
+        properties.multi_draw.sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_PROPERTIES_EXT;
+        SetNext(next, properties.multi_draw);
+    }
 
     // Perform the property fetch.
     physical.GetProperties2(properties2);
@@ -1138,14 +1163,70 @@ bool Device::GetSuitability(bool requires_swapchain) {
         }
     }
 
+    // VK_DYNAMIC_STATE
+
+    // Driver detection variables for workarounds in GetSuitability
+    const VkDriverId driver_id = properties.driver.driverID;
+    const bool is_intel_windows = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
+
+    // VK_EXT_extended_dynamic_state2 below this will appear drivers that need workarounds.
+
+    // VK_EXT_extended_dynamic_state3 below this will appear drivers that need workarounds.
+
+    // Samsung: Broken extendedDynamicState3ColorBlendEquation
+    // Disable blend equation dynamic state, force static pipeline state
+    if (extensions.extended_dynamic_state3 &&
+        (driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
+        LOG_WARNING(Render_Vulkan,
+                    "Samsung: Disabling broken extendedDynamicState3ColorBlendEquation");
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+    }
+
+    // Intel Windows < 27.20.100.0: Broken VertexInputDynamicState
+    // Disable VertexInputDynamicState on old Intel Windows drivers
+    if (extensions.vertex_input_dynamic_state && is_intel_windows) {
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version < VK_MAKE_API_VERSION(27, 20, 100, 0)) {
+            LOG_WARNING(Render_Vulkan,
+                        "Intel Windows < 27.20.100.0: Disabling broken VK_EXT_vertex_input_dynamic_state");
+            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                                   features.vertex_input_dynamic_state,
+                                   VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        }
+    }
+
+    if (u32(Settings::values.dyna_state.GetValue()) == 0) {
+        LOG_INFO(Render_Vulkan, "Extended Dynamic State disabled by user setting, clearing all EDS features");
+        features.custom_border_color.customBorderColors = false;
+        features.custom_border_color.customBorderColorWithoutFormat = false;
+        features.extended_dynamic_state.extendedDynamicState = false;
+        features.extended_dynamic_state2.extendedDynamicState2 = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask = false;
+        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable = false;
+    }
+
     // Return whether we were suitable.
     return suitable;
 }
 
 void Device::RemoveUnsuitableExtensions() {
     // VK_EXT_custom_border_color
-    extensions.custom_border_color = features.custom_border_color.customBorderColors &&
-                                     features.custom_border_color.customBorderColorWithoutFormat;
+    // Enable extension if driver supports it, then check individual features
+    // - customBorderColors: Required to use VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
+    // - customBorderColorWithoutFormat: Optional, allows VK_FORMAT_UNDEFINED
+    // If only customBorderColors is available, we must provide a specific format
+    if (extensions.custom_border_color) {
+        // Verify that at least customBorderColors is available
+        if (!features.custom_border_color.customBorderColors) {
+            LOG_WARNING(Render_Vulkan,
+                        "VK_EXT_custom_border_color reported but customBorderColors feature not available, disabling");
+            extensions.custom_border_color = false;
+        }
+    }
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
 
@@ -1174,20 +1255,78 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
 
     // VK_EXT_extended_dynamic_state3
-    dynamic_state3_blending =
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable &&
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation &&
+    const bool supports_color_blend_enable =
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable;
+    const bool supports_color_blend_equation =
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation;
+    const bool supports_color_write_mask =
         features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask;
-    dynamic_state3_enables =
-        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable &&
+    dynamic_state3_blending = supports_color_blend_enable && supports_color_blend_equation &&
+                              supports_color_write_mask;
+
+    const bool supports_depth_clamp_enable =
+        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable;
+    const bool supports_logic_op_enable =
         features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
+    const bool supports_line_raster_mode =
+        features.extended_dynamic_state3.extendedDynamicState3LineRasterizationMode &&
+        extensions.line_rasterization && features.line_rasterization.rectangularLines;
+    const bool supports_conservative_raster_mode =
+        features.extended_dynamic_state3.extendedDynamicState3ConservativeRasterizationMode &&
+        extensions.conservative_rasterization;
+    const bool supports_line_stipple_enable =
+        features.extended_dynamic_state3.extendedDynamicState3LineStippleEnable &&
+        extensions.line_rasterization && features.line_rasterization.stippledRectangularLines;
+    const bool supports_alpha_to_coverage =
+        features.extended_dynamic_state3.extendedDynamicState3AlphaToCoverageEnable;
+    const bool supports_alpha_to_one =
+        features.extended_dynamic_state3.extendedDynamicState3AlphaToOneEnable &&
+        features.features.alphaToOne;
+
+    dynamic_state3_depth_clamp_enable = supports_depth_clamp_enable;
+    dynamic_state3_logic_op_enable = supports_logic_op_enable;
+    dynamic_state3_line_raster_mode = supports_line_raster_mode;
+    dynamic_state3_conservative_raster_mode = supports_conservative_raster_mode;
+    dynamic_state3_line_stipple_enable = supports_line_stipple_enable;
+    dynamic_state3_alpha_to_coverage = supports_alpha_to_coverage;
+    dynamic_state3_alpha_to_one = supports_alpha_to_one;
+
+    dynamic_state3_enables = dynamic_state3_depth_clamp_enable || dynamic_state3_logic_op_enable ||
+                             dynamic_state3_line_raster_mode ||
+                             dynamic_state3_conservative_raster_mode ||
+                             dynamic_state3_line_stipple_enable ||
+                             dynamic_state3_alpha_to_coverage || dynamic_state3_alpha_to_one;
 
     extensions.extended_dynamic_state3 = dynamic_state3_blending || dynamic_state3_enables;
-    dynamic_state3_blending = dynamic_state3_blending && extensions.extended_dynamic_state3;
-    dynamic_state3_enables = dynamic_state3_enables && extensions.extended_dynamic_state3;
+    if (!extensions.extended_dynamic_state3) {
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
+        dynamic_state3_depth_clamp_enable = false;
+        dynamic_state3_logic_op_enable = false;
+        dynamic_state3_line_raster_mode = false;
+        dynamic_state3_conservative_raster_mode = false;
+        dynamic_state3_line_stipple_enable = false;
+        dynamic_state3_alpha_to_coverage = false;
+        dynamic_state3_alpha_to_one = false;
+    }
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state3,
                                        features.extended_dynamic_state3,
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+
+    // VK_EXT_robustness2
+    // Enable if at least one robustness2 feature is available
+    extensions.robustness_2 = features.robustness2.robustBufferAccess2 ||
+                              features.robustness2.robustImageAccess2 ||
+                              features.robustness2.nullDescriptor;
+
+    RemoveExtensionFeatureIfUnsuitable(extensions.robustness_2, features.robustness2,
+                                       VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+
+    // VK_EXT_image_robustness
+    // Enable if robustImageAccess is available
+    extensions.image_robustness = features.image_robustness.robustImageAccess;
+    RemoveExtensionFeatureIfUnsuitable(extensions.image_robustness, features.image_robustness,
+                                       VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
 
     // VK_EXT_provoking_vertex
     if (Settings::values.provoking_vertex.GetValue()) {
@@ -1226,15 +1365,21 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME);
 
     // VK_EXT_transform_feedback
+    // We only require the basic transformFeedback feature and at least
+    // one transform feedback buffer. We keep transformFeedbackQueries as it's used by
+    // the streaming byte count implementation. GeometryStreams and multiple streams
+    // are not strictly required since we currently support only stream 0.
     extensions.transform_feedback =
         features.transform_feedback.transformFeedback &&
-        features.transform_feedback.geometryStreams &&
-        properties.transform_feedback.maxTransformFeedbackStreams >= 4 &&
         properties.transform_feedback.maxTransformFeedbackBuffers > 0 &&
-        properties.transform_feedback.transformFeedbackQueries &&
-        properties.transform_feedback.transformFeedbackDraw;
+        properties.transform_feedback.transformFeedbackQueries;
     RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
                                        VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
+    if (extensions.transform_feedback) {
+        LOG_INFO(Render_Vulkan, "VK_EXT_transform_feedback enabled (buffers={}, queries={})",
+                 properties.transform_feedback.maxTransformFeedbackBuffers,
+                 properties.transform_feedback.transformFeedbackQueries);
+    }
 
     // VK_EXT_vertex_input_dynamic_state
     extensions.vertex_input_dynamic_state =
@@ -1242,6 +1387,17 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
                                        features.vertex_input_dynamic_state,
                                        VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+
+    // VK_EXT_multi_draw
+    extensions.multi_draw = features.multi_draw.multiDraw;
+
+    if (extensions.multi_draw) {
+        LOG_INFO(Render_Vulkan, "VK_EXT_multi_draw: maxMultiDrawCount={}",
+                 properties.multi_draw.maxMultiDrawCount);
+    }
+
+    RemoveExtensionFeatureIfUnsuitable(extensions.multi_draw, features.multi_draw,
+                                       VK_EXT_MULTI_DRAW_EXTENSION_NAME);
 
     // VK_KHR_pipeline_executable_properties
     if (Settings::values.renderer_shader_feedback.GetValue()) {
@@ -1266,6 +1422,76 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
                                        features.workgroup_memory_explicit_layout,
                                        VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
+
+    // VK_EXT_swapchain_maintenance1 (extension only, has features)
+    // Requires VK_EXT_surface_maintenance1 instance extension
+    extensions.swapchain_maintenance1 = features.swapchain_maintenance1.swapchainMaintenance1;
+    if (extensions.swapchain_maintenance1) {
+        // Check if VK_EXT_surface_maintenance1 instance extension is available
+        const auto instance_extensions = vk::EnumerateInstanceExtensionProperties(dld);
+        const bool has_surface_maintenance1 = instance_extensions && std::ranges::any_of(*instance_extensions,
+            [](const VkExtensionProperties& prop) {
+                return std::strcmp(prop.extensionName, VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME) == 0;
+            });
+        if (!has_surface_maintenance1) {
+            LOG_WARNING(Render_Vulkan,
+                        "VK_EXT_swapchain_maintenance1 requires VK_EXT_surface_maintenance1, disabling");
+            extensions.swapchain_maintenance1 = false;
+            features.swapchain_maintenance1.swapchainMaintenance1 = false;
+        }
+    }
+    RemoveExtensionFeatureIfUnsuitable(extensions.swapchain_maintenance1, features.swapchain_maintenance1,
+                                       VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
+
+    // VK_KHR_maintenance1 (core in Vulkan 1.1, no features)
+    extensions.maintenance1 = loaded_extensions.contains(VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance1, VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
+
+    // VK_KHR_maintenance2 (core in Vulkan 1.1, no features)
+    extensions.maintenance2 = loaded_extensions.contains(VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance2, VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
+
+    // VK_KHR_maintenance3 (core in Vulkan 1.1, no features)
+    extensions.maintenance3 = loaded_extensions.contains(VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance3, VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
+
+    // VK_KHR_maintenance4
+    extensions.maintenance4 = features.maintenance4.maintenance4;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance4, features.maintenance4,
+                                       VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
+
+    // VK_KHR_maintenance5
+    extensions.maintenance5 = features.maintenance5.maintenance5;
+
+    if (extensions.maintenance5) {
+        LOG_INFO(Render_Vulkan, "VK_KHR_maintenance5 properties: polygonModePointSize={} "
+                                "depthStencilSwizzleOne={} earlyFragmentTests={} nonStrictWideLines={}",
+                 properties.maintenance5.polygonModePointSize,
+                 properties.maintenance5.depthStencilSwizzleOneSupport,
+                 properties.maintenance5.earlyFragmentMultisampleCoverageAfterSampleCounting &&
+                 properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting,
+                 properties.maintenance5.nonStrictWideLinesUseParallelogram);
+    }
+
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance5, features.maintenance5,
+                                       VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
+
+    // VK_KHR_maintenance6
+    extensions.maintenance6 = features.maintenance6.maintenance6;
+    RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
+                                       VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
+
+    // VK_KHR_maintenance7 (proposed for Vulkan 1.4, no features)
+    extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
+
+    // VK_KHR_maintenance8 (proposed for Vulkan 1.4, no features)
+    extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+
+    // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
+    extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
+    RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {

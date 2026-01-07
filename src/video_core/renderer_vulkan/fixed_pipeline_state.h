@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,7 +23,8 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 struct DynamicFeatures {
     bool has_extended_dynamic_state;
     bool has_extended_dynamic_state_2;
-    bool has_extended_dynamic_state_2_extra;
+    bool has_extended_dynamic_state_2_logic_op;
+    bool has_extended_dynamic_state_2_patch_control_points;
     bool has_extended_dynamic_state_3_blend;
     bool has_extended_dynamic_state_3_enables;
     bool has_dynamic_vertex_input;
@@ -186,7 +190,7 @@ struct FixedPipelineState {
         u32 raw1;
         BitField<0, 1, u32> extended_dynamic_state;
         BitField<1, 1, u32> extended_dynamic_state_2;
-        BitField<2, 1, u32> extended_dynamic_state_2_extra;
+        BitField<2, 1, u32> extended_dynamic_state_2_logic_op;
         BitField<3, 1, u32> extended_dynamic_state_3_blend;
         BitField<4, 1, u32> extended_dynamic_state_3_enables;
         BitField<5, 1, u32> dynamic_vertex_input;

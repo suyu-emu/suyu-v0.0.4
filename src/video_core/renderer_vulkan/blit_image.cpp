@@ -46,7 +46,7 @@ namespace Vulkan {
 using VideoCommon::ImageViewType;
 
 namespace {
-    
+
 [[nodiscard]] VkImageAspectFlags AspectMaskFromFormat(VideoCore::Surface::PixelFormat format) {
     using VideoCore::Surface::SurfaceType;
     switch (VideoCore::Surface::GetFormatType(format)) {
@@ -525,18 +525,24 @@ BlitImageHelper::BlitImageHelper(const Device& device_, Scheduler& scheduler_,
           nullptr, PUSH_CONSTANT_RANGE<VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(float) * 4>))),
       full_screen_vert(BuildShader(device, FULL_SCREEN_TRIANGLE_VERT_SPV)),
       blit_color_to_color_frag(BuildShader(device, BLIT_COLOR_FLOAT_FRAG_SPV)),
-      blit_depth_stencil_frag(BuildShader(device, VULKAN_BLIT_DEPTH_STENCIL_FRAG_SPV)),
+      blit_depth_stencil_frag(device.IsExtShaderStencilExportSupported()
+                             ? BuildShader(device, VULKAN_BLIT_DEPTH_STENCIL_FRAG_SPV)
+                             : vk::ShaderModule{}),
       clear_color_vert(BuildShader(device, VULKAN_COLOR_CLEAR_VERT_SPV)),
       clear_color_frag(BuildShader(device, VULKAN_COLOR_CLEAR_FRAG_SPV)),
       clear_stencil_frag(BuildShader(device, VULKAN_DEPTHSTENCIL_CLEAR_FRAG_SPV)),
       convert_depth_to_float_frag(BuildShader(device, CONVERT_DEPTH_TO_FLOAT_FRAG_SPV)),
       convert_float_to_depth_frag(BuildShader(device, CONVERT_FLOAT_TO_DEPTH_FRAG_SPV)),
-      convert_abgr8_to_d24s8_frag(BuildShader(device, CONVERT_ABGR8_TO_D24S8_FRAG_SPV)),
+      convert_abgr8_to_d24s8_frag(device.IsExtShaderStencilExportSupported()
+                                 ? BuildShader(device, CONVERT_ABGR8_TO_D24S8_FRAG_SPV)
+                                 : vk::ShaderModule{}),
       convert_abgr8_to_d32f_frag(BuildShader(device, CONVERT_ABGR8_TO_D32F_FRAG_SPV)),
       convert_d32f_to_abgr8_frag(BuildShader(device, CONVERT_D32F_TO_ABGR8_FRAG_SPV)),
       convert_d24s8_to_abgr8_frag(BuildShader(device, CONVERT_D24S8_TO_ABGR8_FRAG_SPV)),
       convert_s8d24_to_abgr8_frag(BuildShader(device, CONVERT_S8D24_TO_ABGR8_FRAG_SPV)),
-      convert_abgr8_srgb_to_d24s8_frag(BuildShader(device, CONVERT_ABGR8_SRGB_TO_D24S8_FRAG_SPV)),
+      convert_abgr8_srgb_to_d24s8_frag(device.IsExtShaderStencilExportSupported()
+                                      ? BuildShader(device, CONVERT_ABGR8_SRGB_TO_D24S8_FRAG_SPV)
+                                      : vk::ShaderModule{}),
       convert_rgba_to_bgra_frag(BuildShader(device, CONVERT_RGBA8_TO_BGRA8_FRAG_SPV)),
       convert_yuv420_to_rgb_comp(BuildShader(device, CONVERT_YUV420_TO_RGB_COMP_SPV)),
       convert_rgb_to_yuv420_comp(BuildShader(device, CONVERT_RGB_TO_YUV420_COMP_SPV)),
@@ -667,6 +673,11 @@ void BlitImageHelper::ConvertR16ToD16(const Framebuffer* dst_framebuffer,
 
 void BlitImageHelper::ConvertABGR8ToD24S8(const Framebuffer* dst_framebuffer,
                                           const ImageView& src_image_view) {
+    if (!device.IsExtShaderStencilExportSupported()) {
+        // Shader requires VK_EXT_shader_stencil_export which is not available
+        LOG_WARNING(Render_Vulkan, "ConvertABGR8ToD24S8 requires shader_stencil_export, skipping");
+        return;
+    }
     ConvertPipelineDepthTargetEx(convert_abgr8_to_d24s8_pipeline, dst_framebuffer->RenderPass(),
                                  convert_abgr8_to_d24s8_frag);
     Convert(*convert_abgr8_to_d24s8_pipeline, dst_framebuffer, src_image_view);
@@ -702,6 +713,11 @@ void BlitImageHelper::ConvertS8D24ToABGR8(const Framebuffer* dst_framebuffer,
 
 void BlitImageHelper::ConvertABGR8SRGBToD24S8(const Framebuffer* dst_framebuffer,
                                              const ImageView& src_image_view) {
+    if (!device.IsExtShaderStencilExportSupported()) {
+        // Shader requires VK_EXT_shader_stencil_export which is not available
+        LOG_WARNING(Render_Vulkan, "ConvertABGR8SRGBToD24S8 requires shader_stencil_export, skipping");
+        return;
+    }
     ConvertPipelineDepthTargetEx(convert_abgr8_srgb_to_d24s8_pipeline,
                                 dst_framebuffer->RenderPass(),
                                 convert_abgr8_srgb_to_d24s8_frag);

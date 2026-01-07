@@ -48,6 +48,7 @@ Flags MakeInvalidationFlags() {
         FrontFace,
         StencilOp,
         StencilTestEnable,
+        RasterizerDiscardEnable,
         VertexBuffers,
         VertexInput,
         StateEnable,
@@ -55,6 +56,9 @@ Flags MakeInvalidationFlags() {
         DepthBiasEnable,
         LogicOpEnable,
         DepthClampEnable,
+        AlphaToCoverageEnable,
+        AlphaToOneEnable,
+        LineRasterizationMode,
         LogicOp,
         Blending,
         ColorMask,
@@ -148,6 +152,8 @@ void SetupDirtyStateEnable(Tables& tables) {
     setup(OFF(logic_op.enable), LogicOpEnable);
     setup(OFF(viewport_clip_control.geometry_clip), DepthClampEnable);
     setup(OFF(line_stipple_enable), LineStippleEnable);
+    setup(OFF(anti_alias_alpha_control.alpha_to_coverage), AlphaToCoverageEnable);
+    setup(OFF(anti_alias_alpha_control.alpha_to_one), AlphaToOneEnable);
 }
 
 void SetupDirtyDepthCompareOp(Tables& tables) {
@@ -226,6 +232,7 @@ void SetupRasterModes(Tables &tables) {
 
     table[OFF(line_stipple_params)] = LineStippleParams;
     table[OFF(conservative_raster_enable)] = ConservativeRasterizationMode;
+    table[OFF(line_anti_alias_enable)] = LineRasterizationMode;
 }
 } // Anonymous namespace
 

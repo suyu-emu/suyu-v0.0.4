@@ -315,6 +315,9 @@ void DefineSsbos(EmitContext& ctx, StorageTypeDefinition& type_def,
         ctx.Decorate(id, spv::Decoration::Binding, binding);
         ctx.Decorate(id, spv::Decoration::DescriptorSet, 0U);
         ctx.Name(id, fmt::format("ssbo{}", index));
+        if (!desc.is_written) {
+            ctx.Decorate(id, spv::Decoration::NonWritable);
+        }
         if (ctx.profile.supported_spirv >= 0x00010400) {
             ctx.interfaces.push_back(id);
         }
@@ -1432,6 +1435,9 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     }
     if (info.uses_sample_id) {
         sample_id = DefineInput(*this, U32[1], false, spv::BuiltIn::SampleId);
+        if (stage == Stage::Fragment) {
+            Decorate(sample_id, spv::Decoration::Flat);
+        }
     }
     if (info.uses_is_helper_invocation) {
         is_helper_invocation = DefineInput(*this, U1, false, spv::BuiltIn::HelperInvocation);
@@ -1442,6 +1448,13 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         subgroup_mask_le = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupLeMaskKHR);
         subgroup_mask_gt = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupGtMaskKHR);
         subgroup_mask_ge = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupGeMaskKHR);
+        if (stage == Stage::Fragment) {
+            Decorate(subgroup_mask_eq, spv::Decoration::Flat);
+            Decorate(subgroup_mask_lt, spv::Decoration::Flat);
+            Decorate(subgroup_mask_le, spv::Decoration::Flat);
+            Decorate(subgroup_mask_gt, spv::Decoration::Flat);
+            Decorate(subgroup_mask_ge, spv::Decoration::Flat);
+        }
     }
     if (info.uses_fswzadd || info.uses_subgroup_invocation_id || info.uses_subgroup_shuffles ||
         (profile.warp_size_potentially_larger_than_guest &&
@@ -1449,7 +1462,9 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         AddCapability(spv::Capability::GroupNonUniform);
         subgroup_local_invocation_id =
             DefineInput(*this, U32[1], false, spv::BuiltIn::SubgroupLocalInvocationId);
-        Decorate(subgroup_local_invocation_id, spv::Decoration::Flat);
+        if (stage == Stage::Fragment) {
+            Decorate(subgroup_local_invocation_id, spv::Decoration::Flat);
+        }
     }
     if (info.uses_fswzadd) {
         const Id f32_one{Const(1.0f)};
@@ -1461,6 +1476,9 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     }
     if (loads[IR::Attribute::PrimitiveId]) {
         primitive_id = DefineInput(*this, U32[1], false, spv::BuiltIn::PrimitiveId);
+        if (stage == Stage::Fragment) {
+            Decorate(primitive_id, spv::Decoration::Flat);
+        }
     }
     if (loads[IR::Attribute::Layer]) {
         AddCapability(spv::Capability::Geometry);
@@ -1552,17 +1570,21 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         if (stage != Stage::Fragment) {
             continue;
         }
-        switch (info.interpolation[index]) {
-        case Interpolation::Smooth:
-            // Default
-            // Decorate(id, spv::Decoration::Smooth);
-            break;
-        case Interpolation::NoPerspective:
-            Decorate(id, spv::Decoration::NoPerspective);
-            break;
-        case Interpolation::Flat:
+        const bool is_integer = input_type == AttributeType::SignedInt ||
+                                input_type == AttributeType::UnsignedInt;
+        if (is_integer) {
             Decorate(id, spv::Decoration::Flat);
-            break;
+        } else {
+            switch (info.interpolation[index]) {
+            case Interpolation::Smooth:
+                break;
+            case Interpolation::NoPerspective:
+                Decorate(id, spv::Decoration::NoPerspective);
+                break;
+            case Interpolation::Flat:
+                Decorate(id, spv::Decoration::Flat);
+                break;
+            }
         }
     }
     if (stage == Stage::TessellationEval) {
