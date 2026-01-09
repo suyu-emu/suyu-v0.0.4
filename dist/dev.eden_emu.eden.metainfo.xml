@@ -16,7 +16,7 @@ SPDX-License-Identifier: CC0-1.0
   <name>eden</name>
   <summary>Nintendo Switch emulator</summary>
   <description>
-    <p>Nintendo Switch video game console emulator</p>
+    <p>Multiplatform FOSS Switch 1 emulator written in C++, derived from Yuzu and Sudachi</p>
   </description>
   <categories>
     <category>Game</category>
