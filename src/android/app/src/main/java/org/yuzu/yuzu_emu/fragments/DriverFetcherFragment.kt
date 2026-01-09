@@ -45,7 +45,7 @@ class DriverFetcherFragment : Fragment() {
     private val client = OkHttpClient()
 
     private val gpuModel: String?
-        get() = GpuDriverHelper.getGpuModel()
+        get() = GpuDriverHelper.hookLibPath?.let { GpuDriverHelper.getGpuModel(hookLibPath = it) }
 
     private val adrenoModel: Int
         get() = parseAdrenoModel()

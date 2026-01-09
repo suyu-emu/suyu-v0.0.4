@@ -10,6 +10,7 @@ add_library(yuzu-android SHARED
     native.cpp
     native.h
     native_config.cpp
+    native_freedreno.cpp
     android_settings.cpp
     game_metadata.cpp
     native_log.cpp

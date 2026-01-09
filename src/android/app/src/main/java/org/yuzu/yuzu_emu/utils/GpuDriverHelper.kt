@@ -23,9 +23,15 @@ object GpuDriverHelper {
     private const val META_JSON_FILENAME = "meta.json"
     private var fileRedirectionPath: String? = null
     var driverInstallationPath: String? = null
-    private var hookLibPath: String? = null
+    internal var hookLibPath: String? = null
 
     val driverStoragePath get() = DirectoryInitialization.userDirectory!! + "/gpu_drivers/"
+
+    fun initializeFreedrenoConfigEarly() {
+        NativeFreedrenoConfig.setFreedrenoBasePath(YuzuApplication.appContext.cacheDir.absolutePath)
+        NativeFreedrenoConfig.initializeFreedrenoConfig()
+        NativeFreedrenoConfig.reloadFreedrenoConfig()
+    }
 
     fun initializeDriverParameters() {
         try {
@@ -40,11 +46,9 @@ object GpuDriverHelper {
             throw RuntimeException(e)
         }
 
-        // Initialize directories.
         initializeDirectories()
-
-        // Initialize hook libraries directory.
         hookLibPath = YuzuApplication.appContext.applicationInfo.nativeLibraryDir + "/"
+        NativeFreedrenoConfig.reloadFreedrenoConfig()
 
         // Initialize GPU driver.
         NativeLibrary.initializeGpuDriver(
@@ -211,8 +215,16 @@ object GpuDriverHelper {
 
     external fun getGpuModel(
         surface: Surface = Surface(SurfaceTexture(true)),
-        hookLibPath: String = GpuDriverHelper.hookLibPath!!
+        hookLibPath: String
     ): String?
+
+    fun isAdrenoGpu(): Boolean {
+        return try {
+            supportsCustomDriverLoading()
+        } catch (e: Exception) {
+            false
+        }
+    }
 
     // Parse the custom driver metadata to retrieve the name.
     val installedCustomDriverData: GpuDriverMetadata

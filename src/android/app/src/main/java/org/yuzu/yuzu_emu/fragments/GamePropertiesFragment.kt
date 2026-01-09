@@ -325,6 +325,20 @@ class GamePropertiesFragment : Fragment() {
                     )
                 )
             }
+            if (GpuDriverHelper.isAdrenoGpu()) {
+                add(
+                    SubmenuProperty(
+                        R.string.freedreno_per_game_title,
+                        R.string.freedreno_per_game_description,
+                        R.drawable.ic_graphics,
+                        action = {
+                            val action = GamePropertiesFragmentDirections
+                                .actionPerGamePropertiesFragmentToFreedrenoSettingsFragment(args.game)
+                            binding.root.findNavController().navigate(action)
+                        }
+                    )
+                )
+            }
 
             if (!args.game.isHomebrew) {
                 add(

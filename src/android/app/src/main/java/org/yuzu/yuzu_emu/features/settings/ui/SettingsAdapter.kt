@@ -29,6 +29,7 @@ import org.yuzu.yuzu_emu.databinding.ListItemSettingsHeaderBinding
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.input.model.AnalogDirection
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
+import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.*
 import org.yuzu.yuzu_emu.utils.ParamPackage
@@ -212,8 +213,15 @@ class SettingsAdapter(
     }
 
     fun onSubmenuClick(item: SubmenuSetting) {
-        val action = SettingsNavigationDirections.actionGlobalSettingsFragment(item.menuKey, null)
-        fragment.view?.findNavController()?.navigate(action)
+        // Check if this is the Freedreno Settings submenu
+        if (item.menuKey == Settings.MenuTag.SECTION_FREEDRENO) {
+            fragment.view?.findNavController()?.navigate(
+                R.id.action_settingsFragment_to_freedrenoSettingsFragment
+            )
+        } else {
+            val action = SettingsNavigationDirections.actionGlobalSettingsFragment(item.menuKey, null)
+            fragment.view?.findNavController()?.navigate(action)
+        }
     }
 
     fun onLaunchableClick(item: LaunchableSetting) {

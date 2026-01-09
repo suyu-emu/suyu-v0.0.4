@@ -27,6 +27,7 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings.MenuTag
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
+import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
@@ -109,6 +110,7 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_INPUT_PLAYER_EIGHT -> addInputPlayer(sl, 7)
             MenuTag.SECTION_APP_SETTINGS -> addThemeSettings(sl)
             MenuTag.SECTION_DEBUG -> addDebugSettings(sl)
+            MenuTag.SECTION_FREEDRENO -> addFreedrenoSettings(sl)
             MenuTag.SECTION_APPLETS -> addAppletSettings(sl)
             MenuTag.SECTION_CUSTOM_PATHS -> addCustomPathsSettings(sl)
         }
@@ -181,6 +183,16 @@ class SettingsFragmentPresenter(
                     menuKey = MenuTag.SECTION_DEBUG
                 )
             )
+            if (GpuDriverHelper.isAdrenoGpu() && !NativeConfig.isPerGameConfigLoaded()) {
+                add(
+                    SubmenuSetting(
+                        titleId = R.string.gpu_driver_settings,
+                        descriptionId = R.string.freedreno_settings_title,
+                        iconId = R.drawable.ic_graphics,
+                        menuKey = MenuTag.SECTION_FREEDRENO
+                    )
+                )
+            }
             add(
                 SubmenuSetting(
                     titleId = R.string.applets_menu,
@@ -496,6 +508,11 @@ class SettingsFragmentPresenter(
 
             override val isSaveable = true
         }
+    }
+
+    private fun addFreedrenoSettings(sl: ArrayList<SettingsItem>) {
+        // No additional settings needed here - the SubmenuSetting handles navigation
+        // This method is kept for consistency with other menu sections
     }
 
     private fun addAppletSettings(sl: ArrayList<SettingsItem>) {

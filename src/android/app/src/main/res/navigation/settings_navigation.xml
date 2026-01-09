@@ -29,4 +29,19 @@
         android:name="org.yuzu.yuzu_emu.features.settings.ui.SettingsSearchFragment"
         android:label="SettingsSearchFragment" />
 
+    <fragment
+        android:id="@+id/freedrenoSettingsFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.FreedrenoSettingsFragment"
+        android:label="@string/freedreno_settings_title">
+        <argument
+            android:name="game"
+            app:argType="org.yuzu.yuzu_emu.model.Game"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_settingsFragment_to_freedrenoSettingsFragment"
+        app:destination="@id/freedrenoSettingsFragment" />
+
 </navigation>

@@ -730,11 +730,28 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_doesUpdateMatchProgram(JNIEnv* en
     return false;
 }
 
-void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeGpuDriver(JNIEnv* env, jclass clazz,
+void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeGpuDriver(JNIEnv* env,
+                                                                       [[maybe_unused]] jclass clazz,
                                                                        jstring hook_lib_dir,
                                                                        jstring custom_driver_dir,
                                                                        jstring custom_driver_name,
                                                                        jstring file_redirect_dir) {
+    // Log active Freedreno environment variables
+    const char* tu_debug = getenv("TU_DEBUG");
+    const char* fd_debug = getenv("FD_MESA_DEBUG");
+    const char* ir3_debug = getenv("IR3_SHADER_DEBUG");
+    const char* fd_rd_dump = getenv("FD_RD_DUMP");
+    const char* tu_breadcrumbs = getenv("TU_BREADCRUMBS");
+
+    if (tu_debug || fd_debug || ir3_debug || fd_rd_dump || tu_breadcrumbs) {
+        LOG_INFO(Frontend, "[Freedreno] Initializing GPU driver with configuration:");
+        if (tu_debug) LOG_INFO(Frontend, "[Freedreno]   TU_DEBUG={}", tu_debug);
+        if (fd_debug) LOG_INFO(Frontend, "[Freedreno]   FD_MESA_DEBUG={}", fd_debug);
+        if (ir3_debug) LOG_INFO(Frontend, "[Freedreno]   IR3_SHADER_DEBUG={}", ir3_debug);
+        if (fd_rd_dump) LOG_INFO(Frontend, "[Freedreno]   FD_RD_DUMP={}", fd_rd_dump);
+        if (tu_breadcrumbs) LOG_INFO(Frontend, "[Freedreno]   TU_BREADCRUMBS={}", tu_breadcrumbs);
+    }
+
     EmulationSession::GetInstance().InitializeGpuDriver(
         Common::Android::GetJString(env, hook_lib_dir),
         Common::Android::GetJString(env, custom_driver_dir),
