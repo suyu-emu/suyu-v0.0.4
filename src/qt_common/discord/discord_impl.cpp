@@ -84,6 +84,7 @@ void DiscordImpl::UpdateGameStatus(bool use_default) {
     presence.smallImageKey = DEFAULT_DISCORD_IMAGE;
     presence.smallImageText = DEFAULT_DISCORD_TEXT;
     presence.state = game_title.c_str();
+    presence.status_display_type = DiscordStatusDisplayType_State;
     presence.details = "Currently in game";
     presence.startTimestamp = start_time;
     Discord_UpdatePresence(&presence);
@@ -123,6 +124,7 @@ void DiscordImpl::Update() {
     DiscordRichPresence presence{};
     presence.largeImageKey = DEFAULT_DISCORD_IMAGE;
     presence.largeImageText = DEFAULT_DISCORD_TEXT;
+    presence.status_display_type = DiscordStatusDisplayType_Name;
     presence.details = "Currently not in game";
     presence.startTimestamp = start_time;
     Discord_UpdatePresence(&presence);

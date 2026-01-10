@@ -180,8 +180,8 @@
     "discord-rpc": {
         "package": "DiscordRPC",
         "repo": "eden-emulator/discord-rpc",
-        "sha": "1cf7772bb6",
-        "hash": "9a6c35887dcacceb4ba1bf3141edb73b05b2abc719a8d81dad9cb9dd5b039ce203946787335d9d738af669c10cf2534638b645635a22096fc28dcae2475e0cbe",
+        "sha": "0d8b2d6a37",
+        "hash": "8213c43dcb0f7d479f5861091d111ed12fbdec1e62e6d729d65a4bc181d82f48a35d5fd3cd5c291f2393ac7c9681eabc6b76609755f55376284c8a8d67e148f3",
         "find_args": "MODULE"
     },
     "simpleini": {
