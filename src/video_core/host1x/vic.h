@@ -605,20 +605,20 @@ public:
         SetOutputSurfaceChromaUnusedOffset = offsetof(VicRegisters, output_surface.chroma_v)
     };
 
-    explicit Vic(Host1x& host1x, s32 id, u32 syncpt, FrameQueue& frame_queue);
-    ~Vic();
+    explicit Vic(Host1x& host1x, s32 id, u32 syncpt, FrameQueue& frame_queue) noexcept;
+    ~Vic() noexcept;
 
     /// Write to the device state.
-    void ProcessMethod(u32 method, u32 arg) override;
+    void ProcessMethod(u32 method, u32 arg) noexcept override;
 
 private:
-    void Execute();
-    void Blend(const ConfigStruct& config, const SlotStruct& slot);
-    void ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool interlaced);
-    void ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool top_field);
-    void ReadY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar);
-    void WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config);
-    void WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixelFormat format);
+    void Execute() noexcept;
+    void Blend(const ConfigStruct& config, const SlotStruct& slot, VideoPixelFormat format) noexcept;
+    void ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool interlaced) noexcept;
+    void ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar, bool top_field) noexcept;
+    void ReadY8__V8U8_N420(const SlotStruct& slot, std::span<const PlaneOffsets> offsets, std::shared_ptr<const FFmpeg::Frame> frame, bool planar) noexcept;
+    void WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) noexcept;
+    void WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixelFormat format) noexcept;
 
     s32 id;
     s32 nvdec_id{-1};
@@ -627,11 +627,11 @@ private:
     VicRegisters regs{};
     FrameQueue& frame_queue;
 
+    Common::ScratchBuffer<u8> swizzle_scratch;
     Common::ScratchBuffer<Pixel> output_surface;
     Common::ScratchBuffer<Pixel> slot_surface;
     Common::ScratchBuffer<u8> luma_scratch;
     Common::ScratchBuffer<u8> chroma_scratch;
-    Common::ScratchBuffer<u8> swizzle_scratch;
 };
 
 } // namespace Tegra::Host1x
