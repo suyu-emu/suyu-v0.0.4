@@ -315,9 +315,6 @@ void DefineSsbos(EmitContext& ctx, StorageTypeDefinition& type_def,
         ctx.Decorate(id, spv::Decoration::Binding, binding);
         ctx.Decorate(id, spv::Decoration::DescriptorSet, 0U);
         ctx.Name(id, fmt::format("ssbo{}", index));
-        if (!desc.is_written) {
-            ctx.Decorate(id, spv::Decoration::NonWritable);
-        }
         if (ctx.profile.supported_spirv >= 0x00010400) {
             ctx.interfaces.push_back(id);
         }
