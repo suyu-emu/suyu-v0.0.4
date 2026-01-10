@@ -57,7 +57,7 @@ option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
-option(SUYU_TESTS "Compile tests" "${BUILD_TESTING}")
+option(SUYU_TESTS "Compile tests" OFF)
 
 option(SUYU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
 
