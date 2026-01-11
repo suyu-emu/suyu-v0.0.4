@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -131,6 +132,9 @@ public:
     std::array<u32, NUM_STAGES> written_storage_buffers{};
     u32 enabled_compute_storage_buffers = 0;
     u32 written_compute_storage_buffers = 0;
+
+    u32 total_graphics_storage_buffers = 0;
+    u32 total_compute_storage_buffers = 0;
 
     std::array<u32, NUM_STAGES> enabled_texture_buffers{};
     std::array<u32, NUM_STAGES> written_texture_buffers{};

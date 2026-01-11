@@ -333,6 +333,13 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
       staging_pool{staging_pool_}, guest_descriptor_queue{guest_descriptor_queue_},
       quad_index_pass(device, scheduler, descriptor_pool, staging_pool,
                       compute_pass_descriptor_queue) {
+    const VkDriverIdKHR driver_id = device.GetDriverID();
+    limit_dynamic_storage_buffers = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+                                    driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+                                    driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
+    if (limit_dynamic_storage_buffers) {
+        max_dynamic_storage_buffers = device.GetMaxDescriptorSetStorageBuffersDynamic();
+    }
     if (device.GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
         // TODO: FixMe: Uint8Pass compute shader does not build on some Qualcomm drivers.
         uint8_pass = std::make_unique<Uint8Pass>(device, scheduler, descriptor_pool, staging_pool,
@@ -366,6 +373,10 @@ u64 BufferCacheRuntime::GetDeviceMemoryUsage() const {
 
 bool BufferCacheRuntime::CanReportMemoryUsage() const {
     return device.CanReportMemoryUsage();
+}
+
+u32 BufferCacheRuntime::GetUniformBufferAlignment() const {
+    return static_cast<u32>(device.GetUniformBufferAlignment());
 }
 
 u32 BufferCacheRuntime::GetStorageBufferAlignment() const {

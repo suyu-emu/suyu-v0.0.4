@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <limits>
+#include <optional>
 #include <unordered_set>
 #include <boost/container/small_vector.hpp>
 
@@ -1736,9 +1738,87 @@ SamplerId TextureCache<P>::FindSampler(const TSCEntry& config) {
     }
     const auto [pair, is_new] = channel_state->samplers.try_emplace(config);
     if (is_new) {
+        EnforceSamplerBudget();
         pair->second = slot_samplers.insert(runtime, config);
     }
     return pair->second;
+}
+
+template <class P>
+std::optional<size_t> TextureCache<P>::QuerySamplerBudget() const {
+    if constexpr (requires { runtime.GetSamplerHeapBudget(); }) {
+        return runtime.GetSamplerHeapBudget();
+    } else {
+        return std::nullopt;
+    }
+}
+
+template <class P>
+void TextureCache<P>::EnforceSamplerBudget() {
+    const auto budget = QuerySamplerBudget();
+    if (!budget) {
+        return;
+    }
+    if (slot_samplers.size() < *budget) {
+        return;
+    }
+    if (!channel_state) {
+        return;
+    }
+    if (last_sampler_gc_frame == frame_tick) {
+        return;
+    }
+    last_sampler_gc_frame = frame_tick;
+    TrimInactiveSamplers(*budget);
+}
+
+template <class P>
+void TextureCache<P>::TrimInactiveSamplers(size_t budget) {
+    if (channel_state->samplers.empty()) {
+        return;
+    }
+    static constexpr size_t SAMPLER_GC_SLACK = 1024;
+    auto mark_active = [](auto& set, SamplerId id) {
+        if (!id || id == CORRUPT_ID || id == NULL_SAMPLER_ID) {
+            return;
+        }
+        set.insert(id);
+    };
+    std::unordered_set<SamplerId> active;
+    active.reserve(channel_state->graphics_sampler_ids.size() +
+                   channel_state->compute_sampler_ids.size());
+    for (const SamplerId id : channel_state->graphics_sampler_ids) {
+        mark_active(active, id);
+    }
+    for (const SamplerId id : channel_state->compute_sampler_ids) {
+        mark_active(active, id);
+    }
+
+    size_t removed = 0;
+    auto& sampler_map = channel_state->samplers;
+    for (auto it = sampler_map.begin(); it != sampler_map.end();) {
+        const SamplerId sampler_id = it->second;
+        if (!sampler_id || sampler_id == CORRUPT_ID) {
+            it = sampler_map.erase(it);
+            continue;
+        }
+        if (active.find(sampler_id) != active.end()) {
+            ++it;
+            continue;
+        }
+        slot_samplers.erase(sampler_id);
+        it = sampler_map.erase(it);
+        ++removed;
+        if (slot_samplers.size() + SAMPLER_GC_SLACK <= budget) {
+            break;
+        }
+    }
+
+    if (removed != 0) {
+        LOG_WARNING(HW_GPU,
+                    "Sampler cache exceeded {} entries on this driver; reclaimed {} inactive samplers",
+                    budget, removed);
+    }
 }
 
 template <class P>

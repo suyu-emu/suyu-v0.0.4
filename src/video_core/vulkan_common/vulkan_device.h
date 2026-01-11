@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <optional>
 #include <set>
 #include <span>
 #include <string>
@@ -324,6 +325,16 @@ public:
     /// Returns the maximum size for shared memory.
     u32 GetMaxComputeSharedMemorySize() const {
         return properties.properties.limits.maxComputeSharedMemorySize;
+    }
+
+    /// Returns the maximum number of dynamic storage buffer descriptors per set.
+    u32 GetMaxDescriptorSetStorageBuffersDynamic() const {
+        return properties.properties.limits.maxDescriptorSetStorageBuffersDynamic;
+    }
+
+    /// Returns the maximum number of dynamic uniform buffer descriptors per set.
+    u32 GetMaxDescriptorSetUniformBuffersDynamic() const {
+        return properties.properties.limits.maxDescriptorSetUniformBuffersDynamic;
     }
 
     /// Returns float control properties of the device.
@@ -744,6 +755,8 @@ public:
         return has_broken_parallel_compiling;
     }
 
+    std::optional<size_t> GetSamplerHeapBudget() const;
+
     /// Returns the vendor name reported from Vulkan.
     std::string_view GetVendorName() const {
         return properties.driver.driverName;
@@ -1040,6 +1053,7 @@ private:
     bool dynamic_state3_alpha_to_coverage{};
     bool dynamic_state3_alpha_to_one{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
+    size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                       ///< Sets per Description Pool
     NvidiaArchitecture nvidia_arch{NvidiaArchitecture::Arch_AmpereOrNewer};

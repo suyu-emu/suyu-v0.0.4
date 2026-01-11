@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <limits>
+
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/buffer_cache/memory_tracker_base.h"
 #include "video_core/buffer_cache/usage_tracker.h"
@@ -94,6 +96,8 @@ public:
 
     bool CanReportMemoryUsage() const;
 
+    u32 GetUniformBufferAlignment() const;
+
     u32 GetStorageBufferAlignment() const;
 
     [[nodiscard]] StagingBufferRef UploadStagingBuffer(size_t size);
@@ -149,6 +153,14 @@ public:
         guest_descriptor_queue.AddTexelBuffer(buffer.View(offset, size, format));
     }
 
+    bool ShouldLimitDynamicStorageBuffers() const {
+        return limit_dynamic_storage_buffers;
+    }
+
+    u32 GetMaxDynamicStorageBuffers() const {
+        return max_dynamic_storage_buffers;
+    }
+
 private:
     void BindBuffer(VkBuffer buffer, u32 offset, u32 size) {
         guest_descriptor_queue.AddBuffer(buffer, offset, size);
@@ -170,6 +182,9 @@ private:
 
     std::unique_ptr<Uint8Pass> uint8_pass;
     QuadIndexedPass quad_index_pass;
+
+    bool limit_dynamic_storage_buffers = false;
+    u32 max_dynamic_storage_buffers = std::numeric_limits<u32>::max();
 };
 
 struct BufferCacheParams {

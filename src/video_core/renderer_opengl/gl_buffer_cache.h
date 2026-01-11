@@ -198,6 +198,10 @@ public:
         return device.CanReportMemoryUsage();
     }
 
+    u32 GetUniformBufferAlignment() const {
+        return static_cast<u32>(device.GetUniformBufferAlignment());
+    }
+
     u32 GetStorageBufferAlignment() const {
         return static_cast<u32>(device.GetShaderStorageBufferAlignment());
     }
