@@ -113,7 +113,9 @@ public:
     BlockDescriptor RegisterBlock(const IR::LocationDescriptor& location_descriptor, CodePtr entrypoint, size_t size);
     void PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg, IR::LocationDescriptor target);
 
+#ifndef NDEBUG
     void EmitVerboseDebuggingOutput(RegAlloc& reg_alloc);
+#endif
     virtual void EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept = 0;
 
     // Patching

@@ -58,7 +58,7 @@ enum class HostLoc : std::uint8_t {
     FirstSpill,
 };
 
-constexpr size_t NonSpillHostLocCount = static_cast<size_t>(HostLoc::FirstSpill);
+constexpr size_t NonSpillHostLocCount = size_t(HostLoc::FirstSpill);
 
 constexpr bool HostLocIsGPR(HostLoc reg) {
     return reg >= HostLoc::RAX && reg <= HostLoc::R15;

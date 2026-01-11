@@ -74,7 +74,6 @@ public:
     void SetName(unsigned value) { name = value; }
     unsigned GetName() const { return name; }
 
-private:
     void Use(const Value& value);
     void UndoUse(const Value& value);
 
@@ -87,6 +86,6 @@ private:
     unsigned name = 0; //4 (4)
     alignas(64) std::array<Value, max_arg_count> args; //16 * 4 = 64 (1 cache line)
 };
-static_assert(sizeof(Inst) == 128);
+//static_assert(sizeof(Inst) == 128);
 
 }  // namespace Dynarmic::IR

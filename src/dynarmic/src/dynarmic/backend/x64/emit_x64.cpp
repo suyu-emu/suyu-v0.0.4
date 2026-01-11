@@ -105,6 +105,7 @@ void EmitX64::PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg, I
     code.mov(dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_rsb_ptr], index_reg.cvt32());
 }
 
+#ifndef NDEBUG
 void EmitX64::EmitVerboseDebuggingOutput(RegAlloc& reg_alloc) {
     code.lea(rsp, ptr[rsp - sizeof(RegisterData)]);
     code.stmxcsr(dword[rsp + offsetof(RegisterData, mxcsr)]);
@@ -134,6 +135,7 @@ void EmitX64::EmitVerboseDebuggingOutput(RegAlloc& reg_alloc) {
     code.ldmxcsr(dword[rsp + offsetof(RegisterData, mxcsr)]);
     code.add(rsp, sizeof(RegisterData));
 }
+#endif
 
 void EmitX64::EmitPushRSB(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);

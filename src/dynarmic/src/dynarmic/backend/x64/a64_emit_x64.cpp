@@ -76,10 +76,6 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
     }
 
     code.EnableWriting();
-    SCOPE_EXIT {
-        code.DisableWriting();
-    };
-
     const boost::container::static_vector<HostLoc, 28> gpr_order = [this] {
         boost::container::static_vector<HostLoc, 28> gprs{any_gpr};
         if (conf.fastmem_pointer) {
@@ -141,9 +137,10 @@ a64_branch:
         (this->*a64_handlers[size_t(opcode) - std::size(opcode_handlers)])(ctx, &inst);
 finish_this_inst:
         ctx.reg_alloc.EndOfAllocScope();
-        if (conf.very_verbose_debugging_output) [[unlikely]] {
+#ifndef NDEBUG
+        if (conf.very_verbose_debugging_output)
             EmitVerboseDebuggingOutput(reg_alloc);
-        }
+#endif
     }
 
     reg_alloc.AssertNoMoreUses();
@@ -167,7 +164,9 @@ finish_this_inst:
     const auto range = boost::icl::discrete_interval<u64>::closed(descriptor.PC(), end_location.PC() - 1);
     block_ranges.AddRange(range, descriptor);
 
-    return RegisterBlock(descriptor, entrypoint, size);
+    auto bdesc = RegisterBlock(descriptor, entrypoint, size);
+    code.DisableWriting();
+    return bdesc;
 }
 
 void A64EmitX64::ClearCache() {

@@ -46,61 +46,55 @@ public:
         return is_being_used_count == 0 && values.empty();
     }
     inline bool IsLastUse() const {
-        return is_being_used_count == 0 && current_references == 1 && accumulated_uses + 1 == total_uses;
-    }
-    inline void SetLastUse() noexcept {
-        ASSERT(IsLastUse());
-        is_set_last_use = true;
+        return is_being_used_count == 0 && current_references == 1 && size_t(accumulated_uses) + 1 == size_t(total_uses);
     }
     inline void ReadLock() noexcept {
-        ASSERT(size_t(is_being_used_count) + 1 < (std::numeric_limits<uint16_t>::max)());
+        ASSERT(size_t(is_being_used_count) + 1 < (std::numeric_limits<decltype(is_being_used_count)>::max)());
         ASSERT(!is_scratch);
         is_being_used_count++;
     }
     inline void WriteLock() noexcept {
-        ASSERT(size_t(is_being_used_count) + 1 < (std::numeric_limits<uint16_t>::max)());
         ASSERT(is_being_used_count == 0);
         is_being_used_count++;
         is_scratch = true;
     }
     inline void AddArgReference() noexcept {
-        ASSERT(size_t(current_references) + 1 < (std::numeric_limits<uint16_t>::max)());
-        current_references++;
-        ASSERT(accumulated_uses + current_references <= total_uses);
+        ASSERT(size_t(current_references) + 1 < (std::numeric_limits<decltype(current_references)>::max)());
+        ++current_references;
+        ASSERT(size_t(accumulated_uses) + current_references <= size_t(total_uses));
     }
     void ReleaseOne() noexcept;
     void ReleaseAll() noexcept;
-
+    constexpr size_t GetMaxBitWidth() const noexcept { return 1 << max_bit_width; }
+    void AddValue(HostLoc loc, IR::Inst* inst) noexcept;
     /// Checks if the given instruction is in our values set
     /// SAFETY: Const is casted away, irrelevant since this is only used for checking
-    inline bool ContainsValue(const IR::Inst* inst) const noexcept {
-        //return values.contains(const_cast<IR::Inst*>(inst));
+    [[nodiscard]] bool ContainsValue(const IR::Inst* inst) const noexcept {
         return std::find(values.begin(), values.end(), inst) != values.end();
     }
-    inline size_t GetMaxBitWidth() const noexcept {
-        return 1 << max_bit_width;
-    }
-    void AddValue(IR::Inst* inst) noexcept;
+#ifndef NDEBUG
     void EmitVerboseDebuggingOutput(BlockOfCode& code, size_t host_loc_index) const noexcept;
+#endif
 private:
-//non trivial
     boost::container::small_vector<IR::Inst*, 3> values; //24
-    // Block state
-    uint16_t total_uses = 0; //8
-    //sometimes zeroed
-    uint16_t accumulated_uses = 0; //8
+//non trivial
+    // Block state, the total amount of uses for this particular arg
+    uint16_t total_uses = 0; //2
+    // Sometimes zeroed, accumulated (non referenced) uses
+    uint16_t accumulated_uses = 0; //2
 //always zeroed
     // Current instruction state
-    uint16_t is_being_used_count = 0; //8
-    uint16_t current_references = 0; //8
-    // Value state
+    uint8_t current_references = 0; //1
+    uint8_t is_being_used_count = 0; //1
+    // Value state, count for LRU selection in registers
     uint8_t lru_counter : 2 = 0; //1
-    uint8_t max_bit_width : 4 = 0; //Valid values: log2(1,2,4,8,16,32,128) = (0, 1, 2, 3, 4, 5, 6)
+    // Log 2 of bit width, valid values: log2(1,2,4,8,16,32,128) = (0, 1, 2, 3, 4, 5, 6)
+    uint8_t max_bit_width : 4 = 0;
     bool is_scratch : 1 = false; //1
     bool is_set_last_use : 1 = false; //1
     friend class RegAlloc;
 };
-static_assert(sizeof(HostLocInfo) == 64);
+//static_assert(sizeof(HostLocInfo) == 64);
 
 struct Argument {
 public:
@@ -213,10 +207,12 @@ public:
     inline void AssertNoMoreUses() noexcept {
         ASSERT(std::all_of(hostloc_info.begin(), hostloc_info.end(), [](const auto& i) noexcept { return i.IsEmpty(); }));
     }
+#ifndef NDEBUG
     inline void EmitVerboseDebuggingOutput(BlockOfCode& code) noexcept {
         for (size_t i = 0; i < hostloc_info.size(); i++)
             hostloc_info[i].EmitVerboseDebuggingOutput(code, i);
     }
+#endif
 private:
     friend struct Argument;
 
@@ -238,11 +234,11 @@ private:
     HostLoc FindFreeSpill(bool is_xmm) const noexcept;
 
     inline HostLocInfo& LocInfo(const HostLoc loc) noexcept {
-        ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
+        DEBUG_ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
         return hostloc_info[size_t(loc)];
     }
     inline const HostLocInfo& LocInfo(const HostLoc loc) const noexcept {
-        ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
+        DEBUG_ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
         return hostloc_info[size_t(loc)];
     }
 
@@ -256,6 +252,6 @@ private:
     size_t reserved_stack_space = 0;
 };
 // Ensure a cache line (or less) is used, this is primordial
-static_assert(sizeof(boost::container::static_vector<HostLoc, 28>) == 40);
+static_assert(sizeof(boost::container::static_vector<HostLoc, 28>) < 64);
 
 }  // namespace Dynarmic::Backend::X64

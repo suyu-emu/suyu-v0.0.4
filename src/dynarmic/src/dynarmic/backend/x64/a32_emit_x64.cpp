@@ -102,9 +102,6 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
     }
 
     code.EnableWriting();
-    SCOPE_EXIT {
-        code.DisableWriting();
-    };
 
     const boost::container::static_vector<HostLoc, 28> gpr_order = [this] {
         boost::container::static_vector<HostLoc, 28> gprs{any_gpr};
@@ -126,37 +123,31 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 
     EmitCondPrelude(ctx);
 
-    auto const loop_all_inst = [this, &block, &ctx](auto const func) {
-        for (auto iter = block.begin(); iter != block.end(); ++iter) [[likely]] {
-            auto* inst = &*iter;
-            // Call the relevant Emit* member function.
-            switch (inst->GetOpcode()) {
+    for (auto iter = block.begin(); iter != block.end(); ++iter) [[likely]] {
+        auto* inst = &*iter;
+        // Call the relevant Emit* member function.
+        switch (inst->GetOpcode()) {
 #define OPCODE(name, type, ...)                     \
-            case IR::Opcode::name:                  \
-                A32EmitX64::Emit##name(ctx, inst);  \
-                break;
+        case IR::Opcode::name:                  \
+            A32EmitX64::Emit##name(ctx, inst);  \
+            break;
 #define A32OPC(name, type, ...)                     \
-            case IR::Opcode::A32##name:             \
-                A32EmitX64::EmitA32##name(ctx, inst);\
-                break;
+        case IR::Opcode::A32##name:             \
+            A32EmitX64::EmitA32##name(ctx, inst);\
+            break;
 #define A64OPC(...)
 #include "dynarmic/ir/opcodes.inc"
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
-            default:
-                UNREACHABLE();
-            }
-            reg_alloc.EndOfAllocScope();
-            func(reg_alloc);
+        default:
+            UNREACHABLE();
         }
-    };
-    if (!conf.very_verbose_debugging_output) [[likely]] {
-        loop_all_inst([](auto&) { /*noop*/ });
-    } else [[unlikely]] {
-        loop_all_inst([this](auto& reg_alloc) {
+        reg_alloc.EndOfAllocScope();
+#ifndef NDEBUG
+        if (conf.very_verbose_debugging_output)
             EmitVerboseDebuggingOutput(reg_alloc);
-        });
+#endif
     }
 
     reg_alloc.AssertNoMoreUses();
@@ -172,7 +163,7 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
     }
     code.int3();
 
-    const size_t size = static_cast<size_t>(code.getCurr() - entrypoint);
+    const size_t size = size_t(code.getCurr() - entrypoint);
 
     const A32::LocationDescriptor descriptor{block.Location()};
     const A32::LocationDescriptor end_location{block.EndLocation()};
@@ -180,7 +171,9 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
     const auto range = boost::icl::discrete_interval<u32>::closed(descriptor.PC(), end_location.PC() - 1);
     block_ranges.AddRange(range, descriptor);
 
-    return RegisterBlock(descriptor, entrypoint, size);
+    auto const bdesc = RegisterBlock(descriptor, entrypoint, size);
+    code.DisableWriting();
+    return bdesc;
 }
 
 void A32EmitX64::ClearCache() {

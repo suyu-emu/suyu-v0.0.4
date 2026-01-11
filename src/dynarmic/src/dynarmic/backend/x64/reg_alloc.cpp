@@ -56,26 +56,23 @@ static inline bool IsValuelessType(const IR::Type type) noexcept {
 }
 
 void HostLocInfo::ReleaseOne() noexcept {
-    is_being_used_count--;
+    ASSERT(is_being_used_count > 0);
+    --is_being_used_count;
     is_scratch = false;
-
-    if (current_references == 0)
-        return;
-
-    ASSERT(size_t(accumulated_uses) + 1 < (std::numeric_limits<uint16_t>::max)());
-    accumulated_uses++;
-    current_references--;
-
-    if (current_references == 0)
-        ReleaseAll();
+    if (current_references > 0) {
+        ASSERT(size_t(accumulated_uses) + 1 < (std::numeric_limits<decltype(accumulated_uses)>::max)());
+        ++accumulated_uses;
+        --current_references;
+        if (current_references == 0)
+            ReleaseAll();
+    }
 }
 
 void HostLocInfo::ReleaseAll() noexcept {
+    ASSERT(size_t(accumulated_uses) + current_references < (std::numeric_limits<decltype(accumulated_uses)>::max)());
     accumulated_uses += current_references;
     current_references = 0;
-
     is_set_last_use = false;
-
     if (total_uses == accumulated_uses) {
         values.clear();
         accumulated_uses = 0;
@@ -87,17 +84,19 @@ void HostLocInfo::ReleaseAll() noexcept {
     is_scratch = false;
 }
 
-void HostLocInfo::AddValue(IR::Inst* inst) noexcept {
+void HostLocInfo::AddValue(HostLoc loc, IR::Inst* inst) noexcept {
     if (is_set_last_use) {
         is_set_last_use = false;
         values.clear();
     }
     values.push_back(inst);
-    ASSERT(size_t(total_uses) + inst->UseCount() < (std::numeric_limits<uint16_t>::max)());
+
+    ASSERT(size_t(total_uses) + inst->UseCount() < (std::numeric_limits<decltype(total_uses)>::max)());
     total_uses += inst->UseCount();
     max_bit_width = std::max<uint8_t>(max_bit_width, std::countr_zero(GetBitWidth(inst->GetType())));
 }
 
+#ifndef NDEBUG
 void HostLocInfo::EmitVerboseDebuggingOutput(BlockOfCode& code, size_t host_loc_index) const noexcept {
     using namespace Xbyak::util;
     for (auto const value : values) {
@@ -108,6 +107,7 @@ void HostLocInfo::EmitVerboseDebuggingOutput(BlockOfCode& code, size_t host_loc_
         code.CallFunction(PrintVerboseDebuggingOutputLine);
     }
 }
+#endif
 
 bool Argument::FitsInImmediateU32() const noexcept {
     if (!IsImmediate())
@@ -197,12 +197,13 @@ RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(const IR::Inst* inst) noexcept 
         Argument{},
         Argument{}
     };
-    for (size_t i = 0; i < inst->NumArgs(); i++) {
+    for (size_t i = 0; i < inst->NumArgs() && i < 4; i++) {
         const auto arg = inst->GetArg(i);
         ret[i].value = arg;
         if (!arg.IsImmediate() && !IsValuelessType(arg.GetType())) {
-            ASSERT(ValueLocation(arg.GetInst()) && "argument must already been defined");
-            LocInfo(*ValueLocation(arg.GetInst())).AddArgReference();
+            auto const loc = ValueLocation(arg.GetInst());
+            ASSERT(loc && "argument must already been defined");
+            LocInfo(*loc).AddArgReference();
         }
     }
     return ret;
@@ -211,9 +212,9 @@ RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(const IR::Inst* inst) noexcept 
 void RegAlloc::RegisterPseudoOperation(const IR::Inst* inst) noexcept {
     ASSERT(IsValueLive(inst) || !inst->HasUses());
     for (size_t i = 0; i < inst->NumArgs(); i++) {
-        const auto arg = inst->GetArg(i);
+        auto const arg = inst->GetArg(i);
         if (!arg.IsImmediate() && !IsValuelessType(arg.GetType())) {
-            if (const auto loc = ValueLocation(arg.GetInst())) {
+            if (auto const loc = ValueLocation(arg.GetInst())) {
                 // May not necessarily have a value (e.g. CMP variant of Sub32).
                 LocInfo(*loc).AddArgReference();
             }
@@ -262,9 +263,8 @@ HostLoc RegAlloc::UseImpl(BlockOfCode& code, IR::Value use_value, const boost::c
         return LoadImmediate(code, use_value, ScratchImpl(code, desired_locations));
     }
 
-    const auto* use_inst = use_value.GetInst();
-    const HostLoc current_location = *ValueLocation(use_inst);
-    const size_t max_bit_width = LocInfo(current_location).GetMaxBitWidth();
+    auto const* use_inst = use_value.GetInst();
+    HostLoc const current_location = *ValueLocation(use_inst);
 
     const bool can_use_current_location = std::find(desired_locations.begin(), desired_locations.end(), current_location) != desired_locations.end();
     if (can_use_current_location) {
@@ -276,7 +276,8 @@ HostLoc RegAlloc::UseImpl(BlockOfCode& code, IR::Value use_value, const boost::c
         return UseScratchImpl(code, use_value, desired_locations);
     }
 
-    const HostLoc destination_location = SelectARegister(desired_locations);
+    size_t const max_bit_width = LocInfo(current_location).GetMaxBitWidth();
+    HostLoc const destination_location = SelectARegister(desired_locations);
     if (max_bit_width > HostLocBitWidth(destination_location)) {
         return UseScratchImpl(code, use_value, desired_locations);
     } else if (CanExchange(destination_location, current_location)) {
@@ -300,10 +301,10 @@ HostLoc RegAlloc::UseScratchImpl(BlockOfCode& code, IR::Value use_value, const b
 
     const bool can_use_current_location = std::find(desired_locations.begin(), desired_locations.end(), current_location) != desired_locations.end();
     if (can_use_current_location && !LocInfo(current_location).IsLocked()) {
-        if (!LocInfo(current_location).IsLastUse()) {
-            MoveOutOfTheWay(code, current_location);
+        if (LocInfo(current_location).IsLastUse()) {
+            LocInfo(current_location).is_set_last_use = true;
         } else {
-            LocInfo(current_location).SetLastUse();
+            MoveOutOfTheWay(code, current_location);
         }
         LocInfo(current_location).WriteLock();
         return current_location;
@@ -455,29 +456,31 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
 
 std::optional<HostLoc> RegAlloc::ValueLocation(const IR::Inst* value) const noexcept {
     for (size_t i = 0; i < hostloc_info.size(); i++)
-        if (hostloc_info[i].ContainsValue(value))
+        if (hostloc_info[i].ContainsValue(value)) {
+            //for (size_t j = 0; j < hostloc_info.size(); ++j)
+            //    ASSERT((i == j || !hostloc_info[j].ContainsValue(value)) && "duplicate defs");
             return HostLoc(i);
+        }
     return std::nullopt;
 }
 
 void RegAlloc::DefineValueImpl(BlockOfCode& code, IR::Inst* def_inst, HostLoc host_loc) noexcept {
     ASSERT(!ValueLocation(def_inst) && "def_inst has already been defined");
-    LocInfo(host_loc).AddValue(def_inst);
+    LocInfo(host_loc).AddValue(host_loc, def_inst);
+    ASSERT(*ValueLocation(def_inst) == host_loc);
 }
 
 void RegAlloc::DefineValueImpl(BlockOfCode& code, IR::Inst* def_inst, const IR::Value& use_inst) noexcept {
     ASSERT(!ValueLocation(def_inst) && "def_inst has already been defined");
-
     if (use_inst.IsImmediate()) {
         const HostLoc location = ScratchImpl(code, gpr_order);
         DefineValueImpl(code, def_inst, location);
         LoadImmediate(code, use_inst, location);
-        return;
+    } else {
+        ASSERT(ValueLocation(use_inst.GetInst()) && "use_inst must already be defined");
+        const HostLoc location = *ValueLocation(use_inst.GetInst());
+        DefineValueImpl(code, def_inst, location);
     }
-
-    ASSERT(ValueLocation(use_inst.GetInst()) && "use_inst must already be defined");
-    const HostLoc location = *ValueLocation(use_inst.GetInst());
-    DefineValueImpl(code, def_inst, location);
 }
 
 void RegAlloc::Move(BlockOfCode& code, HostLoc to, HostLoc from) noexcept {

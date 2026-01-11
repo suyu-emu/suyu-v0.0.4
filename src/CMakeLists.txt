@@ -7,8 +7,7 @@
 include_directories(.)
 
 # Dynarmic
-if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64))
-    set(DYNARMIC_IGNORE_ASSERTS ON)
+if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     add_subdirectory(dynarmic)
     add_library(dynarmic::dynarmic ALIAS dynarmic)
 endif()
