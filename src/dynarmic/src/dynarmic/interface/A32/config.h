@@ -168,6 +168,9 @@ struct UserConfig {
     /// If the configured value is 3, all pointers will be forcefully aligned to 8 bytes.
     std::int32_t page_table_pointer_mask_bits = 0;
 
+    // Log2 of the size per page entry, value should be either 3 or 4
+    std::size_t page_table_log2_stride = 3;
+
     /// Select the architecture version to use.
     /// There are minor behavioural differences between versions.
     ArchVersion arch_version = ArchVersion::v8;

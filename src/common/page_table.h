@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -75,7 +78,7 @@ struct PageTable {
 
         /// Write a page pointer and type pair atomically
         void Store(uintptr_t pointer, PageType type) noexcept {
-            raw.store(pointer | static_cast<uintptr_t>(type));
+            raw.store(pointer | uintptr_t(type));
         }
 
         /// Unpack a pointer from a page info raw representation
@@ -124,18 +127,20 @@ struct PageTable {
             return false;
         }
 
-        *out_phys_addr = backing_addr[virt_addr / page_size] + GetInteger(virt_addr);
+        *out_phys_addr = entries[virt_addr / page_size].addr + GetInteger(virt_addr);
         return true;
     }
 
-    /**
-     * Vector of memory pointers backing each page. An entry can only be non-null if the
-     * corresponding attribute element is of type `Memory`.
-     */
-    VirtualBuffer<PageInfo> pointers;
-    VirtualBuffer<u64> blocks;
-
-    VirtualBuffer<u64> backing_addr;
+    /// Vector of memory pointers backing each page. An entry can only be non-null if the
+    /// corresponding attribute element is of type `Memory`.
+    struct PageEntryData {
+        PageInfo ptr;
+        u64 block;
+        u64 addr;
+        u64 padding;
+    };
+    VirtualBuffer<PageEntryData> entries;
+    static_assert(sizeof(PageEntryData) == 32);
 
     std::size_t current_address_space_width_in_bits{};
 

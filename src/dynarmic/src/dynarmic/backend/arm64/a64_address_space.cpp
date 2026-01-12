@@ -547,6 +547,7 @@ EmitConfig A64AddressSpace::GetEmitConfig() {
         .page_table_pointer = std::bit_cast<u64>(conf.page_table),
         .page_table_address_space_bits = conf.page_table_address_space_bits,
         .page_table_pointer_mask_bits = conf.page_table_pointer_mask_bits,
+        .page_table_log2_stride = conf.page_table_log2_stride,
         .silently_mirror_page_table = conf.silently_mirror_page_table,
         .absolute_offset_page_table = conf.absolute_offset_page_table,
         .detect_misaligned_access_via_page_table = conf.detect_misaligned_access_via_page_table,

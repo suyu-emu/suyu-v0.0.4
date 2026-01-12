@@ -186,11 +186,13 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
     if (page_table) {
         constexpr size_t PageBits = 12;
         constexpr size_t NumPageTableEntries = 1 << (32 - PageBits);
+        constexpr size_t PageLog2Stride = 5;
+        static_assert(1 << PageLog2Stride == sizeof(Common::PageTable::PageEntryData));
 
-        config.page_table = reinterpret_cast<std::array<std::uint8_t*, NumPageTableEntries>*>(
-            page_table->pointers.data());
-        config.absolute_offset_page_table = true;
+        config.page_table = reinterpret_cast<std::array<std::uint8_t*, NumPageTableEntries>*>(page_table->entries.data());
         config.page_table_pointer_mask_bits = Common::PageTable::ATTRIBUTE_BITS;
+        config.page_table_log2_stride = PageLog2Stride;
+        config.absolute_offset_page_table = true;
         config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
         config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
