@@ -68,8 +68,8 @@ static int memfd_create(const char* name, unsigned int flags) {
 
 namespace Common {
 
-constexpr size_t PageAlignment = 0x1000;
-constexpr size_t HugePageSize = 0x200000;
+[[maybe_unused]] constexpr size_t PageAlignment = 0x1000;
+[[maybe_unused]] constexpr size_t HugePageSize = 0x200000;
 
 #ifdef _WIN32
 
@@ -692,30 +692,16 @@ private:
 
 #endif // ^^^ POSIX ^^^
 
-HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_)
-    : backing_size(backing_size_), virtual_size(virtual_size_) {
-    try {
-        // Try to allocate a fastmem arena.
-        // The implementation will fail with std::bad_alloc on errors.
-        impl =
-            std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment),
-                                               AlignUp(virtual_size, PageAlignment) + HugePageSize);
-        backing_base = impl->backing_base;
-        virtual_base = impl->virtual_base;
-
-        if (virtual_base) {
-            // Ensure the virtual base is aligned to the L2 block size.
-            virtual_base = reinterpret_cast<u8*>(
-                Common::AlignUp(reinterpret_cast<uintptr_t>(virtual_base), HugePageSize));
-            virtual_base_offset = virtual_base - impl->virtual_base;
-        }
-
-    } catch (const std::bad_alloc&) {
-        LOG_CRITICAL(HW_Memory,
-                     "Fastmem unavailable, falling back to VirtualBuffer for memory allocation");
-        fallback_buffer = std::make_unique<Common::VirtualBuffer<u8>>(backing_size);
-        backing_base = fallback_buffer->data();
-        virtual_base = nullptr;
+HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_) : backing_size(backing_size_), virtual_size(virtual_size_) {
+    // Try to allocate a fastmem arena.
+    // The implementation will fail with std::bad_alloc on errors.
+    impl = std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment), AlignUp(virtual_size, PageAlignment) + HugePageSize);
+    backing_base = impl->backing_base;
+    virtual_base = impl->virtual_base;
+    if (virtual_base) {
+        // Ensure the virtual base is aligned to the L2 block size.
+        virtual_base = reinterpret_cast<u8*>(Common::AlignUp(uintptr_t(virtual_base), HugePageSize));
+        virtual_base_offset = virtual_base - impl->virtual_base;
     }
 }
 

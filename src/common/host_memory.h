@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -79,9 +82,6 @@ private:
     u8* backing_base{};
     u8* virtual_base{};
     size_t virtual_base_offset{};
-
-    // Fallback if fastmem is not supported on this platform
-    std::unique_ptr<Common::VirtualBuffer<u8>> fallback_buffer;
 };
 
 } // namespace Common
