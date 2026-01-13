@@ -9,31 +9,27 @@ This guide will walk you through adding a new boolean toggle setting to Eden's c
 
 ## Index
 
-1. [Step 1 - src/common/settings](#step-1-src-common-settings)
-2. [Qt's (PC) Steps](#qt-pc-steps)
+1. [Step 1 - Common Setting](#step-1-common-setting)
+2. [Step 2 - Qt Toggle](#step-2-qt-toggle)
+3. [Step 3 - Kotlin (Android)](#step-3-kotlin-android)
 
-   * [Step 2 - src/qt_common/config/shared_translation.cpp](#step-2-src-qt_common-config-shared_translation-cpp)
-3. [ Kotlin's (Android) Steps](#android-steps)
-
-   * [Step 3 - BooleanSetting.kt](#step-3-src-android-app-src-main-java-org-yuzu-yuzu_emu-features-settings-model-booleansetting-kt)
-   * [Step 4 - SettingsItem.kt](#step-4-src-android-app-src-main-java-org-yuzu-yuzu_emu-features-settings-model-view-settingsitem-kt)
-   * [Step 5 - SettingsFragmentPresenter.kt](#step-5-src-android-app-src-main-java-org-yuzu-yuzu_emu-features-settings-ui-settingsfragmentpresenter-kt)
-   * [Step 6 - strings.xml](#step-6-src-android-app-src-main-res-values-strings-xml)
-4. [Step 7 - Use Your Toggle](#step-7-use-your-toggle)
+   * [Step 3.1 - BooleanSetting.kt](#step-3-1-booleansetting-kt)
+   * [Step 3.2 - SettingsItem.kt](#step-3-2-settingsitem-kt)
+   * [Step 3.3 - SettingsFragmentPresenter.kt](#step-3-3-settingsfragmentpresenter-kt)
+   * [Step 3.4 - Localization](#step-3-4-localization)
+4. [Step 4 - Use Your Toggle](#step-4-use-your-toggle)
 5. [Best Practices](#best-practices)
 
 ---
 
-## Step 1 - src/common/settings.
+## Step 1 - Common Setting
 
-Firstly add your desired toggle inside `setting.h`,
-Example:
+Firstly add your desired toggle:
 
-```
+Example: `src/common/setting.h`
+```cpp
 SwitchableSetting<bool> your_setting_name{linkage, false, "your_setting_name", Category::RendererExtensions};
 ```
-
-NOTE - If you wish for your toggle to be on by default then change `false` to `true` after `linkage,`.
 
 ### Remember to add your toggle to the appropriate category, for example:
 
@@ -45,17 +41,17 @@ Common Categories:
 * Category::System
 * Category::Core
 
+> [!WARNING]
+> If you wish for your toggle to be `on by default` then change `false` to `true` after `linkage,`.
+
 ---
 
-## Qt (PC) Steps
+## Step 2 - Qt Toggle
 
-### Step 2 - src/qt_common/config/shared_translation.cpp
+Add the toggle to the Qt UI, where you wish for it to appear and place it there.
 
-Now you can add the toggle to the QT (PC) UI inside `shared_translation.cpp`,
-Find where you wish for it to appear and place it there.
-Example:
-
-```
+Example: `src/qt_common/config/shared_translation.cpp`
+```cpp
 INSERT(Settings,
        your_setting_name,
        tr("Your Setting Display Name"),
@@ -72,25 +68,29 @@ INSERT(Settings,
 
 ---
 
-## Android Steps
+## Step 3 - Kotlin (Android)
 
-### Step 3 - src/android/app/src/main/java/org/yuzu/yuzu_emu/features/settings/model/BooleanSetting.kt
+### Step 3.1 - BooleanSetting.kt
 
-Now add it inside `BooleanSetting.kt` where it should be in the settings.
-Example:
+Add where it should be in the settings.
 
-```
+Example: `src/android/app/src/main/java/org/yuzu/yuzu_emu/features/settings/model/BooleanSetting.kt`
+```kts
 RENDERER_YOUR_SETTING_NAME("your_setting_name"),
 ```
 
-Remember to make sure the naming of the prefix matches the desired category.
+### Make sure to:
 
-### Step 4 - src/android/app/src/main/java/org/yuzu/yuzu_emu/features/settings/model/view/SettingsItem.kt
+* Ensure the prefix naming matches the intended category.
 
-Now you may add the toggle to the Kotlin (Android) UI inside `SettingsItem.kt`.
-Example:
+---
 
-```
+### Step 3.2 - SettingsItem.kt
+
+Add the toggle to the Kotlin (Android) UI
+
+Example: `src/android/app/src/main/java/org/yuzu/yuzu_emu/features/settings/model/view/SettingsItem.kt`
+```kts
 put(
     SwitchSetting(
         BooleanSetting.RENDERER_YOUR_SETTING_NAME,
@@ -100,36 +100,41 @@ put(
 )
 ```
 
-### Step 5 - src/android/app/src/main/java/org/yuzu/yuzu_emu/features/settings/ui/SettingsFragmentPresenter.kt
+---
 
-Now add your setting to the correct location inside `SettingsFragmentPresenter.kt` within the right category.
-Example:
+### Step 3.3 - SettingsFragmentPresenter.kt
 
-```
+Add your setting within the right category.
+
+Example: `src/android/app/src/main/java/org/yuzu/yuzu_emu/features/settings/ui/SettingsFragmentPresenter.kt`
+```kts
 add(BooleanSetting.RENDERER_YOUR_SETTING_NAME.key)
 ```
 
-Remember, placing matters! Settings appear in the order of where you add them.
+> [!WARNING]
+> Remember, placing matters! Settings appear in the order of where you add them.
 
-### Step 6 - src/android/app/src/main/res/values/strings.xml
+---
 
-Now add your setting and description to `strings.xml` in the appropriate place.
-Example:
+### Step 3.4 - Localization
 
-```
+Add your setting and description in the appropriate place.
+
+Example: `src/android/app/src/main/res/values/strings.xml`
+```xml
 <string name="your_setting_name">Your Setting Display Name</string>
 <string name="your_setting_name_description">Detailed description of what this setting does. Explain any caveats, requirements, or warnings here.</string>
 ```
 
 ---
 
-## Step 7 - Use Your Toggle!
+## Step 4 - Use Your Toggle!
 
 Now the UI part is done find a place in the code for the toggle,
 And use it to your heart's desire!
-Example:
 
-```
+Example:
+```cpp
 const bool your_value = Settings::values.your_setting_name.GetValue();
 
 if (your_value) {

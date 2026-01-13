@@ -1130,6 +1130,10 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_logSettings(JNIEnv* env, jobject jobj
     Settings::LogSettings();
 }
 
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_getDebugKnobAt(JNIEnv* env, jobject jobj, jint index) {
+    return static_cast<jboolean>(Settings::getDebugKnobAt(static_cast<u8>(index)));
+}
+
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_run(JNIEnv* env, jobject jobj, jstring j_path,
                                                jint j_program_index,
                                                jboolean j_frontend_initiated) {

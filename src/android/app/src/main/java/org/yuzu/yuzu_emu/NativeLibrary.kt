@@ -200,6 +200,8 @@ object NativeLibrary {
 
     external fun logSettings()
 
+    external fun getDebugKnobAt(index: Int): Boolean
+
     /**
      * Returns Vulkan driver version / API version / GPU model
      */

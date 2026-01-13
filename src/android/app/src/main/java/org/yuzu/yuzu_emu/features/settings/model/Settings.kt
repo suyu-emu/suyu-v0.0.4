@@ -34,6 +34,10 @@ object Settings {
     fun getPlayerString(player: Int): String =
         YuzuApplication.appContext.getString(R.string.preferences_player, player)
 
+    fun getDebugKnobAt(index: Int): Boolean {
+        return org.yuzu.yuzu_emu.NativeLibrary.getDebugKnobAt(index)
+    }
+
     const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
     const val PREF_SHOULD_SHOW_DRIVER_WARNING = "ShouldShowDriverWarning"
     const val PREF_MEMORY_WARNING_SHOWN = "MemoryWarningShown"

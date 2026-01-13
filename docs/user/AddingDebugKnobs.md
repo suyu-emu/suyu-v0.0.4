@@ -38,6 +38,7 @@ Common advantages recap:
 Use the `Settings::getDebugKnobAt(u8 i)` function to check if a specific bit is set:
 
 ```cpp
+//cpp side
 #include "common/settings.h"
 
 // Check if bit 0 is set
@@ -45,6 +46,14 @@ bool feature_enabled = Settings::getDebugKnobAt(0);
 
 // Check if bit 15 is set
 bool another_feature = Settings::getDebugKnobAt(15);
+```
+
+```kts
+//kotlin side
+import org.yuzu.yuzu_emu.features.settings.model.Settings
+
+// Check if bit x is set
+bool feature_enabled = Settings.getDebugKnobAt(x); //x as integer from 0 to 15
 ```
 
 The function returns `true` if the specified bit (0-15) is set in the `debug_knobs` value, `false` otherwise.
