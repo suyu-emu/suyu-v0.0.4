@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,12 +17,15 @@
 #include "video_core/texture_cache/types.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/texture_cache/accelerated_swizzle.h"
 
 namespace VideoCommon {
 struct SwizzleParameters;
 }
 
 namespace Vulkan {
+
+using VideoCommon::Accelerated::BlockLinearSwizzle3DParams;
 
 class Device;
 class StagingBufferPool;
@@ -130,6 +136,34 @@ private:
     ComputePassDescriptorQueue& compute_pass_descriptor_queue;
     MemoryAllocator& memory_allocator;
 };
+
+class BlockLinearUnswizzle3DPass final : public ComputePass {
+public:
+    explicit BlockLinearUnswizzle3DPass(const Device& device_, Scheduler& scheduler_,
+                             DescriptorPool& descriptor_pool_,
+                             StagingBufferPool& staging_buffer_pool_,
+                             ComputePassDescriptorQueue& compute_pass_descriptor_queue_);
+    ~BlockLinearUnswizzle3DPass();
+
+    void Unswizzle(Image& image,
+                   const StagingBufferRef& swizzled,
+                   std::span<const VideoCommon::SwizzleParameters> swizzles,
+                   u32 z_start, u32 z_count);
+
+    void UnswizzleChunk(
+        Image& image,
+        const StagingBufferRef& swizzled,
+        const VideoCommon::SwizzleParameters& sw,
+        const BlockLinearSwizzle3DParams& params,
+        u32 blocks_x, u32 blocks_y,
+        u32 z_start, u32 z_count);
+
+private:
+    Scheduler& scheduler;
+    StagingBufferPool& staging_buffer_pool;
+    ComputePassDescriptorQueue& compute_pass_descriptor_queue;
+};
+
 
 class MSAACopyPass final : public ComputePass {
 public:

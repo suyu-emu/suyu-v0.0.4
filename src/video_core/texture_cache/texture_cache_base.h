@@ -129,6 +129,17 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
     using AsyncBuffer = typename P::AsyncBuffer;
     using BufferType = typename P::BufferType;
 
+    struct PendingUnswizzle {
+        ImageId image_id;
+        VideoCommon::ImageInfo info;
+        size_t current_offset = 0;
+        size_t total_size = 0;
+        AsyncBuffer staging_buffer;
+        size_t last_submitted_offset = 0;
+        size_t bytes_per_slice;
+        bool initialized = false;
+    };
+
     struct BlitImages {
         ImageId dst_id;
         ImageId src_id;
@@ -433,6 +444,9 @@ private:
     void TrimInactiveSamplers(size_t budget);
     std::optional<size_t> QuerySamplerBudget() const;
 
+    void QueueAsyncUnswizzle(Image& image, ImageId image_id);
+    void TickAsyncUnswizzle();
+
     Runtime& runtime;
 
     Tegra::MaxwellDeviceMemoryManager& device_memory;
@@ -453,6 +467,10 @@ private:
     u64 minimum_memory;
     u64 expected_memory;
     u64 critical_memory;
+    bool lowmemorydevice = false;
+    size_t gpu_unswizzle_maxsize = 0;
+    size_t swizzle_chunk_size = 0;
+    u32 swizzle_slices_per_batch = 0;
 
     struct BufferDownload {
         GPUVAddr address;
@@ -507,6 +525,9 @@ private:
 
     Common::ThreadWorker texture_decode_worker{1, "TextureDecoder"};
     std::vector<std::unique_ptr<AsyncDecodeContext>> async_decodes;
+
+    std::deque<PendingUnswizzle> unswizzle_queue;
+    u8 current_unswizzle_frame;
 
     // Join caching
     boost::container::small_vector<ImageId, 4> join_overlap_ids;

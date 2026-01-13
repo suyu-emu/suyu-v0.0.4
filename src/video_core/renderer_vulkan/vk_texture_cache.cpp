@@ -24,12 +24,14 @@
 #include "video_core/renderer_vulkan/vk_render_pass_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
+#include "video_core/surface.h"
 #include "video_core/texture_cache/formatter.h"
 #include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/util.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/textures/decoders.h"
 
 namespace Vulkan {
 
@@ -878,14 +880,51 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
             }
         }
     }
+
+    bl3d_unswizzle_pass.emplace(device, scheduler, descriptor_pool,
+                            staging_buffer_pool, compute_pass_descriptor_queue);
+
+    // --- Create swizzle table buffer ---
+    {
+        auto table = Tegra::Texture::MakeSwizzleTable();
+
+        swizzle_table_size = static_cast<VkDeviceSize>(table.size() * sizeof(table[0]));
+
+        auto staging = staging_buffer_pool.Request(swizzle_table_size, MemoryUsage::Upload);
+        std::memcpy(staging.mapped_span.data(), table.data(), static_cast<size_t>(swizzle_table_size));
+
+        VkBufferCreateInfo ci{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size = swizzle_table_size,
+            .usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                     VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        };
+        swizzle_table_buffer = memory_allocator.CreateBuffer(ci, MemoryUsage::DeviceLocal);
+
+        scheduler.RequestOutsideRenderPassOperationContext();
+        scheduler.Record([staging_buf = staging.buffer,
+                          dst_buf = *swizzle_table_buffer,
+                          size = swizzle_table_size,
+                          src_off = staging.offset](vk::CommandBuffer cmdbuf) {
+
+            const VkBufferCopy region{
+                .srcOffset = src_off,
+                .dstOffset = 0,
+                .size = size,
+            };
+            cmdbuf.CopyBuffer(staging_buf, dst_buf, region);
+        });
+    }
 }
 
 void TextureCacheRuntime::Finish() {
     scheduler.Finish();
 }
 
-StagingBufferRef TextureCacheRuntime::UploadStagingBuffer(size_t size) {
-    return staging_buffer_pool.Request(size, MemoryUsage::Upload);
+StagingBufferRef TextureCacheRuntime::UploadStagingBuffer(size_t size, bool deferred) {
+    return staging_buffer_pool.Request(size, MemoryUsage::Upload, deferred);
 }
 
 StagingBufferRef TextureCacheRuntime::DownloadStagingBuffer(size_t size, bool deferred) {
@@ -1580,6 +1619,46 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
 Image::Image(const VideoCommon::NullImageParams& params) : VideoCommon::ImageBase{params} {}
 
 Image::~Image() = default;
+
+void Image::AllocateComputeUnswizzleBuffer(u32 max_slices) {
+    if (has_compute_unswizzle_buffer)
+        return;
+
+    using VideoCore::Surface::BytesPerBlock;
+
+    const u32 block_bytes  = BytesPerBlock(info.format); // 8 for BC1, 16 for BC6H
+    const u32 block_width  = 4;
+    const u32 block_height = 4;
+
+    // BCn is 4x4x1 blocks
+    const u32 blocks_x = (info.size.width  + block_width  - 1) / block_width;
+    const u32 blocks_y = (info.size.height + block_height - 1) / block_height;
+    const u32 blocks_z = std::min(max_slices, info.size.depth);
+
+    const u64 block_count =
+        static_cast<u64>(blocks_x) *
+        static_cast<u64>(blocks_y) *
+        static_cast<u64>(blocks_z);
+
+    compute_unswizzle_buffer_size = block_count * block_bytes;
+
+    VkBufferCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .size = compute_unswizzle_buffer_size,
+        .usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+    };
+
+    compute_unswizzle_buffer =
+        runtime->memory_allocator.CreateBuffer(ci, MemoryUsage::DeviceLocal);
+
+    has_compute_unswizzle_buffer = true;
+}
 
 void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
                          std::span<const VideoCommon::BufferImageCopy> copies) {
@@ -2397,10 +2476,22 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
 
 void TextureCacheRuntime::AccelerateImageUpload(
     Image& image, const StagingBufferRef& map,
-    std::span<const VideoCommon::SwizzleParameters> swizzles) {
+    std::span<const VideoCommon::SwizzleParameters> swizzles,
+    u32 z_start, u32 z_count) {
+
     if (IsPixelFormatASTC(image.info.format)) {
         return astc_decoder_pass->Assemble(image, map, swizzles);
     }
+
+    if (bl3d_unswizzle_pass &&
+        IsPixelFormatBCn(image.info.format) &&
+        image.info.type == ImageType::e3D &&
+        image.info.resources.levels == 1 &&
+        image.info.resources.layers == 1) {
+
+        return bl3d_unswizzle_pass->Unswizzle(image, map, swizzles, z_start, z_count);
+    }
+
     ASSERT(false);
 }
 

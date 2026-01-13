@@ -657,6 +657,33 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
+                    IntSetting.GPU_UNZWIZZLE_MAXTEXTURE_SIZE,
+                    titleId = R.string.gpu_unzwizzle_maxtexture_size,
+                    descriptionId = R.string.gpu_unzwizzle_maxtexture_size_description,
+                    choicesId = R.array.gpuTextureSizeSwizzleEntries,
+                    valuesId = R.array.gpuTextureSizeSwizzleValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.GPU_UNZWIZZLE_STREAM_SIZE,
+                    titleId = R.string.gpu_unzwizzle_stream_size,
+                    descriptionId = R.string.gpu_unzwizzle_stream_size_description,
+                    choicesId = R.array.gpuSwizzleEntries,
+                    valuesId = R.array.gpuSwizzleValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.GPU_UNZWIZZLE_CHUNK_SIZE,
+                    titleId = R.string.gpu_unzwizzle_chunk_size,
+                    descriptionId = R.string.gpu_unzwizzle_chunk_size_description,
+                    choicesId = R.array.gpuSwizzleChunkEntries,
+                    valuesId = R.array.gpuSwizzleChunkValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
                     IntSetting.FAST_CPU_TIME,
                     titleId = R.string.fast_cpu_time,
                     descriptionId = R.string.fast_cpu_time_description,

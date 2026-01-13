@@ -504,6 +504,13 @@
     <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously. This may reduce stutters but may also introduce glitches.</string>
+    <string name="gpu_unzwizzle_maxtexture_size">GPU Unswizzle Max Texture Size</string>
+    <string name="gpu_unzwizzle_maxtexture_size_description">Sets the maximum size (MB) for GPU-based texture unswizzling. While the GPU is faster for medium and large textures, the CPU may be more efficient for very small ones. Adjust this to find the balance between GPU acceleration and CPU overhead.</string>
+    <string name="gpu_unzwizzle_stream_size">GPU Unswizzle Stream Size</string>
+    <string name="gpu_unzwizzle_stream_size_description">Sets the data limit per frame for unswizzling large textures. Higher values speed up texture loading at the cost of higher frame latency; lower values reduce GPU overhead but may cause visible texture pop-in.</string>
+    <string name="gpu_unzwizzle_chunk_size">GPU Unswizzle Chunk Size</string>
+    <string name="gpu_unzwizzle_chunk_size_description">Defines the number of depth slices processed per batch for 3D textures. Increasing this improves throughput efficiency on powerful GPUs but may cause stuttering or driver timeouts on weaker hardware.</string>
+
 
     <string name="extensions">Extensions</string>
 
@@ -925,6 +932,27 @@
     <string name="off">Off</string>
     <string name="fast_gpu_medium">Medium (256)</string>
     <string name="fast_gpu_high">High (512)</string>
+
+    <!-- GPU swizzle texture size -->
+    <string name="gpu_texturesizeswizzle_verysmall">Very Small (16 MB)</string>
+    <string name="gpu_texturesizeswizzle_small">Small (32 MB)</string>
+    <string name="gpu_texturesizeswizzle_normal">Normal (128 MB)</string>
+    <string name="gpu_texturesizeswizzle_large">Large (256 MB)</string>
+    <string name="gpu_texturesizeswizzle_verylarge">Very Large (512 MB)</string>
+
+    <!-- GPU swizzle streams -->
+    <string name="gpu_swizzle_verylow">Very Low (4 MB)</string>
+    <string name="gpu_swizzle_low">Low (8 MB)</string>
+    <string name="gpu_swizzle_normal">Normal (16 MB)</string>
+    <string name="gpu_swizzle_medium">Medium (32 MB)</string>
+    <string name="gpu_swizzle_high">High (64 MB)</string>
+
+    <!-- GPU swizzle chunks -->
+    <string name="gpu_swizzlechunk_verylow">Very Low (32)</string>
+    <string name="gpu_swizzlechunk_low">Low (64)</string>
+    <string name="gpu_swizzlechunk_normal">Normal (128)</string>
+    <string name="gpu_swizzlechunk_medium">Medium (256)</string>
+    <string name="gpu_swizzlechunk_high">High (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>

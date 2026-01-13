@@ -8,6 +8,7 @@
 
 #include <limits>
 #include <optional>
+#include <bit>
 #include <unordered_set>
 #include <boost/container/small_vector.hpp>
 
@@ -22,6 +23,7 @@
 #include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/texture_cache_base.h"
 #include "video_core/texture_cache/util.h"
+#include "video_core/textures/decoders.h"
 
 namespace VideoCommon {
 
@@ -68,10 +70,41 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
             (std::max)((std::min)(device_local_memory - min_vacancy_critical, min_spacing_critical),
                      DEFAULT_CRITICAL_MEMORY));
         minimum_memory = static_cast<u64>((device_local_memory - mem_threshold) / 2);
+
+        lowmemorydevice = false;
     } else {
         expected_memory = DEFAULT_EXPECTED_MEMORY + 512_MiB;
         critical_memory = DEFAULT_CRITICAL_MEMORY + 1_GiB;
         minimum_memory = 0;
+
+        lowmemorydevice = true;
+    }
+
+    switch (Settings::values.gpu_unzwizzle_texture_size.GetValue()) {
+        case Settings::GpuUnswizzleSize::VerySmall:    gpu_unswizzle_maxsize = 16_MiB; break;
+        case Settings::GpuUnswizzleSize::Small:        gpu_unswizzle_maxsize = 32_MiB; break;
+        case Settings::GpuUnswizzleSize::Normal:       gpu_unswizzle_maxsize = 128_MiB; break;
+        case Settings::GpuUnswizzleSize::Large:        gpu_unswizzle_maxsize = 256_MiB; break;
+        case Settings::GpuUnswizzleSize::VeryLarge:    gpu_unswizzle_maxsize = 512_MiB; break;
+        default:                                       gpu_unswizzle_maxsize = 128_MiB; break;
+    }
+
+    switch (Settings::values.gpu_unzwizzle_stream_size.GetValue()) {
+        case Settings::GpuUnswizzle::VeryLow: swizzle_chunk_size = 4_MiB; break;
+        case Settings::GpuUnswizzle::Low:     swizzle_chunk_size = 8_MiB; break;
+        case Settings::GpuUnswizzle::Normal:  swizzle_chunk_size = 16_MiB; break;
+        case Settings::GpuUnswizzle::Medium:  swizzle_chunk_size = 32_MiB; break;
+        case Settings::GpuUnswizzle::High:    swizzle_chunk_size = 64_MiB; break;
+        default:                              swizzle_chunk_size = 16_MiB;
+    }
+
+    switch (Settings::values.gpu_unzwizzle_chunk_size.GetValue()) {
+        case Settings::GpuUnswizzleChunk::VeryLow: swizzle_slices_per_batch = 32; break;
+        case Settings::GpuUnswizzleChunk::Low:     swizzle_slices_per_batch = 64; break;
+        case Settings::GpuUnswizzleChunk::Normal:  swizzle_slices_per_batch = 128; break;
+        case Settings::GpuUnswizzleChunk::Medium:  swizzle_slices_per_batch = 256; break;
+        case Settings::GpuUnswizzleChunk::High:    swizzle_slices_per_batch = 512; break;
+        default:                                   swizzle_slices_per_batch = 128;
     }
 }
 
@@ -88,6 +121,7 @@ void TextureCache<P>::RunGarbageCollector() {
         ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 50ULL;
         num_iterations = aggressive_mode ? 40 : (high_priority_mode ? 20 : 10);
     };
+
     const auto Cleanup = [this, &num_iterations, &high_priority_mode,
                           &aggressive_mode](ImageId image_id) {
         if (num_iterations == 0) {
@@ -95,20 +129,36 @@ void TextureCache<P>::RunGarbageCollector() {
         }
         --num_iterations;
         auto& image = slot_images[image_id];
+
+        // Never delete recently allocated sparse textures (within 3 frames)
+        const bool is_recently_allocated = image.allocation_tick >= frame_tick - 3;
+        if (is_recently_allocated && image.info.is_sparse) {
+            return false;
+        }
+
         if (True(image.flags & ImageFlagBits::IsDecoding)) {
             // This image is still being decoded, deleting it will invalidate the slot
             // used by the async decoder thread.
             return false;
         }
-        if (!aggressive_mode && True(image.flags & ImageFlagBits::CostlyLoad)) {
+
+        // Prioritize large sparse textures for cleanup
+        const bool is_large_sparse = lowmemorydevice &&
+                                     image.info.is_sparse &&
+                                     image.guest_size_bytes >= 256_MiB;
+
+        if (!aggressive_mode && !is_large_sparse &&
+            True(image.flags & ImageFlagBits::CostlyLoad)) {
             return false;
         }
+
         const bool must_download =
             image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
-        if (!high_priority_mode && must_download) {
+        if (!high_priority_mode && !is_large_sparse && must_download) {
             return false;
         }
-        if (must_download) {
+
+        if (must_download && !is_large_sparse) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
             const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
             image.DownloadMemory(map, copies);
@@ -116,11 +166,13 @@ void TextureCache<P>::RunGarbageCollector() {
             SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span,
                          swizzle_data_buffer);
         }
+
         if (True(image.flags & ImageFlagBits::Tracked)) {
             UntrackImage(image, image_id);
         }
         UnregisterImage(image_id);
         DeleteImage(image_id, image.scale_tick > frame_tick + 5);
+
         if (total_used_memory < critical_memory) {
             if (aggressive_mode) {
                 // Sink the aggresiveness.
@@ -136,7 +188,24 @@ void TextureCache<P>::RunGarbageCollector() {
         return false;
     };
 
-    // Try to remove anything old enough and not high priority.
+    // Aggressively clear massive sparse textures
+    if (total_used_memory >= expected_memory) {
+        lru_cache.ForEachItemBelow(frame_tick, [&](ImageId image_id) {
+            auto& image = slot_images[image_id];
+            // Only target sparse textures that are old enough
+            if (lowmemorydevice &&
+                image.info.is_sparse &&
+                image.guest_size_bytes >= 256_MiB &&
+                image.allocation_tick < frame_tick - 3) {
+                LOG_DEBUG(HW_GPU, "GC targeting old sparse texture at 0x{:X} ({} MiB, age: {} frames)",
+                         image.gpu_addr, image.guest_size_bytes / (1024 * 1024),
+                         frame_tick - image.allocation_tick);
+                return Cleanup(image_id);
+            }
+            return false;
+        });
+    }
+
     Configure(false);
     lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, Cleanup);
 
@@ -160,6 +229,7 @@ void TextureCache<P>::TickFrame() {
     sentenced_framebuffers.Tick();
     sentenced_image_view.Tick();
     TickAsyncDecode();
+    TickAsyncUnswizzle();
 
     runtime.TickFrame();
     ++frame_tick;
@@ -627,7 +697,6 @@ void TextureCache<P>::UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t siz
                 UntrackImage(image, id);
             }
         }
-
         if (True(image.flags & ImageFlagBits::Remapped)) {
             continue;
         }
@@ -1055,7 +1124,12 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
         // Only upload modified images
         return;
     }
+
     image.flags &= ~ImageFlagBits::CpuModified;
+    if( lowmemorydevice && image.info.format == PixelFormat::BC1_RGBA_UNORM && MapSizeBytes(image) >= 256_MiB ) {
+        return;
+    }
+
     TrackImage(image, image_id);
 
     if (image.info.num_samples > 1 && !runtime.CanUploadMSAA()) {
@@ -1065,6 +1139,16 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
     }
     if (True(image.flags & ImageFlagBits::AsynchronousDecode)) {
         QueueAsyncDecode(image, image_id);
+        return;
+    }
+    if (IsPixelFormatBCn(image.info.format) &&
+        image.info.type == ImageType::e3D &&
+        image.info.resources.levels == 1 &&
+        image.info.resources.layers == 1 &&
+        MapSizeBytes(image) >= gpu_unswizzle_maxsize &&
+        False(image.flags & ImageFlagBits::GpuModified)) {
+
+        QueueAsyncUnswizzle(image, image_id);
         return;
     }
     auto staging = runtime.UploadStagingBuffer(MapSizeBytes(image));
@@ -1082,7 +1166,7 @@ void TextureCache<P>::UploadImageContents(Image& image, StagingBuffer& staging) 
         gpu_memory->ReadBlock(gpu_addr, mapped_span.data(), mapped_span.size_bytes(),
                               VideoCommon::CacheType::NoTextureCache);
         const auto uploads = FullUploadSwizzles(image.info);
-        runtime.AccelerateImageUpload(image, staging, FixSmallVectorADL(uploads));
+        runtime.AccelerateImageUpload(image, staging, FixSmallVectorADL(uploads), 0, 0);
         return;
     }
 
@@ -1312,6 +1396,20 @@ void TextureCache<P>::QueueAsyncDecode(Image& image, ImageId image_id) {
 }
 
 template <class P>
+void TextureCache<P>::QueueAsyncUnswizzle(Image& image, ImageId image_id) {
+    if (True(image.flags & ImageFlagBits::IsDecoding)) {
+        return;
+    }
+
+    image.flags |= ImageFlagBits::IsDecoding;
+
+    unswizzle_queue.push_back({
+        .image_id = image_id,
+        .info = image.info
+    });
+}
+
+template <class P>
 void TextureCache<P>::TickAsyncDecode() {
     bool has_uploads{};
     auto i = async_decodes.begin();
@@ -1333,6 +1431,83 @@ void TextureCache<P>::TickAsyncDecode() {
     }
     if (has_uploads) {
         runtime.InsertUploadMemoryBarrier();
+    }
+}
+
+template <class P>
+void TextureCache<P>::TickAsyncUnswizzle() {
+    if (unswizzle_queue.empty()) {
+        return;
+    }
+
+    if(current_unswizzle_frame > 0) {
+        current_unswizzle_frame--;
+        return;
+    }
+
+    PendingUnswizzle& task = unswizzle_queue.front();
+    Image& image = slot_images[task.image_id];
+
+    if (!task.initialized) {
+        task.total_size = MapSizeBytes(image);
+        task.staging_buffer = runtime.UploadStagingBuffer(task.total_size, true);
+
+        const auto& info = image.info;
+        const u32 bytes_per_block = BytesPerBlock(info.format);
+        const u32 width_blocks = Common::DivCeil(info.size.width, 4u);
+        const u32 height_blocks = Common::DivCeil(info.size.height, 4u);
+
+        const u32 stride = width_blocks * bytes_per_block;
+        const u32 aligned_height = height_blocks;
+        task.bytes_per_slice = static_cast<size_t>(stride) * aligned_height;
+        task.last_submitted_offset = 0;
+        task.initialized = true;
+    }
+
+    // Read data
+    if (task.current_offset < task.total_size) {
+        const size_t remaining = task.total_size - task.current_offset;
+
+        size_t copy_amount = std::min(swizzle_chunk_size, remaining);
+
+        if (remaining > swizzle_chunk_size) {
+            copy_amount = (copy_amount / task.bytes_per_slice) * task.bytes_per_slice;
+            if (copy_amount == 0) copy_amount = task.bytes_per_slice;
+        }
+
+        gpu_memory->ReadBlock(image.gpu_addr + task.current_offset,
+                              task.staging_buffer.mapped_span.data() + task.current_offset,
+                              copy_amount);
+        task.current_offset += copy_amount;
+    }
+
+    const bool is_final_batch = task.current_offset >= task.total_size;
+    const size_t bytes_ready = task.current_offset - task.last_submitted_offset;
+    const u32 complete_slices = static_cast<u32>(bytes_ready / task.bytes_per_slice);
+
+    if (complete_slices >= swizzle_slices_per_batch || (is_final_batch && complete_slices > 0)) {
+        const u32 z_start = static_cast<u32>(task.last_submitted_offset / task.bytes_per_slice);
+        const u32 slices_to_process = std::min(complete_slices, swizzle_slices_per_batch);
+        const u32 z_count = std::min(slices_to_process, image.info.size.depth - z_start);
+
+        if (z_count > 0) {
+            const auto uploads = FullUploadSwizzles(task.info);
+            runtime.AccelerateImageUpload(image, task.staging_buffer, FixSmallVectorADL(uploads), z_start, z_count);
+            task.last_submitted_offset += (static_cast<size_t>(z_count) * task.bytes_per_slice);
+        }
+    }
+
+    // Check if complete
+    const u32 slices_submitted = static_cast<u32>(task.last_submitted_offset / task.bytes_per_slice);
+    const bool all_slices_submitted = slices_submitted >= image.info.size.depth;
+
+    if (is_final_batch && all_slices_submitted) {
+        runtime.FreeDeferredStagingBuffer(task.staging_buffer);
+        image.flags &= ~ImageFlagBits::IsDecoding;
+        unswizzle_queue.pop_front();
+
+        // Wait 4 frames to process the next entry
+        current_unswizzle_frame = 4u;
     }
 }
 
@@ -1374,6 +1549,39 @@ ImageId TextureCache<P>::InsertImage(const ImageInfo& info, GPUVAddr gpu_addr,
         }
     }
     ASSERT_MSG(cpu_addr, "Tried to insert an image to an invalid gpu_addr=0x{:x}", gpu_addr);
+
+    // For large sparse textures, aggressively clean up old allocations at same address
+    if (lowmemorydevice && info.is_sparse && CalculateGuestSizeInBytes(info) >= 256_MiB) {
+        const auto alloc_it = image_allocs_table.find(gpu_addr);
+        if (alloc_it != image_allocs_table.end()) {
+            const ImageAllocId alloc_id = alloc_it->second;
+            auto& alloc_images = slot_image_allocs[alloc_id].images;
+
+            // Collect old images at this address that were created more than 2 frames ago
+            boost::container::small_vector<ImageId, 4> to_delete;
+            for (ImageId old_image_id : alloc_images) {
+                Image& old_image = slot_images[old_image_id];
+                if (old_image.info.is_sparse &&
+                    old_image.gpu_addr == gpu_addr &&
+                    old_image.allocation_tick < frame_tick - 2) {  // Try not to delete fresh textures
+                    to_delete.push_back(old_image_id);
+                }
+            }
+
+            // Delete old images immediately
+            for (ImageId old_id : to_delete) {
+                Image& old_image = slot_images[old_id];
+                LOG_DEBUG(HW_GPU, "Immediately deleting old sparse texture at 0x{:X} ({} MiB)",
+                         gpu_addr, old_image.guest_size_bytes / (1024 * 1024));
+                if (True(old_image.flags & ImageFlagBits::Tracked)) {
+                    UntrackImage(old_image, old_id);
+                }
+                UnregisterImage(old_id);
+                DeleteImage(old_id, true);
+            }
+        }
+    }
+
     const ImageId image_id = JoinImages(info, gpu_addr, *cpu_addr);
     const Image& image = slot_images[image_id];
     // Using "image.gpu_addr" instead of "gpu_addr" is important because it might be different
@@ -1389,6 +1597,27 @@ template <class P>
 ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DAddr cpu_addr) {
     ImageInfo new_info = info;
     const size_t size_bytes = CalculateGuestSizeInBytes(new_info);
+
+    // Proactive cleanup for large sparse texture allocations
+    if (lowmemorydevice && new_info.is_sparse && size_bytes >= 256_MiB) {
+        const u64 estimated_alloc_size = size_bytes;
+
+        if (total_used_memory + estimated_alloc_size >= critical_memory) {
+            LOG_DEBUG(HW_GPU, "Large sparse texture allocation ({} MiB) - running aggressive GC. "
+                       "Current memory: {} MiB, Critical: {} MiB",
+                       size_bytes / (1024 * 1024),
+                       total_used_memory / (1024 * 1024),
+                       critical_memory / (1024 * 1024));
+            RunGarbageCollector();
+
+            // If still over threshold after GC, try one more aggressive pass
+            if (total_used_memory + estimated_alloc_size >= critical_memory) {
+                LOG_DEBUG(HW_GPU, "Still critically low on memory, running second GC pass");
+                RunGarbageCollector();
+            }
+        }
+    }
+
     const bool broken_views = runtime.HasBrokenTextureViewFormats();
     const bool native_bgr = runtime.HasNativeBgr();
     join_overlap_ids.clear();
@@ -1484,6 +1713,8 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
 
     const ImageId new_image_id = slot_images.insert(runtime, new_info, gpu_addr, cpu_addr);
     Image& new_image = slot_images[new_image_id];
+
+    new_image.allocation_tick = frame_tick;
 
     if (!gpu_memory->IsContinuousRange(new_image.gpu_addr, new_image.guest_size_bytes) &&
         new_info.is_sparse) {

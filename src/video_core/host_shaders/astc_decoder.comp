@@ -727,70 +727,35 @@ void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode, ui
 }
 
 uint UnquantizeTexelWeight(EncodingData val) {
-    const uint encoding = Encoding(val);
-    const uint bitlen = NumBits(val);
-    const uint bitval = BitValue(val);
-    const uint A = ReplicateBitTo7((bitval & 1));
-    uint B = 0, C = 0, D = 0;
-    uint result = 0;
-    const uint bitlen_0_results[5] = {0, 16, 32, 48, 64};
-    switch (encoding) {
-    case JUST_BITS:
-        return FastReplicateTo6(bitval, bitlen);
-    case TRIT: {
+    uint encoding = Encoding(val), bitlen = NumBits(val), bitval = BitValue(val);
+    if (encoding == JUST_BITS) {
+        return (bitlen >= 1 && bitlen <= 5)
+            ? uint(floor(0.5f + float(bitval) * 64.0f / float((1 << bitlen) - 1)))
+            : FastReplicateTo6(bitval, bitlen);
+    } else if (encoding == TRIT || encoding == QUINT) {
+        uint B = 0, C = 0, D = 0;
+        uint b_mask = (0x3100 >> (bitlen * 4)) & 0xf;
+        uint b = (bitval >> 1) & b_mask;
         D = QuintTritValue(val);
-        switch (bitlen) {
-        case 0:
-            return bitlen_0_results[D * 2];
-        case 1: {
-            C = 50;
-            break;
+        if (encoding == TRIT) {
+            switch (bitlen) {
+            case 0: return D * 32; //0,32,64
+            case 1: C = 50; break;
+            case 2: C = 23; B = (b << 6) | (b << 2) | b; break;
+            case 3: C = 11; B = (b << 5) | b; break;
+            }
+        } else if (encoding == QUINT) {
+            switch (bitlen) {
+            case 0: return D * 16; //0, 16, 32, 48, 64
+            case 1: C = 28; break;
+            case 2: C = 13; B = (b << 6) | (b << 1); break;
+            }
         }
-        case 2: {
-            C = 23;
-            const uint b = (bitval >> 1) & 1;
-            B = (b << 6) | (b << 2) | b;
-            break;
-        }
-        case 3: {
-            C = 11;
-            const uint cb = (bitval >> 1) & 3;
-            B = (cb << 5) | cb;
-            break;
-        }
-        default:
-            break;
-        }
-        break;
+        uint A = ReplicateBitTo7(bitval & 1);
+        uint res = (A & 0x20) | (((D * C + B) ^ A) >> 2);
+        return res + (res > 32 ? 1 : 0);
     }
-    case QUINT: {
-        D = QuintTritValue(val);
-        switch (bitlen) {
-        case 0:
-            return bitlen_0_results[D];
-        case 1: {
-            C = 28;
-            break;
-        }
-        case 2: {
-            C = 13;
-            const uint b = (bitval >> 1) & 1;
-            B = (b << 6) | (b << 1);
-            break;
-        }
-        }
-        break;
-    }
-    }
-    if (encoding != JUST_BITS && bitlen > 0) {
-        result = D * C + B;
-        result ^= A;
-        result = (A & 0x20) | (result >> 2);
-    }
-    if (result > 32) {
-        result += 1;
-    }
-    return result;
+    return 0;
 }
 
 void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
@@ -1159,10 +1124,11 @@ void DecompressBlock(ivec3 coord) {
 }
 
 uint SwizzleOffset(uvec2 pos) {
-    const uint x = pos.x;
-    const uint y = pos.y;
-    return ((x % 64) / 32) * 256 + ((y % 8) / 2) * 64 +
-            ((x % 32) / 16) * 32 + (y % 2) * 16 + (x % 16);
+    return ((pos.x & 32u) << 3u) |
+           ((pos.y & 6u)  << 5u) |
+           ((pos.x & 16u) << 1u) |
+           ((pos.y & 1u)  << 4u) |
+           (pos.x & 15u);
 }
 
 void main() {
