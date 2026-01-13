@@ -194,6 +194,8 @@ HostFeature GetHostFeatures() {
         features |= HostFeature::LZCNT;
     if (cpu_info.has(Cpu::tGFNI))
         features |= HostFeature::GFNI;
+    if (cpu_info.has(Cpu::tWAITPKG))
+        features |= HostFeature::WAITPKG;
 
     if (cpu_info.has(Cpu::tBMI2)) {
         // BMI2 instructions such as pdep and pext have been very slow up until Zen 3.
