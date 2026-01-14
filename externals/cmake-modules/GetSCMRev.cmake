@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: Copyright 2025 crueter
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 
 ## GetSCMRev ##
 # Name is self explanatory. Gets revision information from files, OR from git.
@@ -12,6 +12,8 @@ find_package(Git QUIET)
 # commit: git rev-parse HEAD
 # tag:    git describe --tags --abbrev=0
 # branch: git rev-parse --abbrev-ref=HEAD
+
+# TODO: string overrides
 
 function(run_git_command variable)
     if(NOT GIT_FOUND)

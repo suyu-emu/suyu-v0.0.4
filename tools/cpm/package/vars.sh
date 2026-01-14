@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 # shellcheck disable=SC1091
@@ -9,12 +9,15 @@ value() {
 	echo "$JSON" | jq -r ".$1"
 }
 
-[ -z "$PACKAGE" ] && echo "Package was not specified" && exit 0
+[ -n "$PACKAGE" ] || { echo "Package was not specified" && exit 0; }
 
 # shellcheck disable=SC2153
 JSON=$(echo "$PACKAGES" | jq -r ".\"$PACKAGE\" | select( . != null )")
 
-[ -z "$JSON" ] && echo "!! No cpmfile definition for $PACKAGE" >&2 && exit 1
+if [ -z "$JSON" ]; then
+	echo "!! No cpmfile definition for $PACKAGE" >&2
+	exit 1
+fi
 
 # unset stuff
 export PACKAGE_NAME="null"
@@ -48,10 +51,10 @@ REPO=$(value "repo")
 CI=$(value "ci")
 
 PACKAGE_NAME=$(value "package")
-[ "$PACKAGE_NAME" = null ] && PACKAGE_NAME="$PACKAGE"
+[ "$PACKAGE_NAME" != null ] || PACKAGE_NAME="$PACKAGE"
 
 GIT_HOST=$(value "git_host")
-[ "$GIT_HOST" = null ] && GIT_HOST=github.com
+[ "$GIT_HOST" != null ] || GIT_HOST=github.com
 
 export PACKAGE_NAME
 export REPO
@@ -66,12 +69,12 @@ VERSION=$(value "version")
 
 if [ "$CI" = "true" ]; then
 	EXT=$(value "extension")
-	[ "$EXT" = null ] && EXT="tar.zst"
+	[ "$EXT" != null ] || EXT="tar.zst"
 
 	NAME=$(value "name")
 	DISABLED=$(echo "$JSON" | jq -j '.disabled_platforms')
 
-	[ "$NAME" = null ] && NAME="$PACKAGE_NAME"
+	[ "$NAME" != null ] || NAME="$PACKAGE_NAME"
 
 	export EXT
 	export NAME
@@ -90,7 +93,7 @@ ARTIFACT=$(value "artifact")
 SHA=$(value "sha")
 GIT_VERSION=$(value "git_version")
 
-[ "$GIT_VERSION" = null ] && GIT_VERSION="$VERSION"
+[ "$GIT_VERSION" != null ] || GIT_VERSION="$VERSION"
 
 if [ "$GIT_VERSION" != null ]; then
 	VERSION_REPLACE="$GIT_VERSION"
@@ -98,8 +101,11 @@ else
 	VERSION_REPLACE="$VERSION"
 fi
 
-echo "$TAG" | grep -e "%VERSION%" >/dev/null &&
-	HAS_REPLACE=true || HAS_REPLACE=false
+if echo "$TAG" | grep -e "%VERSION%" >/dev/null; then
+	HAS_REPLACE=true
+else
+	HAS_REPLACE=false
+fi
 
 ORIGINAL_TAG="$TAG"
 
@@ -145,7 +151,7 @@ export KEY
 ################
 
 HASH_ALGO=$(value "hash_algo")
-[ "$HASH_ALGO" = null ] && HASH_ALGO=sha512
+[ "$HASH_ALGO" != null ] || HASH_ALGO=sha512
 
 HASH=$(value "hash")
 

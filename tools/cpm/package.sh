@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 RETURN=0
@@ -31,48 +31,12 @@ export SCRIPTS
 
 while :; do
 	case "$1" in
-	hash)
+	hash | update | fetch | add | rm | version | which | download)
+		cmd="$1"
 		shift
-		"$SCRIPTS"/hash.sh "$@"
+		"$SCRIPTS/$cmd".sh "$@"
 		break
 		;;
-	update)
-		shift
-		"$SCRIPTS"/update.sh "$@"
-		break
-		;;
-	fetch)
-		shift
-		"$SCRIPTS"/fetch.sh "$@"
-		break
-		;;
-	add)
-		shift
-		"$SCRIPTS"/add.sh "$@"
-		break
-		;;
-	rm)
-		shift
-		"$SCRIPTS"/rm.sh "$@"
-		break
-		;;
-	version)
-		shift
-		"$SCRIPTS"/version.sh "$@"
-		break
-		;;
-	which)
-		shift
-		"$SCRIPTS"/which.sh "$@"
-		break
-		;;
-	download)
-		shift
-		"$SCRIPTS"/download.sh "$@"
-		break
-		;;
-	-h | --help) usage ;;
-	"") usage ;;
 	*) usage ;;
 	esac
 

@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 # shellcheck disable=SC1091
@@ -49,26 +49,18 @@ export ROOTDIR
 
 while :; do
 	case "$1" in
-	-h | --help) usage ;;
 	ls)
 		echo "$CPMFILES" | tr ' ' '\n'
 		break
 		;;
-	format)
-		"$SCRIPTS"/format.sh
-		break
-		;;
-	update)
-		"$SCRIPTS"/update.sh
-		break
-		;;
-	migrate)
-		"$SCRIPTS"/migrate.sh
+	format | update | migrate)
+		"$SCRIPTS/$1".sh
 		break
 		;;
 	package)
+		cmd="$1"
 		shift
-		"$SCRIPTS"/package.sh "$@"
+		"$SCRIPTS/$cmd".sh "$@"
 		break
 		;;
 	*) usage ;;

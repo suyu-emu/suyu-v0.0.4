@@ -7,13 +7,14 @@
 - `EXTENSION`: Artifact extension (default `tar.zst`)
 - `MIN_VERSION`: Minimum version for `find_package`. Only used if platform does not support this package as a bundled artifact
 - `DISABLED_PLATFORMS`: List of platforms that lack artifacts for this package. Options:
-  * `windows-amd64`
-  * `windows-arm64`
-  * `mingw-amd64`
-  * `mingw-arm64`
-  * `android`
-  * `solaris-amd64`
-  * `freebsd-amd64`
-  * `linux-amd64`
-  * `linux-aarch64`
-  * `macos-universal`
+  - `windows-amd64`
+  - `windows-arm64`
+  - `mingw-amd64`
+  - `mingw-arm64`
+  - `android-x86_64`
+  - `android-aarch64`
+  - `solaris-amd64`
+  - `freebsd-amd64`
+  - `linux-amd64`
+  - `linux-aarch64`
+  - `macos-universal`

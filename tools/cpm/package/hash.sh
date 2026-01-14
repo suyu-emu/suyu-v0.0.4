@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 RETURN=0
@@ -52,9 +52,9 @@ while :; do
 	shift
 done
 
-[ "$ALL" = 1 ] && packages="${LIBS:-$packages}"
+[ "$ALL" != 1 ] || packages="${LIBS:-$packages}"
 [ "$DRY" = 1 ] && UPDATE=false || UPDATE=true
-[ -z "$packages" ] && usage
+[ -n "$packages" ] || usage
 
 export UPDATE
 

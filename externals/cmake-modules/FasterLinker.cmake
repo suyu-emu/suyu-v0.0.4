@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: Copyright 2025 crueter
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 
 ## FasterLinker ##
 
@@ -12,47 +12,45 @@
     - mold (GCC only) - generally does well on GCC
     - lld - preferred on clang
     - bfd - the final fallback
-    - If none are found (macOS uses ld.prime, etc) just use the default linker
+    - If none are found just use the default linker
 ]]
 
 # This module is based on the work of Yuzu, specifically Liam White,
 # and later extended by crueter.
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CXX_GCC ON)
-endif()
+option(USE_FASTER_LINKER "Attempt to use a faster linker program" OFF)
 
-find_program(LINKER_BFD bfd)
-if (LINKER_BFD)
-    set(LINKER bfd)
-endif()
+if (USE_FASTER_LINKER)
+    macro(find_linker ld)
+        find_program(LINKER_${ld} ld.${ld})
+        if (LINKER_${ld})
+            set(LINKER ${ld})
+        endif()
+    endmacro()
 
-find_program(LINKER_LLD lld)
-if (LINKER_LLD)
-    set(LINKER lld)
-endif()
+    find_linker(bfd)
+    find_linker(lld)
 
-if (CXX_GCC)
-    find_program(LINKER_MOLD mold)
-    if (LINKER_MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
-        set(LINKER mold)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        find_program(LINKER_MOLD mold)
+        if (LINKER_MOLD AND
+            CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
+            set(LINKER mold)
+        endif()
+
+        find_linker(gold)
+
+        if (LINKER STREQUAL "lld")
+            message(WARNING
+                "[FasterLinker] Using lld on GCC may cause issues.\
+                 Install mold, gold, or disable USE_FASTER_LINKER.")
+        endif()
     endif()
 
-    find_program(LINKER_GOLD gold)
-    if (LINKER_GOLD)
-        set(LINKER gold)
+    if (LINKER)
+        message(NOTICE "[FasterLinker] Selecting ${LINKER} as linker")
+        add_link_options("-fuse-ld=${LINKER}")
+    else()
+        message(WARNING "[FasterLinker] No faster linker found--using default")
     endif()
-endif()
-
-if (LINKER)
-    message(NOTICE "[FasterLinker] Selecting ${LINKER} as linker")
-    add_link_options("-fuse-ld=${LINKER}")
-else()
-    message(WARNING "[FasterLinker] No faster linker found--using default")
-endif()
-
-if (LINKER STREQUAL "lld" AND CXX_GCC)
-    message(WARNING
-        "[FasterLinker] Using lld on GCC may cause issues "
-        "with certain LTO settings.")
 endif()

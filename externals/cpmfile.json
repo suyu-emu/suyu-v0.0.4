@@ -23,7 +23,7 @@
         "package": "sirit",
         "name": "sirit",
         "repo": "eden-emulator/sirit",
-        "version": "1.0.3"
+        "version": "1.0.4"
     },
     "httplib": {
         "repo": "yhirose/cpp-httplib",
@@ -225,5 +225,57 @@
         "hash": "e87ec14ed3e826d578ebf095c41580069dda603792ba91efa84f45f4571a28f4d91889675055fd6f042d7dc25b0b9443daf70963ae463e38b11bcba95f4c65a9",
         "version": "1.7",
         "find_args": "MODULE"
+    },
+    "biscuit": {
+        "repo": "lioncash/biscuit",
+        "tag": "v%VERSION%",
+        "hash": "1229f345b014f7ca544dedb4edb3311e41ba736f9aa9a67f88b5f26f3c983288c6bb6cdedcfb0b8a02c63088a37e6a0d7ba97d9c2a4d721b213916327cffe28a",
+        "version": "0.9.1",
+        "git_version": "0.19.0"
+    },
+    "mcl": {
+        "version": "0.1.12",
+        "repo": "azahar-emu/mcl",
+        "sha": "7b08d83418",
+        "hash": "9c6ba624cb22ef622f78046a82abb99bf5026284ba17dfacaf46ac842cbd3b0f515f5ba45a1598c7671318a78a2e648db72ce8d10e7537f34e39800bdcb57694",
+        "options": [
+            "MCL_INSTALL OFF"
+        ],
+        "patches": [
+            "0001-assert-macro.patch"
+        ]
+    },
+    "libusb": {
+        "repo": "libusb/libusb",
+        "tag": "v%VERSION%",
+        "hash": "98c5f7940ff06b25c9aa65aa98e23de4c79a4c1067595f4c73cc145af23a1c286639e1ba11185cd91bab702081f307b973f08a4c9746576dc8d01b3620a3aeb5",
+        "find_args": "MODULE",
+        "git_version": "1.0.29",
+        "patches": [
+            "0001-netbsd-gettime.patch"
+        ]
+    },
+    "ffmpeg": {
+        "repo": "FFmpeg/FFmpeg",
+        "sha": "5e56937b74",
+        "hash": "9ab0457dcd6ce6359b5053c1662f57910d332f68ca0cca9d4134d858464840917027374de3d97e0863c3a7daaea2fe4f4cd17d1c6d8e7f740f4ad91e71c2932b",
+        "bundled": true
+    },
+    "ffmpeg-ci": {
+        "ci": true,
+        "package": "FFmpeg",
+        "name": "ffmpeg",
+        "repo": "crueter-ci/FFmpeg",
+        "version": "8.0.1-5e56937b74",
+        "min_version": "4.1"
+    },
+    "tzdb": {
+        "package": "nx_tzdb",
+        "repo": "misc/tzdb_to_nx",
+        "git_host": "git.crueter.xyz",
+        "artifact": "%VERSION%.tar.gz",
+        "tag": "%VERSION%",
+        "hash": "dc37a189a44ce8b5c988ca550582431a6c7eadfd3c6e709bee6277116ee803e714333e85c9e6cbb5c69346a14d6f2cc7ed96e8aa09cc5fb8a89f945059651db6",
+        "version": "121125"
     }
 }

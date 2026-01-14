@@ -22,11 +22,11 @@ If `ci` is `false`:
 - `sha` -> `SHA`
 - `key` -> `KEY`
 - `tag` -> `TAG`
-  * If the tag contains `%VERSION%`, that part will be replaced by the `git_version`, OR `version` if `git_version` is not specified
+  - If the tag contains `%VERSION%`, that part will be replaced by the `git_version`, OR `version` if `git_version` is not specified
 - `url` -> `URL`
 - `artifact` -> `ARTIFACT`
-  * If the artifact contains `%VERSION%`, that part will be replaced by the `git_version`, OR `version` if `git_version` is not specified
-  * If the artifact contains `%TAG%`, that part will be replaced by the `tag` (with its replacement already done)
+  - If the artifact contains `%VERSION%`, that part will be replaced by the `git_version`, OR `version` if `git_version` is not specified
+  - If the artifact contains `%TAG%`, that part will be replaced by the `tag` (with its replacement already done)
 - `git_version` -> `GIT_VERSION`
 - `git_host` -> `GIT_HOST`
 - `source_subdir` -> `SOURCE_SUBDIR`

@@ -13,12 +13,12 @@ set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 include(DetectPlatform)
 include(DetectArchitecture)
 include(DefaultConfig)
-include(DownloadExternals)
+include(UseLTO)
+include(FasterLinker)
+include(UseCcache)
 include(CMakeDependentOption)
 include(CTest)
 include(CPMUtil)
-
-DetectArchitecture()
 
 if (NOT DEFINED ARCHITECTURE)
     message(FATAL_ERROR "Architecture didn't make it out of scope, did you delete DetectArchitecture.cmake?")
@@ -41,6 +41,7 @@ if (PLATFORM_NETBSD)
     set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
+# TODO: does mingw need any of this anymore
 # static stuff
 option(YUZU_STATIC_BUILD "Use static libraries and executables if available" OFF)
 
@@ -121,15 +122,13 @@ if (CXX_CLANG_CL)
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type-mismatch>
-        $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc> # thanks microsoft
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc>)
 
     # REQUIRED CPU features IN Windows-amd64
     if (ARCHITECTURE_x86_64)
         add_compile_options(
             $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
-            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>)
     endif()
 endif()
 
@@ -150,10 +149,10 @@ cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MS
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
 option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF)
-cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
-option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
+cmake_dependent_option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF "NOT YUZU_USE_BUNDLED_QT" OFF)
 set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
+cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
@@ -161,6 +160,7 @@ set(EXT_DEFAULT OFF)
 if (MSVC OR ANDROID)
     set(EXT_DEFAULT ON)
 endif()
+
 option(YUZU_USE_CPM "Use CPM to fetch system dependencies (fmt, boost, etc) if needed. Externals will still be fetched." ${EXT_DEFAULT})
 
 # ffmpeg
@@ -169,9 +169,10 @@ cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from external sour
 
 # sirit
 set(BUNDLED_SIRIT_DEFAULT OFF)
-if ((MSVC AND NOT (CMAKE_BUILD_TYPE MATCHES "Debug|RelWithDebInfo") OR ANDROID))
+if (MSVC AND NOT (CMAKE_BUILD_TYPE MATCHES "Deb") OR ANDROID)
     set(BUNDLED_SIRIT_DEFAULT ON)
 endif()
+
 option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${BUNDLED_SIRIT_DEFAULT})
 
 # FreeBSD 15+ has libusb, versions below should disable it
@@ -187,35 +188,6 @@ cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF 
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
-option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
-if(YUZU_ENABLE_LTO)
-    include(UseLTO)
-endif()
-
-option(USE_CCACHE "Use ccache for compilation" OFF)
-set(CCACHE_PATH "ccache" CACHE STRING "Path to ccache binary")
-if(USE_CCACHE)
-    find_program(CCACHE_BINARY ${CCACHE_PATH})
-    if(CCACHE_BINARY)
-        message(STATUS "Found ccache at: ${CCACHE_BINARY}")
-        set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_BINARY})
-        set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_BINARY})
-    else()
-        message(FATAL_ERROR "USE_CCACHE enabled, but no executable found at: ${CCACHE_PATH}")
-    endif()
-    # Follow SCCache recommendations:
-    # <https://github.com/mozilla/sccache/blob/main/README.md?plain=1#L144>
-    if(WIN32)
-        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-            string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-            string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-        elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-            string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-            string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-        endif()
-    endif()
-endif()
-
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 option(YUZU_LEGACY "Apply patches that improve compatibility with older GPUs (e.g. Snapdragon 865) at the cost of performance" OFF)
@@ -229,8 +201,6 @@ cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" 
 
 option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
 set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
-
-cmake_dependent_option(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "PLATFORM_LINUX" OFF)
 
 cmake_dependent_option(YUZU_USE_BUNDLED_MOLTENVK "Download bundled MoltenVK lib" ON "APPLE" OFF)
 
@@ -252,15 +222,16 @@ if (ENABLE_WEB_SERVICE OR USE_DISCORD_PRESENCE)
 endif()
 
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
+
 if (ENABLE_OPENSSL)
     set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
     if (EXT_DEFAULT OR PLATFORM_SUN)
         set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
     endif()
-    option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL})
 endif()
 
-# TODO(crueter): CPM this
+cmake_dependent_option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL} "ENABLE_OPENSSL" OFF)
+
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
     AddJsonPackage(vulkan-validation-layers)
 
@@ -324,44 +295,51 @@ if ((ANDROID OR APPLE OR UNIX) AND (NOT PLATFORM_LINUX OR ANDROID) AND NOT WIN32
 endif()
 
 # Build/optimization presets
-if (PLATFORM_LINUX OR CXX_CLANG)
+if (CXX_GCC OR CXX_CLANG)
     if (ARCHITECTURE_x86_64)
         # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
         # Generic supports Pentium Pro instruction set and above
+        # TODO: if a value is unknown, pass that as march and mtune
         set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, v3, zen2, zen4, native")
+
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -mtune=generic")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64 -mtune=generic")
+            set(march x86-64)
+            set(mtune generic)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "v3")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3 -mtune=generic")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64-v3 -mtune=generic")
+            set(march x86-64-v3)
+            set(mtune generic)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "zen2")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=znver2 -mtune=znver2")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=znver2 -mtune=znver2")
+            set(march znver2)
+            set(mtune znver2)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "zen4")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=znver4 -mtune=znver4")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=znver4 -mtune=znver4")
-        elseif (${YUZU_BUILD_PRESET} STREQUAL "native")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
+            set(march znver4)
+            set(mtune znver4)
         endif()
     elseif(ARCHITECTURE_arm64)
         # See https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
         set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, armv9, native")
+        set(mtune generic)
+
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a -mtune=generic")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a -mtune=generic")
+            set(march armv8-a)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "armv9")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv9-a -mtune=generic")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv9-a -mtune=generic")
-        elseif (${YUZU_BUILD_PRESET} STREQUAL "native")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
+            set(march armv9-a)
         endif()
+    endif()
+
+    if ("${YUZU_BUILD_PRESET}" STREQUAL "native")
+        set(march native)
+        set(mtune native)
+    endif()
+
+    if (DEFINED march AND DEFINED mtune)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${march} -mtune=${mtune}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${march} -mtune=${mtune}")
     endif()
 endif()
 
 # Other presets, e.g. steamdeck
+# TODO(crueter): Just have every Linux/Windows use old sdl2
 set(YUZU_SYSTEM_PROFILE "generic" CACHE STRING "CMake and Externals profile to use. One of: generic, steamdeck")
 
 # Configure C++ standard
@@ -376,9 +354,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # System imported libraries
 # =======================================================================
 
+# Prefer the -pthread flag on Linux.
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 # openssl funniness
 if (ENABLE_OPENSSL)
     if (YUZU_USE_BUNDLED_OPENSSL)
+        set(BUILD_SHARED_LIBS OFF)
         AddJsonPackage(openssl)
         if (OpenSSL_ADDED)
             add_compile_definitions(YUZU_BUNDLED_OPENSSL)
@@ -541,10 +524,6 @@ elseif (WIN32)
     endif()
 elseif (PLATFORM_HAIKU)
     # Haiku is so special :)
-    # Some fucking genius decided to name an entire module "network" in 2019
-    # this caused great disaster amongst the Haiku community who had came first with
-    # their "libnetwork.so"; since CMake doesn't do magic, we have to use an ABSOLUTE PATH
-    # to the library itself, otherwise it will think we are linking to... our network thing
     set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
@@ -563,15 +542,15 @@ find_package(VulkanUtilityLibraries)
 find_package(SimpleIni)
 find_package(SPIRV-Tools)
 find_package(sirit)
-find_package(gamemode) 
+find_package(gamemode)
+find_package(mcl)
+
+if (ARCHITECTURE_riscv64)
+    find_package(biscuit)
+endif()
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
-endif()
-
-if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
-    # Workaround: httplib will kill itself if you attempt to do a find_package propagation
-    # find_package(httplib CONFIG)
 endif()
 
 if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
@@ -598,9 +577,16 @@ if (YUZU_TESTS OR DYNARMIC_TESTS)
     find_package(Catch2)
 endif()
 
+# Qt stuff
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
-        download_qt(6.8.3)
+        # Qt 6.8+ is broken on macOS (??)
+        if (APPLE)
+            AddQt(6.7.3)
+        else()
+            AddQt(6.9.3)
+        endif()
+        set(YUZU_STATIC_BUILD ON)
     else()
         message(STATUS "Using system Qt")
         if (NOT Qt6_DIR)
@@ -644,9 +630,9 @@ if (ENABLE_QT)
 
     message(STATUS "Using target Qt at ${QT_TARGET_PATH}")
     message(STATUS "Using host Qt at ${QT_HOST_PATH}")
-endif()
 
-function(set_yuzu_qt_components)
+    ## Components ##
+
     # Best practice is to ask for all components at once, so they are from the same version
     set(YUZU_QT_COMPONENTS2 Core Widgets Concurrent)
     if (PLATFORM_LINUX)
@@ -662,10 +648,7 @@ function(set_yuzu_qt_components)
         list(APPEND YUZU_QT_COMPONENTS2 LinguistTools)
     endif()
     set(YUZU_QT_COMPONENTS ${YUZU_QT_COMPONENTS2} PARENT_SCOPE)
-endfunction(set_yuzu_qt_components)
 
-if(ENABLE_QT)
-    set_yuzu_qt_components()
     find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
     set(QT_MAJOR_VERSION 6)
     # Qt6 sets cxx_std_17 and we need to undo that
@@ -683,20 +666,17 @@ if (NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
 endif()
 
 if (WIN32 AND YUZU_CRASH_DUMPS)
-    set(BREAKPAD_VER "breakpad-c89f9dd")
-    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
+    message(STATUS "YUZU_CRASH_DUMPS is unimplemented on Windows. Check back later.")
+    # set(BREAKPAD_VER "breakpad-c89f9dd")
+    # download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
 
-    set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
-    set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
+    # set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
+    # set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
 
-    add_library(libbreakpad_client INTERFACE IMPORTED)
-    target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
-    target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
+    # add_library(libbreakpad_client INTERFACE IMPORTED)
+    # target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
+    # target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
 endif()
-
-# Prefer the -pthread flag on Linux.
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
 
 # Include source code
 # ===================
@@ -725,14 +705,9 @@ if (MSVC AND CXX_CLANG)
 
     add_library(llvm-mingw-runtime STATIC IMPORTED)
     set_target_properties(llvm-mingw-runtime PROPERTIES
-        IMPORTED_LOCATION "${LIB_PATH}"
-    )
+        IMPORTED_LOCATION "${LIB_PATH}")
 
     link_libraries(llvm-mingw-runtime)
-endif()
-
-if (YUZU_USE_FASTER_LD)
-    include(FasterLinker)
 endif()
 
 # Set runtime library to MD/MDd for all configurations

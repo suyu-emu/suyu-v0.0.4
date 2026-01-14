@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 # shellcheck disable=SC1091
@@ -20,14 +20,14 @@ EOF
 PACKAGE="$1"
 NEW_VERSION="$2"
 
-[ -z "$PACKAGE" ] && usage
-[ -z "$NEW_VERSION" ] && usage
+[ -n "$PACKAGE" ] || usage
+[ -n "$NEW_VERSION" ] || usage
 
 export PACKAGE
 
 . "$SCRIPTS"/vars.sh
 
-[ "$REPO" = null ] && exit 0
+[ "$REPO" != null ] || exit 0
 
 if [ "$HAS_REPLACE" = "true" ]; then
 	# this just extracts the tag prefix
@@ -54,7 +54,7 @@ fi
 echo "-- * -- Updating $PACKAGE to version $NEW_VERSION"
 "$SCRIPTS"/util/replace.sh "$PACKAGE" "$NEW_JSON"
 
-[ "$CI" = "true" ] && exit 0
+[ "$CI" != "true" ] || exit 0
 echo "-- * -- Fixing hash"
 . "$ROOTDIR"/common.sh
 UPDATE=true QUIET=true "$SCRIPTS"/util/fix-hash.sh

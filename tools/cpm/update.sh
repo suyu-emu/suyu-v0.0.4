@@ -1,16 +1,19 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 # updates CPMUtil, its docs, and related tools from the latest release
 
-if command -v zstd >/dev/null; then
+if command -v zstd >/dev/null 2>&1; then
 	EXT=tar.zst
 else
 	EXT=tar.gz
 fi
 
-wget "https://git.crueter.xyz/CMake/CPMUtil/releases/download/continuous/CPMUtil.$EXT"
-tar xf "CPMUtil.$EXT"
-rm "CPMUtil.$EXT"
+file=CPMUtil.$EXT
+url="https://git.crueter.xyz/CMake/CPMUtil/releases/download/continuous/$file"
+
+curl -L "$url" -o "$file"
+tar xf "$file"
+rm "$file"

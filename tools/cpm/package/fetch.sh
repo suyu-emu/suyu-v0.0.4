@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 : "${CPM_SOURCE_CACHE:=$PWD/.cache/cpm}"
@@ -73,11 +73,12 @@ download_package() {
 }
 
 ci_package() {
-	[ "$REPO" = null ] && echo "-- ! No repo defined" && return
+	[ "$REPO" != null ] || echo "-- ! No repo defined" && return
 
 	echo "-- CI package $PACKAGE_NAME"
 
-	for platform in windows-amd64 windows-arm64 \
+	for platform in \
+		windows-amd64 windows-arm64 \
 		mingw-amd64 mingw-arm64 \
 		android-aarch64 android-x86_64 \
 		solaris-amd64 freebsd-amd64 openbsd-amd64 \
@@ -90,7 +91,6 @@ ci_package() {
 			echo "-- * -- disabled"
 			continue
 			;;
-		*) ;;
 		esac
 
 		FILENAME="${NAME}-${platform}-${VERSION}.${EXT}"
@@ -102,7 +102,7 @@ ci_package() {
 		[ -d "$OUTDIR" ] && continue
 
 		HASH_ALGO=$(echo "$JSON" | jq -r ".hash_algo")
-		[ "$HASH_ALGO" = null ] && HASH_ALGO=sha512
+		[ "$HASH_ALGO" != null ] || HASH_ALGO=sha512
 
 		HASH_SUFFIX="${HASH_ALGO}sum"
 		HASH_URL="${DOWNLOAD}.${HASH_SUFFIX}"
@@ -137,8 +137,8 @@ while :; do
 	shift
 done
 
-[ "$ALL" = 1 ] && packages="${LIBS:-$packages}"
-[ -z "$packages" ] && usage
+[ "$ALL" != 1 ] || packages="${LIBS:-$packages}"
+[ -n "$packages" ] || usage
 
 for PACKAGE in $packages; do
 	export PACKAGE

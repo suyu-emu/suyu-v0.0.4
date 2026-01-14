@@ -1,8 +1,3 @@
-# SPDX-FileCopyrightText: Copyright 2025 crueter
-# SPDX-License-Identifier: GPL-3.0-or-later
-
-# This is a slightly modified version of CPM.cmake
-
 # CPM.cmake - CMake's missing package manager
 # ===========================================
 # See https://github.com/cpm-cmake/CPM.cmake for usage and update instructions.

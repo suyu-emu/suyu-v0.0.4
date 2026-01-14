@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 filter_out() {
@@ -37,13 +37,13 @@ while :; do
 
 			case "$char" in
 			a) ALL=1 ;;
-			n) DRY=1 ;;
+			n) UPDATE=false ;;
 			h) usage ;;
 			*) die "Invalid option -$char" ;;
 			esac
 		done
 		;;
-	--dry-run) DRY=1 ;;
+	--dry-run) UPDATE=false ;;
 	--all) ALL=1 ;;
 	--help) usage ;;
 	"$0") break ;;
@@ -54,9 +54,9 @@ while :; do
 	shift
 done
 
-[ "$ALL" = 1 ] && packages="${LIBS:-$packages}"
-[ "$DRY" = 1 ] && UPDATE=false || UPDATE=true
-[ -z "$packages" ] && usage
+[ "$ALL" != 1 ] || packages="${LIBS:-$packages}"
+: "${UPDATE:=true}"
+[ -n "$packages" ] || usage
 
 for pkg in $packages; do
 	PACKAGE="$pkg"
@@ -66,15 +66,15 @@ for pkg in $packages; do
 
 	SKIP=$(value "skip_updates")
 
-	[ "$SKIP" = "true" ] && continue
+	[ "$SKIP" != "true" ] || continue
 
-	[ "$REPO" = null ] && continue
-	[ "$GIT_HOST" != "github.com" ] && continue # TODO
+	[ "$REPO" != null ] || continue
+	[ "$GIT_HOST" = "github.com" ] || continue # TODO
 
-	[ "$CI" = "true" ] && continue
+	[ "$CI" != "true" ] || continue
 
 	# shellcheck disable=SC2153
-	[ "$TAG" = null ] && continue
+	[ "$TAG" != null ] || continue
 
 	echo "-- Package $PACKAGE"
 
@@ -99,12 +99,15 @@ for pkg in $packages; do
 	filter_out rc
 
 	# Add package-specific overrides here, e.g. here for fmt:
-	[ "$PACKAGE" = fmt ] && filter_out v0.11
+	[ "$PACKAGE" != fmt ] || filter_out v0.11
 
 	LATEST=$(echo "$TAGS" | jq -r '.[0].name')
 
-	[ "$LATEST" = "null" ] && echo "-- * Up-to-date" && continue
-	[ "$LATEST" = "$TAG" ] && [ "$FORCE" != "true" ] && echo "-- * Up-to-date" && continue
+	if [ "$LATEST" = "null" ] ||
+		{ [ "$LATEST" = "$TAG" ] && [ "$FORCE" != "true" ]; }; then
+		echo "-- * Up-to-date"
+		continue
+	fi
 
 	if [ "$HAS_REPLACE" = "true" ]; then
 		# this just extracts the tag prefix

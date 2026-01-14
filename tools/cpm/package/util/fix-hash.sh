@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 : "${PACKAGE:=$1}"
@@ -13,7 +13,7 @@
 [ "$HASH_URL" = null ] || exit 0
 [ "$HASH_SUFFIX" = null ] || exit 0
 
-[ "$HASH" = null ] && echo "-- * Package has no hash specified" && exit 0
+[ "$HASH" != null ] || { echo "-- * Package has no hash specified" && exit 0; }
 
 ACTUAL=$("$SCRIPTS"/util/url-hash.sh "$DOWNLOAD")
 

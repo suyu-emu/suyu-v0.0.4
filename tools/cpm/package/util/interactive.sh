@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 # This reads a single-line input from the user and also gives them
@@ -13,7 +13,7 @@
 read_single() {
 	while :; do
 		printf -- "-- %s" "$1"
-		[ -n "$2" ] && printf " (? for help, %s)" "$3"
+		[ -z "$2" ] || printf " (? for help, %s)" "$3"
 		printf ": "
 		if ! IFS= read -r reply; then
 			echo
@@ -113,7 +113,7 @@ tag v1.3.0, then set this to 1.3.0 and set the tag to v%VERSION%."
 			"Most commonly this will be something like v%VERSION% or release-%VERSION%, or just %VERSION%."
 
 		TAGNAME="$reply"
-		[ -z "$TAGNAME" ] && TAGNAME="%VERSION%"
+		[ -n "$TAGNAME" ] || TAGNAME="%VERSION%"
 
 		optional "Name of the release artifact to download, if applicable.
 -- %VERSION% is replaced by the numeric version and %TAG% is replaced by the tag name" \
@@ -160,9 +160,9 @@ fi
 jq_input='{repo: "'"$REPO"'"}'
 
 # common trivial fields
-[ -n "$PACKAGE" ] && jq_input="$jq_input + {package: \"$PACKAGE\"}"
-[ -n "$MIN_VERSION" ] && jq_input="$jq_input + {min_version: \"$MIN_VERSION\"}"
-[ -n "$FIND_ARGS" ] && jq_input="$jq_input + {find_args: \"$FIND_ARGS\"}"
+[ -z "$PACKAGE" ] || jq_input="$jq_input + {package: \"$PACKAGE\"}"
+[ -z "$MIN_VERSION" ] || jq_input="$jq_input + {min_version: \"$MIN_VERSION\"}"
+[ -z "$FIND_ARGS" ] || jq_input="$jq_input + {find_args: \"$FIND_ARGS\"}"
 
 if [ "$CI" = "true" ]; then
 	jq_input="$jq_input + {
@@ -177,7 +177,7 @@ if [ "$CI" = "true" ]; then
 		jq_input="$jq_input + {disabled_platforms: $disabled_json}"
 	fi
 else
-	[ -n "$MIN_VERSION" ] && jq_input="$jq_input + {version: \"$MIN_VERSION\"}"
+	[ -z "$MIN_VERSION" ] || jq_input="$jq_input + {version: \"$MIN_VERSION\"}"
 	jq_input="$jq_input + {hash: \"\"}"
 
 	# options
@@ -194,8 +194,8 @@ else
 	# versioning stuff
 	if [ -n "$GIT_VERSION" ]; then
 		jq_input="$jq_input + {git_version: \"$GIT_VERSION\"}"
-		[ -n "$TAGNAME" ] && jq_input="$jq_input + {tag: \"$TAGNAME\"}"
-		[ -n "$ARTIFACT" ] && jq_input="$jq_input + {artifact: \"$ARTIFACT\"}"
+		[ -z "$TAGNAME" ] || jq_input="$jq_input + {tag: \"$TAGNAME\"}"
+		[ -z "$ARTIFACT" ] || jq_input="$jq_input + {artifact: \"$ARTIFACT\"}"
 	else
 		jq_input="$jq_input + {sha: \"$SHA\"}"
 	fi

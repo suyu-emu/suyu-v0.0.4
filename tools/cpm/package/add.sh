@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 RETURN=0
@@ -30,7 +30,7 @@ die() {
 }
 
 _cpmfile() {
-	[ -z "$1" ] && die "You must specify a valid cpmfile."
+	[ -n "$1" ] || die "You must specify a valid cpmfile."
 	CPMFILE="$1"
 }
 
@@ -70,7 +70,7 @@ done
 
 : "${CPMFILE:=$PWD/cpmfile.json}"
 
-[ -z "$PKG" ] && die "You must specify a package name."
+[ -n "$PKG" ] || die "You must specify a package name."
 
 export PKG
 export CPMFILE

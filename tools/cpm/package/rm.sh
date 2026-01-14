@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 RETURN=0
@@ -16,7 +16,7 @@ EOF
 	exit $RETURN
 }
 
-[ $# -lt 1 ] && usage
+[ $# -ge 1 ] || usage
 
 for pkg in "$@"; do
 	JSON=$("$SCRIPTS"/which.sh "$pkg") || {

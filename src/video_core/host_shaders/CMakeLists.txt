@@ -88,8 +88,7 @@ set(SHADER_FILES
 )
 
 if (PLATFORM_HAIKU)
-    # glslangValidator WILL crash, glslang will not - why? Who the fuck knows
-    #/boot/home/glslang/build/StandAlone/glslangValidator
+    # glslangValidator WILL crash, glslang will not
     set(GLSLANGVALIDATOR "glslang")
 else()
     # Normal sane platform who doesn't have a CRASHING glslangValidator

@@ -38,7 +38,6 @@ CMAKE_DEPENDENT_OPTION(DYNARMIC_USE_LLVM "Support disassembly of jitted x86_64 c
 
 option(DYNARMIC_INSTALL "Install dynarmic headers and CMake files" OFF)
 option(DYNARMIC_USE_BUNDLED_EXTERNALS "Use all bundled externals (useful when e.g. cross-compiling)" OFF)
-option(DYNARMIC_ENABLE_LTO "Enable LTO" OFF)
 
 # Set hard requirements for C++
 set(CMAKE_CXX_STANDARD 20)
@@ -115,10 +114,6 @@ endif()
 
 find_package(Boost 1.57 REQUIRED)
 find_package(fmt 8 CONFIG)
-
-# Pull in externals CMakeLists for libs where available
-add_subdirectory(externals)
-
 find_package(mcl 0.1.12 REQUIRED)
 
 if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)

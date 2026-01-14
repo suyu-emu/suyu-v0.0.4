@@ -242,8 +242,7 @@ set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
 if (YUZU_CRASH_DUMPS)
     target_sources(yuzu PRIVATE
         breakpad.cpp
-        breakpad.h
-    )
+        breakpad.h)
 
     target_link_libraries(yuzu PRIVATE libbreakpad_client)
     target_compile_definitions(yuzu PRIVATE YUZU_CRASH_DUMPS)
@@ -251,8 +250,7 @@ endif()
 
 if (CXX_CLANG)
     target_compile_definitions(yuzu PRIVATE
-        $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:CANNOT_EXPLICITLY_INSTANTIATE>
-    )
+        $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:CANNOT_EXPLICITLY_INSTANTIATE>)
 endif()
 
 file(GLOB COMPAT_LIST
@@ -288,8 +286,7 @@ if (ENABLE_QT_TRANSLATION)
                     ${SRCS}
                     ${UIS}
                 WORKING_DIRECTORY
-                    ${CMAKE_CURRENT_SOURCE_DIR}
-            )
+                    ${CMAKE_CURRENT_SOURCE_DIR})
         else()
             qt_create_translation(QM_FILES
                 ${SRCS}
@@ -297,8 +294,7 @@ if (ENABLE_QT_TRANSLATION)
                 ${YUZU_QT_LANGUAGES}/en.ts
             OPTIONS
                 -source-language en_US
-                -target-language en_US
-            )
+                -target-language en_US)
         endif()
 
         # Generate plurals into dist/english_plurals/generated_en.ts so it can be used to revise dist/english_plurals/en.ts
@@ -316,8 +312,7 @@ if (ENABLE_QT_TRANSLATION)
                     ${SRCS}
                     ${UIS}
                 WORKING_DIRECTORY
-                    ${CMAKE_CURRENT_SOURCE_DIR}
-            )
+                    ${CMAKE_CURRENT_SOURCE_DIR})
         else()
             qt_create_translation(QM_FILES ${SRCS} ${UIS} ${GENERATED_PLURALS_FILE} OPTIONS -pluralonly -source-language en_US -target-language en_US)
         endif()
@@ -355,8 +350,11 @@ target_sources(yuzu
         ${COMPAT_LIST}
         ${ICONS}
         ${LANGUAGES}
-        ${THEMES}
-)
+        ${THEMES})
+
+if (ENABLE_OPENSSL)
+    target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+endif()
 
 if (APPLE)
     # Normal icns

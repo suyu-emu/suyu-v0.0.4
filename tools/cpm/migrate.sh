@@ -1,11 +1,10 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 SUBMODULES="$(git submodule status --recursive | cut -c2-)"
-
-[ -z "$SUBMODULES" ] && echo "No submodules defined!" && exit 0
+: "${SUBMODULES:?No submodules defined!}"
 
 tmp=$(mktemp)
 printf '{}' >"$tmp"
@@ -22,7 +21,7 @@ for i in $SUBMODULES; do
 	remote=$(git -C "$path" remote get-url origin)
 
 	host=$(echo "$remote" | cut -d"/" -f3)
-	[ "$host" = github.com ] && host=
+	[ "$host" != github.com ] || host=
 
 	repo=$(echo "$remote" | cut -d"/" -f4-5 | cut -d'.' -f1)
 
