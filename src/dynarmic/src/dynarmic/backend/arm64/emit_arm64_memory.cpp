@@ -268,7 +268,10 @@ std::pair<oaknut::XReg, oaknut::XReg> InlinePageTableEmitVAddrLookup(oaknut::Cod
         code.B(NE, *fallback);
     }
 
-    code.LDR(Xscratch0, Xpagetable, Xscratch0, LSL, ctx.conf.page_table_log2_stride);
+    // index = index << log2
+    code.SBFIZ(Xscratch0, Xscratch0, ctx.conf.page_table_log2_stride, 32);
+    // load x0 = *<(u8*)pagetable + index>
+    code.LDR(Xscratch0, Xpagetable, Xscratch0);
 
     if (ctx.conf.page_table_pointer_mask_bits != 0) {
         const u64 mask = u64(~u64(0)) << ctx.conf.page_table_pointer_mask_bits;
