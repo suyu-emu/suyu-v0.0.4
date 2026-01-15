@@ -22,7 +22,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
     <key>CFBundleIconFile</key>
     <string>eden.icns</string>
     <key>CFBundleIconName</key>
-    <string>Eden</string>
+    <string>eden_liquidglass</string>
     <key>CFBundleIdentifier</key>
     <string>com.yuzu-emu.yuzu</string>
     <key>CFBundleInfoDictionaryVersion</key>
