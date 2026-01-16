@@ -493,10 +493,8 @@ SDLDriver::SDLDriver(std::string input_engine_) : InputEngine(std::move(input_en
     // their desktop environment.
     SDL_SetHint(SDL_HINT_APP_NAME, "Eden");
 
-    if (!Settings::values.enable_raw_input) {
-        // Disable raw input. When enabled this setting causes SDL to die when a web applet opens
-        SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
-    }
+    // Disable raw input. When enabled this setting causes SDL to die when a web applet opens
+    SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, Settings::values.enable_raw_input ? "1" : "0");
 
     // Prevent SDL from adding undesired axis
     SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
