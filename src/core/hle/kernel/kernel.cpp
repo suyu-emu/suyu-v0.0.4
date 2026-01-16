@@ -88,11 +88,11 @@ struct KernelCore::Impl {
     }
 
     void Initialize(KernelCore& kernel) {
-        hardware_timer = std::make_unique<Kernel::KHardwareTimer>(kernel);
+        hardware_timer.emplace(kernel);
         hardware_timer->Initialize();
 
-        global_object_list_container = std::make_unique<KAutoObjectWithListContainer>(kernel);
-        global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
+        global_object_list_container.emplace(kernel);
+        global_scheduler_context.emplace(kernel);
 
         // Derive the initial memory layout from the emulated board
         Init::InitializeSlabResourceCounts(kernel);
@@ -212,10 +212,9 @@ struct KernelCore::Impl {
 
     void InitializePhysicalCores() {
         for (u32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            const s32 core{static_cast<s32>(i)};
-
-            schedulers[i] = std::make_unique<Kernel::KScheduler>(system.Kernel());
-            cores[i] = std::make_unique<Kernel::PhysicalCore>(system.Kernel(), i);
+            auto const core = s32(i);
+            schedulers[i].emplace(system.Kernel());
+            cores[i].emplace(system.Kernel(), i);
 
             auto* main_thread{Kernel::KThread::Create(system.Kernel())};
             main_thread->SetCurrentCore(core);
@@ -280,57 +279,56 @@ struct KernelCore::Impl {
         size -= rc_size;
 
         // Initialize the resource managers' shared page manager.
-        resource_manager_page_manager = std::make_unique<KDynamicPageManager>();
+        resource_manager_page_manager.emplace();
         resource_manager_page_manager->Initialize(address, size, std::max<size_t>(PageSize, KPageBufferSlabHeap::BufferSize));
 
         // Initialize the KPageBuffer slab heap.
         page_buffer_slab_heap.Initialize(system);
 
         // Initialize the fixed-size slabheaps.
-        app_memory_block_heap = std::make_unique<KMemoryBlockSlabHeap>();
-        sys_memory_block_heap = std::make_unique<KMemoryBlockSlabHeap>();
-        block_info_heap = std::make_unique<KBlockInfoSlabHeap>();
-        app_memory_block_heap->Initialize(resource_manager_page_manager.get(), ApplicationMemoryBlockSlabHeapSize);
-        sys_memory_block_heap->Initialize(resource_manager_page_manager.get(), SystemMemoryBlockSlabHeapSize);
-        block_info_heap->Initialize(resource_manager_page_manager.get(), BlockInfoSlabHeapSize);
+        app_memory_block_heap.emplace();
+        sys_memory_block_heap.emplace();
+        block_info_heap.emplace();
+        app_memory_block_heap->Initialize(std::addressof(*resource_manager_page_manager), ApplicationMemoryBlockSlabHeapSize);
+        sys_memory_block_heap->Initialize(std::addressof(*resource_manager_page_manager), SystemMemoryBlockSlabHeapSize);
+        block_info_heap->Initialize(std::addressof(*resource_manager_page_manager), BlockInfoSlabHeapSize);
 
         // Reserve all but a fixed number of remaining pages for the page table heap.
         const size_t num_pt_pages = resource_manager_page_manager->GetCount() - resource_manager_page_manager->GetUsed() - ReservedDynamicPageCount;
-        page_table_heap = std::make_unique<KPageTableSlabHeap>();
+        page_table_heap.emplace();
 
         // TODO(bunnei): Pass in address once we support kernel virtual memory allocations.
         page_table_heap->Initialize(
-            resource_manager_page_manager.get(), num_pt_pages,
+            std::addressof(*resource_manager_page_manager), num_pt_pages,
             /*GetPointer<KPageTableManager::RefCount>(address + size)*/ nullptr);
 
         // Setup the slab managers.
         KDynamicPageManager* const app_dynamic_page_manager = nullptr;
         KDynamicPageManager* const sys_dynamic_page_manager =
             /*KTargetSystem::IsDynamicResourceLimitsEnabled()*/ true
-            ? resource_manager_page_manager.get()
-            : nullptr;
-        app_memory_block_manager = std::make_unique<KMemoryBlockSlabManager>();
-        sys_memory_block_manager = std::make_unique<KMemoryBlockSlabManager>();
-        app_block_info_manager = std::make_unique<KBlockInfoManager>();
-        sys_block_info_manager = std::make_unique<KBlockInfoManager>();
-        app_page_table_manager = std::make_unique<KPageTableManager>();
-        sys_page_table_manager = std::make_unique<KPageTableManager>();
+            ? std::addressof(*resource_manager_page_manager) : nullptr;
+        app_memory_block_manager.emplace();
+        sys_memory_block_manager.emplace();
+        app_block_info_manager.emplace();
+        sys_block_info_manager.emplace();
+        app_page_table_manager.emplace();
+        sys_page_table_manager.emplace();
 
-        app_memory_block_manager->Initialize(app_dynamic_page_manager, app_memory_block_heap.get());
-        sys_memory_block_manager->Initialize(sys_dynamic_page_manager, sys_memory_block_heap.get());
+        app_memory_block_manager->Initialize(app_dynamic_page_manager, std::addressof(*app_memory_block_heap));
+        sys_memory_block_manager->Initialize(sys_dynamic_page_manager, std::addressof(*sys_memory_block_heap));
 
-        app_block_info_manager->Initialize(app_dynamic_page_manager, block_info_heap.get());
-        sys_block_info_manager->Initialize(sys_dynamic_page_manager, block_info_heap.get());
+        app_block_info_manager->Initialize(app_dynamic_page_manager, std::addressof(*block_info_heap));
+        sys_block_info_manager->Initialize(sys_dynamic_page_manager, std::addressof(*block_info_heap));
 
-        app_page_table_manager->Initialize(app_dynamic_page_manager, page_table_heap.get());
-        sys_page_table_manager->Initialize(sys_dynamic_page_manager, page_table_heap.get());
+        app_page_table_manager->Initialize(app_dynamic_page_manager, std::addressof(*page_table_heap));
+        sys_page_table_manager->Initialize(sys_dynamic_page_manager, std::addressof(*page_table_heap));
 
         // Check that we have the correct number of dynamic pages available.
         ASSERT(resource_manager_page_manager->GetCount() - resource_manager_page_manager->GetUsed() == ReservedDynamicPageCount);
 
         // Create the system page table managers.
-        app_system_resource = std::make_unique<KSystemResource>(kernel);
-        sys_system_resource = std::make_unique<KSystemResource>(kernel);
+        app_system_resource.emplace(kernel);
+        sys_system_resource.emplace(kernel);
         KAutoObject::Create(std::addressof(*app_system_resource));
         KAutoObject::Create(std::addressof(*sys_system_resource));
 
@@ -349,7 +347,7 @@ struct KernelCore::Impl {
     }
 
     void InitializeGlobalData(KernelCore& kernel) {
-        object_name_global_data = std::make_unique<KObjectNameGlobalData>(kernel);
+        object_name_global_data.emplace(kernel);
     }
 
     void MakeApplicationProcess(KProcess* process) {
@@ -431,7 +429,7 @@ struct KernelCore::Impl {
     }
 
     void DeriveInitialMemoryLayout() {
-        memory_layout = std::make_unique<KMemoryLayout>();
+        memory_layout.emplace();
 
         // Insert the root region for the virtual memory tree, from which all other regions will
         // derive.
@@ -726,7 +724,7 @@ struct KernelCore::Impl {
 
     void InitializeMemoryLayout() {
         // Initialize the memory manager.
-        memory_manager = std::make_unique<KMemoryManager>(system);
+        memory_manager.emplace(system);
         const auto& management_region = memory_layout->GetPoolManagementRegion();
         ASSERT(management_region.GetEndAddress() != 0);
         memory_manager->Initialize(management_region.GetAddress(), management_region.GetSize());
@@ -774,8 +772,8 @@ struct KernelCore::Impl {
     std::mutex process_list_lock;
     std::vector<KProcess*> process_list;
     KProcess* application_process{};
-    std::unique_ptr<Kernel::GlobalSchedulerContext> global_scheduler_context;
-    std::unique_ptr<Kernel::KHardwareTimer> hardware_timer;
+    std::optional<Kernel::GlobalSchedulerContext> global_scheduler_context;
+    std::optional<Kernel::KHardwareTimer> hardware_timer;
 
     Init::KSlabResourceCounts slab_resource_counts{};
     KResourceLimit* system_resource_limit{};
@@ -784,9 +782,9 @@ struct KernelCore::Impl {
 
     std::shared_ptr<Core::Timing::EventType> preemption_event;
 
-    std::unique_ptr<KAutoObjectWithListContainer> global_object_list_container;
+    std::optional<KAutoObjectWithListContainer> global_object_list_container;
 
-    std::unique_ptr<KObjectNameGlobalData> object_name_global_data;
+    std::optional<KObjectNameGlobalData> object_name_global_data;
 
     std::unordered_set<KAutoObject*> registered_objects;
     std::unordered_set<KAutoObject*> registered_in_use_objects;
@@ -794,28 +792,28 @@ struct KernelCore::Impl {
     std::mutex server_lock;
     std::vector<std::unique_ptr<Service::ServerManager>> server_managers;
 
-    std::array<std::unique_ptr<Kernel::PhysicalCore>, Core::Hardware::NUM_CPU_CORES> cores;
+    std::array<std::optional<Kernel::PhysicalCore>, Core::Hardware::NUM_CPU_CORES> cores;
 
     // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
     std::atomic<u32> next_host_thread_id{Core::Hardware::NUM_CPU_CORES};
 
     // Kernel memory management
-    std::unique_ptr<KMemoryManager> memory_manager;
+    std::optional<KMemoryManager> memory_manager;
 
     // Resource managers
-    std::unique_ptr<KDynamicPageManager> resource_manager_page_manager;
-    std::unique_ptr<KPageTableSlabHeap> page_table_heap;
-    std::unique_ptr<KMemoryBlockSlabHeap> app_memory_block_heap;
-    std::unique_ptr<KMemoryBlockSlabHeap> sys_memory_block_heap;
-    std::unique_ptr<KBlockInfoSlabHeap> block_info_heap;
-    std::unique_ptr<KPageTableManager> app_page_table_manager;
-    std::unique_ptr<KPageTableManager> sys_page_table_manager;
-    std::unique_ptr<KMemoryBlockSlabManager> app_memory_block_manager;
-    std::unique_ptr<KMemoryBlockSlabManager> sys_memory_block_manager;
-    std::unique_ptr<KBlockInfoManager> app_block_info_manager;
-    std::unique_ptr<KBlockInfoManager> sys_block_info_manager;
-    std::unique_ptr<KSystemResource> app_system_resource;
-    std::unique_ptr<KSystemResource> sys_system_resource;
+    std::optional<KDynamicPageManager> resource_manager_page_manager;
+    std::optional<KPageTableSlabHeap> page_table_heap;
+    std::optional<KMemoryBlockSlabHeap> app_memory_block_heap;
+    std::optional<KMemoryBlockSlabHeap> sys_memory_block_heap;
+    std::optional<KBlockInfoSlabHeap> block_info_heap;
+    std::optional<KPageTableManager> app_page_table_manager;
+    std::optional<KPageTableManager> sys_page_table_manager;
+    std::optional<KMemoryBlockSlabManager> app_memory_block_manager;
+    std::optional<KMemoryBlockSlabManager> sys_memory_block_manager;
+    std::optional<KBlockInfoManager> app_block_info_manager;
+    std::optional<KBlockInfoManager> sys_block_info_manager;
+    std::optional<KSystemResource> app_system_resource;
+    std::optional<KSystemResource> sys_system_resource;
 
     // Shared memory for services
     Kernel::KSharedMemory* hid_shared_mem{};
@@ -825,10 +823,10 @@ struct KernelCore::Impl {
     Kernel::KSharedMemory* hidbus_shared_mem{};
 
     // Memory layout
-    std::unique_ptr<KMemoryLayout> memory_layout;
+    std::optional<KMemoryLayout> memory_layout;
 
     std::array<KThread*, Core::Hardware::NUM_CPU_CORES> shutdown_threads{};
-    std::array<std::unique_ptr<Kernel::KScheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
+    std::array<std::optional<Kernel::KScheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
 
     bool is_multicore{};
     std::atomic_bool is_shutting_down{};
@@ -948,12 +946,9 @@ const Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() const {
 }
 
 Kernel::KScheduler* KernelCore::CurrentScheduler() {
-    const u32 core_id = impl->GetCurrentHostThreadID();
-    if (core_id >= Core::Hardware::NUM_CPU_CORES) {
-        // This is expected when called from not a guest thread
-        return {};
-    }
-    return impl->schedulers[core_id].get();
+    if (auto const core_id = impl->GetCurrentHostThreadID(); core_id < Core::Hardware::NUM_CPU_CORES)
+        return std::addressof(*impl->schedulers[core_id]);
+    return {}; // This is expected when called from not a guest thread
 }
 
 Kernel::KHardwareTimer& KernelCore::HardwareTimer() {

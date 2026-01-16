@@ -53,13 +53,6 @@ CoreTiming::~CoreTiming() {
     Reset();
 }
 
-void CoreTiming::ThreadEntry(CoreTiming& instance) {
-    Common::SetCurrentThreadName("HostTiming");
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
-    instance.on_thread_init();
-    instance.ThreadLoop();
-}
-
 void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
     Reset();
     on_thread_init = std::move(on_thread_init_);
@@ -67,7 +60,12 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
     shutting_down = false;
     cpu_ticks = 0;
     if (is_multicore) {
-        timer_thread = std::make_unique<std::jthread>(ThreadEntry, std::ref(*this));
+        timer_thread.emplace([](CoreTiming& instance) {
+            Common::SetCurrentThreadName("HostTiming");
+            Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
+            instance.on_thread_init();
+            instance.ThreadLoop();
+        }, std::ref(*this));
     }
 }
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -140,8 +143,6 @@ public:
 
 private:
     struct Event;
-
-    static void ThreadEntry(CoreTiming& instance);
     void ThreadLoop();
 
     void Reset();
@@ -164,7 +165,7 @@ private:
     Common::Event pause_event{};
     mutable std::mutex basic_lock;
     std::mutex advance_lock;
-    std::unique_ptr<std::jthread> timer_thread;
+    std::optional<std::jthread> timer_thread;
     std::atomic<bool> paused{};
     std::atomic<bool> paused_set{};
     std::atomic<bool> wait_set{};

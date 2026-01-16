@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -95,24 +98,34 @@ union MethodAddress {
 
 } // namespace Macro
 
-class HLEMacro;
-
 class CachedMacro {
 public:
+    CachedMacro(Engines::Maxwell3D& maxwell3d_)
+        : maxwell3d{maxwell3d_}
+    {}
     virtual ~CachedMacro() = default;
-    /**
-     * Executes the macro code with the specified input parameters.
-     *
-     * @param parameters The parameters of the macro
-     * @param method     The method to execute
-     */
+    /// Executes the macro code with the specified input parameters.
+    /// @param parameters The parameters of the macro
+    /// @param method     The method to execute
     virtual void Execute(const std::vector<u32>& parameters, u32 method) = 0;
+    Engines::Maxwell3D& maxwell3d;
+};
+
+class HLEMacro {
+public:
+    explicit HLEMacro(Engines::Maxwell3D& maxwell3d_);
+    ~HLEMacro();
+    // Allocates and returns a cached macro if the hash matches a known function.
+    // Returns nullptr otherwise.
+    [[nodiscard]] std::unique_ptr<CachedMacro> GetHLEProgram(u64 hash) const;
+private:
+    Engines::Maxwell3D& maxwell3d;
 };
 
 class MacroEngine {
 public:
-    explicit MacroEngine(Engines::Maxwell3D& maxwell3d);
-    virtual ~MacroEngine();
+    explicit MacroEngine(Engines::Maxwell3D& maxwell3d, bool is_interpreted);
+    ~MacroEngine();
 
     // Store the uploaded macro code to compile them when they're called.
     void AddCode(u32 method, u32 data);
@@ -124,7 +137,7 @@ public:
     void Execute(u32 method, const std::vector<u32>& parameters);
 
 protected:
-    virtual std::unique_ptr<CachedMacro> Compile(const std::vector<u32>& code) = 0;
+    std::unique_ptr<CachedMacro> Compile(const std::vector<u32>& code);
 
 private:
     struct CacheInfo {
@@ -136,10 +149,11 @@ private:
 
     std::unordered_map<u32, CacheInfo> macro_cache;
     std::unordered_map<u32, std::vector<u32>> uploaded_macro_code;
-    std::unique_ptr<HLEMacro> hle_macros;
+    std::optional<HLEMacro> hle_macros;
     Engines::Maxwell3D& maxwell3d;
+    bool is_interpreted;
 };
 
-std::unique_ptr<MacroEngine> GetMacroEngine(Engines::Maxwell3D& maxwell3d);
+std::optional<MacroEngine> GetMacroEngine(Engines::Maxwell3D& maxwell3d);
 
 } // namespace Tegra

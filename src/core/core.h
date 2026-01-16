@@ -325,10 +325,6 @@ public:
     /// Gets the name of the current game
     [[nodiscard]] Loader::ResultStatus GetGameName(std::string& out) const;
 
-    void SetStatus(SystemResultStatus new_status, const char* details);
-
-    [[nodiscard]] const std::string& GetStatusDetails() const;
-
     [[nodiscard]] Loader::AppLoader& GetAppLoader();
     [[nodiscard]] const Loader::AppLoader& GetAppLoader() const;
 
@@ -424,13 +420,8 @@ public:
      */
     void ExecuteProgram(std::size_t program_index);
 
-    /**
-     * Gets a reference to the user channel stack.
-     * It is used to transfer data between programs.
-     */
-    [[nodiscard]] std::deque<std::vector<u8>>& GetUserChannel();
-
-    [[nodiscard]] std::deque<std::vector<u8>>& GetGeneralChannel();
+    [[nodiscard]] std::vector<std::vector<u8>>& GetUserChannel();
+    [[nodiscard]] std::vector<std::vector<u8>>& GetGeneralChannel();
     void PushGeneralChannelData(std::vector<u8>&& data);
     bool TryPopGeneralChannel(std::vector<u8>& out_data);
     [[nodiscard]] Service::Event& GetGeneralChannelEvent();

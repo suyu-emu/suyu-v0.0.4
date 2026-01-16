@@ -376,7 +376,6 @@ void RasterizerVulkan::DrawTexture() {
 }
 
 void RasterizerVulkan::Clear(u32 layer_count) {
-
     FlushWork();
     gpu_memory->FlushCaching();
 
@@ -396,9 +395,7 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     scheduler.RequestRenderpass(framebuffer);
 
     query_cache.NotifySegment(true);
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
-
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, maxwell3d->regs.zpass_pixel_count_enable);
     u32 up_scale = 1;
     u32 down_shift = 0;
     if (texture_cache.IsRescaling()) {
@@ -443,14 +440,14 @@ void RasterizerVulkan::Clear(u32 layer_count) {
                 offset = 0;
                 return;
             }
-            if (offset >= static_cast<s32>(limit)) {
-                offset = static_cast<s32>(limit);
+            if (offset >= s32(limit)) {
+                offset = s32(limit);
                 extent = 0;
                 return;
             }
-            const u64 end_coord = static_cast<u64>(offset) + extent;
+            const u64 end_coord = u64(offset) + extent;
             if (end_coord > limit) {
-                extent = limit - static_cast<u32>(offset);
+                extent = limit - u32(offset);
             }
         };
 
@@ -464,30 +461,22 @@ void RasterizerVulkan::Clear(u32 layer_count) {
 
     const u32 color_attachment = regs.clear_surface.RT;
     if (use_color && framebuffer->HasAspectColorBit(color_attachment)) {
-        const auto format =
-            VideoCore::Surface::PixelFormatFromRenderTargetFormat(regs.rt[color_attachment].format);
+        const auto format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(regs.rt[color_attachment].format);
         bool is_integer = IsPixelFormatInteger(format);
         bool is_signed = IsPixelFormatSignedInteger(format);
         size_t int_size = PixelComponentSizeBitsInteger(format);
         VkClearValue clear_value{};
         if (!is_integer) {
-            std::memcpy(clear_value.color.float32, regs.clear_color.data(),
-                        regs.clear_color.size() * sizeof(f32));
+            std::memcpy(clear_value.color.float32, regs.clear_color.data(), regs.clear_color.size() * sizeof(f32));
         } else if (!is_signed) {
-            for (size_t i = 0; i < 4; i++) {
-                clear_value.color.uint32[i] = static_cast<u32>(
-                    static_cast<f32>(static_cast<u64>(int_size) << 1U) * regs.clear_color[i]);
-            }
+            for (size_t i = 0; i < 4; i++)
+                clear_value.color.uint32[i] = u32(f32(u64(int_size) << 1U) * regs.clear_color[i]);
         } else {
-            for (size_t i = 0; i < 4; i++) {
-                clear_value.color.int32[i] =
-                    static_cast<s32>(static_cast<f32>(static_cast<s64>(int_size - 1) << 1) *
-                                     (regs.clear_color[i] - 0.5f));
-            }
+            for (size_t i = 0; i < 4; i++)
+                clear_value.color.int32[i] = s32(f32(s64(int_size - 1) << 1) * (regs.clear_color[i] - 0.5f));
         }
 
-        if (regs.clear_surface.R && regs.clear_surface.G && regs.clear_surface.B &&
-            regs.clear_surface.A) {
+        if (regs.clear_surface.R && regs.clear_surface.G && regs.clear_surface.B && regs.clear_surface.A) {
             scheduler.Record([color_attachment, clear_value, clear_rect](vk::CommandBuffer cmdbuf) {
                 const VkClearAttachment attachment{
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -497,14 +486,11 @@ void RasterizerVulkan::Clear(u32 layer_count) {
                 cmdbuf.ClearAttachments(attachment, clear_rect);
             });
         } else {
-            u8 color_mask = static_cast<u8>(regs.clear_surface.R | regs.clear_surface.G << 1 |
-                                            regs.clear_surface.B << 2 | regs.clear_surface.A << 3);
+            u8 color_mask = u8(regs.clear_surface.R | regs.clear_surface.G << 1 | regs.clear_surface.B << 2 | regs.clear_surface.A << 3);
             Region2D dst_region = {
                 Offset2D{.x = clear_rect.rect.offset.x, .y = clear_rect.rect.offset.y},
-                Offset2D{.x = clear_rect.rect.offset.x +
-                              static_cast<s32>(clear_rect.rect.extent.width),
-                         .y = clear_rect.rect.offset.y +
-                              static_cast<s32>(clear_rect.rect.extent.height)}};
+                Offset2D{.x = clear_rect.rect.offset.x + s32(clear_rect.rect.extent.width),
+                         .y = clear_rect.rect.offset.y + s32(clear_rect.rect.extent.height)}};
             blit_image.ClearColor(framebuffer, color_mask, regs.clear_color, dst_region);
         }
     }
@@ -527,11 +513,10 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         regs.stencil_front_mask != 0) {
         Region2D dst_region = {
             Offset2D{.x = clear_rect.rect.offset.x, .y = clear_rect.rect.offset.y},
-            Offset2D{.x = clear_rect.rect.offset.x + static_cast<s32>(clear_rect.rect.extent.width),
-                     .y = clear_rect.rect.offset.y +
-                          static_cast<s32>(clear_rect.rect.extent.height)}};
+            Offset2D{.x = clear_rect.rect.offset.x + s32(clear_rect.rect.extent.width),
+                     .y = clear_rect.rect.offset.y + s32(clear_rect.rect.extent.height)}};
         blit_image.ClearDepthStencil(framebuffer, use_depth, regs.clear_depth,
-                                     static_cast<u8>(regs.stencil_front_mask), regs.clear_stencil,
+                                     u8(regs.stencil_front_mask), regs.clear_stencil,
                                      regs.stencil_front_func_mask, dst_region);
     } else {
         scheduler.Record([clear_depth = regs.clear_depth, clear_stencil = regs.clear_stencil,

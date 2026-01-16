@@ -302,7 +302,7 @@ private:
 
     std::array<GLuint, Shader::NUM_TEXTURE_TYPES> views{};
     std::vector<OGLTextureView> stored_views;
-    std::unique_ptr<StorageViews> storage_views;
+    std::optional<StorageViews> storage_views;
     GLenum internal_format = GL_NONE;
     GLuint default_handle = 0;
     u32 buffer_size = 0;

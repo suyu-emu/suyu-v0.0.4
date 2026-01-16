@@ -133,12 +133,95 @@ public:
     vk::Buffer swizzle_table_buffer;
     VkDeviceSize swizzle_table_size = 0;
 
-    std::unique_ptr<MSAACopyPass> msaa_copy_pass;
+    std::optional<MSAACopyPass> msaa_copy_pass;
     const Settings::ResolutionScalingInfo& resolution;
     std::array<std::vector<VkFormat>, VideoCore::Surface::MaxPixelFormat> view_formats;
 
     static constexpr size_t indexing_slots = 8 * sizeof(size_t);
     std::array<vk::Buffer, indexing_slots> buffers{};
+};
+
+class Framebuffer {
+public:
+    explicit Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,
+                         ImageView* depth_buffer, const VideoCommon::RenderTargets& key);
+
+    explicit Framebuffer(TextureCacheRuntime& runtime, ImageView* color_buffer,
+                         ImageView* depth_buffer, VkExtent2D extent, bool is_rescaled);
+
+    ~Framebuffer();
+
+    Framebuffer(const Framebuffer&) = delete;
+    Framebuffer& operator=(const Framebuffer&) = delete;
+
+    Framebuffer(Framebuffer&&) = default;
+    Framebuffer& operator=(Framebuffer&&) = default;
+
+    void CreateFramebuffer(TextureCacheRuntime& runtime,
+                           std::span<ImageView*, NUM_RT> color_buffers, ImageView* depth_buffer,
+                           bool is_rescaled = false);
+
+    [[nodiscard]] VkFramebuffer Handle() const noexcept {
+        return *framebuffer;
+    }
+
+    [[nodiscard]] VkRenderPass RenderPass() const noexcept {
+        return renderpass;
+    }
+
+    [[nodiscard]] VkExtent2D RenderArea() const noexcept {
+        return render_area;
+    }
+
+    [[nodiscard]] VkSampleCountFlagBits Samples() const noexcept {
+        return samples;
+    }
+
+    [[nodiscard]] u32 NumColorBuffers() const noexcept {
+        return num_color_buffers;
+    }
+
+    [[nodiscard]] u32 NumImages() const noexcept {
+        return num_images;
+    }
+
+    [[nodiscard]] const std::array<VkImage, 9>& Images() const noexcept {
+        return images;
+    }
+
+    [[nodiscard]] const std::array<VkImageSubresourceRange, 9>& ImageRanges() const noexcept {
+        return image_ranges;
+    }
+
+    [[nodiscard]] bool HasAspectColorBit(size_t index) const noexcept {
+        return (image_ranges.at(rt_map[index]).aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) != 0;
+    }
+
+    [[nodiscard]] bool HasAspectDepthBit() const noexcept {
+        return has_depth;
+    }
+
+    [[nodiscard]] bool HasAspectStencilBit() const noexcept {
+        return has_stencil;
+    }
+
+    [[nodiscard]] bool IsRescaled() const noexcept {
+        return is_rescaled;
+    }
+
+private:
+    vk::Framebuffer framebuffer;
+    VkRenderPass renderpass{};
+    VkExtent2D render_area{};
+    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
+    u32 num_color_buffers = 0;
+    u32 num_images = 0;
+    std::array<VkImage, 9> images{};
+    std::array<VkImageSubresourceRange, 9> image_ranges{};
+    std::array<size_t, NUM_RT> rt_map{};
+    bool has_depth{};
+    bool has_stencil{};
+    bool is_rescaled{};
 };
 
 class Image : public VideoCommon::ImageBase {
@@ -226,10 +309,9 @@ private:
     VkImageAspectFlags aspect_mask = 0;
     bool initialized = false;
 
-    std::unique_ptr<Framebuffer> scale_framebuffer;
+    std::optional<Framebuffer> scale_framebuffer;
+    std::optional<Framebuffer> normal_framebuffer;
     std::unique_ptr<ImageView> scale_view;
-
-    std::unique_ptr<Framebuffer> normal_framebuffer;
     std::unique_ptr<ImageView> normal_view;
 };
 
@@ -297,7 +379,7 @@ private:
     const SlotVector<Image>* slot_images = nullptr;
 
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
-    std::unique_ptr<StorageViews> storage_views;
+    std::optional<StorageViews> storage_views;
     vk::ImageView depth_view;
     vk::ImageView stencil_view;
     vk::ImageView color_view;
@@ -329,89 +411,6 @@ public:
 private:
     vk::Sampler sampler;
     vk::Sampler sampler_default_anisotropy;
-};
-
-class Framebuffer {
-public:
-    explicit Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,
-                         ImageView* depth_buffer, const VideoCommon::RenderTargets& key);
-
-    explicit Framebuffer(TextureCacheRuntime& runtime, ImageView* color_buffer,
-                         ImageView* depth_buffer, VkExtent2D extent, bool is_rescaled);
-
-    ~Framebuffer();
-
-    Framebuffer(const Framebuffer&) = delete;
-    Framebuffer& operator=(const Framebuffer&) = delete;
-
-    Framebuffer(Framebuffer&&) = default;
-    Framebuffer& operator=(Framebuffer&&) = default;
-
-    void CreateFramebuffer(TextureCacheRuntime& runtime,
-                           std::span<ImageView*, NUM_RT> color_buffers, ImageView* depth_buffer,
-                           bool is_rescaled = false);
-
-    [[nodiscard]] VkFramebuffer Handle() const noexcept {
-        return *framebuffer;
-    }
-
-    [[nodiscard]] VkRenderPass RenderPass() const noexcept {
-        return renderpass;
-    }
-
-    [[nodiscard]] VkExtent2D RenderArea() const noexcept {
-        return render_area;
-    }
-
-    [[nodiscard]] VkSampleCountFlagBits Samples() const noexcept {
-        return samples;
-    }
-
-    [[nodiscard]] u32 NumColorBuffers() const noexcept {
-        return num_color_buffers;
-    }
-
-    [[nodiscard]] u32 NumImages() const noexcept {
-        return num_images;
-    }
-
-    [[nodiscard]] const std::array<VkImage, 9>& Images() const noexcept {
-        return images;
-    }
-
-    [[nodiscard]] const std::array<VkImageSubresourceRange, 9>& ImageRanges() const noexcept {
-        return image_ranges;
-    }
-
-    [[nodiscard]] bool HasAspectColorBit(size_t index) const noexcept {
-        return (image_ranges.at(rt_map[index]).aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) != 0;
-    }
-
-    [[nodiscard]] bool HasAspectDepthBit() const noexcept {
-        return has_depth;
-    }
-
-    [[nodiscard]] bool HasAspectStencilBit() const noexcept {
-        return has_stencil;
-    }
-
-    [[nodiscard]] bool IsRescaled() const noexcept {
-        return is_rescaled;
-    }
-
-private:
-    vk::Framebuffer framebuffer;
-    VkRenderPass renderpass{};
-    VkExtent2D render_area{};
-    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-    u32 num_color_buffers = 0;
-    u32 num_images = 0;
-    std::array<VkImage, 9> images{};
-    std::array<VkImageSubresourceRange, 9> image_ranges{};
-    std::array<size_t, NUM_RT> rt_map{};
-    bool has_depth{};
-    bool has_stencil{};
-    bool is_rescaled{};
 };
 
 struct TextureCacheParams {

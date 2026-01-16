@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,7 +12,6 @@
 #include "common/x64/native_clock.h"
 #include "common/x64/rdtsc.h"
 #endif
-
 #ifdef HAS_NCE
 #include "common/arm64/native_clock.h"
 #endif
@@ -71,10 +73,6 @@ std::unique_ptr<WallClock> CreateOptimalClock() {
 #else
     return std::make_unique<StandardWallClock>();
 #endif
-}
-
-std::unique_ptr<WallClock> CreateStandardWallClock() {
-    return std::make_unique<StandardWallClock>();
 }
 
 } // namespace Common

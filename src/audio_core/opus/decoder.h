@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -36,8 +39,7 @@ public:
 private:
     Core::System& system;
     HardwareOpus& hardware_opus;
-    std::unique_ptr<u8[]> shared_buffer{};
-    u64 shared_buffer_size;
+    std::vector<u8> shared_buffer{};
     std::span<u8> in_data{};
     std::span<u8> out_data{};
     u64 buffer_size{};

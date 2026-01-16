@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cstring>
 #include <vector>
+#include <boost/container/static_vector.hpp>
 
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -40,96 +41,51 @@ constexpr u32 EXPECTED_MAGIC{0x36f81a1e};  // What we expect the encrypted bfttf
 constexpr u64 SHARED_FONT_MEM_SIZE{0x1100000};
 constexpr FontRegion EMPTY_REGION{0, 0};
 
-static void DecryptSharedFont(const std::vector<u32>& input, Kernel::PhysicalMemory& output,
-                              std::size_t& offset) {
-    ASSERT_MSG(offset + (input.size() * sizeof(u32)) < SHARED_FONT_MEM_SIZE,
-               "Shared fonts exceeds 17mb!");
-    ASSERT_MSG(input[0] == EXPECTED_MAGIC, "Failed to derive key, unexpected magic number");
-
+static void DecryptSharedFont(const std::span<u32 const> input, std::span<u8> output, std::size_t& offset) {
+    ASSERT(offset + (input.size() * sizeof(u32)) < SHARED_FONT_MEM_SIZE && "Shared fonts exceeds 17mb!");
+    ASSERT(input[0] == EXPECTED_MAGIC && "Failed to derive key, unexpected magic number");
     const u32 KEY = input[0] ^ EXPECTED_RESULT; // Derive key using an inverse xor
     std::vector<u32> transformed_font(input.size());
     // TODO(ogniK): Figure out a better way to do this
-    std::transform(input.begin(), input.end(), transformed_font.begin(),
-                   [&KEY](u32 font_data) { return Common::swap32(font_data ^ KEY); });
+    std::transform(input.begin(), input.end(), transformed_font.begin(), [&KEY](u32 font_data) { return Common::swap32(font_data ^ KEY); });
     transformed_font[1] = Common::swap32(transformed_font[1]) ^ KEY; // "re-encrypt" the size
-    std::memcpy(output.data() + offset, transformed_font.data(),
-                transformed_font.size() * sizeof(u32));
+    std::memcpy(output.data() + offset, transformed_font.data(), transformed_font.size() * sizeof(u32));
     offset += transformed_font.size() * sizeof(u32);
 }
 
 void DecryptSharedFontToTTF(const std::vector<u32>& input, std::vector<u8>& output) {
     ASSERT_MSG(input[0] == EXPECTED_MAGIC, "Failed to derive key, unexpected magic number");
-
     if (input.size() < 2) {
         LOG_ERROR(Service_NS, "Input font is empty");
         return;
     }
-
     const u32 KEY = input[0] ^ EXPECTED_RESULT; // Derive key using an inverse xor
     std::vector<u32> transformed_font(input.size());
     // TODO(ogniK): Figure out a better way to do this
-    std::transform(input.begin(), input.end(), transformed_font.begin(),
-                   [&KEY](u32 font_data) { return Common::swap32(font_data ^ KEY); });
-    std::memcpy(output.data(), transformed_font.data() + 2,
-                (transformed_font.size() - 2) * sizeof(u32));
+    std::transform(input.begin(), input.end(), transformed_font.begin(), [&KEY](u32 font_data) { return Common::swap32(font_data ^ KEY); });
+    std::memcpy(output.data(), transformed_font.data() + 2, (transformed_font.size() - 2) * sizeof(u32));
 }
 
-void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output,
-                       std::size_t& offset) {
-    ASSERT_MSG(offset + (input.size() * sizeof(u32)) < SHARED_FONT_MEM_SIZE,
-               "Shared fonts exceeds 17mb!");
-
+void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output, std::size_t& offset) {
+    ASSERT(offset + (input.size() * sizeof(u32)) < SHARED_FONT_MEM_SIZE && "Shared fonts exceeds 17mb!");
     const auto key = Common::swap32(EXPECTED_RESULT ^ EXPECTED_MAGIC);
     std::vector<u32> transformed_font(input.size() + 2);
     transformed_font[0] = Common::swap32(EXPECTED_MAGIC);
     transformed_font[1] = Common::swap32(static_cast<u32>(input.size() * sizeof(u32))) ^ key;
-    std::transform(input.begin(), input.end(), transformed_font.begin() + 2,
-                   [key](u32 in) { return in ^ key; });
-    std::memcpy(output.data() + offset, transformed_font.data(),
-                transformed_font.size() * sizeof(u32));
+    std::transform(input.begin(), input.end(), transformed_font.begin() + 2, [key](u32 in) { return in ^ key; });
+    std::memcpy(output.data() + offset, transformed_font.data(), transformed_font.size() * sizeof(u32));
     offset += transformed_font.size() * sizeof(u32);
-}
-
-// Helper function to make BuildSharedFontsRawRegions a bit nicer
-static u32 GetU32Swapped(const u8* data) {
-    u32 value;
-    std::memcpy(&value, data, sizeof(value));
-    return Common::swap32(value);
 }
 
 struct IPlatformServiceManager::Impl {
     const FontRegion& GetSharedFontRegion(std::size_t index) const {
-        if (index >= shared_font_regions.size() || shared_font_regions.empty()) {
-            // No font fallback
-            return EMPTY_REGION;
-        }
-        return shared_font_regions.at(index);
+        return index < shared_font_regions.size() ? shared_font_regions[index] : EMPTY_REGION;
     }
-
-    void BuildSharedFontsRawRegions(const Kernel::PhysicalMemory& input) {
-        // As we can derive the xor key we can just populate the offsets
-        // based on the shared memory dump
-        unsigned cur_offset = 0;
-
-        for (std::size_t i = 0; i < SHARED_FONTS.size(); i++) {
-            // Out of shared fonts/invalid font
-            if (GetU32Swapped(input.data() + cur_offset) != EXPECTED_RESULT) {
-                break;
-            }
-
-            // Derive key within inverse xor
-            const u32 KEY = GetU32Swapped(input.data() + cur_offset) ^ EXPECTED_MAGIC;
-            const u32 SIZE = GetU32Swapped(input.data() + cur_offset + 4) ^ KEY;
-            shared_font_regions.push_back(FontRegion{cur_offset + 8, SIZE});
-            cur_offset += SIZE + 8;
-        }
-    }
-
-    /// Backing memory for the shared font data
-    std::shared_ptr<Kernel::PhysicalMemory> shared_font;
-
     // Automatically populated based on shared_fonts dump or system archives.
-    std::vector<FontRegion> shared_font_regions;
+    // 6 builtin fonts + extra 2 for whatever may come after
+    boost::container::static_vector<FontRegion, 8> shared_font_regions;
+    /// Backing memory for the shared font data
+    std::array<u8, SHARED_FONT_MEM_SIZE> shared_font;
 };
 
 IPlatformServiceManager::IPlatformServiceManager(Core::System& system_, const char* service_name_)
@@ -162,8 +118,6 @@ IPlatformServiceManager::IPlatformServiceManager(Core::System& system_, const ch
     const auto* nand = fsc.GetSystemNANDContents();
     std::size_t offset = 0;
     // Rebuild shared fonts from data ncas or synthesize
-
-    impl->shared_font = std::make_shared<Kernel::PhysicalMemory>(SHARED_FONT_MEM_SIZE);
     for (auto& font : SHARED_FONTS) {
         FileSys::VirtualFile romfs;
         const auto nca =
@@ -197,9 +151,8 @@ IPlatformServiceManager::IPlatformServiceManager(Core::System& system_, const ch
         std::transform(font_data_u32.begin(), font_data_u32.end(), font_data_u32.begin(),
                        Common::swap32);
         // Font offset and size do not account for the header
-        const FontRegion region{static_cast<u32>(offset + 8),
-                                static_cast<u32>((font_data_u32.size() * sizeof(u32)) - 8)};
-        DecryptSharedFont(font_data_u32, *impl->shared_font, offset);
+        const FontRegion region{u32(offset + 8), u32((font_data_u32.size() * sizeof(u32)) - 8)};
+        DecryptSharedFont(font_data_u32, impl->shared_font, offset);
         impl->shared_font_regions.push_back(region);
     }
 }
@@ -231,14 +184,12 @@ Result IPlatformServiceManager::GetSharedMemoryAddressOffset(Out<u32> out_shared
     R_SUCCEED();
 }
 
-Result IPlatformServiceManager::GetSharedMemoryNativeHandle(
-    OutCopyHandle<Kernel::KSharedMemory> out_shared_memory_native_handle) {
+Result IPlatformServiceManager::GetSharedMemoryNativeHandle(OutCopyHandle<Kernel::KSharedMemory> out_shared_memory_native_handle) {
     // Map backing memory for the font data
     LOG_DEBUG(Service_NS, "called");
 
     // Create shared font memory object
-    std::memcpy(kernel.GetFontSharedMem().GetPointer(), impl->shared_font->data(),
-                impl->shared_font->size());
+    std::memcpy(kernel.GetFontSharedMem().GetPointer(), impl->shared_font.data(), impl->shared_font.size());
 
     // FIXME: this shouldn't belong to the kernel
     *out_shared_memory_native_handle = &kernel.GetFontSharedMem();

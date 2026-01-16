@@ -66,60 +66,55 @@ public:
 
 private:
     using SharedMemoryInfoList = Common::IntrusiveListBaseTraits<KSharedMemoryInfo>::ListType;
-    using TLPTree =
-        Common::IntrusiveRedBlackTreeBaseTraits<KThreadLocalPage>::TreeType<KThreadLocalPage>;
+    using TLPTree = Common::IntrusiveRedBlackTreeBaseTraits<KThreadLocalPage>::TreeType<KThreadLocalPage>;
     using TLPIterator = TLPTree::iterator;
 
 private:
-    KProcessPageTable m_page_table;
-    std::atomic<size_t> m_used_kernel_memory_size{};
-    TLPTree m_fully_used_tlp_tree{};
-    TLPTree m_partially_used_tlp_tree{};
-    s32 m_ideal_core_id{};
-    KResourceLimit* m_resource_limit{};
-    KSystemResource* m_system_resource{};
-    size_t m_memory_release_hint{};
-    State m_state{};
-    KLightLock m_state_lock;
-    KLightLock m_list_lock;
-    KConditionVariable m_cond_var;
-    KAddressArbiter m_address_arbiter;
-    std::array<u64, 4> m_entropy{};
-    bool m_is_signaled{};
-    bool m_is_initialized{};
-    u32 m_pointer_buffer_size = 0x8000;  // Default pointer buffer size (can be game-specific later)
-    bool m_is_application{};
-    bool m_is_default_application_system_resource{};
-    bool m_is_hbl{};
-    std::array<char, 13> m_name{};
-    std::atomic<u16> m_num_running_threads{};
-    Svc::CreateProcessFlag m_flags{};
-    KMemoryManager::Pool m_memory_pool{};
-    s64 m_schedule_count{};
-    KCapabilities m_capabilities{};
-    u64 m_program_id{};
-    u64 m_process_id{};
-    KProcessAddress m_code_address{};
-    size_t m_code_size{};
-    size_t m_main_thread_stack_size{};
-    size_t m_max_process_memory{};
-    u32 m_version{};
-    KHandleTable m_handle_table;
-    KProcessAddress m_plr_address{};
-    KThread* m_exception_thread{};
-    ThreadList m_thread_list{};
-    SharedMemoryInfoList m_shared_memory_list{};
-    bool m_is_suspended{};
-    bool m_is_immortal{};
-    bool m_is_handle_table_initialized{};
-    std::array<std::unique_ptr<Core::ArmInterface>, Core::Hardware::NUM_CPU_CORES>
-        m_arm_interfaces{};
+    std::array<std::unique_ptr<Core::ArmInterface>, Core::Hardware::NUM_CPU_CORES> m_arm_interfaces{};
     std::array<KThread*, Core::Hardware::NUM_CPU_CORES> m_running_threads{};
     std::array<u64, Core::Hardware::NUM_CPU_CORES> m_running_thread_idle_counts{};
     std::array<u64, Core::Hardware::NUM_CPU_CORES> m_running_thread_switch_counts{};
     std::array<KThread*, Core::Hardware::NUM_CPU_CORES> m_pinned_threads{};
     std::array<DebugWatchpoint, Core::Hardware::NUM_WATCHPOINTS> m_watchpoints{};
     std::map<KProcessAddress, u64> m_debug_page_refcounts{};
+#ifdef HAS_NCE
+    std::unordered_map<u64, u64> m_post_handlers{};
+#endif
+    std::unique_ptr<Core::ExclusiveMonitor> m_exclusive_monitor;
+    Core::Memory::Memory m_memory;
+    KCapabilities m_capabilities{};
+    KProcessAddress m_code_address{};
+    KHandleTable m_handle_table;
+    KProcessAddress m_plr_address{};
+    ThreadList m_thread_list{};
+    SharedMemoryInfoList m_shared_memory_list{};
+    KProcessPageTable m_page_table;
+    std::atomic<size_t> m_used_kernel_memory_size{};
+    TLPTree m_fully_used_tlp_tree{};
+    TLPTree m_partially_used_tlp_tree{};
+    State m_state{};
+    KLightLock m_state_lock;
+    KLightLock m_list_lock;
+    KConditionVariable m_cond_var;
+    KAddressArbiter m_address_arbiter;
+    std::array<u64, 4> m_entropy{};
+    u32 m_pointer_buffer_size = 0x8000;  // Default pointer buffer size (can be game-specific later)
+    std::array<char, 13> m_name{};
+    Svc::CreateProcessFlag m_flags{};
+    KMemoryManager::Pool m_memory_pool{};
+
+    KResourceLimit* m_resource_limit{};
+    KSystemResource* m_system_resource{};
+    KThread* m_exception_thread{};
+
+    size_t m_code_size{};
+    size_t m_main_thread_stack_size{};
+    size_t m_max_process_memory{};
+    size_t m_memory_release_hint{};
+    s64 m_schedule_count{};
+    u64 m_program_id{};
+    u64 m_process_id{};
+
     std::atomic<s64> m_cpu_time{};
     std::atomic<s64> m_num_process_switches{};
     std::atomic<s64> m_num_thread_switches{};
@@ -128,11 +123,20 @@ private:
     std::atomic<s64> m_num_ipc_messages{};
     std::atomic<s64> m_num_ipc_replies{};
     std::atomic<s64> m_num_ipc_receives{};
-#ifdef HAS_NCE
-    std::unordered_map<u64, u64> m_post_handlers{};
-#endif
-    std::unique_ptr<Core::ExclusiveMonitor> m_exclusive_monitor;
-    Core::Memory::Memory m_memory;
+
+    s32 m_ideal_core_id{};
+    u32 m_version{};
+
+    std::atomic<u16> m_num_running_threads{};
+
+    bool m_is_signaled : 1 = false;
+    bool m_is_initialized : 1 = false;
+    bool m_is_application : 1 = false;
+    bool m_is_default_application_system_resource : 1 = false;
+    bool m_is_hbl : 1 = false;
+    bool m_is_suspended : 1 = false;
+    bool m_is_immortal : 1 = false;
+    bool m_is_handle_table_initialized : 1 = false;
 
 private:
     Result StartTermination();

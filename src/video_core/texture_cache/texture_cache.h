@@ -596,10 +596,10 @@ FramebufferId TextureCache<P>::GetFramebufferId(const RenderTargets& key) {
         return framebuffer_id;
     }
     std::array<ImageView*, NUM_RT> color_buffers;
-    std::ranges::transform(key.color_buffer_ids, color_buffers.begin(),
-                           [this](ImageViewId id) { return id ? &slot_image_views[id] : nullptr; });
-    ImageView* const depth_buffer =
-        key.depth_buffer_id ? &slot_image_views[key.depth_buffer_id] : nullptr;
+    std::ranges::transform(key.color_buffer_ids, color_buffers.begin(), [this](ImageViewId id) {
+        return id ? &slot_image_views[id] : nullptr;
+    });
+    ImageView* const depth_buffer = key.depth_buffer_id ? &slot_image_views[key.depth_buffer_id] : nullptr;
     framebuffer_id = slot_framebuffers.insert(runtime, color_buffers, depth_buffer, key);
     return framebuffer_id;
 }

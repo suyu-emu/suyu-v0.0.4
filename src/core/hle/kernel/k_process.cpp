@@ -1148,9 +1148,17 @@ Result KProcess::GetThreadList(s32* out_num_threads, KProcessAddress out_thread_
 void KProcess::Switch(KProcess* cur_process, KProcess* next_process) {}
 
 KProcess::KProcess(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer(kernel), m_page_table{kernel}, m_state_lock{kernel},
-      m_list_lock{kernel}, m_cond_var{kernel.System()}, m_address_arbiter{kernel.System()},
-      m_handle_table{kernel}, m_exclusive_monitor{}, m_memory{kernel.System()} {}
+    : KAutoObjectWithSlabHeapAndContainer(kernel)
+    , m_exclusive_monitor{}
+    , m_memory{kernel.System()}
+    , m_handle_table{kernel}
+    , m_page_table{kernel}
+    , m_state_lock{kernel}
+    , m_list_lock{kernel}
+    , m_cond_var{kernel.System()}
+    , m_address_arbiter{kernel.System()}
+{}
+
 KProcess::~KProcess() = default;
 
 Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,

@@ -860,8 +860,7 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
                                   compute_pass_descriptor_queue, memory_allocator);
     }
     if (device.IsStorageImageMultisampleSupported()) {
-        msaa_copy_pass = std::make_unique<MSAACopyPass>(
-            device, scheduler, descriptor_pool, staging_buffer_pool, compute_pass_descriptor_queue);
+        msaa_copy_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool, compute_pass_descriptor_queue);
     }
     if (!device.IsKhrImageFormatListSupported()) {
         return;
@@ -1675,10 +1674,10 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
     // CHANGE: Gate the MSAA path more strictly and only use it for color, when the pass and device
     //         support are available. Avoid running the MSAA path when prerequisites aren't met,
     //         preventing validation and runtime issues.
-    const bool wants_msaa_upload = info.num_samples > 1 &&
-                                   (aspect_mask & VK_IMAGE_ASPECT_COLOR_BIT) != 0 &&
-                                   runtime->CanUploadMSAA() && runtime->msaa_copy_pass != nullptr &&
-                                   runtime->device.IsStorageImageMultisampleSupported();
+    const bool wants_msaa_upload = info.num_samples > 1
+        && (aspect_mask & VK_IMAGE_ASPECT_COLOR_BIT) != 0
+        && runtime->CanUploadMSAA() && runtime->msaa_copy_pass.has_value()
+        && runtime->device.IsStorageImageMultisampleSupported();
 
     if (wants_msaa_upload) {
         // Create a temporary non-MSAA image to upload the data first
@@ -2047,8 +2046,7 @@ bool Image::BlitScaleHelper(bool scale_up) {
     const u32 scaled_width = resolution.ScaleUp(info.size.width);
     const u32 scaled_height = is_2d ? resolution.ScaleUp(info.size.height) : info.size.height;
     std::unique_ptr<ImageView>& blit_view = scale_up ? scale_view : normal_view;
-    std::unique_ptr<Framebuffer>& blit_framebuffer =
-        scale_up ? scale_framebuffer : normal_framebuffer;
+    std::optional<Framebuffer>& blit_framebuffer = scale_up ? scale_framebuffer : normal_framebuffer;
     if (!blit_view) {
         const auto view_info = ImageViewInfo(ImageViewType::e2D, info.format);
         blit_view = std::make_unique<ImageView>(*runtime, view_info, NULL_IMAGE_ID, *this);
@@ -2060,11 +2058,11 @@ bool Image::BlitScaleHelper(bool scale_up) {
     const u32 dst_height = scale_up ? scaled_height : info.size.height;
     const Region2D src_region{
         .start = {0, 0},
-        .end = {static_cast<s32>(src_width), static_cast<s32>(src_height)},
+        .end = {s32(src_width), s32(src_height)},
     };
     const Region2D dst_region{
         .start = {0, 0},
-        .end = {static_cast<s32>(dst_width), static_cast<s32>(dst_height)},
+        .end = {s32(dst_width), s32(dst_height)},
     };
     const VkExtent2D extent{
         .width = (std::max)(scaled_width, info.size.width),
@@ -2073,21 +2071,15 @@ bool Image::BlitScaleHelper(bool scale_up) {
 
     auto* view_ptr = blit_view.get();
     if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT) {
-        if (!blit_framebuffer) {
-            blit_framebuffer =
-                std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent, scale_up);
-        }
-
-        runtime->blit_image_helper.BlitColor(blit_framebuffer.get(), *blit_view, dst_region,
-                                             src_region, operation, BLIT_OPERATION);
+        if (!blit_framebuffer)
+            blit_framebuffer.emplace(*runtime, view_ptr, nullptr, extent, scale_up);
+        runtime->blit_image_helper.BlitColor(&*blit_framebuffer, *blit_view,
+            dst_region, src_region, operation, BLIT_OPERATION);
     } else if (aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
-        if (!blit_framebuffer) {
-            blit_framebuffer =
-                std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent, scale_up);
-        }
-        runtime->blit_image_helper.BlitDepthStencil(blit_framebuffer.get(), *blit_view,
-                                                    dst_region, src_region, operation,
-                                                    BLIT_OPERATION);
+        if (!blit_framebuffer)
+            blit_framebuffer.emplace(*runtime, nullptr, view_ptr, extent, scale_up);
+        runtime->blit_image_helper.BlitDepthStencil(&*blit_framebuffer, *blit_view,
+            dst_region, src_region, operation, BLIT_OPERATION);
     } else {
         // TODO: Use helper blits where applicable
         flags &= ~ImageFlagBits::Rescaled;
@@ -2200,9 +2192,9 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     }
 }
 
-ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
-                     ImageId image_id_, Image& image, const SlotVector<Image>& slot_imgs)
-    : ImageView{runtime, info, image_id_, image} {
+ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info, ImageId image_id_, Image& image, const SlotVector<Image>& slot_imgs)
+    : ImageView{runtime, info, image_id_, image}
+{
     slot_images = &slot_imgs;
 }
 
@@ -2267,33 +2259,25 @@ VkImageView ImageView::ColorView() {
 
 VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                                    Shader::ImageFormat image_format) {
-    if (!image_handle) {
-        return VK_NULL_HANDLE;
-    }
-    if (image_format == Shader::ImageFormat::Typeless) {
-        return Handle(texture_type);
-    }
-    const bool is_signed{image_format == Shader::ImageFormat::R8_SINT ||
-                         image_format == Shader::ImageFormat::R16_SINT};
-    if (!storage_views) {
-        storage_views = std::make_unique<StorageViews>();
-    }
-    auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
-    auto& view{views[static_cast<size_t>(texture_type)]};
-    if (view) {
+    if (image_handle) {
+        if (image_format == Shader::ImageFormat::Typeless) {
+            return Handle(texture_type);
+        }
+        const bool is_signed = image_format == Shader::ImageFormat::R8_SINT
+            || image_format == Shader::ImageFormat::R16_SINT;
+        if (!storage_views)
+            storage_views.emplace();
+        auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
+        auto& view{views[size_t(texture_type)]};
+        if (!view)
+            view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT);
         return *view;
     }
-    view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT);
-    return *view;
+    return VK_NULL_HANDLE;
 }
 
 bool ImageView::IsRescaled() const noexcept {
-    if (!slot_images) {
-        return false;
-    }
-    const auto& slots = *slot_images;
-    const auto& src_image = slots[image_id];
-    return src_image.IsRescaled();
+    return (*slot_images)[image_id].IsRescaled();
 }
 
 vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {

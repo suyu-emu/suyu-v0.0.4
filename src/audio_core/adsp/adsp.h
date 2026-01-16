@@ -1,7 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+
+#include <optional>
 
 #include "audio_core/adsp/apps/audio_renderer/audio_renderer.h"
 #include "audio_core/adsp/apps/opus/opus_decoder.h"
@@ -45,8 +50,8 @@ public:
 
 private:
     /// AudioRenderer app
-    std::unique_ptr<AudioRenderer::AudioRenderer> audio_renderer{};
-    std::unique_ptr<OpusDecoder::OpusDecoder> opus_decoder{};
+    std::optional<AudioRenderer::AudioRenderer> audio_renderer{};
+    std::optional<OpusDecoder::OpusDecoder> opus_decoder{};
 };
 
 } // namespace ADSP
