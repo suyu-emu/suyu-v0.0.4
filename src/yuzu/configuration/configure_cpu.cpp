@@ -76,9 +76,9 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
         } else if (setting->Id() == Settings::values.cpu_backend.Id()) {
             backend_layout->addWidget(widget);
             backend_combobox = widget->combobox;
-        } else if (setting->Id() == Settings::values.fast_cpu_time.Id()) {
-            ui->general_layout->addWidget(widget);
-        } else if (setting->Id() == Settings::values.cpu_ticks.Id()) {
+        } else if (setting->Id() == Settings::values.fast_cpu_time.Id()
+            || setting->Id() == Settings::values.vtable_bouncing.Id()
+            || setting->Id() == Settings::values.cpu_ticks.Id()) {
             ui->general_layout->addWidget(widget);
         } else {
             // Presently, all other settings here are unsafe checkboxes

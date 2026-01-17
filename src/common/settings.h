@@ -240,7 +240,6 @@ struct Values {
                                                     Category::Cpu};
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage, CpuAccuracy::Auto,
                                                       "cpu_accuracy", Category::Cpu};
-    SwitchableSetting<bool> vtable_bouncing{linkage, true, "vtable_bouncing", Category::Cpu};
     SwitchableSetting<CpuClock> fast_cpu_time{linkage,
                                               CpuClock::Off,
                                               "fast_cpu_time",
@@ -267,6 +266,9 @@ struct Values {
                                            true,
                                            true,
                                            &use_custom_cpu_ticks};
+
+    SwitchableSetting<bool> vtable_bouncing{linkage, true, "vtable_bouncing", Category::Cpu};
+
     Setting<bool> cpuopt_page_tables{linkage, true, "cpuopt_page_tables", Category::CpuDebug};
     Setting<bool> cpuopt_block_linking{linkage, true, "cpuopt_block_linking", Category::CpuDebug};
     Setting<bool> cpuopt_return_stack_buffer{linkage, true, "cpuopt_return_stack_buffer",
