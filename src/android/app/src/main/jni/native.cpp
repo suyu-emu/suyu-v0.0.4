@@ -66,6 +66,7 @@
 #include "core/frontend/applets/profile_select.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/web_browser.h"
+#include "common/android/applets/web_browser.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -275,6 +276,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
 
     // Initialize system.
     jauto android_keyboard = std::make_unique<Common::Android::SoftwareKeyboard::AndroidKeyboard>();
+    jauto android_webapplet = std::make_unique<Common::Android::WebBrowser::AndroidWebBrowser>();
     m_software_keyboard = android_keyboard.get();
     m_system.SetShuttingDown(false);
     m_system.ApplySettings();
@@ -289,7 +291,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
         nullptr,                     // Photo Viewer
         nullptr,                     // Profile Selector
         std::move(android_keyboard), // Software Keyboard
-        nullptr,                     // Web Browser
+        std::move(android_webapplet),// Web Browser
         nullptr,                     // Net Connect
     });
 

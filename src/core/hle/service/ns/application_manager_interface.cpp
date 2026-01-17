@@ -16,6 +16,10 @@
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/file_sys/patch_manager.h"
 #include "frontend_common/firmware_manager.h"
+#include "core/launch_timestamp_cache.h"
+
+#include <algorithm>
+#include <vector>
 
 namespace Service::NS {
 
@@ -560,33 +564,42 @@ Result IApplicationManagerInterface::ListApplicationRecord(
     s32 offset) {
     const auto limit = out_records.size();
 
-    LOG_WARNING(Service_NS, "(STUBBED) called");
+    LOG_DEBUG(Service_NS, "called");
     const auto& cache = system.GetContentProviderUnion();
     const auto installed_games = cache.ListEntriesFilterOrigin(
         std::nullopt, FileSys::TitleType::Application, FileSys::ContentRecordType::Program);
 
-    size_t i = 0;
-    u8 ii = 24;
+    std::vector<ApplicationRecord> records;
+    records.reserve(installed_games.size());
 
     for (const auto& [slot, game] : installed_games) {
-        if (i >= limit) {
-            break;
-        }
-        if (game.title_id == 0 || game.title_id < 0x0100000000001FFFull) {
-            continue;
-        }
-        if (offset > 0) {
-            offset--;
-            continue;
-        }
+         if (game.title_id == 0 || game.title_id < 0x0100000000001FFFull) {
+             continue;
+         }
+         if ((game.title_id & 0xFFF) != 0) {
+             continue; // skip sub-programs (e.g., 001)
+         }
 
-        ApplicationRecord record{};
-        record.application_id = game.title_id;
-        record.type = ApplicationRecordType::Installed;
-        record.unknown = 0; // 2 = needs update
-        record.unknown2 = ii++;
+         ApplicationRecord record{};
+         record.application_id = game.title_id;
+         record.last_event = ApplicationEvent::Installed;
+         record.attributes = 0;
+         record.last_updated = Core::LaunchTimestampCache::GetLaunchTimestamp(game.title_id);
 
-        out_records[i++] = record;
+         records.push_back(record);
+     }
+
+     std::sort(records.begin(), records.end(), [](const ApplicationRecord& lhs, const ApplicationRecord& rhs) {
+         if (lhs.last_updated == rhs.last_updated) {
+             return lhs.application_id < rhs.application_id;
+         }
+         return lhs.last_updated > rhs.last_updated;
+     });
+
+    size_t i = 0;
+    const size_t start = static_cast<size_t>(std::max(0, offset));
+    for (size_t idx = start; idx < records.size() && i < limit; ++idx) {
+        out_records[i++] = records[idx];
     }
 
     *out_count = static_cast<s32>(i);

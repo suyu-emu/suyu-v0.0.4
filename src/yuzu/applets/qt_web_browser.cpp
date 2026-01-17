@@ -4,6 +4,11 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <QDesktopServices>
+#include <QUrl>
+
+#include "common/logging/log.h"
+
 #ifdef YUZU_USE_QT_WEB_ENGINE
 #include <bit>
 
@@ -429,15 +434,17 @@ void QtWebBrowser::OpenLocalWebPage(const std::string& local_url,
 
 void QtWebBrowser::OpenExternalWebPage(const std::string& external_url,
                                        OpenWebPageCallback callback_) const {
-    callback = std::move(callback_);
+    LOG_INFO(Service_AM, "Opening external URL in host browser: {}", external_url);
 
-    const auto index = external_url.find('?');
+    const QUrl url(QString::fromStdString(external_url));
+    const bool success = QDesktopServices::openUrl(url);
 
-    if (index == std::string::npos) {
-        emit MainWindowOpenWebPage(external_url, "", false);
+    if (success) {
+        LOG_INFO(Service_AM, "Successfully opened URL in host browser");
+        callback_(Service::AM::Frontend::WebExitReason::EndButtonPressed, external_url);
     } else {
-        emit MainWindowOpenWebPage(external_url.substr(0, index), external_url.substr(index),
-                                   false);
+        LOG_ERROR(Service_AM, "Failed to open URL in host browser");
+        callback_(Service::AM::Frontend::WebExitReason::WindowClosed, external_url);
     }
 }
 

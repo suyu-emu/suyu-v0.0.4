@@ -14,8 +14,7 @@ else()
     pkg_search_module(ZSTD QUIET IMPORTED_TARGET libzstd)
     find_package_handle_standard_args(zstd
         REQUIRED_VARS ZSTD_LINK_LIBRARIES
-        VERSION_VAR ZSTD_VERSION
-    )
+        VERSION_VAR ZSTD_VERSION)
 endif()
 
 if (zstd_FOUND AND NOT TARGET zstd::zstd)
@@ -36,4 +35,7 @@ if (NOT TARGET zstd::libzstd)
     else()
         add_library(zstd::libzstd ALIAS zstd::zstd)
     endif()
+elseif(YUZU_STATIC_BUILD AND TARGET zstd::libzstd_static)
+    # zstd::libzstd links to shared zstd by default
+    set_target_properties(zstd::libzstd PROPERTIES INTERFACE_LINK_LIBRARIES zstd::libzstd_static)
 endif()

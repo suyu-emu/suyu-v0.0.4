@@ -563,8 +563,14 @@ add_library(core STATIC
     hle/service/bcat/delivery_cache_storage_service.h
     hle/service/bcat/news/newly_arrived_event_holder.cpp
     hle/service/bcat/news/newly_arrived_event_holder.h
+    hle/service/bcat/news/msgpack.cpp
+    hle/service/bcat/news/msgpack.h
     hle/service/bcat/news/news_data_service.cpp
     hle/service/bcat/news/news_data_service.h
+    hle/service/bcat/news/builtin_news.cpp
+    hle/service/bcat/news/builtin_news.h
+    hle/service/bcat/news/news_storage.cpp
+    hle/service/bcat/news/news_storage.h
     hle/service/bcat/news/news_database_service.cpp
     hle/service/bcat/news/news_database_service.h
     hle/service/bcat/news/news_service.cpp
@@ -1125,6 +1131,8 @@ add_library(core STATIC
     internal_network/sockets.h
     internal_network/wifi_scanner.cpp
     internal_network/wifi_scanner.h
+    launch_timestamp_cache.cpp
+    launch_timestamp_cache.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/kip.cpp
@@ -1157,8 +1165,7 @@ add_library(core STATIC
     tools/freezer.cpp
     tools/freezer.h
     tools/renderdoc.cpp
-    tools/renderdoc.h
-)
+    tools/renderdoc.h)
 
 if (ENABLE_WIFI_SCAN)
     # find_package(libiw REQUIRED)
@@ -1188,8 +1195,7 @@ else()
         -Werror=conversion
         -Wno-sign-conversion
         -Wno-cast-function-type
-        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
-    )
+        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>)
     # pre-clang19 will spam with "OH DID YOU MEAN THIS?" otherwise...
     if (CXX_CLANG AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19)
         target_compile_options(core PRIVATE -Wno-cast-function-type-mismatch)
@@ -1205,10 +1211,13 @@ else()
     target_link_libraries(core PUBLIC Boost::headers)
 endif()
 
-target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX} MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
-# if (MINGW)
-#     target_link_libraries(core PRIVATE ws2_32 mswsock wlanapi)
-# endif()
+target_link_libraries(core PRIVATE
+    fmt::fmt
+    nlohmann_json::nlohmann_json
+    RenderDoc::API
+    MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX}
+    MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX}
+    httplib::httplib)
 
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)
@@ -1230,8 +1239,7 @@ if (HAS_NCE)
         arm/nce/interpreter_visitor.h
         arm/nce/patcher.cpp
         arm/nce/patcher.h
-        arm/nce/visitor_base.h
-    )
+        arm/nce/visitor_base.h)
     target_link_libraries(core PRIVATE merry::oaknut)
 endif()
 
@@ -1251,8 +1259,7 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
         hle/service/jit/jit_context.cpp
         hle/service/jit/jit_context.h
         hle/service/jit/jit.cpp
-        hle/service/jit/jit.h
-    )
+        hle/service/jit/jit.h)
     target_link_libraries(core PRIVATE dynarmic::dynarmic)
 endif()
 
@@ -1263,6 +1270,7 @@ if(ENABLE_OPENSSL)
     find_package(OpenSSL REQUIRED)
 
     target_link_libraries(core PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    target_compile_definitions(core PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 elseif (APPLE)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_securetransport.cpp)

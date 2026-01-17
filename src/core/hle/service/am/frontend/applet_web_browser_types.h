@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,6 +33,7 @@ enum class ShimKind : u32 {
     Web = 5,
     Wifi = 6,
     Lobby = 7,
+    Lhub = 8,
 };
 
 enum class WebExitReason : u32 {

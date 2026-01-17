@@ -4,6 +4,7 @@
 #include <jni.h>
 
 #include "applets/software_keyboard.h"
+#include "applets/web_browser.h"
 #include "common/android/id_cache.h"
 #include "common/assert.h"
 #include "common/fs/fs_android.h"
@@ -602,6 +603,7 @@ namespace Common::Android {
 
         // Initialize applets
         Common::Android::SoftwareKeyboard::InitJNI(env);
+        Common::Android::WebBrowser::InitJNI(env);
 
         return JNI_VERSION;
     }
@@ -631,6 +633,7 @@ namespace Common::Android {
 
         // UnInitialize applets
         SoftwareKeyboard::CleanupJNI(env);
+        WebBrowser::CleanupJNI(env);
 
         AndroidMultiplayer::NetworkShutdown();
     }

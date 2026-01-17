@@ -12,16 +12,14 @@ add_library(frontend_common STATIC
     firmware_manager.cpp
     data_manager.h data_manager.cpp
     play_time_manager.cpp
-    play_time_manager.h
-)
+    play_time_manager.h)
 
 if (ENABLE_UPDATE_CHECKER)
     target_link_libraries(frontend_common PRIVATE httplib::httplib)
     target_link_libraries(frontend_common PRIVATE nlohmann_json::nlohmann_json)
     target_sources(frontend_common PRIVATE
         update_checker.cpp
-        update_checker.h
-    )
+        update_checker.h)
 
     if (ENABLE_OPENSSL)
         target_compile_definitions(frontend_common PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)

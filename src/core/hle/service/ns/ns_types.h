@@ -12,7 +12,7 @@
 
 namespace Service::NS {
 
-enum class ApplicationRecordType : u8 {
+enum class ApplicationEvent : u8 {
     Installing = 2,
     Installed = 3,
     GameCardNotInserted = 5,
@@ -34,11 +34,10 @@ enum class BackgroundNetworkUpdateState : u8 {
 
 struct ApplicationRecord {
     u64 application_id;
-    ApplicationRecordType type;
-    u8 unknown;
+    ApplicationEvent last_event;
+    u8 attributes;
     INSERT_PADDING_BYTES_NOINIT(0x6);
-    u8 unknown2;
-    INSERT_PADDING_BYTES_NOINIT(0x7);
+    s64 last_updated;
 };
 static_assert(sizeof(ApplicationRecord) == 0x18, "ApplicationRecord has incorrect size.");
 

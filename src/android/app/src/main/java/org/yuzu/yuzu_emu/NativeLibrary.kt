@@ -26,6 +26,7 @@ import org.yuzu.yuzu_emu.model.InstallResult
 import org.yuzu.yuzu_emu.model.Patch
 import org.yuzu.yuzu_emu.model.GameVerificationResult
 import org.yuzu.yuzu_emu.network.NetPlayManager
+import org.yuzu.yuzu_emu.applets.web.WebBrowser
 
 /**
  * Class which contains methods that interact
@@ -456,6 +457,17 @@ object NativeLibrary {
      * @param appletId One of the ids in the Service::AM::Applets::AppletId enum
      */
     external fun setCurrentAppletId(appletId: Int)
+
+    /**
+     * Launch external URL when Web applet and opens browser
+     *
+     * @param String URL
+     */
+    @Keep
+    @JvmStatic
+    fun openExternalUrl(url: String) {
+        WebBrowser.openExternal(url)
+    }
 
     /**
      * Sets the cabinet mode for launching the cabinet applet.

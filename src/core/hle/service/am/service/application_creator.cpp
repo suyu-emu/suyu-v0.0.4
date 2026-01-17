@@ -15,6 +15,7 @@
 #include "core/hle/service/am/window_system.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/loader/loader.h"
+#include "core/launch_timestamp_cache.h"
 
 namespace Service::AM {
 
@@ -72,6 +73,7 @@ IApplicationCreator::~IApplicationCreator() = default;
 Result IApplicationCreator::CreateApplication(
     Out<SharedPointer<IApplicationAccessor>> out_application_accessor, u64 application_id) {
     LOG_INFO(Service_NS, "called, application_id={:016X}", application_id);
+    Core::LaunchTimestampCache::SaveLaunchTimestamp(application_id);
     R_RETURN(
         CreateGuestApplication(out_application_accessor, system, m_window_system, application_id));
 }
@@ -103,6 +105,7 @@ Result IApplicationCreator::CreateSystemApplication(
 
     *out_application_accessor =
         std::make_shared<IApplicationAccessor>(system, applet, m_window_system);
+    Core::LaunchTimestampCache::SaveLaunchTimestamp(application_id);
     R_SUCCEED();
 }
 

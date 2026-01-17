@@ -236,10 +236,6 @@ WebBrowser::WebBrowser(Core::System& system_, std::shared_ptr<Applet> applet_,
 WebBrowser::~WebBrowser() = default;
 
 void WebBrowser::Initialize() {
-    if (Settings::values.disable_web_applet) {
-        return;
-    }
-
     FrontendApplet::Initialize();
 
     LOG_INFO(Service_AM, "Initializing Web Browser Applet.");
@@ -263,6 +259,12 @@ void WebBrowser::Initialize() {
 
     LOG_DEBUG(Service_AM, "WebArgHeader: total_tlv_entries={}, shim_kind={}",
               web_arg_header.total_tlv_entries, web_arg_header.shim_kind);
+
+    if (Settings::values.disable_web_applet &&
+        web_arg_header.shim_kind != ShimKind::Web &&
+        web_arg_header.shim_kind != ShimKind::Lhub) {
+        return;
+    }
 
     ExtractSharedFonts(system);
 
@@ -288,6 +290,9 @@ void WebBrowser::Initialize() {
     case ShimKind::Lobby:
         InitializeLobby();
         break;
+    case ShimKind::Lhub:
+        InitializeLhub();
+        break;
     default:
         ASSERT_MSG(false, "Invalid ShimKind={}", web_arg_header.shim_kind);
         break;
@@ -303,8 +308,19 @@ void WebBrowser::ExecuteInteractive() {
 }
 
 void WebBrowser::Execute() {
+    if (web_arg_header.shim_kind == ShimKind::Web) {
+        ExecuteWeb();
+        return;
+    }
+
+    if (web_arg_header.shim_kind == ShimKind::Lhub) {
+        ExecuteLhub();
+        return;
+    }
+
     if (Settings::values.disable_web_applet) {
-        LOG_WARNING(Service_AM, "(STUBBED) called, Web Browser Applet is disabled");
+        LOG_WARNING(Service_AM, "(STUBBED) called, Web Browser Applet is disabled. shim_kind={}",
+                    web_arg_header.shim_kind);
         WebBrowserExit(WebExitReason::EndButtonPressed);
         return;
     }
@@ -331,6 +347,9 @@ void WebBrowser::Execute() {
     case ShimKind::Lobby:
         ExecuteLobby();
         break;
+    case ShimKind::Lhub:
+        ExecuteLhub();
+        break;
     default:
         ASSERT_MSG(false, "Invalid ShimKind={}", web_arg_header.shim_kind);
         WebBrowserExit(WebExitReason::EndButtonPressed);
@@ -351,17 +370,99 @@ void WebBrowser::ExtractOfflineRomFS() {
 }
 
 void WebBrowser::WebBrowserExit(WebExitReason exit_reason, std::string last_url) {
-    if ((web_arg_header.shim_kind == ShimKind::Share &&
+    const bool use_tlv_output =
+        (web_arg_header.shim_kind == ShimKind::Share &&
          web_applet_version >= WebAppletVersion::Version196608) ||
         (web_arg_header.shim_kind == ShimKind::Web &&
-         web_applet_version >= WebAppletVersion::Version524288)) {
-        // TODO: Push Output TLVs instead of a WebCommonReturnValue
+         web_applet_version >= WebAppletVersion::Version524288) ||
+        (web_arg_header.shim_kind == ShimKind::Lhub);
+
+    // https://switchbrew.org/wiki/Internet_Browser#TLVs
+    if (use_tlv_output) {
+        LOG_DEBUG(Service_AM, "Using TLV output: exit_reason={}, last_url={}, last_url_size={}",
+                  exit_reason, last_url, last_url.size());
+
+        // storage size for TLVs is 0x2000 bytes (as per switchbrew documentation)
+        constexpr size_t TLV_STORAGE_SIZE = 0x2000;
+        std::vector<u8> out_data(TLV_STORAGE_SIZE, 0);
+
+        size_t current_offset = sizeof(WebArgHeader);
+        u16 tlv_count = 0;
+
+        // align and matchng TLV struct alignment
+        auto align_offset = [](size_t offset) -> size_t {
+            return (offset + 7) & ~static_cast<size_t>(7);
+        };
+
+        // 0x1 ShareExitReason
+        {
+            WebArgOutputTLV tlv{};
+            tlv.output_tlv_type = WebArgOutputTLVType::ShareExitReason;
+            tlv.arg_data_size = sizeof(u32);
+
+            std::memcpy(out_data.data() + current_offset, &tlv, sizeof(WebArgOutputTLV));
+            current_offset += sizeof(WebArgOutputTLV);
+
+            const u32 exit_reason_value = static_cast<u32>(exit_reason);
+            std::memcpy(out_data.data() + current_offset, &exit_reason_value, sizeof(u32));
+            current_offset += sizeof(u32);
+
+            current_offset = align_offset(current_offset);
+            tlv_count++;
+        }
+
+        // 0x2 LastUrl
+        {
+            WebArgOutputTLV tlv{};
+            tlv.output_tlv_type = WebArgOutputTLVType::LastURL;
+            const u16 url_data_size = static_cast<u16>(last_url.size() + 1);
+            tlv.arg_data_size = url_data_size;
+
+            std::memcpy(out_data.data() + current_offset, &tlv, sizeof(WebArgOutputTLV));
+            current_offset += sizeof(WebArgOutputTLV);
+
+            // null terminator
+            std::memcpy(out_data.data() + current_offset, last_url.c_str(), last_url.size() + 1);
+            current_offset += url_data_size;
+            current_offset = align_offset(current_offset);
+            tlv_count++;
+        }
+
+        // 0x3 LastUrlSize
+        {
+            WebArgOutputTLV tlv{};
+            tlv.output_tlv_type = WebArgOutputTLVType::LastURLSize;
+            tlv.arg_data_size = sizeof(u64);
+
+            std::memcpy(out_data.data() + current_offset, &tlv, sizeof(WebArgOutputTLV));
+            current_offset += sizeof(WebArgOutputTLV);
+
+            const u64 url_size = last_url.size();
+            std::memcpy(out_data.data() + current_offset, &url_size, sizeof(u64));
+            current_offset += sizeof(u64);
+            tlv_count++;
+        }
+
+        WebArgHeader out_header{};
+        out_header.total_tlv_entries = tlv_count;
+        out_header.shim_kind = web_arg_header.shim_kind;
+        std::memcpy(out_data.data(), &out_header, sizeof(WebArgHeader));
+
+        LOG_DEBUG(Service_AM, "TLV output: total_size={}, tlv_count={}, used_offset={}",
+                  out_data.size(), tlv_count, current_offset);
+
+        complete = true;
+        PushOutData(std::make_shared<IStorage>(system, std::move(out_data)));
+        Exit();
+        return;
     }
 
-    WebCommonReturnValue web_common_return_value;
+    // for old browser, keep old return, use WebCommonReturnValue
+    WebCommonReturnValue web_common_return_value{};
 
     web_common_return_value.exit_reason = exit_reason;
-    std::memcpy(&web_common_return_value.last_url, last_url.data(), last_url.size());
+    std::memcpy(&web_common_return_value.last_url, last_url.data(),
+                std::min(last_url.size(), web_common_return_value.last_url.size()));
     web_common_return_value.last_url_size = last_url.size();
 
     LOG_DEBUG(Service_AM, "WebCommonReturnValue: exit_reason={}, last_url={}, last_url_size={}",
@@ -516,4 +617,13 @@ void WebBrowser::ExecuteLobby() {
     LOG_WARNING(Service_AM, "(STUBBED) called, Lobby Applet is not implemented");
     WebBrowserExit(WebExitReason::EndButtonPressed);
 }
+
+void WebBrowser::InitializeLhub() {}
+
+void WebBrowser::ExecuteLhub() {
+    LOG_INFO(Service_AM, "(STUBBED) called, Lhub Applet is not implemented");
+    WebBrowserExit(WebExitReason::EndButtonPressed);
+}
+
+
 } // namespace Service::AM::Frontend

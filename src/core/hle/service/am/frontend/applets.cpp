@@ -237,13 +237,15 @@ std::shared_ptr<FrontendApplet> FrontendAppletHolder::GetApplet(std::shared_ptr<
     case AppletId::OfflineWeb:
     case AppletId::LoginShare:
     case AppletId::WebAuth:
+    case AppletId::Lhub:
         return std::make_shared<WebBrowser>(system, applet, mode, *frontend.web_browser);
     case AppletId::PhotoViewer:
         return std::make_shared<PhotoViewer>(system, applet, mode, *frontend.photo_viewer);
     case AppletId::NetConnect:
         return std::make_shared<NetConnect>(system, applet, mode, *frontend.net_connect);
     default:
-        LOG_ERROR(Service_AM, "No backend implementation exists for applet_id={:02X}. Falling back to stub applet", static_cast<u8>(id));
+        LOG_ERROR(Service_AM, "No backend implementation exists for applet_id={:02X} program_id={:016X}"
+                              "Falling back to stub applet", static_cast<u8>(id), applet->program_id);
         return std::make_shared<StubApplet>(system, applet, id, mode);
     }
 }

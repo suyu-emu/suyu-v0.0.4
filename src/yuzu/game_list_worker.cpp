@@ -400,6 +400,11 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                 if (res2 == Loader::ResultStatus::Success && program_ids.size() > 1 &&
                     (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
                     for (const auto id : program_ids) {
+                        // dravee suggested this, only viable way to
+                        // not show sub-games in qlaunch for now.
+                        if ((id & 0xFFF) != 0) {
+                            continue;
+                        }
                         loader = Loader::GetLoader(system, file, id);
                         if (!loader) {
                             continue;
