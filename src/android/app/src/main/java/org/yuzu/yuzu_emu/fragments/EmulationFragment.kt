@@ -105,7 +105,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var socUpdater: (() -> Unit)? = null
 
     val handler = Handler(Looper.getMainLooper())
-    private var isOverlayVisible = true
+
     private var controllerInputReceived = false
 
     private var _binding: FragmentEmulationBinding? = null
@@ -132,6 +132,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var socRunnable: Runnable? = null
     private var isAmiiboPickerOpen = false
     private var amiiboLoadJob: Job? = null
+
+    private var wasInputOverlayAutoHidden = false
 
     private val loadAmiiboLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -712,11 +714,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     updateQuickOverlayMenuEntry(newState)
                     binding.surfaceInputOverlay.refreshControls()
                     // Sync view visibility with the setting
-                    if (newState) {
-                        showOverlay()
-                    } else {
-                        hideOverlay()
-                    }
+                    toggleOverlay(newState)
                     NativeConfig.saveGlobalConfig()
                     true
                 }
@@ -1164,7 +1162,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     @SuppressLint("DefaultLocale")
     private fun updateShowStatsOverlay() {
-        val showOverlay = BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()
+        val showPerfOverlay = BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()
         binding.showStatsOverlayText.apply {
             setTextColor(
                 MaterialColors.getColor(
@@ -1173,8 +1171,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 )
             )
         }
-        binding.showStatsOverlayText.setVisible(showOverlay)
-        if (showOverlay) {
+        binding.showStatsOverlayText.setVisible(showPerfOverlay)
+        if (showPerfOverlay) {
             val SYSTEM_FPS = 0
             val FPS = 1
             val FRAMETIME = 2
@@ -1351,7 +1349,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun updateSocOverlay() {
-        val showOverlay = BooleanSetting.SHOW_SOC_OVERLAY.getBoolean()
+        val showSOCOverlay = BooleanSetting.SHOW_SOC_OVERLAY.getBoolean()
         binding.showSocOverlayText.apply {
             setTextColor(
                 MaterialColors.getColor(
@@ -1360,9 +1358,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 )
             )
         }
-        binding.showSocOverlayText.setVisible(showOverlay)
+        binding.showSocOverlayText.setVisible(showSOCOverlay)
 
-        if (showOverlay) {
+        if (showSOCOverlay) {
             val sb = StringBuilder()
 
             socUpdater = {
@@ -1674,9 +1672,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 R.id.menu_show_overlay -> {
                     it.isChecked = !it.isChecked
-                    BooleanSetting.SHOW_INPUT_OVERLAY.setBoolean(it.isChecked)
-                    updateQuickOverlayMenuEntry(it.isChecked)
-                    binding.surfaceInputOverlay.refreshControls()
+                    toggleOverlay(it.isChecked)
                     true
                 }
 
@@ -2000,34 +1996,32 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private fun startOverlayAutoHideTimer(seconds: Int) {
         handler.removeCallbacksAndMessages(null)
+        val showInputOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
 
         handler.postDelayed({
-            if (isOverlayVisible && isAdded && _binding != null) {
-                hideOverlay()
+            if (showInputOverlay && isAdded && _binding != null) {
+                autoHideOverlay()
             }
         }, seconds * 1000L)
     }
 
     fun handleScreenTap(isLongTap: Boolean) {
-        if (binding.surfaceInputOverlay.isGamelessMode()) {
-            return
-        }
 
-        val autoHideSeconds = IntSetting.INPUT_OVERLAY_AUTO_HIDE.getInt()
-        val shouldProceed = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean() && BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean()
+        if (binding.surfaceInputOverlay.isGamelessMode()) return
 
-        if (!shouldProceed) {
-            return
-        }
+        val shouldProceed = BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean()
+        if (!shouldProceed) return
 
         // failsafe
+        val autoHideSeconds = IntSetting.INPUT_OVERLAY_AUTO_HIDE.getInt()
         if (autoHideSeconds == 0) {
-            showOverlay()
+            toggleOverlay(true)
             return
         }
 
-        if (!isOverlayVisible && !isLongTap) {
-            showOverlay()
+        val showInputOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
+        if (!showInputOverlay && !isLongTap && wasInputOverlayAutoHidden) {
+            toggleOverlay(true)
         }
 
         startOverlayAutoHideTimer(autoHideSeconds)
@@ -2040,28 +2034,31 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         val autoHideSeconds = IntSetting.INPUT_OVERLAY_AUTO_HIDE.getInt()
         val autoHideEnabled = BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean()
-        val showOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
+        val showInputOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
 
-        if (autoHideEnabled && showOverlay) {
-            showOverlay()
+        if (autoHideEnabled && showInputOverlay) {
+            toggleOverlay(true)
             startOverlayAutoHideTimer(autoHideSeconds)
         }
     }
 
-
-    fun showOverlay() {
-        if (!isOverlayVisible) {
-            isOverlayVisible = true
-            // Reset controller input flag so controller can hide overlay again
-            controllerInputReceived = false
-            ViewUtils.showView(binding.surfaceInputOverlay, 500)
-        }
+    private fun autoHideOverlay() {
+        toggleOverlay(false)
+        wasInputOverlayAutoHidden = true
     }
 
-    private fun hideOverlay() {
-        if (isOverlayVisible) {
-            isOverlayVisible = false
-            ViewUtils.hideView(binding.surfaceInputOverlay)
+    fun toggleOverlay(enable: Boolean) {
+        if (enable == !BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) {
+            // Reset controller input flag so controller can hide overlay again
+            if (!enable) {
+                controllerInputReceived = false
+            }
+            if (enable) {
+                wasInputOverlayAutoHidden = false
+            }
+            BooleanSetting.SHOW_INPUT_OVERLAY.setBoolean(enable)
+            updateQuickOverlayMenuEntry(enable)
+            binding.surfaceInputOverlay.refreshControls()
         }
     }
 
@@ -2070,7 +2067,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (!BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) return
         if (controllerInputReceived) return
         controllerInputReceived = true
-        hideOverlay()
+        autoHideOverlay()
     }
 
     fun onControllerConnected() {
@@ -2081,6 +2078,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (!BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.getBoolean()) return
         if (!BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) return
         controllerInputReceived = false
-        showOverlay()
+        toggleOverlay(true)
     }
 }

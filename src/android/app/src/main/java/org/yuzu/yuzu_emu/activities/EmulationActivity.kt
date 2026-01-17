@@ -582,7 +582,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
                         BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean() &&
                         !BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.getBoolean()) {
                         fragment.handler.removeCallbacksAndMessages(null)
-                        fragment.showOverlay()
+                        fragment.toggleOverlay(true)
                     }
                 }
                 MotionEvent.ACTION_UP -> {
