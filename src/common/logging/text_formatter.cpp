@@ -23,13 +23,14 @@
 
 namespace Common::Log {
 
+// Some IDEs prefer <file>:<line> instead, so let's just do that :)
 std::string FormatLogMessage(const Entry& entry) {
     auto const time_seconds = uint32_t(entry.timestamp.count() / 1000000);
     auto const time_fractional = uint32_t(entry.timestamp.count() % 1000000);
     char const* class_name = GetLogClassName(entry.log_class);
     char const* level_name = GetLevelName(entry.log_level);
     return fmt::format("[{:4d}.{:06d}] {} <{}> {}:{}:{}: {}", time_seconds, time_fractional,
-                       class_name, level_name, entry.filename, entry.function, entry.line_num,
+                       class_name, level_name, entry.filename, entry.line_num, entry.function,
                        entry.message);
 }
 
