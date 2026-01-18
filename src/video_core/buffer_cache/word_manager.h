@@ -11,6 +11,7 @@
 #include <limits>
 #include <span>
 #include <utility>
+#include <vector>
 
 #include "common/alignment.h"
 #include "common/common_funcs.h"
@@ -256,9 +257,10 @@ public:
         std::span<u64> state_words = words.template Span<type>();
         [[maybe_unused]] std::span<u64> untracked_words = words.template Span<Type::Untracked>();
         [[maybe_unused]] std::span<u64> cached_words = words.template Span<Type::CachedCPU>();
+        std::vector<std::pair<VAddr, u64>> ranges;
         IterateWords(dirty_addr - cpu_addr, size, [&](size_t index, u64 mask) {
             if constexpr (type == Type::CPU || type == Type::CachedCPU) {
-                NotifyRasterizer<!enable>(index, untracked_words[index], mask);
+                CollectChangedRanges<(!enable)>(index, untracked_words[index], mask, ranges);
             }
             if constexpr (enable) {
                 state_words[index] |= mask;
@@ -279,6 +281,9 @@ public:
                 }
             }
         });
+        if (!ranges.empty()) {
+            ApplyCollectedRanges(ranges, (!enable) ? 1 : -1);
+        }
     }
 
     /**
@@ -304,6 +309,7 @@ public:
             func(cpu_addr + pending_offset * BYTES_PER_PAGE,
                  (pending_pointer - pending_offset) * BYTES_PER_PAGE);
         };
+        std::vector<std::pair<VAddr, u64>> ranges;
         IterateWords(offset, size, [&](size_t index, u64 mask) {
             if constexpr (type == Type::GPU) {
                 mask &= ~untracked_words[index];
@@ -311,7 +317,7 @@ public:
             const u64 word = state_words[index] & mask;
             if constexpr (clear) {
                 if constexpr (type == Type::CPU || type == Type::CachedCPU) {
-                    NotifyRasterizer<true>(index, untracked_words[index], mask);
+                    CollectChangedRanges<true>(index, untracked_words[index], mask, ranges);
                 }
                 state_words[index] &= ~mask;
                 if constexpr (type == Type::CPU || type == Type::CachedCPU) {
@@ -342,6 +348,9 @@ public:
         });
         if (pending) {
             release();
+        }
+        if (!ranges.empty()) {
+            ApplyCollectedRanges(ranges, 1);
         }
     }
 
@@ -425,12 +434,16 @@ public:
         u64* const cached_words = Array<Type::CachedCPU>();
         u64* const untracked_words = Array<Type::Untracked>();
         u64* const cpu_words = Array<Type::CPU>();
+        std::vector<std::pair<VAddr, u64>> ranges;
         for (u64 word_index = 0; word_index < num_words; ++word_index) {
             const u64 cached_bits = cached_words[word_index];
-            NotifyRasterizer<false>(word_index, untracked_words[word_index], cached_bits);
+            CollectChangedRanges<false>(word_index, untracked_words[word_index], cached_bits, ranges);
             untracked_words[word_index] |= cached_bits;
             cpu_words[word_index] |= cached_bits;
             cached_words[word_index] = 0;
+        }
+        if (!ranges.empty()) {
+            ApplyCollectedRanges(ranges, -1);
         }
     }
 
@@ -470,6 +483,40 @@ private:
      *
      * @tparam add_to_tracker True when the tracker should start tracking the new pages
      */
+    template <bool add_to_tracker>
+    void CollectChangedRanges(u64 word_index, u64 current_bits, u64 new_bits,
+                              std::vector<std::pair<VAddr, u64>>& out_ranges) const {
+        u64 changed_bits = (add_to_tracker ? current_bits : ~current_bits) & new_bits;
+        VAddr addr = cpu_addr + word_index * BYTES_PER_WORD;
+        IteratePages(changed_bits, [&](size_t offset, size_t size) {
+            out_ranges.emplace_back(addr + offset * BYTES_PER_PAGE, size * BYTES_PER_PAGE);
+        });
+    }
+
+    void ApplyCollectedRanges(std::vector<std::pair<VAddr, u64>>& ranges, int delta) const {
+        if (ranges.empty()) return;
+        std::sort(ranges.begin(), ranges.end(),
+                  [](const auto& a, const auto& b) { return a.first < b.first; });
+        // Coalesce adjacent/contiguous ranges
+        std::vector<std::pair<VAddr, size_t>> coalesced;
+        coalesced.reserve(ranges.size());
+        VAddr cur_addr = ranges[0].first;
+        size_t cur_size = static_cast<size_t>(ranges[0].second);
+        for (size_t i = 1; i < ranges.size(); ++i) {
+            if (cur_addr + cur_size == ranges[i].first) {
+                cur_size += static_cast<size_t>(ranges[i].second);
+            } else {
+                coalesced.emplace_back(cur_addr, cur_size);
+                cur_addr = ranges[i].first;
+                cur_size = static_cast<size_t>(ranges[i].second);
+            }
+        }
+        coalesced.emplace_back(cur_addr, cur_size);
+        // Use batch API to reduce lock acquisitions and contention.
+        tracker->UpdatePagesCachedBatch(coalesced, delta);
+        ranges.clear();
+    }
+
     template <bool add_to_tracker>
     void NotifyRasterizer(u64 word_index, u64 current_bits, u64 new_bits) const {
         u64 changed_bits = (add_to_tracker ? current_bits : ~current_bits) & new_bits;

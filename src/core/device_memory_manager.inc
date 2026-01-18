@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,6 +8,8 @@
 #include <limits>
 #include <memory>
 #include <type_traits>
+#include <algorithm>
+#include <vector>
 
 #include "common/address_space.h"
 #include "common/address_space.inc"
@@ -507,8 +512,7 @@ void DeviceMemoryManager<Traits>::UnregisterProcess(Asid asid) {
 }
 
 template <typename Traits>
-void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta) {
-    Common::ScopedRangeLock lk(counter_guard, addr, size);
+void DeviceMemoryManager<Traits>::UpdatePagesCachedCountNoLock(DAddr addr, size_t size, s32 delta) {
     u64 uncache_begin = 0;
     u64 cache_begin = 0;
     u64 uncache_bytes = 0;
@@ -584,6 +588,49 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
         }
     }
     release_pending();
+}
+
+template <typename Traits>
+void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta) {
+    Common::ScopedRangeLock lk(counter_guard, addr, size);
+    UpdatePagesCachedCountNoLock(addr, size, delta);
+} 
+
+template <typename Traits>
+void DeviceMemoryManager<Traits>::UpdatePagesCachedBatch(const std::vector<std::pair<DAddr, size_t>>& ranges, s32 delta) {
+    if (ranges.empty()) {
+        return;
+    }
+    // Make a local copy and sort by address
+    std::vector<std::pair<DAddr, size_t>> tmp = ranges;
+    std::sort(tmp.begin(), tmp.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+    // Coalesce adjacent/overlapping ranges
+    std::vector<std::pair<DAddr, size_t>> coalesced;
+    DAddr cur_addr = tmp[0].first;
+    size_t cur_size = tmp[0].second;
+    for (size_t i = 1; i < tmp.size(); ++i) {
+        DAddr next_addr = tmp[i].first;
+        size_t next_size = tmp[i].second;
+        if (cur_addr + cur_size >= next_addr) {
+            // overlapping or contiguous
+            const DAddr end = std::max(cur_addr + cur_size, next_addr + next_size);
+            cur_size = end - cur_addr;
+        } else {
+            coalesced.emplace_back(cur_addr, cur_size);
+            cur_addr = next_addr;
+            cur_size = next_size;
+        }
+    }
+    coalesced.emplace_back(cur_addr, cur_size);
+
+    const DAddr lock_begin = coalesced.front().first;
+    const DAddr lock_end = coalesced.back().first + coalesced.back().second;
+    Common::ScopedRangeLock lk(counter_guard, lock_begin, static_cast<size_t>(lock_end - lock_begin));
+
+    for (const auto& [addr, size] : coalesced) {
+        UpdatePagesCachedCountNoLock(addr, size, delta);
+    }
 }
 
 } // namespace Core

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,6 +12,7 @@
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include "common/common_types.h"
 #include "common/range_mutex.h"
@@ -44,6 +48,7 @@ public:
     ~DeviceMemoryManager();
 
     static constexpr bool HAS_FLUSH_INVALIDATION = true;
+    static constexpr size_t AS_BITS = Traits::device_virtual_bits;
 
     void BindInterface(DeviceInterface* device_inter);
 
@@ -117,7 +122,12 @@ public:
 
     void UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta);
 
-    static constexpr size_t AS_BITS = Traits::device_virtual_bits;
+    // New batch API to update multiple ranges with a single lock acquisition.
+    void UpdatePagesCachedBatch(const std::vector<std::pair<DAddr, size_t>>& ranges, s32 delta);
+
+private:
+    // Internal helper that performs the update assuming the caller already holds the necessary lock.
+    void UpdatePagesCachedCountNoLock(DAddr addr, size_t size, s32 delta);
 
 private:
     static constexpr size_t device_virtual_bits = Traits::device_virtual_bits;
@@ -214,6 +224,8 @@ private:
     std::unique_ptr<CachedPages> cached_pages;
     Common::RangeMutex counter_guard;
     std::mutex mapping_guard;
+
+
 };
 
 } // namespace Core
