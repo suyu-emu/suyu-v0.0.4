@@ -292,7 +292,7 @@ Result IParentalControlService::EndFreeCommunication() {
 }
 
 Result IParentalControlService::IsFreeCommunicationAvailable() {
-    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    LOG_DEBUG(Service_PCTL, "(STUBBED) called");
 
     if (!CheckFreeCommunicationPermissionImpl()) {
         R_THROW(PCTL::ResultNoFreeCommunication);

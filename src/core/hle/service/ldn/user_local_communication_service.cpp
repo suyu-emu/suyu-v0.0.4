@@ -38,6 +38,7 @@ IUserLocalCommunicationService::IUserLocalCommunicationService(Core::System& sys
             {102, D<&IUserLocalCommunicationService::Scan>, "Scan"},
             {103, D<&IUserLocalCommunicationService::ScanPrivate>, "ScanPrivate"},
             {104, D<&IUserLocalCommunicationService::SetWirelessControllerRestriction>, "SetWirelessControllerRestriction"},
+            { 106, D<&IUserLocalCommunicationService::SetProtocol>, "SetProtocol" },
             {200, D<&IUserLocalCommunicationService::OpenAccessPoint>, "OpenAccessPoint"},
             {201, D<&IUserLocalCommunicationService::CloseAccessPoint>, "CloseAccessPoint"},
             {202, D<&IUserLocalCommunicationService::CreateNetwork>, "CreateNetwork"},
@@ -186,6 +187,11 @@ Result IUserLocalCommunicationService::ScanPrivate(
 
     R_UNLESS(out_network_info.empty(), ResultBadInput);
     R_RETURN(lan_discovery.Scan(out_network_info, *network_count, scan_filter));
+}
+
+Result IUserLocalCommunicationService::SetProtocol(u32 protocol) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called, protocol={}", protocol);
+    R_SUCCEED();
 }
 
 Result IUserLocalCommunicationService::SetWirelessControllerRestriction(
