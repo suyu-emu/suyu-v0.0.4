@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -41,7 +44,7 @@ NvResult WrapGeneric(F&& callable, std::span<const u8> input, std::span<const u8
 
     if constexpr (HasFixedArg) {
         // Read the fixed-size input value.
-        var_offset = std::min(sizeof(FixedArg), input.size());
+        var_offset = (std::min)(sizeof(FixedArg), input.size());
         if (var_offset > 0) {
             std::memcpy(&fixed, input.data(), var_offset);
         }
@@ -74,14 +77,14 @@ NvResult WrapGeneric(F&& callable, std::span<const u8> input, std::span<const u8
     // Copy outputs.
     if constexpr (HasFixedArg) {
         if (output.size() > 0) {
-            std::memcpy(output.data(), &fixed, std::min(output.size(), sizeof(FixedArg)));
+            std::memcpy(output.data(), &fixed, (std::min)(output.size(), sizeof(FixedArg)));
         }
     }
 
     if constexpr (HasVarArg) {
         if (num_var_args > 0 && output.size() > var_offset) {
             const size_t max_var_size = output.size() - var_offset;
-            std::memcpy(output.data() + var_offset, var_args.data(), std::min(max_var_size, num_var_args * sizeof(VarArg)));
+            std::memcpy(output.data() + var_offset, var_args.data(), (std::min)(max_var_size, num_var_args * sizeof(VarArg)));
         }
     }
 

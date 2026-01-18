@@ -184,7 +184,7 @@ private:
     QuadIndexedPass quad_index_pass;
 
     bool limit_dynamic_storage_buffers = false;
-    u32 max_dynamic_storage_buffers = std::numeric_limits<u32>::max();
+    u32 max_dynamic_storage_buffers = (std::numeric_limits<u32>::max)();
 };
 
 struct BufferCacheParams {

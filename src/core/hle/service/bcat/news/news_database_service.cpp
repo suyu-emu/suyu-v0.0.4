@@ -142,7 +142,7 @@ Result INewsDatabaseService::GetListV1(Out<s32> out_count,
     const size_t start = static_cast<size_t>(std::max(0, offset));
     const size_t max_records = out_buffer.size() / record_size;
     const size_t available = start < list.size() ? list.size() - start : 0;
-    const size_t count = std::min(max_records, available);
+    const size_t count = (std::min)(max_records, available);
 
     for (size_t i = 0; i < count; ++i) {
         const auto& src = list[start + i];
@@ -182,7 +182,7 @@ Result INewsDatabaseService::GetList(Out<s32> out_count,
     const size_t start = static_cast<size_t>(std::max(0, offset));
     const size_t max_records = out_buffer.size() / record_size;
     const size_t available = start < list.size() ? list.size() - start : 0;
-    const size_t count = std::min(max_records, available);
+    const size_t count = (std::min)(max_records, available);
 
     if (count > 0) {
         std::memcpy(out_buffer.data(), list.data() + start, count * record_size);

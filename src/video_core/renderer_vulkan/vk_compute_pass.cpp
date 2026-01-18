@@ -756,7 +756,7 @@ void BlockLinearUnswizzle3DPass::Unswizzle(
 {
     using namespace VideoCommon::Accelerated;
 
-    const u32 MAX_BATCH_SLICES = std::min(z_count, image.info.size.depth);
+    const u32 MAX_BATCH_SLICES = (std::min)(z_count, image.info.size.depth);
 
     if (!image.has_compute_unswizzle_buffer) {
         // Allocate exactly what this batch needs
@@ -772,7 +772,7 @@ void BlockLinearUnswizzle3DPass::Unswizzle(
 
     scheduler.RequestOutsideRenderPassOperationContext();
     for (u32 z_offset = 0; z_offset < z_count; z_offset += MAX_BATCH_SLICES) {
-        const u32 current_chunk_slices = std::min(MAX_BATCH_SLICES, z_count - z_offset);
+        const u32 current_chunk_slices = (std::min)(MAX_BATCH_SLICES, z_count - z_offset);
         const u32 current_z_start = z_start + z_offset;
 
         UnswizzleChunk(image, swizzled, sw, params, blocks_x, blocks_y,

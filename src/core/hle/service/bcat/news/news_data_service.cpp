@@ -111,7 +111,7 @@ Result INewsDataService::Read(Out<u64> out_size, s64 offset,
         R_SUCCEED();
     }
 
-    const size_t len = std::min(out_buffer.size(), opened_payload.size() - off);
+    const size_t len = (std::min)(out_buffer.size(), opened_payload.size() - off);
     std::memcpy(out_buffer.data(), opened_payload.data() + off, len);
     *out_size = len;
     R_SUCCEED();

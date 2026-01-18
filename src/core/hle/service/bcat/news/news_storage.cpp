@@ -53,7 +53,7 @@ void NewsStorage::Clear() {
 
 void NewsStorage::CopyZ(std::span<char> dst, std::string_view src) {
     std::memset(dst.data(), 0, dst.size());
-    std::memcpy(dst.data(), src.data(), std::min(dst.size() - 1, src.size()));
+    std::memcpy(dst.data(), src.data(), (std::min)(dst.size() - 1, src.size()));
 }
 
 std::string NewsStorage::MakeKey(std::string_view news_id, std::string_view user_id) {

@@ -1468,7 +1468,7 @@ void TextureCache<P>::TickAsyncUnswizzle() {
     if (task.current_offset < task.total_size) {
         const size_t remaining = task.total_size - task.current_offset;
 
-        size_t copy_amount = std::min(swizzle_chunk_size, remaining);
+        size_t copy_amount = (std::min)(swizzle_chunk_size, remaining);
 
         if (remaining > swizzle_chunk_size) {
             copy_amount = (copy_amount / task.bytes_per_slice) * task.bytes_per_slice;
@@ -1487,8 +1487,8 @@ void TextureCache<P>::TickAsyncUnswizzle() {
 
     if (complete_slices >= swizzle_slices_per_batch || (is_final_batch && complete_slices > 0)) {
         const u32 z_start = static_cast<u32>(task.last_submitted_offset / task.bytes_per_slice);
-        const u32 slices_to_process = std::min(complete_slices, swizzle_slices_per_batch);
-        const u32 z_count = std::min(slices_to_process, image.info.size.depth - z_start);
+        const u32 slices_to_process = (std::min)(complete_slices, swizzle_slices_per_batch);
+        const u32 z_count = (std::min)(slices_to_process, image.info.size.depth - z_start);
 
         if (z_count > 0) {
             const auto uploads = FullUploadSwizzles(task.info);

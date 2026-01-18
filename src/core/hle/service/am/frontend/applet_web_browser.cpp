@@ -462,7 +462,7 @@ void WebBrowser::WebBrowserExit(WebExitReason exit_reason, std::string last_url)
 
     web_common_return_value.exit_reason = exit_reason;
     std::memcpy(&web_common_return_value.last_url, last_url.data(),
-                std::min(last_url.size(), web_common_return_value.last_url.size()));
+                (std::min)(last_url.size(), web_common_return_value.last_url.size()));
     web_common_return_value.last_url_size = last_url.size();
 
     LOG_DEBUG(Service_AM, "WebCommonReturnValue: exit_reason={}, last_url={}, last_url_size={}",
