@@ -601,7 +601,7 @@ if (ENABLE_QT)
         find_package(Qt6 REQUIRED COMPONENTS Multimedia)
     endif()
 
-    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if (PLATFORM_LINUX OR PLATFORM_FREEBSD)
         # yes Qt, we get it
         set(QT_NO_PRIVATE_MODULE_WARNING ON)
         find_package(Qt6 REQUIRED COMPONENTS DBus OPTIONAL_COMPONENTS GuiPrivate)
