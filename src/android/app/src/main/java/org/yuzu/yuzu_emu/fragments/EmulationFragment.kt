@@ -134,6 +134,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var amiiboLoadJob: Job? = null
 
     private var wasInputOverlayAutoHidden = false
+    private var overlayTouchActive = false
 
     private val loadAmiiboLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -1123,6 +1124,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         super.onDestroyView()
         amiiboLoadJob?.cancel()
         amiiboLoadJob = null
+        _binding?.surfaceInputOverlay?.touchEventListener = null
         _binding = null
         isAmiiboPickerOpen = false
     }
@@ -1173,10 +1175,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
         binding.showStatsOverlayText.setVisible(showPerfOverlay)
         if (showPerfOverlay) {
-            val SYSTEM_FPS = 0
+            //val SYSTEM_FPS = 0
             val FPS = 1
             val FRAMETIME = 2
-            val SPEED = 3
+            //val SPEED = 3
             val sb = StringBuilder()
             perfStatsUpdater = {
                 if (emulationViewModel.emulationStarted.value &&
@@ -2000,45 +2002,62 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         handler.postDelayed({
             if (showInputOverlay && isAdded && _binding != null) {
-                autoHideOverlay()
+                if (overlayTouchActive) {
+                    startOverlayAutoHideTimer(seconds)
+                } else {
+                    autoHideOverlay()
+                }
             }
         }, seconds * 1000L)
     }
 
     fun handleScreenTap(isLongTap: Boolean) {
-
+        if (!isAdded || _binding == null) return
         if (binding.surfaceInputOverlay.isGamelessMode()) return
-
-        val shouldProceed = BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean()
-        if (!shouldProceed) return
-
+        if (!BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean()) return
         // failsafe
         val autoHideSeconds = IntSetting.INPUT_OVERLAY_AUTO_HIDE.getInt()
         if (autoHideSeconds == 0) {
             toggleOverlay(true)
-            return
+        } else {
+            val showInputOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
+            if (!showInputOverlay && !isLongTap && wasInputOverlayAutoHidden) {
+                toggleOverlay(true)
+            }
+            startOverlayAutoHideTimer(autoHideSeconds)
         }
-
-        val showInputOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
-        if (!showInputOverlay && !isLongTap && wasInputOverlayAutoHidden) {
-            toggleOverlay(true)
-        }
-
-        startOverlayAutoHideTimer(autoHideSeconds)
     }
 
     private fun initializeOverlayAutoHide() {
-        if (binding.surfaceInputOverlay.isGamelessMode()) {
-            return
-        }
+        if (!isAdded || _binding == null) return
+        if (binding.surfaceInputOverlay.isGamelessMode()) return
 
         val autoHideSeconds = IntSetting.INPUT_OVERLAY_AUTO_HIDE.getInt()
         val autoHideEnabled = BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean()
         val showInputOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
-
         if (autoHideEnabled && showInputOverlay) {
             toggleOverlay(true)
             startOverlayAutoHideTimer(autoHideSeconds)
+        }
+
+        binding.surfaceInputOverlay.touchEventListener = { event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                    overlayTouchActive = true
+                    handler.removeCallbacksAndMessages(null)
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                    overlayTouchActive = event.pointerCount > 1
+                    if (!overlayTouchActive) handleScreenTap(isLongTap = false)
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    overlayTouchActive = false
+                    handleScreenTap(isLongTap = false)
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    overlayTouchActive = true
+                }
+            }
         }
     }
 
@@ -2048,6 +2067,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     fun toggleOverlay(enable: Boolean) {
+        if (!isAdded || _binding == null) return
         if (enable == !BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) {
             // Reset controller input flag so controller can hide overlay again
             if (!enable) {

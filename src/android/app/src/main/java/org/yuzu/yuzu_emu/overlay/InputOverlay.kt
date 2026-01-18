@@ -73,6 +73,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
     var layout = OverlayLayout.Landscape
 
+    // External listener for EmulationFragment joypad overlay auto-hide
+    var touchEventListener: ((MotionEvent) -> Unit)? = null
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
@@ -138,6 +141,10 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
+        try {
+            touchEventListener?.invoke(event)
+        } catch (e: Exception) {}
+
         if (inEditMode) {
             return onTouchWhileEditing(event)
         }
