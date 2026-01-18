@@ -1216,8 +1216,11 @@ target_link_libraries(core PRIVATE
     nlohmann_json::nlohmann_json
     RenderDoc::API
     MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX}
-    MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX}
-    httplib::httplib)
+    MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
+
+if (ENABLE_WEB_SERVICE OR ENABLE_OPENSSL)
+    target_link_libraries(core PRIVATE httplib::httplib)
+endif()
 
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)

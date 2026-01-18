@@ -13,7 +13,6 @@
 #include <boost/regex.hpp>
 #include <boost/regex/v5/regex_replace.hpp>
 #include <fmt/format.h>
-#include <httplib.h>
 #include <nlohmann/json.hpp>
 
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
