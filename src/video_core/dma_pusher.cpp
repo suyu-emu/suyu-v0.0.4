@@ -14,6 +14,10 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/texture_cache/util.h"
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+
 namespace Tegra {
 
 constexpr u32 MacroRegistersStart = 0xE00;

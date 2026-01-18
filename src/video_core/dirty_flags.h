@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -44,6 +47,71 @@ enum : u8 {
 
     LastCommonEntry,
 };
+
+constexpr std::pair<u8, u8> GetDirtyFlagsForMethod(u32 method) {
+    const u32 OFF_VERTEX_STREAMS = 0x2C0;
+    const u32 OFF_VERTEX_STREAM_LIMITS = 0x2F8;
+    const u32 OFF_INDEX_BUFFER = 0x460;
+    const u32 OFF_TEX_HEADER = 0x800;
+    const u32 OFF_TEX_SAMPLER = 0xA00;
+    const u32 OFF_RT = 0xE00;
+    const u32 OFF_SURFACE_CLIP = 0xE38;
+    const u32 OFF_RT_CONTROL = 0xE40;
+    const u32 OFF_ZETA_ENABLE = 0xE4C;
+    const u32 OFF_ZETA_SIZE_WIDTH = 0xE50;
+    const u32 OFF_ZETA_SIZE_HEIGHT = 0xE54;
+    const u32 OFF_ZETA = 0xE60;
+    const u32 OFF_PIPELINES = 0x1D00;
+
+    if (method >= OFF_VERTEX_STREAMS && method < OFF_VERTEX_STREAMS + 96) {
+        const u32 buffer_idx = (method - OFF_VERTEX_STREAMS) / 3;
+        return {static_cast<u8>(VertexBuffer0 + buffer_idx), VertexBuffers};
+    }
+
+    if (method >= OFF_VERTEX_STREAM_LIMITS && method < OFF_VERTEX_STREAM_LIMITS + 32) {
+        const u32 buffer_idx = method - OFF_VERTEX_STREAM_LIMITS;
+        return {static_cast<u8>(VertexBuffer0 + buffer_idx), VertexBuffers};
+    }
+
+    if (method == OFF_INDEX_BUFFER || (method > OFF_INDEX_BUFFER && method < OFF_INDEX_BUFFER + 3)) {
+        return {IndexBuffer, NullEntry};
+    }
+
+    if (method >= OFF_TEX_HEADER && method < OFF_TEX_HEADER + 256) {
+        return {Descriptors, NullEntry};
+    }
+
+    if (method >= OFF_TEX_SAMPLER && method < OFF_TEX_SAMPLER + 256) {
+        return {Descriptors, NullEntry};
+    }
+
+    if (method >= OFF_RT && method < OFF_RT + 64) {
+        const u32 rt_idx = (method - OFF_RT) / 8;
+        return {static_cast<u8>(ColorBuffer0 + rt_idx), RenderTargets};
+    }
+
+    if (method == OFF_SURFACE_CLIP || (method > OFF_SURFACE_CLIP && method < OFF_SURFACE_CLIP + 4)) {
+        return {RenderTargets, NullEntry};
+    }
+
+    if (method == OFF_RT_CONTROL) {
+        return {RenderTargets, RenderTargetControl};
+    }
+
+    if (method == OFF_ZETA_ENABLE || method == OFF_ZETA_SIZE_WIDTH || method == OFF_ZETA_SIZE_HEIGHT) {
+        return {ZetaBuffer, RenderTargets};
+    }
+
+    if (method >= OFF_ZETA && method < OFF_ZETA + 8) {
+        return {ZetaBuffer, RenderTargets};
+    }
+
+    if (method >= OFF_PIPELINES && method < OFF_PIPELINES + 1024) {
+        return {Shaders, NullEntry};
+    }
+
+    return {NullEntry, NullEntry};
+}
 
 template <typename Integer>
 void FillBlock(Tegra::Engines::Maxwell3D::DirtyState::Table& table, std::size_t begin,
