@@ -63,9 +63,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">Bật giả lập MMU Máy chủ</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tối ưu hóa này tăng tốc độ truy cập bộ nhớ của chương trình khách. Bật nó lên khiến các thao tác đọc/ghi bộ nhớ khách được thực hiện trực tiếp vào bộ nhớ và sử dụng MMU của Máy chủ. Tắt tính năng này buộc tất cả quyền truy cập bộ nhớ phải sử dụng Giả lập MMU Phần mềm.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Giả lập NVDEC</string>
     <string name="nvdec_emulation_description">Chọn cách xử lý giải mã video</string>
@@ -337,8 +335,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">Độ phân giải (Handheld/Docked)</string>
     <string name="renderer_vsync">Chế độ VSync</string>
-    <string name="shader_backend">Backend Shader</string>
-    <string name="shader_backend_description">Chọn cách biên dịch shader</string>
     <string name="renderer_scaling_filter">Bộ lọc điều chỉnh cửa sổ</string>
     <string name="fsr_sharpness">Độ sắc nét FSR</string>
     <string name="fsr_sharpness_description">Độ sắc nét khi dùng FSR</string>

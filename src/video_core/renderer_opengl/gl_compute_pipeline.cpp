@@ -8,7 +8,7 @@
 #include <bit>
 #include <numeric>
 #include "common/cityhash.h"
-#include "common/settings.h" // for enum class Settings::ShaderBackend
+#include "common/settings.h"
 #include "video_core/renderer_opengl/gl_compute_pipeline.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
@@ -37,19 +37,20 @@ ComputePipeline::ComputePipeline(const Device& device, TextureCache& texture_cac
                                  std::vector<u32> code_v, bool force_context_flush)
     : texture_cache{texture_cache_}, buffer_cache{buffer_cache_},
       program_manager{program_manager_}, info{info_} {
-    switch (device.GetShaderBackend()) {
-    case Settings::ShaderBackend::Glsl:
+    switch (::Settings::values.renderer_backend.GetValue()) {
+    case Settings::RendererBackend::OpenGL_GLSL:
         source_program = CreateProgram(code, GL_COMPUTE_SHADER);
         break;
-    case Settings::ShaderBackend::Glasm:
+    case Settings::RendererBackend::OpenGL_GLASM:
         assembly_program = CompileProgram(code, GL_COMPUTE_PROGRAM_NV);
         break;
-    case Settings::ShaderBackend::SpirV:
+    case Settings::RendererBackend::OpenGL_SPIRV:
         source_program = CreateProgram(code_v, GL_COMPUTE_SHADER);
         break;
+    default:
+        UNREACHABLE();
     }
-    std::copy_n(info.constant_buffer_used_sizes.begin(), uniform_buffer_sizes.size(),
-                uniform_buffer_sizes.begin());
+    std::copy_n(info.constant_buffer_used_sizes.begin(), uniform_buffer_sizes.size(), uniform_buffer_sizes.begin());
 
     num_texture_buffers = Shader::NumDescriptors(info.texture_buffer_descriptors);
     num_image_buffers = Shader::NumDescriptors(info.image_buffer_descriptors);

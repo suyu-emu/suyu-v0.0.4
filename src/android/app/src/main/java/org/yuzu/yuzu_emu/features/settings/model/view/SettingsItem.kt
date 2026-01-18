@@ -313,15 +313,6 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
-                    IntSetting.RENDERER_SHADER_BACKEND,
-                    titleId = R.string.shader_backend,
-                    descriptionId = R.string.shader_backend_description,
-                    choicesId = R.array.rendererShaderNames,
-                    valuesId = R.array.rendererShaderValues
-                )
-            )
-            put(
-                SingleChoiceSetting(
                     IntSetting.RENDERER_NVDEC_EMULATION,
                     titleId = R.string.nvdec_emulation,
                     descriptionId = R.string.nvdec_emulation_description,

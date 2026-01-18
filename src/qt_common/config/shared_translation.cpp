@@ -164,10 +164,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Device:"),
            tr("This setting selects the GPU to use (Vulkan only)."));
     INSERT(Settings,
-           shader_backend,
-           tr("Shader Backend:"),
-           tr("The shader backend to use with OpenGL.\nGLSL is recommended."));
-    INSERT(Settings,
            resolution_setup,
            tr("Resolution:"),
            tr("Forces to render at a different resolution.\n"
@@ -498,21 +494,15 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(VramUsageMode, Conservative, tr("Conservative")),
                               PAIR(VramUsageMode, Aggressive, tr("Aggressive")),
                           }});
-    translations->insert({Settings::EnumMetadata<Settings::RendererBackend>::Index(),
-                          {
+    translations->insert({Settings::EnumMetadata<Settings::RendererBackend>::Index(), {
+        PAIR(RendererBackend, Vulkan, tr("Vulkan")),
 #ifdef HAS_OPENGL
-                              PAIR(RendererBackend, OpenGL, tr("OpenGL")),
+        PAIR(RendererBackend, OpenGL_GLSL, tr("OpenGL GLSL")),
+        PAIR(RendererBackend, OpenGL_GLASM, tr("OpenGL GLASM (Assembly Shaders, NVIDIA Only)")),
+        PAIR(RendererBackend, OpenGL_SPIRV, tr("OpenGL SPIR-V (Experimental, AMD/Mesa Only)")),
 #endif
-                              PAIR(RendererBackend, Vulkan, tr("Vulkan")),
-                              PAIR(RendererBackend, Null, tr("Null")),
-                          }});
-    translations->insert(
-        {Settings::EnumMetadata<Settings::ShaderBackend>::Index(),
-         {
-             PAIR(ShaderBackend, Glsl, tr("GLSL")),
-             PAIR(ShaderBackend, Glasm, tr("GLASM (Assembly Shaders, NVIDIA Only)")),
-             PAIR(ShaderBackend, SpirV, tr("SPIR-V (Experimental, AMD/Mesa Only)")),
-         }});
+        PAIR(RendererBackend, Null, tr("Null"))
+    }});
     translations->insert({Settings::EnumMetadata<Settings::GpuAccuracy>::Index(),
                           {
                               PAIR(GpuAccuracy, Low, tr("Fast")),

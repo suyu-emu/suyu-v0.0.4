@@ -889,12 +889,13 @@ void GRenderWindow::resizeEvent(QResizeEvent* event) {
 
 std::unique_ptr<Core::Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() const {
 #ifdef HAS_OPENGL
-    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL) {
+    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLSL
+    || Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLASM
+    || Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_SPIRV) {
         auto c = static_cast<OpenGLSharedContext*>(main_context.get());
         // Bind the shared contexts to the main surface in case the backend wants to take over
         // presentation
-        return std::make_unique<OpenGLSharedContext>(c->GetShareContext(),
-                                                     child_widget->windowHandle());
+        return std::make_unique<OpenGLSharedContext>(c->GetShareContext(), child_widget->windowHandle());
     }
 #endif
     return std::make_unique<DummyContext>();
@@ -912,15 +913,15 @@ bool GRenderWindow::InitRenderTarget() {
     first_frame = false;
 
     switch (Settings::values.renderer_backend.GetValue()) {
-    case Settings::RendererBackend::OpenGL:
-        if (!InitializeOpenGL()) {
+    case Settings::RendererBackend::OpenGL_GLSL:
+    case Settings::RendererBackend::OpenGL_GLASM:
+    case Settings::RendererBackend::OpenGL_SPIRV:
+        if (!InitializeOpenGL())
             return false;
-        }
         break;
     case Settings::RendererBackend::Vulkan:
-        if (!InitializeVulkan()) {
+        if (!InitializeVulkan())
             return false;
-        }
         break;
     case Settings::RendererBackend::Null:
         InitializeNull();
@@ -941,12 +942,10 @@ bool GRenderWindow::InitRenderTarget() {
     OnFramebufferSizeChanged();
     BackupGeometry();
 
-    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL) {
-        if (!LoadOpenGL()) {
-            return false;
-        }
-    }
-
+    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLSL
+    || Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLASM
+    || Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_SPIRV)
+        return LoadOpenGL();
     return true;
 }
 

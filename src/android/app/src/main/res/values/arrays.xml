@@ -111,18 +111,6 @@
         <item>2</item>
     </integer-array>
 
-    <string-array name="rendererShaderNames">
-        <item>@string/shader_backend_glsl</item>
-        <item>@string/shader_backend_glasm</item>
-        <item>@string/shader_backend_spirv</item>
-    </string-array>
-
-    <integer-array name="rendererShaderValues">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </integer-array>
-
     <!-- VRAM USAGE MODE CHOICES -->
     <string-array name="vramUsageMethodNames">
         <item>@string/vram_usage_conservative</item>

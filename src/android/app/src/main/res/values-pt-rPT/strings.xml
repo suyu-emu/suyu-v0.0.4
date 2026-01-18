@@ -63,9 +63,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">Ativar Emulação de MMU do Anfitrião</string>
     <string name="cpuopt_unsafe_host_mmu_description">Esta otimização acelera os acessos à memória pelo programa convidado. Ativar faz com que as leituras/escritas de memória do convidado sejam efetuadas diretamente na memória e utilizem a MMU do Anfitrião. Desativar força todos os acessos à memória a usar a Emulação de MMU por Software.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulação NVDEC</string>
     <string name="nvdec_emulation_description">Método de decodificação de vídeo.</string>
@@ -362,8 +360,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">Resolução (Portátil/Ancorado)</string>
     <string name="renderer_vsync">Modo VSync</string>
-    <string name="shader_backend">Backend de Shader</string>
-    <string name="shader_backend_description">Método de compilação de shaders.</string>
     <string name="renderer_scaling_filter">Filtro de Adaptação da Janela</string>
     <string name="fsr_sharpness">Nitidez do FSR</string>
     <string name="fsr_sharpness_description">Determina a nitidez da imagem ao usar contraste dinâmico do FSR</string>

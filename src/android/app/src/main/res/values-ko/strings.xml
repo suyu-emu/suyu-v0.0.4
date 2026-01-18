@@ -63,9 +63,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">호스트 MMU 에뮬레이션 사용</string>
     <string name="cpuopt_unsafe_host_mmu_description">이 최적화는 게스트 프로그램의 메모리 접근 속도를 높입니다. 활성화하면 게스트의 메모리 읽기/쓰기가 메모리에서 직접 수행되고 호스트의 MMU를 활용합니다. 비활성화하면 모든 메모리 접근에 소프트웨어 MMU 에뮬레이션을 사용하게 됩니다.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC 에뮬레이션</string>
     <string name="nvdec_emulation_description">비디오 디코딩 처리 방식 선택</string>
@@ -358,8 +356,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">해상도 (휴대 모드/독 모드)</string>
     <string name="renderer_vsync">수직동기화 모드</string>
-    <string name="shader_backend">셰이더 백엔드</string>
-    <string name="shader_backend_description">셰이더 컴파일 방식 선택</string>
     <string name="renderer_scaling_filter">윈도우 적응 필터</string>
     <string name="renderer_anti_aliasing">안티에일리어싱 방법</string>
     <string name="renderer_optimize_spirv_output_description">컴파일된 셰이더를 최적화하여 GPU 효율성을 향상시킵니다.</string>

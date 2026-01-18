@@ -465,8 +465,8 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
     Shader::IR::Program* layer_source_program{};
 
     for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
-        const bool is_emulated_stage = layer_source_program != nullptr &&
-                                       index == static_cast<u32>(Maxwell::ShaderType::Geometry);
+        const bool is_emulated_stage = layer_source_program != nullptr
+            && index == u32(Maxwell::ShaderType::Geometry);
         if (key.unique_hashes[index] == 0 && is_emulated_stage) {
             auto topology = MaxwellToOutputTopology(key.gs_input_topology);
             programs[index] = GenerateGeometryPassthrough(pools.inst, pools.block, host_info,
@@ -479,7 +479,7 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         Shader::Environment& env{*envs[env_index]};
         ++env_index;
 
-        const u32 cfg_offset{static_cast<u32>(env.StartAddress() + sizeof(Shader::ProgramHeader))};
+        const u32 cfg_offset = u32(env.StartAddress() + sizeof(Shader::ProgramHeader));
         Shader::Maxwell::Flow::CFG cfg(env, pools.flow_block, cfg_offset, index == 0);
 
         if (Settings::values.dump_shaders) {
@@ -490,14 +490,12 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
             // Normal path
             programs[index] = TranslateProgram(pools.inst, pools.block, env, cfg, host_info);
 
-            total_storage_buffers +=
-                Shader::NumDescriptors(programs[index].info.storage_buffers_descriptors);
+            total_storage_buffers += Shader::NumDescriptors(programs[index].info.storage_buffers_descriptors);
         } else {
             // VertexB path when VertexA is present.
             auto& program_va{programs[0]};
             auto program_vb{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};
-            total_storage_buffers +=
-                Shader::NumDescriptors(program_vb.info.storage_buffers_descriptors);
+            total_storage_buffers += Shader::NumDescriptors(program_vb.info.storage_buffers_descriptors);
             programs[index] = MergeDualVertexPrograms(program_va, program_vb, env);
         }
 
@@ -505,8 +503,8 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
             layer_source_program = &programs[index];
         }
     }
-    const u32 glasm_storage_buffer_limit{device.GetMaxGLASMStorageBufferBlocks()};
-    const bool glasm_use_storage_buffers{total_storage_buffers <= glasm_storage_buffer_limit};
+    const u32 glasm_storage_buffer_limit = device.GetMaxGLASMStorageBufferBlocks();
+    const bool glasm_use_storage_buffers = total_storage_buffers <= glasm_storage_buffer_limit;
 
     std::array<const Shader::Info*, Maxwell::MaxShaderStage> infos{};
 
@@ -514,7 +512,7 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
     std::array<std::vector<u32>, 5> sources_spirv;
     Shader::Backend::Bindings binding;
     Shader::IR::Program* previous_program{};
-    const bool use_glasm{device.UseAssemblyShaders()};
+    const bool use_glasm = device.UseAssemblyShaders();
     const size_t first_index = uses_vertex_a && uses_vertex_b ? 1 : 0;
     for (size_t index = first_index; index < Maxwell::MaxShaderProgram; ++index) {
         const bool is_emulated_stage = layer_source_program != nullptr &&
@@ -528,21 +526,21 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         const size_t stage_index{index - 1};
         infos[stage_index] = &program.info;
 
-        const auto runtime_info{
-            MakeRuntimeInfo(key, program, previous_program, glasm_use_storage_buffers, use_glasm)};
-        switch (device.GetShaderBackend()) {
-        case Settings::ShaderBackend::Glsl:
+        const auto runtime_info = MakeRuntimeInfo(key, program, previous_program, glasm_use_storage_buffers, use_glasm);
+        switch (::Settings::values.renderer_backend.GetValue()) {
+        case Settings::RendererBackend::OpenGL_GLSL:
             ConvertLegacyToGeneric(program, runtime_info);
             sources[stage_index] = EmitGLSL(profile, runtime_info, program, binding);
             break;
-        case Settings::ShaderBackend::Glasm:
+        case Settings::RendererBackend::OpenGL_GLASM:
             sources[stage_index] = EmitGLASM(profile, runtime_info, program, binding);
             break;
-        case Settings::ShaderBackend::SpirV:
+        case Settings::RendererBackend::OpenGL_SPIRV:
             ConvertLegacyToGeneric(program, runtime_info);
-            sources_spirv[stage_index] =
-                EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output);
+            sources_spirv[stage_index] = EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output);
             break;
+        default:
+            UNREACHABLE();
         }
         previous_program = &program;
     }
@@ -592,20 +590,20 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
 
     std::string code{};
     std::vector<u32> code_spirv;
-    switch (device.GetShaderBackend()) {
-    case Settings::ShaderBackend::Glsl:
+    switch (::Settings::values.renderer_backend.GetValue()) {
+    case Settings::RendererBackend::OpenGL_GLSL:
         code = EmitGLSL(profile, program);
         break;
-    case Settings::ShaderBackend::Glasm:
+    case Settings::RendererBackend::OpenGL_GLASM:
         code = EmitGLASM(profile, info, program);
         break;
-    case Settings::ShaderBackend::SpirV:
+    case Settings::RendererBackend::OpenGL_SPIRV:
         code_spirv = EmitSPIRV(profile, program, this->optimize_spirv_output);
         break;
+    default:
+        UNREACHABLE();
     }
-
-    return std::make_unique<ComputePipeline>(device, texture_cache, buffer_cache, program_manager,
-                                             program.info, code, code_spirv, force_context_flush);
+    return std::make_unique<ComputePipeline>(device, texture_cache, buffer_cache, program_manager, program.info, code, code_spirv, force_context_flush);
 } catch (Shader::Exception& exception) {
     LOG_ERROR(Render_OpenGL, "{}", exception.what());
     return nullptr;

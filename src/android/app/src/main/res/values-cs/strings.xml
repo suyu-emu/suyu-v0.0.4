@@ -63,9 +63,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">Povolit emulaci hostitelské MMU</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tato optimalizace zrychluje přístup do paměti hostovaného programu. Její povolení způsobí, že čtení a zápisy do paměti hosta se provádějí přímo v paměti a využívají hostitelskou MMU. Zakázání této funkce vynutí použití softwarové emulace MMU pro všechny přístupy do paměti.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulace NVDEC</string>
     <string name="nvdec_emulation_description">Zpracování dekódování videa</string>
@@ -327,8 +325,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">Rozlišení (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync režim</string>
-    <string name="shader_backend">Backend shaderů</string>
-    <string name="shader_backend_description">Způsob kompilace shaderů</string>
     <string name="renderer_scaling_filter">Filtr přizpůsobení</string>
     <string name="fsr_sharpness">Ostrost FSR</string>
     <string name="fsr_sharpness_description">Nastavení ostrosti pro FSR</string>

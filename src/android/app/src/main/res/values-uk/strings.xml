@@ -88,11 +88,6 @@
     <string name="debug_knobs_description">Лише для розробників.</string>
     <string name="debug_knobs_hint">0–65535</string>
 
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">SPIRV</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Емуляція NVDEC</string>
     <string name="nvdec_emulation_description">Обробка відео під час катсцен</string>
@@ -442,8 +437,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">Роздільна здатність (Портативний/Док)</string>
     <string name="renderer_vsync">Режим верт. синхронізації</string>
-    <string name="shader_backend">Система обробки шейдерів</string>
-    <string name="shader_backend_description">Виберіть, як компілювати й транслювати шейдери для ГП.</string>
     <string name="renderer_scaling_filter">Фільтр масштабування вікна</string>
     <string name="fsr_sharpness">Різкість FSR</string>
     <string name="fsr_sharpness_description">Визначає різкість зображення при використанні FSR.</string>

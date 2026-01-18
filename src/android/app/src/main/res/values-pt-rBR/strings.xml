@@ -88,9 +88,6 @@
     <string name="debug_knobs_description">Apenas para uso em desenvolvimento.</string>
     <string name="debug_knobs_hint">0 a 65535</string>
 
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Decodificação de Vídeo (NVDEC)</string>
     <string name="nvdec_emulation_description">Selecione como a decodificação de vídeo é realizada durante cutscenes e intros.</string>
@@ -435,8 +432,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">Resolução (Portátil/Modo TV)</string>
     <string name="renderer_vsync">Modo de VSync</string>
-    <string name="shader_backend">Shader Backend</string>
-    <string name="shader_backend_description">Escolha como os shaders são compilados e traduzidos para sua GPU.</string>
     <string name="renderer_scaling_filter">Filtro de Adaptação da Janela</string>
     <string name="fsr_sharpness">Nitidez do FSR</string>
     <string name="fsr_sharpness_description">Determina a nitidez da imagem ao utilizar o contraste dinâmico do FSR</string>

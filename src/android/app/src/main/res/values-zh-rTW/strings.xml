@@ -88,9 +88,6 @@
     <string name="debug_knobs_description">僅限開發用途</string>
     <string name="debug_knobs_hint">0到65535</string>
 
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC模擬</string>
     <string name="nvdec_emulation_description">選擇影片解碼（NVDEC）的方式</string>
@@ -431,8 +428,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">解析度 (手提/底座)</string>
     <string name="renderer_vsync">垂直同步</string>
-    <string name="shader_backend">著色器後端</string>
-    <string name="shader_backend_description">選擇著色器的編譯與轉譯方式</string>
     <string name="renderer_scaling_filter">視窗適應過濾器</string>
     <string name="fsr_sharpness">FSR 銳化度</string>
     <string name="fsr_sharpness_description">使用 FSR 時圖片的銳化程度</string>

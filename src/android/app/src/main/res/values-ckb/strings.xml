@@ -63,9 +63,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">چالاککردنی میمیکردنی MMU میواندە</string>
     <string name="cpuopt_unsafe_host_mmu_description">ئەم باشکردنە خێرایی دەستکەوتنی بیرگە لەلایەن پرۆگرامی میوانەکە زیاد دەکات. چالاککردنی وای لێدەکات کە خوێندنەوە/نووسینەکانی بیرگەی میوانەکە ڕاستەوخۆ لە بیرگە ئەنجام بدرێت و میمیکردنی MMU میواندە بەکاربهێنێت. ناچالاککردنی ئەمە هەموو دەستکەوتنەکانی بیرگە ڕەت دەکاتەوە لە بەکارهێنانی میمیکردنی MMU نەرمەکاڵا.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">ئیمولەیشنی NVDEC</string>
     <string name="nvdec_emulation_description">هەڵبژاردنی ڕێگای دیکۆدکردنی ڤیدیۆ</string>
@@ -339,8 +337,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">ڕوونی (دۆخی دەستی/دۆخی دۆک)</string>
     <string name="renderer_vsync">دۆخی VSync</string>
-    <string name="shader_backend">شادەر باکند</string>
-    <string name="shader_backend_description">هەڵبژاردنی ڕێگای پێکهێنانی شادەر</string>
     <string name="renderer_scaling_filter">فلتەری گونجاندنی پەنجەرە</string>
     <string name="fsr_sharpness">تیژی FSR</string>
     <string name="fsr_sharpness_description">دیاریکردنی تیژی وێنە لە کاتی بەکارهێنانی FSR</string>

@@ -68,14 +68,10 @@ static const std::map<Settings::GpuAccuracy, QString> gpu_accuracy_texts_map = {
 
 static const std::map<Settings::RendererBackend, QString> renderer_backend_texts_map = {
     {Settings::RendererBackend::Vulkan, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Vulkan"))},
-    {Settings::RendererBackend::OpenGL, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "OpenGL"))},
+    {Settings::RendererBackend::OpenGL_GLSL, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "OpenGL GLSL"))},
+    {Settings::RendererBackend::OpenGL_SPIRV, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "OpenGL SPIRV"))},
+    {Settings::RendererBackend::OpenGL_GLASM, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "OpenGL GLASM"))},
     {Settings::RendererBackend::Null, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Null"))},
-};
-
-static const std::map<Settings::ShaderBackend, QString> shader_backend_texts_map = {
-    {Settings::ShaderBackend::Glsl, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "GLSL"))},
-    {Settings::ShaderBackend::Glasm, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "GLASM"))},
-    {Settings::ShaderBackend::SpirV, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "SPIRV"))},
 };
 
 } // namespace ConfigurationShared

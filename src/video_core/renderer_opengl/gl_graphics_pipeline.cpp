@@ -10,7 +10,7 @@
 #include <vector>
 #include <bit>
 #include <numeric>
-#include "common/settings.h" // for enum class Settings::ShaderBackend
+#include "common/settings.h"
 #include "common/thread_worker.h"
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_opengl/gl_graphics_pipeline.h"
@@ -224,8 +224,8 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
     ASSERT(num_textures <= MAX_TEXTURES);
     ASSERT(num_images <= MAX_IMAGES);
 
-    const auto backend = device.GetShaderBackend();
-    const bool assembly_shaders{backend == Settings::ShaderBackend::Glasm};
+    const auto backend = ::Settings::values.renderer_backend.GetValue();
+    const bool assembly_shaders = backend == Settings::RendererBackend::OpenGL_GLASM;
     use_storage_buffers =
         !assembly_shaders || num_storage_buffers <= device.GetMaxGLASMStorageBufferBlocks();
     writes_global_memory &= !use_storage_buffers;
@@ -240,21 +240,19 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
                force_context_flush](ShaderContext::Context*) mutable {
         for (size_t stage = 0; stage < 5; ++stage) {
             switch (backend) {
-            case Settings::ShaderBackend::Glsl:
-                if (!sources_[stage].empty()) {
+            case Settings::RendererBackend::OpenGL_GLSL:
+                if (!sources_[stage].empty())
                     source_programs[stage] = CreateProgram(sources_[stage], Stage(stage));
-                }
                 break;
-            case Settings::ShaderBackend::Glasm:
-                if (!sources_[stage].empty()) {
-                    assembly_programs[stage] =
-                        CompileProgram(sources_[stage], AssemblyStage(stage));
-                }
+            case Settings::RendererBackend::OpenGL_GLASM:
+                if (!sources_[stage].empty())
+                    assembly_programs[stage] = CompileProgram(sources_[stage], AssemblyStage(stage));
                 break;
-            case Settings::ShaderBackend::SpirV:
-                if (!sources_spirv_[stage].empty()) {
+            case Settings::RendererBackend::OpenGL_SPIRV:
+                if (!sources_spirv_[stage].empty())
                     source_programs[stage] = CreateProgram(sources_spirv_[stage], Stage(stage));
-                }
+                break;
+            default:
                 break;
             }
         }

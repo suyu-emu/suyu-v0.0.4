@@ -63,9 +63,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">הפעל אמולציית MMU מארח</string>
     <string name="cpuopt_unsafe_host_mmu_description">אופטימיזציה זו מאיצה את גישת הזיכרון על ידי התוכנית האורחת. הפעלתה גורמת לכך שפעולות קריאה/כתיבה לזיכרון האורח מתבצעות ישירות לזיכרון ומשתמשות ב-MMU של המארח. השבתת זאת מאלצת את כל גישות הזיכרון להשתמש באמולציית MMU תוכנתית.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">אמולציית NVDEC</string>
     <string name="nvdec_emulation_description">בחר כיצד לטפל בפענוח וידאו</string>
@@ -363,8 +361,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">רזולוציה (מעוגן/נייד)</string>
     <string name="renderer_vsync">מצב VSync</string>
-    <string name="shader_backend">מנוע שיידרים</string>
-    <string name="shader_backend_description">בחר כיצד לקמפל שיידרים</string>
     <string name="renderer_scaling_filter">פילטר מתאם חלון</string>
     <string name="fsr_sharpness">חדות FSR</string>
     <string name="fsr_sharpness_description">קובע את מידת החדות בעת שימוש ב-FSR.</string>

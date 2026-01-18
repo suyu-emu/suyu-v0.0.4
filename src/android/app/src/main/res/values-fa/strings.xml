@@ -127,13 +127,6 @@
     <string name="vram_usage_conservative">محافظه‌کارانه</string>
     <string name="vram_usage_aggressive">تهاجمی</string>
 
-    <!-- Shader Backend -->
-    <string name="shader_backend">بک‌اند شیدر</string>
-    <string name="shader_backend_description">انتخاب روش کامپایل و ترجمه شیدرها</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">Spir-V</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">شبیه‌سازی NVDEC</string>
     <string name="nvdec_emulation_description">انتخاب روش پردازش ویدیو (NVDEC)</string>

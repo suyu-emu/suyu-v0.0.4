@@ -100,11 +100,6 @@
     <string name="debug_knobs_description">للإستخدام في التطوير فقط.</string>
     <string name="debug_knobs_hint">0 إلى 65535</string>
 
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
-    <string name="shader_backend_spirv">SPIRV</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">محاكاة NVDEC</string>
     <string name="nvdec_emulation_description">حدد كيفية التعامل مع فك تشفير الفيديو (NVDEC) خلال المشاهد التمهيدية والمقدمة.</string>
@@ -458,8 +453,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">الدقة (الإرساء/محمول)</string>
     <string name="renderer_vsync">VSync وضع</string>
-    <string name="shader_backend">واجهة برمجة التظليل</string>
-    <string name="shader_backend_description">حدد كيفية تجميع وترجمة برامج التظليل لوحدة معالجة الرسومات الخاصة بك.</string>
     <string name="renderer_scaling_filter">مرشح ملائم للنافذة</string>
     <string name="fsr_sharpness">حدة FSR</string>
     <string name="fsr_sharpness_description">يحدد مدى وضوح الصورة عند استخدام التباين الديناميكي لـ FSR</string>

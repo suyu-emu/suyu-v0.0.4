@@ -71,9 +71,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">Host-MMU-Emulation aktivieren</string>
     <string name="cpuopt_unsafe_host_mmu_description">Diese Optimierung beschleunigt Speicherzugriffe durch das Gastprogramm. Wenn aktiviert, erfolgen Speicherlese- und -schreibvorgänge des Gastes direkt im Speicher und nutzen die MMU des Hosts. Das Deaktivieren erzwingt die Verwendung der Software-MMU-Emulation für alle Speicherzugriffe.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC-Emulation</string>
     <string name="nvdec_emulation_description">Methode zur Videodekodierung</string>
@@ -383,8 +381,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">Auflösung (Handheld/Gedockt)</string>
     <string name="renderer_vsync">VSync-Modus</string>
-    <string name="shader_backend">Shader-Backend</string>
-    <string name="shader_backend_description">Methode zur Shader-Kompilierung</string>
     <string name="renderer_scaling_filter">Skalierungsfilter</string>
     <string name="fsr_sharpness">FSR-Schärfe</string>
     <string name="fsr_sharpness_description">Bestimmt die Schärfe bei FSR-Nutzung.</string>

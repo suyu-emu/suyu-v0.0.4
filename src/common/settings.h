@@ -78,7 +78,6 @@ SWITCHABLE(Region, true);
 SWITCHABLE(RendererBackend, true);
 SWITCHABLE(ScalingFilter, false);
 SWITCHABLE(SpirvOptimizeMode, true);
-SWITCHABLE(ShaderBackend, true);
 SWITCHABLE(TimeZone, true);
 SETTING(VSyncMode, true);
 SWITCHABLE(bool, false);
@@ -313,20 +312,12 @@ struct Values {
     // Renderer
     SwitchableSetting<RendererBackend, true> renderer_backend{linkage,
 #if defined(__sun__) || defined(__managarm__)
-                                                              RendererBackend::OpenGL,
+        RendererBackend::OpenGL_GLSL,
 #else
-                                                              RendererBackend::Vulkan,
+        RendererBackend::Vulkan,
 #endif
-                                                              "backend", Category::Renderer};
-    SwitchableSetting<ShaderBackend, true> shader_backend{linkage,
-#if defined(__sun__) || defined(__managarm__)
-                                                          ShaderBackend::Glsl,
-#else
-                                                          ShaderBackend::SpirV,
-#endif
-                                                          "shader_backend", Category::Renderer,  Specialization::RuntimeList};
-    SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
-                                         Specialization::RuntimeList};
+        "backend", Category::Renderer};
+    SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer, Specialization::RuntimeList};
 
     // Graphics Settings
     ResolutionScalingInfo resolution_info{};

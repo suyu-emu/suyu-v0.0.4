@@ -61,9 +61,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">Омогући емулацију MMU домаћина</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ова оптимизација убрзава приступ меморији од стране гостујућег програма. Укључивање изазива да се читања/уписа меморије госта обављају директно у меморији и користе MMU домаћина. Искључивање присиљава све приступе меморији да користе софтверску емулацију MMU.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">НВДЕЦ Емулација</string>
     <string name="nvdec_emulation_description">Изаберите како се видео декодирање (НВДЕЦ) обрађује током секс и увозних интросија.</string>
@@ -361,8 +359,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">Резолуција (ручно / прикључено)</string>
     <string name="renderer_vsync">Всинц мод</string>
-    <string name="shader_backend">Схадер Бацкенд</string>
-    <string name="shader_backend_description">Изаберите како се сјеначици саставе и преведете за ваш ГПУ.</string>
     <string name="renderer_scaling_filter">Филтер прилагођавања прозора</string>
     <string name="fsr_sharpness">ФСР оштрина</string>
     <string name="fsr_sharpness_description">Одређује колико ће се слика наоштрен трајати док користи \"ФСР\" динамички контраст</string>

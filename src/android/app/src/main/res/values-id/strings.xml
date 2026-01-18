@@ -81,9 +81,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">Aktifkan Emulasi MMU Host</string>
     <string name="cpuopt_unsafe_host_mmu_description">Optimasi ini mempercepat akses memori oleh program tamu. Mengaktifkannya menyebabkan pembacaan/penulisan memori tamu dilakukan langsung ke memori dan memanfaatkan MMU Host. Menonaktifkan ini memaksa semua akses memori menggunakan Emulasi MMU Perangkat Lunak.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulasi NVDEC</string>
     <string name="nvdec_emulation_description">Pilih cara decoding video (NVDEC) ditangani selama cutscene dan intro.</string>
@@ -390,8 +388,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">Resolusi (Handheld/Docked)</string>
     <string name="renderer_vsync">Mode Sinkronisasi Vertikal</string>
-    <string name="shader_backend">Backend Shader</string>
-    <string name="shader_backend_description">Pilih cara shader dikompilasi dan diterjemahkan untuk GPU Anda.</string>
     <string name="renderer_scaling_filter">Filter penyesuaian jendela</string>
     <string name="fsr_sharpness">Ketajaman FSR</string>
     <string name="fsr_sharpness_description">Menentukan seberapa tajam gambar akan terlihat saat menggunakan kontras dinamis FSR</string>

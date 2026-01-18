@@ -570,11 +570,9 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     if (has_broken_vulkan) {
         UISettings::values.has_broken_vulkan = true;
 
-        QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"),
-                             tr("Vulkan initialization failed during boot."));
-
+        QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"), tr("Vulkan initialization failed during boot."));
 #ifdef HAS_OPENGL
-        Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
+        Settings::values.renderer_backend = Settings::RendererBackend::OpenGL_GLSL;
 #else
         Settings::values.renderer_backend = Settings::RendererBackend::Null;
 #endif
@@ -3625,7 +3623,7 @@ void MainWindow::OnToggleGraphicsAPI() {
         api = Settings::RendererBackend::Vulkan;
     } else {
 #ifdef HAS_OPENGL
-        api = Settings::RendererBackend::OpenGL;
+        api = Settings::RendererBackend::OpenGL_GLSL;
 #else
         api = Settings::RendererBackend::Null;
 #endif
@@ -4270,13 +4268,7 @@ void MainWindow::UpdateAPIText() {
     const auto api = Settings::values.renderer_backend.GetValue();
     const auto renderer_status_text =
         ConfigurationShared::renderer_backend_texts_map.find(api)->second;
-    renderer_status_button->setText(
-        api == Settings::RendererBackend::OpenGL
-            ? tr("%1 %2").arg(renderer_status_text.toUpper(),
-                              ConfigurationShared::shader_backend_texts_map
-                                  .find(Settings::values.shader_backend.GetValue())
-                                  ->second)
-            : renderer_status_text.toUpper());
+    renderer_status_button->setText(renderer_status_text.toUpper());
 }
 
 void MainWindow::UpdateFilterText() {

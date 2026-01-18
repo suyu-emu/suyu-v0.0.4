@@ -63,9 +63,7 @@
 
     <string name="cpuopt_unsafe_host_mmu">Gazda MMU emuláció engedélyezése</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ez az optimalizáció gyorsítja a vendégprogram memória-hozzáférését. Engedélyezése esetén a vendég memóriaolvasási/írási műveletei közvetlenül a memóriában történnek, és kihasználják a gazda MMU-ját. Letiltás esetén minden memória-hozzáférés a szoftveres MMU emulációt használja.</string>
-    <!-- Shader Backend -->
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>
+
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC emuláció</string>
     <string name="nvdec_emulation_description">Videódekódolás kezelése</string>
@@ -358,8 +356,6 @@
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">Felbontás (Kézi/Dockolt)</string>
     <string name="renderer_vsync">VSync mód</string>
-    <string name="shader_backend">Shader backend</string>
-    <string name="shader_backend_description">Shaderek fordításának módja</string>
     <string name="renderer_scaling_filter">Ablakhoz alkalmazkodó szűrő</string>
     <string name="fsr_sharpness">FSR élesség</string>
     <string name="fsr_sharpness_description">Meghatározza, milyen éles lesz a kép az FSR dinamikus kontraszt használata közben.</string>
