@@ -47,9 +47,9 @@ struct ApplicationDownloadState {
     u64 total_size;
     u32 unk_x10;
     u8 state;
-    u8 unk_x19;
-    std::array<u8, 0x2> unk_x1a;
-    u64 unk_x20;
+    u8 unk_x15;
+    std::array<u8, 0x2> unk_x16;
+    u64 unk_x18;
 };
 static_assert(sizeof(ApplicationDownloadState) == 0x20,
               "ApplicationDownloadState has incorrect size.");

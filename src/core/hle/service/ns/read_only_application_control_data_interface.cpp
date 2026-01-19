@@ -6,20 +6,24 @@
 
 #include <algorithm>
 #include <vector>
+#include <optional>
 #include <stb_image.h>
 #include <stb_image_resize.h>
 #include <stb_image_write.h>
+#include <string>
 
 #include "common/settings.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/vfs/vfs.h"
+#include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ns/language.h"
 #include "core/hle/service/ns/ns_types.h"
 #include "core/hle/service/ns/ns_results.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/hle/service/set/settings_server.h"
+#include "core/hle/service/kernel_helpers.h"
 
 namespace Service::NS {
 
@@ -66,6 +70,70 @@ void SanitizeJPEGImageSize(std::vector<u8>& image) {
 
 } // namespace
 
+
+// IAsyncValue implementation for ListApplicationTitle
+// https://switchbrew.org/wiki/NS_services#ListApplicationTitle
+class IAsyncValueForListApplicationTitle final : public ServiceFramework<IAsyncValueForListApplicationTitle> {
+public:
+    explicit IAsyncValueForListApplicationTitle(Core::System& system_, s32 offset, s32 size)
+        : ServiceFramework{system_, "IAsyncValue"}, service_context{system_, "IAsyncValue"},
+          data_offset{offset}, data_size{size} {
+        static const FunctionInfo functions[] = {
+            {0, &IAsyncValueForListApplicationTitle::GetSize, "GetSize"},
+            {1, &IAsyncValueForListApplicationTitle::Get, "Get"},
+            {2, &IAsyncValueForListApplicationTitle::Cancel, "Cancel"},
+            {3, &IAsyncValueForListApplicationTitle::GetErrorContext, "GetErrorContext"},
+        };
+        RegisterHandlers(functions);
+
+        completion_event = service_context.CreateEvent("IAsyncValue:Completion");
+        completion_event->GetReadableEvent().Signal();
+    }
+
+    ~IAsyncValueForListApplicationTitle() override {
+        service_context.CloseEvent(completion_event);
+    }
+
+    Kernel::KReadableEvent& ReadableEvent() const {
+        return completion_event->GetReadableEvent();
+    }
+
+private:
+    void GetSize(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NS, "called");
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(ResultSuccess);
+        rb.Push<s64>(data_size);
+    }
+
+    void Get(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NS, "called");
+        std::vector<u8> buffer(sizeof(s32));
+        std::memcpy(buffer.data(), &data_offset, sizeof(s32));
+        ctx.WriteBuffer(buffer);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void Cancel(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NS, "called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void GetErrorContext(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NS, "called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    KernelHelpers::ServiceContext service_context;
+    Kernel::KEvent* completion_event{};
+    s32 data_offset;
+    s32 data_size;
+};
+
 IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterface(
     Core::System& system_)
     : ServiceFramework{system_, "IReadOnlyApplicationControlDataInterface"} {
@@ -76,8 +144,9 @@ IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterfa
         {2, D<&IReadOnlyApplicationControlDataInterface::ConvertApplicationLanguageToLanguageCode>, "ConvertApplicationLanguageToLanguageCode"},
         {3, nullptr, "ConvertLanguageCodeToApplicationLanguage"},
         {4, nullptr, "SelectApplicationDesiredLanguage"},
-        {5, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlData2>, "GetApplicationControlDataWithoutIcon"},
-        {19, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlData3>, "GetApplicationControlDataWithoutIcon3"},
+        {5, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlData2>, "GetApplicationControlData"},
+        {13, &IReadOnlyApplicationControlDataInterface::ListApplicationTitle, "ListApplicationTitle"},
+        {19, D<&IReadOnlyApplicationControlDataInterface::GetApplicationControlData3>, "GetApplicationControlData"},
     };
     // clang-format on
 
@@ -238,6 +307,60 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData2(
 
     *out_total_size = (static_cast<u64>(total_available) << 32) | static_cast<u64>(flag1);
     R_SUCCEED();
+}
+
+
+void IReadOnlyApplicationControlDataInterface::ListApplicationTitle(HLERequestContext& ctx) {
+    /*
+    IPC::RequestParser rp{ctx};
+    auto control_source = rp.PopRaw<u8>();
+    rp.Skip(7, false);
+    auto transfer_memory_size = rp.Pop<u64>();
+    */
+
+    const auto app_ids_buffer = ctx.ReadBuffer();
+    const size_t app_count = app_ids_buffer.size() / sizeof(u64);
+
+    std::vector<u64> application_ids(app_count);
+    if (app_count > 0) {
+        std::memcpy(application_ids.data(), app_ids_buffer.data(), app_count * sizeof(u64));
+    }
+
+    auto t_mem_obj = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(ctx.GetCopyHandle(0));
+    auto* t_mem = t_mem_obj.GetPointerUnsafe();
+
+    constexpr size_t title_entry_size = sizeof(FileSys::LanguageEntry);
+    const size_t total_data_size = app_count * title_entry_size;
+
+    constexpr s32 data_offset = 0;
+
+    if (t_mem != nullptr && app_count > 0) {
+        auto& memory = system.ApplicationMemory();
+        const auto t_mem_address = t_mem->GetSourceAddress();
+
+        for (size_t i = 0; i < app_count; ++i) {
+            const u64 app_id = application_ids[i];
+            const FileSys::PatchManager pm{app_id, system.GetFileSystemController(),
+                                           system.GetContentProvider()};
+            const auto control = pm.GetControlMetadata();
+
+            FileSys::LanguageEntry entry{};
+            if (control.first != nullptr) {
+                entry = control.first->GetLanguageEntry();
+            }
+
+            const size_t offset = i * title_entry_size;
+            memory.WriteBlock(t_mem_address + offset, &entry, title_entry_size);
+        }
+    }
+
+    auto async_value = std::make_shared<IAsyncValueForListApplicationTitle>(
+        system, data_offset, static_cast<s32>(total_data_size));
+
+    IPC::ResponseBuilder rb{ctx, 2, 1, 1};
+    rb.Push(ResultSuccess);
+    rb.PushCopyObjects(async_value->ReadableEvent());
+    rb.PushIpcInterface(std::move(async_value));
 }
 
 Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData3(

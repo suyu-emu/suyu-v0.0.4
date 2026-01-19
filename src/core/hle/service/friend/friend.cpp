@@ -53,6 +53,7 @@ public:
             {20102, nullptr, "GetFriendDetailedInfo"},
             {20103, nullptr, "SyncFriendList"},
             {20104, &IFriendService::RequestSyncFriendList, "RequestSyncFriendList"},
+            {20105, &IFriendService::GetFriendListForViewer, "GetFriendListForViewer"},
             {20110, nullptr, "LoadFriendSetting"},
             {20200, &IFriendService::GetReceivedFriendRequestCount, "GetReceivedFriendRequestCount"},
             {20201, nullptr, "GetFriendRequestList"},
@@ -65,11 +66,13 @@ public:
             {20401, nullptr, "SyncBlockedUserList"},
             {20500, nullptr, "GetProfileExtraList"},
             {20501, nullptr, "GetRelationship"},
-            {20600, &IFriendService::GetUserPresenceView, "GetUserPresenceView"},
+            {20600, &IFriendService::GetUserPresenceView, "GetUserPresenceViewV1"},
+            {20601, &IFriendService::GetUserPresenceView, "GetUserPresenceViewV2"},
             {20700, nullptr, "GetPlayHistoryList"},
             {20701, &IFriendService::GetPlayHistoryStatistics, "GetPlayHistoryStatistics"},
-            {20800, &IFriendService::LoadUserSetting, "LoadUserSetting"},
+            {20800, &IFriendService::LoadUserSetting, "LoadUserSettingV1"},
             {20801, nullptr, "SyncUserSetting"},
+            {20802, &IFriendService::LoadUserSetting, "LoadUserSettingV2"},
             {20900, &IFriendService::RequestListSummaryOverlayNotification, "RequestListSummaryOverlayNotification"},
             {21000, nullptr, "GetExternalApplicationCatalog"},
             {22000, nullptr, "GetReceivedFriendInvitationList"},
@@ -268,6 +271,14 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
+    }
+
+    void GetFriendListForViewer(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Friend, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u32>(0);
     }
 
     void GetReceivedFriendRequestCount(HLERequestContext& ctx) {

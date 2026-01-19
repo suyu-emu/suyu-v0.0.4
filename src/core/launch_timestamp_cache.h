@@ -9,5 +9,6 @@ namespace Core::LaunchTimestampCache {
 
 void SaveLaunchTimestamp(u64 title_id);
 s64 GetLaunchTimestamp(u64 title_id);
+u64 GetLaunchCount(u64 title_id);
 
 } // namespace Core::LaunchTimestampCache

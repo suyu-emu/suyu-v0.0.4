@@ -32,7 +32,7 @@ private:
     Result GetGlobalAutoDownloadSetting(Out<bool> out_is_enabled, Common::UUID user_id);
     Result SetGlobalAutoDownloadSetting(bool is_enabled, Common::UUID user_id);
 
-    Result GetAutonomyTaskStatus(Out<u8> out_state, Common::UUID user_id, u64 application_id);
+    Result GetAutonomyTaskStatus(Out<u8> out_status, Common::UUID user_id);
 
     // Internal in-memory state to back the above APIs
     struct AppKey {

@@ -71,6 +71,8 @@ public:
     Result RequestDownloadApplicationControlDataInBackground(u64 control_source,
                                                              u64 application_id);
 
+    void ListApplicationTitle(HLERequestContext& ctx);
+
 private:
     KernelHelpers::ServiceContext service_context;
     Event record_update_system_event;

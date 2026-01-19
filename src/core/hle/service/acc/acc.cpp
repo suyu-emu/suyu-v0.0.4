@@ -138,12 +138,13 @@ private:
         R_SUCCEED();
     }
 
-    Result GetNetworkServiceLicenseCacheEx() {
+    Result GetNetworkServiceLicenseCacheEx(Out<u32> out_license, Out<s64> out_expiration) {
         LOG_DEBUG(Service_ACC, "(STUBBED) called.");
 
-        // TODO (jarrodnorwell)
+        *out_license = 0;
+        *out_expiration = 0;
 
-        R_RETURN(ResultUnknown);
+        R_SUCCEED();
     }
 
     Common::UUID account_id;

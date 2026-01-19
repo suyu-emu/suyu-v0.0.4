@@ -22,10 +22,12 @@ namespace Core::LaunchTimestampCache {
 namespace {
 
 using CacheMap = std::unordered_map<u64, s64>;
+using CountMap = std::unordered_map<u64, u64>;
 
-std::mutex mutex;
-CacheMap cache;
-bool loaded = false;
+std::mutex g_mutex;
+CacheMap g_cache;
+CountMap g_counts;
+bool g_loaded = false;
 
 std::filesystem::path GetCachePath() {
     return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "launched.json";
@@ -54,11 +56,11 @@ bool WriteStringToFile(const std::filesystem::path& path, const std::string& dat
 }
 
 void Load() {
-    if (loaded) {
+    if (g_loaded) {
         return;
     }
 
-    loaded = true;
+    g_loaded = true;
 
     const auto path = GetCachePath();
     if (!std::filesystem::exists(path)) {
@@ -86,19 +88,31 @@ void Load() {
             } catch (...) {
                 continue;
             }
-            if (value.is_number_integer()) {
-                cache[key] = value.get<s64>();
+            if (value.is_object()) {
+                if (value.contains("timestamp") && value["timestamp"].is_number_integer()) {
+                    g_cache[key] = value["timestamp"].get<s64>();
+                }
+                if (value.contains("launch_count") && value["launch_count"].is_number_unsigned()) {
+                    g_counts[key] = value["launch_count"].get<u64>();
+                }
+            } else if (value.is_number_integer()) {
+                // Legacy format: raw timestamp only
+                g_cache[key] = value.get<s64>();
             }
         }
     } catch (const std::exception& e) {
-        LOG_WARNING(Core, "Failed to parse launch timestamp cache");
+        LOG_WARNING(Core, "Failed to parse launch timestamp cache: {}", e.what());
     }
 }
 
 void Save() {
     nlohmann::json json = nlohmann::json::object();
-    for (const auto& [key, value] : cache) {
-        json[fmt::format("{:016X}", key)] = value;
+    for (const auto& [key, value] : g_cache) {
+        nlohmann::json entry = nlohmann::json::object();
+        entry["timestamp"] = value;
+        const auto count_it = g_counts.find(key);
+        entry["launch_count"] = count_it != g_counts.end() ? count_it->second : 0;
+        json[fmt::format("{:016X}", key)] = entry;
     }
 
     const auto path = GetCachePath();
@@ -115,21 +129,32 @@ s64 NowSeconds() {
 } // namespace
 
 void SaveLaunchTimestamp(u64 title_id) {
-    std::scoped_lock lk{mutex};
+    std::scoped_lock lk{g_mutex};
     Load();
-    cache[title_id] = NowSeconds();
+    g_cache[title_id] = NowSeconds();
+    g_counts[title_id] = g_counts[title_id] + 1;
     Save();
 }
 
 s64 GetLaunchTimestamp(u64 title_id) {
-    std::scoped_lock lk{mutex};
+    std::scoped_lock lk{g_mutex};
     Load();
-    const auto it = cache.find(title_id);
-    if (it != cache.end()) {
+    const auto it = g_cache.find(title_id);
+    if (it != g_cache.end()) {
         return it->second;
     }
     // we need a timestamp, i decided on 01/01/2026 00:00
     return 1767225600;
+}
+
+u64 GetLaunchCount(u64 title_id) {
+    std::scoped_lock lk{g_mutex};
+    Load();
+    const auto it = g_counts.find(title_id);
+    if (it != g_counts.end()) {
+        return it->second;
+    }
+    return 0;
 }
 
 } // namespace Core::LaunchTimestampCache

@@ -136,7 +136,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {404, nullptr, "InvalidateApplicationControlCache"},
         {405, nullptr, "ListApplicationControlCacheEntryInfo"},
         {406, nullptr, "GetApplicationControlProperty"},
-        {407, nullptr, "ListApplicationTitle"},
+        {407, &IApplicationManagerInterface::ListApplicationTitle, "ListApplicationTitle"},
         {408, nullptr, "ListApplicationIcon"},
         {411, nullptr, "Unknown411"}, //19.0.0+
         {412, nullptr, "Unknown412"}, //19.0.0+
@@ -830,6 +830,11 @@ Result IApplicationManagerInterface::Unknown4023(Out<u64> out_result) {
 Result IApplicationManagerInterface::Unknown4053() {
     LOG_WARNING(Service_NS, "(STUBBED) called.");
     R_SUCCEED();
+}
+
+void IApplicationManagerInterface::ListApplicationTitle(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_NS, "called");
+    IReadOnlyApplicationControlDataInterface(system).ListApplicationTitle(ctx);
 }
 
 } // namespace Service::NS

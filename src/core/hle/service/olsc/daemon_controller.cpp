@@ -92,13 +92,10 @@ Result IDaemonController::SetGlobalAutoDownloadSetting(bool is_enabled, Common::
     R_SUCCEED();
 }
 
-Result IDaemonController::GetAutonomyTaskStatus(Out<u8> out_state, Common::UUID user_id,
-                                                u64 application_id) {
-    LOG_INFO(Service_OLSC, "called, user_id={} application_id={:016X}", user_id.FormattedString(),
-             application_id);
-    AppKey key{user_id, application_id};
-    const auto it = autonomy_task_status_.find(key);
-    *out_state = (it != autonomy_task_status_.end()) ? it->second : 0; // default idle
+Result IDaemonController::GetAutonomyTaskStatus(Out<u8> out_status, Common::UUID user_id) {
+    LOG_INFO(Service_OLSC, "called, user_id={}", user_id.FormattedString());
+
+    *out_status = 0;
     R_SUCCEED();
 }
 

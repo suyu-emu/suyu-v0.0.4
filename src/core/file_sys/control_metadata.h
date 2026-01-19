@@ -131,6 +131,7 @@ public:
     u64 GetDefaultNormalSaveSize() const;
     u64 GetDefaultJournalSaveSize() const;
     u32 GetSupportedLanguages() const;
+    std::array<std::string, 16> GetApplicationNames() const;
     std::vector<u8> GetRawBytes() const;
     bool GetUserAccountSwitchLock() const;
     u64 GetDeviceSaveDataSize() const;
