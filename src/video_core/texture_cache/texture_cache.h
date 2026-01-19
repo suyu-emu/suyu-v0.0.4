@@ -288,21 +288,41 @@ void TextureCache<P>::CheckFeedbackLoop(std::span<const ImageViewInOut> views) {
             if (!view.id) {
                 continue;
             }
-            auto& image_view = slot_image_views[view.id];
 
-            // Check color targets
+            bool is_render_target = false;
+
             for (const auto& ct_view_id : render_targets.color_buffer_ids) {
-                if (ct_view_id) {
-                    auto& ct_view = slot_image_views[ct_view_id];
-                    if (image_view.image_id == ct_view.image_id) {
-                        return true;
-                    }
+                if (ct_view_id && ct_view_id == view.id) {
+                    is_render_target = true;
+                    break;
                 }
             }
 
-            // Check zeta target
+            if (!is_render_target && render_targets.depth_buffer_id == view.id) {
+                is_render_target = true;
+            }
+
+            if (is_render_target) {
+                continue;
+            }
+
+            auto& image_view = slot_image_views[view.id];
+
+            for (const auto& ct_view_id : render_targets.color_buffer_ids) {
+                if (!ct_view_id) {
+                    continue;
+                }
+
+                auto& ct_view = slot_image_views[ct_view_id];
+
+                if (image_view.image_id == ct_view.image_id) {
+                    return true;
+                }
+            }
+
             if (render_targets.depth_buffer_id) {
                 auto& zt_view = slot_image_views[render_targets.depth_buffer_id];
+
                 if (image_view.image_id == zt_view.image_id) {
                     return true;
                 }
