@@ -14,6 +14,7 @@ add_executable(tests
     common/range_map.cpp
     common/ring_buffer.cpp
     common/scratch_buffer.cpp
+    common/undefined_fix.cpp
     common/unique_function.cpp
     core/core_timing.cpp
     core/internal_network/network.cpp

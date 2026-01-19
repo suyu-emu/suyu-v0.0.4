@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -13,6 +13,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <span>
 
 #include "common/common_types.h"
 #include "common/range_mutex.h"
@@ -123,7 +124,7 @@ public:
     void UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta);
 
     // New batch API to update multiple ranges with a single lock acquisition.
-    void UpdatePagesCachedBatch(const std::vector<std::pair<DAddr, size_t>>& ranges, s32 delta);
+    void UpdatePagesCachedBatch(std::span<const std::pair<DAddr, size_t>> ranges, s32 delta);
 
 private:
     // Internal helper that performs the update assuming the caller already holds the necessary lock.

@@ -597,12 +597,12 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
 } 
 
 template <typename Traits>
-void DeviceMemoryManager<Traits>::UpdatePagesCachedBatch(const std::vector<std::pair<DAddr, size_t>>& ranges, s32 delta) {
+void DeviceMemoryManager<Traits>::UpdatePagesCachedBatch(std::span<const std::pair<DAddr, size_t>> ranges, s32 delta) {
     if (ranges.empty()) {
         return;
     }
     // Make a local copy and sort by address
-    std::vector<std::pair<DAddr, size_t>> tmp = ranges;
+    std::vector<std::pair<DAddr, size_t>> tmp(ranges.size(), {0, 0});
     std::sort(tmp.begin(), tmp.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 
     // Coalesce adjacent/overlapping ranges
