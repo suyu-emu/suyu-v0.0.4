@@ -101,6 +101,7 @@ class InputSubsystem;
 namespace Service::AM {
 struct FrontendAppletParameters;
 enum class AppletId : u32;
+// this causes errors on debian -> enum class AppletProgramId : u64;
 } // namespace Service::AM
 
 namespace Service::AM::Frontend {
@@ -399,12 +400,7 @@ private slots:
     void ResetWindowSize720();
     void ResetWindowSize900();
     void ResetWindowSize1080();
-    void OnAlbum();
-    void OnCabinet(Service::NFP::CabinetMode mode);
-    void OnMiiEdit();
-    void OnOpenControllerMenu();
-    void OnHomeMenu();
-    void OnInitialSetup();
+    void LaunchFirmwareApplet(u64 program_id, std::optional<Service::NFP::CabinetMode> mode);
     void OnCreateHomeMenuDesktopShortcut();
     void OnCreateHomeMenuApplicationMenuShortcut();
     void OnCaptureScreenshot();
@@ -428,7 +424,6 @@ private:
     bool SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id,
                                u64* selected_title_id, u8* selected_content_record_type);
     ContentManager::InstallResult InstallNCA(const QString& filename);
-    void MigrateConfigFiles();
     void UpdateWindowTitle(std::string_view title_name = {}, std::string_view title_version = {},
                            std::string_view gpu_vendor = {});
     void UpdateDockedButton();

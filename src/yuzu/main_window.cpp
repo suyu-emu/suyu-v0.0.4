@@ -665,13 +665,13 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     }
 
     if (should_launch_setup) {
-        OnInitialSetup();
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Starter), std::nullopt);
     } else {
         if (!game_path.isEmpty()) {
             BootGame(game_path, ApplicationAppletParameters());
         } else {
             if (should_launch_qlaunch) {
-                OnHomeMenu();
+                LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
             }
         }
     }
@@ -1618,19 +1618,35 @@ void MainWindow::ConnectMenuEvents() {
     connect(multiplayer_state, &MultiplayerState::SaveConfig, this, &MainWindow::OnSaveConfig);
 
     // Tools
-    connect_menu(ui->action_Load_Album, &MainWindow::OnAlbum);
-    connect_menu(ui->action_Load_Cabinet_Nickname_Owner,
-                 [this]() { OnCabinet(Service::NFP::CabinetMode::StartNicknameAndOwnerSettings); });
-    connect_menu(ui->action_Load_Cabinet_Eraser,
-                 [this]() { OnCabinet(Service::NFP::CabinetMode::StartGameDataEraser); });
-    connect_menu(ui->action_Load_Cabinet_Restorer,
-                 [this]() { OnCabinet(Service::NFP::CabinetMode::StartRestorer); });
-    connect_menu(ui->action_Load_Cabinet_Formatter,
-                 [this]() { OnCabinet(Service::NFP::CabinetMode::StartFormatter); });
-    connect_menu(ui->action_Load_Mii_Edit, &MainWindow::OnMiiEdit);
-    connect_menu(ui->action_Open_Controller_Menu, &MainWindow::OnOpenControllerMenu);
-    connect_menu(ui->action_Load_Home_Menu, &MainWindow::OnHomeMenu);
-    connect_menu(ui->action_Open_Setup, &MainWindow::OnInitialSetup);
+    connect_menu(ui->action_Launch_PhotoViewer, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::PhotoViewer), std::nullopt);
+    });
+    connect_menu(ui->action_Launch_MiiEdit, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::MiiEdit), std::nullopt);
+    });
+    connect_menu(ui->action_Launch_Controller, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Controller), std::nullopt);
+    });
+    connect_menu(ui->action_Launch_QLaunch, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
+    });
+    connect_menu(ui->action_Launch_Setup, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Starter), std::nullopt);
+    });
+    // Tools (cabinet)
+    connect_menu(ui->action_Launch_Cabinet_Nickname_Owner, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartNicknameAndOwnerSettings});
+    });
+    connect_menu(ui->action_Launch_Cabinet_Eraser, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartGameDataEraser});
+    });
+    connect_menu(ui->action_Launch_Cabinet_Restorer, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartRestorer});
+    });
+    connect_menu(ui->action_Launch_Cabinet_Formatter, [this]{
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartFormatter});
+    });
+
     connect_menu(ui->action_Desktop, &MainWindow::OnCreateHomeMenuDesktopShortcut);
     connect_menu(ui->action_Application_Menu,
                  &MainWindow::OnCreateHomeMenuApplicationMenuShortcut);
@@ -1671,14 +1687,16 @@ void MainWindow::UpdateMenuState() {
         ui->action_Pause,
     };
 
-    const std::array applet_actions{ui->action_Load_Album,
-                                    ui->action_Load_Cabinet_Nickname_Owner,
-                                    ui->action_Load_Cabinet_Eraser,
-                                    ui->action_Load_Cabinet_Restorer,
-                                    ui->action_Load_Cabinet_Formatter,
-                                    ui->action_Load_Mii_Edit,
-                                    ui->action_Load_Home_Menu,
-                                    ui->action_Open_Controller_Menu};
+    const std::array applet_actions{
+        ui->action_Launch_PhotoViewer,
+        ui->action_Launch_Cabinet_Nickname_Owner,
+        ui->action_Launch_Cabinet_Eraser,
+        ui->action_Launch_Cabinet_Restorer,
+        ui->action_Launch_Cabinet_Formatter,
+        ui->action_Launch_MiiEdit,
+        ui->action_Launch_QLaunch,
+        ui->action_Launch_Controller
+    };
 
     for (QAction* action : running_actions) {
         action->setEnabled(emulation_running);
@@ -3903,157 +3921,62 @@ void MainWindow::OnGameListRefresh()
     SetFirmwareVersion();
 }
 
-void MainWindow::OnAlbum() {
-    constexpr u64 AlbumId = static_cast<u64>(Service::AM::AppletProgramId::PhotoViewer);
-    auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
-    if (!bis_system) {
-        QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install firmware to use the Album applet."));
-        return;
-    }
 
-    auto album_nca = bis_system->GetEntry(AlbumId, FileSys::ContentRecordType::Program);
-    if (!album_nca) {
-        QMessageBox::warning(this, tr("Album Applet"),
-                             tr("Album applet is not available. Please reinstall firmware."));
-        return;
-    }
-
-    QtCommon::system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::PhotoViewer);
-
-    const auto filename = QString::fromStdString(album_nca->GetFullPath());
-    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, LibraryAppletParameters(AlbumId, Service::AM::AppletId::PhotoViewer));
-}
-
-void MainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
-    constexpr u64 CabinetId = static_cast<u64>(Service::AM::AppletProgramId::Cabinet);
-    auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
-    if (!bis_system) {
-        QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install firmware to use the Cabinet applet."));
-        return;
-    }
-
-    auto cabinet_nca = bis_system->GetEntry(CabinetId, FileSys::ContentRecordType::Program);
-    if (!cabinet_nca) {
-        QMessageBox::warning(this, tr("Cabinet Applet"),
-                             tr("Cabinet applet is not available. Please reinstall firmware."));
-        return;
-    }
-
-    QtCommon::system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::Cabinet);
-    QtCommon::system->GetFrontendAppletHolder().SetCabinetMode(mode);
-
-    const auto filename = QString::fromStdString(cabinet_nca->GetFullPath());
-    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, LibraryAppletParameters(CabinetId, Service::AM::AppletId::Cabinet));
-}
-
-void MainWindow::OnMiiEdit() {
-    constexpr u64 MiiEditId = static_cast<u64>(Service::AM::AppletProgramId::MiiEdit);
-    auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
-    if (!bis_system) {
-        QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install firmware to use the Mii editor."));
-        return;
-    }
-
-    auto mii_applet_nca = bis_system->GetEntry(MiiEditId, FileSys::ContentRecordType::Program);
-    if (!mii_applet_nca) {
-        QMessageBox::warning(this, tr("Mii Edit Applet"),
-                             tr("Mii editor is not available. Please reinstall firmware."));
-        return;
-    }
-
-    QtCommon::system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::MiiEdit);
-
-    const auto filename = QString::fromStdString((mii_applet_nca->GetFullPath()));
-    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, LibraryAppletParameters(MiiEditId, Service::AM::AppletId::MiiEdit));
-}
-
-void MainWindow::OnOpenControllerMenu() {
-    constexpr u64 ControllerAppletId = static_cast<u64>(Service::AM::AppletProgramId::Controller);
-    auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
-    if (!bis_system) {
-        QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install firmware to use the Controller Menu."));
-        return;
-    }
-
-    auto controller_applet_nca =
-        bis_system->GetEntry(ControllerAppletId, FileSys::ContentRecordType::Program);
-    if (!controller_applet_nca) {
-        QMessageBox::warning(this, tr("Controller Applet"),
-                             tr("Controller Menu is not available. Please reinstall firmware."));
-        return;
-    }
-
-    QtCommon::system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::Controller);
-
-    const auto filename = QString::fromStdString((controller_applet_nca->GetFullPath()));
-    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename,
-             LibraryAppletParameters(ControllerAppletId, Service::AM::AppletId::Controller));
-}
-
-void MainWindow::OnHomeMenu() {
+void MainWindow::LaunchFirmwareApplet(u64 raw_program_id, std::optional<Service::NFP::CabinetMode> cabinet_mode) {
+    auto const program_id = Service::AM::AppletProgramId(raw_program_id);
     auto result = FirmwareManager::VerifyFirmware(*QtCommon::system.get());
-
     using namespace QtCommon::StringLookup;
-
     switch (result) {
     case FirmwareManager::ErrorFirmwareMissing:
-        QMessageBox::warning(this, tr("No firmware available"),
-                             Lookup(FwCheckErrorFirmwareMissing));
+        QMessageBox::warning(this, tr("No firmware available"), Lookup(FwCheckErrorFirmwareMissing));
         return;
     case FirmwareManager::ErrorFirmwareCorrupted:
-        QMessageBox::warning(this, tr("Firmware Corrupted"),
-                             Lookup(FwCheckErrorFirmwareCorrupted));
+        QMessageBox::warning(this, tr("Firmware Corrupted"), Lookup(FwCheckErrorFirmwareCorrupted));
         return;
     default:
         break;
     }
-
-    constexpr u64 QLaunchId = static_cast<u64>(Service::AM::AppletProgramId::QLaunch);
     auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
-
-    auto qlaunch_applet_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
-    if (!qlaunch_applet_nca) {
-        QMessageBox::warning(this, tr("Home Menu Applet"),
-                             tr("Home Menu is not available. Please reinstall firmware."));
-        return;
+    if (auto applet_nca = bis_system->GetEntry(u64(program_id), FileSys::ContentRecordType::Program); applet_nca) {
+        if (auto const applet_id = [program_id] {
+            using namespace Service::AM;
+            switch (program_id) {
+            case AppletProgramId::OverlayDisplay: return AppletId::OverlayDisplay;
+            case AppletProgramId::QLaunch: return AppletId::QLaunch;
+            case AppletProgramId::Starter: return AppletId::Starter;
+            case AppletProgramId::Auth: return AppletId::Auth;
+            case AppletProgramId::Cabinet: return AppletId::Cabinet;
+            case AppletProgramId::Controller: return AppletId::Controller;
+            case AppletProgramId::DataErase: return AppletId::DataErase;
+            case AppletProgramId::Error: return AppletId::Error;
+            case AppletProgramId::NetConnect: return AppletId::NetConnect;
+            case AppletProgramId::ProfileSelect: return AppletId::ProfileSelect;
+            case AppletProgramId::SoftwareKeyboard: return AppletId::SoftwareKeyboard;
+            case AppletProgramId::MiiEdit: return AppletId::MiiEdit;
+            case AppletProgramId::Web: return AppletId::Web;
+            case AppletProgramId::Shop: return AppletId::Shop;
+            case AppletProgramId::PhotoViewer: return AppletId::PhotoViewer;
+            case AppletProgramId::Settings: return AppletId::Settings;
+            case AppletProgramId::OfflineWeb: return AppletId::OfflineWeb;
+            case AppletProgramId::LoginShare: return AppletId::LoginShare;
+            case AppletProgramId::WebAuth: return AppletId::WebAuth;
+            case AppletProgramId::MyPage: return AppletId::MyPage;
+            default: return AppletId::None;
+        }
+        }(); applet_id != Service::AM::AppletId::None) {
+            QtCommon::system->GetFrontendAppletHolder().SetCurrentAppletId(applet_id);
+            if (cabinet_mode)
+                QtCommon::system->GetFrontendAppletHolder().SetCabinetMode(*cabinet_mode);
+            // ?
+            auto const filename = QString::fromStdString((applet_nca->GetFullPath()));
+            UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
+            BootGame(filename, LibraryAppletParameters(u64(program_id), applet_id));
+        } else {
+            QMessageBox::warning(this, tr("Unknown applet"), tr("Applet doesn't map to a known value."));
+        }
+    } else {
+        QMessageBox::warning(this, tr("Record not found"), tr("Applet not found. Please reinstall firmware."));
     }
-
-    QtCommon::system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::QLaunch);
-
-    const auto filename = QString::fromStdString((qlaunch_applet_nca->GetFullPath()));
-    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, LibraryAppletParameters(QLaunchId, Service::AM::AppletId::QLaunch));
-}
-
-void MainWindow::OnInitialSetup() {
-    constexpr u64 Starter = static_cast<u64>(Service::AM::AppletProgramId::Starter);
-    auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
-    if (!bis_system) {
-        QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install firmware to use Starter."));
-        return;
-    }
-
-    auto qlaunch_nca = bis_system->GetEntry(Starter, FileSys::ContentRecordType::Program);
-    if (!qlaunch_nca) {
-        QMessageBox::warning(this, tr("Starter Applet"),
-                             tr("Starter is not available. Please reinstall firmware."));
-        return;
-    }
-
-    QtCommon::system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::Starter);
-
-    const auto filename = QString::fromStdString((qlaunch_nca->GetFullPath()));
-    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, LibraryAppletParameters(Starter, Service::AM::AppletId::Starter));
 }
 
 void MainWindow::OnCreateHomeMenuDesktopShortcut() {

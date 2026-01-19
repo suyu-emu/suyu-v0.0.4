@@ -160,20 +160,20 @@
      <property name="title">
       <string>Am&amp;iibo</string>
      </property>
-     <addaction name="action_Load_Cabinet_Nickname_Owner"/>
-     <addaction name="action_Load_Cabinet_Eraser"/>
-     <addaction name="action_Load_Cabinet_Restorer"/>
-     <addaction name="action_Load_Cabinet_Formatter"/>
+     <addaction name="action_Launch_Cabinet_Nickname_Owner"/>
+     <addaction name="action_Launch_Cabinet_Eraser"/>
+     <addaction name="action_Launch_Cabinet_Restorer"/>
+     <addaction name="action_Launch_Cabinet_Formatter"/>
     </widget>
     <widget class="QMenu" name="menu_Applets">
      <property name="title">
-      <string>&amp;Applets</string>
+      <string>Launch &amp;Applet</string>
      </property>
-     <addaction name="action_Load_Home_Menu"/>
-     <addaction name="action_Load_Album"/>
-     <addaction name="action_Load_Mii_Edit"/>
-     <addaction name="action_Open_Controller_Menu"/>
-     <addaction name="action_Open_Setup"/>
+     <addaction name="action_Launch_QLaunch"/>
+     <addaction name="action_Launch_MiiEdit"/>
+     <addaction name="action_Launch_Controller"/>
+     <addaction name="action_Launch_Setup"/>
+     <addaction name="action_Launch_PhotoViewer"/>
     </widget>
     <widget class="QMenu" name="menuTAS">
      <property name="title">
@@ -420,34 +420,34 @@
     <string>&amp;Capture Screenshot</string>
    </property>
   </action>
-  <action name="action_Load_Album">
+  <action name="action_Launch_PhotoViewer">
    <property name="text">
-    <string>Open &amp;Album</string>
+    <string>&amp;Album</string>
    </property>
   </action>
-  <action name="action_Load_Cabinet_Nickname_Owner">
+  <action name="action_Launch_Cabinet_Nickname_Owner">
    <property name="text">
     <string>&amp;Set Nickname and Owner</string>
    </property>
   </action>
-  <action name="action_Load_Cabinet_Eraser">
+  <action name="action_Launch_Cabinet_Eraser">
    <property name="text">
     <string>&amp;Delete Game Data</string>
    </property>
   </action>
-  <action name="action_Load_Cabinet_Restorer">
+  <action name="action_Launch_Cabinet_Restorer">
    <property name="text">
     <string>&amp;Restore Amiibo</string>
    </property>
   </action>
-  <action name="action_Load_Cabinet_Formatter">
+  <action name="action_Launch_Cabinet_Formatter">
    <property name="text">
     <string>&amp;Format Amiibo</string>
    </property>
   </action>
-  <action name="action_Load_Mii_Edit">
+  <action name="action_Launch_MiiEdit">
    <property name="text">
-    <string>Open &amp;Mii Editor</string>
+    <string>&amp;Mii Editor</string>
    </property>
   </action>
   <action name="action_Configure_Tas">
@@ -493,7 +493,7 @@
     <string>R&amp;ecord</string>
    </property>
   </action>
-  <action name="action_Open_Controller_Menu">
+  <action name="action_Launch_Controller">
    <property name="text">
     <string>Open &amp;Controller Menu</string>
    </property>
@@ -503,14 +503,14 @@
     <string>Install Decryption &amp;Keys</string>
    </property>
   </action>
-  <action name="action_Load_Home_Menu">
+  <action name="action_Launch_QLaunch">
    <property name="text">
-    <string>Open &amp;Home Menu</string>
+    <string>&amp;Home Menu</string>
    </property>
   </action>
-  <action name="action_Open_Setup">
+  <action name="action_Launch_Setup">
    <property name="text">
-    <string>Open &amp;Setup</string>
+    <string>&amp;Setup</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
