@@ -1,13 +1,13 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # specify full path if dupes may exist
 EXCLUDE_FILES="CPM.cmake CPMUtil.cmake GetSCMRev.cmake renderdoc_app.h tools/cpm tools/shellcheck.sh tools/update-cpm.sh tools/windows/vcvarsall.sh externals/stb externals/glad externals/getopt externals/gamemode externals/FidelityFX-FSR externals/demangle externals/bc_decoder externals/cmake-modules"
 
 # license header constants, please change when needed :))))
-YEAR=2025
+YEAR=2026
 HOLDER="Eden Emulator Project"
 LICENSE="GPL-3.0-or-later"
 
