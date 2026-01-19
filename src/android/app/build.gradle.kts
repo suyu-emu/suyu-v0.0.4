@@ -112,6 +112,9 @@ android {
         }
     }
 
+    // The app name is constructed with the appNameSuffix and appNameBase manifest placeholders
+    // suffix is used for build type--remember to include a space beforehand
+
     // Define build types, which are orthogonal to product flavors.
     buildTypes {
         // Signed by release key, allowing for upload to Play Store.
@@ -121,6 +124,8 @@ android {
             } else {
                 signingConfigs.getByName("default")
             }
+
+            manifestPlaceholders += mapOf("appNameSuffix" to "")
 
             isMinifyEnabled = true
             isDebuggable = false
@@ -140,6 +145,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            manifestPlaceholders += mapOf("appNameSuffix" to " Debug Release")
+
             versionNameSuffix = "-relWithDebInfo"
             applicationIdSuffix = ".relWithDebInfo"
             isJniDebuggable = true
@@ -153,13 +161,20 @@ android {
             isJniDebuggable = true
             versionNameSuffix = "-debug"
             applicationIdSuffix = ".debug"
+
+            manifestPlaceholders += mapOf("appNameSuffix" to " Debug")
         }
     }
 
+    // appNameBase is used for the primary identifier
+    // this should be "Eden <flavorName>"
     flavorDimensions.add("version")
     productFlavors {
         create("mainline") {
             dimension = "version"
+            isDefault = true
+
+            manifestPlaceholders += mapOf("appNameBase" to "Eden")
             resValue("string", "app_name_suffixed", "Eden")
 
             ndk {
@@ -169,6 +184,7 @@ android {
 
         create("genshinSpoof") {
             dimension = "version"
+            manifestPlaceholders += mapOf("appNameBase" to "Eden Optimized")
             resValue("string", "app_name_suffixed", "Eden Optimized")
             applicationId = "com.miHoYo.Yuanshen"
 
@@ -179,6 +195,7 @@ android {
 
         create("legacy") {
             dimension = "version"
+            manifestPlaceholders += mapOf("appNameBase" to "Eden Legacy")
             resValue("string", "app_name_suffixed", "Eden Legacy")
             applicationId = "dev.legacy.eden_emulator"
 
@@ -201,7 +218,8 @@ android {
 
         create("chromeOS") {
             dimension = "version"
-            resValue("string", "app_name_suffixed", "Eden")
+            manifestPlaceholders += mapOf("appNameBase" to "Eden ChromeOS")
+            resValue("string", "app_name_suffixed", "Eden ChromeOS")
 
             ndk {
                 abiFilters += listOf("x86_64")
@@ -211,31 +229,6 @@ android {
                 cmake {
                     abiFilters("x86_64")
                 }
-            }
-        }
-    }
-
-    // this is really annoying but idk any other ways to fix this behavior
-    applicationVariants.all {
-        val variant = this
-        when {
-            variant.flavorName == "legacy" && variant.buildType.name == "debug" -> {
-                variant.resValue("string", "app_name_suffixed", "Eden Legacy Debug")
-            }
-            variant.flavorName == "mainline" && variant.buildType.name == "debug" -> {
-                variant.resValue("string", "app_name_suffixed", "Eden Debug")
-            }
-            variant.flavorName == "genshinSpoof" && variant.buildType.name == "debug" -> {
-                variant.resValue("string", "app_name_suffixed", "Eden Optimized Debug")
-            }
-            variant.flavorName == "legacy" && variant.buildType.name == "relWithDebInfo" -> {
-                variant.resValue("string", "app_name_suffixed", "Eden Legacy Debug Release")
-            }
-            variant.flavorName == "mainline" && variant.buildType.name == "relWithDebInfo" -> {
-                variant.resValue("string", "app_name_suffixed", "Eden Debug Release")
-            }
-            variant.flavorName == "genshinSpoof" && variant.buildType.name == "relWithDebInfo" -> {
-                variant.resValue("string", "app_name_suffixed", "Eden Optimized Debug Release")
             }
         }
     }
@@ -252,6 +245,9 @@ idea {
     module {
         // Inclusion to exclude build/ dir from non-Android
         excludeDirs.add(file("${edenDir}/build"))
+
+        // also exclude CPM cache from automatic indexing
+        excludeDirs.add(file("${edenDir}/.cache"))
     }
 }
 
