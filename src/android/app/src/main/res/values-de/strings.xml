@@ -827,10 +827,6 @@ Wirklich fortfahren?</string>
     <string name="ratio_force_sixteen_ten">16:10 erzwingen</string>
     <string name="ratio_stretch">Auf Bildschirmgröße anpsassen</string>
 
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">Ausführung nativen Codes (ACE)</string>
-
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Akkurat</string>
     <string name="cpu_accuracy_unsafe">Unsicher</string>

@@ -108,8 +108,8 @@
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC Emulation</string>
     <string name="nvdec_emulation_description">Select how video decoding (NVDEC) is handled during cutscenes and intros.</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_cpu" translatable="false">CPU</string>
+    <string name="nvdec_emulation_gpu" translatable="false">GPU</string>
     <string name="nvdec_emulation_none">None</string>
 
     <!-- Optimize SPIRV output -->
@@ -396,7 +396,7 @@
     <string name="about_app_description">An open-source Switch emulator</string>
     <string name="contributors">Contributors</string>
     <string name="contributors_description">Contributors who made Eden for Android possible</string>
-    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
+    <string name="contributors_link" translatable="false">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Projects that make Eden for Android possible</string>
     <string name="build">Build</string>
     <string name="user_data">User data</string>
@@ -556,10 +556,10 @@
 
     <!-- Input strings -->
     <string name="buttons">Buttons</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
+    <string name="button_a" translatable="false">A</string>
+    <string name="button_b" translatable="false">B</string>
+    <string name="button_x" translatable="false">X</string>
+    <string name="button_y" translatable="false">Y</string>
     <string name="button_plus">Plus</string>
     <string name="button_minus">Minus</string>
     <string name="button_home">Home</string>
@@ -580,15 +580,15 @@
     <string name="modifier">Modifier</string>
     <string name="modifier_range">Modifier range</string>
     <string name="triggers">Triggers</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
+    <string name="button_l" translatable="false">L</string>
+    <string name="button_r" translatable="false">R</string>
+    <string name="button_zl" translatable="false">ZL</string>
+    <string name="button_zr" translatable="false">ZR</string>
     <string name="button_sl_left">Left SL</string>
     <string name="button_sr_left">Left SR</string>
     <string name="button_sl_right">Right SL</string>
     <string name="button_sr_right">Right SR</string>
-    <string name="button_z">Z</string>
+    <string name="button_z" translatable="false">Z</string>
     <string name="invalid">Invalid</string>
     <string name="not_set">Not set</string>
     <string name="unknown">Unknown</string>
@@ -795,7 +795,7 @@
     <string name="confirm_uninstall">Confirm uninstall</string>
     <string name="confirm_uninstall_description">Are you sure you want to uninstall this addon?</string>
     <string name="verify_integrity">Verify integrity</string>
-    <string name="verifying">Verifying…</string>
+    <string name="verifying">Verifying...</string>
     <string name="verify_success">Integrity verification succeeded!</string>
     <string name="verify_failure">Integrity verification failed!</string>
     <string name="verify_failure_description">File contents may be corrupt</string>
@@ -982,7 +982,7 @@
     <string name="memory_exabyte">EB</string>
 
     <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
+    <string name="renderer_vulkan" translatable="false">Vulkan</string>
     <string name="renderer_none">None</string>
 
     <!-- Renderer Accuracy -->
@@ -996,29 +996,29 @@
     <string name="dma_accuracy_safe">Safe</string>
 
     <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU Asynchronously</string>
+    <string name="accelerate_astc_cpu" translatable="false">CPU</string>
+    <string name="accelerate_astc_gpu" translatable="false">GPU</string>
+    <string name="accelerate_astc_async" translatable="false">CPU Async</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Uncompressed</string>
-    <string name="astc_recompression_bc1">BC1 (Low Quality)</string>
-    <string name="astc_recompression_bc3">BC3 (Medium Quality)</string>
+    <string name="astc_recompression_bc1" translatable="false">BC1</string>
+    <string name="astc_recompression_bc3" translatable="false">BC3</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Conservative</string>
     <string name="vram_usage_aggressive">Aggressive</string>
 
     <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Slow)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Slow)</string>
+    <string name="resolution_quarter" translatable="false">0.25X (180p/270p)</string>
+    <string name="resolution_half" translatable="false">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter" translatable="false">0.75X (540p/810p)</string>
+    <string name="resolution_one" translatable="false">1X (720p/1080p)</string>
+    <string name="resolution_five_quarter" translatable="false">1.25X (900p/1350p)</string>
+    <string name="resolution_three_half" translatable="false">1.5X (1080p/1620p)</string>
+    <string name="resolution_two" translatable="false">2X (1440p/2160p) (Slow)</string>
+    <string name="resolution_three" translatable="false">3X (2160p/3240p) (Slow)</string>
+    <string name="resolution_four" translatable="false">4X (2880p/4320p) (Slow)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immediate (Off)</string>
@@ -1027,24 +1027,24 @@
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
     <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
-    <string name="scaling_filter_bilinear">Bilinear</string>
-    <string name="scaling_filter_bicubic">Bicubic</string>
-    <string name="scaling_filter_spline1">Spline-1</string>
-    <string name="scaling_filter_gaussian">Gaussian</string>
-    <string name="scaling_filter_lanczos">Lanczos</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-    <string name="scaling_filter_area">Area</string>
-    <string name="scaling_filter_zero_tangent">Zero-Tangent</string>
-    <string name="scaling_filter_bspline">B-Spline</string>
-    <string name="scaling_filter_mitchell">Mitchell</string>
-    <string name="scaling_filter_mmpx">MMPX</string>
+    <string name="scaling_filter_nearest_neighbor" translatable="false">Nearest Neighbor</string>
+    <string name="scaling_filter_bilinear" translatable="false">Bilinear</string>
+    <string name="scaling_filter_bicubic" translatable="false">Bicubic</string>
+    <string name="scaling_filter_spline1" translatable="false">Spline-1</string>
+    <string name="scaling_filter_gaussian" translatable="false">Gaussian</string>
+    <string name="scaling_filter_lanczos" translatable="false">Lanczos</string>
+    <string name="scaling_filter_scale_force" translatable="false">ScaleForce</string>
+    <string name="scaling_filter_fsr" translatable="false">AMD FidelityFX Super Resolution</string>
+    <string name="scaling_filter_area" translatable="false">Area</string>
+    <string name="scaling_filter_zero_tangent" translatable="false">Zero-Tangent</string>
+    <string name="scaling_filter_bspline" translatable="false">B-Spline</string>
+    <string name="scaling_filter_mitchell" translatable="false">Mitchell</string>
+    <string name="scaling_filter_mmpx" translatable="false">MMPX</string>
 
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">None</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
+    <string name="anti_aliasing_fxaa" translatable="false">FXAA</string>
+    <string name="anti_aliasing_smaa" translatable="false">SMAA</string>
 
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Auto</string>
@@ -1056,15 +1056,15 @@
     <string name="screen_layout_reverse_portrait">Reverse portrait</string>
 
     <!-- Aspect Ratios -->
-    <string name="ratio_default">Default (16:9)</string>
-    <string name="ratio_force_four_three">Force 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Force 21:9</string>
-    <string name="ratio_force_sixteen_ten">Force 16:10</string>
+    <string name="ratio_default" translatable="false">16:9</string>
+    <string name="ratio_force_four_three" translatable="false">4:3</string>
+    <string name="ratio_force_twenty_one_nine" translatable="false">21:9</string>
+    <string name="ratio_force_sixteen_ten" translatable="false">16:10</string>
     <string name="ratio_stretch">Stretch to window</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">Native code execution (NCE)</string>
+    <string name="cpu_backend_dynarmic" translatable="false">Dynarmic (JIT)</string>
+    <string name="cpu_backend_nce" translatable="false">NCE</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Accurate</string>
@@ -1118,16 +1118,16 @@
     <string name="theme_mode_dark">Dark</string>
 
     <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
+    <string name="oboe" translatable="false">oboe</string>
+    <string name="cubeb" translatable="false">cubeb</string>
 
     <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
+    <string name="multiplier_x2" translatable="false">x2</string>
+    <string name="multiplier_x4" translatable="false">x4</string>
+    <string name="multiplier_x8" translatable="false">x8</string>
+    <string name="multiplier_x16" translatable="false">x16</string>
+    <string name="multiplier_x32" translatable="false">x32</string>
+    <string name="multiplier_x64" translatable="false">x64</string>
     <string name="multiplier_none">None</string>
 
     <!-- Black backgrounds theme -->
@@ -1138,30 +1138,30 @@
     <string name="app_language">App Language</string>
     <string name="app_language_description">Change the language of the app interface</string>
     <string name="app_language_system">Follow System</string>
-    <string name="app_language_english">English</string>
-    <string name="app_language_spanish">Español</string>
-    <string name="app_language_french">Français</string>
-    <string name="app_language_german">Deutsch</string>
-    <string name="app_language_italian">Italiano</string>
-    <string name="app_language_portuguese">Português</string>
-    <string name="app_language_brazilian_portuguese">Português do Brasil</string>
-    <string name="app_language_russian">Русский</string>
-    <string name="app_language_japanese">日本語</string>
-    <string name="app_language_korean">한국어</string>
-    <string name="app_language_simplified_chinese">简体中文</string>
-    <string name="app_language_traditional_chinese">繁體中文</string>
-    <string name="app_language_polish">Polski</string>
-    <string name="app_language_czech">Čeština</string>
-    <string name="app_language_norwegian">Norsk bokmål</string>
-    <string name="app_language_hungarian">Magyar</string>
-    <string name="app_language_ukrainian">Українська</string>
-    <string name="app_language_vietnamese">Tiếng Việt</string>
-    <string name="app_language_indonesian">Bahasa Indonesia</string>
-    <string name="app_language_arabic">العربية</string>
-    <string name="app_language_central_kurdish">کوردیی ناوەندی</string>
-    <string name="app_language_persian">فارسی</string>
-    <string name="app_language_hebrew">עברית</string>
-    <string name="app_language_serbian">Српски</string>
+    <string name="app_language_english" translatable="false">English</string>
+    <string name="app_language_spanish" translatable="false">Español</string>
+    <string name="app_language_french" translatable="false">Français</string>
+    <string name="app_language_german" translatable="false">Deutsch</string>
+    <string name="app_language_italian" translatable="false">Italiano</string>
+    <string name="app_language_portuguese" translatable="false">Português</string>
+    <string name="app_language_brazilian_portuguese" translatable="false">Português do Brasil</string>
+    <string name="app_language_russian" translatable="false">Русский</string>
+    <string name="app_language_japanese" translatable="false">日本語</string>
+    <string name="app_language_korean" translatable="false">한국어</string>
+    <string name="app_language_simplified_chinese" translatable="false">简体中文</string>
+    <string name="app_language_traditional_chinese" translatable="false">繁體中文</string>
+    <string name="app_language_polish" translatable="false">Polski</string>
+    <string name="app_language_czech" translatable="false">Čeština</string>
+    <string name="app_language_norwegian" translatable="false">Norsk bokmål</string>
+    <string name="app_language_hungarian" translatable="false">Magyar</string>
+    <string name="app_language_ukrainian" translatable="false">Українська</string>
+    <string name="app_language_vietnamese" translatable="false">Tiếng Việt</string>
+    <string name="app_language_indonesian" translatable="false">Bahasa Indonesia</string>
+    <string name="app_language_arabic" translatable="false">العربية</string>
+    <string name="app_language_central_kurdish" translatable="false">کوردیی ناوەندی</string>
+    <string name="app_language_persian" translatable="false">فارسی</string>
+    <string name="app_language_hebrew" translatable="false">עברית</string>
+    <string name="app_language_serbian" translatable="false">Српски</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Theme Color</string>
