@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -347,7 +347,7 @@ void TranslateResolutionInfo(ResolutionSetup setup, ResolutionScalingInfo& info)
     }
     info.up_factor = static_cast<f32>(info.up_scale) / (1U << info.down_shift);
     info.down_factor = static_cast<f32>(1U << info.down_shift) / info.up_scale;
-    info.active = info.up_scale != 1 || info.down_shift != 0;
+    info.active = true;
 }
 
 void UpdateRescalingInfo() {
