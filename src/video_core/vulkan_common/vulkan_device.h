@@ -135,10 +135,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define features which must be supported.
 #define FOR_EACH_VK_MANDATORY_FEATURE(FEATURE_NAME)                                                \
-    FEATURE_NAME(bit16_storage, storageBuffer16BitAccess)                                          \
-    FEATURE_NAME(bit16_storage, uniformAndStorageBuffer16BitAccess)                                \
-    FEATURE_NAME(bit8_storage, storageBuffer8BitAccess)                                            \
-    FEATURE_NAME(bit8_storage, uniformAndStorageBuffer8BitAccess)                                  \
     FEATURE_NAME(features, depthBiasClamp)                                                         \
     FEATURE_NAME(features, depthClamp)                                                             \
     FEATURE_NAME(features, drawIndirectFirstInstance)                                              \
@@ -171,6 +167,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define features where the absence of the feature may result in a degraded experience.
 #define FOR_EACH_VK_RECOMMENDED_FEATURE(FEATURE_NAME)                                              \
+    FEATURE_NAME(bit16_storage, storageBuffer16BitAccess)                                          \
+    FEATURE_NAME(bit8_storage, storageBuffer8BitAccess)                                            \
     FEATURE_NAME(custom_border_color, customBorderColors)                                          \
     FEATURE_NAME(depth_bias_control, depthBiasControl)                                             \
     FEATURE_NAME(depth_bias_control, leastRepresentableValueForceUnormRepresentation)              \
@@ -190,6 +188,11 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE_NAME(transform_feedback, transformFeedback)                                            \
     FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout)                      \
     FEATURE_NAME(vertex_input_dynamic_state, vertexInputDynamicState)
+
+// These features are not required but can be helpful for drivers that can use it.
+#define FOR_EACH_VK_OPTIONAL_FEATURE(FEATURE_NAME)                                                 \
+    FEATURE_NAME(bit16_storage, uniformAndStorageBuffer16BitAccess)                                \
+    FEATURE_NAME(bit8_storage, uniformAndStorageBuffer8BitAccess)
 
 namespace Vulkan {
 
@@ -793,10 +796,6 @@ public:
         return must_emulate_scaled_formats;
     }
 
-    bool MustEmulateBGR565() const {
-        return must_emulate_bgr565;
-    }
-
     bool HasNullDescriptor() const {
         return features.robustness2.nullDescriptor;
     }
@@ -894,6 +893,12 @@ public:
     /// Returns true if the device supports VK_KHR_maintenance9.
     bool IsKhrMaintenance9Supported() const {
         return extensions.maintenance9;
+    }
+
+    /// Returns true if the device supports UINT8 index buffer conversion via compute shader.
+    bool SupportsUint8Indices() const {
+        return features.bit8_storage.storageBuffer8BitAccess &&
+               features.bit16_storage.storageBuffer16BitAccess;
     }
 
     [[nodiscard]] static constexpr bool CheckBrokenCompute(VkDriverId driver_id,
@@ -1042,7 +1047,6 @@ private:
     bool supports_d24_depth{};                 ///< Supports D24 depth buffers.
     bool cant_blit_msaa{};                     ///< Does not support MSAA<->MSAA blitting.
     bool must_emulate_scaled_formats{};        ///< Requires scaled vertex format emulation
-    bool must_emulate_bgr565{};                ///< Emulates BGR565 by swizzling RGB565 format.
     bool dynamic_state3_blending{};            ///< Has blending features of dynamic_state3.
     bool dynamic_state3_enables{};             ///< Has at least one enable feature of dynamic_state3.
     bool dynamic_state3_depth_clamp_enable{};

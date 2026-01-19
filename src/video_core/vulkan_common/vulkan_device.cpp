@@ -432,7 +432,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
-    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if (!is_suitable)
         LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
@@ -601,10 +600,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_qualcomm) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
-            has_broken_parallel_compiling = true;
-        }
         const size_t sampler_limit = properties.properties.limits.maxSamplerAllocationCount;
         if (sampler_limit > 0) {
             constexpr size_t MIN_SAMPLER_BUDGET = 1024U;
@@ -645,20 +640,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     has_broken_compute =
         CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
         !Settings::values.enable_compute_pipelines.GetValue();
-    must_emulate_bgr565 = false; // Default: assume emulation isn't required
-
-    if (is_intel_anv) {
-        LOG_WARNING(Render_Vulkan, "Intel ANV driver does not support native BGR format");
-        must_emulate_bgr565 = true;
-    } else if (is_qualcomm) {
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
-        must_emulate_bgr565 = true;
-    } else if (is_arm) {
-        LOG_WARNING(Render_Vulkan,
-                    "ARM Mali driver mishandles BGR5 formats even with VK_KHR_maintenance5, forcing emulation");
-        must_emulate_bgr565 = true;
-    }
 
     if (is_mvk) {
         LOG_WARNING(Render_Vulkan,
@@ -936,11 +917,7 @@ bool Device::ShouldBoostClocks() const {
 }
 
 bool Device::HasTimelineSemaphore() const {
-    if (GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-        GetDriverID() == VK_DRIVER_ID_MESA_TURNIP) {
-        // Timeline semaphores do not work properly on all Qualcomm drivers.
-        // They generally work properly with Turnip drivers, but are problematic on some devices
-        // (e.g. ZTE handsets with Snapdragon 870).
+    if (GetDriverID() == VK_DRIVER_ID_MESA_TURNIP) {
         return false;
     }
     return features.timeline_semaphore.timelineSemaphore;
@@ -1092,9 +1069,14 @@ bool Device::GetSuitability(bool requires_swapchain) {
             LOG_INFO(Render_Vulkan, "Device doesn't support feature {}", #name);                       \
     }
 
+// Optional features are enabled silently without any logging
+#define OPTIONAL_FEATURE(feature, name) (void)features.feature.name;
+
+    FOR_EACH_VK_OPTIONAL_FEATURE(OPTIONAL_FEATURE);
     FOR_EACH_VK_RECOMMENDED_FEATURE(LOG_FEATURE);
     FOR_EACH_VK_MANDATORY_FEATURE(CHECK_FEATURE);
 
+#undef OPTIONAL_FEATURE
 #undef LOG_FEATURE
 #undef CHECK_FEATURE
 

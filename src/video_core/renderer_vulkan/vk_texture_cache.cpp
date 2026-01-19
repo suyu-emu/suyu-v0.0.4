@@ -654,15 +654,10 @@ void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage im
 }
 
 void TryTransformSwizzleIfNeeded(PixelFormat format, std::array<SwizzleSource, 4>& swizzle,
-                                 bool emulate_bgr565, bool emulate_a4b4g4r4) {
+                                 bool emulate_a4b4g4r4) {
     switch (format) {
     case PixelFormat::A1B5G5R5_UNORM:
         std::ranges::transform(swizzle, swizzle.begin(), SwapBlueRed);
-        break;
-    case PixelFormat::B5G6R5_UNORM:
-        if (emulate_bgr565) {
-            std::ranges::transform(swizzle, swizzle.begin(), SwapBlueRed);
-        }
         break;
     case PixelFormat::A5B5G5R1_UNORM:
         std::ranges::transform(swizzle, swizzle.begin(), SwapSpecial);
@@ -2119,7 +2114,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     };
     if (!info.IsRenderTarget()) {
         swizzle = info.Swizzle();
-        TryTransformSwizzleIfNeeded(format, swizzle, device->MustEmulateBGR565(),
+        TryTransformSwizzleIfNeeded(format, swizzle,
                                     !device->IsExt4444FormatsSupported());
         if ((aspect_mask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) != 0) {
             std::ranges::transform(swizzle, swizzle.begin(), ConvertGreenRed);

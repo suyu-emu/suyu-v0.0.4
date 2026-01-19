@@ -338,9 +338,8 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& m
                                     driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
     if (limit_dynamic_storage_buffers) {
         max_dynamic_storage_buffers = device.GetMaxDescriptorSetStorageBuffersDynamic();
-    }
-    if (device.GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
-        // TODO: FixMe: Uint8Pass compute shader does not build on some Qualcomm drivers.
+    }    
+    if (device.SupportsUint8Indices()) {
         uint8_pass = std::make_unique<Uint8Pass>(device, scheduler, descriptor_pool, staging_pool,
                                                  compute_pass_descriptor_queue);
     }
@@ -518,6 +517,10 @@ void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, IndexFormat
         vk_index_type = VK_INDEX_TYPE_UINT16;
         if (uint8_pass) {
             std::tie(vk_buffer, vk_offset) = uint8_pass->Assemble(num_indices, buffer, offset);
+        } else if (device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
+            ReserveNullBuffer();
+            vk_buffer = *null_buffer;
+            vk_offset = 0;
         }
     }
     if (vk_buffer == VK_NULL_HANDLE) {
