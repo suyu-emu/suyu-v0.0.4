@@ -602,7 +602,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedBatch(std::span<const std::pa
         return;
     }
     // Make a local copy and sort by address
-    std::vector<std::pair<DAddr, size_t>> tmp(ranges.size(), {0, 0});
+    std::vector<std::pair<DAddr, size_t>> tmp(ranges.begin(), ranges.end());
     std::sort(tmp.begin(), tmp.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 
     // Coalesce adjacent/overlapping ranges
