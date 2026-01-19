@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -69,7 +69,8 @@ class DriverFetcherFragment : Fragment() {
         DriverRepo("Mr. Purple Turnip", "MrPurple666/purple-turnip", 0),
         DriverRepo("GameHub Adreno 8xx", "crueter/GameHub-8Elite-Drivers", 1),
         DriverRepo("KIMCHI Turnip", "K11MCH1/AdrenoToolsDrivers", 2, true, SortMode.PublishTime),
-        DriverRepo("Weab-Chan Freedreno", "Weab-chan/freedreno_turnip-CI", 3)
+        DriverRepo("Weab-Chan Freedreno", "Weab-chan/freedreno_turnip-CI", 3),
+        DriverRepo("Whitebelyash Turnip", "whitebelyash/freedreno_turnip-CI", sort=4, false, SortMode.PublishTime),
     )
 
     private val driverMap = listOf(
@@ -80,7 +81,7 @@ class DriverFetcherFragment : Fragment() {
         IntRange(640, 699) to "Mr. Purple T19",
         IntRange(700, 710) to "KIMCHI 25.2.0_r5",
         IntRange(711, 799) to "Mr. Purple T23",
-        IntRange(800, 899) to "Mr. Purple T23",
+        IntRange(800, 899) to "GameHub Adreno 8xx",
         IntRange(900, Int.MAX_VALUE) to "Unsupported"
     )
 
