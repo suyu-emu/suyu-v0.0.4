@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -485,8 +485,8 @@ void Vic::Blend(const ConfigStruct& config, const SlotStruct& slot, VideoPixelFo
     source_bottom = (std::min)(source_bottom, out_surface_height);
     source_right = (std::min)(source_right, out_surface_width);
 
-    auto const work_width = u32((std::max)(0, s32(source_right) - s32(source_left)));
-    auto const work_height = u32((std::max)(0, s32(source_bottom) - s32(source_top)));
+    [[maybe_unused]] auto const work_width = u32((std::max)(0, s32(source_right) - s32(source_left)));
+    [[maybe_unused]] auto const work_height = u32((std::max)(0, s32(source_bottom) - s32(source_top)));
 
     // TODO Alpha blending. No games I've seen use more than a single surface or supply an alpha
     // below max, so it's ignored for now.
@@ -630,42 +630,49 @@ void Vic::Blend(const ConfigStruct& config, const SlotStruct& slot, VideoPixelFo
             // | r1c0 r1c1 r1c2 r1c3 | * | G | = | G |
             // | r2c0 r2c1 r2c2 r2c3 |   | B |   | B |
             //                           | 1 |
-            auto const shift = s32(slot.color_matrix.matrix_r_shift.Value());
-
-            struct AliasedMatrixType { u64 m[4]; };
-            static_assert(sizeof(AliasedMatrixType) == sizeof(slot.color_matrix));
-            u64 const mat_mask = (1 << 20) - 1;
-            auto const* amt = reinterpret_cast<AliasedMatrixType const*>(&slot.color_matrix);
-
-            constexpr s32 shifts[4] = { 0, 20, 40, 60 };
-            s32 mr[4][4];
-            for (u32 j = 0; j < 3; ++j)
-                for (u32 i = 0; i < 4; ++i)
-                    mr[j][i] = s32(s64(((amt->m[i] >> shifts[j]) & mat_mask) << (64 - 20)) >> (64 - 20));
-
-            auto const clamp_min = s32(slot.config.soft_clamp_low.Value());
-            auto const clamp_max = s32(slot.config.soft_clamp_high.Value());
-            for (u32 y = 0; y < work_height; ++y) {
-                auto const src = (y + source_top) * in_surface_width + source_left;
-                auto const dst = (y + source_top) * out_surface_width + rect_left;
-                for (u32 x = 0; x < work_width; ++x) {
-                    auto const& in_pixel = slot_surface[src + x];
-                    auto& out_pixel = output_surface[dst + x];
-                    s32 const mul_values[4] = {
-                        in_pixel.r * mr[0][0] + in_pixel.g * mr[1][1] + in_pixel.b * mr[0][2],
-                        in_pixel.r * mr[1][0] + in_pixel.g * mr[1][1] + in_pixel.b * mr[1][2],
-                        in_pixel.r * mr[2][0] + in_pixel.g * mr[2][1] + in_pixel.b * mr[2][2],
-                        s32(in_pixel.a)
-                    };
-                    s32 const mul_clamp[4] = {
-                        std::clamp(((mul_values[0] >> shift) + mr[0][3]) >> 8, clamp_min, clamp_max),
-                        std::clamp(((mul_values[1] >> shift) + mr[1][3]) >> 8, clamp_min, clamp_max),
-                        std::clamp(((mul_values[2] >> shift) + mr[2][3]) >> 8, clamp_min, clamp_max),
-                        std::clamp(mul_values[3], clamp_min, clamp_max)
-                    };
-                    out_pixel = format == VideoPixelFormat::A8R8G8B8
-                        ? Pixel(u16(mul_clamp[2]), u16(mul_clamp[1]), u16(mul_clamp[0]), u16(mul_clamp[3]))
-                        : Pixel(u16(mul_clamp[0]), u16(mul_clamp[1]), u16(mul_clamp[2]), u16(mul_clamp[3]));
+            const auto r0c0 = s32(slot.color_matrix.matrix_coeff00.Value());
+            const auto r0c1 = s32(slot.color_matrix.matrix_coeff01.Value());
+            const auto r0c2 = s32(slot.color_matrix.matrix_coeff02.Value());
+            const auto r0c3 = s32(slot.color_matrix.matrix_coeff03.Value());
+            const auto r1c0 = s32(slot.color_matrix.matrix_coeff10.Value());
+            const auto r1c1 = s32(slot.color_matrix.matrix_coeff11.Value());
+            const auto r1c2 = s32(slot.color_matrix.matrix_coeff12.Value());
+            const auto r1c3 = s32(slot.color_matrix.matrix_coeff13.Value());
+            const auto r2c0 = s32(slot.color_matrix.matrix_coeff20.Value());
+            const auto r2c1 = s32(slot.color_matrix.matrix_coeff21.Value());
+            const auto r2c2 = s32(slot.color_matrix.matrix_coeff22.Value());
+            const auto r2c3 = s32(slot.color_matrix.matrix_coeff23.Value());
+            const auto shift = s32(slot.color_matrix.matrix_r_shift.Value());
+            const auto clamp_min = s32(slot.config.soft_clamp_low.Value());
+            const auto clamp_max = s32(slot.config.soft_clamp_high.Value());
+            auto MatMul = [&](const Pixel& in_pixel) -> std::tuple<s32, s32, s32, s32> {
+                auto r = s32(in_pixel.r);
+                auto g = s32(in_pixel.g);
+                auto b = s32(in_pixel.b);
+                r = in_pixel.r * r0c0 + in_pixel.g * r0c1 + in_pixel.b * r0c2;
+                g = in_pixel.r * r1c0 + in_pixel.g * r1c1 + in_pixel.b * r1c2;
+                b = in_pixel.r * r2c0 + in_pixel.g * r2c1 + in_pixel.b * r2c2;
+                r >>= shift;
+                g >>= shift;
+                b >>= shift;
+                r += r0c3;
+                g += r1c3;
+                b += r2c3;
+                r >>= 8;
+                g >>= 8;
+                b >>= 8;
+                return {r, g, b, s32(in_pixel.a)};
+            };
+            for (u32 y = source_top; y < source_bottom; y++) {
+                const auto src{y * in_surface_width + source_left};
+                const auto dst{y * out_surface_width + rect_left};
+                for (u32 x = source_left; x < source_right; x++) {
+                    auto [r, g, b, a] = MatMul(slot_surface[src + x]);
+                    r = std::clamp(r, clamp_min, clamp_max);
+                    g = std::clamp(g, clamp_min, clamp_max);
+                    b = std::clamp(b, clamp_min, clamp_max);
+                    a = std::clamp(a, clamp_min, clamp_max);
+                    output_surface[dst + x] = {u16(r), u16(g), u16(b), u16(a)};
                 }
             }
         }
