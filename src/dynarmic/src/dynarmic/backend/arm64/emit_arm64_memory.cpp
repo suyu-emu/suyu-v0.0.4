@@ -269,7 +269,7 @@ std::pair<oaknut::XReg, oaknut::XReg> InlinePageTableEmitVAddrLookup(oaknut::Cod
     }
 
     // index = index << log2
-    code.SBFIZ(Xscratch0, Xscratch0, ctx.conf.page_table_log2_stride, 32);
+    code.LSL(Xscratch0, Xscratch0, ctx.conf.page_table_log2_stride);
     // load x0 = *<(u8*)pagetable + index>
     code.LDR(Xscratch0, Xpagetable, Xscratch0);
 
