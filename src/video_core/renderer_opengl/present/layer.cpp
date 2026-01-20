@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -54,12 +57,12 @@ GLuint Layer::ConfigureDraw(std::array<GLfloat, 3 * 2>& out_matrix,
         switch (anti_aliasing) {
         case Settings::AntiAliasing::Fxaa:
             CreateFXAA();
-            texture = fxaa->Draw(program_manager, info.display_texture);
+            texture = std::get<FXAA>(anti_alias).Draw(program_manager, info.display_texture);
             break;
         case Settings::AntiAliasing::Smaa:
         default:
             CreateSMAA();
-            texture = smaa->Draw(program_manager, info.display_texture);
+            texture = std::get<SMAA>(anti_alias).Draw(program_manager, info.display_texture);
             break;
         }
     }
@@ -68,7 +71,7 @@ GLuint Layer::ConfigureDraw(std::array<GLfloat, 3 * 2>& out_matrix,
 
     if (filters.get_scaling_filter() == Settings::ScalingFilter::Fsr) {
         if (!fsr || fsr->NeedsRecreation(layout.screen)) {
-            fsr = std::make_unique<FSR>(layout.screen.GetWidth(), layout.screen.GetHeight());
+            fsr.emplace(layout.screen.GetWidth(), layout.screen.GetHeight());
         }
 
         texture = fsr->Draw(program_manager, texture, info.scaled_width, info.scaled_height, crop);
@@ -199,23 +202,20 @@ void Layer::ConfigureFramebufferTexture(const Tegra::FramebufferConfig& framebuf
     glTextureStorage2D(framebuffer_texture.resource.handle, 1, internal_format,
                        framebuffer_texture.width, framebuffer_texture.height);
 
-    fxaa.reset();
-    smaa.reset();
+    anti_alias.emplace<std::monostate>();
 }
 
 void Layer::CreateFXAA() {
-    smaa.reset();
-    if (!fxaa) {
-        fxaa = std::make_unique<FXAA>(
+    if (!std::holds_alternative<FXAA>(anti_alias)) {
+        anti_alias.emplace<FXAA>(
             Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
             Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
     }
 }
 
 void Layer::CreateSMAA() {
-    fxaa.reset();
-    if (!smaa) {
-        smaa = std::make_unique<SMAA>(
+    if (!std::holds_alternative<SMAA>(anti_alias)) {
+        anti_alias.emplace<SMAA>(
             Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
             Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
     }

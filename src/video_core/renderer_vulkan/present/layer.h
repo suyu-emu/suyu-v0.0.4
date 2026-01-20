@@ -1,11 +1,20 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <optional>
+#include <variant>
+
 #include "common/math_util.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/renderer_vulkan/present/fsr.h"
+#include "video_core/renderer_vulkan/present/fxaa.h"
+#include "video_core/renderer_vulkan/present/smaa.h"
 
 namespace Layout {
 struct FramebufferLayout;
@@ -29,7 +38,6 @@ namespace Vulkan {
 
 class AntiAliasPass;
 class Device;
-class FSR;
 class MemoryAllocator;
 struct PresentPushConstants;
 class RasterizerVulkan;
@@ -54,7 +62,6 @@ private:
     void CreateDescriptorSets(VkDescriptorSetLayout layout);
     void CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer);
     void CreateRawImages(const Tegra::FramebufferConfig& framebuffer);
-    void CreateFSR(VkExtent2D output_size);
 
     void RefreshResources(const Tegra::FramebufferConfig& framebuffer);
     void SetAntiAliasPass();
@@ -87,9 +94,8 @@ private:
     Service::android::PixelFormat pixel_format{};
 
     Settings::AntiAliasing anti_alias_setting{};
-    std::unique_ptr<AntiAliasPass> anti_alias{};
-
-    std::unique_ptr<FSR> fsr{};
+    std::variant<std::monostate, FXAA, SMAA> anti_alias{};
+    std::optional<FSR> fsr{};
     std::vector<u64> resource_ticks{};
 };
 
