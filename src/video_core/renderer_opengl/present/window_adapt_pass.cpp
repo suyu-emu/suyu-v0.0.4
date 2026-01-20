@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
@@ -114,11 +114,7 @@ void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::li
         }
 
         glBindTextureUnit(0, textures[i]);
-        glProgramUniformMatrix3x2fv(vert.handle, ModelViewMatrixLocation, 1, GL_FALSE,
-                                    matrices[i].data());
-        glProgramUniform2ui(frag.handle, ScreenSizeLocation,
-                            static_cast<GLuint>(layout.screen.GetWidth()),
-                            static_cast<GLuint>(layout.screen.GetHeight()));
+        glProgramUniformMatrix3x2fv(vert.handle, ModelViewMatrixLocation, 1, GL_FALSE, matrices[i].data());
         glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices[i]), std::data(vertices[i]));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
