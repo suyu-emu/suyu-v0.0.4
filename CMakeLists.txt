@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.22)
@@ -41,14 +41,26 @@ if (PLATFORM_NETBSD)
     set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
+# qt stuff
+option(ENABLE_QT "Enable the Qt frontend" ON)
+option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
+option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF)
+option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
+cmake_dependent_option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF "NOT YUZU_USE_BUNDLED_QT" OFF)
+set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
+cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
+
+# non-linux bundled qt are static
+if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX))
+    set(YUZU_STATIC_BUILD ON)
+endif()
+
 # TODO: does mingw need any of this anymore
 # static stuff
 option(YUZU_STATIC_BUILD "Use static libraries and executables if available" OFF)
 
 # TODO: StaticBuild.cmake
 if (YUZU_STATIC_BUILD)
-    include(StaticQtLibs)
-
     # lol
     set(Boost_USE_STATIC_LIBS ON)
     set(BUILD_SHARED_LIBS OFF)
@@ -144,15 +156,6 @@ cmake_dependent_option(ENABLE_SDL2 "Enable the SDL2 frontend" ON "NOT ANDROID" O
 # TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
 cmake_dependent_option(YUZU_USE_EXTERNAL_SDL2 "Build SDL2 from external source" OFF "ENABLE_SDL2;NOT MSVC" OFF)
 cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "ENABLE_SDL2" OFF)
-
-# qt stuff
-option(ENABLE_QT "Enable the Qt frontend" ON)
-option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
-option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF)
-option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
-cmake_dependent_option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF "NOT YUZU_USE_BUNDLED_QT" OFF)
-set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
-cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
@@ -586,6 +589,7 @@ if (ENABLE_QT)
         else()
             AddQt(6.9.3)
         endif()
+
         set(YUZU_STATIC_BUILD ON)
     else()
         message(STATUS "Using system Qt")
@@ -595,7 +599,7 @@ if (ENABLE_QT)
         list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
-    find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
+    find_package(Qt6 CONFIG REQUIRED COMPONENTS Widgets Concurrent)
 
     if (YUZU_USE_QT_MULTIMEDIA)
         find_package(Qt6 REQUIRED COMPONENTS Multimedia)
