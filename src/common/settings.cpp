@@ -348,7 +348,7 @@ void TranslateResolutionInfo(ResolutionSetup setup, ResolutionScalingInfo& info)
     info.up_factor = static_cast<f32>(info.up_scale) / (1U << info.down_shift);
     info.down_factor = static_cast<f32>(1U << info.down_shift) / info.up_scale;
 #ifdef __ANDROID__
-    info.active = false;
+    info.active = info.up_scale != 1 || info.down_shift != 0;
 #else
     info.active = true;
 #endif
