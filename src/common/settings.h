@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -506,21 +506,21 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererHacks};
 
-    SwitchableSetting<GpuUnswizzleSize> gpu_unzwizzle_texture_size{linkage,
+    SwitchableSetting<GpuUnswizzleSize> gpu_unswizzle_texture_size{linkage,
                                                   GpuUnswizzleSize::Large,
-                                                  "gpu_unzwizzle_texture_size",
+                                                  "gpu_unswizzle_texture_size",
                                                   Category::RendererHacks,
                                                   Specialization::Default};
 
-    SwitchableSetting<GpuUnswizzle> gpu_unzwizzle_stream_size{linkage,
+    SwitchableSetting<GpuUnswizzle> gpu_unswizzle_stream_size{linkage,
                                                   GpuUnswizzle::Medium,
-                                                  "gpu_unzwizzle_stream_size",
+                                                  "gpu_unswizzle_stream_size",
                                                   Category::RendererHacks,
                                                   Specialization::Default};
 
-    SwitchableSetting<GpuUnswizzleChunk> gpu_unzwizzle_chunk_size{linkage,
+    SwitchableSetting<GpuUnswizzleChunk> gpu_unswizzle_chunk_size{linkage,
                                                   GpuUnswizzleChunk::Medium,
-                                                  "gpu_unzwizzle_chunk_size",
+                                                  "gpu_unswizzle_chunk_size",
                                                   Category::RendererHacks,
                                                   Specialization::Default};
 

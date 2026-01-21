@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -648,27 +648,27 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
-                    IntSetting.GPU_UNZWIZZLE_MAXTEXTURE_SIZE,
-                    titleId = R.string.gpu_unzwizzle_maxtexture_size,
-                    descriptionId = R.string.gpu_unzwizzle_maxtexture_size_description,
+                    IntSetting.GPU_UNSWIZZLE_TEXTURE_SIZE,
+                    titleId = R.string.gpu_unswizzle_texture_size,
+                    descriptionId = R.string.gpu_unswizzle_texture_size_description,
                     choicesId = R.array.gpuTextureSizeSwizzleEntries,
                     valuesId = R.array.gpuTextureSizeSwizzleValues
                 )
             )
             put(
                 SingleChoiceSetting(
-                    IntSetting.GPU_UNZWIZZLE_STREAM_SIZE,
-                    titleId = R.string.gpu_unzwizzle_stream_size,
-                    descriptionId = R.string.gpu_unzwizzle_stream_size_description,
+                    IntSetting.GPU_UNSWIZZLE_STREAM_SIZE,
+                    titleId = R.string.gpu_unswizzle_stream_size,
+                    descriptionId = R.string.gpu_unswizzle_stream_size_description,
                     choicesId = R.array.gpuSwizzleEntries,
                     valuesId = R.array.gpuSwizzleValues
                 )
             )
             put(
                 SingleChoiceSetting(
-                    IntSetting.GPU_UNZWIZZLE_CHUNK_SIZE,
-                    titleId = R.string.gpu_unzwizzle_chunk_size,
-                    descriptionId = R.string.gpu_unzwizzle_chunk_size_description,
+                    IntSetting.GPU_UNSWIZZLE_CHUNK_SIZE,
+                    titleId = R.string.gpu_unswizzle_chunk_size,
+                    descriptionId = R.string.gpu_unswizzle_chunk_size_description,
                     choicesId = R.array.gpuSwizzleChunkEntries,
                     valuesId = R.array.gpuSwizzleChunkValues
                 )

@@ -80,7 +80,7 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
         lowmemorydevice = true;
     }
 
-    switch (Settings::values.gpu_unzwizzle_texture_size.GetValue()) {
+    switch (Settings::values.gpu_unswizzle_texture_size.GetValue()) {
         case Settings::GpuUnswizzleSize::VerySmall:    gpu_unswizzle_maxsize = 16_MiB; break;
         case Settings::GpuUnswizzleSize::Small:        gpu_unswizzle_maxsize = 32_MiB; break;
         case Settings::GpuUnswizzleSize::Normal:       gpu_unswizzle_maxsize = 128_MiB; break;
@@ -89,7 +89,7 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
         default:                                       gpu_unswizzle_maxsize = 128_MiB; break;
     }
 
-    switch (Settings::values.gpu_unzwizzle_stream_size.GetValue()) {
+    switch (Settings::values.gpu_unswizzle_stream_size.GetValue()) {
         case Settings::GpuUnswizzle::VeryLow: swizzle_chunk_size = 4_MiB; break;
         case Settings::GpuUnswizzle::Low:     swizzle_chunk_size = 8_MiB; break;
         case Settings::GpuUnswizzle::Normal:  swizzle_chunk_size = 16_MiB; break;
@@ -98,7 +98,7 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
         default:                              swizzle_chunk_size = 16_MiB;
     }
 
-    switch (Settings::values.gpu_unzwizzle_chunk_size.GetValue()) {
+    switch (Settings::values.gpu_unswizzle_chunk_size.GetValue()) {
         case Settings::GpuUnswizzleChunk::VeryLow: swizzle_slices_per_batch = 32; break;
         case Settings::GpuUnswizzleChunk::Low:     swizzle_slices_per_batch = 64; break;
         case Settings::GpuUnswizzleChunk::Normal:  swizzle_slices_per_batch = 128; break;

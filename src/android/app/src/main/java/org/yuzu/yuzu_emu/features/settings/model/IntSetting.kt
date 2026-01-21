@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -46,9 +46,9 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     FAST_CPU_TIME("fast_cpu_time"),
     CPU_TICKS("cpu_ticks"),
     FAST_GPU_TIME("fast_gpu_time"),
-    GPU_UNZWIZZLE_MAXTEXTURE_SIZE("gpu_unzwizzle_maxtexture_size"),
-    GPU_UNZWIZZLE_STREAM_SIZE("gpu_unzwizzle_stream_size"),
-    GPU_UNZWIZZLE_CHUNK_SIZE("gpu_unzwizzle_chunk_size"),
+    GPU_UNSWIZZLE_TEXTURE_SIZE("gpu_unswizzle_texture_size"),
+    GPU_UNSWIZZLE_STREAM_SIZE("gpu_unswizzle_stream_size"),
+    GPU_UNSWIZZLE_CHUNK_SIZE("gpu_unswizzle_chunk_size"),
     BAT_TEMPERATURE_UNIT("bat_temperature_unit"),
     CABINET_APPLET("cabinet_applet_mode"),
     CONTROLLER_APPLET("controller_applet_mode"),

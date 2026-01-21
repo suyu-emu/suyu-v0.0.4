@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
@@ -285,18 +285,18 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Overclocks the emulated GPU to increase dynamic resolution and render "
               "distance.\nUse 256 for maximal performance and 512 for maximal graphics fidelity."));
     INSERT(Settings,
-           gpu_unzwizzle_texture_size,
+           gpu_unswizzle_texture_size,
            tr("GPU Unswizzle Max Texture Size"),
            tr("Sets the maximum size (MiB) for GPU-based texture unswizzling.\n"
               "While the GPU is faster for medium and large textures, the CPU may be more efficient for very small ones.\n"
               "Adjust this to find the balance between GPU acceleration and CPU overhead."));
     INSERT(Settings,
-           gpu_unzwizzle_stream_size,
+           gpu_unswizzle_stream_size,
            tr("GPU Unswizzle Stream Size"),
            tr("Sets the maximum amount of texture data (in MiB) processed per frame.\n"
               "Higher values can reduce stutter during texture loading but may impact frame consistency."));
     INSERT(Settings,
-           gpu_unzwizzle_chunk_size,
+           gpu_unswizzle_chunk_size,
            tr("GPU Unswizzle Chunk Size"),
            tr("Determines the number of depth slices processed in a single dispatch.\n"
               "Increasing this can improve throughput on high-end GPUs but may cause TDR or driver timeouts on weaker hardware."));
