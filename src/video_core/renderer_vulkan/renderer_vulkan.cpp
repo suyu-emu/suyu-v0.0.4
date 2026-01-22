@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -193,10 +193,13 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
 
     RenderScreenshot(framebuffers);
     Frame* frame = present_manager.GetRenderFrame();
+
+    scheduler.RequestOutsideRenderPassOperationContext();
     blit_swapchain.DrawToFrame(rasterizer, frame, framebuffers,
                                render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
                                swapchain.GetImageViewFormat());
     scheduler.Flush(*frame->render_ready);
+
     present_manager.Present(frame);
 
     gpu.RendererFrameEndNotify();
@@ -303,6 +306,7 @@ void RendererVulkan::RenderAppletCaptureLayer(
             VideoCore::Capture::Layout, *applet_frame.image_view, CaptureFormat);
     }
 
+    scheduler.RequestOutsideRenderPassOperationContext();
     blit_applet.DrawToFrame(rasterizer, &applet_frame, framebuffers, VideoCore::Capture::Layout, 1,
                             CaptureFormat);
 }
