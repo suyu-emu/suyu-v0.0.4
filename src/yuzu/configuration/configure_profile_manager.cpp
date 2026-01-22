@@ -75,10 +75,8 @@ QPixmap GetIcon(const Common::UUID& uuid) {
     return icon.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 }
 
-QString GetProfileUsernameFromUser(QWidget* parent, const QString& description_text) {
-    return LimitableInputDialog::GetText(parent, ConfigureProfileManager::tr("Enter Username"),
-                                         description_text, 1,
-                                         static_cast<int>(Service::Account::profile_username_size));
+QString GetProfileUsernameFromUser(QWidget* parent, const QString& title, const QString& text) {
+    return LimitableInputDialog::GetText(parent, title, text, 1, int(Service::Account::profile_username_size));
 }
 } // Anonymous namespace
 
@@ -208,16 +206,21 @@ void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
 }
 
 void ConfigureProfileManager::AddUser() {
-    const auto username =
-        GetProfileUsernameFromUser(this, tr("Enter a username for the new user:"));
-    if (username.isEmpty()) {
+    auto const username = GetProfileUsernameFromUser(this, tr("New Username"), tr("Enter a username:"));
+    if (username.isEmpty())
         return;
+
+    auto const uuid_str = GetProfileUsernameFromUser(this, tr("New User UUID"), tr("Enter a UUID (leave empty to autogenerate):"));
+    auto uuid = Common::UUID::MakeRandom();
+    if (uuid_str.length() > 0) {
+        if (size_t(uuid_str.length()) != uuid.uuid.size())
+            return;
+        for (size_t i = 0; i < size_t(uuid_str.length()); ++i)
+            uuid.uuid[i] = u8(uuid_str[i].toLatin1());
     }
 
-    const auto uuid = Common::UUID::MakeRandom();
     profile_manager.CreateNewUser(uuid, username.toStdString());
     profile_manager.WriteUserSaveFile();
-
     item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
 }
 
@@ -230,7 +233,7 @@ void ConfigureProfileManager::RenameUser() {
     if (!profile_manager.GetProfileBase(*uuid, profile))
         return;
 
-    const auto new_username = GetProfileUsernameFromUser(this, tr("Enter a new username:"));
+    const auto new_username = GetProfileUsernameFromUser(this, tr("New Username"), tr("Enter a new username:"));
     if (new_username.isEmpty()) {
         return;
     }
