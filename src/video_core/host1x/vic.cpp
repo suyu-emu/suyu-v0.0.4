@@ -1018,10 +1018,17 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixel
             for (size_t y = 0; y < surface_height; ++y) {
                 auto const src = y * surface_stride, dst = y * out_luma_stride;
                 for (size_t x = 0; x < surface_width; ++x) {
-                    out[dst + x * 4 + 0] = u8(inp[src + x].r >> 2);
-                    out[dst + x * 4 + 1] = u8(inp[src + x].g >> 2);
-                    out[dst + x * 4 + 2] = u8(inp[src + x].b >> 2);
-                    out[dst + x * 4 + 3] = u8(inp[src + x].a >> 2);
+                    if(format == VideoPixelFormat::A8R8G8B8) {
+                        out[dst + x * 4 + 0] = u8(inp[src + x].b >> 2);
+                        out[dst + x * 4 + 1] = u8(inp[src + x].g >> 2);
+                        out[dst + x * 4 + 2] = u8(inp[src + x].r >> 2);
+                        out[dst + x * 4 + 3] = u8(inp[src + x].a >> 2);
+                    } else {
+                        out[dst + x * 4 + 0] = u8(inp[src + x].r >> 2);
+                        out[dst + x * 4 + 1] = u8(inp[src + x].g >> 2);
+                        out[dst + x * 4 + 2] = u8(inp[src + x].b >> 2);
+                        out[dst + x * 4 + 3] = u8(inp[src + x].a >> 2);
+                    }
                 }
             }
         }
