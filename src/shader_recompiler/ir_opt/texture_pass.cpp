@@ -22,18 +22,6 @@
 
 namespace Shader::Optimization {
 namespace {
-struct ConstBufferAddr {
-    u32 index;
-    u32 offset;
-    u32 shift_left;
-    u32 secondary_index;
-    u32 secondary_offset;
-    u32 secondary_shift_left;
-    IR::U32 dynamic_offset;
-    u32 count;
-    bool has_secondary;
-};
-
 struct TextureInst {
     ConstBufferAddr cbuf;
     IR::Inst* inst;
@@ -180,97 +168,58 @@ bool IsTextureInstruction(const IR::Inst& inst) {
     return IndexedInstruction(inst) != IR::Opcode::Void;
 }
 // Per-pass caches
-    struct CbufWordKey {
-        u32 index;
-        u32 offset;
-        bool operator==(const CbufWordKey& o) const noexcept {
-            return index == o.index && offset == o.offset;
-        }
-    };
-    struct CbufWordKeyHash {
-        size_t operator()(const CbufWordKey& k) const noexcept {
-            return (static_cast<size_t>(k.index) << 32) ^ k.offset;
-        }
-    };
 
-    struct HandleKey {
-        u32 index, offset, shift_left;
-        u32 sec_index, sec_offset, sec_shift_left;
-        bool has_secondary;
-        bool operator==(const HandleKey& o) const noexcept {
-            return std::tie(index, offset, shift_left,
-                            sec_index, sec_offset, sec_shift_left, has_secondary)
-                   == std::tie(o.index, o.offset, o.shift_left,
-                               o.sec_index, o.sec_offset, o.sec_shift_left, o.has_secondary);
-        }
-    };
-    struct HandleKeyHash {
-        size_t operator()(const HandleKey& k) const noexcept {
-            size_t h = (static_cast<size_t>(k.index) << 32) ^ k.offset;
-            h ^= (static_cast<size_t>(k.shift_left) << 1);
-            h ^= (static_cast<size_t>(k.sec_index) << 33) ^ (static_cast<size_t>(k.sec_offset) << 2);
-            h ^= (static_cast<size_t>(k.sec_shift_left) << 3);
-            h ^= k.has_secondary ? 0x9e3779b97f4a7c15ULL : 0ULL;
-            return h;
-        }
-    };
+static inline u32 ReadCbufCached(Environment& env, u32 index, u32 offset) {
+    const CbufWordKey k{index, offset};
+    if (auto it = env.cbuf_word_cache.find(k); it != env.cbuf_word_cache.end()) return it->second;
+    const u32 v = env.ReadCbufValue(index, offset);
+    env.cbuf_word_cache.emplace(k, v);
+    return v;
+}
 
-    std::unordered_map<CbufWordKey, u32, CbufWordKeyHash> g_cbuf_word_cache;
-    std::unordered_map<HandleKey,  u32, HandleKeyHash>   g_handle_cache;
-    std::unordered_map<const IR::Inst*, ConstBufferAddr> g_track_cache;
+static inline u32 GetTextureHandleCached(Environment& env, const ConstBufferAddr& cbuf) {
+    const u32 sec_idx  = cbuf.has_secondary ? cbuf.secondary_index  : cbuf.index;
+    const u32 sec_off  = cbuf.has_secondary ? cbuf.secondary_offset : cbuf.offset;
+    const HandleKey hk{cbuf.index, cbuf.offset, cbuf.shift_left,
+                        sec_idx, sec_off, cbuf.secondary_shift_left, cbuf.has_secondary};
+    if (auto it = env.handle_cache.find(hk); it != env.handle_cache.end()) return it->second;
 
-    static inline u32 ReadCbufCached(Environment& env, u32 index, u32 offset) {
-        const CbufWordKey k{index, offset};
-        if (auto it = g_cbuf_word_cache.find(k); it != g_cbuf_word_cache.end()) return it->second;
-        const u32 v = env.ReadCbufValue(index, offset);
-        g_cbuf_word_cache.emplace(k, v);
-        return v;
-    }
-
-    static inline u32 GetTextureHandleCached(Environment& env, const ConstBufferAddr& cbuf) {
-        const u32 sec_idx  = cbuf.has_secondary ? cbuf.secondary_index  : cbuf.index;
-        const u32 sec_off  = cbuf.has_secondary ? cbuf.secondary_offset : cbuf.offset;
-        const HandleKey hk{cbuf.index, cbuf.offset, cbuf.shift_left,
-                           sec_idx, sec_off, cbuf.secondary_shift_left, cbuf.has_secondary};
-        if (auto it = g_handle_cache.find(hk); it != g_handle_cache.end()) return it->second;
-
-        const u32 lhs = ReadCbufCached(env, cbuf.index, cbuf.offset) << cbuf.shift_left;
-        const u32 rhs = ReadCbufCached(env, sec_idx,   sec_off)      << cbuf.secondary_shift_left;
-        const u32 handle = lhs | rhs;
-        g_handle_cache.emplace(hk, handle);
-        return handle;
-    }
+    const u32 lhs = ReadCbufCached(env, cbuf.index, cbuf.offset) << cbuf.shift_left;
+    const u32 rhs = ReadCbufCached(env, sec_idx,   sec_off)      << cbuf.secondary_shift_left;
+    const u32 handle = lhs | rhs;
+    env.handle_cache.emplace(hk, handle);
+    return handle;
+}
 
 // Cached variants of existing helpers
-    static inline TextureType ReadTextureTypeCached(Environment& env, const ConstBufferAddr& cbuf) {
-        return env.ReadTextureType(GetTextureHandleCached(env, cbuf));
-    }
-    static inline TexturePixelFormat ReadTexturePixelFormatCached(Environment& env,
-                                                                  const ConstBufferAddr& cbuf) {
-        return env.ReadTexturePixelFormat(GetTextureHandleCached(env, cbuf));
-    }
-    static inline bool IsTexturePixelFormatIntegerCached(Environment& env,
-                                                         const ConstBufferAddr& cbuf) {
-        return env.IsTexturePixelFormatInteger(GetTextureHandleCached(env, cbuf));
-    }
+static inline TextureType ReadTextureTypeCached(Environment& env, const ConstBufferAddr& cbuf) {
+    return env.ReadTextureType(GetTextureHandleCached(env, cbuf));
+}
+static inline TexturePixelFormat ReadTexturePixelFormatCached(Environment& env,
+                                                                const ConstBufferAddr& cbuf) {
+    return env.ReadTexturePixelFormat(GetTextureHandleCached(env, cbuf));
+}
+static inline bool IsTexturePixelFormatIntegerCached(Environment& env,
+                                                        const ConstBufferAddr& cbuf) {
+    return env.IsTexturePixelFormatInteger(GetTextureHandleCached(env, cbuf));
+}
 
 
-    std::optional<ConstBufferAddr> Track(const IR::Value& value, Environment& env);
-    static inline std::optional<ConstBufferAddr> TrackCached(const IR::Value& v, Environment& env) {
-        if (const IR::Inst* key = v.InstRecursive()) {
-            if (auto it = g_track_cache.find(key); it != g_track_cache.end()) return it->second;
-            auto found = Track(v, env);
-            if (found) g_track_cache.emplace(key, *found);
-            return found;
-        }
-        return Track(v, env);
+std::optional<ConstBufferAddr> Track(const IR::Value& value, Environment& env);
+static inline std::optional<ConstBufferAddr> TrackCached(const IR::Value& v, Environment& env) {
+    if (const IR::Inst* key = v.InstRecursive()) {
+        if (auto it = env.track_cache.find(key); it != env.track_cache.end()) return it->second;
+        auto found = Track(v, env);
+        if (found) env.track_cache.emplace(key, *found);
+        return found;
     }
+    return Track(v, env);
+}
 
 std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environment& env);
 
 std::optional<ConstBufferAddr> Track(const IR::Value& value, Environment& env) {
-    return IR::BreadthFirstSearch(
-        value, [&env](const IR::Inst* inst) { return TryGetConstBuffer(inst, env); });
+    return IR::BreadthFirstSearch(value, [&env](const IR::Inst* inst) { return TryGetConstBuffer(inst, env); });
 }
 
 std::optional<u32> TryGetConstant(IR::Value& value, Environment& env) {
@@ -617,9 +566,9 @@ void PatchTexelFetch(IR::Block& block, IR::Inst& inst, TexturePixelFormat pixel_
 
 void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo& host_info) {
     // reset per-pass caches
-    g_cbuf_word_cache.clear();
-    g_handle_cache.clear();
-    g_track_cache.clear();
+    env.cbuf_word_cache.clear();
+    env.handle_cache.clear();
+    env.track_cache.clear();
     TextureInstVector to_replace;
     for (IR::Block* const block : program.post_order_blocks) {
         for (IR::Inst& inst : block->Instructions()) {
