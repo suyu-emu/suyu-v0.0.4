@@ -171,14 +171,27 @@
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <com.google.android.material.navigation.NavigationView
-        android:id="@+id/in_game_menu"
+        android:id="@+id/quick_settings_sheet"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
+        android:layout_gravity="end"
         android:focusedByDefault="true"
-        app:headerLayout="@layout/header_in_game"
-        app:menu="@menu/menu_in_game"
         android:background="?attr/colorSurface"
-        tools:visibility="gone" />
+        tools:visibility="gone">
+
+        <include layout="@layout/layout_quick_settings" />
+
+    </com.google.android.material.navigation.NavigationView>
+
+    <com.google.android.material.navigation.NavigationView
+    android:id="@+id/in_game_menu"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="start"
+    android:focusedByDefault="true"
+    app:headerLayout="@layout/header_in_game"
+    app:menu="@menu/menu_in_game"
+    android:background="?attr/colorSurface"
+    tools:visibility="gone" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

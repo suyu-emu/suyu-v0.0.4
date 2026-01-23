@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -68,12 +68,14 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
+import org.yuzu.yuzu_emu.dialogs.QuickSettings
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.Settings.EmulationOrientation
 import org.yuzu.yuzu_emu.features.settings.model.Settings.EmulationVerticalAlignment
+import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.EmulationViewModel
@@ -96,6 +98,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.or
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private lateinit var emulationState: EmulationState
@@ -135,6 +138,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private var wasInputOverlayAutoHidden = false
     private var overlayTouchActive = false
+
+    var shouldUseCustom = false
+    private var isQuickSettingsMenuOpen = false
+    private val quickSettings = QuickSettings(this)
 
     private val loadAmiiboLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -283,7 +290,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 // Normal game launch from arguments
                 else -> {
-                    val shouldUseCustom = game?.let { it == args.game && args.custom } ?: false
+                    shouldUseCustom = game?.let { it == args.game && args.custom } ?: false
 
                     if (shouldUseCustom) {
                         SettingsFile.loadCustomConfig(game!!)
@@ -659,6 +666,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 binding.inGameMenu.requestFocus()
                 emulationViewModel.setDrawerOpen(true)
                 updateQuickOverlayMenuEntry(BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean())
+                if (drawerView == binding.inGameMenu) {
+                    binding.drawerLayout.closeDrawer(binding.quickSettingsSheet)
+                } else if (drawerView == binding.quickSettingsSheet) {
+                    binding.drawerLayout.closeDrawer(binding.inGameMenu)
+                }
             }
 
             override fun onDrawerClosed(drawerView: View) {
@@ -726,7 +738,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         Settings.MenuTag.SECTION_ROOT
                     )
                     binding.inGameMenu.requestFocus()
+                    binding.drawerLayout.closeDrawer(binding.quickSettingsSheet)
                     binding.root.findNavController().navigate(action)
+                    true
+                }
+
+                R.id.menu_quick_settings -> {
+                    openQuickSettingsMenu()
                     true
                 }
 
@@ -736,6 +754,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         Settings.MenuTag.SECTION_ROOT
                     )
                     binding.inGameMenu.requestFocus()
+                    binding.drawerLayout.closeDrawer(binding.quickSettingsSheet)
                     binding.root.findNavController().navigate(action)
                     true
                 }
@@ -800,6 +819,36 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 else -> true
             }
         }
+
+        addQuickSettings()
+
+        binding.drawerLayout.addDrawerListener(object : DrawerListener {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                // no op
+            }
+
+            override fun onDrawerOpened(drawerView: View) {
+                if (drawerView == binding.quickSettingsSheet) {
+                    isQuickSettingsMenuOpen = true
+                    if (shouldUseCustom) {
+                        SettingsFile.loadCustomConfig(args.game!!)
+                    }
+                }
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+                if (drawerView == binding.quickSettingsSheet) {
+                    isQuickSettingsMenuOpen = false
+                    if (shouldUseCustom) {
+                        NativeConfig.unloadPerGameConfig()
+                    }
+                }
+            }
+
+            override fun onDrawerStateChanged(newState: Int) {
+                // No op
+            }
+        })
 
         setInsets()
 
@@ -979,6 +1028,73 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
+    private fun addQuickSettings() {
+        binding.quickSettingsSheet.apply {
+            val container = binding.quickSettingsSheet.findViewById<ViewGroup>(R.id.quick_settings_container)
+
+            container.removeAllViews()
+
+            if (shouldUseCustom) {
+                quickSettings.addPerGameConfigStatusIndicator(container)
+            }
+
+            quickSettings.addBooleanSetting(
+                container,
+                BooleanSetting.RENDERER_USE_SPEED_LIMIT,
+            )
+
+            quickSettings.addSliderSetting(
+                container,
+                ShortSetting.RENDERER_SPEED_LIMIT,
+                minValue = 0,
+                maxValue = 400,
+                units = "%",
+            )
+
+            quickSettings.addBooleanSetting(
+                container,
+                BooleanSetting.USE_DOCKED_MODE,
+            )
+
+            quickSettings.addDivider(container)
+
+            quickSettings.addIntSetting(
+                container,
+                IntSetting.RENDERER_ACCURACY,
+                R.array.rendererAccuracyNames,
+                R.array.rendererAccuracyValues
+            )
+
+
+            quickSettings.addIntSetting(
+                container,
+                IntSetting.RENDERER_SCALING_FILTER,
+                R.array.rendererScalingFilterNames,
+                R.array.rendererScalingFilterValues
+            )
+
+            quickSettings.addSliderSetting(
+                container,
+                IntSetting.FSR_SHARPENING_SLIDER,
+                minValue = 0,
+                maxValue = 100,
+                units = "%"
+            )
+
+            quickSettings.addIntSetting(
+                container,
+                IntSetting.RENDERER_ANTI_ALIASING,
+                R.array.rendererAntiAliasingNames,
+                R.array.rendererAntiAliasingValues
+            )
+        }
+    }
+
+    private fun openQuickSettingsMenu() {
+        binding.drawerLayout.closeDrawer(binding.inGameMenu)
+        binding.drawerLayout.openDrawer(binding.quickSettingsSheet)
+    }
+
     private fun updateQuickOverlayMenuEntry(isVisible: Boolean) {
         val b = _binding ?: return
         val item = b.inGameMenu.menu.findItem(R.id.menu_quick_overlay) ?: return
@@ -1151,6 +1267,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         // we need to reinitialize the auto-hide timer
         initializeOverlayAutoHide()
 
+        addQuickSettings()
     }
 
     private fun resetInputOverlay() {
@@ -1808,6 +1925,26 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             v.setPadding(left, cutInsets.top, right, 0)
 
             windowInsets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.quickSettingsSheet) { v, insets ->
+            val systemBarsInsets: Insets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+           if (v.layoutDirection == View.LAYOUT_DIRECTION_LTR) {
+                v.setPadding(
+                    systemBarsInsets.left,
+                    systemBarsInsets.top,
+                    0,
+                    systemBarsInsets.bottom
+                )
+            } else {
+                v.setPadding(
+                    0,
+                    systemBarsInsets.top,
+                    systemBarsInsets.right,
+                    systemBarsInsets.bottom
+                )
+            }
+            insets
         }
     }
 

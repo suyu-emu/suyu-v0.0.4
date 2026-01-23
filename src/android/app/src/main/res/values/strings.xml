@@ -21,6 +21,7 @@
     <string name="value_too_high">Value must be at most %1$d</string>
     <string name="invalid_value">Invalid value</string>
 
+    <string name="using_per_game_config">Using Per-Game Config</string>
 
     <!-- Input Overlay -->
     <string name="show_input_overlay">Show Input Overlay</string>
@@ -709,6 +710,7 @@
     <string name="preferences_system_description">Docked mode, region, language</string>
     <string name="preferences_graphics">Graphics</string>
     <string name="preferences_graphics_description">Accuracy level, resolution, shader cache</string>
+    <string name="quick_settings">Quick Settings</string>
     <string name="preferences_audio">Audio</string>
     <string name="preferences_audio_description">Output engine, volume</string>
     <string name="preferences_controls">Controls</string>

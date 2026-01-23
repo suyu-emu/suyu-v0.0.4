@@ -19,6 +19,11 @@
         android:title="@string/preferences_settings" />
 
     <item
+        android:id="@+id/menu_quick_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/quick_settings" />
+
+    <item
         android:id="@+id/menu_settings_per_game"
         android:icon="@drawable/ic_settings_outline"
         android:title="@string/per_game_settings" />
