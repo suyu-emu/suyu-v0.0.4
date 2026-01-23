@@ -53,6 +53,8 @@ public:
     Result GetFreeSpaceSize(Out<s64> out_free_space_size, FileSys::StorageId storage_id);
     Result GetGameCardUpdateDetectionEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result ResumeAll();
+    Result IsQualificationTransitionSupportedByProcessId(Out<bool> out_is_supported,
+                                                         u64 process_id);
     Result GetStorageSize(Out<s64> out_total_space_size, Out<s64> out_free_space_size,
                           FileSys::StorageId storage_id);
     Result TouchApplication(u64 application_id);

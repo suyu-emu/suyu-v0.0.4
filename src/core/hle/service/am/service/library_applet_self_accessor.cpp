@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -83,7 +83,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_,
         {130, nullptr, "GetGpuErrorDetectedSystemEvent"},
         {140, nullptr, "SetApplicationMemoryReservation"},
         {150, D<&ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually>, "ShouldSetGpuTimeSliceManually"},
-        {160, D<&ILibraryAppletSelfAccessor::Cmd160>, "Cmd160"},
+        {160, D<&ILibraryAppletSelfAccessor::GetLibraryAppletInfoEx>, "GetLibraryAppletInfoEx"},
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -323,9 +323,13 @@ Result ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually(
     R_SUCCEED();
 }
 
-Result ILibraryAppletSelfAccessor::Cmd160(Out<u64> out_unknown0) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
-    *out_unknown0 = 0;
+Result ILibraryAppletSelfAccessor::GetLibraryAppletInfoEx(
+    Out<LibraryAppletInfo> out_library_applet_info) {
+    LOG_INFO(Service_AM, "called");
+    *out_library_applet_info = {
+        .applet_id = m_applet->applet_id,
+        .library_applet_mode = m_applet->library_applet_mode,
+    };
     R_SUCCEED();
 }
 

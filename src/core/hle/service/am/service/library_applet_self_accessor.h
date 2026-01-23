@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -75,7 +78,7 @@ private:
     Result GetMainAppletAvailableUsers(Out<bool> out_can_select_any_user, Out<s32> out_users_count,
                                        OutArray<Common::UUID, BufferAttr_HipcMapAlias> out_users);
     Result ShouldSetGpuTimeSliceManually(Out<bool> out_should_set_gpu_time_slice_manually);
-    Result Cmd160(Out<u64> out_unknown0);
+    Result GetLibraryAppletInfoEx(Out<LibraryAppletInfo> out_library_applet_info);
 
     const std::shared_ptr<Applet> m_applet;
     const std::shared_ptr<AppletDataBroker> m_broker;

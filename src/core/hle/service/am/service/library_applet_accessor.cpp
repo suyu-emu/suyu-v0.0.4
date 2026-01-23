@@ -1,17 +1,53 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/settings.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/applet_manager.h"
+#include "core/hle/service/am/frontend/applet_profile_select.h"
 #include "core/hle/service/am/frontend/applets.h"
+#include "core/hle/service/am/library_applet_storage.h"
 #include "core/hle/service/am/service/library_applet_accessor.h"
 #include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/cmif_serialization.h"
 
 namespace Service::AM {
+
+namespace {
+
+void EnableSingleUserPlay(const std::shared_ptr<LibraryAppletStorage>& impl) {
+    constexpr s64 DisplayOptionsOffset = 0x90;
+    constexpr s64 IsSkipEnabledOffset = 1;
+    constexpr s64 ShowSkipButtonOffset = 4;
+    constexpr bool enabled = true;
+
+    impl->Write(DisplayOptionsOffset + IsSkipEnabledOffset, &enabled, sizeof(enabled));
+    impl->Write(DisplayOptionsOffset + ShowSkipButtonOffset, &enabled, sizeof(enabled));
+}
+
+void ReplaceEmptyUuidWithCurrentUser(const std::shared_ptr<LibraryAppletStorage>& impl) {
+    Frontend::UiReturnArg return_arg{};
+    impl->Read(0, &return_arg, sizeof(return_arg));
+
+    if (return_arg.uuid_selected.IsValid()) {
+        return;
+    }
+
+    Service::Account::ProfileManager profile_manager;
+    const auto current_user_idx = Settings::values.current_user.GetValue();
+
+    if (auto uuid = profile_manager.GetUser(current_user_idx)) {
+        return_arg.result = 0;
+        return_arg.uuid_selected = *uuid;
+        impl->Write(0, &return_arg, sizeof(return_arg));
+    }
+}
+
+} // namespace
 
 ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
                                                std::shared_ptr<AppletDataBroker> broker,
@@ -106,19 +142,45 @@ Result ILibraryAppletAccessor::Unknown90() {
 
 Result ILibraryAppletAccessor::PushInData(SharedPointer<IStorage> storage) {
     LOG_DEBUG(Service_AM, "called");
+
+    // Special case for ProfileSelect applet, to enable single user play as
+    // somehow some games want an additional user and not let you continue...
+    if (m_applet->applet_id == AppletId::ProfileSelect) {
+        auto impl = storage->GetImpl();
+        const s64 size = impl->GetSize();
+
+        const bool is_ui_settings = size == sizeof(Frontend::UiSettings) ||
+                                    size == sizeof(Frontend::UiSettingsV1);
+        if (is_ui_settings) {
+            EnableSingleUserPlay(impl);
+        }
+    }
+
     m_broker->GetInData().Push(storage);
     R_SUCCEED();
 }
 
 Result ILibraryAppletAccessor::PopOutData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_DEBUG(Service_AM, "called");
+
     if (auto caller_applet = m_applet->caller_applet.lock(); caller_applet) {
         caller_applet->lifecycle_manager.GetSystemEvent().Signal();
         caller_applet->lifecycle_manager.RequestResumeNotification();
         caller_applet->lifecycle_manager.GetSystemEvent().Clear();
         caller_applet->lifecycle_manager.UpdateRequestedFocusState();
     }
-    R_RETURN(m_broker->GetOutData().Pop(out_storage.Get()));
+
+    R_TRY(m_broker->GetOutData().Pop(out_storage.Get()));
+
+    if (m_applet->applet_id == AppletId::ProfileSelect && *out_storage) {
+        auto impl = (*out_storage)->GetImpl();
+
+        if (impl->GetSize() == sizeof(Frontend::UiReturnArg)) {
+            ReplaceEmptyUuidWithCurrentUser(impl);
+        }
+    }
+
+    R_SUCCEED();
 }
 
 Result ILibraryAppletAccessor::PushInteractiveInData(SharedPointer<IStorage> storage) {

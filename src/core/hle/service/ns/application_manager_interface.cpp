@@ -361,7 +361,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {2517, nullptr, "CreateApplicationInstance"},
         {2518, nullptr, "UpdateQualificationForDebug"},
         {2519, nullptr, "IsQualificationTransitionSupported"},
-        {2520, nullptr, "IsQualificationTransitionSupportedByProcessId"},
+        {2520, D<&IApplicationManagerInterface::IsQualificationTransitionSupportedByProcessId>, "IsQualificationTransitionSupportedByProcessId"},
         {2521, nullptr, "GetRightsUserChangedEvent"},
         {2522, nullptr, "IsRomRedirectionAvailable"},
         {2523, nullptr, "GetProgramId"}, //17.0.0+
@@ -766,6 +766,13 @@ Result IApplicationManagerInterface::GetGameCardUpdateDetectionEvent(
 
 Result IApplicationManagerInterface::ResumeAll() {
     LOG_WARNING(Service_NS, "(STUBBED) called");
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::IsQualificationTransitionSupportedByProcessId(
+    Out<bool> out_is_supported, u64 process_id) {
+    LOG_WARNING(Service_NS, "(STUBBED) called, process_id={}", process_id);
+    *out_is_supported = true;
     R_SUCCEED();
 }
 
