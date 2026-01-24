@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -28,7 +28,7 @@ IOlscServiceForSystemService::IOlscServiceForSystemService(Core::System& system_
         {102, nullptr, "RemoveLastErrorInfoOld"},
         {103, nullptr, "GetLastErrorInfo"},
         {104, nullptr, "GetLastErrorEventHolder"},
-        {105, nullptr, "GetLastTransferTaskErrorInfo"},
+        {105, D<&IOlscServiceForSystemService::GetTransferTaskErrorInfo>, "GetTransferTaskErrorInfo"},
         {200, D<&IOlscServiceForSystemService::GetDataTransferPolicy>, "GetDataTransferPolicy"},
         {201, nullptr, "DeleteDataTransferPolicyCache"},
         {202, nullptr, "Unknown202"},
@@ -113,6 +113,24 @@ Result IOlscServiceForSystemService::GetDataTransferPolicy(
     policy.upload_policy = 0;
     policy.download_policy = 0;
     *out_policy = policy;
+    R_SUCCEED();
+}
+
+Result IOlscServiceForSystemService::GetTransferTaskErrorInfo(Out<TransferTaskErrorInfo> out_info,
+                                                             Common::UUID uuid, u64 application_id) {
+    LOG_WARNING(Service_OLSC, "(STUBBED) called, uuid={} application_id={:016X}",
+                uuid.FormattedString(), application_id);
+
+    TransferTaskErrorInfo info{};
+    info.uid = uuid;
+    info.application_id = application_id;
+    info.unknown_0x18 = 0;
+    info.reserved_0x19.fill(0);
+    info.unknown_0x20 = 0;
+    info.error_code = 0;
+    info.reserved_0x2C = 0;
+
+    *out_info = info;
     R_SUCCEED();
 }
 

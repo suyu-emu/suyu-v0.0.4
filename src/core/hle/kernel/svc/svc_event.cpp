@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -9,7 +9,6 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc.h"
 
 namespace Kernel::Svc {
@@ -19,6 +18,20 @@ Result SignalEvent(Core::System& system, Handle event_handle) {
 
     // Get the current handle table.
     const KHandleTable& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
+
+    // Fail-safe for system applets
+    const auto program_id = GetCurrentProcess(system.Kernel()).GetProgramId();
+    if ((program_id & 0xFFFFFFFFFFFFFF00ull) == 0x0100000000001000ull) {
+        KScopedAutoObject event = handle_table.GetObject<KEvent>(event_handle);
+        if (event.IsNotNull()) {
+            event->Signal();
+        } else {
+            LOG_WARNING(Kernel_SVC, "SignalEvent best-effort unknown handle=0x{:08X} (ignored)",
+                        event_handle);
+        }
+        R_SUCCEED();
+    }
+
 
     // Get the event.
     KScopedAutoObject event = handle_table.GetObject<KEvent>(event_handle);

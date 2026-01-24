@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/hle/service/bcat/news/builtin_news.h"
@@ -108,8 +108,8 @@ std::vector<u8> DownloadImage(const std::string& url_path, const std::filesystem
     try {
         httplib::Client cli("https://eden-emu.dev");
         cli.set_follow_location(true);
-        cli.set_connection_timeout(std::chrono::seconds(10));
-        cli.set_read_timeout(std::chrono::seconds(30));
+        cli.set_connection_timeout(std::chrono::seconds(2));
+        cli.set_read_timeout(std::chrono::seconds(2));
 
 #ifdef YUZU_BUNDLED_OPENSSL
         cli.load_ca_cert_store(kCert, sizeof(kCert));

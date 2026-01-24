@@ -172,7 +172,6 @@
      <addaction name="action_Launch_QLaunch"/>
      <addaction name="action_Launch_MiiEdit"/>
      <addaction name="action_Launch_Controller"/>
-     <addaction name="action_Launch_Setup"/>
      <addaction name="action_Launch_PhotoViewer"/>
     </widget>
     <widget class="QMenu" name="menuTAS">
@@ -506,14 +505,6 @@
   <action name="action_Launch_QLaunch">
    <property name="text">
     <string>&amp;Home Menu</string>
-   </property>
-  </action>
-  <action name="action_Launch_Setup">
-   <property name="text">
-    <string>&amp;Setup</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="action_Desktop">

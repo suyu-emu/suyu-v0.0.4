@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -24,7 +24,7 @@ IRemoteStorageController::IRemoteStorageController(Core::System& system_)
         {11, nullptr, "CreateDeleteDataTask"},
         {12, nullptr, "DeleteSeriesInfo"},
         {13, nullptr, "CreateRegisterNotificationTokenTask"},
-        {14, nullptr, "UpdateSeriesInfo"},
+        {14, D<&IRemoteStorageController::GetDataNewnessByApplicationId>, "GetDataNewnessByApplicationId"},
         {15, nullptr, "RegisterUploadSaveDataTransferTaskForAutonomyRegistration"},
         {16, nullptr, "CreateCleanupToDeleteSaveDataArchiveInfoTask"},
         {17, nullptr, "ListDataInfo"},
@@ -37,7 +37,7 @@ IRemoteStorageController::IRemoteStorageController(Core::System& system_)
         {24, nullptr, "GetSecondarySaveDataInfo"},
         {25, nullptr, "RegisterDownloadSaveDataTransferTaskForAutonomyRegistration"},
         {26, nullptr, "Unknown26"}, //20.0.0+
-        {27, nullptr, "Unknown27"}, //20.0.0+
+        {27, D<&IRemoteStorageController::Unknown27>, "Unknown27"}, //20.0.0+
         {28, nullptr, "Unknown28"}, //20.0.0+
         {29, nullptr, "Unknown29"}, //21.0.0+
         {800, nullptr, "Unknown800"}, //20.0.0+
@@ -57,6 +57,19 @@ Result IRemoteStorageController::GetSecondarySave(Out<bool> out_has_secondary_sa
     LOG_ERROR(Service_OLSC, "(STUBBED) called, application_id={:016X}", application_id);
     *out_has_secondary_save = false;
     *out_unknown = {};
+    R_SUCCEED();
+}
+
+Result IRemoteStorageController::GetDataNewnessByApplicationId(Out<u8> out_newness,
+                                                              u64 application_id) {
+    LOG_WARNING(Service_OLSC, "(STUBBED) called, application_id={:016X}", application_id);
+    *out_newness = 0;
+    R_SUCCEED();
+}
+
+Result IRemoteStorageController::Unknown27(Out<std::array<u8, 0x38>> out_data, u64 application_id) {
+    LOG_WARNING(Service_OLSC, "(STUBBED) called, application_id={:016X}", application_id);
+    out_data->fill(0);
     R_SUCCEED();
 }
 

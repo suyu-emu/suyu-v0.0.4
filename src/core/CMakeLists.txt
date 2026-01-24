@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
@@ -928,6 +928,8 @@ add_library(core STATIC
     hle/service/olsc/olsc.h
     hle/service/olsc/remote_storage_controller.cpp
     hle/service/olsc/remote_storage_controller.h
+    hle/service/olsc/stopper_object.cpp
+    hle/service/olsc/stopper_object.h
     hle/service/olsc/transfer_task_list_controller.cpp
     hle/service/olsc/transfer_task_list_controller.h
     hle/service/omm/omm.cpp

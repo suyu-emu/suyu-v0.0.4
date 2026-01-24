@@ -1,4 +1,3 @@
-#pragma once
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -9,6 +8,7 @@
 
 #include "common/uuid.h"
 #include "core/hle/service/cmif_types.h"
+#include "core/hle/service/olsc/stopper_object.h"
 #include "core/hle/service/service.h"
 
 namespace Service::OLSC {
@@ -31,6 +31,8 @@ private:
 
     Result GetGlobalAutoDownloadSetting(Out<bool> out_is_enabled, Common::UUID user_id);
     Result SetGlobalAutoDownloadSetting(bool is_enabled, Common::UUID user_id);
+
+    Result StopAutonomyTaskExecution(Out<SharedPointer<IStopperObject>> out_stopper);
 
     Result GetAutonomyTaskStatus(Out<u8> out_status, Common::UUID user_id);
 

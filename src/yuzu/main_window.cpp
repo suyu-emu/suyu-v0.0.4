@@ -1630,9 +1630,6 @@ void MainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Launch_QLaunch, [this]{
         LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
     });
-    connect_menu(ui->action_Launch_Setup, [this]{
-        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Starter), std::nullopt);
-    });
     // Tools (cabinet)
     connect_menu(ui->action_Launch_Cabinet_Nickname_Owner, [this]{
         LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartNicknameAndOwnerSettings});

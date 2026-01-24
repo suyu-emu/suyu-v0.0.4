@@ -21,7 +21,7 @@ IDaemonController::IDaemonController(Core::System& system_)
         {5, D<&IDaemonController::GetGlobalAutoDownloadSetting>, "GetGlobalAutoDownloadSetting"}, // 11.0.0+
         {6, D<&IDaemonController::SetGlobalAutoDownloadSetting>, "SetGlobalAutoDownloadSetting"}, // 11.0.0+
         {10, nullptr, "CreateForbiddenSaveDataInidication"},
-        {11, nullptr, "StopAutonomyTaskExecution"},
+        {11, D<&IDaemonController::StopAutonomyTaskExecution>, "StopAutonomyTaskExecution"},
         {12, D<&IDaemonController::GetAutonomyTaskStatus>, "GetAutonomyTaskStatus"},
         {13, nullptr, "Unknown13_20_0_0_Plus"}, // 20.0.0+
     };
@@ -89,6 +89,13 @@ Result IDaemonController::GetGlobalAutoDownloadSetting(Out<bool> out_is_enabled,
 Result IDaemonController::SetGlobalAutoDownloadSetting(bool is_enabled, Common::UUID user_id) {
     LOG_INFO(Service_OLSC, "called, user_id={} is_enabled={}", user_id.FormattedString(), is_enabled);
     global_auto_download_[user_id] = is_enabled;
+    R_SUCCEED();
+}
+
+Result IDaemonController::StopAutonomyTaskExecution(Out<SharedPointer<IStopperObject>> out_stopper) {
+    LOG_WARNING(Service_OLSC, "(STUBBED) called");
+
+    *out_stopper = std::make_shared<IStopperObject>(system);
     R_SUCCEED();
 }
 

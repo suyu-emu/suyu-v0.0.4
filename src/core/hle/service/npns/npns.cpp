@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -18,7 +18,8 @@ namespace Service::NPNS {
 class INpnsSystem final : public ServiceFramework<INpnsSystem> {
 public:
     explicit INpnsSystem(Core::System& system_)
-        : ServiceFramework{system_, "npns:s"}, service_context{system, "npns:s"} {
+        : ServiceFramework{system_, "npns:s"}, service_context{system, "npns:s"},
+          get_receive_event{service_context}, get_request_change_state_cancel_event{service_context} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "ListenAll"},
@@ -91,16 +92,9 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
-
-        get_receive_event = service_context.CreateEvent("npns:s:GetReceiveEvent");
-        get_request_change_state_cancel_event =
-            service_context.CreateEvent("npns:s:GetRequestChangeStateCancelEvent");
     }
 
-    ~INpnsSystem() override {
-        service_context.CloseEvent(get_receive_event);
-        service_context.CloseEvent(get_request_change_state_cancel_event);
-    }
+    ~INpnsSystem() override = default;
 
 private:
     Result ListenTo(u32 program_id) {
@@ -111,7 +105,7 @@ private:
     Result GetReceiveEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
         LOG_WARNING(Service_NPNS, "(STUBBED) called");
 
-        *out_event = &get_receive_event->GetReadableEvent();
+        *out_event = get_receive_event.GetHandle();
         R_SUCCEED();
     }
 
@@ -141,20 +135,20 @@ private:
 
         // TODO (jarrodnorwell)
 
-        *out_event = &get_request_change_state_cancel_event->GetReadableEvent();
+        *out_event = get_request_change_state_cancel_event.GetHandle();
 
         R_SUCCEED();
     }
 
     KernelHelpers::ServiceContext service_context;
-    Kernel::KEvent* get_receive_event;
-    Kernel::KEvent* get_request_change_state_cancel_event;
+    Event get_receive_event;
+    Event get_request_change_state_cancel_event;
 };
 
 class INpnsUser final : public ServiceFramework<INpnsUser> {
 public:
     explicit INpnsUser(Core::System& system_)
-        : ServiceFramework{system_, "npns:u"}, service_context{system, "npns:u"} {
+        : ServiceFramework{system_, "npns:u"}, service_context{system, "npns:u"}, get_receive_event{service_context} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "ListenAll"},
@@ -182,12 +176,6 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
-
-        get_receive_event = service_context.CreateEvent("npns:u:GetReceiveEvent");
-    }
-
-    ~INpnsUser() override {
-        service_context.CloseEvent(get_receive_event);
     }
 
 private:
@@ -203,12 +191,12 @@ private:
     Result GetReceiveEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
         LOG_DEBUG(Service_NPNS, "called");
 
-        *out_event = &get_receive_event->GetReadableEvent();
+        *out_event = get_receive_event.GetHandle();
         R_SUCCEED();
     }
 
     KernelHelpers::ServiceContext service_context;
-    Kernel::KEvent* get_receive_event;
+    Event get_receive_event;
 };
 
 void LoopProcess(Core::System& system) {
