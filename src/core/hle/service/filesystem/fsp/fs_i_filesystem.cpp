@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -163,11 +163,42 @@ Result IFileSystem::GetFileTimeStampRaw(
 Result IFileSystem::GetFileSystemAttribute(Out<FileSys::FileSystemAttribute> out_attribute) {
     LOG_WARNING(Service_FS, "(STUBBED) called");
 
+    constexpr s32 kEntryNameLengthMax = 0x80;
+    constexpr s32 kPathLengthMax = 0x300;
+
     FileSys::FileSystemAttribute savedata_attribute{};
+
     savedata_attribute.dir_entry_name_length_max_defined = true;
     savedata_attribute.file_entry_name_length_max_defined = true;
-    savedata_attribute.dir_entry_name_length_max = 0x40;
-    savedata_attribute.file_entry_name_length_max = 0x40;
+    savedata_attribute.dir_path_name_length_max_defined = true;
+    savedata_attribute.file_path_name_length_max_defined = true;
+
+    savedata_attribute.utf16_create_dir_path_len_max_defined = true;
+    savedata_attribute.utf16_delete_dir_path_len_max_defined = true;
+    savedata_attribute.utf16_rename_src_dir_path_len_max_defined = true;
+    savedata_attribute.utf16_rename_dest_dir_path_len_max_defined = true;
+    savedata_attribute.utf16_open_dir_path_len_max_defined = true;
+
+    savedata_attribute.utf16_dir_entry_name_length_max_defined = true;
+    savedata_attribute.utf16_file_entry_name_length_max_defined = true;
+    savedata_attribute.utf16_dir_path_name_length_max_defined = true;
+    savedata_attribute.utf16_file_path_name_length_max_defined = true;
+
+    savedata_attribute.dir_entry_name_length_max = kEntryNameLengthMax;
+    savedata_attribute.file_entry_name_length_max = kEntryNameLengthMax;
+    savedata_attribute.dir_path_name_length_max = kPathLengthMax;
+    savedata_attribute.file_path_name_length_max = kPathLengthMax;
+
+    savedata_attribute.utf16_create_dir_path_length_max = kPathLengthMax;
+    savedata_attribute.utf16_delete_dir_path_length_max = kPathLengthMax;
+    savedata_attribute.utf16_rename_src_dir_path_length_max = kPathLengthMax;
+    savedata_attribute.utf16_rename_dest_dir_path_length_max = kPathLengthMax;
+    savedata_attribute.utf16_open_dir_path_length_max = kPathLengthMax;
+
+    savedata_attribute.utf16_dir_entry_name_length_max = kEntryNameLengthMax;
+    savedata_attribute.utf16_file_entry_name_length_max = kEntryNameLengthMax;
+    savedata_attribute.utf16_dir_path_name_length_max = kPathLengthMax;
+    savedata_attribute.utf16_file_path_name_length_max = kPathLengthMax;
 
     *out_attribute = savedata_attribute;
     R_SUCCEED();
