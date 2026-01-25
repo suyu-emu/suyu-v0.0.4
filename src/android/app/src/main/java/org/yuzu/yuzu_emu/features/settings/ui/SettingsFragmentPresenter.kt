@@ -242,9 +242,11 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.USE_CUSTOM_CPU_TICKS.key)
             add(IntSetting.CPU_TICKS.key)
 
-            add(HeaderSetting(R.string.network))
-            add(StringSetting.WEB_TOKEN.key)
-            add(StringSetting.WEB_USERNAME.key)
+            if (!NativeConfig.isPerGameConfigLoaded()) {
+                add(HeaderSetting(R.string.network))
+                add(StringSetting.WEB_TOKEN.key)
+                add(StringSetting.WEB_USERNAME.key)
+            }
         }
     }
 
@@ -1206,9 +1208,11 @@ class SettingsFragmentPresenter(
             add(SettingsItem.FASTMEM_COMBINED)
             add(BooleanSetting.CPUOPT_UNSAFE_HOST_MMU.key)
 
-            add(HeaderSetting(R.string.log))
+            if (!NativeConfig.isPerGameConfigLoaded()) {
+                add(HeaderSetting(R.string.log))
 
-            add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
+                add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
+            }
 
             add(HeaderSetting(R.string.general))
 
