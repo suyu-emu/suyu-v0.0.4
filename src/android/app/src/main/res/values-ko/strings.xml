@@ -47,6 +47,8 @@
     <string name="soc_overlay_options">장치 오버레이</string>
     <string name="soc_overlay_options_description">장치 오버레이에 표시할 정보 구성</string>
 
+    <string name="show_build_id">빌드 ID 표시</string>
+    <string name="show_driver_version">드라이버 버전 표시</string>
     <string name="show_device_model">장치 모델 표시</string>
     <string name="show_gpu_model">GPU 모델 표시</string>
     <string name="show_soc_model">SoC 모델 표시</string>

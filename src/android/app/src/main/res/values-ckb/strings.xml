@@ -47,6 +47,8 @@
     <string name="soc_overlay_options">ئامێر</string>
     <string name="soc_overlay_options_description">ڕێکخستنی زانیارییەکانی نیشاندراو لە ئامێرەکە</string>
 
+    <string name="show_build_id">نیشاندانی IDی بینا</string>
+    <string name="show_driver_version">نیشاندانی وەشانی درایڤەر</string>
     <string name="show_device_model">نیشاندانی مۆدێلی ئامێر</string>
     <string name="show_gpu_model">نیشاندانی مۆدێلی GPU</string>
     <string name="show_soc_model">نیشاندانی مۆدێلی SoC</string>

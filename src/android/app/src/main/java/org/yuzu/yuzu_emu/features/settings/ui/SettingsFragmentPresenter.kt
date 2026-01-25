@@ -350,6 +350,8 @@ class SettingsFragmentPresenter(
             add(IntSetting.SOC_OVERLAY_POSITION.key)
 
             add(HeaderSetting(R.string.stats_overlay_items))
+            add(BooleanSetting.SHOW_BUILD_ID.key)
+            add(BooleanSetting.SHOW_DRIVER_VERSION.key)
             add(BooleanSetting.SHOW_DEVICE_MODEL.key)
             add(BooleanSetting.SHOW_GPU_MODEL.key)
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -160,7 +160,14 @@ namespace AndroidSettings {
         Settings::Setting<bool> show_soc_overlay{linkage, true, "show_soc_overlay",
                                                  Settings::Category::Overlay,
                                                  Settings::Specialization::Paired, true, true};
-
+        Settings::Setting<bool> show_build_id{linkage, true, "show_build_id",
+                                                  Settings::Category::Overlay,
+                                                  Settings::Specialization::Default, true, true,
+                                                  &show_performance_overlay};
+        Settings::Setting<bool> show_driver_version{linkage, true, "show_driver_version",
+                                                  Settings::Category::Overlay,
+                                                  Settings::Specialization::Default, true, true,
+                                                  &show_performance_overlay};
         Settings::Setting<bool> show_device_model{linkage, true, "show_device_model",
                                                   Settings::Category::Overlay,
                                                   Settings::Specialization::Default, true, true,

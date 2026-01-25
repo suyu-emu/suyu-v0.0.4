@@ -45,6 +45,8 @@
     <string name="soc_overlay_options">Прекривање уређаја</string>
     <string name="soc_overlay_options_description">Конфигуришите које се информације приказују у прекривању уређаја</string>
 
+    <string name="show_build_id">Прикажи ID билда</string>
+    <string name="show_driver_version">Прикажи верзију драјвера</string>
     <string name="show_device_model">Прикажи модел уређаја</string>
     <string name="show_gpu_model">Прикажи ГПУ модел</string>
     <string name="show_soc_model">Прикажи соц модел</string>

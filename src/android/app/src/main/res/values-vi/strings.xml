@@ -47,6 +47,8 @@
     <string name="soc_overlay_options">Lớp phủ thiết bị</string>
     <string name="soc_overlay_options_description">Cấu hình thông tin hiển thị trong lớp phủ thiết bị</string>
 
+    <string name="show_build_id">Hiển thị ID build</string>
+    <string name="show_driver_version">Hiển thị phiên bản driver</string>
     <string name="show_device_model">Hiển thị model thiết bị</string>
     <string name="show_gpu_model">Hiển thị model GPU</string>
     <string name="show_soc_model">Hiển thị model SoC</string>

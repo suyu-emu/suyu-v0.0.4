@@ -47,6 +47,8 @@
     <string name="soc_overlay_options">Eszköz információk</string>
     <string name="soc_overlay_options_description">Állítsd be, milyen információk jelenjenek meg az eszköz információiban</string>
 
+    <string name="show_build_id">Build azonosító megjelenítése</string>
+    <string name="show_driver_version">Illesztőprogram-verzió megjelenítése</string>
     <string name="show_device_model">Eszköz modell megjelenítése</string>
     <string name="show_gpu_model">GPU modell megjelenítése</string>
     <string name="show_soc_model">SoC modell megjelenítése</string>

@@ -127,6 +127,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private lateinit var gpuModel: String
     private lateinit var fwVersion: String
+    private lateinit var buildId: String
+    private lateinit var driverInUse: String
 
     private var intentGame: Game? = null
     private var isCustomSettingsIntent = false
@@ -641,6 +643,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         gpuModel = GpuDriverHelper.hookLibPath?.let { GpuDriverHelper.getGpuModel(hookLibPath = it).toString() } ?: "Unknown"
         fwVersion = NativeLibrary.firmwareVersion()
+
+        val buildVersion = NativeLibrary.getBuildVersion()
+        buildId = buildVersion.split("-").getOrNull(0) ?: ""
+        driverInUse = driverViewModel.selectedDriverVersion.value
 
         updateQuickOverlayMenuEntry(BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean())
 
@@ -1481,26 +1487,44 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         if (showSOCOverlay) {
             val sb = StringBuilder()
-
+            val appendWithPipe: (String) -> Unit = { text ->
+                if (text.isNotEmpty()) {
+                    if (sb.isNotEmpty()) sb.append(" | ")
+                    sb.append(text)
+                }
+            }
             socUpdater = {
                 if (emulationViewModel.emulationStarted.value &&
                     !emulationViewModel.isEmulationStopping.value
                 ) {
                     sb.setLength(0)
 
+                    if (BooleanSetting.SHOW_BUILD_ID.getBoolean(
+                            NativeConfig.isPerGameConfigLoaded()
+                        )
+                    ) {
+                        appendWithPipe(buildId)
+                    }
+
+                    if (BooleanSetting.SHOW_DRIVER_VERSION.getBoolean(
+                            NativeConfig.isPerGameConfigLoaded()
+                        )
+                    ) {
+                        appendWithPipe(driverInUse)
+                    }
+
                     if (BooleanSetting.SHOW_DEVICE_MODEL.getBoolean(
                             NativeConfig.isPerGameConfigLoaded()
                         )
                     ) {
-                        sb.append(Build.MODEL)
+                        appendWithPipe(Build.MODEL)
                     }
 
                     if (BooleanSetting.SHOW_GPU_MODEL.getBoolean(
                             NativeConfig.isPerGameConfigLoaded()
                         )
                     ) {
-                        if (sb.isNotEmpty()) sb.append(" | ")
-                        sb.append(gpuModel)
+                        appendWithPipe(gpuModel)
                     }
 
                     if (Build.VERSION.SDK_INT >= 31) {
@@ -1508,8 +1532,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                                 NativeConfig.isPerGameConfigLoaded()
                             )
                         ) {
-                            if (sb.isNotEmpty()) sb.append(" | ")
-                            sb.append(Build.SOC_MODEL)
+                            appendWithPipe(Build.SOC_MODEL)
                         }
                     }
 
@@ -1517,8 +1540,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             NativeConfig.isPerGameConfigLoaded()
                         )
                     ) {
-                        if (sb.isNotEmpty()) sb.append(" | ")
-                        sb.append(fwVersion)
+                        appendWithPipe(fwVersion)
                     }
 
                     binding.showSocOverlayText.text = sb.toString()

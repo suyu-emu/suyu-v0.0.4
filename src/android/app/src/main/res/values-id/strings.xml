@@ -65,6 +65,8 @@
     <string name="soc_overlay_options">Overlay Perangkat</string>
     <string name="soc_overlay_options_description">Konfigurasi informasi yang ditampilkan di overlay perangkat</string>
 
+    <string name="show_build_id">Tampilkan ID Build</string>
+    <string name="show_driver_version">Tampilkan Versi Driver</string>
     <string name="show_device_model">Tampilkan Model Perangkat</string>
     <string name="show_gpu_model">Tampilkan Model GPU</string>
     <string name="show_soc_model">Tampilkan Model SoC</string>

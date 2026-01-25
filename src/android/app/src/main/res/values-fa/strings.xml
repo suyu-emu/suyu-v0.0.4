@@ -48,6 +48,8 @@
     <string name="soc_overlay_options">نمایش اطلاعات دستگاه</string>
     <string name="soc_overlay_options_description">تنظیم اطلاعات نمایش داده شده در نمایشگر دستگاه</string>
 
+    <string name="show_build_id">نمایش ID بیلد</string>
+    <string name="show_driver_version">نمایش نسخه درایور</string>
     <string name="show_device_model">نمایش مدل دستگاه</string>
     <string name="show_gpu_model">نمایش مدل GPU</string>
     <string name="show_soc_model">نمایش مدل SoC</string>

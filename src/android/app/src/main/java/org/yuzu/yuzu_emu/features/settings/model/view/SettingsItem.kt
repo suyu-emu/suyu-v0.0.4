@@ -511,7 +511,20 @@ abstract class SettingsItem(
                     valuesId = R.array.staticThemeValues
                 )
             )
-
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_BUILD_ID,
+                    titleId = R.string.show_build_id,
+                    descriptionId = 0
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_DRIVER_VERSION,
+                    titleId = R.string.show_driver_version,
+                    descriptionId = 0
+                )
+            )
             put(
                 SwitchSetting(
                     BooleanSetting.SHOW_DEVICE_MODEL,

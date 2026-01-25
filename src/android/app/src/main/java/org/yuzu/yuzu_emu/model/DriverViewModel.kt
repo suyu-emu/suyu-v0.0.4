@@ -1,8 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
-
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
 
 package org.yuzu.yuzu_emu.model
 
@@ -24,6 +21,7 @@ import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.utils.GpuDriverMetadata
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import java.io.File
@@ -51,6 +49,9 @@ class DriverViewModel : ViewModel() {
     private val _selectedDriverTitle = MutableStateFlow("")
     val selectedDriverTitle: StateFlow<String> get() = _selectedDriverTitle
 
+    private val _selectedDriverVersion = MutableStateFlow("")
+    val selectedDriverVersion: StateFlow<String> get() = _selectedDriverVersion
+
     private val _showClearButton = MutableStateFlow(false)
     val showClearButton = _showClearButton.asStateFlow()
 
@@ -77,11 +78,13 @@ class DriverViewModel : ViewModel() {
     fun updateDriverList() {
         val selectedDriver = GpuDriverHelper.customDriverSettingData
         val systemDriverData = GpuDriverHelper.getSystemDriverInfo()
+        val systemDriverTitle = YuzuApplication.appContext.getString(R.string.system_gpu_driver)
         val newDriverList = mutableListOf(
             Driver(
                 selectedDriver == GpuDriverMetadata(),
-                YuzuApplication.appContext.getString(R.string.system_gpu_driver),
-                systemDriverData?.get(0) ?: "",
+                systemDriverTitle,
+                //systemDriverData?.get(0) ?: "",
+                NativeLibrary.getVulkanDriverVersion().takeIf { !it.isNullOrEmpty() } ?: systemDriverTitle,
                 systemDriverData?.get(1) ?: ""
             )
         )
@@ -233,8 +236,15 @@ class DriverViewModel : ViewModel() {
     }
 
     private fun updateName() {
-        _selectedDriverTitle.value = GpuDriverHelper.customDriverSettingData.name
-            ?: YuzuApplication.appContext.getString(R.string.system_gpu_driver)
+        val systemDriverTitle = YuzuApplication.appContext.getString(R.string.system_gpu_driver)
+        //val systemDriverVersion = GpuDriverHelper.getSystemDriverInfo()?.get(0) ?: systemDriverTitle //title as fallback just in case
+        val systemDriverVersion = NativeLibrary.getVulkanDriverVersion().takeIf { !it.isNullOrEmpty() } ?: systemDriverTitle
+        val customDriver = GpuDriverHelper.customDriverSettingData
+
+        _selectedDriverTitle.value = customDriver.name
+            ?: systemDriverTitle
+        _selectedDriverVersion.value = customDriver.version
+            ?: systemDriverVersion
     }
 
     private fun setDriverReady() {

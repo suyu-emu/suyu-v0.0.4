@@ -55,6 +55,8 @@
     <string name="soc_overlay_options">Geräte-Overlay</string>
     <string name="soc_overlay_options_description">Konfigurieren Sie, welche Informationen im Geräte-Overlay angezeigt werden</string>
 
+    <string name="show_build_id">Build-ID anzeigen</string>
+    <string name="show_driver_version">Treiberversion anzeigen</string>
     <string name="show_device_model">Gerätemodell anzeigen</string>
     <string name="show_gpu_model">GPU-Modell anzeigen</string>
     <string name="show_soc_model">SoC-Modell anzeigen</string>

@@ -47,6 +47,8 @@
     <string name="soc_overlay_options">הצגת מידע על המכשיר</string>
     <string name="soc_overlay_options_description">הגדר אילו פרטים יוצגו בהצגת המידע על המכשיר</string>
 
+    <string name="show_build_id">הצג מזהה Build</string>
+    <string name="show_driver_version">הצג גרסת דרייבר</string>
     <string name="show_device_model">הצג דגם מכשיר</string>
     <string name="show_gpu_model">הצג דגם GPU</string>
     <string name="show_soc_model">הצג דגם SoC</string>

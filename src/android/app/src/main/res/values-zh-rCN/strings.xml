@@ -65,6 +65,8 @@
     <string name="soc_overlay_options">设备叠加层</string>
     <string name="soc_overlay_options_description">配置设备叠加层中显示的信息</string>
 
+    <string name="show_build_id">显示构建ID</string>
+    <string name="show_driver_version">显示驱动版本</string>
     <string name="show_device_model">显示设备型号</string>
     <string name="show_gpu_model">显示GPU型号</string>
     <string name="show_soc_model">显示SoC型号</string>

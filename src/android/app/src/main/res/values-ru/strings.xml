@@ -68,6 +68,8 @@
     <string name="soc_overlay_options">Оверлей устройства</string>
     <string name="soc_overlay_options_description">Настроить, какая информация отображается в оверлее устройства</string>
 
+    <string name="show_build_id">Показать ID сборки</string>
+    <string name="show_driver_version">Показать версию драйвера</string>
     <string name="show_device_model">Показать модель устройства</string>
     <string name="show_gpu_model">Показать модель ГПУ</string>
     <string name="show_soc_model">Показать модель SoC</string>

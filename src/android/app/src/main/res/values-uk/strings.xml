@@ -68,6 +68,8 @@
     <string name="soc_overlay_options">Накладання пристрою</string>
     <string name="soc_overlay_options_description">Налаштувати, яка інформація відображається в накладанні пристрою</string>
 
+    <string name="show_build_id">Показати ID збірки</string>
+    <string name="show_driver_version">Показати версію драйвера</string>
     <string name="show_device_model">Показати модель пристрою</string>
     <string name="show_gpu_model">Показати модель GPU</string>
     <string name="show_soc_model">Показати модель SoC</string>

@@ -68,6 +68,8 @@
     <string name="soc_overlay_options">Sobreposição do Dispositivo</string>
     <string name="soc_overlay_options_description">Configurar quais informações são mostradas na sobreposição do dispositivo</string>
 
+    <string name="show_build_id">Mostrar ID da Build</string>
+    <string name="show_driver_version">Mostrar Versão do Driver</string>
     <string name="show_device_model">Mostrar Modelo do Dispositivo</string>
     <string name="show_gpu_model">Mostrar Modelo da GPU</string>
     <string name="show_soc_model">Mostrar Modelo do SoC</string>

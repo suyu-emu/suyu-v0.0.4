@@ -68,6 +68,8 @@
     <string name="soc_overlay_options">Nakładka urządzenia</string>
     <string name="soc_overlay_options_description">Skonfiguruj, jakie informacje są wyświetlane w nakładce urządzenia</string>
 
+    <string name="show_build_id">Pokaż ID kompilacji</string>
+    <string name="show_driver_version">Pokaż wersję sterownika</string>
     <string name="show_device_model">Pokaż model urządzenia</string>
     <string name="show_gpu_model">Pokaż model GPU</string>
     <string name="show_soc_model">Pokaż model SoC</string>

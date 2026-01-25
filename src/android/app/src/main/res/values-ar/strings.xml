@@ -80,6 +80,8 @@
     <string name="soc_overlay_options">طبقة الجهاز</string>
     <string name="soc_overlay_options_description">ضبط المعلومات التي يتم عرضها في طبقة الجهاز</string>
 
+    <string name="show_build_id">عرض معرف البناء</string>
+    <string name="show_driver_version">عرض إصدار برنامج التشغيل</string>
     <string name="show_device_model">عرض طراز الجهاز</string>
     <string name="show_gpu_model">عرض طراز وحدة معالجة الرسومات</string>
     <string name="show_soc_model">عرض طراز الرقائق</string>

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -45,6 +45,8 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     AIRPLANE_MODE("airplane_mode"),
 
     SHOW_SOC_OVERLAY("show_soc_overlay"),
+    SHOW_BUILD_ID("show_build_id"),
+    SHOW_DRIVER_VERSION("show_driver_version"),
     SHOW_DEVICE_MODEL("show_device_model"),
     SHOW_GPU_MODEL("show_gpu_model"),
     SHOW_SOC_MODEL("show_soc_model"),

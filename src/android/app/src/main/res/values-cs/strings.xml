@@ -47,6 +47,8 @@
     <string name="soc_overlay_options">Překryv zařízení</string>
     <string name="soc_overlay_options_description">Konfigurovat, jaké informace se zobrazí v překryvu zařízení</string>
 
+    <string name="show_build_id">Zobrazit ID sestavení</string>
+    <string name="show_driver_version">Zobrazit verzi ovladače</string>
     <string name="show_device_model">Zobrazit model zařízení</string>
     <string name="show_gpu_model">Zobrazit model GPU</string>
     <string name="show_soc_model">Zobrazit model SoC</string>

@@ -68,6 +68,8 @@
     <string name="soc_overlay_options">裝置浮層</string>
     <string name="soc_overlay_options_description">設定裝置浮層中顯示的資訊</string>
 
+    <string name="show_build_id">顯示建構ID</string>
+    <string name="show_driver_version">顯示驅動程式版本</string>
     <string name="show_device_model">顯示裝置型號</string>
     <string name="show_gpu_model">顯示GPU型號</string>
     <string name="show_soc_model">顯示SoC型號</string>

@@ -47,6 +47,8 @@
     <string name="soc_overlay_options">デバイスオーバーレイ</string>
     <string name="soc_overlay_options_description">デバイスオーバーレイに表示される情報を設定</string>
 
+    <string name="show_build_id">ビルドIDを表示</string>
+    <string name="show_driver_version">ドライバーのバージョンを表示</string>
     <string name="show_device_model">デバイスモデルを表示</string>
     <string name="show_gpu_model">GPUモデルを表示</string>
     <string name="show_soc_model">SoCモデルを表示</string>
