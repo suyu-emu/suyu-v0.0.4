@@ -503,6 +503,9 @@ struct Values {
 #endif
                                                "async_presentation", Category::RendererHacks};
 
+    SwitchableSetting<bool> fix_bloom_effects{linkage, false, "fix_bloom_effects",
+                                                     Category::RendererHacks};
+
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererHacks};
 

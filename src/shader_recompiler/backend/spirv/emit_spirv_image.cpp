@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <boost/container/static_vector.hpp>
 
+#include "common/settings.h"
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
 #include "shader_recompiler/backend/spirv/emit_spirv_instructions.h"
 #include "shader_recompiler/backend/spirv/spirv_emit_context.h"
@@ -471,9 +475,16 @@ Id EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value&
                               Id lod, const IR::Value& offset) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
     const ImageOperands operands(ctx, false, true, false, lod, offset);
-    return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
-                &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
-                Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
+
+    Id result = Emit(&EmitContext::OpImageSparseSampleExplicitLod,
+                     &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
+                     Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
+#ifdef ANDROID
+    if (Settings::values.fix_bloom_effects.GetValue()) {
+        result = ctx.OpVectorTimesScalar(ctx.F32[4], result, ctx.Const(0.98f));
+    }
+#endif
+    return result;
 }
 
 Id EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index,

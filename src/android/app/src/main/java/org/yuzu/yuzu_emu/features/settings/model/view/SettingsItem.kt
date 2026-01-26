@@ -721,6 +721,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.FIX_BLOOM_EFFECTS,
+                    titleId = R.string.fix_bloom_effects,
+                    descriptionId = R.string.fix_bloom_effects_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.CPUOPT_UNSAFE_HOST_MMU,
                     titleId = R.string.cpuopt_unsafe_host_mmu,
                     descriptionId = R.string.cpuopt_unsafe_host_mmu_description

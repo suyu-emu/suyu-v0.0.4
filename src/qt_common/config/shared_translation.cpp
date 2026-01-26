@@ -329,6 +329,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            barrier_feedback_loops,
            tr("Barrier feedback loops"),
            tr("Improves rendering of transparency effects in specific games."));
+    INSERT(Settings,
+           fix_bloom_effects,
+           tr("Fix bloom effects"),
+           tr("Removes bloom in Burnout."));
 
     // Renderer (Extensions)
     INSERT(Settings, dyna_state, tr("Extended Dynamic State"),

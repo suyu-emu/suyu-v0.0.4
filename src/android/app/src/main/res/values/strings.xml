@@ -498,6 +498,8 @@
     <string name="fast_gpu_time_description">Forces most games to run at their highest native resolution. Use 256 for maximal performance and 512 for maximal graphics fidelity.</string>
     <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
     <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
+    <string name="fix_bloom_effects">Fix Bloom Effects</string>
+    <string name="fix_bloom_effects_description">Reduces bloom blur in LA/EOW (Adreno 700), removes bloom in Burnout</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously. This may reduce stutters but may also introduce glitches.</string>
     <string name="gpu_unswizzle_texture_size">GPU Unswizzle Max Texture Size</string>
