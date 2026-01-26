@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -158,9 +158,11 @@ public:
     }
 
     Result SetHostName(const std::string& hostname) override {
-        if (!SSL_set1_host(ssl, hostname.c_str())) { // hostname for verification
-            LOG_ERROR(Service_SSL, "SSL_set1_host({}) failed", hostname);
-            return CheckOpenSSLErrors();
+        if (!skip_cert_verification) {
+            if (!SSL_set1_host(ssl, hostname.c_str())) {
+                LOG_ERROR(Service_SSL, "SSL_set1_host({}) failed", hostname);
+                return CheckOpenSSLErrors();
+            }
         }
         if (!SSL_set_tlsext_host_name(ssl, hostname.c_str())) { // hostname for SNI
             LOG_ERROR(Service_SSL, "SSL_set_tlsext_host_name({}) failed", hostname);
@@ -169,15 +171,32 @@ public:
         return ResultSuccess;
     }
 
+    void SetVerifyOption(u32 option) override {
+        skip_cert_verification = (option == 0);
+        LOG_WARNING(Service_SSL, "option={} skip_verification={}", option,
+                    skip_cert_verification);
+        if (skip_cert_verification) {
+            SSL_set_verify(ssl, SSL_VERIFY_NONE, nullptr);
+            SSL_set1_host(ssl, nullptr);
+            SSL_set_hostflags(ssl, 0);
+        } else {
+            SSL_set_verify(ssl, SSL_VERIFY_PEER, nullptr);
+        }
+    }
+
     Result DoHandshake() override {
         SSL_set_verify_result(ssl, X509_V_OK);
         const int ret = SSL_do_handshake(ssl);
-        const long verify_result = SSL_get_verify_result(ssl);
-        if (verify_result != X509_V_OK) {
-            LOG_ERROR(Service_SSL, "SSL cert verification failed because: {}",
-                      X509_verify_cert_error_string(verify_result));
-            return CheckOpenSSLErrors();
+
+        if (!skip_cert_verification) {
+            const long verify_result = SSL_get_verify_result(ssl);
+            if (verify_result != X509_V_OK) {
+                LOG_ERROR(Service_SSL, "SSL cert verification failed because: {}",
+                          X509_verify_cert_error_string(verify_result));
+                return CheckOpenSSLErrors();
+            }
         }
+
         if (ret <= 0) {
             const int ssl_err = SSL_get_error(ssl, ret);
             if (ssl_err == SSL_ERROR_ZERO_RETURN ||
@@ -328,6 +347,7 @@ public:
     SSL* ssl = nullptr;
     BIO* bio = nullptr;
     bool got_read_eof = false;
+    bool skip_cert_verification = false;
 
     std::shared_ptr<Network::SocketBase> socket;
 };

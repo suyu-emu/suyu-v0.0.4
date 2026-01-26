@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -157,6 +157,8 @@ Errno TranslateNativeError(int e, CallType call_type = CallType::Other) {
         return Errno::TIMEDOUT;
     case WSAEINPROGRESS:
         return Errno::INPROGRESS;
+    case WSAEISCONN:
+        return Errno::ISCONN;
     default:
         UNIMPLEMENTED_MSG("Unimplemented errno={}", e);
         return Errno::OTHER;
@@ -296,6 +298,8 @@ Errno TranslateNativeError(int e, CallType call_type = CallType::Other) {
         return Errno::TIMEDOUT;
     case EINPROGRESS:
         return Errno::INPROGRESS;
+    case EISCONN:
+        return Errno::ISCONN;
     default:
         UNIMPLEMENTED_MSG("Unimplemented errno={} ({})", e, strerror(e));
         return Errno::OTHER;
@@ -872,7 +876,9 @@ std::pair<s32, Errno> Socket::SendTo(u32 flags, std::span<const u8> message,
 
 Errno Socket::Close() {
     [[maybe_unused]] const int result = closesocket(fd);
-    ASSERT(result == 0);
+    if (result != 0) {
+        LOG_WARNING(Network, "closesocket failed, socket may already be closed");
+    }
     fd = INVALID_SOCKET;
 
     return Errno::SUCCESS;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -116,6 +116,8 @@ public:
 
         RegisterHandlers(functions);
 
+        backend->SetVerifyOption(verify_option);
+
         shared_data->connection_count++;
     }
 
@@ -150,6 +152,7 @@ private:
     std::shared_ptr<Network::SocketBase> socket;
     std::vector<u8> next_alpn_proto;
     bool did_handshake = false;
+    u32 verify_option = 0;
 
     Result SetSocketDescriptorImpl(s32* out_fd, s32 fd) {
         LOG_DEBUG(Service_SSL, "called, fd={}", fd);
@@ -190,7 +193,9 @@ private:
 
     Result SetVerifyOptionImpl(u32 option) {
         ASSERT(!did_handshake);
-        LOG_WARNING(Service_SSL, "(STUBBED) called. option={}", option);
+        LOG_DEBUG(Service_SSL, "called. option={} (forcing 0)", option);
+        verify_option = 0;
+        backend->SetVerifyOption(0);
         return ResultSuccess;
     }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -29,6 +29,7 @@ enum class Errno : u32 {
     TIMEDOUT = 110,
     CONNREFUSED = 111,
     INPROGRESS = 115,
+    ISCONN = 106,
 };
 
 enum class GetAddrInfoError : s32 {
@@ -71,6 +72,8 @@ enum class Protocol : u32 {
 };
 
 enum class SocketLevel : u32 {
+    IP = 0,
+    TCP = 6,
     SOCKET = 0xffff, // i.e. SOL_SOCKET
 };
 

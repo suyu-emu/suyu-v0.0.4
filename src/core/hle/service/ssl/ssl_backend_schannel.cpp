@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -89,6 +89,12 @@ public:
         return ResultSuccess;
     }
 
+    void SetVerifyOption(u32 option) override {
+        skip_cert_verification = (option == 0);
+        LOG_WARNING(Service_SSL, "option={} skip_verification={}", option,
+                    skip_cert_verification);
+    }
+
     Result DoHandshake() override {
         while (1) {
             Result r;
@@ -175,10 +181,15 @@ public:
     }
 
     Result CallInitializeSecurityContext() {
-        const unsigned long req = ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY |
-                                  ISC_REQ_INTEGRITY | ISC_REQ_REPLAY_DETECT |
-                                  ISC_REQ_SEQUENCE_DETECT | ISC_REQ_STREAM |
-                                  ISC_REQ_USE_SUPPLIED_CREDS;
+        unsigned long req = ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY |
+                            ISC_REQ_INTEGRITY | ISC_REQ_REPLAY_DETECT |
+                            ISC_REQ_SEQUENCE_DETECT | ISC_REQ_STREAM |
+                            ISC_REQ_USE_SUPPLIED_CREDS;
+
+        if (skip_cert_verification) {
+            req |= ISC_REQ_MANUAL_CRED_VALIDATION;
+        }
+
         unsigned long attr;
         // https://learn.microsoft.com/en-us/windows/win32/secauthn/initializesecuritycontext--schannel
         std::array<SecBuffer, 2> input_buffers{{
@@ -536,6 +547,7 @@ public:
     std::vector<u8> cleartext_write_buf;
 
     bool got_read_eof = false;
+    bool skip_cert_verification = false;
     size_t read_buf_fill_size = 0;
 };
 

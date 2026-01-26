@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,6 +8,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "core/hle/service/sockets/sockets.h"
 #include "core/hle/service/sockets/sockets_translate.h"
 #include "core/internal_network/network.h"
@@ -37,6 +41,8 @@ Errno Translate(Network::Errno value) {
         return Errno::CONNRESET;
     case Network::Errno::INPROGRESS:
         return Errno::INPROGRESS;
+    case Network::Errno::ISCONN:
+        return Errno::ISCONN;
     default:
         UNIMPLEMENTED_MSG("Unimplemented errno={}", value);
         return Errno::SUCCESS;
@@ -259,9 +265,10 @@ PollEvents Translate(Network::PollEvents flags) {
 }
 
 Network::SockAddrIn Translate(SockAddrIn value) {
-    // Note: 6 is incorrect, but can be passed by homebrew (because libnx sets
-    // sin_len to 6 when deserializing getaddrinfo results).
-    ASSERT(value.len == 0 || value.len == sizeof(value) || value.len == 6);
+    if (value.len != 0 && value.len != sizeof(value) && value.len != 6) {
+        LOG_WARNING(Service, "Unexpected SockAddrIn len={}, expected 0, {}, or 6",
+                    value.len, sizeof(value));
+    }
 
     return {
         .family = Translate(static_cast<Domain>(value.family)),

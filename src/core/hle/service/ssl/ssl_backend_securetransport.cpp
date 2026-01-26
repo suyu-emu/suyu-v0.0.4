@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -98,8 +101,23 @@ public:
         return ResultSuccess;
     }
 
+    void SetVerifyOption(u32 option) override {
+        skip_cert_verification = (option == 0);
+        LOG_WARNING(Service_SSL, "option={} skip_verification={}", option,
+                    skip_cert_verification);
+        if (skip_cert_verification) {
+            SSLSetSessionOption(context, kSSLSessionOptionBreakOnServerAuth, true);
+        }
+    }
+
     Result DoHandshake() override {
         OSStatus status = SSLHandshake(context);
+
+        if (skip_cert_verification && status == errSSLServerAuthCompleted) {
+            LOG_DEBUG(Service_SSL, "Skipping certificate verification as requested");
+            status = SSLHandshake(context);
+        }
+
         return HandleReturn("SSLHandshake", 0, status);
     }
 
@@ -201,6 +219,7 @@ public:
 private:
     CFReleaser<SSLContextRef> context = nullptr;
     bool got_read_eof = false;
+    bool skip_cert_verification = false;
 
     std::shared_ptr<Network::SocketBase> socket;
 };
