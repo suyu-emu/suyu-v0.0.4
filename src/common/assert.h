@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
@@ -16,6 +16,7 @@
 void AssertFailSoftImpl();
 [[noreturn]] void AssertFatalImpl();
 
+// Prevents errors on old GCC... smh...
 #ifdef _MSC_VER
 #define YUZU_NO_INLINE __declspec(noinline)
 #else
@@ -23,9 +24,9 @@ void AssertFailSoftImpl();
 #endif
 
 #define ASSERT_MSG(_a_, ...)                                                                       \
-    ([&]() YUZU_NO_INLINE {                                                                        \
+    ([&]() YUZU_NO_INLINE {                                                                         \
         if (!(_a_)) [[unlikely]] {                                                                 \
-            LOG_CRITICAL(Debug, __FILE__ ": assert\n" __VA_ARGS__);                                \
+            LOG_CRITICAL(Debug, __FILE__ ": assert " __VA_ARGS__);                                \
             AssertFailSoftImpl();                                                                  \
         }                                                                                          \
     }())
@@ -33,7 +34,7 @@ void AssertFailSoftImpl();
 
 #define UNREACHABLE_MSG(...)                                                                       \
     do {                                                                                           \
-        LOG_CRITICAL(Debug, __FILE__ ": unreachable\n" __VA_ARGS__);                               \
+        LOG_CRITICAL(Debug, __FILE__ ": unreachable " __VA_ARGS__);                               \
         AssertFatalImpl();                                                                         \
     } while (0)
 #define UNREACHABLE() UNREACHABLE_MSG("")
@@ -50,10 +51,10 @@ void AssertFailSoftImpl();
     } while (0)
 #endif
 
-#define UNIMPLEMENTED() ASSERT_MSG(false, "Unimplemented code!")
+#define UNIMPLEMENTED() ASSERT(false && "Unimplemented!")
 #define UNIMPLEMENTED_MSG(...) ASSERT_MSG(false, __VA_ARGS__)
 
-#define UNIMPLEMENTED_IF(cond) ASSERT_MSG(!(cond), "Unimplemented code!")
+#define UNIMPLEMENTED_IF(cond) ASSERT((!(cond)) && "Unimplemented!")
 #define UNIMPLEMENTED_IF_MSG(cond, ...) ASSERT_MSG(!(cond), __VA_ARGS__)
 
 // If the assert is ignored, execute _b_
