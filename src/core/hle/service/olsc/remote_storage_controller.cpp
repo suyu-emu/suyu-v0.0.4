@@ -28,7 +28,7 @@ IRemoteStorageController::IRemoteStorageController(Core::System& system_)
         {15, nullptr, "RegisterUploadSaveDataTransferTaskForAutonomyRegistration"},
         {16, nullptr, "CreateCleanupToDeleteSaveDataArchiveInfoTask"},
         {17, nullptr, "ListDataInfo"},
-        {18, nullptr, "GetDataInfo"},
+        {18, D<&IRemoteStorageController::GetDataInfo>, "GetDataInfoV1"},
         {19, nullptr, "GetDataInfoCacheUpdateNativeHandleHolder"},
         {20, nullptr, "CreateSaveDataArchiveInfoCacheForSaveDataBackupUpdationTask"},
         {21, nullptr, "ListSecondarySaves"},
@@ -37,7 +37,7 @@ IRemoteStorageController::IRemoteStorageController(Core::System& system_)
         {24, nullptr, "GetSecondarySaveDataInfo"},
         {25, nullptr, "RegisterDownloadSaveDataTransferTaskForAutonomyRegistration"},
         {26, nullptr, "Unknown26"}, //20.0.0+
-        {27, D<&IRemoteStorageController::Unknown27>, "Unknown27"}, //20.0.0+
+        {27, D<&IRemoteStorageController::GetDataInfo>, "GetDataInfoV2"}, //20.0.0+
         {28, nullptr, "Unknown28"}, //20.0.0+
         {29, nullptr, "Unknown29"}, //21.0.0+
         {800, nullptr, "Unknown800"}, //20.0.0+
@@ -67,7 +67,7 @@ Result IRemoteStorageController::GetDataNewnessByApplicationId(Out<u8> out_newne
     R_SUCCEED();
 }
 
-Result IRemoteStorageController::Unknown27(Out<std::array<u8, 0x38>> out_data, u64 application_id) {
+Result IRemoteStorageController::GetDataInfo(Out<std::array<u8, 0x38>> out_data, u64 application_id) {
     LOG_WARNING(Service_OLSC, "(STUBBED) called, application_id={:016X}", application_id);
     out_data->fill(0);
     R_SUCCEED();
