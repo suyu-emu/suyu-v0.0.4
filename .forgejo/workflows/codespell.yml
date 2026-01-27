@@ -24,7 +24,7 @@ jobs:
     name: Check for spelling errors
     runs-on: docker
     steps:
-      - uses: https://code.forgejo.org/actions/checkout@v3
+      - uses: https://code.forgejo.org/actions/checkout@v4
         with:
           persist-credentials: false
       - uses: https://github.com/codespell-project/actions-codespell@master
