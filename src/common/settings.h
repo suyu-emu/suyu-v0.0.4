@@ -486,7 +486,9 @@ struct Values {
                                                   GpuOverclock::Medium,
                                                   "fast_gpu_time",
                                                   Category::RendererHacks,
-                                                  Specialization::Default};
+                                                  Specialization::Default,
+                                                        true,
+                                                        true};
 
     SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
                                                         false,
