@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -89,6 +89,16 @@ std::shared_ptr<Applet> WindowSystem::GetMainApplet() {
 
     if (m_application) {
         return m_applets.at(m_application->aruid.pid);
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<Applet> WindowSystem::GetOverlayDisplayApplet() {
+    std::scoped_lock lk{m_lock};
+
+    if (m_overlay_display) {
+        return m_applets.at(m_overlay_display->aruid.pid);
     }
 
     return nullptr;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -266,7 +266,7 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
 
     m_cv.wait(lk, [&] { return m_pending_process != nullptr; });
 
-    if (Settings::values.enable_overlay) {
+    if (Settings::values.enable_overlay && m_window_system->GetOverlayDisplayApplet() == nullptr) {
         if (auto overlay_process = CreateProcess(m_system, static_cast<u64>(AppletProgramId::OverlayDisplay), 0, 0)) {
             auto overlay_applet = std::make_shared<Applet>(m_system, std::move(overlay_process), false);
             overlay_applet->program_id = static_cast<u64>(AppletProgramId::OverlayDisplay);

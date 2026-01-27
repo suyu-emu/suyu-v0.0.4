@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -42,6 +42,7 @@ public:
     void TrackApplet(std::shared_ptr<Applet> applet, bool is_application);
     std::shared_ptr<Applet> GetByAppletResourceUserId(u64 aruid);
     std::shared_ptr<Applet> GetMainApplet();
+    std::shared_ptr<Applet> GetOverlayDisplayApplet();
 
 public:
     void RequestHomeMenuToGetForeground();

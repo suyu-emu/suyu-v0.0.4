@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -32,7 +32,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {1, D<&IApplicationFunctions::PopLaunchParameter>, "PopLaunchParameter"},
         {10, nullptr, "CreateApplicationAndPushAndRequestToStart"},
         {11, nullptr, "CreateApplicationAndPushAndRequestToStartForQuest"},
-        {12, nullptr, "CreateApplicationAndRequestToStart"},
+        {12, D<&IApplicationFunctions::CreateApplicationAndRequestToStart>, "CreateApplicationAndRequestToStart"},
         {13, nullptr, "CreateApplicationAndRequestToStartForQuest"},
         {14, nullptr, "CreateApplicationWithAttributeAndPushAndRequestToStartForQuest"},
         {15, nullptr, "CreateApplicationWithAttributeAndRequestToStartForQuest"},
@@ -428,6 +428,19 @@ Result IApplicationFunctions::ExecuteProgram(ProgramSpecifyKind kind, u64 value)
     // Copy user channel ownership into the system so that it will be preserved
     system.GetUserChannel() = m_applet->user_channel_launch_parameter;
     system.ExecuteProgram(value);
+    R_SUCCEED();
+}
+
+// https://switchbrew.org/wiki/Applet_Manager_services#CreateApplicationAndRequestToStart
+Result IApplicationFunctions::CreateApplicationAndRequestToStart(u64 application_id) {
+    LOG_INFO(Service_AM, "called, application_id={:016X}", application_id);
+
+    // If application_id is 0, relaunch the current application
+    const u64 target_application_id =
+        (application_id == 0) ? m_applet->program_id : application_id;
+
+    system.GetUserChannel() = m_applet->user_channel_launch_parameter;
+    system.ExecuteProgram(target_application_id);
     R_SUCCEED();
 }
 
