@@ -2,7 +2,8 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "suyu",
   "version": "1.0",
-  
+  "builtin-baseline": "a42af01b72c28a8e1d7b48107b33e4f286a55ef6",
+
   "dependencies": [
     "cpp-httplib",
     "cpp-jwt",
