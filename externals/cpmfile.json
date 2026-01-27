@@ -127,21 +127,22 @@
     "spirv-tools": {
         "package": "SPIRV-Tools",
         "repo": "crueter/SPIRV-Tools",
-        "sha": "2fa2d44485",
-        "hash": "3124bbddf7bd44f11445edeca6786b5bba9fb314f27dc087d0bbd9951b0936884ece2b9b40b75cfc8e31ab10ba55854e73aa63df835c40423b1c81dd47b1437d",
+        "sha": "0a7e28689a",
+        "hash": "eadfcceb82f4b414528d99962335e4f806101168474028f3cf7691ac40c37f323decf2a42c525e2d5bfa6f14ff132d6c5cf9b87c151490efad01f5e13ade1520",
         "git_version": "2025.4",
         "options": [
             "SPIRV_SKIP_EXECUTABLES ON"
         ],
         "patches": [
-            "0001-netbsd-fix.patch"
+            "0001-netbsd-fix.patch",
+            "0002-allow-static-only.patch"
         ]
     },
     "spirv-headers": {
         "package": "SPIRV-Headers",
         "repo": "KhronosGroup/SPIRV-Headers",
-        "sha": "01e0577914",
-        "hash": "e2b90e95b6f492e640cd27c090d7072f0d03c8fc7382be67cbe176fc8f3fdd78b59f5f0b906198e09808fde645427f409cb9ab8fe4843de7f7dc5b510d454a0a",
+        "sha": "04f10f650d",
+        "hash": "cae8cd179c9013068876908fecc1d158168310ad6ac250398a41f0f5206ceff6469e2aaeab9c820bce9d1b08950c725c89c46e94b89a692be9805432cf749396",
         "options": [
             "SPIRV_WERROR OFF"
         ]
