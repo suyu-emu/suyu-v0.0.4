@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -15,15 +15,20 @@
 
 namespace Common {
 
+#ifdef __OPENORBIS__
 constexpr size_t DEFAULT_STACK_SIZE = 128 * 4096;
+#else
+constexpr size_t DEFAULT_STACK_SIZE = 512 * 4096;
+#endif
 constexpr u32 CANARY_VALUE = 0xDEADBEEF;
 
 struct Fiber::FiberImpl {
     FiberImpl() {}
 
+    u32 canary_1 = CANARY_VALUE;
     std::array<u8, DEFAULT_STACK_SIZE> stack{};
     std::array<u8, DEFAULT_STACK_SIZE> rewind_stack{};
-    u32 canary = CANARY_VALUE;
+    u32 canary_2 = CANARY_VALUE;
 
     boost::context::detail::fcontext_t context{};
     boost::context::detail::fcontext_t rewind_context{};
@@ -51,7 +56,8 @@ Fiber::Fiber(std::function<void()>&& entry_point_func) : impl{std::make_unique<F
     impl->context = boost::context::detail::make_fcontext(stack_base, impl->stack.size(), [](boost::context::detail::transfer_t transfer) -> void {
         auto* fiber = static_cast<Fiber*>(transfer.data);
         ASSERT(fiber && fiber->impl && fiber->impl->previous_fiber && fiber->impl->previous_fiber->impl);
-        ASSERT(fiber->impl->canary == CANARY_VALUE);
+        ASSERT(fiber->impl->canary_1 == CANARY_VALUE);
+        ASSERT(fiber->impl->canary_2 == CANARY_VALUE);
         fiber->impl->previous_fiber->impl->context = transfer.fctx;
         fiber->impl->previous_fiber->impl->guard.unlock();
         fiber->impl->previous_fiber.reset();
