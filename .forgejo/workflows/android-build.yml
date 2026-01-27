@@ -12,17 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'suyu-emu/suyu-android' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
       - name: Set up cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -47,7 +47,7 @@ jobs:
       - name: Copy artifacts
         run: ./.ci/scripts/android/upload.sh
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android
           path: artifacts/
@@ -59,7 +59,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
       - name: Query tag name
         uses: olegtarasov/get-tag@v2.1.2
         id: tagName
