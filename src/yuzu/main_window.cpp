@@ -4275,9 +4275,15 @@ void MainWindow::OnMouseActivity() {
 
 void MainWindow::OnCheckFirmwareDecryption() {
     if (!ContentManager::AreKeysPresent()) {
-        QMessageBox::warning(this, tr("Derivation Components Missing"),
-                             tr("Encryption keys are missing."));
+        const auto res = QtCommon::Frontend::Warning(
+            tr("Derivation Components Missing"),
+            tr("Decryption keys are missing. Install them now?"),
+            QtCommon::Frontend::StandardButton::Yes | QtCommon::Frontend::StandardButton::No);
+
+        if (res == QtCommon::Frontend::StandardButton::Yes)
+            OnInstallDecryptionKeys();
     }
+
     SetFirmwareVersion();
     UpdateMenuState();
 }
