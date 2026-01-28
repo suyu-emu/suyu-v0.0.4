@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "qt_common.h"
@@ -22,6 +22,7 @@
 #include <qpa/qplatformnativeinterface.h>
 #elif defined(__APPLE__)
 #include <objc/message.h>
+#include <objc/runtime.h>
 #endif
 
 namespace QtCommon {
@@ -68,8 +69,32 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     // Our Win32 Qt external doesn't have the private API.
     wsi.render_surface = reinterpret_cast<void*>(window->winId());
 #elif defined(__APPLE__)
-    wsi.render_surface = reinterpret_cast<void* (*) (id, SEL)>(
+    id layer = reinterpret_cast<id (*) (id, SEL)>(
         objc_msgSend)(reinterpret_cast<id>(window->winId()), sel_registerName("layer"));
+
+    // In Qt 6, the layer of the NSView might be a QContainerLayer.
+    // MoltenVK needs a CAMetalLayer. We search for it in sublayers.
+    Class metal_layer_class = objc_getClass("CAMetalLayer");
+    id metal_layer = nullptr;
+
+    if (layer) {
+        if (reinterpret_cast<bool (*) (id, SEL, Class)>(objc_msgSend)(layer, sel_registerName("isKindOfClass:"), metal_layer_class)) {
+            metal_layer = layer;
+        } else {
+            id sublayers = reinterpret_cast<id (*) (id, SEL)>(objc_msgSend)(layer, sel_registerName("sublayers"));
+            if (sublayers) {
+                unsigned long count = reinterpret_cast<unsigned long (*) (id, SEL)>(objc_msgSend)(sublayers, sel_registerName("count"));
+                for (unsigned long i = 0; i < count; ++i) {
+                    id sublayer = reinterpret_cast<id (*) (id, SEL, unsigned long)>(objc_msgSend)(sublayers, sel_registerName("objectAtIndex:"), i);
+                    if (reinterpret_cast<bool (*) (id, SEL, Class)>(objc_msgSend)(sublayer, sel_registerName("isKindOfClass:"), metal_layer_class)) {
+                        metal_layer = sublayer;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    wsi.render_surface = reinterpret_cast<void*>(metal_layer ? metal_layer : layer);
 #else
     QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
     wsi.display_connection = pni->nativeResourceForWindow("display", window);
