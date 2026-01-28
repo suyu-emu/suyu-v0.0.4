@@ -188,7 +188,7 @@ void Vic::ReadProgressiveY8__V8U8_N420(const SlotStruct& slot, std::span<const P
         out_luma_height, out_luma_stride);
 
     slot_surface.resize_destructive(out_luma_width * out_luma_height);
-    if (COMPILED_HAS_SSE41 && HasSSE41()) {
+    if (COMPILED_HAS_SSE41 && HasSSE41() && in_luma_width % 16 == 0) {
 #if COMPILED_HAS_SSE41
         auto const alpha_linear = u16(slot.config.planar_alpha.Value());
         auto const alpha = _mm_slli_epi64(_mm_set1_epi64x(s64(slot.config.planar_alpha.Value())), 48);
@@ -491,7 +491,7 @@ void Vic::Blend(const ConfigStruct& config, const SlotStruct& slot, VideoPixelFo
     // TODO Alpha blending. No games I've seen use more than a single surface or supply an alpha
     // below max, so it's ignored for now.
     if (slot.color_matrix.matrix_enable) {
-        if (COMPILED_HAS_SSE41 && HasSSE41()) {
+        if (COMPILED_HAS_SSE41 && HasSSE41() && source_left % 8 == 0 && source_right % 8 == 0) {
             // MSVC doesn't define __SSE4_1__
 #if COMPILED_HAS_SSE41
             // Fill the columns, e.g
@@ -707,7 +707,7 @@ void Vic::WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) n
     surface_height = (std::min)(surface_height, out_luma_height);
 
     auto Decode = [&](u8* out_luma, u8* out_chroma) {
-        if (COMPILED_HAS_SSE41 && HasSSE41()) {
+        if (COMPILED_HAS_SSE41 && HasSSE41() && surface_width % 16 == 0) {
 #if COMPILED_HAS_SSE41
             // luma_mask   = [00 00] [00 00] [00 00] [FF FF] [00 00] [00 00] [00 00] [FF FF]
             auto const luma_mask = _mm_set_epi16(0, 0, 0, -1, 0, 0, 0, -1);
@@ -935,15 +935,14 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixel
     surface_height = (std::min)(surface_height, out_luma_height);
 
     auto Decode = [&](u8* out, Pixel const* inp) {
-        if (COMPILED_HAS_SSE41 && HasSSE41()) {
+        if (COMPILED_HAS_SSE41 && HasSSE41() && surface_width % 16 == 0) {
 #if COMPILED_HAS_SSE41
-            size_t const SSE_ALIGNMENT = 16;
-            auto const sse_aligned_width = Common::AlignDown(surface_width, SSE_ALIGNMENT);
+            auto const sse_aligned_width = Common::AlignDown(surface_width, 16);
             for (u32 y = 0; y < surface_height; y++) {
                 auto const src = y * surface_stride;
                 auto const dst = y * out_luma_stride;
                 u32 x = 0;
-                for (; x < sse_aligned_width; x += SSE_ALIGNMENT) {
+                for (; x < sse_aligned_width; x += 16) {
                     // Prefetch the next 2 cache lines
                     _mm_prefetch((const char*)&inp[src + x + 16], _MM_HINT_T0);
                     _mm_prefetch((const char*)&inp[src + x + 24], _MM_HINT_T0);
