@@ -369,7 +369,10 @@ if (ENABLE_LIBUSB)
 endif()
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    find_package(xbyak 7 CONFIG)
+    find_package(xbyak 7 CONFIG QUIET)
+    if (NOT xbyak_FOUND)
+        add_subdirectory(externals/xbyak EXCLUDE_FROM_ALL)
+    endif()
 endif()
 
 if (ARCHITECTURE_arm64)
