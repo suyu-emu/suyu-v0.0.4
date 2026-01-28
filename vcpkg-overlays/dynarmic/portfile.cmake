@@ -14,6 +14,7 @@ file(REMOVE_RECURSE
     "${SOURCE_PATH}/third_party/xbyak"
     "${SOURCE_PATH}/xbyak"
     "${SOURCE_PATH}/extern/xbyak"
+    "${SOURCE_PATH}/externals/xbyak"
 )
 
 # Configure with conditional options so Ninja does not get generator expressions in the command line

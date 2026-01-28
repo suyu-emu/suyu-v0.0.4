@@ -1,12 +1,12 @@
-Package: boost-cmake:x64-linux@1.88.0
+Package: dynarmic:x64-windows@6.7.2
 
 **Host Environment**
 
-- Host: x64-linux
-- Compiler: GNU 13.3.0
+- Host: x64-windows
+- Compiler: MSVC 19.29.30159.0
 - CMake Version: 3.30.1
 -    vcpkg-tool version: 2025-10-16-71538f2694db93da4668782d094768ba74c45991
-    vcpkg-scripts version: e3ed41868d 2025-10-31 (3 days ago)
+    vcpkg-scripts version: e3ed41868d 2025-10-31 (3 months ago)
 
 **To Reproduce**
 
@@ -15,16 +15,34 @@ Package: boost-cmake:x64-linux@1.88.0
 **Failure logs**
 
 ```
-CMake Error at /workspaces/SuyuEclipse/vcpkg_installed/x64-linux/share/vcpkg-boost/vcpkg-port-config.cmake:3 (include):
-  include could not find requested file:
+-- Using cached yuzu-mirror-dynarmic-ba8192d.tar.gz
+-- Cleaning sources at C:/Users/charl/Documents/SuyuEclipse/externals/vcpkg/buildtrees/dynarmic/src/ba8192d-d65af4d927.clean. Use --editable to skip cleaning for the packages you specify.
+-- Extracting source C:/Users/charl/Documents/SuyuEclipse/externals/vcpkg/downloads/yuzu-mirror-dynarmic-ba8192d.tar.gz
+-- Using source at C:/Users/charl/Documents/SuyuEclipse/externals/vcpkg/buildtrees/dynarmic/src/ba8192d-d65af4d927.clean
+-- Configuring x64-windows
+CMake Error at scripts/cmake/vcpkg_execute_required_process.cmake:127 (message):
+    Command failed: C:/Users/charl/Documents/SuyuEclipse/externals/vcpkg/downloads/tools/ninja/1.13.1-windows/ninja.exe -v
+    Working Directory: C:/Users/charl/Documents/SuyuEclipse/externals/vcpkg/buildtrees/dynarmic/x64-windows-rel/vcpkg-parallel-configure
+    Error code: 1
+    See logs for more information:
+      C:\Users\charl\Documents\SuyuEclipse\externals\vcpkg\buildtrees\dynarmic\config-x64-windows-err.log
 
-    /workspaces/SuyuEclipse/vcpkg_installed/x64-linux/share/vcpkg-cmake/vcpkg-port-config.cmake
 Call Stack (most recent call first):
-  scripts/ports.cmake:199 (include)
+  C:/Users/charl/Documents/SuyuEclipse/vcpkg_installed/x64-windows/share/vcpkg-cmake/vcpkg_cmake_configure.cmake:252 (vcpkg_execute_required_process)
+  C:/Users/charl/Documents/SuyuEclipse/vcpkg-overlays/dynarmic/portfile.cmake:9 (vcpkg_cmake_configure)
+  scripts/ports.cmake:206 (include)
 
 
 
 ```
+
+<details><summary>C:\Users\charl\Documents\SuyuEclipse\externals\vcpkg\buildtrees\dynarmic\config-x64-windows-err.log</summary>
+
+```
+ninja: error: build.ninja:5: bad $-escape (literal $ must be written as $$)
+
+```
+</details>
 
 **Additional context**
 
@@ -35,9 +53,8 @@ Call Stack (most recent call first):
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "suyu",
   "version": "1.0",
+  "builtin-baseline": "a42af01b72c28a8e1d7b48107b33e4f286a55ef6",
   "dependencies": [
-    "vcpkg-cmake",
-    "vcpkg-cmake-config",
     "cpp-httplib",
     "cpp-jwt",
     "cubeb",
@@ -45,7 +62,6 @@ Call Stack (most recent call first):
     "enet",
     "fmt",
     "libusb",
-    "llvm",
     "lz4",
     "nlohmann-json",
     "opus",
@@ -73,8 +89,7 @@ Call Stack (most recent call first):
     "boost-spirit",
     "boost-test",
     "boost-timer",
-    "boost-variant",
-    "boost-cobalt"
+    "boost-variant"
   ],
   "features": {
     "suyu-tests": {
@@ -106,100 +121,12 @@ Call Stack (most recent call first):
   },
   "overrides": [
     {
-      "name": "vcpkg-cmake",
-      "version": "2024-04-23"
-    },
-    {
-      "name": "vcpkg-cmake-config",
-      "version": "2024-05-23"
-    },
-    {
       "name": "catch2",
-      "version": "3.4.0"
+      "version": "3.3.1"
     },
     {
       "name": "fmt",
       "version": "10.1.1"
-    },
-    {
-      "name": "llvm",
-      "version": "17.0.6"
-    },
-    {
-      "name": "boost-algorithm",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-asio",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-bind",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-config",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-container",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-context",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-crc",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-functional",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-heap",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-icl",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-intrusive",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-mpl",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-process",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-range",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-spirit",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-test",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-timer",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-variant",
-      "version": "1.88.0"
-    },
-    {
-      "name": "boost-cobalt",
-      "version": "1.88.0"
     }
   ]
 }
