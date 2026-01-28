@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -34,19 +34,6 @@ if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     endif()
 endif()
 
-# Oaknut
-if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
-    AddJsonPackage(oaknut)
-endif()
-
-# biscuit
-if (ARCHITECTURE_riscv64)
-    AddJsonPackage(biscuit)
-endif()
-
-# mcl
-AddJsonPackage(mcl)
-
 # enet
 AddJsonPackage(enet)
 
@@ -60,6 +47,41 @@ endif()
 
 # mbedtls
 AddJsonPackage(mbedtls)
+
+# stb
+add_library(stb stb/stb_dxt.cpp)
+target_include_directories(stb PUBLIC ./stb)
+
+if (NOT TARGET stb::headers)
+    add_library(stb::headers ALIAS stb)
+endif()
+
+# ItaniumDemangle
+if (NOT TARGET LLVM::Demangle)
+    add_library(demangle demangle/ItaniumDemangle.cpp)
+    target_include_directories(demangle PUBLIC ./demangle)
+    if (NOT MSVC)
+        target_compile_options(demangle PRIVATE -Wno-deprecated-declarations) # std::is_pod
+    endif()
+    add_library(LLVM::Demangle ALIAS demangle)
+endif()
+
+if (YUZU_STATIC_ROOM)
+    return()
+endif()
+
+# Oaknut
+if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
+    AddJsonPackage(oaknut)
+endif()
+
+# biscuit
+if (ARCHITECTURE_riscv64)
+    AddJsonPackage(biscuit)
+endif()
+
+# mcl
+AddJsonPackage(mcl)
 
 # VulkanUtilityHeaders - pulls in headers and utility libs
 AddJsonPackage(vulkan-utility-headers)
@@ -242,22 +264,6 @@ endif()
 
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
-
-if (NOT TARGET LLVM::Demangle)
-    add_library(demangle demangle/ItaniumDemangle.cpp)
-    target_include_directories(demangle PUBLIC ./demangle)
-    if (NOT MSVC)
-        target_compile_options(demangle PRIVATE -Wno-deprecated-declarations) # std::is_pod
-    endif()
-    add_library(LLVM::Demangle ALIAS demangle)
-endif()
-
-add_library(stb stb/stb_dxt.cpp)
-target_include_directories(stb PUBLIC ./stb)
-
-if (NOT TARGET stb::headers)
-    add_library(stb::headers ALIAS stb)
-endif()
 
 add_library(tz tz/tz/tz.cpp)
 target_include_directories(tz PUBLIC ./tz)

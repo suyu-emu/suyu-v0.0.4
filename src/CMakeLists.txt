@@ -7,7 +7,7 @@
 include_directories(.)
 
 # Dynarmic
-if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
+if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64 AND NOT YUZU_STATIC_ROOM)
     add_subdirectory(dynarmic)
     add_library(dynarmic::dynarmic ALIAS dynarmic)
 endif()
@@ -201,18 +201,28 @@ else()
 endif()
 
 add_subdirectory(common)
-add_subdirectory(core)
-add_subdirectory(audio_core)
-add_subdirectory(video_core)
-add_subdirectory(hid_core)
 add_subdirectory(network)
-add_subdirectory(input_common)
-add_subdirectory(frontend_common)
-add_subdirectory(shader_recompiler)
 
 if (YUZU_ROOM)
     add_subdirectory(dedicated_room)
 endif()
+
+if (YUZU_ROOM_STANDALONE)
+    add_subdirectory(yuzu_room_standalone)
+    set_target_properties(yuzu-room PROPERTIES OUTPUT_NAME "eden-room")
+endif()
+
+if (YUZU_STATIC_ROOM)
+    return()
+endif()
+
+add_subdirectory(core)
+add_subdirectory(audio_core)
+add_subdirectory(video_core)
+add_subdirectory(hid_core)
+add_subdirectory(input_common)
+add_subdirectory(frontend_common)
+add_subdirectory(shader_recompiler)
 
 if (YUZU_TESTS)
     add_subdirectory(tests)
@@ -221,11 +231,6 @@ endif()
 if (ENABLE_SDL2 AND YUZU_CMD)
     add_subdirectory(yuzu_cmd)
     set_target_properties(yuzu-cmd PROPERTIES OUTPUT_NAME "eden-cli")
-endif()
-
-if (YUZU_ROOM_STANDALONE)
-    add_subdirectory(yuzu_room_standalone)
-    set_target_properties(yuzu-room PROPERTIES OUTPUT_NAME "eden-room")
 endif()
 
 if (ENABLE_QT)

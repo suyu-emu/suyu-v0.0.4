@@ -25,6 +25,8 @@ namespace Common::Log {
 
 // Some IDEs prefer <file>:<line> instead, so let's just do that :)
 std::string FormatLogMessage(const Entry& entry) {
+    if (!entry.filename) return "";
+
     auto const time_seconds = uint32_t(entry.timestamp.count() / 1000000);
     auto const time_fractional = uint32_t(entry.timestamp.count() % 1000000);
     char const* class_name = GetLogClassName(entry.log_class);

@@ -41,6 +41,37 @@ if (PLATFORM_NETBSD)
     set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
+cmake_dependent_option(YUZU_STATIC_ROOM "Build a static room executable only (CI only)" OFF "PLATFORM_LINUX" OFF)
+if (YUZU_STATIC_ROOM)
+    set(YUZU_ROOM ON)
+    set(YUZU_ROOM_STANDALONE ON)
+
+    # disable e v e r y t h i n g
+    set(ENABLE_QT OFF)
+    set(ENABLE_SDL2 OFF)
+    set(YUZU_CMD OFF)
+    set(ENABLE_CUBEB OFF)
+    set(ENABLE_UPDATE_CHECKER OFF)
+    set(USE_DISCORD_PRESENCE OFF)
+    set(BUILD_TESTING OFF)
+    set(ENABLE_OPENSSL OFF)
+    set(ENABLE_WEB_SERVICE OFF)
+    set(ENABLE_LIBUSB OFF)
+
+    # allow static libs for boost and mbedtls though
+    set(Boost_USE_STATIC_LIBS ON)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    set(MBEDTLS_LIB_SUFFIX "_static")
+    set(YUZU_USE_CPM ON)
+
+    set(zstd_FORCE_BUNDLED ON)
+    set(fmt_FORCE_BUNDLED ON)
+endif()
+
+# common network mbedtls
+# common: xbyak? booost fmt lz4 zstd
+# network: enet boost
+
 # qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
@@ -226,11 +257,9 @@ endif()
 
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 
-if (ENABLE_OPENSSL)
-    set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
-    if (EXT_DEFAULT OR PLATFORM_SUN)
-        set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
-    endif()
+set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
+if (EXT_DEFAULT OR PLATFORM_SUN)
+    set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
 endif()
 
 cmake_dependent_option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL} "ENABLE_OPENSSL" OFF)
@@ -420,16 +449,6 @@ if (YUZU_USE_CPM)
         add_library(lz4::lz4 ALIAS lz4_static)
     endif()
 
-    # nlohmann
-    AddJsonPackage(nlohmann)
-
-    # zlib
-    AddJsonPackage(zlib)
-
-    if (ZLIB_ADDED)
-        add_library(ZLIB::ZLIB ALIAS zlibstatic)
-    endif()
-
     # zstd
     AddJsonPackage(zstd)
 
@@ -438,19 +457,31 @@ if (YUZU_USE_CPM)
         add_library(zstd::libzstd ALIAS libzstd_static)
     endif()
 
-    # Opus
-    AddJsonPackage(opus)
+    if (NOT YUZU_STATIC_ROOM)
+        # nlohmann
+        AddJsonPackage(nlohmann)
 
-    if (Opus_ADDED)
-        if (MSVC AND CXX_CLANG)
-            target_compile_options(opus PRIVATE
-                -Wno-implicit-function-declaration
-            )
+        # zlib
+        AddJsonPackage(zlib)
+
+        if (ZLIB_ADDED)
+            add_library(ZLIB::ZLIB ALIAS zlibstatic)
         endif()
-    endif()
 
-    if (NOT TARGET Opus::opus)
-        add_library(Opus::opus ALIAS opus)
+        # Opus
+        AddJsonPackage(opus)
+
+        if (Opus_ADDED)
+            if (MSVC AND CXX_CLANG)
+                target_compile_options(opus PRIVATE
+                    -Wno-implicit-function-declaration
+                )
+            endif()
+        endif()
+
+        if (NOT TARGET Opus::opus)
+            add_library(Opus::opus ALIAS opus)
+        endif()
     endif()
 else()
     # TODO: we can probably just use CPM for this... right?
@@ -537,47 +568,50 @@ message(STATUS "Platform Libraries: ${PLATFORM_LIBRARIES}")
 add_subdirectory(externals)
 
 # pass targets from externals
-find_package(libusb)
-find_package(VulkanMemoryAllocator)
 find_package(enet)
 find_package(MbedTLS)
-find_package(VulkanUtilityLibraries)
-find_package(SimpleIni)
-find_package(SPIRV-Tools)
-find_package(sirit)
-find_package(gamemode)
-find_package(mcl)
-
-if (ARCHITECTURE_riscv64)
-    find_package(biscuit)
-endif()
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak)
 endif()
 
-if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
-    find_package(cpp-jwt)
-endif()
+if (NOT YUZU_STATIC_ROOM)
+    find_package(libusb)
+    find_package(VulkanMemoryAllocator)
+    find_package(VulkanUtilityLibraries)
+    find_package(SimpleIni)
+    find_package(SPIRV-Tools)
+    find_package(sirit)
+    find_package(gamemode)
+    find_package(mcl)
 
-if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
-    find_package(oaknut)
-endif()
+    if (ARCHITECTURE_riscv64)
+        find_package(biscuit)
+    endif()
 
-if (ENABLE_SDL2)
-    find_package(SDL2)
-endif()
+    if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
+        find_package(cpp-jwt)
+    endif()
 
-if (USE_DISCORD_PRESENCE)
-    find_package(DiscordRPC)
-endif()
+    if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
+        find_package(oaknut)
+    endif()
 
-if (ENABLE_CUBEB)
-    find_package(cubeb)
-endif()
+    if (ENABLE_SDL2)
+        find_package(SDL2)
+    endif()
 
-if (YUZU_TESTS OR DYNARMIC_TESTS)
-    find_package(Catch2)
+    if (USE_DISCORD_PRESENCE)
+        find_package(DiscordRPC)
+    endif()
+
+    if (ENABLE_CUBEB)
+        find_package(cubeb)
+    endif()
+
+    if (YUZU_TESTS OR DYNARMIC_TESTS)
+        find_package(Catch2)
+    endif()
 endif()
 
 # Qt stuff
@@ -658,7 +692,7 @@ if (ENABLE_QT)
     set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
 endif()
 
-if (NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
+if (NOT YUZU_STATIC_ROOM AND NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
     # Use system installed FFmpeg
     find_package(FFmpeg REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
 
