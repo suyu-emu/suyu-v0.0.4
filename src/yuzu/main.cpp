@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <QApplication>
@@ -31,7 +31,7 @@ static void OverrideWindowsFont() {
 }
 #endif
 
-static void SetHighDPIAttributes() {
+static Qt::HighDpiScaleFactorRoundingPolicy GetHighDpiRoundingPolicy() {
 #ifdef _WIN32
     // For Windows, we want to avoid scaling artifacts on fractional scaling ratios.
     // This is done by setting the optimal scaling policy for the primary screen.
@@ -44,36 +44,30 @@ static void SetHighDPIAttributes() {
     // Get the current screen geometry.
     const QScreen* primary_screen = QGuiApplication::primaryScreen();
     if (primary_screen == nullptr) {
-        return;
+        return Qt::HighDpiScaleFactorRoundingPolicy::PassThrough;
     }
 
     const QRect screen_rect = primary_screen->geometry();
-    const int real_width = screen_rect.width();
-    const int real_height = screen_rect.height();
-    const float real_ratio = primary_screen->logicalDotsPerInch() / 96.0f;
+    const qreal real_ratio = primary_screen->devicePixelRatio();
+    const qreal real_width = std::trunc(screen_rect.width() * real_ratio);
+    const qreal real_height = std::trunc(screen_rect.height() * real_ratio);
 
     // Recommended minimum width and height for proper window fit.
     // Any screen with a lower resolution than this will still have a scale of 1.
-    constexpr float minimum_width = 1350.0f;
-    constexpr float minimum_height = 900.0f;
+    constexpr qreal minimum_width = 1350.0;
+    constexpr qreal minimum_height = 900.0;
 
-    const float width_ratio = (std::max)(1.0f, real_width / minimum_width);
-    const float height_ratio = (std::max)(1.0f, real_height / minimum_height);
+    const qreal width_ratio = std::max(1.0, real_width / minimum_width);
+    const qreal height_ratio = std::max(1.0, real_height / minimum_height);
 
     // Get the lower of the 2 ratios and truncate, this is the maximum integer scale.
-    const float max_ratio = std::trunc((std::min)(width_ratio, height_ratio));
-
-    if (max_ratio > real_ratio) {
-        QApplication::setHighDpiScaleFactorRoundingPolicy(
-            Qt::HighDpiScaleFactorRoundingPolicy::Round);
-    } else {
-        QApplication::setHighDpiScaleFactorRoundingPolicy(
-            Qt::HighDpiScaleFactorRoundingPolicy::Floor);
-    }
+    const qreal max_ratio = std::trunc(std::min(width_ratio, height_ratio));
+    return max_ratio > real_ratio
+        ? Qt::HighDpiScaleFactorRoundingPolicy::Round
+        : Qt::HighDpiScaleFactorRoundingPolicy::Floor;
 #else
     // Other OSes should be better than Windows at fractional scaling.
-    QApplication::setHighDpiScaleFactorRoundingPolicy(
-        Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+    return Qt::HighDpiScaleFactorRoundingPolicy::PassThrough;
 #endif
 }
 
@@ -139,7 +133,8 @@ int main(int argc, char* argv[]) {
     QGuiApplication::setDesktopFileName(QStringLiteral("dev.eden_emu.eden"));
 #endif
 
-    SetHighDPIAttributes();
+    auto rounding_policy = GetHighDpiRoundingPolicy();
+    QApplication::setHighDpiScaleFactorRoundingPolicy(rounding_policy);
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     // Disables the "?" button on all dialogs. Disabled by default on Qt6.
