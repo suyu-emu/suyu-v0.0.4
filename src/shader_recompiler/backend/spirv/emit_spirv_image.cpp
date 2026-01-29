@@ -40,10 +40,7 @@ public:
 
     explicit ImageOperands(EmitContext& ctx, const IR::Value& offset, const IR::Value& offset2) {
         if (offset2.IsEmpty()) {
-            if (offset.IsEmpty()) {
-                return;
-            }
-            Add(spv::ImageOperandsMask::Offset, ctx.Def(offset));
+            AddOffset(ctx, offset, ImageGatherOffsetAllowed);
             return;
         }
         const std::array values{offset.InstRecursive(), offset2.InstRecursive()};
@@ -55,12 +52,12 @@ public:
         if (opcode != values[1]->GetOpcode() || opcode != IR::Opcode::CompositeConstructU32x4) {
             throw LogicError("Invalid PTP arguments");
         }
-        auto read{[&](unsigned int a, unsigned int b) { return values[a]->Arg(b).U32(); }};
+        auto read{[&](unsigned int a, unsigned int b) { return static_cast<s32>(values[a]->Arg(b).U32()); }};
 
         const Id offsets{ctx.ConstantComposite(
-            ctx.TypeArray(ctx.U32[2], ctx.Const(4U)), ctx.Const(read(0, 0), read(0, 1)),
-            ctx.Const(read(0, 2), read(0, 3)), ctx.Const(read(1, 0), read(1, 1)),
-            ctx.Const(read(1, 2), read(1, 3)))};
+            ctx.TypeArray(ctx.S32[2], ctx.Const(4U)), ctx.SConst(read(0, 0), read(0, 1)),
+            ctx.SConst(read(0, 2), read(0, 3)), ctx.SConst(read(1, 0), read(1, 1)),
+            ctx.SConst(read(1, 2), read(1, 3)))};
         Add(spv::ImageOperandsMask::ConstOffsets, offsets);
     }
 
