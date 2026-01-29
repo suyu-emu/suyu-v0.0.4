@@ -1,18 +1,15 @@
 <!--
-SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 SPDX-License-Identifier: GPL-3.0-or-later
--->
-
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!--
 SPDX-FileCopyrightText: 2015 Pierre de La Morinerie <kemenaran@gmail.com>
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!-- CF -->
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundleExecutable</key>
@@ -24,7 +21,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
     <key>CFBundleIconName</key>
     <string>eden_liquidglass</string>
     <key>CFBundleIdentifier</key>
-    <string>com.yuzu-emu.yuzu</string>
+    <string>com.yuzu-emu.yuzu</string> <!-- May be required by 3rd party ext -->
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleLongVersionString</key>
@@ -41,37 +38,163 @@ SPDX-License-Identifier: GPL-2.0-or-later
     <string></string>
     <key>CSResourcesFileMapped</key>
     <true/>
-    <key>LSApplicationCategoryType</key>
-    <string>public.app-category.games</string>
-    <key>LSRequiresCarbon</key>
-    <true/>
-    <key>NSHumanReadableCopyright</key>
-    <string></string>
-    <!-- Fixed -->
-    <key>LSApplicationCategoryType</key>
-    <string>public.app-category.games</string>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
             <key>CFBundleTypeExtensions</key>
             <array>
+                <string>nca</string>
+                <string>nro</string>
+                <string>nso</string>
                 <string>nsp</string>
                 <string>xci</string>
-                <string>nro</string>
             </array>
             <key>CFBundleTypeName</key>
-            <string>Switch File</string>
+            <string>Nintendo Switch File</string>
             <key>CFBundleTypeRole</key>
             <string>Viewer</string>
             <key>LSHandlerRank</key>
             <string>Default</string>
         </dict>
     </array>
+
+    <!-- LS -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.games</string>
+    <key>LSRequiresCarbon</key>
+    <true/>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.games</string>
+
+    <!-- NS -->
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
     <string>True</string>
+    <key>NSUserActivityTypes</key>
+    <array>
+        <string>LaunchGameIntent</string>
+    </array>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright 2025 Eden Emulator Project GPL-3.0-or-later</string>
+
+    <!-- UI -->
     <key>UIDesignRequiresCompatibility</key>
     <true/> <!-- https://bugreports.qt.io/browse/QTBUG-138942 -->
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeDescription</key>
+            <string>Extensible Application Markup Language</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+            <string>public.xml</string>
+            </array>
+            <key>UTTypeIdentifier</key>
+            <string>com.eden-emu.xaml</string>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+            <key>public.filename-extension</key>
+            <array>
+                <string>xaml</string>
+            </array>
+            </dict>
+        </dict>
+        <dict>
+            <key>UTTypeDescription</key>
+            <string>Nintendo Submission Package</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+            <string>public.data</string>
+            </array>
+            <key>UTTypeIdentifier</key>
+            <string>com.eden-emu.nsp</string>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+            <key>public.filename-extension</key>
+            <array>
+                <string>nsp</string>
+            </array>
+            </dict>
+        </dict>
+        <dict>
+            <key>UTTypeDescription</key>
+            <string>Nintendo Switch Cartridge</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+            <string>public.data</string>
+            </array>
+            <key>UTTypeIdentifier</key>
+            <string>com.eden-emu.xci</string>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+            <key>public.filename-extension</key>
+            <array>
+                <string>xci</string>
+            </array>
+            </dict>
+        </dict>
+        <dict>
+            <key>UTTypeDescription</key>
+            <string>Nintendo Content Archive</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+            <string>public.data</string>
+            </array>
+            <key>UTTypeIdentifier</key>
+            <string>com.eden-emu.nca</string>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+            <key>public.filename-extension</key>
+            <array>
+                <string>nca</string>
+            </array>
+            </dict>
+        </dict>
+        <dict>
+            <key>UTTypeDescription</key>
+            <string>Nintendo Relocatable Object</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+            <string>public.data</string>
+            </array>
+            <key>UTTypeIdentifier</key>
+            <string>com.eden-emu.nro</string>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+            <key>public.filename-extension</key>
+            <array>
+                <string>nro</string>
+            </array>
+            </dict>
+        </dict>
+        <dict>
+            <key>UTTypeDescription</key>
+            <string>Nintendo Shared Object</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+            <string>public.data</string>
+            </array>
+            <key>UTTypeIdentifier</key>
+            <string>com.eden-emu.nso</string>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+            <key>public.filename-extension</key>
+            <array>
+                <string>nso</string>
+            </array>
+            </dict>
+        </dict>
+    </array>
+
+    <!-- ITS -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+
+    <!-- GC -->
+    <!-- Game mode is supposed to be automatically enabled by the app category specification above,
+        but for some reason it needs to be explicitly enabled with this key. -->
+    <key>GCSupportsGameMode</key>
+    <true/>
 </dict>
 </plist>
