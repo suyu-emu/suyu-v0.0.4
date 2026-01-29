@@ -41,9 +41,8 @@ EOF
 
 while true; do
 	case "$1" in
-		(-uc) UPDATE=true; COMMIT=true ;;
 		(-u|--update) UPDATE=true ;;
-		(-c|--commit) COMMIT=true ;;
+		(-c|--commit) UPDATE=true; COMMIT=true ;;
 		("$0") break ;;
 		("") break ;;
 		(*) usage ;;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -98,6 +98,7 @@ bool ProfileManager::RemoveProfileAtIndex(std::size_t index) {
 
 void ProfileManager::RemoveAllProfiles()
 {
+    user_count = 0;
     profiles = {};
 }
 

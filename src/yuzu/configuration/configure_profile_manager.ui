@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>390</width>
+    <width>483</width>
     <height>483</height>
    </rect>
   </property>
@@ -26,7 +26,7 @@
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <property name="sizeConstraint">
-         <enum>QLayout::SetNoConstraint</enum>
+         <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
         </property>
         <item row="0" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -47,27 +47,27 @@
            <widget class="QGraphicsView" name="current_user_icon">
             <property name="minimumSize">
              <size>
-              <width>48</width>
-              <height>48</height>
+              <width>64</width>
+              <height>64</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>48</width>
-              <height>48</height>
+              <width>64</width>
+              <height>64</height>
              </size>
             </property>
             <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="frameShadow">
-             <enum>QFrame::Plain</enum>
+             <enum>QFrame::Shadow::Plain</enum>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
             </property>
             <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
             </property>
             <property name="interactive">
              <bool>false</bool>
@@ -98,7 +98,7 @@
            </sizepolicy>
           </property>
           <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
+           <enum>QFrame::Shape::StyledPanel</enum>
           </property>
           <property name="widgetResizable">
            <bool>false</bool>
@@ -108,29 +108,9 @@
         <item row="2" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QPushButton" name="pm_set_image">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Set Image</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pm_select_avatar">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Select Avatar</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -144,26 +124,6 @@
            <widget class="QPushButton" name="pm_add">
             <property name="text">
              <string>Add</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pm_rename">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Rename</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pm_remove">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Remove</string>
             </property>
            </widget>
           </item>
@@ -186,6 +146,6 @@
    </item>
   </layout>
  </widget>
- <resources />
- <connections />
+ <resources/>
+ <connections/>
 </ui>

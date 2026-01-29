@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -14,6 +14,7 @@
 #include <QWidget>
 #include "core/file_sys/vfs/vfs_types.h"
 
+class ProfileAvatarDialog;
 namespace Common {
 struct UUID;
 }
@@ -39,26 +40,6 @@ namespace Ui {
 class ConfigureProfileManager;
 }
 
-class ConfigureProfileManagerAvatarDialog : public QDialog {
-public:
-    explicit ConfigureProfileManagerAvatarDialog(QWidget* parent);
-    ~ConfigureProfileManagerAvatarDialog();
-
-    void LoadImages(const QVector<QPixmap>& avatar_images);
-    bool AreImagesLoaded() const;
-    QPixmap GetSelectedAvatar();
-
-private:
-    void SetBackgroundColor(const QColor& color);
-    QPixmap CreateAvatar(const QPixmap& avatar);
-    void RefreshAvatars();
-
-    QVector<QPixmap> avatar_image_store;
-    QListWidget* avatar_list;
-    QColor avatar_bg_color;
-    QPushButton* bg_color_button;
-};
-
 class ConfigureProfileManagerDeleteDialog : public QDialog {
 public:
     explicit ConfigureProfileManagerDeleteDialog(QWidget* parent);
@@ -82,6 +63,10 @@ public:
 
     void ApplyConfiguration();
 
+private slots:
+    void saveImage(QPixmap pixmap, Common::UUID uuid);
+    void showContextMenu(const QPoint &pos);
+
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
@@ -93,12 +78,9 @@ private:
 
     void SelectUser(const QModelIndex& index);
     void AddUser();
-    void RenameUser();
+    void EditUser();
     void ConfirmDeleteUser();
     void DeleteUser(const Common::UUID& uuid);
-    void SetUserImage(const QImage& image);
-    void SelectImageFile();
-    void SelectFirmwareAvatar();
     bool LoadAvatarData();
     std::vector<uint8_t> DecompressYaz0(const FileSys::VirtualFile& file);
 
@@ -106,8 +88,6 @@ private:
     QTreeView* tree_view;
     QStandardItemModel* item_model;
     QGraphicsScene* scene;
-
-    ConfigureProfileManagerAvatarDialog* avatar_dialog;
     ConfigureProfileManagerDeleteDialog* confirm_dialog;
 
     std::vector<QList<QStandardItem*>> list_items;

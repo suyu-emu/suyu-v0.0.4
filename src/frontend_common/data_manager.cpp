@@ -1,6 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <filesystem>
 #include "data_manager.h"
 #include "common/assert.h"
 #include "common/fs/path_util.h"
@@ -37,7 +38,9 @@ const fs::path GetDataDir(DataDir dir, const std::string &user_id)
 
 const std::string GetDataDirString(DataDir dir, const std::string &user_id)
 {
-    return GetDataDir(dir, user_id).string();
+    auto dirString = GetDataDir(dir, user_id).string();
+    std::filesystem::create_directories(dirString);
+    return dirString;
 }
 
 u64 ClearDir(DataDir dir, const std::string &user_id)
