@@ -47,8 +47,6 @@
     <string name="soc_overlay_options">デバイスオーバーレイ</string>
     <string name="soc_overlay_options_description">デバイスオーバーレイに表示される情報を設定</string>
 
-    <string name="show_build_id">ビルドIDを表示</string>
-    <string name="show_driver_version">ドライバーのバージョンを表示</string>
     <string name="show_device_model">デバイスモデルを表示</string>
     <string name="show_gpu_model">GPUモデルを表示</string>
     <string name="show_soc_model">SoCモデルを表示</string>
@@ -65,12 +63,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">ホストMMUエミュレーションを有効化</string>
     <string name="cpuopt_unsafe_host_mmu_description">この最適化により、ゲストプログラムによるメモリアクセスが高速化されます。有効にすると、ゲストのメモリ読み書きが直接メモリ内で実行され、ホストのMMUを利用します。無効にすると、すべてのメモリアクセスでソフトウェアMMUエミュレーションが使用されます。</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDECエミュレーション</string>
     <string name="nvdec_emulation_description">ビデオデコード方法</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">無効</string>
 
     <!-- Optimize SPIRV output -->
@@ -388,7 +383,6 @@
     <string name="skip_cpu_inner_invalidation_description">メモリ更新時のCPU側キャッシュ無効化をスキップし、CPU使用率を減らして性能を向上させます。一部のゲームで不具合やクラッシュが発生する可能性があります。</string>
     <string name="renderer_asynchronous_shaders">非同期シェーダー</string>
     <string name="renderer_asynchronous_shaders_description">シェーダーを非同期でコンパイルします。これによりカクつきが減る可能性がありますが、グラフィックの不具合が発生する場合もあります。</string>
-
     <string name="dyna_state">拡張ダイナミックステート</string>
     <string name="disabled">無効</string>
     <string name="provoking_vertex">プロボーキング頂点</string>
@@ -425,10 +419,6 @@
     <string name="audio_volume">音量</string>
     <string name="audio_volume_description">オーディオ出力の音量を指定します</string>
 
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">+</string>
     <string name="button_minus">-</string>
     <string name="button_home">HOMEボタン</string>
@@ -445,11 +435,6 @@
     <string name="range">範囲</string>
     <string name="deadzone">遊び</string>
     <string name="modifier">変更</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">無効</string>
     <string name="unknown">不明</string>
     <string name="pro_controller">Proコントローラー</string>
@@ -637,35 +622,15 @@
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">なし</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">デフォルト</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU非同期</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">非圧縮</string>
-    <string name="astc_recompression_bc1">BC1（低品質）</string>
-    <string name="astc_recompression_bc3">BC3（中品質）</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">保守的</string>
     <string name="vram_usage_aggressive">積極的</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (低速)</string>
-    <string name="resolution_three">3X (2160p/3240p) (低速)</string>
-    <string name="resolution_four">4X (2880p/4320p) (低速)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immediate (オフ)</string>
@@ -673,32 +638,13 @@
     <string name="renderer_vsync_fifo">FIFO (オン)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
-    <string name="scaling_filter_bilinear">Bilinear</string>
-    <string name="scaling_filter_bicubic">Bicubic</string>
-    <string name="scaling_filter_gaussian">Gaussian</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">なし</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">自動</string>
     <string name="screen_layout_landscape">横長</string>
     <string name="screen_layout_portrait">縦長</string>
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">デフォルト (16:9)</string>
-    <string name="ratio_force_four_three">強制 4:3</string>
-    <string name="ratio_force_twenty_one_nine">強制 21:9</string>
-    <string name="ratio_force_sixteen_ten">強制 16:10</string>
     <string name="ratio_stretch">画面に合わせる</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">ネイティブコード実行 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">正確</string>
@@ -723,10 +669,6 @@
     <string name="theme_mode_follow_system">システムに従う</string>
     <string name="theme_mode_light">ライト</string>
     <string name="theme_mode_dark">ダーク</string>
-
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">完全な黒を使用</string>

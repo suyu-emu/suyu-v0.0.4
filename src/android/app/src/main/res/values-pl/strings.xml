@@ -16,7 +16,14 @@
     <string name="value_too_high">Wartość musi wynosić co najwyżej %1$d</string>
     <string name="invalid_value">Nieprawidłowa wartość  </string>
 
-
+    <!-- Input Overlay -->
+    <string name="show_input_overlay">Pokaż nakładkę sterowania</string>
+    <string name="show_input_overlay_description">Wyświetlaj nakładkę sterowania dotykowego podczas emulacji</string>
+    <string name="overlay_snap_to_grid">Przyciągaj do siatki</string>
+    <string name="overlay_snap_to_grid_description">Podczas edycji przyciągaj elementy nakładki do siatki</string>
+    <string name="overlay_grid_size">Rozmiar siatki</string>
+    <string name="overlay_grid_size_description">Rozmiar komórek siatki w pikselach</string>
+    <string name="input_overlay_behavior">Zachowanie</string>
     <string name="overlay_auto_hide">Automatyczne ukrywanie nakładki</string>
     <string name="overlay_auto_hide_description">Włącz automatyczne ukrywanie nakładki sterowania</string>
     <string name="enable_input_overlay_auto_hide">Włącz automatyczne ukrywanie nakładki</string>
@@ -25,6 +32,10 @@
 
     <string name="input_overlay_options">Nakładka sterowania</string>
     <string name="input_overlay_options_description">Skonfiguruj sterowanie na ekranie</string>
+    <string name="edit_overlay_layout">Edytuj układ nakładki</string>
+    <string name="edit_overlay_layout_description">Dostosuj położenie i skalę elementów sterowania na ekranie</string>
+
+
     <!-- Stats Overlay settings -->
     <string name="process_ram">Pamięć procesu: %1$d MB</string>
     <string name="shaders_prefix">Kompilacja</string>
@@ -68,8 +79,6 @@
     <string name="soc_overlay_options">Nakładka urządzenia</string>
     <string name="soc_overlay_options_description">Skonfiguruj, jakie informacje są wyświetlane w nakładce urządzenia</string>
 
-    <string name="show_build_id">Pokaż ID kompilacji</string>
-    <string name="show_driver_version">Pokaż wersję sterownika</string>
     <string name="show_device_model">Pokaż model urządzenia</string>
     <string name="show_gpu_model">Pokaż model GPU</string>
     <string name="show_soc_model">Pokaż model SoC</string>
@@ -93,8 +102,6 @@
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulacja NVDEC</string>
     <string name="nvdec_emulation_description">Wybierz metodę dekodowania wideo (NVDEC).</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Brak</string>
 
     <!-- Optimize SPIRV output -->
@@ -385,7 +392,6 @@
     <string name="about_app_description">Otwarto-źródłowy emulator konsoli Switch</string>
     <string name="contributors">Współtwórcy</string>
     <string name="contributors_description">Stworzone z \u2764 przez zespół Eden</string>
-    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Projekty dzięki którym Eden mógł zostać stworzony</string>
     <string name="build">Wersja</string>
     <string name="user_data">Dane użytkownika</string>
@@ -418,6 +424,9 @@
     <string name="use_custom_rtc_description">Ta opcja pozwala na wybranie własnych ustawień czasu używanych w czasie emulacji, innych niż czas systemu Android.</string>
     <string name="set_custom_rtc">Ustaw niestandardowy czas RTC</string>
 
+    <!-- CPU -->
+    <string name="fast_cpu_time">Podkręcanie CPU</string>
+    <string name="fast_cpu_time_description">Wymusza działanie emulowanego CPU z wyższym taktowaniem, ograniczając niektóre blokady FPS. Użyj Boost (1700 MHz), aby działać z najwyższym natywnym taktowaniem Switcha, lub Fast (2000 MHz), aby działać z taktowaniem 2×.</string>
     <string name="custom_cpu_ticks">Niestandardowe takty CPU</string>
     <string name="custom_cpu_ticks_description">Ustaw niestandardową wartość taktów CPU. Wyższe wartości mogą zwiększyć wydajność, ale mogą też powodować zawieszanie się gry. Zalecany zakres to 77–21000.</string>
     <string name="cpu_ticks">Takty</string>
@@ -440,9 +449,14 @@
     <string name="fsr_sharpness">Ostrość FSR</string>
     <string name="fsr_sharpness_description">Kontroluje ostrość obrazu w FSR.</string>
     <string name="renderer_anti_aliasing">Metoda wygładzania krawędzi</string>
+    <string name="renderer_optimize_spirv_output">Optymalizuj wyjście SPIRV</string>
     <string name="renderer_optimize_spirv_output_description">Optymalizuje skompilowany shader w celu poprawy wydajności GPU.</string>
 
 
+    <string name="advanced">Zaawansowane</string>
+
+    <string name="renderer_accuracy">Tryb GPU</string>
+    <string name="renderer_accuracy_description">Steruje trybem emulacji GPU. Większość gier renderuje się poprawnie w trybach Szybki lub Zrównoważony, ale dla niektórych nadal wymagany jest tryb Dokładny. Efekty cząsteczkowe zwykle renderują się poprawnie tylko w trybie Dokładnym.</string>
     <string name="dma_accuracy">Dokładność DMA</string>
     <string name="dma_accuracy_description">Kontroluje dokładność precyzji DMA. Bezpieczna precyzja może naprawić problemy w niektórych grach, ale w niektórych przypadkach może również wpłynąć na wydajność. Jeśli nie jesteś pewien, pozostaw wartość Domyślną.</string>
     <string name="anisotropic_filtering">Filtrowanie anizotropowe</string>
@@ -464,12 +478,18 @@
     <string name="renderer_reactive_flushing_description">Poprawia jakość renderowania w kilku grach, kosztem wydajności.</string>
 
 
+    <string name="hacks">Hacki</string>
+
+    <string name="fast_gpu_time">Szybki czas GPU</string>
+    <string name="fast_gpu_time_description">Wymusza działanie większości gier w ich najwyższej natywnej rozdzielczości. Ustaw 256 dla maksymalnej wydajności, a 512 dla maksymalnej jakości grafiki.</string>
     <string name="skip_cpu_inner_invalidation">Pomiń wewnętrzne unieważnienie CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Pomija niektóre unieważnienia pamięci podręcznej po stronie CPU podczas aktualizacji pamięci, zmniejszając użycie CPU i poprawiając jego wydajność. Może powodować błędy lub awarie w niektórych grach.</string>
     <string name="renderer_asynchronous_shaders">Wyłącz synchronizację shaderów</string>
     <string name="renderer_asynchronous_shaders_description">Kompiluje shadery asynchronicznie. Może to zmniejszyć zacinanie, ale może też powodować błędy graficzne.</string>
+    <string name="extensions">Rozszerzenia</string>
 
     <string name="dyna_state">Rozszerzony stan dynamiczny</string>
+    <string name="dyna_state_description">Kontroluje liczbę funkcji, które mogą być używane w Extended Dynamic State. Wyższe wartości pozwalają na użycie większej liczby funkcji i mogą zwiększyć wydajność, ale mogą powodować problemy z niektórymi sterownikami i u niektórych producentów.</string>
     <string name="disabled">Wyłączone</string>
     <string name="vertex_input_dynamic_state">Dynamiczny stan wejścia wierzchołków</string>
     <string name="vertex_input_dynamic_state_description">Włącza funkcję dynamicznego stanu wejścia wierzchołków, poprawiając jakość i wydajność.</string>
@@ -477,6 +497,10 @@
     <string name="provoking_vertex_description">Poprawia oświetlenie i obsługę wierzchołków w niektórych grach. Obsługiwane tylko przez GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indeksowanie deskryptorów</string>
     <string name="descriptor_indexing_description">Poprawia obsługę tekstur i buforów oraz warstwę tłumaczenia Maxwell. Obsługiwane przez niektóre GPU Vulkan 1.1 i wszystkie GPU Vulkan 1.2+.</string>
+    <string name="sample_shading_fraction">Cieniowanie próbkowane</string>
+    <string name="sample_shading_fraction_description">Pozwala uruchamiać shader fragmentów dla każdej próbki w wielopróbkowanym fragmencie zamiast raz na fragment. Poprawia jakość grafiki kosztem części wydajności.</string>
+
+
     <string name="display">Wyświetlacz</string>
 
     <string name="renderer_screen_layout">Orientacja</string>
@@ -496,6 +520,8 @@
     <string name="renderer_api">Interfejs graficzny</string>
     <string name="renderer_debug">Debugowanie grafiki</string>
     <string name="renderer_debug_description">Kiedy włączone, interfejs graficzny korzysta z wolnego trybu debugowania błędów.</string>
+    <string name="patch_old_qcom_drivers">Łatanie tekstur BCn</string>
+    <string name="patch_old_qcom_drivers_description">Nadpisuje automatyczne wykrywanie formatu tekstur BCn na GPU Adreno. Domyślnie jest ono wykrywane automatycznie na podstawie wersji Androida (włączone na API 28+).</string>
     <string name="fastmem">Fastmem</string>
 
     <string name="log">Rejestrowanie</string>
@@ -511,10 +537,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Przyciski</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Plus</string>
     <string name="button_minus">Minus</string>
     <string name="button_home">Home</string>
@@ -535,15 +557,10 @@
     <string name="modifier">Modyfikator</string>
     <string name="modifier_range">Zakres modyfikatora</string>
     <string name="triggers">Spusty (Trigery)</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">Lewy SL</string>
     <string name="button_sr_left">Lewy SR</string>
     <string name="button_sl_right">Prawy SL</string>
     <string name="button_sr_right">Prawy SR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">Nieprawidłowe</string>
     <string name="not_set">Nie ustawiono</string>
     <string name="unknown">Nieznany</string>
@@ -595,6 +612,7 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">Domyślne</string>
+    <string name="default_string">Domyślne</string>
     <string name="loading">Wczytywanie...</string>
     <string name="shutting_down">Wyłączanie…</string>
     <string name="reset_setting_confirmation">Przywrócić wartość tego ustawienia do wartości domyślnej?</string>
@@ -633,6 +651,7 @@
     <string name="select_gpu_driver_default">Domyślne</string>
     <string name="select_gpu_driver_error">Wybrano nieprawidłowy sterownik</string>
     <string name="driver_already_installed">Sterownik już zainstalowany</string>
+    <string name="installed_label">%1$s (Zainstalowano)</string>
     <string name="system_gpu_driver">Systemowy sterownik GPU</string>
     <string name="installing_driver">Instalowanie sterownika...</string>
 
@@ -669,6 +688,28 @@
     <string name="preferences_player">Gracz %d</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">Debugowanie CPU/GPU, API grafiki, fastmem</string>
+    <string name="preferences_custom_paths">Niestandardowe ścieżki</string>
+    <string name="preferences_custom_paths_description">Katalog danych zapisu</string>
+
+    <!-- Custom Paths settings -->
+    <string name="custom_save_directory">Katalog danych zapisu</string>
+    <string name="custom_save_directory_description">Ustaw niestandardową ścieżkę przechowywania danych zapisu</string>
+    <string name="reset_to_nand">Przywróć domyślne</string>
+    <string name="migrate_save_data">Przenieś dane zapisu</string>
+    <string name="migrate_save_data_question">Czy chcesz przenieść istniejące dane zapisu do nowej lokalizacji\?</string>
+    <string name="save_migration_complete">Dane zapisu przeniesiono pomyślnie</string>
+    <string name="save_migration_failed">Przenoszenie danych zapisu nie powiodło się</string>
+    <string name="save_directory_set">Ustawiono katalog zapisów</string>
+    <string name="destination_has_saves">Miejsce docelowe już zawiera dane. Czy chcesz je nadpisać\?</string>
+    <string name="all_files_permission_required">Uprawnienie „Dostęp do wszystkich plików” jest wymagane dla niestandardowych ścieżek</string>
+    <string name="grant_permission">Nadaj uprawnienie</string>
+    <string name="custom_nand_directory">Katalog NAND</string>
+    <string name="custom_nand_directory_description">Ustaw niestandardową ścieżkę przechowywania NAND</string>
+    <string name="custom_sdmc_directory">Katalog karty SD</string>
+    <string name="custom_sdmc_directory_description">Ustaw niestandardową ścieżkę dla wirtualnej karty SD</string>
+    <string name="path_set">Ścieżkę ustawiono pomyślnie</string>
+    <string name="skip_migration">Pomiń</string>
+
     <!-- Game properties -->
     <string name="info">Informacje</string>
     <string name="info_description">ID programu, deweloper, wersja</string>
@@ -726,7 +767,6 @@
     <string name="confirm_uninstall">Potwierdź odinstalowanie</string>
     <string name="confirm_uninstall_description">Na pewno chcesz odinstalować ten dodatek\?</string>
     <string name="verify_integrity">Sprawdź integralność</string>
-    <string name="verifying">Trwa weryfikacja...</string>
     <string name="verify_success">Weryfikacja integralności zakończona pomyślnie!</string>
     <string name="verify_failure">Weryfikacja integralności nie powiodła się!</string>
     <string name="verify_failure_description">Zawartość pliku może być uszkodzona</string>
@@ -798,6 +838,7 @@
     <string name="emulation_control_opacity">Przeźroczystość</string>
     <string name="emulation_touch_overlay_reset">Resetuj nakładkę</string>
     <string name="emulation_touch_overlay_edit">Edytuj nakładkę</string>
+    <string name="emulation_snap_to_grid">Przyciągaj do siatki</string>
     <string name="emulation_pause">Wstrzymaj emulację</string>
     <string name="emulation_unpause">Wznów emulację</string>
     <string name="emulation_input_overlay">Opcje nakładki</string>
@@ -851,6 +892,11 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Szybkie (2000MHz)</string>
 
+    <!-- GPU overclock factors -->
+    <string name="off">Wyłączone</string>
+    <string name="fast_gpu_medium">Średnie (256)</string>
+    <string name="fast_gpu_high">Wysokie (512)</string>
+
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsjusza</string>
     <string name="temperature_fahrenheit">Fahrenheita</string>
@@ -864,10 +910,10 @@
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Żadny</string>
 
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">Szybkie</string>
     <string name="renderer_accuracy_medium">Zrównoważony</string>
     <string name="renderer_accuracy_high">Dokładny</string>
 
@@ -876,30 +922,11 @@
     <string name="dma_accuracy_unsafe">Niezalecane</string>
     <string name="dma_accuracy_safe">Bezpieczne</string>
 
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU asynchronicznie</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Bez kompresji</string>
-    <string name="astc_recompression_bc1">BC1 (niska jakość)</string>
-    <string name="astc_recompression_bc3">BC3 (średnia jakość)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Oszczędny</string>
     <string name="vram_usage_aggressive">Agresywny</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Wolno)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Wolno)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Wolno)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Natychmiastowa (Wyłączona)</string>
@@ -907,26 +934,8 @@
     <string name="renderer_vsync_fifo">FIFO (Włączona)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaks</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Najbliższy sąsiadujący</string>
-    <string name="scaling_filter_bilinear">Bilinearny</string>
-    <string name="scaling_filter_bicubic">Bikubiczny</string>
-    <string name="scaling_filter_spline1">Spline-1</string>
-    <string name="scaling_filter_gaussian">Kulisty</string>
-    <string name="scaling_filter_lanczos">Lanczos</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-    <string name="scaling_filter_area">Obszar</string>
-    <string name="scaling_filter_zero_tangent">Zero-Tangent</string>
-    <string name="scaling_filter_bspline">B-Spline</string>
-    <string name="scaling_filter_mitchell">Mitchell</string>
-    <string name="scaling_filter_mmpx">MMPX</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Żadna (wyłączony)</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Automatyczny</string>
     <string name="screen_layout_sensor_landscape">Czujnik poziomu</string>
@@ -936,16 +945,7 @@
     <string name="screen_layout_portrait">Pionowy</string>
     <string name="screen_layout_reverse_portrait">Odwrócony pionowy</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Domyślne (16:9)</string>
-    <string name="ratio_force_four_three">Wymuś 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Wymuś 21:9</string>
-    <string name="ratio_force_sixteen_ten">Wymuś 16:10</string>
     <string name="ratio_stretch">Rozciągnij do okna</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">Wykonywanie natywnego kodu (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Dokładny</string>
@@ -976,17 +976,6 @@
     <string name="theme_mode_light">Jasny</string>
     <string name="theme_mode_dark">Ciemny</string>
 
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
-
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
     <string name="multiplier_none">Brak</string>
 
     <!-- Black backgrounds theme -->
@@ -997,31 +986,6 @@
     <string name="app_language">Język aplikacji</string>
     <string name="app_language_description">Zmień język interfejsu aplikacji</string>
     <string name="app_language_system">Zgodnie z systemem</string>
-    <string name="app_language_english">English</string>
-    <string name="app_language_spanish">Español</string>
-    <string name="app_language_french">Français</string>
-    <string name="app_language_german">Deutsch</string>
-    <string name="app_language_italian">Italiano</string>
-    <string name="app_language_portuguese">Português</string>
-    <string name="app_language_brazilian_portuguese">Português do Brasil</string>
-    <string name="app_language_russian">Русский</string>
-    <string name="app_language_japanese">日本語</string>
-    <string name="app_language_korean">한국어</string>
-    <string name="app_language_simplified_chinese">简体中文</string>
-    <string name="app_language_traditional_chinese">繁體中文</string>
-    <string name="app_language_polish">Polski</string>
-    <string name="app_language_czech">Čeština</string>
-    <string name="app_language_norwegian">Norsk bokmål</string>
-    <string name="app_language_hungarian">Magyar</string>
-    <string name="app_language_ukrainian">Українська</string>
-    <string name="app_language_vietnamese">Tiếng Việt</string>
-    <string name="app_language_indonesian">Bahasa Indonesia</string>
-    <string name="app_language_arabic">العربية</string>
-    <string name="app_language_central_kurdish">کوردیی ناوەندی</string>
-    <string name="app_language_persian">فارسی</string>
-    <string name="app_language_hebrew">עברית</string>
-    <string name="app_language_serbian">Српски</string>
-
     <!-- Static Themes -->
     <string name="static_theme_color">Kolor motywu</string>
     <string name="eden_theme">Eden (Domyślnie)</string>

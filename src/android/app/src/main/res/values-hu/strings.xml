@@ -47,8 +47,6 @@
     <string name="soc_overlay_options">Eszköz információk</string>
     <string name="soc_overlay_options_description">Állítsd be, milyen információk jelenjenek meg az eszköz információiban</string>
 
-    <string name="show_build_id">Build azonosító megjelenítése</string>
-    <string name="show_driver_version">Illesztőprogram-verzió megjelenítése</string>
     <string name="show_device_model">Eszköz modell megjelenítése</string>
     <string name="show_gpu_model">GPU modell megjelenítése</string>
     <string name="show_soc_model">SoC modell megjelenítése</string>
@@ -65,12 +63,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">Gazda MMU emuláció engedélyezése</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ez az optimalizáció gyorsítja a vendégprogram memória-hozzáférését. Engedélyezése esetén a vendég memóriaolvasási/írási műveletei közvetlenül a memóriában történnek, és kihasználják a gazda MMU-ját. Letiltás esetén minden memória-hozzáférés a szoftveres MMU emulációt használja.</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC emuláció</string>
     <string name="nvdec_emulation_description">Videódekódolás kezelése</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Nincs</string>
 
     <!-- Optimize SPIRV output -->
@@ -390,7 +385,6 @@
     <string name="skip_cpu_inner_invalidation_description">Kihagy néhány CPU-oldali gyorsítótár-érvénytelenítést memóriafrissítések közben, csökkentve a CPU használatát és javítva a teljesítményt. Néhány játékban hibákat vagy összeomlást okozhat.</string>
     <string name="renderer_asynchronous_shaders">Aszinkron árnyékolók használata</string>
     <string name="renderer_asynchronous_shaders_description">A shaderek aszinkron fordítása. Csökkentheti a belassulásokat, de hibákat is okozhat.</string>
-
     <string name="dyna_state">Kiterjesztett Dinamikus Állapot</string>
     <string name="disabled">Letiltva</string>
     <string name="provoking_vertex">Provokáló csúcs</string>
@@ -427,10 +421,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Gombok</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Plusz</string>
     <string name="button_minus">Mínusz</string>
     <string name="button_home">Home</string>
@@ -449,15 +439,10 @@
     <string name="modifier">Módosító</string>
     <string name="modifier_range">Módosító tartomány</string>
     <string name="triggers">Ravaszok</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">Bal SL</string>
     <string name="button_sr_left">Bal SR</string>
     <string name="button_sl_right">Jobb SL</string>
     <string name="button_sr_right">Jobb SR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">Érvénytelen</string>
     <string name="not_set">Nincs beállítva</string>
     <string name="unknown">Ismeretlen</string>
@@ -618,7 +603,6 @@
     <string name="confirm_uninstall">Eltávolítás megerősítése</string>
     <string name="confirm_uninstall_description">Biztosan törölni szeretnéd ezt a kiegészítőt?</string>
     <string name="verify_integrity">Integritás ellenőrzése</string>
-    <string name="verifying">Ellenőrzés...</string>
     <string name="verify_success">Integritás ellenőrzése sikeres!</string>
     <string name="verify_failure">Az integritás ellenőrzése sikertelen!</string>
     <string name="verify_failure_description">A fájl tartalma sérült lehet</string>
@@ -731,35 +715,15 @@
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Nincs</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Alapértelmezett</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU aszinkron</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Tömörítetlen</string>
-    <string name="astc_recompression_bc1">BC1 (alacsony minőség)</string>
-    <string name="astc_recompression_bc3">BC3 (közepes minőség)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Konzervatív</string>
     <string name="vram_usage_aggressive">Aggresszív</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Lassú)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Lassú)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Lassú)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Azonnali (Ki)</string>
@@ -767,18 +731,8 @@
     <string name="renderer_vsync_fifo">FIFO (Be)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Legközelebbi szomszéd</string>
-    <string name="scaling_filter_bilinear">Bilineáris</string>
-    <string name="scaling_filter_bicubic">Bikubikus</string>
-    <string name="scaling_filter_gaussian">Gauss-féle</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Nincs</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Automatikus</string>
     <string name="screen_layout_landscape">Fekvő</string>
@@ -786,16 +740,7 @@
     <string name="screen_layout_portrait">Álló</string>
     <string name="screen_layout_reverse_portrait">Álló (fejjel lefelé)</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Alapértelmezett (16:9)</string>
-    <string name="ratio_force_four_three">4:3 kényszerítése</string>
-    <string name="ratio_force_twenty_one_nine">21:9 kényszerítése</string>
-    <string name="ratio_force_sixteen_ten">16:10 kényszerítése</string>
     <string name="ratio_stretch">Ablakhoz nyújtás</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">Natív kód végrehajtás (Native code execution (NCE))</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Pontos</string>
@@ -819,10 +764,6 @@
     <string name="theme_mode_follow_system">Rendszerbeállítások használata</string>
     <string name="theme_mode_light">Világos</string>
     <string name="theme_mode_dark">Sötét</string>
-
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Fekete háttér</string>

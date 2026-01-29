@@ -16,7 +16,6 @@
     <string name="value_too_high">El valor debe ser como máximo%1$d</string>
     <string name="invalid_value">Valor inválido</string>
 
-
     <string name="overlay_auto_hide">Ocultar automáticamente la superposición</string>
     <string name="overlay_auto_hide_description">Ocultar automáticamente la superposición de controles táctiles después del tiempo de inactividad especificado.</string>
     <string name="enable_input_overlay_auto_hide">Habilitar ocultar automáticamente la superposición</string>
@@ -65,8 +64,6 @@
     <string name="soc_overlay_options">Superposición del dispositivo</string>
     <string name="soc_overlay_options_description">Configurar qué información se muestra en la superposición del dispositivo</string>
 
-    <string name="show_build_id">Mostrar ID de compilación</string>
-    <string name="show_driver_version">Mostrar versión del controlador</string>
     <string name="show_device_model">Mostrar modelo del dispositivo</string>
     <string name="show_gpu_model">Mostrar modelo de la GPU</string>
     <string name="show_soc_model">Mostrar modelo del SoC</string>
@@ -83,12 +80,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">Habilitar emulación de MMU del anfitrión</string>
     <string name="cpuopt_unsafe_host_mmu_description">Esta optimización acelera el acceso a la memoria del programa invitado. Al habilitarla, las lecturas y escrituras de la memoria del invitado se realizan directamente en la memoria y utilizan la MMU del anfitrión. Al deshabilitarla, todos los accesos a la memoria utilizan el software de emulación de la MMU.</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulación NVDEC</string>
     <string name="nvdec_emulation_description">Seleccione cómo se maneja la decodificación de vídeo (NVDEC) durante las escenas y las introducciones.</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Ninguno</string>
 
     <!-- Optimize SPIRV output -->
@@ -347,7 +341,6 @@
     <string name="about_app_description">Un emulador de Switch de código abierto</string>
     <string name="contributors">Contribuidores</string>
     <string name="contributors_description">Hecho con \u2764 del equipo Eden</string>
-    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Proyectos que hacen que Eden para Android sea una realidad</string>
     <string name="build">Versión</string>
     <string name="user_data">Datos de usuario</string>
@@ -430,7 +423,6 @@
     <string name="skip_cpu_inner_invalidation_description">Omite ciertas invalidaciones de caché de la CPU durante las actualizaciones de memoria, lo que reduce el uso de la CPU y mejora su rendimiento. Esto puede causar fallos o bloqueos en algunos juegos.</string>
     <string name="renderer_asynchronous_shaders">Usar shaders asíncronos</string>
     <string name="renderer_asynchronous_shaders_description">Compila los shaders de forma asíncrona. Esto puede reducir los tirones, pero también puede introducir errores gráficos.</string>
-
     <string name="dyna_state">Estado dinámico extendido</string>
     <string name="disabled">Desactivado</string>
     <string name="provoking_vertex">Vértice provocante</string>
@@ -469,10 +461,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Botones</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Más</string>
     <string name="button_minus">Menos</string>
     <string name="button_home">Home</string>
@@ -493,15 +481,10 @@
     <string name="modifier">Modificador</string>
     <string name="modifier_range">Rango modificador</string>
     <string name="triggers">Gatillos</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">SL Izquierdo</string>
     <string name="button_sr_left">SR Izquierdo</string>
     <string name="button_sl_right">SL Derecho</string>
     <string name="button_sr_right">SR Derecho</string>
-    <string name="button_z">Z</string>
     <string name="invalid">No válido</string>
     <string name="not_set">No establecido</string>
     <string name="unknown">Desconocido</string>
@@ -677,7 +660,6 @@
     <string name="confirm_uninstall">Confirmar desinstalación</string>
     <string name="confirm_uninstall_description">¿De verdad quieres desinstalar este addon?</string>
     <string name="verify_integrity">Verificar integridad</string>
-    <string name="verifying">Verificando...</string>
     <string name="verify_success">¡La verificación de integridad ha sido un éxito!</string>
     <string name="verify_failure">¡Verificación de integridad fallida!</string>
     <string name="verify_failure_description">Los contenidos del archivo pueden estar corruptos</string>
@@ -804,8 +786,6 @@
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Ninguno</string>
 
     <!-- DMA Accuracy -->
@@ -813,30 +793,11 @@
     <string name="dma_accuracy_unsafe">Inseguro</string>
     <string name="dma_accuracy_safe">Seguro</string>
 
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU asíncrono</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Sin compresión</string>
-    <string name="astc_recompression_bc1">BC1 (baja calidad)</string>
-    <string name="astc_recompression_bc3">BC3 (calidad media)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Conservador</string>
     <string name="vram_usage_aggressive">Agresivo</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">x1 (720p/1080p)</string>
-    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
-    <string name="resolution_three_half">x1 (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Lento)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Lento)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Lento)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Inmediata (Desactivado)</string>
@@ -844,26 +805,8 @@
     <string name="renderer_vsync_fifo">FIFO (Activado)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relajado</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Vecino más próximo</string>
-    <string name="scaling_filter_bilinear">Bilineal</string>
-    <string name="scaling_filter_bicubic">Bicúbico</string>
-    <string name="scaling_filter_spline1">Ranura-1</string>
-    <string name="scaling_filter_gaussian">Gaussiano</string>
-    <string name="scaling_filter_lanczos">Lanczos</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolución</string>
-    <string name="scaling_filter_area">Área</string>
-    <string name="scaling_filter_zero_tangent">Tangente cero</string>
-    <string name="scaling_filter_bspline">Ranura-B</string>
-    <string name="scaling_filter_mitchell">Mitchell</string>
-    <string name="scaling_filter_mmpx">MMPX</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Ninguno</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Auto</string>
     <string name="screen_layout_sensor_landscape">Sensor paisaje</string>
@@ -873,16 +816,7 @@
     <string name="screen_layout_portrait">Retrato</string>
     <string name="screen_layout_reverse_portrait">Retrato inverso</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Predeterminado (16:9)</string>
-    <string name="ratio_force_four_three">Forzar 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Forzar 21:9</string>
-    <string name="ratio_force_sixteen_ten">Forzar 16:10</string>
     <string name="ratio_stretch">Ajustar a la ventana</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">Ejecución nativa de código (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Preciso</string>
@@ -912,10 +846,6 @@
     <string name="theme_mode_follow_system">Igual al sistema</string>
     <string name="theme_mode_light">Claro</string>
     <string name="theme_mode_dark">Oscuro</string>
-
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Fondos oscuros</string>

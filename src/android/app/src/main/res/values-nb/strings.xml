@@ -47,8 +47,6 @@
     <string name="soc_overlay_options">Enhetsoverlegg</string>
     <string name="soc_overlay_options_description">Konfigurer hvilken informasjon som vises i enhetsoverlegget</string>
 
-    <string name="show_build_id">Vis Build-ID</string>
-    <string name="show_driver_version">Vis driver-versjon</string>
     <string name="show_device_model">Vis enhetsmodell</string>
     <string name="show_gpu_model">Vis GPU-modell</string>
     <string name="show_soc_model">Vis SoC-modell</string>
@@ -65,12 +63,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">Aktiver verts-MMU-emulering</string>
     <string name="cpuopt_unsafe_host_mmu_description">Denne optimaliseringen fremskynder minnetilgang av gjesteprogrammet. Hvis aktivert, utføres gjestens minnelesing/skriving direkte i minnet og bruker vertens MMU. Deaktivering tvinger alle minnetilganger til å bruke programvarebasert MMU-emulering.</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC-emulering</string>
     <string name="nvdec_emulation_description">Velg hvordan videodekoding håndteres</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Ingen</string>
 
     <!-- Optimize SPIRV output -->
@@ -371,7 +366,6 @@
     <string name="skip_cpu_inner_invalidation_description">Hopper over enkelte CPU-side cache-invalideringer under minneoppdateringer, reduserer CPU-bruk og forbedrer ytelsen. Kan forårsake feil eller krasj i noen spill.</string>
     <string name="renderer_asynchronous_shaders">Bruk asynkrone shaders</string>
     <string name="renderer_asynchronous_shaders_description">Kompilerer shadere asynkront. Dette kan redusere rykk, men kan også forårsake grafiske feil.</string>
-
     <string name="dyna_state">Utvidet dynamisk tilstand</string>
     <string name="disabled">Deaktivert</string>
     <string name="provoking_vertex">Provoserende vertex</string>
@@ -410,10 +404,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Knapper</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Pluss</string>
     <string name="button_minus">Minus</string>
     <string name="button_home">Hjem</string>
@@ -430,11 +420,6 @@
     <string name="range">Område</string>
     <string name="deadzone">Dødsone</string>
     <string name="modifier">Modifikator</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">Ugyldig</string>
     <string name="pro_controller">Pro-Kontroller</string>
     <string name="handheld">Håndholdt</string>
@@ -609,35 +594,15 @@
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Ingen</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU asynkront</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Ukomprimert</string>
-    <string name="astc_recompression_bc1">BC1 (lav kvalitet)</string>
-    <string name="astc_recompression_bc3">BC3 (middels kvalitet)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Konservativ</string>
     <string name="vram_usage_aggressive">Aggressiv</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Slow)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Slow)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Umiddelbar (av)</string>
@@ -645,25 +610,10 @@
     <string name="renderer_vsync_fifo">FIFO (På)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO avslappet</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Nærmeste nabo</string>
-    <string name="scaling_filter_bilinear">Bilineær</string>
-    <string name="scaling_filter_bicubic">Bikubisk</string>
-    <string name="scaling_filter_gaussian">Gaussisk</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Ingen</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Auto</string>
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Standard (16:9)</string>
-    <string name="ratio_force_four_three">Tving 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Tving 21:9</string>
-    <string name="ratio_force_sixteen_ten">Tving 16:10</string>
     <string name="ratio_stretch">Strekk til vindu</string>
 
     <!-- CPU Accuracy -->

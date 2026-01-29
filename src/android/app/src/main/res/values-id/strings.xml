@@ -16,7 +16,8 @@
     <string name="value_too_high">Maksimal nilai yang diperlukan yaitu %1$d</string>
     <string name="invalid_value">Nilai invalid</string>
 
-
+    <!-- Input Overlay -->
+    <string name="show_input_overlay">Tampilkan Overlay Input</string>
     <string name="overlay_auto_hide">Sembunyikan otomatis Overlay</string>
     <string name="overlay_auto_hide_description">Otomatis menyembunyikan overlay kontrol layar sentuh setelah beberapa waktu spesifik.</string>
     <string name="enable_input_overlay_auto_hide">Aktifkan \"Sembunyikan otomatis Overlay\"</string>
@@ -65,8 +66,6 @@
     <string name="soc_overlay_options">Overlay Perangkat</string>
     <string name="soc_overlay_options_description">Konfigurasi informasi yang ditampilkan di overlay perangkat</string>
 
-    <string name="show_build_id">Tampilkan ID Build</string>
-    <string name="show_driver_version">Tampilkan Versi Driver</string>
     <string name="show_device_model">Tampilkan Model Perangkat</string>
     <string name="show_gpu_model">Tampilkan Model GPU</string>
     <string name="show_soc_model">Tampilkan Model SoC</string>
@@ -83,12 +82,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">Aktifkan Emulasi MMU Host</string>
     <string name="cpuopt_unsafe_host_mmu_description">Optimasi ini mempercepat akses memori oleh program tamu. Mengaktifkannya menyebabkan pembacaan/penulisan memori tamu dilakukan langsung ke memori dan memanfaatkan MMU Host. Menonaktifkan ini memaksa semua akses memori menggunakan Emulasi MMU Perangkat Lunak.</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulasi NVDEC</string>
     <string name="nvdec_emulation_description">Pilih cara decoding video (NVDEC) ditangani selama cutscene dan intro.</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Tidak Ada</string>
 
     <!-- Optimize SPIRV output -->
@@ -339,7 +335,6 @@
     <string name="about_app_description">Emulator Switch Open-Source</string>
     <string name="contributors">Kontributor</string>
     <string name="contributors_description">Dibuat dengan \u2764 dari tim Eden</string>
-    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Proyek yang memungkinkan Eden untuk Android</string>
     <string name="build">Versi</string>
     <string name="user_data">Data pengguna</string>
@@ -422,7 +417,6 @@
     <string name="skip_cpu_inner_invalidation_description">Melewati beberapa pembatalan cache sisi CPU selama pembaruan memori, mengurangi penggunaan CPU dan meningkatkan kinerjanya. Mungkin menyebabkan gangguan atau crash pada beberapa game.</string>
     <string name="renderer_asynchronous_shaders">Gunakan shader asinkron</string>
     <string name="renderer_asynchronous_shaders_description">Kompilasi shader secara asinkron. Ini dapat mengurangi lag tetapi juga dapat menyebabkan glitch.</string>
-
     <string name="dyna_state">Status Dinamis Ekstensi</string>
     <string name="disabled">Dinonaktifkan</string>
     <string name="provoking_vertex">Vertex Provokasi</string>
@@ -461,10 +455,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Tombol</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Tambah</string>
     <string name="button_minus">Kurang</string>
     <string name="button_home">Home</string>
@@ -485,15 +475,10 @@
     <string name="modifier">Pemodifikasi</string>
     <string name="modifier_range">Rentang pengubah</string>
     <string name="triggers">Trigger</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">SL Kiri</string>
     <string name="button_sr_left">SR Kiri</string>
     <string name="button_sl_right">SL Kanan</string>
     <string name="button_sr_right">SR Kanan</string>
-    <string name="button_z">Z</string>
     <string name="invalid">Tidak valid</string>
     <string name="not_set">Tidak ditetapkan</string>
     <string name="unknown">Tidak diketahui</string>
@@ -657,7 +642,6 @@
     <string name="confirm_uninstall">Hapus Installasi</string>
     <string name="confirm_uninstall_description">Apakah Anda yakin ingin menghapus addon ini?</string>
     <string name="verify_integrity">Integritas</string>
-    <string name="verifying">Memverifikasi</string>
     <string name="verify_success">Berhasil</string>
     <string name="verify_failure">Gagal</string>
     <string name="verify_failure_description">Konten file mungkin rusak</string>
@@ -777,35 +761,15 @@
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Tak ada</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Bawaan</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU Secara Asinkron</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Tidak Dikompresi</string>
-    <string name="astc_recompression_bc1">BC1 (Kualitas Rendah)</string>
-    <string name="astc_recompression_bc3">BC3 (Kualitas Menengah)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Konservatif</string>
     <string name="vram_usage_aggressive">Agresif</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Lambat)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Lambat)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Lambat)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immediate (OFF)</string>
@@ -813,19 +777,8 @@
     <string name="renderer_vsync_fifo">FIFO (ON)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
-    <string name="scaling_filter_bilinear">Biliner</string>
-    <string name="scaling_filter_bicubic">Bikubik</string>
-    <string name="scaling_filter_gaussian">Gaussian</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolusi</string>
-    <string name="scaling_filter_area">Area</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Tak ada</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Otomatis</string>
     <string name="screen_layout_sensor_landscape">Lanskap Sensor</string>
@@ -835,16 +788,7 @@
     <string name="screen_layout_portrait">Potret</string>
     <string name="screen_layout_reverse_portrait">Potret Terbalik</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Bawaan (16:9)</string>
-    <string name="ratio_force_four_three">Paksa 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Paksa 21:9</string>
-    <string name="ratio_force_sixteen_ten">Paksa 16:10</string>
     <string name="ratio_stretch">Merentangkan</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">Native code execution (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Akurat</string>
@@ -869,10 +813,6 @@
     <string name="theme_mode_follow_system">Mengikuti Sistem</string>
     <string name="theme_mode_light">Terang</string>
     <string name="theme_mode_dark">Gelap</string>
-
-    <!-- Audio output engines -->
-    <string name="oboe">Oboe</string>
-    <string name="cubeb">Cubeb</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Gunakan Latar Belakang Hitam</string>

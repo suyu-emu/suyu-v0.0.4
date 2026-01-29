@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">سيشغل هذا البرنامج ألعابًا لأجهزة الألعاب Nintendo Switch. لا يتضمن البرنامج أي ألعاب أو مفاتيح.<br /><br />قبل أن تبدأ، يرجى تحديد موقع <![CDATA[<b> prod.keys </b>]]> ملف على وحدة تخزين جهازك.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">اعرف المزيد</a>]]></string>
+    <string name="app_disclaimer">سيشغل هذا البرنامج ألعاب جهاز Nintendo Switch. لا يتضمن البرنامج أي ألعاب أو مفاتيح.<br /><br />قبل أن تبدأ، يرجى تحديد موقع ملف <![CDATA[<b> prod.keys </b>]]>  على وحدة تخزين جهازك.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">اعرف المزيد</a>]]></string>
     <string name="notice_notification_channel_name">الإشعارات والأخطاء</string>
     <string name="notice_notification_channel_description">عرض الإشعارات عند حدوث خطأ ما.</string>
     <string name="notification_permission_not_granted">لم يتم منح إذن الإشعار!</string>
@@ -16,6 +16,7 @@
     <string name="value_too_high">يجب أن تكون القيمة على الأكثر %1$d</string>
     <string name="invalid_value">قيمة غير صالحة</string>
 
+    <string name="using_per_game_config">استخدام الإعدادات الخاصة للعبة</string>
 
     <!-- Input Overlay -->
     <string name="show_input_overlay">عرض طبقة الإدخال</string>
@@ -80,7 +81,7 @@
     <string name="soc_overlay_options">طبقة الجهاز</string>
     <string name="soc_overlay_options_description">ضبط المعلومات التي يتم عرضها في طبقة الجهاز</string>
 
-    <string name="show_build_id">عرض معرف البناء</string>
+    <string name="show_build_id">عرض معرف الإصدار</string>
     <string name="show_driver_version">عرض إصدار برنامج التشغيل</string>
     <string name="show_device_model">عرض طراز الجهاز</string>
     <string name="show_gpu_model">عرض طراز وحدة معالجة الرسومات</string>
@@ -105,8 +106,6 @@
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">محاكاة NVDEC</string>
     <string name="nvdec_emulation_description">حدد كيفية التعامل مع فك تشفير الفيديو (NVDEC) خلال المشاهد التمهيدية والمقدمة.</string>
-    <string name="nvdec_emulation_cpu">وحدة المعالجة المركزية</string>
-    <string name="nvdec_emulation_gpu">وحدة المعالجة الرسومية</string>
     <string name="nvdec_emulation_none">لا شيء</string>
 
     <!-- Optimize SPIRV output -->
@@ -401,7 +400,6 @@
     <string name="about_app_description">محاكي Switch مفتوح المصدر</string>
     <string name="contributors">المساهمين</string>
     <string name="contributors_description">المساهمون الذين جعلوا تطبيق Eden لنظام Android ممكناً</string>
-    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">المشاريع التي تجعل Eden لأجهزة Android ممكنة</string>
     <string name="build">البناء</string>
     <string name="user_data">بيانات المستخدم</string>
@@ -465,6 +463,8 @@
 
     <string name="advanced">متقدم</string>
 
+    <string name="renderer_accuracy">وضع وحدة معالجة الرسومات</string>
+    <string name="renderer_accuracy_description">يتحكم في وضع محاكاة وحدة معالجة الرسومات. تعمل معظم الألعاب بشكل جيد مع وضعي سريع أو متوازن، لكن الوضع الدقيق لا يزال مطلوبًا لبعض الألعاب. تميل الجسيمات إلى العرض بشكل صحيح فقط عند استخدام الوضع الدقيق.</string>
     <string name="dma_accuracy">دقة DMA</string>
     <string name="dma_accuracy_description">يتحكم في دقة DMA. يمكن أن تؤدي الدقة الآمنة إلى حل المشكلات في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا لم تكن متأكدًا، فاترك هذا الخيار على الإعداد الافتراضي.</string>
     <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
@@ -492,8 +492,17 @@
     <string name="fast_gpu_time_description">يُجبر هذا الخيار معظم الألعاب على العمل بأعلى دقة عرض أصلية. استخدم 256 للحصول على أقصى أداء و512 للحصول على أعلى جودة رسومات.</string>
     <string name="skip_cpu_inner_invalidation">تخطي إبطال صلاحية وحدة المعالجة المركزية الداخلية</string>
     <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة من جانب وحدة المعالجة المركزية أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسن أداءها. قد يتسبب ذلك في حدوث أعطال أو تعطل في بعض الألعاب.</string>
+    <string name="fix_bloom_effects">إصلاح تأثيرات التوهج</string>
+    <string name="fix_bloom_effects_description">يقلل من ضبابية التوهج في وضع LA/EOW (مخصص ل Adreno 700)، ويزيل التوهج في وضع الإحتراق</string>
     <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
     <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
+    <string name="gpu_unswizzle_texture_size">الحد الأقصى لحجم النسيج في وحدة معالجة الرسومات بعد إعادة ترتيب البيانات</string>
+    <string name="gpu_unswizzle_texture_size_description">يُحدد هذا الخيار الحد الأقصى لحجم (ميغابايت) معالجة الصور باستخدام وحدة معالجة الرسومات. مع أن وحدة معالجة الرسومات أسرع في معالجة الصور المتوسطة والكبيرة، إلا أن وحدة المعالجة المركزية قد تكون أكثر كفاءة في معالجة الصور الصغيرة جدًا. اضبط هذا الخيار لتحقيق التوازن الأمثل بين سرعة معالجة الرسومات واستهلاك وحدة المعالجة المركزية.</string>
+    <string name="gpu_unswizzle_stream_size">حجم تدفق إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
+    <string name="gpu_unswizzle_stream_size_description">يحدد هذا الخيار حد البيانات لكل إطار لمعالجة الصور الكبيرة. القيم الأعلى تُسرّع تحميل الصور على حساب زيادة زمن استجابة الإطارات؛ أما القيم الأقل فتُقلل من الحمل الزائد على وحدة معالجة الرسومات، ولكنها قد تتسبب في ظهور الصور بشكل مفاجئ.</string>
+    <string name="gpu_unswizzle_chunk_size">حجم كتلة إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
+    <string name="gpu_unswizzle_chunk_size_description">يُحدد هذا الخيار عدد شرائح العمق التي تتم معالجتها لكل دفعة من الصور ثلاثية الأبعاد (3D). زيادة هذا العدد تُحسّن كفاءة الإنتاجية على وحدات معالجة الرسومات القوية، ولكنها قد تُسبب تقطعًا أو انقطاعًا في عمل برنامج التشغيل على الأجهزة ذات المواصفات الأقل قوة.</string>
+
 
     <string name="extensions">إضافات</string>
 
@@ -546,10 +555,6 @@
 
     <!-- Input strings -->
     <string name="buttons">الأزرار</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Plus</string>
     <string name="button_minus">Minus</string>
     <string name="button_home">Home</string>
@@ -570,15 +575,10 @@
     <string name="modifier">معدل</string>
     <string name="modifier_range">تعديل النطاق</string>
     <string name="triggers">المحفزات</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">SL الأيسر</string>
     <string name="button_sr_left">SR الأيسر</string>
     <string name="button_sl_right">SL الأيمن</string>
     <string name="button_sr_right">SR الأيمن</string>
-    <string name="button_z">Z</string>
     <string name="invalid">غير صالح</string>
     <string name="not_set">غير محدد</string>
     <string name="unknown">غير معروف</string>
@@ -699,6 +699,7 @@
     <string name="preferences_system_description">وضع الإرساء، المنطقة، اللغة</string>
     <string name="preferences_graphics">الرسومات</string>
     <string name="preferences_graphics_description">مستوى الدقة، الدقة، ذاكرة التخزين المؤقتة للتظليل</string>
+    <string name="quick_settings">الإعدادات السريعة</string>
     <string name="preferences_audio">الصوت</string>
     <string name="preferences_audio_description">محرك الإخراج، مستوى الصوت</string>
     <string name="preferences_controls">ذراع التحكم</string>
@@ -707,10 +708,10 @@
     <string name="preferences_debug">تصحيح الأخطاء</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
     <string name="preferences_custom_paths">مسارات مخصصة</string>
-    <string name="preferences_custom_paths_description">حفظ مجلد البيانات</string>
+    <string name="preferences_custom_paths_description">مجلد بيانات الحفظ</string>
 
     <!-- Custom Paths settings -->
-    <string name="custom_save_directory">حفظ مجلد البيانات</string>
+    <string name="custom_save_directory">مجلد بيانات الحفظ</string>
     <string name="custom_save_directory_description">تعيين مسار مخصص لتخزين بيانات الحفظ</string>
     <string name="reset_to_nand">إعادة التعيين إلى الإعدادات الافتراضية</string>
     <string name="migrate_save_data">نقل بيانات الحفظ</string>
@@ -785,7 +786,7 @@
     <string name="confirm_uninstall">تأكيد إلغاء التثبيت</string>
     <string name="confirm_uninstall_description">هل أنت متأكد من أنك تريد إلغاء تثبيت هذا الإضافة؟</string>
     <string name="verify_integrity">التحقق من السلامة</string>
-    <string name="verifying">جارٍ التحقق...</string>
+    <string name="verifying">التحقق...</string>
     <string name="verify_success">تم التحقق من السلامة بنجاح!</string>
     <string name="verify_failure">فشل التحقق من السلامة!</string>
     <string name="verify_failure_description">قد تكون محتويات الملف تالفة</string>
@@ -916,6 +917,27 @@
     <string name="fast_gpu_medium">متوسط (256)</string>
     <string name="fast_gpu_high">مرتفع (512)</string>
 
+    <!-- GPU swizzle texture size -->
+    <string name="gpu_texturesizeswizzle_verysmall">صغير جدًا (16 ميغابايت)</string>
+    <string name="gpu_texturesizeswizzle_small">صغير (32 ميغابايت)</string>
+    <string name="gpu_texturesizeswizzle_normal">قياسي (128 ميغابايت)</string>
+    <string name="gpu_texturesizeswizzle_large">كبير (256 ميغابايت)</string>
+    <string name="gpu_texturesizeswizzle_verylarge">كبير جدًا (512 ميغابايت)</string>
+
+    <!-- GPU swizzle streams -->
+    <string name="gpu_swizzle_verylow">منخفض جدًا (4 ميغابايت)</string>
+    <string name="gpu_swizzle_low">منخفض (8 ميغابايت)</string>
+    <string name="gpu_swizzle_normal">قياسي (16 ميغابايت)</string>
+    <string name="gpu_swizzle_medium">متوسط (32 ميغابايت)</string>
+    <string name="gpu_swizzle_high">عالي (64 ميغابايت)</string>
+
+    <!-- GPU swizzle chunks -->
+    <string name="gpu_swizzlechunk_verylow">منخفض جدًا (32)</string>
+    <string name="gpu_swizzlechunk_low">منخفض (64)</string>
+    <string name="gpu_swizzlechunk_normal">قياسي (128)</string>
+    <string name="gpu_swizzlechunk_medium">متوسط (256)</string>
+    <string name="gpu_swizzlechunk_high">عالي (512)</string>
+
     <!-- Temperature Units -->
     <string name="temperature_celsius">مئوية</string>
     <string name="temperature_fahrenheit">فهرنهايت</string>
@@ -929,10 +951,10 @@
     <string name="memory_petabyte">بيتابايت</string>
     <string name="memory_exabyte">إكسابايت</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">لاشيء</string>
 
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">سريع</string>
     <string name="renderer_accuracy_medium">متوازن</string>
     <string name="renderer_accuracy_high">دقيق</string>
 
@@ -941,30 +963,11 @@
     <string name="dma_accuracy_unsafe">غير آمن</string>
     <string name="dma_accuracy_safe">آمن</string>
 
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">وحدة المعالجة المركزية</string>
-    <string name="accelerate_astc_gpu">وحدة معالجة الرسومات</string>
-    <string name="accelerate_astc_async">وحدة المعالجة المركزية غير المتزامنة</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">غير مضغوط</string>
-    <string name="astc_recompression_bc1">BC1 (جودة منخفضة)</string>
-    <string name="astc_recompression_bc3">BC3 (جودة متوسطة)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">محافظ</string>
     <string name="vram_usage_aggressive">عدواني</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (بطيء)</string>
-    <string name="resolution_three">3X (2160p/3240p) (بطيء)</string>
-    <string name="resolution_four">4X (2880p/4320p) (بطيء)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immediate (Off)</string>
@@ -972,26 +975,8 @@
     <string name="renderer_vsync_fifo">FIFO (On)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
-    <string name="scaling_filter_bilinear">Bilinear</string>
-    <string name="scaling_filter_bicubic">Bicubic</string>
-    <string name="scaling_filter_spline1">Spline-1</string>
-    <string name="scaling_filter_gaussian">Gaussian</string>
-    <string name="scaling_filter_lanczos">Lanczos</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-    <string name="scaling_filter_area">Area</string>
-    <string name="scaling_filter_zero_tangent">Zero-Tangent</string>
-    <string name="scaling_filter_bspline">B-Spline</string>
-    <string name="scaling_filter_mitchell">Mitchell</string>
-    <string name="scaling_filter_mmpx">MMPX</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">لا شيء</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">تلقائي</string>
     <string name="screen_layout_sensor_landscape">منظر مستشعرات</string>
@@ -1001,11 +986,6 @@
     <string name="screen_layout_portrait">عمودي</string>
     <string name="screen_layout_reverse_portrait">صورة عكسية</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">(16:9) افتراضي</string>
-    <string name="ratio_force_four_three">4:3 فرض</string>
-    <string name="ratio_force_twenty_one_nine">21:9 فرض</string>
-    <string name="ratio_force_sixteen_ten">16:10 فرض</string>
     <string name="ratio_stretch">تمديد إلى النافذة</string>
 
     <!-- CPU Accuracy -->
@@ -1013,6 +993,28 @@
     <string name="cpu_accuracy_unsafe">غير آمن</string>
     <string name="cpu_accuracy_paranoid">Paranoid</string>
     <string name="cpu_accuracy_debugging">تصحيح الأخطاء</string>
+
+    <!-- Freedreno Settings -->
+    <string name="freedreno_settings_title">إعدادات Freedreno</string>
+    <string name="gpu_driver_settings">إعدادات برنامج تشغيل وحدة معالجة الرسومات</string>
+    <string name="freedreno_presets">الإعدادات المسبقة السريعة</string>
+    <string name="freedreno_current_settings">الإعدادات الحالية</string>
+    <string name="freedreno_debug">الإعدادات المتقدمة</string>
+    <string name="freedreno_var_name">اسم المتغير (على سبيل المثال، TU_DEBUG)</string>
+    <string name="freedreno_var_value">قيمة المتغير</string>
+    <string name="freedreno_add_variable">إضافة متغير</string>
+    <string name="freedreno_clear_all">مسح الكل</string>
+    <string name="freedreno_saved">تم حفظ إعدادات Freedreno</string>
+    <string name="freedreno_cleared_all">تم مسح جميع متغيرات Freedreno</string>
+    <string name="freedreno_variable_added">المتغير %1$s تمت إضافته</string>
+    <string name="freedreno_preset_applied">تم تطبيق الإعدادات المسبقة لـ %1$s</string>
+    <string name="freedreno_error_empty_name">لا يمكن أن يكون اسم المتغير فارغًا</string>
+    <string name="freedreno_error_setting_variable">فشل في تعيين المتغير</string>
+    <string name="freedreno_info_title">حول إعدادات Freedreno</string>
+    <string name="freedreno_info_description">قم بإعداد خيارات برنامج تشغيل Freedreno/Turnip لوحدة معالجة الرسومات لأغراض التصحيح، والتحليل، وتحسين الأداء. يتم حفظ التغييرات تلقائيًا. راجع https://docs.mesa3d.org/drivers/freedreno.html للحصول على الوثائق التفصيلية.</string>
+    <string name="freedreno_per_game_title">إعدادات Freedreno</string>
+    <string name="freedreno_per_game_description">قم بضبط إعدادات برنامج تشغيل وحدة معالجة الرسومات لهذه اللعبة</string>
+    <string name="freedreno_per_game_saved">تم حفظ إعدادات Freedreno</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">الأسهم</string>
@@ -1037,17 +1039,6 @@
     <string name="theme_mode_light">فاتح</string>
     <string name="theme_mode_dark">داكن</string>
 
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
-
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
     <string name="multiplier_none">لا شيء</string>
 
     <!-- Black backgrounds theme -->
@@ -1058,31 +1049,6 @@
     <string name="app_language">لغة التطبيق</string>
     <string name="app_language_description">تغيير لغة واجهة التطبيق</string>
     <string name="app_language_system">اتبع النظام</string>
-    <string name="app_language_english">الإنجليزية</string>
-    <string name="app_language_spanish">الإسبانية</string>
-    <string name="app_language_french">الفرنسية</string>
-    <string name="app_language_german">الألمانية</string>
-    <string name="app_language_italian">الإيطالية</string>
-    <string name="app_language_portuguese">البرتغالية</string>
-    <string name="app_language_brazilian_portuguese">البرتغالية البرازيلية</string>
-    <string name="app_language_russian">الروسية</string>
-    <string name="app_language_japanese">اليابانية</string>
-    <string name="app_language_korean">الكورية</string>
-    <string name="app_language_simplified_chinese">الصينية المبسطة</string>
-    <string name="app_language_traditional_chinese">الصينية التقليدية</string>
-    <string name="app_language_polish">البولندية</string>
-    <string name="app_language_czech">التشيكية</string>
-    <string name="app_language_norwegian">النرويجية البوكمال</string>
-    <string name="app_language_hungarian">المجرية</string>
-    <string name="app_language_ukrainian">الأوكرانية</string>
-    <string name="app_language_vietnamese">الفيتنامية</string>
-    <string name="app_language_indonesian">الإندونيسية</string>
-    <string name="app_language_arabic">العربية</string>
-    <string name="app_language_central_kurdish">الكردية الوسطى</string>
-    <string name="app_language_persian">فارسی</string>
-    <string name="app_language_hebrew">العبرية</string>
-    <string name="app_language_serbian">الصربية</string>
-
     <!-- Static Themes -->
     <string name="static_theme_color">لون السمة</string>
     <string name="eden_theme">Eden (افتراضي)</string>

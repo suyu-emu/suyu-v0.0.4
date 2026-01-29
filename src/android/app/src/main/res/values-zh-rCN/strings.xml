@@ -16,12 +16,28 @@
     <string name="value_too_high">值最大必须为  %1$d</string>
     <string name="invalid_value">无效的值</string>
 
+    <string name="using_per_game_config">使用针对特定游戏的配置</string>
 
+    <!-- Input Overlay -->
+    <string name="show_input_overlay">虚拟按键输入</string>
+    <string name="show_input_overlay_description">在模拟过程中显示触摸控制覆盖</string>
+    <string name="overlay_snap_to_grid">截图到网格</string>
+    <string name="overlay_snap_to_grid_description">编辑时将叠加控件吸附到网格</string>
+    <string name="overlay_grid_size">网格大小</string>
+    <string name="overlay_grid_size_description">网格单元的大小（以像素为单位）</string>
+    <string name="input_overlay_behavior">平衡</string>
     <string name="overlay_auto_hide">自动隐藏虚拟按键</string>
     <string name="overlay_auto_hide_description">在指定的时间间隔后自动隐藏触摸控制覆盖层。</string>
     <string name="enable_input_overlay_auto_hide">开启自动隐藏虚拟按键</string>
+    <string name="hide_overlay_on_controller_input">使用控制器时自动隐藏虚拟输入</string>
+    <string name="hide_overlay_on_controller_input_description">在使用控制器自动隐藏虚拟输入，当控制器断开会自动再现。</string>
+
     <string name="input_overlay_options">虚拟按键输入</string>
     <string name="input_overlay_options_description">配置虚拟按键</string>
+    <string name="edit_overlay_layout">编辑虚拟按键</string>
+    <string name="edit_overlay_layout_description">调整屏幕控件的的位置和大小</string>
+
+
     <!-- Stats Overlay settings -->
     <string name="process_ram">进程内存: %1$d MB</string>
     <string name="shaders_prefix">正在编译</string>
@@ -65,7 +81,7 @@
     <string name="soc_overlay_options">设备叠加层</string>
     <string name="soc_overlay_options_description">配置设备叠加层中显示的信息</string>
 
-    <string name="show_build_id">显示构建ID</string>
+    <string name="show_build_id">显示构建 ID</string>
     <string name="show_driver_version">显示驱动版本</string>
     <string name="show_device_model">显示设备型号</string>
     <string name="show_gpu_model">显示GPU型号</string>
@@ -90,8 +106,6 @@
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC模拟</string>
     <string name="nvdec_emulation_description">选择视频解码处理方式</string>
-    <string name="nvdec_emulation_cpu">CPU解码</string>
-    <string name="nvdec_emulation_gpu">GPU解码</string>
     <string name="nvdec_emulation_none">禁用</string>
 
     <!-- Optimize SPIRV output -->
@@ -376,7 +390,6 @@
     <string name="about_app_description">一款开源的 Switch 模拟器</string>
     <string name="contributors">贡献者</string>
     <string name="contributors_description">Eden 团队的用 \u2764 制作</string>
-    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Android 版 Eden 离不开这些项目的支持</string>
     <string name="build">构建版本</string>
     <string name="user_data">用户数据</string>
@@ -409,6 +422,9 @@
     <string name="use_custom_rtc_description">此选项允许您设置与目前系统时间相独立的自定义系统时钟。</string>
     <string name="set_custom_rtc">设置自定义系统时间</string>
 
+    <!-- CPU -->
+    <string name="fast_cpu_time">CPU 超频</string>
+    <string name="fast_cpu_time_description">强制模拟的 CPU 以更高的时钟频率运行，从而解除某些 FPS 限制器。使用 Boost (1700MHz) 可让游戏以 Switch 的最高原生时钟运行，或使用 Fast (2000MHz) 以 2 倍时钟运行。</string>
     <string name="custom_cpu_ticks">自定义CPU时钟</string>
     <string name="custom_cpu_ticks_description">设置自定义的CPU时钟值。更高的值可能提高性能，但也可能导致游戏卡顿。建议范围为77-21000。</string>
     <string name="cpu_ticks">时钟</string>
@@ -431,9 +447,14 @@
     <string name="fsr_sharpness">FSR 锐化度</string>
     <string name="fsr_sharpness_description">指定使用 FSR 时图像的锐化程度</string>
     <string name="renderer_anti_aliasing">抗锯齿方式</string>
+    <string name="renderer_optimize_spirv_output">优化 SPIRV 输出</string>
     <string name="renderer_optimize_spirv_output_description">优化编译后的着色器以提高GPU效率。</string>
 
 
+    <string name="advanced">高级</string>
+
+    <string name="renderer_accuracy">GPU 模式</string>
+    <string name="renderer_accuracy_description">控制 GPU 模拟的精确度。大部分游戏在性能或平衡模式下可以正常渲染，但部分游戏需要设置为精确。粒子效果通常只有在精确模式下才能正确显示。</string>
     <string name="dma_accuracy">DMA 精度</string>
     <string name="dma_accuracy_description">控制 DMA 精度。安全精度可以修复某些游戏中的问题，但在某些情况下也可能影响性能。如果不确定，请保留为“默认”。</string>
     <string name="anisotropic_filtering">各向异性过滤</string>
@@ -455,12 +476,28 @@
     <string name="renderer_reactive_flushing_description">牺牲性能，提高某些游戏的渲染精度。</string>
 
 
+    <string name="hacks">Hacks</string>
+
+    <string name="fast_gpu_time">GPU 超频频率</string>
+    <string name="fast_gpu_time_description">强制大多数游戏以其最高原生分辨率运行。使用 256 以获得最大性能，使用 512 以获得最大图形保真度。</string>
     <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
     <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
+    <string name="fix_bloom_effects">修复泛光效果</string>
+    <string name="fix_bloom_effects_description">降低了 LA/EOW（在 Adreno 700 系列 GPU 上）的泛光模糊；去除了《火爆狂飙》中的泛光特效。</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
     <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
+    <string name="gpu_unswizzle_texture_size">GPU 还原最大纹理尺寸</string>
+    <string name="gpu_unswizzle_texture_size_description">设置基于 GPU 的纹理还原的最大尺寸（单位：MiB）。\n虽然 GPU 在处理中型和大型纹理时速度更快，但对于非常小的纹理，CPU 的效率可能更高。\n调整此设置，以便在 GPU 加速和 CPU 开销之间找到最佳平衡点。</string>
+    <string name="gpu_unswizzle_stream_size">GPU 还原流大小</string>
+    <string name="gpu_unswizzle_stream_size_description">设置每帧还原大型纹理的数据限制。较高的数值可以加快纹理加载速度，但代价是增加帧延迟（影响响应速度/平滑度）；较低的数值可以减少 GPU 开销，但可能会导致明显的纹理突然出现（Pop-in）现象。</string>
+    <string name="gpu_unswizzle_chunk_size">GPU 还原块大小</string>
+    <string name="gpu_unswizzle_chunk_size_description">定义了 3D 纹理在单个批次（Batch）中处理的深度切片（Depth Slices）数量。增加此数值可以提升强力 GPU 的吞吐效率，但在性能较弱的硬件上可能会引起卡顿或驱动程序超时（Driver Timeouts）。</string>
+
+
+    <string name="extensions">扩展</string>
 
     <string name="dyna_state">扩展动态状态</string>
+    <string name="dyna_state_description">控制在扩展动态状态中可使用的函数数量。更高的数值允许启用更多功能，并可能提升性能，但同时也可能导致额外的图形问题。</string>
     <string name="disabled">已禁用</string>
     <string name="vertex_input_dynamic_state">顶点输入动态状态</string>
     <string name="vertex_input_dynamic_state_description">开启顶点输入动态状态功能来获得更好的质量和性能。</string>
@@ -468,6 +505,10 @@
     <string name="provoking_vertex_description">改善某些游戏中的光照和顶点处理。仅支持Vulkan 1.0+ GPU。</string>
     <string name="descriptor_indexing">描述符索引</string>
     <string name="descriptor_indexing_description">改进纹理和缓冲区处理以及Maxwell转换层。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支持。</string>
+    <string name="sample_shading_fraction">采样着色</string>
+    <string name="sample_shading_fraction_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。</string>
+
+
     <string name="display">显示</string>
 
     <string name="renderer_screen_layout">屏幕方向</string>
@@ -487,6 +528,8 @@
     <string name="renderer_api">API</string>
     <string name="renderer_debug">图形调试</string>
     <string name="renderer_debug_description">将图形 API 设置为较慢的调试模式。</string>
+    <string name="patch_old_qcom_drivers">BCn 纹理补丁</string>
+    <string name="patch_old_qcom_drivers_description">在 Adreno GPU 上覆盖自动 BCn 纹理格式检测。通常根据 Android 版本自动检测（在 API 28 及以上启用）。</string>
     <string name="fastmem">Fastmem 内存访问</string>
 
     <string name="log">日志记录</string>
@@ -502,10 +545,6 @@
 
     <!-- Input strings -->
     <string name="buttons">按键</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">＋</string>
     <string name="button_minus">－</string>
     <string name="button_home">Home</string>
@@ -526,15 +565,10 @@
     <string name="modifier">轻推</string>
     <string name="modifier_range">摇杆灵敏度</string>
     <string name="triggers">扳机键</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">左 SL</string>
     <string name="button_sr_left">左 SR</string>
     <string name="button_sl_right">右 SL</string>
     <string name="button_sr_right">右 SR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">无效</string>
     <string name="not_set">未设置</string>
     <string name="unknown">未知</string>
@@ -586,6 +620,7 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">系统默认</string>
+    <string name="default_string">默认</string>
     <string name="loading">加载中…</string>
     <string name="shutting_down">正在关闭…</string>
     <string name="reset_setting_confirmation">您要将此设定重置为默认值吗？</string>
@@ -624,6 +659,7 @@
     <string name="select_gpu_driver_default">系统默认</string>
     <string name="select_gpu_driver_error">选择的驱动无效</string>
     <string name="driver_already_installed">驱动已安装</string>
+    <string name="installed_label">%1$s (安装成功)</string>
     <string name="system_gpu_driver">系统 GPU 驱动程序</string>
     <string name="installing_driver">正在安装驱动程序…</string>
 
@@ -653,6 +689,7 @@
     <string name="preferences_system_description">主机运行模式、区域及语言</string>
     <string name="preferences_graphics">图形</string>
     <string name="preferences_graphics_description">精度等级、分辨率及着色器缓存</string>
+    <string name="quick_settings">快速设置</string>
     <string name="preferences_audio">声音</string>
     <string name="preferences_audio_description">输出引擎及音量</string>
     <string name="preferences_controls">控制</string>
@@ -660,6 +697,28 @@
     <string name="preferences_player">玩家 %d</string>
     <string name="preferences_debug">调试</string>
     <string name="preferences_debug_description">CPU/GPU 调试、图形 API 及 fastmem 内存访问</string>
+    <string name="preferences_custom_paths">自定义路径</string>
+    <string name="preferences_custom_paths_description">存档目录</string>
+
+    <!-- Custom Paths settings -->
+    <string name="custom_save_directory">存档目录</string>
+    <string name="custom_save_directory_description">设置自定义存档目录</string>
+    <string name="reset_to_nand">恢复默认</string>
+    <string name="migrate_save_data">迁移存档</string>
+    <string name="migrate_save_data_question">你是否要迁移存档位置？</string>
+    <string name="save_migration_complete">迁移存档成功</string>
+    <string name="save_migration_failed">迁移存档失败</string>
+    <string name="save_directory_set">存档目录设置</string>
+    <string name="destination_has_saves">目标位置已存在数据。是否要覆盖它？</string>
+    <string name="all_files_permission_required">自定义路径需要 “所有文件” 访问权限</string>
+    <string name="grant_permission">授予权限</string>
+    <string name="custom_nand_directory">NAND 目录</string>
+    <string name="custom_nand_directory_description">设置自定义 NAND 目录</string>
+    <string name="custom_sdmc_directory">SD卡 目录</string>
+    <string name="custom_sdmc_directory_description">设置自定义 虚拟SD卡 目录</string>
+    <string name="path_set">路径设置成功</string>
+    <string name="skip_migration">跳过</string>
+
     <!-- Game properties -->
     <string name="info">信息</string>
     <string name="info_description">游戏 ID、开发者及版本信息</string>
@@ -789,6 +848,7 @@
     <string name="emulation_control_opacity">不透明度</string>
     <string name="emulation_touch_overlay_reset">重置虚拟按键</string>
     <string name="emulation_touch_overlay_edit">编辑虚拟按键</string>
+    <string name="emulation_snap_to_grid">截图到网格</string>
     <string name="emulation_pause">暂停模拟</string>
     <string name="emulation_unpause">继续模拟</string>
     <string name="emulation_input_overlay">虚拟按键选项</string>
@@ -842,6 +902,32 @@
     <string name="clock_boost">加速 (1700MHz)</string>
     <string name="clock_fast">快速 (2000MHz)</string>
 
+    <!-- GPU overclock factors -->
+    <string name="off">关闭</string>
+    <string name="fast_gpu_medium">中 (256)</string>
+    <string name="fast_gpu_high">高 (512)</string>
+
+    <!-- GPU swizzle texture size -->
+    <string name="gpu_texturesizeswizzle_verysmall">很小 (16 MB)</string>
+    <string name="gpu_texturesizeswizzle_small">较小 (32 MB)</string>
+    <string name="gpu_texturesizeswizzle_normal">正常 (128 MB)</string>
+    <string name="gpu_texturesizeswizzle_large">较大 (256 MB)</string>
+    <string name="gpu_texturesizeswizzle_verylarge">很大 (512 MB)</string>
+
+    <!-- GPU swizzle streams -->
+    <string name="gpu_swizzle_verylow">很低 (4 MB)</string>
+    <string name="gpu_swizzle_low">低 (8 MB)</string>
+    <string name="gpu_swizzle_normal">正常 (16 MB)</string>
+    <string name="gpu_swizzle_medium">中 (32 MB)</string>
+    <string name="gpu_swizzle_high">高 (64 MB)</string>
+
+    <!-- GPU swizzle chunks -->
+    <string name="gpu_swizzlechunk_verylow">很低 (32)</string>
+    <string name="gpu_swizzlechunk_low">低 (64)</string>
+    <string name="gpu_swizzlechunk_normal">正常 (128)</string>
+    <string name="gpu_swizzlechunk_medium">中 (256)</string>
+    <string name="gpu_swizzlechunk_high">高 (512)</string>
+
     <!-- Temperature Units -->
     <string name="temperature_celsius">摄氏度</string>
     <string name="temperature_fahrenheit">华氏度</string>
@@ -855,10 +941,10 @@
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">无</string>
 
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">性能</string>
     <string name="renderer_accuracy_medium">平衡</string>
     <string name="renderer_accuracy_high">精确</string>
 
@@ -867,30 +953,11 @@
     <string name="dma_accuracy_unsafe">不安全</string>
     <string name="dma_accuracy_safe">安全</string>
 
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU解码</string>
-    <string name="accelerate_astc_gpu">GPU解码</string>
-    <string name="accelerate_astc_async">CPU异步解码</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">不压缩</string>
-    <string name="astc_recompression_bc1">BC1(低质量)</string>
-    <string name="astc_recompression_bc3">BC3(中等质量)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">保守模式</string>
     <string name="vram_usage_aggressive">激进模式</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (慢速)</string>
-    <string name="resolution_three">3X (2160p/3240p) (慢速)</string>
-    <string name="resolution_four">4X (2880p/4320p) (慢速)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">即时 (关闭)</string>
@@ -898,26 +965,8 @@
     <string name="renderer_vsync_fifo">FIFO (开启)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">近邻取样</string>
-    <string name="scaling_filter_bilinear">双线性过滤</string>
-    <string name="scaling_filter_bicubic">双三线过滤</string>
-    <string name="scaling_filter_spline1">Spline-1</string>
-    <string name="scaling_filter_gaussian">高斯模糊</string>
-    <string name="scaling_filter_lanczos">Lanczos</string>
-    <string name="scaling_filter_scale_force">强制缩放</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™️ 超级分辨率锐画技术 (FSR)</string>
-    <string name="scaling_filter_area">区域</string>
-    <string name="scaling_filter_zero_tangent">零切线</string>
-    <string name="scaling_filter_bspline">B-Spline</string>
-    <string name="scaling_filter_mitchell">Mitchell</string>
-    <string name="scaling_filter_mmpx">MMPX</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">无</string>
-    <string name="anti_aliasing_fxaa">快速近似抗锯齿 (FXAA)</string>
-    <string name="anti_aliasing_smaa">子像素形态学抗锯齿 (SMAA)</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">自动</string>
     <string name="screen_layout_sensor_landscape">传感器方向横屏</string>
@@ -927,22 +976,35 @@
     <string name="screen_layout_portrait">竖屏</string>
     <string name="screen_layout_reverse_portrait">反向竖屏</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">默认 (16:9)</string>
-    <string name="ratio_force_four_three">强制 4:3</string>
-    <string name="ratio_force_twenty_one_nine">强制 21:9</string>
-    <string name="ratio_force_sixteen_ten">强制 16:10</string>
     <string name="ratio_stretch">拉伸窗口</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">本机代码执行 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">高精度</string>
     <string name="cpu_accuracy_unsafe">低精度</string>
     <string name="cpu_accuracy_paranoid">偏执模式</string>
     <string name="cpu_accuracy_debugging">调试</string>
+
+    <!-- Freedreno Settings -->
+    <string name="freedreno_settings_title">Freedreno 设置</string>
+    <string name="gpu_driver_settings">GPU 驱动设置</string>
+    <string name="freedreno_presets">快速预设</string>
+    <string name="freedreno_current_settings">当前设置</string>
+    <string name="freedreno_debug">高级设置</string>
+    <string name="freedreno_var_name">变量名称（例如：TU_DEBUG）</string>
+    <string name="freedreno_var_value">变量值</string>
+    <string name="freedreno_add_variable">添加变量</string>
+    <string name="freedreno_clear_all">全部清除</string>
+    <string name="freedreno_saved">Freedreno 配置保存</string>
+    <string name="freedreno_cleared_all">清除全部 Freedreno 变量</string>
+    <string name="freedreno_variable_added">添加变量 %1$s</string>
+    <string name="freedreno_preset_applied">应用预设 \'%1$s\'</string>
+    <string name="freedreno_error_empty_name">变量名不能为空</string>
+    <string name="freedreno_error_setting_variable">变量设置失败</string>
+    <string name="freedreno_info_title">关于 Freedreno 的配置</string>
+    <string name="freedreno_info_description">配置 Freedreno/Turnip GPU 驱动选项，用于调试、性能分析和性能优化。修改会自动保存。详细文档请参阅：https://docs.mesa3d.org/drivers/freedreno.html</string>
+    <string name="freedreno_per_game_title">Freedreno 设置</string>
+    <string name="freedreno_per_game_description">为此游戏配置 GPU 驱动设置</string>
+    <string name="freedreno_per_game_saved">Freedreno 配置保存</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">十字方向键</string>
@@ -967,17 +1029,6 @@
     <string name="theme_mode_light">浅色</string>
     <string name="theme_mode_dark">深色</string>
 
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
-
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
     <string name="multiplier_none">无</string>
 
     <!-- Black backgrounds theme -->
@@ -988,31 +1039,6 @@
     <string name="app_language">App 语言</string>
     <string name="app_language_description">更改 app 界面的语言</string>
     <string name="app_language_system">跟随系统</string>
-    <string name="app_language_english">English</string>
-    <string name="app_language_spanish">Español</string>
-    <string name="app_language_french">Français</string>
-    <string name="app_language_german">Deutsch</string>
-    <string name="app_language_italian">Italiano</string>
-    <string name="app_language_portuguese">Português</string>
-    <string name="app_language_brazilian_portuguese">Português do Brasil</string>
-    <string name="app_language_russian">Русский</string>
-    <string name="app_language_japanese">日本語</string>
-    <string name="app_language_korean">한국어</string>
-    <string name="app_language_simplified_chinese">简体中文</string>
-    <string name="app_language_traditional_chinese">繁體中文</string>
-    <string name="app_language_polish">Polski</string>
-    <string name="app_language_czech">Čeština</string>
-    <string name="app_language_norwegian">Norsk bokmål</string>
-    <string name="app_language_hungarian">Magyar</string>
-    <string name="app_language_ukrainian">Українська</string>
-    <string name="app_language_vietnamese">Tiếng Việt</string>
-    <string name="app_language_indonesian">Bahasa Indonesia</string>
-    <string name="app_language_arabic">العربية</string>
-    <string name="app_language_central_kurdish">کوردیی ناوەندی</string>
-    <string name="app_language_persian">فارسی</string>
-    <string name="app_language_hebrew">עברית</string>
-    <string name="app_language_serbian">Српски</string>
-
     <!-- Static Themes -->
     <string name="static_theme_color">主题颜色</string>
     <string name="eden_theme">Eden (默认)</string>

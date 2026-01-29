@@ -1,54 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="app_disclaimer">Tento software umožňuje spouštět hry pro herní konzoli Nintendo Switch. Neobsahuje žádné herní tituly ani klíče.<br /><br /> Nejdříve prosím vyhledejte soubor <![CDATA[<b> prod.keys </b>]]> v úložišti vašeho zařízení.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Další informace</a>]]></string>
     <string name="notice_notification_channel_name">Upozornění a chyby</string>
-    <string name="notice_notification_channel_description">Ukáže oznámení v případě chyby.</string>
-    <string name="notification_permission_not_granted">Oznámení nejsou oprávněna!</string>
+    <string name="notice_notification_channel_description">Zobrazí oznámení v případě chyby.</string>
+    <string name="notification_permission_not_granted">Oprávnění k zobrazení oznámení nebylo uděleno!</string>
+    <string name="app_notification_channel_description">Oznámení emulátoru Eden</string>
+    <string name="app_notification_running">Eden je spuštěn</string>
+    <string name="seconds">Sekundy</string>
+
+    <!-- Spinbox strings -->
+    <string name="increment">Zvýšit</string>
+    <string name="decrement">Snížit</string>
+    <string name="value_too_low">Hodnota musí být alespoň %1$d</string>
+    <string name="value_too_high">Hodnota musí být maximálně %1$d</string>
+    <string name="invalid_value">Neplatná hodnota</string>
+
+    <!-- Input Overlay -->
+    <string name="show_input_overlay">Zobrazit dotykové ovládání</string>
+    <string name="show_input_overlay_description">Zobrazí při hraní ovládací prvky na obrazovce</string>
+    <string name="overlay_snap_to_grid">Přichytit k mřížce</string>
+    <string name="overlay_snap_to_grid_description">Při úpravě rozvržení přichytí ovládací prvky k mřížce</string>
+    <string name="overlay_grid_size">Velikost mřížky</string>
+    <string name="overlay_grid_size_description">Velikost buněk mřížky v pixelech</string>
+    <string name="input_overlay_behavior">Chování</string>
+    <string name="overlay_auto_hide">Automatické skrývání</string>
+    <string name="overlay_auto_hide_description">Automaticky skryje dotykové ovládání po určité době nečinnosti.</string>
+    <string name="enable_input_overlay_auto_hide">Zapnout automatické skrývání</string>
+    <string name="hide_overlay_on_controller_input">Skrýt při použití ovladače</string>
+    <string name="hide_overlay_on_controller_input_description">Automaticky skryje dotykové prvky, pokud použijete fyzický ovladač. Po jeho odpojení se prvky znovu objeví.</string>
+
+    <string name="input_overlay_options">Dotykové ovládání</string>
+    <string name="input_overlay_options_description">Nastavení ovládacích prvků na obrazovce</string>
+    <string name="edit_overlay_layout">Upravit rozvržení</string>
+    <string name="edit_overlay_layout_description">Změna pozice a velikosti ovládacích prvků</string>
+
+
     <!-- Stats Overlay settings -->
     <string name="process_ram">RAM procesu: %1$d MB</string>
-    <string name="shaders_prefix">Sestavování</string>
+    <string name="shaders_prefix">Kompilace</string>
     <string name="shaders_suffix">shaderů</string>
     <string name="charging">(Nabíjení)</string>
 
     <string name="system_info_label">Systém:</string>
-    <string name="show_stats_overlay">Zobrazit překryv statistik výkonu</string>
+    <string name="show_stats_overlay">Zobrazit statistiky výkonu</string>
     <string name="stats_overlay_customization">Přizpůsobení</string>
     <string name="stats_overlay_items">Viditelnost</string>
-    <string name="stats_overlay_options">Překryv</string>
-    <string name="enable_stats_overlay_">Povolit překryv statistik výkonu</string>
-    <string name="stats_overlay_options_description">Konfigurace zobrazovaných informací v překryvu statistik</string>
+    <string name="stats_overlay_options">Statistika výkonu</string>
+    <string name="enable_stats_overlay_">Zapnout statistiky výkonu</string>
+    <string name="stats_overlay_options_description">Nastavení informací zobrazovaných ve statistikách výkonu</string>
     <string name="show_fps">Zobrazit FPS</string>
-    <string name="show_fps_description">Aktuální počet snímků za sekundu</string>
-    <string name="show_frametime">Zobrazit čas snímku</string>
-    <string name="show_app_ram_usage">Zobrazit využití RAM aplikace</string>
-    <string name="show_app_ram_usage_description">Zobrazit množství RAM, které emulátor používá</string>
-    <string name="show_system_ram_usage">Zobrazit využití systémové RAM</string>
-    <string name="show_system_ram_usage_description">Zobrazit množství RAM využívané systémem</string>
+    <string name="show_fps_description">Zobrazí aktuální počet snímků za sekundu</string>
+    <string name="show_frametime">Zobrazit dobu vykreslení snímku</string>
+    <string name="show_app_ram_usage">Zobrazit využití paměti</string>
+    <string name="show_app_ram_usage_description">Zobrazí množství paměti RAM, kterou emulátor používá</string>
+    <string name="show_system_ram_usage">Zobrazit využití systémové paměti</string>
+    <string name="show_system_ram_usage_description">Zobrazí množství paměti RAM používané systémem</string>
     <string name="show_bat_temperature">Zobrazit teplotu baterie</string>
     <string name="bat_temperature_unit">Jednotky teploty baterie</string>
     <string name="show_power_info">Zobrazit informace o baterii</string>
-    <string name="show_power_info_description">Zobrazit aktuální odběr energie a zbývající kapacitu baterie</string>
-    <string name="show_shaders_building">Zobrazit vytváření shaderů</string>
-    <string name="show_shaders_building_description">Zobrazuje aktuální počet vytvářených shaderů</string>
-    <string name="overlay_position">Pozice překryvu</string>
-    <string name="overlay_position_description">Umístění překryvu statistik na obrazovce</string>
+    <string name="show_power_info_description">Zobrazí aktuální odběr energie a zbývající kapacitu baterie</string>
+    <string name="show_shaders_building">Zobrazit informace o kompilaci shaderů</string>
+    <string name="show_shaders_building_description">Zobrazí počet právě kompilovaných shaderů</string>
+    <string name="overlay_position">Umístění ukazatele</string>
+    <string name="overlay_position_description">Vyberte, kde se mají statistiky na obrazovce zobrazovat</string>
     <string name="overlay_position_top_left">Vlevo nahoře</string>
     <string name="overlay_position_top_right">Vpravo nahoře</string>
     <string name="overlay_position_bottom_left">Vlevo dole</string>
     <string name="overlay_position_bottom_right">Vpravo dole</string>
     <string name="overlay_position_center_top">Nahoře uprostřed</string>
     <string name="overlay_position_center_bottom">Dole uprostřed</string>
-    <string name="perf_overlay_background">Pozadí překryvu</string>
-    <string name="perf_overlay_background_description">Přidá pozadí pro lepší čitelnost</string>
+    <string name="perf_overlay_background">Pozadí ukazatele</string>
+    <string name="perf_overlay_background_description">Přidá pod statistiky pozadí pro lepší čitelnost</string>
 
     <!-- Device Overlay settings -->
-    <string name="show_soc_overlay">Zobrazit překryv informací o zařízení</string>
-    <string name="enable_soc_overlay">Povolit překryv zařízení</string>
-    <string name="soc_overlay_options">Překryv zařízení</string>
-    <string name="soc_overlay_options_description">Konfigurovat, jaké informace se zobrazí v překryvu zařízení</string>
+    <string name="show_soc_overlay">Zobrazit informace o zařízení</string>
+    <string name="enable_soc_overlay">Zapnout zobrazení informací o zařízení</string>
+    <string name="soc_overlay_options">Informace o zařízení</string>
+    <string name="soc_overlay_options_description">Nastavení informací o hardwaru v ukazateli</string>
 
-    <string name="show_build_id">Zobrazit ID sestavení</string>
-    <string name="show_driver_version">Zobrazit verzi ovladače</string>
     <string name="show_device_model">Zobrazit model zařízení</string>
     <string name="show_gpu_model">Zobrazit model GPU</string>
     <string name="show_soc_model">Zobrazit model SoC</string>
@@ -56,21 +86,22 @@
 
     <!-- Eden\'s Veil -->
     <string name="buffer_reorder_disable">Zakázat přeřazování vyrovnávací paměti</string>
-    <string name="buffer_reorder_disable_description">Při zaškrtnutí zakáže přeřazování nahrání mapované paměti, což umožňuje spojit nahrání s konkrétními vykresleními. V některých případech může snížit výkon.</string>
+    <string name="buffer_reorder_disable_description">Zakáže přeskupování nahrávání mapované paměti. To sice umožní přiřadit nahrávání ke konkrétním vykreslovacím operacím, ale v některých případech může snížit výkon.</string>
 
     <string name="use_sync_core">Synchronizovat rychlost jádra</string>
-    <string name="use_sync_core_description">Synchronizuje rychlost jádra s maximálním procentem rychlosti, aby se zlepšil výkon bez změny skutečné rychlosti hry.</string>
-    <string name="use_lru_cache">Povolit LRU mezipaměť</string>
-    <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU, čímž zvýšíte výkon snížením využití procesoru CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, takže ji deaktivujte, pokud hra neběží nebo náhodně padá.</string>
+    <string name="use_sync_core_description">Synchronizuje rychlost jádra s nastaveným limitem rychlosti, aby se zlepšil výkon bez zrychlení samotné hry.</string>
+    <string name="use_lru_cache">Zapnout mezipaměť LRU</string>
+    <string name="use_lru_cache_description">Zapne, nebo vypne mezipaměť LRU (Least Recently Used). Ta zvyšuje výkon tím, že šetří využití procesoru. Některé hry s tímto mohou mít problém, takže pokud se hra nespustí, nebo náhodně padá, tuto volbu vypněte.</string>
 
     <string name="cpuopt_unsafe_host_mmu">Povolit emulaci hostitelské MMU</string>
-    <string name="cpuopt_unsafe_host_mmu_description">Tato optimalizace zrychluje přístup do paměti hostovaného programu. Její povolení způsobí, že čtení a zápisy do paměti hosta se provádějí přímo v paměti a využívají hostitelskou MMU. Zakázání této funkce vynutí použití softwarové emulace MMU pro všechny přístupy do paměti.</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Tato optimalizace zrychluje hostovanému programu přístupy do paměti. Zapnutím této funkce se čtení i zápisy do paměti provádějí přímo a využívají hostitelskou MMU. Při vypnutí musí všechny přístupy do paměti použít softwarovou emulaci MMU. </string>
+    <string name="debug_knobs">Ladící parametry</string>
+    <string name="debug_knobs_description">Pouze pro účely vývoje.</string>
+    <string name="debug_knobs_hint">0 až 65535</string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulace NVDEC</string>
-    <string name="nvdec_emulation_description">Zpracování dekódování videa</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_description">Určuje, jakým způsobem se zpracovává dekódování videa (NVDEC).</string>
     <string name="nvdec_emulation_none">Žádné</string>
 
     <!-- Optimize SPIRV output -->
@@ -79,8 +110,8 @@
     <string name="always">Vždy</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">Více hráčů</string>
-    <string name="multiplayer_description">Vytvořte si vlastní herní místnost nebo se připojte k existující a hrajte s ostatními</string>
+    <string name="multiplayer">Multiplayer</string>
+    <string name="multiplayer_description">Založte si vlastní herní místnost nebo se připojte k jiným</string>
     <string name="multiplayer_create_room">Vytvořit</string>
     <string name="multiplayer_join_room">Připojit se</string>
     <string name="multiplayer_public_room">Procházet veřejné místnosti</string>
@@ -91,30 +122,30 @@
     <string name="multiplayer_join_room_success">Úspěšně připojeno k místnosti</string>
     <string name="multiplayer_exit_room">Opustit místnost</string>
     <string name="multiplayer_network_error">Chyba sítě</string>
-    <string name="multiplayer_lost_connection">Ztraceno připojení</string>
+    <string name="multiplayer_lost_connection">Spojení bylo přerušeno</string>
     <string name="multiplayer_name_collision">Uživatelské jméno je již obsazeno</string>
-    <string name="multiplayer_mac_collision">Kolize MAC adresy</string>
+    <string name="multiplayer_mac_collision">Kolize MAC adres</string>
     <string name="multiplayer_console_id_collision">Kolize ID konzole</string>
     <string name="multiplayer_wrong_version">Nesprávná verze</string>
     <string name="multiplayer_wrong_password">Nesprávné heslo</string>
     <string name="multiplayer_could_not_connect">Nelze se připojit</string>
     <string name="multiplayer_room_is_full">Místnost je plná</string>
-    <string name="multiplayer_host_banned">Jste z této místnosti zabanován</string>
+    <string name="multiplayer_host_banned">Byl vám zakázán přístup do této místnosti</string>
     <string name="multiplayer_permission_denied">Přístup odepřen</string>
     <string name="multiplayer_no_such_user">Uživatel neexistuje</string>
-    <string name="multiplayer_already_in_room">Již v místnosti</string>
+    <string name="multiplayer_already_in_room">Již jste v místnosti</string>
     <string name="multiplayer_create_room_error">Chyba při vytváření místnosti</string>
-    <string name="multiplayer_host_kicked">Hostitel vyhozen</string>
+    <string name="multiplayer_host_kicked">Hostitel vás vyhodil</string>
     <string name="multiplayer_unknown_error">Neznámá chyba</string>
     <string name="multiplayer_room_uninitialized">Místnost není inicializována</string>
-    <string name="multiplayer_room_idle">Místnost nečinná</string>
+    <string name="multiplayer_room_idle">Místnost je nečinná</string>
     <string name="multiplayer_room_joining">Připojování k místnosti</string>
-    <string name="multiplayer_room_joined">Připojeno k místnosti</string>
+    <string name="multiplayer_room_joined">Místnost připojena</string>
     <string name="multiplayer_room_moderator">Moderátor místnosti</string>
-    <string name="multiplayer_member_join">%1$s se připojil</string>
-    <string name="multiplayer_member_leave">%1$s odešel</string>
-    <string name="multiplayer_member_kicked">%1$s vyhozen</string>
-    <string name="multiplayer_member_banned">%1$s zablokován</string>
+    <string name="multiplayer_member_join">%1$s se připojil(a)</string>
+    <string name="multiplayer_member_leave">%1$s odešel(a)</string>
+    <string name="multiplayer_member_kicked">%1$s byl(a) vyhozen(a)</string>
+    <string name="multiplayer_member_banned">%1$s byl(a) zablokován(a)</string>
     <string name="multiplayer_address_unbanned">Adresa odblokována</string>
     <string name="multiplayer_kick_member">Vyhodit</string>
     <string name="multiplayer_password">Heslo</string>
@@ -125,9 +156,10 @@
     <string name="multiplayer_chat">Chat</string>
     <string name="multiplayer_more_options">Další možnosti</string>
     <string name="chat">Chat</string>
+    <string name="clear">Vymazat</string>
     <string name="type_message">Napište zprávu…</string>
     <string name="send_message">Odeslat zprávu</string>
-    <string name="multiplayer_moderation">Moderace</string>
+    <string name="multiplayer_moderation">Moderování</string>
     <string name="multiplayer_moderation_title">Seznam zablokovaných</string>
     <string name="multiplayer_no_bans">Žádní zablokovaní uživatelé</string>
     <string name="multiplayer_unban_title">Odblokovat uživatele</string>
@@ -143,14 +175,14 @@
     <string name="multiplayer_password_protected">Místnost chráněná heslem</string>
     <string name="multiplayer_hide_full_rooms">Skrýt plné místnosti</string>
     <string name="multiplayer_hide_empty_rooms">Skrýt prázdné místnosti</string>
-    <string name="multiplayer_tap_refresh_to_check_again">Klepnutím obnovte znovu</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Klepněte na \"Obnovit\" pro novou kontrolu</string>
     <string name="multiplayer_search_public_lobbies">Hledat místnosti…</string>
     <string name="multiplayer_preferred_game_name">Preferovaná hra</string>
     <string name="multiplayer_lobby_type">Typ místnosti</string>
     <string name="multiplayer_room_name_error">Musí mít 3 až 20 znaků</string>
     <string name="multiplayer_required">Povinné</string>
     <string name="multiplayer_token_required">Vyžadován webový token, přejděte do Pokročilá nastavení -> Systém -> Síť</string>
-    <string name="multiplayer_ip_error">Neplatný formát IP</string>
+    <string name="multiplayer_ip_error">Neplatný formát IP adresy</string>
     <string name="multiplayer_username_error">Musí mít 4–20 znaků a obsahovat pouze alfanumerické znaky, tečky, pomlčky, podtržítka a mezery</string>
     <string name="multiplayer_nickname_invalid">Neplatné uživatelské jméno, ujistěte se, že je správně nastaveno v Systém → Síť</string>
     <string name="multiplayer_token_error">Musí mít 48 znaků a pouze malá písmena a-z</string>
@@ -164,156 +196,242 @@
 
     <!-- Setup strings -->
     <string name="welcome">Vítejte!</string>
-    <string name="get_started">Začít</string>
+    <string name="welcome_description">Přečtěte si, jak nastavit <b>Eden</b> a pusťte se do emulace.</string>
+    <string name="get_started">Začínáme</string>
     <string name="keys">Klíče</string>
+    <string name="keys_description">Vyberte svůj soubor <b>prod.keys</b> pomocí tlačítka níže.</string>
     <string name="firmware">Firmware</string>
+    <string name="firmware_description">Vyberte svůj soubor <b>firmware.zip</b> pomocí tlačítka níže.</string>
     <string name="games">Hry</string>
+    <string name="games_description">Vyberte složku s <b>hrami</b> tlačítka níže.</string>
     <string name="done">Hotovo</string>
+    <string name="done_description">Vše je připraveno.\nUžijte si hraní!</string>
     <string name="next">Další</string>
     <string name="back">Zpět</string>
     <string name="add_games">Přidat hry</string>
+    <string name="step_complete">Hotovo!</string>
+
     <!-- Home strings -->
 
     <string name="alphabetical">Abecedně</string>
     <string name="view_list">Seznam</string>
     <string name="view_grid">Mřížka</string>
-    <string name="view_carousel">Kolotoč</string>
+    <string name="view_grid_compact">Kompaktní mřížka</string>
+    <string name="view_carousel">Carousel</string>
+    <string name="game_image_desc">Snímek pro %1$s</string>
     <string name="folder">Složka</string>
-    <string name="dont_show_again">Nezobrazovat znovu</string>
+    <string name="dont_show_again">Znovu nezobrazovat</string>
+    <string name="add_directory_success">Nová složka s hrami úspěšně přidána</string>
+    <string name="enable_update_checks">Zkontrolovat aktualizace</string>
+    <string name="enable_update_checks_description">Při spuštění zkontroluje dostupnost aktualizací a případně nabídne jejich stažení a instalaci.</string>
+    <string name="update_available">Je dostupná aktualizace</string>
+    <string name="update_available_description">Je k dispozici nová verze: %1$s\n\nChcete ji stáhnout\?</string>
+    <string name="downloading_update">Stahuji aktualizaci</string>
+    <string name="update_download_failed">Stažení aktualizace se nezdařilo</string>
+    <string name="update_installed_successfully">Aktualizace byla úspěšně nainstalována</string>
+    <string name="update_install_failed">Selhala Instalace aktualizace: %1$s</string>
     <string name="home_search">Hledat</string>
     <string name="home_settings">Nastavení</string>
-    <string name="empty_gamelist">Nebyly nalezeny žádné soubory nebo ještě nebyl vybrán žádný adresář s hrami.</string>
+    <string name="empty_gamelist">Nebyly nalezeny žádné soubory, nebo nebyla vybrána složka s hrami.</string>
     <string name="manage_game_folders">Spravovat složky s hrami</string>
+    <string name="select_games_folder_description">Umožní aplikaci Eden načíst seznam her</string>
+    <string name="add_games_warning">Přeskočit výběr složky s hrami\?</string>
+    <string name="add_games_warning_description">Pokud nevyberete složku, hry se v seznamu nezobrazí.</string>
+    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
+    <string name="home_search_games">Prohledat hry</string>
+    <string name="search_settings">Prohledat nastavení</string>
     <string name="install_prod_keys">Instalovat prod.keys</string>
-    <string name="install_prod_keys_warning">Přeskočit přidávání klíčů?</string>
-    <string name="install_firmware_warning">Přeskočit přidání firmwaru?</string>
-    <string name="install_firmware_warning_description">Mnoho her vyžaduje přístup k firmwaru pro správnou funkci.</string>
+    <string name="install_prod_keys_description">Vyžadováno pro dešifrování komerčních her</string>
+    <string name="install_prod_keys_warning">Přeskočit instalaci klíčů\?</string>
+    <string name="install_prod_keys_warning_description">Bez platných klíčů nelze spustit komerční hry. Fungovat budou pouze homebrew aplikace.</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="install_firmware_warning">Přeskočit instalaci firmwaru\?</string>
+    <string name="emulator_data">Nastavení dat emulátoru</string>
+    <string name="emulator_data_description">Klíče jsou nezbytné pro správnou funkci emulátoru. Instalace firmwaru je doporučená a nezbytná ke spuštění appletu QLaunch.</string>
+    <string name="permissions">Udělit oprávnění</string>
+    <string name="permissions_description">Udělí volitelná oprávnění nezbytná pro některé specifické funkce emulátoru</string>
+    <string name="install_firmware_warning_description">Mnoho her vyžaduje pro správný běh přístup k firmwaru.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Oznámení</string>
+    <string name="notifications_description">Udělte oprávnění k oznámením pomocí tlačítka níže.</string>
     <string name="permission_denied">Oprávnění zamítnuto</string>
-    <string name="permission_denied_description">Zamítnul jste toto oprávnění příliš mnohokrát, musíte manuálně udělit oprávnění v nastavení systému.</string>
+    <string name="permission_denied_description">Toto oprávnění jste mnohokrát zamítli. Musíte jej nyní ručně povolit v nastavení systému.</string>
     <string name="about">O aplikaci</string>
-    <string name="about_description">Verze sestavení, titulky a více</string>
-    <string name="warning_help">Pomoc</string>
+    <string name="about_description">Verze sestavení, autoři a další informace</string>
+    <string name="system_information">Informace o systému</string>
+    <string name="system_information_description">Podrobné informace o zařízení</string>
+    <string name="device_manufacturer">Výrobce</string>
+    <string name="device_model">Model</string>
+    <string name="product">Název produktu</string>
+    <string name="android_version">Verze systému Android</string>
+    <string name="android_security_patch">Úrověň oprav zabezpečení</string>
+    <string name="build_id">ID sestavení</string>
+    <string name="general_information">Obecné informace</string>
+    <string name="hardware">Hardware</string>
+    <string name="supported_abis">Podporované ABI</string>
+    <string name="cpu_info">Informace o CPU</string>
+    <string name="gpu_information">Informace o GPU</string>
+    <string name="vulkan_driver_version">Verze ovladače Vulkan</string>
+    <string name="error_getting_emulator_info">Chyba při získávání informací o emulátoru</string>
+    <string name="memory_info">Informace o paměti</string>
+    <string name="total_memory">Celková paměť</string>
+    <string name="soc">SOC:</string>
+
+    <string name="warning_help">Nápověda</string>
     <string name="warning">Varování</string>
     <string name="warning_skip">Přeskočit</string>
     <string name="warning_cancel">Zrušit</string>
-    <string name="install_amiibo_keys">Instalovat Amiibo klíče</string>
-    <string name="install_amiibo_keys_description">Povinné použití Amiibo ve hře</string>
-    <string name="gpu_driver_fetcher">Stahovač ovladačů GPU</string>
-    <string name="gpu_driver_manager">Správce ovladače GPU</string>
-    <string name="advanced_settings">Pokročilé nastavení</string>
-    <string name="settings_description">Konfigurovat nastavení emulátoru</string>
+    <string name="install_amiibo_keys">Instalovat klíče Amiibo</string>
+    <string name="install_amiibo_keys_description">Nezbytné pro používání Amiibo ve hrách</string>
+    <string name="gpu_driver_fetcher">Stahování ovladačů GPU</string>
+    <string name="gpu_driver_manager">Správce ovladačů GPU</string>
+    <string name="install_gpu_driver_description">Instalace alternativních ovladačů pro možný lepší výkon, nebo stabilitu</string>
+    <string name="advanced_settings">Pokročilá nastavení</string>
+    <string name="settings_description">Nastavení emulátoru</string>
     <string name="search_recently_played">Nedávno hrané</string>
     <string name="search_recently_added">Nedávno přidané</string>
-    <string name="open_user_folder">Otevřít Eden složku</string>
-    <string name="open_user_folder_description">Spravovat soubory Eden</string>
+    <string name="open_user_folder">Otevřít složku Edenu</string>
+    <string name="open_user_folder_description">Správa interních souborů aplikace</string>
+    <string name="app_settings_description">Změna chování a vzhledu aplikace</string>
     <string name="no_file_manager">Nenalezen žádný správce souborů</string>
-    <string name="notification_no_directory_link">Nepovedlo se otevřít Eden složku</string>
-    <string name="manage_save_data">Spravovat data postupu ve hře</string>
-    <string name="manage_save_data_description">Data postupu nalezeny. Prosím vyberte možnost.</string>
+    <string name="notification_no_directory_link">Nepovedlo se otevřít složku Edenu</string>
+    <string name="notification_no_directory_link_description">Vyhledejte prosím uživatelskou složku ručně v postranním panelu správce souborů.</string>
+    <string name="manage_save_data">Správa uložených pozic</string>
+    <string name="manage_save_data_description">Nalezeny uložené pozice. Prosím vyberte možnost níže.</string>
+    <string name="import_save_warning">Importovat uložené pozice</string>
+    <string name="import_save_warning_description">Všechny existující uložené pozice budou přepsány těmi z vybraného souboru. Opravdu chcete pokračovat\?</string>
+    <string name="save_files_importing">Importují se uložené pozice…</string>
+    <string name="save_files_exporting">Exportují se uložené pozice…</string>
     <string name="save_file_imported_success">Uspěšně importováno</string>
-    <string name="save_file_invalid_zip_structure">Neplatná struktura dat postupu</string>
-    <string name="install_firmware">Nainstalovat firmware</string>
-    <string name="firmware_installing">Instalování firmwaru</string>
+    <string name="save_file_invalid_zip_structure">Neplatná struktura archivu</string>
+    <string name="save_file_invalid_zip_structure_description">Název první podsložky musí odpovídat title ID hry.</string>
+    <string name="install_firmware">Instalovat firmware</string>
+    <string name="install_firmware_description">Firmware musí být uložen v ZIP archivu a je potřebný pro spuštění některých her</string>
+    <string name="firmware_installing">Instaluje se firmware</string>
     <string name="firmware_installed_failure">Instalace firmwaru selhala</string>
+    <string name="firmware_installed_failure_description">Ujistěte se, že nca soubory firmwaru jsou v kořenovém adresáři ZIP archivu a zkuste to znovu.</string>
+    <string name="firmware_uninstalled_failure">Odinstalace firmwaru selhala</string>
+    <string name="share_log">Sdílet logy</string>
+    <string name="share_log_description">Sdílet logy aplikace pro řešení problémů</string>
+    <string name="share_log_missing">Soubor logu nebyl nalezen</string>
     <string name="install_game_content">Nainstalovat obsah hry</string>
-    <string name="install_game_content_description">Nainstalovat aktualizace hry nebo DLC</string>
-    <string name="installing_game_content">Instalování obsahu...</string>
+    <string name="install_game_content_description">Instalace aktualizací hry nebo DLC</string>
+    <string name="installing_game_content">Instalace obsahu...</string>
     <string name="install_game_content_failure">Chyba při instalaci soubor(ů) do NAND</string>
-    <string name="manage_yuzu_data">Spravovat data Eden</string>
+    <string name="install_game_content_failure_description">Ujistěte se, že jsou soubory obsahu(ů) platné a že je nainstalován soubor prod.keys.</string>
+    <string name="install_game_content_failure_base">Instalace základních her není povolena, aby se předešlo možným konfliktům.</string>
+    <string name="install_game_content_failed_count">Počet chyb při instalaci: %1$d</string>
+    <string name="install_game_content_success">Obsah(y) hry úspěšně nainstalován(y)</string>
+    <string name="install_game_content_success_install">Úspěšně nainstalováno: %1$d</string>
+    <string name="install_game_content_success_overwrite">Úspěšně přepsáno: %1$d</string>
+    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
+    <string name="custom_driver_not_supported">Vlastní ovladače nejsou podporovány</string>
+    <string name="custom_driver_not_supported_description">Na tomto zařízení není momentálně podporováno nahrání vlastních ovladačů.\nZkuste to znovu později, podpora může být přidána v budoucnu!</string>
+    <string name="manage_yuzu_data">Spravovat data aplikace Eden</string>
+    <string name="manage_yuzu_data_description">Import/export firmware, klíčů, uživatelských dat a další!</string>
     <string name="game_folders">Složky s hrami</string>
+    <string name="deep_scan">Hloubkový sken</string>
+    <string name="add_game_folder">Přidat složku s hrami</string>
     <string name="folder_already_added">Tato složka byla již přidána!</string>
     <string name="game_folder_properties">Vlastnosti složky s hrami</string>
     <plurals name="saves_import_failed">
         <item quantity="one">Chyba při importu %d uložení</item>
         <item quantity="few">Chyba při importu %d uložení</item>
         <item quantity="many">Chyba při importu %d uložení</item>
-        <item quantity="other">Chyba při importu %d uložení</item>
+        <item quantity="other">Počet neúspěšně importovaných uložených pozic: %d</item>
     </plurals>
     <plurals name="saves_import_success">
         <item quantity="one">Úspěšně importováno %d uložení</item>
         <item quantity="few">Úspěšně importováno %d uložení</item>
         <item quantity="many">Úspěšně importováno %d uložení</item>
-        <item quantity="other">Úspěšně importováno %d uložení</item>
+        <item quantity="other">Počet úspěšně importovaných uložených pozic: %d</item>
     </plurals>
-    <string name="no_save_data_found">Nenalezena uložená data</string>
-    <string name="verify_installed_content">Ověřit obsah</string>
-    <string name="verify_installed_content_description">Kontrola poškození obsahu</string>
+    <string name="no_save_data_found">Nebyl nalezeny žádné uložené pozice</string>
+    <string name="verify_installed_content">Ověřit nainstalovaný obsah</string>
+    <string name="verify_installed_content_description">Zkontroluje, zda není nainstalovaný obsah poškozen</string>
 
     <string name="keys_missing">Chybí šifrovací klíče</string>
-    <string name="keys_missing_description">Firmware a retail hry nelze dešifrovat</string>
+    <string name="keys_missing_description">Firmware a komerční hry nelze dešifrovat</string>
+    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
     <string name="uninstall_firmware">Odinstalovat firmware</string>
-    <string name="uninstall_firmware_description">Odinstalování firmwaru jej odstraní z zařízení a může ovlivnit kompatibilitu her.</string>
-    <string name="firmware_uninstalling">Odstraňování firmwaru</string>
+    <string name="uninstall_firmware_description">Odinstalace firmwaru jej odstraní ze zařízení a může ovlivnit kompatibilitu her.</string>
+    <string name="firmware_uninstalling">Odstraňuji firmware</string>
     <string name="firmware_uninstalled_success">Firmware byl úspěšně odinstalován</string>
 
 
     <string name="keys_failed">Selhání instalace klíčů</string>
-    <string name="keys_install_success">Klíče úspěšně nainstalovány</string>
+    <string name="keys_install_success">Klíče byly úspěšně nainstalovány</string>
     <string name="error_keys_copy_failed">Jeden nebo více klíčů se nepodařilo zkopírovat.</string>
-    <string name="error_keys_invalid_filename">Ověřte, zda má váš soubor klíčů příponu .keys a zkuste to znovu.</string>
-    <string name="error_keys_failed_init">Klíče se nepodařilo inicializovat. Zkontrolujte, zda jsou vaše dumpingové nástroje aktuální, a klíče převezměte znovu.</string>
+    <string name="error_keys_invalid_filename">Ujistěte se, že soubor s klíči má příponu .keys a zkuste to znovu.</string>
+    <string name="error_keys_failed_init">Klíče se nepodařilo inicializovat. Zkontrolujte, zda jsou vaše nástroje pro dumping klíčů aktuální, a zkuste je z vaší konzole získat znovu.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
-    <string name="qlaunch_description">Spouštění aplikací z domovské obrazovky</string>
-    <string name="applets">Spouštěč apletů</string>
-    <string name="applets_description">Spouštění systémových apletů</string>
-    <string name="applets_error_firmware">Firmware není nainstalován nebo je neplatná verze</string>
-    <string name="applets_error_applet">Aplet není dostupný</string>
-    <string name="applets_error_description"><![CDATA[Ujistěte se, že máte nainstalovaný soubor <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a>, a zkuste to znovu.<br>Dále se ujistěte, že váš firmware je verze 19.0.1 nebo starší.]]></string>
+    <string name="qlaunch_description">Spusťte aplikace ze systémové domovské obrazovky</string>
+    <string name="applets">Spouštěč appletů</string>
+    <string name="applets_description">Spusťte systémové applety prostřednictvím nainstalovaného firmwaru</string>
+    <string name="applets_error_firmware">Firmware není nainstalován nebo je jeho verze neplatná</string>
+    <string name="applets_error_applet">Applet není dostupný</string>
+    <string name="applets_error_description"><![CDATA[Ujistěte se, že máte nainstalovaný soubor <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a>, a zkuste to znovu.<br>Dále se ujistěte, že verze vašeho firmware je 19.0.1 nebo starší.]]></string>
     <string name="album_applet">Album</string>
-    <string name="album_applet_description">Zobrazovat obrázky uložené v uživatelské složce se snímky obrazovky pomocí systémového prohlížeče fotografií</string>
+    <string name="album_applet_description">Podívejte se na obrázky uložené v uživatelské složce se snímky obrazovky pomocí systémového prohlížeče fotografií</string>
     <string name="mii_edit_applet">Editor Mii</string>
-    <string name="mii_edit_applet_description">Úprava Mii postav</string>
+    <string name="mii_edit_applet_description">Prohlížejte a upravujte Mii pomocí systémového editoru</string>
     <string name="cabinet_applet">Kabinet</string>
-    <string name="cabinet_applet_description">Správa dat Amiibo</string>
+    <string name="cabinet_applet_description">Správa dat uložených na Amiibo</string>
     <string name="cabinet_launcher">Spouštěč kabinetu</string>
     <string name="cabinet_nickname_and_owner">Nastavení přezdívky a vlastníka</string>
     <string name="cabinet_game_data_eraser">Mazání herních dat</string>
-    <string name="cabinet_restorer">Obnovovač</string>
-    <string name="cabinet_formatter">Formátovač</string>
+    <string name="cabinet_restorer">Obnova</string>
+    <string name="cabinet_formatter">Formátování</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia není skutečná</string>
     <string name="copied_to_clipboard">Zkopírováno do schránky</string>
-    <string name="about_app_description">Open-source Switch emulátor</string>
+    <string name="about_app_description">Open-source emulátor konzole Switch</string>
     <string name="contributors">Přispěvatelé</string>
-    <string name="contributors_description">Vyrobeno s \u2764 od Eden týmu</string>
+    <string name="contributors_description">Lidé, díky kterým Eden pro Android vznikl</string>
+    <string name="licenses_description">Eden pro Android bylo možné zrealizovat díky těmto projektům</string>
     <string name="build">Číslo sestavení</string>
     <string name="user_data">Uživatelská data</string>
-    <string name="exporting_user_data">Exportování uživatelských dat...</string>
-    <string name="importing_user_data">Importování uživatelských dat...</string>
-    <string name="invalid_yuzu_backup">Neplatná záloha Eden</string>
+    <string name="user_data_description">Import/export všech dat aplikace.\n\nPři importu uživatelských dat budou všechna stávající uživatelská data smazána!\n\nImport dat z emulátoru Citron může způsobit potíže. Doporučujeme potřebná data zkopírovat ručně.</string>
+    <string name="exporting_user_data">Exportují se uživatelská data…</string>
+    <string name="importing_user_data">Importují se uživatelská data…</string>
+    <string name="invalid_yuzu_backup">Neplatná záloha aplikace Eden</string>
     <string name="user_data_export_success">Uživatelská data byla úspěšně exportována.</string>
     <string name="user_data_import_success">Uživatelská data byla úspěšně importována.</string>
     <string name="user_data_export_cancelled">Export zrušen</string>
+    <string name="user_data_import_failed_description">Ujistěte se, že složky uživatelských dat jsou v kořenovém adresáři zip archivu a obsahují konfigurační soubor v config/config.ini, a zkuste to znovu.</string>
     <!-- General settings strings -->
     <string name="frame_limit_enable">Omezit rychlost</string>
-    <string name="frame_limit_enable_description">Omezení emulační rychlosti</string>
-    <string name="frame_limit_slider">Procento omezení</string>
-    <string name="frame_limit_slider_description">Procento normální rychlosti</string>
-    <string name="cpu_backend">CPU backend</string>
+    <string name="frame_limit_enable_description">Omezí rychlost emulace na vybrané procento normální rychlosti.</string>
+    <string name="frame_limit_slider">Procento omezení rychlosti</string>
+    <string name="frame_limit_slider_description">Určuje procentuální limit rychlosti. 100% je normální rychlost. Vyšší hodnoty hru zrychlí, nižší zpomalí.</string>
+    <string name="cpu_backend">Backend CPU</string>
     <string name="cpu_accuracy">Přesnost CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
     <string name="device_name">Název zařízení</string>
-    <string name="use_docked_mode">Docked režim</string>
-    <string name="use_docked_mode_description">Větší rozlišení, menší výkon</string>
-    <string name="emulated_region">Emulovaná oblast</string>
+    <string name="use_docked_mode">Režim v doku</string>
+    <string name="use_docked_mode_description">Zvýší rozlišení na úkor výkonu. Při vypnutí se použije režim handheld, který mí nižší rozlišení, ale zvyšuje výkon.</string>
+    <string name="emulated_region">Emulovaný region</string>
     <string name="emulated_language">Emulovaný jazyk</string>
     <string name="select_rtc_date">Vybrat datum RTC</string>
     <string name="select_rtc_time">Vybrat čas RTC</string>
     <string name="use_custom_rtc">Vlastní RTC</string>
-    <string name="use_custom_rtc_description">Vlastní nastavení času</string>
+    <string name="use_custom_rtc_description">Umožňuje nastavit vlastní hodiny reálného času nezávisle na systému.</string>
     <string name="set_custom_rtc">Nastavit vlastní RTC</string>
 
-    <string name="custom_cpu_ticks">Vlastní CPU takty</string>
-    <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu CPU taktů. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučuje se rozsah 77–21000.</string>
-    <string name="cpu_ticks">Takty</string>
-    <string name="memory_layout">Rozložení paměti</string>
-    <string name="memory_layout_description">(EXPERIMENTÁLNÍ) Změna emulovaného rozložení paměti. Toto nastavení nezvyšuje výkon, ale může pomoci hrám využívajícím vysoké rozlišení pomocí modů. Nepoužívejte na telefonech s 8GB RAM nebo méně.</string>
+    <!-- CPU -->
+    <string name="fast_cpu_time">Přetaktování CPU</string>
+    <string name="fast_cpu_time_description">Vynutí běh CPU na vyšší frekvenci, což může pomoci obejít některé omezovače FPS. Režim Boost (1700 MHz) odpovídá maximální taktu konzole Switch, režim Fast (2000 MHz) je dvojnásobek základního taktu konzole.</string>
+    <string name="custom_cpu_ticks">Vlastní hodnota CPU cyků</string>
+    <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu cyklů CPU. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučený rozsah hodnot je 77–21000.</string>
+    <string name="cpu_ticks">Cykly</string>
+    <string name="memory_layout">Rozvržení paměti</string>
+    <string name="memory_layout_description">(EXPERIMENTÁLNÍ) Změní rozvržení emulované paměti. Toto nastavení nezvyšuje výkon, ale může pomoci hrám, které běží ve vysokém rozlišení s pomoci modů. Nepoužívejte na telefonech s 8 GB RAM a méně. Funguje pouze na backendu Dynarmic (JIT).</string>
 
     <string name="generate">Generovat</string>
 
@@ -325,47 +443,60 @@
     <string name="network">Síť</string>
 
     <!-- Graphics settings strings -->
-    <string name="renderer_resolution">Rozlišení (Handheld/Docked)</string>
-    <string name="renderer_vsync">VSync režim</string>
-    <string name="renderer_scaling_filter">Filtr přizpůsobení</string>
+    <string name="renderer_resolution">Rozlišení (Handheld/V doku)</string>
+    <string name="renderer_vsync">Režim VSync</string>
+    <string name="renderer_scaling_filter">Škálovací filtr</string>
     <string name="fsr_sharpness">Ostrost FSR</string>
-    <string name="fsr_sharpness_description">Nastavení ostrosti pro FSR</string>
-    <string name="renderer_anti_aliasing">Anti-aliasing</string>
-    <string name="renderer_optimize_spirv_output_description">Optimalizuje zkompilovaný shader pro zvýšení efektivity GPU.</string>
+    <string name="fsr_sharpness_description">Určuje jak ostře bude obraz vypadat při použití dynamického kontrastu FSR.</string>
+    <string name="renderer_anti_aliasing">Metoda anti-aliasingu</string>
+    <string name="renderer_optimize_spirv_output">Optimalizovat výstup SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">Optimalizuje kompilované shadery pro zlepšení efektivity GPU, ale mohou se objevit delší nahrávací časy a zpomalení v úvodu.</string>
 
 
+    <string name="advanced">Pokročilé</string>
+
+    <string name="renderer_accuracy">Režim GPU</string>
+    <string name="renderer_accuracy_description">Určuje režim emulovaného GPU. Většina her běží bez problémů v rychlém, nebo vyváženém režimu, ale některé stále vyžadují přesný režim. Částicové efekty se většinou zobrazují korektně pouze v přesném režimu. </string>
     <string name="dma_accuracy">Přesnost DMA</string>
-    <string name="dma_accuracy_description">Ovládá přesnost DMA. Bezpečná přesnost může opravit problémy v některých hrách, ale v některých případech může také ovlivnit výkon. Pokud si nejste jisti, ponechte to na výchozím nastavení.</string>
+    <string name="dma_accuracy_description">Ovládá přesnost DMA. Bezpečná přesnost může vyřešit problémy v některých hrách, ale v některých případech může také ovlivnit výkon. Pokud si nejste jisti, použijte výchozí nastavení.</string>
     <string name="anisotropic_filtering">Anizotropní filtrování</string>
-    <string name="anisotropic_filtering_description">Zlepšení kvality textur</string>
+    <string name="anisotropic_filtering_description">Zlepšuje kvalitu textur při pohledu pod úhlem</string>
     <string name="vram_usage_mode">Režim využití VRAM</string>
-    <string name="vram_usage_mode_description">Správa alokace GPU paměti</string>
+    <string name="vram_usage_mode_description">Určuje, jak moc agresivně emulátor přiděluje a uvolňuje grafickou paměť.</string>
     <string name="accelerate_astc">Metoda dekódování ASTC</string>
-    <string name="accelerate_astc_description">Vyberte způsob dekódování textur komprimovaných pomocí ASTC pro vykreslování: CPU (pomalé, bezpečné), GPU (rychlé, doporučené) nebo CPU Async (žádné zasekávání, ale mohou nastat problémy)</string>
+    <string name="accelerate_astc_description">Vyberte způsob jak se dekódují ASTC textury: CPU (pomalé, bezpečné), GPU (rychlé, doporučené) nebo CPU Async (asynchronní, žádné zasekávání, ale může způsobit problémy)</string>
     <string name="astc_recompression">Metoda rekomprese ASTC</string>
     <string name="astc_recompression_description">Vyberte způsob rekomprese textur ASTC pro zlepšení kompatibility a výkonu. Zapnutí této volby ušetří VRAM, ale může snížit kvalitu textur.</string>
 
     <string name="sync_memory_operations">Synchronizace paměťových operací</string>
-    <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Nejvíce postižené se zdají být hry s Unreal Engine 4.</string>
-    <string name="use_disk_shader_cache">Shader cache na disku</string>
-    <string name="use_disk_shader_cache_description">Snížení trhání ukládáním shaderů</string>
-    <string name="renderer_force_max_clock">Maximální takt (Adreno)</string>
-    <string name="renderer_force_max_clock_description">Maximální výkon GPU</string>
+    <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Největší změny se týkají her založených na Unreal Engine 4.</string>
+    <string name="use_disk_shader_cache">Disková mezipaměť shaderů</string>
+    <string name="use_disk_shader_cache_description">Zlepšuje plynulost ukládáním a načítáním vygenerovaných shaderů na disk.</string>
+    <string name="renderer_force_max_clock">Vynutit maximální takty (pouze Adreno)</string>
+    <string name="renderer_force_max_clock_description">Vynutí běh GPU na maximální možné frekvenci (teplotní limity stále platí).</string>
     <string name="renderer_reactive_flushing">Reaktivní flushing</string>
-    <string name="renderer_reactive_flushing_description">Zlepšení přesnosti vykreslování</string>
+    <string name="renderer_reactive_flushing_description">Zlepšuje přesnost vykreslování v některých hrách na úkor výkonu.</string>
 
 
+    <string name="hacks">Hacky</string>
+
+    <string name="fast_gpu_time">Rychlé časování GPU</string>
+    <string name="fast_gpu_time_description">Nutí většinu her běžet v nejvyšším nativním rozlišení. Použijte hodnotu 256 pro maximální výkon a 512 pro nejlepší kvalitu.</string>
     <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
-    <string name="skip_cpu_inner_invalidation_description">Přeskočí některé invalidace mezipaměti na straně CPU během aktualizací paměti, čímž sníží zatížení CPU a zlepší jeho výkon. Může způsobit chyby nebo pády v některých hrách.</string>
-    <string name="renderer_asynchronous_shaders">Asynchronní shadery</string>
-    <string name="renderer_asynchronous_shaders_description">Kompiluje stínovače asynchronně. Může to snížit trhání, ale také způsobit grafické chyby.</string>
+    <string name="skip_cpu_inner_invalidation_description">Přeskočí určité invalidace mezipaměti procesoru při aktualizacích paměti, čímž snižuje vytížení CPU a zvyšuje jeho výkon. Může způsobit chyby nebo pády některých hrách.</string>
+    <string name="renderer_asynchronous_shaders">Asynchronní kompilace shaderů</string>
+    <string name="renderer_asynchronous_shaders_description">Kompiluje shadery asynchronně. To může zlepšit planulost, ale také způsobit grafické chyby.</string>
+    <string name="extensions">Rozšíření</string>
 
-    <string name="dyna_state">Rozšířený dynamický stav</string>
+    <string name="dyna_state">Úroveň EDS</string>
+    <string name="dyna_state_description">Určuje počet funkcí využívaných v rámci rozšířeného dynamického stavu API Vulkan (Extended Dynamic State). Vyšší hodnoty umožňují využít více funkcí a mohou zvýšit výkon, ale u některých ovladačů a výrobců grafických karet mohou způsobovat problémy s kompatibilitou.</string>
     <string name="disabled">Vypnuto</string>
-    <string name="provoking_vertex">Provokující vertex</string>
-    <string name="provoking_vertex_description">Zlepšuje osvětlení a zpracování vertexů v některých hrách. Podporováno pouze na GPU s Vulkan 1.0+.</string>
+    <string name="vertex_input_dynamic_state">Dynamický stav vstupu vrcholů (Vertex Input)</string>
+    <string name="vertex_input_dynamic_state_description">Aktivuje funkci dynamického stavu vstupu vrcholů (Vertex Input Dynamic State) pro lepší kvalitu a výkon.</string>
+    <string name="provoking_vertex">Určující vrchol</string>
+    <string name="provoking_vertex_description">Zlepšuje osvětlení a zpracování vrcholů v některých hrách. Podporováno pouze na GPU s API Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexování deskriptorů</string>
-    <string name="descriptor_indexing_description">Zlepšuje zpracování textur a bufferů, stejně jako Maxwell překladovou vrstvu. Podporováno některými GPU s Vulkan 1.1 a všemi GPU s Vulkan 1.2+.</string>
+    <string name="descriptor_indexing_description">Zlepšuje zpracování textur a bufferů, stejně jako překladovou vrstvu architektury Maxwell. Podporováno některými GPU s API Vulkan 1.1 a všemi GPU s API Vulkan 1.2+.</string>
     <string name="display">Zobrazení</string>
 
     <string name="renderer_screen_layout">Orientace</string>
@@ -487,7 +618,6 @@
     <string name="confirm_uninstall">Potvrdit odstranění</string>
     <string name="confirm_uninstall_description">Odstranit tento doplněk?</string>
     <string name="verify_integrity">Ověřit integritu</string>
-    <string name="verifying">Ověřování...</string>
     <string name="verify_success">Integrita potvrzena</string>
     <string name="verify_failure">Chyba ověření</string>
     <string name="verify_failure_description">Soubor může být poškozen</string>
@@ -570,6 +700,15 @@
     <string name="memory_formatted">%1$s %2$s</string>
     <string name="no_game_present">Nenalezena spustitelná hra!</string>
 
+    <!-- Region Names -->
+    <string name="region_japan">Japonsko</string>
+    <string name="region_usa">USA</string>
+    <string name="region_europe">Evropa</string>
+    <string name="region_australia">Austrálie</string>
+    <string name="region_china">Čína</string>
+    <string name="region_korea">Korea</string>
+    <string name="region_taiwan">Taiwan</string>
+
     <!-- Memory Layouts -->
     <string name="memory_4gb">4GB (Doporučeno)</string>
     <string name="memory_6gb">6GB (Nebezpečné)</string>
@@ -583,49 +722,28 @@
     <string name="temperature_celsius">Celsia</string>
     <string name="temperature_fahrenheit">Fahrenheita</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Žádné</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">Rychlý</string>
+    <string name="renderer_accuracy_medium">Vyvážený</string>
+    <string name="renderer_accuracy_high">Přesný</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Výchozí</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU asynchronně</string>
+    <string name="dma_accuracy_unsafe">Nebezpečné</string>
+    <string name="dma_accuracy_safe">Bezpečné</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Nekomprimované</string>
-    <string name="astc_recompression_bc1">BC1 (nízká kvalita)</string>
-    <string name="astc_recompression_bc3">BC3 (střední kvalita)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Konzervativní</string>
     <string name="vram_usage_aggressive">Agresivní</string>
 
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Pomalé)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Pomalé)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Pomalé)</string>
-
-    <string name="scaling_filter_bilinear">Bilineární</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Žádné</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Automatické</string>
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Výchozí (16:9)</string>
-    <string name="ratio_force_four_three">Vynutit 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Vynutit 21:9</string>
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Přesné</string>
     <string name="cpu_accuracy_unsafe">Nebezpečné</string>

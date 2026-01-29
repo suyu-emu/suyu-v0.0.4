@@ -16,7 +16,16 @@
     <string name="value_too_high">Значення повинно бути не більше %1$d</string>
     <string name="invalid_value">Неправильне значення</string>
 
+    <string name="using_per_game_config">Використовувати конфігурації для кожної гри</string>
 
+    <!-- Input Overlay -->
+    <string name="show_input_overlay">Показувати оверлей введення</string>
+    <string name="show_input_overlay_description">Показувати оверлей сенсорного керування під час емуляції.</string>
+    <string name="overlay_snap_to_grid">Прилипання до сітки</string>
+    <string name="overlay_snap_to_grid_description">Елементи керування оверлея прилипатимуть до сітки під час редагування.</string>
+    <string name="overlay_grid_size">Розмір сітки</string>
+    <string name="overlay_grid_size_description">Розмір у пікселях комірок сітки.</string>
+    <string name="input_overlay_behavior">Поведінка</string>
     <string name="overlay_auto_hide">Автоматично приховувати оверлей</string>
     <string name="overlay_auto_hide_description">Автоматично приховувати оверлей сенсорного керування після вказаного часу неактивності.</string>
     <string name="enable_input_overlay_auto_hide">Увімкнути автоматичне приховування оверлею</string>
@@ -25,6 +34,10 @@
 
     <string name="input_overlay_options">Оверлей введення</string>
     <string name="input_overlay_options_description">Налаштувати наекранне керування</string>
+    <string name="edit_overlay_layout">Редагувати макет оверлея</string>
+    <string name="edit_overlay_layout_description">Коригувати розташування й розміри екранних елементів керування.</string>
+
+
     <!-- Stats Overlay settings -->
     <string name="process_ram">RAM процесу: %1$d МБ</string>
     <string name="shaders_prefix">Компіляція</string>
@@ -93,8 +106,6 @@
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Емуляція NVDEC</string>
     <string name="nvdec_emulation_description">Обробка відео під час катсцен</string>
-    <string name="nvdec_emulation_cpu">ЦП</string>
-    <string name="nvdec_emulation_gpu">ГП</string>
     <string name="nvdec_emulation_none">Вимкнено</string>
 
     <!-- Optimize SPIRV output -->
@@ -209,7 +220,7 @@
     <string name="alphabetical">За алфавітом</string>
     <string name="view_list">Список</string>
     <string name="view_grid">Сітка</string>
-    <string name="view_grid_compact">Компактна Сітка</string>
+    <string name="view_grid_compact">Компактна сітка</string>
     <string name="view_carousel">Карусель</string>
     <string name="game_image_desc">Скріншот для %1$s</string>
     <string name="folder">Тека</string>
@@ -385,7 +396,6 @@
     <string name="about_app_description">Емулятор Switch із відкритим вихідним кодом</string>
     <string name="contributors">Автори проєкту</string>
     <string name="contributors_description">Зроблено з \u2764 командою Eden</string>
-    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Проєкти, які зробили запуск Eden на Android можливим</string>
     <string name="build">Збірка</string>
     <string name="user_data">Дані користувача</string>
@@ -449,6 +459,8 @@
 
     <string name="advanced">Додаткові</string>
 
+    <string name="renderer_accuracy">Режим ГП</string>
+    <string name="renderer_accuracy_description">Керує режимом емуляції ГП. Більшість ігор добре візуалізуються з режимами «Швидко» або «Збалансовано», але деякі ігри можуть потребувати режиму «Точно». Частинки зазвичай правильно візуалізуються лише з режимом «Точно».</string>
     <string name="dma_accuracy">Точність DMA</string>
     <string name="dma_accuracy_description">Керує точністю DMA. Безпечна точність може виправити проблеми в деяких іграх, але в деяких випадках також може вплинути на продуктивність. Якщо не впевнені, залиште це значення за замовчуванням.</string>
     <string name="anisotropic_filtering">Анізотропне фільтрування</string>
@@ -476,8 +488,17 @@
     <string name="fast_gpu_time_description">Примушує більшість ігор працювати на їхній максимальній нативній роздільності. Використовуйте 256 для максимальної продуктивності та 512 для найкращої якості.</string>
     <string name="skip_cpu_inner_invalidation">Пропустити внутрішнє інвалідування CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускає деякі інвалідації кешу на стороні CPU під час оновлення пам\'яті, зменшуючи навантаження на процесор і покращуючи продуктивність. Може спричинити збої в деяких іграх.</string>
+    <string name="fix_bloom_effects">Виправити ефекти світіння</string>
+    <string name="fix_bloom_effects_description">Зменшує розмиття світіння в LA/EOW (Adreno 700), прибирає світіння в Burnout</string>
     <string name="renderer_asynchronous_shaders">Асинхронні шейдери</string>
     <string name="renderer_asynchronous_shaders_description">Компілює шейдери асинхронно. Це може зменшити затримки, але також може спричинити графічні баги.</string>
+    <string name="gpu_unswizzle_texture_size">Максимальний розмір текстур для відновлення перевпорядковування за допомогою ГП</string>
+    <string name="gpu_unswizzle_texture_size_description">Встановлює максимальний розмір (МБ) для відновлення перевпорядкованих текстур за допомогою ГП. ГП швидше справляється з текстурами середніх і великих розмірів, а ЦП ефективніший для дуже маленьких. Налаштуйте, щоб збалансувати ГП-прискоренням і навантаженням на ЦП.</string>
+    <string name="gpu_unswizzle_stream_size">Розмір потоку відновлення перевпорядковування за допомогою ГП</string>
+    <string name="gpu_unswizzle_stream_size_description">Встановлює обмеження даних на кадр для відновлення перевпорядкування великих текстур. Вищі значення пришвидшують завантаження текстур за рахунок більших кадрових затримок; менші значення зменшують перевантаження ГП але може спричинити помітні появи текстур.</string>
+    <string name="gpu_unswizzle_chunk_size">Розмір блоків відновлення перевпорядковування за допомогою ГП</string>
+    <string name="gpu_unswizzle_chunk_size_description">Визначає кількість зрізів глибини, оброблених за партію 3D-текстур. Збільшення здатне покращити пропускну здатність на потужних ГП, але може призвести до затримок або затримок драйвера зі слабшим устаткуванням.</string>
+
 
     <string name="extensions">Розширення</string>
 
@@ -530,10 +551,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Кнопки</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Плюс</string>
     <string name="button_minus">Мінус</string>
     <string name="button_home">Home</string>
@@ -554,15 +571,10 @@
     <string name="modifier">Модифікатор</string>
     <string name="modifier_range">Діапазон модифікатора</string>
     <string name="triggers">Тригери</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">Ліва SL</string>
     <string name="button_sr_left">Ліва SR</string>
     <string name="button_sl_right">Права SL</string>
     <string name="button_sr_right">Права SR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">Некоректний</string>
     <string name="not_set">Не задано</string>
     <string name="unknown">Невідомо</string>
@@ -614,6 +626,7 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">За замовчуванням</string>
+    <string name="default_string">Стандартно</string>
     <string name="loading">Завантаження...</string>
     <string name="shutting_down">Вимкнення...</string>
     <string name="reset_setting_confirmation">Чи хочете ви повернути цей параметр до значення за замовчуванням?</string>
@@ -682,6 +695,7 @@
     <string name="preferences_system_description">Режим док-странції, регіон, мова</string>
     <string name="preferences_graphics">Графіка</string>
     <string name="preferences_graphics_description">Рівень точності, роздільна здатність, кеш шейдерів</string>
+    <string name="quick_settings">Швидкі налаштування</string>
     <string name="preferences_audio">Аудіо</string>
     <string name="preferences_audio_description">Аудіорушій, гучність</string>
     <string name="preferences_controls">Керування</string>
@@ -689,6 +703,28 @@
     <string name="preferences_player">Гравець %d</string>
     <string name="preferences_debug">Налагодження</string>
     <string name="preferences_debug_description">Налагодження CPU/GPU, графічний API, швидка пам\'ять</string>
+    <string name="preferences_custom_paths">Користувацькі шляхи</string>
+    <string name="preferences_custom_paths_description">Тека даних збережень</string>
+
+    <!-- Custom Paths settings -->
+    <string name="custom_save_directory">Тека даних збережень</string>
+    <string name="custom_save_directory_description">Встановити користувацький шлях для даних збережень.</string>
+    <string name="reset_to_nand">Скинути до стандартного</string>
+    <string name="migrate_save_data">Перенести дані збережень</string>
+    <string name="migrate_save_data_question">Хочете перенести наявні дані збережень до нового розташування\?</string>
+    <string name="save_migration_complete">Дані збережень успішно перенесено</string>
+    <string name="save_migration_failed">Не вдалося перенести дані збережень</string>
+    <string name="save_directory_set">Теку для збережень встановлено</string>
+    <string name="destination_has_saves">Цільова тека вже містить дані. Хочете їх перезаписати\?</string>
+    <string name="all_files_permission_required">Для користувацьких шляхів потрібен дозвіл на доступ до всіх файлів</string>
+    <string name="grant_permission">Надати дозвіл</string>
+    <string name="custom_nand_directory">Тека NAND</string>
+    <string name="custom_nand_directory_description">Встановити користувацький шлях для сховища NAND</string>
+    <string name="custom_sdmc_directory">Тека SD-картки</string>
+    <string name="custom_sdmc_directory_description">Встановити користувацький шлях для віртуального сховища SD-картки.</string>
+    <string name="path_set">Шлях успішно встановлено</string>
+    <string name="skip_migration">Пропустити</string>
+
     <!-- Game properties -->
     <string name="info">Інформація</string>
     <string name="info_description">ID програми, розробник, версія</string>
@@ -818,6 +854,7 @@
     <string name="emulation_control_opacity">Непрозорість</string>
     <string name="emulation_touch_overlay_reset">Скинути накладання</string>
     <string name="emulation_touch_overlay_edit">Редагувати накладання</string>
+    <string name="emulation_snap_to_grid">Прилипання до сітки</string>
     <string name="emulation_pause">Призупинити емуляцію</string>
     <string name="emulation_unpause">Продовжити емуляцію</string>
     <string name="emulation_input_overlay">Опції накладання</string>
@@ -876,6 +913,27 @@
     <string name="fast_gpu_medium">Середньо (256)</string>
     <string name="fast_gpu_high">Високо (512)</string>
 
+    <!-- GPU swizzle texture size -->
+    <string name="gpu_texturesizeswizzle_verysmall">Дуже малий (16 МБ)</string>
+    <string name="gpu_texturesizeswizzle_small">Малий (32 МБ)</string>
+    <string name="gpu_texturesizeswizzle_normal">Нормальний (128 МБ)</string>
+    <string name="gpu_texturesizeswizzle_large">Великий (256 МБ)</string>
+    <string name="gpu_texturesizeswizzle_verylarge">Дуже великий (512 МБ)</string>
+
+    <!-- GPU swizzle streams -->
+    <string name="gpu_swizzle_verylow">Дуже низький (4 МБ)</string>
+    <string name="gpu_swizzle_low">Низький (8 МБ)</string>
+    <string name="gpu_swizzle_normal">Нормальний (16 МБ)</string>
+    <string name="gpu_swizzle_medium">Середній (32 МБ)</string>
+    <string name="gpu_swizzle_high">Високий (64 МБ)</string>
+
+    <!-- GPU swizzle chunks -->
+    <string name="gpu_swizzlechunk_verylow">Дуже низький (32)</string>
+    <string name="gpu_swizzlechunk_low">Низький (64)</string>
+    <string name="gpu_swizzlechunk_normal">Нормальний (128)</string>
+    <string name="gpu_swizzlechunk_medium">Середній (256)</string>
+    <string name="gpu_swizzlechunk_high">Високий (512)</string>
+
     <!-- Temperature Units -->
     <string name="temperature_celsius">Цельсій</string>
     <string name="temperature_fahrenheit">Фаренгейт</string>
@@ -889,10 +947,10 @@
     <string name="memory_petabyte">ПБ</string>
     <string name="memory_exabyte">ЕБ</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Вимкнено</string>
 
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">Швидко</string>
     <string name="renderer_accuracy_medium">Збалансовано</string>
     <string name="renderer_accuracy_high">Точно</string>
 
@@ -901,30 +959,11 @@
     <string name="dma_accuracy_unsafe">Небезпечно</string>
     <string name="dma_accuracy_safe">Безпечно</string>
 
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">Асинхронно CPU</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Без стиснення</string>
-    <string name="astc_recompression_bc1">BC1 (низька якість)</string>
-    <string name="astc_recompression_bc3">BC3 (середня якість)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Консервативний</string>
     <string name="vram_usage_aggressive">Агресивний</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Повільно)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Повільно)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Повільно)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Моментальна (вимкнена)</string>
@@ -932,26 +971,8 @@
     <string name="renderer_vsync_fifo">FIFO (ввімкнута)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Найближчий сусід</string>
-    <string name="scaling_filter_bilinear">Білінійне</string>
-    <string name="scaling_filter_bicubic">Бікубічне</string>
-    <string name="scaling_filter_spline1">Spline-1</string>
-    <string name="scaling_filter_gaussian">Гауса</string>
-    <string name="scaling_filter_lanczos">Ланцоша</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-    <string name="scaling_filter_area">Області</string>
-    <string name="scaling_filter_zero_tangent">Нульовий тангенс</string>
-    <string name="scaling_filter_bspline">B-Spline</string>
-    <string name="scaling_filter_mitchell">Мітчелла</string>
-    <string name="scaling_filter_mmpx">MMPX</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Вимкнено</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Авто</string>
     <string name="screen_layout_sensor_landscape">Горизонтальний сенсор</string>
@@ -961,22 +982,35 @@
     <string name="screen_layout_portrait">Вертикальний</string>
     <string name="screen_layout_reverse_portrait">Обернений вертикальний</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">За замовчуванням (16:9)</string>
-    <string name="ratio_force_four_three">Примусові 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Примусові 21:9</string>
-    <string name="ratio_force_sixteen_ten">Примусові 16:10</string>
     <string name="ratio_stretch">Розтягнути до вікна</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Динамічно (JIT)</string>
-    <string name="cpu_backend_nce">Нативне виконання коду (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Точно</string>
     <string name="cpu_accuracy_unsafe">Небезпечно</string>
     <string name="cpu_accuracy_paranoid">Параноїк (повільно)</string>
     <string name="cpu_accuracy_debugging">Зневадження</string>
+
+    <!-- Freedreno Settings -->
+    <string name="freedreno_settings_title">Налаштування Freedreno</string>
+    <string name="gpu_driver_settings">Налаштування драйвера ГП</string>
+    <string name="freedreno_presets">Швидкі попередні налаштування</string>
+    <string name="freedreno_current_settings">Поточні налаштування</string>
+    <string name="freedreno_debug">Розширені налаштування</string>
+    <string name="freedreno_var_name">Назва змінної (наприклад TU_DEBUG)</string>
+    <string name="freedreno_var_value">Значення змінної</string>
+    <string name="freedreno_add_variable">Додати змінну</string>
+    <string name="freedreno_clear_all">Очистити все</string>
+    <string name="freedreno_saved">Налаштування Freedreno збережено</string>
+    <string name="freedreno_cleared_all">Усі змінні Freedreno очищено</string>
+    <string name="freedreno_variable_added">Додано змінну %1$s</string>
+    <string name="freedreno_preset_applied">Застосовано попереднє налаштування «%1$s»</string>
+    <string name="freedreno_error_empty_name">Назва змінної не може бути порожньою</string>
+    <string name="freedreno_error_setting_variable">Не вдалося встановити змінну</string>
+    <string name="freedreno_info_title">Про налаштування Freedreno</string>
+    <string name="freedreno_info_description">Налаштуйте параметри драйвера ГП Freedreno/Turnip для зневадження, профілювання та оптимізації продуктивності. Зміни зберігаються автоматично. Перегляньте https://docs.mesa3d.org/drivers/freedreno.html для детальної документації.</string>
+    <string name="freedreno_per_game_title">Налаштування Freedreno</string>
+    <string name="freedreno_per_game_description">Відкоригувати налаштування драйвера ГП для цієї гри</string>
+    <string name="freedreno_per_game_saved">Налаштування Freedreno збережено</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Хрестовина</string>
@@ -1001,17 +1035,6 @@
     <string name="theme_mode_light">Світла</string>
     <string name="theme_mode_dark">Темна</string>
 
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
-
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
     <string name="multiplier_none">Жодного</string>
 
     <!-- Black backgrounds theme -->
@@ -1022,31 +1045,6 @@
     <string name="app_language">Мова застосунку</string>
     <string name="app_language_description">Змінити мову інтерфейсу застосунку</string>
     <string name="app_language_system">Як у системі</string>
-    <string name="app_language_english">English</string>
-    <string name="app_language_spanish">Español</string>
-    <string name="app_language_french">Français</string>
-    <string name="app_language_german">Deutsch</string>
-    <string name="app_language_italian">Italiano</string>
-    <string name="app_language_portuguese">Português</string>
-    <string name="app_language_brazilian_portuguese">Português do Brasil</string>
-    <string name="app_language_russian">Русский</string>
-    <string name="app_language_japanese">日本語</string>
-    <string name="app_language_korean">한국어</string>
-    <string name="app_language_simplified_chinese">简体中文</string>
-    <string name="app_language_traditional_chinese">繁體中文</string>
-    <string name="app_language_polish">Polski</string>
-    <string name="app_language_czech">Čeština</string>
-    <string name="app_language_norwegian">Norsk bokmål</string>
-    <string name="app_language_hungarian">Magyar</string>
-    <string name="app_language_ukrainian">Українська</string>
-    <string name="app_language_vietnamese">Tiếng Việt</string>
-    <string name="app_language_indonesian">Bahasa Indonesia</string>
-    <string name="app_language_arabic">العربية</string>
-    <string name="app_language_central_kurdish">کوردیی ناوەندی</string>
-    <string name="app_language_persian">فارسی</string>
-    <string name="app_language_hebrew">עברית</string>
-    <string name="app_language_serbian">Српски</string>
-
     <!-- Static Themes -->
     <string name="static_theme_color">Колір теми</string>
     <string name="eden_theme">Eden (стандартно)</string>

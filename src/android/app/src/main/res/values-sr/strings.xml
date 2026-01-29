@@ -45,8 +45,6 @@
     <string name="soc_overlay_options">Прекривање уређаја</string>
     <string name="soc_overlay_options_description">Конфигуришите које се информације приказују у прекривању уређаја</string>
 
-    <string name="show_build_id">Прикажи ID билда</string>
-    <string name="show_driver_version">Прикажи верзију драјвера</string>
     <string name="show_device_model">Прикажи модел уређаја</string>
     <string name="show_gpu_model">Прикажи ГПУ модел</string>
     <string name="show_soc_model">Прикажи соц модел</string>
@@ -63,12 +61,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">Омогући емулацију MMU домаћина</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ова оптимизација убрзава приступ меморији од стране гостујућег програма. Укључивање изазива да се читања/уписа меморије госта обављају директно у меморији и користе MMU домаћина. Искључивање присиљава све приступе меморији да користе софтверску емулацију MMU.</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">НВДЕЦ Емулација</string>
     <string name="nvdec_emulation_description">Изаберите како се видео декодирање (НВДЕЦ) обрађује током секс и увозних интросија.</string>
-    <string name="nvdec_emulation_cpu">ЦПУ</string>
-    <string name="nvdec_emulation_gpu">ГПУ</string>
     <string name="nvdec_emulation_none">Ниједан</string>
 
     <!-- Optimize SPIRV output -->
@@ -393,7 +388,6 @@
     <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
     <string name="renderer_asynchronous_shaders">Користите асинхроне схадера</string>
     <string name="renderer_asynchronous_shaders_description">Саставља схадера асинхроно. Ово може умањити затезаче, али могу такође да уведе пропусте.</string>
-
     <string name="dyna_state">Проширена динамичка држава</string>
     <string name="disabled">Искључено</string>
     <string name="provoking_vertex">Провоцирајући врх</string>
@@ -432,10 +426,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Тастери</string>
-    <string name="button_a">А</string>
-    <string name="button_b">Б</string>
-    <string name="button_x">К</string>
-    <string name="button_y">И</string>
     <string name="button_plus">Плус</string>
     <string name="button_minus">Минус</string>
     <string name="button_home">Дом</string>
@@ -456,15 +446,10 @@
     <string name="modifier">Модификатор</string>
     <string name="modifier_range">Распон модификатора</string>
     <string name="triggers">Окидачи</string>
-    <string name="button_l">Л</string>
-    <string name="button_r">Р</string>
-    <string name="button_zl">Зл</string>
-    <string name="button_zr">Зр</string>
     <string name="button_sl_left">Лефт сл</string>
     <string name="button_sr_left">Лефт ср</string>
     <string name="button_sl_right">Десни сл</string>
     <string name="button_sr_right">Десно ср</string>
-    <string name="button_z">З</string>
     <string name="invalid">Неважећи</string>
     <string name="not_set">Није постављен</string>
     <string name="unknown">Непознат</string>
@@ -626,7 +611,6 @@
     <string name="confirm_uninstall">Потврдите деинсталирање</string>
     <string name="confirm_uninstall_description">Јесте ли сигурни да желите да деинсталирате овај Аддон?</string>
     <string name="verify_integrity">Проверите интегритет</string>
-    <string name="verifying">Провера ...</string>
     <string name="verify_success">Провера интегритета је успела!</string>
     <string name="verify_failure">Провера интегритета није успела!</string>
     <string name="verify_failure_description">Садржај датотеке може бити оштећен</string>
@@ -740,35 +724,15 @@
     <string name="memory_petabyte">Пб</string>
     <string name="memory_exabyte">Еб</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Вулкан</string>
     <string name="renderer_none">Ниједан</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Подразумевано</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">ЦПУ</string>
-    <string name="accelerate_astc_gpu">ГПУ</string>
-    <string name="accelerate_astc_async">ЦПУ асинхроно</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Некомпримован</string>
-    <string name="astc_recompression_bc1">БЦ1 (низак квалитет)</string>
-    <string name="astc_recompression_bc3">БЦ3 (средњи квалитет)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Конзервативан</string>
     <string name="vram_usage_aggressive">Агресиван</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (споро)</string>
-    <string name="resolution_three">3X (2160p/3240p) (споро)</string>
-    <string name="resolution_four">4X (2880p/4320p) (споро)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Непосредан (искључен)</string>
@@ -776,18 +740,8 @@
     <string name="renderer_vsync_fifo">ФИФО (ОН)</string>
     <string name="renderer_vsync_fifo_relaxed">ФИФО је опуштен</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Најближи комшија</string>
-    <string name="scaling_filter_bilinear">Билинеарни</string>
-    <string name="scaling_filter_bicubic">Бицубиц</string>
-    <string name="scaling_filter_gaussian">Гауссиан</string>
-    <string name="scaling_filter_scale_force">Скалефорце</string>
-    <string name="scaling_filter_fsr">АМД ФиделитиФКС ™ Супер резолуција</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Ниједан</string>
-    <string name="anti_aliasing_fxaa">ФКСАА</string>
-    <string name="anti_aliasing_smaa">СМАА</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Аутомат</string>
     <string name="screen_layout_sensor_landscape">Сензорски пејзаж</string>
@@ -797,16 +751,7 @@
     <string name="screen_layout_portrait">Портрет</string>
     <string name="screen_layout_reverse_portrait">Обрнути портрет</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Подразумевано (16: 9)</string>
-    <string name="ratio_force_four_three">Форце 4: 3</string>
-    <string name="ratio_force_twenty_one_nine">Натура 21: 9</string>
-    <string name="ratio_force_sixteen_ten">Сила 16:10</string>
     <string name="ratio_stretch">Протезање до прозора</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">Извођење изворног кода (НЦЕ)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Тачан</string>
@@ -831,10 +776,6 @@
     <string name="theme_mode_follow_system">Слиједите систем</string>
     <string name="theme_mode_light">Светло</string>
     <string name="theme_mode_dark">Мрак</string>
-
-    <!-- Audio output engines -->
-    <string name="oboe">обоја</string>
-    <string name="cubeb">Цубеб</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Црна позадина</string>

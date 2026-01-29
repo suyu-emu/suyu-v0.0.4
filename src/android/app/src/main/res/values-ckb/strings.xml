@@ -47,8 +47,6 @@
     <string name="soc_overlay_options">ئامێر</string>
     <string name="soc_overlay_options_description">ڕێکخستنی زانیارییەکانی نیشاندراو لە ئامێرەکە</string>
 
-    <string name="show_build_id">نیشاندانی IDی بینا</string>
-    <string name="show_driver_version">نیشاندانی وەشانی درایڤەر</string>
     <string name="show_device_model">نیشاندانی مۆدێلی ئامێر</string>
     <string name="show_gpu_model">نیشاندانی مۆدێلی GPU</string>
     <string name="show_soc_model">نیشاندانی مۆدێلی SoC</string>
@@ -65,12 +63,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">چالاککردنی میمیکردنی MMU میواندە</string>
     <string name="cpuopt_unsafe_host_mmu_description">ئەم باشکردنە خێرایی دەستکەوتنی بیرگە لەلایەن پرۆگرامی میوانەکە زیاد دەکات. چالاککردنی وای لێدەکات کە خوێندنەوە/نووسینەکانی بیرگەی میوانەکە ڕاستەوخۆ لە بیرگە ئەنجام بدرێت و میمیکردنی MMU میواندە بەکاربهێنێت. ناچالاککردنی ئەمە هەموو دەستکەوتنەکانی بیرگە ڕەت دەکاتەوە لە بەکارهێنانی میمیکردنی MMU نەرمەکاڵا.</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">ئیمولەیشنی NVDEC</string>
     <string name="nvdec_emulation_description">هەڵبژاردنی ڕێگای دیکۆدکردنی ڤیدیۆ</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">هیچ</string>
 
     <!-- Optimize SPIRV output -->
@@ -371,7 +366,6 @@
     <string name="skip_cpu_inner_invalidation_description">هەندێک لە بازنەکردنەکانی هەڵگر لە کاتی نوێکردنەوەی بیرگە دەنێرێت، کەمکردنەوەی بەکارهێنانی CPU و باشترکردنی کارایی. لەوانەیە لە هەندێک یاری کێشە درووست بکات.</string>
     <string name="renderer_asynchronous_shaders">بەکارهێنانی سێبەری ناهاوسەنگ</string>
     <string name="renderer_asynchronous_shaders_description">کۆمپایلکردنی شادەرەکان بەشێوەی ناڕێک. ئەمە ڕەنگە کەمکردنەوەی ستەتەر بکات بەڵام لەوانەیە هەڵەش دروست بکات.</string>
-
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
     <string name="disabled">ناچالاک</string>
     <string name="provoking_vertex">الرأس المثير</string>
@@ -408,10 +402,6 @@
     <string name="audio_volume">دەنگ</string>
     <string name="audio_volume_description">قەبارەی دەنگی دەرچوون دیاری دەکات.</string>
 
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Plus</string>
     <string name="button_minus">Minus</string>
     <string name="button_home">ماڵەوە</string>
@@ -427,11 +417,6 @@
     <string name="pressed">فشارخراوەتەسەر</string>
     <string name="range">مەودا</string>
     <string name="modifier">دەستکاریکەر</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">نادروست</string>
     <string name="pro_controller">کۆنتڕۆڵکەری پڕۆ</string>
     <string name="handheld">دەستی</string>
@@ -596,35 +581,15 @@
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">ڤوڵکان</string>
     <string name="renderer_none">هیچ</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">بنەڕەتی</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPUی ناڕێک</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">پێکهێنەنەوە</string>
-    <string name="astc_recompression_bc1">BC1 (کوالیتی نزم)</string>
-    <string name="astc_recompression_bc3">BC3 (کوالیتی مامناوەند)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">پارێزەر</string>
     <string name="vram_usage_aggressive">توند</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (خاو)</string>
-    <string name="resolution_three">3X (2160p/3240p) (خاو)</string>
-    <string name="resolution_four">4X (2880p/4320p) (خاو)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">دەستبەجێ (کوژاوە)</string>
@@ -632,25 +597,10 @@
     <string name="renderer_vsync_fifo">FIFO (پێکراو)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO ئارام</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">نزیکترین دراوسێ</string>
-    <string name="scaling_filter_bilinear">دوو هێڵی</string>
-    <string name="scaling_filter_bicubic">دووخشتەکی</string>
-    <string name="scaling_filter_gaussian">گاوسی</string>
-    <string name="scaling_filter_scale_force">پێوەرهێز</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ سوپەر ووردبینی</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">هیچ</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">خودکار</string>
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">بنەڕەت (16:9)</string>
-    <string name="ratio_force_four_three">ڕووبەری 4:3</string>
-    <string name="ratio_force_twenty_one_nine">ڕووبەری 21:9</string>
-    <string name="ratio_force_sixteen_ten">ڕووبەری 16:10</string>
     <string name="ratio_stretch">کشانی پڕ بەشاشە</string>
 
     <!-- CPU Accuracy -->

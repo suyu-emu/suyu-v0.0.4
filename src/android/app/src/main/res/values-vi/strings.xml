@@ -47,8 +47,6 @@
     <string name="soc_overlay_options">Lớp phủ thiết bị</string>
     <string name="soc_overlay_options_description">Cấu hình thông tin hiển thị trong lớp phủ thiết bị</string>
 
-    <string name="show_build_id">Hiển thị ID build</string>
-    <string name="show_driver_version">Hiển thị phiên bản driver</string>
     <string name="show_device_model">Hiển thị model thiết bị</string>
     <string name="show_gpu_model">Hiển thị model GPU</string>
     <string name="show_soc_model">Hiển thị model SoC</string>
@@ -65,12 +63,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">Bật giả lập MMU Máy chủ</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tối ưu hóa này tăng tốc độ truy cập bộ nhớ của chương trình khách. Bật nó lên khiến các thao tác đọc/ghi bộ nhớ khách được thực hiện trực tiếp vào bộ nhớ và sử dụng MMU của Máy chủ. Tắt tính năng này buộc tất cả quyền truy cập bộ nhớ phải sử dụng Giả lập MMU Phần mềm.</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Giả lập NVDEC</string>
     <string name="nvdec_emulation_description">Chọn cách xử lý giải mã video</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Tắt</string>
 
     <!-- Optimize SPIRV output -->
@@ -369,7 +364,6 @@
     <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
     <string name="renderer_asynchronous_shaders">Dùng các shader bất đồng bộ</string>
     <string name="renderer_asynchronous_shaders_description">Biên dịch shader không đồng bộ. Điều này có thể giảm giật lag nhưng cũng có thể gây ra lỗi đồ họa.</string>
-
     <string name="dyna_state">Trạng thái động mở rộng</string>
     <string name="disabled">Đã tắt</string>
     <string name="provoking_vertex">Đỉnh kích hoạt</string>
@@ -404,10 +398,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Nút</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Cộng</string>
     <string name="button_minus">Trừ</string>
     <string name="button_home">Home</string>
@@ -424,11 +414,6 @@
     <string name="range">Phạm vi</string>
     <string name="deadzone">Vùng chết</string>
     <string name="modifier">Ngưỡng điều chỉnh</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">Không hợp lệ</string>
     <string name="unknown">Không xác định</string>
     <string name="pro_controller">Tay cầm Pro Controller</string>
@@ -605,35 +590,15 @@
     <!-- Memory Sizes -->
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Trống</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Mặc định</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU bất đồng bộ</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Không nén</string>
-    <string name="astc_recompression_bc1">BC1 (Chất lượng thấp)</string>
-    <string name="astc_recompression_bc3">BC3 (Chất lượng trung bình)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Bảo thủ</string>
     <string name="vram_usage_aggressive">Mạnh</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Chậm)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Chậm)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Chậm)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Ngay lập tức (Tắt)</string>
@@ -641,25 +606,10 @@
     <string name="renderer_vsync_fifo">FIFO (On)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
-    <string name="scaling_filter_bilinear">Bilinear</string>
-    <string name="scaling_filter_bicubic">Bicubic</string>
-    <string name="scaling_filter_gaussian">ScaleForce</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Trống</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Tự động</string>
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Mặc định (16:9)</string>
-    <string name="ratio_force_four_three">Dùng 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Dùng 21:9</string>
-    <string name="ratio_force_sixteen_ten">Dung 16:10</string>
     <string name="ratio_stretch">Mở rộng đến cửa sổ</string>
 
     <!-- CPU Accuracy -->

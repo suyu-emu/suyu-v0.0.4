@@ -47,8 +47,6 @@
     <string name="soc_overlay_options">장치 오버레이</string>
     <string name="soc_overlay_options_description">장치 오버레이에 표시할 정보 구성</string>
 
-    <string name="show_build_id">빌드 ID 표시</string>
-    <string name="show_driver_version">드라이버 버전 표시</string>
     <string name="show_device_model">장치 모델 표시</string>
     <string name="show_gpu_model">GPU 모델 표시</string>
     <string name="show_soc_model">SoC 모델 표시</string>
@@ -65,12 +63,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">호스트 MMU 에뮬레이션 사용</string>
     <string name="cpuopt_unsafe_host_mmu_description">이 최적화는 게스트 프로그램의 메모리 접근 속도를 높입니다. 활성화하면 게스트의 메모리 읽기/쓰기가 메모리에서 직접 수행되고 호스트의 MMU를 활용합니다. 비활성화하면 모든 메모리 접근에 소프트웨어 MMU 에뮬레이션을 사용하게 됩니다.</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC 에뮬레이션</string>
     <string name="nvdec_emulation_description">비디오 디코딩 처리 방식 선택</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">없음</string>
 
     <!-- Optimize SPIRV output -->
@@ -388,7 +383,6 @@
     <string name="skip_cpu_inner_invalidation_description">메모리 업데이트 시 일부 CPU 측 캐시 무효화를 건너뛰어 CPU 사용량을 줄이고 성능을 향상시킵니다. 일부 게임에서 오류 또는 충돌을 일으킬 수 있습니다.</string>
     <string name="renderer_asynchronous_shaders">비동기 셰이더 사용</string>
     <string name="renderer_asynchronous_shaders_description">셰이더를 비동기적으로 컴파일합니다. 이로 인해 끊김 현상이 줄어들 수 있지만 그래픽 오류가 발생할 수도 있습니다.</string>
-
     <string name="dyna_state">확장 동적 상태</string>
     <string name="disabled">비활성화됨</string>
     <string name="provoking_vertex">프로보킹 버텍스</string>
@@ -425,10 +419,6 @@
     <string name="audio_volume">볼륨</string>
     <string name="audio_volume_description">오디오 출력의 볼륨을 지정합니다.</string>
 
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">+</string>
     <string name="button_minus">-</string>
     <string name="button_home">홈</string>
@@ -445,11 +435,6 @@
     <string name="range">범위</string>
     <string name="deadzone">데드존</string>
     <string name="modifier">수정자</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">유효하지않음</string>
     <string name="pro_controller">프로 컨트롤러</string>
     <string name="handheld">휴대 모드</string>
@@ -576,7 +561,6 @@
     <string name="confirm_uninstall">제거 확인</string>
     <string name="confirm_uninstall_description">이 애드온을 제거하시겠습니까?</string>
     <string name="verify_integrity">무결성 인증</string>
-    <string name="verifying">인증 중...</string>
     <string name="verify_success">무결성 인증에 성공했습니다.</string>
     <string name="verify_failure">무결성 인증에 실패했습니다.</string>
     <string name="verify_failure_description">파일 콘텐츠가 손상되었을 수 있습니다.</string>
@@ -690,35 +674,15 @@
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulcan</string>
     <string name="renderer_none">없음</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">기본값</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU 비동기</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">비압축</string>
-    <string name="astc_recompression_bc1">BC1 (저화질)</string>
-    <string name="astc_recompression_bc3">BC3 (중화질)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">보수적</string>
     <string name="vram_usage_aggressive">적극적</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (느림)</string>
-    <string name="resolution_three">3X (2160p/3240p) (느림)</string>
-    <string name="resolution_four">4X (2880p/4320p) (느림)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">즉각 표시 (끄기)</string>
@@ -726,18 +690,8 @@
     <string name="renderer_vsync_fifo">FIFO (켜기)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">최근접 보간</string>
-    <string name="scaling_filter_bilinear">쌍선형 보간</string>
-    <string name="scaling_filter_bicubic">쌍입방 보간</string>
-    <string name="scaling_filter_gaussian">가우시안</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ 초고해상도</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">없음</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">자동</string>
     <string name="screen_layout_sensor_landscape">가로 (방향 감지)</string>
@@ -747,16 +701,7 @@
     <string name="screen_layout_portrait">세로</string>
     <string name="screen_layout_reverse_portrait">세로 (역방향)</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">기본 (16:9)</string>
-    <string name="ratio_force_four_three">강제 4:3</string>
-    <string name="ratio_force_twenty_one_nine">강제 21:9</string>
-    <string name="ratio_force_sixteen_ten">강제 16:10</string>
     <string name="ratio_stretch">화면에 맞춤</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">네이티브 코드 실행 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">정확함</string>
@@ -781,10 +726,6 @@
     <string name="theme_mode_follow_system">시스템 값 사용</string>
     <string name="theme_mode_light">라이트 모드</string>
     <string name="theme_mode_dark">다크 모드</string>
-
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">검정 배경</string>

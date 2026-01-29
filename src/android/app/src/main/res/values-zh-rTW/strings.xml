@@ -13,10 +13,17 @@
     <string name="increment">增加</string>
     <string name="decrement">減少</string>
     <string name="value_too_low">範圍最小必須為%1$d</string>
-    <string name="value_too_high">範圍最多必須為%1$d</string>
+    <string name="value_too_high">範圍最大必須為%1$d</string>
     <string name="invalid_value">無效的範圍</string>
 
-
+    <!-- Input Overlay -->
+    <string name="show_input_overlay">顯示虛擬按鍵</string>
+    <string name="show_input_overlay_description">在遊玩時顯示虛擬按鍵</string>
+    <string name="overlay_snap_to_grid">對齊網格</string>
+    <string name="overlay_snap_to_grid_description">編輯時將虛擬按鍵與網格對齊</string>
+    <string name="overlay_grid_size">網格大小</string>
+    <string name="overlay_grid_size_description">調整網格格線間距</string>
+    <string name="input_overlay_behavior">行為模式</string>
     <string name="overlay_auto_hide">自動隱藏虛擬按鍵</string>
     <string name="overlay_auto_hide_description">在未使用虛擬按鍵幾秒後自動隱藏</string>
     <string name="enable_input_overlay_auto_hide">啟用自動隱藏虛擬按鍵</string>
@@ -25,6 +32,10 @@
 
     <string name="input_overlay_options">虛擬按鍵設定</string>
     <string name="input_overlay_options_description">虛擬按鍵設定</string>
+    <string name="edit_overlay_layout">編輯虛擬按鍵</string>
+    <string name="edit_overlay_layout_description">調整虛擬按鍵的位置和大小</string>
+
+
     <!-- Stats Overlay settings -->
     <string name="process_ram">記憶體使用量 %1$d MB</string>
     <string name="shaders_prefix">正在編譯</string>
@@ -68,8 +79,6 @@
     <string name="soc_overlay_options">裝置浮層</string>
     <string name="soc_overlay_options_description">設定裝置浮層中顯示的資訊</string>
 
-    <string name="show_build_id">顯示建構ID</string>
-    <string name="show_driver_version">顯示驅動程式版本</string>
     <string name="show_device_model">顯示裝置型號</string>
     <string name="show_gpu_model">顯示GPU型號</string>
     <string name="show_soc_model">顯示SoC型號</string>
@@ -93,8 +102,6 @@
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC模擬</string>
     <string name="nvdec_emulation_description">選擇影片解碼（NVDEC）的方式</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">無</string>
 
     <!-- Optimize SPIRV output -->
@@ -195,7 +202,7 @@
     <string name="keys_description">使用下方的按鈕安裝您的 <b>prod.keys</b> 檔案。</string>
     <string name="firmware">韌體</string>
     <string name="firmware_description">使用下方的按鈕安裝您的<b>firmware.zip</b>檔案</string>
-    <string name="games">遊戲</string>
+    <string name="games">遊戲資料夾</string>
     <string name="games_description">使用下方的按鈕選擇您的<b>遊戲</b>資料夾。</string>
     <string name="done">完成</string>
     <string name="done_description">您已準備就緒。\n盡情遊玩您的遊戲！</string>
@@ -240,7 +247,7 @@
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">跳過安裝韌體？</string>
     <string name="emulator_data">設定模擬器資料</string>
-    <string name="emulator_data_description">模擬器需要金鑰才能正常執行\n建議安裝韌體以啟動QLaunch小程式</string>
+    <string name="emulator_data_description">模擬器需要金鑰才能正常執行，同時建議安裝韌體以啟動QLaunch小程式</string>
     <string name="permissions">授予權限</string>
     <string name="permissions_description">授予權限以使用模擬器的特定功能</string>
     <string name="install_firmware_warning_description">許多遊戲需要韌體才能正常運作。</string>
@@ -318,7 +325,7 @@
     <string name="install_game_content_success_install">%1$d 安裝成功</string>
     <string name="install_game_content_success_overwrite">%1$d 覆寫成功</string>
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
-    <string name="custom_driver_not_supported">您的裝置不支援此自訂驅動程式</string>
+    <string name="custom_driver_not_supported">您的裝置不支援自訂驅動程式</string>
     <string name="custom_driver_not_supported_description">此裝置不支援注入自訂驅動程式。\n請以後再來查看是否已新增支援！</string>
     <string name="manage_yuzu_data">管理 Eden 資料</string>
     <string name="manage_yuzu_data_description">安裝韌體、金鑰，導入/導出使用者資料及安裝其他項目！</string>
@@ -379,7 +386,6 @@
     <string name="about_app_description">一個開放原始碼的 Switch 模擬器</string>
     <string name="contributors">參與者</string>
     <string name="contributors_description">由 Eden 團隊用 \u2764 製作</string>
-    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">這些專案使 Eden Android 版成為可能</string>
     <string name="build">組建</string>
     <string name="user_data">使用者資料</string>
@@ -462,7 +468,6 @@
     <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取的失效處理，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
     <string name="renderer_asynchronous_shaders">使用非同步著色器</string>
     <string name="renderer_asynchronous_shaders_description">非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
-
     <string name="dyna_state">擴展動態狀態</string>
     <string name="disabled">已停用</string>
     <string name="vertex_input_dynamic_state">頂點輸入動態狀態</string>
@@ -505,10 +510,6 @@
 
     <!-- Input strings -->
     <string name="buttons">按键</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">＋</string>
     <string name="button_minus">－</string>
     <string name="button_home">HOME</string>
@@ -529,15 +530,10 @@
     <string name="modifier">用按鈕、按鍵來模擬搖桿</string>
     <string name="modifier_range">修改按鈕模擬左/右搖桿的值，視遊戲不同而有所差異\n（模擬左搖桿時，若將此數值設為50，則按下按鈕時遊戲裡的人物可能只會走動而不是奔跑；模擬右搖桿時所使用的值則是會影響到轉視角的速度，數值越高代表使用的模擬值越大）</string>
     <string name="triggers">肩部按鍵</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">左 SL</string>
     <string name="button_sr_left">左 SR</string>
     <string name="button_sl_right">右 SL</string>
     <string name="button_sr_right">右 SR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">無效</string>
     <string name="not_set">未設定</string>
     <string name="unknown">未知</string>
@@ -720,7 +716,6 @@
     <string name="confirm_uninstall">確認刪除</string>
     <string name="confirm_uninstall_description">您確定要刪除此附加元件嗎？</string>
     <string name="verify_integrity">完整性驗證</string>
-    <string name="verifying">驗證中...</string>
     <string name="verify_success">完整性驗證成功！</string>
     <string name="verify_failure">完整性驗證失敗！</string>
     <string name="verify_failure_description">文件可能已經損壞</string>
@@ -858,8 +853,6 @@
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">無</string>
 
     <string name="renderer_accuracy_medium">平衡</string>
@@ -870,30 +863,11 @@
     <string name="dma_accuracy_unsafe">不安全</string>
     <string name="dma_accuracy_safe">安全</string>
 
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU非同步</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">未壓縮</string>
-    <string name="astc_recompression_bc1">BC1（低品質）</string>
-    <string name="astc_recompression_bc3">BC3（中品質）</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">保守</string>
     <string name="vram_usage_aggressive">積極</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (慢)</string>
-    <string name="resolution_three">3X (2160p/3240p) (慢)</string>
-    <string name="resolution_four">4X (2880p/4320p) (慢)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">即時 (關閉)</string>
@@ -901,26 +875,8 @@
     <string name="renderer_vsync_fifo">FIFO (開啟)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO 寬鬆</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">最鄰近</string>
-    <string name="scaling_filter_bilinear">雙線性</string>
-    <string name="scaling_filter_bicubic">雙立方</string>
-    <string name="scaling_filter_spline1">樣條-1</string>
-    <string name="scaling_filter_gaussian">高斯</string>
-    <string name="scaling_filter_lanczos">蘭佐斯</string>
-    <string name="scaling_filter_scale_force">強制縮放</string>
-    <string name="scaling_filter_fsr">AMD Radeon™ 超級解析度</string>
-    <string name="scaling_filter_area">Area</string>
-    <string name="scaling_filter_zero_tangent">Zero-Tangent</string>
-    <string name="scaling_filter_bspline">B樣條</string>
-    <string name="scaling_filter_mitchell">Mitchell</string>
-    <string name="scaling_filter_mmpx">MMPX</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">無</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">自動</string>
     <string name="screen_layout_sensor_landscape">感應器橫向螢幕</string>
@@ -930,16 +886,7 @@
     <string name="screen_layout_portrait">直向</string>
     <string name="screen_layout_reverse_portrait">反轉直向螢幕</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">預設 (16:9)</string>
-    <string name="ratio_force_four_three">強制 4:3</string>
-    <string name="ratio_force_twenty_one_nine">強制 21:9</string>
-    <string name="ratio_force_sixteen_ten">強制 16:10</string>
     <string name="ratio_stretch">延展視窗</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">機器碼執行 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">高準確度</string>
@@ -970,17 +917,6 @@
     <string name="theme_mode_light">淺色</string>
     <string name="theme_mode_dark">深色</string>
 
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
-
-    <!-- Anisotropic filtering options -->
-    <string name="multiplier_x2">x2</string>
-    <string name="multiplier_x4">x4</string>
-    <string name="multiplier_x8">x8</string>
-    <string name="multiplier_x16">x16</string>
-    <string name="multiplier_x32">x32</string>
-    <string name="multiplier_x64">x64</string>
     <string name="multiplier_none">無</string>
 
     <!-- Black backgrounds theme -->
@@ -991,31 +927,6 @@
     <string name="app_language">語言</string>
     <string name="app_language_description">選擇Eden顯示的語言</string>
     <string name="app_language_system">跟隨系統</string>
-    <string name="app_language_english">英文</string>
-    <string name="app_language_spanish">西班牙文</string>
-    <string name="app_language_french">法文</string>
-    <string name="app_language_german">德文</string>
-    <string name="app_language_italian">義大利文</string>
-    <string name="app_language_portuguese">葡萄牙文</string>
-    <string name="app_language_brazilian_portuguese">葡萄牙文（巴西）</string>
-    <string name="app_language_russian">俄文</string>
-    <string name="app_language_japanese">日文</string>
-    <string name="app_language_korean">韓文</string>
-    <string name="app_language_simplified_chinese">簡體中文</string>
-    <string name="app_language_traditional_chinese">正體中文</string>
-    <string name="app_language_polish">波蘭文</string>
-    <string name="app_language_czech">捷克文</string>
-    <string name="app_language_norwegian">挪威文</string>
-    <string name="app_language_hungarian">匈牙利文</string>
-    <string name="app_language_ukrainian">烏克蘭文</string>
-    <string name="app_language_vietnamese">越南文</string>
-    <string name="app_language_indonesian">印尼文</string>
-    <string name="app_language_arabic">阿拉伯文</string>
-    <string name="app_language_central_kurdish">庫德文</string>
-    <string name="app_language_persian">波斯文</string>
-    <string name="app_language_hebrew">希伯來文</string>
-    <string name="app_language_serbian">塞爾維亞文</string>
-
     <!-- Static Themes -->
     <string name="static_theme_color">主題色彩</string>
     <string name="eden_theme">Eden（預設）</string>

@@ -16,7 +16,6 @@
     <string name="value_too_high">La valeur ne doit pas dépasser %1$d</string>
     <string name="invalid_value">Valeur invalide</string>
 
-
     <string name="overlay_auto_hide">Masquage automatique de l\'overlay</string>
     <string name="overlay_auto_hide_description">Masquer automatiquement l\'overlay des contrôles tactiles après le temps d\'inactivité spécifié.</string>
     <string name="enable_input_overlay_auto_hide">Activer le masquage automatique de l\'overlay</string>
@@ -65,8 +64,6 @@
     <string name="soc_overlay_options">Overlay de l\'appareil</string>
     <string name="soc_overlay_options_description">Configurer les informations affichées dans l\'overlay de l\'appareil</string>
 
-    <string name="show_build_id">Afficher l\'ID de build</string>
-    <string name="show_driver_version">Afficher la version du pilote</string>
     <string name="show_device_model">Afficher le modèle de l\'appareil</string>
     <string name="show_gpu_model">Afficher le modèle du GPU</string>
     <string name="show_soc_model">Afficher le modèle du SoC</string>
@@ -90,8 +87,6 @@
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Émulation NVDEC</string>
     <string name="nvdec_emulation_description">Sélectionnez la manière dont le décodage vidéo (NVDEC) est géré pendant les cinématiques et les intros.</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Aucun</string>
 
     <!-- Optimize SPIRV output -->
@@ -360,7 +355,6 @@
     <string name="about_app_description">Un émulateur Switch open source</string>
     <string name="contributors">Contributeurs</string>
     <string name="contributors_description">Fait avec \u2764 de l\'équipe Eden</string>
-    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Des projets qui rendent possible Eden pour Android</string>
     <string name="build">Build</string>
     <string name="user_data">Données utilisateur</string>
@@ -443,7 +437,6 @@
     <string name="skip_cpu_inner_invalidation_description">Ignore certaines invalidations de cache côté CPU lors des mises à jour mémoire, réduisant l\'utilisation du CPU et améliorant ses performances. Peut causer des bugs ou plantages sur certains jeux.</string>
     <string name="renderer_asynchronous_shaders">Utiliser les shaders asynchrones</string>
     <string name="renderer_asynchronous_shaders_description">Compile les shaders de manière asynchrone. Cela peut réduire les saccades mais peut aussi provoquer des problèmes graphiques.</string>
-
     <string name="dyna_state">État dynamique étendu</string>
     <string name="disabled">Désactivé</string>
     <string name="vertex_input_dynamic_state">État dynamique d\'entrée de sommet</string>
@@ -484,10 +477,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Boutons</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Plus</string>
     <string name="button_minus">Moins</string>
     <string name="button_home">Home</string>
@@ -508,15 +497,10 @@
     <string name="modifier">Modificateur</string>
     <string name="modifier_range">Modifier la plage</string>
     <string name="triggers">Gachettes</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">SL gauche</string>
     <string name="button_sr_left">SR gauche</string>
     <string name="button_sl_right">SL droit</string>
     <string name="button_sr_right">SR droit</string>
-    <string name="button_z">Z</string>
     <string name="invalid">Invalide</string>
     <string name="not_set">Non défini</string>
     <string name="unknown">Inconnu</string>
@@ -692,7 +676,6 @@
     <string name="confirm_uninstall">Confirmer la désinstallation</string>
     <string name="confirm_uninstall_description">Êtes-vous sûr de vouloir désinstaller cette extension ?</string>
     <string name="verify_integrity">Vérifier l\'intégrité</string>
-    <string name="verifying">Vérification...</string>
     <string name="verify_success">La vérification de l\'intégrité a réussi !</string>
     <string name="verify_failure">La vérification de l\'intégrité a échoué !</string>
     <string name="verify_failure_description">Le contenu d\'un fichier peut être corrompu</string>
@@ -830,8 +813,6 @@
     <string name="memory_petabyte">Po</string>
     <string name="memory_exabyte">Eo</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Aucune</string>
 
     <!-- DMA Accuracy -->
@@ -839,30 +820,11 @@
     <string name="dma_accuracy_unsafe">Dangereux</string>
     <string name="dma_accuracy_safe">Sûr</string>
 
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU async</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Non compressé</string>
-    <string name="astc_recompression_bc1">BC1 (basse qualité)</string>
-    <string name="astc_recompression_bc3">BC3 (qualité moyenne)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Conservateur</string>
     <string name="vram_usage_aggressive">Agressif</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_five_quarter">1,25X (900p/1350p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Lent)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Lent)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Lent)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immédiat (Désactivé)</string>
@@ -870,26 +832,8 @@
     <string name="renderer_vsync_fifo">FIFO (Activé)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO souple</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Plus proche voisin</string>
-    <string name="scaling_filter_bilinear">Bilinéaire</string>
-    <string name="scaling_filter_bicubic">Bicubique</string>
-    <string name="scaling_filter_spline1">Spline-1</string>
-    <string name="scaling_filter_gaussian">Gaussien</string>
-    <string name="scaling_filter_lanczos">Lanczos</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
-    <string name="scaling_filter_area">Zone</string>
-    <string name="scaling_filter_zero_tangent">Zero-Tangent</string>
-    <string name="scaling_filter_bspline">B-Spline</string>
-    <string name="scaling_filter_mitchell">Mitchell</string>
-    <string name="scaling_filter_mmpx">MMPX</string>
-
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Aucune</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Auto</string>
     <string name="screen_layout_sensor_landscape">Paysage</string>
@@ -899,16 +843,7 @@
     <string name="screen_layout_portrait">Portrait</string>
     <string name="screen_layout_reverse_portrait">Portrait inversé</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Par défaut (16:9)</string>
-    <string name="ratio_force_four_three">Forcer le 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Forcer le 21:9</string>
-    <string name="ratio_force_sixteen_ten">Forcer le 16:10</string>
     <string name="ratio_stretch">Étirer à la fenêtre</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">Exécution de code natif (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Précis</string>
@@ -939,10 +874,6 @@
     <string name="theme_mode_light">Lumineux</string>
     <string name="theme_mode_dark">Sombre</string>
 
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
-
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Arrière-plan noir</string>
     <string name="use_black_backgrounds_description">Lorsque vous utilisez le thème sombre, appliquer un arrière-plan noir.</string>
@@ -951,31 +882,6 @@
     <string name="app_language">Language de l\'application</string>
     <string name="app_language_description">Changer la langue de l\'interface</string>
     <string name="app_language_system">Suivre le système</string>
-    <string name="app_language_english">Anglais</string>
-    <string name="app_language_spanish">Espagnol</string>
-    <string name="app_language_french">Français</string>
-    <string name="app_language_german">Allemand</string>
-    <string name="app_language_italian">Italien</string>
-    <string name="app_language_portuguese">Portugais</string>
-    <string name="app_language_brazilian_portuguese">Portugais Brésilien</string>
-    <string name="app_language_russian">Russe</string>
-    <string name="app_language_japanese">Japonnais</string>
-    <string name="app_language_korean">Coréen</string>
-    <string name="app_language_simplified_chinese">Chinois Simplifié</string>
-    <string name="app_language_traditional_chinese">Chinois Traditionnel</string>
-    <string name="app_language_polish">Polonais</string>
-    <string name="app_language_czech">Tchèque</string>
-    <string name="app_language_norwegian">Norvégien</string>
-    <string name="app_language_hungarian">Hongrois</string>
-    <string name="app_language_ukrainian">Ukrainien</string>
-    <string name="app_language_vietnamese">Vietnamien</string>
-    <string name="app_language_indonesian">Indonésien</string>
-    <string name="app_language_arabic">Arabe</string>
-    <string name="app_language_central_kurdish">Kurde central</string>
-    <string name="app_language_persian">Perse</string>
-    <string name="app_language_hebrew">Hébreu</string>
-    <string name="app_language_serbian">Serbe</string>
-
     <!-- Static Themes -->
     <string name="static_theme_color">Couleur du thème</string>
     <string name="eden_theme">Eden (Par défaut)</string>

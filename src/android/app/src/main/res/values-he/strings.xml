@@ -4,6 +4,10 @@
     <string name="notice_notification_channel_name">התראות ותקלות</string>
     <string name="notice_notification_channel_description">מציג התראות כאשר משהו הולך לא כשורה.</string>
     <string name="notification_permission_not_granted">הרשאות התראות לא ניתנה!</string>
+    <string name="seconds">שניות</string>
+
+    <string name="invalid_value">ערך לא חוקי</string>
+
     <!-- Stats Overlay settings -->
     <string name="process_ram">זיכרון תהליך: %1$d MB</string>
     <string name="shaders_prefix">בונה</string>
@@ -47,8 +51,6 @@
     <string name="soc_overlay_options">הצגת מידע על המכשיר</string>
     <string name="soc_overlay_options_description">הגדר אילו פרטים יוצגו בהצגת המידע על המכשיר</string>
 
-    <string name="show_build_id">הצג מזהה Build</string>
-    <string name="show_driver_version">הצג גרסת דרייבר</string>
     <string name="show_device_model">הצג דגם מכשיר</string>
     <string name="show_gpu_model">הצג דגם GPU</string>
     <string name="show_soc_model">הצג דגם SoC</string>
@@ -65,12 +67,10 @@
 
     <string name="cpuopt_unsafe_host_mmu">הפעל אמולציית MMU מארח</string>
     <string name="cpuopt_unsafe_host_mmu_description">אופטימיזציה זו מאיצה את גישת הזיכרון על ידי התוכנית האורחת. הפעלתה גורמת לכך שפעולות קריאה/כתיבה לזיכרון האורח מתבצעות ישירות לזיכרון ומשתמשות ב-MMU של המארח. השבתת זאת מאלצת את כל גישות הזיכרון להשתמש באמולציית MMU תוכנתית.</string>
-
+    <string name="debug_knobs_description">לשימוש בפיתוח בלבד.</string>
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">אמולציית NVDEC</string>
     <string name="nvdec_emulation_description">בחר כיצד לטפל בפענוח וידאו</string>
-    <string name="nvdec_emulation_cpu">מעבד</string>
-    <string name="nvdec_emulation_gpu">כרטיס מסך</string>
     <string name="nvdec_emulation_none">ללא</string>
 
     <!-- Optimize SPIRV output -->
@@ -185,6 +185,7 @@
     <string name="view_carousel">קרוסלה</string>
     <string name="folder">תיקייה</string>
     <string name="dont_show_again">אל תציג שוב</string>
+    <string name="add_directory_success">תיקיית משחקים חדשה נוספה בהצלחה</string>
     <string name="home_search">חפש</string>
     <string name="home_settings">הגדרות</string>
     <string name="empty_gamelist">לא נמצאו קבצים או לנבחרה ספריית קבצים בינתיים.</string>
@@ -227,7 +228,7 @@
     <string name="manage_save_data">נהל  מידע שמור</string>
     <string name="manage_save_data_description">מידע שמור לא נמצא. בבקשה בחר/י אופציה מלמטה</string>
     <string name="import_save_warning">ייבוא נתוני שמירה</string>
-    <string name="import_save_warning_description">פעולה זו תמחק את כל הנתונים הקיימים ותחליף אותם בקובץ שסופק.האם אתה בטוח שברצונך להמשיך?</string>
+    <string name="import_save_warning_description">פעולה זו תמחק את כל הנתונים הקיימים ותחליף אותם בקובץ שסופק. האם אתה בטוח שברצונך להמשיך\?</string>
     <string name="save_files_importing">מייבא  קבצי שמירה...</string>
     <string name="save_files_exporting">מייצא קבצי שמירה...</string>
     <string name="save_file_imported_success">יובא בהצלחה</string>
@@ -238,6 +239,7 @@
     <string name="firmware_installing">מתקין frimware</string>
     <string name="firmware_installed_failure">התקנת ה frimware  נכשלה</string>
     <string name="firmware_installed_failure_description">ודא שקבצי ה firmware nca נמצאים בשורש ה zip ונסה שוב.</string>
+    <string name="firmware_uninstalled_failure">הסרת ה firmware נכשלה</string>
     <string name="share_log">שתף  את יומני הרישום של מיפוי הבאגים</string>
     <string name="share_log_description">שתף את קובץ יומני הרישום של Eden בכדי לתקן בעיות</string>
     <string name="share_log_missing">לא נמצא קובץ יומן רישום</string>
@@ -395,7 +397,6 @@
     <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
     <string name="renderer_asynchronous_shaders">השתמש בשיידרים אסינכרונים</string>
     <string name="renderer_asynchronous_shaders_description">מקמפל שיידרים באופן אסינכרוני. זה עשוי להפחית קפיצות אך גם עלול לגרום לתקלות גרפיות.</string>
-
     <string name="dyna_state">מצב דינמי מורחב</string>
     <string name="disabled">מושבת</string>
     <string name="provoking_vertex">קודקוד מעורר</string>
@@ -431,10 +432,6 @@
     <string name="audio_volume">עוצמת שמע</string>
     <string name="audio_volume_description">מציין את עוצמת האודיו שיוצא.</string>
 
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">פלוס</string>
     <string name="button_minus">מינוס</string>
     <string name="button_home">בית</string>
@@ -446,11 +443,6 @@
     <string name="right_stick">ג׳ויסטיק ימני</string>
     <string name="pressed">לחוץ</string>
     <string name="range">טווח</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
-    <string name="button_z">Z</string>
     <string name="invalid">לא חוקי</string>
     <string name="unknown">לא ידוע</string>
     <string name="handheld">מצב נייד</string>
@@ -635,35 +627,15 @@
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">אין שום דבר</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">ברירת מחדל</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">מעבד</string>
-    <string name="accelerate_astc_gpu">כרטיס מסך</string>
-    <string name="accelerate_astc_async">מעבד (א-סינכרוני)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">לא דחוס</string>
-    <string name="astc_recompression_bc1">BC1 (איכות נמוכה)</string>
-    <string name="astc_recompression_bc3">BC3 (איכות בינונית)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">שמרני</string>
     <string name="vram_usage_aggressive">אגרסיבי</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (איטי)</string>
-    <string name="resolution_three">3X (2160p/3240p) (איטי)</string>
-    <string name="resolution_four">4X (2880p/4320p) (איטי)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">מיידי (כבוי)</string>
@@ -671,32 +643,13 @@
     <string name="renderer_vsync_fifo">FIFO (On)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO נינוח</string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">השכן הקרוב ביותר</string>
-    <string name="scaling_filter_bilinear">ביליניארי</string>
-    <string name="scaling_filter_bicubic">Bicubic</string>
-    <string name="scaling_filter_gaussian">Gaussian</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">אין שום דבר</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">אוטומטי</string>
     <string name="screen_layout_landscape">לרוחב</string>
     <string name="screen_layout_portrait">לאורך</string>
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">ברירת מחדל (16:9)</string>
-    <string name="ratio_force_four_three">הכרח 4:3</string>
-    <string name="ratio_force_twenty_one_nine">הכרח 21:9</string>
-    <string name="ratio_force_sixteen_ten">הכרח 16:10</string>
     <string name="ratio_stretch">הרחב לגודל המסך</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">דינמי</string>
-    <string name="cpu_backend_nce">ביצוע קוד מקורי (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">מדויק</string>
@@ -721,8 +674,6 @@
     <string name="theme_mode_follow_system">עקוב אחרי המערכת</string>
     <string name="theme_mode_light">בהיר</string>
     <string name="theme_mode_dark">כהה</string>
-
-    <string name="cubeb">cubeb</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">רקעים שחורים</string>

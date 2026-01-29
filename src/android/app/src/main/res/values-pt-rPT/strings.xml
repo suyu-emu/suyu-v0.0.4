@@ -47,8 +47,6 @@
     <string name="soc_overlay_options">Sobreposição do dispositivo</string>
     <string name="soc_overlay_options_description">Configurar quais informações são mostradas na sobreposição do dispositivo</string>
 
-    <string name="show_build_id">Mostrar ID da Build</string>
-    <string name="show_driver_version">Mostrar Versão do Driver</string>
     <string name="show_device_model">Mostrar modelo do dispositivo</string>
     <string name="show_gpu_model">Mostrar modelo da GPU</string>
     <string name="show_soc_model">Mostrar modelo do SoC</string>
@@ -65,12 +63,9 @@
 
     <string name="cpuopt_unsafe_host_mmu">Ativar Emulação de MMU do Anfitrião</string>
     <string name="cpuopt_unsafe_host_mmu_description">Esta otimização acelera os acessos à memória pelo programa convidado. Ativar faz com que as leituras/escritas de memória do convidado sejam efetuadas diretamente na memória e utilizem a MMU do Anfitrião. Desativar força todos os acessos à memória a usar a Emulação de MMU por Software.</string>
-
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulação NVDEC</string>
     <string name="nvdec_emulation_description">Método de decodificação de vídeo.</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Nenhum</string>
 
     <!-- Optimize SPIRV output -->
@@ -394,7 +389,6 @@
     <string name="skip_cpu_inner_invalidation_description">Ignora algumas invalidações de cache do lado da CPU durante atualizações de memória, reduzindo a utilização da CPU e melhorando o desempenho. Pode causar falhas ou crashes em alguns jogos.</string>
     <string name="renderer_asynchronous_shaders">Usa shaders assíncronos </string>
     <string name="renderer_asynchronous_shaders_description">Compila shaders de forma assíncrona. Isto pode reduzir engasgadelas, mas também pode introduzir falhas gráficas.</string>
-
     <string name="dyna_state">Estado Dinâmico Estendido</string>
     <string name="disabled">Desativado</string>
     <string name="provoking_vertex">Vértice provocante</string>
@@ -433,10 +427,6 @@
 
     <!-- Input strings -->
     <string name="buttons">Botões</string>
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
     <string name="button_plus">Mais</string>
     <string name="button_minus">Menos</string>
     <string name="button_home">Home</string>
@@ -457,15 +447,10 @@
     <string name="modifier">Modificador</string>
     <string name="modifier_range">Alcance do modificador</string>
     <string name="triggers">Gatilhos</string>
-    <string name="button_l">L</string>
-    <string name="button_r">R</string>
-    <string name="button_zl">ZL</string>
-    <string name="button_zr">ZR</string>
     <string name="button_sl_left">SL Esquerdo</string>
     <string name="button_sr_left">SR Esquerdo</string>
     <string name="button_sl_right">SL Direito</string>
     <string name="button_sr_right">SR Direito</string>
-    <string name="button_z">Z</string>
     <string name="invalid">Inválido</string>
     <string name="not_set">Indefinido</string>
     <string name="unknown">Desconhecido</string>
@@ -629,7 +614,6 @@ uma tentativa de mapeamento automático</string>
     <string name="confirm_uninstall">Confirmar desinstalação</string>
     <string name="confirm_uninstall_description">Tem certeza de que quer desinstalar esse adicional?</string>
     <string name="verify_integrity">Verificar integridade</string>
-    <string name="verifying">Verificando...</string>
     <string name="verify_success">Verificação de integridade concluída!</string>
     <string name="verify_failure">Houve uma falha na verificação de integridade!</string>
     <string name="verify_failure_description">Conteúdos do arquivo podem estar corrompidos</string>
@@ -743,35 +727,15 @@ uma tentativa de mapeamento automático</string>
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
 
-    <!-- Renderer APIs -->
-    <string name="renderer_vulkan">Vulcano</string>
     <string name="renderer_none">Nenhum</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Predefinido</string>
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU Assíncrono</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Não Comprimido</string>
-    <string name="astc_recompression_bc1">BC1 (Baixa Qualidade)</string>
-    <string name="astc_recompression_bc3">BC3 (Média Qualidade)</string>
-
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Conservador</string>
     <string name="vram_usage_aggressive">Agressivo</string>
-
-    <!-- Resolutions -->
-    <string name="resolution_quarter">0.25X (180p/270p)</string>
-    <string name="resolution_half">0.5X (360p/540p)</string>
-    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
-    <string name="resolution_one">1X (720p/1080p)</string>
-    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
-    <string name="resolution_two">2X (1440p/2160p) (Lento)</string>
-    <string name="resolution_three">3X (2160p/3240p) (Lento)</string>
-    <string name="resolution_four">4X (2880p/4320p) (Lento)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Imediato (Desligado)</string>
@@ -779,18 +743,8 @@ uma tentativa de mapeamento automático</string>
     <string name="renderer_vsync_fifo">FIFO (Ligado)</string>
     <string name="renderer_vsync_fifo_relaxed">FIFO Relaxado </string>
 
-    <!-- Scaling Filters -->
-    <string name="scaling_filter_nearest_neighbor">Vizinho mais próximo</string>
-    <string name="scaling_filter_bilinear">Bilinear</string>
-    <string name="scaling_filter_bicubic">Bicúbico</string>
-    <string name="scaling_filter_gaussian">Gaussiano</string>
-    <string name="scaling_filter_scale_force">ScaleForce</string>
-    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">Nenhum</string>
-    <string name="anti_aliasing_fxaa">FXAA</string>
-    <string name="anti_aliasing_smaa">SMAA</string>
-
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Automático</string>
     <string name="screen_layout_sensor_landscape">Paisagem pelo sensor</string>
@@ -800,16 +754,7 @@ uma tentativa de mapeamento automático</string>
     <string name="screen_layout_portrait">Portrait</string>
     <string name="screen_layout_reverse_portrait">Retrato invertido</string>
 
-    <!-- Aspect Ratios -->
-    <string name="ratio_default">Padrão (16:9)</string>
-    <string name="ratio_force_four_three">Forçar 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Forçar 21:9</string>
-    <string name="ratio_force_sixteen_ten">Forçar 16:10</string>
     <string name="ratio_stretch">Esticar à janela</string>
-
-    <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
-    <string name="cpu_backend_nce">Native code execution (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Preciso</string>
@@ -834,10 +779,6 @@ uma tentativa de mapeamento automático</string>
     <string name="theme_mode_follow_system">Igual ao Sistema</string>
     <string name="theme_mode_light">Claro</string>
     <string name="theme_mode_dark">Escuro</string>
-
-    <!-- Audio output engines -->
-    <string name="oboe">oboe</string>
-    <string name="cubeb">cubeb</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Plano de fundo preto</string>
