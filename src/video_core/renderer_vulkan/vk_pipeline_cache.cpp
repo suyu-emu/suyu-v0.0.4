@@ -39,6 +39,7 @@
 #include "video_core/shader_cache.h"
 #include "video_core/shader_environment.h"
 #include "video_core/shader_notify.h"
+#include "video_core/surface.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -238,6 +239,22 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
         info.alpha_test_func = MaxwellToCompareFunction(
             key.state.UnpackComparisonOp(key.state.alpha_test_func.Value()));
         info.alpha_test_reference = std::bit_cast<float>(key.state.alpha_test_ref);
+
+        if (device.IsMoltenVK()) {
+            for (size_t i = 0; i < 8; ++i) {
+                const auto format = static_cast<Tegra::RenderTargetFormat>(key.state.color_formats[i]);
+                const auto pixel_format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(format);
+                if (VideoCore::Surface::IsPixelFormatInteger(pixel_format)) {
+                    if (VideoCore::Surface::IsPixelFormatSignedInteger(pixel_format)) {
+                        info.color_output_types[i] = Shader::AttributeType::SignedInt;
+                    } else {
+                        info.color_output_types[i] = Shader::AttributeType::UnsignedInt;
+                    }
+                } else {
+                    info.color_output_types[i] = Shader::AttributeType::Float;
+                }
+            }
+        }
         break;
     default:
         break;

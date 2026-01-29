@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -104,6 +107,9 @@ struct RuntimeInfo {
     /// Transform feedback state for each varying
     std::array<TransformFeedbackVarying, 256> xfb_varyings{};
     u32 xfb_count{0};
+
+    /// Output types for each color attachment
+    std::array<AttributeType, 8> color_output_types{};
 };
 
 } // namespace Shader

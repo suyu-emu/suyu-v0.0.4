@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -492,8 +492,22 @@ void EmitSetPatch(EmitContext& ctx, IR::Patch patch, Id value) {
 
 void EmitSetFragColor(EmitContext& ctx, u32 index, u32 component, Id value) {
     const Id component_id{ctx.Const(component)};
-    const Id pointer{ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};
-    ctx.OpStore(pointer, value);
+    const AttributeType type{ctx.runtime_info.color_output_types[index]};
+    if (type == AttributeType::Float) {
+        const Id pointer{ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};
+        ctx.OpStore(pointer, value);
+    } else if (type == AttributeType::UnsignedInt) {
+        const Id pointer{ctx.OpAccessChain(ctx.output_u32, ctx.frag_color.at(index), component_id)};
+        ctx.OpStore(pointer, ctx.OpBitcast(ctx.U32[1], value));
+    } else if (type == AttributeType::SignedInt) {
+        const Id output_s32{ctx.TypePointer(spv::StorageClass::Output, ctx.S32[1])};
+        const Id pointer{ctx.OpAccessChain(output_s32, ctx.frag_color.at(index), component_id)};
+        ctx.OpStore(pointer, ctx.OpBitcast(ctx.S32[1], value));
+    } else {
+        // Disabled or unknown, treat as float
+        const Id pointer{ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};
+        ctx.OpStore(pointer, value);
+    }
 }
 
 void EmitSetSampleMask(EmitContext& ctx, Id value) {

@@ -1677,7 +1677,8 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
             if (!info.stores_frag_color[index] && !profile.need_declared_frag_colors) {
                 continue;
             }
-            frag_color[index] = DefineOutput(*this, F32[4], std::nullopt);
+            const Id type{GetAttributeType(*this, runtime_info.color_output_types[index])};
+            frag_color[index] = DefineOutput(*this, type, std::nullopt);
             Decorate(frag_color[index], spv::Decoration::Location, index);
             Name(frag_color[index], fmt::format("frag_color{}", index));
         }
