@@ -69,13 +69,17 @@
     },
     "opus": {
         "package": "Opus",
-        "repo": "crueter/opus",
-        "sha": "ab19c44fad",
-        "hash": "d632e8f83c5d3245db404bcb637113f9860bf16331498ba2c8e77979d1febee6b52d8b1da448e7d54eeac373e912cd55e3e300fc6c242244923323280dc43fbe",
+        "repo": "xiph/opus",
+        "sha": "a3f0ec02b3",
+        "hash": "9506147b0de35befda8633ff272981cc2575c860874791bd455b752f797fd7dbd1079f0ba42ccdd7bb1fe6773fa5e84b3d75667c2883dd1fb2d0e4a5fa4f8387",
         "version": "1.3",
         "find_args": "MODULE",
         "options": [
             "OPUS_PRESUME_NEON ON"
+        ],
+        "patches": [
+            "0001-disable-clang-runtime-neon.patch",
+            "0002-no-install.patch"
         ]
     },
     "boost_headers": {

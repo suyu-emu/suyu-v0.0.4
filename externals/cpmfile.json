@@ -37,12 +37,15 @@
     },
     "cpp-jwt": {
         "version": "1.4",
-        "repo": "crueter/cpp-jwt",
-        "sha": "9eaea6328f",
-        "hash": "35b0b2bfb143585c7b2bd6dc6ca7df5ae5c6e2681000b2ebca077b0ac4bc1e6b6afbe1ce8e47f6d2edad12fcc6404f677acc2ad205661d819b8821ce6f4823fd",
+        "repo": "arun11299/cpp-jwt",
+        "sha": "7f24eb4c32",
+        "hash": "d11cbd5ddb3197b4c5ca15679bcd76a49963e7b530b7dd132db91e042925efa20dfb2c24ccfbe7ef82a7012af80deff0f72ee25851312ae80381a462df8534b8",
         "find_args": "CONFIG",
         "options": [
             "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
+        ],
+        "patches": [
+            "0001-fix-missing-decl.patch"
         ]
     },
     "xbyak_sun": {
@@ -126,7 +129,7 @@
     },
     "spirv-tools": {
         "package": "SPIRV-Tools",
-        "repo": "crueter/SPIRV-Tools",
+        "repo": "KhronosGroup/SPIRV-Tools",
         "sha": "0a7e28689a",
         "hash": "eadfcceb82f4b414528d99962335e4f806101168474028f3cf7691ac40c37f323decf2a42c525e2d5bfa6f14ff132d6c5cf9b87c151490efad01f5e13ade1520",
         "git_version": "2025.4",
