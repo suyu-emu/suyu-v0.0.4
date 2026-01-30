@@ -11,6 +11,7 @@ Simply put, types/classes are named as `PascalCase`, same for methods and functi
 Except for Qt MOC where `functionName` is preferred.
 
 Template typenames prefer short names like `T`, `I`, `U`, if a longer name is required either `Iterator` or `perform_action` are fine as well. Do not use names like `SS` as systems like solaris define it for registers, in general do not use any of the following for short names:
+
 - `SS`, `DS`, `GS`, `FS`: Segment registers, defined by Solaris `<ucontext.h>`
 - `EAX`, `EBX`, `ECX`, `EDX`, `ESI`, `EDI`, `ESP`, `EBP`, `EIP`: Registers, defined by Solaris.
 - `X`: Defined by some utility headers, avoid.
@@ -27,6 +28,7 @@ Try not using hungarian notation, if you're able.
 Formatting is extremelly lax, the general rule of thumb is: Don't add new lines just to increase line count. The less lines we have to look at, the better. This means also packing densely your code while not making it a clusterfuck. Strike a balance of "this is a short and comprehensible piece of code" and "my eyes are actually happy to see this!". Don't just drop the entire thing in a single line and call it "dense code", that's just spaghetti posing as code. In general, be mindful of what other devs need to look at.
 
 Do not put if/while/etc braces after lines:
+
 ```c++
 // no dont do this
 // this is more lines of code for no good reason (why braces need their separate lines?)
@@ -105,6 +107,7 @@ device = SDL_OpenAudioDevice(device_name.empty() ? nullptr : device_name.c_str()
 ```
 
 A note about operators: Use them sparingly, yes, the language is lax on them, but some usages can be... tripping to say the least.
+
 ```c++
 a, b, c; //<-- NOT OK multiple statments with comma operator is definitely a recipe for disaster
 return c ? a : b; //<-- OK ternaries at end of return statments are clear and fine
