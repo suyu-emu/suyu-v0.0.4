@@ -40,18 +40,24 @@ namespace Ui {
 class ConfigureProfileManager;
 }
 
+// TODO(crueter): Move this to a .ui def
 class ConfigureProfileManagerDeleteDialog : public QDialog {
+    Q_OBJECT
 public:
     explicit ConfigureProfileManagerDeleteDialog(QWidget* parent);
     ~ConfigureProfileManagerDeleteDialog();
 
     void SetInfo(const QString& username, const Common::UUID& uuid,
-                 std::function<void()> accept_callback);
+                 int index);
+
+signals:
+    void deleteUser(int index);
 
 private:
     QDialogButtonBox* dialog_button_box;
     QGraphicsScene* icon_scene;
     QLabel* label_info;
+    int m_index = 0;
 };
 
 class ConfigureProfileManager : public QWidget {
@@ -66,6 +72,7 @@ public:
 private slots:
     void saveImage(QPixmap pixmap, Common::UUID uuid);
     void showContextMenu(const QPoint &pos);
+    void DeleteUser(const int index);
 
 private:
     void changeEvent(QEvent* event) override;
@@ -80,7 +87,6 @@ private:
     void AddUser();
     void EditUser();
     void ConfirmDeleteUser();
-    void DeleteUser(const Common::UUID& uuid);
     bool LoadAvatarData();
     std::vector<uint8_t> DecompressYaz0(const FileSys::VirtualFile& file);
 

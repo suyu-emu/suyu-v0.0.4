@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -97,6 +97,8 @@ public:
     bool CanSystemRegisterUser() const;
 
     bool RemoveUser(Common::UUID uuid);
+    bool RemoveProfileAtIndex(std::size_t index);
+
     bool SetProfileBase(Common::UUID uuid, const ProfileBase& profile_new);
     bool SetProfileBaseAndData(Common::UUID uuid, const ProfileBase& profile_new,
                                const UserData& data_new);
@@ -113,7 +115,6 @@ public:
 private:
     void ParseUserSaveFile();
     std::optional<std::size_t> AddToProfiles(const ProfileInfo& profile);
-    bool RemoveProfileAtIndex(std::size_t index);
     void RemoveAllProfiles();
 
     bool is_save_needed{};

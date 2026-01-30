@@ -88,11 +88,14 @@ bool ProfileManager::RemoveProfileAtIndex(std::size_t index) {
     if (index >= MAX_USERS || index >= user_count) {
         return false;
     }
-    if (index < user_count - 1) {
-        std::rotate(profiles.begin() + index, profiles.begin() + index + 1, profiles.end());
-    }
-    profiles.back() = {};
-    user_count--;
+
+    profiles[index] = ProfileInfo{};
+    std::stable_partition(profiles.begin(), profiles.end(),
+                          [](const ProfileInfo& profile) { return profile.user_uuid.IsValid(); });
+
+    is_save_needed = true;
+    WriteUserSaveFile();
+
     return true;
 }
 
@@ -355,14 +358,7 @@ bool ProfileManager::RemoveUser(UUID uuid) {
         return false;
     }
 
-    profiles[*index] = ProfileInfo{};
-    std::stable_partition(profiles.begin(), profiles.end(),
-                          [](const ProfileInfo& profile) { return profile.user_uuid.IsValid(); });
-
-    is_save_needed = true;
-    WriteUserSaveFile();
-
-    return true;
+    return RemoveProfileAtIndex(*index);
 }
 
 bool ProfileManager::SetProfileBase(UUID uuid, const ProfileBase& profile_new) {

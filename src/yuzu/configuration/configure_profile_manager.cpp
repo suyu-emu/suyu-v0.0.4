@@ -113,6 +113,8 @@ ConfigureProfileManager::ConfigureProfileManager(Core::System& system_, QWidget*
     connect(ui->pm_add, &QPushButton::clicked, this, &ConfigureProfileManager::AddUser);
 
     confirm_dialog = new ConfigureProfileManagerDeleteDialog(this);
+    connect(confirm_dialog, &ConfigureProfileManagerDeleteDialog::deleteUser, this,
+            &ConfigureProfileManager::DeleteUser);
 
     scene = new QGraphicsScene;
     ui->current_user_icon->setScene(scene);
@@ -146,6 +148,7 @@ void ConfigureProfileManager::SetConfiguration() {
 }
 
 void ConfigureProfileManager::PopulateUserList() {
+    profile_manager.ResetUserSaveFile();
     const auto& profiles = profile_manager.GetAllUsers();
     for (const auto& user : profiles) {
         Service::Account::ProfileBase profile{};
@@ -323,16 +326,16 @@ void ConfigureProfileManager::ConfirmDeleteUser() {
     ASSERT(uuid);
     const auto username = GetAccountUsername(profile_manager, *uuid);
 
-    confirm_dialog->SetInfo(username, *uuid, [this, uuid]() { DeleteUser(*uuid); });
+    confirm_dialog->SetInfo(username, *uuid, index);
     confirm_dialog->show();
 }
 
-void ConfigureProfileManager::DeleteUser(const Common::UUID& uuid) {
+void ConfigureProfileManager::DeleteUser(const int index) {
     if (Settings::values.current_user.GetValue() == tree_view->currentIndex().row()) {
         Settings::values.current_user = 0;
     }
 
-    if (!profile_manager.RemoveUser(uuid)) {
+    if (!profile_manager.RemoveProfileAtIndex(index)) {
         return;
     }
 
@@ -378,19 +381,20 @@ ConfigureProfileManagerDeleteDialog::ConfigureProfileManagerDeleteDialog(QWidget
     setMinimumSize(380, 160);
 
     connect(dialog_button_box, &QDialogButtonBox::rejected, this, [this]() { close(); });
+    connect(dialog_button_box, &QDialogButtonBox::accepted, this, [this]() {
+        close();
+        emit deleteUser(m_index);
+    });
 }
 
 ConfigureProfileManagerDeleteDialog::~ConfigureProfileManagerDeleteDialog() = default;
 
 void ConfigureProfileManagerDeleteDialog::SetInfo(const QString& username, const Common::UUID& uuid,
-                                                  std::function<void()> accept_callback) {
+                                                  int index) {
     label_info->setText(
         tr("Name: %1\nUUID: %2").arg(username, QString::fromStdString(uuid.FormattedString())));
     icon_scene->clear();
     icon_scene->addPixmap(GetIcon(uuid));
 
-    connect(dialog_button_box, &QDialogButtonBox::accepted, this, [this, accept_callback]() {
-        close();
-        accept_callback();
-    });
+    m_index = index;
 }
