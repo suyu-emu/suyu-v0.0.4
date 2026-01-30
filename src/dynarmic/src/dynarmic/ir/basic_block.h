@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -23,7 +23,6 @@
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/terminal.h"
 #include "dynarmic/ir/value.h"
-#include "dynarmic/ir/dense_list.h"
 
 namespace Dynarmic::IR {
 
@@ -34,7 +33,7 @@ enum class Opcode;
 /// Note that this is a linear IR and not a pure tree-based IR: i.e.: there is an ordering to
 /// the microinstructions. This only matters before chaining is done in order to correctly
 /// order memory accesses.
-class Block final {
+class alignas(4096) Block final {
 public:
     //using instruction_list_type = dense_list<Inst>;
     using instruction_list_type = mcl::intrusive_list<Inst>;
@@ -51,37 +50,12 @@ public:
     Block(Block&&) = default;
     Block& operator=(Block&&) = default;
 
-    bool empty() const { return instructions.empty(); }
-    size_type size() const { return instructions.size(); }
-
-    Inst& front() { return instructions.front(); }
-    const Inst& front() const { return instructions.front(); }
-
-    Inst& back() { return instructions.back(); }
-    const Inst& back() const { return instructions.back(); }
-
-    iterator begin() { return instructions.begin(); }
-    const_iterator begin() const { return instructions.begin(); }
-    iterator end() { return instructions.end(); }
-    const_iterator end() const { return instructions.end(); }
-
-    reverse_iterator rbegin() { return instructions.rbegin(); }
-    const_reverse_iterator rbegin() const { return instructions.rbegin(); }
-    reverse_iterator rend() { return instructions.rend(); }
-    const_reverse_iterator rend() const { return instructions.rend(); }
-
-    const_iterator cbegin() const { return instructions.cbegin(); }
-    const_iterator cend() const { return instructions.cend(); }
-
-    const_reverse_iterator crbegin() const { return instructions.crbegin(); }
-    const_reverse_iterator crend() const { return instructions.crend(); }
-
     /// Appends a new instruction to the end of this basic block,
     /// handling any allocations necessary to do so.
     /// @param op   Opcode representing the instruction to add.
     /// @param args A sequence of Value instances used as arguments for the instruction.
-    inline void AppendNewInst(const Opcode opcode, const std::initializer_list<IR::Value> args) noexcept {
-        PrependNewInst(end(), opcode, args);
+    inline iterator AppendNewInst(const Opcode opcode, const std::initializer_list<IR::Value> args) noexcept {
+        return PrependNewInst(instructions.end(), opcode, args);
     }
     iterator PrependNewInst(iterator insertion_point, Opcode op, std::initializer_list<Value> args) noexcept;
 
@@ -165,9 +139,9 @@ public:
     inline const size_t& CycleCount() const noexcept {
         return cycle_count;
     }
-private:
+
     /// "Hot cache" for small blocks so we don't call global allocator
-    boost::container::static_vector<Inst, 14> inlined_inst;
+    boost::container::static_vector<Inst, 30> inlined_inst;
     /// List of instructions in this block.
     instruction_list_type instructions;
     /// "Long/far" memory pool
@@ -187,7 +161,7 @@ private:
     /// Number of cycles this block takes to execute.
     size_t cycle_count = 0;
 };
-static_assert(sizeof(Block) == 2048);
+static_assert(sizeof(Block) == 4096);
 
 /// Returns a string representation of the contents of block. Intended for debugging.
 std::string DumpBlock(const IR::Block& block) noexcept;

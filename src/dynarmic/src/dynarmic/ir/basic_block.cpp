@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -100,57 +100,39 @@ std::string DumpBlock(const IR::Block& block) noexcept {
     std::string ret = fmt::format("Block: location={}-{}\n", block.Location(), block.EndLocation())
         + fmt::format("cycles={}", block.CycleCount())
         + fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
-    if (block.GetCondition() != Cond::AL) {
+    if (block.GetCondition() != Cond::AL)
         ret += fmt::format(", cond_fail={}", block.ConditionFailedLocation());
-    }
     ret += '\n';
 
     const auto arg_to_string = [](const IR::Value& arg) -> std::string {
         if (arg.IsEmpty()) {
             return "<null>";
         } else if (!arg.IsImmediate()) {
-            if (const unsigned name = arg.GetInst()->GetName()) {
+            if (auto const name = arg.GetInst()->GetName())
                 return fmt::format("%{}", name);
-            }
-            return fmt::format("%<unnamed inst {:016x}>", reinterpret_cast<u64>(arg.GetInst()));
+            return fmt::format("%<unnamed inst {:016x}>", u64(arg.GetInst()));
         }
         switch (arg.GetType()) {
-        case Type::U1:
-            return fmt::format("#{}", arg.GetU1() ? '1' : '0');
-        case Type::U8:
-            return fmt::format("#{}", arg.GetU8());
-        case Type::U16:
-            return fmt::format("#{:#x}", arg.GetU16());
-        case Type::U32:
-            return fmt::format("#{:#x}", arg.GetU32());
-        case Type::U64:
-            return fmt::format("#{:#x}", arg.GetU64());
-        case Type::U128:
-            return fmt::format("#<u128 imm>");
-        case Type::A32Reg:
-            return A32::RegToString(arg.GetA32RegRef());
-        case Type::A32ExtReg:
-            return A32::ExtRegToString(arg.GetA32ExtRegRef());
-        case Type::A64Reg:
-            return A64::RegToString(arg.GetA64RegRef());
-        case Type::A64Vec:
-            return A64::VecToString(arg.GetA64VecRef());
-        case Type::CoprocInfo:
-            return fmt::format("#<coproc>");
-        case Type::NZCVFlags:
-            return fmt::format("#<NZCV flags>");
-        case Type::Cond:
-            return fmt::format("#<cond={}>", A32::CondToString(arg.GetCond()));
-        case Type::Table:
-            return fmt::format("#<table>");
-        case Type::AccType:
-            return fmt::format("#<acc-type={}>", u32(arg.GetAccType()));
-        default:
-            return fmt::format("<unknown immediate type {}>", arg.GetType());
+        case Type::U1: return fmt::format("#{}", arg.GetU1() ? '1' : '0');
+        case Type::U8: return fmt::format("#{}", arg.GetU8());
+        case Type::U16: return fmt::format("#{:#x}", arg.GetU16());
+        case Type::U32: return fmt::format("#{:#x}", arg.GetU32());
+        case Type::U64: return fmt::format("#{:#x}", arg.GetU64());
+        case Type::U128: return fmt::format("#<u128 imm>");
+        case Type::A32Reg: return A32::RegToString(arg.GetA32RegRef());
+        case Type::A32ExtReg: return A32::ExtRegToString(arg.GetA32ExtRegRef());
+        case Type::A64Reg: return A64::RegToString(arg.GetA64RegRef());
+        case Type::A64Vec: return A64::VecToString(arg.GetA64VecRef());
+        case Type::CoprocInfo: return fmt::format("#<coproc>");
+        case Type::NZCVFlags: return fmt::format("#<NZCV flags>");
+        case Type::Cond: return fmt::format("#<cond={}>", A32::CondToString(arg.GetCond()));
+        case Type::Table: return fmt::format("#<table>");
+        case Type::AccType: return fmt::format("#<acc-type={}>", u32(arg.GetAccType()));
+        default: return fmt::format("<unknown immediate type {}>", arg.GetType());
         }
     };
 
-    for (const auto& inst : block) {
+    for (const auto& inst : block.instructions) {
         const Opcode op = inst.GetOpcode();
 
         ret += fmt::format("[{:016x}] ", reinterpret_cast<u64>(&inst));
@@ -180,13 +162,9 @@ std::string DumpBlock(const IR::Block& block) noexcept {
             }
         }
 
-        ret += fmt::format(" (uses: {})", inst.UseCount());
-
-        ret += '\n';
+        ret += fmt::format(" (uses: {})", inst.UseCount()) + '\n';
     }
-
     ret += "terminal = " + TerminalToString(block.GetTerminal()) + '\n';
-
     return ret;
 }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -56,11 +56,7 @@ using HalfVectorArray = std::array<T, A64FullVectorWidth::value / mcl::bitsizeof
 struct EmitContext {
     EmitContext(RegAlloc& reg_alloc, IR::Block& block);
     virtual ~EmitContext();
-
-    void EraseInstruction(IR::Inst* inst);
-
     virtual FP::FPCR FPCR(bool fpcr_controlled = true) const = 0;
-
     virtual bool HasOptimization(OptimizationFlag flag) const = 0;
 
     RegAlloc& reg_alloc;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -302,17 +302,12 @@ public:
 
 private:
     friend struct Argument;
-    template<typename>
-    friend struct RAReg;
+    template<typename> friend struct RAReg;
 
-    template<HostLoc::Kind kind>
-    int GenerateImmediate(const IR::Value& value);
-    template<HostLoc::Kind kind>
-    int RealizeReadImpl(const IR::Value& value);
-    template<HostLoc::Kind kind>
-    int RealizeWriteImpl(const IR::Inst* value);
-    template<HostLoc::Kind kind>
-    int RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* write_value);
+    template<HostLoc::Kind kind> int GenerateImmediate(const IR::Value& value);
+    template<HostLoc::Kind kind> int RealizeReadImpl(const IR::Value& value);
+    template<HostLoc::Kind kind> int RealizeWriteImpl(const IR::Inst* value);
+    template<HostLoc::Kind kind> int RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* write_value);
 
     int AllocateRegister(const std::array<HostLocInfo, 32>& regs, const std::vector<int>& order) const;
     void SpillGpr(int index);
@@ -337,7 +332,6 @@ private:
     std::array<HostLocInfo, SpillCount> spills;
 
     mutable std::mt19937 rand_gen;
-
     ankerl::unordered_dense::set<const IR::Inst*> defined_insts;
 };
 

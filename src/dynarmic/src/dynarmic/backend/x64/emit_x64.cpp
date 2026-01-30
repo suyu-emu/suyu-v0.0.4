@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -37,11 +37,6 @@ EmitContext::EmitContext(RegAlloc& reg_alloc, IR::Block& block)
         : reg_alloc(reg_alloc), block(block) {}
 
 EmitContext::~EmitContext() = default;
-
-void EmitContext::EraseInstruction(IR::Inst* inst) {
-    block.Instructions().erase(inst);
-    inst->ClearArgs();
-}
 
 EmitX64::EmitX64(BlockOfCode& code)
         : code(code) {

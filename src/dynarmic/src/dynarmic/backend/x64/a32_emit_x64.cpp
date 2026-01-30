@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -123,7 +123,7 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 
     EmitCondPrelude(ctx);
 
-    for (auto iter = block.begin(); iter != block.end(); ++iter) [[likely]] {
+    for (auto iter = block.instructions.begin(); iter != block.instructions.end(); ++iter) [[likely]] {
         auto* inst = &*iter;
         // Call the relevant Emit* member function.
         switch (inst->GetOpcode()) {
@@ -727,11 +727,9 @@ void A32EmitX64::EmitA32BXWritePC(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A32EmitX64::EmitA32UpdateUpperLocationDescriptor(A32EmitContext& ctx, IR::Inst*) {
-    for (auto& inst : ctx.block) {
-        if (inst.GetOpcode() == IR::Opcode::A32BXWritePC) {
+    for (auto& inst : ctx.block.instructions)
+        if (inst.GetOpcode() == IR::Opcode::A32BXWritePC)
             return;
-        }
-    }
     EmitSetUpperLocationDescriptor(ctx.EndLocation(), ctx.Location());
 }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -45,7 +45,7 @@ static bool ShouldTestInst(u32 instruction, u64 pc, bool is_last_inst) {
         return false;
     if (auto terminal = block.GetTerminal(); boost::get<IR::Term::Interpret>(&terminal))
         return false;
-    for (const auto& ir_inst : block) {
+    for (const auto& ir_inst : block.instructions) {
         switch (ir_inst.GetOpcode()) {
         case IR::Opcode::A64ExceptionRaised:
         case IR::Opcode::A64CallSupervisor:

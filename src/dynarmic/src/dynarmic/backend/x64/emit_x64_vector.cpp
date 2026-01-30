@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -34,14 +34,7 @@ namespace Dynarmic::Backend::X64 {
 
 using namespace Xbyak::util;
 
-#define ICODE(NAME)                  \
-    [&code](auto... args) {          \
-        if constexpr (esize == 32) { \
-            code.NAME##d(args...);   \
-        } else {                     \
-            code.NAME##q(args...);   \
-        }                            \
-    }
+#define ICODE(NAME) [&](auto... args) { if (esize == 32) code.NAME##d(args...); else code.NAME##q(args...); }
 
 template<typename Function>
 static void EmitVectorOperation(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -65,15 +65,12 @@ enum class MemOp {
     PREFETCH,
 };
 
-/**
- * Convenience class to construct a basic block of the intermediate representation.
- * `block` is the resulting block.
- * The user of this class updates `current_location` as appropriate.
- */
+/// @brief Convenience class to construct a basic block of the intermediate representation.
+/// `block` is the resulting block.
+/// The user of this class updates `current_location` as appropriate.
 class IREmitter {
 public:
-    explicit IREmitter(Block& block)
-            : block(block), insertion_point(block.end()) {}
+    explicit IREmitter(Block& block) : block(block), insertion_point(block.instructions.end()) {}
 
     Block& block;
 
