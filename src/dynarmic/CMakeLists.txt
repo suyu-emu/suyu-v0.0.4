@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.12)
@@ -112,7 +112,10 @@ else()
     endif()
 endif()
 
-find_package(Boost 1.57 REQUIRED)
+if (NOT Boost_FOUND)
+    find_package(Boost 1.57 REQUIRED)
+endif()
+
 find_package(fmt 8 CONFIG)
 find_package(mcl 0.1.12 REQUIRED)
 

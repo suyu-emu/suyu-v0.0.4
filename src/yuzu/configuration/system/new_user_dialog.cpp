@@ -86,6 +86,8 @@ void NewUserDialog::setup(Common::UUID uuid, const std::string& username, const 
         ui->uuid->setReadOnly(true);
     }
 
+    ui->generate->setDisabled(m_editing);
+
     ui->username->setText(QString::fromStdString(username));
     verifyUser();
 
