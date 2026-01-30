@@ -73,7 +73,7 @@ download_package() {
 }
 
 ci_package() {
-	[ "$REPO" != null ] || echo "-- ! No repo defined" && return
+	[ "$REPO" != null ] || { echo "-- ! No repo defined" && return; }
 
 	echo "-- CI package $PACKAGE_NAME"
 
