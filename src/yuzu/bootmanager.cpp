@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
@@ -193,6 +193,13 @@ public:
     }
 
     void SwapBuffers() override {
+        if (auto window = dynamic_cast<QWindow*>(surface)) {
+            if (!window->isExposed()) {
+                LOG_DEBUG(Frontend, "SwapBuffers ignored: window not exposed");
+                return;
+            }
+        }
+
         context->swapBuffers(surface);
     }
 
