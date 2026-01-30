@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "yuzu/game_list.h"
@@ -492,10 +492,24 @@ void GameList::DonePopulating(const QStringList& watch_list) {
     constexpr int LIMIT_WATCH_DIRECTORIES = 5000;
     constexpr int SLICE_SIZE = 25;
     int len = (std::min)(static_cast<int>(watch_list.size()), LIMIT_WATCH_DIRECTORIES);
+
+    // Block signals to prevent the watcher from triggering a refresh while we are adding paths.
+    // This fixes a refresh loop on macOS.
+#ifdef __APPLE__
+    const bool old_signals_blocked = watcher->blockSignals(true);
+#endif
+
     for (int i = 0; i < len; i += SLICE_SIZE) {
-        watcher->addPaths(watch_list.mid(i, i + SLICE_SIZE));
+        auto chunk = watch_list.mid(i, SLICE_SIZE);
+        if (!chunk.isEmpty()) {
+            watcher->addPaths(chunk);
+        }
         QCoreApplication::processEvents();
     }
+
+#ifdef __APPLE__
+    watcher->blockSignals(old_signals_blocked);
+#endif
     tree_view->setEnabled(true);
     int children_total = 0;
     for (int i = 1; i < item_model->rowCount() - 1; ++i) {
