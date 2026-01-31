@@ -1254,25 +1254,13 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
 
     switch (dst_view.format) {
     case PixelFormat::D24_UNORM_S8_UINT:
-        // Handle sRGB source formats
-        if (src_view.format == PixelFormat::A8B8G8R8_SRGB ||
-            src_view.format == PixelFormat::B8G8R8A8_SRGB) {
-            // Verify format support before conversion
-            if (device.IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT,
-                                       VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                                       FormatType::Optimal)) {
-                return blit_image_helper.ConvertABGR8SRGBToD24S8(dst, src_view);
-            } else {
-                // Fallback to regular ABGR8 conversion if sRGB not supported
-                return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
-            }
-        }
-        if (src_view.format == PixelFormat::A8B8G8R8_UNORM ||
-            src_view.format == PixelFormat::B8G8R8A8_UNORM) {
+        if (src_view.format == PixelFormat::A8B8G8R8_UNORM
+        || src_view.format == PixelFormat::B8G8R8A8_UNORM
+        || src_view.format == PixelFormat::A8B8G8R8_SRGB
+        || src_view.format == PixelFormat::B8G8R8A8_SRGB) {
             return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
         }
         break;
-
     case PixelFormat::A8B8G8R8_UNORM:
     case PixelFormat::A8B8G8R8_SNORM:
     case PixelFormat::A8B8G8R8_SINT:
