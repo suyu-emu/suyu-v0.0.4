@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.ui.main
@@ -183,18 +183,26 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             val latestVersion = NativeLibrary.checkForUpdate()
             if (latestVersion != null) {
                 runOnUiThread {
-                    showUpdateDialog(latestVersion)
+                    val tag: String = latestVersion[0]
+                    val name: String = latestVersion[1]
+                    showUpdateDialog(tag, name)
                 }
             }
         }.start()
     }
 
-    private fun showUpdateDialog(version: String) {
+    private fun showUpdateDialog(tag: String, name: String) {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.update_available)
-            .setMessage(getString(R.string.update_available_description, version))
+            .setMessage(getString(R.string.update_available_description, name))
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                downloadAndInstallUpdate(version)
+                var artifact = tag
+                // Nightly builds have a slightly different format
+                if (NativeLibrary.isNightlyBuild()) {
+                    val splitTag = tag.split('.')
+                    artifact = splitTag.subList(1, splitTag.size - 1).joinToString(".")
+                }
+                downloadAndInstallUpdate(tag, artifact)
             }
             .setNeutralButton(R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
@@ -207,11 +215,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             .show()
     }
 
-    private fun downloadAndInstallUpdate(version: String) {
+    private fun downloadAndInstallUpdate(version: String, artifact: String) {
         CoroutineScope(Dispatchers.IO).launch {
             val packageId = applicationContext.packageName
-            val apkUrl = NativeLibrary.getUpdateApkUrl(version, packageId)
-            val apkFile = File(cacheDir, "update-$version.apk")
+            val apkUrl = NativeLibrary.getUpdateApkUrl(version, artifact, packageId)
+            val apkFile = File(cacheDir, "update-$artifact.apk")
 
             withContext(Dispatchers.Main) {
                 showDownloadProgressDialog()

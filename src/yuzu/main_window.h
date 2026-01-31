@@ -18,6 +18,7 @@
 
 #include "common/common_types.h"
 #include "frontend_common/content_manager.h"
+#include "frontend_common/update_checker.h"
 #include "input_common/drivers/tas_input.h"
 #include "qt_common/config/qt_config.h"
 #include "qt_common/util/game.h"
@@ -471,8 +472,8 @@ private:
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
 
 #ifdef ENABLE_UPDATE_CHECKER
-    QFuture<QString> update_future;
-    QFutureWatcher<QString> update_watcher;
+    QFuture<UpdateChecker::Update> update_future;
+    QFutureWatcher<UpdateChecker::Update> update_watcher;
 #endif
 
     MultiplayerState* multiplayer_state = nullptr;

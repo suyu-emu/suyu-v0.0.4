@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 NUM_JOBS=$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)
@@ -29,6 +29,7 @@ Options:
     -b, --build-type <TYPE>	Build type (variable: TYPE)
                           	Valid values are: Release, RelWithDebInfo, Debug
                           	Default: Debug
+    -n, --nightly           Create a nightly build.
 
 Extra arguments are passed to CMake (e.g. -DCMAKE_OPTION_NAME=VALUE)
 Set the CCACHE variable to "true" to enable build caching.
@@ -61,6 +62,7 @@ while true; do
 		-r|--release) DEVEL=false ;;
 		-t|--target) target "$2"; shift ;;
 		-b|--build-type) type "$2"; shift ;;
+        -n|--nightly) NIGHTLY=true ;;
 		-h|--help) usage ;;
 		*) break ;;
 	esac
@@ -101,7 +103,20 @@ cd src/android
 chmod +x ./gradlew
 
 set -- "$@" -DUSE_CCACHE="${CCACHE}"
-[ "$DEVEL" != "true" ] && set -- "$@" -DENABLE_UPDATE_CHECKER=ON
+
+nightly() {
+    [ "$NIGHTLY" = "true" ]
+}
+
+if nightly || [ "$DEVEL" != "true" ]; then
+    set -- "$@" -DENABLE_UPDATE_CHECKER=ON
+fi
+
+if nightly; then
+    NIGHTLY=true
+else
+    NIGHTLY=false
+fi
 
 echo "-- building..."
 
@@ -110,6 +125,7 @@ echo "-- building..."
     -Dorg.gradle.parallel="${CCACHE}" \
     -Dorg.gradle.workers.max="${NUM_JOBS}" \
     -PYUZU_ANDROID_ARGS="$*" \
+    -Pnightly="$NIGHTLY" \
     --info
 
 if [ -n "${ANDROID_KEYSTORE_B64}" ]; then

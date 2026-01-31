@@ -516,17 +516,17 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 
 #ifdef ENABLE_UPDATE_CHECKER
     if (UISettings::values.check_for_updates) {
-        update_future = QtConcurrent::run([]() -> QString {
+        update_future = QtConcurrent::run([]() -> UpdateChecker::Update {
             const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
                                         (strstr(Common::g_build_version, "alpha") != NULL) ||
                                         (strstr(Common::g_build_version, "beta") != NULL) ||
                                         (strstr(Common::g_build_version, "rc") != NULL));
-            const std::optional<std::string> latest_release_tag =
+            const std::optional<UpdateChecker::Update> latest_release_tag =
                 UpdateChecker::GetLatestRelease(is_prerelease);
-            if (latest_release_tag && latest_release_tag.value() != Common::g_build_version) {
-                return QString::fromStdString(latest_release_tag.value());
+            if (latest_release_tag && latest_release_tag->tag != Common::g_build_version) {
+                return latest_release_tag.value();
             }
-            return QString{};
+            return UpdateChecker::Update{};
         });
         update_watcher.connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
                                &MainWindow::OnEmulatorUpdateAvailable);
@@ -4020,8 +4020,8 @@ void MainWindow::OnCaptureScreenshot() {
 
 #ifdef ENABLE_UPDATE_CHECKER
 void MainWindow::OnEmulatorUpdateAvailable() {
-    QString version_string = update_future.result();
-    if (version_string.isEmpty())
+    UpdateChecker::Update version = update_future.result();
+    if (version.tag.empty())
         return;
 
     QMessageBox update_prompt(this);
@@ -4030,14 +4030,14 @@ void MainWindow::OnEmulatorUpdateAvailable() {
     update_prompt.addButton(QMessageBox::Yes);
     update_prompt.addButton(QMessageBox::Ignore);
     update_prompt.setText(
-        tr("Download the %1 update?").arg(version_string));
+        tr("Download %1?").arg(version.name));
     update_prompt.exec();
     if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
         auto const full_url = fmt::format("{}/{}/releases/tag/",
                                           std::string{Common::g_build_auto_update_website},
                                           std::string{Common::g_build_auto_update_repo}
                                           );
-        QDesktopServices::openUrl(QUrl(QString::fromStdString(full_url) + version_string));
+        QDesktopServices::openUrl(QUrl(QString::fromStdString(full_url + version.tag)));
     }
 }
 #endif

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
@@ -78,7 +78,7 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
     }
 }
 
-std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prereleases) {
+std::optional<UpdateChecker::Update> UpdateChecker::GetLatestRelease(bool include_prereleases) {
     const auto update_check_url = std::string{Common::g_build_auto_update_api};
     std::string update_check_path = fmt::format("/repos/{}",
                                                 std::string{Common::g_build_auto_update_repo});
@@ -96,6 +96,9 @@ std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prerelea
 
             const std::string latest_tag
                 = nlohmann::json::parse(tags_response.value()).at(0).at("name");
+            const std::string latest_name =
+                nlohmann::json::parse(releases_response.value()).at(0).at("name");
+
             const bool latest_tag_has_release = releases_response.value().find(
                                                     fmt::format("\"{}\"", latest_tag))
                                                 != std::string::npos;
@@ -105,7 +108,7 @@ std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prerelea
             if (!latest_tag_has_release)
                 return {};
 
-            return latest_tag;
+            return Update{latest_tag, latest_name};
         } else { // This is a stable release, only check for other stable releases.
             update_check_path += "/releases/latest";
             const auto response = UpdateChecker::GetResponse(update_check_url, update_check_path);
@@ -114,7 +117,9 @@ std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prerelea
                 return {};
 
             const std::string latest_tag = nlohmann::json::parse(response.value()).at("tag_name");
-            return latest_tag;
+            const std::string latest_name = nlohmann::json::parse(response.value()).at("name");
+
+            return Update{latest_tag, latest_name};
         }
 
     } catch (nlohmann::detail::out_of_range &) {

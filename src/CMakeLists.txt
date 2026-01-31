@@ -20,6 +20,10 @@ if (YUZU_STATIC_BUILD)
     add_compile_definitions(QT_STATICPLUGIN)
 endif()
 
+if (NIGHTLY_BUILD)
+    add_compile_definitions(NIGHTLY_BUILD)
+endif()
+
 # Set compilation flags
 if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "" FORCE)

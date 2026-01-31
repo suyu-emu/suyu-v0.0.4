@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -1595,7 +1595,6 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_updatePowerState(
     g_has_battery.store(hasBattery, std::memory_order_relaxed);
 }
 
-//  return #ifdef ENABLE_UPDATE_CHECKER
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isUpdateCheckerEnabled(
         JNIEnv* env,
         jobject obj) {
@@ -1606,22 +1605,47 @@ JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isUpdateChecker
 #endif
     }
 
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isNightlyBuild(
+    JNIEnv* env,
+    jobject obj) {
+#ifdef NIGHTLY_BUILD
+    return JNI_TRUE;
+#else
+    return JNI_FALSE;
+#endif
+}
+
+
 #ifdef ENABLE_UPDATE_CHECKER
 
-JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
+JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
         JNIEnv* env,
         jobject obj) {
     const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != nullptr) ||
                                 (strstr(Common::g_build_version, "alpha") != nullptr) ||
                                 (strstr(Common::g_build_version, "beta") != nullptr) ||
                                 (strstr(Common::g_build_version, "rc") != nullptr));
-    const std::optional<std::string> latest_release_tag =
+    const std::optional<UpdateChecker::Update> release =
         UpdateChecker::GetLatestRelease(is_prerelease);
 
-    if (latest_release_tag && latest_release_tag.value() != Common::g_build_version) {
-        return env->NewStringUTF(latest_release_tag.value().c_str());
+    if (!release || release->tag == Common::g_build_version) {
+        return nullptr;
     }
-    return nullptr;
+
+    const std::string tag = release->tag;
+    const std::string name = release->name;
+
+    jobjectArray result = env->NewObjectArray(2, env->FindClass("java/lang/String"), nullptr);
+
+    const jstring jtag = env->NewStringUTF(tag.c_str());
+    const jstring jname = env->NewStringUTF(name.c_str());
+
+    env->SetObjectArrayElement(result, 0, jtag);
+    env->SetObjectArrayElement(result, 1, jname);
+    env->DeleteLocalRef(jtag);
+    env->DeleteLocalRef(jname);
+
+    return result;
 }
 
 JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(
@@ -1640,9 +1664,11 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(
 JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateApkUrl(
         JNIEnv* env,
         jobject obj,
-        jstring version,
+        jstring tag,
+        jstring artifact,
         jstring packageId) {
-    const char* version_str = env->GetStringUTFChars(version, nullptr);
+    const char* version_str = env->GetStringUTFChars(tag, nullptr);
+    const char* artifact_str = env->GetStringUTFChars(artifact, nullptr);
     const char* package_id_str = env->GetStringUTFChars(packageId, nullptr);
 
     std::string variant;
@@ -1653,7 +1679,11 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateApkUrl(
     } else if (package_id.find("com.miHoYo.Yuanshen") != std::string::npos) {
         variant = "optimized";
     } else {
+#ifdef ARCHITECTURE_arm64
         variant = "standard";
+#else
+        variant = "chromeos";
+#endif
     }
 
     const std::string apk_filename = fmt::format("Eden-Android-{}-{}.apk", version_str, variant);
@@ -1663,7 +1693,7 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateApkUrl(
         version_str,
         apk_filename);
 
-    env->ReleaseStringUTFChars(version, version_str);
+    env->ReleaseStringUTFChars(tag, version_str);
     env->ReleaseStringUTFChars(packageId, package_id_str);
     return env->NewStringUTF(url.c_str());
 }

@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 // import android.annotation.SuppressLint
+import com.android.build.gradle.api.ApplicationVariant
 import kotlin.collections.setOf
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
@@ -36,6 +37,9 @@ android {
 
     compileSdkVersion = "android-36"
     ndkVersion = "28.2.13676358"
+
+    val isNightly =
+        providers.gradleProperty("nightly").orNull?.toBooleanStrictOrNull() ?: false
 
     buildFeatures {
         viewBinding = true
@@ -71,6 +75,7 @@ android {
                 val extraCMakeArgs =
                     (project.findProperty("YUZU_ANDROID_ARGS") as String?)?.split("\\s+".toRegex())
                         ?: emptyList()
+
                 arguments.addAll(
                     listOf(
                         "-DENABLE_QT=0", // Don't use QT
@@ -88,6 +93,13 @@ android {
                         *extraCMakeArgs.toTypedArray()
                     )
                 )
+
+                if (isNightly) {
+                    arguments.addAll(listOf(
+                        "-DENABLE_UPDATE_CHECKER=ON",
+                        "-DNIGHTLY_BUILD=ON",
+                    ))
+                }
 
                 abiFilters("arm64-v8a")
             }
@@ -125,7 +137,12 @@ android {
                 signingConfigs.getByName("default")
             }
 
-            manifestPlaceholders += mapOf("appNameSuffix" to "")
+            if (isNightly) {
+                applicationIdSuffix = ".nightly"
+                manifestPlaceholders += mapOf("appNameSuffix" to " Nightly")
+            } else {
+                manifestPlaceholders += mapOf("appNameSuffix" to "")
+            }
 
             isMinifyEnabled = true
             isDebuggable = false
@@ -239,6 +256,15 @@ android {
             path = file("${edenDir}/CMakeLists.txt")
         }
     }
+
+    productFlavors.all {
+        val currentName = manifestPlaceholders["appNameBase"] as? String ?: "Eden"
+        val suffix = if (isNightly) " Nightly" else ""
+
+        // apply nightly suffix I/A
+        resValue("string", "app_name_suffixed", "$currentName$suffix")
+        resValue("string", "app_name", "Eden$suffix")
+    }
 }
 
 idea {
@@ -258,7 +284,7 @@ tasks.register<Delete>("ktlintReset", fun Delete.() {
 val showFormatHelp = {
     logger.lifecycle(
         "If this check fails, please try running \"gradlew ktlintFormat\" for automatic " +
-            "codestyle fixes"
+                "codestyle fixes"
     )
 }
 tasks.getByPath("ktlintKotlinScriptCheck").doFirst { showFormatHelp.invoke() }
