@@ -4030,7 +4030,7 @@ void MainWindow::OnEmulatorUpdateAvailable() {
     update_prompt.addButton(QMessageBox::Yes);
     update_prompt.addButton(QMessageBox::Ignore);
     update_prompt.setText(
-        tr("Download %1?").arg(version.name));
+        tr("Download %1?").arg(QString::fromStdString(version.name)));
     update_prompt.exec();
     if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
         auto const full_url = fmt::format("{}/{}/releases/tag/",

@@ -45,8 +45,7 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
         };
 
         client->set_follow_location(true);
-        httplib::Result result;
-        result = client->send(request);
+        httplib::Result result = client->send(request);
 
         if (!result) {
             LOG_ERROR(Frontend, "GET to {}{} returned null", url, path);
