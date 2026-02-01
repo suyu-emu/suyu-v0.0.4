@@ -176,6 +176,5 @@ std::optional<UpdateChecker::Update> UpdateChecker::GetUpdate() {
     }
 
 empty:
-    return UpdateChecker::Update{};
-
+    return std::nullopt;
 }
