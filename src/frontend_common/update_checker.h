@@ -19,4 +19,5 @@ typedef struct {
 
 std::optional<std::string> GetResponse(std::string url, std::string path);
 std::optional<Update> GetLatestRelease(bool include_prereleases);
+std::optional<Update> GetUpdate();
 } // namespace UpdateChecker

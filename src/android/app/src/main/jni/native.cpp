@@ -1615,22 +1615,14 @@ JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isNightlyBuild(
 #endif
 }
 
-
 #ifdef ENABLE_UPDATE_CHECKER
+
 
 JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
         JNIEnv* env,
         jobject obj) {
-    const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != nullptr) ||
-                                (strstr(Common::g_build_version, "alpha") != nullptr) ||
-                                (strstr(Common::g_build_version, "beta") != nullptr) ||
-                                (strstr(Common::g_build_version, "rc") != nullptr));
-    const std::optional<UpdateChecker::Update> release =
-        UpdateChecker::GetLatestRelease(is_prerelease);
-
-    if (!release || release->tag == Common::g_build_version) {
-        return nullptr;
-    }
+    std::optional<UpdateChecker::Update> release = UpdateChecker::GetUpdate();
+    if (!release) return nullptr;
 
     const std::string tag = release->tag;
     const std::string name = release->name;

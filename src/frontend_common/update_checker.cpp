@@ -5,10 +5,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "update_checker.h"
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
+
+#include <fmt/format.h>
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
-#include <fmt/format.h>
+#include "update_checker.h"
 
 #include <httplib.h>
 
@@ -136,4 +139,43 @@ std::optional<UpdateChecker::Update> UpdateChecker::GetLatestRelease(bool includ
                   update_check_path);
         return {};
     }
+}
+
+std::optional<UpdateChecker::Update> UpdateChecker::GetUpdate() {
+    const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
+                                (strstr(Common::g_build_version, "alpha") != NULL) ||
+                                (strstr(Common::g_build_version, "beta") != NULL) ||
+                                (strstr(Common::g_build_version, "rc") != NULL));
+    const std::optional<UpdateChecker::Update> latest_release_tag =
+        UpdateChecker::GetLatestRelease(is_prerelease);
+
+    if (!latest_release_tag)
+        goto empty;
+
+    {
+        std::string tag, build;
+        if (Common::g_is_nightly_build) {
+            std::vector<std::string> result;
+
+            boost::split(result, latest_release_tag->tag, boost::is_any_of("."));
+            if (result.size() != 2)
+                goto empty;
+            tag = result[1];
+
+            boost::split(result, std::string{Common::g_build_version}, boost::is_any_of("-"));
+            if (result.empty())
+                goto empty;
+            build = result[0];
+        } else {
+            tag = latest_release_tag->tag;
+            build = Common::g_build_version;
+        }
+
+        if (tag != build)
+            return latest_release_tag.value();
+    }
+
+empty:
+    return UpdateChecker::Update{};
+
 }

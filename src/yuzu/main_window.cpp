@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Qt on macOS doesn't define VMA shit
+#include <boost/algorithm/string/split.hpp>
 #include "qt_common/qt_string_lookup.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
@@ -516,17 +517,8 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 
 #ifdef ENABLE_UPDATE_CHECKER
     if (UISettings::values.check_for_updates) {
-        update_future = QtConcurrent::run([]() -> UpdateChecker::Update {
-            const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
-                                        (strstr(Common::g_build_version, "alpha") != NULL) ||
-                                        (strstr(Common::g_build_version, "beta") != NULL) ||
-                                        (strstr(Common::g_build_version, "rc") != NULL));
-            const std::optional<UpdateChecker::Update> latest_release_tag =
-                UpdateChecker::GetLatestRelease(is_prerelease);
-            if (latest_release_tag && latest_release_tag->tag != Common::g_build_version) {
-                return latest_release_tag.value();
-            }
-            return UpdateChecker::Update{};
+        update_future = QtConcurrent::run([]() -> std::optional<UpdateChecker::Update> {
+            return UpdateChecker::GetUpdate();
         });
         update_watcher.connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
                                &MainWindow::OnEmulatorUpdateAvailable);
@@ -4020,8 +4012,8 @@ void MainWindow::OnCaptureScreenshot() {
 
 #ifdef ENABLE_UPDATE_CHECKER
 void MainWindow::OnEmulatorUpdateAvailable() {
-    UpdateChecker::Update version = update_future.result();
-    if (version.tag.empty())
+    std::optional<UpdateChecker::Update> version = update_future.result();
+    if (!version)
         return;
 
     QMessageBox update_prompt(this);
@@ -4030,14 +4022,14 @@ void MainWindow::OnEmulatorUpdateAvailable() {
     update_prompt.addButton(QMessageBox::Yes);
     update_prompt.addButton(QMessageBox::Ignore);
     update_prompt.setText(
-        tr("Download %1?").arg(QString::fromStdString(version.name)));
+        tr("Download %1?").arg(QString::fromStdString(version->name)));
     update_prompt.exec();
     if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
         auto const full_url = fmt::format("{}/{}/releases/tag/",
                                           std::string{Common::g_build_auto_update_website},
                                           std::string{Common::g_build_auto_update_repo}
                                           );
-        QDesktopServices::openUrl(QUrl(QString::fromStdString(full_url + version.tag)));
+        QDesktopServices::openUrl(QUrl(QString::fromStdString(full_url + version->tag)));
     }
 }
 #endif
