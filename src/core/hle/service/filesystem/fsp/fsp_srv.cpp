@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -144,7 +144,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {617, nullptr, "UnregisterExternalKey"},
         {620, nullptr, "SetSdCardEncryptionSeed"},
         {630, nullptr, "SetSdCardAccessibility"},
-        {631, nullptr, "IsSdCardAccessible"},
+        {631, D<&FSP_SRV::IsSdCardAccessible>, "IsSdCardAccessible"},
         {640, nullptr, "IsSignedSystemPartitionOnSdCardValid"},
         {700, nullptr, "OpenAccessFailureResolver"},
         {701, nullptr, "GetAccessFailureDetectionEvent"},
@@ -520,6 +520,14 @@ Result FSP_SRV::OpenDataStorageWithProgramIndex(OutInterface<IStorage> out_inter
     }
 
     *out_interface = std::make_shared<IStorage>(system, std::move(patched_romfs));
+
+    R_SUCCEED();
+}
+
+Result FSP_SRV::IsSdCardAccessible(Out<bool> out_is_accessible) {
+    LOG_DEBUG(Service_FS, "(STUBBED) called");
+
+    *out_is_accessible = true;
 
     R_SUCCEED();
 }

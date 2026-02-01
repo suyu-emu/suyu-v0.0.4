@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -101,6 +101,7 @@ private:
     Result OpenPatchDataStorageByCurrentProcess(OutInterface<IStorage> out_interface,
                                                 FileSys::StorageId storage_id, u64 title_id);
     Result OpenDataStorageWithProgramIndex(OutInterface<IStorage> out_interface, u8 program_index);
+    Result IsSdCardAccessible(Out<bool> out_is_accessible);
     Result DisableAutoSaveDataCreation();
     Result SetGlobalAccessLogMode(AccessLogMode access_log_mode_);
     Result GetGlobalAccessLogMode(Out<AccessLogMode> out_access_log_mode);
