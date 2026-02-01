@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -7,6 +7,7 @@
 #include "common/fiber.h"
 #include "common/scope_exit.h"
 #include "common/thread.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
@@ -25,11 +26,8 @@ CpuManager::~CpuManager() = default;
 void CpuManager::Initialize() {
     num_cores = is_multicore ? Core::Hardware::NUM_CPU_CORES : 1;
     gpu_barrier = std::make_unique<Common::Barrier>(num_cores + 1);
-
-    for (std::size_t core = 0; core < num_cores; core++) {
-        core_data[core].host_thread =
-            std::jthread([this, core](std::stop_token token) { RunThread(token, core); });
-    }
+    for (std::size_t core = 0; core < num_cores; core++)
+        core_data[core].host_thread = std::jthread([this, core](std::stop_token token) { RunThread(token, core); });
 }
 
 void CpuManager::Shutdown() {
@@ -188,14 +186,15 @@ void CpuManager::ShutdownThread() {
 void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     /// Initialization
     system.RegisterCoreThread(core);
-    std::string name;
-    if (is_multicore) {
-        name = "CPUCore_" + std::to_string(core);
-    } else {
-        name = "CPUThread";
-    }
+    std::string name = is_multicore ? ("CPUCore_" + std::to_string(core)) : std::string{"CPUThread"};
     Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
+#ifdef __ANDROID__
+    // Aimed specifically for Snapdragon 8 Elite devices
+    // This kills performance on desktop, but boosts perf for UMA devices
+    // like the S8E. Mediatek and Mali likely won't suffer.
+    Common::PinCurrentThreadToPerformanceCore(core);
+#endif
     auto& data = core_data[core];
     data.host_context = Common::Fiber::ThreadToFiber();
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
@@ -106,7 +106,7 @@ enum class ThreadPriority : u32 {
 };
 
 void SetCurrentThreadPriority(ThreadPriority new_priority);
-
 void SetCurrentThreadName(const char* name);
+void PinCurrentThreadToPerformanceCore(size_t core_id);
 
 } // namespace Common
