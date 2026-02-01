@@ -65,6 +65,10 @@ namespace AndroidSettings {
         Settings::Setting<s32> app_language{linkage, 0, "app_language", Settings::Category::Android};
         Settings::Setting<bool> enable_update_checks{linkage, true, "enable_update_checks",
                                                   Settings::Category::Android};
+        Settings::Setting<bool> enable_folder_button{linkage, true, "enable_folder_button",
+                                                  Settings::Category::Android};
+        Settings::Setting<bool> enable_qlaunch_button{linkage, false, "enable_qlaunch_button",
+                                                  Settings::Category::Android};
 
         // Input/performance overlay settings
         std::vector<OverlayControlData> overlay_control_data;

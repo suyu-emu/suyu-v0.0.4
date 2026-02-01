@@ -215,6 +215,22 @@
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/launch_qlaunch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="Launch QLaunch"
+        android:text="@string/qlaunch_applet"
+        app:icon="@drawable/ic_home"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="?attr/colorOnPrimary"
+        app:backgroundTint="?attr/colorPrimary"
+        app:iconTint="?attr/colorOnPrimary"
+        app:rippleColor="#99FFFFFF"
+        />
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/add_directory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -227,6 +243,7 @@
         android:textColor="?attr/colorOnPrimary"
         app:backgroundTint="?attr/colorPrimary"
         app:iconTint="?attr/colorOnPrimary"
+        app:rippleColor="#99FFFFFF"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

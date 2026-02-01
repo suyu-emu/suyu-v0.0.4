@@ -1191,6 +1191,13 @@ class SettingsFragmentPresenter(
                     descriptionId = R.string.use_black_backgrounds_description
                 )
             )
+
+            add(HeaderSetting(R.string.buttons))
+            add(BooleanSetting.ENABLE_FOLDER_BUTTON.key)
+            add(BooleanSetting.ENABLE_QLAUNCH_BUTTON.key)
+            if (!NativeLibrary.isFirmwareAvailable()) {
+                BooleanSetting.ENABLE_QLAUNCH_BUTTON.setBoolean(false)
+            }
         }
     }
 

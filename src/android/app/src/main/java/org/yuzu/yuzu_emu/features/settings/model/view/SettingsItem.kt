@@ -60,6 +60,11 @@ abstract class SettingsItem(
                 return NativeInput.getStyleIndex(0) != NpadStyleIndex.Handheld
             }
 
+            // Can't edit enable_qlaunch_button if firmware is not available
+            if (setting.key == BooleanSetting.ENABLE_QLAUNCH_BUTTON.key) {
+                return NativeLibrary.isFirmwareAvailable()
+            }
+
             // Can't edit settings that aren't saveable in per-game config even if they are switchable
             if (NativeConfig.isPerGameConfigLoaded() && !setting.isSaveable) {
                 return false
@@ -792,6 +797,20 @@ abstract class SettingsItem(
                     BooleanSetting.ENABLE_UPDATE_CHECKS,
                     titleId = R.string.enable_update_checks,
                     descriptionId = R.string.enable_update_checks_description,
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_FOLDER_BUTTON,
+                    titleId = R.string.enable_folder_button,
+                    descriptionId = R.string.enable_folder_button_description,
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_QLAUNCH_BUTTON,
+                    titleId = R.string.enable_qlaunch_button,
+                    descriptionId = R.string.enable_qlaunch_button_description,
                 )
             )
             put(
