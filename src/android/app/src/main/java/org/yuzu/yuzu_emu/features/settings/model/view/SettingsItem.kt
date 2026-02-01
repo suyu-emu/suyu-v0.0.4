@@ -836,6 +836,62 @@ abstract class SettingsItem(
                 )
             )
 
+            // GPU Logging settings
+            put(
+                SwitchSetting(
+                    BooleanSetting.GPU_LOGGING_ENABLED,
+                    titleId = R.string.gpu_logging_enabled,
+                    descriptionId = R.string.gpu_logging_enabled_description
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    ByteSetting.GPU_LOG_LEVEL,
+                    titleId = R.string.gpu_log_level,
+                    descriptionId = R.string.gpu_log_level_description,
+                    choicesId = R.array.gpuLogLevelEntries,
+                    valuesId = R.array.gpuLogLevelValues
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.GPU_LOG_VULKAN_CALLS,
+                    titleId = R.string.gpu_log_vulkan_calls,
+                    descriptionId = R.string.gpu_log_vulkan_calls_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.GPU_LOG_SHADER_DUMPS,
+                    titleId = R.string.gpu_log_shader_dumps,
+                    descriptionId = R.string.gpu_log_shader_dumps_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.GPU_LOG_MEMORY_TRACKING,
+                    titleId = R.string.gpu_log_memory_tracking,
+                    descriptionId = R.string.gpu_log_memory_tracking_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.GPU_LOG_DRIVER_DEBUG,
+                    titleId = R.string.gpu_log_driver_debug,
+                    descriptionId = R.string.gpu_log_driver_debug_description
+                )
+            )
+            put(
+                SpinBoxSetting(
+                    IntSetting.GPU_LOG_RING_BUFFER_SIZE,
+                    titleId = R.string.gpu_log_ring_buffer_size,
+                    descriptionId = R.string.gpu_log_ring_buffer_size_description,
+                    valueHint = R.string.gpu_log_ring_buffer_size_hint,
+                    min = 64,
+                    max = 4096
+                )
+            )
+
             val fastmem = object : AbstractBooleanSetting {
                 override fun getBoolean(needsGlobal: Boolean): Boolean =
                     BooleanSetting.FASTMEM.getBoolean() &&

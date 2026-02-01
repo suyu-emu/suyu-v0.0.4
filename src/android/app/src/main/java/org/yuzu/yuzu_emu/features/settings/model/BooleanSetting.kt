@@ -72,7 +72,14 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     USE_LRU_CACHE("use_lru_cache"),
 
     DONT_SHOW_DRIVER_SHADER_WARNING("dont_show_driver_shader_warning"),
-    ENABLE_OVERLAY("enable_overlay");
+    ENABLE_OVERLAY("enable_overlay"),
+
+    // GPU Logging
+    GPU_LOGGING_ENABLED("gpu_logging_enabled"),
+    GPU_LOG_VULKAN_CALLS("gpu_log_vulkan_calls"),
+    GPU_LOG_SHADER_DUMPS("gpu_log_shader_dumps"),
+    GPU_LOG_MEMORY_TRACKING("gpu_log_memory_tracking"),
+    GPU_LOG_DRIVER_DEBUG("gpu_log_driver_debug");
 
 
 //  external fun isFrameSkippingEnabled(): Boolean

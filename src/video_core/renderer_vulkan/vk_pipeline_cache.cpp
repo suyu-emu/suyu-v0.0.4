@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <span>
 #include <thread>
 #include <vector>
 #include <bit>
@@ -42,6 +43,7 @@
 #include "video_core/surface.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/gpu_logging/gpu_logging.h"
 
 namespace Vulkan {
 
@@ -724,6 +726,17 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output)};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
+
+        // Log shader compilation to GPU logger (with SPIR-V binary dump if enabled)
+        if (Settings::values.gpu_logging_enabled.GetValue()) {
+            static constexpr std::array stage_names{"vertex", "tess_control", "tess_eval", "geometry", "fragment"};
+            const std::string shader_name = fmt::format("shader_{:016x}_{}", key.unique_hashes[index], stage_names[stage_index]);
+            const std::string shader_info = fmt::format("SPIR-V size: {} bytes, hash: {:016x}",
+                code.size() * sizeof(u32), key.unique_hashes[index]);
+            GPU::Logging::GPULogger::GetInstance().LogShaderCompilation(shader_name, shader_info,
+                std::span<const u32>(code.data(), code.size()));
+        }
+
         if (device.HasDebuggingToolAttached()) {
             const std::string name{fmt::format("Shader {:016x}", key.unique_hashes[index])};
             modules[stage_index].SetObjectNameEXT(name.c_str());
@@ -831,6 +844,16 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     const std::vector<u32> code{EmitSPIRV(profile, program, this->optimize_spirv_output)};
     device.SaveShader(code);
     vk::ShaderModule spv_module{BuildShader(device, code)};
+
+    // Log compute shader compilation to GPU logger (with SPIR-V binary dump if enabled)
+    if (Settings::values.gpu_logging_enabled.GetValue()) {
+        const std::string shader_name = fmt::format("shader_{:016x}_compute", key.unique_hash);
+        const std::string shader_info = fmt::format("SPIR-V size: {} bytes, hash: {:016x}",
+            code.size() * sizeof(u32), key.unique_hash);
+        GPU::Logging::GPULogger::GetInstance().LogShaderCompilation(shader_name, shader_info,
+            std::span<const u32>(code.data(), code.size()));
+    }
+
     if (device.HasDebuggingToolAttached()) {
         const auto name{fmt::format("Shader {:016x}", key.unique_hash)};
         spv_module.SetObjectNameEXT(name.c_str());

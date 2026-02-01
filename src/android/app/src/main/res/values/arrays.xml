@@ -631,4 +631,21 @@
         <item>@string/error_keys_invalid_filename</item>
         <item>@string/error_keys_failed_init</item>
     </string-array>
+
+    <!-- GPU Logging Arrays -->
+    <string-array name="gpuLogLevelEntries">
+        <item>Off</item>
+        <item>Errors Only</item>
+        <item>Standard</item>
+        <item>Verbose</item>
+        <item>All</item>
+    </string-array>
+
+    <integer-array name="gpuLogLevelValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
 </resources>

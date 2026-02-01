@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <boost/container/small_vector.hpp>
+#include <fmt/format.h>
 
 #include "video_core/renderer_vulkan/pipeline_helper.h"
 #include "video_core/renderer_vulkan/pipeline_statistics.h"
@@ -20,6 +21,8 @@
 #include "video_core/shader_notify.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/gpu_logging/gpu_logging.h"
+#include "common/settings.h"
 
 namespace Vulkan {
 
@@ -81,6 +84,13 @@ ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipel
                 .basePipelineIndex = 0,
             },
             *pipeline_cache);
+
+        // Log compute pipeline creation
+        if (Settings::values.gpu_logging_enabled.GetValue()) {
+            GPU::Logging::GPULogger::GetInstance().LogPipelineStateChange(
+                "ComputePipeline created"
+            );
+        }
 
         if (pipeline_statistics) {
             pipeline_statistics->Collect(*pipeline);
@@ -207,6 +217,13 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
             build_condvar.wait(lock, [this] { return is_built.load(std::memory_order::relaxed); });
         });
     }
+
+    // Log compute pipeline binding
+    if (Settings::values.gpu_logging_enabled.GetValue() &&
+        Settings::values.gpu_log_vulkan_calls.GetValue()) {
+        GPU::Logging::GPULogger::GetInstance().LogPipelineBind(true, "compute pipeline");
+    }
+
     const void* const descriptor_data{guest_descriptor_queue.UpdateData()};
     const bool is_rescaling = !info.texture_descriptors.empty() || !info.image_descriptors.empty();
     scheduler.Record([this, descriptor_data, is_rescaling,

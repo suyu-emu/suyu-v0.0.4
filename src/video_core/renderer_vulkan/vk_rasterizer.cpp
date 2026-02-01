@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -9,6 +9,8 @@
 #include <memory>
 #include <mutex>
 
+#include <fmt/format.h>
+
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 
 #include "common/assert.h"
@@ -16,6 +18,7 @@
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "video_core/buffer_cache/buffer_cache.h"
+#include "video_core/gpu_logging/gpu_logging.h"
 #include "video_core/control/channel_state.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/engines/kepler_compute.h"
@@ -277,6 +280,20 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
                 }
             });
         }
+
+        // Log draw call
+        if (Settings::values.gpu_logging_enabled.GetValue() &&
+            Settings::values.gpu_log_vulkan_calls.GetValue()) {
+            const std::string params = is_indexed ?
+                fmt::format("vertices={}, instances={}, firstIndex={}, baseVertex={}, baseInstance={}",
+                    draw_params.num_vertices, draw_params.num_instances,
+                    draw_params.first_index, draw_params.base_vertex, draw_params.base_instance) :
+                fmt::format("vertices={}, instances={}, firstVertex={}, firstInstance={}",
+                    draw_params.num_vertices, draw_params.num_instances,
+                    draw_params.base_vertex, draw_params.base_instance);
+            GPU::Logging::GPULogger::GetInstance().LogVulkanCall(
+                is_indexed ? "vkCmdDrawIndexed" : "vkCmdDraw", params, VK_SUCCESS);
+        }
     });
 }
 
@@ -324,6 +341,16 @@ void RasterizerVulkan::DrawIndirect() {
                                     static_cast<u32>(params.stride));
             }
         });
+
+        // Log indirect draw call
+        if (Settings::values.gpu_logging_enabled.GetValue() &&
+            Settings::values.gpu_log_vulkan_calls.GetValue()) {
+            const std::string log_params = fmt::format("drawCount={}, stride={}",
+                params.max_draw_counts, params.stride);
+            GPU::Logging::GPULogger::GetInstance().LogVulkanCall(
+                params.is_indexed ? "vkCmdDrawIndexedIndirect" : "vkCmdDrawIndirect",
+                log_params, VK_SUCCESS);
+        }
     });
     buffer_cache.SetDrawIndirect(nullptr);
 }
@@ -568,6 +595,15 @@ void RasterizerVulkan::DispatchCompute() {
     scheduler.Record([](vk::CommandBuffer cmdbuf) { cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                0, READ_BARRIER); });
     scheduler.Record([dim](vk::CommandBuffer cmdbuf) { cmdbuf.Dispatch(dim[0], dim[1], dim[2]); });
+
+    // Log compute dispatch
+    if (Settings::values.gpu_logging_enabled.GetValue() &&
+        Settings::values.gpu_log_vulkan_calls.GetValue()) {
+        const std::string params = fmt::format("groupCountX={}, groupCountY={}, groupCountZ={}",
+            dim[0], dim[1], dim[2]);
+        GPU::Logging::GPULogger::GetInstance().LogVulkanCall(
+            "vkCmdDispatch", params, VK_SUCCESS);
+    }
 }
 
 void RasterizerVulkan::ResetCounter(VideoCommon::QueryType type) {
@@ -1066,6 +1102,11 @@ void RasterizerVulkan::HandleTransformFeedback() {
     query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount,
                               regs.transform_feedback_enabled);
     if (regs.transform_feedback_enabled != 0) {
+        // Log extension usage for transform feedback
+        if (Settings::values.gpu_logging_enabled.GetValue()) {
+            GPU::Logging::GPULogger::GetInstance().LogExtensionUsage(
+                "VK_EXT_transform_feedback", "HandleTransformFeedback");
+        }
         UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderType::TessellationInit) ||
                          regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation));
     }

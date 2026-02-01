@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "common/assert.h"
 #include "common/literals.h"
 #include <ranges>
@@ -22,6 +24,7 @@
 #include "video_core/vulkan_common/vma.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/gpu_logging/gpu_logging.h"
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
 #include <adrenotools/bcenabler.h>
@@ -734,9 +737,13 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     };
 
     vk::Check(vmaCreateAllocator(&allocator_info, &allocator));
+
+    // Initialize GPU logging if enabled
+    InitializeGPULogging();
 }
 
 Device::~Device() {
+    ShutdownGPULogging();
     vmaDestroyAllocator(allocator);
 }
 
@@ -1620,6 +1627,108 @@ std::vector<VkDeviceQueueCreateInfo> Device::GetDeviceQueueCreateInfos() const {
     }
 
     return queue_cis;
+}
+
+void Device::InitializeGPULogging() {
+    if (!Settings::values.gpu_logging_enabled.GetValue()) {
+        return;
+    }
+
+    // Detect driver type
+    const auto driver_id = GetDriverID();
+    GPU::Logging::DriverType detected_driver = GPU::Logging::DriverType::Unknown;
+
+    if (driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+        detected_driver = GPU::Logging::DriverType::Turnip;
+    } else if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
+        detected_driver = GPU::Logging::DriverType::Qualcomm;
+    }
+
+    // Get log level from settings
+    const auto log_level = static_cast<GPU::Logging::LogLevel>(
+        static_cast<u32>(Settings::values.gpu_log_level.GetValue()));
+
+    // Initialize GPU logger
+    GPU::Logging::GPULogger::GetInstance().Initialize(log_level, detected_driver);
+
+    // Configure feature flags
+    GPU::Logging::GPULogger::GetInstance().EnableVulkanCallTracking(
+        Settings::values.gpu_log_vulkan_calls.GetValue());
+    GPU::Logging::GPULogger::GetInstance().EnableShaderDumps(
+        Settings::values.gpu_log_shader_dumps.GetValue());
+    GPU::Logging::GPULogger::GetInstance().EnableMemoryTracking(
+        Settings::values.gpu_log_memory_tracking.GetValue());
+    GPU::Logging::GPULogger::GetInstance().EnableDriverDebugInfo(
+        Settings::values.gpu_log_driver_debug.GetValue());
+    GPU::Logging::GPULogger::GetInstance().SetRingBufferSize(
+        Settings::values.gpu_log_ring_buffer_size.GetValue());
+
+    // Log comprehensive driver and extension information
+    if (Settings::values.gpu_log_driver_debug.GetValue()) {
+        std::string driver_info;
+
+        // Device information
+        const auto& props = properties.properties;
+        driver_info += fmt::format("Device: {}\n", props.deviceName);
+        driver_info += fmt::format("Driver Name: {}\n", properties.driver.driverName);
+        driver_info += fmt::format("Driver Info: {}\n", properties.driver.driverInfo);
+
+        // Version information
+        const u32 driver_version = props.driverVersion;
+        const u32 api_version = props.apiVersion;
+        driver_info += fmt::format("Driver Version: {}.{}.{}\n",
+            VK_API_VERSION_MAJOR(driver_version),
+            VK_API_VERSION_MINOR(driver_version),
+            VK_API_VERSION_PATCH(driver_version));
+        driver_info += fmt::format("Vulkan API Version: {}.{}.{}\n",
+            VK_API_VERSION_MAJOR(api_version),
+            VK_API_VERSION_MINOR(api_version),
+            VK_API_VERSION_PATCH(api_version));
+        driver_info += fmt::format("Driver ID: {}\n", static_cast<u32>(driver_id));
+
+        // Vendor and device IDs
+        driver_info += fmt::format("Vendor ID: 0x{:04X}\n", props.vendorID);
+        driver_info += fmt::format("Device ID: 0x{:04X}\n", props.deviceID);
+
+        // Extensions - separate QCOM extensions from others
+        driver_info += "\n=== Loaded Vulkan Extensions ===\n";
+        std::vector<std::string> qcom_exts;
+        std::vector<std::string> other_exts;
+
+        for (const auto& ext : loaded_extensions) {
+            if (ext.find("QCOM") != std::string::npos || ext.find("qcom") != std::string::npos) {
+                qcom_exts.push_back(ext);
+            } else {
+                other_exts.push_back(ext);
+            }
+        }
+
+        // Log QCOM extensions first
+        if (!qcom_exts.empty()) {
+            driver_info += "\nQualcomm Proprietary Extensions:\n";
+            for (const auto& ext : qcom_exts) {
+                driver_info += fmt::format("  - {}\n", ext);
+            }
+        }
+
+        // Log other extensions
+        if (!other_exts.empty()) {
+            driver_info += "\nStandard Extensions:\n";
+            for (const auto& ext : other_exts) {
+                driver_info += fmt::format("  - {}\n", ext);
+            }
+        }
+
+        driver_info += fmt::format("\nTotal Extensions Loaded: {}\n", loaded_extensions.size());
+
+        GPU::Logging::GPULogger::GetInstance().LogDriverDebugInfo(driver_info);
+    }
+}
+
+void Device::ShutdownGPULogging() {
+    if (GPU::Logging::GPULogger::GetInstance().IsInitialized()) {
+        GPU::Logging::GPULogger::GetInstance().Shutdown();
+    }
 }
 
 } // namespace Vulkan

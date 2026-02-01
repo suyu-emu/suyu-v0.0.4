@@ -325,6 +325,9 @@
     <string name="share_log">Share debug logs</string>
     <string name="share_log_description">Share Eden\'s log file to debug issues</string>
     <string name="share_log_missing">No log file found</string>
+    <string name="share_gpu_log">Share GPU logs</string>
+    <string name="share_gpu_log_description">Share Eden\'s GPU log file to debug graphics issues</string>
+    <string name="share_gpu_log_missing">No GPU log file found</string>
     <string name="install_game_content">Install game content</string>
     <string name="install_game_content_description">Install game updates or DLC</string>
     <string name="installing_game_content">Installing content…</string>
@@ -551,6 +554,26 @@
     <string name="log">Logging</string>
     <string name="flush_by_line">Flush debug logs by line</string>
     <string name="flush_by_line_description">Flushes debugging logs on each line written, making debugging easier in cases of crashing or freezing.</string>
+
+    <!-- GPU Logging strings -->
+    <string name="gpu_logging">GPU Logging</string>
+    <string name="gpu_logging_header">GPU Logging</string>
+    <string name="gpu_logging_enabled">Enable GPU Logging</string>
+    <string name="gpu_logging_enabled_description">Log GPU operations to eden_gpu.log for debugging Adreno drivers</string>
+    <string name="gpu_log_level">Log Level</string>
+    <string name="gpu_log_level_description">Detail level for GPU logs (higher = more detail, more overhead)</string>
+    <string name="gpu_logging_features">Logging Features</string>
+    <string name="gpu_log_vulkan_calls">Log Vulkan API Calls</string>
+    <string name="gpu_log_vulkan_calls_description">Track all Vulkan API calls in ring buffer</string>
+    <string name="gpu_log_shader_dumps">Dump Shaders</string>
+    <string name="gpu_log_shader_dumps_description">Save compiled shader SPIR-V to files</string>
+    <string name="gpu_log_memory_tracking">Track GPU Memory</string>
+    <string name="gpu_log_memory_tracking_description">Monitor GPU memory allocations and deallocations</string>
+    <string name="gpu_log_driver_debug">Driver Debug Info</string>
+    <string name="gpu_log_driver_debug_description">Capture driver-specific debug information (Turnip breadcrumbs, etc.)</string>
+    <string name="gpu_log_ring_buffer_size">Ring Buffer Size</string>
+    <string name="gpu_log_ring_buffer_size_description">Number of recent Vulkan calls to track (default: 512)</string>
+    <string name="gpu_log_ring_buffer_size_hint">64 to 4096 entries</string>
 
     <string name="general">General</string>
 

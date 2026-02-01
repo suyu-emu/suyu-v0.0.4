@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -224,6 +224,14 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
+                    R.string.share_gpu_log,
+                    R.string.share_gpu_log_description,
+                    R.drawable.ic_log,
+                    { shareGpuLog() }
+                )
+            )
+            add(
+                HomeSetting(
                     R.string.open_user_folder,
                     R.string.open_user_folder_description,
                     R.drawable.ic_folder_open,
@@ -403,6 +411,40 @@ class HomeSettingsFragment : Fragment() {
             Toast.makeText(
                 requireContext(),
                 getText(R.string.share_log_missing),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun shareGpuLog() {
+        val currentLog = DocumentFile.fromSingleUri(
+            mainActivity,
+            DocumentsContract.buildDocumentUri(
+                DocumentProvider.AUTHORITY,
+                "${DocumentProvider.ROOT_ID}/log/eden_gpu.log"
+            )
+        )!!
+        val oldLog = DocumentFile.fromSingleUri(
+            mainActivity,
+            DocumentsContract.buildDocumentUri(
+                DocumentProvider.AUTHORITY,
+                "${DocumentProvider.ROOT_ID}/log/eden_gpu.log.old.txt"
+            )
+        )!!
+
+        val intent = Intent(Intent.ACTION_SEND)
+            .setDataAndType(currentLog.uri, FileUtil.TEXT_PLAIN)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        if (!Log.gameLaunched && oldLog.exists()) {
+            intent.putExtra(Intent.EXTRA_STREAM, oldLog.uri)
+            startActivity(Intent.createChooser(intent, getText(R.string.share_gpu_log)))
+        } else if (currentLog.exists()) {
+            intent.putExtra(Intent.EXTRA_STREAM, currentLog.uri)
+            startActivity(Intent.createChooser(intent, getText(R.string.share_gpu_log)))
+        } else {
+            Toast.makeText(
+                requireContext(),
+                getText(R.string.share_gpu_log_missing),
                 Toast.LENGTH_SHORT
             ).show()
         }

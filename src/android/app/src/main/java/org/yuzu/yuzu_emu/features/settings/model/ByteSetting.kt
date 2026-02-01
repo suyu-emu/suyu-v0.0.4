@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -9,7 +9,8 @@ package org.yuzu.yuzu_emu.features.settings.model
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 enum class ByteSetting(override val key: String) : AbstractByteSetting {
-    AUDIO_VOLUME("volume"),;
+    AUDIO_VOLUME("volume"),
+    GPU_LOG_LEVEL("gpu_log_level");
 
     override fun getByte(needsGlobal: Boolean): Byte = NativeConfig.getByte(key, needsGlobal)
 

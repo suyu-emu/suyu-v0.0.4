@@ -1220,6 +1220,15 @@ class SettingsFragmentPresenter(
             add(HeaderSetting(R.string.general))
 
             add(IntSetting.DEBUG_KNOBS.key)
+
+            add(HeaderSetting(R.string.gpu_logging_header))
+            add(BooleanSetting.GPU_LOGGING_ENABLED.key)
+            add(ByteSetting.GPU_LOG_LEVEL.key)
+            add(BooleanSetting.GPU_LOG_VULKAN_CALLS.key)
+            add(BooleanSetting.GPU_LOG_SHADER_DUMPS.key)
+            add(BooleanSetting.GPU_LOG_MEMORY_TRACKING.key)
+            add(BooleanSetting.GPU_LOG_DRIVER_DEBUG.key)
+            add(IntSetting.GPU_LOG_RING_BUFFER_SIZE.key)
         }
     }
 

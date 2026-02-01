@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -22,6 +22,8 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/gpu_logging/gpu_logging.h"
+#include "common/settings.h"
 
 namespace Vulkan {
     namespace {
@@ -107,7 +109,17 @@ namespace Vulkan {
     MemoryCommit::MemoryCommit(VmaAllocator alloc, VmaAllocation a,
                                const VmaAllocationInfo &info) noexcept
             : allocator{alloc}, allocation{a}, memory{info.deviceMemory},
-              offset{info.offset}, size{info.size}, mapped_ptr{info.pMappedData} {}
+              offset{info.offset}, size{info.size}, mapped_ptr{info.pMappedData} {
+        // Log GPU memory allocation
+        if (Settings::values.gpu_logging_enabled.GetValue() &&
+            Settings::values.gpu_log_memory_tracking.GetValue()) {
+            GPU::Logging::GPULogger::GetInstance().LogMemoryAllocation(
+                reinterpret_cast<uintptr_t>(memory),
+                static_cast<u64>(size),
+                0  // Memory property flags (not easily available from VMA)
+            );
+        }
+    }
 
     MemoryCommit::~MemoryCommit() { Release(); }
 
@@ -166,6 +178,15 @@ namespace Vulkan {
 
     void MemoryCommit::Release() {
         if (allocation && allocator) {
+            // Log GPU memory deallocation
+            if (Settings::values.gpu_logging_enabled.GetValue() &&
+                Settings::values.gpu_log_memory_tracking.GetValue() &&
+                memory != VK_NULL_HANDLE) {
+                GPU::Logging::GPULogger::GetInstance().LogMemoryDeallocation(
+                    reinterpret_cast<uintptr_t>(memory)
+                );
+            }
+
             if (mapped_ptr) {
                 vmaUnmapMemory(allocator, allocation);
                 mapped_ptr = nullptr;
@@ -218,7 +239,19 @@ namespace Vulkan {
 
         VkImage handle{};
         VmaAllocation allocation{};
-        vk::Check(vmaCreateImage(allocator, &ci, &alloc_ci, &handle, &allocation, nullptr));
+        VmaAllocationInfo alloc_info{};
+        vk::Check(vmaCreateImage(allocator, &ci, &alloc_ci, &handle, &allocation, &alloc_info));
+
+        // Log GPU memory allocation for images
+        if (Settings::values.gpu_logging_enabled.GetValue() &&
+            Settings::values.gpu_log_memory_tracking.GetValue()) {
+            GPU::Logging::GPULogger::GetInstance().LogMemoryAllocation(
+                reinterpret_cast<uintptr_t>(alloc_info.deviceMemory),
+                static_cast<u64>(alloc_info.size),
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            );
+        }
+
         return vk::Image(handle, ci.usage, *device.GetLogical(), allocator, allocation,
                          device.GetDispatchLoader());
     }
@@ -244,6 +277,16 @@ namespace Vulkan {
 
         vk::Check(vmaCreateBuffer(allocator, &ci, &alloc_ci, &handle, &allocation, &alloc_info));
         vmaGetAllocationMemoryProperties(allocator, allocation, &property_flags);
+
+        // Log GPU memory allocation for buffers
+        if (Settings::values.gpu_logging_enabled.GetValue() &&
+            Settings::values.gpu_log_memory_tracking.GetValue()) {
+            GPU::Logging::GPULogger::GetInstance().LogMemoryAllocation(
+                reinterpret_cast<uintptr_t>(alloc_info.deviceMemory),
+                static_cast<u64>(alloc_info.size),
+                property_flags
+            );
+        }
 
         u8 *data = reinterpret_cast<u8 *>(alloc_info.pMappedData);
         const std::span<u8> mapped_data = data ? std::span<u8>{data, ci.size} : std::span<u8>{};

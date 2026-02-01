@@ -929,6 +929,10 @@ public:
         return nvidia_arch;
     }
 
+    /// GPU logging integration
+    void InitializeGPULogging();
+    void ShutdownGPULogging();
+
 private:
     /// Checks if the physical device is suitable and configures the object state
     /// with all necessary info about its properties.

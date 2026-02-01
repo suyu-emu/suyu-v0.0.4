@@ -16,6 +16,7 @@
 #include "common/settings.h"
 
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
+#include "video_core/gpu_logging/gpu_logging.h"
 
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/renderer_vulkan/blit_image.h"
@@ -2304,6 +2305,11 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     const void* pnext = nullptr;
     if (has_custom_border_colors) {
         pnext = &border_ci;
+        // Log extension usage for custom border color
+        if (Settings::values.gpu_logging_enabled.GetValue()) {
+            GPU::Logging::GPULogger::GetInstance().LogExtensionUsage(
+                "VK_EXT_custom_border_color", "Sampler::Sampler");
+        }
     }
     const VkSamplerReductionModeCreateInfoEXT reduction_ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO_EXT,

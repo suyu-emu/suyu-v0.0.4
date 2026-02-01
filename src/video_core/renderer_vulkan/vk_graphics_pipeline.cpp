@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -10,6 +10,7 @@
 
 #include <boost/container/small_vector.hpp>
 #include <boost/container/static_vector.hpp>
+#include <fmt/format.h>
 
 #include "video_core/renderer_vulkan/pipeline_helper.h"
 
@@ -25,6 +26,8 @@
 #include "video_core/shader_notify.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/gpu_logging/gpu_logging.h"
+#include "common/settings.h"
 
 #if defined(_MSC_VER) && defined(NDEBUG)
 #define LAMBDA_FORCEINLINE [[msvc::forceinline]]
@@ -513,6 +516,14 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
     const bool is_rescaling{texture_cache.IsRescaling()};
     const bool update_rescaling{scheduler.UpdateRescaling(is_rescaling)};
     const bool bind_pipeline{scheduler.UpdateGraphicsPipeline(this)};
+
+    // Log graphics pipeline binding
+    if (bind_pipeline && Settings::values.gpu_logging_enabled.GetValue() &&
+        Settings::values.gpu_log_vulkan_calls.GetValue()) {
+        const std::string pipeline_info = fmt::format("hash=0x{:016x}", key.Hash());
+        GPU::Logging::GPULogger::GetInstance().LogPipelineBind(false, pipeline_info);
+    }
+
     const void* const descriptor_data{guest_descriptor_queue.UpdateData()};
     scheduler.Record([this, descriptor_data, bind_pipeline, rescaling_data = rescaling.Data(),
                       is_rescaling, update_rescaling,
@@ -954,6 +965,16 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             .basePipelineIndex = 0,
         },
         *pipeline_cache);
+
+    // Log graphics pipeline creation
+    if (Settings::values.gpu_logging_enabled.GetValue()) {
+        const std::string pipeline_info = fmt::format(
+            "GraphicsPipeline created: stages={}, attachments={}",
+            shader_stages.size(),
+            color_blend_ci.attachmentCount
+        );
+        GPU::Logging::GPULogger::GetInstance().LogPipelineStateChange(pipeline_info);
+    }
 }
 
 void GraphicsPipeline::Validate() {

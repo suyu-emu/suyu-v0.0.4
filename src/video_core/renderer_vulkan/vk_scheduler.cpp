@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -9,9 +9,13 @@
 #include <thread>
 #include <utility>
 
+#include <fmt/format.h>
+
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 
+#include "common/settings.h"
 #include "common/thread.h"
+#include "video_core/gpu_logging/gpu_logging.h"
 #include "video_core/renderer_vulkan/vk_command_pool.h"
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
@@ -113,6 +117,15 @@ void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
     state.renderpass = renderpass;
     state.framebuffer = framebuffer_handle;
     state.render_area = render_area;
+
+    // Log render pass begin
+    if (Settings::values.gpu_logging_enabled.GetValue() &&
+        Settings::values.gpu_log_vulkan_calls.GetValue()) {
+        const std::string render_pass_info = fmt::format(
+            "renderArea={}x{}, numImages={}",
+            render_area.width, render_area.height, framebuffer->NumImages());
+        GPU::Logging::GPULogger::GetInstance().LogRenderPassBegin(render_pass_info);
+    }
 
     Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
         const VkRenderPassBeginInfo renderpass_bi{
@@ -270,6 +283,12 @@ u64 Scheduler::SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_se
         switch (const VkResult result = master_semaphore->SubmitQueue(
                     cmdbuf, upload_cmdbuf, signal_semaphore, wait_semaphore, signal_value)) {
         case VK_SUCCESS:
+            // Log successful queue submission
+            if (Settings::values.gpu_logging_enabled.GetValue() &&
+                Settings::values.gpu_log_vulkan_calls.GetValue()) {
+                GPU::Logging::GPULogger::GetInstance().LogVulkanCall(
+                    "vkQueueSubmit", "", VK_SUCCESS);
+            }
             break;
         case VK_ERROR_DEVICE_LOST:
             device.ReportLoss();
@@ -303,6 +322,12 @@ void Scheduler::EndRenderPass()
     {
         if (!state.renderpass) {
             return;
+        }
+
+        // Log render pass end
+        if (Settings::values.gpu_logging_enabled.GetValue() &&
+            Settings::values.gpu_log_vulkan_calls.GetValue()) {
+            GPU::Logging::GPULogger::GetInstance().LogRenderPassEnd();
         }
 
         query_cache->CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, false);

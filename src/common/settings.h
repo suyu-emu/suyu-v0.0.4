@@ -738,6 +738,18 @@ struct Values {
     Setting<bool> perform_vulkan_check{linkage, true, "perform_vulkan_check", Category::Debugging};
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Debugging};
 
+    // GPU Logging
+    Setting<bool> gpu_logging_enabled{linkage, true, "gpu_logging_enabled", Category::Debugging};
+    SwitchableSetting<GpuLogLevel> gpu_log_level{linkage, GpuLogLevel::Standard, "gpu_log_level",
+                                                   Category::Debugging};
+    Setting<bool> gpu_log_vulkan_calls{linkage, true, "gpu_log_vulkan_calls", Category::Debugging};
+    Setting<bool> gpu_log_shader_dumps{linkage, false, "gpu_log_shader_dumps", Category::Debugging};
+    Setting<bool> gpu_log_memory_tracking{linkage, true, "gpu_log_memory_tracking",
+                                           Category::Debugging};
+    Setting<bool> gpu_log_driver_debug{linkage, true, "gpu_log_driver_debug", Category::Debugging};
+    Setting<s32> gpu_log_ring_buffer_size{linkage, 512, "gpu_log_ring_buffer_size",
+                                           Category::Debugging};
+
     SwitchableSetting<u16, true> debug_knobs{linkage,
                                            0,
                                            0,
