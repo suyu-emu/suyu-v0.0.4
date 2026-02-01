@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -497,7 +497,10 @@ void GameListWorker::run() {
             DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else {
-            watch_list.append(QString::fromStdString(game_dir.path));
+            const QString qpath = QString::fromStdString(game_dir.path);
+            if (QDir(qpath).exists()) {
+                watch_list.append(qpath);
+            }
             auto* const game_list_dir = new GameListDir(game_dir);
             DirEntryReady(game_list_dir);
             ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path, game_dir.deep_scan,
