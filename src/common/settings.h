@@ -739,7 +739,7 @@ struct Values {
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Debugging};
 
     // GPU Logging
-    Setting<bool> gpu_logging_enabled{linkage, true, "gpu_logging_enabled", Category::Debugging};
+    Setting<bool> gpu_logging_enabled{linkage, false, "gpu_logging_enabled", Category::Debugging};
     SwitchableSetting<GpuLogLevel> gpu_log_level{linkage, GpuLogLevel::Standard, "gpu_log_level",
                                                    Category::Debugging};
     Setting<bool> gpu_log_vulkan_calls{linkage, true, "gpu_log_vulkan_calls", Category::Debugging};

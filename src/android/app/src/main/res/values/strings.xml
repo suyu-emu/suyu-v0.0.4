@@ -556,13 +556,11 @@
     <string name="flush_by_line_description">Flushes debugging logs on each line written, making debugging easier in cases of crashing or freezing.</string>
 
     <!-- GPU Logging strings -->
-    <string name="gpu_logging">GPU Logging</string>
     <string name="gpu_logging_header">GPU Logging</string>
     <string name="gpu_logging_enabled">Enable GPU Logging</string>
     <string name="gpu_logging_enabled_description">Log GPU operations to eden_gpu.log for debugging Adreno drivers</string>
     <string name="gpu_log_level">Log Level</string>
     <string name="gpu_log_level_description">Detail level for GPU logs (higher = more detail, more overhead)</string>
-    <string name="gpu_logging_features">Logging Features</string>
     <string name="gpu_log_vulkan_calls">Log Vulkan API Calls</string>
     <string name="gpu_log_vulkan_calls_description">Track all Vulkan API calls in ring buffer</string>
     <string name="gpu_log_shader_dumps">Dump Shaders</string>
