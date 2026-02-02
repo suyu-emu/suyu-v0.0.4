@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
@@ -25,6 +25,7 @@
 #include "yuzu/compatibility_list.h"
 #include "frontend_common/play_time_manager.h"
 
+class QVariantAnimation;
 namespace Core {
 class System;
 }
@@ -161,6 +162,14 @@ private:
     QFileSystemWatcher* watcher = nullptr;
     ControllerNavigation* controller_navigation = nullptr;
     CompatibilityList compatibility_list;
+
+    QVariantAnimation* vertical_scroll = nullptr;
+    QVariantAnimation* horizontal_scroll = nullptr;
+    int vertical_scroll_target = 0;
+    int horizontal_scroll_target = 0;
+
+    void SetupScrollAnimation();
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
     friend class GameListSearchField;
 

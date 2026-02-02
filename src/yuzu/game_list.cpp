@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "yuzu/game_list.h"
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -11,22 +10,28 @@
 #include <QJsonObject>
 #include <QList>
 #include <QMenu>
+#include <QScroller>
+#include <QScrollBar>
 #include <QThreadPool>
 #include <QToolButton>
+#include <QVariantAnimation>
+#include <fmt/ranges.h>
+#include <qnamespace.h>
+#include <qscroller.h>
+#include <qscrollerproperties.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
-#include "qt_common/util/game.h"
 #include "qt_common/config/uisettings.h"
+#include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
+#include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
-#include <fmt/ranges.h>
-#include <regex>
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -328,6 +333,22 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     item_model = new QStandardItemModel(tree_view);
     tree_view->setModel(item_model);
 
+    SetupScrollAnimation();
+    tree_view->viewport()->installEventFilter(this);
+
+    // touch gestures
+    tree_view->viewport()->grabGesture(Qt::SwipeGesture);
+    tree_view->viewport()->grabGesture(Qt::PanGesture);
+
+    // TODO: touch?
+    QScroller::grabGesture(tree_view->viewport(), QScroller::LeftMouseButtonGesture);
+
+    auto scroller = QScroller::scroller(tree_view->viewport());
+    QScrollerProperties props;
+    props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy, QScrollerProperties::OvershootAlwaysOff);
+    props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy, QScrollerProperties::OvershootAlwaysOff);
+    scroller->setScrollerProperties(props);
+
     tree_view->setAlternatingRowColors(true);
     tree_view->setSelectionMode(QHeaderView::SingleSelection);
     tree_view->setSelectionBehavior(QHeaderView::SelectRows);
@@ -352,7 +373,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     connect(tree_view, &QTreeView::customContextMenuRequested, this, &GameList::PopupContextMenu);
     connect(tree_view, &QTreeView::expanded, this, &GameList::OnItemExpanded);
     connect(tree_view, &QTreeView::collapsed, this, &GameList::OnItemExpanded);
-    connect(controller_navigation, &ControllerNavigation::TriggerKeyboardEvent,
+    connect(controller_navigation, &ControllerNavigation::TriggerKeyboardEvent, this,
             [this](Qt::Key key) {
                 // Avoid pressing buttons while playing
                 if (system.IsPoweredOn()) {
@@ -477,7 +498,7 @@ void GameList::DonePopulating(const QStringList& watch_list) {
                             UISettings::values.favorited_ids.size() == 0);
     tree_view->setExpanded(item_model->invisibleRootItem()->child(0)->index(),
                            UISettings::values.favorites_expanded.GetValue());
-    for (const auto id : UISettings::values.favorited_ids) {
+    for (const auto id : std::as_const(UISettings::values.favorited_ids)) {
         AddFavorite(id);
     }
 
@@ -613,73 +634,73 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
     navigate_to_gamedb_entry->setVisible(it != compatibility_list.end() && program_id != 0);
 
-    connect(favorite, &QAction::triggered, [this, program_id]() { ToggleFavorite(program_id); });
-    connect(open_save_location, &QAction::triggered, [this, program_id, path]() {
+    connect(favorite, &QAction::triggered, this, [this, program_id]() { ToggleFavorite(program_id); });
+    connect(open_save_location, &QAction::triggered, this, [this, program_id, path]() {
         emit OpenFolderRequested(program_id, GameListOpenTarget::SaveData, path);
     });
-    connect(start_game, &QAction::triggered,
+    connect(start_game, &QAction::triggered, this,
             [this, path]() { emit BootGame(QString::fromStdString(path), StartGameType::Normal); });
-    connect(start_game_global, &QAction::triggered,
+    connect(start_game_global, &QAction::triggered, this,
             [this, path]() { emit BootGame(QString::fromStdString(path), StartGameType::Global); });
-    connect(open_mod_location, &QAction::triggered, [this, program_id, path]() {
+    connect(open_mod_location, &QAction::triggered, this, [this, program_id, path]() {
         emit OpenFolderRequested(program_id, GameListOpenTarget::ModData, path);
     });
-    connect(open_transferable_shader_cache, &QAction::triggered,
+    connect(open_transferable_shader_cache, &QAction::triggered, this,
             [this, program_id]() { emit OpenTransferableShaderCacheRequested(program_id); });
-    connect(remove_all_content, &QAction::triggered, [this, program_id]() {
+    connect(remove_all_content, &QAction::triggered, this, [this, program_id]() {
         emit RemoveInstalledEntryRequested(program_id, QtCommon::Game::InstalledEntryType::Game);
     });
-    connect(remove_update, &QAction::triggered, [this, program_id]() {
+    connect(remove_update, &QAction::triggered, this, [this, program_id]() {
         emit RemoveInstalledEntryRequested(program_id, QtCommon::Game::InstalledEntryType::Update);
     });
-    connect(remove_dlc, &QAction::triggered, [this, program_id]() {
+    connect(remove_dlc, &QAction::triggered, this, [this, program_id]() {
         emit RemoveInstalledEntryRequested(program_id, QtCommon::Game::InstalledEntryType::AddOnContent);
     });
-    connect(remove_gl_shader_cache, &QAction::triggered, [this, program_id, path]() {
+    connect(remove_gl_shader_cache, &QAction::triggered, this, [this, program_id, path]() {
         emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::GlShaderCache, path);
     });
-    connect(remove_vk_shader_cache, &QAction::triggered, [this, program_id, path]() {
+    connect(remove_vk_shader_cache, &QAction::triggered, this, [this, program_id, path]() {
         emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::VkShaderCache, path);
     });
-    connect(remove_shader_cache, &QAction::triggered, [this, program_id, path]() {
+    connect(remove_shader_cache, &QAction::triggered, this, [this, program_id, path]() {
         emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::AllShaderCache, path);
     });
-    connect(remove_custom_config, &QAction::triggered, [this, program_id, path]() {
+    connect(remove_custom_config, &QAction::triggered, this, [this, program_id, path]() {
         emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CustomConfiguration, path);
     });
-    connect(set_play_time, &QAction::triggered,
+    connect(set_play_time, &QAction::triggered, this,
             [this, program_id]() { emit SetPlayTimeRequested(program_id); });
-    connect(remove_play_time_data, &QAction::triggered,
+    connect(remove_play_time_data, &QAction::triggered, this,
             [this, program_id]() { emit RemovePlayTimeRequested(program_id); });
-    connect(remove_cache_storage, &QAction::triggered, [this, program_id, path] {
+    connect(remove_cache_storage, &QAction::triggered, this, [this, program_id, path] {
         emit RemoveFileRequested(program_id, QtCommon::Game::GameListRemoveTarget::CacheStorage, path);
     });
-    connect(dump_romfs, &QAction::triggered, [this, program_id, path]() {
+    connect(dump_romfs, &QAction::triggered, this, [this, program_id, path]() {
         emit DumpRomFSRequested(program_id, path, DumpRomFSTarget::Normal);
     });
-    connect(dump_romfs_sdmc, &QAction::triggered, [this, program_id, path]() {
+    connect(dump_romfs_sdmc, &QAction::triggered, this, [this, program_id, path]() {
         emit DumpRomFSRequested(program_id, path, DumpRomFSTarget::SDMC);
     });
-    connect(verify_integrity, &QAction::triggered,
+    connect(verify_integrity, &QAction::triggered, this,
             [this, path]() { emit VerifyIntegrityRequested(path); });
-    connect(copy_tid, &QAction::triggered,
+    connect(copy_tid, &QAction::triggered, this,
             [this, program_id]() { emit CopyTIDRequested(program_id); });
-    connect(navigate_to_gamedb_entry, &QAction::triggered, [this, program_id]() {
+    connect(navigate_to_gamedb_entry, &QAction::triggered, this, [this, program_id]() {
         emit NavigateToGamedbEntryRequested(program_id, compatibility_list);
     });
 // TODO: Implement shortcut creation for macOS
 #if !defined(__APPLE__)
-    connect(create_desktop_shortcut, &QAction::triggered, [this, program_id, path]() {
+    connect(create_desktop_shortcut, &QAction::triggered, this, [this, program_id, path]() {
         emit CreateShortcut(program_id, path, QtCommon::Game::ShortcutTarget::Desktop);
     });
-    connect(create_applications_menu_shortcut, &QAction::triggered, [this, program_id, path]() {
+    connect(create_applications_menu_shortcut, &QAction::triggered, this, [this, program_id, path]() {
         emit CreateShortcut(program_id, path, QtCommon::Game::ShortcutTarget::Applications);
     });
 #endif
-    connect(properties, &QAction::triggered,
+    connect(properties, &QAction::triggered, this,
             [this, path]() { emit OpenPerGameGeneralRequested(path); });
 
-    connect(ryujinx, &QAction::triggered, [this, program_id]() { emit LinkToRyujinxRequested(program_id);
+    connect(ryujinx, &QAction::triggered, this, [this, program_id]() { emit LinkToRyujinxRequested(program_id);
     });
 };
 
@@ -693,11 +714,11 @@ void GameList::AddCustomDirPopup(QMenu& context_menu, QModelIndex selected) {
     deep_scan->setCheckable(true);
     deep_scan->setChecked(game_dir.deep_scan);
 
-    connect(deep_scan, &QAction::triggered, [this, &game_dir] {
+    connect(deep_scan, &QAction::triggered, this, [this, &game_dir] {
         game_dir.deep_scan = !game_dir.deep_scan;
         PopulateAsync(UISettings::values.game_dirs);
     });
-    connect(delete_dir, &QAction::triggered, [this, &game_dir, selected] {
+    connect(delete_dir, &QAction::triggered, this, [this, &game_dir, selected] {
         UISettings::values.game_dirs.removeOne(game_dir);
         item_model->invisibleRootItem()->removeRow(selected.row());
         OnTextChanged(search_field->filterText());
@@ -716,7 +737,7 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
     move_up->setEnabled(row > 1);
     move_down->setEnabled(row < item_model->rowCount() - 2);
 
-    connect(move_up, &QAction::triggered, [this, selected, row, game_dir_index] {
+    connect(move_up, &QAction::triggered, this, [this, selected, row, game_dir_index] {
         const int other_index = selected.sibling(row - 1, 0).data(GameListDir::GameDirRole).toInt();
         // swap the items in the settings
         std::swap(UISettings::values.game_dirs[game_dir_index],
@@ -732,7 +753,7 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
                                UISettings::values.game_dirs[other_index].expanded);
     });
 
-    connect(move_down, &QAction::triggered, [this, selected, row, game_dir_index] {
+    connect(move_down, &QAction::triggered, this, [this, selected, row, game_dir_index] {
         const int other_index = selected.sibling(row + 1, 0).data(GameListDir::GameDirRole).toInt();
         // swap the items in the settings
         std::swap(UISettings::values.game_dirs[game_dir_index],
@@ -748,7 +769,7 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
                                UISettings::values.game_dirs[other_index].expanded);
     });
 
-    connect(open_directory_location, &QAction::triggered, [this, game_dir_index] {
+    connect(open_directory_location, &QAction::triggered, this, [this, game_dir_index] {
         emit OpenDirectory(
             QString::fromStdString(UISettings::values.game_dirs[game_dir_index].path));
     });
@@ -757,8 +778,8 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
 void GameList::AddFavoritesPopup(QMenu& context_menu) {
     QAction* clear = context_menu.addAction(tr("Clear"));
 
-    connect(clear, &QAction::triggered, [this] {
-        for (const auto id : UISettings::values.favorited_ids) {
+    connect(clear, &QAction::triggered, this, [this] {
+        for (const auto id : std::as_const(UISettings::values.favorited_ids)) {
             RemoveFavorite(id);
         }
         UISettings::values.favorited_ids.clear();
@@ -788,7 +809,7 @@ void GameList::LoadCompatibilityList() {
     const QJsonDocument json = QJsonDocument::fromJson(content);
     const QJsonArray arr = json.array();
 
-    for (const QJsonValue value : arr) {
+    for (const QJsonValue &value : arr) {
         const QJsonObject game = value.toObject();
         const QString compatibility_key = QStringLiteral("compatibility");
 
@@ -800,7 +821,7 @@ void GameList::LoadCompatibilityList() {
         const QString directory = game[QStringLiteral("directory")].toString();
         const QJsonArray ids = game[QStringLiteral("releases")].toArray();
 
-        for (const QJsonValue id_ref : ids) {
+        for (const QJsonValue &id_ref : ids) {
             const QJsonObject id_object = id_ref.toObject();
             const QString id = id_object[QStringLiteral("id")].toString();
 
@@ -919,7 +940,7 @@ void GameList::ToggleFavorite(u64 program_id) {
             tree_view->setRowHidden(0, item_model->invisibleRootItem()->index(), true);
         }
     }
-    SaveConfig();
+    emit SaveConfig();
 }
 
 void GameList::AddFavorite(u64 program_id) {
@@ -987,6 +1008,70 @@ void GameListPlaceholder::onUpdateThemedIcons() {
 
 void GameListPlaceholder::mouseDoubleClickEvent(QMouseEvent* event) {
     emit GameListPlaceholder::AddDirectory();
+}
+
+void GameList::SetupScrollAnimation() {
+    auto setup = [this](QVariantAnimation* anim, QScrollBar* bar) {
+        // animation handles moving the bar instead of Qt's built in crap
+        anim->setEasingCurve(QEasingCurve::OutCubic);
+        anim->setDuration(200);
+        connect(anim, &QVariantAnimation::valueChanged, this, [bar](const QVariant& value) {
+            bar->setValue(value.toInt());
+        });
+    };
+
+    vertical_scroll = new QVariantAnimation(this);
+    horizontal_scroll = new QVariantAnimation(this);
+
+    setup(vertical_scroll, tree_view->verticalScrollBar());
+    setup(horizontal_scroll, tree_view->horizontalScrollBar());
+}
+
+bool GameList::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == tree_view->viewport() && event->type() == QEvent::Wheel) {
+        QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
+
+        bool horizontal = wheelEvent->modifiers() & Qt::ShiftModifier;
+
+        int deltaX = wheelEvent->angleDelta().x();
+        int deltaY = wheelEvent->angleDelta().y();
+
+        // if shift is held do a horizontal scroll
+        if (horizontal && deltaY != 0 && deltaX == 0) {
+            deltaX = deltaY;
+            deltaY = 0;
+        }
+
+        // TODO(crueter): dedup this
+        if (deltaY != 0) {
+            if (vertical_scroll->state() == QAbstractAnimation::Stopped)
+                vertical_scroll_target = tree_view->verticalScrollBar()->value();
+
+            vertical_scroll_target -= deltaY;
+            vertical_scroll_target = qBound(0, vertical_scroll_target, tree_view->verticalScrollBar()->maximum());
+
+            vertical_scroll->stop();
+            vertical_scroll->setStartValue(tree_view->verticalScrollBar()->value());
+            vertical_scroll->setEndValue(vertical_scroll_target);
+            vertical_scroll->start();
+        }
+
+        if (deltaX != 0) {
+            if (horizontal_scroll->state() == QAbstractAnimation::Stopped)
+                horizontal_scroll_target = tree_view->horizontalScrollBar()->value();
+
+            horizontal_scroll_target -= deltaX;
+            horizontal_scroll_target = qBound(0, horizontal_scroll_target, tree_view->horizontalScrollBar()->maximum());
+
+            horizontal_scroll->stop();
+            horizontal_scroll->setStartValue(tree_view->horizontalScrollBar()->value());
+            horizontal_scroll->setEndValue(horizontal_scroll_target);
+            horizontal_scroll->start();
+        }
+
+        return true;
+    }
+    return QWidget::eventFilter(obj, event);
 }
 
 void GameListPlaceholder::changeEvent(QEvent* event) {
