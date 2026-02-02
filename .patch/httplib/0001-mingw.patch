@@ -1,52 +1,62 @@
-From e1a946ffb79022d38351a0623f819a5419965c3e Mon Sep 17 00:00:00 2001
+From 436fc1978c78edd085d99b33275b24be0ac96aa0 Mon Sep 17 00:00:00 2001
 From: crueter <crueter@eden-emu.dev>
-Date: Fri, 24 Oct 2025 23:41:09 -0700
-Subject: [PATCH] [build] Fix MinGW missing GetAddrInfoExCancel definition
+Date: Sun, 1 Feb 2026 16:21:10 -0500
+Subject: [PATCH] Fix build on MinGW
 
-MinGW does not define GetAddrInfoExCancel in its wstcpi whatever header,
-so to get around this we can just load it with GetProcAddress et al.
+MinGW doesn't define GetAddrInfoExCancel.
 
 Signed-off-by: crueter <crueter@eden-emu.dev>
 ---
- httplib.h | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ httplib.h | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
 diff --git a/httplib.h b/httplib.h
-index e15ba44..90a76dc 100644
+index ec8d2a2..5f9a510 100644
 --- a/httplib.h
 +++ b/httplib.h
-@@ -203,11 +203,13 @@
+@@ -203,14 +203,17 @@
  #error Sorry, Visual Studio versions prior to 2015 are not supported
  #endif
  
 -#pragma comment(lib, "ws2_32.lib")
 -
+ #ifndef _SSIZE_T_DEFINED
  using ssize_t = __int64;
+ #define _SSIZE_T_DEFINED
+ #endif
  #endif // _MSC_VER
  
 +#if defined(_MSC_VER) || defined(__MINGW32__)
 +#pragma comment(lib, "ws2_32.lib")
 +#endif
 +
++
  #ifndef S_ISREG
  #define S_ISREG(m) (((m) & S_IFREG) == S_IFREG)
  #endif // S_ISREG
-@@ -3557,7 +3559,15 @@ inline int getaddrinfo_with_timeout(const char *node, const char *service,
+@@ -4528,7 +4531,17 @@ inline int getaddrinfo_with_timeout(const char *node, const char *service,
      auto wait_result =
          ::WaitForSingleObject(event, static_cast<DWORD>(timeout_sec * 1000));
      if (wait_result == WAIT_TIMEOUT) {
 +#ifdef __MINGW32__
-+      typedef INT (WSAAPI *PFN_GETADDRINFOEXCANCEL)(HANDLE *CancelHandle);
-+      auto wsdll = LoadLibraryW((wchar_t*) "ws2_32.lib");
-+      PFN_GETADDRINFOEXCANCEL GetAddrInfoExCancel = (PFN_GETADDRINFOEXCANCEL) GetProcAddress(wsdll, "GetAddrInfoExCancel");
++      typedef INT(WSAAPI * PFN_GETADDRINFOEXCANCEL)(HANDLE * CancelHandle);
++      auto wsdll = LoadLibraryW((wchar_t *)"ws2_32.lib");
++      PFN_GETADDRINFOEXCANCEL GetAddrInfoExCancel =
++          (PFN_GETADDRINFOEXCANCEL)GetProcAddress(wsdll, "GetAddrInfoExCancel");
 +
 +      if (cancel_handle) { GetAddrInfoExCancel(&cancel_handle); }
 +#else
        if (cancel_handle) { ::GetAddrInfoExCancel(&cancel_handle); }
 +#endif
++
        ::CloseHandle(event);
        return EAI_AGAIN;
      }
+@@ -13952,3 +13965,4 @@ inline SSL_CTX *Client::ssl_context() const {
+ } // namespace httplib
+ 
+ #endif // CPPHTTPLIB_HTTPLIB_H
++
 -- 
-2.51.0
+2.51.2
 

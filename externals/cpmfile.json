@@ -28,8 +28,8 @@
     "httplib": {
         "repo": "yhirose/cpp-httplib",
         "tag": "v%VERSION%",
-        "hash": "e7a8877d489c97669a8ee536e1498575be921e558ed947253013fe6b67a49d4569eedd01f543caa70183b92d8ac0e8687d662a70d880954412e387317008a239",
-        "git_version": "0.28.0",
+        "hash": "a229e24cca4afe78e5c0aa2e482f15108ac34101fd8dbd927365f15e8c37dec4de38c5277d635017d692a5b320e1b929f8bfcc076f52b8e4dcdab8fe53bfdf2e",
+        "git_version": "0.30.1",
         "find_args": "MODULE GLOBAL",
         "patches": [
             "0001-mingw.patch"
@@ -174,9 +174,9 @@
         "package": "Catch2",
         "repo": "catchorg/Catch2",
         "tag": "v%VERSION%",
-        "hash": "a95495142f915d6e9c2a23e80fe360343e9097680066a2f9d3037a070ba5f81ee5559a0407cc9e972dc2afae325873f1fc7ea07a64012c0f01aac6e549f03e3f",
+        "hash": "acb3f463a7404d6a3bce52e474075cdadf9bb241d93feaf147c182d756e5a2f8bd412f4658ca186d15ab8fed36fc587d79ec311f55642d8e4ded16df9e213656",
         "version": "3.0.1",
-        "git_version": "3.11.0",
+        "git_version": "3.12.0",
         "patches": [
             "0001-solaris-isnan-fix.patch"
         ]

@@ -46,9 +46,9 @@
         "package": "ZLIB",
         "repo": "madler/zlib",
         "tag": "v%VERSION%",
-        "hash": "8c9642495bafd6fad4ab9fb67f09b268c69ff9af0f4f20cf15dfc18852ff1f312bd8ca41de761b3f8d8e90e77d79f2ccacd3d4c5b19e475ecf09d021fdfe9088",
+        "hash": "06eaa3a1eaaeb31f461a2283b03a91ed8eb2406e62cd97ea1c69836324909edeecd93edd03ff0bf593d9dde223e3376149134c5b1fe2e8688c258cadf8cd60ff",
         "version": "1.2",
-        "git_version": "1.3.1",
+        "git_version": "1.3.1.2",
         "options": [
             "ZLIB_BUILD_SHARED OFF",
             "ZLIB_INSTALL OFF"
