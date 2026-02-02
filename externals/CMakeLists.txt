@@ -83,8 +83,9 @@ endif()
 # mcl
 AddJsonPackage(mcl)
 
-# VulkanUtilityHeaders - pulls in headers and utility libs
-AddJsonPackage(vulkan-utility-headers)
+# Vulkan stuff
+AddJsonPackage(vulkan-headers)
+AddJsonPackage(vulkan-utility-libraries)
 
 # small hack
 if (NOT VulkanUtilityLibraries_ADDED)

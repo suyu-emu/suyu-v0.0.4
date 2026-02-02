@@ -118,15 +118,6 @@
         "git_version": "1.3.18",
         "find_args": "MODULE"
     },
-    "vulkan-utility-headers": {
-        "package": "VulkanUtilityLibraries",
-        "repo": "scripts/VulkanUtilityHeaders",
-        "tag": "%VERSION%",
-        "git_version": "1.4.335",
-        "artifact": "VulkanUtilityHeaders.tar.zst",
-        "git_host": "git.crueter.xyz",
-        "hash": "16dac0e6586702580c4279e4cd37ffe3cf909c93eb31b5069da7af36436d47b270a9cbaac953bb66c22ed12ed67ffa096688599267f307dfb62be1bc09f79833"
-    },
     "spirv-tools": {
         "package": "SPIRV-Tools",
         "repo": "KhronosGroup/SPIRV-Tools",
@@ -281,5 +272,20 @@
         "tag": "%VERSION%",
         "hash": "dc37a189a44ce8b5c988ca550582431a6c7eadfd3c6e709bee6277116ee803e714333e85c9e6cbb5c69346a14d6f2cc7ed96e8aa09cc5fb8a89f945059651db6",
         "version": "121125"
+    },
+    "vulkan-headers": {
+        "repo": "KhronosGroup/Vulkan-Headers",
+        "package": "VulkanHeaders",
+        "version": "1.3.274",
+        "hash": "26e0ad8fa34ab65a91ca62ddc54cc4410d209a94f64f2817dcdb8061dc621539a4262eab6387e9b9aa421db3dbf2cf8e2a4b041b696d0d03746bae1f25191272",
+        "git_version": "1.4.342",
+        "tag": "v%VERSION%"
+    },
+    "vulkan-utility-libraries": {
+        "repo": "KhronosGroup/Vulkan-Utility-Libraries",
+        "package": "VulkanUtilityLibraries",
+        "hash": "8147370f964fd82c315d6bb89adeda30186098427bf3efaa641d36282d42a263f31e96e4586bfd7ae0410ff015379c19aa4512ba160630444d3d8553afd1ec14",
+        "git_version": "1.4.342",
+        "tag": "v%VERSION%"
     }
 }

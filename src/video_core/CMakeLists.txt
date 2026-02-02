@@ -331,7 +331,7 @@ target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
 target_link_libraries(video_core PRIVATE sirit::sirit)
 
 # Header-only stuff needed by all dependent targets
-target_link_libraries(video_core PUBLIC Vulkan::UtilityHeaders GPUOpen::VulkanMemoryAllocator)
+target_link_libraries(video_core PUBLIC Vulkan::Headers Vulkan::UtilityHeaders GPUOpen::VulkanMemoryAllocator)
 
 if (ENABLE_NSIGHT_AFTERMATH)
     if (NOT DEFINED ENV{NSIGHT_AFTERMATH_SDK})
