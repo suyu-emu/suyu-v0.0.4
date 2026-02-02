@@ -1074,6 +1074,8 @@ class SettingsFragmentPresenter(
                 add(BooleanSetting.ENABLE_UPDATE_CHECKS.key)
             }
 
+            add(BooleanSetting.ENABLE_QUICK_SETTINGS.key)
+
             add(HeaderSetting(R.string.theme_and_color))
 
 

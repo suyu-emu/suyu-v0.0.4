@@ -801,6 +801,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.ENABLE_QUICK_SETTINGS,
+                    titleId = R.string.enable_quick_settings,
+                    descriptionId = R.string.enable_quick_settings_description,
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.ENABLE_FOLDER_BUTTON,
                     titleId = R.string.enable_folder_button,
                     descriptionId = R.string.enable_folder_button_description,

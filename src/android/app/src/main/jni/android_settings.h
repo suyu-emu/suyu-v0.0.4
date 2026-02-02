@@ -202,9 +202,14 @@ namespace AndroidSettings {
                                                     Settings::Specialization::Default, true, true,
                                                     &show_soc_overlay};
 
+        // MISC
         Settings::Setting<bool> dont_show_driver_shader_warning{linkage, false,
                                                                 "dont_show_driver_shader_warning",
                                                                 Settings::Category::Android, Settings::Specialization::Default, true, true};
+        Settings::Setting<bool> enable_quick_settings{linkage, true,
+                                                        "enable_quick_settings",
+                                                        Settings::Category::Android, Settings::Specialization::Default, true,
+                                                      false};
     };
 
     extern Values values;

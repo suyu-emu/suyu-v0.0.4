@@ -22,14 +22,6 @@ import org.yuzu.yuzu_emu.features.settings.model.AbstractShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 
 class QuickSettings(val emulationFragment: EmulationFragment) {
-    // Kinda a crappy workaround to get a title from setting keys
-    // Idk how to do this witthout hardcoding every single one
-    private fun getSettingTitle(settingKey: String): String {
-        return settingKey.replace("_", " ").split(" ")
-            .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
-
-    }
-
     private fun saveSettings() {
         if (emulationFragment.shouldUseCustom) {
             NativeConfig.savePerGameConfig()
@@ -60,6 +52,7 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
     // settings
 
     fun addIntSetting(
+        name: Int,
         container: ViewGroup,
         setting: IntSetting,
         namesArrayId: Int,
@@ -73,7 +66,7 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
         val expandIcon = itemView.findViewById<android.widget.ImageView>(R.id.expand_icon)
         val radioGroup = itemView.findViewById<RadioGroup>(R.id.radio_group)
 
-        titleView.text = getSettingTitle(setting.key)
+        titleView.text = YuzuApplication.appContext.getString(name)
 
         val names = emulationFragment.resources.getStringArray(namesArrayId)
         val values = emulationFragment.resources.getIntArray(valuesArrayId)
@@ -115,6 +108,8 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
     }
 
     fun addBooleanSetting(
+        name: Int,
+
         container: ViewGroup,
         setting: BooleanSetting
     ) {
@@ -125,7 +120,7 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
         val titleView = itemView.findViewById<TextView>(R.id.switch_title)
         val switchView = itemView.findViewById<com.google.android.material.materialswitch.MaterialSwitch>(R.id.setting_switch)
 
-        titleView.text = getSettingTitle(setting.key)
+        titleView.text = YuzuApplication.appContext.getString(name)
         switchContainer.visibility = View.VISIBLE
         switchView.isChecked = setting.getBoolean()
 
@@ -141,6 +136,7 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
     }
 
     fun addSliderSetting(
+        name: Int,
         container: ViewGroup,
         setting: AbstractSetting,
         minValue: Int = 0,
@@ -156,7 +152,7 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
         val slider = itemView.findViewById<com.google.android.material.slider.Slider>(R.id.setting_slider)
 
 
-        titleView.text = getSettingTitle(setting.key)
+        titleView.text = YuzuApplication.appContext.getString(name)
         sliderContainer.visibility = View.VISIBLE
 
         slider.valueFrom = minValue.toFloat()
