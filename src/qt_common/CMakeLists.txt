@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 add_library(qt_common STATIC
@@ -77,8 +77,6 @@ target_compile_definitions(qt_common PUBLIC
     # Disable implicit QString->QUrl conversions to enforce use of proper resolving functions.
     QT_NO_URL_CAST_FROM_STRING
 )
-
-add_subdirectory(externals)
 
 # pass targets
 find_package(frozen)

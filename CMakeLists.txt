@@ -693,6 +693,14 @@ if (ENABLE_QT)
     set(QT_MAJOR_VERSION 6)
     # Qt6 sets cxx_std_17 and we need to undo that
     set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
+
+    ## Qt Externals ##
+
+    # QuaZip
+    AddJsonPackage(quazip)
+
+    # frozen
+    AddJsonPackage(frozen)
 endif()
 
 if (NOT YUZU_STATIC_ROOM AND NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
