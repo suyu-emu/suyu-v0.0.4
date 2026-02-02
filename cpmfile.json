@@ -12,14 +12,12 @@
         "repo": "boostorg/boost",
         "tag": "boost-%VERSION%",
         "artifact": "%TAG%-cmake.tar.xz",
-        "hash": "4fb7f6fde92762305aad8754d7643cd918dd1f3f67e104e9ab385b18c73178d72a17321354eb203b790b6702f2cf6d725a5d6e2dfbc63b1e35f9eb59fb42ece9",
-        "git_version": "1.89.0",
+        "hash": "6ae6e94664fe7f2fb01976b59b276ac5df8085c7503fa829d810fbfe495960cfec44fa2c36e2cb23480bc19c956ed199d4952b02639a00a6c07625d4e7130c2d",
+        "git_version": "1.90.0",
         "version": "1.57",
         "find_args": "CONFIG OPTIONAL_COMPONENTS headers context system fiber filesystem",
         "patches": [
-            "0001-clang-cl.patch",
-            "0002-use-marmasm.patch",
-            "0003-armasm-options.patch"
+            "0001-clang-cl.patch"
         ]
     },
     "fmt": {
