@@ -178,7 +178,9 @@ endif()
 
 # Disable Warnings as Errors for MSVC
 if (MSVC AND NOT CXX_CLANG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
+    # This was dripping into spirv, being overriden, and causing cl flag override warning
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
+    set(CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS_INIT} /W3 /WX-")
 endif()
 
 # Set bundled sdl2/qt as dependent options.
