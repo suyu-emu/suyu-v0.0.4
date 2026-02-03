@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -640,6 +640,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, image_barrier);
     });
+    scheduler.Finish();
 }
 
 constexpr u32 BL3D_BINDING_SWIZZLE_TABLE = 0;
