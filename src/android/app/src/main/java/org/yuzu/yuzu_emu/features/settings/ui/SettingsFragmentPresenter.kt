@@ -275,6 +275,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
             add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
+            add(BooleanSetting.ENABLE_BUFFER_HISTORY.key)
 
             add(HeaderSetting(R.string.hacks))
 

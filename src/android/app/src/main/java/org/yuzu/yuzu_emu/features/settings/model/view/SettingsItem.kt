@@ -747,6 +747,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.ENABLE_BUFFER_HISTORY,
+                    titleId = R.string.enable_buffer_history,
+                    descriptionId = R.string.enable_buffer_history_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.SYNC_MEMORY_OPERATIONS,
                     titleId = R.string.sync_memory_operations,
                     descriptionId = R.string.sync_memory_operations_description

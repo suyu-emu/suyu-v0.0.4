@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -10,19 +10,30 @@
 #pragma once
 
 #include <condition_variable>
+#include <deque>
 #include <list>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <vector>
+#include <unordered_map>
+#include <algorithm>
 
 #include "core/hle/service/nvnflinger/buffer_item.h"
 #include "core/hle/service/nvnflinger/buffer_queue_defs.h"
+#include "core/hle/service/nvnflinger/buffer_slot.h"
 #include "core/hle/service/nvnflinger/pixel_format.h"
 #include "core/hle/service/nvnflinger/status.h"
 #include "core/hle/service/nvnflinger/window.h"
 
 namespace Service::android {
+
+struct BufferHistoryInfo {
+    u64 frame_number{};
+    s64 queue_time{};
+    s64 presentation_time{};
+    BufferState state{};
+};
 
 class IConsumerListener;
 class IProducerListener;
@@ -33,9 +44,13 @@ class BufferQueueCore final {
 
 public:
     static constexpr s32 INVALID_BUFFER_SLOT = BufferItem::INVALID_BUFFER_SLOT;
+    static constexpr u32 BUFFER_HISTORY_SIZE = 8;
 
     BufferQueueCore();
     ~BufferQueueCore();
+
+    void PushHistory(u64 frame_number, s64 queue_time, s64 presentation_time, BufferState state);
+    void UpdateHistory(u64 frame_number, BufferState state);
 
 private:
     void SignalDequeueCondition();
@@ -72,6 +87,11 @@ private:
     const s32 max_acquired_buffer_count{}; // This is always zero on HOS
     bool buffer_has_been_queued{};
     u64 frame_counter{};
+
+    std::unordered_map<u64, BufferHistoryInfo> buffer_history_map{};
+    mutable std::mutex buffer_history_mutex{};
+    std::deque<u64> buffer_history_order;
+
     u32 transform_hint{};
     bool is_allocating{};
     mutable std::condition_variable_any is_allocating_condition;

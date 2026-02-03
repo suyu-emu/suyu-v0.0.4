@@ -330,6 +330,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Barrier feedback loops"),
            tr("Improves rendering of transparency effects in specific games."));
     INSERT(Settings,
+           enable_buffer_history,
+           tr("Enable buffer history"),
+           tr("Enables access to previous buffer states.\nThis option may improve rendering quality and performance consistency in some games."));
+    INSERT(Settings,
            fix_bloom_effects,
            tr("Fix bloom effects"),
            tr("Removes bloom in Burnout."));

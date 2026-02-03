@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -9,6 +9,7 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
@@ -26,7 +27,7 @@ BufferQueueProducer::BufferQueueProducer(Service::KernelHelpers::ServiceContext&
                                          std::shared_ptr<BufferQueueCore> buffer_queue_core_,
                                          Service::Nvidia::NvCore::NvMap& nvmap_)
     : service_context{service_context_}, core{std::move(buffer_queue_core_)}, slots(core->slots),
-      nvmap(nvmap_) {
+      clock{Common::CreateOptimalClock()}, nvmap(nvmap_) {
     buffer_wait_event = service_context.CreateEvent("BufferQueue:WaitEvent");
 }
 
@@ -428,8 +429,7 @@ Status BufferQueueProducer::AttachBuffer(s32* out_slot,
     return return_flags;
 }
 
-Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
-                                        QueueBufferOutput* output) {
+Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input, QueueBufferOutput* output) {
     s64 timestamp{};
     bool is_auto_timestamp{};
     Common::Rectangle<s32> crop;
@@ -440,8 +440,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
     s32 swap_interval{};
     Fence fence{};
 
-    input.Deflate(&timestamp, &is_auto_timestamp, &crop, &scaling_mode, &transform,
-                  &sticky_transform_, &async, &swap_interval, &fence);
+    input.Deflate(&timestamp, &is_auto_timestamp, &crop, &scaling_mode, &transform, &sticky_transform_, &async, &swap_interval, &fence);
 
     switch (scaling_mode) {
     case NativeWindowScalingMode::Freeze:
@@ -455,10 +454,9 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         return Status::BadValue;
     }
 
-    std::shared_ptr<IConsumerListener> frame_available_listener;
-    std::shared_ptr<IConsumerListener> frame_replaced_listener;
-    s32 callback_ticket{};
     BufferItem item;
+    std::shared_ptr<IConsumerListener> listener_available;
+    std::shared_ptr<IConsumerListener> listener_replaced;
 
     {
         std::scoped_lock lock{core->mutex};
@@ -469,127 +467,82 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         }
 
         const s32 max_buffer_count = core->GetMaxBufferCountLocked(async);
-        if (async && core->override_max_buffer_count) {
-            if (core->override_max_buffer_count < max_buffer_count) {
-                LOG_ERROR(Service_Nvnflinger, "async mode is invalid with "
-                                              "buffer count override");
-                return Status::BadValue;
-            }
-        }
 
         if (slot < 0 || slot >= max_buffer_count) {
-            LOG_ERROR(Service_Nvnflinger, "slot index {} out of range [0, {})", slot,
-                      max_buffer_count);
+            LOG_ERROR(Service_Nvnflinger, "slot {} out of range [0, {})", slot, max_buffer_count);
             return Status::BadValue;
-        } else if (slots[slot].buffer_state != BufferState::Dequeued) {
-            LOG_ERROR(Service_Nvnflinger,
-                      "slot {} is not owned by the producer "
-                      "(state = {})",
-                      slot, slots[slot].buffer_state);
+        }
+        if (slots[slot].buffer_state != BufferState::Dequeued) {
+            LOG_ERROR(Service_Nvnflinger, "slot {} is not owned by producer", slot);
             return Status::BadValue;
-        } else if (!slots[slot].request_buffer_called) {
-            LOG_ERROR(Service_Nvnflinger,
-                      "slot {} was queued without requesting "
-                      "a buffer",
-                      slot);
+        }
+        if (!slots[slot].request_buffer_called) {
+            LOG_ERROR(Service_Nvnflinger, "slot {} was queued without request", slot);
             return Status::BadValue;
         }
 
-        LOG_DEBUG(Service_Nvnflinger,
-                  "slot={} frame={} time={} crop=[{},{},{},{}] transform={} scale={}", slot,
-                  core->frame_counter + 1, timestamp, crop.Left(), crop.Top(), crop.Right(),
-                  crop.Bottom(), transform, scaling_mode);
-
-        const std::shared_ptr<GraphicBuffer>& graphic_buffer(slots[slot].graphic_buffer);
-        Common::Rectangle<s32> buffer_rect(graphic_buffer->Width(), graphic_buffer->Height());
-        Common::Rectangle<s32> cropped_rect;
-        [[maybe_unused]] const bool unused = crop.Intersect(buffer_rect, &cropped_rect);
-
-        if (cropped_rect != crop) {
-            LOG_ERROR(Service_Nvnflinger, "crop rect is not contained within the buffer in slot {}",
-                      slot);
-            return Status::BadValue;
-        }
-
-        slots[slot].fence = fence;
-        slots[slot].buffer_state = BufferState::Queued;
         ++core->frame_counter;
+        slots[slot].buffer_state = BufferState::Queued;
         slots[slot].frame_number = core->frame_counter;
+        slots[slot].queue_time = timestamp;
+        slots[slot].presentation_time = clock->GetTimeNS().count();
+        slots[slot].fence = fence;
 
-        item.acquire_called = slots[slot].acquire_called;
+        item.slot = slot;
         item.graphic_buffer = slots[slot].graphic_buffer;
-        item.crop = crop;
-        item.transform = transform & ~NativeWindowTransform::InverseDisplay;
-        item.transform_to_display_inverse =
-            (transform & NativeWindowTransform::InverseDisplay) != NativeWindowTransform::None;
-        item.scaling_mode = static_cast<u32>(scaling_mode);
+        item.frame_number = core->frame_counter;
         item.timestamp = timestamp;
         item.is_auto_timestamp = is_auto_timestamp;
-        item.frame_number = core->frame_counter;
-        item.slot = slot;
+        item.crop = crop;
+        item.transform = transform & ~NativeWindowTransform::InverseDisplay;
+        item.transform_to_display_inverse = (transform & NativeWindowTransform::InverseDisplay) != NativeWindowTransform::None;
+        item.scaling_mode = static_cast<u32>(scaling_mode);
         item.fence = fence;
         item.is_droppable = core->dequeue_buffer_cannot_block || async;
         item.swap_interval = swap_interval;
+        item.acquire_called = slots[slot].acquire_called;
 
         sticky_transform = sticky_transform_;
 
         if (core->queue.empty()) {
-            // When the queue is empty, we can simply queue this buffer
             core->queue.push_back(item);
-            frame_available_listener = core->consumer_listener;
+            listener_available = core->consumer_listener;
         } else {
-            // When the queue is not empty, we need to look at the front buffer
-            // state to see if we need to replace it
-            auto front(core->queue.begin());
+            auto front = core->queue.begin();
+            if (front->is_droppable && core->StillTracking(*front)) {
+                slots[front->slot].buffer_state = BufferState::Free;
+                if (Settings::values.enable_buffer_history.GetValue()) {
+                    core->UpdateHistory(front->frame_number, BufferState::Free);
+                }
+                slots[front->slot].frame_number = 0;
+            }
 
             if (front->is_droppable) {
-                // If the front queued buffer is still being tracked, we first
-                // mark it as freed
-                if (core->StillTracking(*front)) {
-                    slots[front->slot].buffer_state = BufferState::Free;
-                    // Reset the frame number of the freed buffer so that it is the first in line to
-                    // be dequeued again
-                    slots[front->slot].frame_number = 0;
-                }
-                // Overwrite the droppable buffer with the incoming one
                 *front = item;
-                frame_replaced_listener = core->consumer_listener;
+                listener_replaced = core->consumer_listener;
             } else {
                 core->queue.push_back(item);
-                frame_available_listener = core->consumer_listener;
+                listener_available = core->consumer_listener;
             }
+        }
+
+        if (Settings::values.enable_buffer_history.GetValue()) {
+            core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, BufferState::Queued);
         }
 
         core->buffer_has_been_queued = true;
         core->SignalDequeueCondition();
-        output->Inflate(core->default_width, core->default_height, core->transform_hint,
-                        static_cast<u32>(core->queue.size()));
 
-        // Take a ticket for the callback functions
-        callback_ticket = next_callback_ticket++;
+        output->Inflate(core->default_width, core->default_height, core->transform_hint, static_cast<u32>(core->queue.size()));
     }
 
-    // Don't send the GraphicBuffer through the callback, and don't send the slot number, since the
-    // consumer shouldn't need it
     item.graphic_buffer.reset();
     item.slot = BufferItem::INVALID_BUFFER_SLOT;
 
-    // Call back without the main BufferQueue lock held, but with the callback lock held so we can
-    // ensure that callbacks occur in order
-    {
-        std::scoped_lock lock{callback_mutex};
-        while (callback_ticket != current_callback_ticket) {
-            callback_condition.wait(callback_mutex);
-        }
-
-        if (frame_available_listener != nullptr) {
-            frame_available_listener->OnFrameAvailable(item);
-        } else if (frame_replaced_listener != nullptr) {
-            frame_replaced_listener->OnFrameReplaced(item);
-        }
-
-        ++current_callback_ticket;
-        callback_condition.notify_all();
+    if (listener_available) {
+        listener_available->OnFrameAvailable(item);
+    } else if (listener_replaced) {
+        listener_replaced->OnFrameReplaced(item);
     }
 
     return Status::NoError;
@@ -810,6 +763,10 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     return Status::NoError;
 }
 
+Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
+    return &buffer_wait_event->GetReadableEvent();
+}
+
 void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
                                    std::span<u8> parcel_reply, u32 flags) {
     // Values used by BnGraphicBufferProducer onTransact
@@ -929,9 +886,42 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         status = SetBufferCount(buffer_count);
         break;
     }
-    case TransactionId::GetBufferHistory:
-        LOG_DEBUG(Service_Nvnflinger, "(STUBBED) called, transaction=GetBufferHistory");
+    case TransactionId::GetBufferHistory: {
+        if (!Settings::values.enable_buffer_history.GetValue()) {
+            LOG_DEBUG(Service_Nvnflinger, "(STUBBED) called");
+            break;
+        }
+
+        LOG_DEBUG(Service_Nvnflinger, "called, transaction=GetBufferHistory");
+
+        const s32 request = parcel_in.Read<s32>();
+        if (request <= 0) {
+            parcel_out.Write(Status::BadValue);
+            parcel_out.Write<s32>(0);
+            break;
+        }
+
+        std::vector<BufferHistoryInfo> snapshot;
+
+        {
+            std::scoped_lock lk(core->buffer_history_mutex);
+            for (auto& [frame, info] : core->buffer_history_map) {
+                snapshot.push_back(info);
+            }
+        }
+
+        std::sort(snapshot.begin(), snapshot.end(), [](auto& a, auto& b){
+            return a.frame_number > b.frame_number;
+        });
+
+        const s32 limit = std::min(request, (s32)snapshot.size());
+        parcel_out.Write(Status::NoError);
+        parcel_out.Write<s32>(limit);
+        for (s32 i = 0; i < limit; ++i) {
+            parcel_out.Write(snapshot[i]);
+        }
         break;
+    }
     default:
         ASSERT_MSG(false, "Unimplemented TransactionId {}", code);
         break;
@@ -942,10 +932,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
     const auto serialized = parcel_out.Serialize();
     std::memcpy(parcel_reply.data(), serialized.data(),
                 (std::min)(parcel_reply.size(), serialized.size()));
-}
-
-Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
-    return &buffer_wait_event->GetReadableEvent();
 }
 
 } // namespace Service::android

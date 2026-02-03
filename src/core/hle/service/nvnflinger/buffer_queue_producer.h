@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -14,6 +14,7 @@
 #include <mutex>
 
 #include "common/common_funcs.h"
+#include "common/wall_clock.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvnflinger/binder.h"
 #include "core/hle/service/nvnflinger/buffer_queue_defs.h"
@@ -88,6 +89,7 @@ private:
     s32 next_callback_ticket{};
     s32 current_callback_ticket{};
     std::condition_variable_any callback_condition;
+    std::unique_ptr<Common::WallClock> clock;
 
     Service::Nvidia::NvCore::NvMap& nvmap;
 };

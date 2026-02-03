@@ -481,6 +481,14 @@ struct Values {
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
                                                    Category::RendererAdvanced};
 
+    SwitchableSetting<bool> enable_buffer_history{linkage,
+                                                  false,
+                                                  "enable_buffer_history",
+                                                  Category::RendererAdvanced,
+                                                  Specialization::Default,
+                                                  true,
+                                                  true};
+
     // Renderer Hacks //
     SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
                                                   GpuOverclock::Medium,

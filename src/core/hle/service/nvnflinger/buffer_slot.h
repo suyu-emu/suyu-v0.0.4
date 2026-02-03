@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -37,6 +37,7 @@ struct BufferSlot final {
     bool needs_cleanup_on_release{};
     bool attached_by_consumer{};
     bool is_preallocated{};
+    s64 queue_time{}, presentation_time{};
 };
 
 } // namespace Service::android

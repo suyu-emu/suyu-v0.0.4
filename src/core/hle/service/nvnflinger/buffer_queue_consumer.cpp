@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -99,11 +99,6 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
         slots[slot].acquire_called = true;
         slots[slot].needs_cleanup_on_release = false;
         slots[slot].buffer_state = BufferState::Acquired;
-
-        // TODO: for now, avoid resetting the fence, so that when we next return this
-        // slot to the producer, it will wait for the fence to pass. We should fix this
-        // by properly waiting for the fence in the BufferItemConsumer.
-        // slots[slot].fence = Fence::NoFence();
     }
 
     // If the buffer has previously been acquired by the consumer, set graphic_buffer to nullptr to
