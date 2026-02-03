@@ -18,7 +18,7 @@
 src/web_service      @AleksandrPopovich
 src/dynarmic         @Lizzie
 src/core             @Lizzie @Maufeat @PavelBARABANOV @MrPurple666 @JPikachu
-src/core/hle         @Maufeat @PavelBARABANOV @SDK-Chan
+src/core/hle         @Maufeat @PavelBARABANOV
 src/core/arm         @Lizzie @MrPurple666
 src/*_room           @AleksandrPopovich
 src/video_core       @CamilleLaVey @MaranBr @Wildcard @weakboson
