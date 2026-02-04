@@ -31,6 +31,10 @@ The core of CPMUtil is the [`AddPackage`](./AddPackage.md) function. [`AddPackag
 
 [`AddJsonPackage`](./AddJsonPackage.md) is the recommended method of usage for CPMUtil.
 
+## AddDependentPackage
+
+[`AddDependentPackage`](./AddDependentPackage.md) allows you to add multiple packages such that all of them must be from the system OR bundled.
+
 ## AddQt
 
 [`AddQt`](./AddQt.md) adds a specific version of Qt to your project.

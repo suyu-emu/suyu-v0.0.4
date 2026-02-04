@@ -23,7 +23,7 @@ MAXDEPTH=3
 # For your project you'll want to change this to define what dirs you have cpmfiles in
 # Remember to account for the MAXDEPTH variable!
 # Adding ./ before each will help to remove duplicates
-CPMFILES=$(find . src -maxdepth "$MAXDEPTH" -name cpmfile.json | sort | uniq)
+CPMFILES=$(find . -maxdepth "$MAXDEPTH" -name cpmfile.json | sort | uniq)
 
 # shellcheck disable=SC2016
 PACKAGES=$(echo "$CPMFILES" | xargs jq -s 'reduce .[] as $item ({}; . * $item)')

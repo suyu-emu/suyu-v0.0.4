@@ -1230,6 +1230,10 @@ void Device::RemoveUnsuitableExtensions() {
     }
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+    // VK_KHR_unified_image_layouts
+    extensions.unified_image_layouts = features.unified_image_layouts.unifiedImageLayouts;
+    RemoveExtensionFeatureIfUnsuitable(extensions.unified_image_layouts, features.unified_image_layouts,
+                                       VK_KHR_UNIFIED_IMAGE_LAYOUTS_EXTENSION_NAME);
 
     // VK_EXT_depth_bias_control
     extensions.depth_bias_control =

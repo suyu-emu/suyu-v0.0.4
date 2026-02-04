@@ -41,6 +41,11 @@ function(cpm_utils_message level name message)
     message(${level} "[CPMUtil] ${name}: ${message}")
 endfunction()
 
+# propagate a variable to parent scope
+macro(Propagate var)
+    set(${var} ${${var}} PARENT_SCOPE)
+endmacro()
+
 function(array_to_list array length out)
     math(EXPR range "${length} - 1")
 
@@ -72,6 +77,159 @@ function(get_json_element object out member default)
     set("${out}" "${outvar}" PARENT_SCOPE)
 endfunction()
 
+# Determine whether or not a package has a viable system candidate.
+function(SystemPackageViable JSON_NAME)
+    string(JSON object GET "${CPMFILE_CONTENT}" "${JSON_NAME}")
+
+    parse_object(${object})
+
+    string(REPLACE " " ";" find_args "${find_args}")
+    find_package(${package} ${version} ${find_args} QUIET NO_POLICY_SCOPE)
+
+    set(${pkg}_VIABLE ${${package}_FOUND} PARENT_SCOPE)
+    set(${pkg}_PACKAGE ${package} PARENT_SCOPE)
+endfunction()
+
+# Add several packages such that if one is bundled,
+# all the rest must also be bundled.
+function(AddDependentPackages)
+    set(_some_system OFF)
+    set(_some_bundled OFF)
+
+    foreach(pkg ${ARGN})
+        SystemPackageViable(${pkg})
+
+        if (${pkg}_VIABLE)
+            set(_some_system ON)
+            list(APPEND _system_pkgs ${${pkg}_PACKAGE})
+        else()
+            set(_some_bundled ON)
+            list(APPEND _bundled_pkgs ${${pkg}_PACKAGE})
+        endif()
+    endforeach()
+
+    if (_some_system AND _some_bundled)
+        foreach(pkg ${ARGN})
+            list(APPEND package_names ${${pkg}_PACKAGE})
+        endforeach()
+
+        string(REPLACE ";" ", " package_names "${package_names}")
+        string(REPLACE ";" ", " bundled_names "${_bundled_pkgs}")
+        foreach(sys ${_system_pkgs})
+            list(APPEND system_names ${sys}_FORCE_BUNDLED)
+        endforeach()
+
+        string(REPLACE ";" ", " system_names "${system_names}")
+
+        message(FATAL_ERROR "Partial dependency installation detected "
+            "for the following packages:\n${package_names}\n"
+            "You can solve this in one of two ways:\n"
+            "1. Install the following packages to your system if available:"
+            "\n\t${bundled_names}\n"
+            "2. Set the following variables to ON:"
+            "\n\t${system_names}\n"
+            "This may also be caused by a version mismatch, "
+            "such as one package being newer than the other.")
+    endif()
+
+    foreach(pkg ${ARGN})
+        AddJsonPackage(${pkg})
+    endforeach()
+endfunction()
+
+# json util
+macro(parse_object object)
+    get_json_element("${object}" package package ${JSON_NAME})
+    get_json_element("${object}" repo repo "")
+    get_json_element("${object}" ci ci OFF)
+    get_json_element("${object}" version version "")
+
+    if(ci)
+        get_json_element("${object}" name name "${JSON_NAME}")
+        get_json_element("${object}" extension extension "tar.zst")
+        get_json_element("${object}" min_version min_version "")
+        get_json_element("${object}" raw_disabled disabled_platforms "")
+
+        if(raw_disabled)
+            array_to_list("${raw_disabled}"
+                ${raw_disabled_LENGTH} disabled_platforms)
+        else()
+            set(disabled_platforms "")
+        endif()
+    else()
+        get_json_element("${object}" hash hash "")
+        get_json_element("${object}" hash_suffix hash_suffix "")
+        get_json_element("${object}" sha sha "")
+        get_json_element("${object}" url url "")
+        get_json_element("${object}" key key "")
+        get_json_element("${object}" tag tag "")
+        get_json_element("${object}" artifact artifact "")
+        get_json_element("${object}" git_version git_version "")
+        get_json_element("${object}" git_host git_host "")
+        get_json_element("${object}" source_subdir source_subdir "")
+        get_json_element("${object}" bundled bundled "unset")
+        get_json_element("${object}" find_args find_args "")
+        get_json_element("${object}" raw_patches patches "")
+
+        # okay here comes the fun part: REPLACEMENTS!
+        # first: tag gets %VERSION% replaced if applicable,
+        #   with either git_version (preferred) or version
+        # second: artifact gets %VERSION% and %TAG% replaced
+        #   accordingly (same rules for VERSION)
+
+        if(git_version)
+            set(version_replace ${git_version})
+        else()
+            set(version_replace ${version})
+        endif()
+
+        # TODO(crueter): fmt module for cmake
+        if(tag)
+            string(REPLACE "%VERSION%" "${version_replace}" tag ${tag})
+        endif()
+
+        if(artifact)
+            string(REPLACE "%VERSION%" "${version_replace}"
+                artifact ${artifact})
+            string(REPLACE "%TAG%" "${tag}" artifact ${artifact})
+        endif()
+
+        # format patchdir
+        if(raw_patches)
+            math(EXPR range "${raw_patches_LENGTH} - 1")
+
+            foreach(IDX RANGE ${range})
+                string(JSON _patch GET "${raw_patches}" "${IDX}")
+
+                set(full_patch
+                    "${PROJECT_SOURCE_DIR}/.patch/${JSON_NAME}/${_patch}")
+                if(NOT EXISTS ${full_patch})
+                    cpm_utils_message(FATAL_ERROR ${JSON_NAME}
+                        "specifies patch ${full_patch} which does not exist")
+                endif()
+
+                list(APPEND patches "${full_patch}")
+            endforeach()
+        endif()
+        # end format patchdir
+
+        # options
+        get_json_element("${object}" raw_options options "")
+
+        if(raw_options)
+            array_to_list("${raw_options}" ${raw_options_LENGTH} options)
+        endif()
+
+        set(options ${options} ${JSON_OPTIONS})
+        # end options
+
+        # system/bundled
+        if(bundled STREQUAL "unset" AND DEFINED JSON_BUNDLED_PACKAGE)
+            set(bundled ${JSON_BUNDLED_PACKAGE})
+        endif()
+    endif()
+endmacro()
+
 # The preferred usage
 function(AddJsonPackage)
     set(oneValueArgs
@@ -80,7 +238,8 @@ function(AddJsonPackage)
         # these are overrides that can be generated at runtime,
         # so can be defined separately from the json
         DOWNLOAD_ONLY
-        BUNDLED_PACKAGE)
+        BUNDLED_PACKAGE
+        FORCE_BUNDLED_PACKAGE)
 
     set(multiValueArgs OPTIONS)
 
@@ -111,24 +270,9 @@ function(AddJsonPackage)
         cpm_utils_message(FATAL_ERROR ${JSON_NAME} "Not found in cpmfile")
     endif()
 
-    get_json_element("${object}" package package ${JSON_NAME})
-    get_json_element("${object}" repo repo "")
-    get_json_element("${object}" ci ci OFF)
-    get_json_element("${object}" version version "")
+    parse_object(${object})
 
     if(ci)
-        get_json_element("${object}" name name "${JSON_NAME}")
-        get_json_element("${object}" extension extension "tar.zst")
-        get_json_element("${object}" min_version min_version "")
-        get_json_element("${object}" raw_disabled disabled_platforms "")
-
-        if(raw_disabled)
-            array_to_list("${raw_disabled}"
-                ${raw_disabled_LENGTH} disabled_platforms)
-        else()
-            set(disabled_platforms "")
-        endif()
-
         AddCIPackage(
             VERSION ${version}
             NAME ${name}
@@ -138,116 +282,38 @@ function(AddJsonPackage)
             MIN_VERSION ${min_version}
             DISABLED_PLATFORMS ${disabled_platforms})
 
-        # pass stuff to parent scope
-        set(${package}_ADDED "${${package}_ADDED}"
-            PARENT_SCOPE)
-        set(${package}_SOURCE_DIR "${${package}_SOURCE_DIR}"
-            PARENT_SCOPE)
-        set(${package}_BINARY_DIR "${${package}_BINARY_DIR}"
-            PARENT_SCOPE)
-
-        return()
-    endif()
-
-    get_json_element("${object}" hash hash "")
-    get_json_element("${object}" hash_suffix hash_suffix "")
-    get_json_element("${object}" sha sha "")
-    get_json_element("${object}" url url "")
-    get_json_element("${object}" key key "")
-    get_json_element("${object}" tag tag "")
-    get_json_element("${object}" artifact artifact "")
-    get_json_element("${object}" git_version git_version "")
-    get_json_element("${object}" git_host git_host "")
-    get_json_element("${object}" source_subdir source_subdir "")
-    get_json_element("${object}" bundled bundled "unset")
-    get_json_element("${object}" find_args find_args "")
-    get_json_element("${object}" raw_patches patches "")
-
-    # okay here comes the fun part: REPLACEMENTS!
-    # first: tag gets %VERSION% replaced if applicable,
-    #   with either git_version (preferred) or version
-    # second: artifact gets %VERSION% and %TAG% replaced
-    #   accordingly (same rules for VERSION)
-
-    if(git_version)
-        set(version_replace ${git_version})
     else()
-        set(version_replace ${version})
+        if (NOT DEFINED JSON_FORCE_BUNDLED_PACKAGE)
+            set(JSON_FORCE_BUNDLED_PACKAGE OFF)
+        endif()
+
+        AddPackage(
+            NAME "${package}"
+            VERSION "${version}"
+            URL "${url}"
+            HASH "${hash}"
+            HASH_SUFFIX "${hash_suffix}"
+            SHA "${sha}"
+            REPO "${repo}"
+            KEY "${key}"
+            PATCHES "${patches}"
+            OPTIONS "${options}"
+            FIND_PACKAGE_ARGUMENTS "${find_args}"
+            BUNDLED_PACKAGE "${bundled}"
+            FORCE_BUNDLED_PACKAGE "${JSON_FORCE_BUNDLED_PACKAGE}"
+            SOURCE_SUBDIR "${source_subdir}"
+
+            GIT_VERSION ${git_version}
+            GIT_HOST ${git_host}
+
+            ARTIFACT ${artifact}
+            TAG ${tag})
     endif()
-
-    # TODO(crueter): fmt module for cmake
-    if(tag)
-        string(REPLACE "%VERSION%" "${version_replace}" tag ${tag})
-    endif()
-
-    if(artifact)
-        string(REPLACE "%VERSION%" "${version_replace}" artifact ${artifact})
-        string(REPLACE "%TAG%" "${tag}" artifact ${artifact})
-    endif()
-
-    # format patchdir
-    if(raw_patches)
-        math(EXPR range "${raw_patches_LENGTH} - 1")
-
-        foreach(IDX RANGE ${range})
-            string(JSON _patch GET "${raw_patches}" "${IDX}")
-
-            set(full_patch
-                "${PROJECT_SOURCE_DIR}/.patch/${JSON_NAME}/${_patch}")
-            if(NOT EXISTS ${full_patch})
-                cpm_utils_message(FATAL_ERROR ${JSON_NAME}
-                    "specifies patch ${full_patch} which does not exist")
-            endif()
-
-            list(APPEND patches "${full_patch}")
-        endforeach()
-    endif()
-    # end format patchdir
-
-    # options
-    get_json_element("${object}" raw_options options "")
-
-    if(raw_options)
-        array_to_list("${raw_options}" ${raw_options_LENGTH} options)
-    endif()
-
-    set(options ${options} ${JSON_OPTIONS})
-    # end options
-
-    # system/bundled
-    if(bundled STREQUAL "unset" AND DEFINED JSON_BUNDLED_PACKAGE)
-        set(bundled ${JSON_BUNDLED_PACKAGE})
-    endif()
-
-    AddPackage(
-        NAME "${package}"
-        VERSION "${version}"
-        URL "${url}"
-        HASH "${hash}"
-        HASH_SUFFIX "${hash_suffix}"
-        SHA "${sha}"
-        REPO "${repo}"
-        KEY "${key}"
-        PATCHES "${patches}"
-        OPTIONS "${options}"
-        FIND_PACKAGE_ARGUMENTS "${find_args}"
-        BUNDLED_PACKAGE "${bundled}"
-        SOURCE_SUBDIR "${source_subdir}"
-
-        GIT_VERSION ${git_version}
-        GIT_HOST ${git_host}
-
-        ARTIFACT ${artifact}
-        TAG ${tag})
 
     # pass stuff to parent scope
-    set(${package}_ADDED "${${package}_ADDED}"
-        PARENT_SCOPE)
-    set(${package}_SOURCE_DIR "${${package}_SOURCE_DIR}"
-        PARENT_SCOPE)
-    set(${package}_BINARY_DIR "${${package}_BINARY_DIR}"
-        PARENT_SCOPE)
-
+    Propagate(${package}_ADDED)
+    Propagate(${package}_SOURCE_DIR)
+    Propagate(${package}_BINARY_DIR)
 endfunction()
 
 function(AddPackage)
@@ -343,7 +409,7 @@ function(AddPackage)
 
             if(DEFINED PKG_ARGS_ARTIFACT)
                 set(pkg_url
-                    ${pkg_git_url}/releases/download/${PKG_ARGS_TAG}/${PKG_ARGS_ARTIFACT})
+                    "${pkg_git_url}/releases/download/${PKG_ARGS_TAG}/${PKG_ARGS_ARTIFACT}")
             else()
                 set(pkg_url
                     ${pkg_git_url}/archive/refs/tags/${PKG_ARGS_TAG}.tar.gz)
@@ -625,7 +691,8 @@ function(AddCIPackage)
     endif()
 
     if (DEFINED pkgname AND NOT "${pkgname}" IN_LIST DISABLED_PLATFORMS)
-        set(ARTIFACT "${ARTIFACT_NAME}-${pkgname}-${ARTIFACT_VERSION}.${ARTIFACT_EXT}")
+        set(ARTIFACT
+            "${ARTIFACT_NAME}-${pkgname}-${ARTIFACT_VERSION}.${ARTIFACT_EXT}")
 
         AddPackage(
             NAME ${ARTIFACT_PACKAGE}
