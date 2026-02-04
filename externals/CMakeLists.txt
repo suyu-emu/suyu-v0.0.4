@@ -92,6 +92,9 @@ if (NOT VulkanUtilityLibraries_ADDED)
     find_package(VulkanHeaders 1.3.274 REQUIRED)
 endif()
 
+# frozen
+AddJsonPackage(frozen)
+
 # DiscordRPC
 if (USE_DISCORD_PRESENCE)
     if (ARCHITECTURE_arm64)

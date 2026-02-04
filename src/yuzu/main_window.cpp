@@ -3,6 +3,7 @@
 
 // Qt on macOS doesn't define VMA shit
 #include <boost/algorithm/string/split.hpp>
+#include "frontend_common/settings_generator.h"
 #include "qt_common/qt_string_lookup.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
@@ -432,6 +433,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     Common::Log::Start();
 
     LoadTranslation();
+    FrontendCommon::GenerateSettings();
 
     setAcceptDrops(true);
     ui->setupUi(this);

@@ -1,18 +1,19 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <string>
 
 #include <jni.h>
-#include <common/fs/path_util.h>
 
 #include "android_config.h"
 #include "android_settings.h"
 #include "common/android/android_common.h"
 #include "common/android/id_cache.h"
+#include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "frontend_common/config.h"
+#include "frontend_common/settings_generator.h"
 #include "native.h"
 
 std::unique_ptr<AndroidConfig> global_config;
@@ -37,6 +38,7 @@ extern "C" {
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_initializeGlobalConfig(JNIEnv* env, jobject obj) {
     global_config = std::make_unique<AndroidConfig>();
+    FrontendCommon::GenerateSettings();
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_unloadGlobalConfig(JNIEnv* env, jobject obj) {

@@ -287,5 +287,11 @@
         "hash": "8147370f964fd82c315d6bb89adeda30186098427bf3efaa641d36282d42a263f31e96e4586bfd7ae0410ff015379c19aa4512ba160630444d3d8553afd1ec14",
         "git_version": "1.4.342",
         "tag": "v%VERSION%"
+    },
+    "frozen": {
+        "package": "frozen",
+        "repo": "serge-sans-paille/frozen",
+        "sha": "61dce5ae18",
+        "hash": "b8dfe741c82bc178dfc9749d4ab5a130cee718d9ee7b71d9b547cf5f7f23027ed0152ad250012a8546399fcc1e12187efc68d89d6731256c4d2df7d04eef8d5c"
     }
 }

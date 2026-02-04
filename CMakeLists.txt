@@ -589,6 +589,7 @@ if (NOT YUZU_STATIC_ROOM)
     find_package(sirit)
     find_package(gamemode)
     find_package(mcl)
+    find_package(frozen)
 
     if (ARCHITECTURE_riscv64)
         find_package(biscuit)
@@ -700,9 +701,6 @@ if (ENABLE_QT)
 
     # QuaZip
     AddJsonPackage(quazip)
-
-    # frozen
-    AddJsonPackage(frozen)
 endif()
 
 if (NOT YUZU_STATIC_ROOM AND NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))

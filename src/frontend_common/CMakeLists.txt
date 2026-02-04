@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -12,7 +12,8 @@ add_library(frontend_common STATIC
     firmware_manager.cpp
     data_manager.h data_manager.cpp
     play_time_manager.cpp
-    play_time_manager.h)
+    play_time_manager.h
+    settings_generator.h settings_generator.cpp)
 
 if (ENABLE_UPDATE_CHECKER)
     target_link_libraries(frontend_common PRIVATE httplib::httplib)
@@ -29,4 +30,6 @@ if (ENABLE_UPDATE_CHECKER)
 endif()
 
 create_target_directory_groups(frontend_common)
-target_link_libraries(frontend_common PUBLIC core SimpleIni::SimpleIni PRIVATE common Boost::headers)
+target_link_libraries(frontend_common
+    PUBLIC core SimpleIni::SimpleIni frozen::frozen-headers
+    PRIVATE common Boost::headers)
