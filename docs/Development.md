@@ -82,15 +82,15 @@ You may additionally need the `Qt Extension Pack` extension if building Qt.
 
 # Build speedup
 
-If you have an HDD, use ramdisk (build in RAM):
+If you have an HDD, use ramdisk (build in RAM), approximatedly you need 4GB for a full build with debug symbols:
 ```sh
-sudo mkdir /tmp/ramdisk
-sudo chmod 777 /tmp/ramdisk
+mkdir /tmp/ramdisk
+chmod 777 /tmp/ramdisk
 # about 8GB needed
-sudo mount -t tmpfs -o size=8G myramdisk /tmp/ramdisk
+mount -t tmpfs -o size=4G myramdisk /tmp/ramdisk
 cmake -B /tmp/ramdisk
 cmake --build /tmp/ramdisk -- -j32
-sudo umount /tmp/ramdisk
+umount /tmp/ramdisk
 ```
 
 # Assets and large files

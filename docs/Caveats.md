@@ -85,6 +85,8 @@ If you have `quazip1_qt6_devel`, uninstall it. It may call `Core5Compat` on CMak
 
 ## OpenBSD
 
+System boost doesn't have `context` (as of 7.8); so you may need to specify `-DYUZU_USE_CPM=ON -DBoost_FORCE_BUNDLED=ON`.
+
 After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-build/build.make` to use `-j$(nproc)` instead of just `-j`.
 
 `-lc++-experimental` doesn't exist in OpenBSD but the LLVM driver still tries to link against it, to solve just symlink `ln -s /usr/lib/libc++.a /usr/lib/libc++experimental.a`. Builds are currently not working due to lack of `std::jthread` and such, either compile libc++ manually or wait for ports to catch up.
