@@ -179,7 +179,14 @@ Result ILibraryAppletSelfAccessor::GetMainAppletStorageId(Out<FileSys::StorageId
 
 Result ILibraryAppletSelfAccessor::ExitProcessAndReturn() {
     LOG_INFO(Service_AM, "called");
-    m_applet->process->Terminate();
+
+    if (const auto caller_applet = m_applet->caller_applet.lock(); caller_applet) {
+        system.GetUserChannel() = caller_applet->user_channel_launch_parameter;
+    } else {
+        system.GetUserChannel() = m_applet->user_channel_launch_parameter;
+    }
+
+    system.ExecuteProgram(0);
     R_SUCCEED();
 }
 

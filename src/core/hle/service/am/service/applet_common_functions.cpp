@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -36,7 +36,7 @@ IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
         {100, nullptr, "SetApplicationCoreUsageMode"},
         {300, D<&IAppletCommonFunctions::GetCurrentApplicationId>, "GetCurrentApplicationId"},
         {310, nullptr, "IsSystemAppletHomeMenu"}, //19.0.0+
-        {320, nullptr, "SetGpuTimeSliceBoost"}, //19.0.0+
+        {320, D<&IAppletCommonFunctions::SetGpuTimeSliceBoost>, "SetGpuTimeSliceBoost"}, //19.0.0+
         {321, nullptr, "SetGpuTimeSliceBoostDueToApplication"}, //19.0.0+
         {350, D<&IAppletCommonFunctions::Unknown350>, "Unknown350"} //20.0.0+
     };
@@ -79,6 +79,11 @@ Result IAppletCommonFunctions::SetCpuBoostRequestPriority(s32 priority) {
 Result IAppletCommonFunctions::GetCurrentApplicationId(Out<u64> out_application_id) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
     *out_application_id = system.GetApplicationProcessProgramID() & ~0xFFFULL;
+    R_SUCCEED();
+}
+
+Result IAppletCommonFunctions::SetGpuTimeSliceBoost(s64 time_span) {
+    LOG_WARNING(Service_AM, "(STUBBED) called, time_span={}", time_span);
     R_SUCCEED();
 }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <array>
@@ -142,6 +142,7 @@ struct System::Impl {
 
     void ReinitializeIfNecessary(System& system) {
         const bool must_reinitialize =
+            !device_memory.has_value() ||
             is_multicore != Settings::values.use_multi_core.GetValue() ||
             extended_memory_layout != (Settings::values.memory_layout_mode.GetValue() !=
                                        Settings::MemoryLayout::Memory_4Gb);
@@ -414,6 +415,7 @@ struct System::Impl {
         cpu_manager.Shutdown();
         debugger.reset();
         kernel.Shutdown();
+        device_memory.reset();
         stop_event = {};
         Network::RestartSocketOperations();
 
