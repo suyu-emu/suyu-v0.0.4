@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <version>
-#include "common/settings_enums.h"
 #if __cpp_lib_chrono >= 201907L
 #include <chrono>
 #include <exception>
@@ -17,8 +16,10 @@
 #include <functional>
 #include <string_view>
 #include <type_traits>
+#include <deque>
 #include <fmt/core.h>
 
+#include "common/settings_enums.h"
 #include "common/assert.h"
 #include "common/fs/fs_util.h"
 #include "common/fs/path_util.h"
@@ -110,36 +111,38 @@ std::string GetTimeZoneString(TimeZone time_zone) {
 }
 
 void LogSettings() {
-    const auto log_setting = [](std::string_view name, const auto& value) {
-        LOG_INFO(Config, "{}: {}", name, value);
-    };
-
-    const auto log_path = [](std::string_view name, const std::filesystem::path& path) {
-        LOG_INFO(Config, "{}: {}", name, Common::FS::PathToUTF8String(path));
-    };
-
-    LOG_INFO(Config, "Eden Configuration:");
+    std::deque<std::string> settings_list;
     for (auto& [category, settings] : values.linkage.by_category) {
         for (const auto& setting : settings) {
-            if (setting->Id() == values.eden_token.Id()) {
-                // Hide the token secret, for security reasons.
-                continue;
+            // Hide the token secret, for security reasons.
+            if (setting->Id() != values.eden_token.Id()) {
+                auto const is_default = setting->ToString() == setting->DefaultToString();
+                auto const name = fmt::format(
+                    "{:c}{:c} {}.{}",
+                    is_default ? '-' : 'M',
+                    setting->UsingGlobal() ? '-' : 'C', TranslateCategory(category),
+                    setting->GetLabel());
+                if (is_default)
+                    settings_list.push_back(fmt::format("{}: {}\n", name, setting->Canonicalize()));
+                else
+                    settings_list.push_front(fmt::format("{}: {}\n", name, setting->Canonicalize()));
             }
-
-            const auto name = fmt::format(
-                "{:c}{:c} {}.{}", setting->ToString() == setting->DefaultToString() ? '-' : 'M',
-                setting->UsingGlobal() ? '-' : 'C', TranslateCategory(category),
-                setting->GetLabel());
-
-            log_setting(name, setting->Canonicalize());
         }
     }
-    log_path("DataStorage_CacheDir", Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir));
-    log_path("DataStorage_ConfigDir", Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir));
-    log_path("DataStorage_LoadDir", Common::FS::GetEdenPath(Common::FS::EdenPath::LoadDir));
-    log_path("DataStorage_NANDDir", Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir));
-    log_path("DataStorage_SaveDir", Common::FS::GetEdenPath(Common::FS::EdenPath::SaveDir));
-    log_path("DataStorage_SDMCDir", Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir));
+
+    std::string settings_str{};
+    for (auto const& e : settings_list)
+        settings_str += e;
+    LOG_INFO(Config, "Eden Configuration:\n{}", settings_str);
+#define LOG_PATH(NAME) \
+    LOG_INFO(Config, #NAME ": {}", Common::FS::PathToUTF8String(Common::FS::GetEdenPath(Common::FS::EdenPath::NAME)))
+    LOG_PATH(CacheDir);
+    LOG_PATH(ConfigDir);
+    LOG_PATH(LoadDir);
+    LOG_PATH(NANDDir);
+    LOG_PATH(SaveDir);
+    LOG_PATH(SDMCDir);
+#undef LOG_PATH
 }
 
 bool getDebugKnobAt(u8 i) {
@@ -171,12 +174,10 @@ bool IsDMALevelSafe() {
 }
 
 bool IsFastmemEnabled() {
-    if (values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Debugging) {
+    if (values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Debugging)
         return bool(values.cpuopt_fastmem);
-    }
-    if (values.cpu_accuracy.GetValue() == CpuAccuracy::Unsafe) {
+    else if (values.cpu_accuracy.GetValue() == CpuAccuracy::Unsafe)
         return bool(values.cpuopt_unsafe_host_mmu);
-    }
 #if !defined(__APPLE__) && !defined(__linux__) && !defined(__ANDROID__) && !defined(_WIN32)
     return false;
 #else
@@ -341,10 +342,7 @@ void TranslateResolutionInfo(ResolutionSetup setup, ResolutionScalingInfo& info)
         info.down_shift = 0;
         break;
     default:
-        ASSERT(false);
-        info.up_scale = 1;
-        info.down_shift = 0;
-        break;
+        UNREACHABLE();
     }
     info.up_factor = static_cast<f32>(info.up_scale) / (1U << info.down_shift);
     info.down_factor = static_cast<f32>(1U << info.down_shift) / info.up_scale;
