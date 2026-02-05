@@ -24,24 +24,26 @@
 namespace Common::Log {
 
 // Some IDEs prefer <file>:<line> instead, so let's just do that :)
-std::string FormatLogMessage(const Entry& entry) {
+std::string FormatLogMessage(const Entry& entry) noexcept {
     if (!entry.filename) return "";
 
     auto const time_seconds = uint32_t(entry.timestamp.count() / 1000000);
     auto const time_fractional = uint32_t(entry.timestamp.count() % 1000000);
-    char const* class_name = GetLogClassName(entry.log_class);
-    char const* level_name = GetLevelName(entry.log_level);
+    auto const class_name = GetLogClassName(entry.log_class);
+    auto const level_name = GetLevelName(entry.log_level);
     return fmt::format("[{:4d}.{:06d}] {} <{}> {}:{}:{}: {}", time_seconds, time_fractional,
                        class_name, level_name, entry.filename, entry.line_num, entry.function,
                        entry.message);
 }
 
-void PrintMessage(const Entry& entry) {
+/// @brief Formats and prints a log entry to stderr.
+static void PrintMessage(const Entry& entry) noexcept {
 #ifdef _WIN32
     auto const str = FormatLogMessage(entry).append(1, '\n');
+    fwrite(str.c_str(), 1, str.size(), stderr);
 #else
 #define ESC "\x1b"
-    auto str = std::string{[&entry]() -> const char* {
+    auto const color_str = [&entry]() -> const char* {
         switch (entry.log_level) {
         case Level::Debug: return ESC "[0;36m"; // Cyan
         case Level::Info: return ESC "[0;37m"; // Bright gray
@@ -50,15 +52,19 @@ void PrintMessage(const Entry& entry) {
         case Level::Critical: return ESC "[1;35m"; // Bright magenta
         default: return ESC "[1;30m"; // Grey
         }
-    }()};
-    str.append(FormatLogMessage(entry));
-    str.append(ESC "[0m\n");
+    }();
+    auto const time_seconds = uint32_t(entry.timestamp.count() / 1000000);
+    auto const time_fractional = uint32_t(entry.timestamp.count() % 1000000);
+    auto const class_name = GetLogClassName(entry.log_class);
+    auto const level_name = GetLevelName(entry.log_level);
+    fprintf(stderr, "%s[%4d.%06d] %s <%s> %s:%u:%s: %s" ESC "[0m\n", color_str,
+        time_seconds, time_fractional, class_name, level_name, entry.filename,
+        entry.line_num, entry.function, entry.message.c_str());
 #undef ESC
 #endif
-    fwrite(str.c_str(), 1, str.size(), stderr);
 }
 
-void PrintColoredMessage(const Entry& entry) {
+void PrintColoredMessage(const Entry& entry) noexcept {
 #ifdef _WIN32
     HANDLE console_handle = GetStdHandle(STD_ERROR_HANDLE);
     if (console_handle == INVALID_HANDLE_VALUE)
@@ -84,7 +90,7 @@ void PrintColoredMessage(const Entry& entry) {
 #endif
 }
 
-void PrintMessageToLogcat(const Entry& entry) {
+void PrintMessageToLogcat(const Entry& entry) noexcept {
 #ifdef ANDROID
     android_LogPriority android_log_priority = [&]() {
         switch (entry.log_level) {

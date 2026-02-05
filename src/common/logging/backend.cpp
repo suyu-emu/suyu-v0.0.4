@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
@@ -7,6 +7,7 @@
 #include <atomic>
 #include <chrono>
 #include <climits>
+#include <cstdlib>
 #include <regex>
 #include <thread>
 
@@ -41,7 +42,7 @@ namespace {
 
 /// @brief Trims up to and including the last of ../, ..\, src/, src\ in a string
 /// do not be fooled this isn't generating new strings on .rodata :)
-constexpr const char* TrimSourcePath(std::string_view source) {
+constexpr const char* TrimSourcePath(std::string_view source) noexcept {
     const auto rfind = [source](const std::string_view match) {
         return source.rfind(match) == source.npos ? 0 : (source.rfind(match) + match.size());
     };
@@ -51,31 +52,31 @@ constexpr const char* TrimSourcePath(std::string_view source) {
 
 /// @brief Interface for logging backends.
 struct Backend {
-    virtual ~Backend() = default;
-    virtual void Write(const Entry& entry) = 0;
-    virtual void EnableForStacktrace() = 0;
-    virtual void Flush() = 0;
+    virtual ~Backend() noexcept = default;
+    virtual void Write(const Entry& entry) noexcept = 0;
+    virtual void EnableForStacktrace() noexcept= 0;
+    virtual void Flush() noexcept = 0;
 };
 
 /// @brief Backend that writes to stderr and with color
 struct ColorConsoleBackend final : public Backend {
-    explicit ColorConsoleBackend() = default;
-    ~ColorConsoleBackend() override = default;
+    explicit ColorConsoleBackend() noexcept = default;
+    ~ColorConsoleBackend() noexcept override = default;
 
-    void Write(const Entry& entry) override {
+    void Write(const Entry& entry) noexcept override {
         if (enabled.load(std::memory_order_relaxed))
             PrintColoredMessage(entry);
     }
 
-    void Flush() override {
+    void Flush() noexcept override {
         // stderr shouldn't be buffered
     }
 
-    void EnableForStacktrace() override {
+    void EnableForStacktrace() noexcept override {
         enabled = true;
     }
 
-    void SetEnabled(bool enabled_) {
+    void SetEnabled(bool enabled_) noexcept {
         enabled = enabled_;
     }
 
@@ -83,9 +84,10 @@ private:
     std::atomic_bool enabled{false};
 };
 
+#ifndef __OPENORBIS__
 /// @brief Backend that writes to a file passed into the constructor
 struct FileBackend final : public Backend {
-    explicit FileBackend(const std::filesystem::path& filename) {
+    explicit FileBackend(const std::filesystem::path& filename) noexcept {
         auto old_filename = filename;
         old_filename += ".old.txt";
 
@@ -97,9 +99,9 @@ struct FileBackend final : public Backend {
         file = std::make_unique<FS::IOFile>(filename, FS::FileAccessMode::Write, FS::FileType::TextFile);
     }
 
-    ~FileBackend() override = default;
+    ~FileBackend() noexcept override = default;
 
-    void Write(const Entry& entry) override {
+    void Write(const Entry& entry) noexcept override {
         if (!enabled)
             return;
 
@@ -147,11 +149,11 @@ struct FileBackend final : public Backend {
         }
     }
 
-    void Flush() override {
+    void Flush() noexcept override {
         file->Flush();
     }
 
-    void EnableForStacktrace() override {
+    void EnableForStacktrace() noexcept override {
         enabled = true;
         bytes_written = 0;
     }
@@ -161,29 +163,30 @@ private:
     std::size_t bytes_written = 0;
     bool enabled = true;
 };
+#endif
 
 #ifdef _WIN32
 /// @brief Backend that writes to Visual Studio's output window
 struct DebuggerBackend final : public Backend {
-    explicit DebuggerBackend() = default;
-    ~DebuggerBackend() override = default;
-    void Write(const Entry& entry) override {
+    explicit DebuggerBackend() noexcept = default;
+    ~DebuggerBackend() noexcept override = default;
+    void Write(const Entry& entry) noexcept override {
         ::OutputDebugStringW(UTF8ToUTF16W(FormatLogMessage(entry).append(1, '\n')).c_str());
     }
-    void Flush() override {}
-    void EnableForStacktrace() override {}
+    void Flush() noexcept override {}
+    void EnableForStacktrace() noexcept override {}
 };
 #endif
 #ifdef ANDROID
 /// @brief Backend that writes to the Android logcat
 struct LogcatBackend : public Backend {
-    explicit LogcatBackend() = default;
-    ~LogcatBackend() override = default;
-    void Write(const Entry& entry) override {
+    explicit LogcatBackend() noexcept = default;
+    ~LogcatBackend() noexcept override = default;
+    void Write(const Entry& entry) noexcept override {
         PrintMessageToLogcat(entry);
     }
-    void Flush() override {}
-    void EnableForStacktrace() override {}
+    void Flush() noexcept override {}
+    void EnableForStacktrace() noexcept override {}
 };
 #endif
 
@@ -192,13 +195,13 @@ bool initialization_in_progress_suppress_logging = true;
 /// @brief Static state as a singleton.
 class Impl {
 public:
-    static Impl& Instance() {
+    static Impl& Instance() noexcept {
         if (!instance)
-            throw std::runtime_error("Using Logging instance before its initialization");
+            std::abort();
         return *instance;
     }
 
-    static void Initialize() {
+    static void Initialize() noexcept {
         if (instance) {
             LOG_WARNING(Log, "Reinitializing logging backend");
             return;
@@ -212,25 +215,25 @@ public:
         initialization_in_progress_suppress_logging = false;
     }
 
-    static void Start() {
+    static void Start() noexcept {
         instance->StartBackendThread();
     }
 
-    static void Stop() {
+    static void Stop() noexcept {
         instance->StopBackendThread();
     }
 
-    Impl(const Impl&) = delete;
-    Impl& operator=(const Impl&) = delete;
+    Impl(const Impl&) noexcept = delete;
+    Impl& operator=(const Impl&) noexcept = delete;
 
-    Impl(Impl&&) = delete;
-    Impl& operator=(Impl&&) = delete;
+    Impl(Impl&&) noexcept = delete;
+    Impl& operator=(Impl&&) noexcept = delete;
 
-    void SetGlobalFilter(const Filter& f) {
+    void SetGlobalFilter(const Filter& f) noexcept {
         filter = f;
     }
 
-    void SetColorConsoleBackendEnabled(bool enabled) {
+    void SetColorConsoleBackendEnabled(bool enabled) noexcept {
         color_console_backend.SetEnabled(enabled);
     }
 
@@ -238,19 +241,21 @@ public:
         return filter.CheckMessage(log_class, log_level);
     }
 
-    void PushEntry(Class log_class, Level log_level, const char* filename, unsigned int line_num,
-                   const char* function, std::string&& message) noexcept {
-        message_queue.EmplaceWait(
-            CreateEntry(log_class, log_level, TrimSourcePath(filename), line_num, function, std::move(message)));
+    void PushEntry(Class log_class, Level log_level, const char* filename, unsigned int line_num, const char* function, std::string&& message) noexcept {
+        message_queue.EmplaceWait(CreateEntry(log_class, log_level, TrimSourcePath(filename), line_num, function, std::move(message)));
     }
 
 private:
-    Impl(const std::filesystem::path& file_backend_filename, const Filter& filter_)
-        : filter{filter_}, file_backend{file_backend_filename} {}
+    Impl(const std::filesystem::path& file_backend_filename, const Filter& filter_) noexcept :
+        filter{filter_}
+#ifndef __OPENORBIS__
+        , file_backend{file_backend_filename}
+#endif
+    {}
 
-    ~Impl() = default;
+    ~Impl() noexcept = default;
 
-    void StartBackendThread() {
+    void StartBackendThread() noexcept {
         backend_thread = std::jthread([this](std::stop_token stop_token) {
             Common::SetCurrentThreadName("Logger");
             Entry entry;
@@ -271,15 +276,14 @@ private:
         });
     }
 
-    void StopBackendThread() {
+    void StopBackendThread() noexcept {
         backend_thread.request_stop();
         if (backend_thread.joinable())
             backend_thread.join();
         ForEachBackend([](Backend& backend) { backend.Flush(); });
     }
 
-    Entry CreateEntry(Class log_class, Level log_level, const char* filename, unsigned int line_nr,
-                      const char* function, std::string&& message) const {
+    Entry CreateEntry(Class log_class, Level log_level, const char* filename, unsigned int line_nr, const char* function, std::string&& message) const noexcept {
         using std::chrono::duration_cast;
         using std::chrono::microseconds;
         using std::chrono::steady_clock;
@@ -294,9 +298,11 @@ private:
         };
     }
 
-    void ForEachBackend(auto lambda) {
+    void ForEachBackend(auto lambda) noexcept {
         lambda(static_cast<Backend&>(color_console_backend));
+#ifndef __OPENORBIS__
         lambda(static_cast<Backend&>(file_backend));
+#endif
 #ifdef _WIN32
         lambda(static_cast<Backend&>(debugger_backend));
 #endif
@@ -305,7 +311,7 @@ private:
 #endif
     }
 
-    static void Deleter(Impl* ptr) {
+    static void Deleter(Impl* ptr) noexcept {
         delete ptr;
     }
 
@@ -313,7 +319,9 @@ private:
 
     Filter filter;
     ColorConsoleBackend color_console_backend{};
+#ifndef __OPENORBIS__
     FileBackend file_backend;
+#endif
 #ifdef _WIN32
     DebuggerBackend debugger_backend{};
 #endif
@@ -351,9 +359,7 @@ void SetColorConsoleBackendEnabled(bool enabled) {
     Impl::Instance().SetColorConsoleBackendEnabled(enabled);
 }
 
-void FmtLogMessageImpl(Class log_class, Level log_level, const char* filename,
-                       unsigned int line_num, const char* function, fmt::string_view format,
-                       const fmt::format_args& args) {
+void FmtLogMessageImpl(Class log_class, Level log_level, const char* filename, unsigned int line_num, const char* function, fmt::string_view format, const fmt::format_args& args) {
     if (!initialization_in_progress_suppress_logging) {
         auto& instance = Impl::Instance();
         if (instance.CanPushEntry(log_class, log_level))
