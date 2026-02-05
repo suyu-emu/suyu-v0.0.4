@@ -1,11 +1,19 @@
 #!/usr/bin/sh
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-: "${VULKAN_SDK_VER:=1.4.335.0}"
+: "${VULKAN_SDK_VER:=1.4.341.1}"
 : "${VULKAN_ROOT:=C:/VulkanSDK/$VULKAN_SDK_VER}"
-EXE_FILE="vulkansdk-windows-X64-$VULKAN_SDK_VER.exe"
-URI="https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/windows/$EXE_FILE"
+VULKAN_SDK_ARCH=X64
+VULKAN_SDK_OS=windows
+case "$(uname)" in
+    *ARM64*)
+        VULKAN_SDK_ARCH=ARM64
+        VULKAN_SDK_OS=warm
+        ;;
+esac
+EXE_FILE="vulkansdk-windows-$VULKAN_SDK_ARCH-$VULKAN_SDK_VER.exe"
+URI="https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/$VULKAN_SDK_OS/$EXE_FILE"
 VULKAN_ROOT_UNIX=$(cygpath -u "$VULKAN_ROOT")
 
 # Check if Vulkan SDK is already installed

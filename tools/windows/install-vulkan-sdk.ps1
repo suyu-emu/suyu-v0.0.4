@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -14,10 +14,17 @@ try {
     Exit 1
 }
 
-$VulkanSDKVer = "1.4.335.0"
+$VulkanSDKVer = "1.4.341.1"
+if ((Get-WmiObject -Class Win32_ComputerSystem).SystemType -match '(x64)' -eq "True") {
+    $VulkanSDKArch = "X64"
+    $VulkanSDKOs = "windows"
+} else {
+    $VulkanSDKArch = "ARM64"
+    $VulkanSDKOs = "warm"
+}
 $VULKAN_SDK = "C:/VulkanSDK/$VulkanSDKVer"
-$ExeFile = "vulkansdk-windows-X64-$VulkanSDKVer.exe"
-$Uri = "https://sdk.lunarg.com/sdk/download/$VulkanSDKVer/windows/$ExeFile"
+$ExeFile = "vulkansdk-windows-$VulkanSDKArch-$VulkanSDKVer.exe"
+$Uri = "https://sdk.lunarg.com/sdk/download/$VulkanSDKVer/$VulkanSDKOs/$ExeFile"
 $Destination = "./$ExeFile"
 
 # Check if Vulkan SDK is already installed
