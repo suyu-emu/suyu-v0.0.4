@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -98,8 +98,7 @@ static const constexpr frozen::map<StringKey, frozen::string, 29> strings = {
 
     {FwCheckErrorFirmwareMissing,
      QT_TR_NOOP(
-         "Firmware missing. Firmware is required to run certain games and use the Home Menu. "
-         "Versions 19.0.1 or earlier are recommended, as 20.0.0+ is currently experimental.")},
+         "Firmware missing. Firmware is required to run certain games and use the Home Menu.")},
     {FwCheckErrorFirmwareCorrupted,
      QT_TR_NOOP(
          "Firmware reported as present, but was unable to be read. Check for decryption keys and "
