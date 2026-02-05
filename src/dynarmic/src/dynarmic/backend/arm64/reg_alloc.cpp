@@ -433,9 +433,10 @@ int RegAlloc::AllocateRegister(const std::array<HostLocInfo, 32>& regs, const st
     std::vector<int> candidates;
     std::copy_if(order.begin(), order.end(), std::back_inserter(candidates), [&](int i) { return regs[i].MaybeAllocatable(); });
 
-    // TODO: LRU
-    std::uniform_int_distribution<size_t> dis{0, candidates.size() - 1};
-    return candidates[dis(rand_gen)];
+    // TODO: The candidate was chosen randomly before, and a LRU was
+    // suggested as an improvement. However, using an incrementing index
+    // seems to be close enough. Determine if an LRU is still needed.
+    return candidates[alloc_candidate_index++ % candidates.size()];
 }
 
 void RegAlloc::SpillGpr(int index) {
