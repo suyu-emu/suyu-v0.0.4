@@ -361,12 +361,12 @@ endif()
 
 if (APPLE)
     # Normal icns
-    set(MACOSX_ICON "../../dist/eden.icns")
+    set(MACOSX_ICON "${CMAKE_SOURCE_DIR}/dist/eden.icns")
     set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(yuzu PRIVATE ${MACOSX_ICON})
 
     # Liquid glass
-    set(MACOSX_LIQUID_GLASS_ICON "../../dist/Assets.car")
+    set(MACOSX_LIQUID_GLASS_ICON "${CMAKE_SOURCE_DIR}/dist/Assets.car")
     set_source_files_properties(${MACOSX_LIQUID_GLASS_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(yuzu PRIVATE ${MACOSX_LIQUID_GLASS_ICON})
 
