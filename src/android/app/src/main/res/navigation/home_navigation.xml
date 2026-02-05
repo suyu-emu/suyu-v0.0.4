@@ -36,6 +36,9 @@
         <action
             android:id="@+id/action_homeSettingsFragment_to_gameFoldersFragment"
             app:destination="@id/gameFoldersFragment" />
+        <action
+            android:id="@+id/action_homeSettingsFragment_to_profileManagerFragment"
+            app:destination="@id/profileManagerFragment" />
     </fragment>
 
     <fragment
@@ -186,5 +189,17 @@
             app:nullable="true"
             android:defaultValue="@null" />
     </fragment>
+    <fragment
+        android:id="@+id/profileManagerFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.ProfileManagerFragment"
+        android:label="ProfileManagerFragment" >
+        <action
+            android:id="@+id/action_profileManagerFragment_to_newUserDialog"
+            app:destination="@id/newUserDialogFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/newUserDialogFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.EditUserDialogFragment"
+        android:label="NewUserDialogFragment" />
 
 </navigation>

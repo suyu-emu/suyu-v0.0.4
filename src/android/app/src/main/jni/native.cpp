@@ -49,12 +49,14 @@
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "frontend_common/play_time_manager.h"
+#include "core/constants.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/fs_filesystem.h"
+#include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/file_sys/vfs/vfs_real.h"
@@ -1695,6 +1697,390 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getBuildVersion(
         JNIEnv* env,
         [[maybe_unused]] jobject obj) {
     return env->NewStringUTF(Common::g_build_version);
+}
+
+JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getAllUsers(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+
+    manager.ResetUserSaveFile();
+
+    if (manager.GetUserCount() == 0) {
+        manager.CreateNewUser(Common::UUID::MakeRandom(), "Eden");
+        manager.WriteUserSaveFile();
+    }
+
+    const auto& users = manager.GetAllUsers();
+
+    jclass string_class = env->FindClass("java/lang/String");
+    if (!string_class) {
+        return env->NewObjectArray(0, env->FindClass("java/lang/Object"), nullptr);
+    }
+
+    jsize valid_count = 0;
+    for (const auto& user : users) {
+        if (user.IsValid()) {
+            valid_count++;
+        }
+    }
+
+    jobjectArray result = env->NewObjectArray(valid_count, string_class, nullptr);
+    if (!result) {
+        return env->NewObjectArray(0, string_class, nullptr);
+    }
+
+    // fill array sequentially with only valid users
+    jsize array_index = 0;
+    for (const auto& user : users) {
+        if (user.IsValid()) {
+            jstring uuid_str = env->NewStringUTF(user.FormattedString().c_str());
+            if (uuid_str) {
+                env->SetObjectArrayElement(result, array_index++, uuid_str);
+            }
+        }
+    }
+
+    return result;
+}
+
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUserUsername(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj,
+        jstring juuid) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+    const auto uuid_string = Common::Android::GetJString(env, juuid);
+    const auto uuid = Common::UUID{uuid_string};
+
+    Service::Account::ProfileBase profile{};
+    if (!manager.GetProfileBase(uuid, profile)) {
+        jstring result = env->NewStringUTF("");
+        return result ? result : env->NewStringUTF("");
+    }
+
+    const auto text = Common::StringFromFixedZeroTerminatedBuffer(
+        reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
+    jstring result = env->NewStringUTF(text.c_str());
+    return result ? result : env->NewStringUTF("");
+}
+
+JNIEXPORT jlong JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUserCount(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+    return static_cast<jlong>(manager.GetUserCount());
+}
+
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_canCreateUser(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+    return manager.CanSystemRegisterUser();
+}
+
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_createUser(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj,
+        jstring juuid,
+        jstring jusername) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+    const auto uuid_string = Common::Android::GetJString(env, juuid);
+    const auto username = Common::Android::GetJString(env, jusername);
+    const auto uuid = Common::UUID{uuid_string};
+
+    const auto result = manager.CreateNewUser(uuid, username);
+    if (result.IsSuccess()) {
+        manager.WriteUserSaveFile();
+        return true;
+    }
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_updateUserUsername(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj,
+        jstring juuid,
+        jstring jusername) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+    const auto uuid_string = Common::Android::GetJString(env, juuid);
+    const auto username = Common::Android::GetJString(env, jusername);
+    const auto uuid = Common::UUID{uuid_string};
+
+    Service::Account::ProfileBase profile{};
+    if (!manager.GetProfileBase(uuid, profile)) {
+        return false;
+    }
+
+    std::fill(profile.username.begin(), profile.username.end(), '\0');
+    std::copy(username.begin(), username.end(), profile.username.begin());
+
+    if (manager.SetProfileBase(uuid, profile)) {
+        manager.WriteUserSaveFile();
+        return true;
+    }
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_removeUser(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj,
+        jstring juuid) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+    const auto uuid_string = Common::Android::GetJString(env, juuid);
+    const auto uuid = Common::UUID{uuid_string};
+
+    const auto user_index = manager.GetUserIndex(uuid);
+    if (!user_index) {
+        return false;
+    }
+
+    if (Settings::values.current_user.GetValue() == static_cast<s32>(*user_index)) {
+        Settings::values.current_user = 0;
+    }
+
+    if (manager.RemoveUser(uuid)) {
+        manager.WriteUserSaveFile();
+        manager.ResetUserSaveFile();
+        return true;
+    }
+    return false;
+}
+
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getCurrentUser(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+    const auto user_id = manager.GetUser(Settings::values.current_user.GetValue());
+    if (!user_id) {
+        jstring result = env->NewStringUTF("");
+        return result ? result : env->NewStringUTF("");
+    }
+    jstring result = env->NewStringUTF(user_id->FormattedString().c_str());
+    return result ? result : env->NewStringUTF("");
+}
+
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_setCurrentUser(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj,
+        jstring juuid) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+    const auto uuid_string = Common::Android::GetJString(env, juuid);
+    const auto uuid = Common::UUID{uuid_string};
+
+    const auto index = manager.GetUserIndex(uuid);
+    if (index) {
+        Settings::values.current_user = static_cast<s32>(*index);
+        return true;
+    }
+    return false;
+}
+
+JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUserImagePath(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj,
+        jstring juuid) {
+    const auto uuid_string = Common::Android::GetJString(env, juuid);
+    const auto uuid = Common::UUID{uuid_string};
+
+    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+        fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
+
+    jstring result = Common::Android::ToJString(env, Common::FS::PathToUTF8String(path));
+    return result ? result : env->NewStringUTF("");
+}
+
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_saveUserImage(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj,
+        jstring juuid,
+        jstring jimagePath) {
+    const auto uuid_string = Common::Android::GetJString(env, juuid);
+    const auto uuid = Common::UUID{uuid_string};
+    const auto image_source = Common::Android::GetJString(env, jimagePath);
+
+    const auto dest_path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+        fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
+
+    const auto dest_dir = dest_path.parent_path();
+    if (!Common::FS::CreateDirs(dest_dir)) {
+        return false;
+    }
+
+    try {
+        std::filesystem::copy_file(image_source, dest_path,
+            std::filesystem::copy_options::overwrite_existing);
+        return true;
+    } catch (const std::filesystem::filesystem_error& e) {
+        LOG_ERROR(Common_Filesystem, "Failed to copy image file: {}", e.what());
+        return false;
+    }
+}
+
+JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadProfiles(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj) {
+    auto& manager = EmulationSession::GetInstance().System().GetProfileManager();
+    manager.ResetUserSaveFile();
+
+    // create a default user if non exist
+    if (manager.GetUserCount() == 0) {
+        manager.CreateNewUser(Common::UUID::MakeRandom(), "Eden");
+        manager.WriteUserSaveFile();
+    }
+
+    LOG_INFO(Service_ACC, "Profile manager reloaded, user count: {}", manager.GetUserCount());
+}
+
+//  for firmware avatar images
+static std::vector<uint8_t> DecompressYaz0(const FileSys::VirtualFile& file) {
+    if (!file) {
+        return std::vector<uint8_t>();
+    }
+
+    uint32_t magic{};
+    file->ReadObject(&magic, 0);
+    if (magic != Common::MakeMagic('Y', 'a', 'z', '0')) {
+        return std::vector<uint8_t>();
+    }
+
+    uint32_t decoded_length{};
+    file->ReadObject(&decoded_length, 4);
+    decoded_length = Common::swap32(decoded_length);
+
+    std::size_t input_size = file->GetSize() - 16;
+    std::vector<uint8_t> input(input_size);
+    file->ReadBytes(input.data(), input_size, 16);
+
+    uint32_t input_offset{};
+    uint32_t output_offset{};
+    std::vector<uint8_t> output(decoded_length);
+
+    uint16_t mask{};
+    uint8_t header{};
+
+    while (output_offset < decoded_length) {
+        if ((mask >>= 1) == 0) {
+            if (input_offset >= input.size()) break;
+            header = input[input_offset++];
+            mask = 0x80;
+        }
+
+        if ((header & mask) != 0) {
+            if (output_offset >= output.size() || input_offset >= input.size()) {
+                break;
+            }
+            output[output_offset++] = input[input_offset++];
+        } else {
+            if (input_offset + 1 >= input.size()) break;
+            uint8_t byte1 = input[input_offset++];
+            uint8_t byte2 = input[input_offset++];
+
+            uint32_t dist = ((byte1 & 0xF) << 8) | byte2;
+            uint32_t position = output_offset - (dist + 1);
+
+            uint32_t length = byte1 >> 4;
+            if (length == 0) {
+                if (input_offset >= input.size()) break;
+                length = static_cast<uint32_t>(input[input_offset++]) + 0x12;
+            } else {
+                length += 2;
+            }
+
+            for (uint32_t i = 0; i < length && output_offset < decoded_length; ++i) {
+                output[output_offset++] = output[position++];
+            }
+        }
+    }
+
+    return output;
+}
+
+static FileSys::VirtualDir GetFirmwareAvatarDirectory() {
+    constexpr u64 AvatarImageDataId = 0x010000000000080AULL;
+
+    auto* bis_system = EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        return nullptr;
+    }
+
+    const auto nca = bis_system->GetEntry(AvatarImageDataId, FileSys::ContentRecordType::Data);
+    if (!nca) {
+        return nullptr;
+    }
+
+    const auto romfs = nca->GetRomFS();
+    if (!romfs) {
+        return nullptr;
+    }
+
+    const auto extracted = FileSys::ExtractRomFS(romfs);
+    if (!extracted) {
+        return nullptr;
+    }
+
+    return extracted->GetSubdirectory("chara");
+}
+
+JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getFirmwareAvatarCount(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj) {
+    const auto chara_dir = GetFirmwareAvatarDirectory();
+    if (!chara_dir) {
+        return 0;
+    }
+
+    int count = 0;
+    for (const auto& item : chara_dir->GetFiles()) {
+        if (item->GetExtension() == "szs") {
+            count++;
+        }
+    }
+    return count;
+}
+
+JNIEXPORT jbyteArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getFirmwareAvatarImage(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj,
+        jint index) {
+    const auto chara_dir = GetFirmwareAvatarDirectory();
+    if (!chara_dir) {
+        return nullptr;
+    }
+
+    int current_index = 0;
+    for (const auto& item : chara_dir->GetFiles()) {
+        if (item->GetExtension() != "szs") {
+            continue;
+        }
+
+        if (current_index == index) {
+            auto image_data = DecompressYaz0(item);
+            if (image_data.empty()) {
+                return nullptr;
+            }
+
+            jbyteArray result = env->NewByteArray(image_data.size());
+            if (result) {
+                env->SetByteArrayRegion(result, 0, image_data.size(),
+                    reinterpret_cast<const jbyte*>(image_data.data()));
+            }
+            return result;
+        }
+        current_index++;
+    }
+
+    return nullptr;
+}
+
+JNIEXPORT jbyteArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getDefaultAccountBackupJpeg(
+        JNIEnv* env,
+        [[maybe_unused]] jobject obj) {
+    jbyteArray result = env->NewByteArray(Core::Constants::ACCOUNT_BACKUP_JPEG.size());
+    if (result) {
+        env->SetByteArrayRegion(result, 0, Core::Constants::ACCOUNT_BACKUP_JPEG.size(),
+            reinterpret_cast<const jbyte*>(Core::Constants::ACCOUNT_BACKUP_JPEG.data()));
+    }
+    return result;
 }
 
 } // extern "C"

@@ -1239,6 +1239,35 @@
     <string name="enable_overlay">Enable Overlay Applet</string>
     <string name="enable_overlay_description">Enables Horizon\'s built-in overlay applet. Press and hold the home button for 1 second to show it.</string>
 
+    <!-- Profile Management -->
+    <string name="profile_manager">Profile Manager</string>
+    <string name="profile_manager_description">Manage user profiles</string>
+    <string name="profile_add_user">Add User</string>
+    <string name="profile_new_user">New User</string>
+    <string name="profile_edit_user">Edit User</string>
+    <string name="profile_edit">Edit</string>
+    <string name="profile_delete">Delete</string>
+    <string name="profile_username">Username</string>
+    <string name="profile_uuid">User ID (UUID)</string>
+    <string name="profile_uuid_description">This is the unique identifier for this user profile. It cannot be changed after creation.</string>
+    <string name="profile_generate">Generate</string>
+    <string name="profile_avatar">User Avatar</string>
+    <string name="profile_select_image">Select Image</string>
+    <string name="profile_firmware_avatars">Firmware Avatars</string>
+    <string name="profile_firmware_avatars_unavailable">Firmware avatars are not available. Please install firmware to use this feature.</string>
+    <string name="profile_revert_image">Revert to Default</string>
+    <string name="profile_current_user">Current User</string>
+    <string name="profile_max_users_title">Maximum Users Reached</string>
+    <string name="profile_max_users_message">You cannot create more than 8 user profiles. Please delete an existing profile to create a new one.</string>
+    <string name="profile_delete_confirm_title">Delete Profile?</string>
+    <string name="profile_delete_confirm_message">Are you sure you want to delete %1$s? All save data for this user will be deleted.</string>
+    <string name="profile_delete_current_user_message">Are you sure you want to delete %1$s? This is the currently selected user. The first available user will be selected instead.</string>
+    <string name="profile_create_failed">Failed to create user profile</string>
+    <string name="profile_update_failed">Failed to update user profile</string>
+    <string name="profile_image_load_error">Failed to load image: %1$s</string>
+    <string name="profile_image_save_error">Failed to save image: %1$s</string>
+    <string name="error">Error</string>
+
     <!-- Licenses screen strings -->
     <string name="licenses">Licenses</string>
     <string name="license_fidelityfx_fsr" translatable="false">FidelityFX-FSR</string>

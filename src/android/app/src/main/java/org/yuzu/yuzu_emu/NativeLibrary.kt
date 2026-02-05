@@ -614,4 +614,23 @@ object NativeLibrary {
      * Updates the device power state to global variables
      */
     external fun updatePowerState(percentage: Int, isCharging: Boolean, hasBattery: Boolean)
+
+    /**
+     * Profile manager native calls
+     */
+    external fun getAllUsers(): Array<String>?
+    external fun getUserUsername(uuid: String): String?
+    external fun getUserCount(): Long
+    external fun canCreateUser(): Boolean
+    external fun createUser(uuid: String, username: String): Boolean
+    external fun updateUserUsername(uuid: String, username: String): Boolean
+    external fun removeUser(uuid: String): Boolean
+    external fun getCurrentUser(): String?
+    external fun setCurrentUser(uuid: String): Boolean
+    external fun getUserImagePath(uuid: String): String?
+    external fun saveUserImage(uuid: String, imagePath: String): Boolean
+    external fun reloadProfiles()
+    external fun getFirmwareAvatarCount(): Int
+    external fun getFirmwareAvatarImage(index: Int): ByteArray?
+    external fun getDefaultAccountBackupJpeg(): ByteArray
 }

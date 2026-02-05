@@ -116,6 +116,17 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
+                    R.string.profile_manager,
+                    R.string.profile_manager_description,
+                    R.drawable.ic_account_circle,
+                    {
+                        binding.root.findNavController()
+                            .navigate(R.id.action_homeSettingsFragment_to_profileManagerFragment)
+                    }
+                )
+            )
+            add(
+                HomeSetting(
                     R.string.gpu_driver_manager,
                     R.string.install_gpu_driver_description,
                     R.drawable.ic_build,
