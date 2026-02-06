@@ -105,6 +105,13 @@
       <string>&amp;Debugging</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menu_Game_List_Mode">
+     <property name="title">
+      <string>&amp;Game List Mode</string>
+     </property>
+     <addaction name="action_Tree_View"/>
+     <addaction name="action_Grid_View"/>
+    </widget>
     <action name="action_Reset_Window_Size_720">
      <property name="text">
       <string>Reset Window Size to &amp;720p</string>
@@ -137,6 +144,7 @@
     <addaction name="separator"/>
     <addaction name="menu_Reset_Window_Size"/>
     <addaction name="menu_View_Debugging"/>
+    <addaction name="menu_Game_List_Mode"/>
    </widget>
    <widget class="QMenu" name="menu_Multiplayer">
     <property name="enabled">
@@ -560,6 +568,22 @@
   <action name="action_Data_Manager">
    <property name="text">
     <string>&amp;Data Manager</string>
+   </property>
+  </action>
+  <action name="action_Tree_View">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Tree View</string>
+   </property>
+  </action>
+  <action name="action_Grid_View">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Grid View</string>
    </property>
   </action>
  </widget>

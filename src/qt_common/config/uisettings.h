@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -210,6 +210,8 @@ struct Values {
     Setting<u32> folder_icon_size{linkage, 48, "folder_icon_size", Category::UiGameList};
     Setting<u8> row_1_text_id{linkage, 3, "row_1_text_id", Category::UiGameList};
     Setting<u8> row_2_text_id{linkage, 2, "row_2_text_id", Category::UiGameList};
+    Setting<Settings::GameListMode> game_list_mode{linkage, Settings::GameListMode::TreeView, "game_list_mode", Category::UiGameList};
+
     std::atomic_bool is_game_list_reload_pending{false};
     Setting<bool> cache_game_list{linkage, true, "cache_game_list", Category::UiGameList};
     Setting<bool> favorites_expanded{linkage, true, "favorites_expanded", Category::UiGameList};

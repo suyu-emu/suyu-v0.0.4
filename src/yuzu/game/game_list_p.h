@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
@@ -75,12 +75,16 @@ public:
 
     GameListItemPath() = default;
     GameListItemPath(const QString& game_path, const std::vector<u8>& picture_data,
-                     const QString& game_name, const QString& game_type, u64 program_id) {
+                     const QString& game_name, const QString& game_type, u64 program_id,
+                     u64 play_time) {
         setData(type(), TypeRole);
         setData(game_path, FullPathRole);
         setData(game_name, TitleRole);
         setData(qulonglong(program_id), ProgramIdRole);
         setData(game_type, FileTypeRole);
+
+        setData(QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(play_time)),
+                Qt::ToolTipRole);
 
         const u32 size = UISettings::values.game_icon_size.GetValue();
 
@@ -111,24 +115,35 @@ public:
             }};
 
             const auto& row1 = row_data.at(UISettings::values.row_1_text_id.GetValue());
-            const int row2_id = UISettings::values.row_2_text_id.GetValue();
+            // don't show row 2 on grid view
+            switch (UISettings::values.game_list_mode.GetValue()) {
 
-            if (role == SortRole) {
-                return row1.toLower();
+            case Settings::GameListMode::TreeView: {
+                const int row2_id = UISettings::values.row_2_text_id.GetValue();
+
+                if (role == SortRole) {
+                    return row1.toLower();
+                }
+
+                       // None
+                if (row2_id == 4) {
+                    return row1;
+                }
+
+                const auto& row2 = row_data.at(row2_id);
+
+                if (row1 == row2) {
+                    return row1;
+                }
+
+                return QStringLiteral("%1\n    %2").arg(row1, row2);
             }
-
-            // None
-            if (row2_id == 4) {
+            case Settings::GameListMode::GridView:
                 return row1;
+            default:
+                break;
             }
 
-            const auto& row2 = row_data.at(row2_id);
-
-            if (row1 == row2) {
-                return row1;
-            }
-
-            return QStringLiteral("%1\n    %2").arg(row1, row2);
         }
 
         return GameListItem::data(role);
@@ -241,7 +256,9 @@ public:
 
     void setData(const QVariant& value, int role) override {
         qulonglong time_seconds = value.toULongLong();
-        GameListItem::setData(QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(time_seconds)), Qt::DisplayRole);
+        GameListItem::setData(
+            QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(time_seconds)),
+            Qt::DisplayRole);
         GameListItem::setData(value, PlayTimeRole);
     }
 

@@ -17,6 +17,7 @@
 #include <QTranslator>
 
 #include "common/common_types.h"
+#include "common/settings_enums.h"
 #include "frontend_common/content_manager.h"
 #include "frontend_common/update_checker.h"
 #include "input_common/drivers/tas_input.h"
@@ -401,6 +402,11 @@ private slots:
     void ResetWindowSize720();
     void ResetWindowSize900();
     void ResetWindowSize1080();
+
+    void SetGameListMode(Settings::GameListMode mode);
+    void SetGridView();
+    void SetTreeView();
+
     void LaunchFirmwareApplet(u64 program_id, std::optional<Service::NFP::CabinetMode> mode);
     void OnCreateHomeMenuDesktopShortcut();
     void OnCreateHomeMenuApplicationMenuShortcut();

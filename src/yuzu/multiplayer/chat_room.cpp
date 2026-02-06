@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -20,7 +20,7 @@
 #include "common/logging/log.h"
 #include "network/announce_multiplayer_session.h"
 #include "ui_chat_room.h"
-#include "yuzu/game_list_p.h"
+#include "yuzu/game/game_list_p.h"
 #include "yuzu/multiplayer/chat_room.h"
 #include "yuzu/multiplayer/message.h"
 #ifdef ENABLE_WEB_SERVICE

@@ -17,6 +17,7 @@
 #include <QVBoxLayout>
 #include <QVector>
 #include <QWidget>
+#include <qabstractitemview.h>
 
 #include "common/common_types.h"
 #include "core/core.h"
@@ -26,6 +27,10 @@
 #include "frontend_common/play_time_manager.h"
 
 class QVariantAnimation;
+
+class QListView;
+
+class GameCard;
 namespace Core {
 class System;
 }
@@ -92,6 +97,9 @@ public:
 
     static const QStringList supported_file_extensions;
 
+    bool IsTreeMode();
+    void ResetViewMode();
+
 public slots:
     void RefreshGameDirectory();
     void RefreshExternalContent();
@@ -129,6 +137,8 @@ private slots:
     void OnFilterCloseClicked();
     void OnUpdateThemedIcons();
 
+    void UpdateIconSize();
+
 private:
     friend class GameListWorker;
     void WorkerEvent();
@@ -158,7 +168,11 @@ private:
     GameListSearchField* search_field;
     MainWindow* main_window = nullptr;
     QVBoxLayout* layout = nullptr;
+
     QTreeView* tree_view = nullptr;
+    QListView *list_view = nullptr;
+    GameCard *m_gameCard = nullptr;
+
     QStandardItemModel* item_model = nullptr;
     std::unique_ptr<GameListWorker> current_worker;
     QFileSystemWatcher* watcher = nullptr;
@@ -178,6 +192,9 @@ private:
 
     const PlayTime::PlayTimeManager& play_time_manager;
     Core::System& system;
+
+    bool m_isTreeMode = true;
+    QAbstractItemView *m_currentView = tree_view;
 };
 
 class GameListPlaceholder : public QWidget {

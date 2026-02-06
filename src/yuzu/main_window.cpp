@@ -3,6 +3,7 @@
 
 // Qt on macOS doesn't define VMA shit
 #include <boost/algorithm/string/split.hpp>
+#include "common/settings_enums.h"
 #include "frontend_common/settings_generator.h"
 #include "qt_common/qt_string_lookup.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
@@ -25,7 +26,7 @@
 #include "install_dialog.h"
 
 #include "bootmanager.h"
-#include "game_list.h"
+#include "yuzu/game/game_list.h"
 #include "loading_screen.h"
 #include "ryujinx_dialog.h"
 #include "set_play_time_dialog.h"
@@ -549,6 +550,9 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 
     game_list->LoadCompatibilityList();
     game_list->PopulateAsync(UISettings::values.game_dirs);
+
+    // Set up game list mode checkboxes.
+    SetGameListMode(UISettings::values.game_list_mode.GetValue());
 
     // make sure menubar has the arrow cursor instead of inheriting from this
     ui->menubar->setCursor(QCursor());
@@ -1599,6 +1603,9 @@ void MainWindow::ConnectMenuEvents() {
     ui->menu_Reset_Window_Size->addActions({ui->action_Reset_Window_Size_720,
                                             ui->action_Reset_Window_Size_900,
                                             ui->action_Reset_Window_Size_1080});
+
+    connect_menu(ui->action_Grid_View, &MainWindow::SetGridView);
+    connect_menu(ui->action_Tree_View, &MainWindow::SetTreeView);
 
     // Multiplayer
     connect(ui->action_View_Lobby, &QAction::triggered, multiplayer_state,
@@ -3371,6 +3378,22 @@ void MainWindow::ResetWindowSize900() {
 
 void MainWindow::ResetWindowSize1080() {
     ResetWindowSize(Layout::ScreenDocked::Width, Layout::ScreenDocked::Height);
+}
+
+void MainWindow::SetGameListMode(Settings::GameListMode mode) {
+    ui->action_Grid_View->setChecked(mode == Settings::GameListMode::GridView);
+    ui->action_Tree_View->setChecked(mode == Settings::GameListMode::TreeView);
+
+    UISettings::values.game_list_mode = mode;
+    game_list->ResetViewMode();
+}
+
+void MainWindow::SetGridView() {
+    SetGameListMode(Settings::GameListMode::GridView);
+}
+
+void MainWindow::SetTreeView() {
+    SetGameListMode(Settings::GameListMode::TreeView);
 }
 
 void MainWindow::OnConfigure() {

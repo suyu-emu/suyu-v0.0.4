@@ -766,6 +766,12 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
                               PAIR(ExtendedDynamicState, EDS3, tr("ExtendedDynamicState 3")),
                           }});
 
+    translations->insert({Settings::EnumMetadata<Settings::GameListMode>::Index(),
+                         {
+                             PAIR(GameListMode, TreeView, tr("Tree View")),
+                             PAIR(GameListMode, GridView, tr("Grid View")),
+                          }});
+
 #undef PAIR
 #undef CTX_PAIR
 

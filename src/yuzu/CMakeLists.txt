@@ -156,11 +156,14 @@ add_executable(yuzu
     debugger/controller.cpp
     debugger/controller.h
 
-    game_list.cpp
-    game_list.h
-    game_list_p.h
-    game_list_worker.cpp
-    game_list_worker.h
+    game/game_list.cpp
+    game/game_list.h
+    game/game_list_p.h
+    game/game_list_worker.cpp
+    game/game_list_worker.h
+    game/game_card.h
+    game/game_card.cpp
+
     hotkeys.cpp
     hotkeys.h
     install_dialog.cpp
@@ -234,7 +237,7 @@ add_executable(yuzu
     data_dialog.h data_dialog.cpp data_dialog.ui
     data_widget.ui
     ryujinx_dialog.h ryujinx_dialog.cpp ryujinx_dialog.ui
-    main_window.h main_window.cpp
+    main_window.h main_window.cpp main.ui
 
     configuration/system/new_user_dialog.h configuration/system/new_user_dialog.cpp configuration/system/new_user_dialog.ui
     configuration/system/profile_avatar_dialog.h configuration/system/profile_avatar_dialog.cpp
