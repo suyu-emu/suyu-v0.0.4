@@ -16,11 +16,13 @@
 #include <QToolButton>
 #include <QVariantAnimation>
 #include <fmt/ranges.h>
+#include <qfilesystemwatcher.h>
 #include <qnamespace.h>
 #include <qscroller.h>
 #include <qscrollerproperties.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
@@ -32,6 +34,7 @@
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
+#include "qt_common/qt_common.h"
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -324,6 +327,10 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
       play_time_manager{play_time_manager_}, system{system_} {
     watcher = new QFileSystemWatcher(this);
     connect(watcher, &QFileSystemWatcher::directoryChanged, this, &GameList::RefreshGameDirectory);
+
+    external_watcher = new QFileSystemWatcher(this);
+    ResetExternalWatcher();
+    connect(external_watcher, &QFileSystemWatcher::directoryChanged, this, &GameList::RefreshExternalContent);
 
     this->main_window = parent;
     layout = new QVBoxLayout;
@@ -919,9 +926,35 @@ const QStringList GameList::supported_file_extensions = {
 
 void GameList::RefreshGameDirectory()
 {
+    // Reset the externals watcher whenever the game list is reloaded,
+    // primarily ensures that new titles and external dirs are caught.
+    ResetExternalWatcher();
+
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
+        QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
         PopulateAsync(UISettings::values.game_dirs);
+    }
+}
+
+void GameList::RefreshExternalContent() {
+    // TODO: Explore the possibility of only resetting the metadata cache for that specific game.
+    if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
+        LOG_INFO(Frontend, "External content directory changed. Clearing metadata cache.");
+        QtCommon::Game::ResetMetadata(false);
+        QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
+        PopulateAsync(UISettings::values.game_dirs);
+    }
+}
+
+void GameList::ResetExternalWatcher() {
+    auto watch_dirs = external_watcher->directories();
+    if (!watch_dirs.isEmpty()) {
+        external_watcher->removePaths(watch_dirs);
+    }
+
+    for (const std::string &dir : Settings::values.external_content_dirs) {
+        external_watcher->addPath(QString::fromStdString(dir));
     }
 }
 

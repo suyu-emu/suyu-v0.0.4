@@ -54,6 +54,7 @@ private:
     void RetranslateUI();
 
     void LoadConfiguration();
+    void OnItemChanged(QStandardItem* item);
 
     std::unique_ptr<Ui::ConfigurePerGameAddons> ui;
     FileSys::VirtualFile file;
@@ -64,6 +65,7 @@ private:
     QStandardItemModel* item_model;
 
     std::vector<QList<QStandardItem*>> list_items;
+    std::vector<QStandardItem*> update_items;
 
     Core::System& system;
 };

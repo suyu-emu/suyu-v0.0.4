@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -62,6 +62,7 @@ private slots:
 
 signals:
     void LanguageChanged(const QString& locale);
+    void ExternalContentDirsChanged();
 
 private:
     void changeEvent(QEvent* event) override;

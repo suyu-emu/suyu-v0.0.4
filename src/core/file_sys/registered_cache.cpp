@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -13,12 +13,15 @@
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
+#include "common/string_util.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs/vfs_concat.h"
 #include "core/loader/loader.h"
@@ -974,6 +977,22 @@ std::optional<ContentProviderUnionSlot> ContentProviderUnion::GetSlotForEntry(
     return iter->first;
 }
 
+const ExternalContentProvider* ContentProviderUnion::GetExternalProvider() const {
+    auto it = providers.find(ContentProviderUnionSlot::External);
+    if (it != providers.end() && it->second != nullptr) {
+        return dynamic_cast<const ExternalContentProvider*>(it->second);
+    }
+    return nullptr;
+}
+
+const ContentProvider* ContentProviderUnion::GetSlotProvider(ContentProviderUnionSlot slot) const {
+    auto it = providers.find(slot);
+    if (it != providers.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
 ManualContentProvider::~ManualContentProvider() = default;
 
 void ManualContentProvider::AddEntry(TitleType title_type, ContentRecordType content_type,
@@ -981,8 +1000,51 @@ void ManualContentProvider::AddEntry(TitleType title_type, ContentRecordType con
     entries.insert_or_assign({title_type, content_type, title_id}, file);
 }
 
+void ManualContentProvider::AddEntryWithVersion(TitleType title_type, ContentRecordType content_type,
+                                                u64 title_id, u32 version,
+                                                const std::string& version_string, VirtualFile file) {
+    if (title_type == TitleType::Update) {
+        auto it = std::find_if(multi_version_entries.begin(), multi_version_entries.end(),
+                               [title_id, version](const ExternalUpdateEntry& entry) {
+                                   return entry.title_id == title_id && entry.version == version;
+                               });
+
+        if (it != multi_version_entries.end()) {
+            // Update existing entry
+            it->files[content_type] = file;
+            if (!version_string.empty()) {
+                it->version_string = version_string;
+            }
+        } else {
+            // Add new entry
+            ExternalUpdateEntry new_entry;
+            new_entry.title_id = title_id;
+            new_entry.version = version;
+            new_entry.version_string = version_string;
+            new_entry.files[content_type] = file;
+            multi_version_entries.push_back(new_entry);
+        }
+
+        auto existing = entries.find({title_type, content_type, title_id});
+        if (existing == entries.end()) {
+            entries.insert_or_assign({title_type, content_type, title_id}, file);
+        } else {
+            // Check if this version is higher
+            for (const auto& entry : multi_version_entries) {
+                if (entry.title_id == title_id && entry.version > version) {
+                    return; // Don't replace with lower version
+                }
+            }
+            entries.insert_or_assign({title_type, content_type, title_id}, file);
+        }
+    } else {
+        entries.insert_or_assign({title_type, content_type, title_id}, file);
+    }
+}
+
 void ManualContentProvider::ClearAllEntries() {
     entries.clear();
+    multi_version_entries.clear();
 }
 
 void ManualContentProvider::Refresh() {}
@@ -1036,4 +1098,459 @@ std::vector<ContentProviderEntry> ManualContentProvider::ListEntriesFilter(
     out.erase(std::unique(out.begin(), out.end()), out.end());
     return out;
 }
+
+std::vector<ExternalUpdateEntry> ManualContentProvider::ListUpdateVersions(u64 title_id) const {
+    std::vector<ExternalUpdateEntry> out;
+
+    for (const auto& entry : multi_version_entries) {
+        if (entry.title_id == title_id) {
+            out.push_back(entry);
+        }
+    }
+
+    std::sort(out.begin(), out.end(), [](const ExternalUpdateEntry& a, const ExternalUpdateEntry& b) {
+        return a.version > b.version;
+    });
+
+    return out;
+}
+
+VirtualFile ManualContentProvider::GetEntryForVersion(u64 title_id, ContentRecordType type, u32 version) const {
+    for (const auto& entry : multi_version_entries) {
+        if (entry.title_id == title_id && entry.version == version) {
+            auto it = entry.files.find(type);
+            if (it != entry.files.end()) {
+                return it->second;
+            }
+        }
+    }
+    return nullptr;
+}
+
+bool ManualContentProvider::HasMultipleVersions(u64 title_id, ContentRecordType type) const {
+    int count = 0;
+    for (const auto& entry : multi_version_entries) {
+        if (entry.title_id == title_id && entry.files.count(type) > 0) {
+            count++;
+            if (count > 1) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+ExternalContentProvider::ExternalContentProvider(std::vector<VirtualDir> load_directories)
+    : load_dirs(std::move(load_directories)) {
+    ExternalContentProvider::Refresh();
+}
+
+ExternalContentProvider::~ExternalContentProvider() = default;
+
+void ExternalContentProvider::AddDirectory(VirtualDir directory) {
+    if (directory != nullptr) {
+        load_dirs.push_back(std::move(directory));
+        ScanDirectory(load_dirs.back());
+    }
+}
+
+void ExternalContentProvider::ClearDirectories() {
+    load_dirs.clear();
+    entries.clear();
+    versions.clear();
+    multi_version_entries.clear();
+}
+
+void ExternalContentProvider::Refresh() {
+    entries.clear();
+    versions.clear();
+    multi_version_entries.clear();
+    for (const auto& dir : load_dirs) {
+        if (dir != nullptr) {
+            ScanDirectory(dir);
+        }
+    }
+}
+
+void ExternalContentProvider::ScanDirectory(const VirtualDir& dir) {
+    if (dir == nullptr) {
+        return;
+    }
+
+    for (const auto& file : dir->GetFiles()) {
+        const auto filename = file->GetName();
+        const auto dot_pos = filename.find_last_of('.');
+
+        if (dot_pos == std::string::npos) {
+            continue;
+        }
+
+        const auto extension = Common::ToLower(filename.substr(dot_pos + 1));
+
+        if (extension == "nsp") {
+            ProcessNSP(file);
+        } else if (extension == "xci") {
+            ProcessXCI(file);
+        }
+    }
+
+    for (const auto& subdir : dir->GetSubdirectories()) {
+        ScanDirectory(subdir);
+    }
+}
+
+void ExternalContentProvider::ProcessNSP(const VirtualFile& file) {
+    auto nsp = NSP(file);
+    if (nsp.GetStatus() != Loader::ResultStatus::Success) {
+        return;
+    }
+
+    LOG_DEBUG(Service_FS, "Processing NSP file: {}", file->GetName());
+
+    const auto ncas = nsp.GetNCAs();
+
+    std::map<u64, u32> nsp_versions;
+    std::map<u64, std::string> nsp_version_strings;  // title_id -> NACP version string
+
+    for (const auto& [title_id, nca_map] : ncas) {
+        for (const auto& [type_pair, nca] : nca_map) {
+            const auto& [title_type, content_type] = type_pair;
+
+            if (content_type == ContentRecordType::Meta) {
+                const auto subdirs = nca->GetSubdirectories();
+                if (!subdirs.empty()) {
+                    const auto section0 = subdirs[0];
+                    const auto files = section0->GetFiles();
+                    for (const auto& inner_file : files) {
+                        if (inner_file->GetExtension() == "cnmt") {
+                            const CNMT cnmt(inner_file);
+                            const auto cnmt_title_id = cnmt.GetTitleID();
+                            const auto version = cnmt.GetTitleVersion();
+                            nsp_versions[cnmt_title_id] = version;
+                            versions[cnmt_title_id] = version;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (content_type == ContentRecordType::Control && title_type == TitleType::Update) {
+                auto romfs = nca->GetRomFS();
+                if (romfs) {
+                    auto extracted = ExtractRomFS(romfs);
+                    if (extracted) {
+                        auto nacp_file = extracted->GetFile("control.nacp");
+                        if (!nacp_file) {
+                            nacp_file = extracted->GetFile("Control.nacp");
+                        }
+                        if (nacp_file) {
+                            NACP nacp(nacp_file);
+                            auto ver_str = nacp.GetVersionString();
+                            if (!ver_str.empty()) {
+                                nsp_version_strings[title_id] = ver_str;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    std::map<std::pair<u64, u32>, std::map<ContentRecordType, VirtualFile>> version_files;
+
+    for (const auto& [title_id, nca_map] : ncas) {
+        for (const auto& [type_pair, nca] : nca_map) {
+            const auto& [title_type, content_type] = type_pair;
+
+            if (title_type != TitleType::AOC && title_type != TitleType::Update) {
+                continue;
+            }
+
+            auto nca_file = nsp.GetNCAFile(title_id, content_type, title_type);
+            if (nca_file != nullptr) {
+                entries[{title_id, content_type, title_type}] = nca_file;
+
+                if (title_type == TitleType::Update) {
+                    u32 version = 0;
+                    auto ver_it = nsp_versions.find(title_id);
+                    if (ver_it != nsp_versions.end()) {
+                        version = ver_it->second;
+                    }
+
+                    version_files[{title_id, version}][content_type] = nca_file;
+                }
+
+                LOG_DEBUG(Service_FS, "Added entry - Title ID: {:016X}, Type: {}, Content: {}",
+                          title_id, static_cast<int>(title_type), static_cast<int>(content_type));
+            }
+        }
+    }
+
+    for (const auto& [key, files_map] : version_files) {
+        const auto& [title_id, version] = key;
+
+        std::string ver_str;
+        auto str_it = nsp_version_strings.find(title_id);
+        if (str_it != nsp_version_strings.end()) {
+            ver_str = str_it->second;
+        }
+
+        bool version_exists = false;
+        for (auto& existing : multi_version_entries) {
+            if (existing.title_id == title_id && existing.version == version) {
+                for (const auto& [content_type, _file] : files_map) {
+                    existing.files[content_type] = _file;
+                }
+                if (existing.version_string.empty() && !ver_str.empty()) {
+                    existing.version_string = ver_str;
+                }
+                version_exists = true;
+                break;
+            }
+        }
+
+        if (!version_exists && !files_map.empty()) {
+            ExternalUpdateEntry update_entry{
+                .title_id = title_id,
+                .version = version,
+                .version_string = ver_str,
+                .files = files_map
+            };
+            multi_version_entries.push_back(update_entry);
+            LOG_DEBUG(Service_FS, "Added multi-version update - Title ID: {:016X}, Version: {}, VersionStr: {}, Content types: {}",
+                      title_id, version, ver_str, files_map.size());
+        }
+    }
+}
+
+void ExternalContentProvider::ProcessXCI(const VirtualFile& file) {
+    auto xci = XCI(file);
+    if (xci.GetStatus() != Loader::ResultStatus::Success) {
+        return;
+    }
+
+    auto nsp = xci.GetSecurePartitionNSP();
+    if (nsp == nullptr) {
+        return;
+    }
+
+    const auto ncas = nsp->GetNCAs();
+
+    std::map<u64, u32> xci_versions;
+    std::map<u64, std::string> xci_version_strings;
+
+    for (const auto& [title_id, nca_map] : ncas) {
+        for (const auto& [type_pair, nca] : nca_map) {
+            const auto& [title_type, content_type] = type_pair;
+
+            if (content_type == ContentRecordType::Meta) {
+                const auto subdirs = nca->GetSubdirectories();
+                if (!subdirs.empty()) {
+                    const auto section0 = subdirs[0];
+                    const auto files = section0->GetFiles();
+                    for (const auto& inner_file : files) {
+                        if (inner_file->GetExtension() == "cnmt") {
+                            const CNMT cnmt(inner_file);
+                            const auto cnmt_title_id = cnmt.GetTitleID();
+                            const auto version = cnmt.GetTitleVersion();
+                            xci_versions[cnmt_title_id] = version;
+                            versions[cnmt_title_id] = version;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (content_type == ContentRecordType::Control && title_type == TitleType::Update) {
+                auto romfs = nca->GetRomFS();
+                if (romfs) {
+                    auto extracted = ExtractRomFS(romfs);
+                    if (extracted) {
+                        auto nacp_file = extracted->GetFile("control.nacp");
+                        if (!nacp_file) {
+                            nacp_file = extracted->GetFile("Control.nacp");
+                        }
+                        if (nacp_file) {
+                            NACP nacp(nacp_file);
+                            auto ver_str = nacp.GetVersionString();
+                            if (!ver_str.empty()) {
+                                xci_version_strings[title_id] = ver_str;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    std::map<std::pair<u64, u32>, std::map<ContentRecordType, VirtualFile>> version_files;
+
+    for (const auto& [title_id, nca_map] : ncas) {
+        for (const auto& [type_pair, nca] : nca_map) {
+            const auto& [title_type, content_type] = type_pair;
+
+            if (title_type != TitleType::AOC && title_type != TitleType::Update) {
+                continue;
+            }
+
+            auto nca_file = nsp->GetNCAFile(title_id, content_type, title_type);
+            if (nca_file != nullptr) {
+                entries[{title_id, content_type, title_type}] = nca_file;
+
+                if (title_type == TitleType::Update) {
+                    u32 version = 0;
+                    auto ver_it = xci_versions.find(title_id);
+                    if (ver_it != xci_versions.end()) {
+                        version = ver_it->second;
+                    }
+
+                    version_files[{title_id, version}][content_type] = nca_file;
+                }
+            }
+        }
+    }
+
+    for (const auto& [key, files_map] : version_files) {
+        const auto& [title_id, version] = key;
+
+        std::string ver_str;
+        auto str_it = xci_version_strings.find(title_id);
+        if (str_it != xci_version_strings.end()) {
+            ver_str = str_it->second;
+        }
+
+        bool version_exists = false;
+        for (auto& existing : multi_version_entries) {
+            if (existing.title_id == title_id && existing.version == version) {
+                for (const auto& [content_type, _file] : files_map) {
+                    existing.files[content_type] = _file;
+                }
+                if (existing.version_string.empty() && !ver_str.empty()) {
+                    existing.version_string = ver_str;
+                }
+                version_exists = true;
+                break;
+            }
+        }
+
+        if (!version_exists && !files_map.empty()) {
+            ExternalUpdateEntry update_entry{
+                .title_id = title_id,
+                .version = version,
+                .version_string = ver_str,
+                .files = files_map
+            };
+            multi_version_entries.push_back(update_entry);
+            LOG_DEBUG(Service_FS, "Added multi-version update from XCI - Title ID: {:016X}, Version: {}, VersionStr: {}, Content types: {}",
+                      title_id, version, ver_str, files_map.size());
+        }
+    }
+}
+
+bool ExternalContentProvider::HasEntry(u64 title_id, ContentRecordType type) const {
+    return GetEntryRaw(title_id, type) != nullptr;
+}
+
+std::optional<u32> ExternalContentProvider::GetEntryVersion(u64 title_id) const {
+    const auto it = versions.find(title_id);
+    if (it != versions.end()) {
+        return it->second;
+    }
+    return std::nullopt;
+}
+
+VirtualFile ExternalContentProvider::GetEntryUnparsed(u64 title_id, ContentRecordType type) const {
+    return GetEntryRaw(title_id, type);
+}
+
+VirtualFile ExternalContentProvider::GetEntryRaw(u64 title_id, ContentRecordType type) const {
+    // Try to find in AOC (DLC) entries
+    {
+        const auto it = entries.find({title_id, type, TitleType::AOC});
+        if (it != entries.end()) {
+            return it->second;
+        }
+    }
+
+    // Try to find in Update entries
+    {
+        const auto it = entries.find({title_id, type, TitleType::Update});
+        if (it != entries.end()) {
+            return it->second;
+        }
+    }
+
+    return nullptr;
+}
+
+std::unique_ptr<NCA> ExternalContentProvider::GetEntry(u64 title_id,
+                                                        ContentRecordType type) const {
+    const auto file = GetEntryRaw(title_id, type);
+    if (file == nullptr) {
+        return nullptr;
+    }
+    return std::make_unique<NCA>(file);
+}
+
+std::vector<ContentProviderEntry> ExternalContentProvider::ListEntriesFilter(
+    std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
+    std::optional<u64> title_id) const {
+    std::vector<ContentProviderEntry> out;
+
+    for (const auto& [key, file] : entries) {
+        const auto& [e_title_id, e_content_type, e_title_type] = key;
+
+        if ((title_type == std::nullopt || e_title_type == *title_type) &&
+            (record_type == std::nullopt || e_content_type == *record_type) &&
+            (title_id == std::nullopt || e_title_id == *title_id)) {
+            out.emplace_back(ContentProviderEntry{e_title_id, e_content_type});
+        }
+    }
+
+    std::sort(out.begin(), out.end());
+    out.erase(std::unique(out.begin(), out.end()), out.end());
+    return out;
+}
+
+std::vector<ExternalUpdateEntry> ExternalContentProvider::ListUpdateVersions(u64 title_id) const {
+    std::vector<ExternalUpdateEntry> out;
+
+    for (const auto& entry : multi_version_entries) {
+        if (entry.title_id == title_id) {
+            out.push_back(entry);
+        }
+    }
+
+    std::sort(out.begin(), out.end(), [](const ExternalUpdateEntry& a, const ExternalUpdateEntry& b) {
+        return a.version > b.version;
+    });
+
+    return out;
+}
+
+VirtualFile ExternalContentProvider::GetEntryForVersion(u64 title_id, ContentRecordType type, u32 version) const {
+    for (const auto& entry : multi_version_entries) {
+        if (entry.title_id == title_id && entry.version == version) {
+            auto it = entry.files.find(type);
+            if (it != entry.files.end()) {
+                return it->second;
+            }
+        }
+    }
+    return nullptr;
+}
+
+bool ExternalContentProvider::HasMultipleVersions(u64 title_id, ContentRecordType type) const {
+    size_t count = 0;
+    for (const auto& entry : multi_version_entries) {
+        if (entry.title_id == title_id && entry.files.count(type) > 0) {
+            count++;
+            if (count > 1) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 } // namespace FileSys

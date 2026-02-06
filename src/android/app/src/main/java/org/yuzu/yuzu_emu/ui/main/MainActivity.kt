@@ -63,6 +63,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.documentfile.provider.DocumentFile
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -389,6 +390,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }
         }
 
+    val getExternalContentDirectory =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
+            if (result != null) {
+                processExternalContentDir(result)
+            }
+        }
+
     fun processGamesDir(result: Uri, calledFromGameFragment: Boolean = false) {
         contentResolver.takePersistableUriPermission(
             result,
@@ -408,6 +416,27 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         AddGameFolderDialogFragment.newInstance(uriString, calledFromGameFragment)
             .show(supportFragmentManager, AddGameFolderDialogFragment.TAG)
+    }
+
+    fun processExternalContentDir(result: Uri) {
+        contentResolver.takePersistableUriPermission(
+            result,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+
+        val uriString = result.toString()
+        val folder = gamesViewModel.folders.value.firstOrNull { it.uriString == uriString }
+        if (folder != null) {
+            Toast.makeText(
+                applicationContext,
+                R.string.folder_already_added,
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        val externalContentDir = org.yuzu.yuzu_emu.model.GameDir(uriString, false, org.yuzu.yuzu_emu.model.DirectoryType.EXTERNAL_CONTENT)
+        gamesViewModel.addFolder(externalContentDir, savedFromGameFragment = false)
     }
 
     val getProdKey = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->

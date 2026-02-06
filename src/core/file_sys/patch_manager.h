@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,6 +31,13 @@ class NACP;
 
 enum class PatchType { Update, DLC, Mod };
 
+enum class PatchSource {
+    Unknown,
+    NAND,
+    External,
+    Packed,
+};
+
 struct Patch {
     bool enabled;
     std::string name;
@@ -35,6 +45,8 @@ struct Patch {
     PatchType type;
     u64 program_id;
     u64 title_id;
+    PatchSource source;
+    u32 numeric_version{0};
 };
 
 // A centralized class to manage patches to games.

@@ -55,7 +55,10 @@
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/control_metadata.h"
 #include "core/file_sys/fs_filesystem.h"
+#include "core/file_sys/romfs.h"
+#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs/vfs.h"
@@ -212,6 +215,109 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
         return;
     }
 
+    const auto extension = Common::ToLower(filepath.substr(filepath.find_last_of('.') + 1));
+
+    if (extension == "nsp") {
+        auto nsp = std::make_shared<FileSys::NSP>(file);
+        if (nsp->GetStatus() == Loader::ResultStatus::Success) {
+            std::map<u64, u32> nsp_versions;
+            std::map<u64, std::string> nsp_version_strings;
+
+            for (const auto& [title_id, nca_map] : nsp->GetNCAs()) {
+                for (const auto& [type_pair, nca] : nca_map) {
+                    const auto& [title_type, content_type] = type_pair;
+
+                    if (content_type == FileSys::ContentRecordType::Meta) {
+                        const auto meta_nca = std::make_shared<FileSys::NCA>(nca->GetBaseFile());
+                        if (meta_nca->GetStatus() == Loader::ResultStatus::Success) {
+                            const auto section0 = meta_nca->GetSubdirectories();
+                            if (!section0.empty()) {
+                                for (const auto& meta_file : section0[0]->GetFiles()) {
+                                    if (meta_file->GetExtension() == "cnmt") {
+                                        FileSys::CNMT cnmt(meta_file);
+                                        nsp_versions[cnmt.GetTitleID()] = cnmt.GetTitleVersion();
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (content_type == FileSys::ContentRecordType::Control &&
+                        title_type == FileSys::TitleType::Update) {
+                        auto romfs = nca->GetRomFS();
+                        if (romfs) {
+                            auto extracted = FileSys::ExtractRomFS(romfs);
+                            if (extracted) {
+                                auto nacp_file = extracted->GetFile("control.nacp");
+                                if (!nacp_file) {
+                                    nacp_file = extracted->GetFile("Control.nacp");
+                                }
+                                if (nacp_file) {
+                                    FileSys::NACP nacp(nacp_file);
+                                    auto ver_str = nacp.GetVersionString();
+                                    if (!ver_str.empty()) {
+                                        nsp_version_strings[title_id] = ver_str;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (const auto& [title_id, nca_map] : nsp->GetNCAs()) {
+                for (const auto& [type_pair, nca] : nca_map) {
+                    const auto& [title_type, content_type] = type_pair;
+
+                    if (title_type == FileSys::TitleType::Update) {
+                        u32 version = 0;
+                        auto ver_it = nsp_versions.find(title_id);
+                        if (ver_it != nsp_versions.end()) {
+                            version = ver_it->second;
+                        }
+
+                        std::string version_string;
+                        auto str_it = nsp_version_strings.find(title_id);
+                        if (str_it != nsp_version_strings.end()) {
+                            version_string = str_it->second;
+                        }
+
+                        m_manual_provider->AddEntryWithVersion(
+                            title_type, content_type, title_id, version, version_string,
+                            nca->GetBaseFile());
+
+                        LOG_DEBUG(Frontend, "Added NSP update entry - TitleID: {:016X}, Version: {}, VersionStr: {}",
+                                  title_id, version, version_string);
+                    } else {
+                        // Use regular AddEntry for non-updates
+                        m_manual_provider->AddEntry(title_type, content_type, title_id,
+                                                    nca->GetBaseFile());
+                        LOG_DEBUG(Frontend, "Added NSP entry - TitleID: {:016X}, TitleType: {}, ContentType: {}",
+                                  title_id, static_cast<int>(title_type), static_cast<int>(content_type));
+                    }
+                }
+            }
+            return;
+        }
+    }
+
+    // Handle XCI files
+    if (extension == "xci") {
+        FileSys::XCI xci{file};
+        if (xci.GetStatus() == Loader::ResultStatus::Success) {
+            const auto nsp = xci.GetSecurePartitionNSP();
+            if (nsp) {
+                for (const auto& title : nsp->GetNCAs()) {
+                    for (const auto& entry : title.second) {
+                        m_manual_provider->AddEntry(entry.first.first, entry.first.second, title.first,
+                                                    entry.second->GetBaseFile());
+                    }
+                }
+            }
+            return;
+        }
+    }
+
     auto loader = Loader::GetLoader(m_system, file);
     if (!loader) {
         return;
@@ -228,17 +334,6 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
         m_manual_provider->AddEntry(FileSys::TitleType::Application,
                                     FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()),
                                     program_id, file);
-    } else if (res2 == Loader::ResultStatus::Success &&
-               (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
-        const auto nsp = file_type == Loader::FileType::NSP
-                             ? std::make_shared<FileSys::NSP>(file)
-                             : FileSys::XCI{file}.GetSecurePartitionNSP();
-        for (const auto& title : nsp->GetNCAs()) {
-            for (const auto& entry : title.second) {
-                m_manual_provider->AddEntry(entry.first.first, entry.first.second, title.first,
-                                            entry.second->GetBaseFile());
-            }
-        }
     }
 }
 
@@ -1333,7 +1428,8 @@ jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env
             Common::Android::ToJString(env, patch.name),
             Common::Android::ToJString(env, patch.version), static_cast<jint>(patch.type),
             Common::Android::ToJString(env, std::to_string(patch.program_id)),
-            Common::Android::ToJString(env, std::to_string(patch.title_id)));
+            Common::Android::ToJString(env, std::to_string(patch.title_id)),
+            static_cast<jlong>(patch.numeric_version));
         env->SetObjectArrayElement(jpatchArray, i, jpatch);
         ++i;
     }

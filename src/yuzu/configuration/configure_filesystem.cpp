@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -38,9 +38,9 @@ ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
     connect(ui->reset_game_list_cache, &QPushButton::pressed, this,
             &ConfigureFilesystem::ResetMetadata);
 
-    connect(ui->gamecard_inserted, &QCheckBox::STATE_CHANGED, this,
+    connect(ui->gamecard_inserted, &QCheckBox::stateChanged, this,
             &ConfigureFilesystem::UpdateEnabledControls);
-    connect(ui->gamecard_current_game, &QCheckBox::STATE_CHANGED, this,
+    connect(ui->gamecard_current_game, &QCheckBox::stateChanged, this,
             &ConfigureFilesystem::UpdateEnabledControls);
 }
 
@@ -277,6 +277,7 @@ void ConfigureFilesystem::UpdateEnabledControls() {
     ui->gamecard_path_button->setEnabled(ui->gamecard_inserted->isChecked() &&
                                          !ui->gamecard_current_game->isChecked());
 }
+
 
 void ConfigureFilesystem::RetranslateUI() {
     ui->retranslateUi(this);

@@ -47,6 +47,66 @@
       </widget>
      </item>
      <item>
+      <widget class="QGroupBox" name="groupBox_external">
+       <property name="title">
+        <string>External Content</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_external">
+        <item>
+         <widget class="QLabel" name="label_external_desc">
+          <property name="text">
+           <string>Add directories to scan for DLCs and Updates without installing to NAND</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="external_content_list">
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_external_buttons">
+          <item>
+           <widget class="QPushButton" name="add_external_dir_button">
+            <property name="text">
+             <string>Add Directory</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="remove_external_dir_button">
+            <property name="text">
+             <string>Remove Selected</string>
+            </property>
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_external">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>

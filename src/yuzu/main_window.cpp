@@ -3388,6 +3388,8 @@ void MainWindow::OnConfigure() {
                                      !multiplayer_state->IsHostingPublicRoom());
     connect(&configure_dialog, &ConfigureDialog::LanguageChanged, this,
             &MainWindow::OnLanguageChanged);
+    connect(&configure_dialog, &ConfigureDialog::ExternalContentDirsChanged, this,
+            &MainWindow::OnGameListRefresh);
 
     const auto result = configure_dialog.exec();
     if (result != QDialog::Accepted && !UISettings::values.configuration_applied &&
@@ -3907,8 +3909,7 @@ void MainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
 }
 
-void MainWindow::OnGameListRefresh()
-{
+void MainWindow::OnGameListRefresh() {
     // Resets metadata cache and reloads
     QtCommon::Game::ResetMetadata(false);
     game_list->RefreshGameDirectory();

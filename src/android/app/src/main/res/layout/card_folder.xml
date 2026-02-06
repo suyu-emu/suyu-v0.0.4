@@ -11,7 +11,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="16dp"
         android:layout_gravity="center_vertical">
 
@@ -23,11 +23,24 @@
             android:layout_gravity="center_vertical|start"
             android:requiresFadingEdge="horizontal"
             android:textAlignment="viewStart"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/type_indicator"
             app:layout_constraintEnd_toStartOf="@+id/button_layout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="@string/select_gpu_driver_default" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/type_indicator"
+            style="@style/TextAppearance.Material3.LabelSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/button_layout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/path"
+            tools:text="Games" />
 
         <LinearLayout
             android:id="@+id/button_layout"

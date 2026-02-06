@@ -1,8 +1,9 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <common/fs/path_util.h>
 #include <common/logging/log.h>
+#include <common/settings.h>
 #include <input_common/main.h>
 #include "android_config.h"
 #include "android_settings.h"
@@ -66,6 +67,18 @@ void AndroidConfig::ReadPathValues() {
         game_dir.deep_scan =
             ReadBooleanSetting(std::string("deep_scan"), std::make_optional(false));
         AndroidSettings::values.game_dirs.push_back(game_dir);
+    }
+    EndArray();
+
+    // Read external content directories
+    Settings::values.external_content_dirs.clear();
+    const int external_dirs_size = BeginArray(std::string("external_content_dirs"));
+    for (int i = 0; i < external_dirs_size; ++i) {
+        SetArrayIndex(i);
+        std::string dir_path = ReadStringSetting(std::string("path"));
+        if (!dir_path.empty()) {
+            Settings::values.external_content_dirs.push_back(dir_path);
+        }
     }
     EndArray();
 
@@ -238,6 +251,14 @@ void AndroidConfig::SavePathValues() {
         WriteStringSetting(std::string("path"), game_dir.path);
         WriteBooleanSetting(std::string("deep_scan"), game_dir.deep_scan,
                             std::make_optional(false));
+    }
+    EndArray();
+
+    // Save external content directories
+    BeginArray(std::string("external_content_dirs"));
+    for (size_t i = 0; i < Settings::values.external_content_dirs.size(); ++i) {
+        SetArrayIndex(i);
+        WriteStringSetting(std::string("path"), Settings::values.external_content_dirs[i]);
     }
     EndArray();
 

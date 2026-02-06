@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -231,6 +231,16 @@ void QtConfig::ReadPathValues() {
         QString::fromStdString(ReadStringSetting(std::string("recentFiles")))
             .split(QStringLiteral(", "), Qt::SkipEmptyParts, Qt::CaseSensitive);
 
+    const int external_dirs_size = BeginArray(std::string("external_content_dirs"));
+    for (int i = 0; i < external_dirs_size; ++i) {
+        SetArrayIndex(i);
+        std::string dir_path = ReadStringSetting(std::string("path"));
+        if (!dir_path.empty()) {
+            Settings::values.external_content_dirs.push_back(dir_path);
+        }
+    }
+    EndArray();
+
     ReadCategory(Settings::Category::Paths);
 
     EndGroup();
@@ -445,6 +455,13 @@ void QtConfig::SavePathValues() {
 
     WriteStringSetting(std::string("recentFiles"),
                        UISettings::values.recent_files.join(QStringLiteral(", ")).toStdString());
+
+    BeginArray(std::string("external_content_dirs"));
+    for (int i = 0; i < static_cast<int>(Settings::values.external_content_dirs.size()); ++i) {
+        SetArrayIndex(i);
+        WriteStringSetting(std::string("path"), Settings::values.external_content_dirs[i]);
+    }
+    EndArray();
 
     EndGroup();
 }

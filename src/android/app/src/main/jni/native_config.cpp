@@ -583,4 +583,26 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setSdmcDir(JNIEnv* env, jobject 
     Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir, path);
 }
 
+jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getExternalContentDirs(JNIEnv* env,
+                                                                               jobject obj) {
+    const auto& dirs = Settings::values.external_content_dirs;
+    jobjectArray jdirsArray =
+        env->NewObjectArray(dirs.size(), Common::Android::GetStringClass(),
+                            Common::Android::ToJString(env, ""));
+    for (size_t i = 0; i < dirs.size(); ++i) {
+        env->SetObjectArrayElement(jdirsArray, i, Common::Android::ToJString(env, dirs[i]));
+    }
+    return jdirsArray;
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setExternalContentDirs(JNIEnv* env, jobject obj,
+                                                                       jobjectArray jdirs) {
+    Settings::values.external_content_dirs.clear();
+    const int size = env->GetArrayLength(jdirs);
+    for (int i = 0; i < size; ++i) {
+        auto jdir = static_cast<jstring>(env->GetObjectArrayElement(jdirs, i));
+        Settings::values.external_content_dirs.push_back(Common::Android::GetJString(env, jdir));
+    }
+}
+
 } // extern "C"

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,6 +20,7 @@ class System;
 
 namespace FileSys {
 class BISFactory;
+class ExternalContentProvider;
 class NCA;
 class RegisteredCache;
 class RegisteredCacheUnion;
@@ -117,6 +121,8 @@ public:
 
     FileSys::VirtualDir GetBCATDirectory(u64 title_id) const;
 
+    FileSys::ExternalContentProvider* GetExternalContentProvider() const;
+
     // Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
     // above is called.
     void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite = true);
@@ -137,6 +143,8 @@ private:
 
     std::unique_ptr<FileSys::SDMCFactory> sdmc_factory;
     std::unique_ptr<FileSys::BISFactory> bis_factory;
+
+    std::unique_ptr<FileSys::ExternalContentProvider> external_provider;
 
     std::unique_ptr<FileSys::XCI> gamecard;
     std::unique_ptr<FileSys::RegisteredCache> gamecard_registered;

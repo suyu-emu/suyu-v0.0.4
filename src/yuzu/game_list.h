@@ -94,6 +94,8 @@ public:
 
 public slots:
     void RefreshGameDirectory();
+    void RefreshExternalContent();
+    void ResetExternalWatcher();
 
 signals:
     void BootGame(const QString& game_path, StartGameType type);
@@ -160,6 +162,7 @@ private:
     QStandardItemModel* item_model = nullptr;
     std::unique_ptr<GameListWorker> current_worker;
     QFileSystemWatcher* watcher = nullptr;
+    QFileSystemWatcher* external_watcher = nullptr;
     ControllerNavigation* controller_navigation = nullptr;
     CompatibilityList compatibility_list;
 

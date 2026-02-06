@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <jni.h>
@@ -516,7 +516,7 @@ namespace Common::Android {
         s_patch_class = reinterpret_cast<jclass>(env->NewGlobalRef(patch_class));
         s_patch_constructor = env->GetMethodID(
                 patch_class, "<init>",
-                "(ZLjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V");
+                "(ZLjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;J)V");
         s_patch_enabled_field = env->GetFieldID(patch_class, "enabled", "Z");
         s_patch_name_field = env->GetFieldID(patch_class, "name", "Ljava/lang/String;");
         s_patch_version_field = env->GetFieldID(patch_class, "version", "Ljava/lang/String;");

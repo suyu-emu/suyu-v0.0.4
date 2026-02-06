@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "qt_common/util/game.h"
@@ -373,27 +373,23 @@ void RemoveCacheStorage(u64 program_id)
 }
 
 // Metadata //
-void ResetMetadata(bool show_message)
-{
+void ResetMetadata(bool show_message) {
     const QString title = tr("Reset Metadata Cache");
 
-    if (!Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir)
-                            / "game_list/")) {
+    if (!Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
+                            "game_list/")) {
         if (show_message)
-            QtCommon::Frontend::Warning(rootObject,
-                                        title,
+            QtCommon::Frontend::Warning(rootObject, title,
                                         tr("The metadata cache is already empty."));
     } else if (Common::FS::RemoveDirRecursively(
                    Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
         if (show_message)
-            QtCommon::Frontend::Information(rootObject,
-                                            title,
+            QtCommon::Frontend::Information(rootObject, title,
                                             tr("The operation completed successfully."));
         UISettings::values.is_game_list_reload_pending.exchange(true);
     } else {
         if (show_message)
             QtCommon::Frontend::Warning(
-
                 title,
                 tr("The metadata cache couldn't be deleted. It might be in use or non-existent."));
     }

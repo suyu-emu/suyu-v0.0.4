@@ -1,8 +1,8 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.utils
 
@@ -49,6 +49,17 @@ object GameHelper {
         // Remove previous filesystem provider information so we can get up to date version info
         NativeLibrary.clearFilesystemProvider()
 
+        // Scan External Content directories and register all NSP/XCI files
+        val externalContentDirs = NativeConfig.getExternalContentDirs()
+        for (externalDir in externalContentDirs) {
+            if (externalDir.isNotEmpty()) {
+                val externalDirUri = externalDir.toUri()
+                if (FileUtil.isTreeUriValid(externalDirUri)) {
+                    scanExternalContentRecursive(FileUtil.listFiles(externalDirUri), 3)
+                }
+            }
+        }
+
         val badDirs = mutableListOf<Int>()
         gameDirs.forEachIndexed { index: Int, gameDir: GameDir ->
             val gameDirUri = gameDir.uriString.toUri()
@@ -86,6 +97,33 @@ object GameHelper {
 
         cachedGameList = games.toMutableList()
         return games.toList()
+    }
+
+    // File extensions considered as external content, buuut should
+    // be done better imo.
+    private val externalContentExtensions = setOf("nsp", "xci")
+
+    private fun scanExternalContentRecursive(
+        files: Array<MinimalDocumentFile>,
+        depth: Int
+    ) {
+        if (depth <= 0) {
+            return
+        }
+
+        files.forEach {
+            if (it.isDirectory) {
+                scanExternalContentRecursive(
+                    FileUtil.listFiles(it.uri),
+                    depth - 1
+                )
+            } else {
+                val extension = FileUtil.getExtension(it.uri).lowercase()
+                if (externalContentExtensions.contains(extension)) {
+                    NativeLibrary.addFileToFilesystemProvider(it.uri.toString())
+                }
+            }
+        }
     }
 
     private fun addGamesRecursive(

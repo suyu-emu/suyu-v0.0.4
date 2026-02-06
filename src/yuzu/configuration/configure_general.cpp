@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -7,6 +7,9 @@
 #include <functional>
 #include <utility>
 #include <vector>
+#include <QDir>
+#include <QFileDialog>
+#include <QListWidget>
 #include <QMessageBox>
 #include "common/settings.h"
 #include "core/core.h"
@@ -29,6 +32,15 @@ ConfigureGeneral::ConfigureGeneral(const Core::System& system_,
     connect(ui->button_reset_defaults, &QPushButton::clicked, this,
             &ConfigureGeneral::ResetDefaults);
 
+    connect(ui->add_external_dir_button, &QPushButton::pressed, this,
+            &ConfigureGeneral::AddExternalContentDirectory);
+    connect(ui->remove_external_dir_button, &QPushButton::pressed, this,
+            &ConfigureGeneral::RemoveSelectedExternalContentDirectory);
+    connect(ui->external_content_list, &QListWidget::itemSelectionChanged, this, [this] {
+        ui->remove_external_dir_button->setEnabled(
+            !ui->external_content_list->selectedItems().isEmpty());
+    });
+
     if (!Settings::IsConfiguringGlobal()) {
         ui->button_reset_defaults->setVisible(false);
     }
@@ -36,7 +48,9 @@ ConfigureGeneral::ConfigureGeneral(const Core::System& system_,
 
 ConfigureGeneral::~ConfigureGeneral() = default;
 
-void ConfigureGeneral::SetConfiguration() {}
+void ConfigureGeneral::SetConfiguration() {
+    UpdateExternalContentList();
+}
 
 void ConfigureGeneral::Setup(const ConfigurationShared::Builder& builder) {
     QLayout& general_layout = *ui->general_widget->layout();
@@ -100,6 +114,55 @@ void ConfigureGeneral::ApplyConfiguration() {
     bool powered_on = system.IsPoweredOn();
     for (const auto& func : apply_funcs) {
         func(powered_on);
+    }
+
+    std::vector<std::string> new_dirs;
+    new_dirs.reserve(ui->external_content_list->count());
+    for (int i = 0; i < ui->external_content_list->count(); ++i) {
+        new_dirs.push_back(ui->external_content_list->item(i)->text().toStdString());
+    }
+
+    if (new_dirs != Settings::values.external_content_dirs) {
+        Settings::values.external_content_dirs = std::move(new_dirs);
+        emit ExternalContentDirsChanged();
+    }
+}
+
+void ConfigureGeneral::UpdateExternalContentList() {
+    ui->external_content_list->clear();
+    for (const auto& dir : Settings::values.external_content_dirs) {
+        ui->external_content_list->addItem(QString::fromStdString(dir));
+    }
+}
+
+void ConfigureGeneral::AddExternalContentDirectory() {
+    const QString dir_path = QFileDialog::getExistingDirectory(
+        this, tr("Select External Content Directory..."), QString());
+
+    if (dir_path.isEmpty()) {
+        return;
+    }
+
+    QString normalized_path = QDir::toNativeSeparators(dir_path);
+    if (normalized_path.back() != QDir::separator()) {
+        normalized_path.append(QDir::separator());
+    }
+
+    for (int i = 0; i < ui->external_content_list->count(); ++i) {
+        if (ui->external_content_list->item(i)->text() == normalized_path) {
+            QMessageBox::information(this, tr("Directory Already Added"),
+                                     tr("This directory is already in the list."));
+            return;
+        }
+    }
+
+    ui->external_content_list->addItem(normalized_path);
+}
+
+void ConfigureGeneral::RemoveSelectedExternalContentDirectory() {
+    auto selected = ui->external_content_list->selectedItems();
+    if (!selected.isEmpty()) {
+        qDeleteAll(ui->external_content_list->selectedItems());
     }
 }
 

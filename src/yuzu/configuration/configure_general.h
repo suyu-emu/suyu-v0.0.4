@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -39,11 +42,18 @@ public:
     void ApplyConfiguration() override;
     void SetConfiguration() override;
 
+signals:
+    void ExternalContentDirsChanged();
+
 private:
     void Setup(const ConfigurationShared::Builder& builder);
 
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
+
+    void UpdateExternalContentList();
+    void AddExternalContentDirectory();
+    void RemoveSelectedExternalContentDirectory();
 
     std::function<void()> reset_callback;
 

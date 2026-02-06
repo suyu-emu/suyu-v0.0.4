@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,7 +17,8 @@
 #include "core/file_sys/vfs/vfs.h"
 
 namespace FileSys {
-class CNMT;
+    class ExternalContentProvider;
+    class CNMT;
 class NCA;
 class NSP;
 class XCI;
@@ -46,6 +50,13 @@ struct ContentProviderEntry {
     ContentRecordType type;
 
     std::string DebugInfo() const;
+};
+
+struct ExternalUpdateEntry {
+    u64 title_id;
+    u32 version;
+    std::string version_string;
+    std::map<ContentRecordType, VirtualFile> files;
 };
 
 constexpr u64 GetUpdateTitleID(u64 base_title_id) {
@@ -208,6 +219,7 @@ enum class ContentProviderUnionSlot {
     UserNAND,       ///< User NAND
     SDMC,           ///< SD Card
     FrontendManual, ///< Frontend-defined game list or similar
+    External,       ///< External content from NSP/XCI files in configured directories
 };
 
 // Combines multiple ContentProvider(s) (i.e. SysNAND, UserNAND, SDMC) into one interface.
@@ -228,6 +240,9 @@ public:
         std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
         std::optional<u64> title_id) const override;
 
+    const ExternalContentProvider* GetExternalProvider() const;
+    const ContentProvider* GetSlotProvider(ContentProviderUnionSlot slot) const;
+
     std::vector<std::pair<ContentProviderUnionSlot, ContentProviderEntry>> ListEntriesFilterOrigin(
         std::optional<ContentProviderUnionSlot> origin = {},
         std::optional<TitleType> title_type = {}, std::optional<ContentRecordType> record_type = {},
@@ -246,6 +261,8 @@ public:
 
     void AddEntry(TitleType title_type, ContentRecordType content_type, u64 title_id,
                   VirtualFile file);
+    void AddEntryWithVersion(TitleType title_type, ContentRecordType content_type, u64 title_id,
+                             u32 version, const std::string& version_string, VirtualFile file);
     void ClearAllEntries();
 
     void Refresh() override;
@@ -258,8 +275,46 @@ public:
         std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
         std::optional<u64> title_id) const override;
 
+    std::vector<ExternalUpdateEntry> ListUpdateVersions(u64 title_id) const;
+    VirtualFile GetEntryForVersion(u64 title_id, ContentRecordType type, u32 version) const;
+    bool HasMultipleVersions(u64 title_id, ContentRecordType type) const;
+
 private:
     std::map<std::tuple<TitleType, ContentRecordType, u64>, VirtualFile> entries;
+    std::vector<ExternalUpdateEntry> multi_version_entries;
+};
+
+class ExternalContentProvider : public ContentProvider {
+public:
+    explicit ExternalContentProvider(std::vector<VirtualDir> load_directories = {});
+    ~ExternalContentProvider() override;
+
+    void AddDirectory(VirtualDir directory);
+    void ClearDirectories();
+
+    void Refresh() override;
+    bool HasEntry(u64 title_id, ContentRecordType type) const override;
+    std::optional<u32> GetEntryVersion(u64 title_id) const override;
+    VirtualFile GetEntryUnparsed(u64 title_id, ContentRecordType type) const override;
+    VirtualFile GetEntryRaw(u64 title_id, ContentRecordType type) const override;
+    std::unique_ptr<NCA> GetEntry(u64 title_id, ContentRecordType type) const override;
+    std::vector<ContentProviderEntry> ListEntriesFilter(
+        std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
+        std::optional<u64> title_id) const override;
+
+    std::vector<ExternalUpdateEntry> ListUpdateVersions(u64 title_id) const;
+    VirtualFile GetEntryForVersion(u64 title_id, ContentRecordType type, u32 version) const;
+    bool HasMultipleVersions(u64 title_id, ContentRecordType type) const;
+
+private:
+    void ScanDirectory(const VirtualDir& dir);
+    void ProcessNSP(const VirtualFile& file);
+    void ProcessXCI(const VirtualFile& file);
+
+    std::vector<VirtualDir> load_dirs;
+    std::map<std::tuple<u64, ContentRecordType, TitleType>, VirtualFile> entries;
+    std::map<u64, u32> versions;
+    std::vector<ExternalUpdateEntry> multi_version_entries;
 };
 
 } // namespace FileSys

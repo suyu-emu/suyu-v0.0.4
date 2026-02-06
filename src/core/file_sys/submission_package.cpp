@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -275,6 +278,14 @@ void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
                         ncas[next_nca->GetTitleId()][{cnmt.GetType(), rec.type}] =
                             std::move(next_nca);
                     } else {
+                        // fix for Bayonetta Origins in Bayonetta 3 and external content
+                        // where multiple update NCAs exist for the same title and type.
+                        auto& target_map = ncas[cnmt.GetTitleID()];
+                        auto existing = target_map.find({cnmt.GetType(), rec.type});
+
+                        if (existing != target_map.end() && rec.type == ContentRecordType::Program) {
+                            continue;
+                        }
                         ncas[cnmt.GetTitleID()][{cnmt.GetType(), rec.type}] = std::move(next_nca);
                     }
                 } else {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -9,6 +9,7 @@
 #include "common/assert.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/bis_factory.h"
@@ -507,6 +508,10 @@ FileSys::RegisteredCache* FileSystemController::GetSDMCContents() const {
     return sdmc_factory->GetSDMCContents();
 }
 
+FileSys::ExternalContentProvider* FileSystemController::GetExternalContentProvider() const {
+    return external_provider.get();
+}
+
 FileSys::PlaceholderCache* FileSystemController::GetSystemNANDPlaceholder() const {
     LOG_TRACE(Service_FS, "Opening System NAND Placeholder");
 
@@ -684,6 +689,7 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
     if (overwrite) {
         bis_factory = nullptr;
         sdmc_factory = nullptr;
+        external_provider = nullptr;
     }
 
     using EdenPath = Common::FS::EdenPath;
@@ -715,6 +721,36 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
                                                               std::move(sd_load_directory));
         system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::SDMC,
                                        sdmc_factory->GetSDMCContents());
+    }
+
+    if (external_provider == nullptr) {
+        std::vector<FileSys::VirtualDir> external_dirs;
+
+        LOG_DEBUG(Service_FS, "Initializing ExternalContentProvider with {} configured directories",
+                  Settings::values.external_content_dirs.size());
+
+        for (const auto& dir_path : Settings::values.external_content_dirs) {
+            if (!dir_path.empty()) {
+                LOG_DEBUG(Service_FS, "Attempting to open directory: {}", dir_path);
+                auto dir = vfs.OpenDirectory(dir_path, FileSys::OpenMode::Read);
+                if (dir != nullptr) {
+                    external_dirs.push_back(std::move(dir));
+                    LOG_DEBUG(Service_FS, "Successfully opened directory: {}", dir_path);
+                } else {
+                    LOG_ERROR(Service_FS, "Failed to open directory: {}", dir_path);
+                }
+            }
+        }
+
+        LOG_DEBUG(Service_FS, "Creating ExternalContentProvider with {} opened directories",
+                  external_dirs.size());
+
+        external_provider = std::make_unique<FileSys::ExternalContentProvider>(
+            std::move(external_dirs));
+        system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::External,
+                                       external_provider.get());
+
+        LOG_DEBUG(Service_FS, "ExternalContentProvider registered to content provider union");
     }
 }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -204,4 +204,12 @@ object NativeConfig {
     external fun getSdmcDir(): String
     @Synchronized
     external fun setSdmcDir(path: String)
+
+    /**
+     * External Content Provider
+     */
+    @Synchronized
+    external fun getExternalContentDirs(): Array<String>
+    @Synchronized
+    external fun setExternalContentDirs(dirs: Array<String>)
 }

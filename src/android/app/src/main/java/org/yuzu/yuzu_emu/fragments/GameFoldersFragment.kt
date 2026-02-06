@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -15,11 +15,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.FolderAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentFoldersBinding
+import org.yuzu.yuzu_emu.model.DirectoryType
+import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
@@ -73,7 +76,25 @@ class GameFoldersFragment : Fragment() {
 
         val mainActivity = requireActivity() as MainActivity
         binding.buttonAdd.setOnClickListener {
-            mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+            // Show a model to choose between Game and External Content
+            val options = arrayOf(
+                getString(R.string.games),
+                getString(R.string.external_content)
+            )
+
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.add_folders)
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> { // Game Folder
+                            mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+                        }
+                        1 -> { // External Content Folder
+                            mainActivity.getExternalContentDirectory.launch(null)
+                        }
+                    }
+                }
+                .show()
         }
 
         setInsets()

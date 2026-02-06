@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.model
@@ -56,7 +56,7 @@ class GamesViewModel : ViewModel() {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
 
-        getGameDirs()
+        getGameDirsAndExternalContent()
         reloadGames(directoriesChanged = false, firstStartup = true)
     }
 
@@ -144,11 +144,19 @@ class GamesViewModel : ViewModel() {
     fun addFolder(gameDir: GameDir, savedFromGameFragment: Boolean) =
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                NativeConfig.addGameDir(gameDir)
-                val isFirstTimeSetup = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-                    .getBoolean(org.yuzu.yuzu_emu.features.settings.model.Settings.PREF_FIRST_APP_LAUNCH, true)
-
-                getGameDirs(!isFirstTimeSetup)
+                when (gameDir.type) {
+                    DirectoryType.GAME -> {
+                        NativeConfig.addGameDir(gameDir)
+                        val isFirstTimeSetup = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                            .getBoolean(org.yuzu.yuzu_emu.features.settings.model.Settings.PREF_FIRST_APP_LAUNCH, true)
+                        getGameDirsAndExternalContent(!isFirstTimeSetup)
+                    }
+                    DirectoryType.EXTERNAL_CONTENT -> {
+                        addExternalContentDir(gameDir.uriString)
+                        NativeConfig.saveGlobalConfig()
+                        getGameDirsAndExternalContent()
+                    }
+                }
             }
 
             if (savedFromGameFragment) {
@@ -168,8 +176,15 @@ class GamesViewModel : ViewModel() {
                 val removedDirIndex = gameDirs.indexOf(gameDir)
                 if (removedDirIndex != -1) {
                     gameDirs.removeAt(removedDirIndex)
-                    NativeConfig.setGameDirs(gameDirs.toTypedArray())
-                    getGameDirs()
+                    when (gameDir.type) {
+                        DirectoryType.GAME -> {
+                            NativeConfig.setGameDirs(gameDirs.filter { it.type == DirectoryType.GAME }.toTypedArray())
+                        }
+                        DirectoryType.EXTERNAL_CONTENT -> {
+                            removeExternalContentDir(gameDir.uriString)
+                        }
+                    }
+                    getGameDirsAndExternalContent()
                 }
             }
         }
@@ -177,15 +192,16 @@ class GamesViewModel : ViewModel() {
     fun updateGameDirs() =
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                NativeConfig.setGameDirs(_folders.value.toTypedArray())
-                getGameDirs()
+                val gameDirs = _folders.value.filter { it.type == DirectoryType.GAME }
+                NativeConfig.setGameDirs(gameDirs.toTypedArray())
+                getGameDirsAndExternalContent()
             }
         }
 
     fun onOpenGameFoldersFragment() =
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                getGameDirs()
+                getGameDirsAndExternalContent()
             }
         }
 
@@ -193,16 +209,36 @@ class GamesViewModel : ViewModel() {
         NativeConfig.saveGlobalConfig()
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                getGameDirs(true)
+                getGameDirsAndExternalContent(true)
             }
         }
     }
 
-    private fun getGameDirs(reloadList: Boolean = false) {
-        val gameDirs = NativeConfig.getGameDirs()
-        _folders.value = gameDirs.toMutableList()
+    private fun getGameDirsAndExternalContent(reloadList: Boolean = false) {
+        val gameDirs = NativeConfig.getGameDirs().toMutableList()
+        val externalContentDirs = NativeConfig.getExternalContentDirs().map {
+            GameDir(it, false, DirectoryType.EXTERNAL_CONTENT)
+        }
+        gameDirs.addAll(externalContentDirs)
+        _folders.value = gameDirs
         if (reloadList) {
             reloadGames(true)
         }
+    }
+
+    private fun addExternalContentDir(path: String) {
+        val currentDirs = NativeConfig.getExternalContentDirs().toMutableList()
+        if (!currentDirs.contains(path)) {
+            currentDirs.add(path)
+            NativeConfig.setExternalContentDirs(currentDirs.toTypedArray())
+            NativeConfig.saveGlobalConfig()
+        }
+    }
+
+    private fun removeExternalContentDir(path: String) {
+        val currentDirs = NativeConfig.getExternalContentDirs().toMutableList()
+        currentDirs.remove(path)
+        NativeConfig.setExternalContentDirs(currentDirs.toTypedArray())
+        NativeConfig.saveGlobalConfig()
     }
 }
