@@ -13,7 +13,8 @@ add_library(frontend_common STATIC
     data_manager.h data_manager.cpp
     play_time_manager.cpp
     play_time_manager.h
-    settings_generator.h settings_generator.cpp)
+    settings_generator.h settings_generator.cpp
+    mod_manager.h mod_manager.cpp)
 
 if (ENABLE_UPDATE_CHECKER)
     target_link_libraries(frontend_common PRIVATE httplib::httplib)

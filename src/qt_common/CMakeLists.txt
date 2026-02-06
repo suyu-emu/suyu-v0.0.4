@@ -22,6 +22,8 @@ add_library(qt_common STATIC
     util/rom.h util/rom.cpp
     util/applet.h util/applet.cpp
     util/compress.h util/compress.cpp
+    util/fs.h util/fs.cpp
+    util/mod.h util/mod.cpp
 
     abstract/frontend.h abstract/frontend.cpp
     abstract/qt_progress_dialog.h abstract/qt_progress_dialog.cpp
@@ -29,9 +31,7 @@ add_library(qt_common STATIC
     qt_string_lookup.h
     qt_compat.h
 
-    discord/discord.h
-    util/fs.h util/fs.cpp
-)
+    discord/discord.h)
 
 if (UNIX)
     target_sources(qt_common PRIVATE gui_settings.cpp gui_settings.h)

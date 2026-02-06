@@ -238,6 +238,7 @@ add_executable(yuzu
 
     configuration/system/new_user_dialog.h configuration/system/new_user_dialog.cpp configuration/system/new_user_dialog.ui
     configuration/system/profile_avatar_dialog.h configuration/system/profile_avatar_dialog.cpp
+    configuration/addon/mod_select_dialog.h configuration/addon/mod_select_dialog.cpp configuration/addon/mod_select_dialog.ui
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")

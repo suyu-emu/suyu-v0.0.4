@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef FRONTEND_H
@@ -138,6 +138,12 @@ const QString GetSaveFileName(const QString &title,
 const QString GetExistingDirectory(const QString &caption = QString(),
                                     const QString &dir = QString(),
                                     Options options = Option::ShowDirsOnly);
+
+int Choice(const QString& title = QString(), const QString& caption = QString(),
+           const QStringList& options = {});
+
+const QString GetTextInput(const QString& title = QString(), const QString& caption = QString(),
+                           const QString& defaultText = QString());
 
 } // namespace QtCommon::Frontend
 #endif // FRONTEND_H

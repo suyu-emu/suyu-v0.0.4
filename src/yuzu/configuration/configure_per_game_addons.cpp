@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -14,17 +14,21 @@
 #include <QString>
 #include <QTimer>
 #include <QTreeView>
+#include <qstandardpaths.h>
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "configuration/addon/mod_select_dialog.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
-#include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
+#include "frontend_common/mod_manager.h"
+#include "qt_common/abstract/frontend.h"
+#include "qt_common/config/uisettings.h"
+#include "qt_common/util/mod.h"
 #include "ui_configure_per_game_addons.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_per_game_addons.h"
-#include "qt_common/config/uisettings.h"
 
 ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigurePerGameAddons>()}, system{system_} {
@@ -66,6 +70,9 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
 
     connect(item_model, &QStandardItemModel::itemChanged,
             [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
+
+    connect(ui->folder, &QAbstractButton::clicked, this, &ConfigurePerGameAddons::InstallModFolder);
+    connect(ui->zip, &QAbstractButton::clicked, this, &ConfigurePerGameAddons::InstallModZip);
 }
 
 ConfigurePerGameAddons::~ConfigurePerGameAddons() = default;
@@ -97,6 +104,68 @@ void ConfigurePerGameAddons::LoadFromFile(FileSys::VirtualFile file_) {
 
 void ConfigurePerGameAddons::SetTitleId(u64 id) {
     this->title_id = id;
+}
+
+void ConfigurePerGameAddons::InstallMods(const QStringList& mods) {
+    QStringList failed;
+    for (const auto& mod : mods) {
+        if (FrontendCommon::InstallMod(mod.toStdString(), title_id, true) ==
+            FrontendCommon::Failed) {
+            failed << QFileInfo(mod).baseName();
+        }
+    }
+
+    if (failed.empty()) {
+        QtCommon::Frontend::Information(tr("Mod Install Succeeded"),
+                                        tr("Successfully installed all mods."));
+
+        item_model->removeRows(0, item_model->rowCount());
+        list_items.clear();
+        LoadConfiguration();
+
+        UISettings::values.is_game_list_reload_pending.exchange(true);
+    } else {
+        QtCommon::Frontend::Critical(
+            tr("Mod Install Failed"),
+            tr("Failed to install the following mods:\n\t%1\nCheck the log for details.")
+                .arg(failed.join(QStringLiteral("\n\t"))));
+    }
+}
+
+void ConfigurePerGameAddons::InstallModPath(const QString& path) {
+    const auto mods = QtCommon::Mod::GetModFolders(path, {});
+
+    if (mods.size() > 1) {
+        ModSelectDialog* dialog = new ModSelectDialog(mods, this);
+        connect(dialog, &ModSelectDialog::modsSelected, this, &ConfigurePerGameAddons::InstallMods);
+        dialog->show();
+    } else {
+        InstallMods(mods);
+    }
+}
+
+void ConfigurePerGameAddons::InstallModFolder() {
+    const auto path = QtCommon::Frontend::GetExistingDirectory(
+        tr("Mod Folder"), QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
+    if (path.isEmpty()) {
+        return;
+    }
+
+    InstallModPath(path);
+}
+
+void ConfigurePerGameAddons::InstallModZip() {
+    const auto path = QtCommon::Frontend::GetOpenFileName(
+        tr("Zipped Mod Location"),
+        QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+        tr("Zipped Archives (*.zip)"));
+    if (path.isEmpty()) {
+        return;
+    }
+
+    const QString extracted = QtCommon::Mod::ExtractMod(path);
+    if (!extracted.isEmpty())
+        InstallModPath(extracted);
 }
 
 void ConfigurePerGameAddons::changeEvent(QEvent* event) {

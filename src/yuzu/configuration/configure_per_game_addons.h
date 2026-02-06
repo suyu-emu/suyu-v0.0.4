@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,6 +10,7 @@
 #include <vector>
 
 #include <QList>
+#include <QWidget>
 
 #include "core/file_sys/vfs/vfs_types.h"
 
@@ -37,6 +41,13 @@ public:
     void LoadFromFile(FileSys::VirtualFile file_);
 
     void SetTitleId(u64 id);
+
+public slots:
+    void InstallMods(const QStringList &mods);
+    void InstallModPath(const QString& path);
+
+    void InstallModFolder();
+    void InstallModZip();
 
 private:
     void changeEvent(QEvent* event) override;

@@ -85,6 +85,7 @@
 #include "qt_common/util/meta.h"
 #include "qt_common/util/content.h"
 #include "qt_common/util/fs.h"
+#include "qt_common/util/mod.h"
 
 // These are wrappers to avoid the calls to CreateDirectory and CreateFile because of the Windows
 // defines.
@@ -3654,6 +3655,7 @@ void MainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file_
     Settings::SetConfiguringGlobal(false);
     ConfigurePerGame dialog(this, title_id, file_name, vk_device_records, *QtCommon::system);
     dialog.LoadFromFile(v_file);
+
     const auto result = dialog.exec();
 
     if (result != QDialog::Accepted && !UISettings::values.configuration_applied) {
@@ -3665,7 +3667,7 @@ void MainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file_
 
     const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
     if (reload) {
-        game_list->PopulateAsync(UISettings::values.game_dirs);
+        OnGameListRefresh();
     }
 
     // Do not cause the global config to write local settings into the config file
