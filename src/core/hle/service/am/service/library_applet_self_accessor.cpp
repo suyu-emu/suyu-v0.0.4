@@ -181,12 +181,12 @@ Result ILibraryAppletSelfAccessor::ExitProcessAndReturn() {
     LOG_INFO(Service_AM, "called");
 
     if (const auto caller_applet = m_applet->caller_applet.lock(); caller_applet) {
-        system.GetUserChannel() = caller_applet->user_channel_launch_parameter;
+        m_applet->process->Terminate();
     } else {
         system.GetUserChannel() = m_applet->user_channel_launch_parameter;
+        system.ExecuteProgram(0);
     }
 
-    system.ExecuteProgram(0);
     R_SUCCEED();
 }
 
