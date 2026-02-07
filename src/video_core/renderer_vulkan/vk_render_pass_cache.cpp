@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -44,12 +44,18 @@ using VideoCore::Surface::SurfaceType;
         }
 
         VkAttachmentDescription AttachmentDescription(const Device& device, PixelFormat format,
-                                                      VkSampleCountFlagBits samples) {
+                                                      VkSampleCountFlagBits samples,
+                                                      bool is_depth_stencil) {
             using MaxwellToVK::SurfaceFormat;
 
             const SurfaceType surface_type = GetSurfaceType(format);
             const bool has_stencil = surface_type == SurfaceType::DepthStencil ||
                                      surface_type == SurfaceType::Stencil;
+
+            // Use optimal layouts for attachments - this allows drivers to optimize tiling and access patterns
+            const VkImageLayout attachment_layout = is_depth_stencil
+                ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+                : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
             return {
                 .flags = {},
@@ -61,8 +67,8 @@ using VideoCore::Surface::SurfaceType;
                                                  : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = has_stencil ? VK_ATTACHMENT_STORE_OP_STORE
                                                   : VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .initialLayout = attachment_layout,
+                .finalLayout = attachment_layout,
             };
         }
     } // Anonymous namespace
@@ -84,10 +90,10 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
         const bool is_valid{format != PixelFormat::Invalid};
         references[index] = VkAttachmentReference{
             .attachment = is_valid ? num_colors : VK_ATTACHMENT_UNUSED,
-            .layout = VK_IMAGE_LAYOUT_GENERAL,
+            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         };
         if (is_valid) {
-            descriptions.push_back(AttachmentDescription(*device, format, key.samples));
+            descriptions.push_back(AttachmentDescription(*device, format, key.samples, false));
             num_attachments = static_cast<u32>(index + 1);
             ++num_colors;
         }
@@ -97,9 +103,9 @@ VkRenderPass RenderPassCache::Get(const RenderPassKey& key) {
     if (key.depth_format != PixelFormat::Invalid) {
         depth_reference = VkAttachmentReference{
             .attachment = num_colors,
-            .layout = VK_IMAGE_LAYOUT_GENERAL,
+            .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         };
-        descriptions.push_back(AttachmentDescription(*device, key.depth_format, key.samples));
+        descriptions.push_back(AttachmentDescription(*device, key.depth_format, key.samples, true));
     }
     const VkSubpassDescription subpass{
         .flags = 0,
