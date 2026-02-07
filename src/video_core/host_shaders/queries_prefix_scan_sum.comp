@@ -86,7 +86,7 @@ void WriteResults(uvec2 results[LOCAL_RESULTS]) {
     const uvec2 accum = accumulated_data;
     for (uint i = 0; i < LOCAL_RESULTS; i++) {
         uvec2 base_data = current_id * LOCAL_RESULTS + i < min_accumulation_base ? accum : uvec2(0, 0);
-        AddUint64(results[i], base_data);
+        results[i] = AddUint64(results[i], base_data);
     }
     for (uint i = 0; i < LOCAL_RESULTS; i++) {
         output_data[buffer_offset + current_id * LOCAL_RESULTS + i] = results[i];
