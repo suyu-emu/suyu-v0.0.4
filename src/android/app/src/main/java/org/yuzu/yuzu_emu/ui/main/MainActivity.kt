@@ -200,8 +200,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 var artifact = tag
                 // Nightly builds have a slightly different format
                 if (NativeLibrary.isNightlyBuild()) {
-                    val splitTag = tag.split('.')
-                    artifact = splitTag.subList(1, splitTag.size - 1).joinToString(".")
+                    artifact = tag.substringAfter('.', tag)
                 }
                 downloadAndInstallUpdate(tag, artifact)
             }
