@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -102,6 +102,8 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
             auto* patch = &patches->operator[](patch_index);
             if (patch->GetPatchMode() == Core::NCE::PatchMode::PreText) {
                 return patch->GetSectionSize();
+            } else if (patch->GetPatchMode() == Core::NCE::PatchMode::Split) {
+                return patch->GetPreSectionSize();
             }
         }
 #endif
@@ -178,12 +180,26 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         }
     } else if (patch) {
         // Relocate code patch and copy to the program_image.
+        // Save size before RelocateAndCopy (which may resize)
+        const size_t size_before_relocate = program_image.size();
         if (patch->RelocateAndCopy(load_base, code, program_image, &process.GetPostHandlers())) {
             // Update patch section.
             auto& patch_segment = codeset.PatchSegment();
-            patch_segment.addr =
-                patch->GetPatchMode() == Core::NCE::PatchMode::PreText ? 0 : image_size;
-            patch_segment.size = static_cast<u32>(patch->GetSectionSize());
+            auto& post_patch_segment = codeset.PostPatchSegment();
+            const auto patch_mode = patch->GetPatchMode();
+            if (patch_mode == Core::NCE::PatchMode::PreText) {
+                patch_segment.addr = 0;
+                patch_segment.size = static_cast<u32>(patch->GetSectionSize());
+            } else if (patch_mode == Core::NCE::PatchMode::Split) {
+                // For Split-mode, we are using pre-patch buffer at start, post-patch buffer at end
+                patch_segment.addr = 0;
+                patch_segment.size = static_cast<u32>(patch->GetPreSectionSize());
+                post_patch_segment.addr = size_before_relocate;
+                post_patch_segment.size = static_cast<u32>(patch->GetSectionSize());
+            } else {
+                patch_segment.addr = image_size;
+                patch_segment.size = static_cast<u32>(patch->GetSectionSize());
+            }
         }
 
         // Refresh image_size to take account the patch section if it was added by RelocateAndCopy
@@ -193,6 +209,18 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
 
     // If we aren't actually loading (i.e. just computing the process code layout), we are done
     if (!load_into_process) {
+#ifdef HAS_NCE
+        // Ok, so for Split mode, we need to account for pre-patch and post-patch space
+        // which will be added during RelocateAndCopy in the second pass. Where it crashed
+        // in Android Studio at PreText. May be a better way. Works for now.
+        if (patch && patch->GetPatchMode() == Core::NCE::PatchMode::Split) {
+            return load_base + patch->GetPreSectionSize() + image_size + patch->GetSectionSize();
+        } else if (patch && patch->GetPatchMode() == Core::NCE::PatchMode::PreText) {
+            return load_base + patch->GetSectionSize() + image_size;
+        } else if (patch && patch->GetPatchMode() == Core::NCE::PatchMode::PostData) {
+            return load_base + image_size + patch->GetSectionSize();
+        }
+#endif
         return load_base + image_size;
     }
 

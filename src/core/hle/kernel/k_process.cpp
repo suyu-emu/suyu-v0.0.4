@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -1258,6 +1258,7 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
 
 #ifdef HAS_NCE
     const auto& patch = code_set.PatchSegment();
+    const auto& post_patch = code_set.PostPatchSegment();
     if (this->IsApplication() && Settings::IsNceEnabled() && patch.size != 0) {
         auto& buffer = m_kernel.System().DeviceMemory().buffer;
         const auto& code = code_set.CodeSegment();
@@ -1265,7 +1266,15 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
                        Common::MemoryPermission::Read | Common::MemoryPermission::Execute);
         buffer.Protect(GetInteger(base_addr + patch.addr), patch.size,
                        Common::MemoryPermission::Read | Common::MemoryPermission::Execute);
+        // Protect post-patch segment if it exists like abve
+        if (post_patch.size != 0) {
+            buffer.Protect(GetInteger(base_addr + post_patch.addr), post_patch.size,
+                           Common::MemoryPermission::Read | Common::MemoryPermission::Execute);
+        }
         ReprotectSegment(code_set.PatchSegment(), Svc::MemoryPermission::None);
+        if (post_patch.size != 0) {
+            ReprotectSegment(code_set.PostPatchSegment(), Svc::MemoryPermission::None);
+        }
     }
 #endif
 }
