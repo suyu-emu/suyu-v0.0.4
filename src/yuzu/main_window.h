@@ -15,6 +15,7 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QTranslator>
+#include <qaction.h>
 
 #include "common/common_types.h"
 #include "common/settings_enums.h"
@@ -407,6 +408,9 @@ private slots:
     void SetGridView();
     void SetTreeView();
 
+    void CheckIconSize();
+    void ToggleShowGameName();
+
     void LaunchFirmwareApplet(u64 program_id, std::optional<Service::NFP::CabinetMode> mode);
     void OnCreateHomeMenuDesktopShortcut();
     void OnCreateHomeMenuApplicationMenuShortcut();
@@ -531,6 +535,8 @@ private:
     QTimer update_input_timer;
 
     QString startup_icon_theme;
+
+    QActionGroup *game_size_actions;
 
     // Debugger panes
     ControllerDialog* controller_dialog = nullptr;

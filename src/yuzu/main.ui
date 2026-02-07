@@ -112,6 +112,11 @@
      <addaction name="action_Tree_View"/>
      <addaction name="action_Grid_View"/>
     </widget>
+    <widget class="QMenu" name="menuGame_Icon_Size">
+     <property name="title">
+      <string>Game &amp;Icon Size</string>
+     </property>
+    </widget>
     <action name="action_Reset_Window_Size_720">
      <property name="text">
       <string>Reset Window Size to &amp;720p</string>
@@ -145,6 +150,8 @@
     <addaction name="menu_Reset_Window_Size"/>
     <addaction name="menu_View_Debugging"/>
     <addaction name="menu_Game_List_Mode"/>
+    <addaction name="menuGame_Icon_Size"/>
+    <addaction name="action_Show_Game_Name"/>
    </widget>
    <widget class="QMenu" name="menu_Multiplayer">
     <property name="enabled">
@@ -584,6 +591,24 @@
    </property>
    <property name="text">
     <string>&amp;Grid View</string>
+   </property>
+  </action>
+  <action name="actionGame_Icon_Size">
+   <property name="text">
+    <string>Game Icon Size</string>
+   </property>
+  </action>
+  <action name="actionNone">
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="action_Show_Game_Name">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Game &amp;Name</string>
    </property>
   </action>
  </widget>

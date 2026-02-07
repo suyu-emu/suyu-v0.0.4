@@ -44,7 +44,7 @@ public:
 
 public slots:
     void InstallMods(const QStringList &mods);
-    void InstallModPath(const QString& path);
+    void InstallModPath(const QString& path, const QString& fallbackName = {});
 
     void InstallModFolder();
     void InstallModZip();

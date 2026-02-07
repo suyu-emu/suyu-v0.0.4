@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "yuzu/configuration/configure_ui.h"
@@ -6,7 +6,6 @@
 #include <array>
 #include <cstdlib>
 #include <set>
-#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -21,7 +20,6 @@
 
 #include "common/common_types.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/core.h"
@@ -32,13 +30,6 @@
 #include "qt_common/config/uisettings.h"
 
 namespace {
-constexpr std::array default_game_icon_sizes{
-    std::make_pair(0, QT_TRANSLATE_NOOP("ConfigureUI", "None")),
-    std::make_pair(32, QT_TRANSLATE_NOOP("ConfigureUI", "Small (32x32)")),
-    std::make_pair(64, QT_TRANSLATE_NOOP("ConfigureUI", "Standard (64x64)")),
-    std::make_pair(128, QT_TRANSLATE_NOOP("ConfigureUI", "Large (128x128)")),
-    std::make_pair(256, QT_TRANSLATE_NOOP("ConfigureUI", "Full Size (256x256)")),
-};
 
 constexpr std::array default_folder_icon_sizes{
     std::make_pair(0, QT_TRANSLATE_NOOP("ConfigureUI", "None")),
@@ -56,10 +47,6 @@ constexpr std::array row_text_names{
     QT_TRANSLATE_NOOP("ConfigureUI", "None"),
 };
 // clang-format on
-
-QString GetTranslatedGameIconSize(size_t index) {
-    return QCoreApplication::translate("ConfigureUI", default_game_icon_sizes[index].second);
-}
 
 QString GetTranslatedFolderIconSize(size_t index) {
     return QCoreApplication::translate("ConfigureUI", default_folder_icon_sizes[index].second);
@@ -127,8 +114,6 @@ ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
     connect(ui->show_types, &QCheckBox::STATE_CHANGED, this, &ConfigureUi::RequestGameListUpdate);
     connect(ui->show_play_time, &QCheckBox::STATE_CHANGED, this,
             &ConfigureUi::RequestGameListUpdate);
-    connect(ui->game_icon_size_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            &ConfigureUi::RequestGameListUpdate);
     connect(ui->folder_icon_size_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &ConfigureUi::RequestGameListUpdate);
     connect(ui->row_1_text_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
@@ -172,7 +157,6 @@ void ConfigureUi::ApplyConfiguration() {
     UISettings::values.show_size = ui->show_size->isChecked();
     UISettings::values.show_types = ui->show_types->isChecked();
     UISettings::values.show_play_time = ui->show_play_time->isChecked();
-    UISettings::values.game_icon_size = ui->game_icon_size_combobox->currentData().toUInt();
     UISettings::values.folder_icon_size = ui->folder_icon_size_combobox->currentData().toUInt();
     UISettings::values.row_1_text_id = ui->row_1_text_combobox->currentData().toUInt();
     UISettings::values.row_2_text_id = ui->row_2_text_combobox->currentData().toUInt();
@@ -202,8 +186,6 @@ void ConfigureUi::SetConfiguration() {
     ui->show_size->setChecked(UISettings::values.show_size.GetValue());
     ui->show_types->setChecked(UISettings::values.show_types.GetValue());
     ui->show_play_time->setChecked(UISettings::values.show_play_time.GetValue());
-    ui->game_icon_size_combobox->setCurrentIndex(
-        ui->game_icon_size_combobox->findData(UISettings::values.game_icon_size.GetValue()));
     ui->folder_icon_size_combobox->setCurrentIndex(
         ui->folder_icon_size_combobox->findData(UISettings::values.folder_icon_size.GetValue()));
 
@@ -230,11 +212,6 @@ void ConfigureUi::changeEvent(QEvent* event) {
 
 void ConfigureUi::RetranslateUI() {
     ui->retranslateUi(this);
-
-    for (int i = 0; i < ui->game_icon_size_combobox->count(); i++) {
-        ui->game_icon_size_combobox->setItemText(i,
-                                                 GetTranslatedGameIconSize(static_cast<size_t>(i)));
-    }
 
     for (int i = 0; i < ui->folder_icon_size_combobox->count(); i++) {
         ui->folder_icon_size_combobox->setItemText(
@@ -270,10 +247,6 @@ void ConfigureUi::InitializeLanguageComboBox() {
 }
 
 void ConfigureUi::InitializeIconSizeComboBox() {
-    for (size_t i = 0; i < default_game_icon_sizes.size(); i++) {
-        const auto size = default_game_icon_sizes[i].first;
-        ui->game_icon_size_combobox->addItem(GetTranslatedGameIconSize(i), size);
-    }
     for (size_t i = 0; i < default_folder_icon_sizes.size(); i++) {
         const auto size = default_folder_icon_sizes[i].first;
         ui->folder_icon_size_combobox->addItem(GetTranslatedFolderIconSize(i), size);

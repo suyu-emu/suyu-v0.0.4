@@ -161,14 +161,14 @@ void ConfigurePerGameAddons::InstallMods(const QStringList& mods) {
     }
 }
 
-void ConfigurePerGameAddons::InstallModPath(const QString& path) {
-    const auto mods = QtCommon::Mod::GetModFolders(path, {});
+void ConfigurePerGameAddons::InstallModPath(const QString& path, const QString &fallbackName) {
+    const auto mods = QtCommon::Mod::GetModFolders(path, fallbackName);
 
     if (mods.size() > 1) {
         ModSelectDialog* dialog = new ModSelectDialog(mods, this);
         connect(dialog, &ModSelectDialog::modsSelected, this, &ConfigurePerGameAddons::InstallMods);
         dialog->show();
-    } else {
+    } else if (!mods.empty()) {
         InstallMods(mods);
     }
 }
@@ -194,7 +194,7 @@ void ConfigurePerGameAddons::InstallModZip() {
 
     const QString extracted = QtCommon::Mod::ExtractMod(path);
     if (!extracted.isEmpty())
-        InstallModPath(extracted);
+        InstallModPath(extracted, QFileInfo(path).baseName());
 }
 
 void ConfigurePerGameAddons::changeEvent(QEvent* event) {

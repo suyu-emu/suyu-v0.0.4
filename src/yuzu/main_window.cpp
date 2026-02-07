@@ -73,6 +73,7 @@
 #include <QStatusBar>
 #include <QtConcurrentRun>
 #include <QMimeData>
+#include <QActionGroup>
 
 // Qt Common //
 #include "qt_common/config/uisettings.h"
@@ -375,6 +376,22 @@ static QString PrettyProductName() {
     }
 #endif
     return QSysInfo::prettyProductName();
+}
+
+namespace {
+
+constexpr std::array<std::pair<u32, const char *>, 5> default_game_icon_sizes{
+    std::make_pair(0, QT_TRANSLATE_NOOP("MainWindow", "None")),
+    std::make_pair(32, QT_TRANSLATE_NOOP("MainWindow", "Small (32x32)")),
+    std::make_pair(64, QT_TRANSLATE_NOOP("MainWindow", "Standard (64x64)")),
+    std::make_pair(128, QT_TRANSLATE_NOOP("MainWindow", "Large (128x128)")),
+    std::make_pair(256, QT_TRANSLATE_NOOP("MainWindow", "Full Size (256x256)")),
+};
+
+QString GetTranslatedGameIconSize(size_t index) {
+    return QCoreApplication::translate("MainWindow", default_game_icon_sizes[index].second);
+}
+
 }
 
 #ifndef _WIN32
@@ -1606,6 +1623,33 @@ void MainWindow::ConnectMenuEvents() {
 
     connect_menu(ui->action_Grid_View, &MainWindow::SetGridView);
     connect_menu(ui->action_Tree_View, &MainWindow::SetTreeView);
+
+    game_size_actions = new QActionGroup(this);
+    game_size_actions->setExclusive(true);
+
+    for (size_t i = 0; i < default_game_icon_sizes.size(); i++) {
+        const auto current_size = UISettings::values.game_icon_size.GetValue();
+        const auto size = default_game_icon_sizes[i].first;
+        QAction *action = ui->menuGame_Icon_Size->addAction(GetTranslatedGameIconSize(i));
+        action->setCheckable(true);
+
+        if (current_size == size) action->setChecked(true);
+
+        game_size_actions->addAction(action);
+
+        connect(action, &QAction::triggered, this, [this, size](bool checked) {
+            if (checked) {
+                UISettings::values.game_icon_size.SetValue(size);
+                CheckIconSize();
+                game_list->RefreshGameDirectory();
+            }
+        });
+    }
+
+    CheckIconSize();
+
+    ui->action_Show_Game_Name->setChecked(UISettings::values.show_game_name.GetValue());
+    connect(ui->action_Show_Game_Name, &QAction::triggered, this, &MainWindow::ToggleShowGameName);
 
     // Multiplayer
     connect(ui->action_View_Lobby, &QAction::triggered, multiplayer_state,
@@ -3385,6 +3429,9 @@ void MainWindow::SetGameListMode(Settings::GameListMode mode) {
     ui->action_Tree_View->setChecked(mode == Settings::GameListMode::TreeView);
 
     UISettings::values.game_list_mode = mode;
+    ui->action_Show_Game_Name->setEnabled(mode == Settings::GameListMode::GridView);
+
+    CheckIconSize();
     game_list->ResetViewMode();
 }
 
@@ -3394,6 +3441,43 @@ void MainWindow::SetGridView() {
 
 void MainWindow::SetTreeView() {
     SetGameListMode(Settings::GameListMode::TreeView);
+}
+
+void MainWindow::CheckIconSize() {
+    // When in grid view mode, with text off
+    // there is no point in having icons turned off..
+    auto actions = game_size_actions->actions();
+    if (UISettings::values.game_list_mode.GetValue() == Settings::GameListMode::GridView &&
+        !UISettings::values.show_game_name.GetValue()) {
+        u32 newSize = UISettings::values.game_icon_size.GetValue();
+        if (newSize == 0) {
+            newSize = 64;
+            UISettings::values.game_icon_size.SetValue(newSize);
+        }
+
+        // Then disable the "none" action and update that menu.
+        for (size_t i = 0; i < default_game_icon_sizes.size(); i++) {
+            const auto current_size = newSize;
+            const auto size = default_game_icon_sizes[i].first;
+            if (current_size == size) actions.at(i)->setChecked(true);
+        }
+
+        // Update this if you add anything before None.
+        actions.at(0)->setEnabled(false);
+    } else {
+        actions.at(0)->setEnabled(true);
+    }
+}
+
+void MainWindow::ToggleShowGameName() {
+    auto &setting = UISettings::values.show_game_name;
+    const bool newValue = !setting.GetValue();
+    ui->action_Show_Game_Name->setChecked(newValue);
+    setting.SetValue(newValue);
+
+    CheckIconSize();
+
+    game_list->RefreshGameDirectory();
 }
 
 void MainWindow::OnConfigure() {
@@ -3916,7 +4000,6 @@ void MainWindow::OnDataDialog() {
 
     // refresh stuff in case it was cleared
     OnGameListRefresh();
-
 }
 
 void MainWindow::OnToggleFilterBar() {
@@ -3938,7 +4021,6 @@ void MainWindow::OnGameListRefresh() {
     game_list->RefreshGameDirectory();
     SetFirmwareVersion();
 }
-
 
 void MainWindow::LaunchFirmwareApplet(u64 raw_program_id, std::optional<Service::NFP::CabinetMode> cabinet_mode) {
     auto const program_id = Service::AM::AppletProgramId(raw_program_id);
@@ -4656,6 +4738,11 @@ void MainWindow::LoadTranslation() {
 void MainWindow::OnLanguageChanged(const QString& locale) {
     if (UISettings::values.language.GetValue() != std::string("en")) {
         qApp->removeTranslator(&translator);
+    }
+
+    QList<QAction *> actions = game_size_actions->actions();
+    for (size_t i = 0; i < default_game_icon_sizes.size(); i++) {
+        actions.at(i)->setText(GetTranslatedGameIconSize(i));
     }
 
     UISettings::values.language = locale.toStdString();

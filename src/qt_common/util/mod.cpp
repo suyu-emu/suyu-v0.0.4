@@ -43,6 +43,8 @@ QStringList GetModFolders(const QString& root, const QString& fallbackName) {
         QString name = QtCommon::Frontend::GetTextInput(
             tr("Mod Name"), tr("What should this mod be called?"), default_name);
 
+        if (name.isEmpty()) return {};
+
         // if std_path is empty, frontend_common could not determine mod type and/or name.
         // so we have to prompt the user and set up the structure ourselves
         if (paths.empty()) {

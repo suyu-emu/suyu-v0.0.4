@@ -20,8 +20,9 @@ public:
 
     QSize sizeHint(const QStyleOptionViewItem &option,
                    const QModelIndex &index) const override;
-    void setSize(const QSize& newSize);
+    void setSize(const QSize& newSize, const int padding);
 
 private:
     QSize m_size;
+    int m_padding;
 };

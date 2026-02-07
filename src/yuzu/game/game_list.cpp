@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <QAbstractItemView>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -13,13 +14,12 @@
 #include <QMenu>
 #include <QScrollBar>
 #include <QScroller>
+#include <QScrollerProperties>
 #include <QThreadPool>
 #include <QToolButton>
 #include <QVariantAnimation>
 #include <fmt/ranges.h>
-#include <QAbstractItemView>
-#include <QScroller>
-#include <QScrollerProperties>
+#include <qnamespace.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
@@ -28,6 +28,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "game/game_card.h"
 #include "qt_common/config/uisettings.h"
+#include "qt_common/qt_common.h"
 #include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/game/game_list.h"
@@ -35,7 +36,6 @@
 #include "yuzu/game/game_list_worker.h"
 #include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
-#include "qt_common/qt_common.h"
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -393,16 +393,21 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     tree_view->setStyleSheet(QStringLiteral("QTreeView{ border: none; }"));
 
     // list view setup
-    list_view->setViewMode(QListView::IconMode);
-    list_view->setResizeMode(QListView::Adjust);
-    list_view->setUniformItemSizes(false);
+    list_view->setViewMode(QListView::ListMode);
+    list_view->setResizeMode(QListView::Fixed);
+    list_view->setUniformItemSizes(true);
     list_view->setSelectionMode(QAbstractItemView::SingleSelection);
     list_view->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     list_view->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+    // Forcefully disable scroll bar, prevents thing where game list items
+    // will start clamping prematurely.
+    list_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
     list_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
     list_view->setContextMenuPolicy(Qt::CustomContextMenu);
     list_view->setGridSize(QSize(140, 160));
-    m_gameCard->setSize(list_view->gridSize());
+    m_gameCard->setSize(list_view->gridSize(), 0);
 
     list_view->setSpacing(10);
     list_view->setWordWrap(true);
@@ -438,8 +443,8 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
                     return;
                 }
                 QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
-                QCoreApplication::postEvent(tree_view, event);
-                QCoreApplication::postEvent(list_view, event);
+
+                QCoreApplication::postEvent(m_currentView, event);
             });
 
     // We must register all custom types with the Qt Automoc system so that we are able to use
@@ -488,27 +493,26 @@ void GameList::ResetViewMode() {
         break;
     }
 
+    auto view = m_currentView->viewport();
+    view->installEventFilter(this);
+
+    // touch gestures
+    view->grabGesture(Qt::SwipeGesture);
+    view->grabGesture(Qt::PanGesture);
+
+    // TODO: touch?
+    QScroller::grabGesture(view, QScroller::LeftMouseButtonGesture);
+
+    auto scroller = QScroller::scroller(view);
+    QScrollerProperties props;
+    props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy,
+                          QScrollerProperties::OvershootAlwaysOff);
+    props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy,
+                          QScrollerProperties::OvershootAlwaysOff);
+    scroller->setScrollerProperties(props);
+
     if (m_isTreeMode != newTreeMode) {
         m_isTreeMode = newTreeMode;
-
-        auto view = m_currentView->viewport();
-
-        view->installEventFilter(this);
-
-        // touch gestures
-        view->grabGesture(Qt::SwipeGesture);
-        view->grabGesture(Qt::PanGesture);
-
-        // TODO: touch?
-        QScroller::grabGesture(view, QScroller::LeftMouseButtonGesture);
-
-        auto scroller = QScroller::scroller(view);
-        QScrollerProperties props;
-        props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy,
-                              QScrollerProperties::OvershootAlwaysOff);
-        props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy,
-                              QScrollerProperties::OvershootAlwaysOff);
-        scroller->setScrollerProperties(props);
 
         RefreshGameDirectory();
     }
@@ -1007,30 +1011,55 @@ void GameList::UpdateIconSize() {
     // Update sizes and stuff for the list view
     const u32 icon_size = UISettings::values.game_icon_size.GetValue();
 
-    // the scaling on the card is kinda abysmal.
-    // TODO(crueter): refactor
     int heightMargin = 0;
     int widthMargin = 80;
-    switch (icon_size) {
-    case 128:
-        heightMargin = 70;
-        break;
-    case 0:
-        widthMargin = 120;
-        heightMargin = 120;
-        break;
-    case 64:
-        heightMargin = 80;
-        break;
-    case 32:
-    case 256:
-        heightMargin = 81;
-        break;
+
+    if (UISettings::values.show_game_name) {
+        // the scaling on the card is kinda abysmal.
+        // TODO(crueter): refactor
+        switch (icon_size) {
+        case 128:
+            heightMargin = 65;
+            break;
+        case 0:
+            widthMargin = 120;
+            heightMargin = 120;
+            break;
+        case 64:
+            heightMargin = 77;
+            break;
+        case 32:
+        case 256:
+            heightMargin = 81;
+            break;
+        }
+    } else {
+        widthMargin = 24;
+        heightMargin = 24;
     }
 
-    // TODO(crueter): Auto size
-    list_view->setGridSize(QSize(icon_size + widthMargin, icon_size + heightMargin));
-    m_gameCard->setSize(list_view->gridSize());
+    // "auto" resize //
+    const int view_width = list_view->viewport()->width();
+
+    // Tiny space padding to prevent the list view from forcing its own resize operation.
+    const double spacing = 0.01;
+    const int min_item_width = icon_size + widthMargin;
+
+    // And now stretch it a bit to fill out remaining space.
+    // Not perfect but works well enough for now
+    int columns = std::max(1, view_width / min_item_width);
+    int stretched_width = (view_width - (spacing * (columns - 1))) / columns;
+
+    // only updates things if grid size is changed
+    QSize grid_size(stretched_width, icon_size + heightMargin);
+    if (list_view->gridSize() != grid_size) {
+        list_view->setUpdatesEnabled(false);
+
+        list_view->setGridSize(grid_size);
+        m_gameCard->setSize(grid_size, stretched_width - min_item_width);
+
+        list_view->setUpdatesEnabled(true);
+    }
 }
 
 void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
@@ -1043,7 +1072,8 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     tree_view->setColumnHidden(COLUMN_SIZE, !UISettings::values.show_size);
     tree_view->setColumnHidden(COLUMN_PLAY_TIME, !UISettings::values.show_play_time);
 
-    UpdateIconSize();
+    if (!m_isTreeMode)
+        UpdateIconSize();
 
     // Cancel any existing worker.
     current_worker.reset();
@@ -1266,6 +1296,23 @@ bool GameList::eventFilter(QObject* obj, QEvent* event) {
 
         return true;
     }
+
+    if (obj == m_currentView->viewport() && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+
+        // if the user clicks outside of the list, deselect the current item.
+        QModelIndex index = m_currentView->indexAt(mouseEvent->pos());
+        if (!index.isValid()) {
+            m_currentView->selectionModel()->clearSelection();
+            m_currentView->setCurrentIndex(QModelIndex());
+        }
+    }
+
+    if (obj == list_view->viewport() && event->type() == QEvent::Resize) {
+        UpdateIconSize();
+        return true;
+    }
+
     return QWidget::eventFilter(obj, event);
 }
 
