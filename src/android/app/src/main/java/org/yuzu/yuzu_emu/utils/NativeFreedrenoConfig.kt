@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.utils
@@ -144,6 +144,15 @@ object FreedrenoPresets {
         )
     )
 
+    val DEV_FEATURES_UBWC_HINT = FreedrenoPreset(
+        name = "Dev - UBWC Flag Hint",
+        description = "Enable TP UBWC flag hint for development",
+        icon = "ic_dev_features",
+        variables = mapOf(
+            "FD_DEV_FEATURES" to "enable_tp_ubwc_flag_hint=1"
+        )
+    )
+
     val PERFORMANCE_DEFAULT = FreedrenoPreset(
         name = "Performance - Default",
         description = "Clear all debug options for performance",
@@ -159,6 +168,7 @@ object FreedrenoPresets {
         CAPTURE_FRAMES,
         SHADER_DEBUG,
         GPU_HANG_TRACE,
+        DEV_FEATURES_UBWC_HINT,
         PERFORMANCE_DEFAULT
     )
 }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
@@ -258,6 +258,11 @@ Java_org_yuzu_yuzu_1emu_utils_NativeFreedrenoConfig_setFreedrenoEnv(
     }
 
     LOG_INFO(Frontend, "[Freedreno] Set {}={}", var_name, value);
+
+    if (var_name == "FD_DEV_FEATURES") {
+        LOG_INFO(Frontend, "[Freedreno] FD_DEV_FEATURES enabled: {}", value);
+    }
+
     return JNI_TRUE;
 }
 

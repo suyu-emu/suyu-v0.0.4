@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -110,7 +110,7 @@ class FreedrenoSettingsFragment : Fragment() {
         val commonVars = listOf(
             "TU_DEBUG", "FD_MESA_DEBUG", "IR3_SHADER_DEBUG",
             "FD_RD_DUMP", "FD_RD_DUMP_FRAMES", "FD_RD_DUMP_TESTNAME",
-            "TU_BREADCRUMBS"
+            "TU_BREADCRUMBS", "FD_DEV_FEATURES"
         )
 
         for (varName in commonVars) {
