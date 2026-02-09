@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project SPDX-License-Identifier:
@@ -186,8 +186,6 @@ if(ARCHITECTURE_x86_64)
         common
         PRIVATE x64/cpu_detect.cpp
         x64/cpu_detect.h
-        x64/cpu_wait.cpp
-        x64/cpu_wait.h
         x64/native_clock.cpp
         x64/native_clock.h
         x64/rdtsc.cpp

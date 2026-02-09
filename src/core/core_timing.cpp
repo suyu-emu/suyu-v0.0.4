@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -11,10 +11,6 @@
 
 #ifdef _WIN32
 #include "common/windows/timer_resolution.h"
-#endif
-
-#ifdef ARCHITECTURE_x86_64
-#include "common/x64/cpu_wait.h"
 #endif
 
 #include "common/settings.h"
@@ -287,28 +283,7 @@ void CoreTiming::ThreadLoop() {
             if (next_time) {
                 // There are more events left in the queue, wait until the next event.
                 auto wait_time = *next_time - GetGlobalTimeNs().count();
-                if (wait_time > 0) {
-#ifdef _WIN32
-                    while (!paused && !event.IsSet() && wait_time > 0) {
-                        wait_time = *next_time - GetGlobalTimeNs().count();
-                        if (wait_time >= timer_resolution_ns) {
-                            Common::Windows::SleepForOneTick();
-                        } else {
-#ifdef ARCHITECTURE_x86_64
-                            Common::X64::MicroSleep();
-#else
-                            std::this_thread::yield();
-#endif
-                        }
-                    }
-
-                    if (event.IsSet()) {
-                        event.Reset();
-                    }
-#else
-                    event.WaitFor(std::chrono::nanoseconds(wait_time));
-#endif
-                }
+                event.WaitFor(std::chrono::nanoseconds(wait_time));
             } else {
                 // Queue is empty, wait until another event is scheduled and signals us to
                 // continue.
