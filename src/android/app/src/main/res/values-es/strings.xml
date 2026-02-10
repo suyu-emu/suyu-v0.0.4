@@ -75,9 +75,6 @@
 
     <string name="use_sync_core">Sincronizar la velocidad del núcleo</string>
     <string name="use_sync_core_description">Sincroniza la velocidad del núcleo con el porcentaje máximo de velocidad para mejorar el rendimiento sin alterar la velocidad real del juego.</string>
-    <string name="use_lru_cache">Habilitar caché LRU</string>
-    <string name="use_lru_cache_description">Habilite o deshabilite la caché menos utilizada recientemente (LRU), aumentando el rendimiento al ahorrar el uso del proceso de la CPU. Algunos juegos pueden ver problemas con esta configuración, así que desactívela si el juego no arranca o se bloquea aleatoriamente.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Habilitar emulación de MMU del anfitrión</string>
     <string name="cpuopt_unsafe_host_mmu_description">Esta optimización acelera el acceso a la memoria del programa invitado. Al habilitarla, las lecturas y escrituras de la memoria del invitado se realizan directamente en la memoria y utilizan la MMU del anfitrión. Al deshabilitarla, todos los accesos a la memoria utilizan el software de emulación de la MMU.</string>
     <!-- NVDEC Emulation -->

@@ -58,9 +58,6 @@
 
     <string name="use_sync_core">Đồng bộ tốc độ lõi</string>
     <string name="use_sync_core_description">Đồng bộ tốc độ lõi với tỷ lệ phần trăm tốc độ tối đa để cải thiện hiệu suất mà không làm thay đổi tốc độ thực tế của trò chơi.</string>
-    <string name="use_lru_cache">Bật bộ nhớ đệm LRU</string>
-    <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU để cải thiện hiệu suất bằng cách tiết kiệm quy trình sử dụng CPU. Một số trò chơi như TotK 1.2.1 có vấn đề - hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Bật giả lập MMU Máy chủ</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tối ưu hóa này tăng tốc độ truy cập bộ nhớ của chương trình khách. Bật nó lên khiến các thao tác đọc/ghi bộ nhớ khách được thực hiện trực tiếp vào bộ nhớ và sử dụng MMU của Máy chủ. Tắt tính năng này buộc tất cả quyền truy cập bộ nhớ phải sử dụng Giả lập MMU Phần mềm.</string>
     <!-- NVDEC Emulation -->

@@ -58,9 +58,6 @@
 
     <string name="use_sync_core">Sincronizar velocidade do núcleo</string>
     <string name="use_sync_core_description">Sincroniza a velocidade do núcleo com a percentagem máxima de velocidade para melhorar o desempenho sem alterar a velocidade real do jogo.</string>
-    <string name="use_lru_cache">Ativar cache LRU</string>
-    <string name="use_lru_cache_description">Ative ou desative a cache LRU para melhorar desempenho poupando uso do processador. Alguns jogos como TotK 1.2.1 têm problemas - desative se o jogo não iniciar ou falhar aleatoriamente.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Ativar Emulação de MMU do Anfitrião</string>
     <string name="cpuopt_unsafe_host_mmu_description">Esta otimização acelera os acessos à memória pelo programa convidado. Ativar faz com que as leituras/escritas de memória do convidado sejam efetuadas diretamente na memória e utilizem a MMU do Anfitrião. Desativar força todos os acessos à memória a usar a Emulação de MMU por Software.</string>
     <!-- NVDEC Emulation -->

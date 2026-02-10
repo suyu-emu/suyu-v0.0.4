@@ -58,9 +58,6 @@
 
     <string name="use_sync_core">코어 속도 동기화</string>
     <string name="use_sync_core_description">코어 틱 속도를 최대 속도 백분율과 동기화하여 게임의 실제 속도를 변경하지 않고 성능을 향상시킵니다.</string>
-    <string name="use_lru_cache">LRU 캐시 사용</string>
-    <string name="use_lru_cache_description">LRU 캐시를 활성화 또는 비활성화하여 CPU 프로세스 사용을 절약하고 성능을 향상시킵니다. TotK 1.2.1을 포함한 일부 게임에서 문제가 발생할 수 있으므로 게임이 부팅되지 않거나 무작위로 충돌하는 경우 비활성화하세요.</string>
-
     <string name="cpuopt_unsafe_host_mmu">호스트 MMU 에뮬레이션 사용</string>
     <string name="cpuopt_unsafe_host_mmu_description">이 최적화는 게스트 프로그램의 메모리 접근 속도를 높입니다. 활성화하면 게스트의 메모리 읽기/쓰기가 메모리에서 직접 수행되고 호스트의 MMU를 활용합니다. 비활성화하면 모든 메모리 접근에 소프트웨어 MMU 에뮬레이션을 사용하게 됩니다.</string>
     <!-- NVDEC Emulation -->

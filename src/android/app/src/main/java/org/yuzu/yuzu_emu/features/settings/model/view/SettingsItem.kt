@@ -125,13 +125,6 @@ abstract class SettingsItem(
             put(StringInputSetting(StringSetting.DEVICE_NAME, titleId = R.string.device_name))
             put(
                 SwitchSetting(
-                    BooleanSetting.USE_LRU_CACHE,
-                    titleId = R.string.use_lru_cache,
-                    descriptionId = R.string.use_lru_cache_description
-                )
-            )
-            put(
-                SwitchSetting(
                     BooleanSetting.RENDERER_USE_SPEED_LIMIT,
                     titleId = R.string.frame_limit_enable,
                     descriptionId = R.string.frame_limit_enable_description

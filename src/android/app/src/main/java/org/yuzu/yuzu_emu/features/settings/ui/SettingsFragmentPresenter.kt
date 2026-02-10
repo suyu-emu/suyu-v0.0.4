@@ -235,7 +235,6 @@ class SettingsFragmentPresenter(
 
             add(HeaderSetting(R.string.cpu))
             add(IntSetting.FAST_CPU_TIME.key)
-            add(BooleanSetting.USE_LRU_CACHE.key)
             add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
 
             add(IntSetting.MEMORY_LAYOUT.key)

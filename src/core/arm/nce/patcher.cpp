@@ -17,27 +17,6 @@
 
 namespace Core::NCE {
 
-Patcher::Patcher(Patcher&& other) noexcept
-    : patch_cache(std::move(other.patch_cache)),
-      m_patch_instructions(std::move(other.m_patch_instructions)),
-      m_patch_instructions_pre(std::move(other.m_patch_instructions_pre)),
-      c(m_patch_instructions),
-      c_pre(m_patch_instructions_pre),
-      m_save_context(other.m_save_context),
-      m_load_context(other.m_load_context),
-      m_save_context_pre(other.m_save_context_pre),
-      m_load_context_pre(other.m_load_context_pre),
-      mode(other.mode),
-      total_program_size(other.total_program_size),
-      m_relocate_module_index(other.m_relocate_module_index),
-      modules(std::move(other.modules)),
-      curr_patch(nullptr) {
-    if (!modules.empty()) {
-        curr_patch = &modules.back();
-    }
-}
-
-
 using namespace Common::Literals;
 using namespace oaknut::util;
 
@@ -47,8 +26,6 @@ constexpr size_t MaxRelativeBranch = 128_MiB;
 constexpr u32 ModuleCodeIndex = 0x24 / sizeof(u32);
 
 Patcher::Patcher() : c(m_patch_instructions), c_pre(m_patch_instructions_pre) {
-    LOG_WARNING(Core_ARM, "Patcher initialized with LRU cache {}",
-        patch_cache.isEnabled() ? "enabled" : "disabled");
     // The first word of the patch section is always a branch to the first instruction of the
     // module.
     c.dw(0);

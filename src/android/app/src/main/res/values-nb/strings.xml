@@ -58,9 +58,6 @@
 
     <string name="use_sync_core">Synkroniser kjernespeed</string>
     <string name="use_sync_core_description">Synkroniser kjernens hastighet med maksimal hastighetsprosent for å forbedre ytelsen uten å endre spillets faktiske hastighet.</string>
-    <string name="use_lru_cache">Aktiver LRU-mellomlager</string>
-    <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager for å forbedre ytelsen ved å spare CPU-prosessorbruk. Noen spill som TotK 1.2.1 har problemer med dette - deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Aktiver verts-MMU-emulering</string>
     <string name="cpuopt_unsafe_host_mmu_description">Denne optimaliseringen fremskynder minnetilgang av gjesteprogrammet. Hvis aktivert, utføres gjestens minnelesing/skriving direkte i minnet og bruker vertens MMU. Deaktivering tvinger alle minnetilganger til å bruke programvarebasert MMU-emulering.</string>
     <!-- NVDEC Emulation -->

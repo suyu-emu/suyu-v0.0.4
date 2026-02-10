@@ -94,9 +94,6 @@
 
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">将核心速度与最大速度百分比同步，在不改变游戏实际速度的情况下提高性能。</string>
-    <string name="use_lru_cache">启用LRU缓存</string>
-    <string name="use_lru_cache_description">启用或禁用LRU缓存，通过节省CPU进程使用来提高性能。某些游戏可能存在问题，特别是TotK 1.2.1，如果游戏无法启动或随机崩溃，请禁用此选项。</string>
-
     <string name="cpuopt_unsafe_host_mmu">启用主机 MMU 模拟</string>
     <string name="cpuopt_unsafe_host_mmu_description">此优化可加速来宾程序的内存访问。启用后，来宾内存读取/写入将直接在内存中执行并利用主机的 MMU。禁用此功能将强制所有内存访问使用软件 MMU 模拟。</string>
     <string name="debug_knobs">调试开关</string>

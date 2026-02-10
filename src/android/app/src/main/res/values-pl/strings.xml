@@ -90,9 +90,6 @@
 
     <string name="use_sync_core">Synchronizuj prędkość rdzenia</string>
     <string name="use_sync_core_description">Synchronizuje prędkość rdzenia z maksymalnym procentem prędkości, aby poprawić wydajność bez zmiany rzeczywistej prędkości gry.</string>
-    <string name="use_lru_cache">Włącz pamięć podręczną LRU</string>
-    <string name="use_lru_cache_description">Włącz lub wyłącz pamięć podręczną LRU, aby poprawić wydajność poprzez zmniejszenie użycia procesora. Niektóre gry, takie jak TotK 1.2.1, mogą mieć problemy - wyłącz, jeśli gra się nie uruchamia lub losowo zawiesza.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Włącz emulację MMU hosta</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ta optymalizacja przyspiesza dostęp do pamięci przez program gościa. Włączenie powoduje, że odczyty/zapisy pamięci gościa są wykonywane bezpośrednio w pamięci i wykorzystują MMU hosta. Wyłączenie wymusza użycie programowej emulacji MMU dla wszystkich dostępów do pamięci.</string>
     <string name="debug_knobs">Przełączniki debugowania</string>

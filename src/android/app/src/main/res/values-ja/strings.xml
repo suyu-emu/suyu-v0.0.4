@@ -58,9 +58,6 @@
 
     <string name="use_sync_core">コア速度の同期</string>
     <string name="use_sync_core_description">コアの速度を最大速度パーセンテージに同期させ、ゲームの実際の速度を変えずにパフォーマンスを向上させます。</string>
-    <string name="use_lru_cache">LRUキャッシュを有効化</string>
-    <string name="use_lru_cache_description">LRUキャッシュを有効/無効にし、CPUプロセスの使用を節約してパフォーマンスを向上させます。TotK 1.2.1など一部のゲームで問題が発生する可能性があるため、ゲームが起動しない場合やランダムにクラッシュする場合は無効にしてください。</string>
-
     <string name="cpuopt_unsafe_host_mmu">ホストMMUエミュレーションを有効化</string>
     <string name="cpuopt_unsafe_host_mmu_description">この最適化により、ゲストプログラムによるメモリアクセスが高速化されます。有効にすると、ゲストのメモリ読み書きが直接メモリ内で実行され、ホストのMMUを利用します。無効にすると、すべてのメモリアクセスでソフトウェアMMUエミュレーションが使用されます。</string>
     <!-- NVDEC Emulation -->

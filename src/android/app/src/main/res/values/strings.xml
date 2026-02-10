@@ -99,9 +99,6 @@
 
     <string name="use_sync_core">Synchronize Core Speed</string>
     <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the game\'s actual speed.</string>
-    <string name="use_lru_cache">Enable LRU Cache</string>
-    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games may see issues with this setting, so disable it if the game doesn\'t boot or crashes randomly.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Enable Host MMU Emulation</string>
     <string name="cpuopt_unsafe_host_mmu_description">This optimization speeds up memory accesses by the guest program. Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host\'s MMU. Disabling this forces all memory accesses to use Software MMU Emulation.</string>
     <string name="debug_knobs">Debug knobs</string>

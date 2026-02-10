@@ -90,9 +90,6 @@
 
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能。</string>
-    <string name="use_lru_cache">啟用LRU快取</string>
-    <string name="use_lru_cache_description">啟用或停用LRU快取，透過節省CPU進程使用率來提高效能。某些遊戲可能存在問題，特別是薩爾達傳說：王國之淚 v1.2.1（更新），如果遊戲無法啟動或隨機崩潰，請停用此選項。</string>
-
     <string name="cpuopt_unsafe_host_mmu">啟用主機 MMU 模擬</string>
     <string name="cpuopt_unsafe_host_mmu_description">此最佳化可加速來賓程式的記憶體存取。啟用後，來賓記憶體讀取/寫入將直接在記憶體中執行並利用主機的 MMU。停用此功能將強制所有記憶體存取使用軟體 MMU 模擬。</string>
     <string name="debug_knobs">偵錯開關</string>

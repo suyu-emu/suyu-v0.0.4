@@ -58,9 +58,6 @@
 
     <string name="use_sync_core">Magsebesség szinkronizálása</string>
     <string name="use_sync_core_description">A mag sebességének szinkronizálása a maximális sebesség százalékával a teljesítmény javítása érdekében a játék tényleges sebességének megváltoztatása nélkül.</string>
-    <string name="use_lru_cache">LRU gyorsítótár engedélyezése</string>
-    <string name="use_lru_cache_description">Engedélyezi vagy letiltja az LRU gyorsítótárat, növelve a teljesítményt a CPU használat csökkentésével. Néhány játéknak (különösen a TotK 1.2.1-nek) problémája lehet vele - tiltsa le, ha a játék nem indul el vagy véletlenszerűen összeomlik.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Gazda MMU emuláció engedélyezése</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ez az optimalizáció gyorsítja a vendégprogram memória-hozzáférését. Engedélyezése esetén a vendég memóriaolvasási/írási műveletei közvetlenül a memóriában történnek, és kihasználják a gazda MMU-ját. Letiltás esetén minden memória-hozzáférés a szoftveres MMU emulációt használja.</string>
     <!-- NVDEC Emulation -->

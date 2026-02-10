@@ -90,9 +90,6 @@
 
     <string name="use_sync_core">Kern-Geschwindigkeit synchronisieren</string>
     <string name="use_sync_core_description">Synchronisiert die Taktrate des Kerns mit der maximalen Geschwindigkeit, um die Leistung zu verbessern, ohne die tatsächliche Spielgeschwindigkeit zu verändern.</string>
-    <string name="use_lru_cache">LRU-Cache aktivieren</string>
-    <string name="use_lru_cache_description">Aktivieren oder deaktivieren Sie den LRU-Cache, um die Leistung durch Einsparung von CPU-Prozessorauslastung zu verbessern. Einige Spiele haben Probleme damit, insbesondere TotK 1.2.1, deaktivieren Sie es also, wenn das Spiel nicht startet oder zufällig abstürzt.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Host-MMU-Emulation aktivieren</string>
     <string name="cpuopt_unsafe_host_mmu_description">Diese Optimierung beschleunigt Speicherzugriffe durch das Gastprogramm. Wenn aktiviert, erfolgen Speicherlese- und -schreibvorgänge des Gastes direkt im Speicher und nutzen die MMU des Hosts. Das Deaktivieren erzwingt die Verwendung der Software-MMU-Emulation für alle Speicherzugriffe.</string>
     <string name="debug_knobs">Debug-Regler</string>

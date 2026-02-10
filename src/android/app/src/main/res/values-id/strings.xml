@@ -77,9 +77,6 @@
 
     <string name="use_sync_core">Sinkronisasi Kecepatan Inti</string>
     <string name="use_sync_core_description">Sinkronkan kecepatan inti dengan persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan sebenarnya dari permainan.</string>
-    <string name="use_lru_cache">Aktifkan LRU Cache</string>
-    <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU untuk meningkatkan performa dengan mengurangi penggunaan proses CPU. Beberapa game seperti TotK 1.2.1 memiliki masalah - nonaktifkan jika game tidak mau berjalan atau crash acak.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Aktifkan Emulasi MMU Host</string>
     <string name="cpuopt_unsafe_host_mmu_description">Optimasi ini mempercepat akses memori oleh program tamu. Mengaktifkannya menyebabkan pembacaan/penulisan memori tamu dilakukan langsung ke memori dan memanfaatkan MMU Host. Menonaktifkan ini memaksa semua akses memori menggunakan Emulasi MMU Perangkat Lunak.</string>
     <!-- NVDEC Emulation -->

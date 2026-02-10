@@ -62,9 +62,6 @@
 
     <string name="use_sync_core">סנכרון מהירות ליבה</string>
     <string name="use_sync_core_description">סנכרן את מהירות הליבה לאחוז המהירות המרבי כדי לשפר ביצועים מבלי לשנות את מהירות המשחק בפועל.</string>
-    <string name="use_lru_cache">הפעלת מטמון LRU</string>
-    <string name="use_lru_cache_description">הפעל או השבת מטמון LRU לשיפור ביצועים על ידי חיסכון בשימוש במעבד. לחלק מהמשחקים כמו TotK 1.2.1 יש בעיות - השבת אם המשחק לא עולה או קורס באקראי.</string>
-
     <string name="cpuopt_unsafe_host_mmu">הפעל אמולציית MMU מארח</string>
     <string name="cpuopt_unsafe_host_mmu_description">אופטימיזציה זו מאיצה את גישת הזיכרון על ידי התוכנית האורחת. הפעלתה גורמת לכך שפעולות קריאה/כתיבה לזיכרון האורח מתבצעות ישירות לזיכרון ומשתמשות ב-MMU של המארח. השבתת זאת מאלצת את כל גישות הזיכרון להשתמש באמולציית MMU תוכנתית.</string>
     <string name="debug_knobs_description">לשימוש בפיתוח בלבד.</string>

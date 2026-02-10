@@ -90,9 +90,6 @@
 
     <string name="use_sync_core">Synchronizovat rychlost jádra</string>
     <string name="use_sync_core_description">Synchronizuje rychlost jádra s nastaveným limitem rychlosti, aby se zlepšil výkon bez zrychlení samotné hry.</string>
-    <string name="use_lru_cache">Zapnout mezipaměť LRU</string>
-    <string name="use_lru_cache_description">Zapne, nebo vypne mezipaměť LRU (Least Recently Used). Ta zvyšuje výkon tím, že šetří využití procesoru. Některé hry s tímto mohou mít problém, takže pokud se hra nespustí, nebo náhodně padá, tuto volbu vypněte.</string>
-
     <string name="cpuopt_unsafe_host_mmu">Povolit emulaci hostitelské MMU</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tato optimalizace zrychluje hostovanému programu přístupy do paměti. Zapnutím této funkce se čtení i zápisy do paměti provádějí přímo a využívají hostitelskou MMU. Při vypnutí musí všechny přístupy do paměti použít softwarovou emulaci MMU. </string>
     <string name="debug_knobs">Ladící parametry</string>
