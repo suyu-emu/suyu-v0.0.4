@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -33,7 +33,7 @@ endif()
 
 if(NOT YUZU_TZDB_PATH STREQUAL "")
     set(NX_TZDB_BASE_DIR "${YUZU_TZDB_PATH}")
-elseif (MSVC AND NOT CXX_CLANG AND YUZU_ENABLE_LTO)
+elseif (MSVC AND NOT CXX_CLANG AND ENABLE_LTO)
     # TODO(crueter): boot up the windows vm
     set(NX_TZDB_VERSION "250725")
     set(NX_TZDB_ARCHIVE "${CPM_SOURCE_CACHE}/nx_tzdb/${NX_TZDB_VERSION}.zip")

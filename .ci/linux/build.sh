@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 case "$1" in
@@ -104,8 +104,7 @@ cmake .. -G Ninja \
     -DYUZU_USE_QT_MULTIMEDIA=$MULTIMEDIA \
     -DYUZU_USE_QT_WEB_ENGINE=$WEBENGINE \
     -DYUZU_USE_FASTER_LD=ON \
-    -DYUZU_ENABLE_LTO=ON \
-    -DDYNARMIC_ENABLE_LTO=ON \
+    -DENABLE_LTO=ON \
     "${EXTRA_CMAKE_FLAGS[@]}"
 
 ninja -j${NPROC}

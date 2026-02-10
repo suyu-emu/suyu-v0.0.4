@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 if [ "$COMPILER" == "clang" ]
@@ -32,9 +32,8 @@ cmake .. -G Ninja \
     -DYUZU_ROOM_STANDALONE=OFF \
     -DYUZU_USE_QT_MULTIMEDIA=${USE_MULTIMEDIA:-false} \
     -DYUZU_USE_QT_WEB_ENGINE=${USE_WEBENGINE:-false} \
-    -DYUZU_ENABLE_LTO=ON \
+    -DENABLE_LTO=ON \
 	-DCMAKE_EXE_LINKER_FLAGS=" /LTCG" \
-    -DDYNARMIC_ENABLE_LTO=ON \
     -DYUZU_USE_BUNDLED_QT=${BUNDLE_QT:-false} \
     -DUSE_CCACHE=${CCACHE:-false}  \
     -DENABLE_UPDATE_CHECKER=${DEVEL:-true} \
