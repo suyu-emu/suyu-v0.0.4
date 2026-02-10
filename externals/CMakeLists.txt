@@ -66,6 +66,9 @@ if (NOT TARGET LLVM::Demangle)
     add_library(LLVM::Demangle ALIAS demangle)
 endif()
 
+# unordered_dense
+AddJsonPackage(unordered-dense)
+
 if (YUZU_STATIC_ROOM)
     return()
 endif()
@@ -243,9 +246,6 @@ endif()
 if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
     AddJsonPackage(cpp-jwt)
 endif()
-
-# unordered_dense
-AddJsonPackage(unordered-dense)
 
 # FFMpeg
 if (YUZU_USE_EXTERNAL_FFMPEG OR YUZU_USE_BUNDLED_FFMPEG)

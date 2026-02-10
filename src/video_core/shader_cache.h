@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -10,7 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <span>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 #include <vector>
 
@@ -148,8 +148,8 @@ private:
     mutable std::mutex lookup_mutex;
     std::mutex invalidation_mutex;
 
-    std::unordered_map<u64, std::unique_ptr<Entry>> lookup_cache;
-    std::unordered_map<u64, std::vector<Entry*>> invalidation_cache;
+    ankerl::unordered_dense::map<u64, std::unique_ptr<Entry>> lookup_cache;
+    ankerl::unordered_dense::map<u64, std::vector<Entry*>> invalidation_cache;
     std::vector<std::unique_ptr<ShaderInfo>> storage;
     std::vector<Entry*> marked_for_removal;
 };

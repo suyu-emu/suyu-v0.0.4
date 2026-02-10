@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 // SPDX-FileCopyrightText: 2022 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -9,7 +12,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <assert.h>
 
 #include "common/bit_field.h"
@@ -158,7 +161,7 @@ private:
     std::list<std::shared_ptr<Handle>> unmap_queue{};
     std::mutex unmap_queue_lock{}; //!< Protects access to `unmap_queue`
 
-    std::unordered_map<Handle::Id, std::shared_ptr<Handle>>
+    ankerl::unordered_dense::map<Handle::Id, std::shared_ptr<Handle>>
         handles{};           //!< Main owning map of handles
     std::mutex handles_lock; //!< Protects access to `handles`
 

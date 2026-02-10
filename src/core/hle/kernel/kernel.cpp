@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -10,7 +10,7 @@
 #include <functional>
 #include <memory>
 #include <thread>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 
 #include "common/assert.h"
@@ -786,8 +786,8 @@ struct KernelCore::Impl {
 
     std::optional<KObjectNameGlobalData> object_name_global_data;
 
-    std::unordered_set<KAutoObject*> registered_objects;
-    std::unordered_set<KAutoObject*> registered_in_use_objects;
+    ankerl::unordered_dense::set<KAutoObject*> registered_objects;
+    ankerl::unordered_dense::set<KAutoObject*> registered_in_use_objects;
 
     std::mutex server_lock;
     std::vector<std::unique_ptr<Service::ServerManager>> server_managers;

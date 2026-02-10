@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,7 +10,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/common_types.h"
@@ -202,7 +205,7 @@ private:
 
     mutable std::mutex mutex;
     mutable std::mutex callback_mutex;
-    std::unordered_map<int, InterfaceUpdateCallback> callback_list;
+    ankerl::unordered_dense::map<int, InterfaceUpdateCallback> callback_list;
     int last_callback_key = 0;
 
     // Stores the current status of all external device input

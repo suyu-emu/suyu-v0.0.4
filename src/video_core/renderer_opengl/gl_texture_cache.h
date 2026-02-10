@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -157,7 +157,7 @@ private:
     UtilShaders util_shaders;
     FormatConversionPass format_conversion_pass;
 
-    std::array<std::unordered_map<GLenum, FormatProperties>, 3> format_properties;
+    std::array<ankerl::unordered_dense::map<GLenum, FormatProperties>, 3> format_properties;
     bool has_broken_texture_view_formats = false;
 
     OGLTexture null_image_1d_array;

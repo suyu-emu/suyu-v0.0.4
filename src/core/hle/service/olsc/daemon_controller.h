@@ -4,7 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/uuid.h"
 #include "core/hle/service/cmif_types.h"
@@ -54,10 +54,10 @@ private:
         }
     };
 
-    std::unordered_map<AppKey, bool, AppKeyHash> app_auto_transfer_{};
-    std::unordered_map<Common::UUID, bool> global_auto_upload_{};
-    std::unordered_map<Common::UUID, bool> global_auto_download_{};
-    std::unordered_map<AppKey, u8, AppKeyHash> autonomy_task_status_{};
+    ankerl::unordered_dense::map<AppKey, bool, AppKeyHash> app_auto_transfer_{};
+    ankerl::unordered_dense::map<Common::UUID, bool> global_auto_upload_{};
+    ankerl::unordered_dense::map<Common::UUID, bool> global_auto_download_{};
+    ankerl::unordered_dense::map<AppKey, u8, AppKeyHash> autonomy_task_status_{};
 };
 
 } // namespace Service::OLSC

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -8,7 +8,7 @@
 
 #include <array>
 #include <span>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/common_types.h"
 #include "video_core/buffer_cache/buffer_cache_base.h"
@@ -242,7 +242,7 @@ private:
     u32 index_buffer_offset = 0;
 
     u64 device_access_memory;
-    std::unordered_map<GPUVAddr, OGLTransformFeedback> tfb_objects;
+    ankerl::unordered_dense::map<GPUVAddr, OGLTransformFeedback> tfb_objects;
 };
 
 struct BufferCacheParams {

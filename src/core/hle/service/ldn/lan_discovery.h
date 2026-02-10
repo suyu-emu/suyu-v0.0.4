@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -15,7 +15,7 @@
 #include <random>
 #include <span>
 #include <thread>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/logging/log.h"
 #include "common/socket_types.h"
@@ -119,7 +119,7 @@ protected:
     std::array<LanStation, StationCountMax> stations;
     std::array<NodeLatestUpdate, NodeCountMax> node_changes{};
     std::array<u8, NodeCountMax> node_last_states{};
-    std::unordered_map<MacAddress, NetworkInfo, MACAddressHash> scan_results{};
+    ankerl::unordered_dense::map<MacAddress, NetworkInfo, MACAddressHash> scan_results{};
     NodeInfo node_info{};
     NetworkInfo network_info{};
     State state{State::None};

@@ -8,7 +8,7 @@
 #include <mutex>
 #include <sstream>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
@@ -21,8 +21,8 @@
 namespace Core::LaunchTimestampCache {
 namespace {
 
-using CacheMap = std::unordered_map<u64, s64>;
-using CountMap = std::unordered_map<u64, u64>;
+using CacheMap = ankerl::unordered_dense::map<u64, s64>;
+using CountMap = ankerl::unordered_dense::map<u64, u64>;
 
 std::mutex g_mutex;
 CacheMap g_cache;

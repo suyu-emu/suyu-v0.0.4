@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -7,7 +7,7 @@
 #include <array>
 #include <cmath>
 #include <span>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <bit>
 #include <numeric>
 #include "common/assert.h"
@@ -924,7 +924,7 @@ public:
 };
 
 struct ConverterFactory::ConverterFactoryImpl {
-    std::unordered_map<RenderTargetFormat, std::unique_ptr<Converter>> converters_cache;
+    ankerl::unordered_dense::map<RenderTargetFormat, std::unique_ptr<Converter>> converters_cache;
 };
 
 ConverterFactory::ConverterFactory() {

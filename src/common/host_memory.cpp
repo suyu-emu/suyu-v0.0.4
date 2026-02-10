@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -7,7 +7,7 @@
 #ifdef _WIN32
 
 #include <iterator>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <boost/icl/separate_interval_set.hpp>
 #include <windows.h>
 #include "common/dynamic_library.h"
@@ -391,7 +391,7 @@ private:
 
     std::mutex placeholder_mutex;                                 ///< Mutex for placeholders
     boost::icl::separate_interval_set<size_t> placeholders;       ///< Mapped placeholders
-    std::unordered_map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
+    ankerl::unordered_dense::map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
 };
 
 #else // ^^^ Windows ^^^ vvv POSIX vvv

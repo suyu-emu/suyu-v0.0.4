@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include <ankerl/unordered_dense.h>
 #include <unordered_map>
-#include <unordered_set>
 #include <queue>
 
 #include "common/common_types.h"
@@ -134,15 +134,15 @@ private:
         if (it == map->second.end()) {
             return {};
         }
-
+        // TODO: this "mapped" prevents us from fully embracing ankerl
         return std::move(map->second.extract(it).mapped());
     }
 
     using FramePtr = std::shared_ptr<FFmpeg::Frame>;
 
     std::mutex m_mutex{};
-    std::unordered_map<s32, std::deque<std::pair<u64, FramePtr>>> m_presentation_order;
-    std::unordered_map<s32, std::unordered_map<u64, FramePtr>> m_decode_order;
+    ankerl::unordered_dense::map<s32, std::deque<std::pair<u64, FramePtr>>> m_presentation_order;
+    ankerl::unordered_dense::map<s32, std::unordered_map<u64, FramePtr>> m_decode_order;
 
     static constexpr size_t MAX_PRESENT_QUEUE = 100;
     static constexpr size_t MAX_DECODE_MAP = 200;
@@ -218,7 +218,7 @@ private:
     Tegra::MemoryManager gmmu_manager;
     std::unique_ptr<Common::FlatAllocator<u32, 0, 32>> allocator;
     FrameQueue frame_queue;
-    std::unordered_map<s32, std::unique_ptr<CDmaPusher>> devices;
+    ankerl::unordered_dense::map<s32, std::unique_ptr<CDmaPusher>> devices;
 #ifdef YUZU_LEGACY
     std::once_flag nvdec_first_init;
     std::once_flag vic_first_init;

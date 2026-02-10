@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 #include <vector>
 
@@ -390,7 +390,7 @@ private:
                    std::optional<Node> return_label) {
         Statement* const false_stmt{pool.Create(Identity{}, IR::Condition{false}, &root_stmt)};
         Tree& root{root_stmt.children};
-        std::unordered_map<Flow::Block*, Node> local_labels;
+        ankerl::unordered_dense::map<Flow::Block*, Node> local_labels;
         local_labels.reserve(function.blocks.size());
 
         for (Flow::Block& block : function.blocks) {

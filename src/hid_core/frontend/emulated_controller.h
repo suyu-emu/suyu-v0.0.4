@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -11,7 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/common_types.h"
@@ -636,7 +636,7 @@ private:
     mutable std::shared_mutex callback_mutex;
     mutable std::shared_mutex npad_mutex;
     mutable std::shared_mutex connect_mutex;
-    std::unordered_map<int, ControllerUpdateCallback> callback_list;
+    ankerl::unordered_dense::map<int, ControllerUpdateCallback> callback_list;
     int last_callback_key = 0;
 
     // Stores the current status of all controller input

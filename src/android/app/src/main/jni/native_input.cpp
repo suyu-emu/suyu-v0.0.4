@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,7 +21,7 @@
 #include "input_common/drivers/virtual_gamepad.h"
 #include "native.h"
 
-std::unordered_map<std::string, std::unique_ptr<AndroidConfig>> map_profiles;
+ankerl::unordered_dense::map<std::string, std::unique_ptr<AndroidConfig>> map_profiles;
 
 bool IsHandheldOnly() {
     const auto npad_style_set =

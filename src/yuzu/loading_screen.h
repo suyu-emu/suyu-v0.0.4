@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -77,8 +80,8 @@ private:
     std::unique_ptr<QPropertyAnimation> fadeout_animation;
 
     // Definitions for the differences in text and styling for each stage
-    std::unordered_map<VideoCore::LoadCallbackStage, const char*> progressbar_style;
-    std::unordered_map<VideoCore::LoadCallbackStage, QString> stage_translations;
+    ankerl::unordered_dense::map<VideoCore::LoadCallbackStage, const char*> progressbar_style;
+    ankerl::unordered_dense::map<VideoCore::LoadCallbackStage, QString> stage_translations;
 
     // newly generated shaders are added to the end of the file, so when loading and compiling
     // shaders, it will start quickly but end slow if new shaders were added since previous launch.

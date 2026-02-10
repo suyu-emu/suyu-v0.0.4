@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 #include <list>
 #include <optional>
 #include <shared_mutex>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 
 #include "common/logging/log.h"
@@ -144,7 +144,7 @@ private:
     using list_type      = std::list<key_type>;
     using list_iterator  = typename list_type::iterator;
     using map_value_type = std::pair<list_iterator, value_type>;
-    using map_type       = std::unordered_map<key_type, map_value_type>;
+    using map_type       = ankerl::unordered_dense::map<key_type, map_value_type>;
 
     template <typename V>
     void insert_or_update(const key_type& key, V&& value) {

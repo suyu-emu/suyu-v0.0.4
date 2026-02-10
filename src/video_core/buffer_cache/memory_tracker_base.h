@@ -11,7 +11,7 @@
 #include <deque>
 #include <limits>
 #include <type_traits>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 
 #include "common/alignment.h"
@@ -257,7 +257,7 @@ private:
     std::array<Manager*, NUM_HIGH_PAGES> top_tier{};
     std::deque<std::array<Manager, MANAGER_POOL_SIZE>> manager_pool;
     std::deque<Manager*> free_managers;
-    std::unordered_set<u32> cached_pages;
+    ankerl::unordered_dense::set<u32> cached_pages;
     DeviceTracker* device_tracker = nullptr;
 };
 

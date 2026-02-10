@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -7,7 +7,7 @@
 #include <string>
 
 #include <optional>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <boost/container_hash/hash.hpp>
 #include "common/logging/log.h"
 #include "core/core.h"
@@ -331,7 +331,7 @@ private:
     };
     static_assert(sizeof(LogPacketHeader) == 0x18, "LogPacketHeader is an invalid size");
 
-    std::unordered_map<LogPacketHeaderEntry, std::vector<u8>> entries{};
+    ankerl::unordered_dense::map<LogPacketHeaderEntry, std::vector<u8>> entries{};
     LogDestination destination{LogDestination::All};
 };
 

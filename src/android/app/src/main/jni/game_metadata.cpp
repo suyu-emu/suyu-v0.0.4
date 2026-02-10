@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,7 +21,7 @@ struct RomMetadata {
     bool isHomebrew;
 };
 
-std::unordered_map<std::string, RomMetadata> m_rom_metadata_cache;
+ankerl::unordered_dense::map<std::string, RomMetadata> m_rom_metadata_cache;
 
 RomMetadata CacheRomMetadata(const std::string& path) {
     const auto file =

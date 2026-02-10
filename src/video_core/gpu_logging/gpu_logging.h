@@ -10,7 +10,7 @@
 #include <set>
 #include <span>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/common_types.h"
@@ -154,7 +154,7 @@ private:
     mutable std::mutex ring_buffer_mutex;
 
     // Memory tracking
-    std::unordered_map<uintptr_t, MemoryAllocationEntry> memory_allocations;
+    ankerl::unordered_dense::map<uintptr_t, MemoryAllocationEntry> memory_allocations;
     mutable std::mutex memory_mutex;
 
     // Statistics

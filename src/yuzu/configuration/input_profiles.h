@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -7,7 +7,7 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "qt_common/config/qt_config.h"
 
@@ -35,5 +35,5 @@ public:
 private:
     bool ProfileExistsInMap(const std::string& profile_name) const;
 
-    std::unordered_map<std::string, std::unique_ptr<QtConfig>> map_profiles;
+    ankerl::unordered_dense::map<std::string, std::unique_ptr<QtConfig>> map_profiles;
 };

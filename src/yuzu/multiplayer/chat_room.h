@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -6,8 +6,7 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <QDialog>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
@@ -66,8 +65,8 @@ private:
     bool has_mod_perms = false;
     QStandardItemModel* player_list;
     std::unique_ptr<Ui::ChatRoom> ui;
-    std::unordered_set<std::string> block_list;
-    std::unordered_map<std::string, QPixmap> icon_cache;
+    ankerl::unordered_dense::set<std::string> block_list;
+    ankerl::unordered_dense::map<std::string, QPixmap> icon_cache;
 };
 
 Q_DECLARE_METATYPE(Network::ChatEntry);

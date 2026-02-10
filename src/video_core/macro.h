@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -7,7 +7,7 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 #include "common/bit_field.h"
 #include "common/common_types.h"
@@ -147,8 +147,8 @@ private:
         bool has_hle_program{};
     };
 
-    std::unordered_map<u32, CacheInfo> macro_cache;
-    std::unordered_map<u32, std::vector<u32>> uploaded_macro_code;
+    ankerl::unordered_dense::map<u32, CacheInfo> macro_cache;
+    ankerl::unordered_dense::map<u32, std::vector<u32>> uploaded_macro_code;
     std::optional<HLEMacro> hle_macros;
     Engines::Maxwell3D& maxwell3d;
     bool is_interpreted;

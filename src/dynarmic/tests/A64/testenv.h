@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 #include "dynarmic/interface/A64/a64.h"
@@ -23,7 +23,7 @@ public:
     u64 code_mem_start_address = 0;
     std::vector<u32> code_mem;
 
-    std::unordered_map<u64, u8> modified_memory;
+    ankerl::unordered_dense::map<u64, u8> modified_memory;
     std::vector<std::string> interrupts;
 
     bool IsInCodeMem(u64 vaddr) const {

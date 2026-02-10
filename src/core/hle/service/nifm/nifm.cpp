@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -23,7 +23,7 @@
 #include <mutex>
 #include <optional>
 #include <thread>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <common/settings.h>
 
 #ifdef _WIN32

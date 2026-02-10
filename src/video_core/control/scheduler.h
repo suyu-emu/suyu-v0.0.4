@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -5,7 +8,7 @@
 
 #include <memory>
 #include <mutex>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "video_core/dma_pusher.h"
 
@@ -27,7 +30,7 @@ public:
     void DeclareChannel(std::shared_ptr<ChannelState> new_channel);
 
 private:
-    std::unordered_map<s32, std::shared_ptr<ChannelState>> channels;
+    ankerl::unordered_dense::map<s32, std::shared_ptr<ChannelState>> channels;
     std::mutex scheduling_guard;
     GPU& gpu;
 };

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,7 +10,7 @@
 #include <mutex>
 #include <optional>
 #include <string_view>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <queue>
 
 #include "common/common_types.h"

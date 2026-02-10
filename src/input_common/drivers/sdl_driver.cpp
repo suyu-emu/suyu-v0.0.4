@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -570,7 +570,7 @@ SDLDriver::~SDLDriver() {
 
 std::vector<Common::ParamPackage> SDLDriver::GetInputDevices() const {
     std::vector<Common::ParamPackage> devices;
-    std::unordered_map<int, std::shared_ptr<SDLJoystick>> joycon_pairs;
+    ankerl::unordered_dense::map<int, std::shared_ptr<SDLJoystick>> joycon_pairs;
     for (const auto& [key, value] : joystick_map) {
         for (const auto& joystick : value) {
             if (!joystick->GetSDLJoystick()) {

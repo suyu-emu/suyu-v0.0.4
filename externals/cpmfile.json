@@ -91,10 +91,13 @@
     "unordered-dense": {
         "package": "unordered_dense",
         "repo": "martinus/unordered_dense",
-        "tag": "v%VERSION%",
-        "hash": "b98b5d4d96f8e0081b184d6c4c1181fae4e41723b54bed4296717d7f417348b48fad0bbcc664cac142b8c8a47e95aa57c1eb1cf6caa855fd782fad3e3ab99e5e",
+        "sha": "7b55cab841",
+        "hash": "d2106f6640f6bfb81755e4b8bfb64982e46ec4a507cacdb38f940123212ccf35a20b43c70c6f01d7bfb8c246d1a16f7845d8052971949cea9def1475e3fa02c8",
         "find_args": "CONFIG",
-        "git_version": "4.8.1"
+        "bundled": true,
+        "patches": [
+            "0001-avoid-memset-when-clearing-an-empty-table.patch"
+        ]
     },
     "mbedtls": {
         "package": "MbedTLS",

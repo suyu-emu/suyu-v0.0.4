@@ -118,6 +118,7 @@ endif()
 
 find_package(fmt 8 CONFIG)
 find_package(mcl 0.1.12 REQUIRED)
+find_package(unordered_dense REQUIRED)
 
 if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)
     find_package(oaknut 2.0.1 CONFIG)

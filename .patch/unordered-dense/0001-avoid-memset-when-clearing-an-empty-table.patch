@@ -1,0 +1,26 @@
+From b3622608433c183ba868a1dc8dd9cf285eb3b916 Mon Sep 17 00:00:00 2001
+From: Dario Petrillo <dario.pk1@gmail.com>
+Date: Thu, 27 Nov 2025 23:12:38 +0100
+Subject: [PATCH] avoid extra memset when clearing an empty table
+
+---
+ include/ankerl/unordered_dense.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/include/ankerl/unordered_dense.h b/include/ankerl/unordered_dense.h
+index 0835342..4938212 100644
+--- a/include/ankerl/unordered_dense.h
++++ b/include/ankerl/unordered_dense.h
+@@ -1490,8 +1490,10 @@ class table : public std::conditional_t<is_map_v<T>, base_table_type_map<T>, bas
+     // modifiers //////////////////////////////////////////////////////////////
+ 
+     void clear() {
+-        m_values.clear();
+-        clear_buckets();
++        if (!empty()) {
++            m_values.clear();
++            clear_buckets();
++        }
+     }
+ 
+     auto insert(value_type const& value) -> std::pair<iterator, bool> {

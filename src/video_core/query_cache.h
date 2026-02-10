@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,8 +15,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <unordered_map>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/assert.h"
@@ -348,7 +350,7 @@ private:
 
     mutable std::recursive_mutex mutex;
 
-    std::unordered_map<u64, std::vector<CachedQuery>> cached_queries;
+    ankerl::unordered_dense::map<u64, std::vector<CachedQuery>> cached_queries;
 
     std::array<CounterStream, VideoCore::NumQueryTypes> streams;
 

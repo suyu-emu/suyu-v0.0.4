@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
@@ -13,7 +13,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/address_space.h"
@@ -113,7 +113,7 @@ private:
     };
     static_assert(sizeof(IoctlRemapEntry) == 20, "IoctlRemapEntry is incorrect size");
 
-    std::unordered_set<s64_le> map_buffer_offsets{};
+    ankerl::unordered_dense::set<s64_le> map_buffer_offsets{};
 
     struct IoctlMapBufferEx {
         MappingFlags flags{}; // bit0: fixed_offset, bit2: cacheable

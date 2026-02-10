@@ -44,8 +44,8 @@ std::vector<u8> default_logo_small;
 std::vector<u8> default_logo_large;
 bool default_logos_loaded = false;
 
-std::unordered_map<std::string, std::vector<u8>> news_images_small;
-std::unordered_map<std::string, std::vector<u8>> news_images_large;
+ankerl::unordered_dense::map<std::string, std::vector<u8>> news_images_small;
+ankerl::unordered_dense::map<std::string, std::vector<u8>> news_images_large;
 std::mutex images_mutex;
 
 

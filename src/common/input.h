@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,7 +9,7 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 #include <vector>
 #include "common/logging/log.h"
@@ -409,7 +412,7 @@ public:
 namespace Impl {
 
 template <typename InputDeviceType>
-using FactoryListType = std::unordered_map<std::string, std::shared_ptr<Factory<InputDeviceType>>>;
+using FactoryListType = ankerl::unordered_dense::map<std::string, std::shared_ptr<Factory<InputDeviceType>>>;
 
 template <typename InputDeviceType>
 struct FactoryList {

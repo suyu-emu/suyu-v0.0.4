@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <filesystem>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/common_types.h"
 #include "common/thread_worker.h"
@@ -79,8 +82,8 @@ private:
     GraphicsPipeline* current_pipeline{};
 
     ShaderContext::ShaderPools main_pools;
-    std::unordered_map<GraphicsPipelineKey, std::unique_ptr<GraphicsPipeline>> graphics_cache;
-    std::unordered_map<ComputePipelineKey, std::unique_ptr<ComputePipeline>> compute_cache;
+    ankerl::unordered_dense::map<GraphicsPipelineKey, std::unique_ptr<GraphicsPipeline>> graphics_cache;
+    ankerl::unordered_dense::map<ComputePipelineKey, std::unique_ptr<ComputePipeline>> compute_cache;
 
     Shader::Profile profile;
     Shader::HostTranslateInfo host_info;

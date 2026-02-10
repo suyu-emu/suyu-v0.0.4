@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -12,7 +12,7 @@
 #include <optional>
 #include <span>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/common_types.h"
@@ -93,7 +93,7 @@ private:
     static s64 Now();
 
     mutable std::mutex mtx;
-    std::unordered_map<std::string, StoredNews> items;
+    ankerl::unordered_dense::map<std::string, StoredNews> items;
     size_t open_counter{};
 };
 

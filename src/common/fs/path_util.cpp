@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/assert.h"
 #include "common/fs/fs.h"
@@ -193,8 +193,8 @@ private:
         SetLegacyPathImpl(legacy_path, new_path);
     }
 
-    std::unordered_map<EdenPath, fs::path> eden_paths;
-    std::unordered_map<EmuPath, fs::path> legacy_paths;
+    ankerl::unordered_dense::map<EdenPath, fs::path> eden_paths;
+    ankerl::unordered_dense::map<EmuPath, fs::path> legacy_paths;
 };
 
 bool ValidatePath(const fs::path& path) {

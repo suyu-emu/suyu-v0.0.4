@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,7 +11,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <thread>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
@@ -36,7 +39,7 @@ public:
 
 private:
     mutable std::mutex mutex;
-    std::unordered_map<std::thread::id, u32> ids;
+    ankerl::unordered_dense::map<std::thread::id, u32> ids;
 };
 
 class TestControl1 {
