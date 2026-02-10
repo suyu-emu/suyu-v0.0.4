@@ -1,15 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <chrono>
 #include <cstring>
 #include <thread>
 #include <vector>
-
-#include "common/logging/log.h"
-#include "core/internal_network/wifi_scanner.h"
-
-using namespace std::chrono_literals;
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -18,16 +13,30 @@ using namespace std::chrono_literals;
 #ifdef _MSC_VER
 #pragma comment(lib, "wlanapi.lib")
 #endif
+#elif defined(__linux__) && !defined(__ANDROID__)
+#include <iwlib.h>
+#elif defined(__FreeBSD__)
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <net/ethernet.h>
+#include <net80211/ieee80211_ioctl.h>
 #endif
 
+#include "common/logging/log.h"
+#include "core/internal_network/network_interface.h"
+#include "core/internal_network/wifi_scanner.h"
+
+using namespace std::chrono_literals;
+
 namespace Network {
-#ifdef ENABLE_WIFI_SCAN
 #ifdef _WIN32
 static u8 QualityToPercent(DWORD q) {
-    return static_cast<u8>(q);
+    return u8(q);
 }
 
-static std::vector<Network::ScanData> ScanWifiWin(std::chrono::milliseconds deadline) {
+std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline) {
     std::vector<Network::ScanData> out;
 
     HANDLE hClient{};
@@ -85,38 +94,16 @@ static std::vector<Network::ScanData> ScanWifiWin(std::chrono::milliseconds dead
     WlanCloseHandle(hClient, nullptr);
     return out;
 }
-#endif /* _WIN32 */
-
-#if defined(__linux__) && !defined(_WIN32) && !defined(ANDROID)
-#include <iwlib.h>
-
+#elif defined(__linux__) && !defined(__ANDROID__)
 static u8 QualityToPercent(const iwrange& r, const wireless_scan* ws) {
     const iw_quality qual = ws->stats.qual;
     const int lvl = qual.level;
     const int max = r.max_qual.level ? r.max_qual.level : 100;
-    return static_cast<u8>(std::clamp(100 * lvl / max, 0, 100));
-}
-
-static int wifi_callback(int skfd, char* ifname, char* args[], int count)
-{
-    iwrange range;
-
-    int res = iw_get_range_info(skfd, ifname, &range);
-
-    LOG_INFO(Network, "ifname {} returned {} on iw_get_range_info", ifname, res);
-
-    if (res >= 0) {
-        strncpy(args[0], ifname, IFNAMSIZ - 1);
-        args[0][IFNAMSIZ - 1] = 0;
-
-        return 1;
-    }
-
-    return 0;
+    return u8(std::clamp(100 * lvl / max, 0, 100));
 }
 
 // TODO(crueter, Maufeat): Check if driver supports wireless extensions, fallback to nl80211 if not
-static std::vector<Network::ScanData> ScanWifiLinux(std::chrono::milliseconds deadline) {
+std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline) {
     std::vector<Network::ScanData> out;
     int sock = iw_sockets_open();
     if (sock < 0) {
@@ -127,7 +114,17 @@ static std::vector<Network::ScanData> ScanWifiLinux(std::chrono::milliseconds de
     char ifname[IFNAMSIZ] = {0};
     char *args[1] = {ifname};
 
-    iw_enum_devices(sock, &wifi_callback, args, 0);
+    iw_enum_devices(sock, [](int skfd, char* ifname, char* args[], int count) -> int {
+        iwrange range;
+        int res = iw_get_range_info(skfd, ifname, &range);
+        LOG_INFO(Network, "ifname {} returned {} on iw_get_range_info", ifname, res);
+        if (res >= 0) {
+            strncpy(args[0], ifname, IFNAMSIZ - 1);
+            args[0][IFNAMSIZ - 1] = 0;
+            return 1;
+        }
+        return 0;
+    }, args, 0);
 
     if (strlen(ifname) == 0) {
         LOG_WARNING(Network, "No wireless interface found");
@@ -153,20 +150,19 @@ static std::vector<Network::ScanData> ScanWifiLinux(std::chrono::milliseconds de
 
         out.clear();
         for (auto* ws = head.result; ws; ws = ws->next) {
-            if (!ws->b.has_essid)
-                continue;
+            if (ws->b.has_essid) {
+                Network::ScanData sd{};
+                sd.ssid_len = static_cast<u8>(std::min<int>(ws->b.essid_len, 0x20));
+                std::memcpy(sd.ssid, ws->b.essid, sd.ssid_len);
+                sd.quality = QualityToPercent(range, ws);
+                sd.flags |= 1;
+                if (ws->b.has_key)
+                    sd.flags |= 2;
 
-            Network::ScanData sd{};
-            sd.ssid_len = static_cast<u8>(std::min<int>(ws->b.essid_len, 0x20));
-            std::memcpy(sd.ssid, ws->b.essid, sd.ssid_len);
-            sd.quality = QualityToPercent(range, ws);
-            sd.flags |= 1;
-            if (ws->b.has_key)
-                sd.flags |= 2;
-
-            out.emplace_back(sd);
-            char tmp[0x22]{};
-            std::memcpy(tmp, sd.ssid, sd.ssid_len);
+                out.emplace_back(sd);
+                char tmp[0x22]{};
+                std::memcpy(tmp, sd.ssid, sd.ssid_len);
+            }
         }
         have = !out.empty();
     }
@@ -174,21 +170,14 @@ static std::vector<Network::ScanData> ScanWifiLinux(std::chrono::milliseconds de
     iw_sockets_close(sock);
     return out;
 }
-#endif /* linux */
-#endif
-
+#elif defined(__FreeBSD__)
 std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline) {
-#ifdef ENABLE_WIFI_SCAN
-#if defined(_WIN32)
-    return ScanWifiWin(deadline);
-#elif defined(__linux__) && !defined(ANDROID)
-    return ScanWifiLinux(deadline);
-#else
-    return {}; // unsupported host, pretend no results
-#endif
-#else
     return {}; // disabled, pretend no results
-#endif
 }
+#else
+std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline) {
+    return {}; // disabled, pretend no results
+}
+#endif
 
 } // namespace Network

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
@@ -9,20 +9,38 @@
 #include <ranges>
 #include <bit>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <windows.h>
+#include <iphlpapi.h>
+#elif defined(__linux__) || defined(__ANDROID__)
+#include <cerrno>
+#include <ifaddrs.h>
+#include <net/if.h>
+#elif defined(__FreeBSD__)
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <net/route.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/sysctl.h>
+#include <net/if.h>
+#include <net/route.h>
+#include <net/if_dl.h>
+#include <netinet/in.h>
+#include <netinet/if_ether.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#endif
+
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/internal_network/emu_net_state.h"
 #include "core/internal_network/network_interface.h"
-
-#ifdef _WIN32
-#include <iphlpapi.h>
-#else
-#include <cerrno>
-#include <ifaddrs.h>
-#include <net/if.h>
-#endif
 
 namespace Network {
 
@@ -71,22 +89,12 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
             gw = reinterpret_cast<sockaddr_in*>(a->FirstGatewayAddress->Address.lpSockaddr)
                      ->sin_addr;
 
-        HostAdapterKind kind = HostAdapterKind::Ethernet;
-        switch (a->IfType) {
-        case IF_TYPE_IEEE80211: // 802.11 Wi-Fi
-            kind = HostAdapterKind::Wifi;
-            break;
-        default:
-            kind = HostAdapterKind::Ethernet;
-            break;
-        }
-
         result.emplace_back(Network::NetworkInterface{
             .name = Common::UTF16ToUTF8(std::wstring{a->FriendlyName}),
             .ip_address = ip,
             .subnet_mask = mask,
             .gateway = gw,
-            .kind = kind
+            .kind = (a->IfType == IF_TYPE_IEEE80211 ? HostAdapterKind::Wifi : HostAdapterKind::Ethernet)
         });
     }
 
@@ -96,158 +104,146 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
 #else
 
 std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
+#if defined(__ANDROID__) || defined(__linux__)
     struct ifaddrs* ifaddr = nullptr;
-
     if (getifaddrs(&ifaddr) != 0) {
-        LOG_ERROR(Network, "Failed to get network interfaces with getifaddrs: {}",
-                  std::strerror(errno));
+        LOG_ERROR(Network, "getifaddrs: {}", std::strerror(errno));
         return {};
     }
 
-    std::vector<Network::NetworkInterface> result;
-
-    for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == nullptr || ifa->ifa_netmask == nullptr) {
-            continue;
-        }
-
-        if (ifa->ifa_addr->sa_family != AF_INET) {
-            continue;
-        }
-
-        if ((ifa->ifa_flags & IFF_UP) == 0 || (ifa->ifa_flags & IFF_LOOPBACK) != 0) {
-            continue;
-        }
-
-#ifdef ANDROID
-        // On Android, we can't reliably get gateway info from /proc/net/route
-        // Just use 0 as the gateway address
-        result.emplace_back(Network::NetworkInterface{
-                .name{ifa->ifa_name},
-                .ip_address{std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
-                .subnet_mask{std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
-                .gateway{in_addr{.s_addr = 0}}
-        });
+    // TODO: This is still horrible, it was worse before (somehow)
+    struct RoutingEntry {
+        std::string iface_name;
+        u32 dest;
+        u32 gateway;
+        u32 flags;
+    };
+    std::vector<RoutingEntry> routes{};
+#ifdef __ANDROID__
+    // Even through Linux based, we can't reliably obtain routing information from there :(
 #else
-        u32 gateway{};
-
-        std::ifstream file{"/proc/net/route"};
-        if (!file.is_open()) {
-            LOG_ERROR(Network, "Failed to open \"/proc/net/route\"");
-
-            // Solaris defines s_addr as a macro, can't use special C++ shenanigans here
-            in_addr gateway_0;
-            gateway_0.s_addr = gateway;
-            result.emplace_back(Network::NetworkInterface{
-                .name = ifa->ifa_name,
-                .ip_address = std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
-                .subnet_mask = std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
-                .gateway = gateway_0
-            });
-            continue;
-        }
-
-        // ignore header
-        file.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
-
-        bool gateway_found = false;
-
+    if (std::ifstream file("/proc/net/route"); file.is_open()) {
+        file.ignore((std::numeric_limits<std::streamsize>::max)(), '\n'); //ignore header
         for (std::string line; std::getline(file, line);) {
             std::istringstream iss{line};
-
-            std::string iface_name;
-            iss >> iface_name;
-            if (iface_name != ifa->ifa_name) {
-                continue;
-            }
-
-            iss >> std::hex;
-
-            u32 dest{};
-            iss >> dest;
-            if (dest != 0) {
-                // not the default route
-                continue;
-            }
-
-            iss >> gateway;
-
-            u16 flags{};
-            iss >> flags;
-
-            // flag RTF_GATEWAY (defined in <linux/route.h>)
-            if ((flags & 0x2) == 0) {
-                continue;
-            }
-
-            gateway_found = true;
-            break;
+            RoutingEntry info{};
+            iss >> info.iface_name >> std::hex
+                >> info.dest >> info.gateway >> info.flags;
+            routes.emplace_back(info);
         }
-
-        if (!gateway_found) {
-            gateway = 0;
-        }
-
-        in_addr gateway_0;
-        gateway_0.s_addr = gateway;
-        result.emplace_back(Network::NetworkInterface{
+    } else {
+        LOG_WARNING(Network, "\"/proc/net/route\" not found - using gateway 0");
+    }
+#endif
+    std::vector<Network::NetworkInterface> ifaces;
+    for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == nullptr || ifa->ifa_netmask == nullptr /* Have a netmask and address */
+        || ifa->ifa_addr->sa_family != AF_INET /* Must be of kind AF_INET */
+        || (ifa->ifa_flags & IFF_UP) == 0 || (ifa->ifa_flags & IFF_LOOPBACK) != 0) /* Not loopback */
+            continue;
+        // Just use 0 as the gateway address if not found OR routes are empty :)
+        auto const it = std::ranges::find_if(routes, [&ifa](auto const& e) {
+            return e.iface_name == ifa->ifa_name
+                && e.dest == 0 // not the default route
+                && (e.flags & 0x02) != 0; // flag RTF_GATEWAY (defined in <linux/route.h>)
+        });
+        in_addr gw; // Solaris defines s_addr as a macro, can't use special C++ shenanigans here
+        gw.s_addr = it != routes.end() ? it->gateway : 0;
+        ifaces.emplace_back(Network::NetworkInterface{
             .name = ifa->ifa_name,
             .ip_address = std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
             .subnet_mask = std::bit_cast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
-            .gateway = gateway_0
+            .gateway = gw
         });
-#endif // ANDROID
+    }
+    freeifaddrs(ifaddr);
+    return ifaces;
+#elif defined(__FreeBSD__)
+    std::vector<Network::NetworkInterface> ifaces;
+    int fd = ::socket(PF_ROUTE, SOCK_RAW, AF_UNSPEC);
+    if (fd < 0) {
+        LOG_ERROR(Network, "socket: {}", std::strerror(errno));
+        return {};
     }
 
-    freeifaddrs(ifaddr);
-    return result;
+    size_t bufsz = 0;
+    int mib[6] = {
+        CTL_NET, PF_ROUTE, 0,
+        AF_UNSPEC, NET_RT_IFLIST, 0
+    };
+    if (::sysctl(mib, sizeof(mib) / sizeof(mib[0]), nullptr, &bufsz, nullptr, 0) < 0) {
+        LOG_ERROR(Network, "sysctl.1: {}", std::strerror(errno));
+        ::close(fd);
+        return {};
+    }
+    std::vector<char> buf(bufsz);
+    if (::sysctl(mib, sizeof(mib) / sizeof(mib[0]), buf.data(), &bufsz, nullptr, 0) < 0) {
+        LOG_ERROR(Network, "sysctl.2: {}", std::strerror(errno));
+        ::close(fd);
+        return {};
+    }
+
+    struct rt_msghdr const *rtm = NULL;
+    for (char *next = buf.data(); next < buf.data() + bufsz; next += rtm->rtm_msglen) {
+        rtm = (struct rt_msghdr const *)next;
+        if (rtm->rtm_type == RTM_IFINFO) {
+            struct if_msghdr const* ifm = (struct if_msghdr const *)rtm;
+            size_t msglen = rtm->rtm_msglen - sizeof(*ifm);
+            char const* p = (char const*)(ifm + 1);
+
+            Network::NetworkInterface iface{};
+            for (size_t i = 0; i < RTAX_MAX; i++)
+                if ((ifm->ifm_addrs & (1 << i)) != 0) {
+                    struct sockaddr const* sa = reinterpret_cast<struct sockaddr const*>(p);
+                    if (msglen == 0 || msglen < SA_SIZE(sa))
+                        break;
+                    if (i == RTA_NETMASK && sa->sa_family == AF_LINK) {
+                        size_t namelen = 0;
+                        struct sockaddr_dl const* sdl = reinterpret_cast<struct sockaddr_dl const*>(sa);
+                        ::link_ntoa_r(sdl, nullptr, &namelen);
+                        iface.name = std::string(namelen, ' ');
+                        ::link_ntoa_r(sdl, iface.name.data(), &namelen);
+                        std::memcpy(&iface.ip_address, sa, sizeof(struct sockaddr_in));
+                    }
+                    msglen -= SA_SIZE(sa);
+                    p += SA_SIZE(sa);
+                }
+            ifaces.push_back(iface);
+        }
+    }
+    ::close(fd);
+    return ifaces;
+#else
+    return {};
+#endif
 }
 
 #endif // _WIN32
 
 std::optional<Network::NetworkInterface> GetSelectedNetworkInterface() {
-
-    const auto& selected_network_interface = Settings::values.network_interface.GetValue();
-    const auto network_interfaces = Network::GetAvailableNetworkInterfaces();
-    if (network_interfaces.empty()) {
-        LOG_ERROR(Network, "GetAvailableNetworkInterfaces returned no interfaces");
-        return std::nullopt;
-    }
-
-    #ifdef __ANDROID__
-        if (selected_network_interface.empty()) {
-            return network_interfaces[0];
-        }
-    #endif
-
-    const auto res =
-        std::ranges::find_if(network_interfaces, [&selected_network_interface](const auto& iface) {
-            return iface.name == selected_network_interface;
-        });
-
-    if (res == network_interfaces.end()) {
+    auto const& sel_if = Settings::values.network_interface.GetValue();
+    if (auto const ifaces = Network::GetAvailableNetworkInterfaces(); ifaces.size() > 0) {
+        if (sel_if.empty())
+            return ifaces[0];
+        if (auto const res = std::ranges::find_if(ifaces, [&sel_if](const auto& iface) {
+            return iface.name == sel_if;
+        }); res != ifaces.end())
+            return *res;
         // Only print the error once to avoid log spam
         static bool print_error = true;
         if (print_error) {
-            LOG_ERROR(Network, "Couldn't find selected interface \"{}\"",
-                      selected_network_interface);
+            LOG_WARNING(Network, "Couldn't find interface \"{}\"", sel_if);
             print_error = false;
         }
-
         return std::nullopt;
     }
-
-    return *res;
+    LOG_WARNING(Network, "No interfaces");
+    return std::nullopt;
 }
 
 void SelectFirstNetworkInterface() {
-    const auto network_interfaces = Network::GetAvailableNetworkInterfaces();
-
-    if (network_interfaces.empty()) {
-        return;
-    }
-
-    Settings::values.network_interface.SetValue(network_interfaces[0].name);
+    if (auto const ifaces = Network::GetAvailableNetworkInterfaces(); ifaces.size() > 0)
+        Settings::values.network_interface.SetValue(ifaces[0].name);
 }
 
 } // namespace Network

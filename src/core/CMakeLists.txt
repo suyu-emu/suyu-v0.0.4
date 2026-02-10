@@ -1131,7 +1131,6 @@ add_library(core STATIC
     internal_network/socket_proxy.cpp
     internal_network/socket_proxy.h
     internal_network/sockets.h
-    internal_network/wifi_scanner.cpp
     internal_network/wifi_scanner.h
     launch_timestamp_cache.cpp
     launch_timestamp_cache.h
@@ -1170,9 +1169,12 @@ add_library(core STATIC
     tools/renderdoc.h)
 
 if (ENABLE_WIFI_SCAN)
-    # find_package(libiw REQUIRED)
-    target_compile_definitions(core PRIVATE ENABLE_WIFI_SCAN)
-    target_link_libraries(core PRIVATE iw)
+    target_sources(core PRIVATE internal_network/wifi_scanner.cpp)
+    if (PLATFORM_LINUX)
+        target_link_libraries(core PRIVATE iw)
+    endif()
+else()
+    target_sources(core PRIVATE internal_network/wifi_scanner_dummy.cpp)
 endif()
 
 if (WIN32)
