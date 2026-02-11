@@ -285,6 +285,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Overclocks the emulated GPU to increase dynamic resolution and render "
               "distance.\nUse 256 for maximal performance and 512 for maximal graphics fidelity."));
     INSERT(Settings,
+           gpu_unswizzle_enabled,
+           tr("GPU Unswizzle"),
+           tr("Accelerates BCn 3D texture decoding using GPU compute.\n"
+              "Disable if experiencing crashes or graphical glitches."));
+    INSERT(Settings,
            gpu_unswizzle_texture_size,
            tr("GPU Unswizzle Max Texture Size"),
            tr("Sets the maximum size (MiB) for GPU-based texture unswizzling.\n"

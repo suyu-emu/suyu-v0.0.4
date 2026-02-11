@@ -893,8 +893,10 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
         }
     }
 
-    bl3d_unswizzle_pass.emplace(device, scheduler, descriptor_pool,
-                            staging_buffer_pool, compute_pass_descriptor_queue);
+    if (Settings::values.gpu_unswizzle_enabled.GetValue()) {
+        bl3d_unswizzle_pass.emplace(device, scheduler, descriptor_pool,
+                                   staging_buffer_pool, compute_pass_descriptor_queue);
+    }
 
     // --- Create swizzle table buffer ---
     {
@@ -2536,6 +2538,14 @@ void TextureCacheRuntime::AccelerateImageUpload(
 
     if (IsPixelFormatASTC(image.info.format)) {
         return astc_decoder_pass->Assemble(image, map, swizzles);
+    }
+
+    if (!Settings::values.gpu_unswizzle_enabled.GetValue() || !bl3d_unswizzle_pass) {
+        if (IsPixelFormatBCn(image.info.format) && image.info.type == ImageType::e3D) {
+            ASSERT_MSG(false, "GPU unswizzle is disabled for BCn 3D texture");
+        }
+        ASSERT(false);
+        return;
     }
 
     if (bl3d_unswizzle_pass &&

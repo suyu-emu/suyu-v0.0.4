@@ -532,6 +532,9 @@ struct Values {
                                                   Category::RendererHacks,
                                                   Specialization::Default};
 
+    SwitchableSetting<bool> gpu_unswizzle_enabled{linkage, false, "gpu_unswizzle_enabled",
+                                                  Category::RendererHacks};
+
     SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
 #if defined (_WIN32)
                                            ExtendedDynamicState::EDS3,
