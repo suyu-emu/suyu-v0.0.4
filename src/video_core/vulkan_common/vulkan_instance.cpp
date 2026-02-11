@@ -1,9 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cstddef>
 #include <future>
 #include <optional>
 #include <span>
@@ -13,6 +14,7 @@
 #include "common/dynamic_library.h"
 #include "common/logging/log.h"
 #include <ranges>
+#include <vulkan/vulkan_core.h>
 #include "core/frontend/emu_window.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -80,8 +82,13 @@ namespace {
         if (enable_validation && AreExtensionsSupported(dld, *properties, std::array{VK_EXT_DEBUG_UTILS_EXTENSION_NAME}))
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         // VK_EXT_surface_maintenance1 is required for VK_EXT_swapchain_maintenance1
-        if (window_type != Core::Frontend::WindowSystemType::Headless && AreExtensionsSupported(dld, *properties, std::array{VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME}))
+        if (window_type != Core::Frontend::WindowSystemType::Headless && AreExtensionsSupported(dld, *properties, std::array{VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME})) {
             extensions.push_back(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
+            // Some(which?) drivers dont like being told to load this extension(why?)
+            // NVIDIA on FreeBSD is totally fine with this through
+            if (AreExtensionsSupported(dld, *properties, std::array{VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME}))
+                extensions.push_back(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME);
+        }
     }
     return extensions;
 }
