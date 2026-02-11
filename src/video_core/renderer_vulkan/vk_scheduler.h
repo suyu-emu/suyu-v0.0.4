@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -16,6 +16,7 @@
 
 #include "common/alignment.h"
 #include "common/common_types.h"
+#include "common/settings.h"
 #include "common/polyfill_thread.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -111,13 +112,32 @@ public:
         return master_semaphore->IsFree(tick);
     }
 
-    /// Waits for the given tick to trigger on the GPU.
-    void Wait(u64 tick) {
-        if (tick >= master_semaphore->CurrentTick()) {
-            // Make sure we are not waiting for the current tick without signalling
+    /// Waits for the given GPU tick, optionally pacing frames.
+    void Wait(u64 tick, double target_fps = 0.0) {
+        if (Settings::values.use_speed_limit.GetValue() && target_fps > 0.0) {
+            auto frame_duration = std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(1.0 / target_fps));
+            auto now = std::chrono::steady_clock::now();
+            if (now < next_frame_time) {
+                std::this_thread::sleep_until(next_frame_time);
+                next_frame_time += frame_duration;
+            } else {
+                next_frame_time = now + frame_duration;
+            }
+        }
+        if (tick > master_semaphore->CurrentTick() && !chunk->Empty()) {
             Flush();
         }
         master_semaphore->Wait(tick);
+    }
+
+    /// Resets the frame pacing state by setting the next frame time.
+    void ResetFramePacing(double target_fps = 0.0) {
+        if (target_fps > 0.0) {
+            auto frame_duration = std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(1.0 / target_fps));
+            next_frame_time = std::chrono::steady_clock::now() + frame_duration;
+        } else {
+            next_frame_time = std::chrono::steady_clock::time_point{};
+        }
     }
 
     /// Returns the master timeline semaphore.
@@ -261,6 +281,8 @@ private:
     std::mutex queue_mutex;
     std::condition_variable_any event_cv;
     std::jthread worker_thread;
+
+    std::chrono::steady_clock::time_point next_frame_time{};
 };
 
 } // namespace Vulkan

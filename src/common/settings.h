@@ -434,6 +434,13 @@ struct Values {
                                                             "accelerate_astc",
                                                             Category::RendererAdvanced};
 
+    SwitchableSetting<FramePacingMode, true> frame_pacing_mode{linkage,
+                                                               FramePacingMode::Target_Auto,
+                                                               FramePacingMode::Target_Auto,
+                                                               FramePacingMode::Target_240,
+                                                               "frame_pacing_mode",
+                                                               Category::RendererAdvanced};
+
     SwitchableSetting<AstcRecompression, true> astc_recompression{linkage,
                                                                   AstcRecompression::Uncompressed,
                                                                   "astc_recompression",

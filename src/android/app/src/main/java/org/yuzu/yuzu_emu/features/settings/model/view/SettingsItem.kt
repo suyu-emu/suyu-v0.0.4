@@ -644,6 +644,15 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SingleChoiceSetting(
+                    IntSetting.FRAME_PACING_MODE,
+                    titleId = R.string.frame_pacing_mode,
+                    descriptionId = R.string.frame_pacing_mode_description,
+                    choicesId = R.array.framePacingModeNames,
+                    valuesId = R.array.framePacingModeValues
+                )
+            )
+            put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
                     titleId = R.string.renderer_asynchronous_shaders,

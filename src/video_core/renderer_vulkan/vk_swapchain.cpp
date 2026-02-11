@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -146,6 +146,25 @@ void Swapchain::Create(
 {
     is_outdated = false;
     is_suboptimal = false;
+
+    switch (Settings::values.frame_pacing_mode.GetValue()) {
+    case Settings::FramePacingMode::Target_Auto:
+        scheduler.ResetFramePacing();
+        break;
+    case Settings::FramePacingMode::Target_30:
+        scheduler.ResetFramePacing(30.0);
+        break;
+    case Settings::FramePacingMode::Target_60:
+        scheduler.ResetFramePacing(60.0);
+        break;
+    case Settings::FramePacingMode::Target_120:
+        scheduler.ResetFramePacing(120.0);
+        break;
+    case Settings::FramePacingMode::Target_240:
+        scheduler.ResetFramePacing(240.0);
+        break;
+    }
+
     width = width_;
     height = height_;
 #ifdef ANDROID
@@ -194,7 +213,26 @@ bool Swapchain::AcquireNextImage() {
         break;
     }
 
-    scheduler.Wait(resource_ticks[image_index]);
+    if (resource_ticks[image_index] != 0 && !scheduler.IsFree(resource_ticks[image_index])) {
+        switch (Settings::values.frame_pacing_mode.GetValue()) {
+        case Settings::FramePacingMode::Target_Auto:
+            scheduler.Wait(resource_ticks[image_index]);
+            break;
+        case Settings::FramePacingMode::Target_30:
+            scheduler.Wait(resource_ticks[image_index], 30.0);
+            break;
+        case Settings::FramePacingMode::Target_60:
+            scheduler.Wait(resource_ticks[image_index], 60.0);
+            break;
+        case Settings::FramePacingMode::Target_120:
+            scheduler.Wait(resource_ticks[image_index], 120.0);
+            break;
+        case Settings::FramePacingMode::Target_240:
+            scheduler.Wait(resource_ticks[image_index], 240.0);
+            break;
+        }
+    }
+
     resource_ticks[image_index] = scheduler.CurrentTick();
 
     return is_suboptimal || is_outdated;

@@ -225,6 +225,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
             "intermediate format: RGBA8.\n"
             "BC1/BC3: The intermediate format will be recompressed to BC1 or BC3 format,\n"
             " saving VRAM but degrading image quality."));
+    INSERT(Settings, frame_pacing_mode, tr("Frame Pacing Mode (Vulkan only)"),
+           tr("Controls how the emulator manages frame pacing to reduce stuttering and make the frame rate smoother and more consistent."));
     INSERT(Settings,
            vram_usage_mode,
            tr("VRAM Usage Mode:"),
@@ -502,6 +504,14 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
              PAIR(AstcRecompression, Bc1, tr("BC1 (Low quality)")),
              PAIR(AstcRecompression, Bc3, tr("BC3 (Medium quality)")),
          }});
+    translations->insert({Settings::EnumMetadata<Settings::FramePacingMode>::Index(),
+                          {
+                              PAIR(FramePacingMode, Target_Auto, tr("Auto")),
+                              PAIR(FramePacingMode, Target_30, tr("30 FPS")),
+                              PAIR(FramePacingMode, Target_60, tr("60 FPS")),
+                              PAIR(FramePacingMode, Target_120, tr("120 FPS")),
+                              PAIR(FramePacingMode, Target_240, tr("240 FPS")),
+                          }});
     translations->insert({Settings::EnumMetadata<Settings::VramUsageMode>::Index(),
                           {
                               PAIR(VramUsageMode, Conservative, tr("Conservative")),
