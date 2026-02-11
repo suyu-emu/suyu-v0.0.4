@@ -1,6 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,6 +12,7 @@
 #include <shared_mutex>
 #include <sstream>
 #include <thread>
+#include "common/polyfill_thread.h"
 #include "common/logging/log.h"
 #include "enet/enet.h"
 #include "network/packet.h"
@@ -54,13 +54,11 @@ public:
     RoomImpl() : random_gen(std::random_device()()) {}
 
     /// Thread that receives and dispatches network packets
-    std::unique_ptr<std::thread> room_thread;
+    std::optional<std::jthread> room_thread;
 
     /// Verification backend of the room
     std::unique_ptr<VerifyUser::Backend> verify_backend;
 
-    /// Thread function that will receive and dispatch messages until the room is destroyed.
-    void ServerLoop();
     void StartLoop();
 
     /**
@@ -240,59 +238,57 @@ public:
 };
 
 // RoomImpl
-void Room::RoomImpl::ServerLoop() {
-    while (state != State::Closed) {
-        ENetEvent event;
-        if (enet_host_service(server, &event, 5) > 0) {
-            switch (event.type) {
-            case ENET_EVENT_TYPE_RECEIVE:
-                switch (event.packet->data[0]) {
-                case IdJoinRequest:
-                    HandleJoinRequest(&event);
+void Room::RoomImpl::StartLoop() {
+    room_thread.emplace([&](std::stop_token stoken) {
+        while (state != State::Closed) {
+            ENetEvent event;
+            if (enet_host_service(server, &event, 5) > 0) {
+                switch (event.type) {
+                case ENET_EVENT_TYPE_RECEIVE:
+                    switch (event.packet->data[0]) {
+                    case IdJoinRequest:
+                        HandleJoinRequest(&event);
+                        break;
+                    case IdSetGameInfo:
+                        HandleGameInfoPacket(&event);
+                        break;
+                    case IdProxyPacket:
+                        HandleProxyPacket(&event);
+                        break;
+                    case IdLdnPacket:
+                        HandleLdnPacket(&event);
+                        break;
+                    case IdChatMessage:
+                        HandleChatPacket(&event);
+                        break;
+                    // Moderation
+                    case IdModKick:
+                        HandleModKickPacket(&event);
+                        break;
+                    case IdModBan:
+                        HandleModBanPacket(&event);
+                        break;
+                    case IdModUnban:
+                        HandleModUnbanPacket(&event);
+                        break;
+                    case IdModGetBanList:
+                        HandleModGetBanListPacket(&event);
+                        break;
+                    }
+                    enet_packet_destroy(event.packet);
                     break;
-                case IdSetGameInfo:
-                    HandleGameInfoPacket(&event);
+                case ENET_EVENT_TYPE_DISCONNECT:
+                    HandleClientDisconnection(event.peer);
                     break;
-                case IdProxyPacket:
-                    HandleProxyPacket(&event);
-                    break;
-                case IdLdnPacket:
-                    HandleLdnPacket(&event);
-                    break;
-                case IdChatMessage:
-                    HandleChatPacket(&event);
-                    break;
-                // Moderation
-                case IdModKick:
-                    HandleModKickPacket(&event);
-                    break;
-                case IdModBan:
-                    HandleModBanPacket(&event);
-                    break;
-                case IdModUnban:
-                    HandleModUnbanPacket(&event);
-                    break;
-                case IdModGetBanList:
-                    HandleModGetBanListPacket(&event);
+                case ENET_EVENT_TYPE_NONE:
+                case ENET_EVENT_TYPE_CONNECT:
                     break;
                 }
-                enet_packet_destroy(event.packet);
-                break;
-            case ENET_EVENT_TYPE_DISCONNECT:
-                HandleClientDisconnection(event.peer);
-                break;
-            case ENET_EVENT_TYPE_NONE:
-            case ENET_EVENT_TYPE_CONNECT:
-                break;
             }
         }
-    }
-    // Close the connection to all members:
-    SendCloseMessage();
-}
-
-void Room::RoomImpl::StartLoop() {
-    room_thread = std::make_unique<std::thread>(&Room::RoomImpl::ServerLoop, this);
+        // Close the connection to all members:
+        SendCloseMessage();
+    });
 }
 
 void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
@@ -1133,7 +1129,6 @@ void Room::SetVerifyUID(const std::string& uid) {
 
 void Room::Destroy() {
     room_impl->state = State::Closed;
-    room_impl->room_thread->join();
     room_impl->room_thread.reset();
 
     if (room_impl->server) {

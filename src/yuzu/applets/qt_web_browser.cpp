@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -290,54 +290,41 @@ void QtNXWebEngineView::SendKeyPressEvent(int key) {
 }
 
 void QtNXWebEngineView::StartInputThread() {
-    if (input_thread_running) {
-        return;
-    }
+    input_thread = std::jthread([&](std::stop_token stoken) {
+        // Wait for 1 second before allowing any inputs to be processed.
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        if (is_local) {
+            QWidget::grabKeyboard();
+        }
+        while (!stoken.stop_requested()) {
+            input_interpreter->PollInput();
 
-    input_thread_running = true;
-    input_thread = std::thread(&QtNXWebEngineView::InputThread, this);
+            HandleWindowFooterButtonPressedOnce<Core::HID::NpadButton::A, Core::HID::NpadButton::B,
+                                                Core::HID::NpadButton::X, Core::HID::NpadButton::Y,
+                                                Core::HID::NpadButton::L, Core::HID::NpadButton::R>();
+
+            HandleWindowKeyButtonPressedOnce<
+                Core::HID::NpadButton::Left, Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
+                Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
+                Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
+                Core::HID::NpadButton::StickLDown>();
+
+            HandleWindowKeyButtonHold<
+                Core::HID::NpadButton::Left, Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
+                Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
+                Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
+                Core::HID::NpadButton::StickLDown>();
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+    });
 }
 
 void QtNXWebEngineView::StopInputThread() {
     if (is_local) {
         QWidget::releaseKeyboard();
     }
-
-    input_thread_running = false;
-    if (input_thread.joinable()) {
-        input_thread.join();
-    }
-}
-
-void QtNXWebEngineView::InputThread() {
-    // Wait for 1 second before allowing any inputs to be processed.
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    if (is_local) {
-        QWidget::grabKeyboard();
-    }
-
-    while (input_thread_running) {
-        input_interpreter->PollInput();
-
-        HandleWindowFooterButtonPressedOnce<Core::HID::NpadButton::A, Core::HID::NpadButton::B,
-                                            Core::HID::NpadButton::X, Core::HID::NpadButton::Y,
-                                            Core::HID::NpadButton::L, Core::HID::NpadButton::R>();
-
-        HandleWindowKeyButtonPressedOnce<
-            Core::HID::NpadButton::Left, Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
-            Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
-            Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
-            Core::HID::NpadButton::StickLDown>();
-
-        HandleWindowKeyButtonHold<
-            Core::HID::NpadButton::Left, Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
-            Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
-            Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
-            Core::HID::NpadButton::StickLDown>();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
+    input_thread.request_stop();
 }
 
 void QtNXWebEngineView::LoadExtractedFonts() {

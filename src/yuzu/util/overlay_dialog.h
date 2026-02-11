@@ -1,9 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <atomic>
 #include <memory>
 #include <thread>
 
@@ -91,9 +92,6 @@ private:
 
     void StartInputThread();
     void StopInputThread();
-
-    /// The thread where input is being polled and processed.
-    void InputThread();
     void keyPressEvent(QKeyEvent* e) override;
 
     std::unique_ptr<Ui::OverlayDialog> ui;
@@ -101,8 +99,5 @@ private:
     bool use_rich_text;
 
     std::unique_ptr<InputInterpreter> input_interpreter;
-
-    std::thread input_thread;
-
-    std::atomic<bool> input_thread_running{};
+    std::jthread input_thread;
 };

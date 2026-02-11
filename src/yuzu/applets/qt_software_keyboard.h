@@ -1,6 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -185,9 +184,6 @@ private:
     void StartInputThread();
     void StopInputThread();
 
-    /// The thread where input is being polled and processed.
-    void InputThread();
-
     std::unique_ptr<Ui::QtSoftwareKeyboardDialog> ui;
 
     Core::System& system;
@@ -223,10 +219,7 @@ private:
     std::atomic<bool> caps_lock_enabled{false};
 
     std::unique_ptr<InputInterpreter> input_interpreter;
-
-    std::thread input_thread;
-
-    std::atomic<bool> input_thread_running{};
+    std::jthread input_thread;
 };
 
 class QtSoftwareKeyboard final : public QObject, public Core::Frontend::SoftwareKeyboardApplet {

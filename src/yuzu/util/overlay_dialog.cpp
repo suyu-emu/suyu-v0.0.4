@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -231,34 +233,20 @@ void OverlayDialog::TranslateButtonPress(Core::HID::NpadButton button) {
 }
 
 void OverlayDialog::StartInputThread() {
-    if (input_thread_running) {
-        return;
-    }
-
-    input_thread_running = true;
-
-    input_thread = std::thread(&OverlayDialog::InputThread, this);
+    input_thread = std::jthread([&](std::stop_token stoken) {
+        while (!stoken.stop_requested()) {
+            input_interpreter->PollInput();
+            HandleButtonPressedOnce<Core::HID::NpadButton::A, Core::HID::NpadButton::B,
+                                    Core::HID::NpadButton::Left, Core::HID::NpadButton::Right,
+                                    Core::HID::NpadButton::StickLLeft,
+                                    Core::HID::NpadButton::StickLRight>();
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+    });
 }
 
 void OverlayDialog::StopInputThread() {
-    input_thread_running = false;
-
-    if (input_thread.joinable()) {
-        input_thread.join();
-    }
-}
-
-void OverlayDialog::InputThread() {
-    while (input_thread_running) {
-        input_interpreter->PollInput();
-
-        HandleButtonPressedOnce<Core::HID::NpadButton::A, Core::HID::NpadButton::B,
-                                Core::HID::NpadButton::Left, Core::HID::NpadButton::Right,
-                                Core::HID::NpadButton::StickLLeft,
-                                Core::HID::NpadButton::StickLRight>();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
+    input_thread.request_stop();
 }
 
 void OverlayDialog::keyPressEvent(QKeyEvent* e) {

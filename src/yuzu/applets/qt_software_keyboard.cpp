@@ -1,6 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -1495,53 +1494,36 @@ void QtSoftwareKeyboardDialog::MoveTextCursorDirection(Direction direction) {
 }
 
 void QtSoftwareKeyboardDialog::StartInputThread() {
-    if (input_thread_running) {
-        return;
-    }
-
-    input_thread_running = true;
-
-    input_thread = std::thread(&QtSoftwareKeyboardDialog::InputThread, this);
+    input_thread = std::jthread([&](std::stop_token stoken) {
+        while (!stoken.stop_requested()) {
+            input_interpreter->PollInput();
+            HandleButtonPressedOnce<
+                Core::HID::NpadButton::A, Core::HID::NpadButton::B, Core::HID::NpadButton::X,
+                Core::HID::NpadButton::Y, Core::HID::NpadButton::StickL, Core::HID::NpadButton::StickR,
+                Core::HID::NpadButton::L, Core::HID::NpadButton::R, Core::HID::NpadButton::Plus,
+                Core::HID::NpadButton::Left, Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
+                Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
+                Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
+                Core::HID::NpadButton::StickLDown, Core::HID::NpadButton::StickRLeft,
+                Core::HID::NpadButton::StickRUp, Core::HID::NpadButton::StickRRight,
+                Core::HID::NpadButton::StickRDown>();
+            HandleButtonHold<Core::HID::NpadButton::B, Core::HID::NpadButton::L,
+                Core::HID::NpadButton::R, Core::HID::NpadButton::Left,
+                Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
+                Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
+                Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
+                Core::HID::NpadButton::StickLDown, Core::HID::NpadButton::StickRLeft,
+                Core::HID::NpadButton::StickRUp, Core::HID::NpadButton::StickRRight,
+                Core::HID::NpadButton::StickRDown>();
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+    });
 }
 
 void QtSoftwareKeyboardDialog::StopInputThread() {
-    input_thread_running = false;
-
-    if (input_thread.joinable()) {
-        input_thread.join();
-    }
-
-    if (input_interpreter) {
+    input_thread.request_stop();
+    if (input_interpreter)
         input_interpreter->ResetButtonStates();
-    }
-}
-
-void QtSoftwareKeyboardDialog::InputThread() {
-    while (input_thread_running) {
-        input_interpreter->PollInput();
-
-        HandleButtonPressedOnce<
-            Core::HID::NpadButton::A, Core::HID::NpadButton::B, Core::HID::NpadButton::X,
-            Core::HID::NpadButton::Y, Core::HID::NpadButton::StickL, Core::HID::NpadButton::StickR,
-            Core::HID::NpadButton::L, Core::HID::NpadButton::R, Core::HID::NpadButton::Plus,
-            Core::HID::NpadButton::Left, Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
-            Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
-            Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
-            Core::HID::NpadButton::StickLDown, Core::HID::NpadButton::StickRLeft,
-            Core::HID::NpadButton::StickRUp, Core::HID::NpadButton::StickRRight,
-            Core::HID::NpadButton::StickRDown>();
-
-        HandleButtonHold<Core::HID::NpadButton::B, Core::HID::NpadButton::L,
-                         Core::HID::NpadButton::R, Core::HID::NpadButton::Left,
-                         Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
-                         Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
-                         Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
-                         Core::HID::NpadButton::StickLDown, Core::HID::NpadButton::StickRLeft,
-                         Core::HID::NpadButton::StickRUp, Core::HID::NpadButton::StickRRight,
-                         Core::HID::NpadButton::StickRDown>();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
 }
 
 QtSoftwareKeyboard::QtSoftwareKeyboard(MainWindow& main_window) {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
@@ -18,9 +18,6 @@
 #endif
 
 namespace Core {
-
-// Time between room is announced to web_service
-static constexpr std::chrono::seconds announce_time_interval(15);
 
 AnnounceMultiplayerSession::AnnounceMultiplayerSession() {
 #ifdef ENABLE_WEB_SERVICE
@@ -53,18 +50,58 @@ WebService::WebResult AnnounceMultiplayerSession::Register() {
 }
 
 void AnnounceMultiplayerSession::Start() {
-    if (announce_multiplayer_thread) {
+    if (announce_multiplayer_thread.has_value()) {
         Stop();
     }
-    shutdown_event.Reset();
-    announce_multiplayer_thread =
-        std::make_unique<std::thread>(&AnnounceMultiplayerSession::AnnounceMultiplayerLoop, this);
+    announce_multiplayer_thread.emplace([&](std::stop_token stoken) {
+        // Invokes all current bound error callbacks.
+        const auto ErrorCallback = [this](WebService::WebResult result) {
+            std::lock_guard lock(callback_mutex);
+            for (auto callback : error_callbacks)
+                (*callback)(result);
+        };
+
+        if (!registered) {
+            WebService::WebResult result = Register();
+            if (result.result_code != WebService::WebResult::Code::Success) {
+                ErrorCallback(result);
+                return;
+            }
+        }
+
+        // Time between room is announced to web_service
+        std::chrono::seconds const announce_timeslice(15);
+        auto update_time = std::chrono::steady_clock::now();
+        std::future<WebService::WebResult> future;
+        while (!shutdown_event.WaitUntil(update_time)) {
+            update_time = std::chrono::steady_clock::now() + announce_timeslice;
+            auto room = Network::GetRoom().lock();
+            if (!room) {
+                break;
+            }
+            if (room->GetState() != Network::Room::State::Open) {
+                break;
+            }
+            UpdateBackendData(room);
+            WebService::WebResult result = backend->Update();
+            if (result.result_code != WebService::WebResult::Code::Success) {
+                ErrorCallback(result);
+            }
+            if (result.result_string == "404") {
+                registered = false;
+                // Needs to register the room again
+                WebService::WebResult register_result = Register();
+                if (register_result.result_code != WebService::WebResult::Code::Success) {
+                    ErrorCallback(register_result);
+                }
+            }
+        }
+    });
 }
 
 void AnnounceMultiplayerSession::Stop() {
-    if (announce_multiplayer_thread) {
+    if (announce_multiplayer_thread.has_value()) {
         shutdown_event.Set();
-        announce_multiplayer_thread->join();
         announce_multiplayer_thread.reset();
         backend->Delete();
         registered = false;
@@ -101,56 +138,8 @@ void AnnounceMultiplayerSession::UpdateBackendData(std::shared_ptr<Network::Room
     }
 }
 
-void AnnounceMultiplayerSession::AnnounceMultiplayerLoop() {
-    // Invokes all current bound error callbacks.
-    const auto ErrorCallback = [this](WebService::WebResult result) {
-        std::lock_guard lock(callback_mutex);
-        for (auto callback : error_callbacks) {
-            (*callback)(result);
-        }
-    };
-
-    if (!registered) {
-        WebService::WebResult result = Register();
-        if (result.result_code != WebService::WebResult::Code::Success) {
-            ErrorCallback(result);
-            return;
-        }
-    }
-
-    auto update_time = std::chrono::steady_clock::now();
-    std::future<WebService::WebResult> future;
-    while (!shutdown_event.WaitUntil(update_time)) {
-        update_time += announce_time_interval;
-        auto room = Network::GetRoom().lock();
-        if (!room) {
-            break;
-        }
-        if (room->GetState() != Network::Room::State::Open) {
-            break;
-        }
-        UpdateBackendData(room);
-        WebService::WebResult result = backend->Update();
-        if (result.result_code != WebService::WebResult::Code::Success) {
-            ErrorCallback(result);
-        }
-        if (result.result_string == "404") {
-            registered = false;
-            // Needs to register the room again
-            WebService::WebResult register_result = Register();
-            if (register_result.result_code != WebService::WebResult::Code::Success) {
-                ErrorCallback(register_result);
-            }
-        }
-    }
-}
-
 AnnounceMultiplayerRoom::RoomList AnnounceMultiplayerSession::GetRoomList() {
     return backend->GetRoomList();
-}
-
-bool AnnounceMultiplayerSession::IsRunning() const {
-    return announce_multiplayer_thread != nullptr;
 }
 
 void AnnounceMultiplayerSession::UpdateCredentials() {
