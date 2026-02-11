@@ -48,23 +48,13 @@
             "0001-fix-missing-decl.patch"
         ]
     },
-    "xbyak_sun": {
-        "package": "xbyak",
-        "repo": "herumi/xbyak",
-        "tag": "v%VERSION%",
-        "hash": "b40dade90fb0e46a2bd52934f7ce461e37be931b571e58cbe2203bc08ed5b54c7ff1a29026c74c7f9805e4e3f6c9636deca528e6b4a8093ce7eae145218599f1",
-        "git_version": "7.29",
-        "bundled": true,
-        "skip_updates": true
-    },
     "xbyak": {
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "hash": "1042090405c426e339506c179d53e91d4d545ce9c9f53d8f797caa092d589f913a9bcb9c8f31c4c60870acb954c556e305fb6732c66bc3c8f1cd924f9172def9",
-        "git_version": "7.22",
-        "bundled": true,
-        "skip_updates": true
+        "hash": "ac333d7bea1d61865bebebb116201a58db431946aa2f11aa042ef5795c390ff30af4d6c90ed3b3d24443a1d430703b08f14fc13b2fa405c155a241456ed78a47",
+        "git_version": "7.33.2",
+        "bundled": true
     },
     "oaknut": {
         "repo": "eden-emulator/oaknut",
