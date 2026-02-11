@@ -53,8 +53,7 @@
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
         "hash": "ac333d7bea1d61865bebebb116201a58db431946aa2f11aa042ef5795c390ff30af4d6c90ed3b3d24443a1d430703b08f14fc13b2fa405c155a241456ed78a47",
-        "git_version": "7.33.2",
-        "bundled": true
+        "git_version": "7.33.2"
     },
     "oaknut": {
         "repo": "eden-emulator/oaknut",
