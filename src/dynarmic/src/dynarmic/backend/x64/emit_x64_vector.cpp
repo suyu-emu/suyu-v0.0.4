@@ -927,7 +927,21 @@ void EmitX64::EmitVectorCountLeadingZeros8(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorCountLeadingZeros16(EmitContext& ctx, IR::Inst* inst) {
-    if (code.HasHostFeature(HostFeature::AVX)) {
+    if (code.HasHostFeature(HostFeature::AVX512_Ortho | HostFeature::AVX512CD)) {
+        auto args = ctx.reg_alloc.GetArgumentInfo(inst);
+        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const tmp1 = ctx.reg_alloc.ScratchXmm(code);
+        // 11-latency: unpack 16-bit(128-bit) XMM into 32-bit(256-bit) YMM vector
+        // then just lzcnt that, pack it back (unsigned) to 16-bit
+        // then subtract 16-bit cuz of the zext32
+        /*4*/ code.vpmovzxwd(tmp0.cvt256(), tmp0);
+        /*4*/ code.vplzcntd(tmp0.cvt256(), tmp0.cvt256());
+        /*1*/ code.vpxor(tmp1, tmp1, tmp1);
+        /*1*/ code.vpackusdw(tmp0, tmp0, tmp1);
+        /*1*/ code.vpaddw(tmp0, tmp0, code.BConst<16>(xword, 65520));
+        /*4*/ code.vzeroupper();
+        ctx.reg_alloc.DefineValue(code, inst, tmp0);
+    } else if (code.HasHostFeature(HostFeature::AVX)) {
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
         auto const data = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         auto const result = ctx.reg_alloc.ScratchXmm(code);
