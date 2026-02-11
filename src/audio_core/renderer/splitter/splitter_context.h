@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -104,9 +104,8 @@ public:
      *
      * @param input         - Input buffer with the new info,
      *                        expected to point to a InParameterHeader.
-     * @param consumed_size - Output with the number of bytes consumed from input.
      */
-    bool Update(const u8* input, u32& consumed_size);
+    bool Update(const u8* input);
 
     /**
      * Update the splitters.

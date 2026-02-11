@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -93,16 +93,14 @@ bool SplitterContext::Initialize(const BehaviorInfo& behavior,
     return true;
 }
 
-bool SplitterContext::Update(const u8* input, u32& consumed_size) {
+bool SplitterContext::Update(const u8* input) {
     auto in_params{reinterpret_cast<const InParameterHeader*>(input)};
 
     if (destinations_count == 0 || info_count == 0) {
-        consumed_size = 0;
         return true;
     }
 
     if (in_params->magic != GetSplitterInParamHeaderMagic()) {
-        consumed_size = 0;
         return false;
     }
 
@@ -113,8 +111,6 @@ bool SplitterContext::Update(const u8* input, u32& consumed_size) {
     u32 offset{sizeof(InParameterHeader)};
     offset = UpdateInfo(input, offset, in_params->info_count);
     offset = UpdateData(input, offset, in_params->destination_count);
-
-    consumed_size = Common::AlignUp(offset, 0x10);
     return true;
 }
 

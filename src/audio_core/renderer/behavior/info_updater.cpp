@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -616,12 +616,11 @@ Result InfoUpdater::UpdateErrorInfo(const BehaviorInfo& behaviour_) {
 }
 
 Result InfoUpdater::UpdateSplitterInfo(SplitterContext& splitter_context) {
-    u32 consumed_size{0};
-    if (!splitter_context.Update(input, consumed_size)) {
+    if (!splitter_context.Update(input)) {
         return Service::Audio::ResultInvalidUpdateInfo;
     }
 
-    input += consumed_size;
+    input += in_header->splitter_size;
 
     return ResultSuccess;
 }
