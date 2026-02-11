@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -57,10 +57,9 @@ void EmitX64::EmitLeastSignificantWord(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     // TODO: DefineValue directly on Argument
-    const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr(code);
-    const Xbyak::Reg64 source = ctx.reg_alloc.UseGpr(code, args[0]);
-    code.mov(result.cvt32(), source.cvt32());
-    ctx.reg_alloc.DefineValue(code, inst, result);
+    const Xbyak::Reg64 res = ctx.reg_alloc.UseScratchGpr(code, args[0]);
+    code.mov(res.cvt32(), res.cvt32());
+    ctx.reg_alloc.DefineValue(code, inst, res);
 }
 
 void EmitX64::EmitMostSignificantWord(EmitContext& ctx, IR::Inst* inst) {
