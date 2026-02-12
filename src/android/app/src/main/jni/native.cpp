@@ -1233,6 +1233,39 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_getDebugKnobAt(JNIEnv* env, jobje
     return static_cast<jboolean>(Settings::getDebugKnobAt(static_cast<u8>(index)));
 }
 
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setTurboSpeedLimit(JNIEnv *env, jobject jobj, jboolean enabled) {
+    if (enabled) {
+        Settings::values.use_speed_limit.SetValue(true);
+        Settings::SetSpeedMode(Settings::SpeedMode::Turbo);
+    } else {
+        Settings::SetSpeedMode(Settings::SpeedMode::Standard);
+    }
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setSlowSpeedLimit(JNIEnv *env, jobject jobj, jboolean enabled) {
+    if (enabled) {
+        Settings::values.use_speed_limit.SetValue(true);
+        Settings::SetSpeedMode(Settings::SpeedMode::Slow);
+    } else {
+        Settings::SetSpeedMode(Settings::SpeedMode::Standard);
+    }
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setStandardSpeedLimit(JNIEnv *env, jobject jobj, jboolean enabled) {
+    Settings::values.use_speed_limit.SetValue(enabled);
+    if (enabled) {
+        Settings::SetSpeedMode(Settings::SpeedMode::Standard);
+    }
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isTurboMode(JNIEnv *env, jobject jobj) {
+    return Settings::values.current_speed_mode.GetValue() == Settings::SpeedMode::Turbo;
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isSlowMode(JNIEnv *env, jobject jobj) {
+    return Settings::values.current_speed_mode.GetValue() == Settings::SpeedMode::Slow;
+}
+
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_run(JNIEnv* env, jobject jobj, jstring j_path,
                                                jint j_program_index,
                                                jboolean j_frontend_initiated) {

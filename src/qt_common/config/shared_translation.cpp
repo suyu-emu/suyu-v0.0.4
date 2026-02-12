@@ -69,10 +69,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
         Settings,
         memory_layout_mode,
         tr("Memory Layout"),
-        tr("Increases the amount of emulated RAM from 4GB of the board to the "
-           "devkit 8/6GB.\nDoesn't affect performance/stability but may allow HD texture "
+        tr("Increases the amount of emulated RAM.\nDoesn't affect performance/stability but may allow HD texture "
            "mods to load."));
     INSERT(Settings, use_speed_limit, QString(), QString());
+    INSERT(Settings, current_speed_mode, QString(), QString());
     INSERT(Settings,
            speed_limit,
            tr("Limit Speed Percent"),
@@ -80,6 +80,14 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "faster or not.\n200% for a 30 FPS game is 60 FPS, and for a "
               "60 FPS game it will be 120 FPS.\nDisabling it means unlocking the framerate to the "
               "maximum your PC can reach."));
+
+    INSERT(Settings, turbo_speed_limit, tr("Turbo Speed"),
+           tr("When the Turbo Speed hotkey is pressed, the speed will be limited to this "
+              "percentage."));
+    INSERT(Settings, slow_speed_limit, tr("Slow Speed"),
+           tr("When the Slow Speed hotkey is pressed, the speed will be limited to this "
+              "percentage."));
+
     INSERT(Settings,
            sync_core_speed,
            tr("Synchronize Core Speed"),

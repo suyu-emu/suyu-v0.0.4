@@ -518,6 +518,9 @@ private:
     QSlider* volume_slider = nullptr;
     QTimer status_bar_update_timer;
 
+    // Stores what suffix to add to the FPS counter, e.g. Unlocked.
+    QString m_fpsSuffix{};
+
     UserDataMigrator user_data_migrator;
     std::unique_ptr<QtConfig> config;
 

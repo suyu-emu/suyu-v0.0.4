@@ -3,6 +3,7 @@
 
 // Qt on macOS doesn't define VMA shit
 #include <boost/algorithm/string/split.hpp>
+#include "common/settings.h"
 #include "common/settings_enums.h"
 #include "frontend_common/settings_generator.h"
 #include "qt_common/qt_string_lookup.h"
@@ -1406,12 +1407,12 @@ void MainWindow::InitializeHotkeys() {
     LinkActionShortcut(ui->action_TAS_Record, QStringLiteral("TAS Record"), true);
     LinkActionShortcut(ui->action_TAS_Reset, QStringLiteral("TAS Reset"), true);
     LinkActionShortcut(ui->action_View_Lobby,
-                       QStringLiteral("Multiplayer Browse Public Game Lobby"));
-    LinkActionShortcut(ui->action_Start_Room, QStringLiteral("Multiplayer Create Room"));
+                       QStringLiteral("Browse Public Game Lobby"));
+    LinkActionShortcut(ui->action_Start_Room, QStringLiteral("Create Room"));
     LinkActionShortcut(ui->action_Connect_To_Room,
-                       QStringLiteral("Multiplayer Direct Connect to Room"));
-    LinkActionShortcut(ui->action_Show_Room, QStringLiteral("Multiplayer Show Current Room"));
-    LinkActionShortcut(ui->action_Leave_Room, QStringLiteral("Multiplayer Leave Room"));
+                       QStringLiteral("Direct Connect to Room"));
+    LinkActionShortcut(ui->action_Show_Room, QStringLiteral("Show Current Room"));
+    LinkActionShortcut(ui->action_Leave_Room, QStringLiteral("Leave Room"));
     LinkActionShortcut(ui->action_Configure, QStringLiteral("Configure"));
     LinkActionShortcut(ui->action_Configure_Current_Game, QStringLiteral("Configure Current Game"));
 
@@ -1440,9 +1441,25 @@ void MainWindow::InitializeHotkeys() {
     connect_shortcut(QStringLiteral("Audio Mute/Unmute"), &MainWindow::OnMute);
     connect_shortcut(QStringLiteral("Audio Volume Down"), &MainWindow::OnDecreaseVolume);
     connect_shortcut(QStringLiteral("Audio Volume Up"), &MainWindow::OnIncreaseVolume);
-    connect_shortcut(QStringLiteral("Toggle Framerate Limit"), [] {
-        Settings::values.use_speed_limit.SetValue(!Settings::values.use_speed_limit.GetValue());
+
+    connect_shortcut(QStringLiteral("Toggle Framerate Limit"), [this] {
+        Settings::ToggleStandardMode();
+        const bool limited = Settings::values.use_speed_limit.GetValue();
+        m_fpsSuffix = limited ? QString{} : tr("Unlocked");
     });
+
+    connect_shortcut(QStringLiteral("Toggle Turbo Speed"), [this] {
+        Settings::ToggleTurboMode();
+        const bool turbo = Settings::values.current_speed_mode.GetValue() == Settings::SpeedMode::Turbo;
+        m_fpsSuffix = turbo ? tr("Turbo") : QString{};
+    });
+
+    connect_shortcut(QStringLiteral("Toggle Slow Speed"), [this] {
+        Settings::ToggleSlowMode();
+        const bool slow = Settings::values.current_speed_mode.GetValue() == Settings::SpeedMode::Slow;
+        m_fpsSuffix = slow ? tr("Slow") : QString{};
+    });
+
     connect_shortcut(QStringLiteral("Toggle Renderdoc Capture"), [] {
         if (Settings::values.enable_renderdoc_hotkey) {
             QtCommon::system->GetRenderdocAPI().ToggleCapture();
@@ -4254,14 +4271,15 @@ void MainWindow::UpdateStatusBar() {
     if (Settings::values.use_speed_limit.GetValue()) {
         emu_speed_label->setText(tr("Speed: %1% / %2%")
                                      .arg(results.emulation_speed * 100.0, 0, 'f', 0)
-                                     .arg(Settings::values.speed_limit.GetValue()));
+                                     .arg(Settings::SpeedLimit()));
     } else {
         emu_speed_label->setText(tr("Speed: %1%").arg(results.emulation_speed * 100.0, 0, 'f', 0));
     }
 
-    game_fps_label->setText(
-        tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0) +
-        tr(Settings::values.use_speed_limit ? "" : " (Unlocked)"));
+    QString fpsText = tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0);
+    if (!m_fpsSuffix.isEmpty()) fpsText = fpsText % QStringLiteral(" (%1)").arg(m_fpsSuffix);
+
+    game_fps_label->setText(fpsText);
 
     emu_frametime_label->setText(tr("Frame: %1 ms").arg(results.frametime * 1000.0, 0, 'f', 2));
 

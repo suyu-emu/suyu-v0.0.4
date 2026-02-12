@@ -11,6 +11,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.materialswitch.MaterialSwitch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
@@ -133,6 +134,39 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
             switchView.toggle()
         }
         container.addView(itemView)
+    }
+
+    fun addCustomToggle(
+        name: Int,
+        isChecked: Boolean,
+        isEnabled: Boolean,
+
+        container: ViewGroup,
+        callback: (Boolean) -> Unit
+    ): MaterialSwitch? {
+        val inflater = LayoutInflater.from(emulationFragment.requireContext())
+        val itemView = inflater.inflate(R.layout.item_quick_settings_menu, container, false)
+
+        val switchContainer = itemView.findViewById<ViewGroup>(R.id.switch_container)
+        val titleView = itemView.findViewById<TextView>(R.id.switch_title)
+        val switchView = itemView.findViewById<MaterialSwitch>(R.id.setting_switch)
+
+        titleView.text = YuzuApplication.appContext.getString(name)
+        switchContainer.visibility = View.VISIBLE
+
+        switchView.isChecked = isChecked
+
+        switchView.setOnCheckedChangeListener { _, checked ->
+            callback(checked)
+            saveSettings()
+        }
+
+        switchContainer.setOnClickListener {
+            switchView.toggle()
+        }
+        container.addView(itemView)
+
+        return switchView
     }
 
     fun addSliderSetting(

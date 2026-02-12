@@ -55,6 +55,7 @@ import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -1055,11 +1056,47 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 quickSettings.addPerGameConfigStatusIndicator(container)
             }
 
-            quickSettings.addBooleanSetting(
+            lateinit var slowSpeed: MaterialSwitch
+            lateinit var turboSpeed: MaterialSwitch
+
+            turboSpeed = quickSettings.addCustomToggle(
+                R.string.turbo_speed_limit,
+                NativeLibrary.isTurboMode(),
+                BooleanSetting.RENDERER_USE_SPEED_LIMIT.getBoolean(false),
+                container
+            ) { enabled ->
+                if (enabled)
+                    slowSpeed.isChecked = false
+                NativeLibrary.setTurboSpeedLimit(enabled)
+            }!!
+
+            slowSpeed = quickSettings.addCustomToggle(
+                R.string.slow_speed_limit,
+                NativeLibrary.isSlowMode(),
+                BooleanSetting.RENDERER_USE_SPEED_LIMIT.getBoolean(false),
+                container
+            ) { enabled ->
+                if (enabled)
+                    turboSpeed.isChecked = false
+                NativeLibrary.setSlowSpeedLimit(enabled)
+            }!!
+
+            quickSettings.addCustomToggle(
                 R.string.frame_limit_enable,
-                container,
-                BooleanSetting.RENDERER_USE_SPEED_LIMIT,
-            )
+                BooleanSetting.RENDERER_USE_SPEED_LIMIT.getBoolean(false),
+                true,
+                container
+            ) { enabled ->
+                if (!enabled) {
+                    turboSpeed.isChecked = false
+                    slowSpeed.isChecked = false
+                }
+
+                turboSpeed.isEnabled = enabled
+                slowSpeed.isEnabled = enabled
+
+                NativeLibrary.setStandardSpeedLimit(enabled)
+            }!!
 
             quickSettings.addSliderSetting(
                 R.string.frame_limit_slider,

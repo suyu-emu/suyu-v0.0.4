@@ -379,4 +379,52 @@ void SetConfiguringGlobal(bool is_global) {
     configuring_global = is_global;
 }
 
+u16 SpeedLimit() {
+    switch (SpeedMode(values.current_speed_mode)) {
+    case SpeedMode::Standard:
+        return values.speed_limit.GetValue();
+    case SpeedMode::Turbo:
+        return values.turbo_speed_limit.GetValue();
+    case SpeedMode::Slow:
+        return values.slow_speed_limit.GetValue();
+    default:
+        UNIMPLEMENTED();
+    }
+
+    return 100;
+}
+
+void SetSpeedMode(const SpeedMode& mode) {
+    values.current_speed_mode.SetValue(mode);
+
+    switch (mode) {
+    case SpeedMode::Turbo:
+    case SpeedMode::Slow:
+        values.use_speed_limit.SetValue(true);
+        break;
+    case SpeedMode::Standard:
+    default:
+        break;
+    }
+}
+
+void ToggleStandardMode() {
+    values.use_speed_limit.SetValue(!values.use_speed_limit.GetValue());
+    SetSpeedMode(SpeedMode::Standard);
+}
+
+void ToggleTurboMode() {
+    if (values.current_speed_mode.GetValue() != SpeedMode::Turbo)
+        SetSpeedMode(SpeedMode::Turbo);
+    else
+        SetSpeedMode(SpeedMode::Standard);
+}
+
+void ToggleSlowMode() {
+    if (values.current_speed_mode.GetValue() != SpeedMode::Slow)
+        SetSpeedMode(SpeedMode::Slow);
+    else
+        SetSpeedMode(SpeedMode::Standard);
+}
+
 } // namespace Settings

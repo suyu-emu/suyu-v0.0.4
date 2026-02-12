@@ -157,6 +157,7 @@ ENUM(TemperatureUnits, Celsius, Fahrenheit)
 ENUM(ExtendedDynamicState, Disabled, EDS1, EDS2, EDS3);
 ENUM(GpuLogLevel, Off, Errors, Standard, Verbose, All)
 ENUM(GameListMode, TreeView, GridView);
+ENUM(SpeedMode, Standard, Turbo, Slow);
 
 template <typename Type>
 inline std::string_view CanonicalizeEnum(Type id) {

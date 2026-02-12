@@ -201,7 +201,7 @@ u64 CoreTiming::GetClockTicks() const {
 
      if (Settings::values.sync_core_speed.GetValue()) {
          const auto ticks = double(fres);
-         const auto speed_limit = double(Settings::values.speed_limit.GetValue())*0.01;
+         const auto speed_limit = double(Settings::SpeedLimit())*0.01;
          return u64(ticks/speed_limit);
      } else {
          return fres;

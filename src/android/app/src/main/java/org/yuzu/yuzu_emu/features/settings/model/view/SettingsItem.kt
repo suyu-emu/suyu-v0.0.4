@@ -181,6 +181,26 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SliderSetting(
+                    ShortSetting.RENDERER_TURBO_SPEED_LIMIT,
+                    titleId = R.string.turbo_speed_limit,
+                    descriptionId = R.string.turbo_speed_limit_description,
+                    min = 1,
+                    max = 400,
+                    units = "%"
+                )
+            )
+            put(
+                SliderSetting(
+                    ShortSetting.RENDERER_SLOW_SPEED_LIMIT,
+                    titleId = R.string.slow_speed_limit,
+                    descriptionId = R.string.slow_speed_limit_description,
+                    min = 1,
+                    max = 400,
+                    units = "%"
+                )
+            )
+            put(
                 SingleChoiceSetting(
                     IntSetting.CPU_BACKEND,
                     titleId = R.string.cpu_backend,

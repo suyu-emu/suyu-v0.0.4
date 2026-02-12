@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
@@ -143,7 +143,7 @@ void SpeedLimiter::DoSpeedLimiting(microseconds current_system_time_us) {
 
     auto now = Clock::now();
 
-    const double sleep_scale = Settings::values.speed_limit.GetValue() / 100.0;
+    const double sleep_scale = Settings::SpeedLimit() / 100.0;
 
     // Max lag caused by slow frames. Shouldn't be more than the length of a frame at the current
     // speed percent or it will clamp too much and prevent this from properly limiting to that
