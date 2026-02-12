@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -22,12 +22,9 @@
 
 namespace Dynarmic::A32 {
 
-IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb, const TranslationOptions& options) {
+void TranslateArm(IR::Block& block, LocationDescriptor descriptor, TranslateCallbacks* tcb, const TranslationOptions& options) {
     const bool single_step = descriptor.SingleStepping();
-
-    IR::Block block{descriptor};
     TranslatorVisitor visitor{block, descriptor, options};
-
     bool should_continue = true;
     do {
         const u32 arm_pc = visitor.ir.current_location.PC();
@@ -76,12 +73,8 @@ IR::Block TranslateArm(LocationDescriptor descriptor, TranslateCallbacks* tcb, c
             }
         }
     }
-
     ASSERT(block.HasTerminal() && "Terminal has not been set");
-
     block.SetEndLocation(visitor.ir.current_location);
-
-    return block;
 }
 
 bool TranslateSingleArmInstruction(IR::Block& block, LocationDescriptor descriptor, u32 arm_instruction) {

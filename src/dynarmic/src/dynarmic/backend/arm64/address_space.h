@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -29,7 +29,7 @@ public:
     explicit AddressSpace(size_t code_cache_size);
     virtual ~AddressSpace();
 
-    virtual IR::Block GenerateIR(IR::LocationDescriptor) const = 0;
+    virtual void GenerateIR(IR::Block& ir_block, IR::LocationDescriptor) const = 0;
 
     CodePtr Get(IR::LocationDescriptor descriptor);
 
@@ -68,6 +68,7 @@ protected:
 
     FakeCall FastmemCallback(u64 host_pc);
 
+    IR::Block ir_block;
     const size_t code_cache_size;
     oaknut::CodeBlock mem;
     oaknut::CodeGenerator code;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -16,10 +16,8 @@
 
 namespace Dynarmic::A64 {
 
-IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code, TranslationOptions options) {
+void Translate(IR::Block& block, LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code, TranslationOptions options) {
     const bool single_step = descriptor.SingleStepping();
-
-    IR::Block block{descriptor};
     TranslatorVisitor visitor{block, descriptor, std::move(options)};
 
     bool should_continue = true;
@@ -43,12 +41,8 @@ IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory
     if (single_step && should_continue) {
         visitor.ir.SetTerm(IR::Term::LinkBlock{*visitor.ir.current_location});
     }
-
     ASSERT(block.HasTerminal() && "Terminal has not been set");
-
     block.SetEndLocation(*visitor.ir.current_location);
-
-    return block;
 }
 
 bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor, u32 instruction) {

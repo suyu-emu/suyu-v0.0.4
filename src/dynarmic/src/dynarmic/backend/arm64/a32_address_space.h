@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -17,7 +20,7 @@ class A32AddressSpace final : public AddressSpace {
 public:
     explicit A32AddressSpace(const A32::UserConfig& conf);
 
-    IR::Block GenerateIR(IR::LocationDescriptor) const override;
+    void GenerateIR(IR::Block& ir_block, IR::LocationDescriptor) const override;
 
     void InvalidateCacheRanges(const boost::icl::interval_set<u32>& ranges);
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -24,6 +24,7 @@
 #include "dynarmic/frontend/A32/translate/translate_callbacks.h"
 #include "dynarmic/frontend/imm.h"
 #include "dynarmic/interface/A32/config.h"
+#include "dynarmic/ir/basic_block.h"
 
 namespace Dynarmic::A32 {
 namespace {
@@ -103,12 +104,9 @@ inline bool MaybeVFPOrASIMDInstruction(u32 thumb_instruction) noexcept {
 
 }  // namespace
 
-IR::Block TranslateThumb(LocationDescriptor descriptor, TranslateCallbacks* tcb, const TranslationOptions& options) {
+void TranslateThumb(IR::Block& block, LocationDescriptor descriptor, TranslateCallbacks* tcb, const TranslationOptions& options) {
     const bool single_step = descriptor.SingleStepping();
-
-    IR::Block block{descriptor};
     TranslatorVisitor visitor{block, descriptor, options};
-
     bool should_continue = true;
     do {
         const u32 arm_pc = visitor.ir.current_location.PC();
@@ -175,12 +173,8 @@ IR::Block TranslateThumb(LocationDescriptor descriptor, TranslateCallbacks* tcb,
             }
         }
     }
-
     ASSERT(block.HasTerminal() && "Terminal has not been set");
-
     block.SetEndLocation(visitor.ir.current_location);
-
-    return block;
 }
 
 bool TranslateSingleThumbInstruction(IR::Block& block, LocationDescriptor descriptor, u32 thumb_instruction) {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -26,10 +26,9 @@ A32AddressSpace::A32AddressSpace(const A32::UserConfig& conf)
     EmitPrelude();
 }
 
-IR::Block A32AddressSpace::GenerateIR(IR::LocationDescriptor descriptor) const {
-    IR::Block ir_block = A32::Translate(A32::LocationDescriptor{descriptor}, conf.callbacks, {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
+void A32AddressSpace::GenerateIR(IR::Block& ir_block, IR::LocationDescriptor descriptor) const {
+    A32::Translate(ir_block, A32::LocationDescriptor{descriptor}, conf.callbacks, {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
     Optimization::Optimize(ir_block, conf, {});
-    return ir_block;
 }
 
 CodePtr A32AddressSpace::Get(IR::LocationDescriptor descriptor) {
@@ -44,7 +43,8 @@ CodePtr A32AddressSpace::GetOrEmit(IR::LocationDescriptor descriptor) {
         return block_entry;
     }
 
-    IR::Block ir_block = GenerateIR(descriptor);
+    IR::Block ir_block{descriptor};
+    GenerateIR(ir_block, descriptor);
     const EmittedBlockInfo block_info = Emit(std::move(ir_block));
 
     block_infos.insert_or_assign(descriptor.Value(), block_info);

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -20,14 +20,17 @@
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/llvm_disassemble.h"
 #include "dynarmic/interface/exclusive_monitor.h"
+#include "dynarmic/ir/location_descriptor.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
 AddressSpace::AddressSpace(size_t code_cache_size)
-        : code_cache_size(code_cache_size)
-        , mem(code_cache_size)
-        , code(mem.ptr(), mem.ptr())
-        , fastmem_manager(exception_handler) {
+    : ir_block{IR::LocationDescriptor{0}}
+    , code_cache_size(code_cache_size)
+    , mem(code_cache_size)
+    , code(mem.ptr(), mem.ptr())
+    , fastmem_manager(exception_handler)
+{
     ASSERT(code_cache_size <= 128 * 1024 * 1024 && "code_cache_size > 128 MiB not currently supported");
 
     exception_handler.Register(mem, code_cache_size);
@@ -67,8 +70,7 @@ CodePtr AddressSpace::GetOrEmit(IR::LocationDescriptor descriptor) {
     if (CodePtr block_entry = Get(descriptor)) {
         return block_entry;
     }
-
-    IR::Block ir_block = GenerateIR(descriptor);
+    GenerateIR(ir_block, descriptor);
     const EmittedBlockInfo block_info = Emit(std::move(ir_block));
     return block_info.entry_point;
 }

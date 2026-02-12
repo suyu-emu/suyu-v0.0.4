@@ -140,6 +140,18 @@ public:
         return cycle_count;
     }
 
+    inline void Reset(LocationDescriptor location_) noexcept {
+        inlined_inst.clear();
+        pooled_inst.clear();
+        cond_failed.reset();
+        location = location_;
+        terminal = Term::Invalid{};
+        cond_failed_cycle_count = 0;
+        cycle_count = 0;
+        instruction_list_type tmp{};
+        instructions.swap(tmp);
+    }
+
     /// "Hot cache" for small blocks so we don't call global allocator
     boost::container::static_vector<Inst, 30> inlined_inst;
     /// List of instructions in this block.
