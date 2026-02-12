@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -7,6 +7,7 @@
 #pragma once
 
 #include <dynarmic/interface/A32/a32.h>
+#include <dynarmic/interface/code_page.h>
 
 #include "core/arm/arm_interface.h"
 #include "core/arm/dynarmic/dynarmic_exclusive_monitor.h"
@@ -49,6 +50,9 @@ public:
     u64 GetTicksRemaining() override;
     bool CheckMemoryAccess(u64 addr, u64 size, Kernel::DebugWatchpointType type);
     void ReturnException(u32 pc, Dynarmic::HaltReason hr);
+    //
+    Dynarmic::CodePage cached_code_page;
+    u64 last_code_addr = 0;
     ArmDynarmic32& m_parent;
     Core::Memory::Memory& m_memory;
     Kernel::KProcess* m_process{};

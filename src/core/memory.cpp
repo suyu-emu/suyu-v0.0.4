@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
@@ -36,8 +36,7 @@
 
 namespace Core::Memory {
 
-static inline bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessAddress addr,
-                          const std::size_t size) {
+static inline bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessAddress addr, const std::size_t size) {
     const Common::ProcessAddress max_addr = 1ULL << table.GetAddressSpaceBits();
     return addr + size >= addr && addr + size <= max_addr;
 }

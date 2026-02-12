@@ -11,6 +11,7 @@
 #include <ankerl/unordered_dense.h>
 
 #include <dynarmic/interface/A64/a64.h>
+#include <dynarmic/interface/code_page.h>
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "core/arm/arm_interface.h"
@@ -61,6 +62,8 @@ public:
     bool CheckMemoryAccess(u64 addr, u64 size, Kernel::DebugWatchpointType type);
     void ReturnException(u64 pc, Dynarmic::HaltReason hr);
 
+    Dynarmic::CodePage cached_code_page;
+    u64 last_code_addr = 0;
     ArmDynarmic64& m_parent;
     Core::Memory::Memory& m_memory;
     u64 m_tpidrro_el0{};

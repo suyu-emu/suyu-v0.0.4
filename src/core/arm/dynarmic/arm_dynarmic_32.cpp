@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -38,10 +38,16 @@ u64 DynarmicCallbacks32::MemoryRead64(u32 vaddr) {
     CheckMemoryAccess(vaddr, 8, Kernel::DebugWatchpointType::Read);
     return m_memory.Read64(vaddr);
 }
+
 std::optional<u32> DynarmicCallbacks32::MemoryReadCode(u32 vaddr) {
     if (!m_memory.IsValidVirtualAddressRange(vaddr, sizeof(u32)))
         return std::nullopt;
-    return m_memory.Read32(vaddr);
+    auto const aligned_vaddr = vaddr & ~Core::Memory::YUZU_PAGEMASK;
+    if (last_code_addr != aligned_vaddr) {
+        m_memory.ReadBlock(aligned_vaddr, &cached_code_page, sizeof(cached_code_page));
+        last_code_addr = aligned_vaddr;
+    }
+    return cached_code_page.inst[(vaddr & Core::Memory::YUZU_PAGEMASK) / sizeof(u32)];
 }
 
 void DynarmicCallbacks32::MemoryWrite8(u32 vaddr, u8 value) {
