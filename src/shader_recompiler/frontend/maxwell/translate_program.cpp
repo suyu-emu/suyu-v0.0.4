@@ -304,17 +304,9 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
     Optimization::GlobalMemoryToStorageBufferPass(program, host_info);
     Optimization::TexturePass(env, program, host_info);
 
-    bool should_rescale =
-#ifdef __ANDROID__
-        Settings::values.resolution_info.active;
-#else
-        true;
-#endif
-
-    if (should_rescale) {
+    if (Settings::values.resolution_info.active) {
         Optimization::RescalingPass(program);
     }
-
     Optimization::DeadCodeEliminationPass(program);
     if (Settings::values.renderer_debug) {
         Optimization::VerificationPass(program);
