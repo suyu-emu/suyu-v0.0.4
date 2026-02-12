@@ -71,11 +71,22 @@ void EmitX64::EmitBreakpoint(EmitContext&, IR::Inst*) {
     code.int3();
 }
 
+constexpr bool IsWithin2G(uintptr_t ref, uintptr_t target) {
+    const u64 distance = target - (ref + 5);
+    return !(distance >= 0x8000'0000ULL && distance <= ~0x8000'0000ULL);
+}
+
 void EmitX64::EmitCallHostFunction(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(code, nullptr, args[1], args[2], args[3]);
-    code.mov(rax, args[0].GetImmediateU64());
-    code.call(rax);
+    auto target = args[0].GetImmediateU64();
+    if (IsWithin2G(uintptr_t(code.getCurr()), target)) {
+        auto const f = std::bit_cast<void(*)(void)>(target);
+        code.call(f);
+    } else {
+        code.mov(rax, target);
+        code.call(rax);
+    }
 }
 
 void EmitX64::PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg, IR::LocationDescriptor target) {
