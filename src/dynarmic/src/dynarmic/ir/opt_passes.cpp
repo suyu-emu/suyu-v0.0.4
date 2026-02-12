@@ -485,6 +485,16 @@ static void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf)
     }
 }
 
+// Tiny helper to avoid the need to store based off the opcode
+// bit size all over the place within folding functions.
+static void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
+    if (is_32_bit) {
+        inst.ReplaceUsesWith(IR::Value{u32(value)});
+    } else {
+        inst.ReplaceUsesWith(IR::Value{value});
+    }
+}
+
 static void A64GetSetElimination(IR::Block& block) {
     using Iterator = IR::Block::iterator;
 
@@ -501,8 +511,8 @@ static void A64GetSetElimination(IR::Block& block) {
     struct RegisterInfo {
         IR::Value register_value;
         TrackingType tracking_type;
-        bool set_instruction_present = false;
         Iterator last_set_instruction;
+        bool set_instruction_present = false;
     };
     std::array<RegisterInfo, 31> reg_info;
     std::array<RegisterInfo, 32> vec_info;
@@ -514,59 +524,58 @@ static void A64GetSetElimination(IR::Block& block) {
             info.last_set_instruction->Invalidate();
             block.Instructions().erase(info.last_set_instruction);
         }
-
         info.register_value = value;
         info.tracking_type = tracking_type;
         info.set_instruction_present = true;
         info.last_set_instruction = set_inst;
     };
-
-    const auto do_get = [](RegisterInfo& info, Iterator get_inst, TrackingType tracking_type) {
-        const auto do_nothing = [&] {
+    const auto do_get = [&block](RegisterInfo& info, Iterator get_inst, TrackingType tracking_type) {
+        if (!info.register_value.IsEmpty() && info.tracking_type == tracking_type) {
+            get_inst->ReplaceUsesWith(info.register_value);
+        } else if (!info.register_value.IsEmpty()
+            && tracking_type == TrackingType::W
+            && info.tracking_type == TrackingType::X) {
+            // A sequence like
+            // SetX r1 -> GetW r1, is just reading off the lowest 32-bits of the register
+            if (info.register_value.IsImmediate()) {
+                ReplaceUsesWith(*get_inst, true, u32(info.register_value.GetImmediateAsU64()));
+            } else {
+                A64::IREmitter ir{block};
+                ir.SetInsertionPointBefore(&*get_inst);
+                get_inst->ReplaceUsesWith(ir.LeastSignificantWord(IR::U64{info.register_value}));
+            }
+        } else {
             info = {};
             info.register_value = IR::Value(&*get_inst);
             info.tracking_type = tracking_type;
-        };
-
-        if (info.register_value.IsEmpty()) {
-            do_nothing();
-            return;
         }
-
-        if (info.tracking_type == tracking_type) {
-            get_inst->ReplaceUsesWith(info.register_value);
-            return;
-        }
-
-        do_nothing();
     };
-
     for (auto inst = block.instructions.begin(); inst != block.instructions.end(); ++inst) {
         auto const opcode = inst->GetOpcode();
         switch (opcode) {
         case IR::Opcode::A64GetW: {
             const size_t index = A64::RegNumber(inst->GetArg(0).GetA64RegRef());
-            do_get(reg_info.at(index), inst, TrackingType::W);
+            do_get(reg_info[index], inst, TrackingType::W);
             break;
         }
         case IR::Opcode::A64GetX: {
             const size_t index = A64::RegNumber(inst->GetArg(0).GetA64RegRef());
-            do_get(reg_info.at(index), inst, TrackingType::X);
+            do_get(reg_info[index], inst, TrackingType::X);
             break;
         }
         case IR::Opcode::A64GetS: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_get(vec_info.at(index), inst, TrackingType::S);
+            do_get(vec_info[index], inst, TrackingType::S);
             break;
         }
         case IR::Opcode::A64GetD: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_get(vec_info.at(index), inst, TrackingType::D);
+            do_get(vec_info[index], inst, TrackingType::D);
             break;
         }
         case IR::Opcode::A64GetQ: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_get(vec_info.at(index), inst, TrackingType::Q);
+            do_get(vec_info[index], inst, TrackingType::Q);
             break;
         }
         case IR::Opcode::A64GetSP: {
@@ -579,27 +588,27 @@ static void A64GetSetElimination(IR::Block& block) {
         }
         case IR::Opcode::A64SetW: {
             const size_t index = A64::RegNumber(inst->GetArg(0).GetA64RegRef());
-            do_set(reg_info.at(index), inst->GetArg(1), inst, TrackingType::W);
+            do_set(reg_info[index], inst->GetArg(1), inst, TrackingType::W);
             break;
         }
         case IR::Opcode::A64SetX: {
             const size_t index = A64::RegNumber(inst->GetArg(0).GetA64RegRef());
-            do_set(reg_info.at(index), inst->GetArg(1), inst, TrackingType::X);
+            do_set(reg_info[index], inst->GetArg(1), inst, TrackingType::X);
             break;
         }
         case IR::Opcode::A64SetS: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_set(vec_info.at(index), inst->GetArg(1), inst, TrackingType::S);
+            do_set(vec_info[index], inst->GetArg(1), inst, TrackingType::S);
             break;
         }
         case IR::Opcode::A64SetD: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_set(vec_info.at(index), inst->GetArg(1), inst, TrackingType::D);
+            do_set(vec_info[index], inst->GetArg(1), inst, TrackingType::D);
             break;
         }
         case IR::Opcode::A64SetQ: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_set(vec_info.at(index), inst->GetArg(1), inst, TrackingType::Q);
+            do_set(vec_info[index], inst->GetArg(1), inst, TrackingType::Q);
             break;
         }
         case IR::Opcode::A64SetSP: {
@@ -667,16 +676,6 @@ static void A64MergeInterpretBlocksPass(IR::Block& block, A64::UserCallbacks* cb
 }
 
 using Op = Dynarmic::IR::Opcode;
-
-// Tiny helper to avoid the need to store based off the opcode
-// bit size all over the place within folding functions.
-static void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
-    if (is_32_bit) {
-        inst.ReplaceUsesWith(IR::Value{u32(value)});
-    } else {
-        inst.ReplaceUsesWith(IR::Value{value});
-    }
-}
 
 static IR::Value Value(bool is_32_bit, u64 value) {
     return is_32_bit ? IR::Value{u32(value)} : IR::Value{value};
