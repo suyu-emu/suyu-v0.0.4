@@ -62,8 +62,7 @@ static Optimization::PolyfillOptions GenPolyfillOptions(const BlockOfCode& code)
 struct Jit::Impl final {
 public:
     Impl(Jit* jit, UserConfig conf)
-        : ir_block{LocationDescriptor(0, FP::FPCR(0), false)}
-        , conf(conf)
+        : conf(conf)
         , block_of_code(GenRunCodeCallbacks(conf.callbacks, &GetCurrentBlockThunk, this, conf), JitStateInfo{jit_state}, conf.code_cache_size, GenRCP(conf))
         , emitter(block_of_code, conf, jit)
         , polyfill_options(GenPolyfillOptions(block_of_code))
@@ -257,8 +256,8 @@ private:
         return GetBlock(A64::LocationDescriptor{GetCurrentLocation()}.SetSingleStepping(true));
     }
 
-    CodePtr GetBlock(IR::LocationDescriptor current_location) {
-        if (auto block = emitter.GetBasicBlock(current_location))
+    CodePtr GetBlock(IR::LocationDescriptor descriptor) {
+        if (auto block = emitter.GetBasicBlock(descriptor))
             return block->entrypoint;
 
         constexpr size_t MINIMUM_REMAINING_CODESIZE = 1 * 1024 * 1024;
@@ -271,8 +270,10 @@ private:
 
         // JIT Compile
         const auto get_code = [this](u64 vaddr) { return conf.callbacks->MemoryReadCode(vaddr); };
-        ir_block.Reset(current_location);
-        A64::Translate(ir_block, A64::LocationDescriptor{current_location}, get_code, {conf.define_unpredictable_behaviour, conf.wall_clock_cntpct});
+        // LocationDescriptor ctor() does important ops (like tflags) do not skip
+        auto const arch_descriptor = A64::LocationDescriptor{descriptor};
+        ir_block.Reset(arch_descriptor);
+        A64::Translate(ir_block, arch_descriptor, get_code, {conf.define_unpredictable_behaviour, conf.wall_clock_cntpct});
         Optimization::Optimize(ir_block, conf, polyfill_options);
         return emitter.Emit(ir_block).entrypoint;
     }
@@ -299,7 +300,7 @@ private:
         }
     }
 
-    IR::Block ir_block;
+    IR::Block ir_block = {LocationDescriptor(0, FP::FPCR(0), false)};
     const UserConfig conf;
     A64JitState jit_state;
     BlockOfCode block_of_code;

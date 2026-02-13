@@ -65,11 +65,10 @@ static Optimization::PolyfillOptions GenPolyfillOptions(const BlockOfCode& code)
 
 struct Jit::Impl {
     Impl(Jit* jit, A32::UserConfig conf) noexcept
-        : ir_block{LocationDescriptor(0, PSR(0), FPSCR(0), false)}
-        , conf(std::move(conf))
-        , block_of_code(GenRunCodeCallbacks(conf.callbacks, &GetCurrentBlockThunk, this, conf), JitStateInfo{jit_state}, conf.code_cache_size, GenRCP(conf))
+        : block_of_code(GenRunCodeCallbacks(conf.callbacks, &GetCurrentBlockThunk, this, conf), JitStateInfo{jit_state}, conf.code_cache_size, GenRCP(conf))
         , emitter(block_of_code, conf, jit)
         , polyfill_options(GenPolyfillOptions(block_of_code))
+        , conf(std::move(conf))
         , jit_interface(jit)
     {}
 
@@ -204,8 +203,7 @@ private:
     }
 
     A32EmitX64::BlockDescriptor GetBasicBlock(IR::LocationDescriptor descriptor) {
-        auto block = emitter.GetBasicBlock(descriptor);
-        if (block)
+        if (auto block = emitter.GetBasicBlock(descriptor))
             return *block;
 
         constexpr size_t MINIMUM_REMAINING_CODESIZE = 1 * 1024 * 1024;
@@ -215,8 +213,10 @@ private:
         }
         block_of_code.EnsureMemoryCommitted(MINIMUM_REMAINING_CODESIZE);
 
-        ir_block.Reset(descriptor);
-        A32::Translate(ir_block, A32::LocationDescriptor{descriptor}, conf.callbacks, {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
+        // LocationDescriptor ctor() does important ops (like tflags) do not skip
+        auto const arch_descriptor = A32::LocationDescriptor{descriptor};
+        ir_block.Reset(arch_descriptor);
+        A32::Translate(ir_block, arch_descriptor, conf.callbacks, {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
         Optimization::Optimize(ir_block, conf, polyfill_options);
         return emitter.Emit(ir_block);
     }
@@ -243,12 +243,13 @@ private:
         }
     }
 
-    IR::Block ir_block;
-    const A32::UserConfig conf;
+    IR::Block ir_block = {LocationDescriptor(0, PSR(0), FPSCR(0), false)};
     A32JitState jit_state;
     BlockOfCode block_of_code;
     A32EmitX64 emitter;
     Optimization::PolyfillOptions polyfill_options;
+    // Keep it here, you don't wanna mess with the fuckery that's initializer lists
+    const A32::UserConfig conf;
     Jit* jit_interface;
 
     // Requests made during execution to invalidate the cache are queued up here.

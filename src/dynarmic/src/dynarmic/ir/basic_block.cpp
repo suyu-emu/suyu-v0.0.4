@@ -22,13 +22,10 @@
 
 namespace Dynarmic::IR {
 
-Block::Block(const LocationDescriptor& location)
-    : location{location},
-    end_location{location},
-    cond{Cond::AL}
-{
-
-}
+Block::Block(LocationDescriptor location) noexcept
+    : location{location}
+    , end_location{location}
+{}
 
 /// Prepends a new instruction to this basic block before the insertion point,
 /// handling any allocations necessary to do so.
@@ -58,6 +55,21 @@ Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, s
         index++;
     });
     return instructions.insert_before(insertion_point, inst);
+}
+
+void Block::Reset(LocationDescriptor location_) noexcept {
+    mcl::intrusive_list<IR::Inst> tmp = {};
+    instructions.swap(tmp);
+    inlined_inst.clear();
+    pooled_inst.clear();
+    cond_failed.reset();
+    location = location_;
+    end_location = location_;
+    cond = Cond::AL;
+    terminal = Term::Invalid{};
+    cond_failed_cycle_count = 0;
+    cycle_count = 0;
+    ASSERT(instructions.size() == 0);
 }
 
 static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
@@ -123,11 +135,11 @@ std::string DumpBlock(const IR::Block& block) noexcept {
         case Type::A32ExtReg: return A32::ExtRegToString(arg.GetA32ExtRegRef());
         case Type::A64Reg: return A64::RegToString(arg.GetA64RegRef());
         case Type::A64Vec: return A64::VecToString(arg.GetA64VecRef());
-        case Type::CoprocInfo: return fmt::format("#<coproc>");
-        case Type::NZCVFlags: return fmt::format("#<NZCV flags>");
-        case Type::Cond: return fmt::format("#<cond={}>", A32::CondToString(arg.GetCond()));
-        case Type::Table: return fmt::format("#<table>");
-        case Type::AccType: return fmt::format("#<acc-type={}>", u32(arg.GetAccType()));
+        case Type::CoprocInfo: return fmt::format("$coproc{}", arg.GetCoprocInfo()[0]);
+        case Type::NZCVFlags: return fmt::format("$nzcv");
+        case Type::Cond: return fmt::format("$cond={}", A32::CondToString(arg.GetCond()));
+        case Type::Table: return fmt::format("$table");
+        case Type::AccType: return fmt::format("$acc-type={}", u32(arg.GetAccType()));
         default: return fmt::format("<unknown immediate type {}>", arg.GetType());
         }
     };

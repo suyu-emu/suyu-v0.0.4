@@ -43,7 +43,7 @@ public:
     using reverse_iterator = instruction_list_type::reverse_iterator;
     using const_reverse_iterator = instruction_list_type::const_reverse_iterator;
 
-    explicit Block(const LocationDescriptor& location);
+    Block(LocationDescriptor location) noexcept;
     ~Block() = default;
     Block(const Block&) = delete;
     Block& operator=(const Block&) = delete;
@@ -58,6 +58,7 @@ public:
         return PrependNewInst(instructions.end(), opcode, args);
     }
     iterator PrependNewInst(iterator insertion_point, Opcode op, std::initializer_list<Value> args) noexcept;
+    void Reset(LocationDescriptor location_) noexcept;
 
     /// Gets a mutable reference to the instruction list for this basic block.
     inline instruction_list_type& Instructions() noexcept {
@@ -140,18 +141,6 @@ public:
         return cycle_count;
     }
 
-    inline void Reset(LocationDescriptor location_) noexcept {
-        inlined_inst.clear();
-        pooled_inst.clear();
-        cond_failed.reset();
-        location = location_;
-        terminal = Term::Invalid{};
-        cond_failed_cycle_count = 0;
-        cycle_count = 0;
-        instruction_list_type tmp{};
-        instructions.swap(tmp);
-    }
-
     /// "Hot cache" for small blocks so we don't call global allocator
     boost::container::static_vector<Inst, 30> inlined_inst;
     /// List of instructions in this block.
@@ -165,7 +154,7 @@ public:
     /// Description of the end location of this block
     LocationDescriptor end_location;
     /// Conditional to pass in order to execute this block
-    Cond cond;
+    Cond cond = Cond::AL;
     /// Terminal instruction of this block.
     Terminal terminal = Term::Invalid{};
     /// Number of cycles this block takes to execute if the conditional fails.
