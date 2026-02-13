@@ -1042,6 +1042,11 @@ static void FoldZeroExtendXToLong(IR::Inst& inst) {
 static void ConstantPropagation(IR::Block& block) {
     for (auto& inst : block.instructions) {
         auto const opcode = inst.GetOpcode();
+        // skip NZCV so we dont end up discarding side effects :)
+        // TODO(lizzie): hey stupid maybe fix the A64 codegen for folded constants AND
+        // redirect the mfer properly?!??! just saying :)
+        if (IR::MayGetNZCVFromOp(opcode) && inst.GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp))
+            continue;
         switch (opcode) {
         case Op::LeastSignificantWord:
             FoldLeastSignificantWord(inst);
