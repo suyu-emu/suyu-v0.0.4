@@ -84,7 +84,11 @@ function(SystemPackageViable JSON_NAME)
     parse_object(${object})
 
     string(REPLACE " " ";" find_args "${find_args}")
-    find_package(${package} ${version} ${find_args} QUIET NO_POLICY_SCOPE)
+    if (${package}_FORCE_BUNDLED)
+        set(${package}_FOUND OFF)
+    else()
+        find_package(${package} ${version} ${find_args} QUIET NO_POLICY_SCOPE)
+    endif()
 
     set(${pkg}_VIABLE ${${package}_FOUND} PARENT_SCOPE)
     set(${pkg}_PACKAGE ${package} PARENT_SCOPE)
