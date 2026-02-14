@@ -150,7 +150,7 @@
         "package": "SDL2",
         "name": "SDL2",
         "repo": "crueter-ci/SDL2",
-        "version": "2.32.10-a65111bd2d",
+        "version": "2.32.10-cf5dabd6ea",
         "min_version": "2.26.4"
     },
     "catch2": {
@@ -184,7 +184,6 @@
         "repo": "libsdl-org/SDL",
         "tag": "release-%VERSION%",
         "hash": "d5622d6bb7266f7942a7b8ad43e8a22524893bf0c2ea1af91204838d9b78d32768843f6faa248757427b8404b8c6443776d4afa6b672cd8571a4e0c03a829383",
-        "key": "generic",
         "bundled": true,
         "git_version": "2.32.10",
         "skip_updates": true
@@ -194,7 +193,6 @@
         "repo": "libsdl-org/SDL",
         "sha": "cc016b0046",
         "hash": "b8d9873446cdb922387471df9968e078714683046674ef0d0edddf8e25da65a539a3bae83d635496b970237f90b07b36a69f8d7855d450de59311d6d6e8c3dbc",
-        "key": "steamdeck",
         "bundled": true,
         "skip_updates": "true"
     },
