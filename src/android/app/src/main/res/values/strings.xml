@@ -1038,8 +1038,8 @@
     <string name="frame_pacing_mode_target_Auto">Auto</string>
     <string name="frame_pacing_mode_target_30">30 FPS</string>
     <string name="frame_pacing_mode_target_60">60 FPS</string>
+    <string name="frame_pacing_mode_target_90">90 FPS</string>
     <string name="frame_pacing_mode_target_120">120 FPS</string>
-    <string name="frame_pacing_mode_target_240">240 FPS</string>
 
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu" translatable="false">CPU</string>

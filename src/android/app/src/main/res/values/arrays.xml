@@ -534,8 +534,8 @@
         <item>@string/frame_pacing_mode_target_Auto</item>
         <item>@string/frame_pacing_mode_target_30</item>
         <item>@string/frame_pacing_mode_target_60</item>
+        <item>@string/frame_pacing_mode_target_90</item>
         <item>@string/frame_pacing_mode_target_120</item>
-        <item>@string/frame_pacing_mode_target_240</item>
     </string-array>
     <integer-array name="framePacingModeValues">
         <item>0</item>

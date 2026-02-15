@@ -115,28 +115,27 @@ public:
     /// Waits for the given GPU tick, optionally pacing frames.
     void Wait(u64 tick, double target_fps = 0.0) {
         if (Settings::values.use_speed_limit.GetValue() && target_fps > 0.0) {
-            auto frame_duration = std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(1.0 / target_fps));
-            auto now = std::chrono::steady_clock::now();
-            if (now < next_frame_time) {
-                std::this_thread::sleep_until(next_frame_time);
-                next_frame_time += frame_duration;
+            const auto now = std::chrono::steady_clock::now();
+            if (start_time == std::chrono::steady_clock::time_point{} || current_target_fps != target_fps) {
+                start_time = now;
+                frame_counter = 0;
+                current_target_fps = target_fps;
+            }
+            frame_counter++;
+            std::chrono::duration<double> frame_interval(1.0 / current_target_fps);
+            auto target_time = start_time + frame_interval * frame_counter;
+            if (target_time > now) {
+                std::this_thread::sleep_until(target_time);
             } else {
-                next_frame_time = now + frame_duration;
+                start_time = now;
+                frame_counter = 0;
             }
         }
-        if (tick > master_semaphore->CurrentTick() && !chunk->Empty()) {
-            Flush();
-        }
-        master_semaphore->Wait(tick);
-    }
-
-    /// Resets the frame pacing state by setting the next frame time.
-    void ResetFramePacing(double target_fps = 0.0) {
-        if (target_fps > 0.0) {
-            auto frame_duration = std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(1.0 / target_fps));
-            next_frame_time = std::chrono::steady_clock::now() + frame_duration;
-        } else {
-            next_frame_time = std::chrono::steady_clock::time_point{};
+        if (tick > 0) {
+            if (tick >= master_semaphore->CurrentTick()) {
+                Flush();
+            }
+            master_semaphore->Wait(tick);
         }
     }
 
@@ -282,7 +281,9 @@ private:
     std::condition_variable_any event_cv;
     std::jthread worker_thread;
 
-    std::chrono::steady_clock::time_point next_frame_time{};
+    std::chrono::steady_clock::time_point start_time{};
+    u64 frame_counter{};
+    double current_target_fps{};
 };
 
 } // namespace Vulkan

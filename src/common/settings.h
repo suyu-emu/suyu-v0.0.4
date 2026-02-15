@@ -462,9 +462,12 @@ struct Values {
     SwitchableSetting<FramePacingMode, true> frame_pacing_mode{linkage,
                                                                FramePacingMode::Target_Auto,
                                                                FramePacingMode::Target_Auto,
-                                                               FramePacingMode::Target_240,
+                                                               FramePacingMode::Target_120,
                                                                "frame_pacing_mode",
-                                                               Category::RendererAdvanced};
+                                                               Category::RendererAdvanced,
+                                                               Specialization::Default,
+                                                               true,
+                                                               true};
 
     SwitchableSetting<AstcRecompression, true> astc_recompression{linkage,
                                                                   AstcRecompression::Uncompressed,

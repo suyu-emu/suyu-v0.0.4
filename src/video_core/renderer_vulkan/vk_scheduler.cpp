@@ -347,7 +347,7 @@ void Scheduler::EndRenderPass()
         Record([num_images = num_renderpass_images,
                        images = renderpass_images,
                        ranges = renderpass_image_ranges](vk::CommandBuffer cmdbuf) {
-            std::vector<VkImageMemoryBarrier> barriers(num_images);
+            std::array<VkImageMemoryBarrier, 9> barriers;
             VkPipelineStageFlags src_stages = 0;
             for (size_t i = 0; i < num_images; ++i) {
                 const VkImageSubresourceRange& range = ranges[i];
