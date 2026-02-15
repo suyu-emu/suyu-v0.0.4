@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -980,25 +980,82 @@ Result ISystemSettingsServer::SetPrimaryAlbumStorage(PrimaryAlbumStorage primary
     R_SUCCEED();
 }
 
+static void Fill3DS_CRC(u32 d, char* data) {
+    std::array<u8, 10> digits = {
+        u8((d / 1000000000) % 100),
+        u8((d / 100000000) % 10),
+        u8((d / 10000000) % 10),
+        u8((d / 1000000) % 10),
+        u8((d / 100000) % 10),
+        u8((d / 10000) % 10),
+        u8((d / 1000) % 10),
+        u8((d / 100) % 10),
+        u8((d / 10) % 10),
+        u8(d % 10),
+    };
+    // Normalize to retail values
+    std::array<u8, 4> retail_digits = { 1, 4, 5, 7 };
+    digits[0] = retail_digits[(d % 10) % 4];
+    digits[1] = 0;
+    //
+    for (size_t i = 0; i < sizeof(digits); ++i)
+        data[i] = char(digits[i] + '0');
+    u8 sum_odd = 0, sum_even = 0;
+    for (size_t i = 0; i < sizeof(digits); i += 2) {
+        sum_odd += digits[i + 0];
+        sum_even += digits[i + 1];
+    }
+    u8 sum_digit = u8(((sum_even * 3) + sum_odd) % 10);
+    if (sum_digit != 0)
+        sum_digit = 10 - sum_digit;
+    data[sizeof(digits)] = char(sum_digit + '0');
+}
+
 Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
     LOG_INFO(Service_SET, "called");
-    *out_battery_lot = {"YUZU0EMULATOR14022024"};
-    if (auto const s = ::Settings::values.serial_battery.GetValue(); !s.empty()) {
-        auto const max_size = out_battery_lot->lot_number.size();
-        auto const end = s.size() > max_size ? s.begin() + max_size : s.end();
-        std::copy(s.begin(), end, out_battery_lot->lot_number.begin());
-    }
+    *out_battery_lot = []{
+        u32 d = ::Settings::values.serial_battery.GetValue();
+        BatteryLot c{};
+        c.lot_number[0] = 'B';
+        c.lot_number[1] = 'H';
+        c.lot_number[2] = 'A';
+        c.lot_number[3] = 'C';
+        // TODO: I have no fucking idea what the letters mean
+        c.lot_number[4] = 'H';
+        c.lot_number[5] = 'Z';
+        c.lot_number[6] = 'Z';
+        c.lot_number[7] = 'A';
+        c.lot_number[8] = 'D';
+        c.lot_number[9] = char(((d / 100000) % 26) + 'A');
+        Fill3DS_CRC(d, c.lot_number.data() + 10);
+        return c;
+    }();
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetSerialNumber(Out<SerialNumber> out_console_serial) {
     LOG_INFO(Service_SET, "called");
-    *out_console_serial = {"YUZ10000000001"};
-    if (auto const s = ::Settings::values.serial_unit.GetValue(); !s.empty()) {
-        auto const max_size = out_console_serial->serial_number.size();
-        auto const end = s.size() > max_size ? s.begin() + max_size : s.end();
-        std::copy(s.begin(), end, out_console_serial->serial_number.begin());
-    }
+    *out_console_serial = []{
+        u32 d = ::Settings::values.serial_unit.GetValue();
+        SerialNumber c{};
+        c.serial_number[0] = 'X';
+        c.serial_number[1] = 'A';
+        c.serial_number[2] = [] {
+            // Adding another setting would be tedious so... let's just reuse region_index :)
+            switch (::Settings::values.region_index.GetValue()) {
+            case ::Settings::Region::Japan: return 'J';
+            case ::Settings::Region::Usa: return 'W';
+            case ::Settings::Region::Europe: return 'E';
+            case ::Settings::Region::Australia: return 'M'; //pretend its Malaysia
+            case ::Settings::Region::China:
+            case ::Settings::Region::Taiwan: return 'C';
+            case ::Settings::Region::Korea: return 'K';
+            default: return 'W';
+            }
+        }();
+        Fill3DS_CRC(d, c.serial_number.data() + 3);
+        return c;
+    }();
     R_SUCCEED();
 }
 

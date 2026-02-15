@@ -620,11 +620,11 @@ struct Values {
                                                      "language_index",
                                                      Category::System};
     SwitchableSetting<Region, true> region_index{linkage, Region::Usa, "region_index", Category::System};
-    SwitchableSetting<TimeZone, true> time_zone_index{linkage, TimeZone::Auto,
-                                                      "time_zone_index", Category::System};
+    SwitchableSetting<TimeZone, true> time_zone_index{linkage, TimeZone::Auto, "time_zone_index", Category::System};
+    Setting<u32> serial_battery{linkage, 0, "serial_battery", Category::System};
+    Setting<u32> serial_unit{linkage, 0, "serial_unit", Category::System};
     // Measured in seconds since epoch
-    SwitchableSetting<bool> custom_rtc_enabled{
-                                               linkage, false, "custom_rtc_enabled", Category::System, Specialization::Paired, true, true};
+    SwitchableSetting<bool> custom_rtc_enabled{linkage, false, "custom_rtc_enabled", Category::System, Specialization::Paired, true, true};
     SwitchableSetting<s64> custom_rtc{
                                       linkage, 0,    "custom_rtc",       Category::System, Specialization::Time,
                                       false,   true, &custom_rtc_enabled};
@@ -794,8 +794,6 @@ struct Values {
                                            true};
 
     // Miscellaneous
-    Setting<std::string> serial_battery{linkage, std::string(), "serial_battery", Category::Miscellaneous};
-    Setting<std::string> serial_unit{linkage, std::string(), "serial_unit", Category::Miscellaneous};
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
     Setting<bool> log_flush_line{linkage, false, "flush_line", Category::Miscellaneous, Specialization::Default, true, true};
     Setting<bool> censor_username{linkage, true, "censor_username", Category::Miscellaneous};

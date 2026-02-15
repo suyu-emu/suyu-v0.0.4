@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -57,10 +57,6 @@ void ConfigureDebug::SetConfiguration() {
 #endif
 
     // Immutable after starting
-    ui->serial_battery_edit->setEnabled(runtime_lock);
-    ui->serial_battery_edit->setText(QString::fromStdString(Settings::values.serial_battery.GetValue()));
-    ui->serial_board_edit->setEnabled(runtime_lock);
-    ui->serial_board_edit->setText(QString::fromStdString(Settings::values.serial_unit.GetValue()));
     ui->homebrew_args_edit->setEnabled(runtime_lock);
     ui->homebrew_args_edit->setText(QString::fromStdString(Settings::values.program_args.GetValue()));
     ui->toggle_console->setEnabled(runtime_lock);
