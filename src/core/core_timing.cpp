@@ -13,6 +13,11 @@
 #include "common/windows/timer_resolution.h"
 #endif
 
+#if defined(_WIN32) && defined(ARCHITECTURE_x86_64) && defined(__MINGW64__)
+#include "common/x64/cpu_detect.h"
+#include "common/x64/rdtsc.h"
+#endif
+
 #include "common/settings.h"
 #include "core/core_timing.h"
 #include "core/hardware_properties.h"
@@ -282,8 +287,45 @@ void CoreTiming::ThreadLoop() {
             const auto next_time = Advance();
             if (next_time) {
                 // There are more events left in the queue, wait until the next event.
-                auto wait_time = *next_time - GetGlobalTimeNs().count();
-                event.WaitFor(std::chrono::nanoseconds(wait_time));
+                if (auto wait_time = *next_time - GetGlobalTimeNs().count(); wait_time > 0) {
+#if defined(_WIN32) && defined(ARCHITECTURE_x86_64) && defined(__MINGW64__)
+                    while (!paused && !event.IsSet() && wait_time > 0) {
+                        wait_time = *next_time - GetGlobalTimeNs().count();
+                        if (wait_time >= timer_resolution_ns) {
+                            Common::Windows::SleepForOneTick();
+                        } else {
+                            // 100,000 cycles is a reasonable amount of time to wait to save on CPU resources.
+                            // For reference:
+                            // At 1 GHz, 100K cycles is 100us
+                            // At 2 GHz, 100K cycles is 50us
+                            // At 4 GHz, 100K cycles is 25us
+                            constexpr auto PauseCycles = 100'000U;
+                            auto const& caps = Common::GetCPUCaps();
+                            if (caps.waitpkg) {
+                                static constexpr auto RequestC02State = 0U;
+                                const auto tsc = Common::X64::FencedRDTSC() + PauseCycles;
+                                const auto eax = u32(tsc & 0xFFFFFFFF);
+                                const auto edx = u32(tsc >> 32);
+                                asm volatile("tpause %0" : : "r"(RequestC02State), "d"(edx), "a"(eax));
+                            } else if (caps.monitorx) {
+                                static constexpr auto EnableWaitTimeFlag = 1U << 1;
+                                static constexpr auto RequestC1State = 0U;
+                                // monitor_var should be aligned to a cache line.
+                                alignas(64) u64 monitor_var{};
+                                asm volatile("monitorx" : : "a"(&monitor_var), "c"(0), "d"(0));
+                                asm volatile("mwaitx" : : "a"(RequestC1State), "b"(PauseCycles), "c"(EnableWaitTimeFlag));
+                            } else {
+                                std::this_thread::yield();
+                            }
+                        }
+                    }
+                    if (event.IsSet()) {
+                        event.Reset();
+                    }
+#else
+                    event.WaitFor(std::chrono::nanoseconds(wait_time));
+#endif
+                }
             } else {
                 // Queue is empty, wait until another event is scheduled and signals us to
                 // continue.
