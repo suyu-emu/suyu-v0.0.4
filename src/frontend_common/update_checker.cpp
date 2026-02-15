@@ -82,8 +82,8 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
 
 std::optional<UpdateChecker::Update> UpdateChecker::GetLatestRelease(bool include_prereleases) {
     const auto update_check_url = std::string{Common::g_build_auto_update_api};
-    std::string update_check_path = fmt::format("/repos/{}",
-                                                std::string{Common::g_build_auto_update_repo});
+    auto update_check_path = fmt::format("{}{}", std::string{Common::g_build_auto_update_api_path},
+                                         std::string{Common::g_build_auto_update_repo});
     try {
         if (include_prereleases) { // This can return either a prerelease or a stable release,
             // whichever is more recent.
@@ -124,14 +124,14 @@ std::optional<UpdateChecker::Update> UpdateChecker::GetLatestRelease(bool includ
             return Update{latest_tag, latest_name};
         }
 
-    } catch (nlohmann::detail::out_of_range &) {
+    } catch (nlohmann::detail::out_of_range&) {
         LOG_ERROR(Frontend,
                   "Parsing JSON response from {}{} failed during update check: "
                   "nlohmann::detail::out_of_range",
                   update_check_url,
                   update_check_path);
         return {};
-    } catch (nlohmann::detail::type_error &) {
+    } catch (nlohmann::detail::type_error&) {
         LOG_ERROR(Frontend,
                   "Parsing JSON response from {}{} failed during update check: "
                   "nlohmann::detail::type_error",

@@ -20,6 +20,7 @@
 #define COMPILER_ID "@CXX_COMPILER@"
 #define BUILD_AUTO_UPDATE_WEBSITE "@BUILD_AUTO_UPDATE_WEBSITE@"
 #define BUILD_AUTO_UPDATE_API "@BUILD_AUTO_UPDATE_API@"
+#define BUILD_AUTO_UPDATE_API_PATH "@BUILD_AUTO_UPDATE_API_PATH@"
 #define BUILD_AUTO_UPDATE_REPO "@BUILD_AUTO_UPDATE_REPO@"
 #define IS_NIGHTLY_BUILD @IS_NIGHTLY_BUILD@
 
@@ -42,6 +43,7 @@ constexpr const bool g_is_nightly_build = IS_NIGHTLY_BUILD;
 
 constexpr const char g_build_auto_update_website[] = BUILD_AUTO_UPDATE_WEBSITE;
 constexpr const char g_build_auto_update_api[] = BUILD_AUTO_UPDATE_API;
+constexpr const char g_build_auto_update_api_path[] = BUILD_AUTO_UPDATE_API_PATH;
 constexpr const char g_build_auto_update_repo[] = BUILD_AUTO_UPDATE_REPO;
 
 } // namespace Common

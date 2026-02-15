@@ -36,14 +36,17 @@ set(GIT_DESC ${BUILD_VERSION})
 # Also if this is a CI build, add the build name (ie: Nightly, Canary) to the scm_rev file as well
 
 # Auto-updater metadata! Must somewhat mirror GitHub API endpoint
-set(BUILD_AUTO_UPDATE_WEBSITE "https://github.com")
-set(BUILD_AUTO_UPDATE_API "https://api.github.com")
-
 if (NIGHTLY_BUILD)
+    set(BUILD_AUTO_UPDATE_WEBSITE "https://github.com")
+    set(BUILD_AUTO_UPDATE_API "api.github.com")
+    set(BUILD_AUTO_UPDATE_API_PATH "/repos/")
     set(BUILD_AUTO_UPDATE_REPO "Eden-CI/Nightly")
     set(REPO_NAME "Eden Nightly")
 else()
-    set(BUILD_AUTO_UPDATE_REPO "eden-emulator/Releases")
+    set(BUILD_AUTO_UPDATE_WEBSITE "https://git.eden-emu.dev")
+    set(BUILD_AUTO_UPDATE_API "git.eden-emu.dev")
+    set(BUILD_AUTO_UPDATE_API_PATH "/api/v1/repos/")
+    set(BUILD_AUTO_UPDATE_REPO "eden-emu/eden")
     set(REPO_NAME "Eden")
 endif()
 

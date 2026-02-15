@@ -24,7 +24,7 @@ if (ENABLE_UPDATE_CHECKER)
         update_checker.h)
 
     if (ENABLE_OPENSSL)
-        target_compile_definitions(frontend_common PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
+        target_compile_definitions(frontend_common PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
         target_link_libraries(frontend_common PRIVATE OpenSSL::SSL OpenSSL::Crypto)
     endif()
 
