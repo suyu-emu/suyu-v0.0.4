@@ -7,6 +7,7 @@
 #include "common/settings_enums.h"
 #include "frontend_common/settings_generator.h"
 #include "qt_common/qt_string_lookup.h"
+#include "render/performance_overlay.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
 #endif
@@ -1401,6 +1402,7 @@ void MainWindow::InitializeHotkeys() {
     LinkActionShortcut(ui->action_Stop, QStringLiteral("Stop Emulation"));
     LinkActionShortcut(ui->action_Show_Filter_Bar, QStringLiteral("Toggle Filter Bar"));
     LinkActionShortcut(ui->action_Show_Status_Bar, QStringLiteral("Toggle Status Bar"));
+    LinkActionShortcut(ui->action_Show_Performance_Overlay, QStringLiteral("Toggle Performance Overlay"));
     LinkActionShortcut(ui->action_Fullscreen, QStringLiteral("Fullscreen"));
     LinkActionShortcut(ui->action_Capture_Screenshot, QStringLiteral("Capture Screenshot"));
     LinkActionShortcut(ui->action_TAS_Start, QStringLiteral("TAS Start/Stop"), true);
@@ -1511,6 +1513,9 @@ void MainWindow::RestoreUIState() {
 
     ui->action_Show_Status_Bar->setChecked(UISettings::values.show_status_bar.GetValue());
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
+
+    ui->action_Show_Performance_Overlay->setChecked(UISettings::values.show_perf_overlay.GetValue());
+    if (perf_overlay) perf_overlay->setVisible(ui->action_Show_Performance_Overlay->isChecked());
     Debugger::ToggleConsole();
 }
 
@@ -1630,6 +1635,7 @@ void MainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Single_Window_Mode, &MainWindow::ToggleWindowMode);
     connect_menu(ui->action_Show_Filter_Bar, &MainWindow::OnToggleFilterBar);
     connect_menu(ui->action_Show_Status_Bar, &MainWindow::OnToggleStatusBar);
+    connect_menu(ui->action_Show_Performance_Overlay, &MainWindow::OnTogglePerfOverlay);
 
     connect_menu(ui->action_Reset_Window_Size_720, &MainWindow::ResetWindowSize720);
     connect_menu(ui->action_Reset_Window_Size_900, &MainWindow::ResetWindowSize900);
@@ -2136,7 +2142,7 @@ void MainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletPa
         game_list->hide();
         game_list_placeholder->hide();
     }
-    status_bar_update_timer.start(500);
+    status_bar_update_timer.start(250);
     renderer_status_button->setDisabled(true);
     refresh_button->setDisabled(true);
 
@@ -2209,6 +2215,10 @@ bool MainWindow::OnShutdownBegin() {
     if (QtCommon::system->IsShuttingDown()) {
         return false;
     }
+
+    perf_overlay->hide();
+    perf_overlay->deleteLater();
+    perf_overlay = nullptr;
 
     QtCommon::system->SetShuttingDown(true);
     discord_rpc->Pause();
@@ -3211,6 +3221,13 @@ bool MainWindow::ConfirmShutdownGame() {
 
 void MainWindow::OnLoadComplete() {
     loading_screen->OnLoadComplete();
+
+    perf_overlay = new PerformanceOverlay(this);
+    perf_overlay->setVisible(ui->action_Show_Performance_Overlay->isChecked());
+
+    connect(perf_overlay, &PerformanceOverlay::closed, perf_overlay, [this]() {
+        ui->action_Show_Performance_Overlay->setChecked(false);
+    });
 }
 
 void MainWindow::OnExecuteProgram(std::size_t program_index) {
@@ -4032,6 +4049,12 @@ void MainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
 }
 
+void MainWindow::OnTogglePerfOverlay() {
+    if (perf_overlay) {
+        perf_overlay->setVisible(ui->action_Show_Performance_Overlay->isChecked());
+    }
+}
+
 void MainWindow::OnGameListRefresh() {
     // Resets metadata cache and reloads
     QtCommon::Game::ResetMetadata(false);
@@ -4256,6 +4279,8 @@ void MainWindow::UpdateStatusBar() {
     auto& shader_notify = QtCommon::system->GPU().ShaderNotify();
     const int shaders_building = shader_notify.ShadersBuilding();
 
+    emit statsUpdated(results, shader_notify);
+
     if (shaders_building > 0) {
         shader_building_label->setText(tr("Building: %n shader(s)", "", shaders_building));
         shader_building_label->setVisible(true);
@@ -4350,6 +4375,7 @@ void MainWindow::UpdateStatusButtons() {
     UpdateVolumeUI();
 }
 
+// TODO(crueter): Use this for game list stuff
 void MainWindow::UpdateUISettings() {
     if (!ui->action_Fullscreen->isChecked()) {
         UISettings::values.geometry = saveGeometry();
@@ -4360,6 +4386,8 @@ void MainWindow::UpdateUISettings() {
     UISettings::values.fullscreen = ui->action_Fullscreen->isChecked();
     UISettings::values.show_filter_bar = ui->action_Show_Filter_Bar->isChecked();
     UISettings::values.show_status_bar = ui->action_Show_Status_Bar->isChecked();
+    UISettings::values.show_perf_overlay = ui->action_Show_Performance_Overlay->isChecked();
+
     UISettings::values.first_start = false;
 
     Settings::values.enable_overlay = ui->action_Enable_Overlay_Applet->isChecked();
@@ -4586,6 +4614,15 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     Network::Shutdown();
 
     QWidget::closeEvent(event);
+}
+
+void MainWindow::resizeEvent(QResizeEvent* event) {
+    emit sizeChanged(event->size());
+}
+
+void MainWindow::moveEvent(QMoveEvent* event) {
+    auto window_frame_height = frameGeometry().height() - geometry().height();
+    emit positionChanged(event->pos() - QPoint{0, window_frame_height});
 }
 
 static bool IsSingleFileDropEvent(const QMimeData* mime) {

@@ -55,6 +55,7 @@ class QProgressDialog;
 class QSlider;
 class QHBoxLayout;
 class WaitTreeWidget;
+class PerformanceOverlay;
 enum class GameListOpenTarget;
 enum class DumpRomFSTarget;
 class GameListPlaceholder;
@@ -70,6 +71,9 @@ enum class StartGameType {
     Global, // Only uses global configuration
 };
 
+namespace VideoCore {
+class ShaderNotify;
+}
 namespace Core {
 enum class SystemResultStatus : u32;
 } // namespace Core
@@ -214,6 +218,9 @@ signals:
     void WebBrowserClosed(Service::AM::Frontend::WebExitReason exit_reason, std::string last_url);
 
     void SigInterrupt();
+    void sizeChanged(const QSize &size);
+    void positionChanged(const QPoint &pos);
+    void statsUpdated(const Core::PerfStatsResults &results, const VideoCore::ShaderNotify &shaders);
 
 public slots:
     void OnLoadComplete();
@@ -310,6 +317,8 @@ private:
     void RequestGameExit();
     void changeEvent(QEvent* event) override;
     void closeEvent(QCloseEvent* event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
 
     std::string CreateTASFramesString(
         std::array<size_t, InputCommon::TasInput::PLAYER_NUMBER> frames) const;
@@ -392,6 +401,7 @@ private slots:
     void OnDataDialog();
     void OnToggleFilterBar();
     void OnToggleStatusBar();
+    void OnTogglePerfOverlay();
     void OnGameListRefresh();
     void InitializeHotkeys();
     void ToggleFullscreen();
@@ -493,6 +503,7 @@ private:
     LoadingScreen* loading_screen = nullptr;
     QTimer shutdown_timer;
     OverlayDialog* shutdown_dialog{};
+    PerformanceOverlay *perf_overlay = nullptr;
 
     GameListPlaceholder* game_list_placeholder = nullptr;
 

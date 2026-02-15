@@ -242,6 +242,8 @@ add_executable(yuzu
     configuration/system/new_user_dialog.h configuration/system/new_user_dialog.cpp configuration/system/new_user_dialog.ui
     configuration/system/profile_avatar_dialog.h configuration/system/profile_avatar_dialog.cpp
     configuration/addon/mod_select_dialog.h configuration/addon/mod_select_dialog.cpp configuration/addon/mod_select_dialog.ui
+
+    render/performance_overlay.h render/performance_overlay.cpp render/performance_overlay.ui
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
@@ -399,7 +401,7 @@ endif()
 
 target_link_libraries(yuzu PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(yuzu PRIVATE common core input_common frontend_common network video_core qt_common)
-target_link_libraries(yuzu PRIVATE Boost::headers glad Qt6::Widgets Qt6::Concurrent)
+target_link_libraries(yuzu PRIVATE Boost::headers glad Qt6::Widgets Qt6::Charts Qt6::Concurrent)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 if (UNIX AND NOT APPLE)

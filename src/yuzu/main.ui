@@ -146,6 +146,7 @@
     <addaction name="action_Enable_Overlay_Applet"/>
     <addaction name="action_Show_Filter_Bar"/>
     <addaction name="action_Show_Status_Bar"/>
+    <addaction name="action_Show_Performance_Overlay"/>
     <addaction name="separator"/>
     <addaction name="menu_Reset_Window_Size"/>
     <addaction name="menu_View_Debugging"/>
@@ -609,6 +610,14 @@
    </property>
    <property name="text">
     <string>Show Game &amp;Name</string>
+   </property>
+  </action>
+  <action name="action_Show_Performance_Overlay">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show &amp;Performance Overlay</string>
    </property>
   </action>
  </widget>

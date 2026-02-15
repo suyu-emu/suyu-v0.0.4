@@ -641,7 +641,7 @@ if (ENABLE_QT)
         list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
-    find_package(Qt6 CONFIG REQUIRED COMPONENTS Widgets Concurrent)
+    find_package(Qt6 CONFIG REQUIRED COMPONENTS Widgets Charts Concurrent)
 
     if (YUZU_USE_QT_MULTIMEDIA)
         find_package(Qt6 REQUIRED COMPONENTS Multimedia)
@@ -680,7 +680,7 @@ if (ENABLE_QT)
     ## Components ##
 
     # Best practice is to ask for all components at once, so they are from the same version
-    set(YUZU_QT_COMPONENTS Core Widgets Concurrent)
+    set(YUZU_QT_COMPONENTS Core Widgets Charts Concurrent)
     if (PLATFORM_LINUX)
         list(APPEND YUZU_QT_COMPONENTS DBus)
     endif()
