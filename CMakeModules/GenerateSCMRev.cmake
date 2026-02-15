@@ -37,7 +37,7 @@ set(GIT_DESC ${BUILD_VERSION})
 
 # Auto-updater metadata! Must somewhat mirror GitHub API endpoint
 set(BUILD_AUTO_UPDATE_WEBSITE "https://github.com")
-set(BUILD_AUTO_UPDATE_API "http://api.github.com")
+set(BUILD_AUTO_UPDATE_API "https://api.github.com")
 
 if (NIGHTLY_BUILD)
     set(BUILD_AUTO_UPDATE_REPO "Eden-CI/Nightly")
