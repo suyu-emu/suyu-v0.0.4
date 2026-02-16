@@ -45,8 +45,8 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
     sampler_descriptor.cubemap_anisotropy.Assign(1);
 
     // These values were chosen based on typical peak swizzle data sizes seen in some titles
-    static constexpr size_t SWIZZLE_DATA_BUFFER_INITIAL_CAPACITY = 8_MiB;
-    static constexpr size_t UNSWIZZLE_DATA_BUFFER_INITIAL_CAPACITY = 1_MiB;
+    constexpr size_t SWIZZLE_DATA_BUFFER_INITIAL_CAPACITY = 8_MiB;
+    constexpr size_t UNSWIZZLE_DATA_BUFFER_INITIAL_CAPACITY = 1_MiB;
     swizzle_data_buffer.resize_destructive(SWIZZLE_DATA_BUFFER_INITIAL_CAPACITY);
     unswizzle_data_buffer.resize_destructive(UNSWIZZLE_DATA_BUFFER_INITIAL_CAPACITY);
 
@@ -1403,13 +1403,9 @@ void TextureCache<P>::QueueAsyncDecode(Image& image, ImageId image_id) {
     decode->image_id = image_id;
     async_decodes.push_back(std::move(decode));
 
-    static Common::ScratchBuffer<u8> local_unswizzle_data_buffer;
-    local_unswizzle_data_buffer.resize_destructive(image.unswizzled_size_bytes);
-    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(
-        *gpu_memory, image.gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
-
-    auto copies = UnswizzleImage(*gpu_memory, image.gpu_addr, image.info, swizzle_data,
-                                 local_unswizzle_data_buffer);
+    std::vector<u8> local_unswizzle_data_buffer(image.unswizzled_size_bytes, 0);
+    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(*gpu_memory, image.gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
+    auto copies = UnswizzleImage(*gpu_memory, image.gpu_addr, image.info, swizzle_data, local_unswizzle_data_buffer);
     const size_t out_size = MapSizeBytes(image);
 
     auto func = [out_size, copies, info = image.info,
@@ -1678,7 +1674,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
             return;
         }
         join_overlaps_found.insert(overlap_id);
-        static constexpr bool strict_size = true;
+        constexpr bool strict_size = true;
         const std::optional<OverlapResult> solution = ResolveOverlap(
             new_info, gpu_addr, cpu_addr, overlap, strict_size, broken_views, native_bgr);
         if (solution) {
@@ -1689,7 +1685,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
             join_copies_to_do.emplace_back(JoinCopy{false, overlap_id});
             return;
         }
-        static constexpr auto options = RelaxedOptions::Size | RelaxedOptions::Format;
+        constexpr auto options = RelaxedOptions::Size | RelaxedOptions::Format;
         const ImageBase new_image_base(new_info, gpu_addr, cpu_addr);
         if (IsSubresource(new_info, overlap, gpu_addr, options, broken_views, native_bgr)) {
             join_left_aliased_ids.push_back(overlap_id);
@@ -1858,7 +1854,7 @@ std::optional<typename TextureCache<P>::BlitImages> TextureCache<P>::GetBlitImag
     const Tegra::Engines::Fermi2D::Surface& dst, const Tegra::Engines::Fermi2D::Surface& src,
     const Tegra::Engines::Fermi2D::Config& copy) {
 
-    static constexpr auto FIND_OPTIONS = RelaxedOptions::Samples;
+    constexpr auto FIND_OPTIONS = RelaxedOptions::Samples;
     const GPUVAddr dst_addr = dst.Address();
     const GPUVAddr src_addr = src.Address();
     ImageInfo dst_info(dst);
@@ -2040,7 +2036,7 @@ void TextureCache<P>::TrimInactiveSamplers(size_t budget) {
     if (channel_state->samplers.empty()) {
         return;
     }
-    static constexpr size_t SAMPLER_GC_SLACK = 1024;
+    constexpr size_t SAMPLER_GC_SLACK = 1024;
     auto mark_active = [](auto& set, SamplerId id) {
         if (!id || id == CORRUPT_ID || id == NULL_SAMPLER_ID) {
             return;
@@ -2149,7 +2145,7 @@ template <class P>
 template <typename Func>
 void TextureCache<P>::ForEachImageInRegion(DAddr cpu_addr, size_t size, Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
-    static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+    constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 32> images;
     boost::container::small_vector<ImageMapId, 32> maps;
     ForEachCPUPage(cpu_addr, size, [this, &images, &maps, cpu_addr, size, func](u64 page) {
@@ -2202,7 +2198,7 @@ template <typename Func>
 void TextureCache<P>::ForEachImageInRegionGPU(size_t as_id, GPUVAddr gpu_addr, size_t size,
                                               Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
-    static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+    constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 8> images;
     auto storage_id = getStorageID(as_id);
     if (!storage_id) {
@@ -2251,7 +2247,7 @@ template <typename Func>
 void TextureCache<P>::ForEachSparseImageInRegion(size_t as_id, GPUVAddr gpu_addr, size_t size,
                                                  Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
-    static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+    constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 8> images;
     auto storage_id = getStorageID(as_id);
     if (!storage_id) {
@@ -2299,7 +2295,7 @@ template <class P>
 template <typename Func>
 void TextureCache<P>::ForEachSparseSegment(ImageBase& image, Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, GPUVAddr, DAddr, size_t>::type;
-    static constexpr bool RETURNS_BOOL = std::is_same_v<FuncReturn, bool>;
+    constexpr bool RETURNS_BOOL = std::is_same_v<FuncReturn, bool>;
     const auto segments = gpu_memory->GetSubmappedRange(image.gpu_addr, image.guest_size_bytes);
     for (const auto& [gpu_addr, size] : segments) {
         std::optional<DAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
