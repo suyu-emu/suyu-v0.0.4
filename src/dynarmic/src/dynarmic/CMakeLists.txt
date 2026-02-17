@@ -105,9 +105,6 @@ add_library(dynarmic STATIC
     frontend/A32/decoder/thumb32.inc
     frontend/A32/decoder/vfp.h
     frontend/A32/decoder/vfp.inc
-    frontend/A32/disassembler/disassembler.h
-    frontend/A32/disassembler/disassembler_arm.cpp
-    frontend/A32/disassembler/disassembler_thumb.cpp
     frontend/A32/FPSCR.h
     frontend/A32/ITState.h
     frontend/A32/PSR.h
@@ -122,7 +119,6 @@ add_library(dynarmic STATIC
     interface/A32/config.h
     interface/A32/coprocessor.h
     interface/A32/coprocessor_util.h
-    interface/A32/disassembler.h
     # A64
     frontend/A64/a64_ir_emitter.cpp
     frontend/A64/a64_ir_emitter.h

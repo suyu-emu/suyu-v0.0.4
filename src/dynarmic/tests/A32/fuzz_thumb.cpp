@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -26,7 +26,6 @@
 #include "dynarmic/frontend/A32/FPSCR.h"
 #include "dynarmic/frontend/A32/PSR.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
-#include "dynarmic/frontend/A32/disassembler/disassembler.h"
 #include "dynarmic/frontend/A32/translate/a32_translate.h"
 #include "dynarmic/interface/A32/a32.h"
 #include "dynarmic/ir/basic_block.h"

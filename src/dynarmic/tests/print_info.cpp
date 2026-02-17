@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -34,7 +34,6 @@
 #include "dynarmic/frontend/A64/translate/impl/impl.h"
 #include "dynarmic/interface/A32/a32.h"
 #include "dynarmic/interface/A32/config.h"
-#include "dynarmic/interface/A32/disassembler.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/opt_passes.h"
 

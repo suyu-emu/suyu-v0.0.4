@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 include(TargetArchitectureSpecificSources)
 
@@ -9,7 +9,6 @@ add_executable(dynarmic_tests
     fp/unpacked_tests.cpp
     rand_int.h
     # A32
-    A32/test_arm_disassembler.cpp
     A32/test_arm_instructions.cpp
     A32/test_coprocessor.cpp
     A32/test_svc.cpp
