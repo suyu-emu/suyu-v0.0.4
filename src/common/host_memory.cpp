@@ -219,11 +219,6 @@ public:
         }
     }
 
-    bool ClearBackingRegion(size_t physical_offset, size_t length) {
-        // TODO: This does not seem to be possible on Windows.
-        return false;
-    }
-
     void EnableDirectMappedAddress() {
         // TODO
         UNREACHABLE();
@@ -617,24 +612,6 @@ public:
         ASSERT_MSG(ret == 0, "mprotect failed: {}", strerror(errno));
     }
 
-    bool ClearBackingRegion(size_t physical_offset, size_t length) {
-#ifdef __linux__
-        // Only incur syscall cost IF memset would be slower (theshold = 16MiB)
-        // TODO(lizzie): Smarter way to dynamically get this threshold (broadwell != raptor lake) for example
-        if (length >= 2097152UL * 8) {
-            // Set MADV_REMOVE on backing map to destroy it instantly.
-            // This also deletes the area from the backing file.
-            int ret = madvise(backing_base + physical_offset, length, MADV_REMOVE);
-            ASSERT_MSG(ret == 0, "madvise failed: {}", strerror(errno));
-            return true;
-        } else {
-            return false;
-        }
-#else
-        return false;
-#endif
-    }
-
     void EnableDirectMappedAddress() {
         virtual_base = nullptr;
     }
@@ -748,9 +725,7 @@ void HostMemory::Protect(size_t virtual_offset, size_t length, MemoryPermission 
 }
 
 void HostMemory::ClearBackingRegion(size_t physical_offset, size_t length, u32 fill_value) {
-    if (!impl || fill_value != 0 || !impl->ClearBackingRegion(physical_offset, length)) {
-        std::memset(backing_base + physical_offset, fill_value, length);
-    }
+    std::memset(backing_base + physical_offset, fill_value, length);
 }
 
 void HostMemory::EnableDirectMappedAddress() {
