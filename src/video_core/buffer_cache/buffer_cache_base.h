@@ -320,6 +320,7 @@ public:
 
     std::recursive_mutex mutex;
     Runtime& runtime;
+    bool any_buffer_uploaded = false;
 
 private:
     template <typename Func>
@@ -371,6 +372,8 @@ private:
     void BindHostGraphicsTextureBuffers(size_t stage);
 
     void BindHostTransformFeedbackBuffers();
+
+    void BindHostVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size, u32 stride);
 
     void BindHostComputeUniformBuffers();
 
@@ -453,6 +456,12 @@ private:
 
     [[nodiscard]] bool HasFastUniformBufferBound(size_t stage, u32 binding_index) const noexcept;
 
+    [[nodiscard]] Binding& VertexBufferSlot(u32 index);
+
+    [[nodiscard]] const Binding& VertexBufferSlot(u32 index) const;
+
+    void UpdateVertexBufferSlot(u32 index, const Binding& binding);
+
     void ClearDownload(DAddr base_addr, u64 size);
 
     void InlineMemoryImplementation(DAddr dest_address, size_t copy_size,
@@ -471,6 +480,12 @@ private:
     const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
 
     u32 last_index_count = 0;
+
+    u32 enabled_vertex_buffers_mask = 0;
+    u64 vertex_buffers_serial = 0;
+    std::array<Binding, 32> v_buffer{};
+
+    boost::container::small_vector<BufferCopy, 4> upload_copies;
 
     MemoryTracker memory_tracker;
     Common::RangeSet<DAddr> uncommitted_gpu_modified_ranges;

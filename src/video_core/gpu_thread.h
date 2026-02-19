@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -89,7 +92,7 @@ struct CommandDataContainer {
 
 /// Struct used to synchronize the GPU thread
 struct SynchState final {
-    using CommandQueue = Common::MPSCQueue<CommandDataContainer>;
+    using CommandQueue = Common::SPSCQueue<CommandDataContainer>;
     std::mutex write_lock;
     CommandQueue queue;
     u64 last_fence{};

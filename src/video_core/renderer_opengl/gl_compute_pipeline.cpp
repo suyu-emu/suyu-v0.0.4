@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -189,6 +189,10 @@ void ComputePipeline::Configure() {
     buffer_cache.runtime.SetEnableStorageBuffers(use_storage_buffers);
     buffer_cache.runtime.SetImagePointers(textures.data(), images.data());
     buffer_cache.BindHostComputeBuffers();
+    if (buffer_cache.any_buffer_uploaded) {
+        buffer_cache.runtime.PostCopyBarrier();
+        buffer_cache.any_buffer_uploaded = false;
+    }
 
     const VideoCommon::ImageViewInOut* views_it{views.data() + num_texture_buffers +
                                                 num_image_buffers};
