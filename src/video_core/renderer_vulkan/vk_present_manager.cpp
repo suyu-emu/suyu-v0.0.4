@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -441,13 +441,7 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
         },
     };
 
-    // Previous operations that might have written to the frame image
-    const VkPipelineStageFlags src_stages_present =
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
-        VK_PIPELINE_STAGE_TRANSFER_BIT;
-    cmdbuf.PipelineBarrier(src_stages_present, VK_PIPELINE_STAGE_TRANSFER_BIT, {},
+    cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, {},
                            {}, {}, pre_barriers);
 
     if (blit_supported) {
