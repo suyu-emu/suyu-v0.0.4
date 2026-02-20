@@ -4,6 +4,13 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <array>
+#include <cstddef>
+#include <cstring>
+#include <limits>
+#include <span>
+#include <zlib.h>
+
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "common/swap.h"
@@ -30,6 +37,73 @@ const std::array<const char*, 16> LANGUAGE_NAMES{{
     "SimplifiedChinese",
     "BrazilianPortuguese",
 }};
+
+namespace {
+constexpr std::size_t LEGACY_LANGUAGE_REGION_SIZE = sizeof(std::array<LanguageEntry, 16>);
+constexpr std::size_t PACKED_LANGUAGE_REGION_MAX_SIZE = sizeof(LanguageEntry) * 32;
+
+bool InflateRawDeflate(std::span<const u8> compressed, std::vector<u8>& out) {
+    if (compressed.empty() || compressed.size() > std::numeric_limits<uInt>::max()) {
+        return false;
+    }
+
+    z_stream stream{};
+    stream.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef*>(compressed.data()));
+    stream.avail_in = static_cast<uInt>(compressed.size());
+    if (inflateInit2(&stream, -MAX_WBITS) != Z_OK) {
+        return false;
+    }
+
+    std::array<u8, 0x1000> chunk{};
+    int ret = Z_OK;
+    while (ret == Z_OK) {
+        stream.next_out = reinterpret_cast<Bytef*>(chunk.data());
+        stream.avail_out = static_cast<uInt>(chunk.size());
+        ret = inflate(&stream, Z_NO_FLUSH);
+        if (ret != Z_OK && ret != Z_STREAM_END) {
+            inflateEnd(&stream);
+            return false;
+        }
+
+        const auto produced = chunk.size() - static_cast<std::size_t>(stream.avail_out);
+        if (produced != 0) {
+            if (out.size() + produced > PACKED_LANGUAGE_REGION_MAX_SIZE) {
+                inflateEnd(&stream);
+                return false;
+            }
+            out.insert(out.end(), chunk.begin(),
+                       chunk.begin() + static_cast<std::ptrdiff_t>(produced));
+        }
+    }
+
+    inflateEnd(&stream);
+    return ret == Z_STREAM_END;
+}
+
+void DecodePackedLanguageEntries(RawNACP& raw) {
+    auto* packed_region = reinterpret_cast<u8*>(raw.language_entries.data());
+    u16_le compressed_size_le{};
+    std::memcpy(&compressed_size_le, packed_region, sizeof(compressed_size_le));
+    const auto compressed_size = static_cast<std::size_t>(compressed_size_le);
+
+    if (compressed_size == 0 || compressed_size > LEGACY_LANGUAGE_REGION_SIZE - sizeof(u16_le)) {
+        return;
+    }
+
+    std::vector<u8> decompressed;
+    if (!InflateRawDeflate(
+            std::span<const u8>(packed_region + sizeof(u16_le), compressed_size), decompressed)) {
+        return;
+    }
+
+    if (decompressed.size() < LEGACY_LANGUAGE_REGION_SIZE ||
+        decompressed.size() % sizeof(LanguageEntry) != 0) {
+        return;
+    }
+
+    std::memcpy(raw.language_entries.data(), decompressed.data(), LEGACY_LANGUAGE_REGION_SIZE);
+}
+} // namespace
 
 std::string LanguageEntry::GetApplicationName() const {
     return Common::StringFromFixedZeroTerminatedBuffer(application_name.data(),
@@ -66,6 +140,7 @@ NACP::NACP() = default;
 
 NACP::NACP(VirtualFile file) {
     file->ReadObject(&raw);
+    DecodePackedLanguageEntries(raw);
 }
 
 NACP::~NACP() = default;
