@@ -2142,7 +2142,7 @@ void MainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletPa
         game_list->hide();
         game_list_placeholder->hide();
     }
-    status_bar_update_timer.start(250);
+    status_bar_update_timer.start(500);
     renderer_status_button->setDisabled(true);
     refresh_button->setDisabled(true);
 
