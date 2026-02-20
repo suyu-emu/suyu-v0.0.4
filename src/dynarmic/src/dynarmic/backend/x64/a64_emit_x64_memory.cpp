@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -14,7 +14,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <mcl/type_traits/integer_of_size.hpp>
-#include <xbyak/xbyak.h>
+#include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/a64_emit_x64.h"
 #include "dynarmic/backend/x64/abi.h"

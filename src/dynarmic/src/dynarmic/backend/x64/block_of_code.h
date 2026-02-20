@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -15,9 +15,7 @@
 
 #include <mcl/bit/bit_field.hpp>
 #include "dynarmic/common/common_types.h"
-#include <xbyak/xbyak.h>
-#include <xbyak/xbyak_util.h>
-
+#include "dynarmic/backend/x64/xbyak.h"
 #include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/callback.h"
 #include "dynarmic/backend/x64/constant_pool.h"

@@ -18,8 +18,7 @@
 
 #include <mcl/bitsizeof.hpp>
 #include <ankerl/unordered_dense.h>
-#include <xbyak/xbyak.h>
-#include <xbyak/xbyak_util.h>
+#include "dynarmic/backend/x64/xbyak.h"
 #include <boost/container/small_vector.hpp>
 
 #include "dynarmic/backend/exception_handler.h"

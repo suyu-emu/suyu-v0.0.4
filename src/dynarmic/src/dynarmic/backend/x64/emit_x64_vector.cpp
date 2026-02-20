@@ -18,7 +18,7 @@
 #include <mcl/bitsizeof.hpp>
 #include "dynarmic/common/common_types.h"
 #include <mcl/type_traits/function_info.hpp>
-#include <xbyak/xbyak.h>
+#include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/block_of_code.h"
