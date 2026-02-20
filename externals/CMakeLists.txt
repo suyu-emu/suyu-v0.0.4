@@ -407,12 +407,10 @@ if (APPLE)
     # moltenvk
     if (NOT YUZU_USE_BUNDLED_MOLTENVK)
         find_library(MOLTENVK_LIBRARY MoltenVK)
-    else()
-        unset(MOLTENVK_LIBRARY)
     endif()
 
     # TODO: kosmickrisp?
-    if (NOT MOLTENVK_LIBRARY)
+    if (NOT MOLTENVK_LIBRARY OR YUZU_USE_BUNDLED_MOLTENVK)
         AddJsonPackage(moltenvk)
 
         set(MOLTENVK_LIBRARY "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/macOS/libMoltenVK.dylib" CACHE STRING "" FORCE)
