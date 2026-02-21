@@ -56,6 +56,9 @@ public:
         }
         return cached_code_page.inst[(vaddr & Core::Memory::YUZU_PAGEMASK) / sizeof(u32)];
     }
+    void InstructionSynchronizationBarrierRaised() override {
+        last_code_addr = 0; //reset back, force refetch
+    }
     u8 MemoryRead8(u64 vaddr) override {
         return ReadMemory<u8>(vaddr);
     }

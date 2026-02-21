@@ -35,6 +35,9 @@ public:
     u32 MemoryRead32(u32 vaddr) override;
     u64 MemoryRead64(u32 vaddr) override;
     std::optional<u32> MemoryReadCode(u32 vaddr) override;
+    void InstructionSynchronizationBarrierRaised() override {
+        last_code_addr = 0; //reset back, force refetch
+    }
     void MemoryWrite8(u32 vaddr, u8 value) override;
     void MemoryWrite16(u32 vaddr, u16 value) override;
     void MemoryWrite32(u32 vaddr, u32 value) override;
