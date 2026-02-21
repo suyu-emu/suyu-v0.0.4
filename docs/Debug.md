@@ -22,7 +22,7 @@ Debug logs can be found in General -> Debug -> Open Log Location on desktop, and
 
 Ignoring SIGSEGV when debugging in host:
 
-- **gdb**: `handle all nostop pass`.
+- **gdb**: `handle SIGSEGV nostop pass`.
 - **lldb**: `pro hand -p true -s false -n false SIGSEGV`.
 
 ## Debugging (guest code)

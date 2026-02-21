@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -13,6 +13,7 @@
 #include "../native/testenv.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/interface/exclusive_monitor.h"
+#include "dynarmic/interface/optimization_flags.h"
 
 using namespace Dynarmic;
 using namespace oaknut::util;
@@ -1460,26 +1461,91 @@ TEST_CASE("A64: SQRDMULH QC flag when output invalidated", "[a64]") {
 }
 
 TEST_CASE("A64: SDIV maximally", "[a64]") {
+    // No indication of this overflow case is produced, and the 32-bit result written to
+    // R[d] must be the bottom 32 bits of the binary representation of +231.
+    // So the result of the division is 0x80000000.
     A64TestEnv env;
     A64::UserConfig jit_user_config{};
     jit_user_config.callbacks = &env;
     A64::Jit jit{jit_user_config};
 
-    env.code_mem.emplace_back(0x9ac00c22);  // SDIV X2, X1, X0
-    env.code_mem.emplace_back(0x14000000);  // B .
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+    code.SDIV(X2, X1, X0);
+    code.SDIV(W5, W4, W3);
 
     jit.SetRegister(0, 0xffffffffffffffff);
     jit.SetRegister(1, 0x8000000000000000);
     jit.SetRegister(2, 0xffffffffffffffff);
+    jit.SetRegister(3, 0xffffffff);
+    jit.SetRegister(4, 0x80000000);
+    jit.SetRegister(5, 0xffffffff);
     jit.SetPC(0);
 
-    env.ticks_left = 2;
+    env.ticks_left = env.code_mem.size();
     CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0xffffffffffffffff);
     REQUIRE(jit.GetRegister(1) == 0x8000000000000000);
     REQUIRE(jit.GetRegister(2) == 0x8000000000000000);
-    REQUIRE(jit.GetPC() == 4);
+    REQUIRE(jit.GetRegister(5) == 0x80000000);
+    REQUIRE(jit.GetPC() == 8);
+}
+
+TEST_CASE("A64: SDIV maximally (Immediate)", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &env;
+    auto const do_sdiv_code = [&] {
+        A64::Jit jit{jit_user_config};
+        oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+        code.MOVZ(X12, 0xffff);
+        code.MOVZ(X11, 0x8000);
+        code.MOVZ(X10, 0x0000);
+
+        // 0xffff_ffff
+        code.MOV(X0, X12);
+        code.LSL(X0, X0, 16);
+        code.ORR(X0, X0, X12);
+        code.LSL(X0, X0, 16);
+        code.ORR(X0, X0, X12);
+        code.LSL(X0, X0, 16);
+        code.ORR(X0, X0, X12);
+
+        // 0x8000_0000
+        code.MOV(X1, X11);
+        code.LSL(X1, X1, 16);
+        code.ORR(X1, X1, X10);
+        code.LSL(X1, X1, 16);
+        code.ORR(X1, X1, X10);
+        code.LSL(X1, X1, 16);
+        code.ORR(X1, X1, X10);
+
+        // 0xffff_ffff
+        code.MOV(X3, X12);
+        code.LSL(X3, X3, 16);
+        code.ORR(X3, X3, X12);
+
+        // 0x8000_0000
+        code.MOV(X4, X11);
+        code.LSL(X4, X4, 16);
+        code.ORR(X4, X4, X10);
+
+        code.SDIV(X2, X1, X0);
+        code.SDIV(W5, W4, W3);
+
+        jit.SetPC(0);
+        env.ticks_left = env.code_mem.size();
+        CheckedRun([&]() { jit.Run(); });
+        REQUIRE(jit.GetRegister(5) == 0x80000000);
+    };
+    SECTION("With no opts") {
+        jit_user_config.optimizations = no_optimizations;
+        do_sdiv_code();
+    }
+    SECTION("With opts + constant folding") {
+        jit_user_config.optimizations = all_safe_optimizations;
+        do_sdiv_code();
+    }
 }
 
 // Restricted register set required to trigger:
@@ -2359,12 +2425,12 @@ TEST_CASE("A64: RBIT{16b}", "[a64]") {
     A64::UserConfig conf{};
     conf.callbacks = &env;
     A64::Jit jit{conf};
-    env.code_mem.emplace_back(0x6e605841); // rbit v1.16b, v2.16b
-    env.code_mem.emplace_back(0x6e605822); // rbit v2.16b, v1.16b
-    env.code_mem.emplace_back(0x14000000); // b .
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+    code.RBIT(V1.B16(), V2.B16());
+    code.RBIT(V2.B16(), V1.B16());
     jit.SetVector(2, { 0xcafedead, 0xbabebeef });
     jit.SetPC(0); // at _start
-    env.ticks_left = 4;
+    env.ticks_left = env.code_mem.size();
     CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetVector(1)[0] == 0x537f7bb5);
     REQUIRE(jit.GetVector(1)[1] == 0x5d7d7df7);
@@ -2377,15 +2443,15 @@ TEST_CASE("A64: CLZ{X}", "[a64]") {
     A64::UserConfig conf{};
     conf.callbacks = &env;
     A64::Jit jit{conf};
-    env.code_mem.emplace_back(0xdac01060); // clz x0, x3
-    env.code_mem.emplace_back(0xdac01081); // clz x1, x4
-    env.code_mem.emplace_back(0xdac010a2); // clz x2, x5
-    env.code_mem.emplace_back(0x14000000); // b .
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+    code.CLZ(X0, X3);
+    code.CLZ(X1, X4);
+    code.CLZ(X2, X5);
     jit.SetRegister(3, 0xfffffffffffffff0);
     jit.SetRegister(4, 0x0fffffff0ffffff0);
     jit.SetRegister(5, 0x07fffffeffeffef0);
     jit.SetPC(0); // at _start
-    env.ticks_left = 4;
+    env.ticks_left = env.code_mem.size();
     CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 0);
     REQUIRE(jit.GetRegister(1) == 4);
@@ -2397,15 +2463,15 @@ TEST_CASE("A64: CLZ{W}", "[a64]") {
     A64::UserConfig conf{};
     conf.callbacks = &env;
     A64::Jit jit{conf};
-    env.code_mem.emplace_back(0x5ac01060); // clz w0, w3
-    env.code_mem.emplace_back(0x5ac01081); // clz w1, w4
-    env.code_mem.emplace_back(0x5ac010a2); // clz w2, w5
-    env.code_mem.emplace_back(0x14000000); // b .
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+    code.CLZ(W0, W3);
+    code.CLZ(W1, W4);
+    code.CLZ(W2, W5);
     jit.SetRegister(3, 0xffff1110);
     jit.SetRegister(4, 0x0fff1110);
     jit.SetRegister(5, 0x07fffffe);
     jit.SetPC(0); // at _start
-    env.ticks_left = 4;
+    env.ticks_left = env.code_mem.size();
     CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 0);
     REQUIRE(jit.GetRegister(1) == 4);

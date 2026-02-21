@@ -787,24 +787,30 @@ static void FoldCountLeadingZeros(IR::Inst& inst, bool is_32_bit) {
 /// Folds division operations based on the following:
 ///
 /// 1. x / 0 -> 0 (NOTE: This is an ARM-specific behavior defined in the architecture reference manual)
-/// 2. imm_x / imm_y -> result
-/// 3. x / 1 -> x
+/// 2a. 0x8000_0000 / 0xFFFF_FFFF -> 0x8000_0000 (NOTE: More ARM bullshit)
+/// 2b. 0x8000_0000_0000_0000 / 0xFFFF_FFFF_FFFF_FFFF -> 0x8000_0000_0000_0000
+/// 3. imm_x / imm_y -> result
+/// 4. x / 1 -> x
 ///
 static void FoldDivide(IR::Inst& inst, bool is_32_bit, bool is_signed) {
     const auto rhs = inst.GetArg(1);
-
-    if (rhs.IsZero()) {
-        ReplaceUsesWith(inst, is_32_bit, 0);
-        return;
-    }
-
     const auto lhs = inst.GetArg(0);
-    if (lhs.IsImmediate() && rhs.IsImmediate()) {
+    if (lhs.IsZero() || rhs.IsZero()) {
+        ReplaceUsesWith(inst, is_32_bit, u64(0));
+   } else if (!is_32_bit && lhs.IsUnsignedImmediate(u64(1ULL << 63)) && rhs.IsUnsignedImmediate(u64(-1))) {
+       ReplaceUsesWith(inst, is_32_bit, u64(1ULL << 63));
+    } else if (is_32_bit && lhs.IsUnsignedImmediate(u32(1ULL << 31)) && rhs.IsUnsignedImmediate(u32(-1))) {
+        ReplaceUsesWith(inst, is_32_bit, u64(1ULL << 31));
+    } else if (lhs.IsImmediate() && rhs.IsImmediate()) {
         if (is_signed) {
-            const s64 result = lhs.GetImmediateAsS64() / rhs.GetImmediateAsS64();
-            ReplaceUsesWith(inst, is_32_bit, static_cast<u64>(result));
+            auto const dl = lhs.GetImmediateAsS64();
+            auto const dr = rhs.GetImmediateAsS64();
+            const s64 result = dl / dr;
+            ReplaceUsesWith(inst, is_32_bit, u64(result));
         } else {
-            const u64 result = lhs.GetImmediateAsU64() / rhs.GetImmediateAsU64();
+            auto const dl = lhs.GetImmediateAsU64();
+            auto const dr = rhs.GetImmediateAsU64();
+            const u64 result = dl / dr;
             ReplaceUsesWith(inst, is_32_bit, result);
         }
     } else if (rhs.IsUnsignedImmediate(1)) {
