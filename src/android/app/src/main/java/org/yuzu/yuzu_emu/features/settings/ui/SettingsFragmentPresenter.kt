@@ -1229,7 +1229,7 @@ class SettingsFragmentPresenter(
 
             add(HeaderSetting(R.string.general))
 
-            add(IntSetting.DEBUG_KNOBS.key)
+            add(ShortSetting.DEBUG_KNOBS.key)
 
             add(HeaderSetting(R.string.gpu_logging_header))
             add(BooleanSetting.GPU_LOGGING_ENABLED.key)

@@ -12,12 +12,13 @@ The setting ranges from 0 to 65535 (0x0000 to 0xFFFF), where each bit represents
    * [Accessing Debug Knobs (dev side)](#accessing-debug-knobs-dev-side)
    * [Setting Debug Knobs (user side)](#setting-debug-knobs-user-side)
    * [Bit Manipulation Examples](#bit-manipulation-examples)
-3. [Examples](#examples)
+3. [Terminology and user communication](#terminology-and-user-communication)
+4. [Examples](#examples)
 
    * [Example 1: Conditional Debug Logging](#example-1-conditional-debug-logging)
    * [Example 2: Performance Tuning](#example-2-performance-tuning)
    * [Example 3: Feature Gating](#example-3-feature-gating)
-4. [Best Practices](#best-practices)
+5. [Best Practices](#best-practices)
 
 ---
 
@@ -76,6 +77,44 @@ To enable specific features, calculate the decimal value by setting the appropri
 * **Enable only bit 1**: Value = 2 (2^1)
 * **Enable bits 0 and 1**: Value = 3 (2^0 + 2^1)
 * **Enable bit 15**: Value = 32768 (2^15)
+
+## Terminology and user communication
+
+There are two main confusions when talking about knobs:
+
+### Whether it's zero-based or one-based
+
+Sometimes when an user reports: knobs 1 and 2 gets better performance, dev may get confuse whether he means the knobs 1 and 2 literally, or the 1st and 2nd knobs (knobs 0 and 1).
+
+Debug knobs are **zero-based**, which means:
+* The first knob is the knob(0) (or knob0 henceforth), and the last one is the 15 (knob15, likewise)
+* You can talk: "knob0 is enabled/disabled", "In this video i was using only knobs 0 and 2", etc.
+
+### Whether one is talking about the knob itself or about the entire parameter value (which represents all knobs)
+
+Sometimes when an user reports: knob 3 results, it's unclear whether he's referring to knob setting with value 3 (which means both knob 0 and 1 are enabled), or to knob(3) specifically.
+Whenever you're instructing tests or reporting results, be precise about whether one you're talking to avoid confusion:
+
+### Setting based terminology
+
+ALWAYS use the word in PLURAL (knobs), without mentioning which one, to refer to the setting, aka multiple knobs at once:
+Examples:
+- **knobs=0**: no knobs enabled
+- **knobs=1**: knob0 enabled, others disabled
+- **knobs=2**: knob1 enabled, others disabled
+- **knobs=3**: knobs 0 and 1 enabled, others disabled
+
+...
+
+### Knob based terminology
+
+Use the word in SINGULAR (knob), or in plural but referring which ones, when meaning multiple knobs at once:
+Examples:
+- **knob0**: knob 0 enabled, others disabled
+- **knob1**: knob 1 enabled, others disabled
+- **knobs 0 and 1**: knobs 0 and 1 enabled, others disabled
+
+...
 
 ## Examples
 

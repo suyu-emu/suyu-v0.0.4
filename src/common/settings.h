@@ -791,7 +791,7 @@ struct Values {
                                            0,
                                            65535,
                                            "debug_knobs",
-                                           Category::Debugging,
+                                           Category::Core,
                                            Specialization::Countable,
                                            true,
                                            true};

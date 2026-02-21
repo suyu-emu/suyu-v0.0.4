@@ -896,7 +896,7 @@ abstract class SettingsItem(
             )
             put(
                 SpinBoxSetting(
-                    IntSetting.DEBUG_KNOBS,
+                    ShortSetting.DEBUG_KNOBS,
                     titleId = R.string.debug_knobs,
                     descriptionId = R.string.debug_knobs_description,
                     valueHint = R.string.debug_knobs_hint,

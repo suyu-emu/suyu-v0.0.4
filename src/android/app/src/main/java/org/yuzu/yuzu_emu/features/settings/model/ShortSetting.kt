@@ -12,6 +12,7 @@ enum class ShortSetting(override val key: String) : AbstractShortSetting {
     RENDERER_SPEED_LIMIT("speed_limit"),
     RENDERER_TURBO_SPEED_LIMIT("turbo_speed_limit"),
     RENDERER_SLOW_SPEED_LIMIT("slow_speed_limit"),
+    DEBUG_KNOBS("debug_knobs")
     ;
 
     override fun getShort(needsGlobal: Boolean): Short = NativeConfig.getShort(key, needsGlobal)
