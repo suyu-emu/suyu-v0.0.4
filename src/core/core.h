@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
@@ -358,10 +358,7 @@ public:
     [[nodiscard]] Service::FileSystem::FileSystemController& GetFileSystemController();
     [[nodiscard]] const Service::FileSystem::FileSystemController& GetFileSystemController() const;
 
-    void RegisterContentProvider(FileSys::ContentProviderUnionSlot slot,
-                                 FileSys::ContentProvider* provider);
-
-    void ClearContentProvider(FileSys::ContentProviderUnionSlot slot);
+    void RegisterContentProvider(FileSys::ContentProviderUnionSlot slot, FileSys::ContentProvider* provider);
 
     [[nodiscard]] const Reporter& GetReporter() const;
 

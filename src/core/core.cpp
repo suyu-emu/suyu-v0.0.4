@@ -806,10 +806,6 @@ void System::RegisterContentProvider(FileSys::ContentProviderUnionSlot slot,
     impl->content_provider->SetSlot(slot, provider);
 }
 
-void System::ClearContentProvider(FileSys::ContentProviderUnionSlot slot) {
-    impl->content_provider->ClearSlot(slot);
-}
-
 const Reporter& System::GetReporter() const {
     return impl->reporter;
 }

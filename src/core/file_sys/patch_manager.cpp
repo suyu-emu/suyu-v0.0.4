@@ -143,7 +143,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     bool checked_external = false;
     bool checked_manual = false;
 
-    const auto* content_union = dynamic_cast<const ContentProviderUnion*>(&content_provider);
+    const auto* content_union = static_cast<const ContentProviderUnion*>(&content_provider);
     const auto update_tid = GetUpdateTitleID(title_id);
 
     if (content_union) {
@@ -167,7 +167,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 
         // Also check ManualContentProvider (for Android)
         if (!checked_external) {
-            const auto* manual_provider = dynamic_cast<const ManualContentProvider*>(
+            const auto* manual_provider = static_cast<const ManualContentProvider*>(
                 content_union->GetSlotProvider(ContentProviderUnionSlot::FrontendManual));
             if (manual_provider) {
                 const auto manual_update_versions = manual_provider->ListUpdateVersions(update_tid);
@@ -243,7 +243,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 
         // Also try ManualContentProvider
         if (update == nullptr) {
-            const auto* manual_provider = dynamic_cast<const ManualContentProvider*>(
+            const auto* manual_provider = static_cast<const ManualContentProvider*>(
                 content_union->GetSlotProvider(ContentProviderUnionSlot::FrontendManual));
             if (manual_provider) {
                 auto file = manual_provider->GetEntryForVersion(update_tid, ContentRecordType::Program, *enabled_version);
@@ -570,7 +570,7 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
     bool checked_external = false;
     bool checked_manual = false;
 
-    const auto* content_union = dynamic_cast<const ContentProviderUnion*>(&content_provider);
+    const auto* content_union = static_cast<const ContentProviderUnion*>(&content_provider);
     if (content_union) {
         // First, check ExternalContentProvider
         const auto* external_provider = content_union->GetExternalProvider();
@@ -592,7 +592,7 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         }
 
         if (!checked_external) {
-            const auto* manual_provider = dynamic_cast<const ManualContentProvider*>(
+            const auto* manual_provider = static_cast<const ManualContentProvider*>(
                 content_union->GetSlotProvider(ContentProviderUnionSlot::FrontendManual));
             if (manual_provider) {
                 const auto manual_update_versions = manual_provider->ListUpdateVersions(update_tid);
@@ -690,7 +690,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
 
     std::vector<Patch> external_update_patches;
 
-    const auto* content_union = dynamic_cast<const ContentProviderUnion*>(&content_provider);
+    const auto* content_union = static_cast<const ContentProviderUnion*>(&content_provider);
 
     if (content_union) {
         // First, check ExternalContentProvider for updates
@@ -721,7 +721,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
             }
         }
 
-        const auto* manual_provider = dynamic_cast<const ManualContentProvider*>(
+        const auto* manual_provider = static_cast<const ManualContentProvider*>(
             content_union->GetSlotProvider(ContentProviderUnionSlot::FrontendManual));
         if (manual_provider && external_update_patches.empty()) {
             const auto manual_update_versions = manual_provider->ListUpdateVersions(update_tid);

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -37,6 +40,7 @@ enum class ContentRecordType : u8 {
     HtmlDocument = 4,
     LegalInformation = 5,
     DeltaFragment = 6,
+    Count,
 };
 
 struct ContentRecord {

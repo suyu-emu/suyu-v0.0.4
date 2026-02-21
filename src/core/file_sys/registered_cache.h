@@ -11,19 +11,19 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <ankerl/unordered_dense.h>
 #include <boost/container/flat_map.hpp>
 #include "common/common_types.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/vfs/vfs.h"
+#include "core/file_sys/nca_metadata.h"
 
 namespace FileSys {
-    class ExternalContentProvider;
-    class CNMT;
+class ExternalContentProvider;
+class CNMT;
 class NCA;
 class NSP;
 class XCI;
-
-enum class ContentRecordType : u8;
 enum class NCAContentType : u8;
 enum class TitleType : u8;
 
@@ -56,7 +56,7 @@ struct ExternalUpdateEntry {
     u64 title_id;
     u32 version;
     std::string version_string;
-    std::map<ContentRecordType, VirtualFile> files;
+    std::array<VirtualFile, size_t(ContentRecordType::Count)> files;
 };
 
 constexpr u64 GetUpdateTitleID(u64 base_title_id) {
@@ -207,11 +207,11 @@ private:
     ContentProviderParsingFunction parser;
 
     // maps tid -> NcaID of meta
-    std::map<u64, NcaID> meta_id;
+    ankerl::unordered_dense::map<u64, NcaID> meta_id;
     // maps tid -> meta
-    std::map<u64, CNMT> meta;
+    ankerl::unordered_dense::map<u64, CNMT> meta;
     // maps tid -> meta for CNMT in yuzu_meta
-    std::map<u64, CNMT> yuzu_meta;
+    ankerl::unordered_dense::map<u64, CNMT> yuzu_meta;
 };
 
 enum class ContentProviderUnionSlot {
@@ -220,6 +220,7 @@ enum class ContentProviderUnionSlot {
     SDMC,           ///< SD Card
     FrontendManual, ///< Frontend-defined game list or similar
     External,       ///< External content from NSP/XCI files in configured directories
+    Count,
 };
 
 // Combines multiple ContentProvider(s) (i.e. SysNAND, UserNAND, SDMC) into one interface.
@@ -228,8 +229,6 @@ public:
     ~ContentProviderUnion() override;
 
     void SetSlot(ContentProviderUnionSlot slot, ContentProvider* provider);
-    void ClearSlot(ContentProviderUnionSlot slot);
-
     void Refresh() override;
     bool HasEntry(u64 title_id, ContentRecordType type) const override;
     std::optional<u32> GetEntryVersion(u64 title_id) const override;
@@ -241,18 +240,18 @@ public:
         std::optional<u64> title_id) const override;
 
     const ExternalContentProvider* GetExternalProvider() const;
-    const ContentProvider* GetSlotProvider(ContentProviderUnionSlot slot) const;
+    [[nodiscard]] inline const ContentProvider* GetSlotProvider(ContentProviderUnionSlot slot) const {
+        return providers[size_t(slot)];
+    }
 
     std::vector<std::pair<ContentProviderUnionSlot, ContentProviderEntry>> ListEntriesFilterOrigin(
         std::optional<ContentProviderUnionSlot> origin = {},
         std::optional<TitleType> title_type = {}, std::optional<ContentRecordType> record_type = {},
         std::optional<u64> title_id = {}) const;
 
-    std::optional<ContentProviderUnionSlot> GetSlotForEntry(u64 title_id,
-                                                            ContentRecordType type) const;
-
+    std::optional<ContentProviderUnionSlot> GetSlotForEntry(u64 title_id, ContentRecordType type) const;
 private:
-    std::map<ContentProviderUnionSlot, ContentProvider*> providers;
+    std::array<ContentProvider*, size_t(ContentProviderUnionSlot::Count)> providers;
 };
 
 class ManualContentProvider : public ContentProvider {
@@ -312,8 +311,8 @@ private:
     void ProcessXCI(const VirtualFile& file);
 
     std::vector<VirtualDir> load_dirs;
-    std::map<std::tuple<u64, ContentRecordType, TitleType>, VirtualFile> entries;
-    std::map<u64, u32> versions;
+    ankerl::unordered_dense::map<std::tuple<u64, ContentRecordType, TitleType>, VirtualFile> entries;
+    ankerl::unordered_dense::map<u64, u32> versions;
     std::vector<ExternalUpdateEntry> multi_version_entries;
 };
 
