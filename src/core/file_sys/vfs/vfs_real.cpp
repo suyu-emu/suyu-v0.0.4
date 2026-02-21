@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -52,7 +52,9 @@ constexpr FS::FileAccessMode ModeFlagsToFileAccessMode(OpenMode mode) {
 } // Anonymous namespace
 
 RealVfsFilesystem::RealVfsFilesystem() : VfsFilesystem(nullptr) {}
-RealVfsFilesystem::~RealVfsFilesystem() = default;
+RealVfsFilesystem::~RealVfsFilesystem() {
+    in_dtor = true;
+}
 
 std::string RealVfsFilesystem::GetName() const {
     return "Real";
@@ -224,6 +226,9 @@ std::unique_lock<std::mutex> RealVfsFilesystem::RefreshReference(const std::stri
 }
 
 void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference) {
+    if (in_dtor)
+        return;
+
     std::scoped_lock lk{list_lock};
 
     // Remove from list.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -52,6 +55,8 @@ private:
     ReferenceListType closed_references;
     std::mutex list_lock;
     size_t num_open_files{};
+    // TODO: Workaround for improper dtor() ordering on clang + FreeBSD
+    bool in_dtor = false;
 
 private:
     friend class RealVfsFile;
