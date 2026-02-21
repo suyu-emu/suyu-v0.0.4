@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -68,14 +68,16 @@ constexpr DecodeTable<V> GetDecodeTable() {
     return table;
 }
 
+/// In practice it must always suceed, otherwise something else unrelated would have gone awry
 template<typename V>
-std::optional<std::reference_wrapper<const Matcher<V>>> Decode(u32 instruction) {
+std::reference_wrapper<const Matcher<V>> Decode(u32 instruction) {
     alignas(64) static const auto table = GetDecodeTable<V>();
     const auto& subtable = table[detail::ToFastLookupIndex(instruction)];
     auto iter = std::find_if(subtable.begin(), subtable.end(), [instruction](const auto& matcher) {
         return matcher.Matches(instruction);
     });
-    return iter != subtable.end() ? std::optional<std::reference_wrapper<const Matcher<V>>>(*iter) : std::nullopt;
+    DEBUG_ASSERT(iter != subtable.end());
+    return std::reference_wrapper<const Matcher<V>>(*iter);
 }
 
 template<typename V>

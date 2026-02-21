@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -113,10 +113,6 @@ void EmitA32Cond(biscuit::Assembler& as, EmitContext&, IR::Cond cond, biscuit::L
 }
 
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
-
-void EmitA32Terminal(biscuit::Assembler&, EmitContext&, IR::Term::Interpret, IR::LocationDescriptor, bool) {
-    UNREACHABLE();
-}
 
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
     EmitRelocation(as, ctx, LinkTarget::ReturnFromRunCode);

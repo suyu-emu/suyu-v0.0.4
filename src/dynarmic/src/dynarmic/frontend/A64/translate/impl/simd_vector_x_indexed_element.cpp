@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -223,9 +223,7 @@ bool TranslatorVisitor::FCMLA_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4
     const size_t esize = 8U << size.ZeroExtend();
 
     // TODO: We don't support the half-precision floating point variant yet.
-    if (esize == 16) {
-        return InterpretThisInstruction();
-    }
+    ASSERT(esize != 16);
 
     const size_t index = [=] {
         if (size == 0b01) {

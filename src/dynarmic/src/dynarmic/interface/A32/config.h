@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -102,9 +102,6 @@ struct UserCallbacks : public TranslateCallbacks {
     // in optimizations.
     // A conservative implementation that always returns false is safe.
     virtual bool IsReadOnlyMemory(VAddr /*vaddr*/) { return false; }
-
-    /// The interpreter must execute exactly num_instructions starting from PC.
-    virtual void InterpreterFallback(VAddr pc, size_t num_instructions) = 0;
 
     // This callback is called whenever a SVC instruction is executed.
     virtual void CallSVC(std::uint32_t swi) = 0;

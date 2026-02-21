@@ -118,7 +118,7 @@ bool TranslatorVisitor::MSR_reg(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, I
     default:
         break;
     }
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 bool TranslatorVisitor::MRS(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, Imm<3> op2, Reg Rt) {
@@ -158,7 +158,7 @@ bool TranslatorVisitor::MRS(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, Imm<3
         X(64, Rt, ir.GetTPIDRRO());
         return true;
     }
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::A64

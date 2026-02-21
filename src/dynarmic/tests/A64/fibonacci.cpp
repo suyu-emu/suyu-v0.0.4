@@ -69,11 +69,6 @@ public:
         MemoryWrite64(vaddr + 8, value[1]);
     }
 
-    void InterpreterFallback(u64, size_t) override {
-        // This is never called in practice.
-        std::terminate();
-    }
-
     void CallSVC(u32) override {
         // Do something.
     }

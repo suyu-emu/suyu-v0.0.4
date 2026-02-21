@@ -50,10 +50,6 @@ namespace {
 using namespace Dynarmic;
 
 bool ShouldTestInst(IR::Block& block) {
-    if (auto terminal = block.GetTerminal(); boost::get<IR::Term::Interpret>(&terminal)) {
-        return false;
-    }
-
     for (const auto& ir_inst : block.instructions) {
         switch (ir_inst.GetOpcode()) {
         // A32

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -772,12 +772,8 @@ std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, m
     u32 instruction = memory.Read32(pc);
     bool was_executed = false;
 
-    if (auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction)) {
-        was_executed = decoder->get().call(visitor, instruction);
-    } else {
-        LOG_ERROR(Core_ARM, "Unallocated encoding: {:#x}", instruction);
-    }
-
+    auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction);
+    was_executed = decoder.get().call(visitor, instruction);
     return was_executed ? std::optional<u64>(pc + 4) : std::nullopt;
 }
 

@@ -43,7 +43,6 @@ public:
     bool MemoryWriteExclusive16(u32 vaddr, u16 value, u16 expected) override;
     bool MemoryWriteExclusive32(u32 vaddr, u32 value, u32 expected) override;
     bool MemoryWriteExclusive64(u32 vaddr, u64 value, u64 expected) override;
-    void InterpreterFallback(u32 pc, std::size_t num_instructions) override;
     void ExceptionRaised(u32 pc, Dynarmic::A32::Exception exception) override;
     void CallSVC(u32 swi) override;
     void AddTicks(u64 ticks) override;

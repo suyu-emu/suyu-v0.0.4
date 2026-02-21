@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -97,10 +97,6 @@ public:
         MemoryWrite32(vaddr + 4, static_cast<u32>(value >> 32));
     }
 
-    void InterpreterFallback(u32 pc, size_t num_instructions) override {
-        UNREACHABLE(); //ASSERT(false && "InterpreterFallback({:08x} && {}) code = {:08x}", pc, num_instructions, *MemoryReadCode(pc));
-    }
-
     void CallSVC(std::uint32_t swi) override {
         UNREACHABLE(); //ASSERT(false && "CallSVC({})", swi);
     }
@@ -188,10 +184,6 @@ public:
     bool MemoryWriteExclusive64(std::uint32_t vaddr, std::uint64_t value, [[maybe_unused]] std::uint64_t expected) override {
         MemoryWrite64(vaddr, value);
         return true;
-    }
-
-    void InterpreterFallback(std::uint32_t pc, size_t num_instructions) override {
-        UNREACHABLE(); //ASSERT(false && "InterpreterFallback({:016x} && {})", pc, num_instructions);
     }
 
     void CallSVC(std::uint32_t swi) override {

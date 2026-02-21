@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -33,11 +33,6 @@ bool TranslatorVisitor::VFPConditionPassed(Cond cond) {
         return true;
     }
     return ArmConditionPassed(cond);
-}
-
-bool TranslatorVisitor::InterpretThisInstruction() {
-    ir.SetTerm(IR::Term::Interpret(ir.current_location));
-    return false;
 }
 
 bool TranslatorVisitor::UnpredictableInstruction() {

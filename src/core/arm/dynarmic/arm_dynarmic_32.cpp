@@ -88,13 +88,6 @@ bool DynarmicCallbacks32::MemoryWriteExclusive64(u32 vaddr, u64 value, u64 expec
             m_memory.WriteExclusive64(vaddr, value, expected);
 }
 
-void DynarmicCallbacks32::InterpreterFallback(u32 pc, std::size_t num_instructions) {
-    m_parent.LogBacktrace(m_process);
-    LOG_ERROR(Core_ARM,
-                "Unimplemented instruction @ {:#X} for {} instructions (instr = {:08X})", pc,
-                num_instructions, m_memory.Read32(pc));
-}
-
 void DynarmicCallbacks32::ExceptionRaised(u32 pc, Dynarmic::A32::Exception exception) {
     switch (exception) {
     case Dynarmic::A32::Exception::NoExecuteFault:

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -871,11 +871,11 @@ bool TranslatorVisitor::arm_LDMIB(Cond cond, bool W, Reg n, RegList list) {
 }
 
 bool TranslatorVisitor::arm_LDM_usr() {
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 bool TranslatorVisitor::arm_LDM_eret() {
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 static bool STMHelper(A32::IREmitter& ir, bool W, Reg n, RegList list, IR::U32 start_address, IR::U32 writeback_address) {
@@ -956,7 +956,7 @@ bool TranslatorVisitor::arm_STMIB(Cond cond, bool W, Reg n, RegList list) {
 }
 
 bool TranslatorVisitor::arm_STM_usr() {
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::A32

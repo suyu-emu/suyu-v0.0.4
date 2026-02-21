@@ -77,9 +77,6 @@ static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
         std::string operator()(const Term::Invalid&) const {
             return "<invalid terminal>";
         }
-        std::string operator()(const Term::Interpret& terminal) const {
-            return fmt::format("Interpret{{{}}}", terminal.next);
-        }
         std::string operator()(const Term::ReturnToDispatch&) const {
             return "ReturnToDispatch{}";
         }

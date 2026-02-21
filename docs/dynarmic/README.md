@@ -117,11 +117,6 @@ public:
         MemoryWrite32(vaddr + 4, u32(value >> 32));
     }
 
-    void InterpreterFallback(u32 pc, size_t num_instructions) override {
-        // This is never called in practice.
-        std::terminate();
-    }
-
     void CallSVC(u32 swi) override {
         // Do something.
     }

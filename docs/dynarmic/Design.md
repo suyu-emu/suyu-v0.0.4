@@ -286,15 +286,6 @@ Exclusive OR (i.e.: XOR)
 
 Memory access.
 
-### Terminal: Interpret
-
-```c++
-SetTerm(IR::Term::Interpret{next})
-```
-
-This terminal instruction calls the interpreter, starting at `next`.
-The interpreter must interpret exactly one instruction.
-
 ### Terminal: ReturnToDispatch
 
 ```c++

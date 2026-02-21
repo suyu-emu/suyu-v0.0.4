@@ -1135,19 +1135,6 @@ void A32EmitX64::EmitSetUpperLocationDescriptor(IR::LocationDescriptor new_locat
 }
 
 namespace {
-void EmitTerminalImpl(A32EmitX64& e, IR::Term::Interpret terminal, IR::LocationDescriptor initial_location, bool) {
-    ASSERT(A32::LocationDescriptor{terminal.next}.TFlag() == A32::LocationDescriptor{initial_location}.TFlag() && "Unimplemented");
-    ASSERT(A32::LocationDescriptor{terminal.next}.EFlag() == A32::LocationDescriptor{initial_location}.EFlag() && "Unimplemented");
-    ASSERT(terminal.num_instructions == 1 && "Unimplemented");
-
-    e.code.mov(e.code.ABI_PARAM2.cvt32(), A32::LocationDescriptor{terminal.next}.PC());
-    e.code.mov(e.code.ABI_PARAM3.cvt32(), 1);
-    e.code.mov(MJitStateReg(A32::Reg::PC), e.code.ABI_PARAM2.cvt32());
-    e.code.SwitchMxcsrOnExit();
-    Devirtualize<&A32::UserCallbacks::InterpreterFallback>(e.conf.callbacks).EmitCall(e.code);
-    e.code.ReturnFromRunCode(true);  // TODO: Check cycles
-}
-
 void EmitTerminalImpl(A32EmitX64& e, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
     e.code.ReturnFromRunCode();
 }

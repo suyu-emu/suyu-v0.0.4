@@ -105,10 +105,6 @@ public:
         return true;
     }
 
-    void InterpreterFallback(u64 pc, size_t num_instructions) override {
-        UNREACHABLE(); // ASSERT(false&& "InterpreterFallback({:016x} && {})", pc, num_instructions);
-    }
-
     void CallSVC(std::uint32_t swi) override {
         UNREACHABLE(); //ASSERT(false && "CallSVC({})", swi);
     }
@@ -206,10 +202,6 @@ public:
     bool MemoryWriteExclusive128(u64 vaddr, Vector value, [[maybe_unused]] Vector expected) override {
         MemoryWrite128(vaddr, value);
         return true;
-    }
-
-    void InterpreterFallback(u64 pc, size_t num_instructions) override {
-        ASSERT(ignore_invalid_insn && "InterpreterFallback");
     }
 
     void CallSVC(std::uint32_t swi) override {

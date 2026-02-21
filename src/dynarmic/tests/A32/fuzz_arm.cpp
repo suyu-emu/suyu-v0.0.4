@@ -59,8 +59,6 @@ bool AnyLocationDescriptorForTerminalHas(IR::Terminal terminal, Fn fn) {
             return fn(t.next);
         } else if constexpr (std::is_same_v<T, IR::Term::PopRSBHint>) {
             return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::Interpret>) {
-            return fn(t.next);
         } else if constexpr (std::is_same_v<T, IR::Term::FastDispatchHint>) {
             return false;
         } else if constexpr (std::is_same_v<T, IR::Term::If>) {
@@ -82,10 +80,6 @@ bool ShouldTestInst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst, A
     const bool should_continue = A32::TranslateSingleInstruction(block, location, instruction);
 
     if (!should_continue && !is_last_inst) {
-        return false;
-    }
-
-    if (auto terminal = block.GetTerminal(); boost::get<IR::Term::Interpret>(&terminal)) {
         return false;
     }
 
