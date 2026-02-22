@@ -36,6 +36,8 @@
     <string name="enable_input_overlay_auto_hide">Enable Overlay Auto Hide</string>
     <string name="hide_overlay_on_controller_input">Hide Overlay on Controller Input</string>
     <string name="hide_overlay_on_controller_input_description">Automatically hide the touch controls overlay when a physical controller is used. Overlay reappears when controller is disconnected.</string>
+    <string name="invert_confirm_back_controller_buttons">Invert Confirm/Back Controller Buttons</string>
+    <string name="invert_confirm_back_controller_buttons_description">Swap Android Confirm and Back button handling to match both Switch and Xbox styles while using the app UI.</string>
 
     <string name="input_overlay_options">Input Overlay</string>
     <string name="input_overlay_options_description">Configure on-screen controls</string>

@@ -1076,6 +1076,7 @@ class SettingsFragmentPresenter(
             }
 
             add(BooleanSetting.ENABLE_QUICK_SETTINGS.key)
+            add(BooleanSetting.INVERT_CONFIRM_BACK_CONTROLLER_BUTTONS.key)
 
             add(HeaderSetting(R.string.theme_and_color))
 

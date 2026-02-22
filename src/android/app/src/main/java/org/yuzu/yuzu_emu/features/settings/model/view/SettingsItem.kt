@@ -380,6 +380,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.INVERT_CONFIRM_BACK_CONTROLLER_BUTTONS,
+                    titleId = R.string.invert_confirm_back_controller_buttons,
+                    descriptionId = R.string.invert_confirm_back_controller_buttons_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.SHOW_INPUT_OVERLAY,
                     titleId = R.string.show_input_overlay,
                     descriptionId = R.string.show_input_overlay_description

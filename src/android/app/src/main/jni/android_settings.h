@@ -65,6 +65,8 @@ namespace AndroidSettings {
                                                   Settings::Category::Android};
         Settings::Setting<bool> enable_qlaunch_button{linkage, false, "enable_qlaunch_button",
                                                   Settings::Category::Android};
+        Settings::Setting<bool> invert_confirm_back_controller_buttons{
+            linkage, false, "invert_confirm_back_controller_buttons", Settings::Category::Android};
 
         // Input/performance overlay settings
         std::vector<OverlayControlData> overlay_control_data;
