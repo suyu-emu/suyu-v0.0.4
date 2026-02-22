@@ -19,9 +19,10 @@ std::vector<std::filesystem::path> GetModFolder(const std::string& root) {
     auto callback = [&paths](const std::filesystem::directory_entry& entry) -> bool {
         const auto name = entry.path().filename().string();
         static const std::array<std::string, 5> valid_names = {"exefs",
-                                                               "romfs"
+                                                               "romfs",
                                                                "romfs_ext",
-                                                               "cheats", "romfslite"};
+                                                               "cheats",
+                                                               "romfslite"};
 
         if (std::ranges::find(valid_names, name) != valid_names.end()) {
             paths.emplace_back(entry.path().parent_path());
