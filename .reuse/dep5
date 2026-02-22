@@ -186,3 +186,35 @@ License: GPL-3.0-or-later
 Files: img/*
 Copyright: 2024 suyu Emulator Project
 License: CC0-1.0
+
+Files: externals/metal-cpp/*
+Copyright: 2020-2024 Apple Inc.
+License: Apache-2.0
+
+Files: src.bak.20251103_153257/*
+Copyright: 2018-2024 yuzu Emulator Project, 2024 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: vcpkg*.log vcpkg-configuration.json tools/eden_migration.sh
+Copyright: Various
+License: GPL-3.0-or-later
+
+Files: .github/workflows/android-build.yml
+Copyright: 2024 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/suyu_cmd/emu_window/emu_window_sdl2_mtl.* src.bak.20251103_153257/suyu_cmd/emu_window/emu_window_sdl2_mtl.*
+Copyright: 2024 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/video_core/host_shaders/convert_abgr8_srgb_to_d24s8.frag
+Copyright: 2024 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/video_core/renderer_vulkan/vk_texture_manager.cpp
+Copyright: 2024 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/dedicated_room/yuzu_room.h
+Copyright: 2018-2024 yuzu Emulator Project, 2024 suyu Emulator Project
+License: GPL-3.0-or-later

@@ -22,9 +22,10 @@ include(CMakeDependentOption)
 include(CTest)
 
 # Set bundled sdl2/qt as dependent options.
-# OFF by default, but if ENABLE_SDL2 and MSVC are true then ON
+# OFF by default - using Conan to provide SDL2
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
-CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
+# Disabled: Migrated to Conan package manager
+CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" OFF "ENABLE_SDL2;MSVC" OFF)
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 CMAKE_DEPENDENT_OPTION(SUYU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
 
@@ -33,11 +34,14 @@ cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID"
 option(ENABLE_OPENGL "Enable OpenGL" ON)
 mark_as_advanced(FORCE ENABLE_OPENGL)
 option(ENABLE_QT "Enable the Qt frontend" ON)
+# Disabled temporarily - Qt6 from Conan builds from source (takes 2+ hours)
+# Re-enable after base Conan migration is validated
 option(ENABLE_QT6 "Allow usage of Qt6 to be attempted" OFF)
 set(QT6_LOCATION "" CACHE PATH "Additional Location to search for Qt6 libraries like C:/Qt/6.3.1/msvc2019_64/")
 
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" ON)
-CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
+# Disabled: Migrated to Conan package manager
+CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_QT "Download bundled Qt binaries" OFF "ENABLE_QT" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
@@ -74,7 +78,8 @@ option(ENABLE_NXOPTIMIZER "Enable NXOptimizer integration" OFF)
 option(ENABLE_OWNFOIL "Enable ownfoil integration" OFF)
 option(ENABLE_NXAPI "Enable nxapi integration" OFF)
 
-option(SUYU_USE_BUNDLED_VCPKG "Use vcpkg for suyu dependencies" "${MSVC}")
+# Disabled: Migrated to Conan package manager
+option(SUYU_USE_BUNDLED_VCPKG "Use vcpkg for suyu dependencies" OFF)
 
 option(SUYU_CHECK_SUBMODULES "Check if submodules are present" ON)
 
@@ -694,23 +699,26 @@ if (NOT CLANG_FORMAT)
 endif()
 
 if (CLANG_FORMAT)
-    set(SRCS ${PROJECT_SOURCE_DIR}/src)
-    set(CCOMMENT "Running clang format against all the .h and .cpp files in src/")
-    if (WIN32)
-        add_custom_target(clang-format
-            COMMAND powershell.exe -Command "Get-ChildItem '${SRCS}/*' -Include *.cpp,*.h -Recurse | Foreach {&'${CLANG_FORMAT}' -i $_.fullname}"
-            COMMENT ${CCOMMENT})
-    elseif(MINGW)
-        add_custom_target(clang-format
-            COMMAND find `cygpath -u ${SRCS}` -iname *.h -o -iname *.cpp | xargs `cygpath -u ${CLANG_FORMAT}` -i
-            COMMENT ${CCOMMENT})
-    else()
-        add_custom_target(clang-format
-            COMMAND find ${SRCS} -iname *.h -o -iname *.cpp | xargs ${CLANG_FORMAT} -i
-            COMMENT ${CCOMMENT})
+    # Check if target already exists (e.g., from cubeb or other external library)
+    if(NOT TARGET clang-format)
+        set(SRCS ${PROJECT_SOURCE_DIR}/src)
+        set(CCOMMENT "Running clang format against all the .h and .cpp files in src/")
+        if (WIN32)
+            add_custom_target(clang-format
+                COMMAND powershell.exe -Command "Get-ChildItem '${SRCS}/*' -Include *.cpp,*.h -Recurse | Foreach {&'${CLANG_FORMAT}' -i $_.fullname}"
+                COMMENT ${CCOMMENT})
+        elseif(MINGW)
+            add_custom_target(clang-format
+                COMMAND find `cygpath -u ${SRCS}` -iname *.h -o -iname *.cpp | xargs `cygpath -u ${CLANG_FORMAT}` -i
+                COMMENT ${CCOMMENT})
+        else()
+            add_custom_target(clang-format
+                COMMAND find ${SRCS} -iname *.h -o -iname *.cpp | xargs ${CLANG_FORMAT} -i
+                COMMENT ${CCOMMENT})
+        endif()
+        unset(SRCS)
+        unset(CCOMMENT)
     endif()
-    unset(SRCS)
-    unset(CCOMMENT)
 endif()
 
 # Include source code

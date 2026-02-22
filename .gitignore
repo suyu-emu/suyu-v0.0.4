@@ -47,5 +47,11 @@ externals/nxdumptool
 externals/ownfoil
 VulkanSDK-1.3.250.1-Installer.exe
 .eden_upstream/
+
+# Package managers
 /vcpkg_installed
-/vcpkg_installed
+conan_cache/
+.conan/
+
+# Local backup directories
+.local_backups/

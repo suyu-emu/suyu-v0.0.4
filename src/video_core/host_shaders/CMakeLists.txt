@@ -71,7 +71,9 @@ set(SHADER_FILES
     vulkan_uint8.comp
 )
 
-find_program(GLSLANGVALIDATOR "glslangValidator")
+find_program(GLSLANGVALIDATOR "glslangValidator"
+    HINTS ${GLSLANG_VALIDATOR}  # Allow specifying path explicitly via CMake variable
+)
 if ("${GLSLANGVALIDATOR}" STREQUAL "GLSLANGVALIDATOR-NOTFOUND")
     message(FATAL_ERROR "Required program `glslangValidator` not found.")
 endif()

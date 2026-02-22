@@ -639,6 +639,16 @@ KeyManager::KeyManager() {
 }
 
 void KeyManager::ReloadKeys() {
+    /* ENCRYPTION DISABLED - Phase 2: Key loading disabled
+     * Original functionality preserved below
+     * 
+     * Keys are no longer loaded from files. Pre-decrypted game files should be used.
+     * Supported formats: .nso, .bin, .nro, .kip, folders (deconstructed ROM)
+     */
+    LOG_INFO(Crypto, "Key loading disabled - please use pre-decrypted game files");
+    return;
+    
+    /* Original code preserved:
     // Initialize keys
     const auto suyu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
 
@@ -656,6 +666,7 @@ void KeyManager::ReloadKeys() {
 
     LoadFromFile(suyu_keys_dir / "title.keys", true);
     LoadFromFile(suyu_keys_dir / "console.keys", false);
+    */
 }
 
 static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_t length) {
@@ -667,6 +678,14 @@ static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_
 }
 
 void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys) {
+    /* ENCRYPTION DISABLED - Phase 2: Key file loading disabled
+     * Original functionality preserved below
+     * Keys are no longer loaded from prod.keys/title.keys/console.keys files
+     */
+    LOG_INFO(Crypto, "Key file loading disabled for '{}'", file_path.generic_string());
+    return;
+    
+    /* Original code preserved:
     if (!Common::FS::Exists(file_path)) {
         LOG_ERROR(Crypto, "Cannot handle key file '{}': File not found",
                   file_path.generic_string());
@@ -788,6 +807,12 @@ bool KeyManager::AreKeysLoaded() const {
 }
 
 bool KeyManager::BaseDeriveNecessary() const {
+    /* ENCRYPTION DISABLED - Phase 2: Base key derivation check disabled
+     * Always returns false since keys are not derived from files
+     */
+    return false;
+    
+    /* Original code preserved:
     const auto check_key_existence = [this](auto key_type, u64 index1 = 0, u64 index2 = 0) {
         return !HasKey(key_type, index1, index2);
     };
@@ -882,6 +907,12 @@ void KeyManager::SetKey(S256KeyType id, Key256 key, u64 field1, u64 field2) {
 }
 
 bool KeyManager::KeyFileExists(bool title) {
+    /* ENCRYPTION DISABLED - Phase 2: Key file existence check disabled
+     * Always returns false since key files are not used
+     */
+    return false;
+    
+    /* Original code preserved:
     const auto suyu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
 
     if (title) {
@@ -893,6 +924,7 @@ bool KeyManager::KeyFileExists(bool title) {
     }
 
     return Common::FS::Exists(suyu_keys_dir / "prod.keys");
+    */
 }
 
 void KeyManager::DeriveSDSeedLazy() {

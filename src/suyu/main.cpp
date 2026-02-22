@@ -418,7 +418,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
 
         QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"),
                              tr("Vulkan initialization failed during boot.<br><br>Click <a "
-                                "href='https://suyu.dev/wiki/faq/"
+                                "href='https://suyu-emu.github.io/website/wiki/faq/"
                                 "#suyu-starts-with-the-error-broken-vulkan-installation-detected'>"
                                 "here for instructions to fix the issue</a>."));
 
@@ -2006,7 +2006,7 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
         directory = it->second.second;
     }
 
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://suyu.dev/game/") + directory));
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://suyu-emu.github.io/website/game/") + directory));
 }
 
 bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
@@ -2440,6 +2440,10 @@ void GMainWindow::OnInstallFirmware() {
         return;
     }
 
+    /* ENCRYPTION DISABLED - Key check for firmware installation disabled
+     * Users should use pre-decrypted firmware if needed
+     * Original check preserved below:
+     
     // Check for installed keys, error out, suggest restart?
     if (!ContentManager::AreKeysPresent()) {
         QMessageBox::information(
@@ -2447,6 +2451,10 @@ void GMainWindow::OnInstallFirmware() {
             tr("Install decryption keys and restart suyu before attempting to install firmware."));
         return;
     }
+    */
+    
+    // Allow firmware installation to proceed without key check
+    LOG_INFO(Frontend, "Firmware installation proceeding (encryption disabled - no key check)");
 
     const QString firmware_source_location = QFileDialog::getExistingDirectory(
         this, tr("Select Dumped Firmware Source Location"), {}, QFileDialog::ShowDirsOnly);
@@ -2572,6 +2580,29 @@ void GMainWindow::OnInstallFirmware() {
 }
 
 void GMainWindow::OnInstallDecryptionKeys() {
+    /* ENCRYPTION DISABLED - Decryption key installation functionality has been disabled.
+     * Users should use pre-decrypted game files instead.
+     * Original functionality preserved below for reference.
+     */
+    
+    // Show informational message to user
+    QMessageBox::information(
+        this, 
+        tr("Pre-Decrypted Games Required"),
+        tr("Decryption functionality has been disabled in this build.\n\n"
+           "Please use pre-decrypted game files in one of the following formats:\n"
+           "• .nso (Native Shared Object)\n"
+           "• .bin (Binary executable)\n"
+           "• .nro (Nintendo Relocatable Object)\n"
+           "• .kip (Kernel Initial Process)\n"
+           "• Folders (Deconstructed ROM directories with ExeFS/RomFS)\n\n"
+           "These formats do not require decryption keys."));
+    
+    LOG_INFO(Frontend, "Decryption key installation disabled - prompting user for pre-decrypted games");
+    return;
+    
+    /* ORIGINAL FUNCTIONALITY COMMENTED OUT:
+    
     // Don't do this while emulation is running.
     if (emu_thread != nullptr && emu_thread->IsRunning()) {
         return;
@@ -2647,6 +2678,7 @@ void GMainWindow::OnInstallDecryptionKeys() {
     }
 
     OnCheckFirmwareDecryption();
+    */
 }
 
 void GMainWindow::OnAbout() {
