@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -10,9 +10,7 @@
 
 #include <array>
 
-#include <mcl/container/intrusive_list.hpp>
 #include "dynarmic/common/common_types.h"
-
 #include "dynarmic/ir/value.h"
 #include "dynarmic/ir/opcodes.h"
 
@@ -26,7 +24,7 @@ constexpr size_t max_arg_count = 4;
 /// A representation of a microinstruction. A single ARM/Thumb instruction may be
 /// converted into zero or more microinstructions.
 //class Inst final {
-class Inst final : public mcl::intrusive_list_node<Inst> {
+class Inst final {
 public:
     explicit Inst(Opcode op) : op(op) {}
 

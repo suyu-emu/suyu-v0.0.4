@@ -146,7 +146,7 @@ finish_this_inst:
     reg_alloc.AssertNoMoreUses();
 
     if (conf.enable_cycle_counting) {
-        EmitAddCycles(block.CycleCount());
+        EmitAddCycles(block.cycle_count);
     }
     EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();

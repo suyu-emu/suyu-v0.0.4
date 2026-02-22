@@ -153,7 +153,7 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
     reg_alloc.AssertNoMoreUses();
 
     if (conf.enable_cycle_counting) {
-        EmitAddCycles(block.CycleCount());
+        EmitAddCycles(block.cycle_count);
     }
     EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();
@@ -197,7 +197,7 @@ void A32EmitX64::EmitCondPrelude(const A32EmitContext& ctx) {
 
     Xbyak::Label pass = EmitCond(ctx.block.GetCondition());
     if (conf.enable_cycle_counting) {
-        EmitAddCycles(ctx.block.ConditionFailedCycleCount());
+        EmitAddCycles(ctx.block.cond_failed_cycle_count);
     }
     EmitTerminal(IR::Term::LinkBlock{ctx.block.ConditionFailedLocation()}, ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.L(pass);
