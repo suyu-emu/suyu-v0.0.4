@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -220,8 +220,14 @@ public:
      *
      * @returns the type_index of the setting's type
      */
-    [[nodiscard]] std::type_index TypeId() const override final {
-        return std::type_index(typeid(Type));
+    [[nodiscard]] std::string_view TypeId() const override final {
+        if constexpr (std::is_same_v<Type, std::string>) {
+            return "string";
+        } else if constexpr (std::is_same_v<Type, bool>) {
+            return "bool";
+        } else {
+            return "other";
+        }
     }
 
     [[nodiscard]] constexpr u32 EnumIndex() const override final {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -505,7 +505,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
                             RequestType request, float multiplier,
                             Settings::BasicSetting* other_setting, const QString& suffix) {
     created = true;
-    const auto type = setting.TypeId();
+    const auto type_id = setting.TypeId();
 
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -514,10 +514,8 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         other_setting = setting.PairedSetting();
     }
 
-    const bool require_checkbox =
-        other_setting != nullptr && other_setting->TypeId() == typeid(bool);
-
-    if (other_setting != nullptr && other_setting->TypeId() != typeid(bool)) {
+    const bool require_checkbox = other_setting != nullptr && other_setting->TypeId() == "bool";
+    if (other_setting != nullptr && other_setting->TypeId() != "bool") {
         LOG_WARNING(
             Frontend,
             "Extra setting \"{}\" specified but is not bool, refusing to create checkbox for it.",
@@ -572,16 +570,27 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
     }
 
     if (require_checkbox) {
-        QWidget* lhs =
-            CreateCheckBox(other_setting, label, checkbox_serializer, checkbox_restore_func, touch);
+        QWidget* lhs = CreateCheckBox(other_setting, label, checkbox_serializer, checkbox_restore_func, touch);
         layout->addWidget(lhs, 1);
-    } else if (setting.TypeId() != typeid(bool)) {
+    } else if (type_id != "bool") {
         QLabel* qt_label = CreateLabel(label);
         layout->addWidget(qt_label, 1);
     }
 
-    if (setting.TypeId() == typeid(bool)) {
+    if (type_id == "bool") {
         data_component = CreateCheckBox(&setting, label, serializer, restore_func, touch);
+    } else if (type_id == "string") {
+        switch (request) {
+        case RequestType::Default:
+        case RequestType::LineEdit:
+            data_component = CreateLineEdit(serializer, restore_func, touch);
+            break;
+        case RequestType::ComboBox:
+            data_component = CreateCombobox(serializer, restore_func, touch);
+            break;
+        default:
+            UNIMPLEMENTED();
+        }
     } else if (setting.IsEnum()) {
         if (request == RequestType::RadioGroup) {
             data_component = CreateRadioGroup(serializer, restore_func, touch);
@@ -625,18 +634,6 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         case RequestType::ReverseSlider:
             data_component = CreateSlider(request == RequestType::ReverseSlider, multiplier, suffix,
                                           serializer, restore_func, touch);
-            break;
-        default:
-            UNIMPLEMENTED();
-        }
-    } else if (type == typeid(std::string)) {
-        switch (request) {
-        case RequestType::Default:
-        case RequestType::LineEdit:
-            data_component = CreateLineEdit(serializer, restore_func, touch);
-            break;
-        case RequestType::ComboBox:
-            data_component = CreateCombobox(serializer, restore_func, touch);
             break;
         default:
             UNIMPLEMENTED();

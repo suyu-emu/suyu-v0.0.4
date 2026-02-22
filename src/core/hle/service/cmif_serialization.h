@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -444,9 +444,9 @@ void CmifReplyWrapImpl(HLERequestContext& ctx, T& t, Result (T::*f)(A...)) {
         const bool _is_domain = _mgr ? _mgr->IsDomain() : false;
         ASSERT_MSG(!_is_domain,
                    "Non-domain reply used on domain session\n"
-                   "Service={} (type={})\nTIPC={} CmdType={} Cmd=0x{:08X}\n"
+                   "Service={} (TIPC={} CmdType={} Cmd=0x{:08X}\n"
                    "HasDomainHeader={} DomainHandlers={}\nDesc={}",
-                   t.GetServiceName(), typeid(T).name(), ctx.IsTipc(),
+                   t.GetServiceName(), ctx.IsTipc(),
                    static_cast<u32>(ctx.GetCommandType()), static_cast<u32>(ctx.GetCommand()),
                    ctx.HasDomainMessageHeader(), _mgr ? static_cast<u32>(_mgr->DomainHandlerCount()) : 0u,
                    ctx.Description());
