@@ -53,9 +53,7 @@ std::string_view GetNameOfA32Instruction(u32 instruction) {
 }
 
 std::string_view GetNameOfA64Instruction(u32 instruction) {
-    if (auto const decoder = A64::Decode<A64::TranslatorVisitor>(instruction))
-        return *A64::GetName<A64::TranslatorVisitor>(instruction);
-    return "<null>";
+    return *A64::GetName<A64::TranslatorVisitor>(instruction);
 }
 
 void PrintA32Instruction(u32 instruction) {
