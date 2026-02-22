@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <bit>
 #include <cstring>
 #include <mutex>
 #include <span>
@@ -127,83 +128,14 @@ struct Memory::Impl {
         }
     }
 
-    [[nodiscard]] u8* GetPointerFromRasterizerCachedMemory(u64 vaddr) const {
-        Common::PhysicalAddress const paddr = current_page_table->entries[vaddr >> YUZU_PAGEBITS].addr;
-        if (paddr)
-            return system.DeviceMemory().GetPointer<u8>(paddr + vaddr);
-        return {};
+    [[nodiscard]] inline u8* GetPointerFromRasterizerCachedMemory(u64 vaddr) const {
+        auto const paddr = current_page_table->entries[vaddr >> YUZU_PAGEBITS].addr;
+        return paddr ? system.DeviceMemory().GetPointer<u8>(paddr + vaddr) : nullptr;
     }
 
-    [[nodiscard]] u8* GetPointerFromDebugMemory(u64 vaddr) const {
-        const Common::PhysicalAddress paddr = current_page_table->entries[vaddr >> YUZU_PAGEBITS].addr;
-        if (paddr != 0)
-            return system.DeviceMemory().GetPointer<u8>(paddr + vaddr);
-        return {};
-    }
-
-    u8 Read8(const Common::ProcessAddress addr) {
-        return Read<u8>(addr);
-    }
-
-    u16 Read16(const Common::ProcessAddress addr) {
-        if ((addr & 1) == 0) {
-            return Read<u16_le>(addr);
-        } else {
-            const u32 a{Read<u8>(addr)};
-            const u32 b{Read<u8>(addr + sizeof(u8))};
-            return static_cast<u16>((b << 8) | a);
-        }
-    }
-
-    u32 Read32(const Common::ProcessAddress addr) {
-        if ((addr & 3) == 0) {
-            return Read<u32_le>(addr);
-        } else {
-            const u32 a{Read16(addr)};
-            const u32 b{Read16(addr + sizeof(u16))};
-            return (b << 16) | a;
-        }
-    }
-
-    u64 Read64(const Common::ProcessAddress addr) {
-        if ((addr & 7) == 0) {
-            return Read<u64_le>(addr);
-        } else {
-            const u32 a{Read32(addr)};
-            const u32 b{Read32(addr + sizeof(u32))};
-            return (static_cast<u64>(b) << 32) | a;
-        }
-    }
-
-    void Write8(const Common::ProcessAddress addr, const u8 data) {
-        Write<u8>(addr, data);
-    }
-
-    void Write16(const Common::ProcessAddress addr, const u16 data) {
-        if ((addr & 1) == 0) {
-            Write<u16_le>(addr, data);
-        } else {
-            Write<u8>(addr, static_cast<u8>(data));
-            Write<u8>(addr + sizeof(u8), static_cast<u8>(data >> 8));
-        }
-    }
-
-    void Write32(const Common::ProcessAddress addr, const u32 data) {
-        if ((addr & 3) == 0) {
-            Write<u32_le>(addr, data);
-        } else {
-            Write16(addr, static_cast<u16>(data));
-            Write16(addr + sizeof(u16), static_cast<u16>(data >> 16));
-        }
-    }
-
-    void Write64(const Common::ProcessAddress addr, const u64 data) {
-        if ((addr & 7) == 0) {
-            Write<u64_le>(addr, data);
-        } else {
-            Write32(addr, static_cast<u32>(data));
-            Write32(addr + sizeof(u32), static_cast<u32>(data >> 32));
-        }
+    [[nodiscard]] inline u8* GetPointerFromDebugMemory(u64 vaddr) const {
+        auto const paddr = current_page_table->entries[vaddr >> YUZU_PAGEBITS].addr;
+        return paddr ? system.DeviceMemory().GetPointer<u8>(paddr + vaddr) : nullptr;
     }
 
     bool WriteExclusive8(const Common::ProcessAddress addr, const u8 data, const u8 expected) {
@@ -658,7 +590,7 @@ struct Memory::Impl {
     }
 
     template<typename F, typename G>
-    [[nodiscard]] u8* GetPointerImpl(u64 vaddr, F&& on_unmapped, G&& on_rasterizer) const {
+    [[nodiscard]] inline u8* GetPointerImpl(u64 vaddr, F&& on_unmapped, G&& on_rasterizer) const {
         // AARCH64 masks the upper 16 bit of all memory accesses
         vaddr &= 0xffffffffffffULL;
         if (AddressSpaceContains(*current_page_table, vaddr, 1)) [[likely]] {
@@ -713,18 +645,42 @@ struct Memory::Impl {
     /// @returns The instance of T read from the specified virtual address.
     template <typename T>
     inline T Read(Common::ProcessAddress vaddr) noexcept requires(std::is_trivially_copyable_v<T>) {
-        const u64 addr = GetInteger(vaddr);
-        if (auto const ptr = GetPointerImpl(addr, [addr]() {
-            LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
-        }, [&]() {
-            HandleRasterizerDownload(addr, sizeof(T));
-        }); ptr) [[likely]] {
-            // It may be tempting to rewrite this particular section to use "reinterpret_cast";
-            // afterall, it's trivially copyable so surely it can be copied ov- Alignment.
-            // Remember, alignment. memcpy() will deal with all the alignment extremely fast.
-            T result{};
-            std::memcpy(&result, ptr, sizeof(T));
-            return result;
+        auto const addr_c1 = GetInteger(vaddr);
+        if (!(sizeof(T) > 1 && (addr_c1 & 4095) + sizeof(T) > 4096)) {
+            if (auto const ptr_c1 = GetPointerImpl(addr_c1, [addr_c1] {
+                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c1);
+            }, [&] {
+                HandleRasterizerDownload(addr_c1, sizeof(T));
+            }); ptr_c1) {
+                // It may be tempting to rewrite this particular section to use "reinterpret_cast";
+                // afterall, it's trivially copyable so surely it can be copied ov- Alignment.
+                // Remember, alignment. memcpy() will deal with all the alignment extremely fast.
+                T result{};
+                std::memcpy(&result, ptr_c1, sizeof(T));
+                return result;
+            }
+        } else {
+            auto const addr_c2 = (addr_c1 & (~0xfff)) + 0x1000;
+            // page crossing: say if sizeof(T) = 2, vaddr = 4095
+            // 4095 + 2 mod 4096 = 1 => 2 - 1 = 1, thus c1=1, c2=1
+            auto const count_c2 = (addr_c1 + sizeof(T)) & 4095;
+            auto const count_c1 = sizeof(T) - count_c2;
+            if (auto const ptr_c1 = GetPointerImpl(addr_c1, [addr_c1] {
+                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c1);
+            }, [&] {
+                HandleRasterizerDownload(addr_c1, count_c1);
+            }); ptr_c1) {
+                if (auto const ptr_c2 = GetPointerImpl(addr_c2, [addr_c2] {
+                    LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c2);
+                }, [&] {
+                    HandleRasterizerDownload(addr_c2, count_c2);
+                }); ptr_c2) {
+                    std::array<char, sizeof(T)> result{};
+                    std::memcpy(result.data() + 0, ptr_c1, count_c1);
+                    std::memcpy(result.data() + count_c1, ptr_c2, count_c2);
+                    return std::bit_cast<T>(result);
+                }
+            }
         }
         return T{};
     }
@@ -734,11 +690,37 @@ struct Memory::Impl {
     /// @tparam T The data type to write to memory.
     template <typename T>
     inline void Write(Common::ProcessAddress vaddr, const T data) noexcept requires(std::is_trivially_copyable_v<T>) {
-        const u64 addr = GetInteger(vaddr);
-        if (auto const ptr = GetPointerImpl(addr, [addr, data]() {
-            LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8, addr, u64(data));
-        }, [&]() { HandleRasterizerWrite(addr, sizeof(T)); }); ptr) [[likely]]
-            std::memcpy(ptr, &data, sizeof(T));
+        auto const addr_c1 = GetInteger(vaddr);
+        if (!(sizeof(T) > 1 && (addr_c1 & 4095) + sizeof(T) > 4096)) {
+            if (auto const ptr_c1 = GetPointerImpl(addr_c1, [addr_c1] {
+                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr_c1);
+            }, [&] {
+                HandleRasterizerWrite(addr_c1, sizeof(T));
+            }); ptr_c1) {
+                std::memcpy(ptr_c1, &data, sizeof(T));
+            }
+        } else {
+            auto const addr_c2 = (addr_c1 & (~0xfff)) + 0x1000;
+            // page crossing: say if sizeof(T) = 2, vaddr = 4095
+            // 4095 + 2 mod 4096 = 1 => 2 - 1 = 1, thus c1=1, c2=1
+            auto const count_c2 = (addr_c1 + sizeof(T)) & 4095;
+            auto const count_c1 = sizeof(T) - count_c2;
+            if (auto const ptr_c1 = GetPointerImpl(addr_c1, [addr_c1] {
+                LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X}", sizeof(T) * 8, addr_c1);
+            }, [&] {
+                HandleRasterizerWrite(addr_c1, count_c1);
+            }); ptr_c1) {
+                if (auto const ptr_c2 = GetPointerImpl(addr_c2, [addr_c2] {
+                    LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X}", sizeof(T) * 8, addr_c2);
+                }, [&] {
+                    HandleRasterizerWrite(addr_c2, count_c2);
+                }); ptr_c2) {
+                    std::array<char, sizeof(T)> tmp = std::bit_cast<std::array<char, sizeof(T)>>(data);
+                    std::memcpy(ptr_c1, tmp.data() + 0, count_c1);
+                    std::memcpy(ptr_c2, tmp.data() + count_c1, count_c2);
+                }
+            }
+        }
     }
 
     template <typename T>
@@ -942,35 +924,35 @@ const u8* Memory::GetPointer(Common::ProcessAddress vaddr) const {
 }
 
 u8 Memory::Read8(const Common::ProcessAddress addr) {
-    return impl->Read8(addr);
+    return impl->Read<u8>(addr);
 }
 
 u16 Memory::Read16(const Common::ProcessAddress addr) {
-    return impl->Read16(addr);
+    return impl->Read<u16_le>(addr);
 }
 
 u32 Memory::Read32(const Common::ProcessAddress addr) {
-    return impl->Read32(addr);
+    return impl->Read<u32_le>(addr);
 }
 
 u64 Memory::Read64(const Common::ProcessAddress addr) {
-    return impl->Read64(addr);
+    return impl->Read<u64_le>(addr);
 }
 
 void Memory::Write8(Common::ProcessAddress addr, u8 data) {
-    impl->Write8(addr, data);
+    impl->Write<u8>(addr, data);
 }
 
 void Memory::Write16(Common::ProcessAddress addr, u16 data) {
-    impl->Write16(addr, data);
+    impl->Write<u16_le>(addr, data);
 }
 
 void Memory::Write32(Common::ProcessAddress addr, u32 data) {
-    impl->Write32(addr, data);
+    impl->Write<u32_le>(addr, data);
 }
 
 void Memory::Write64(Common::ProcessAddress addr, u64 data) {
-    impl->Write64(addr, data);
+    impl->Write<u64_le>(addr, data);
 }
 
 bool Memory::WriteExclusive8(Common::ProcessAddress addr, u8 data, u8 expected) {
