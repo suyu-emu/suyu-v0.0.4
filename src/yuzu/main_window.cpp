@@ -2216,9 +2216,11 @@ bool MainWindow::OnShutdownBegin() {
         return false;
     }
 
-    perf_overlay->hide();
-    perf_overlay->deleteLater();
-    perf_overlay = nullptr;
+    if (perf_overlay) {
+        perf_overlay->hide();
+        perf_overlay->deleteLater();
+        perf_overlay = nullptr;
+    }
 
     QtCommon::system->SetShuttingDown(true);
     discord_rpc->Pause();
