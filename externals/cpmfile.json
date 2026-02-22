@@ -242,8 +242,8 @@
     },
     "ffmpeg": {
         "repo": "FFmpeg/FFmpeg",
-        "sha": "5e56937b74",
-        "hash": "9ab0457dcd6ce6359b5053c1662f57910d332f68ca0cca9d4134d858464840917027374de3d97e0863c3a7daaea2fe4f4cd17d1c6d8e7f740f4ad91e71c2932b",
+        "sha": "c7b5f1537d",
+        "hash": "ed177621176b3961bdcaa339187d3a7688c1c8b060b79c4bb0257cbc67ad7021ae5d5adca5303b45625abbbe3d9aafdd87ce777b8690ac295290d744c875489a",
         "bundled": true
     },
     "ffmpeg-ci": {
@@ -251,7 +251,7 @@
         "package": "FFmpeg",
         "name": "ffmpeg",
         "repo": "crueter-ci/FFmpeg",
-        "version": "8.0.1-5e56937b74",
+        "version": "8.0.1-c7b5f1537d",
         "min_version": "4.1"
     },
     "tzdb": {
