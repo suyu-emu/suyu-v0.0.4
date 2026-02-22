@@ -1099,13 +1099,14 @@ void GameList::SaveInterfaceLayout() {
 void GameList::LoadInterfaceLayout() {
     auto* header = tree_view->header();
 
-    if (header->restoreState(UISettings::values.gamelist_header_state)) {
+    if (header->restoreState(UISettings::values.gamelist_header_state))
         return;
-    }
 
     // We are using the name column to display icons and titles
     // so make it as large as possible as default.
-    header->resizeSection(COLUMN_NAME, header->width());
+
+    // TODO(crueter): width() is not initialized yet, so use a sane default value
+    header->resizeSection(COLUMN_NAME, 840);
 }
 
 const QStringList GameList::supported_file_extensions = {
