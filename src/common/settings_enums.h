@@ -120,7 +120,7 @@ ENUM(AudioMode, Mono, Stereo, Surround);
 
 ENUM(Language, Japanese, EnglishAmerican, French, German, Italian, Spanish, Chinese, Korean, Dutch,
      Portuguese, Russian, Taiwanese, EnglishBritish, FrenchCanadian, SpanishLatin,
-     ChineseSimplified, ChineseTraditional, PortugueseBrazilian, Serbian);
+     ChineseSimplified, ChineseTraditional, PortugueseBrazilian, Polish, Thai);
 ENUM(Region, Japan, Usa, Europe, Australia, China, Korea, Taiwan);
 ENUM(TimeZone, Auto, Default, Cet, Cst6Cdt, Cuba, Eet, Egypt, Eire, Est, Est5Edt, Gb, GbEire, Gmt,
     GmtPlusZero, GmtMinusZero, GmtZero, Greenwich, Hongkong, Hst, Iceland, Iran, Israel, Jamaica,

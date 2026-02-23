@@ -64,7 +64,8 @@
         <item>@string/language_spanish</item>
         <item>@string/language_taiwanese</item>
         <item>@string/language_traditional_chinese</item>
-        <item>@string/language_serbian</item>
+        <item>@string/language_polish</item>
+        <item>@string/language_thai</item>
     </string-array>
 
     <integer-array name="languageValues">
@@ -87,6 +88,7 @@
         <item>11</item>
         <item>16</item>
         <item>18</item>
+        <item>19</item>
     </integer-array>
 
     <string-array name="rendererApiNames">
@@ -407,6 +409,7 @@
         <item>@string/app_language_persian</item>
         <item>@string/app_language_hebrew</item>
         <item>@string/app_language_serbian</item>
+        <item>@string/app_language_thai</item>
     </string-array>
     <integer-array name="appLanguageValues">
         <item>0</item>
