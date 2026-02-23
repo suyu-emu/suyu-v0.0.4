@@ -464,6 +464,7 @@ private:
     void OpenPerGameConfiguration(u64 title_id, const std::string& file_name);
     bool CheckFirmwarePresence();
     void SetFirmwareVersion();
+    void SetFPSSuffix();
     void ConfigureFilesystemProvider(const std::string& filepath);
     /**
      * Open (or not) the right confirm dialog based on current setting and game exit lock
