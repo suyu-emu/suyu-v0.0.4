@@ -1,9 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <openssl/err.h>
+#include <openssl/evp.h>
 #include "common/string_util.h"
 #include "core/file_sys/vfs/vfs_types.h"
 #include "core/hle/service/bcat/bcat_result.h"
@@ -18,7 +20,10 @@ namespace Service::BCAT {
 static BcatDigest DigestFile(const FileSys::VirtualFile& file) {
     BcatDigest out{};
     const auto bytes = file->ReadAllBytes();
-    mbedtls_md5(bytes.data(), bytes.size(), out.data());
+
+    u32 hash_len = 0;
+    EVP_Digest(bytes.data(), bytes.size(), out.data(), &hash_len, EVP_md5(), nullptr);
+
     return out;
 }
 

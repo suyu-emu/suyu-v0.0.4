@@ -23,11 +23,8 @@ if (ENABLE_UPDATE_CHECKER)
         update_checker.cpp
         update_checker.h)
 
-    if (ENABLE_OPENSSL)
-        target_compile_definitions(frontend_common PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
-        target_link_libraries(frontend_common PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-    endif()
-
+    target_compile_definitions(frontend_common PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+    target_link_libraries(frontend_common PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 endif()
 
 create_target_directory_groups(frontend_common)

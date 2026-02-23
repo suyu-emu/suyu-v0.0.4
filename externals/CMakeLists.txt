@@ -41,9 +41,6 @@ if (NOT TARGET enet::enet)
     add_library(enet::enet ALIAS enet)
 endif()
 
-# mbedtls
-AddJsonPackage(mbedtls)
-
 # stb
 add_library(stb stb/stb_dxt.cpp)
 target_include_directories(stb PUBLIC ./stb)
@@ -234,9 +231,7 @@ if (VulkanMemoryAllocator_ADDED)
 endif()
 
 # httplib
-if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER OR USE_DISCORD_PRESENCE OR ENABLE_OPENSSL)
-    AddJsonPackage(httplib)
-endif()
+AddJsonPackage(httplib)
 
 # cpp-jwt
 if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)

@@ -1,10 +1,12 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <utility>
+#include <openssl/err.h>
+#include <openssl/evp.h>
 
 #include "common/hex_util.h"
 #include "common/scope_exit.h"
@@ -17,7 +19,6 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nca.h"
-#include "mbedtls/sha256.h"
 #include "common/literals.h"
 
 namespace Loader {
@@ -133,9 +134,8 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
     const auto name = file->GetName();
 
     // We won't try to verify meta NCAs.
-    if (name.ends_with(".cnmt.nca")) {
+    if (name.ends_with(".cnmt.nca"))
         return ResultStatus::Success;
-    }
 
     // Check if we can verify this file. NCAs should be named after their hashes.
     if (!name.ends_with(".nca") || name.size() != NcaFileNameWithHashLength) {
@@ -151,14 +151,17 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
     std::vector<u8> buffer(4_MiB);
 
     // Initialize sha256 verification context.
-    mbedtls_sha256_context ctx;
-    mbedtls_sha256_init(&ctx);
-    mbedtls_sha256_starts(&ctx, 0);
+    EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+    if (!ctx)
+        return ResultStatus::ErrorNotInitialized;
 
     // Ensure we maintain a clean state on exit.
     SCOPE_EXIT {
-        mbedtls_sha256_free(&ctx);
+        EVP_MD_CTX_free(ctx);
     };
+
+    if (!EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr))
+        return ResultStatus::ErrorIntegrityVerificationFailed;
 
     // Declare counters.
     const size_t total_size = file->GetSize();
@@ -171,7 +174,9 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
         const size_t read_size = file->Read(buffer.data(), intended_read_size, processed_size);
 
         // Update the hash function with the buffer contents.
-        mbedtls_sha256_update(&ctx, buffer.data(), read_size);
+        if (!EVP_DigestUpdate(ctx, buffer.data(), read_size)) {
+            return ResultStatus::ErrorIntegrityVerificationFailed;
+        }
 
         // Update counters.
         processed_size += read_size;
@@ -184,7 +189,10 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
 
     // Finalize context and compute the output hash.
     std::array<u8, NcaSha256HashLength> output_hash;
-    mbedtls_sha256_finish(&ctx, output_hash.data());
+    unsigned int output_len = 0;
+    if (!EVP_DigestFinal_ex(ctx, output_hash.data(), &output_len)) {
+        return ResultStatus::ErrorIntegrityVerificationFailed;
+    }
 
     // Compare to expected.
     if (std::memcmp(input_hash.data(), output_hash.data(), NcaSha256HalfHashLength) != 0) {

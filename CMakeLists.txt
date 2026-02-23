@@ -55,23 +55,18 @@ if (YUZU_STATIC_ROOM)
     set(ENABLE_UPDATE_CHECKER OFF)
     set(USE_DISCORD_PRESENCE OFF)
     set(BUILD_TESTING OFF)
-    set(ENABLE_OPENSSL OFF)
     set(ENABLE_WEB_SERVICE OFF)
     set(ENABLE_LIBUSB OFF)
 
-    # allow static libs for boost and mbedtls though
+    # allow static libs for boost though
     set(Boost_USE_STATIC_LIBS ON)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    set(MBEDTLS_LIB_SUFFIX "_static")
+    set(OPENSSL_USE_STATIC_LIBS ON)
     set(YUZU_USE_CPM ON)
 
     set(zstd_FORCE_BUNDLED ON)
     set(fmt_FORCE_BUNDLED ON)
 endif()
-
-# common network mbedtls
-# common: xbyak? booost fmt lz4 zstd
-# network: enet boost
 
 # qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
@@ -130,9 +125,6 @@ if (YUZU_STATIC_BUILD)
         set(YUZU_USE_BUNDLED_OPENSSL ON)
 
         set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
-
-        ## some libraries define a Library::Name_static alternative ##
-        set(MBEDTLS_LIB_SUFFIX _static)
     elseif(APPLE)
         set(YUZU_USE_CPM ON)
 
@@ -145,7 +137,6 @@ if (YUZU_STATIC_BUILD)
         set(SPIRV-Tools_FORCE_BUNDLED ON)
         set(SPIRV-Headers_FORCE_BUNDLED ON)
         set(zstd_FORCE_BUNDLED ON)
-        set(MbedTLS_FORCE_BUNDLED ON)
     endif()
 endif()
 
@@ -245,30 +236,12 @@ cmake_dependent_option(YUZU_USE_BUNDLED_MOLTENVK "Download bundled MoltenVK lib"
 
 option(YUZU_DISABLE_LLVM "Disable LLVM (useful for CI)" OFF)
 
-set(DEFAULT_ENABLE_OPENSSL ON)
-if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN OR PLATFORM_OPENBSD)
-    # - Windows defaults to the Schannel backend.
-    # - macOS defaults to the SecureTransport backend.
-    # - Android currently has no SSL backend as the NDK doesn't include any SSL
-    #   library; a proper 'native' backend would have to go through Java.
-    # - Solaris and OpenBSD have too old backends
-    # But you can force builds for those platforms to use OpenSSL if you have
-    # your own copy of it.
-    set(DEFAULT_ENABLE_OPENSSL OFF)
-endif()
-
-if (ENABLE_WEB_SERVICE OR USE_DISCORD_PRESENCE)
-    set(DEFAULT_ENABLE_OPENSSL ON)
-endif()
-
-option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
-
 set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
 if (EXT_DEFAULT OR PLATFORM_SUN OR PLATFORM_OPENBSD)
     set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
 endif()
 
-cmake_dependent_option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL} "ENABLE_OPENSSL" OFF)
+option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL})
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
     AddJsonPackage(vulkan-validation-layers)
@@ -397,17 +370,15 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 # openssl funniness
-if (ENABLE_OPENSSL)
-    if (YUZU_USE_BUNDLED_OPENSSL)
-        set(BUILD_SHARED_LIBS OFF)
-        AddJsonPackage(openssl)
-        if (OpenSSL_ADDED)
-            add_compile_definitions(YUZU_BUNDLED_OPENSSL)
-        endif()
+if (YUZU_USE_BUNDLED_OPENSSL)
+    set(BUILD_SHARED_LIBS OFF)
+    AddJsonPackage(openssl)
+    if (OpenSSL_ADDED)
+        add_compile_definitions(YUZU_BUNDLED_OPENSSL)
     endif()
-
-    find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
+
+find_package(OpenSSL 3 REQUIRED)
 
 if (YUZU_USE_CPM)
     message(STATUS "Fetching needed dependencies with CPM")
@@ -510,10 +481,6 @@ else()
 
     # wow
     find_package(Boost 1.57.0 CONFIG REQUIRED OPTIONAL_COMPONENTS headers context system fiber filesystem)
-
-    if (ENABLE_OPENSSL)
-        find_package(OpenSSL 1.1.1 REQUIRED)
-    endif()
 endif()
 
 if(NOT TARGET Boost::headers)
@@ -574,8 +541,8 @@ message(STATUS "Platform Libraries: ${PLATFORM_LIBRARIES}")
 add_subdirectory(externals)
 
 # pass targets from externals
+# TODO(crueter): CPMUtil Propagate func?
 find_package(enet)
-find_package(MbedTLS)
 find_package(unordered_dense REQUIRED)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)

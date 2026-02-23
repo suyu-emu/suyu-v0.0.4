@@ -1,25 +1,20 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
 #include <array>
-#include <cctype>
 #include <cstring>
-#include <mbedtls/sha256.h>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/hex_util.h"
-#include "common/logging/log.h"
 #include "common/string_util.h"
 #include "common/swap.h"
 #include "core/crypto/key_manager.h"
 #include "core/crypto/partition_data_manager.h"
 #include "core/crypto/xts_encryption_layer.h"
 #include "core/file_sys/kernel_executable.h"
-#include "core/file_sys/vfs/vfs.h"
 #include "core/file_sys/vfs/vfs_offset.h"
 #include "core/file_sys/vfs/vfs_vector.h"
 #include "core/loader/loader.h"

@@ -7,12 +7,11 @@
 #include <algorithm>
 #include <random>
 #include <regex>
-#include <mbedtls/sha256.h>
+#include <openssl/evp.h>
 #include "common/assert.h"
 #include "common/fs/path_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
-#include "common/scope_exit.h"
 #include "common/string_util.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
@@ -64,17 +63,23 @@ static bool FollowsNcaIdFormat(std::string_view name) {
 
 static std::string GetRelativePathFromNcaID(const std::array<u8, 16>& nca_id, bool second_hex_upper,
                                             bool within_two_digit, bool cnmt_suffix) {
+    const auto nca_str = Common::HexToString(nca_id, second_hex_upper);
+
     if (!within_two_digit) {
         const auto format_str = fmt::runtime(cnmt_suffix ? "{}.cnmt.nca" : "/{}.nca");
-        return fmt::format(format_str, Common::HexToString(nca_id, second_hex_upper));
+        return fmt::format(format_str, nca_str);
     }
 
     Core::Crypto::SHA256Hash hash{};
-    mbedtls_sha256(nca_id.data(), nca_id.size(), hash.data(), 0);
+    u32 hash_len = 0;
+    EVP_Digest(nca_id.data(), nca_id.size(), hash.data(), &hash_len, EVP_sha256(), nullptr);
 
     const auto format_str =
         fmt::runtime(cnmt_suffix ? "/000000{:02X}/{}.cnmt.nca" : "/000000{:02X}/{}.nca");
-    return fmt::format(format_str, hash[0], Common::HexToString(nca_id, second_hex_upper));
+
+    LOG_DEBUG(Loader, "Decoded {} bytes, nca id {}", hash_len, nca_str);
+
+    return fmt::format(format_str, hash[0], nca_str);
 }
 
 static std::string GetCNMTName(TitleType type, u64 title_id) {
@@ -152,7 +157,11 @@ bool PlaceholderCache::Create(const NcaID& id, u64 size) const {
     }
 
     Core::Crypto::SHA256Hash hash{};
-    mbedtls_sha256(id.data(), id.size(), hash.data(), 0);
+    u32 hash_len = 0;
+    EVP_Digest(id.data(), id.size(), hash.data(), &hash_len, EVP_sha256(), nullptr);
+
+    LOG_DEBUG(Loader, "Decoded {} bytes, nca id {}", hash_len, id);
+
     const auto dirname = fmt::format("000000{:02X}", hash[0]);
 
     const auto dir2 = GetOrCreateDirectoryRelative(dir, dirname);
@@ -176,7 +185,11 @@ bool PlaceholderCache::Delete(const NcaID& id) const {
     }
 
     Core::Crypto::SHA256Hash hash{};
-    mbedtls_sha256(id.data(), id.size(), hash.data(), 0);
+    u32 hash_len = 0;
+    EVP_Digest(id.data(), id.size(), hash.data(), &hash_len, EVP_sha256(), nullptr);
+
+    LOG_DEBUG(Loader, "Decoded {} bytes, nca id {}", hash_len, id);
+
     const auto dirname = fmt::format("000000{:02X}", hash[0]);
 
     const auto dir2 = GetOrCreateDirectoryRelative(dir, dirname);
@@ -670,7 +683,12 @@ InstallResult RegisteredCache::InstallEntry(const NCA& nca, TitleType type,
     const OptionalHeader opt_header{0, 0};
     ContentRecord c_rec{{}, {}, {}, GetCRTypeFromNCAType(nca.GetType()), {}};
     const auto& data = nca.GetBaseFile()->ReadBytes(0x100000);
-    mbedtls_sha256(data.data(), data.size(), c_rec.hash.data(), 0);
+
+    u32 hash_len = 0;
+    EVP_Digest(data.data(), data.size(), c_rec.hash.data(), &hash_len, EVP_sha256(), nullptr);
+
+    LOG_DEBUG(Loader, "Decoded {} bytes, nca {}", hash_len, nca.GetName());
+
     std::memcpy(&c_rec.nca_id, &c_rec.hash, 16);
     const CNMT new_cnmt(header, opt_header, {c_rec}, {});
     if (!RawInstallYuzuMeta(new_cnmt)) {
@@ -781,7 +799,12 @@ InstallResult RegisteredCache::RawInstallNCA(const NCA& nca, const VfsCopyFuncti
         id = *override_id;
     } else {
         const auto& data = in->ReadBytes(0x100000);
-        mbedtls_sha256(data.data(), data.size(), hash.data(), 0);
+
+        u32 hash_len = 0;
+        EVP_Digest(data.data(), data.size(), hash.data(), &hash_len, EVP_sha256(), nullptr);
+
+        LOG_DEBUG(Loader, "Decoded {} bytes, nca {}", hash_len, nca.GetName());
+
         memcpy(id.data(), hash.data(), 16);
     }
 

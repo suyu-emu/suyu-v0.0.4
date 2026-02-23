@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -5,8 +8,9 @@
 // SPDX-License-Identifier: MIT
 
 #include <array>
-#include <mbedtls/aes.h>
-#include <mbedtls/hmac_drbg.h>
+
+#include <openssl/evp.h>
+#include <openssl/core_names.h>
 
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
@@ -179,7 +183,7 @@ std::vector<u8> GenerateInternalKey(const InternalKey& key, const HashSeed& seed
     return output;
 }
 
-void CryptoInit(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, const HmacKey& hmac_key,
+void CryptoInit(CryptoCtx& ctx, EVP_MAC_CTX* hmac_ctx, const HmacKey& hmac_key,
                 std::span<const u8> seed) {
     // Initialize context
     ctx.used = false;
@@ -188,15 +192,17 @@ void CryptoInit(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, const HmacKey& h
     memcpy(ctx.buffer.data() + sizeof(u16), seed.data(), seed.size());
 
     // Initialize HMAC context
-    mbedtls_md_init(&hmac_ctx);
-    mbedtls_md_setup(&hmac_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 1);
-    mbedtls_md_hmac_starts(&hmac_ctx, hmac_key.data(), hmac_key.size());
+    OSSL_PARAM params[2];
+    params[0] = OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, (char*)"SHA256", 0);
+    params[1] = OSSL_PARAM_construct_end();
+
+    EVP_MAC_init(hmac_ctx, hmac_key.data(), hmac_key.size(), params);
 }
 
-void CryptoStep(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, DrgbOutput& output) {
+void CryptoStep(CryptoCtx& ctx, EVP_MAC_CTX* hmac_ctx, DrgbOutput& output) {
     // If used at least once, reinitialize the HMAC
     if (ctx.used) {
-        mbedtls_md_hmac_reset(&hmac_ctx);
+        EVP_MAC_init(hmac_ctx, nullptr, 0, nullptr);
     }
 
     ctx.used = true;
@@ -207,9 +213,10 @@ void CryptoStep(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, DrgbOutput& outp
     ctx.counter++;
 
     // Do HMAC magic
-    mbedtls_md_hmac_update(&hmac_ctx, reinterpret_cast<const unsigned char*>(ctx.buffer.data()),
-                           ctx.buffer_size);
-    mbedtls_md_hmac_finish(&hmac_ctx, output.data());
+    size_t out_len = 0;
+    EVP_MAC_update(hmac_ctx, reinterpret_cast<const unsigned char*>(ctx.buffer.data()),
+                   ctx.buffer_size);
+    EVP_MAC_final(hmac_ctx, output.data(), &out_len, output.size());
 }
 
 DerivedKeys GenerateKey(const InternalKey& key, const NTAG215File& data) {
@@ -220,7 +227,9 @@ DerivedKeys GenerateKey(const InternalKey& key, const NTAG215File& data) {
 
     // Initialize context
     CryptoCtx ctx{};
-    mbedtls_md_context_t hmac_ctx;
+    EVP_MAC* mac = EVP_MAC_fetch(nullptr, "HMAC", nullptr);
+    EVP_MAC_CTX* hmac_ctx = EVP_MAC_CTX_new(mac);
+
     CryptoInit(ctx, hmac_ctx, key.hmac_key, internal_key);
 
     // Generate derived keys
@@ -231,26 +240,25 @@ DerivedKeys GenerateKey(const InternalKey& key, const NTAG215File& data) {
     memcpy(&derived_keys, temp.data(), sizeof(DerivedKeys));
 
     // Cleanup context
-    mbedtls_md_free(&hmac_ctx);
+    EVP_MAC_CTX_free(hmac_ctx);
+    EVP_MAC_free(mac);
 
     return derived_keys;
 }
 
 void Cipher(const DerivedKeys& keys, const NTAG215File& in_data, NTAG215File& out_data) {
-    mbedtls_aes_context aes;
-    std::size_t nc_off = 0;
-    std::array<u8, sizeof(keys.aes_iv)> nonce_counter{};
-    std::array<u8, sizeof(keys.aes_iv)> stream_block{};
-
-    const auto aes_key_size = static_cast<u32>(keys.aes_key.size() * 8);
-    mbedtls_aes_setkey_enc(&aes, keys.aes_key.data(), aes_key_size);
-    memcpy(nonce_counter.data(), keys.aes_iv.data(), sizeof(keys.aes_iv));
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+    EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), nullptr, keys.aes_key.data(), keys.aes_iv.data());
 
     constexpr std::size_t encrypted_data_size = HMAC_TAG_START - SETTINGS_START;
-    mbedtls_aes_crypt_ctr(&aes, encrypted_data_size, &nc_off, nonce_counter.data(),
-                          stream_block.data(),
-                          reinterpret_cast<const unsigned char*>(&in_data.settings),
-                          reinterpret_cast<unsigned char*>(&out_data.settings));
+    int out_len1 = 0;
+    int out_len2 = 0;
+
+    EVP_EncryptUpdate(ctx, reinterpret_cast<unsigned char*>(&out_data.settings), &out_len1,
+                      reinterpret_cast<const unsigned char*>(&in_data.settings), encrypted_data_size);
+    EVP_EncryptFinal_ex(ctx, reinterpret_cast<unsigned char*>(&out_data.settings) + out_len1, &out_len2);
+
+    EVP_CIPHER_CTX_free(ctx);
 
     // Copy the rest of the data directly
     out_data.uid = in_data.uid;
@@ -317,16 +325,18 @@ bool DecodeAmiibo(const EncryptedNTAG215File& encrypted_tag_data, NTAG215File& t
 
     // Regenerate tag HMAC. Note: order matters, data HMAC depends on tag HMAC!
     constexpr std::size_t input_length = DYNAMIC_LOCK_START - UUID_START;
-    mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), tag_keys.hmac_key.data(),
-                    sizeof(HmacKey), reinterpret_cast<const unsigned char*>(&tag_data.uid),
-                    input_length, reinterpret_cast<unsigned char*>(&tag_data.hmac_tag));
+    size_t out_len = 0;
+    EVP_Q_mac(nullptr, "HMAC", nullptr, "SHA256", nullptr,
+              tag_keys.hmac_key.data(), sizeof(HmacKey),
+              reinterpret_cast<const unsigned char*>(&tag_data.uid), input_length,
+              reinterpret_cast<unsigned char*>(&tag_data.hmac_tag), sizeof(tag_data.hmac_tag), &out_len);
 
     // Regenerate data HMAC
     constexpr std::size_t input_length2 = DYNAMIC_LOCK_START - WRITE_COUNTER_START;
-    mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), data_keys.hmac_key.data(),
-                    sizeof(HmacKey),
-                    reinterpret_cast<const unsigned char*>(&tag_data.write_counter), input_length2,
-                    reinterpret_cast<unsigned char*>(&tag_data.hmac_data));
+    EVP_Q_mac(nullptr, "HMAC", nullptr, "SHA256", nullptr,
+              data_keys.hmac_key.data(), sizeof(HmacKey),
+              reinterpret_cast<const unsigned char*>(&tag_data.write_counter), input_length2,
+              reinterpret_cast<unsigned char*>(&tag_data.hmac_data), sizeof(tag_data.hmac_data), &out_len);
 
     if (tag_data.hmac_data != encrypted_tag_data.user_memory.hmac_data) {
         LOG_ERROR(Service_NFP, "hmac_data doesn't match");
@@ -354,31 +364,33 @@ bool EncodeAmiibo(const NTAG215File& tag_data, EncryptedNTAG215File& encrypted_t
     const auto tag_keys = GenerateKey(locked_secret, tag_data);
 
     NTAG215File encoded_tag_data{};
+    size_t out_len = 0;
 
     // Generate tag HMAC
     constexpr std::size_t input_length = DYNAMIC_LOCK_START - UUID_START;
     constexpr std::size_t input_length2 = HMAC_TAG_START - WRITE_COUNTER_START;
-    mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), tag_keys.hmac_key.data(),
-                    sizeof(HmacKey), reinterpret_cast<const unsigned char*>(&tag_data.uid),
-                    input_length, reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_tag));
+    EVP_Q_mac(nullptr, "HMAC", nullptr, "SHA256", nullptr,
+              tag_keys.hmac_key.data(), sizeof(HmacKey),
+              reinterpret_cast<const unsigned char*>(&tag_data.uid), input_length,
+              reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_tag), sizeof(encoded_tag_data.hmac_tag), &out_len);
 
-    // Init mbedtls HMAC context
-    mbedtls_md_context_t ctx;
-    mbedtls_md_init(&ctx);
-    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 1);
+    // Init OpenSSL HMAC context
+    EVP_MAC* mac = EVP_MAC_fetch(nullptr, "HMAC", nullptr);
+    EVP_MAC_CTX* ctx = EVP_MAC_CTX_new(mac);
+    OSSL_PARAM params[2];
+    params[0] = OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, (char*)"SHA256", 0);
+    params[1] = OSSL_PARAM_construct_end();
 
     // Generate data HMAC
-    mbedtls_md_hmac_starts(&ctx, data_keys.hmac_key.data(), sizeof(HmacKey));
-    mbedtls_md_hmac_update(&ctx, reinterpret_cast<const unsigned char*>(&tag_data.write_counter),
-                           input_length2); // Data
-    mbedtls_md_hmac_update(&ctx, reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_tag),
-                           sizeof(HashData)); // Tag HMAC
-    mbedtls_md_hmac_update(&ctx, reinterpret_cast<const unsigned char*>(&tag_data.uid),
-                           input_length);
-    mbedtls_md_hmac_finish(&ctx, reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_data));
+    EVP_MAC_init(ctx, data_keys.hmac_key.data(), sizeof(HmacKey), params);
+    EVP_MAC_update(ctx, reinterpret_cast<const unsigned char*>(&tag_data.write_counter), input_length2); // data
+    EVP_MAC_update(ctx, reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_tag), sizeof(HashData)); // tag hmax
+    EVP_MAC_update(ctx, reinterpret_cast<const unsigned char*>(&tag_data.uid), input_length);
+    EVP_MAC_final(ctx, reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_data), &out_len, sizeof(encoded_tag_data.hmac_data));
 
     // HMAC cleanup
-    mbedtls_md_free(&ctx);
+    EVP_MAC_CTX_free(ctx);
+    EVP_MAC_free(mac);
 
     // Encrypt
     Cipher(data_keys, tag_data, encoded_tag_data);

@@ -361,10 +361,6 @@ target_sources(yuzu
         ${LANGUAGES}
         ${THEMES})
 
-if (ENABLE_OPENSSL)
-    target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-endif()
-
 if (APPLE)
     # Normal icns
     set(MACOSX_ICON "${CMAKE_SOURCE_DIR}/dist/eden.icns")
@@ -458,8 +454,6 @@ if (NOT MSVC AND (APPLE OR NOT YUZU_STATIC_BUILD))
 endif()
 
 # Remember that the linker is incredibly stupid.
-if (YUZU_STATIC_BUILD AND MINGW AND ARCHITECTURE_x86_64 AND ENABLE_OPENSSL)
-    target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-endif()
+target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 create_target_directory_groups(yuzu)

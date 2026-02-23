@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -9,34 +9,25 @@
 #include <bitset>
 #include <cctype>
 #include <fstream>
-#include <locale>
 #include <map>
 #include <sstream>
 #include <tuple>
 #include <vector>
-#include <mbedtls/bignum.h>
-#include <mbedtls/cipher.h>
-#include <mbedtls/cmac.h>
-#include <mbedtls/sha256.h>
+
+#include <openssl/evp.h>
+
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
-#include "common/settings.h"
 #include "common/string_util.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/key_manager.h"
 #include "core/crypto/partition_data_manager.h"
 #include "core/file_sys/content_archive.h"
-#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
-#include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
-
-#ifndef MBEDTLS_CMAC_C
-#error mbedtls was compiled without CMAC support. Check your USE flags (Gentoo) or contact your package maintainer.
-#endif
 
 namespace Core::Crypto {
 namespace {
@@ -527,14 +518,26 @@ static std::array<u8, target_size> MGF1(const std::array<u8, in_size>& seed) {
     std::array<u8, in_size + 4> seed_exp{};
     std::memcpy(seed_exp.data(), seed.data(), in_size);
 
+    EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+    const EVP_MD* sha256 = EVP_sha256();
+
     std::vector<u8> out;
     size_t i = 0;
     while (out.size() < target_size) {
-        out.resize(out.size() + 0x20);
-        seed_exp[in_size + 3] = static_cast<u8>(i);
-        mbedtls_sha256(seed_exp.data(), seed_exp.size(), out.data() + out.size() - 0x20, 0);
+        size_t offset = out.size();
+        out.resize(offset + 0x20);
+        seed_exp[in_size + 3] = u8(i);
+
+        u32 hash_len = 0;
+
+        EVP_DigestInit_ex(ctx, sha256, nullptr);
+        EVP_DigestUpdate(ctx, seed_exp.data(), seed_exp.size());
+        EVP_DigestFinal_ex(ctx, out.data() + offset, &hash_len);
+
         ++i;
     }
+
+    EVP_MD_CTX_free(ctx);
 
     std::array<u8, target_size> target;
     std::memcpy(target.data(), out.data(), target_size);
@@ -588,32 +591,28 @@ std::optional<Key128> KeyManager::ParseTicketTitleKey(const Ticket& ticket) {
         return std::nullopt;
     }
 
-    mbedtls_mpi D; // RSA Private Exponent
-    mbedtls_mpi N; // RSA Modulus
-    mbedtls_mpi S; // Input
-    mbedtls_mpi M; // Output
-
-    mbedtls_mpi_init(&D);
-    mbedtls_mpi_init(&N);
-    mbedtls_mpi_init(&S);
-    mbedtls_mpi_init(&M);
-
-    const auto& title_key_block = ticket.GetData().title_key_block;
-    mbedtls_mpi_read_binary(&D, eticket_rsa_keypair.decryption_key.data(),
-                            eticket_rsa_keypair.decryption_key.size());
-    mbedtls_mpi_read_binary(&N, eticket_rsa_keypair.modulus.data(),
-                            eticket_rsa_keypair.modulus.size());
-    mbedtls_mpi_read_binary(&S, title_key_block.data(), title_key_block.size());
-
-    mbedtls_mpi_exp_mod(&M, &S, &D, &N, nullptr);
-
     std::array<u8, 0x100> rsa_step;
-    mbedtls_mpi_write_binary(&M, rsa_step.data(), rsa_step.size());
+    {
+        // Private context for OpenSSL bignumbers
+        // Inside block because I dont wanna pollute the space...
+        const auto& title_key_block = ticket.GetData().title_key_block;
+        BIGNUM* D = BN_bin2bn(eticket_rsa_keypair.decryption_key.data(), int(eticket_rsa_keypair.decryption_key.size()), NULL);
+        BIGNUM* N = BN_bin2bn(eticket_rsa_keypair.modulus.data(), int(eticket_rsa_keypair.modulus.size()), NULL);
+        BIGNUM* S = BN_bin2bn(title_key_block.data(), int(title_key_block.size()), NULL);
+        BIGNUM* M = BN_new();
+        // M = S ^ D mod N
+        BN_mod_exp(M, S, D, N, NULL);
+        BN_bn2bin(M, rsa_step.data());
+        BN_free(D);
+        BN_free(N);
+        BN_free(S);
+        BN_free(M);
+    }
 
     u8 m_0 = rsa_step[0];
     std::array<u8, 0x20> m_1;
-    std::memcpy(m_1.data(), rsa_step.data() + 0x01, m_1.size());
     std::array<u8, 0xDF> m_2;
+    std::memcpy(m_1.data(), rsa_step.data() + 0x01, m_1.size());
     std::memcpy(m_2.data(), rsa_step.data() + 0x21, m_2.size());
 
     if (m_0 != 0) {
@@ -954,8 +953,18 @@ void KeyManager::DeriveSDSeedLazy() {
 static Key128 CalculateCMAC(const u8* source, size_t size, const Key128& key) {
     Key128 out{};
 
-    mbedtls_cipher_cmac(mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB), key.data(),
-                        key.size() * 8, source, size, out.data());
+    static EVP_MAC* mac = EVP_MAC_fetch(nullptr, "cmac", nullptr);
+    if (!mac) return out;
+
+    static EVP_MAC_CTX* ctx = EVP_MAC_CTX_new(mac);
+    if (!ctx) return out;
+
+    EVP_MAC_init(ctx, key.data(), key.size() * CHAR_BIT, NULL);
+    EVP_MAC_update(ctx, source, size);
+
+    size_t len;
+    EVP_MAC_final(ctx, out.data(), &len, out.size());
+
     return out;
 }
 

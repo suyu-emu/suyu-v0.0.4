@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2017 Citra Emulator Project
@@ -16,7 +16,10 @@ if (ENABLE_WEB_SERVICE)
     target_link_libraries(yuzu-room PRIVATE web_service)
 endif()
 
-target_link_libraries(yuzu-room PRIVATE MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX} MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
+target_link_libraries(yuzu-room PRIVATE
+    OpenSSL::SSL
+    OpenSSL::Crypto)
+
 if (MSVC)
     target_link_libraries(yuzu-room PRIVATE getopt)
 endif()

@@ -1219,13 +1219,9 @@ target_link_libraries(core PRIVATE
     fmt::fmt
     nlohmann_json::nlohmann_json
     RenderDoc::API
-    ZLIB::ZLIB
-    MbedTLS::mbedcrypto${MBEDTLS_LIB_SUFFIX}
-    MbedTLS::mbedtls${MBEDTLS_LIB_SUFFIX})
+    ZLIB::ZLIB)
 
-if (ENABLE_WEB_SERVICE OR ENABLE_OPENSSL)
-    target_link_libraries(core PRIVATE httplib::httplib)
-endif()
+target_link_libraries(core PRIVATE httplib::httplib)
 
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)
@@ -1271,25 +1267,24 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(core PRIVATE dynarmic::dynarmic)
 endif()
 
-if(ENABLE_OPENSSL)
-    target_sources(core PRIVATE
-        hle/service/ssl/ssl_backend_openssl.cpp)
+target_sources(core PRIVATE hle/service/ssl/ssl_backend_openssl.cpp)
 
-    find_package(OpenSSL REQUIRED)
+target_link_libraries(core PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+target_compile_definitions(core PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 
-    target_link_libraries(core PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-    target_compile_definitions(core PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
-elseif (APPLE)
-    target_sources(core PRIVATE
-        hle/service/ssl/ssl_backend_securetransport.cpp)
-    target_link_libraries(core PRIVATE "-framework Security")
-elseif (WIN32)
-    target_sources(core PRIVATE
-        hle/service/ssl/ssl_backend_schannel.cpp)
-    target_link_libraries(core PRIVATE crypt32 secur32)
-else()
-    target_sources(core PRIVATE
-        hle/service/ssl/ssl_backend_none.cpp)
-endif()
+# TODO
+
+# elseif (APPLE)
+#     target_sources(core PRIVATE
+#         hle/service/ssl/ssl_backend_securetransport.cpp)
+#     target_link_libraries(core PRIVATE "-framework Security")
+# elseif (WIN32)
+#     target_sources(core PRIVATE
+#         hle/service/ssl/ssl_backend_schannel.cpp)
+#     target_link_libraries(core PRIVATE crypt32 secur32)
+# else()
+#     target_sources(core PRIVATE
+#         hle/service/ssl/ssl_backend_none.cpp)
+# endif()
 
 create_target_directory_groups(core)
