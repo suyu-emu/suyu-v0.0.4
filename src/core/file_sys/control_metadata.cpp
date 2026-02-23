@@ -110,12 +110,13 @@ NACP::~NACP() = default;
 const LanguageEntry& NACP::GetLanguageEntry() const {
     u32 index = static_cast<u32>(Settings::values.language_index.GetValue());
 
-    if (index < language_entries.size()) {
+    if (index < language_entries.size() && !language_entries[index].GetApplicationName().empty()) {
         return language_entries[index];
     }
 
     for (const auto& entry : language_entries) {
-        return entry;
+        if (!entry.GetApplicationName().empty())
+          return entry;
     }
 
     return language_entries.at(static_cast<u8>(Language::AmericanEnglish));
