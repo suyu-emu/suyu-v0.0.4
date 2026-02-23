@@ -1331,9 +1331,6 @@ void EmitContext::DefineTextureBuffers(const Info& info, u32& binding) {
 void EmitContext::DefineImageBuffers(const Info& info, u32& binding) {
     image_buffers.reserve(info.image_buffer_descriptors.size());
     for (const ImageBufferDescriptor& desc : info.image_buffer_descriptors) {
-        if (desc.count != 1) {
-            throw NotImplementedException("Array of image buffers");
-        }
         const spv::ImageFormat format{GetImageFormat(desc.format)};
         const Id sampled_type{desc.is_integer ? U32[1] : F32[1]};
         const Id image_type{
@@ -1346,6 +1343,7 @@ void EmitContext::DefineImageBuffers(const Info& info, u32& binding) {
         image_buffers.push_back({
             .id = id,
             .image_type = image_type,
+            .pointer_type = pointer_type,
             .count = desc.count,
             .is_integer = desc.is_integer,
         });
@@ -1389,9 +1387,6 @@ void EmitContext::DefineTextures(const Info& info, u32& binding, u32& scaling_in
 void EmitContext::DefineImages(const Info& info, u32& binding, u32& scaling_index) {
     images.reserve(info.image_descriptors.size());
     for (const ImageDescriptor& desc : info.image_descriptors) {
-        if (desc.count != 1) {
-            throw NotImplementedException("Array of images");
-        }
         const Id sampled_type{desc.is_integer ? U32[1] : F32[1]};
         const Id image_type{ImageType(*this, desc, sampled_type)};
         const Id pointer_type{TypePointer(spv::StorageClass::UniformConstant, image_type)};
@@ -1402,6 +1397,7 @@ void EmitContext::DefineImages(const Info& info, u32& binding, u32& scaling_inde
         images.push_back({
             .id = id,
             .image_type = image_type,
+            .pointer_type = pointer_type,
             .count = desc.count,
             .is_integer = desc.is_integer,
         });
