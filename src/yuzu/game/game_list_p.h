@@ -17,6 +17,7 @@
 #include <QStandardItem>
 #include <QString>
 #include <QWidget>
+#include <QRegularExpression>
 
 #include "common/common_types.h"
 #include "common/logging/log.h"
@@ -76,15 +77,34 @@ public:
     GameListItemPath() = default;
     GameListItemPath(const QString& game_path, const std::vector<u8>& picture_data,
                      const QString& game_name, const QString& game_type, u64 program_id,
-                     u64 play_time) {
+                     u64 play_time, const QString &patch_versions) {
         setData(type(), TypeRole);
         setData(game_path, FullPathRole);
         setData(game_name, TitleRole);
         setData(qulonglong(program_id), ProgramIdRole);
         setData(game_type, FileTypeRole);
 
-        setData(QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(play_time)),
-                Qt::ToolTipRole);
+        const auto readable_play_time =
+            play_time > 0
+                ? QObject::tr("Play Time: %1").arg(QString::fromStdString(PlayTime::PlayTimeManager::GetReadablePlayTime(play_time)))
+                : QObject::tr("Never Played");
+
+        const auto enabled_update = [patch_versions]() -> QString {
+            const QStringList lines = patch_versions.split(QLatin1Char('\n'));
+            const QRegularExpression regex{QStringLiteral(R"(^Update \(([0-9\.]+)\))")};
+            for (const QString &line : std::as_const(lines)) {
+                const auto match = regex.match(line);
+                if (match.hasMatch() && match.hasCaptured(1))
+                    return QObject::tr("Version: %1").arg(match.captured(1));
+            }
+            return QObject::tr("Version: 1.0.0");
+        }();
+
+        const auto tooltip = QStringLiteral("%1\n%2").arg(
+            readable_play_time,
+            enabled_update);
+
+        setData(tooltip, Qt::ToolTipRole);
 
         const u32 size = UISettings::values.game_icon_size.GetValue();
 
