@@ -48,7 +48,7 @@
                 android:layout_height="200dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginEnd="32dp"
-                android:src="@drawable/ic_yuzu_named" />
+                android:src="@drawable/ic_yuzu" />
 
             <LinearLayout
                 android:layout_width="0dp"

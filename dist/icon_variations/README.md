@@ -2,7 +2,7 @@
 
 These icons are licensed under GPLv3. Please see the [script for generating icons](../../tools/README.md) and appropriatedly redirect for seasonal icons.
 
-- `base_named.svg` - Named variant.
+- `base_named.svg` - Named variant (deprecated).
 - `base_small.svg`: Variant used for tiny icons (16x16, 64x64, etc).
 - `base.svg`: Variant without branding/naming.
 

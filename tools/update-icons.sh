@@ -1,6 +1,6 @@
 #!/bin/sh -ex
 
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Updates main icons for eden
@@ -11,11 +11,10 @@ which optipng || exit
 VARIATION=${VARIATION:-base}
 
 EDEN_BASE_SVG="dist/icon_variations/${VARIATION}.svg"
-EDEN_NAMED_SVG="dist/icon_variations/${VARIATION}_named.svg"
 EDEN_BG_COLOR="dist/icon_variations/${VARIATION}_bgcolor"
 # TODO: EDEN_MONOCHROME_SVG Variation
 
-[ -f "$EDEN_BASE_SVG" ] && [ -f "$EDEN_NAMED_SVG" ] && [ -f "$EDEN_BG_COLOR" ] || { echo "Error: missing ${VARIATION}.svg/${VARIATION}_named.svg/${VARIATION}_bgcolor" >&2; exit; }
+[ -f "$EDEN_BASE_SVG" ] && [ -f "$EDEN_BG_COLOR" ] || { echo "Error: missing ${VARIATION}.svg/${VARIATION}_bgcolor" >&2; exit; }
 
 # Desktop / Windows / Qt icons
 
@@ -27,10 +26,8 @@ magick -density 256x256 -background transparent "$EDEN_BASE_SVG" -define icon:au
 magick -density 256x256 -background transparent "$EDEN_BASE_SVG" -resize 256x256 dist/eden.bmp || exit
 
 magick -size 256x256 -background transparent "$EDEN_BASE_SVG" -resize 256x256 dist/qt_themes/default/icons/256x256/eden.png || exit
-magick -size 256x256 -background transparent "$EDEN_NAMED_SVG" -resize 256x256 dist/qt_themes/default/icons/256x256/eden_named.png || exit
 
 optipng -o7 dist/qt_themes/default/icons/256x256/eden.png
-optipng -o7 dist/qt_themes/default/icons/256x256/eden_named.png
 
 # Android adaptive icon (API 26+)
 
@@ -44,12 +41,10 @@ echo "<?xml version='1.0' encoding='utf-8'?><resources><color name='ic_launcher_
 magick -size 1080x1080 -background transparent "$EDEN_BASE_SVG" -gravity center -resize 660x660 -extent 1080x1080 "$EDEN_ANDROID_FG" || exit
 magick -background transparent "$EDEN_BASE_SVG" -gravity center -resize 512x512 "$EDEN_ANDROID_RES/drawable/ic_yuzu.png" || exit
 magick -size 512x512 -background transparent "$EDEN_BASE_SVG" -gravity center -resize 338x338 -extent 512x512 "$EDEN_ANDROID_RES/drawable/ic_yuzu_splash.png" || exit
-magick -background transparent "$EDEN_NAMED_SVG" -gravity center -resize 512x512 "$EDEN_ANDROID_RES/drawable/ic_yuzu_named.png" || exit
 
 optipng -o7 "$EDEN_ANDROID_FG"
 optipng -o7 "$EDEN_ANDROID_RES/drawable/ic_yuzu.png"
 optipng -o7 "$EDEN_ANDROID_RES/drawable/ic_yuzu_splash.png"
-optipng -o7 "$EDEN_ANDROID_RES/drawable/ic_yuzu_named.png"
 
 # Android legacy launcher icon (API <= 24)
 

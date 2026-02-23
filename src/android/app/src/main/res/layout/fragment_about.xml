@@ -48,7 +48,7 @@
                 android:layout_height="160dp"
                 android:layout_marginVertical="24dp"
                 android:layout_gravity="center_horizontal"
-                android:src="@drawable/ic_yuzu_named" />
+                android:src="@drawable/ic_yuzu" />
 
             <com.google.android.material.card.MaterialCardView
                 style="@style/EdenCard"
