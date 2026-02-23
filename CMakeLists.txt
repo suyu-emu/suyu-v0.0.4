@@ -62,7 +62,6 @@ if (YUZU_STATIC_ROOM)
     set(Boost_USE_STATIC_LIBS ON)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     set(OPENSSL_USE_STATIC_LIBS ON)
-    set(YUZU_USE_CPM ON)
 
     set(zstd_FORCE_BUNDLED ON)
     set(fmt_FORCE_BUNDLED ON)
@@ -126,8 +125,6 @@ if (YUZU_STATIC_BUILD)
 
         set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
     elseif(APPLE)
-        set(YUZU_USE_CPM ON)
-
         set(YUZU_USE_BUNDLED_FFMPEG ON)
         set(YUZU_USE_BUNDLED_SDL2 ON)
         set(YUZU_USE_BUNDLED_OPENSSL ON)
@@ -188,8 +185,6 @@ set(EXT_DEFAULT OFF)
 if (MSVC OR ANDROID)
     set(EXT_DEFAULT ON)
 endif()
-
-option(YUZU_USE_CPM "Use CPM to fetch system dependencies (fmt, boost, etc) if needed. Externals will still be fetched." ${EXT_DEFAULT})
 
 # ffmpeg
 option(YUZU_USE_BUNDLED_FFMPEG "Download bundled FFmpeg" ${EXT_DEFAULT})
@@ -369,6 +364,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+find_package(RenderDoc MODULE)
+
 # openssl funniness
 if (YUZU_USE_BUNDLED_OPENSSL)
     set(BUILD_SHARED_LIBS OFF)
@@ -380,107 +377,82 @@ endif()
 
 find_package(OpenSSL 3 REQUIRED)
 
-if (YUZU_USE_CPM)
-    message(STATUS "Fetching needed dependencies with CPM")
+message(STATUS "Fetching needed dependencies with CPM")
 
-    set(BUILD_SHARED_LIBS OFF)
-    set(BUILD_TESTING OFF)
-    set(ENABLE_TESTING OFF)
+set(BUILD_SHARED_LIBS OFF)
+set(BUILD_TESTING OFF)
+set(ENABLE_TESTING OFF)
 
-    # TODO(crueter): renderdoc?
+# boost
+set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
 
-    # boost
-    set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
+AddJsonPackage(boost)
 
-    AddJsonPackage(boost)
+# really annoying thing where boost::headers doesn't work with cpm
+# TODO(crueter) investigate
+set(BOOST_NO_HEADERS ${Boost_ADDED})
 
-    # really annoying thing where boost::headers doesn't work with cpm
-    # TODO(crueter) investigate
-    set(BOOST_NO_HEADERS ${Boost_ADDED})
-
-    if (Boost_ADDED)
-        if (MSVC OR ANDROID)
-            add_compile_definitions(YUZU_BOOST_v1)
-        endif()
-
-        if (NOT MSVC OR CXX_CLANG)
-            # boost sucks
-            if (PLATFORM_SUN)
-                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthreads")
-                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthreads")
-            endif()
-
-            target_compile_options(boost_heap INTERFACE -Wno-shadow)
-            target_compile_options(boost_icl INTERFACE -Wno-shadow)
-            target_compile_options(boost_asio INTERFACE -Wno-conversion -Wno-implicit-fallthrough)
-        endif()
+if (Boost_ADDED)
+    if (MSVC OR ANDROID)
+        add_compile_definitions(YUZU_BOOST_v1)
     endif()
 
-    # fmt
-    AddJsonPackage(fmt)
-
-    # lz4
-    AddJsonPackage(lz4)
-
-    if (lz4_ADDED)
-        add_library(lz4::lz4 ALIAS lz4_static)
-    endif()
-
-    # zstd
-    AddJsonPackage(zstd)
-
-    if (zstd_ADDED)
-        add_library(zstd::zstd ALIAS libzstd_static)
-        add_library(zstd::libzstd ALIAS libzstd_static)
-    endif()
-
-    if (NOT YUZU_STATIC_ROOM)
-        # nlohmann
-        AddJsonPackage(nlohmann)
-
-        # zlib
-        AddJsonPackage(zlib)
-
-        if (ZLIB_ADDED)
-            add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    if (NOT MSVC OR CXX_CLANG)
+        # boost sucks
+        if (PLATFORM_SUN)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthreads")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthreads")
         endif()
 
-        # Opus
-        AddJsonPackage(opus)
+        target_compile_options(boost_heap INTERFACE -Wno-shadow)
+        target_compile_options(boost_icl INTERFACE -Wno-shadow)
+        target_compile_options(boost_asio INTERFACE -Wno-conversion -Wno-implicit-fallthrough)
+    endif()
+endif()
 
-        if (Opus_ADDED)
-            if (MSVC AND CXX_CLANG)
-                target_compile_options(opus PRIVATE
-                    -Wno-implicit-function-declaration
-                )
-            endif()
-        endif()
+# fmt
+AddJsonPackage(fmt)
 
-        if (NOT TARGET Opus::opus)
-            add_library(Opus::opus ALIAS opus)
+# lz4
+AddJsonPackage(lz4)
+
+if (lz4_ADDED)
+    add_library(lz4::lz4 ALIAS lz4_static)
+endif()
+
+# zstd
+AddJsonPackage(zstd)
+
+if (zstd_ADDED)
+    add_library(zstd::zstd ALIAS libzstd_static)
+    add_library(zstd::libzstd ALIAS libzstd_static)
+endif()
+
+if (NOT YUZU_STATIC_ROOM)
+    # nlohmann
+    AddJsonPackage(nlohmann)
+
+    # zlib
+    AddJsonPackage(zlib)
+
+    if (ZLIB_ADDED)
+        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    endif()
+
+    # Opus
+    AddJsonPackage(opus)
+
+    if (Opus_ADDED)
+        if (MSVC AND CXX_CLANG)
+            target_compile_options(opus PRIVATE
+                -Wno-implicit-function-declaration
+            )
         endif()
     endif()
-else()
-    # TODO: we can probably just use CPM for this... right?
-    # Enforce the search mode of non-required packages for better and shorter failure messages
-    find_package(fmt 8 REQUIRED)
 
-    if (NOT YUZU_DISABLE_LLVM)
-        find_package(LLVM MODULE COMPONENTS Demangle)
+    if (NOT TARGET Opus::opus)
+        add_library(Opus::opus ALIAS opus)
     endif()
-
-    find_package(nlohmann_json 3.8 REQUIRED)
-    find_package(lz4 REQUIRED)
-    find_package(RenderDoc MODULE)
-    find_package(stb MODULE)
-
-    find_package(Opus 1.3 MODULE REQUIRED)
-
-    find_package(ZLIB 1.2 REQUIRED)
-    find_package(zstd 1.5 REQUIRED MODULE)
-
-    # wow
-    find_package(Boost 1.57.0 CONFIG REQUIRED OPTIONAL_COMPONENTS headers context system fiber filesystem)
 endif()
 
 if(NOT TARGET Boost::headers)
