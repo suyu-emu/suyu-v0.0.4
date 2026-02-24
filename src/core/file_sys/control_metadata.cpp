@@ -108,7 +108,34 @@ NACP::NACP(VirtualFile file)
 NACP::~NACP() = default;
 
 const LanguageEntry& NACP::GetLanguageEntry() const {
-    u32 index = static_cast<u32>(Settings::values.language_index.GetValue());
+
+    auto const language = []{
+        switch (Settings::values.language_index.GetValue()) {
+        case Settings::Language::Chinese: return Language::SimplifiedChinese;
+        case Settings::Language::ChineseSimplified: return Language::SimplifiedChinese;
+        case Settings::Language::ChineseTraditional: return Language::TraditionalChinese;
+        case Settings::Language::Dutch: return Language::Dutch;
+        case Settings::Language::EnglishAmerican: return Language::AmericanEnglish;
+        case Settings::Language::EnglishBritish: return Language::BritishEnglish;
+        case Settings::Language::French: return Language::French;
+        case Settings::Language::FrenchCanadian: return Language::CanadianFrench;
+        case Settings::Language::German: return Language::German;
+        case Settings::Language::Italian: return Language::Italian;
+        case Settings::Language::Korean: return Language::Korean;
+        case Settings::Language::Japanese: return Language::Japanese;
+        case Settings::Language::Portuguese: return Language::Portuguese;
+        case Settings::Language::PortugueseBrazilian: return Language::BrazilianPortuguese;
+        case Settings::Language::Russian: return Language::Russian;
+        case Settings::Language::Spanish: return Language::Spanish;
+        case Settings::Language::SpanishLatin: return Language::LatinAmericanSpanish;
+        case Settings::Language::Taiwanese: return Language::SimplifiedChinese;
+        case Settings::Language::Thai: return Language::Thai;
+        case Settings::Language::Polish: return Language::Polish;
+        default: return Language::AmericanEnglish;
+        }
+    }();
+
+    u32 index = u32(language);
 
     if (index < language_entries.size() && !language_entries[index].GetApplicationName().empty()) {
         return language_entries[index];
