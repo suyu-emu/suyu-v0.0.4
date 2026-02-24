@@ -7,6 +7,9 @@
  */
 #pragma once
 
+#include <bitset>
+#include <xbyak/xbyak.h>
+
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 #include "dynarmic/backend/x64/xbyak.h"
@@ -106,13 +109,18 @@ constexpr size_t HostLocBitWidth(HostLoc loc) {
     UNREACHABLE();
 }
 
-using HostLocList = std::initializer_list<HostLoc>;
+constexpr std::bitset<32> BuildRegSet(std::initializer_list<HostLoc> regs) {
+    size_t bits = 0;
+    for (auto const& reg : regs)
+        bits |= size_t{1} << size_t(reg);
+    return {bits};
+}
 
 // RSP is preserved for function calls
 // R13 contains fastmem pointer if any
 // R14 contains the pagetable pointer
 // R15 contains the JitState pointer
-const HostLocList any_gpr = {
+const std::bitset<32> any_gpr = BuildRegSet({
     HostLoc::RAX,
     HostLoc::RBX,
     HostLoc::RCX,
@@ -128,13 +136,13 @@ const HostLocList any_gpr = {
     HostLoc::R13,
     HostLoc::R14,
     //HostLoc::R15,
-};
+});
 
 // XMM0 is reserved for use by instructions that implicitly use it as an argument
 // XMM1 is used by 128 mem accessors
 // XMM2 is also used by that (and other stuff)
 // Basically dont use either XMM0, XMM1 or XMM2 ever; they're left for the regsel
-const HostLocList any_xmm = {
+const std::bitset<32> any_xmm = BuildRegSet({
     //HostLoc::XMM1,
     //HostLoc::XMM2,
     HostLoc::XMM3,
@@ -150,7 +158,7 @@ const HostLocList any_xmm = {
     HostLoc::XMM13,
     HostLoc::XMM14,
     HostLoc::XMM15,
-};
+});
 
 inline Xbyak::Reg64 HostLocToReg64(HostLoc loc) noexcept {
     ASSERT(HostLocIsGPR(loc));

@@ -6,19 +6,19 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "dynarmic/backend/x64/reg_alloc.h"
-
 #include <algorithm>
 #include <limits>
 #include <numeric>
 #include <utility>
 
 #include <fmt/ostream.h>
+#include "dynarmic/backend/x64/hostloc.h"
 #include "dynarmic/common/assert.h"
 #include <bit>
 #include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/abi.h"
+#include "dynarmic/backend/x64/reg_alloc.h"
 #include "dynarmic/backend/x64/stack_layout.h"
 #include "dynarmic/backend/x64/verbose_debugging_output.h"
 
@@ -185,9 +185,8 @@ bool Argument::IsInMemory(RegAlloc& reg_alloc) const noexcept {
     return HostLocIsSpill(*reg_alloc.ValueLocation(value.GetInst()));
 }
 
-RegAlloc::RegAlloc(boost::container::static_vector<HostLoc, 28> gpr_order, boost::container::static_vector<HostLoc, 28> xmm_order) noexcept
-    : gpr_order(gpr_order),
-    xmm_order(xmm_order)
+RegAlloc::RegAlloc(std::bitset<32> gpr_order, std::bitset<32> xmm_order) noexcept
+    : gpr_order(gpr_order), xmm_order(xmm_order)
 {}
 
 RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(const IR::Inst* inst) noexcept {
@@ -237,7 +236,7 @@ Xbyak::Xmm RegAlloc::UseScratchXmm(BlockOfCode& code, Argument& arg) noexcept {
 void RegAlloc::UseScratch(BlockOfCode& code, Argument& arg, HostLoc host_loc) noexcept {
     ASSERT(!arg.allocated);
     arg.allocated = true;
-    UseScratchImpl(code, arg.value, {host_loc});
+    UseScratchImpl(code, arg.value, BuildRegSet({host_loc}));
 }
 
 void RegAlloc::DefineValue(BlockOfCode& code, IR::Inst* inst, const Xbyak::Reg& reg) noexcept {
@@ -258,7 +257,7 @@ void RegAlloc::Release(const Xbyak::Reg& reg) noexcept {
     LocInfo(hostloc).ReleaseOne();
 }
 
-HostLoc RegAlloc::UseImpl(BlockOfCode& code, IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept {
+HostLoc RegAlloc::UseImpl(BlockOfCode& code, IR::Value use_value, std::bitset<32> desired_locations) noexcept {
     if (use_value.IsImmediate()) {
         return LoadImmediate(code, use_value, ScratchImpl(code, desired_locations));
     }
@@ -266,8 +265,7 @@ HostLoc RegAlloc::UseImpl(BlockOfCode& code, IR::Value use_value, const boost::c
     auto const* use_inst = use_value.GetInst();
     HostLoc const current_location = *ValueLocation(use_inst);
 
-    const bool can_use_current_location = std::find(desired_locations.begin(), desired_locations.end(), current_location) != desired_locations.end();
-    if (can_use_current_location) {
+    if (HostLocIsRegister(current_location) && desired_locations.test(size_t(current_location))) {
         LocInfo(current_location).ReadLock();
         return current_location;
     }
@@ -290,7 +288,7 @@ HostLoc RegAlloc::UseImpl(BlockOfCode& code, IR::Value use_value, const boost::c
     return destination_location;
 }
 
-HostLoc RegAlloc::UseScratchImpl(BlockOfCode& code, IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept {
+HostLoc RegAlloc::UseScratchImpl(BlockOfCode& code, IR::Value use_value, std::bitset<32> desired_locations) noexcept {
     if (use_value.IsImmediate()) {
         return LoadImmediate(code, use_value, ScratchImpl(code, desired_locations));
     }
@@ -298,9 +296,7 @@ HostLoc RegAlloc::UseScratchImpl(BlockOfCode& code, IR::Value use_value, const b
     const auto* use_inst = use_value.GetInst();
     const HostLoc current_location = *ValueLocation(use_inst);
     const size_t bit_width = GetBitWidth(use_inst->GetType());
-
-    const bool can_use_current_location = std::find(desired_locations.begin(), desired_locations.end(), current_location) != desired_locations.end();
-    if (can_use_current_location && !LocInfo(current_location).IsLocked()) {
+    if (HostLocIsRegister(current_location) && desired_locations.test(size_t(current_location)) && !LocInfo(current_location).IsLocked()) {
         if (LocInfo(current_location).IsLastUse()) {
             LocInfo(current_location).is_set_last_use = true;
         } else {
@@ -317,7 +313,7 @@ HostLoc RegAlloc::UseScratchImpl(BlockOfCode& code, IR::Value use_value, const b
     return destination_location;
 }
 
-HostLoc RegAlloc::ScratchImpl(BlockOfCode& code, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept {
+HostLoc RegAlloc::ScratchImpl(BlockOfCode& code, std::bitset<32> desired_locations) noexcept {
     const HostLoc location = SelectARegister(desired_locations);
     MoveOutOfTheWay(code, location);
     LocInfo(location).WriteLock();
@@ -336,11 +332,11 @@ void RegAlloc::HostCall(
     constexpr std::array<HostLoc, args_count> args_hostloc = {ABI_PARAM1, ABI_PARAM2, ABI_PARAM3, ABI_PARAM4};
     const std::array<std::optional<Argument::copyable_reference>, args_count> args = {arg0, arg1, arg2, arg3};
 
-    static const boost::container::static_vector<HostLoc, 28> other_caller_save = [args_hostloc]() noexcept {
-        boost::container::static_vector<HostLoc, 28> ret(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end());
-        ret.erase(std::find(ret.begin(), ret.end(), ABI_RETURN));
+    static const std::bitset<32> other_caller_save = [args_hostloc]() noexcept {
+        std::bitset<32> ret = ABI_ALL_CALLER_SAVE;
+        ret.reset(size_t(ABI_RETURN));
         for (auto const hostloc : args_hostloc)
-            ret.erase(std::find(ret.begin(), ret.end(), hostloc));
+            ret.reset(size_t(hostloc));
         return ret;
     }();
 
@@ -356,9 +352,11 @@ void RegAlloc::HostCall(
         }
     }
     // Must match with with ScratchImpl
-    for (auto const gpr : other_caller_save) {
-        MoveOutOfTheWay(code, gpr);
-        LocInfo(gpr).WriteLock();
+    for (size_t i = 0; i < other_caller_save.size(); ++i) {
+        if (other_caller_save[i]) {
+            MoveOutOfTheWay(code, HostLoc(i));
+            LocInfo(HostLoc(i)).WriteLock();
+        }
     }
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i] && !args[i]->get().IsVoid()) {
@@ -397,46 +395,48 @@ void RegAlloc::ReleaseStackSpace(BlockOfCode& code, const size_t stack_space) no
     code.add(code.rsp, u32(stack_space));
 }
 
-HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc, 28>& desired_locations) const noexcept {
+HostLoc RegAlloc::SelectARegister(std::bitset<32> desired_locations) const noexcept {
     // TODO(lizzie): Overspill causes issues (reads to 0 and such) on some games, I need to make a testbench
     // to later track this down - however I just modified the LRU algo so it prefers empty registers first
     // we need to test high register pressure (and spills, maybe 32 regs?)
-
+    static_assert(size_t(HostLoc::FirstSpill) >= 32);
     // Selects the best location out of the available locations.
     // NOTE: Using last is BAD because new REX prefix for each insn using the last regs
     // TODO: Actually do LRU or something. Currently we just try to pick something without a value if possible.
     auto min_lru_counter = size_t(-1);
-    auto it_candidate = desired_locations.cend(); //default fallback if everything fails
-    auto it_rex_candidate = desired_locations.cend();
-    auto it_empty_candidate = desired_locations.cend();
-    for (auto it = desired_locations.cbegin(); it != desired_locations.cend(); it++) {
-        auto const& loc_info = LocInfo(*it);
-        DEBUG_ASSERT(*it != ABI_JIT_PTR);
-        // Abstain from using upper registers unless absolutely nescesary
-        if (loc_info.IsLocked()) {
-            // skip, not suitable for allocation
-        // While R13 and R14 are technically available, we avoid allocating for them
-        // at all costs, because theoretically skipping them is better than spilling
-        // all over the place - it also fixes bugs with high reg pressure
-        } else if (*it >= HostLoc::R13 && *it <= HostLoc::R15) {
-            // skip, do not touch
-        // Intel recommends to reuse registers as soon as they're overwritable (DO NOT SPILL)
-        } else if (loc_info.IsEmpty()) {
-            it_empty_candidate = it;
-            break;
-        // No empty registers for some reason (very evil) - just do normal LRU
-        } else if (loc_info.lru_counter < min_lru_counter) {
-            // Otherwise a "quasi"-LRU
-            min_lru_counter = loc_info.lru_counter;
-            if (*it >= HostLoc::R8 && *it <= HostLoc::R15) {
-                it_rex_candidate = it;
-            } else {
-                it_candidate = it;
+    auto it_candidate = HostLoc::FirstSpill; //default fallback if everything fails
+    auto it_rex_candidate = HostLoc::FirstSpill;
+    auto it_empty_candidate = HostLoc::FirstSpill;
+    for (HostLoc i = HostLoc(0); i < HostLoc(desired_locations.size()); i = HostLoc(size_t(i) + 1)) {
+        if (desired_locations.test(size_t(i))) {
+            auto const& loc_info = LocInfo(i);
+            DEBUG_ASSERT(i != ABI_JIT_PTR);
+            // Abstain from using upper registers unless absolutely nescesary
+            if (loc_info.IsLocked()) {
+                // skip, not suitable for allocation
+            // While R13 and R14 are technically available, we avoid allocating for them
+            // at all costs, because theoretically skipping them is better than spilling
+            // all over the place - i also fixes bugs with high reg pressure
+            } else if (i >= HostLoc::R13 && i <= HostLoc::R15) {
+                // skip, do not touch
+            // Intel recommends to reuse registers as soon as they're overwritable (DO NOT SPILL)
+            } else if (loc_info.IsEmpty()) {
+                it_empty_candidate = i;
+                break;
+            // No empty registers for some reason (very evil) - just do normal LRU
+            } else if (loc_info.lru_counter < min_lru_counter) {
+                // Otherwise a "quasi"-LRU
+                min_lru_counter = loc_info.lru_counter;
+                if (i >= HostLoc::R8 && i <= HostLoc::R15) {
+                    it_rex_candidate = i;
+                } else {
+                    it_candidate = i;
+                }
+                // There used to be a break here - DO NOT BREAK away you MUST
+                // evaluate ALL of the registers BEFORE making a decision on when to take
+                // otherwise reg pressure will get high and bugs will seep :)
+                // TODO(lizzie): Investigate these god awful annoying reg pressure issues
             }
-            // There used to be a break here - DO NOT BREAK away you MUST
-            // evaluate ALL of the registers BEFORE making a decision on when to take
-            // otherwise reg pressure will get high and bugs will seep :)
-            // TODO(lizzie): Investigate these god awful annoying reg pressure issues
         }
     }
     // Final resolution goes as follows:
@@ -445,13 +445,13 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
     // 3 => Try using a REX prefixed one
     // We avoid using REX-addressable registers because they add +1 REX prefix which
     // do we really need? The trade-off may not be worth it.
-    auto const it_final = it_empty_candidate != desired_locations.cend()
-        ? it_empty_candidate : it_candidate != desired_locations.cend()
+    auto const it_final = it_empty_candidate != HostLoc::FirstSpill
+        ? it_empty_candidate : it_candidate != HostLoc::FirstSpill
         ? it_candidate : it_rex_candidate;
-    ASSERT(it_final != desired_locations.cend() && "All candidate registers have already been allocated");
+    ASSERT(it_final != HostLoc::FirstSpill && "All candidate registers have already been allocated");
     // Evil magic - increment LRU counter (will wrap at 256)
-    const_cast<RegAlloc*>(this)->LocInfo(*it_final).lru_counter++;
-    return *it_final;
+    const_cast<RegAlloc*>(this)->LocInfo(HostLoc(it_final)).lru_counter++;
+    return HostLoc(it_final);
 }
 
 std::optional<HostLoc> RegAlloc::ValueLocation(const IR::Inst* value) const noexcept {

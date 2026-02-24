@@ -102,19 +102,14 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
     }
 
     code.EnableWriting();
-
-    const boost::container::static_vector<HostLoc, 28> gpr_order = [this] {
-        boost::container::static_vector<HostLoc, 28> gprs{any_gpr};
-        if (conf.fastmem_pointer) {
-            gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R13));
-        }
-        if (conf.page_table) {
-            gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R14));
-        }
+    new (&this->reg_alloc) RegAlloc([this] {
+        std::bitset<32> gprs{any_gpr};
+        if (conf.fastmem_pointer)
+            gprs.reset(size_t(HostLoc::R13));
+        if (conf.page_table)
+            gprs.reset(size_t(HostLoc::R14));
         return gprs;
-    }();
-
-    new (&this->reg_alloc) RegAlloc(gpr_order, any_xmm);
+    }(), any_xmm);
     A32EmitContext ctx{conf, reg_alloc, block};
 
     // Start emitting.

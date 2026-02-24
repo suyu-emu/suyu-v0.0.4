@@ -139,7 +139,7 @@ class RegAlloc final {
 public:
     using ArgumentInfo = std::array<Argument, IR::max_arg_count>;
     RegAlloc() noexcept = default;
-    RegAlloc(boost::container::static_vector<HostLoc, 28> gpr_order, boost::container::static_vector<HostLoc, 28> xmm_order) noexcept;
+    RegAlloc(std::bitset<32> gpr_order, std::bitset<32> xmm_order) noexcept;
 
     ArgumentInfo GetArgumentInfo(const IR::Inst* inst) noexcept;
     void RegisterPseudoOperation(const IR::Inst* inst) noexcept;
@@ -162,7 +162,7 @@ public:
     inline void Use(BlockOfCode& code, Argument& arg, const HostLoc host_loc) noexcept {
         ASSERT(!arg.allocated);
         arg.allocated = true;
-        UseImpl(code, arg.value, {host_loc});
+        UseImpl(code, arg.value, BuildRegSet({host_loc}));
     }
 
     Xbyak::Reg64 UseScratchGpr(BlockOfCode& code, Argument& arg) noexcept;
@@ -178,13 +178,13 @@ public:
         return HostLocToReg64(ScratchImpl(code, gpr_order));
     }
     inline Xbyak::Reg64 ScratchGpr(BlockOfCode& code, const HostLoc desired_location) noexcept {
-        return HostLocToReg64(ScratchImpl(code, {desired_location}));
+        return HostLocToReg64(ScratchImpl(code, BuildRegSet({desired_location})));
     }
     inline Xbyak::Xmm ScratchXmm(BlockOfCode& code) noexcept {
         return HostLocToXmm(ScratchImpl(code, xmm_order));
     }
     inline Xbyak::Xmm ScratchXmm(BlockOfCode& code, HostLoc desired_location) noexcept {
-        return HostLocToXmm(ScratchImpl(code, {desired_location}));
+        return HostLocToXmm(ScratchImpl(code, BuildRegSet({desired_location})));
     }
 
     void HostCall(
@@ -216,11 +216,11 @@ public:
 private:
     friend struct Argument;
 
-    HostLoc SelectARegister(const boost::container::static_vector<HostLoc, 28>& desired_locations) const noexcept;
+    HostLoc SelectARegister(std::bitset<32> desired_locations) const noexcept;
     std::optional<HostLoc> ValueLocation(const IR::Inst* value) const noexcept;
-    HostLoc UseImpl(BlockOfCode& code, IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
-    HostLoc UseScratchImpl(BlockOfCode& code, IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
-    HostLoc ScratchImpl(BlockOfCode& code, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept;
+    HostLoc UseImpl(BlockOfCode& code, IR::Value use_value, std::bitset<32> desired_locations) noexcept;
+    HostLoc UseScratchImpl(BlockOfCode& code, IR::Value use_value, std::bitset<32> desired_locations) noexcept;
+    HostLoc ScratchImpl(BlockOfCode& code, std::bitset<32> desired_locations) noexcept;
     void DefineValueImpl(BlockOfCode& code, IR::Inst* def_inst, HostLoc host_loc) noexcept;
     void DefineValueImpl(BlockOfCode& code, IR::Inst* def_inst, const IR::Value& use_inst) noexcept;
 
@@ -246,12 +246,10 @@ private:
     void EmitExchange(BlockOfCode& code, const HostLoc a, const HostLoc b) noexcept;
 
 //data
-    alignas(64) boost::container::static_vector<HostLoc, 28> gpr_order;
-    alignas(64) boost::container::static_vector<HostLoc, 28> xmm_order;
     alignas(64) std::array<HostLocInfo, NonSpillHostLocCount + SpillCount> hostloc_info;
+    std::bitset<32> gpr_order;
+    std::bitset<32> xmm_order;
     size_t reserved_stack_space = 0;
 };
-// Ensure a cache line (or less) is used, this is primordial
-static_assert(sizeof(boost::container::static_vector<HostLoc, 28>) < 64);
 
 }  // namespace Dynarmic::Backend::X64

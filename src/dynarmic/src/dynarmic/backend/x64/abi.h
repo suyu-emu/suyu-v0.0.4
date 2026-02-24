@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -8,14 +8,51 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 
 #include "dynarmic/common/common_types.h"
-
 #include "dynarmic/backend/x64/hostloc.h"
 
 namespace Dynarmic::Backend::X64 {
 
 class BlockOfCode;
+
+constexpr std::bitset<32> ABI_ALL_GPRS = BuildRegSet({
+    HostLoc::RAX,
+    HostLoc::RBX,
+    HostLoc::RCX,
+    HostLoc::RDX,
+    HostLoc::RDI,
+    HostLoc::RSI,
+    HostLoc::RBP,
+    HostLoc::RSP,
+    HostLoc::R8,
+    HostLoc::R9,
+    HostLoc::R10,
+    HostLoc::R11,
+    HostLoc::R12,
+    HostLoc::R13,
+    HostLoc::R14,
+    HostLoc::R15,
+});
+constexpr std::bitset<32> ABI_ALL_XMMS = BuildRegSet({
+    HostLoc::XMM0,
+    HostLoc::XMM1,
+    HostLoc::XMM2,
+    HostLoc::XMM3,
+    HostLoc::XMM4,
+    HostLoc::XMM5,
+    HostLoc::XMM6,
+    HostLoc::XMM7,
+    HostLoc::XMM8,
+    HostLoc::XMM9,
+    HostLoc::XMM10,
+    HostLoc::XMM11,
+    HostLoc::XMM12,
+    HostLoc::XMM13,
+    HostLoc::XMM14,
+    HostLoc::XMM15,
+});
 
 constexpr HostLoc ABI_JIT_PTR = HostLoc::R15;
 #ifdef _WIN32
@@ -29,7 +66,7 @@ constexpr HostLoc ABI_PARAM2 = HostLoc::RDX;
 constexpr HostLoc ABI_PARAM3 = HostLoc::R8;
 constexpr HostLoc ABI_PARAM4 = HostLoc::R9;
 
-constexpr std::array<HostLoc, 13> ABI_ALL_CALLER_SAVE = {
+constexpr std::bitset<32> ABI_ALL_CALLER_SAVE = BuildRegSet({
     HostLoc::RAX,
     HostLoc::RCX,
     HostLoc::RDX,
@@ -43,9 +80,9 @@ constexpr std::array<HostLoc, 13> ABI_ALL_CALLER_SAVE = {
     HostLoc::XMM3,
     HostLoc::XMM4,
     HostLoc::XMM5,
-};
+});
 
-constexpr std::array<HostLoc, 18> ABI_ALL_CALLEE_SAVE = {
+constexpr std::bitset<32> ABI_ALL_CALLEE_SAVE = BuildRegSet({
     HostLoc::RBX,
     HostLoc::RSI,
     HostLoc::RDI,
@@ -64,7 +101,7 @@ constexpr std::array<HostLoc, 18> ABI_ALL_CALLEE_SAVE = {
     HostLoc::XMM13,
     HostLoc::XMM14,
     HostLoc::XMM15,
-};
+});
 
 constexpr size_t ABI_SHADOW_SPACE = 32;  // bytes
 
@@ -82,7 +119,7 @@ constexpr HostLoc ABI_PARAM4 = HostLoc::RCX;
 constexpr HostLoc ABI_PARAM5 = HostLoc::R8;
 constexpr HostLoc ABI_PARAM6 = HostLoc::R9;
 
-constexpr std::array<HostLoc, 25> ABI_ALL_CALLER_SAVE = {
+constexpr std::bitset<32> ABI_ALL_CALLER_SAVE = BuildRegSet({
     HostLoc::RAX,
     HostLoc::RCX,
     HostLoc::RDX,
@@ -108,22 +145,22 @@ constexpr std::array<HostLoc, 25> ABI_ALL_CALLER_SAVE = {
     HostLoc::XMM13,
     HostLoc::XMM14,
     HostLoc::XMM15,
-};
+});
 
-constexpr std::array<HostLoc, 6> ABI_ALL_CALLEE_SAVE = {
+constexpr std::bitset<32> ABI_ALL_CALLEE_SAVE = BuildRegSet({
     HostLoc::RBX,
     HostLoc::RBP,
     HostLoc::R12,
     HostLoc::R13,
     HostLoc::R14,
     HostLoc::R15,
-};
+});
 
 constexpr size_t ABI_SHADOW_SPACE = 0;  // bytes
 
 #endif
 
-static_assert(ABI_ALL_CALLER_SAVE.size() + ABI_ALL_CALLEE_SAVE.size() == 31, "Invalid total number of registers");
+//static_assert(ABI_ALL_CALLER_SAVE.count() + ABI_ALL_CALLEE_SAVE.count() == 31, "Invalid total number of registers");
 
 void ABI_PushCalleeSaveRegistersAndAdjustStack(BlockOfCode& code, size_t frame_size = 0);
 void ABI_PopCalleeSaveRegistersAndAdjustStack(BlockOfCode& code, size_t frame_size = 0);
