@@ -805,47 +805,94 @@ void BufferCache<P>::UpdateVertexBufferSlot(u32 index, const Binding& binding) {
 
 template <class P>
 void BufferCache<P>::BindHostVertexBuffers() {
-    auto& flags = maxwell3d->dirty.flags;
-    u32 enabled_mask = enabled_vertex_buffers_mask;
-    HostBindings<Buffer> bindings{};
-    u32 last_index = std::numeric_limits<u32>::max();
-    const auto flush_bindings = [&]() {
-        if (bindings.buffers.empty()) {
-            return;
+
+#ifdef ANDROID
+    const bool use_optimized_vertex_buffers = Settings::values.use_optimized_vertex_buffers.GetValue();
+#else
+    constexpr bool use_optimized_vertex_buffers = true;
+#endif
+
+    if (use_optimized_vertex_buffers) {
+        auto& flags = maxwell3d->dirty.flags;
+        u32 enabled_mask = enabled_vertex_buffers_mask;
+        HostBindings<Buffer> bindings{};
+        u32 last_index = std::numeric_limits<u32>::max();
+        const auto flush_bindings = [&]() {
+            if (bindings.buffers.empty()) {
+                return;
+            }
+            bindings.max_index = bindings.min_index + static_cast<u32>(bindings.buffers.size());
+            runtime.BindVertexBuffers(bindings);
+            bindings = HostBindings<Buffer>{};
+            last_index = std::numeric_limits<u32>::max();
+        };
+        while (enabled_mask != 0) {
+            const u32 index = std::countr_zero(enabled_mask);
+            enabled_mask &= (enabled_mask - 1);
+            const Binding& binding = VertexBufferSlot(index);
+            Buffer& buffer = slot_buffers[binding.buffer_id];
+            TouchBuffer(buffer, binding.buffer_id);
+            SynchronizeBuffer(buffer, binding.device_addr, binding.size);
+            if (!flags[Dirty::VertexBuffer0 + index]) {
+                flush_bindings();
+                continue;
+            }
+            flags[Dirty::VertexBuffer0 + index] = false;
+            const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
+            const u32 offset = buffer.Offset(binding.device_addr);
+            buffer.MarkUsage(offset, binding.size);
+            if (!bindings.buffers.empty() && index != last_index + 1) {
+                flush_bindings();
+            }
+            if (bindings.buffers.empty()) {
+                bindings.min_index = index;
+            }
+            bindings.buffers.push_back(&buffer);
+            bindings.offsets.push_back(offset);
+            bindings.sizes.push_back(binding.size);
+            bindings.strides.push_back(stride);
+            last_index = index;
         }
-        bindings.max_index = bindings.min_index + static_cast<u32>(bindings.buffers.size());
-        runtime.BindVertexBuffers(bindings);
-        bindings = HostBindings<Buffer>{};
-        last_index = std::numeric_limits<u32>::max();
-    };
-    while (enabled_mask != 0) {
-        const u32 index = std::countr_zero(enabled_mask);
-        enabled_mask &= (enabled_mask - 1);
-        const Binding& binding = VertexBufferSlot(index);
-        Buffer& buffer = slot_buffers[binding.buffer_id];
-        TouchBuffer(buffer, binding.buffer_id);
-        SynchronizeBuffer(buffer, binding.device_addr, binding.size);
-        if (!flags[Dirty::VertexBuffer0 + index]) {
-            flush_bindings();
-            continue;
+        flush_bindings();
+    } else {
+        HostBindings<typename P::Buffer> host_bindings;
+        bool any_valid{false};
+        auto& flags = maxwell3d->dirty.flags;
+        for (u32 index = 0; index < NUM_VERTEX_BUFFERS; ++index) {
+            const Binding& binding = channel_state->vertex_buffers[index];
+            Buffer& buffer = slot_buffers[binding.buffer_id];
+            TouchBuffer(buffer, binding.buffer_id);
+            SynchronizeBuffer(buffer, binding.device_addr, binding.size);
+            if (!flags[Dirty::VertexBuffer0 + index]) {
+                continue;
+            }
+            flags[Dirty::VertexBuffer0 + index] = false;
+
+            host_bindings.min_index = (std::min)(host_bindings.min_index, index);
+            host_bindings.max_index = (std::max)(host_bindings.max_index, index);
+            any_valid = true;
         }
-        flags[Dirty::VertexBuffer0 + index] = false;
-        const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
-        const u32 offset = buffer.Offset(binding.device_addr);
-        buffer.MarkUsage(offset, binding.size);
-        if (!bindings.buffers.empty() && index != last_index + 1) {
-            flush_bindings();
+
+        if (any_valid) {
+            host_bindings.max_index++;
+            for (u32 index = host_bindings.min_index; index < host_bindings.max_index; index++) {
+                flags[Dirty::VertexBuffer0 + index] = false;
+
+                const Binding& binding = channel_state->vertex_buffers[index];
+                Buffer& buffer = slot_buffers[binding.buffer_id];
+
+                const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
+                const u32 offset = buffer.Offset(binding.device_addr);
+                buffer.MarkUsage(offset, binding.size);
+
+                host_bindings.buffers.push_back(&buffer);
+                host_bindings.offsets.push_back(offset);
+                host_bindings.sizes.push_back(binding.size);
+                host_bindings.strides.push_back(stride);
+            }
+            runtime.BindVertexBuffers(host_bindings);
         }
-        if (bindings.buffers.empty()) {
-            bindings.min_index = index;
-        }
-        bindings.buffers.push_back(&buffer);
-        bindings.offsets.push_back(offset);
-        bindings.sizes.push_back(binding.size);
-        bindings.strides.push_back(stride);
-        last_index = index;
     }
-    flush_bindings();
 }
 
 template <class P>

@@ -519,6 +519,16 @@ struct Values {
                                                   true,
                                                   true};
 
+#ifdef ANDROID
+    SwitchableSetting<bool> use_optimized_vertex_buffers{linkage,
+                                                 false,
+                                                 "use_optimized_vertex_buffers",
+                                                 Category::RendererAdvanced,
+                                                 Specialization::Default,
+                                                 true,
+                                                 true};
+#endif
+
     // Renderer Hacks //
     SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
                                                   GpuOverclock::Medium,

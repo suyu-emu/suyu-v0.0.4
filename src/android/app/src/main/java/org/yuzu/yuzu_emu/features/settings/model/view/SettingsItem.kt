@@ -797,6 +797,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.USE_OPTIMIZED_VERTEX_BUFFERS,
+                    titleId = R.string.use_optimized_vertex_buffers,
+                    descriptionId = R.string.use_optimized_vertex_buffers_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.SYNC_MEMORY_OPERATIONS,
                     titleId = R.string.sync_memory_operations,
                     descriptionId = R.string.sync_memory_operations_description

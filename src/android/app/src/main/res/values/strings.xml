@@ -500,7 +500,8 @@
     <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
     <string name="enable_buffer_history">Enable buffer history</string>
     <string name="enable_buffer_history_description">Enables access to previous buffer states. This option may improve rendering quality and performance consistency in some games.</string>
-
+    <string name="use_optimized_vertex_buffers">Optimized Vertex Buffers</string>
+    <string name="use_optimized_vertex_buffers_description">Enables optimized vertex buffer binding for improved performance. Requires Mesa 26.0+ Turnip drivers. Will crash on older drivers.</string>
 
     <string name="hacks">Hacks</string>
 
