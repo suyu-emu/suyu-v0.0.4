@@ -426,8 +426,8 @@ void Config::ReadValues() {
         ReadServiceValues();
         ReadWebServiceValues();
         ReadMiscellaneousValues();
-        ReadLibraryAppletValues();
     }
+    ReadLibraryAppletValues();
     ReadNetworkValues();
     ReadControlValues();
     ReadCoreValues();
@@ -524,10 +524,10 @@ void Config::SaveValues() {
         SaveDisabledAddOnValues();
         SaveWebServiceValues();
         SaveMiscellaneousValues();
-        SaveLibraryAppletValues();
     } else {
         LOG_DEBUG(Config, "Saving only generic configuration values");
     }
+    SaveLibraryAppletValues();
     SaveNetworkValues();
     SaveControlValues();
     SaveCoreValues();

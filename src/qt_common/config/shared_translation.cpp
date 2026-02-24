@@ -47,7 +47,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings, login_share_applet_mode, tr("Login share"), QString());
     INSERT(Settings, wifi_web_auth_applet_mode, tr("Wifi web auth"), QString());
     INSERT(Settings, my_page_applet_mode, tr("My page"), QString());
-    INSERT(Settings, enable_overlay, tr("Enable Overlay Applet"), QString());
+    INSERT(Settings,
+        enable_overlay,
+        tr("Enable Overlay Applet"),
+        tr("Enables Horizon\'s built-in overlay applet. Press and hold the home button for 1 second to show it."));
 
     // Audio
     INSERT(Settings, sink_id, tr("Output Engine:"), QString());

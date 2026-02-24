@@ -138,29 +138,29 @@ struct Values {
     Linkage linkage{};
 
     // Applet
-    Setting<AppletMode> cabinet_applet_mode{linkage, AppletMode::LLE, "cabinet_applet_mode",
+    SwitchableSetting<AppletMode> cabinet_applet_mode{linkage, AppletMode::LLE, "cabinet_applet_mode",
                                             Category::LibraryApplet};
-    Setting<AppletMode> controller_applet_mode{linkage, AppletMode::HLE, "controller_applet_mode",
+    SwitchableSetting<AppletMode> controller_applet_mode{linkage, AppletMode::HLE, "controller_applet_mode",
                                                Category::LibraryApplet};
     Setting<AppletMode> data_erase_applet_mode{linkage, AppletMode::HLE, "data_erase_applet_mode",
                                                Category::LibraryApplet};
-    Setting<AppletMode> error_applet_mode{linkage, AppletMode::LLE, "error_applet_mode",
+    SwitchableSetting<AppletMode> error_applet_mode{linkage, AppletMode::LLE, "error_applet_mode",
                                           Category::LibraryApplet};
     Setting<AppletMode> net_connect_applet_mode{linkage, AppletMode::LLE, "net_connect_applet_mode",
                                                 Category::LibraryApplet};
-    Setting<AppletMode> player_select_applet_mode{
+    SwitchableSetting<AppletMode> player_select_applet_mode{
                                                   linkage, AppletMode::LLE, "player_select_applet_mode", Category::LibraryApplet};
-    Setting<AppletMode> swkbd_applet_mode{linkage, AppletMode::HLE, "swkbd_applet_mode",
+    SwitchableSetting<AppletMode> swkbd_applet_mode{linkage, AppletMode::HLE, "swkbd_applet_mode",
                                           Category::LibraryApplet};
-    Setting<AppletMode> mii_edit_applet_mode{linkage, AppletMode::LLE, "mii_edit_applet_mode",
+    SwitchableSetting<AppletMode> mii_edit_applet_mode{linkage, AppletMode::LLE, "mii_edit_applet_mode",
                                              Category::LibraryApplet};
-    Setting<AppletMode> web_applet_mode{linkage, AppletMode::HLE, "web_applet_mode",
+    SwitchableSetting<AppletMode> web_applet_mode{linkage, AppletMode::HLE, "web_applet_mode",
                                         Category::LibraryApplet};
     Setting<AppletMode> shop_applet_mode{linkage, AppletMode::HLE, "shop_applet_mode",
                                          Category::LibraryApplet};
-    Setting<AppletMode> photo_viewer_applet_mode{
+    SwitchableSetting<AppletMode> photo_viewer_applet_mode{
                                                  linkage, AppletMode::LLE, "photo_viewer_applet_mode", Category::LibraryApplet};
-    Setting<AppletMode> offline_web_applet_mode{linkage, AppletMode::LLE, "offline_web_applet_mode",
+    SwitchableSetting<AppletMode> offline_web_applet_mode{linkage, AppletMode::LLE, "offline_web_applet_mode",
                                                 Category::LibraryApplet};
     Setting<AppletMode> login_share_applet_mode{linkage, AppletMode::HLE, "login_share_applet_mode",
                                                 Category::LibraryApplet};
@@ -168,6 +168,7 @@ struct Values {
                                                   linkage, AppletMode::HLE, "wifi_web_auth_applet_mode", Category::LibraryApplet};
     Setting<AppletMode> my_page_applet_mode{linkage, AppletMode::LLE, "my_page_applet_mode",
                                             Category::LibraryApplet};
+    SwitchableSetting<bool> enable_overlay{linkage, false, "enable_overlay", Category::LibraryApplet};
 
     // Audio
     SwitchableSetting<AudioEngine> sink_id{linkage, AudioEngine::Auto, "output_engine",
@@ -830,8 +831,6 @@ struct Values {
 
     // Per-game overrides
     bool use_squashed_iterated_blend;
-
-    Setting<bool> enable_overlay{linkage, false, "enable_overlay", Category::Core};
 };
 
 extern Values values;
