@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -74,7 +77,6 @@ private:
     std::atomic<u64> current_tick{1}; ///< Current logical tick.
     std::mutex wait_mutex;
     std::mutex free_mutex;
-    std::condition_variable free_cv;
     std::condition_variable_any wait_cv;
     std::queue<Waitable> wait_queue;  ///< Queue for the fences to be waited on by the wait thread.
     std::deque<vk::Fence> free_queue; ///< Holds available fences for submission.
