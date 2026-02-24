@@ -30,7 +30,7 @@ void Translate(IR::Block& block, LocationDescriptor descriptor, MemoryReadCodeFu
             should_continue = visitor.RaiseException(Exception::NoExecuteFault);
         }
         visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
-        block.cycle_count++;
+        block.CycleCount()++;
     } while (should_continue && !single_step);
 
     if (single_step && should_continue) {
@@ -48,7 +48,7 @@ bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor,
     should_continue = decoder.get().call(visitor, instruction);
 
     visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
-    block.cycle_count++;
+    block.CycleCount()++;
 
     block.SetEndLocation(*visitor.ir.current_location);
 

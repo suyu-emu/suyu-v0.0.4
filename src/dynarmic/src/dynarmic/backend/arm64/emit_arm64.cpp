@@ -212,7 +212,7 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
         oaknut::Label pass;
 
         pass = conf.emit_cond(code, ctx, ctx.block.GetCondition());
-        EmitAddCycles(code, ctx, ctx.block.cond_failed_cycle_count);
+        EmitAddCycles(code, ctx, ctx.block.ConditionFailedCycleCount());
         conf.emit_condition_failed_terminal(code, ctx);
 
         code.l(pass);
@@ -254,7 +254,7 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
 
     reg_alloc.AssertNoMoreUses();
 
-    EmitAddCycles(code, ctx, block.cycle_count);
+    EmitAddCycles(code, ctx, block.CycleCount());
     conf.emit_terminal(code, ctx);
     code.BRK(0);
 

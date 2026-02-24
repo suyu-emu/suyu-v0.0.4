@@ -151,7 +151,7 @@ EmittedBlockInfo EmitRV64(biscuit::Assembler& as, IR::Block block, const EmitCon
     reg_alloc.AssertNoMoreUses();
 
     if (emit_conf.enable_cycle_counting) {
-        const size_t cycles_to_add = block.cycle_count;
+        const size_t cycles_to_add = block.CycleCount();
         as.LD(Xscratch0, offsetof(StackLayout, cycles_remaining), sp);
         if (mcl::bit::sign_extend<12>(-cycles_to_add) == -cycles_to_add) {
             as.ADDI(Xscratch0, Xscratch0, -cycles_to_add);

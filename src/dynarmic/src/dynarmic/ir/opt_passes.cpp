@@ -86,10 +86,12 @@ static void ConstantMemoryReads(IR::Block& block, A32::UserCallbacks* cb) {
 }
 
 static void FlagsPass(IR::Block& block) {
+    using Iterator = typename std::reverse_iterator<IR::Block::iterator>;
+
     struct FlagInfo {
         bool set_not_required = false;
         bool has_value_request = false;
-        IR::Block::reverse_iterator value_request = {};
+        Iterator value_request = {};
     };
     struct ValuelessFlagInfo {
         bool set_not_required = false;
@@ -100,7 +102,7 @@ static void FlagsPass(IR::Block& block) {
     FlagInfo c_flag;
     FlagInfo ge;
 
-    auto do_set = [&](FlagInfo& info, IR::Value value, IR::Block::reverse_iterator inst) {
+    auto do_set = [&](FlagInfo& info, IR::Value value, Iterator inst) {
         if (info.has_value_request) {
             info.value_request->ReplaceUsesWith(value);
         }
@@ -112,14 +114,14 @@ static void FlagsPass(IR::Block& block) {
         info.set_not_required = true;
     };
 
-    auto do_set_valueless = [](ValuelessFlagInfo& info, IR::Block::reverse_iterator inst) {
+    auto do_set_valueless = [&](ValuelessFlagInfo& info, Iterator inst) {
         if (info.set_not_required) {
             inst->Invalidate();
         }
         info.set_not_required = true;
     };
 
-    auto do_get = [](FlagInfo& info, IR::Block::reverse_iterator inst) {
+    auto do_get = [](FlagInfo& info, Iterator inst) {
         if (info.has_value_request) {
             info.value_request->ReplaceUsesWith(IR::Value{&*inst});
         }
@@ -446,8 +448,7 @@ static void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf)
         return;
     }
 
-    for (auto it = block.instructions.begin(); it != block.instructions.end(); it++) {
-        auto& inst = *it;
+    for (auto& inst : block.instructions) {
         if (inst.GetOpcode() != IR::Opcode::A64DataCacheOperationRaised) {
             continue;
         }
@@ -456,7 +457,7 @@ static void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf)
         if (op == A64::DataCacheOperation::ZeroByVA) {
             A64::IREmitter ir{block};
             ir.current_location = A64::LocationDescriptor{IR::LocationDescriptor{inst.GetArg(0).GetU64()}};
-            ir.SetInsertionPointBefore(it);
+            ir.SetInsertionPointBefore(&inst);
 
             size_t bytes = 4 << static_cast<size_t>(conf.dczid_el0 & 0b1111);
             IR::U64 addr{inst.GetArg(2)};
@@ -521,7 +522,7 @@ static void A64GetSetElimination(IR::Block& block) {
     const auto do_set = [&block](RegisterInfo& info, IR::Value value, Iterator set_inst, TrackingType tracking_type) {
         if (info.set_instruction_present) {
             info.last_set_instruction->Invalidate();
-            block.instructions.erase(info.last_set_instruction);
+            block.Instructions().erase(info.last_set_instruction);
         }
         info.register_value = value;
         info.tracking_type = tracking_type;
@@ -540,7 +541,7 @@ static void A64GetSetElimination(IR::Block& block) {
                 ReplaceUsesWith(*get_inst, true, u32(info.register_value.GetImmediateAsU64()));
             } else {
                 A64::IREmitter ir{block};
-                ir.SetInsertionPointBefore(get_inst);
+                ir.SetInsertionPointBefore(&*get_inst);
                 get_inst->ReplaceUsesWith(ir.LeastSignificantWord(IR::U64{info.register_value}));
             }
         } else {
@@ -1209,7 +1210,7 @@ static void IdentityRemovalPass(IR::Block& block) {
             }
         if (it->GetOpcode() == IR::Opcode::Identity || it->GetOpcode() == IR::Opcode::Void) {
             to_invalidate.push_back(&*it);
-            it = block.instructions.erase(it);
+            it = block.Instructions().erase(it);
         } else {
             ++it;
         }
@@ -1369,9 +1370,9 @@ static void PolyfillPass(IR::Block& block, const PolyfillOptions& polyfill) {
 
     IR::IREmitter ir{block};
 
-    for (auto it = block.instructions.begin(); it != block.instructions.end(); it++) {
-        auto& inst = *it;
-        ir.SetInsertionPointBefore(it);
+    for (auto& inst : block.instructions) {
+        ir.SetInsertionPointBefore(&inst);
+
         switch (inst.GetOpcode()) {
         case IR::Opcode::SHA256MessageSchedule0:
             if (polyfill.sha256) {

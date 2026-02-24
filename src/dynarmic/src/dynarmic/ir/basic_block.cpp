@@ -30,26 +30,38 @@ Block::Block(LocationDescriptor location) noexcept
 /// Prepends a new instruction to this basic block before the insertion point,
 /// handling any allocations necessary to do so.
 /// @param insertion_point Where to insert the new instruction.
-/// @param op Opcode representing the instruction to add.
-/// @param args A sequence of Value instances used as arguments for the instruction.
+/// @param op              Opcode representing the instruction to add.
+/// @param args            A sequence of Value instances used as arguments for the instruction.
 /// @returns Iterator to the newly created instruction.
-Block::iterator Block::PrependNewInst(Block::const_iterator insertion_point, Opcode opcode, std::initializer_list<Value> args) noexcept {
+Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, std::initializer_list<Value> args) noexcept {
     // First try using the "inline" buffer, otherwise fallback to a slower slab-like allocation scheme
     // purpouse is to avoid many calls to new/delete which invoke malloc which invokes mmap
     // just pool it!!! - reason why there is an inline buffer is because many small blocks are created
     // with few instructions due to subpar optimisations on other passes... plus branch-heavy code will
     // hugely benefit from the coherency of faster allocations...
-    auto it = instructions.insert(insertion_point, Inst(opcode));
-    DEBUG_ASSERT(args.size() == it->NumArgs());
-    std::for_each(args.begin(), args.end(), [&it, index = size_t(0)](const auto& arg) mutable {
-        it->SetArg(index, arg);
+    IR::Inst* inst;
+    if (inlined_inst.size() < inlined_inst.max_size()) {
+        inlined_inst.emplace_back(opcode);
+        inst = &inlined_inst[inlined_inst.size() - 1];
+    } else {
+        if (pooled_inst.empty() || pooled_inst.back().size() == pooled_inst.back().max_size())
+            pooled_inst.emplace_back();
+        pooled_inst.back().emplace_back(opcode);
+        inst = &pooled_inst.back()[pooled_inst.back().size() - 1];
+    }
+    DEBUG_ASSERT(args.size() == inst->NumArgs());
+    std::for_each(args.begin(), args.end(), [&inst, index = size_t(0)](const auto& arg) mutable {
+        inst->SetArg(index, arg);
         index++;
     });
-    return it;
+    return instructions.insert_before(insertion_point, inst);
 }
 
 void Block::Reset(LocationDescriptor location_) noexcept {
-    instructions.clear();
+    mcl::intrusive_list<IR::Inst> tmp = {};
+    instructions.swap(tmp);
+    inlined_inst.clear();
+    pooled_inst.clear();
     cond_failed.reset();
     location = location_;
     end_location = location_;
@@ -95,7 +107,7 @@ static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
 
 std::string DumpBlock(const IR::Block& block) noexcept {
     std::string ret = fmt::format("Block: location={}-{}\n", block.Location(), block.EndLocation())
-        + fmt::format("cycles={}", block.cycle_count)
+        + fmt::format("cycles={}", block.CycleCount())
         + fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
     if (block.GetCondition() != Cond::AL)
         ret += fmt::format(", cond_fail={}", block.ConditionFailedLocation());

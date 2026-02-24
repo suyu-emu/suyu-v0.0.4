@@ -16,6 +16,7 @@
 #include <boost/container/container_fwd.hpp>
 #include <boost/container/static_vector.hpp>
 #include <boost/container/stable_vector.hpp>
+#include <mcl/container/intrusive_list.hpp>
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/ir/location_descriptor.h"
@@ -32,10 +33,10 @@ enum class Opcode;
 /// Note that this is a linear IR and not a pure tree-based IR: i.e.: there is an ordering to
 /// the microinstructions. This only matters before chaining is done in order to correctly
 /// order memory accesses.
-class Block final {
+class alignas(4096) Block final {
 public:
     //using instruction_list_type = dense_list<Inst>;
-    using instruction_list_type = boost::container::stable_vector<Inst>;
+    using instruction_list_type = mcl::intrusive_list<Inst>;
     using size_type = instruction_list_type::size_type;
     using iterator = instruction_list_type::iterator;
     using const_iterator = instruction_list_type::const_iterator;
@@ -49,8 +50,24 @@ public:
     Block(Block&&) = default;
     Block& operator=(Block&&) = default;
 
-    iterator PrependNewInst(const_iterator insertion_point, Opcode op, std::initializer_list<Value> args) noexcept;
+    /// Appends a new instruction to the end of this basic block,
+    /// handling any allocations necessary to do so.
+    /// @param op   Opcode representing the instruction to add.
+    /// @param args A sequence of Value instances used as arguments for the instruction.
+    inline iterator AppendNewInst(const Opcode opcode, const std::initializer_list<IR::Value> args) noexcept {
+        return PrependNewInst(instructions.end(), opcode, args);
+    }
+    iterator PrependNewInst(iterator insertion_point, Opcode op, std::initializer_list<Value> args) noexcept;
     void Reset(LocationDescriptor location_) noexcept;
+
+    /// Gets a mutable reference to the instruction list for this basic block.
+    inline instruction_list_type& Instructions() noexcept {
+        return instructions;
+    }
+    /// Gets an immutable reference to the instruction list for this basic block.
+    inline const instruction_list_type& Instructions() const noexcept {
+        return instructions;
+    }
 
     /// Gets the starting location for this basic block.
     inline LocationDescriptor Location() const noexcept {
@@ -87,6 +104,15 @@ public:
         return cond_failed.has_value();
     }
 
+    /// Gets a mutable reference to the condition failed cycle count.
+    inline size_t& ConditionFailedCycleCount() noexcept {
+        return cond_failed_cycle_count;
+    }
+    /// Gets an immutable reference to the condition failed cycle count.
+    inline const size_t& ConditionFailedCycleCount() const noexcept {
+        return cond_failed_cycle_count;
+    }
+
     /// Gets the terminal instruction for this basic block.
     inline Terminal GetTerminal() const noexcept {
         return terminal;
@@ -106,8 +132,21 @@ public:
         return terminal.which() != 0;
     }
 
+    /// Gets a mutable reference to the cycle count for this basic block.
+    inline size_t& CycleCount() noexcept {
+        return cycle_count;
+    }
+    /// Gets an immutable reference to the cycle count for this basic block.
+    inline const size_t& CycleCount() const noexcept {
+        return cycle_count;
+    }
+
+    /// "Hot cache" for small blocks so we don't call global allocator
+    boost::container::static_vector<Inst, 30> inlined_inst;
     /// List of instructions in this block.
     instruction_list_type instructions;
+    /// "Long/far" memory pool
+    boost::container::stable_vector<boost::container::static_vector<Inst, 32>> pooled_inst;
     /// Block to execute next if `cond` did not pass.
     std::optional<LocationDescriptor> cond_failed = {};
     /// Description of the starting location of this block
@@ -123,7 +162,7 @@ public:
     /// Number of cycles this block takes to execute.
     size_t cycle_count = 0;
 };
-//static_assert(sizeof(Block) == 120);
+static_assert(sizeof(Block) == 4096);
 
 /// Returns a string representation of the contents of block. Intended for debugging.
 std::string DumpBlock(const IR::Block& block) noexcept;

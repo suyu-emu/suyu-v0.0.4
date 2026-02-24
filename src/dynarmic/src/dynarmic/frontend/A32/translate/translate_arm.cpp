@@ -61,7 +61,7 @@ void TranslateArm(IR::Block& block, LocationDescriptor descriptor, TranslateCall
         }
 
         visitor.ir.current_location = visitor.ir.current_location.AdvancePC(4);
-        block.cycle_count += ticks_for_instruction;
+        block.CycleCount() += ticks_for_instruction;
     } while (should_continue && CondCanContinue(visitor.cond_state, visitor.ir) && !single_step);
 
     if (visitor.cond_state == ConditionalState::Translating || visitor.cond_state == ConditionalState::Trailing || single_step) {
@@ -101,7 +101,7 @@ bool TranslateSingleArmInstruction(IR::Block& block, LocationDescriptor descript
     // TODO: Feedback resulting cond status to caller somehow.
 
     visitor.ir.current_location = visitor.ir.current_location.AdvancePC(4);
-    block.cycle_count += ticks_for_instruction;
+    block.CycleCount() += ticks_for_instruction;
 
     block.SetEndLocation(visitor.ir.current_location);
 
