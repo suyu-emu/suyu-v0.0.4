@@ -49,7 +49,6 @@ if (YUZU_STATIC_ROOM)
 
     # disable e v e r y t h i n g
     set(ENABLE_QT OFF)
-    set(ENABLE_SDL2 OFF)
     set(YUZU_CMD OFF)
     set(ENABLE_CUBEB OFF)
     set(ENABLE_UPDATE_CHECKER OFF)
@@ -171,13 +170,9 @@ if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS_INIT} /W3 /WX-")
 endif()
 
-# Set bundled sdl2/qt as dependent options.
-# On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
-cmake_dependent_option(ENABLE_SDL2 "Enable the SDL2 frontend" ON "NOT ANDROID" OFF)
-
 # TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
-cmake_dependent_option(YUZU_USE_EXTERNAL_SDL2 "Build SDL2 from external source" OFF "ENABLE_SDL2;NOT MSVC" OFF)
-cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "ENABLE_SDL2" OFF)
+cmake_dependent_option(YUZU_USE_EXTERNAL_SDL2 "Build SDL2 from external source" OFF "NOT MSVC;NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "NOT ANDROID" OFF)
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
@@ -220,7 +215,7 @@ option(NIGHTLY_BUILD "Use Nightly qualifiers in the update checker and build met
 cmake_dependent_option(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 cmake_dependent_option(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
 
-cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "ENABLE_SDL2;NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
 
 cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR PLATFORM_LINUX" OFF)
 
@@ -544,7 +539,7 @@ if (NOT YUZU_STATIC_ROOM)
         find_package(oaknut)
     endif()
 
-    if (ENABLE_SDL2)
+    if (NOT ANDROID)
         find_package(SDL2)
     endif()
 

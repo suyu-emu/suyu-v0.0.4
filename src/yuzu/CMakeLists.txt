@@ -431,11 +431,6 @@ if (WIN32 AND NOT YUZU_USE_BUNDLED_QT)
     add_custom_command(TARGET yuzu POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} "${YUZU_EXE_DIR}/eden.exe" --dir "${YUZU_EXE_DIR}" --libdir "${YUZU_EXE_DIR}" --plugindir "${YUZU_EXE_DIR}/plugins" --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler --no-translations --verbose 0)
 endif()
 
-if (ENABLE_SDL2)
-    target_link_libraries(yuzu PRIVATE SDL2::SDL2)
-    target_compile_definitions(yuzu PRIVATE HAVE_SDL2)
-endif()
-
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(yuzu PRIVATE dynarmic::dynarmic)
 endif()
@@ -454,6 +449,6 @@ if (NOT MSVC AND (APPLE OR NOT YUZU_STATIC_BUILD))
 endif()
 
 # Remember that the linker is incredibly stupid.
-target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto SDL2::SDL2)
 
 create_target_directory_groups(yuzu)

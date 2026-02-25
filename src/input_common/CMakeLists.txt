@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
@@ -49,7 +49,13 @@ else()
     )
 endif()
 
-if (ENABLE_SDL2)
+if (ANDROID)
+    target_sources(input_common PRIVATE
+        drivers/android.cpp
+        drivers/android.h)
+
+    target_link_libraries(input_common PRIVATE android)
+else()
     target_sources(input_common PRIVATE
         drivers/joycon.cpp
         drivers/joycon.h
@@ -73,8 +79,8 @@ if (ENABLE_SDL2)
         helpers/joycon_protocol/ringcon.cpp
         helpers/joycon_protocol/ringcon.h
         helpers/joycon_protocol/rumble.cpp
-        helpers/joycon_protocol/rumble.h
-    )
+        helpers/joycon_protocol/rumble.h)
+
     target_link_libraries(input_common PRIVATE SDL2::SDL2)
     target_compile_definitions(input_common PRIVATE HAVE_SDL2)
 endif()
@@ -82,19 +88,11 @@ endif()
 if (ENABLE_LIBUSB)
     target_sources(input_common PRIVATE
         drivers/gc_adapter.cpp
-        drivers/gc_adapter.h
-    )
+        drivers/gc_adapter.h)
+
     target_link_libraries(input_common PRIVATE libusb::usb)
     target_compile_definitions(input_common PRIVATE ENABLE_LIBUSB)
 endif()
 
 create_target_directory_groups(input_common)
 target_link_libraries(input_common PUBLIC hid_core PRIVATE common Boost::headers)
-
-if (ANDROID)
-    target_sources(input_common PRIVATE
-        drivers/android.cpp
-        drivers/android.h
-    )
-    target_link_libraries(input_common PRIVATE android)
-endif()

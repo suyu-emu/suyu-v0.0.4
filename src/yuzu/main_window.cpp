@@ -149,9 +149,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "video_core/renderer_base.h"
 #include "video_core/shader_notify.h"
 
-#ifdef HAVE_SDL2
 #include <SDL.h>
-#endif
 
 #include <boost/container/flat_set.hpp>
 
@@ -602,7 +600,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
         VkDeviceInfo::PopulateRecords(vk_device_records, this->window()->windowHandle());
     }
 
-#if defined(HAVE_SDL2) && !defined(_WIN32)
+#if !defined(_WIN32)
     SDL_InitSubSystem(SDL_INIT_VIDEO);
 
     // Set a screensaver inhibition reason string. Currently passed to DBus by SDL and visible to
@@ -1881,7 +1879,7 @@ void MainWindow::OnSigInterruptNotifierActivated() {
 void MainWindow::PreventOSSleep() {
 #ifdef _WIN32
     SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
-#elif defined(HAVE_SDL2)
+#else
     SDL_DisableScreenSaver();
 #endif
 }
@@ -1889,7 +1887,7 @@ void MainWindow::PreventOSSleep() {
 void MainWindow::AllowOSSleep() {
 #ifdef _WIN32
     SetThreadExecutionState(ES_CONTINUOUS);
-#elif defined(HAVE_SDL2)
+#else
     SDL_EnableScreenSaver();
 #endif
 }

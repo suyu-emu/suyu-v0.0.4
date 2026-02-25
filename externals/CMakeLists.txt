@@ -133,8 +133,7 @@ if(ENABLE_CUBEB)
     endif()
 endif()
 
-# find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
-if (ENABLE_SDL2)
+if (NOT ANDROID)
     if (YUZU_USE_EXTERNAL_SDL2)
         message(STATUS "Using SDL2 from externals.")
         if (NOT WIN32)
