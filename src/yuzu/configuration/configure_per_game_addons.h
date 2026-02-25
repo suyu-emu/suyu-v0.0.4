@@ -32,6 +32,11 @@ class ConfigurePerGameAddons : public QWidget {
     Q_OBJECT
 
 public:
+    enum PatchData {
+        NUMERIC_VERSION = Qt::UserRole,
+        PATCH_LOCATION
+    };
+
     explicit ConfigurePerGameAddons(Core::System& system_, QWidget* parent = nullptr);
     ~ConfigurePerGameAddons() override;
 
@@ -48,6 +53,11 @@ public slots:
 
     void InstallModFolder();
     void InstallModZip();
+
+    void AddonDeleteRequested(QList<QModelIndex> selected);
+
+protected:
+    void showContextMenu(const QPoint& pos);
 
 private:
     void changeEvent(QEvent* event) override;

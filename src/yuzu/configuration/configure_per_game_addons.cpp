@@ -16,7 +16,7 @@
 #include <QString>
 #include <QTimer>
 #include <QTreeView>
-#include <qstandardpaths.h>
+#include <QStandardPaths>
 
 #include "common/common_types.h"
 #include "common/fs/fs.h"
@@ -42,14 +42,14 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
     item_model = new QStandardItemModel(tree_view);
     tree_view->setModel(item_model);
     tree_view->setAlternatingRowColors(true);
-    tree_view->setSelectionMode(QHeaderView::SingleSelection);
+    tree_view->setSelectionMode(QHeaderView::MultiSelection);
     tree_view->setSelectionBehavior(QHeaderView::SelectRows);
     tree_view->setVerticalScrollMode(QHeaderView::ScrollPerPixel);
     tree_view->setHorizontalScrollMode(QHeaderView::ScrollPerPixel);
     tree_view->setSortingEnabled(true);
     tree_view->setEditTriggers(QHeaderView::NoEditTriggers);
     tree_view->setUniformRowHeights(true);
-    tree_view->setContextMenuPolicy(Qt::NoContextMenu);
+    tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
 
     item_model->insertColumns(0, 2);
     item_model->setHeaderData(0, Qt::Horizontal, tr("Patch Name"));
@@ -78,6 +78,8 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
 
     connect(ui->folder, &QAbstractButton::clicked, this, &ConfigurePerGameAddons::InstallModFolder);
     connect(ui->zip, &QAbstractButton::clicked, this, &ConfigurePerGameAddons::InstallModZip);
+
+    connect(tree_view, &QTreeView::customContextMenuRequested, this, &ConfigurePerGameAddons::showContextMenu);
 }
 
 ConfigurePerGameAddons::~ConfigurePerGameAddons() = default;
@@ -184,6 +186,7 @@ void ConfigurePerGameAddons::InstallModFolder() {
 }
 
 void ConfigurePerGameAddons::InstallModZip() {
+    // TODO(crueter): use GetOpenFileName to allow select multiple ZIPs
     const auto path = QtCommon::Frontend::GetOpenFileName(
         tr("Zipped Mod Location"),
         QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
@@ -195,6 +198,69 @@ void ConfigurePerGameAddons::InstallModZip() {
     const QString extracted = QtCommon::Mod::ExtractMod(path);
     if (!extracted.isEmpty())
         InstallModPath(extracted, QFileInfo(path).baseName());
+}
+
+void ConfigurePerGameAddons::AddonDeleteRequested(QList<QModelIndex> selected) {
+    QList<QModelIndex> filtered;
+    for (const QModelIndex &index : selected) {
+        if (!index.data(PATCH_LOCATION).toString().isEmpty()) filtered << index;
+    }
+
+    if (filtered.empty()) {
+        QtCommon::Frontend::Critical(tr("Invalid Selection"),
+                                     tr("Only mods, cheats, and patches can be deleted.\nTo delete "
+                                        "NAND-installed updates, right-click the game in the game "
+                                        "list and click Remove -> Remove Installed Update."));
+        return;
+    }
+
+
+    const auto header = tr("You are about to delete the following installed mods:\n");
+    QString selected_str;
+    for (const QModelIndex &index : filtered) {
+        selected_str = selected_str % index.data().toString() % QStringLiteral("\n");
+    }
+
+    const auto footer = tr("\nOnce deleted, these can NOT be recovered. Are you 100% sure "
+                           "you want to delete them?");
+
+    QString caption = header % selected_str % footer;
+
+    auto choice = QtCommon::Frontend::Warning(tr("Delete add-on(s)?"), caption,
+                                              QtCommon::Frontend::StandardButton::Yes |
+                                                  QtCommon::Frontend::StandardButton::No);
+
+    if (choice == QtCommon::Frontend::StandardButton::No) return;
+
+    for (const QModelIndex &index : filtered) {
+        std::filesystem::remove_all(index.data(PATCH_LOCATION).toString().toStdString());
+    }
+
+    QtCommon::Frontend::Information(tr("Successfully deleted"),
+                                    tr("Successfully deleted all selected mods."));
+
+    item_model->removeRows(0, item_model->rowCount());
+    list_items.clear();
+    LoadConfiguration();
+
+    UISettings::values.is_game_list_reload_pending.exchange(true);
+}
+
+void ConfigurePerGameAddons::showContextMenu(const QPoint& pos) {
+    const QModelIndex index = tree_view->indexAt(pos);
+    auto selected = tree_view->selectionModel()->selectedIndexes();
+    if (index.isValid() && selected.empty()) selected = {index};
+
+    if (selected.empty()) return;
+
+    QMenu menu(this);
+
+    QAction *remove = menu.addAction(tr("&Delete"));
+    connect(remove, &QAction::triggered, this, [this, selected]() {
+        AddonDeleteRequested(selected);
+    });
+
+    menu.exec(tree_view->viewport()->mapToGlobal(pos));
 }
 
 void ConfigurePerGameAddons::changeEvent(QEvent* event) {
@@ -242,8 +308,13 @@ void ConfigurePerGameAddons::LoadConfiguration() {
                                         patch.source == FileSys::PatchSource::External &&
                                         patch.numeric_version != 0;
 
+        const bool is_mod = patch.type == FileSys::PatchType::Mod;
+
         if (is_external_update) {
-            first_item->setData(static_cast<quint32>(patch.numeric_version), Qt::UserRole);
+            first_item->setData(static_cast<quint32>(patch.numeric_version), NUMERIC_VERSION);
+        } else if (is_mod) {
+            // qDebug() << patch.location;
+            first_item->setData(QString::fromStdString(patch.location), PATCH_LOCATION);
         }
 
         bool patch_disabled = false;

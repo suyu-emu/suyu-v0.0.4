@@ -100,6 +100,7 @@ QStringList GetModFolders(const QString& root, const QString& fallbackName) {
         } else {
             // Rename the existing mod folder.
             const auto new_path = std_path.parent_path() / name.toStdString();
+            fs::remove_all(new_path);
             fs::rename(std_path, new_path);
             std_path = new_path;
         }

@@ -46,6 +46,7 @@ struct Patch {
     u64 program_id;
     u64 title_id;
     PatchSource source;
+    std::string location;
     u32 numeric_version{0};
 };
 

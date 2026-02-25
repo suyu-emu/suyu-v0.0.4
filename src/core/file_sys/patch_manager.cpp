@@ -876,7 +876,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                     .type = PatchType::Mod,
                     .program_id = title_id,
                     .title_id = title_id,
-                    .source = PatchSource::Unknown
+                    .source = PatchSource::Unknown,
+                    .location = f->GetFullPath(),
                 });
             }
 
@@ -923,7 +924,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                            .type = PatchType::Mod,
                            .program_id = title_id,
                            .title_id = title_id,
-                           .source = PatchSource::Unknown});
+                           .source = PatchSource::Unknown,
+                           .location = mod->GetFullPath()});
         }
     }
 

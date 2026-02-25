@@ -129,6 +129,12 @@ const QString GetOpenFileName(const QString &title,
                               QString *selectedFilter = nullptr,
                               Options options = Options());
 
+const QStringList GetOpenFileNames(const QString &title,
+                              const QString &dir,
+                              const QString &filter,
+                              QString *selectedFilter = nullptr,
+                              Options options = Options());
+
 const QString GetSaveFileName(const QString &title,
                               const QString &dir,
                               const QString &filter,

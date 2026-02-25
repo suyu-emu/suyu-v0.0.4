@@ -4,8 +4,6 @@
 #pragma once
 
 #include <QString>
-#include "common/common_types.h"
-#include "frontend_common/mod_manager.h"
 
 namespace QtCommon::Mod {
 
