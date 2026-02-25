@@ -99,7 +99,9 @@ try {
         LOG_ERROR(Frontend, "Failed to get IPersistFile interface");
         return false;
     }
-    hres = persist_file->Save(std::filesystem::path{shortcut_path / (name + ".lnk")}.c_str(), TRUE);
+    hres = persist_file->Save(
+        std::filesystem::path{shortcut_path / (Common::UTF8ToUTF16W(name) + L".lnk")}.c_str(),
+        TRUE);
     if (FAILED(hres)) {
         LOG_ERROR(Frontend, "Failed to save shortcut");
         return false;
