@@ -557,6 +557,9 @@ struct Values {
     SwitchableSetting<bool> fix_bloom_effects{linkage, false, "fix_bloom_effects",
                                                      Category::RendererHacks};
 
+    SwitchableSetting<bool> rescale_hack{linkage, false, "rescale_hack",
+                                                     Category::RendererHacks};
+
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererHacks};
 

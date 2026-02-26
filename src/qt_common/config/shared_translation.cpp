@@ -356,6 +356,12 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Fix bloom effects"),
            tr("Removes bloom in Burnout."));
 
+    INSERT(Settings,
+           rescale_hack,
+           tr("Enable Legacy Rescale Pass"),
+           tr("May fix rescale issues in some games by relying on behavior from the previous implementation.\n"
+              "Legacy behavior workaround that fixes AMD GPU line artifacts and Nvidia GPU grey texture flicker in Luigis Mansion 3."));
+
     // Renderer (Extensions)
     INSERT(Settings, dyna_state, tr("Extended Dynamic State"),
            tr("Controls the number of features that can be used in Extended Dynamic State.\n"

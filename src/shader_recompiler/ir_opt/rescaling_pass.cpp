@@ -67,11 +67,18 @@ void VisitMark(IR::Block& block, IR::Inst& inst) {
         if (must_patch_outside) {
             const auto it{IR::Block::InstructionList::s_iterator_to(inst)};
             IR::IREmitter ir{block, it};
-            IR::Inst* const new_inst{&*block.PrependNewInst(it, inst)};
-            const IR::F32 new_bitcast{ir.ConvertUToF(32, 32, IR::Value{new_inst})};
-            const IR::F32 up_factor{ir.FPRecip(ir.ResolutionDownFactor())};
-            const IR::Value converted{ir.FPMul(new_bitcast, up_factor)};
-            inst.ReplaceUsesWith(converted);
+            if (Settings::values.rescale_hack.GetValue()) {
+                const IR::F32 new_inst{&*block.PrependNewInst(it, inst)};
+                const IR::F32 up_factor{ir.FPRecip(ir.ResolutionDownFactor())};
+                const IR::Value converted{ir.FPMul(new_inst, up_factor)};
+                inst.ReplaceUsesWith(converted);
+            } else {
+                IR::Inst* const new_inst{&*block.PrependNewInst(it, inst)};
+                const IR::F32 new_bitcast{ir.ConvertUToF(32, 32, IR::Value{new_inst})};
+                const IR::F32 up_factor{ir.FPRecip(ir.ResolutionDownFactor())};
+                const IR::Value converted{ir.FPMul(new_bitcast, up_factor)};
+                inst.ReplaceUsesWith(converted);
+            }
         }
         break;
     }
