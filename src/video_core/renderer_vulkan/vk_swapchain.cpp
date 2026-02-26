@@ -10,9 +10,8 @@
 #include <vector>
 
 #include "common/logging/log.h"
-#include <ranges>
 #include "common/settings.h"
-#include "core/core.h"
+#include "common/settings_enums.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/vulkan_common/vk_enum_string_helper.h"
@@ -45,7 +44,8 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
     Settings::VSyncMode setting = [has_imm, has_mailbox]() {
         // Choose Mailbox or Immediate if unlocked and those modes are supported
         const auto mode = Settings::values.vsync_mode.GetValue();
-        if (Settings::values.use_speed_limit.GetValue()) {
+        if (Settings::values.use_speed_limit.GetValue() &&
+            Settings::values.current_speed_mode.GetValue() != Settings::SpeedMode::Turbo) {
             return mode;
         }
         switch (mode) {
