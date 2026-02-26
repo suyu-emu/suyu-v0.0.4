@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -47,7 +47,8 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
     records.reserve(physical_devices.size());
     for (const VkPhysicalDevice device : physical_devices) {
         const auto physical_device = vk::PhysicalDevice(device, dld);
-        const std::string name = physical_device.GetProperties().deviceName;
+        std::string name = physical_device.GetProperties().deviceName;
+
         const std::vector<VkPresentModeKHR> present_modes =
             physical_device.GetSurfacePresentModesKHR(*surface);
 
@@ -59,8 +60,16 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
         properties.pNext = &driver_properties;
         dld.vkGetPhysicalDeviceProperties2(physical_device, &properties);
 
+        const auto driverID = driver_properties.driverID;
+
         bool has_broken_compute{Vulkan::Device::CheckBrokenCompute(
-            driver_properties.driverID, properties.properties.driverVersion)};
+            driverID, properties.properties.driverVersion)};
+
+        std::string driver_string = Vulkan::vk::GetDriverName(driver_properties);
+
+        if (driver_string.empty()) driver_string = "Unknown";
+
+        name = fmt::format("{} ({})", name, driver_string);
 
         records.push_back(VkDeviceInfo::Record(name, present_modes, has_broken_compute));
     }

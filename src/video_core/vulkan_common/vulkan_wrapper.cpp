@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -1010,6 +1010,66 @@ std::optional<std::vector<VkLayerProperties>> EnumerateInstanceLayerProperties(
         return std::nullopt;
     }
     return properties;
+}
+
+std::string GetDriverName(VkPhysicalDeviceDriverProperties driver) {
+    switch (driver.driverID) {
+    case VK_DRIVER_ID_AMD_PROPRIETARY:
+        return "AMD";
+    case VK_DRIVER_ID_AMD_OPEN_SOURCE:
+        return "AMDVLK";
+    case VK_DRIVER_ID_MESA_RADV:
+        return "RADV";
+    case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
+        return "Nvidia";
+    case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
+        return "Intel";
+    case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+        return "ANV";
+    case VK_DRIVER_ID_IMAGINATION_PROPRIETARY:
+        return "PowerVR";
+    case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+        return "Qualcomm";
+    case VK_DRIVER_ID_ARM_PROPRIETARY:
+        return "Mali";
+    case VK_DRIVER_ID_SAMSUNG_PROPRIETARY:
+        return "Xclipse";
+    case VK_DRIVER_ID_GOOGLE_SWIFTSHADER:
+        return "SwiftShader";
+    case VK_DRIVER_ID_BROADCOM_PROPRIETARY:
+        return "Broadcom";
+    case VK_DRIVER_ID_MESA_LLVMPIPE:
+        return "llvmpipe";
+    case VK_DRIVER_ID_MOLTENVK:
+        return "MoltenVK";
+    case VK_DRIVER_ID_VERISILICON_PROPRIETARY:
+        return "Vivante";
+    case VK_DRIVER_ID_MESA_TURNIP:
+        return "Turnip";
+    case VK_DRIVER_ID_MESA_V3DV:
+        return "V3DV";
+    case VK_DRIVER_ID_MESA_PANVK:
+        return "PanVK";
+    case VK_DRIVER_ID_MESA_VENUS:
+        return "Venus";
+    case VK_DRIVER_ID_MESA_DOZEN:
+        return "Dozen";
+    case VK_DRIVER_ID_MESA_NVK:
+        return "NVK";
+    case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:
+        return "PVR";
+    case VK_DRIVER_ID_MESA_HONEYKRISP:
+        return "HoneyKrisp";
+    case VK_DRIVER_ID_MESA_KOSMICKRISP:
+        return "KosmicKrisp";
+    case VK_DRIVER_ID_GGP_PROPRIETARY:
+    case VK_DRIVER_ID_COREAVI_PROPRIETARY:
+    case VK_DRIVER_ID_JUICE_PROPRIETARY:
+    case VK_DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN:
+    case VK_DRIVER_ID_MAX_ENUM:
+    default:
+        return driver.driverName;
+    }
 }
 
 } // namespace Vulkan::vk

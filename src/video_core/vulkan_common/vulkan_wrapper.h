@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -14,6 +14,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <vulkan/vulkan_core.h>
+#include <string>
 
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan.h"
@@ -1600,5 +1602,7 @@ std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProp
 
 std::optional<std::vector<VkLayerProperties>> EnumerateInstanceLayerProperties(
     const InstanceDispatch& dld);
+
+std::string GetDriverName(VkPhysicalDeviceDriverProperties driver);
 
 } // namespace Vulkan::vk
