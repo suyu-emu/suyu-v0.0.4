@@ -67,7 +67,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {44, D<&IApplicationManagerInterface::GetSdCardMountStatusChangedEvent>, "GetSdCardMountStatusChangedEvent"},
         {45, nullptr, "GetGameCardAttachmentEvent"},
         {46, nullptr, "GetGameCardAttachmentInfo"},
-        {47, nullptr, "GetTotalSpaceSize"},
+        {47, D<&IApplicationManagerInterface::GetTotalSpaceSize>, "GetTotalSpaceSize"},
         {48, D<&IApplicationManagerInterface::GetFreeSpaceSize>, "GetFreeSpaceSize"},
         {49, nullptr, "GetSdCardRemovedEvent"},
         {52, D<&IApplicationManagerInterface::GetGameCardUpdateDetectionEvent>, "GetGameCardUpdateDetectionEvent"},
@@ -751,8 +751,12 @@ Result IApplicationManagerInterface::GetSdCardMountStatusChangedEvent(
     R_SUCCEED();
 }
 
-Result IApplicationManagerInterface::GetFreeSpaceSize(Out<s64> out_free_space_size,
-                                                      FileSys::StorageId storage_id) {
+Result IApplicationManagerInterface::GetTotalSpaceSize(Out<s64> out_total_space_size, FileSys::StorageId storage_id) {
+    LOG_DEBUG(Service_NS, "called");
+    R_RETURN(IContentManagementInterface(system).GetTotalSpaceSize(out_total_space_size, storage_id));
+}
+
+Result IApplicationManagerInterface::GetFreeSpaceSize(Out<s64> out_free_space_size, FileSys::StorageId storage_id) {
     LOG_DEBUG(Service_NS, "called");
     R_RETURN(IContentManagementInterface(system).GetFreeSpaceSize(out_free_space_size, storage_id));
 }
