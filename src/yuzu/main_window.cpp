@@ -220,7 +220,6 @@ struct TitlebarFilter final : QObject {
             case QEvent::WinIdChange:
             case QEvent::Show:
             case QEvent::ShowToParent:
-            case QEvent::Polish:
             case QEvent::WindowStateChange:
             case QEvent::ZOrderChange:
                 ApplyDarkToTopLevel(w, dark);
