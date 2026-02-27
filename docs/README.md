@@ -3,6 +3,7 @@
 This contains documentation created by developers. This contains build instructions, guidelines, instructions/layouts for [cool stuff we made](./CPMUtil), and more.
 
 - **[General Build Instructions](Build.md)**
+- **[CMake Options](Options.md)**
 - **[Cross Compiling](CrossCompile.md)**
 - **[Development Guidelines](Development.md)**
 - **[Dependencies](Deps.md)**

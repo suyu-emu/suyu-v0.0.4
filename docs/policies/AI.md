@@ -17,7 +17,9 @@ AI is notorious for hallucinating facts out of thin air and sometimes outright l
 - Code that works, but is extraordinarily verbose or not nearly as efficient as it can be
 - Code that works well and is written well, but solves a different problem than was intended, or solves the same problem but in a completely incorrect way that will break other things horribly.
 
-Human-written code will, without exception, always be of infinitely higher quality when properly researched and implemented by someone both familiar with the surrounding code and the programming language in use. LLMs may produce a "good enough" result, but this result is often subpar. Keep in mind: all code is held under a standard of excellence. If your code sucks, it will be rejected. AI-generated code just so happens to be a particularly sucky genre of code, and will thus be held to this same standard.
+Human-written code will, without exception, always be of infinitely higher quality when properly researched and implemented by someone familiar with *both* the surrounding code and the programming language in use. LLMs may produce a "good enough" result, but this result is often subpar.
+
+**All code is held under a STRICT STANDARD OF EXCELLENCE**. AI code is no different, and since it often produces subpar or outright terrible code, it will often fail to meet this excellence standard.
 
 On a lesser-known note, LLM outputs often contain unicode symbols such as emojis or the arrow symbol. Please don't put Unicode symbols in your code. It messes with many an IDE, and the three people viewing your code on Lynx will be very unhappy.
 
@@ -25,7 +27,8 @@ On a lesser-known note, LLM outputs often contain unicode symbols such as emojis
 
 ## Acceptable Use
 
-- As stated previously, AI is good in a few *very specific* cases. In these cases, it's usually fine to use AI, as long as you **explicitly provide notice that it was used**.
+As stated previously, AI is good in a few *very specific* cases. In these cases, it's usually fine to use AI, as long as you **explicitly provide notice that it was used**.
+
 - Anything directly outside of the realm of the code written in your PR or patch is none of our business.
   - This primarily covers research.
   - However, we *still* strongly discourage this for the reasons mentioned above.
@@ -103,5 +106,7 @@ This consolidates profile removal behavior, fixes potential race conditions in t
 ```
 
 This has all of the same problems as the other one. Needlessly verbose, doesn't address *what* it actually fixes ("consolidates profile removal behavior"... okay, why? What does it fix?), etc. It even has the bonus of totally hallucinating the addition of a method!
+
+On a more "philosophical" note, LLMs tend to be geared towards *corporate language*, as that's what they're trained on. This is why AI-generated commit messages feel like "word salad", and typically pad out the commit message to make it *look* like a lot of things were changed (trust me, it's like that in the corporate world). They typically also drift towards unneeded buzzwords and useless implementation details.
 
 **Don't use AI for commit messages**.
