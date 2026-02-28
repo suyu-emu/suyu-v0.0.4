@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -14,6 +17,14 @@
 #include "jni/native.h"
 
 void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface) {
+    if (!surface) {
+        LOG_INFO(Frontend, "EmuWindow_Android::OnSurfaceChanged received null surface");
+        m_window_width = 0;
+        m_window_height = 0;
+        window_info.render_surface = nullptr;
+        return;
+    }
+
     m_window_width = ANativeWindow_getWidth(surface);
     m_window_height = ANativeWindow_getHeight(surface);
 

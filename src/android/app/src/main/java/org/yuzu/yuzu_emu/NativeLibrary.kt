@@ -152,6 +152,10 @@ object NativeLibrary {
 
     external fun surfaceDestroyed()
 
+    external fun getAppletCaptureBuffer(): ByteArray
+    external fun getAppletCaptureWidth(): Int
+    external fun getAppletCaptureHeight(): Int
+
     /**
      * Unpauses emulation from a paused state.
      */

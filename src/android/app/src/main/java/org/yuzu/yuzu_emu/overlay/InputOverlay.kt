@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.overlay
@@ -20,7 +20,6 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
-import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.WindowInsets
@@ -42,10 +41,10 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 
 /**
  * Draws the interactive input overlay on top of the
- * [SurfaceView] that is rendering emulation.
+ * emulation rendering surface.
  */
 class InputOverlay(context: Context, attrs: AttributeSet?) :
-    SurfaceView(context, attrs),
+    View(context, attrs),
     OnTouchListener {
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()

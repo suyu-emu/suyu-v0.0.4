@@ -89,6 +89,8 @@
 #include "jni/native.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
+#include "video_core/capture.h"
+#include "video_core/textures/decoders.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/shader_notify.h"
@@ -780,9 +782,10 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_surfaceChanged(JNIEnv* env, jobject i
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_surfaceDestroyed(JNIEnv* env, jobject instance) {
-    ANativeWindow_release(EmulationSession::GetInstance().NativeWindow());
+    if (auto* native_window = EmulationSession::GetInstance().NativeWindow(); native_window) {
+        ANativeWindow_release(native_window);
+    }
     EmulationSession::GetInstance().SetNativeWindow(nullptr);
-    EmulationSession::GetInstance().SurfaceChanged();
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_setAppDirectory(JNIEnv* env, jobject instance,
@@ -967,6 +970,40 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isRunning(JNIEnv* env, jclass cla
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isPaused(JNIEnv* env, jclass clazz) {
     return static_cast<jboolean>(EmulationSession::GetInstance().IsPaused());
+}
+
+jbyteArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getAppletCaptureBuffer(JNIEnv* env, jclass clazz) {
+    using namespace VideoCore::Capture;
+
+    if (!EmulationSession::GetInstance().IsRunning()) {
+        return env->NewByteArray(0);
+    }
+
+    const auto tiled = EmulationSession::GetInstance().System().GPU().GetAppletCaptureBuffer();
+    if (tiled.size() < TiledSize) {
+        return env->NewByteArray(0);
+    }
+
+    std::vector<u8> linear(LinearWidth * LinearHeight * BytesPerPixel);
+    Tegra::Texture::UnswizzleTexture(linear, tiled, BytesPerPixel, LinearWidth, LinearHeight,
+                                     LinearDepth, BlockHeight, BlockDepth);
+
+    auto buffer = env->NewByteArray(static_cast<jsize>(linear.size()));
+    if (!buffer) {
+        return env->NewByteArray(0);
+    }
+
+    env->SetByteArrayRegion(buffer, 0, static_cast<jsize>(linear.size()),
+                            reinterpret_cast<const jbyte*>(linear.data()));
+    return buffer;
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_getAppletCaptureWidth(JNIEnv* env, jclass clazz) {
+    return static_cast<jint>(VideoCore::Capture::LinearWidth);
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_getAppletCaptureHeight(JNIEnv* env, jclass clazz) {
+    return static_cast<jint>(VideoCore::Capture::LinearHeight);
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz,
