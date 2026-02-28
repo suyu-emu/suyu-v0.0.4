@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -49,6 +52,8 @@ private:
     Result ListAudioOutputDeviceName(
         OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> out_names,
         Out<s32> out_count);
+    Result SetAudioDeviceOutputVolumeAutoTuneEnabled(bool enabled);
+    Result IsAudioDeviceOutputVolumeAutoTuneEnabled(Out<bool> out_enabled);
 
     KernelHelpers::ServiceContext service_context;
     std::unique_ptr<AudioCore::Renderer::AudioDevice> impl;
