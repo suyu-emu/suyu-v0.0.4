@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -34,22 +34,21 @@ namespace Service::AM::Frontend {
 namespace {
 
 template <typename T>
-void ParseRawValue(T& value, const std::vector<u8>& data) {
+void ParseRawValue(T& value, std::span<const u8> data) {
     static_assert(std::is_trivially_copyable_v<T>,
                   "It's undefined behavior to use memcpy with non-trivially copyable objects");
     std::memcpy(&value, data.data(), data.size());
 }
 
 template <typename T>
-T ParseRawValue(const std::vector<u8>& data) {
+T ParseRawValue(std::span<const u8> data) {
     T value;
     ParseRawValue(value, data);
     return value;
 }
 
-std::string ParseStringValue(const std::vector<u8>& data) {
-    return Common::StringFromFixedZeroTerminatedBuffer(reinterpret_cast<const char*>(data.data()),
-                                                       data.size());
+std::string ParseStringValue(std::span<const u8> data) {
+    return Common::StringFromFixedZeroTerminatedBuffer(reinterpret_cast<const char*>(data.data()), data.size());
 }
 
 std::string GetMainURL(const std::string& url) {
@@ -72,7 +71,7 @@ std::string ResolveURL(const std::string& url) {
     return url.substr(0, index) + "lp1" + url.substr(index + 1);
 }
 
-WebArgInputTLVMap ReadWebArgs(const std::vector<u8>& web_arg, WebArgHeader& web_arg_header) {
+WebArgInputTLVMap ReadWebArgs(std::span<const u8> web_arg, WebArgHeader& web_arg_header) {
     std::memcpy(&web_arg_header, web_arg.data(), sizeof(WebArgHeader));
 
     if (web_arg.size() == sizeof(WebArgHeader)) {

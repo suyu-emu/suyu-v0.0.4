@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -70,9 +74,9 @@ public:
     u32 GetMainThreadStackSize() const;
     u32 GetMainThreadCpuCore() const;
 
-    const std::vector<u8>& GetTextSection() const;
-    const std::vector<u8>& GetRODataSection() const;
-    const std::vector<u8>& GetDataSection() const;
+    std::span<const u8> GetTextSection() const;
+    std::span<const u8> GetRODataSection() const;
+    std::span<const u8> GetDataSection() const;
 
     u32 GetTextOffset() const;
     u32 GetRODataOffset() const;

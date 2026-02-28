@@ -7,9 +7,9 @@
 #pragma once
 
 #include <cstddef>
+#include <vector>
 
 #include "core/hle/kernel/k_typed_address.h"
-#include "core/hle/kernel/physical_memory.h"
 
 namespace Kernel {
 
@@ -97,8 +97,7 @@ struct CodeSet final {
 #endif
 
     /// The overall data that backs this code set.
-    Kernel::PhysicalMemory memory;
-
+    std::vector<u8> memory;
     /// The segments that comprise this code set.
     std::array<Segment, 3> segments;
 

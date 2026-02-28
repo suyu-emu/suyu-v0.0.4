@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -112,52 +115,8 @@ private:
 };
 static_assert(sizeof(NrrHeader) == 0x350, "NrrHeader has wrong size");
 
-class NroHeader {
-public:
-    static constexpr u32 Magic = Common::MakeMagic('N', 'R', 'O', '0');
-
-public:
-    bool IsMagicValid() const {
-        return m_magic == Magic;
-    }
-
-    u32 GetSize() const {
-        return m_size;
-    }
-
-    u32 GetTextOffset() const {
-        return m_text_offset;
-    }
-
-    u32 GetTextSize() const {
-        return m_text_size;
-    }
-
-    u32 GetRoOffset() const {
-        return m_ro_offset;
-    }
-
-    u32 GetRoSize() const {
-        return m_ro_size;
-    }
-
-    u32 GetRwOffset() const {
-        return m_rw_offset;
-    }
-
-    u32 GetRwSize() const {
-        return m_rw_size;
-    }
-
-    u32 GetBssSize() const {
-        return m_bss_size;
-    }
-
-    const ModuleId* GetModuleId() const {
-        return std::addressof(m_module_id);
-    }
-
-private:
+static constexpr u32 NRO_HEADER_MAGIC = Common::MakeMagic('N', 'R', 'O', '0');
+struct NroHeader {
     u32 m_entrypoint_insn;
     u32 m_mod_offset;
     INSERT_PADDING_BYTES_NOINIT(0x8);

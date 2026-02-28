@@ -342,7 +342,6 @@ add_library(core STATIC
     hle/kernel/message_buffer.h
     hle/kernel/physical_core.cpp
     hle/kernel/physical_core.h
-    hle/kernel/physical_memory.h
     hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h

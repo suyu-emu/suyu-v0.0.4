@@ -4,6 +4,7 @@
 #include <numeric>
 #include <bit>
 #include "common/arm64/native_clock.h"
+#include "common/alignment.h"
 #include "common/literals.h"
 #include "core/arm/nce/arm_nce.h"
 #include "core/arm/nce/guest_context.h"
@@ -46,8 +47,7 @@ Patcher::Patcher() : c(m_patch_instructions), c_pre(m_patch_instructions_pre) {
 
 Patcher::~Patcher() = default;
 
-bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
-                        const Kernel::CodeSet::Segment& code) {
+bool Patcher::PatchText(std::span<const u8> program_image, const Kernel::CodeSet::Segment& code) {
     // If we have patched modules but cannot reach the new module, then it needs its own patcher.
     const size_t image_size = program_image.size();
 
@@ -175,10 +175,7 @@ bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
     return true;
 }
 
-bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
-                              const Kernel::CodeSet::Segment& code,
-                              Kernel::PhysicalMemory& program_image,
-                              EntryTrampolines* out_trampolines) {
+bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base, const Kernel::CodeSet::Segment& code, std::vector<u8>& program_image, EntryTrampolines* out_trampolines) {
     const size_t patch_size = GetSectionSize();
     const size_t pre_patch_size = GetPreSectionSize();
 

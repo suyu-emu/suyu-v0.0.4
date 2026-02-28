@@ -164,7 +164,7 @@ private:
         rb.Push(ResultSuccess);
     }
 
-    u64 ReadLeb128(const std::vector<u8>& data, std::size_t& offset) {
+    u64 ReadLeb128(std::span<const u8> data, std::size_t& offset) {
         u64 result{};
         u32 shift{};
 
@@ -180,7 +180,7 @@ private:
         return result;
     }
 
-    std::optional<std::string> ReadString(const std::vector<u8>& data, std::size_t& offset,
+    std::optional<std::string> ReadString(std::span<const u8> data, std::size_t& offset,
                                           std::size_t length) {
         if (length == 0) {
             return std::nullopt;
@@ -193,7 +193,7 @@ private:
         return output;
     }
 
-    u32_le ReadAsU32(const std::vector<u8>& data, std::size_t& offset, std::size_t length) {
+    u32_le ReadAsU32(std::span<const u8> data, std::size_t& offset, std::size_t length) {
         ASSERT(length == sizeof(u32));
         u32_le output{};
         std::memcpy(&output, data.data() + offset, sizeof(u32));
@@ -201,7 +201,7 @@ private:
         return output;
     }
 
-    u64_le ReadAsU64(const std::vector<u8>& data, std::size_t& offset, std::size_t length) {
+    u64_le ReadAsU64(std::span<const u8> data, std::size_t& offset, std::size_t length) {
         ASSERT(length == sizeof(u64));
         u64_le output{};
         std::memcpy(&output, data.data() + offset, sizeof(u64));
@@ -209,7 +209,7 @@ private:
         return output;
     }
 
-    void ParseLog(const LogPacketHeaderEntry entry, const std::vector<u8>& log_data) {
+    void ParseLog(const LogPacketHeaderEntry entry, std::span<const u8> log_data) {
         // Possible entries
         std::optional<std::string> text_log;
         std::optional<u32> line_number;

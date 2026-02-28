@@ -14,7 +14,6 @@
 #include "common/settings.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_typed_address.h"
-#include "core/hle/kernel/physical_memory.h"
 #include <utility>
 using ModuleID = std::array<u8, 32>;  // NSO build ID
 struct PatchCacheKey {
@@ -56,10 +55,8 @@ public:
     }
     explicit Patcher();
     ~Patcher();
-    bool PatchText(const Kernel::PhysicalMemory& program_image,
-                   const Kernel::CodeSet::Segment& code);
-    bool RelocateAndCopy(Common::ProcessAddress load_base, const Kernel::CodeSet::Segment& code,
-                         Kernel::PhysicalMemory& program_image, EntryTrampolines* out_trampolines);
+    bool PatchText(std::span<const u8> program_image, const Kernel::CodeSet::Segment& code);
+    bool RelocateAndCopy(Common::ProcessAddress load_base, const Kernel::CodeSet::Segment& code, std::vector<u8>& program_image, EntryTrampolines* out_trampolines);
     size_t GetSectionSize() const noexcept;
     size_t GetPreSectionSize() const noexcept;
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -75,21 +75,16 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
                         kip->GetKernelCapabilities());
 
     Kernel::CodeSet codeset;
-    Kernel::PhysicalMemory program_image;
-
-    const auto load_segment = [&program_image](Kernel::CodeSet::Segment& segment, const std::vector<u8>& data, u32 offset) {
+    codeset.memory.resize(PageAlignSize(kip->GetBSSOffset()) + kip->GetBSSSize());
+    const auto load_segment = [&codeset](Kernel::CodeSet::Segment& segment, std::span<const u8> data, u32 offset) {
         segment.addr = offset;
         segment.offset = offset;
         segment.size = PageAlignSize(u32(data.size()));
-        program_image.resize(offset + data.size());
-        std::memcpy(program_image.data() + offset, data.data(), data.size());
+        std::memcpy(codeset.memory.data() + offset, data.data(), data.size());
     };
-
     load_segment(codeset.CodeSegment(), kip->GetTextSection(), kip->GetTextOffset());
     load_segment(codeset.RODataSegment(), kip->GetRODataSection(), kip->GetRODataOffset());
     load_segment(codeset.DataSegment(), kip->GetDataSection(), kip->GetDataOffset());
-
-    program_image.resize(PageAlignSize(kip->GetBSSOffset()) + kip->GetBSSSize());
     codeset.DataSegment().size += kip->GetBSSSize();
 
     // TODO: this is bad form of ASLR, it sucks
@@ -98,13 +93,9 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
         : std::rand()) * 0x734287f27) & 0xfff000;
 
     // Setup the process code layout
-    if (process
-            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), program_image.size(), 0, aslr_offset, false)
-            .IsError()) {
+    if (process.LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), codeset.memory.size(), 0, aslr_offset, false).IsError()) {
         return {ResultStatus::ErrorNotInitialized, {}};
     }
-
-    codeset.memory = std::move(program_image);
     const VAddr base_address = GetInteger(process.GetEntryPoint());
     process.LoadModule(std::move(codeset), base_address);
 
