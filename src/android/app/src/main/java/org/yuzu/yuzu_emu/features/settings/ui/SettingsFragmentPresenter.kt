@@ -1124,23 +1124,24 @@ class SettingsFragmentPresenter(
             }
 
             val staticThemeColor: AbstractIntSetting = object : AbstractIntSetting {
-                val preferences = PreferenceManager.getDefaultSharedPreferences(
-                    YuzuApplication.appContext
-                )
                 override fun getInt(needsGlobal: Boolean): Int =
-                    preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0)
+                    IntSetting.STATIC_THEME_COLOR.getInt(needsGlobal)
+
                 override fun setInt(value: Int) {
-                    preferences.edit() { putInt(Settings.PREF_STATIC_THEME_COLOR, value) }
+                    IntSetting.STATIC_THEME_COLOR.setInt(value)
                     settingsViewModel.setShouldRecreate(true)
                 }
 
-                override val key: String = Settings.PREF_STATIC_THEME_COLOR
+                override val key: String = IntSetting.STATIC_THEME_COLOR.key
                 override val isRuntimeModifiable: Boolean = true
+
                 override fun getValueAsString(needsGlobal: Boolean): String =
-                    preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0).toString()
-                override val defaultValue: Any = 0
+                    IntSetting.STATIC_THEME_COLOR.getValueAsString(needsGlobal)
+
+                override val defaultValue: Any = IntSetting.STATIC_THEME_COLOR.defaultValue
+
                 override fun reset() {
-                    preferences.edit() { putInt(Settings.PREF_STATIC_THEME_COLOR, 0) }
+                    IntSetting.STATIC_THEME_COLOR.reset()
                     settingsViewModel.setShouldRecreate(true)
                 }
             }

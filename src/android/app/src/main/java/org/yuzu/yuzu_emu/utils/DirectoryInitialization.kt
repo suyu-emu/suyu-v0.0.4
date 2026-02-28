@@ -61,6 +61,12 @@ object DirectoryInitialization {
             saveConfig = true
         }
 
+        val staticThemeColor = preferences.migratePreference<Int>(Settings.PREF_STATIC_THEME_COLOR)
+        if (staticThemeColor != null) {
+            IntSetting.STATIC_THEME_COLOR.setInt(staticThemeColor)
+            saveConfig = true
+        }
+
         val blackBackgrounds =
             preferences.migratePreference<Boolean>(Settings.PREF_BLACK_BACKGROUNDS)
         if (blackBackgrounds != null) {

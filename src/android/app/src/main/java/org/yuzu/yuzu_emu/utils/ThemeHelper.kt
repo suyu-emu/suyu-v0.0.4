@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.utils
@@ -52,7 +52,7 @@ object ThemeHelper {
     }
 
     private fun getSelectedStaticThemeColor(): Int {
-        val themeIndex = preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0)
+        val themeIndex = IntSetting.STATIC_THEME_COLOR.getInt(false)
         val themes = arrayOf(
             R.style.Theme_Eden_Main,
             R.style.Theme_Yuzu_Main_Violet,

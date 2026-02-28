@@ -1222,12 +1222,12 @@
 
     <!-- Static Themes -->
     <string name="static_theme_color">Theme Color</string>
-    <string name="eden_theme">Eden (Default)</string>
+    <string name="eden_theme">Eden</string>
     <string name="violet">Violet</string>
     <string name="blue">Blue</string>
     <string name="cyan">Cyan</string>
     <string name="red">Red</string>
-    <string name="green">Green</string>
+    <string name="green">Green (Default)</string>
     <string name="yellow">Yellow</string>
     <string name="orange">Orange</string>
     <string name="pink">Pink</string>
