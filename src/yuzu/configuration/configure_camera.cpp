@@ -1,11 +1,16 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // Text : Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <memory>
 #include <QtCore>
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
-#include <QCameraImageCapture>
-#include <QCameraInfo>
+#if YUZU_USE_QT_MULTIMEDIA
+#include <QCamera>
+#include <QImageCapture>
+#include <QMediaCaptureSession>
+#include <QMediaDevices>
 #endif
 #include <QStandardItemModel>
 #include <QTimer>
@@ -36,22 +41,20 @@ ConfigureCamera::ConfigureCamera(QWidget* parent, InputCommon::InputSubsystem* i
 ConfigureCamera::~ConfigureCamera() = default;
 
 void ConfigureCamera::PreviewCamera() {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if YUZU_USE_QT_MULTIMEDIA
     const auto index = ui->ir_sensor_combo_box->currentIndex();
     bool camera_found = false;
-    const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
-    for (const QCameraInfo& cameraInfo : cameras) {
-        if (input_devices[index] == cameraInfo.deviceName().toStdString() ||
-            input_devices[index] == "Auto") {
-            LOG_INFO(Frontend, "Selected Camera {} {}", cameraInfo.description().toStdString(),
-                     cameraInfo.deviceName().toStdString());
-            camera = std::make_unique<QCamera>(cameraInfo);
-            if (!camera->isCaptureModeSupported(QCamera::CaptureMode::CaptureViewfinder) &&
-                !camera->isCaptureModeSupported(QCamera::CaptureMode::CaptureStillImage)) {
-                LOG_ERROR(Frontend,
-                          "Camera doesn't support CaptureViewfinder or CaptureStillImage");
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+    for (const QCameraDevice& cameraDevice : cameras) {
+        if (input_devices[index] == cameraDevice.id().toStdString() ||
+            input_devices[index] == "auto") {
+            LOG_INFO(Frontend, "Selected Camera {} {}", cameraDevice.description().toStdString(),
+                     cameraDevice.id().toStdString());
+            if (cameraDevice.videoFormats().isEmpty()) {
+                LOG_ERROR(Frontend, "Camera doesn't provide any video formats.");
                 continue;
             }
+            camera = std::make_unique<QCamera>(cameraDevice);
             camera_found = true;
             break;
         }
@@ -66,24 +69,12 @@ void ConfigureCamera::PreviewCamera() {
         return;
     }
 
-    camera_capture = std::make_unique<QCameraImageCapture>(camera.get());
-
-    if (!camera_capture->isCaptureDestinationSupported(
-            QCameraImageCapture::CaptureDestination::CaptureToBuffer)) {
-        LOG_ERROR(Frontend, "Camera doesn't support saving to buffer");
-        return;
-    }
-
-    camera_capture->setCaptureDestination(QCameraImageCapture::CaptureDestination::CaptureToBuffer);
-    connect(camera_capture.get(), &QCameraImageCapture::imageCaptured, this,
+    capture_session = std::make_unique<QMediaCaptureSession>();
+    camera_capture = std::make_unique<QImageCapture>();
+    capture_session->setCamera(camera.get());
+    capture_session->setImageCapture(camera_capture.get());
+    connect(camera_capture.get(), &QImageCapture::imageCaptured, this,
             &ConfigureCamera::DisplayCapturedFrame);
-    camera->unload();
-    if (camera->isCaptureModeSupported(QCamera::CaptureMode::CaptureViewfinder)) {
-        camera->setCaptureMode(QCamera::CaptureViewfinder);
-    } else if (camera->isCaptureModeSupported(QCamera::CaptureMode::CaptureStillImage)) {
-        camera->setCaptureMode(QCamera::CaptureStillImage);
-    }
-    camera->load();
     camera->start();
 
     pending_snapshots = 0;
@@ -129,24 +120,31 @@ void ConfigureCamera::RetranslateUI() {
 }
 
 void ConfigureCamera::ApplyConfiguration() {
-    const auto index = ui->ir_sensor_combo_box->currentIndex();
-    Settings::values.ir_sensor_device.SetValue(input_devices[index]);
+    std::string current_device = input_devices[ui->ir_sensor_combo_box->currentIndex()];
+#ifdef _WIN32
+    // for whatever reason replacing with / isn't enough so we use | for saving
+    std::replace(current_device.begin(), current_device.end(), '\\', '|');
+#endif
+    Settings::values.ir_sensor_device.SetValue(current_device);
 }
 
 void ConfigureCamera::LoadConfiguration() {
     input_devices.clear();
     ui->ir_sensor_combo_box->clear();
-    input_devices.push_back("Auto");
+    input_devices.push_back("auto");
     ui->ir_sensor_combo_box->addItem(tr("Auto"));
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
-    const auto cameras = QCameraInfo::availableCameras();
-    for (const QCameraInfo& cameraInfo : cameras) {
-        input_devices.push_back(cameraInfo.deviceName().toStdString());
-        ui->ir_sensor_combo_box->addItem(cameraInfo.description());
+#if YUZU_USE_QT_MULTIMEDIA
+    const auto cameras = QMediaDevices::videoInputs();
+    for (const QCameraDevice& cameraDevice : cameras) {
+        input_devices.push_back(cameraDevice.id().toStdString());
+        ui->ir_sensor_combo_box->addItem(cameraDevice.description());
     }
 #endif
 
-    const auto current_device = Settings::values.ir_sensor_device.GetValue();
+    std::string current_device = Settings::values.ir_sensor_device.GetValue();
+#ifdef _WIN32
+    std::replace(current_device.begin(), current_device.end(), '|', '\\');
+#endif
 
     const auto devices_it = std::find_if(
         input_devices.begin(), input_devices.end(),

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
@@ -34,7 +34,8 @@
 
 class MainWindow;
 class QCamera;
-class QCameraImageCapture;
+class QImageCapture;
+class QMediaCaptureSession;
 class QCloseEvent;
 class QFocusEvent;
 class QKeyEvent;
@@ -264,12 +265,13 @@ private:
     bool first_frame = false;
     InputCommon::TasInput::TasState last_tas_state;
 
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if YUZU_USE_QT_MULTIMEDIA
     bool is_virtual_camera;
     int pending_camera_snapshots;
     std::vector<u32> camera_data;
     std::unique_ptr<QCamera> camera;
-    std::unique_ptr<QCameraImageCapture> camera_capture;
+    std::unique_ptr<QImageCapture> camera_capture;
+    std::unique_ptr<QMediaCaptureSession> capture_session;
     std::unique_ptr<QTimer> camera_timer;
 #endif
 

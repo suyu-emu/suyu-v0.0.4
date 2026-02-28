@@ -13,10 +13,11 @@
 #include <QtCore/qglobal.h>
 #include "common/settings_enums.h"
 #include "qt_common/config/uisettings.h"
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if YUZU_USE_QT_MULTIMEDIA
 #include <QCamera>
-#include <QCameraImageCapture>
-#include <QCameraInfo>
+#include <QImageCapture>
+#include <QMediaCaptureSession>
+#include <QMediaDevices>
 #endif
 #include <QCursor>
 #include <QEvent>
@@ -756,24 +757,25 @@ void GRenderWindow::TouchEndEvent() {
 }
 
 void GRenderWindow::InitializeCamera() {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if YUZU_USE_QT_MULTIMEDIA
     constexpr auto camera_update_ms = std::chrono::milliseconds{50}; // (50ms, 20Hz)
     if (!Settings::values.enable_ir_sensor) {
         return;
     }
 
     bool camera_found = false;
-    const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
-    for (const QCameraInfo& cameraInfo : cameras) {
-        if (Settings::values.ir_sensor_device.GetValue() == cameraInfo.deviceName().toStdString() ||
-            Settings::values.ir_sensor_device.GetValue() == "Auto") {
-            camera = std::make_unique<QCamera>(cameraInfo);
-            if (!camera->isCaptureModeSupported(QCamera::CaptureMode::CaptureViewfinder) &&
-                !camera->isCaptureModeSupported(QCamera::CaptureMode::CaptureStillImage)) {
-                LOG_ERROR(Frontend,
-                          "Camera doesn't support CaptureViewfinder or CaptureStillImage");
+    std::string current_device = Settings::values.ir_sensor_device.GetValue();
+#ifdef _WIN32
+    std::replace(current_device.begin(), current_device.end(), '|', '\\');
+#endif
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+    for (const QCameraDevice& cameraDevice : cameras) {
+        if (current_device == cameraDevice.id().toStdString() || current_device == "auto") {
+            if (cameraDevice.videoFormats().isEmpty()) {
+                LOG_ERROR(Frontend, "Camera doesn't provide any video formats.");
                 continue;
             }
+            camera = std::make_unique<QCamera>(cameraDevice);
             camera_found = true;
             break;
         }
@@ -783,27 +785,16 @@ void GRenderWindow::InitializeCamera() {
         return;
     }
 
-    camera_capture = std::make_unique<QCameraImageCapture>(camera.get());
-
-    if (!camera_capture->isCaptureDestinationSupported(
-            QCameraImageCapture::CaptureDestination::CaptureToBuffer)) {
-        LOG_ERROR(Frontend, "Camera doesn't support saving to buffer");
-        return;
-    }
+    capture_session = std::make_unique<QMediaCaptureSession>();
+    camera_capture = std::make_unique<QImageCapture>();
+    capture_session->setCamera(camera.get());
+    capture_session->setImageCapture(camera_capture.get());
 
     const auto camera_width = input_subsystem->GetCamera()->getImageWidth();
     const auto camera_height = input_subsystem->GetCamera()->getImageHeight();
     camera_data.resize(camera_width * camera_height);
-    camera_capture->setCaptureDestination(QCameraImageCapture::CaptureDestination::CaptureToBuffer);
-    connect(camera_capture.get(), &QCameraImageCapture::imageCaptured, this,
+    connect(camera_capture.get(), &QImageCapture::imageCaptured, this,
             &GRenderWindow::OnCameraCapture);
-    camera->unload();
-    if (camera->isCaptureModeSupported(QCamera::CaptureMode::CaptureViewfinder)) {
-        camera->setCaptureMode(QCamera::CaptureViewfinder);
-    } else if (camera->isCaptureModeSupported(QCamera::CaptureMode::CaptureStillImage)) {
-        camera->setCaptureMode(QCamera::CaptureStillImage);
-    }
-    camera->load();
     camera->start();
 
     pending_camera_snapshots = 0;
@@ -817,18 +808,18 @@ void GRenderWindow::InitializeCamera() {
 }
 
 void GRenderWindow::FinalizeCamera() {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if YUZU_USE_QT_MULTIMEDIA
     if (camera_timer) {
         camera_timer->stop();
     }
     if (camera) {
-        camera->unload();
+        camera->stop();
     }
 #endif
 }
 
 void GRenderWindow::RequestCameraCapture() {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if YUZU_USE_QT_MULTIMEDIA
     if (!Settings::values.enable_ir_sensor) {
         return;
     }
@@ -849,7 +840,7 @@ void GRenderWindow::RequestCameraCapture() {
 }
 
 void GRenderWindow::OnCameraCapture(int requestId, const QImage& img) {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if YUZU_USE_QT_MULTIMEDIA
     // TODO: Capture directly in the format and resolution needed
     const auto camera_width = input_subsystem->GetCamera()->getImageWidth();
     const auto camera_height = input_subsystem->GetCamera()->getImageHeight();

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // Text : Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -8,7 +11,8 @@
 
 class QTimer;
 class QCamera;
-class QCameraImageCapture;
+class QImageCapture;
+class QMediaCaptureSession;
 
 namespace InputCommon {
 class InputSubsystem;
@@ -46,9 +50,10 @@ private:
 
     bool is_virtual_camera;
     int pending_snapshots;
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if YUZU_USE_QT_MULTIMEDIA
     std::unique_ptr<QCamera> camera;
-    std::unique_ptr<QCameraImageCapture> camera_capture;
+    std::unique_ptr<QImageCapture> camera_capture;
+    std::unique_ptr<QMediaCaptureSession> capture_session;
 #endif
     std::unique_ptr<QTimer> camera_timer;
     std::vector<std::string> input_devices;
