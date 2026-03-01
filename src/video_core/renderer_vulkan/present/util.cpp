@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -6,6 +6,7 @@
 
 #include "common/assert.h"
 #include <ranges>
+#include <vulkan/vulkan_core.h>
 #include "video_core/renderer_vulkan/present/util.h"
 
 namespace Vulkan {
@@ -629,8 +630,8 @@ vk::Sampler CreateCubicSampler(const Device& device, VkCubicFilterWeightsQCOM qc
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .magFilter = VK_FILTER_CUBIC_EXT,
-        .minFilter = VK_FILTER_CUBIC_EXT,
+        .magFilter = device.IsExtFilterCubicSupported() ? VK_FILTER_CUBIC_EXT : VK_FILTER_LINEAR,
+        .minFilter = device.IsExtFilterCubicSupported() ? VK_FILTER_CUBIC_EXT : VK_FILTER_LINEAR,
         .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
         .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
         .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,

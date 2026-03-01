@@ -107,6 +107,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
     EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
+    EXTENSION(IMG, FILTER_CUBIC, filter_cubic_img)                                                 \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
 
 // Define extensions which must be supported.
