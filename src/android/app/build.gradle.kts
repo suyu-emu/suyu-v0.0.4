@@ -80,7 +80,6 @@ android {
                     listOf(
                         "-DENABLE_QT=0", // Don't use QT
                         "-DENABLE_WEB_SERVICE=1", // Enable web service
-                        "-DENABLE_OPENSSL=ON",
                         "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
                         "-DYUZU_USE_CPM=ON",
                         "-DCPMUTIL_FORCE_BUNDLED=ON",

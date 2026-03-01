@@ -9,7 +9,7 @@ pkgs.mkShellNoCC {
     # libraries
     openssl boost fmt nlohmann_json lz4 zlib zstd
     enet libopus vulkan-headers vulkan-utility-libraries
-    spirv-tools spirv-headers vulkan-loader unzip mbedtls
+    spirv-tools spirv-headers vulkan-loader unzip
     glslang python3 httplib cpp-jwt ffmpeg-headless
     libusb1 cubeb
     # eden

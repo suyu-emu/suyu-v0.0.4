@@ -38,7 +38,6 @@ struct CipherContext {
 static inline const std::string GetCipherName(Mode mode, u32 key_size) {
     std::string cipher;
     std::size_t effective_bits = key_size * 8;
-
     switch (mode) {
     case Mode::CTR:
         cipher = "CTR";
@@ -53,7 +52,6 @@ static inline const std::string GetCipherName(Mode mode, u32 key_size) {
     default:
         UNREACHABLE();
     }
-
     return fmt::format("AES-{}-{}", effective_bits, cipher);
 };
 
@@ -87,8 +85,7 @@ static EVP_CIPHER *GetCipher(Mode mode, u32 key_size) {
 
 // TODO: WHY TEMPLATE???????
 template <typename Key, std::size_t KeySize>
-Crypto::AESCipher<Key, KeySize>::AESCipher(Key key, Mode mode)
-    : ctx(std::make_unique<CipherContext>()) {
+Crypto::AESCipher<Key, KeySize>::AESCipher(Key key, Mode mode) : ctx(std::make_unique<CipherContext>()) {
 
     ctx->encryption_context = EVP_CIPHER_CTX_new();
     ctx->decryption_context = EVP_CIPHER_CTX_new();
@@ -99,9 +96,7 @@ Crypto::AESCipher<Key, KeySize>::AESCipher(Key key, Mode mode)
         UNIMPLEMENTED();
     }
 
-    ASSERT_MSG(ctx->encryption_context && ctx->decryption_context && ctx->cipher,
-               "OpenSSL cipher context failed init!");
-
+    ASSERT(ctx->encryption_context && ctx->decryption_context && ctx->cipher && "OpenSSL cipher context failed init!");
     // now init ciphers
     ASSERT(EVP_CipherInit_ex2(ctx->encryption_context, ctx->cipher, key.data(), NULL, 1, NULL));
     ASSERT(EVP_CipherInit_ex2(ctx->decryption_context, ctx->cipher, key.data(), NULL, 0, NULL));
@@ -165,8 +160,7 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* des
 template <typename Key, std::size_t KeySize>
 void AESCipher<Key, KeySize>::XTSTranscode(const u8* src, std::size_t size, u8* dest,
                                            std::size_t sector_id, std::size_t sector_size, Op op) {
-    ASSERT_MSG(size % sector_size == 0, "XTS decryption size must be a multiple of sector size.");
-
+    ASSERT(size % sector_size == 0 && "XTS decryption size must be a multiple of sector size.");
     for (std::size_t i = 0; i < size; i += sector_size) {
         SetIV(CalculateNintendoTweak(sector_id++));
         Transcode(src + i, sector_size, dest + i, op);
@@ -177,8 +171,7 @@ template <typename Key, std::size_t KeySize>
 void AESCipher<Key, KeySize>::SetIV(std::span<const u8> data) {
     const int ret_enc = EVP_CipherInit_ex(ctx->encryption_context, nullptr, nullptr, nullptr, data.data(), -1);
     const int ret_dec = EVP_CipherInit_ex(ctx->decryption_context, nullptr, nullptr, nullptr, data.data(), -1);
-
-    ASSERT_MSG(ret_enc == 1 && ret_dec == 1, "Failed to set IV on OpenSSL contexts");
+    ASSERT(ret_enc == 1 && ret_dec == 1 && "Failed to set IV on OpenSSL contexts");
 }
 
 template class AESCipher<Key128>;
