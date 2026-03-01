@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -11,8 +11,7 @@ import android.graphics.*
 import android.util.AttributeSet
 import com.google.android.material.card.MaterialCardView
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.features.settings.model.Settings
-import androidx.preference.PreferenceManager
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 
 class GradientBorderCardView @JvmOverloads constructor(
     context: Context,
@@ -44,12 +43,7 @@ class GradientBorderCardView @JvmOverloads constructor(
     }
 
     private fun updateThemeState() {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val themeIndex = try {
-            prefs.getInt(Settings.PREF_STATIC_THEME_COLOR, 0)
-        } catch (e: Exception) {
-            0 // Default to Eden theme if error
-        }
+        val themeIndex = IntSetting.STATIC_THEME_COLOR.getInt(false)
         isEdenTheme = themeIndex == 0
         invalidate()
     }
