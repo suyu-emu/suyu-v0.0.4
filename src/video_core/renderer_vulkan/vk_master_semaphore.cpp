@@ -121,10 +121,8 @@ VkResult MasterSemaphore::SubmitQueue(vk::CommandBuffer& cmdbuf, vk::CommandBuff
     }
 }
 
-static constexpr std::array<VkPipelineStageFlags, 2> wait_stage_masks{
-    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-};
+static constexpr VkPipelineStageFlags wait_stage_mask = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                                                        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
                                               vk::CommandBuffer& upload_cmdbuf,
@@ -143,7 +141,7 @@ VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
     const VkSemaphore* p_wait_sems =
         (num_wait_semaphores > 0) ? &wait_semaphore : nullptr;
     const VkPipelineStageFlags* p_wait_masks =
-        (num_wait_semaphores > 0) ? wait_stage_masks.data() : nullptr;
+        (num_wait_semaphores > 0) ? &wait_stage_mask : nullptr;
     const VkSemaphore* p_signal_sems =
         (num_signal_semaphores > 0) ? signal_semaphores.data() : nullptr;
     const u64 wait_zero = 0; // dummy for binary wait
@@ -180,7 +178,7 @@ VkResult MasterSemaphore::SubmitQueueFence(vk::CommandBuffer& cmdbuf,
     const VkSemaphore* p_wait_sems =
             (num_wait_semaphores > 0) ? &wait_semaphore : nullptr;
     const VkPipelineStageFlags* p_wait_masks =
-        (num_wait_semaphores > 0) ? wait_stage_masks.data() : nullptr;
+        (num_wait_semaphores > 0) ? &wait_stage_mask : nullptr;
     const VkSemaphore* p_signal_sems =
         (num_signal_semaphores > 0) ? &signal_semaphore : nullptr;
     const std::array cmdbuffers{*upload_cmdbuf, *cmdbuf};
