@@ -586,11 +586,19 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_amd_driver) {
         // AMD drivers need a higher amount of Sets per Pool in certain circumstances like in XC2.
         sets_per_pool = 96;
+
         // Disable VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT on AMD GCN4 and lower as it is broken.
         if (!features.shader_float16_int8.shaderFloat16) {
             LOG_WARNING(Render_Vulkan,
                         "AMD GCN4 and earlier have broken VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT");
             has_broken_cube_compatibility = true;
+        }
+
+        // AMD drivers (2026+) have broken float16 math on DKCR
+        if (features.shader_float16_int8.shaderFloat16) {
+            LOG_WARNING(Render_Vulkan,
+                        "AMD drivers (2026+) have broken float16 math");
+            features.shader_float16_int8.shaderFloat16 = false;
         }
     }
 
