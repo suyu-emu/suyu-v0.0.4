@@ -110,6 +110,9 @@ struct RuntimeInfo {
 
     /// Output types for each color attachment
     std::array<AttributeType, 8> color_output_types{};
+
+    /// Dual source blending
+    bool dual_source_blend{};
 };
 
 } // namespace Shader
