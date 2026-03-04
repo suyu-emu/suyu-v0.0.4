@@ -1066,7 +1066,10 @@ class SettingsFragmentPresenter(
                     IntSetting.THEME.getValueAsString()
 
                 override val defaultValue: Int = IntSetting.THEME.defaultValue
-                override fun reset() = IntSetting.THEME.setInt(defaultValue)
+                override fun reset() {
+                    IntSetting.THEME.setInt(defaultValue)
+                    settingsViewModel.setShouldRecreate(true)
+                }
             }
 
             add(HeaderSetting(R.string.app_settings))

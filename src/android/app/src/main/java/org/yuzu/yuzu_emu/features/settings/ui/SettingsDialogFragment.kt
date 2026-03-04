@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -68,7 +68,9 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                 MaterialAlertDialogBuilder(requireContext())
                     .setMessage(R.string.reset_setting_confirmation)
                     .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
-                        when (val item = settingsViewModel.clickedItem) {
+                        val item = settingsViewModel.clickedItem ?: return@setPositiveButton
+                        clearDialogState()
+                        when (item) {
                             is AnalogInputSetting -> {
                                 val stickParam = NativeInput.getStickParam(
                                     item.playerIndex,
@@ -107,12 +109,17 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                             }
 
                             else -> {
-                                settingsViewModel.clickedItem!!.setting.reset()
+                                item.setting.reset()
                                 settingsViewModel.setAdapterItemChanged(position)
                             }
                         }
                     }
-                    .setNegativeButton(android.R.string.cancel, null)
+                    .setNegativeButton(android.R.string.cancel) { _: DialogInterface, _: Int ->
+                        clearDialogState()
+                    }
+                    .setOnCancelListener {
+                        clearDialogState()
+                    }
                     .create()
             }
 
@@ -185,27 +192,6 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     }
                     updateButtonState(isValid)
                 }
-
-                /*
-                 * xbzk: these two events, along with attachRepeat feature,
-                 * were causing spinbox buttons to respond twice per press
-                 * cutting these out to retain accelerated press functionality
-                 * TODO: clean this out later if no issues arise
-                 *
-                spinboxBinding.buttonDecrement.setOnClickListener {
-                    val current = spinboxBinding.editValue.text.toString().toIntOrNull() ?: currentValue
-                    val newValue = current - 1
-                    spinboxBinding.editValue.setText(newValue.toString())
-                    updateValidity(newValue)
-                }
-
-                spinboxBinding.buttonIncrement.setOnClickListener {
-                    val current = spinboxBinding.editValue.text.toString().toIntOrNull() ?: currentValue
-                    val newValue = current + 1
-                    spinboxBinding.editValue.setText(newValue.toString())
-                    updateValidity(newValue)
-                }
-                */
 
                 fun attachRepeat(button: View, delta: Int) {
                     val handler = Handler(Looper.getMainLooper())
@@ -439,9 +425,13 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
 
     private fun closeDialog() {
         settingsViewModel.setAdapterItemChanged(position)
+        clearDialogState()
+        dismiss()
+    }
+
+    private fun clearDialogState() {
         settingsViewModel.clickedItem = null
         settingsViewModel.setSliderProgress(-1f)
-        dismiss()
     }
 
     private fun getValueForSingleChoiceSelection(item: SingleChoiceSetting, which: Int): Int {
