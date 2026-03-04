@@ -50,11 +50,14 @@ ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipel
         DescriptorLayoutBuilder builder{device};
         builder.Add(info, VK_SHADER_STAGE_COMPUTE_BIT);
 
-        descriptor_set_layout = builder.CreateDescriptorSetLayout(false);
+        uses_push_descriptor = builder.CanUsePushDescriptor();
+        descriptor_set_layout = builder.CreateDescriptorSetLayout(uses_push_descriptor);
         pipeline_layout = builder.CreatePipelineLayout(*descriptor_set_layout);
         descriptor_update_template =
-            builder.CreateTemplate(*descriptor_set_layout, *pipeline_layout, false);
-        descriptor_allocator = descriptor_pool.Allocator(*descriptor_set_layout, info);
+            builder.CreateTemplate(*descriptor_set_layout, *pipeline_layout, uses_push_descriptor);
+        if (!uses_push_descriptor) {
+            descriptor_allocator = descriptor_pool.Allocator(*descriptor_set_layout, info);
+        }
         const VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT,
             .pNext = nullptr,
@@ -241,11 +244,16 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
                                  RESCALING_LAYOUT_WORDS_OFFSET, sizeof(rescaling_data),
                                  rescaling_data.data());
         }
-        const VkDescriptorSet descriptor_set{descriptor_allocator.Commit()};
-        const vk::Device& dev{device.GetLogical()};
-        dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline_layout, 0,
-                                  descriptor_set, nullptr);
+        if (uses_push_descriptor) {
+            cmdbuf.PushDescriptorSetWithTemplateKHR(*descriptor_update_template, *pipeline_layout,
+                                                    0, descriptor_data);
+        } else {
+            const VkDescriptorSet descriptor_set{descriptor_allocator.Commit()};
+            const vk::Device& dev{device.GetLogical()};
+            dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
+            cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline_layout, 0,
+                                      descriptor_set, nullptr);
+        }
     });
 }
 
