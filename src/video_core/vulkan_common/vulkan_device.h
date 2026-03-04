@@ -318,6 +318,11 @@ public:
         return properties.properties.limits.minStorageBufferOffsetAlignment;
     }
 
+    /// Returns texel buffer offset alignment requirement.
+    VkDeviceSize GetMinTexelBufferOffsetAlignment() const {
+        return properties.properties.limits.minTexelBufferOffsetAlignment;
+    }
+
     /// Returns the maximum range for storage buffers.
     VkDeviceSize GetMaxStorageBufferRange() const {
         return properties.properties.limits.maxStorageBufferRange;

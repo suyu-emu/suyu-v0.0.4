@@ -108,6 +108,14 @@ VkBufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat 
         // Null buffer not supported, adjust offset and size
         offset = 0;
         size = 0;
+    } else {
+        // Align offset down to minTexelBufferOffsetAlignment
+        const u32 alignment = static_cast<u32>(device->GetMinTexelBufferOffsetAlignment());
+        if (alignment > 1) {
+            const u32 aligned_offset = offset & ~(alignment - 1);
+            size += offset - aligned_offset;
+            offset = aligned_offset;
+        }
     }
     const auto it{std::ranges::find_if(views, [offset, size, format](const BufferView& view) {
         return offset == view.offset && size == view.size && format == view.format;
