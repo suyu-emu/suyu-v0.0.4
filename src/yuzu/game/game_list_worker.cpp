@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <utility>
@@ -16,14 +17,17 @@
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/card_image.h"
+#include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/loader/loader.h"
 #include "yuzu/compatibility_list.h"
@@ -375,6 +379,12 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                 return true;
             }
 
+            if (target == ScanTarget::PopulateGameList &&
+                (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP) &&
+                !Loader::IsBootableGameContainer(file, file_type)) {
+                return true;
+            }
+
             u64 program_id = 0;
             const auto res2 = loader->ReadProgramId(program_id);
 
@@ -383,18 +393,10 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                     provider->AddEntry(FileSys::TitleType::Application,
                                        FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()),
                                        program_id, file);
-                } else if (res2 == Loader::ResultStatus::Success &&
+                } else if (Settings::values.ext_content_from_game_dirs.GetValue() &&
                            (file_type == Loader::FileType::XCI ||
                             file_type == Loader::FileType::NSP)) {
-                    const auto nsp = file_type == Loader::FileType::NSP
-                                         ? std::make_shared<FileSys::NSP>(file)
-                                         : FileSys::XCI{file}.GetSecurePartitionNSP();
-                    for (const auto& title : nsp->GetNCAs()) {
-                        for (const auto& entry : title.second) {
-                            provider->AddEntry(entry.first.first, entry.first.second, title.first,
-                                               entry.second->GetBaseFile());
-                        }
-                    }
+                    void(provider->AddEntriesFromContainer(file));
                 }
             } else {
                 std::vector<u64> program_ids;

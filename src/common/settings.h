@@ -756,6 +756,8 @@ struct Values {
                                         Category::DataStorage};
     Setting<std::string> gamecard_path{linkage, std::string(), "gamecard_path",
                                        Category::DataStorage};
+    Setting<bool> ext_content_from_game_dirs{linkage, true, "ext_content_from_game_dirs",
+                                             Category::DataStorage};
     std::vector<std::string> external_content_dirs;
 
     // Debugging

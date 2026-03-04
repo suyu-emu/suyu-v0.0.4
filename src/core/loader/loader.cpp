@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -9,11 +9,15 @@
 #include <ostream>
 #include <string>
 #include <concepts>
+#include <algorithm>
 #include "common/concepts.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/file_sys/card_image.h"
+#include "core/file_sys/common_funcs.h"
+#include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/kip.h"
@@ -35,6 +39,49 @@ std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
         return file_type;
     }
     return std::nullopt;
+}
+
+std::shared_ptr<FileSys::NSP> OpenContainerAsNsp(FileSys::VirtualFile file, FileType type,
+                                                 u64 program_id = 0,
+                                                 std::size_t program_index = 0) {
+    if (!file) {
+        return nullptr;
+    }
+
+    if (type == FileType::NSP) {
+        auto nsp = std::make_shared<FileSys::NSP>(file, program_id, program_index);
+        return nsp->GetStatus() == ResultStatus::Success ? nsp : nullptr;
+    }
+
+    if (type == FileType::XCI) {
+        FileSys::XCI xci{file, program_id, program_index};
+        if (xci.GetStatus() != ResultStatus::Success) {
+            return nullptr;
+        }
+
+        auto secure_nsp = xci.GetSecurePartitionNSP();
+        if (secure_nsp == nullptr || secure_nsp->GetStatus() != ResultStatus::Success) {
+            return nullptr;
+        }
+
+        return secure_nsp;
+    }
+
+    return nullptr;
+}
+
+bool HasApplicationProgramContent(const std::shared_ptr<FileSys::NSP>& nsp) {
+    if (!nsp) {
+        return false;
+    }
+
+    const auto& ncas = nsp->GetNCAs();
+    return std::any_of(ncas.cbegin(), ncas.cend(), [](const auto& title_entry) {
+        const auto& nca_map = title_entry.second;
+        return nca_map.find(
+                   {FileSys::TitleType::Application, FileSys::ContentRecordType::Program}) !=
+               nca_map.end();
+    });
 }
 
 } // namespace
@@ -60,6 +107,27 @@ FileType IdentifyFile(FileSys::VirtualFile file) {
     } else {
         return FileType::Unknown;
     }
+}
+
+bool IsContainerType(FileType type) {
+    return type == FileType::NSP || type == FileType::XCI;
+}
+
+bool IsBootableGameContainer(FileSys::VirtualFile file, FileType type, u64 program_id,
+                             std::size_t program_index) {
+    if (!file) {
+        return false;
+    }
+
+    if (type == FileType::Unknown) {
+        type = IdentifyFile(file);
+    }
+
+    if (!IsContainerType(type)) {
+        return false;
+    }
+
+    return HasApplicationProgramContent(OpenContainerAsNsp(file, type, program_id, program_index));
 }
 
 FileType GuessFromFilename(const std::string& name) {

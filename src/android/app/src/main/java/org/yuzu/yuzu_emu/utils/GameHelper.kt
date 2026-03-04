@@ -51,11 +51,24 @@ object GameHelper {
 
         // Scan External Content directories and register all NSP/XCI files
         val externalContentDirs = NativeConfig.getExternalContentDirs()
-        for (externalDir in externalContentDirs) {
+        val uniqueExternalContentDirs = linkedSetOf<String>()
+        externalContentDirs.forEach { externalDir ->
+            if (externalDir.isNotEmpty()) {
+                uniqueExternalContentDirs.add(externalDir)
+            }
+        }
+
+        val mountedContainerUris = mutableSetOf<String>()
+        for (externalDir in uniqueExternalContentDirs) {
             if (externalDir.isNotEmpty()) {
                 val externalDirUri = externalDir.toUri()
                 if (FileUtil.isTreeUriValid(externalDirUri)) {
-                    scanExternalContentRecursive(FileUtil.listFiles(externalDirUri), 3)
+                    scanContentContainersRecursive(FileUtil.listFiles(externalDirUri), 3) {
+                        val containerUri = it.uri.toString()
+                        if (mountedContainerUris.add(containerUri)) {
+                            NativeLibrary.addFileToFilesystemProvider(containerUri)
+                        }
+                    }
                 }
             }
         }
@@ -65,10 +78,13 @@ object GameHelper {
             val gameDirUri = gameDir.uriString.toUri()
             val isValid = FileUtil.isTreeUriValid(gameDirUri)
             if (isValid) {
+                val scanDepth = if (gameDir.deepScan) 3 else 1
+
                 addGamesRecursive(
                     games,
                     FileUtil.listFiles(gameDirUri),
-                    if (gameDir.deepScan) 3 else 1
+                    scanDepth,
+                    mountedContainerUris
                 )
             } else {
                 badDirs.add(index)
@@ -103,9 +119,10 @@ object GameHelper {
     // be done better imo.
     private val externalContentExtensions = setOf("nsp", "xci")
 
-    private fun scanExternalContentRecursive(
+    private fun scanContentContainersRecursive(
         files: Array<MinimalDocumentFile>,
-        depth: Int
+        depth: Int,
+        onContainerFound: (MinimalDocumentFile) -> Unit
     ) {
         if (depth <= 0) {
             return
@@ -113,14 +130,15 @@ object GameHelper {
 
         files.forEach {
             if (it.isDirectory) {
-                scanExternalContentRecursive(
+                scanContentContainersRecursive(
                     FileUtil.listFiles(it.uri),
-                    depth - 1
+                    depth - 1,
+                    onContainerFound
                 )
             } else {
                 val extension = FileUtil.getExtension(it.uri).lowercase()
                 if (externalContentExtensions.contains(extension)) {
-                    NativeLibrary.addFileToFilesystemProvider(it.uri.toString())
+                    onContainerFound(it)
                 }
             }
         }
@@ -129,7 +147,8 @@ object GameHelper {
     private fun addGamesRecursive(
         games: MutableList<Game>,
         files: Array<MinimalDocumentFile>,
-        depth: Int
+        depth: Int,
+        mountedContainerUris: MutableSet<String>
     ) {
         if (depth <= 0) {
             return
@@ -140,11 +159,20 @@ object GameHelper {
                 addGamesRecursive(
                     games,
                     FileUtil.listFiles(it.uri),
-                    depth - 1
+                    depth - 1,
+                    mountedContainerUris
                 )
             } else {
-                if (Game.extensions.contains(FileUtil.getExtension(it.uri))) {
-                    val game = getGame(it.uri, true)
+                val extension = FileUtil.getExtension(it.uri).lowercase()
+                val filePath = it.uri.toString()
+
+                if (externalContentExtensions.contains(extension) &&
+                    mountedContainerUris.add(filePath)) {
+                    NativeLibrary.addGameFolderFileToFilesystemProvider(filePath)
+                }
+
+                if (Game.extensions.contains(extension)) {
+                    val game = getGame(it.uri, true, false)
                     if (game != null) {
                         games.add(game)
                     }
@@ -153,14 +181,20 @@ object GameHelper {
         }
     }
 
-    fun getGame(uri: Uri, addedToLibrary: Boolean): Game? {
+    fun getGame(
+        uri: Uri,
+        addedToLibrary: Boolean,
+        registerFilesystemProvider: Boolean = true
+    ): Game? {
         val filePath = uri.toString()
         if (!GameMetadata.getIsValid(filePath)) {
             return null
         }
 
-        // Needed to update installed content information
-        NativeLibrary.addFileToFilesystemProvider(filePath)
+        if (registerFilesystemProvider) {
+            // Needed to update installed content information
+            NativeLibrary.addFileToFilesystemProvider(filePath)
+        }
 
         var name = GameMetadata.getTitle(filePath)
 

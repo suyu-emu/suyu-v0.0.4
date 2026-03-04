@@ -424,7 +424,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         )
 
         val uriString = result.toString()
-        val folder = gamesViewModel.folders.value.firstOrNull { it.uriString == uriString }
+        val folder = gamesViewModel.folders.value.firstOrNull {
+            it.uriString == uriString && it.type == org.yuzu.yuzu_emu.model.DirectoryType.EXTERNAL_CONTENT
+        }
         if (folder != null) {
             Toast.makeText(
                 applicationContext,

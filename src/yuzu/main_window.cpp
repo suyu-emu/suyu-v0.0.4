@@ -2019,6 +2019,10 @@ void MainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
         return;
     }
 
+    if (QtCommon::provider->AddEntriesFromContainer(file)) {
+        return;
+    }
+
     auto loader = Loader::GetLoader(*QtCommon::system, file);
     if (!loader) {
         return;
@@ -2033,19 +2037,8 @@ void MainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
     const auto res2 = loader->ReadProgramId(program_id);
     if (res2 == Loader::ResultStatus::Success && file_type == Loader::FileType::NCA) {
         QtCommon::provider->AddEntry(FileSys::TitleType::Application,
-                                     FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()), program_id,
-                                     file);
-    } else if (res2 == Loader::ResultStatus::Success &&
-               (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
-        const auto nsp = file_type == Loader::FileType::NSP
-                             ? std::make_shared<FileSys::NSP>(file)
-                             : FileSys::XCI{file}.GetSecurePartitionNSP();
-        for (const auto& title : nsp->GetNCAs()) {
-            for (const auto& entry : title.second) {
-                QtCommon::provider->AddEntry(entry.first.first, entry.first.second, title.first,
-                                             entry.second->GetBaseFile());
-            }
-        }
+                                     FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()),
+                                     program_id, file);
     }
 }
 

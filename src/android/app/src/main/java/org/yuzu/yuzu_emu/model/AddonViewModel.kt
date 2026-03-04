@@ -127,10 +127,6 @@ class AddonViewModel : ViewModel() {
             return
         }
 
-        // Check if there are multiple update versions
-        val updates = _patchList.value.filter { PatchType.from(it.type) == PatchType.Update }
-        val hasMultipleUpdates = updates.size > 1
-
         NativeConfig.setDisabledAddons(
             game!!.programId,
             _patchList.value.mapNotNull {
@@ -140,7 +136,7 @@ class AddonViewModel : ViewModel() {
                     if (PatchType.from(it.type) == PatchType.Update) {
                         if (it.name.contains("(NAND)") || it.name.contains("(SDMC)")) {
                             it.name
-                        } else if (hasMultipleUpdates) {
+                        } else if (it.numericVersion != 0L) {
                             "Update@${it.numericVersion}"
                         } else {
                             it.name

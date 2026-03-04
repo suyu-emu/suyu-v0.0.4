@@ -33,6 +33,12 @@ void AndroidConfig::ReadAndroidValues() {
     if (global) {
         ReadAndroidUIValues();
         ReadUIValues();
+        BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
+        Settings::values.ext_content_from_game_dirs = ReadBooleanSetting(
+            std::string("ext_content_from_game_dirs"),
+            std::make_optional(
+                Settings::values.ext_content_from_game_dirs.GetDefault()));
+        EndGroup();
         ReadOverlayValues();
     }
     ReadDriverValues();

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -46,11 +49,28 @@ enum class FileType {
 };
 
 /**
- * Identifies the type of a bootable file based on the magic value in its header.
+ * Identifies the type of a supported file/container based on its structure.
  * @param file open file
  * @return FileType of file
  */
 FileType IdentifyFile(FileSys::VirtualFile file);
+
+/**
+ * Returns whether the file type represents a container format that can bundle multiple titles
+ * (currently NSP/XCI).
+ */
+bool IsContainerType(FileType type);
+
+/**
+ * Returns whether a container file is bootable as a game (has Application/Program content).
+ *
+ * @param file open file
+ * @param type optional file type; if Unknown it is auto-detected.
+ * @param program_id optional program id hint for multi-program containers.
+ * @param program_index optional program index hint for multi-program containers.
+ */
+bool IsBootableGameContainer(FileSys::VirtualFile file, FileType type = FileType::Unknown,
+                             u64 program_id = 0, std::size_t program_index = 0);
 
 /**
  * Guess the type of a bootable file from its name

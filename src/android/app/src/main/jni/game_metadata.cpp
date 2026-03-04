@@ -96,6 +96,11 @@ jboolean Java_org_yuzu_yuzu_1emu_utils_GameMetadata_getIsValid(JNIEnv* env, jobj
         return false;
     }
 
+    if ((file_type == Loader::FileType::NSP || file_type == Loader::FileType::XCI) &&
+        !Loader::IsBootableGameContainer(file, file_type)) {
+        return false;
+    }
+
     u64 program_id = 0;
     Loader::ResultStatus res = loader->ReadProgramId(program_id);
     if (res != Loader::ResultStatus::Success) {

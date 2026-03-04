@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -46,6 +49,7 @@ public:
     const Core::PerfStatsResults& PerfStats();
     int ShadersBuilding();
     void ConfigureFilesystemProvider(const std::string& filepath);
+    void ConfigureFilesystemProviderFromGameFolder(const std::string& filepath);
     void InitializeSystem(bool reload);
     void SetAppletId(int applet_id);
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath,

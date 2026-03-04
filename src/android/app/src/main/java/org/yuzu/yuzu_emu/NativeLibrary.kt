@@ -608,6 +608,12 @@ object NativeLibrary {
     external fun addFileToFilesystemProvider(path: String)
 
     /**
+     * Adds a game-folder file to the manual filesystem provider, respecting the internal gate for
+     * game-folder external-content mounting.
+     */
+    external fun addGameFolderFileToFilesystemProvider(path: String)
+
+    /**
      * Clears all files added to the manual filesystem provider in our EmulationSession instance
      */
     external fun clearFilesystemProvider()
