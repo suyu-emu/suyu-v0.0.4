@@ -474,7 +474,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         buffer_cache.BindHostStageBuffers(stage);
         PushImageDescriptors(texture_cache, guest_descriptor_queue, stage_infos[stage], rescaling,
                              samplers_it, views_it);
-        const auto& info{stage_infos[0]};
+        const auto& info{stage_infos[stage]};
         if (info.uses_render_area) {
             render_area.uses_render_area = true;
             render_area.words = {static_cast<float>(regs.surface_clip.width),
