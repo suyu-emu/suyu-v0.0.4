@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.utils
@@ -80,16 +80,14 @@ object PathUtil {
         }
     }
 
-    // This really shouldn't be necessary, but the Android API seemingly
-    // doesn't have a way of doing this?
-    // Apparently, on certain devices the mount location can vary, so add
-    // extra cases here if we discover any new ones.
     fun getRemovableStoragePath(idString: String): String? {
-        var pathFile: File
+        val possibleMountPaths = listOf("/mnt/media_rw/$idString", "/storage/$idString")
 
-        pathFile = File("/mnt/media_rw/$idString");
-        if (pathFile.exists()) {
-            return pathFile.absolutePath
+        for (mountPath in possibleMountPaths) {
+            val pathFile = File(mountPath);
+            if (pathFile.exists()) {
+                return pathFile.absolutePath
+            }
         }
 
         return null
