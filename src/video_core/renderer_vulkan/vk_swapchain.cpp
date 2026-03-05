@@ -109,38 +109,22 @@ VkCompositeAlphaFlagBitsKHR ChooseAlphaFlags(const VkSurfaceCapabilitiesKHR& cap
 } // Anonymous namespace
 
 Swapchain::Swapchain(
-#ifdef ANDROID
-    VkSurfaceKHR surface_,
-#else
-    VkSurfaceKHR_T* surface_handle_,
-#endif
+    VkSurfaceKHR_T* surface_,
     const Device& device_,
     Scheduler& scheduler_,
     u32 width_,
     u32 height_)
-#ifdef ANDROID
     : surface(surface_)
-#else
-    : surface_handle{surface_handle_}
-#endif
     , device{device_}
     , scheduler{scheduler_}
 {
-#ifdef ANDROID
     Create(surface, width_, height_);
-#else
-    Create(surface_handle, width_, height_);
-#endif
 }
 
 Swapchain::~Swapchain() = default;
 
 void Swapchain::Create(
-#ifdef ANDROID
-    VkSurfaceKHR surface_,
-#else
-    VkSurfaceKHR_T* surface_handle_,
-#endif
+    VkSurfaceKHR_T* surface_,
     u32 width_,
     u32 height_)
 {
@@ -148,18 +132,10 @@ void Swapchain::Create(
     is_suboptimal = false;
     width = width_;
     height = height_;
-#ifdef ANDROID
     surface = surface_;
-#else
-    surface_handle = surface_handle_;
-#endif
 
     const auto physical_device = device.GetPhysical();
-#ifdef ANDROID
-    const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(surface)};
-#else
-    const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(surface_handle)};
-#endif
+    const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(VkSurfaceKHR(surface))};
     if (capabilities.maxImageExtent.width == 0 || capabilities.maxImageExtent.height == 0) {
         return;
     }
@@ -254,14 +230,8 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
 
 void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
     const auto physical_device{device.GetPhysical()};
-
-#ifdef ANDROID
-    const auto formats{physical_device.GetSurfaceFormatsKHR(surface)};
-    const auto present_modes = physical_device.GetSurfacePresentModesKHR(surface);
-#else
-    const auto formats{physical_device.GetSurfaceFormatsKHR(surface_handle)};
-    const auto present_modes = physical_device.GetSurfacePresentModesKHR(surface_handle);
-#endif
+    const auto formats{physical_device.GetSurfaceFormatsKHR(VkSurfaceKHR(surface))};
+    const auto present_modes = physical_device.GetSurfacePresentModesKHR(VkSurfaceKHR(surface));
 
     has_mailbox = std::find(present_modes.begin(), present_modes.end(), VK_PRESENT_MODE_MAILBOX_KHR)
                   != present_modes.end();
@@ -290,11 +260,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext = nullptr,
         .flags = 0,
-#ifdef ANDROID
-        .surface = surface,
-#else
-        .surface = surface_handle,
-#endif
+        .surface = VkSurfaceKHR(surface),
         .minImageCount = requested_image_count,
         .imageFormat = surface_format.format,
         .imageColorSpace = surface_format.colorSpace,
@@ -313,7 +279,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         .compositeAlpha = alpha_flags,
         .presentMode = present_mode,
         .clipped = VK_FALSE,
-        .oldSwapchain = nullptr,
+        .oldSwapchain = VkSwapchainKHR{},
     };
     const u32 graphics_family{device.GetGraphicsFamily()};
     const u32 present_family{device.GetPresentFamily()};
@@ -345,11 +311,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         swapchain_ci.flags |= VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR;
     }
     // Request the size again to reduce the possibility of a TOCTOU race condition.
-#ifdef ANDROID
-    const auto updated_capabilities = physical_device.GetSurfaceCapabilitiesKHR(surface);
-#else
-    const auto updated_capabilities = physical_device.GetSurfaceCapabilitiesKHR(surface_handle);
-#endif
+    const auto updated_capabilities = physical_device.GetSurfaceCapabilitiesKHR(VkSurfaceKHR(surface));
     swapchain_ci.imageExtent = ChooseSwapExtent(updated_capabilities, width, height);
     // Don't add code within this and the swapchain creation.
     swapchain = device.GetLogical().CreateSwapchainKHR(swapchain_ci);

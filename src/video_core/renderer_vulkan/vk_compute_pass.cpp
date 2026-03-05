@@ -285,7 +285,7 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
         .requiredSubgroupSize = optional_subgroup_size ? *optional_subgroup_size : 32U,
     };
     bool use_setup_size = device.IsExtSubgroupSizeControlSupported() && optional_subgroup_size;
-    pipeline = device.GetLogical().CreateComputePipeline({
+    pipeline = device.GetLogical().CreateComputePipeline(VkComputePipelineCreateInfo{
         .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -299,7 +299,7 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
             .pSpecializationInfo = nullptr,
         },
         .layout = *layout,
-        .basePipelineHandle = nullptr,
+        .basePipelineHandle = {},
         .basePipelineIndex = 0,
     });
 }
@@ -944,7 +944,7 @@ MSAACopyPass::MSAACopyPass(const Device& device_, Scheduler& scheduler_,
             .codeSize = static_cast<u32>(code.size_bytes()),
             .pCode = code.data(),
         });
-        pipelines[i] = device.GetLogical().CreateComputePipeline({
+        pipelines[i] = device.GetLogical().CreateComputePipeline(VkComputePipelineCreateInfo{
             .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
@@ -958,7 +958,7 @@ MSAACopyPass::MSAACopyPass(const Device& device_, Scheduler& scheduler_,
                 .pSpecializationInfo = nullptr,
             },
             .layout = *layout,
-            .basePipelineHandle = nullptr,
+            .basePipelineHandle = {},
             .basePipelineIndex = 0,
         });
     };

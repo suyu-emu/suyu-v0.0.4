@@ -419,7 +419,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     : instance{instance_}, dld{dld_}, physical{physical_},
     format_properties(GetFormatProperties(physical)) {
     // Get suitability and device properties.
-    const bool is_suitable = GetSuitability(surface != nullptr);
+    const bool is_suitable = GetSuitability(surface != VkSurfaceKHR{});
 
     const VkDriverId driver_id = properties.driver.driverID;
 

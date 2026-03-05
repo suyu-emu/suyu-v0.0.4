@@ -137,14 +137,8 @@ try
                       memory_allocator,
                       scheduler,
                       swapchain,
-#ifdef ANDROID
-                      surface)
-    ,
-#else
                       *surface)
-    ,
-#endif
-    blit_swapchain(device_memory,
+    , blit_swapchain(device_memory,
                    device,
                    memory_allocator,
                    present_manager,

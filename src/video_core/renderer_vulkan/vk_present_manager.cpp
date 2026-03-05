@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -101,22 +101,14 @@ PresentManager::PresentManager(const vk::Instance& instance_,
                                MemoryAllocator& memory_allocator_,
                                Scheduler& scheduler_,
                                Swapchain& swapchain_,
-#ifdef ANDROID
-                               vk::SurfaceKHR& surface_)
-#else
-                               VkSurfaceKHR_T* surface_handle_)
-#endif
+                               VkSurfaceKHR_T* surface_)
     : instance{instance_}
     , render_window{render_window_}
     , device{device_}
     , memory_allocator{memory_allocator_}
     , scheduler{scheduler_}
     , swapchain{swapchain_}
-#ifdef ANDROID
     , surface{surface_}
-#else
-    , surface_handle{surface_handle_}
-#endif
     , blit_supported{CanBlitToSwapchain(device.GetPhysical(), swapchain.GetImageViewFormat())}
     , use_present_thread{Settings::values.async_presentation.GetValue()}
 {
@@ -299,11 +291,7 @@ void PresentManager::PresentThread(std::stop_token token) {
 }
 
 void PresentManager::RecreateSwapchain(Frame* frame) {
-#ifndef ANDROID
-    swapchain.Create(surface_handle, frame->width, frame->height); // Pass raw pointer
-#else
-    swapchain.Create(*surface, frame->width, frame->height); // Pass raw pointer
-#endif
+    swapchain.Create(surface, frame->width, frame->height); // Pass raw pointer
     SetImageCount();
 }
 
@@ -322,7 +310,7 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
             // Recreate surface and swapchain if needed.
             if (requires_recreation) {
 #ifdef ANDROID
-                surface = CreateSurface(instance, render_window.GetWindowInfo());
+                surface = *CreateSurface(instance, render_window.GetWindowInfo()).address();
 #endif
                 RecreateSwapchain(frame);
             }

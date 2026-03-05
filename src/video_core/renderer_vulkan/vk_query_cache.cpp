@@ -1280,7 +1280,7 @@ void QueryCacheRuntime::EndHostConditionalRendering() {
     PauseHostConditionalRendering();
     impl->hcr_is_set = false;
     impl->is_hcr_running = false;
-    impl->hcr_buffer = nullptr;
+    impl->hcr_buffer = VkBuffer{};
     impl->hcr_offset = 0;
 }
 

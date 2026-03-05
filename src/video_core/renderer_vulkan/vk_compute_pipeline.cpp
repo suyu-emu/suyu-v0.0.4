@@ -67,26 +67,24 @@ ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipel
         if (device.IsKhrPipelineExecutablePropertiesEnabled() && Settings::values.renderer_debug.GetValue()) {
             flags |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;
         }
-        pipeline = device.GetLogical().CreateComputePipeline(
-            {
-                .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-                .pNext = nullptr,
-                .flags = flags,
-                .stage{
-                    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                    .pNext =
-                        device.IsExtSubgroupSizeControlSupported() ? &subgroup_size_ci : nullptr,
-                    .flags = 0,
-                    .stage = VK_SHADER_STAGE_COMPUTE_BIT,
-                    .module = *spv_module,
-                    .pName = "main",
-                    .pSpecializationInfo = nullptr,
-                },
-                .layout = *pipeline_layout,
-                .basePipelineHandle = 0,
-                .basePipelineIndex = 0,
+        pipeline = device.GetLogical().CreateComputePipeline(VkComputePipelineCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = flags,
+            .stage{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext =
+                    device.IsExtSubgroupSizeControlSupported() ? &subgroup_size_ci : nullptr,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                .module = *spv_module,
+                .pName = "main",
+                .pSpecializationInfo = nullptr,
             },
-            *pipeline_cache);
+            .layout = *pipeline_layout,
+            .basePipelineHandle = 0,
+            .basePipelineIndex = 0,
+        }, *pipeline_cache);
 
         // Log compute pipeline creation
         if (Settings::values.gpu_logging_enabled.GetValue()) {

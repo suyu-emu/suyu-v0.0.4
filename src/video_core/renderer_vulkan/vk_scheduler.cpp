@@ -377,7 +377,7 @@ void Scheduler::EndRenderPass()
                                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, nullptr, nullptr, vk::Span(barriers.data(), num_images));
         });
 
-        state.renderpass = nullptr;
+        state.renderpass = VkRenderPass{};
         num_renderpass_images = 0;
     }
 

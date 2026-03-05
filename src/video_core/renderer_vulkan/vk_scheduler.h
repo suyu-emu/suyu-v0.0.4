@@ -44,10 +44,10 @@ public:
     ~Scheduler();
 
     /// Sends the current execution context to the GPU.
-    u64 Flush(VkSemaphore signal_semaphore = nullptr, VkSemaphore wait_semaphore = nullptr);
+    u64 Flush(VkSemaphore signal_semaphore = {}, VkSemaphore wait_semaphore = {});
 
     /// Sends the current execution context to the GPU and waits for it to complete.
-    void Finish(VkSemaphore signal_semaphore = nullptr, VkSemaphore wait_semaphore = nullptr);
+    void Finish(VkSemaphore signal_semaphore = {}, VkSemaphore wait_semaphore = {});
 
     /// Waits for the worker thread to finish executing everything. After this function returns it's
     /// safe to touch worker resources.
@@ -237,8 +237,8 @@ private:
     };
 
     struct State {
-        VkRenderPass renderpass = nullptr;
-        VkFramebuffer framebuffer = nullptr;
+        VkRenderPass renderpass{};
+        VkFramebuffer framebuffer{};
         VkExtent2D render_area = {0, 0};
         GraphicsPipeline* graphics_pipeline = nullptr;
         bool is_rescaling = false;

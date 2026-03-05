@@ -15,7 +15,7 @@ vk::SurfaceKHR CreateSurface(
     const vk::Instance& instance,
     [[maybe_unused]] const Core::Frontend::EmuWindow::WindowSystemInfo& window_info) {
     [[maybe_unused]] const vk::InstanceDispatch& dld = instance.Dispatch();
-    VkSurfaceKHR unsafe_surface = nullptr;
+    VkSurfaceKHR unsafe_surface = VkSurfaceKHR{};
 
 #ifdef _WIN32
     if (window_info.type == Core::Frontend::WindowSystemType::Windows) {

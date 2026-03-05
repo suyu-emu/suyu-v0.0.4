@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -10,8 +10,6 @@
 
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-
-struct VkSurfaceKHR_T;
 
 namespace Layout {
 struct FramebufferLayout;
@@ -25,11 +23,7 @@ class Scheduler;
 class Swapchain {
 public:
     explicit Swapchain(
-#ifdef ANDROID
-        VkSurfaceKHR surface,
-#else
-        VkSurfaceKHR_T* surface_handle,
-#endif
+        VkSurfaceKHR_T* surface,
         const Device& device,
         Scheduler& scheduler,
         u32 width,
@@ -38,11 +32,7 @@ public:
 
     /// Creates (or recreates) the swapchain with a given size.
     void Create(
-#ifdef ANDROID
-        VkSurfaceKHR surface,
-#else
-        VkSurfaceKHR_T* surface_handle,
-#endif
+        VkSurfaceKHR_T* surface,
         u32 width,
         u32 height);
 
@@ -128,11 +118,7 @@ private:
 
     bool NeedsPresentModeUpdate() const;
 
-#ifdef ANDROID
-    VkSurfaceKHR surface;
-#else
-    VkSurfaceKHR_T* surface_handle;
-#endif
+    VkSurfaceKHR_T* surface;
 
     const Device& device;
     Scheduler& scheduler;

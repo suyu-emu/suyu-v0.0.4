@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -14,8 +14,6 @@
 #include "common/polyfill_thread.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-
-struct VkSurfaceKHR_T;
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -46,11 +44,7 @@ public:
                    MemoryAllocator& memory_allocator,
                    Scheduler& scheduler,
                    Swapchain& swapchain,
-#ifdef ANDROID
-                   vk::SurfaceKHR& surface);
-#else
-                   VkSurfaceKHR_T* surface_handle);
-#endif
+                   VkSurfaceKHR_T* surface);
     ~PresentManager();
 
     /// Returns the last used presentation frame
@@ -84,11 +78,7 @@ private:
     MemoryAllocator& memory_allocator;
     Scheduler& scheduler;
     Swapchain& swapchain;
-#ifdef ANDROID
-    vk::SurfaceKHR& surface;
-#else
-    VkSurfaceKHR_T* surface_handle;
-#endif
+    VkSurfaceKHR_T* surface;
     vk::CommandPool cmdpool;
     std::vector<Frame> frames;
     boost::container::deque<Frame*> present_queue;
