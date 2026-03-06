@@ -137,7 +137,7 @@ try
                       memory_allocator,
                       scheduler,
                       swapchain,
-                      *surface)
+                      surface)
     , blit_swapchain(device_memory,
                    device,
                    memory_allocator,

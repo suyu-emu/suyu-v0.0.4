@@ -101,7 +101,7 @@ PresentManager::PresentManager(const vk::Instance& instance_,
                                MemoryAllocator& memory_allocator_,
                                Scheduler& scheduler_,
                                Swapchain& swapchain_,
-                               VkSurfaceKHR_T* surface_)
+                               vk::SurfaceKHR& surface_)
     : instance{instance_}
     , render_window{render_window_}
     , device{device_}
@@ -291,7 +291,7 @@ void PresentManager::PresentThread(std::stop_token token) {
 }
 
 void PresentManager::RecreateSwapchain(Frame* frame) {
-    swapchain.Create(surface, frame->width, frame->height); // Pass raw pointer
+    swapchain.Create(*surface, frame->width, frame->height); // Pass raw pointer
     SetImageCount();
 }
 
@@ -310,7 +310,7 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
             // Recreate surface and swapchain if needed.
             if (requires_recreation) {
 #ifdef ANDROID
-                surface = *CreateSurface(instance, render_window.GetWindowInfo()).address();
+                surface = CreateSurface(instance, render_window.GetWindowInfo());
 #endif
                 RecreateSwapchain(frame);
             }
