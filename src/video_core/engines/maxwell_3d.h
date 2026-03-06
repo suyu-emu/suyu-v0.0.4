@@ -2258,7 +2258,7 @@ public:
             /// Returns whether the vertex array specified by index is supposed to be
             /// accessed per instance or not.
             bool IsInstancingEnabled(std::size_t index) const {
-                return is_instanced[index];
+                return bool(is_instanced[index]); //FUCK YOU MSVC
             }
         };
 

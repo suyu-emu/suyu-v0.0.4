@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -19,12 +22,12 @@ ChannelState::ChannelState(s32 bind_id_) : bind_id{bind_id_}, initialized{} {}
 void ChannelState::Init(Core::System& system, GPU& gpu, u64 program_id_) {
     ASSERT(memory_manager);
     program_id = program_id_;
-    dma_pusher = std::make_unique<Tegra::DmaPusher>(system, gpu, *memory_manager, *this);
-    maxwell_3d = std::make_unique<Engines::Maxwell3D>(system, *memory_manager);
-    fermi_2d = std::make_unique<Engines::Fermi2D>(*memory_manager);
-    kepler_compute = std::make_unique<Engines::KeplerCompute>(system, *memory_manager);
-    maxwell_dma = std::make_unique<Engines::MaxwellDMA>(system, *memory_manager);
-    kepler_memory = std::make_unique<Engines::KeplerMemory>(system, *memory_manager);
+    dma_pusher.emplace(system, gpu, *memory_manager, *this);
+    maxwell_3d.emplace(system, *memory_manager);
+    fermi_2d.emplace(*memory_manager);
+    kepler_compute.emplace(system, *memory_manager);
+    maxwell_dma.emplace(system, *memory_manager);
+    kepler_memory.emplace(system, *memory_manager);
     initialized = true;
 }
 

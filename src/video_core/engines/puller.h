@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -20,6 +23,7 @@ class MemoryManager;
 class DmaPusher;
 
 enum class EngineID {
+    NV01_TIMER = 0x0004,
     FERMI_TWOD_A = 0x902D, // 2D Engine
     MAXWELL_B = 0xB197,    // 3D Engine
     KEPLER_COMPUTE_B = 0xB1C0,
