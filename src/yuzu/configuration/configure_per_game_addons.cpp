@@ -10,13 +10,14 @@
 
 #include <fmt/format.h>
 
+#include <QDesktopServices>
 #include <QHeaderView>
 #include <QMenu>
 #include <QStandardItemModel>
+#include <QStandardPaths>
 #include <QString>
 #include <QTimer>
 #include <QTreeView>
-#include <QStandardPaths>
 
 #include "common/common_types.h"
 #include "common/fs/fs.h"
@@ -42,7 +43,7 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
     item_model = new QStandardItemModel(tree_view);
     tree_view->setModel(item_model);
     tree_view->setAlternatingRowColors(true);
-    tree_view->setSelectionMode(QHeaderView::MultiSelection);
+    tree_view->setSelectionMode(QHeaderView::ExtendedSelection);
     tree_view->setSelectionBehavior(QHeaderView::SelectRows);
     tree_view->setVerticalScrollMode(QHeaderView::ScrollPerPixel);
     tree_view->setHorizontalScrollMode(QHeaderView::ScrollPerPixel);
@@ -248,8 +249,11 @@ void ConfigurePerGameAddons::AddonDeleteRequested(QList<QModelIndex> selected) {
 
 void ConfigurePerGameAddons::showContextMenu(const QPoint& pos) {
     const QModelIndex index = tree_view->indexAt(pos);
-    auto selected = tree_view->selectionModel()->selectedIndexes();
-    if (index.isValid() && selected.empty()) selected = {index};
+    auto selected = tree_view->selectionModel()->selectedRows();
+    if (index.isValid() && selected.empty()) {
+        QModelIndex idx = item_model->index(index.row(), 0);
+        if (idx.isValid()) selected << idx;
+    }
 
     if (selected.empty()) return;
 
@@ -259,6 +263,15 @@ void ConfigurePerGameAddons::showContextMenu(const QPoint& pos) {
     connect(remove, &QAction::triggered, this, [this, selected]() {
         AddonDeleteRequested(selected);
     });
+
+    if (selected.length() == 1) {
+        auto loc = selected.at(0).data(PATCH_LOCATION).toString();
+        if (QFileInfo::exists(loc)) {
+            QAction* open = menu.addAction(tr("&Open in File Manager"));
+            connect(open, &QAction::triggered, this,
+                    [selected, loc]() { QDesktopServices::openUrl(QUrl::fromLocalFile(loc)); });
+        }
+    }
 
     menu.exec(tree_view->viewport()->mapToGlobal(pos));
 }
