@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -26,8 +26,15 @@ namespace Tegra::Engines {
 constexpr u32 MacroRegistersStart = 0xE00;
 
 Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
-    : draw_manager{std::make_unique<DrawManager>(this)}, system{system_},
-      memory_manager{memory_manager_}, macro_engine{GetMacroEngine(*this)}, upload_state{memory_manager, regs.upload} {
+    : draw_manager{std::make_unique<DrawManager>(this)}, system{system_}
+    , memory_manager{memory_manager_}
+#ifdef ARCHITECTURE_x86_64
+    , macro_engine(bool(Settings::values.disable_macro_jit))
+#else
+    , macro_engine(true)
+#endif
+    , upload_state{memory_manager, regs.upload}
+{
     dirty.flags.flip();
     InitializeRegisterDefaults();
     execution_mask.reset();
@@ -328,9 +335,9 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
         shadow_state.shadow_ram_control = static_cast<Regs::ShadowRamControl>(nonshadow_argument);
         return;
     case MAXWELL3D_REG_INDEX(load_mme.instruction_ptr):
-        return macro_engine->ClearCode(regs.load_mme.instruction_ptr);
+        return macro_engine.ClearCode(regs.load_mme.instruction_ptr);
     case MAXWELL3D_REG_INDEX(load_mme.instruction):
-        return macro_engine->AddCode(regs.load_mme.instruction_ptr, argument);
+        return macro_engine.AddCode(regs.load_mme.instruction_ptr, argument);
     case MAXWELL3D_REG_INDEX(load_mme.start_address):
         return ProcessMacroBind(argument);
     case MAXWELL3D_REG_INDEX(falcon[4]):
@@ -398,7 +405,7 @@ void Maxwell3D::CallMacroMethod(u32 method, const std::vector<u32>& parameters) 
         ((method - MacroRegistersStart) >> 1) % static_cast<u32>(macro_positions.size());
 
     // Execute the current macro.
-    macro_engine->Execute(macro_positions[entry], parameters);
+    macro_engine.Execute(*this, macro_positions[entry], parameters);
 
     draw_manager->DrawDeferred();
 }
@@ -464,7 +471,7 @@ void Maxwell3D::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
 }
 
 void Maxwell3D::ProcessMacroUpload(u32 data) {
-    macro_engine->AddCode(regs.load_mme.instruction_ptr++, data);
+    macro_engine.AddCode(regs.load_mme.instruction_ptr++, data);
 }
 
 void Maxwell3D::ProcessMacroBind(u32 data) {

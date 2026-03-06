@@ -3203,7 +3203,7 @@ private:
     std::vector<u32> macro_params;
 
     /// Interpreter for the macro codes uploaded to the GPU.
-    std::optional<MacroEngine> macro_engine;
+    MacroEngine macro_engine;
 
     Upload::State upload_state;
 
