@@ -425,6 +425,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
               "their resolution, details and supported controllers and depending on this setting.\n"
               "Setting to Handheld can help improve performance for low end systems."));
     INSERT(Settings, current_user, QString(), QString());
+    INSERT(Settings, serial_unit, tr("Unit Serial"), QString());
+    INSERT(Settings, serial_battery, tr("Battery Serial"), QString());
+    INSERT(Settings, debug_knobs, tr("Debug knobs"), QString());
 
     // Controls
 
