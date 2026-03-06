@@ -14,8 +14,11 @@
 #include <mutex>
 #include <numeric>
 #include <span>
-#include <ankerl/unordered_dense.h>
 #include <vector>
+
+#include <ankerl/unordered_dense.h>
+#include <boost/container/static_vector.hpp>
+#include <boost/container/small_vector.hpp>
 
 #include "common/common_types.h"
 #include "common/div_ceil.h"
@@ -94,10 +97,10 @@ static constexpr Binding NULL_BINDING{
 
 template <typename Buffer>
 struct HostBindings {
-    boost::container::small_vector<Buffer*, NUM_VERTEX_BUFFERS> buffers;
-    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> offsets;
-    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> sizes;
-    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> strides;
+    boost::container::static_vector<Buffer*, NUM_VERTEX_BUFFERS> buffers;
+    boost::container::static_vector<u64, NUM_VERTEX_BUFFERS> offsets;
+    boost::container::static_vector<u64, NUM_VERTEX_BUFFERS> sizes;
+    boost::container::static_vector<u64, NUM_VERTEX_BUFFERS> strides;
     u32 min_index{NUM_VERTEX_BUFFERS};
     u32 max_index{0};
 };
