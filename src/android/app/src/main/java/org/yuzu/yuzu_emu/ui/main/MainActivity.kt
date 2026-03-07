@@ -642,7 +642,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 }
             }
 
-            addonViewModel.refreshAddons()
+            addonViewModel.refreshAddons(force = true)
 
             val separator = System.lineSeparator() ?: "\n"
             val installResult = StringBuilder()

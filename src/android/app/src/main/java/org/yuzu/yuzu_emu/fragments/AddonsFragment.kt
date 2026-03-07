@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -19,7 +19,6 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.AddonAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentAddonsBinding
@@ -42,7 +41,7 @@ class AddonsFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        addonViewModel.onOpenAddons(args.game)
+        addonViewModel.onAddonsViewCreated(args.game)
         enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
         returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
@@ -122,12 +121,14 @@ class AddonsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        addonViewModel.refreshAddons()
+        addonViewModel.onAddonsViewStarted(args.game)
     }
 
     override fun onDestroy() {
+        if (activity?.isChangingConfigurations != true) {
+            addonViewModel.onCloseAddons()
+        }
         super.onDestroy()
-        addonViewModel.onCloseAddons()
     }
 
     val installAddon =
@@ -167,7 +168,7 @@ class AddonsFragment : Fragment() {
                     } catch (_: Exception) {
                         return@newInstance errorMessage
                     }
-                    addonViewModel.refreshAddons()
+                    addonViewModel.refreshAddons(force = true)
                     return@newInstance getString(R.string.addon_installed_successfully)
                 }.show(parentFragmentManager, ProgressDialogFragment.TAG)
             } else {

@@ -18,7 +18,7 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AddonViewModel : ViewModel() {
-    private val _patchList = MutableStateFlow(mutableListOf<Patch>())
+    private val _patchList = MutableStateFlow<List<Patch>>(emptyList())
     val addonList get() = _patchList.asStateFlow()
 
     private val _showModInstallPicker = MutableStateFlow(false)
@@ -31,34 +31,62 @@ class AddonViewModel : ViewModel() {
     val addonToDelete = _addonToDelete.asStateFlow()
 
     var game: Game? = null
+    private var loadedGameKey: String? = null
 
     private val isRefreshing = AtomicBoolean(false)
+    private val pendingRefresh = AtomicBoolean(false)
 
-    fun onOpenAddons(game: Game) {
+    fun onAddonsViewCreated(game: Game) {
         this.game = game
-        refreshAddons()
+        refreshAddons(commitEmpty = false)
     }
 
-    fun refreshAddons() {
-        if (isRefreshing.get() || game == null) {
+    fun onAddonsViewStarted(game: Game) {
+        this.game = game
+        val hasLoadedCurrentGame = loadedGameKey == gameKey(game)
+        refreshAddons(force = !hasLoadedCurrentGame)
+    }
+
+    fun refreshAddons(force: Boolean = false, commitEmpty: Boolean = true) {
+        val currentGame = game ?: return
+        val currentGameKey = gameKey(currentGame)
+        if (!force && loadedGameKey == currentGameKey) {
             return
         }
-        isRefreshing.set(true)
+        if (!isRefreshing.compareAndSet(false, true)) {
+            if (force) {
+                pendingRefresh.set(true)
+            }
+            return
+        }
+
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val patchList = (
-                    NativeLibrary.getPatchesForFile(game!!.path, game!!.programId)
-                        ?: emptyArray()
-                    ).toMutableList()
+            try {
+                val patches = withContext(Dispatchers.IO) {
+                    NativeLibrary.getPatchesForFile(currentGame.path, currentGame.programId)
+                } ?: return@launch
+
+                val patchList = patches.toMutableList()
                 patchList.sortBy { it.name }
 
                 // Ensure only one update is enabled
                 ensureSingleUpdateEnabled(patchList)
 
                 removeDuplicates(patchList)
+                if (patchList.isEmpty() && !commitEmpty) {
+                    return@launch
+                }
+                if (gameKey(game ?: return@launch) != currentGameKey) {
+                    return@launch
+                }
 
-                _patchList.value = patchList
+                _patchList.value = patchList.toList()
+                loadedGameKey = currentGameKey
+            } finally {
                 isRefreshing.set(false)
+                if (pendingRefresh.compareAndSet(true, false)) {
+                    refreshAddons(force = true)
+                }
             }
         }
     }
@@ -119,17 +147,26 @@ class AddonViewModel : ViewModel() {
             PatchType.DLC -> NativeLibrary.removeDLC(patch.programId)
             PatchType.Mod -> NativeLibrary.removeMod(patch.programId, patch.name)
         }
-        refreshAddons()
+        refreshAddons(force = true)
     }
 
     fun onCloseAddons() {
-        if (_patchList.value.isEmpty()) {
+        val currentGame = game ?: run {
+            _patchList.value = emptyList()
+            loadedGameKey = null
+            return
+        }
+        val currentList = _patchList.value
+        if (currentList.isEmpty()) {
+            _patchList.value = emptyList()
+            loadedGameKey = null
+            game = null
             return
         }
 
         NativeConfig.setDisabledAddons(
-            game!!.programId,
-            _patchList.value.mapNotNull {
+            currentGame.programId,
+            currentList.mapNotNull {
                 if (it.enabled) {
                     null
                 } else {
@@ -148,7 +185,8 @@ class AddonViewModel : ViewModel() {
             }.toTypedArray()
         )
         NativeConfig.saveGlobalConfig()
-        _patchList.value.clear()
+        _patchList.value = emptyList()
+        loadedGameKey = null
         game = null
     }
 
@@ -158,5 +196,9 @@ class AddonViewModel : ViewModel() {
 
     fun showModNoticeDialog(show: Boolean) {
         _showModNoticeDialog.value = show
+    }
+
+    private fun gameKey(game: Game): String {
+        return "${game.programId}|${game.path}"
     }
 }
