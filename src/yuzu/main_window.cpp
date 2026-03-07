@@ -3665,13 +3665,17 @@ void MainWindow::OnTasRecord() {
 
     const bool is_recording = input_subsystem->GetTas()->Record();
     if (!is_recording) {
-        is_tas_recording_dialog_active = true;
+        if (Settings::values.tas_show_recording_dialog.GetValue()) {
+            is_tas_recording_dialog_active = true;
 
-        bool answer = question(this, tr("TAS Recording"), tr("Overwrite file of player 1?"),
-                               QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+            bool answer = question(this, tr("TAS Recording"), tr("Overwrite file of player 1?"),
+                                   QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
-        input_subsystem->GetTas()->SaveRecording(answer);
-        is_tas_recording_dialog_active = false;
+            input_subsystem->GetTas()->SaveRecording(answer);
+            is_tas_recording_dialog_active = false;
+        } else {
+            input_subsystem->GetTas()->SaveRecording(true);
+        }
     }
     OnTasStateChanged();
 }

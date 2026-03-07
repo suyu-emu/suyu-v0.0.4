@@ -78,6 +78,13 @@
           </property>
          </widget>
         </item>
+        <item row="3" column="0" colspan="4">
+         <widget class="QCheckBox" name="tas_show_recording_dialog">
+          <property name="text">
+           <string>Show recording dialog</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>

@@ -706,6 +706,7 @@ struct Values {
     Setting<bool> pause_tas_on_load{linkage, true, "pause_tas_on_load", Category::Controls};
     Setting<bool> tas_enable{linkage, false, "tas_enable", Category::Controls};
     Setting<bool> tas_loop{linkage, false, "tas_loop", Category::Controls};
+    Setting<bool> tas_show_recording_dialog{linkage, true, "tas_show_recording_dialog", Category::Controls};
 
     Setting<bool> mouse_panning{
                                 linkage, false, "mouse_panning", Category::Controls, Specialization::Default, false};
