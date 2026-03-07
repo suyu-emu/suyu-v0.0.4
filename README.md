@@ -61,6 +61,10 @@ See the [sign-up instructions](docs/SIGNUP.md) for information on registration.
 
 Alternatively, if you wish to add translations, go to the [Eden project on Transifex](https://app.transifex.com/edenemu/eden-emulator) and review [the translations README](./dist/languages).
 
+## Documentation
+
+We have a user manual! See our [User Handbook](./docs/user/README.md).
+
 ## Building
 
 See the [General Build Guide](docs/Build.md)
@@ -69,7 +73,9 @@ For information on provided development tooling, see the [Tools directory](./too
 
 ## Download
 
-You can download the latest releases from [here](https://github.com/eden-emulator/Releases/releases).
+You can download the latest releases from [here](https://git.eden-emu.dev/eden-emu/eden/releases).
+
+Save us some bandwidth! We have [mirrors available](./docs/user/ThirdParty.md#mirrors) as well.
 
 ## Support
 

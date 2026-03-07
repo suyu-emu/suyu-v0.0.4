@@ -4,10 +4,14 @@ The "FAQ".
 
 This handbook is primarily aimed at the end-user - baking useful knowledge for enhancing their emulation experience.
 
+A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/eden/src/branch/master/docs/user/README.md).
+
 ## Basics
 
 - **[The Basics](Basics.md)**
 - **[Quickstart](./QuickStart.md)**
+- **[Settings](./Settings.md)**
+- **[Installing Mods](./Mods.md)**
 - **[Run On macOS](./RunOnMacOS.md)**
 - **[Audio](Audio.md)**
 - **[Graphics](Graphics.md)**
@@ -17,22 +21,29 @@ This handbook is primarily aimed at the end-user - baking useful knowledge for e
 - **[Using Amiibo](./UsingAmiibo.md)**
 - **[Using Cheats](./UsingCheats.md)**
 - **[Importing Saves](./ImportingSaves.md)**
-- **[Add Eden to Steam ROM Manager](./AddEdenToSRM.md)**
-- **[Add Games to Steam ROM Manager](./AddGamesToSRM.md)**
 - **[Installing Atmosphere Mods](./InstallingAtmosphereMods.md)**
 - **[Installing Updates & DLCs](./InstallingUpdatesDLC.md)**
 - **[Controller Profiles](./ControllerProfiles.md)**
 - **[Alter Date & Time](./AlterDateTime.md)**
 
+## 3rd-party Integration
+
+- **[Configuring Steam ROM Manager](./SteamROM.md)**
+- **[Server hosting](ServerHosting.md)**
+- **[Syncthing Guide](./SyncthingGuide.md)**
+- **[Third Party](./ThirdParty.md)**
+    - **[Obtainium](./ThirdParty.md#configuring-obtainium)**
+    - **[ES-DE](./ThirdParty.md#configuring-es-de)**
+    - **[Mirrors](./ThirdParty.md#mirrors)**
+
 ## Advanced
 
+- **[Custom Firmware](./CFW.md)**
 - **[How To Access Logs](./HowToAccessLogs.md)**
 - **[Gyro Controls](./GyroControls.md)**
 - **[Platforms and Architectures](Architectures.md)**
-- **[Server hosting](ServerHosting.md)**
 - **[Command Line](CommandLine.md)**
 - **[Native Application Development](Native.md)**
 - **[Adding Boolean Settings Toggles](AddingBooleanToggles.md)**
 - **[Adding Debug Knobs](./AddingDebugKnobs.md)**
-- **[Syncthing Guide](./SyncthingGuide.md)**
 - **[Testing](Testing.md)**
