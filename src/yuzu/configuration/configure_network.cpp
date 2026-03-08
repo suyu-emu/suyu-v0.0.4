@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -12,14 +12,13 @@
 #include "yuzu/configuration/configure_network.h"
 
 ConfigureNetwork::ConfigureNetwork(const Core::System& system_, QWidget* parent)
-    : QWidget(parent), ui(std::make_unique<Ui::ConfigureNetwork>()), system{system_} {
+    : QWidget(parent)
+    , ui(std::make_unique<Ui::ConfigureNetwork>())
+    , system{system_}
+{
     ui->setupUi(this);
-
-    ui->network_interface->addItem(tr("None"));
-    for (const auto& iface : Network::GetAvailableNetworkInterfaces()) {
+    for (const auto& iface : Network::GetAvailableNetworkInterfaces())
         ui->network_interface->addItem(QString::fromStdString(iface.name));
-    }
-
     this->SetConfiguration();
 }
 
@@ -44,13 +43,9 @@ void ConfigureNetwork::RetranslateUI() {
 
 void ConfigureNetwork::SetConfiguration() {
     const bool runtime_lock = !system.IsPoweredOn();
-
-    const std::string& network_interface = Settings::values.network_interface.GetValue();
-    const bool& airplane_mode = Settings::values.airplane_mode.GetValue();
-
+    auto const network_interface = Settings::values.network_interface.GetValue();
+    auto const airplane_mode = Settings::values.airplane_mode.GetValue();
     ui->network_interface->setCurrentText(QString::fromStdString(network_interface));
     ui->network_interface->setEnabled(runtime_lock);
-
     ui->airplane_mode->setChecked(airplane_mode);
-    ui->network_interface->setEnabled(true);
 }
