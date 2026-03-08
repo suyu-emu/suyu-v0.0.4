@@ -435,6 +435,13 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="use_dev_keys">
+           <property name="text">
+            <string>Use dev.keys</string>
+           </property>
+          </widget>
+         </item>
          <item row="2" column="0">
           <widget class="QCheckBox" name="use_debug_asserts">
            <property name="text">

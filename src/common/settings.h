@@ -777,6 +777,7 @@ struct Values {
     Setting<bool> reporting_services{
                                      linkage, false, "reporting_services", Category::Debugging, Specialization::Default, false};
     Setting<bool> quest_flag{linkage, false, "quest_flag", Category::Debugging};
+    Setting<bool> use_dev_keys{linkage, false, "use_dev_keys", Category::Debugging};
     Setting<bool> disable_macro_jit{linkage, false, "disable_macro_jit",
                                     Category::DebuggingGraphics};
     Setting<bool> disable_macro_hle{linkage, false, "disable_macro_hle",

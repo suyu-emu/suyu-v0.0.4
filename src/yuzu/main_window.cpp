@@ -139,6 +139,8 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 
 #include "core/perf_stats.h"
 
+#include "core/crypto/key_manager.h"
+
 // Input //
 #include "hid_core/hid_core.h"
 #include "hid_core/frontend/emulated_controller.h"
@@ -564,6 +566,9 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     // Check for orphaned profiles and reset profile data if necessary
     QtCommon::Content::FixProfiles();
 
+    if (Settings::values.use_dev_keys.GetValue()) {
+        Core::Crypto::KeyManager::Instance().ReloadKeys();
+    }
     game_list->LoadCompatibilityList();
     game_list->PopulateAsync(UISettings::values.game_dirs);
 

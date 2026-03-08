@@ -12,6 +12,7 @@
 #include "common/logging/filter.h"
 #include "common/settings.h"
 #include "core/core.h"
+#include "core/crypto/key_manager.h"
 #include "ui_configure_debug.h"
 #include "yuzu/configuration/configure_debug.h"
 #include "yuzu/debugger/console.h"
@@ -45,6 +46,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->reporting_services->setChecked(Settings::values.reporting_services.GetValue());
     ui->dump_audio_commands->setChecked(Settings::values.dump_audio_commands.GetValue());
     ui->quest_flag->setChecked(Settings::values.quest_flag.GetValue());
+    ui->use_dev_keys->setChecked(Settings::values.use_dev_keys.GetValue());
     ui->use_debug_asserts->setChecked(Settings::values.use_debug_asserts.GetValue());
     ui->use_auto_stub->setChecked(Settings::values.use_auto_stub.GetValue());
     ui->enable_all_controllers->setChecked(Settings::values.enable_all_controllers.GetValue());
@@ -105,6 +107,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.reporting_services = ui->reporting_services->isChecked();
     Settings::values.dump_audio_commands = ui->dump_audio_commands->isChecked();
     Settings::values.quest_flag = ui->quest_flag->isChecked();
+    Settings::values.use_dev_keys = ui->use_dev_keys->isChecked();
     Settings::values.use_debug_asserts = ui->use_debug_asserts->isChecked();
     Settings::values.use_auto_stub = ui->use_auto_stub->isChecked();
     Settings::values.enable_all_controllers = ui->enable_all_controllers->isChecked();
@@ -126,6 +129,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Common::Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter.GetValue());
     Common::Log::SetGlobalFilter(filter);
+    Core::Crypto::KeyManager::Instance().ReloadKeys();
 }
 
 void ConfigureDebug::changeEvent(QEvent* event) {
