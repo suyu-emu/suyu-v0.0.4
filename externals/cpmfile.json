@@ -9,7 +9,7 @@
     },
     "sirit": {
         "repo": "eden-emulator/sirit",
-        "git_version": "1.0.3",
+        "git_version": "1.0.4",
         "tag": "v%VERSION%",
         "artifact": "sirit-source-%VERSION%.tar.zst",
         "hash_suffix": "sha512sum",
@@ -28,11 +28,12 @@
     "httplib": {
         "repo": "yhirose/cpp-httplib",
         "tag": "v%VERSION%",
-        "hash": "a229e24cca4afe78e5c0aa2e482f15108ac34101fd8dbd927365f15e8c37dec4de38c5277d635017d692a5b320e1b929f8bfcc076f52b8e4dcdab8fe53bfdf2e",
-        "git_version": "0.30.1",
+        "hash": "5efa8140aadffe105dcf39935b732476e95755f6c7473ada3d0b64df2bc02c557633ae3948a25b45e1cf67e89a3ff6329fb30362e4ac033b9a1d1e453aa2eded",
+        "git_version": "0.37.0",
         "find_args": "MODULE GLOBAL",
         "patches": [
-            "0001-mingw.patch"
+            "0001-mingw.patch",
+            "0002-fix-zstd.patch"
         ],
         "options": [
             "HTTPLIB_REQUIRE_OPENSSL ON"
@@ -55,8 +56,8 @@
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "hash": "ac333d7bea1d61865bebebb116201a58db431946aa2f11aa042ef5795c390ff30af4d6c90ed3b3d24443a1d430703b08f14fc13b2fa405c155a241456ed78a47",
-        "git_version": "7.33.2"
+        "hash": "b6475276b2faaeb315734ea8f4f8bd87ededcee768961b39679bee547e7f3e98884d8b7851e176d861dab30a80a76e6ea302f8c111483607dde969b4797ea95a",
+        "git_version": "7.35.2"
     },
     "oaknut": {
         "repo": "eden-emulator/oaknut",
@@ -146,9 +147,9 @@
         "package": "Catch2",
         "repo": "catchorg/Catch2",
         "tag": "v%VERSION%",
-        "hash": "acb3f463a7404d6a3bce52e474075cdadf9bb241d93feaf147c182d756e5a2f8bd412f4658ca186d15ab8fed36fc587d79ec311f55642d8e4ded16df9e213656",
+        "hash": "7eea385d79d88a5690cde131fe7ccda97d5c54ea09d6f515000d7bf07c828809d61c1ac99912c1ee507cf933f61c1c47ecdcc45df7850ffa82714034b0fccf35",
         "version": "3.0.1",
-        "git_version": "3.12.0",
+        "git_version": "3.13.0",
         "patches": [
             "0001-solaris-isnan-fix.patch"
         ]
@@ -256,15 +257,15 @@
         "repo": "KhronosGroup/Vulkan-Headers",
         "package": "VulkanHeaders",
         "version": "1.4.317",
-        "hash": "26e0ad8fa34ab65a91ca62ddc54cc4410d209a94f64f2817dcdb8061dc621539a4262eab6387e9b9aa421db3dbf2cf8e2a4b041b696d0d03746bae1f25191272",
-        "git_version": "1.4.342",
+        "hash": "d2846ea228415772645eea4b52a9efd33e6a563043dd3de059e798be6391a8f0ca089f455ae420ff22574939ed0f48ed7c6ff3d5a9987d5231dbf3b3f89b484b",
+        "git_version": "1.4.345",
         "tag": "v%VERSION%"
     },
     "vulkan-utility-libraries": {
         "repo": "KhronosGroup/Vulkan-Utility-Libraries",
         "package": "VulkanUtilityLibraries",
-        "hash": "8147370f964fd82c315d6bb89adeda30186098427bf3efaa641d36282d42a263f31e96e4586bfd7ae0410ff015379c19aa4512ba160630444d3d8553afd1ec14",
-        "git_version": "1.4.342",
+        "hash": "114f6b237a6dcba923ccc576befb5dea3f1c9b3a30de7dc741f234a831d1c2d52d8a224afb37dd57dffca67ac0df461eaaab6a5ab5e503b393f91c166680c3e1",
+        "git_version": "1.4.345",
         "tag": "v%VERSION%"
     },
     "frozen": {

@@ -1220,7 +1220,7 @@ target_link_libraries(core PRIVATE
     RenderDoc::API
     ZLIB::ZLIB)
 
-target_link_libraries(core PRIVATE httplib::httplib)
+target_link_libraries(core PUBLIC httplib::httplib zstd::zstd)
 
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)

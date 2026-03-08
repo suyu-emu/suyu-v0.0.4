@@ -19,7 +19,8 @@ Check a specific package or packages for updates.
 
 Options:
     -n, --dry-run 	Do not update the package if it has an update available
-    -a, --all       Operate on all packages in this project.
+    -a, --all    	Operate on all packages in this project.
+    -c, --commit   	Automatically generate a commit message
 
 EOF
 
@@ -38,6 +39,7 @@ while :; do
 			case "$char" in
 			a) ALL=1 ;;
 			n) UPDATE=false ;;
+			c) COMMIT=true ;;
 			h) usage ;;
 			*) die "Invalid option -$char" ;;
 			esac
@@ -46,6 +48,7 @@ while :; do
 	--dry-run) UPDATE=false ;;
 	--all) ALL=1 ;;
 	--help) usage ;;
+	--commit) COMMIT=true ;;
 	"$0") break ;;
 	"") break ;;
 	*) packages="$packages $1" ;;
@@ -56,6 +59,7 @@ done
 
 [ "$ALL" != 1 ] || packages="${LIBS:-$packages}"
 : "${UPDATE:=true}"
+: "${COMMIT:=false}"
 [ -n "$packages" ] || usage
 
 for pkg in $packages; do
@@ -93,6 +97,9 @@ for pkg in $packages; do
 
 	filter_out yotta # mbedtls
 
+	# ????????????????????????????????
+	filter_out vksc
+
 	# ignore betas/alphas (remove if needed)
 	filter_out alpha
 	filter_out beta
@@ -119,7 +126,12 @@ for pkg in $packages; do
 		else
 			NEW_GIT_VERSION=$(echo "$LATEST" | sed "s/$VERSION_PREFIX//g")
 		fi
+	else
+		NEW_GIT_VERSION="$LATEST"
 	fi
+
+	_commit="$_commit
+* $PACKAGE: $GIT_VERSION -> $NEW_GIT_VERSION"
 
 	echo "-- * Version $LATEST available, current is $TAG"
 
@@ -127,11 +139,22 @@ for pkg in $packages; do
 		if [ "$HAS_REPLACE" = "true" ]; then
 			NEW_JSON=$(echo "$JSON" | jq ".git_version = \"$NEW_GIT_VERSION\"")
 		else
-			NEW_JSON=$(echo "$JSON" | jq ".tag = \"$LATEST\"")
+			NEW_JSON=$(echo "$JSON" | jq ".tag = \"$NEW_GIT_VERSION\"")
 		fi
 
 		"$SCRIPTS"/util/replace.sh "$PACKAGE" "$NEW_JSON"
 
-		QUIET=true "$SCRIPTS"/util/fix-hash.sh
+		echo "-- * -- Updating hash"
+
+		export UPDATE
+		QUIET=true "$SCRIPTS"/util/fix-hash.sh "$PACKAGE"
 	fi
 done
+
+if [ "$UPDATE" = "true" ] && [ "$COMMIT" = "true" ] && [ -n "$_commit" ]; then
+	for file in $CPMFILES; do
+		git add "$file"
+	done
+	git commit -m "Update dependencies
+$_commit"
+fi

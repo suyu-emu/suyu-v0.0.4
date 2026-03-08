@@ -947,7 +947,7 @@ static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, size_t 
     const Xbyak::Reg8 overflow = overflow_inst ? ctx.reg_alloc.ScratchGpr(code).cvt8() : Xbyak::Reg8{-1};
 
     if (args[1].IsImmediate() && args[1].GetType() == IR::Type::U32) {
-        const u32 op_arg = args[1].GetImmediateU32();
+        const u64 op_arg = args[1].GetImmediateU64();
         if (carry_in.IsImmediate()) {
             if (carry_in.GetImmediateU1()) {
                 // In range for a valid LEA materialisation

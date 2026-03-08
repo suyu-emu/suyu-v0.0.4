@@ -3,9 +3,15 @@
 # SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+# shellcheck disable=SC1091
+
 : "${PACKAGE:=$1}"
 
-# shellcheck disable=SC1091
+# re-read json files
+# shellcheck disable=SC2016
+PACKAGES=$(echo "$CPMFILES" | xargs jq -s 'reduce .[] as $item ({}; . * $item)')
+export PACKAGES
+
 . "$SCRIPTS"/vars.sh
 
 [ "$CI" = null ] || exit 0
