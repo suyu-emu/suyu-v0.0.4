@@ -8,35 +8,24 @@
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar_freedreno"
+        style="@style/Widget.Eden.TransparentTopAppBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        android:touchscreenBlocksFocus="false"
-        app:elevation="0dp">
+        android:touchscreenBlocksFocus="false">
 
-        <com.google.android.material.appbar.CollapsingToolbarLayout
-            android:id="@+id/toolbar_freedreno_layout"
-            style="?attr/collapsingToolbarLayoutMediumStyle"
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_freedreno"
+            style="@style/Widget.Eden.TransparentTopToolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
-            app:contentScrim="?attr/colorSurface"
-            app:scrimVisibleHeightTrigger="100dp">
-
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar_freedreno"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:touchscreenBlocksFocus="false"
-                app:layout_collapseMode="pin"
-                app:navigationIcon="@drawable/ic_back"
-                app:title="@string/gpu_driver_settings" />
-
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
+            android:layout_height="?attr/actionBarSize"
+            android:touchscreenBlocksFocus="false"
+            app:navigationIcon="@drawable/ic_back" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_freedreno"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
@@ -63,8 +52,12 @@
                 android:id="@+id/list_freedreno_presets"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:clipToPadding="false"
                 android:orientation="horizontal"
+                android:paddingBottom="8dp"
                 android:scrollbars="horizontal"
+                android:scrollbarStyle="outsideInset"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
             <!-- Current Settings Section -->
@@ -135,22 +128,23 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:layout_marginTop="16dp"
-                android:spacing="8dp">
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/button_clear_all"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
                     android:layout_weight="1"
-                    android:text="@string/freedreno_clear_all"
-                    style="?attr/materialButtonOutlinedStyle" />
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:text="@string/freedreno_clear_all" />
 
                 <Button
                     android:id="@+id/button_save"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
                     android:layout_weight="1"
                     android:text="@string/save" />
 
@@ -161,6 +155,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
+                app:cardBackgroundColor="@android:color/transparent"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
                 app:strokeColor="?attr/colorOutline">

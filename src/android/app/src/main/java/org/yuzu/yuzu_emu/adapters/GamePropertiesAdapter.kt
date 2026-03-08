@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -10,6 +10,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.LifecycleOwner
+import com.google.android.material.button.MaterialButton
+import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.CardInstallableIconBinding
 import org.yuzu.yuzu_emu.databinding.CardSimpleOutlinedBinding
 import org.yuzu.yuzu_emu.model.GameProperty
@@ -89,29 +91,33 @@ class GamePropertiesAdapter(
 
 
             val hasVisibleActions = submenuProperty.secondaryActions?.any { it.isShown } == true
+            binding.layoutSecondaryActions.removeAllViews()
+            binding.dividerSecondaryActions.setVisible(false)
 
             if (hasVisibleActions) {
-                binding.dividerSecondaryActions.setVisible(true)
                 binding.layoutSecondaryActions.setVisible(true)
 
-                submenuProperty.secondaryActions!!.forEach { secondaryAction ->
-                    if (secondaryAction.isShown) {
-                        val button = com.google.android.material.button.MaterialButton(
-                            binding.root.context,
-                            null,
-                            com.google.android.material.R.attr.materialButtonOutlinedStyle
-                        ).apply {
-                            setIconResource(secondaryAction.iconId)
-                            iconSize = (18 * binding.root.context.resources.displayMetrics.density).toInt()
-                            text = binding.root.context.getString(secondaryAction.descriptionId)
-                            contentDescription = binding.root.context.getString(secondaryAction.descriptionId)
-                            setOnClickListener { secondaryAction.action.invoke() }
-                        }
-                        binding.layoutSecondaryActions.addView(button)
+                val visibleActions = submenuProperty.secondaryActions!!.filter { it.isShown }
+                val inflater = LayoutInflater.from(binding.root.context)
+                visibleActions.forEachIndexed { index, secondaryAction ->
+                    val button = inflater.inflate(
+                        R.layout.item_secondary_action_button,
+                        binding.layoutSecondaryActions,
+                        false
+                    ) as MaterialButton
+                    button.setIconResource(secondaryAction.iconId)
+                    button.text = ""
+                    button.contentDescription = binding.root.context
+                        .getString(secondaryAction.descriptionId)
+                    button.tooltipText = binding.root.context
+                        .getString(secondaryAction.descriptionId)
+                    if (index == visibleActions.lastIndex) {
+                        (button.layoutParams as ViewGroup.MarginLayoutParams).marginEnd = 0
                     }
+                    button.setOnClickListener { secondaryAction.action.invoke() }
+                    binding.layoutSecondaryActions.addView(button)
                 }
             } else {
-                binding.dividerSecondaryActions.setVisible(false)
                 binding.layoutSecondaryActions.setVisible(false)
             }
         }

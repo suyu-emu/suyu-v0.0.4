@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -310,6 +310,21 @@ class GamePropertiesFragment : Fragment() {
                 )
             )
 
+            if (!args.game.isHomebrew) {
+                add(
+                    SubmenuProperty(
+                        R.string.add_ons,
+                        R.string.add_ons_description,
+                        R.drawable.ic_edit,
+                        action = {
+                            val action = GamePropertiesFragmentDirections
+                                .actionPerGamePropertiesFragmentToAddonsFragment(args.game)
+                            binding.root.findNavController().navigate(action)
+                        }
+                    )
+                )
+            }
+
             if (GpuDriverHelper.supportsCustomDriverLoading()) {
                 add(
                     SubmenuProperty(
@@ -341,18 +356,6 @@ class GamePropertiesFragment : Fragment() {
             }
 
             if (!args.game.isHomebrew) {
-                add(
-                    SubmenuProperty(
-                        R.string.add_ons,
-                        R.string.add_ons_description,
-                        R.drawable.ic_edit,
-                        action = {
-                            val action = GamePropertiesFragmentDirections
-                                .actionPerGamePropertiesFragmentToAddonsFragment(args.game)
-                            binding.root.findNavController().navigate(action)
-                        }
-                    )
-                )
                 add(
                     InstallableProperty(
                         R.string.save_data,

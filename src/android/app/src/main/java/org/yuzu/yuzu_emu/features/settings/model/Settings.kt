@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.features.settings.model
@@ -27,7 +27,7 @@ object Settings {
         SECTION_APP_SETTINGS(R.string.app_settings),
         SECTION_CUSTOM_PATHS(R.string.preferences_custom_paths),
         SECTION_DEBUG(R.string.preferences_debug),
-        SECTION_FREEDRENO(R.string.gpu_driver_settings),
+        SECTION_FREEDRENO(R.string.freedreno_settings_title),
         SECTION_APPLETS(R.string.applets_menu);
     }
 

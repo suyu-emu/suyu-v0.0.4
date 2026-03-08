@@ -37,7 +37,12 @@
             style="@style/EdenCard"
             android:layout_width="42dp"
             android:layout_height="42dp"
+            android:background="@android:color/transparent"
             app:cardCornerRadius="21dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp"
             android:padding="8dp"
             >
 
@@ -61,7 +66,12 @@
             style="@style/EdenCard"
             android:layout_width="42dp"
             android:layout_height="42dp"
+            android:background="@android:color/transparent"
             app:cardCornerRadius="21dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp"
             android:padding="8dp"
             >
 
@@ -85,7 +95,12 @@
             style="@style/EdenCard"
             android:layout_width="42dp"
             android:layout_height="42dp"
+            android:background="@android:color/transparent"
             app:cardCornerRadius="21dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp"
             android:padding="8dp"
             >
 
@@ -117,7 +132,12 @@
             style="@style/EdenCard"
             android:layout_width="match_parent"
             android:layout_height="48dp"
+            android:background="@android:color/transparent"
             app:cardCornerRadius="24dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp"
             android:padding="4dp"
             >
 

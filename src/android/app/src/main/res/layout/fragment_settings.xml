@@ -8,30 +8,19 @@
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar_settings"
+        style="@style/Widget.Eden.TransparentTopAppBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        android:touchscreenBlocksFocus="false"
-        app:elevation="0dp">
+        android:touchscreenBlocksFocus="false">
 
-        <com.google.android.material.appbar.CollapsingToolbarLayout
-            android:id="@+id/toolbar_settings_layout"
-            style="?attr/collapsingToolbarLayoutMediumStyle"
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_settings"
+            style="@style/Widget.Eden.TransparentTopToolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
-            app:contentScrim="?attr/colorSurface"
-            app:scrimVisibleHeightTrigger="100dp">
-
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar_settings"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:touchscreenBlocksFocus="false"
-                app:layout_collapseMode="pin"
-                app:navigationIcon="@drawable/ic_back" />
-
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
+            android:layout_height="?attr/actionBarSize"
+            android:touchscreenBlocksFocus="false"
+            app:navigationIcon="@drawable/ic_back" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

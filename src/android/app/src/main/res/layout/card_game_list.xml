@@ -11,7 +11,7 @@
     android:transitionName="card_game"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="@color/eden_card_background"
+    app:cardBackgroundColor="@android:color/transparent"
     app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -27,6 +27,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+            app:strokeColor="@color/eden_card_background"
+            app:strokeWidth="4dp"
             tools:src="@drawable/default_icon" />
 
         <com.google.android.material.textview.MaterialTextView

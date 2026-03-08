@@ -22,6 +22,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentFreedrenoSettingsBinding
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.NativeFreedrenoConfig
 import org.yuzu.yuzu_emu.utils.FreedrenoPresets
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 
 class FreedrenoSettingsFragment : Fragment() {
@@ -74,10 +75,15 @@ class FreedrenoSettingsFragment : Fragment() {
         binding.toolbarFreedreno.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        if (isPerGameConfig) {
-            binding.toolbarFreedreno.title = getString(R.string.freedreno_per_game_title)
-            binding.toolbarFreedreno.subtitle = game!!.title
-        }
+
+        binding.toolbarFreedreno.title = getString(
+            if (isPerGameConfig) {
+                R.string.freedreno_per_game_title
+            } else {
+                R.string.freedreno_settings_title
+            }
+        )
+        binding.toolbarFreedreno.subtitle = null
     }
 
     private fun setupAdapters() {
@@ -175,17 +181,19 @@ class FreedrenoSettingsFragment : Fragment() {
 
     private fun setupWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.root.updatePadding(
-                left = systemInsets.left,
-                right = systemInsets.right,
-                bottom = systemInsets.bottom
-            )
+            val barInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutoutInsets = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+
+            val leftInsets = barInsets.left + cutoutInsets.left
+            val rightInsets = barInsets.right + cutoutInsets.right
+
+            binding.appbarFreedreno.updateMargins(left = leftInsets, right = rightInsets)
+            binding.scrollFreedreno.updateMargins(left = leftInsets, right = rightInsets)
+            binding.scrollFreedreno.updatePadding(bottom = barInsets.bottom)
             insets
         }
     }
-
-    private fun showSnackbar(message: String) {
+private fun showSnackbar(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -111,8 +111,16 @@ class SettingsActivity : AppCompatActivity() {
         if (navHostFragment.childFragmentManager.backStackEntryCount > 0) {
             navHostFragment.navController.popBackStack()
         } else {
-            finish()
+            finishWithFragmentLikeAnimation()
         }
+    }
+
+    private fun finishWithFragmentLikeAnimation() {
+        finish()
+        overridePendingTransition(
+            androidx.navigation.ui.R.anim.nav_default_pop_enter_anim,
+            androidx.navigation.ui.R.anim.nav_default_pop_exit_anim
+        )
     }
 
     override fun onStart() {
@@ -170,7 +178,7 @@ class SettingsActivity : AppCompatActivity() {
             getString(R.string.settings_reset),
             Toast.LENGTH_LONG
         ).show()
-        finish()
+        finishWithFragmentLikeAnimation()
     }
 
     private fun setInsets() {

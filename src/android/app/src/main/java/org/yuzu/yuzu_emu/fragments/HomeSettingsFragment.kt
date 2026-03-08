@@ -1,9 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 package org.yuzu.yuzu_emu.fragments
 
 import android.Manifest
@@ -44,7 +41,9 @@ import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.FileUtil
+import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.Log
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class HomeSettingsFragment : Fragment() {
     private var _binding: FragmentHomeSettingsBinding? = null
@@ -71,8 +70,12 @@ class HomeSettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        homeViewModel.setStatusBarShadeVisibility(visible = true)
+        homeViewModel.setStatusBarShadeVisibility(visible = false)
         mainActivity = requireActivity() as MainActivity
+        binding.toolbarHomeSettings.setNavigationOnClickListener {
+            findNavController().popBackStack()
+        }
+        binding.toolbarHomeSettings.title = getString(R.string.preferences_settings)
 
         val optionsList: MutableList<HomeSetting> = mutableListOf<HomeSetting>().apply {
             add(
@@ -144,6 +147,18 @@ class HomeSettingsFragment : Fragment() {
                     driverViewModel.selectedDriverTitle
                 )
             )
+            if (GpuDriverHelper.isAdrenoGpu()) {
+                add(
+                    HomeSetting(
+                        R.string.freedreno_settings_title,
+                        R.string.gpu_driver_settings,
+                        R.drawable.ic_graphics,
+                        {
+                            binding.root.findNavController().navigate(R.id.freedrenoSettingsFragment)
+                        }
+                    )
+                )
+            }
             add(
                 HomeSetting(
                     R.string.multiplayer,
@@ -465,19 +480,22 @@ class HomeSettingsFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
 
+            binding.appbarHomeSettings.updateMargins(
+                left = barInsets.left + cutoutInsets.left,
+                right = barInsets.right + cutoutInsets.right
+            )
+
             binding.scrollViewSettings.updatePadding(
-                top = barInsets.top
+                bottom = barInsets.bottom
             )
 
             binding.homeSettingsList.updatePadding(
                 left = barInsets.left + cutoutInsets.left,
-                top = cutoutInsets.top,
-                right = barInsets.right + cutoutInsets.right,
-                bottom = barInsets.bottom
+                right = barInsets.right + cutoutInsets.right
             )
 
             windowInsets

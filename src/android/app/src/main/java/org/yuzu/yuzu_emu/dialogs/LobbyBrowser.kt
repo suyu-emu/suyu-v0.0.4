@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.dialogs
@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.FrameLayout
 import androidx.core.content.getSystemService
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -56,6 +57,30 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
         setupRefreshButton()
         refreshRoomList()
         setupSearchBar()
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
+
+        val bottomSheet =
+            findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
+        if (bottomSheet != null) {
+            bottomSheet.layoutParams = bottomSheet.layoutParams.apply {
+                width = ViewGroup.LayoutParams.MATCH_PARENT
+                height = ViewGroup.LayoutParams.MATCH_PARENT
+            }
+            bottomSheet.requestLayout()
+        }
+
+        behavior.isFitToContents = false
+        behavior.expandedOffset = 0
+        behavior.skipCollapsed = true
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     private fun setupRecyclerView() {

@@ -191,6 +191,22 @@
         <item name="android:textColor">@color/eden_primary</item>
         <item name="rippleColor">@color/eden_glow_pink</item>
     </style>
+
+    <style name="Widget.Eden.TransparentTopAppBarLayout" parent="">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="elevation">0dp</item>
+        <item name="liftOnScroll">false</item>
+        <item name="statusBarForeground">@android:color/transparent</item>
+    </style>
+
+    <style name="Widget.Eden.TransparentTopToolbar" parent="">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:elevation">0dp</item>
+        <item name="backgroundTint">@android:color/transparent</item>
+    </style>
+
     <style name="EdenPopupMenu" parent="Widget.Material3.PopupMenu">
         <item name="android:popupBackground">@drawable/popup_menu_background</item>
     </style>
