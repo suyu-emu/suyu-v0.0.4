@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -29,10 +29,13 @@ namespace Service {
     return function_string;
 }
 
-ServiceFrameworkBase::ServiceFrameworkBase(Core::System& system_, const char* service_name_,
-                                           u32 max_sessions_, InvokerFn* handler_invoker_)
-    : SessionRequestHandler(system_.Kernel(), service_name_), system{system_},
-      service_name{service_name_}, handler_invoker{handler_invoker_}, max_sessions{max_sessions_} {}
+ServiceFrameworkBase::ServiceFrameworkBase(Core::System& system_, const char* service_name_, u32 max_sessions_, InvokerFn* handler_invoker_)
+    : SessionRequestHandler(system_.Kernel(), service_name_)
+    , system{system_}
+    , service_name{service_name_}
+    , handler_invoker{handler_invoker_}
+    , max_sessions{max_sessions_}
+{}
 
 ServiceFrameworkBase::~ServiceFrameworkBase() {
     // Wait for other threads to release access before destroying
@@ -50,8 +53,7 @@ void ServiceFrameworkBase::RegisterHandlersBaseTipc(const FunctionInfoBase* func
     // Usually this array is sorted by id already, so hint to insert at the end
     handlers_tipc.reserve(handlers_tipc.size() + n);
     for (std::size_t i = 0; i < n; ++i)
-        handlers_tipc.emplace_hint(handlers_tipc.cend(), functions[i].expected_header,
-                                   functions[i]);
+        handlers_tipc.emplace_hint(handlers_tipc.cend(), functions[i].expected_header, functions[i]);
 }
 
 void ServiceFrameworkBase::ReportUnimplementedFunction(HLERequestContext& ctx,
