@@ -16,5 +16,17 @@ data class Patch(
     val type: Int,
     val programId: String,
     val titleId: String,
-    val numericVersion: Long = 0
-)
+    val numericVersion: Long = 0,
+    val source: Int = 0
+) {
+    companion object {
+        const val SOURCE_UNKNOWN = 0
+        const val SOURCE_NAND = 1
+        const val SOURCE_SDMC = 2
+        const val SOURCE_EXTERNAL = 3
+        const val SOURCE_PACKED = 4
+    }
+
+    val isRemovable: Boolean
+        get() = source != SOURCE_EXTERNAL && source != SOURCE_PACKED
+}

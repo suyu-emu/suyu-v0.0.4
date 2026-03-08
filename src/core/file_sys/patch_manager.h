@@ -34,6 +34,7 @@ enum class PatchType { Update, DLC, Mod };
 enum class PatchSource {
     Unknown,
     NAND,
+    SDMC,
     External,
     Packed,
 };

@@ -516,7 +516,7 @@ namespace Common::Android {
         s_patch_class = reinterpret_cast<jclass>(env->NewGlobalRef(patch_class));
         s_patch_constructor = env->GetMethodID(
                 patch_class, "<init>",
-                "(ZLjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;J)V");
+                "(ZLjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;JI)V");
         s_patch_enabled_field = env->GetFieldID(patch_class, "enabled", "Z");
         s_patch_name_field = env->GetFieldID(patch_class, "name", "Ljava/lang/String;");
         s_patch_version_field = env->GetFieldID(patch_class, "version", "Ljava/lang/String;");

@@ -40,11 +40,21 @@ class AddonAdapter(val addonViewModel: AddonViewModel) :
                 }
             }
 
-            val deleteAction = {
-                addonViewModel.setAddonToDelete(model)
+            val canDelete = model.isRemovable
+            binding.deleteCard.isEnabled = canDelete
+            binding.buttonDelete.isEnabled = canDelete
+            binding.deleteCard.alpha = if (canDelete) 1f else 0.38f
+
+            if (canDelete) {
+                val deleteAction = {
+                    addonViewModel.setAddonToDelete(model)
+                }
+                binding.deleteCard.setOnClickListener { deleteAction() }
+                binding.buttonDelete.setOnClickListener { deleteAction() }
+            } else {
+                binding.deleteCard.setOnClickListener(null)
+                binding.buttonDelete.setOnClickListener(null)
             }
-            binding.deleteCard.setOnClickListener { deleteAction() }
-            binding.buttonDelete.setOnClickListener { deleteAction() }
         }
     }
 }

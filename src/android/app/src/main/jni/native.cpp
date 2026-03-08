@@ -1407,7 +1407,7 @@ jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env
             Common::Android::ToJString(env, patch.version), static_cast<jint>(patch.type),
             Common::Android::ToJString(env, std::to_string(patch.program_id)),
             Common::Android::ToJString(env, std::to_string(patch.title_id)),
-            static_cast<jlong>(patch.numeric_version));
+            static_cast<jlong>(patch.numeric_version), static_cast<jint>(patch.source));
         env->SetObjectArrayElement(jpatchArray, i, jpatch);
         ++i;
     }
