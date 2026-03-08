@@ -91,7 +91,7 @@ After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-
 
 `-lc++-experimental` doesn't exist in OpenBSD but the LLVM driver still tries to link against it, to solve just symlink `ln -s /usr/lib/libc++.a /usr/lib/libc++experimental.a`. Builds are currently not working due to lack of `std::jthread` and such, either compile libc++ manually or wait for ports to catch up.
 
-If clang has errors, try using `g++-11`.
+If clang has errors, try using `g++11`.
 
 ## FreeBSD
 
@@ -107,6 +107,8 @@ hw.usb.usbhid.enable="0"
 
 ## NetBSD
 
+2026-02-07: `vulkan-headers` must not be installed, since the version found in `pkgsrc` is older than required. Either wait for binary packages to update or build newer versions from source.
+
 Install `pkgin` if not already `pkg_add pkgin`, see also the general [pkgsrc guide](https://www.netbsd.org/docs/pkgsrc/using.html). For NetBSD 10.1 provide `echo 'PKG_PATH="https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/amd64/10.1/All/"' >/etc/pkg_install.conf`. If `pkgin` is taking too much time consider adding the following to `/etc/rc.conf`:
 
 ```sh
@@ -116,7 +118,7 @@ ip6addrctl_policy=ipv4_prefer
 
 System provides a default `g++-10` which doesn't support the current C++ codebase; install `clang-19` with `pkgin install clang-19`. Or install `gcc14` (or `gcc15` with current pkgsrc). Provided that, the following CMake commands may work:
 
-- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -Bbuild`
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -Bbuild` (Recommended)
 - `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/pkg/gcc14/bin/gcc -DCMAKE_CXX_COMPILER=/usr/pkg/gcc14/bin/g++ -Bbuild`
 - `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/pkg/gcc15/bin/gcc -DCMAKE_CXX_COMPILER=/usr/pkg/gcc15/bin/g++ -Bbuild`
 
@@ -138,7 +140,11 @@ cmake --install build
 
 However, pkgsrc is highly recommended, see [getting pkgsrc](https://iso.us.netbsd.org/pub/pkgsrc/current/pkgsrc/doc/pkgsrc.html#getting). You must get `current` not the `2025Q2` version.
 
+`QtCore` on NetBSD is included, but due to misconfigurations(!) we MUST include one of the standard headers that include `bits/c++config.h`, since source_location (required by `QtCore`) isn't properly configured to intake `bits/c++config.h` (none of the experimental library is). This is a bug with NetBSD packaging and not our fault, but alas.
+
 ## DragonFlyBSD
+
+2026-02-07: `vulkan-headers` and `vulkan-utility-libraries` must NOT be uninstalled, since they're too old: `1.3.289`. Either wait for binary packages to update or build newer versions from source.
 
 If `libstdc++.so.6` is not found (`GLIBCXX_3.4.30`) then attempt:
 

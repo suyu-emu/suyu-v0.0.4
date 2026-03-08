@@ -19,9 +19,11 @@
 #include <windows.h>
 #include "common/string_util.h"
 #else
-#if defined(__Bitrig__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+#if defined(__FreeBSD__)
 #include <sys/cpuset.h>
 #include <sys/_cpuset.h>
+#include <pthread_np.h>
+#elif defined(__DragonFly__) || defined(__OpenBSD__) || defined(__Bitrig__)
 #include <pthread_np.h>
 #endif
 #include <pthread.h>

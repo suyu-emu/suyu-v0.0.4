@@ -118,6 +118,8 @@ if (NOT GLSLANG_ERROR STREQUAL "")
     set(QUIET_FLAG "")
 endif()
 
+# Shader files must depend on their directory otherwise *BSD make will spontaneously combust
+file(MAKE_DIRECTORY "${SHADER_DIR}")
 foreach(SOURCE_FILE IN ITEMS ${SHADER_FILES})
     get_filename_component(FILENAME ${SOURCE_FILE} NAME)
     string(REPLACE "." "_" SHADER_NAME ${FILENAME})
@@ -133,6 +135,7 @@ foreach(SOURCE_FILE IN ITEMS ${SHADER_FILES})
                 ${SOURCE_FILE}
             DEPENDS
                 ${INPUT_FILE}
+                ${SHADER_DIR}
                 # HEADER_GENERATOR should be included here but msbuild seems to assume it's always modified
         )
         set(SHADER_HEADERS ${SHADER_HEADERS} ${SOURCE_HEADER_FILE})
@@ -148,6 +151,8 @@ foreach(SOURCE_FILE IN ITEMS ${SHADER_FILES})
                 ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -I"${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
             MAIN_DEPENDENCY
                 ${SOURCE_FILE}
+            DEPENDS
+                ${SHADER_DIR}
         )
         set(SHADER_HEADERS ${SHADER_HEADERS} ${SPIRV_HEADER_FILE})
     endif()
@@ -167,6 +172,7 @@ foreach(FILEPATH IN ITEMS ${FIDELITYFX_FILES})
             ${SOURCE_FILE}
         DEPENDS
             ${INPUT_FILE}
+            ${SHADER_DIR}
             # HEADER_GENERATOR should be included here but msbuild seems to assume it's always modified
     )
     set(SHADER_HEADERS ${SHADER_HEADERS} ${SOURCE_HEADER_FILE})
