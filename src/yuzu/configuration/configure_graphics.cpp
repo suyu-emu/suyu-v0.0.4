@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -416,11 +416,9 @@ const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
 }
 
 int ConfigureGraphics::FindIndex(u32 enumeration, int value) const {
-    for (u32 i = 0; i < combobox_translations.at(enumeration).size(); i++) {
-        if (combobox_translations.at(enumeration)[i].first == static_cast<u32>(value)) {
+    for (u32 i = 0; enumeration < combobox_translations.size() && i < combobox_translations.at(enumeration).size(); i++)
+        if (combobox_translations.at(enumeration)[i].first == u32(value))
             return i;
-        }
-    }
     return -1;
 }
 
@@ -433,13 +431,11 @@ void ConfigureGraphics::ApplyConfiguration() {
     UpdateVsyncSetting();
 
     Settings::values.vulkan_device.SetGlobal(true);
-    if (Settings::IsConfiguringGlobal() ||
-        (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
-        auto backend = static_cast<Settings::RendererBackend>(
-            combobox_translations
-                .at(Settings::EnumMetadata<
-                    Settings::RendererBackend>::Index())[api_combobox->currentIndex()]
-                .first);
+    auto const index = Settings::EnumMetadata<Settings::RendererBackend>::Index();
+    if (Settings::IsConfiguringGlobal() || (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
+        auto backend = index >= combobox_translations.size() || size_t(api_combobox->currentIndex()) >= combobox_translations.at(index).size()
+            ? Settings::values.renderer_backend.GetValue()
+            : Settings::RendererBackend(combobox_translations.at(index)[api_combobox->currentIndex()].first);
         switch (backend) {
         case Settings::RendererBackend::Vulkan:
             Settings::values.vulkan_device.SetGlobal(Settings::IsConfiguringGlobal());
@@ -507,13 +503,12 @@ void ConfigureGraphics::RetrieveVulkanDevices() {
 
 Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
     const auto selected_backend = [&]() {
-        if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
+        auto const index = Settings::EnumMetadata<Settings::RendererBackend>::Index();
+        if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled())
             return Settings::values.renderer_backend.GetValue(true);
-        }
-        return Settings::RendererBackend(
-            combobox_translations.at(Settings::EnumMetadata<Settings::RendererBackend>::Index())
-                .at(api_combobox->currentIndex())
-                .first);
+        return index >= combobox_translations.size() || size_t(api_combobox->currentIndex()) >= combobox_translations.at(index).size()
+            ? Settings::values.renderer_backend.GetValue()
+            : Settings::RendererBackend(combobox_translations.at(index).at(api_combobox->currentIndex()).first);
     }();
 
     if (selected_backend == Settings::RendererBackend::Vulkan && UISettings::values.has_broken_vulkan)
