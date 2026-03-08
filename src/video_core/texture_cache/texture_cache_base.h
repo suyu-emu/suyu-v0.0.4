@@ -478,7 +478,6 @@ private:
     u64 minimum_memory;
     u64 expected_memory;
     u64 critical_memory;
-    bool lowmemorydevice = false;
     size_t gpu_unswizzle_maxsize = 0;
     size_t swizzle_chunk_size = 0;
     u32 swizzle_slices_per_batch = 0;
