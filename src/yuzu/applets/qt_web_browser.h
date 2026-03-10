@@ -169,7 +169,8 @@ private:
     std::unique_ptr<InputInterpreter> input_interpreter;
     std::jthread input_thread;
     std::atomic<bool> finished{};
-    Service::AM::Frontend::WebExitReason exit_reason{Service::AM::Frontend::WebExitReason::EndButtonPressed};
+    Service::AM::Frontend::WebExitReason exit_reason{
+        Service::AM::Frontend::WebExitReason::EndButtonPressed};
     std::string last_url{"http://localhost/"};
     bool is_local{};
     QWebEngineProfile* default_profile;

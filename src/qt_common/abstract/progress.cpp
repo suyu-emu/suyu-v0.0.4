@@ -5,13 +5,8 @@
 
 namespace QtCommon::Frontend {
 
-QtProgressDialog::QtProgressDialog(const QString&,
-                                   const QString&,
-                                   int,
-                                   int,
-                                   QObject* parent,
+QtProgressDialog::QtProgressDialog(const QString&, const QString&, int, int, QObject* parent,
                                    Qt::WindowFlags)
-    : QObject(parent)
-{}
+    : QObject(parent) {}
 
-}
+} // namespace QtCommon::Frontend

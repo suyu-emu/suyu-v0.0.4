@@ -43,7 +43,8 @@ ModSelectDialog::ModSelectDialog(const QStringList& mods, QWidget* parent)
         width = qMax(width, item_model->item(i)->sizeHint().width());
     }
 
-    width += ui->treeView->contentsMargins().left() * 4 + ui->treeView->contentsMargins().right() * 4;
+    width +=
+        ui->treeView->contentsMargins().left() * 4 + ui->treeView->contentsMargins().right() * 4;
     ui->treeView->setMinimumHeight(qMin(height, 600));
     ui->treeView->setMinimumWidth(qMin(width, 700));
     adjustSize();

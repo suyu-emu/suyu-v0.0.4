@@ -7,8 +7,8 @@
 
 namespace QtCommon::Mod {
 
-QStringList GetModFolders(const QString &root, const QString &fallbackName);
+QStringList GetModFolders(const QString& root, const QString& fallbackName);
 
-const QString ExtractMod(const QString &path);
+const QString ExtractMod(const QString& path);
 
-}
+} // namespace QtCommon::Mod

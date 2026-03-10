@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "qt_common/util/meta.h"
 #include "common/common_types.h"
 #include "core/core.h"
 #include "core/frontend/applets/cabinet.h"
@@ -9,11 +8,11 @@
 #include "core/frontend/applets/profile_select.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/service/am/frontend/applet_web_browser_types.h"
+#include "qt_common/util/meta.h"
 
 namespace QtCommon::Meta {
 
-void RegisterMetaTypes()
-{
+void RegisterMetaTypes() {
     // Register integral and floating point types
     qRegisterMetaType<u8>("u8");
     qRegisterMetaType<u16>("u16");
@@ -72,4 +71,4 @@ void RegisterMetaTypes()
     qRegisterMetaType<Core::SystemResultStatus>("Core::SystemResultStatus");
 }
 
-}
+} // namespace QtCommon::Meta

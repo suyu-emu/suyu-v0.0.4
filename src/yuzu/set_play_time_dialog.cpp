@@ -1,20 +1,23 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "yuzu/set_play_time_dialog.h"
 #include "frontend_common/play_time_manager.h"
 #include "ui_set_play_time_dialog.h"
+#include "yuzu/set_play_time_dialog.h"
 
 SetPlayTimeDialog::SetPlayTimeDialog(QWidget* parent, u64 current_play_time)
     : QDialog(parent), ui{std::make_unique<Ui::SetPlayTimeDialog>()} {
     ui->setupUi(this);
 
     ui->hoursSpinBox->setValue(
-        QString::fromStdString(PlayTime::PlayTimeManager::GetPlayTimeHours(current_play_time)).toInt());
+        QString::fromStdString(PlayTime::PlayTimeManager::GetPlayTimeHours(current_play_time))
+            .toInt());
     ui->minutesSpinBox->setValue(
-        QString::fromStdString(PlayTime::PlayTimeManager::GetPlayTimeMinutes(current_play_time)).toInt());
+        QString::fromStdString(PlayTime::PlayTimeManager::GetPlayTimeMinutes(current_play_time))
+            .toInt());
     ui->secondsSpinBox->setValue(
-        QString::fromStdString(PlayTime::PlayTimeManager::GetPlayTimeSeconds(current_play_time)).toInt());
+        QString::fromStdString(PlayTime::PlayTimeManager::GetPlayTimeSeconds(current_play_time))
+            .toInt());
 
     connect(ui->hoursSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this,
             &SetPlayTimeDialog::OnValueChanged);

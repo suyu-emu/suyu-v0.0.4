@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
@@ -21,7 +21,6 @@ public:
 private:
     void ShowMigrationPrompt(QMainWindow* main_window);
     void ShowMigrationCancelledMessage(QMainWindow* main_window);
-    void MigrateUserData(QMainWindow* main_window,
-                         const bool clear_shader_cache,
+    void MigrateUserData(QMainWindow* main_window, const bool clear_shader_cache,
                          const MigrationWorker::MigrationStrategy strategy);
 };

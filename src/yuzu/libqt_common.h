@@ -34,4 +34,4 @@ private:
     QProgressDialog* m_dialog;
 };
 
-}
+} // namespace QtCommon::Frontend

@@ -62,12 +62,13 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
 
         const auto driverID = driver_properties.driverID;
 
-        bool has_broken_compute{Vulkan::Device::CheckBrokenCompute(
-            driverID, properties.properties.driverVersion)};
+        bool has_broken_compute{
+            Vulkan::Device::CheckBrokenCompute(driverID, properties.properties.driverVersion)};
 
         std::string driver_string = Vulkan::vk::GetDriverName(driver_properties);
 
-        if (driver_string.empty()) driver_string = "Unknown";
+        if (driver_string.empty())
+            driver_string = "Unknown";
 
         name = fmt::format("{} ({})", name, driver_string);
 

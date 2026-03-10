@@ -9,9 +9,9 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/settings.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_configure_tas.h"
 #include "yuzu/configuration/configure_tas.h"
-#include "qt_common/config/uisettings.h"
 
 ConfigureTasDialog::ConfigureTasDialog(QWidget* parent)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigureTas>()) {
@@ -35,7 +35,8 @@ void ConfigureTasDialog::LoadConfiguration() {
     ui->tas_enable->setChecked(Settings::values.tas_enable.GetValue());
     ui->tas_loop_script->setChecked(Settings::values.tas_loop.GetValue());
     ui->tas_pause_on_load->setChecked(Settings::values.pause_tas_on_load.GetValue());
-    ui->tas_show_recording_dialog->setChecked(Settings::values.tas_show_recording_dialog.GetValue());
+    ui->tas_show_recording_dialog->setChecked(
+        Settings::values.tas_show_recording_dialog.GetValue());
 }
 
 void ConfigureTasDialog::ApplyConfiguration() {

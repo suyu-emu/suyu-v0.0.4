@@ -21,10 +21,10 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
+#include "frontend_common/play_time_manager.h"
 #include "qt_common/config/uisettings.h"
 #include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
-#include "frontend_common/play_time_manager.h"
 
 class QVariantAnimation;
 
@@ -124,7 +124,7 @@ signals:
     void NavigateToGamedbEntryRequested(u64 program_id,
                                         const CompatibilityList& compatibility_list);
     void OpenPerGameGeneralRequested(const std::string& file);
-    void LinkToRyujinxRequested(const u64 &program_id);
+    void LinkToRyujinxRequested(const u64& program_id);
     void OpenDirectory(const QString& directory);
     void AddDirectory();
     void ShowList(bool show);
@@ -170,8 +170,8 @@ private:
     QVBoxLayout* layout = nullptr;
 
     QTreeView* tree_view = nullptr;
-    QListView *list_view = nullptr;
-    GameCard *m_gameCard = nullptr;
+    QListView* list_view = nullptr;
+    GameCard* m_gameCard = nullptr;
 
     QStandardItemModel* item_model = nullptr;
     std::unique_ptr<GameListWorker> current_worker;
@@ -194,7 +194,7 @@ private:
     Core::System& system;
 
     bool m_isTreeMode = true;
-    QAbstractItemView *m_currentView = tree_view;
+    QAbstractItemView* m_currentView = tree_view;
 };
 
 class GameListPlaceholder : public QWidget {

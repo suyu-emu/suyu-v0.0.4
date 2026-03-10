@@ -47,8 +47,7 @@ public:
     explicit ConfigureProfileManagerDeleteDialog(QWidget* parent);
     ~ConfigureProfileManagerDeleteDialog();
 
-    void SetInfo(const QString& username, const Common::UUID& uuid,
-                 int index);
+    void SetInfo(const QString& username, const Common::UUID& uuid, int index);
 
 signals:
     void deleteUser(int index);
@@ -71,7 +70,7 @@ public:
 
 private slots:
     void saveImage(QPixmap pixmap, Common::UUID uuid);
-    void showContextMenu(const QPoint &pos);
+    void showContextMenu(const QPoint& pos);
     void DeleteUser(const int index);
 
 private:

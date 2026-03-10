@@ -1,12 +1,12 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "yuzu/configuration/configure_web.h"
 #include <QIcon>
 #include <QMessageBox>
+#include "yuzu/configuration/configure_web.h"
 
 #if QT_VERSION_MAJOR >= 6
 #include <QRegularExpressionValidator>
@@ -16,28 +16,25 @@
 
 #include <QtConcurrentRun>
 #include "common/settings.h"
-#include "ui_configure_web.h"
 #include "qt_common/config/uisettings.h"
+#include "ui_configure_web.h"
 
 ConfigureWeb::ConfigureWeb(QWidget* parent)
-    : QWidget(parent)
-    , ui(std::make_unique<Ui::ConfigureWeb>())
-    , m_rng{QRandomGenerator::system()}
-{
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureWeb>()), m_rng{QRandomGenerator::system()} {
     ui->setupUi(this);
 
     QString user_regex = QStringLiteral(".{4,20}");
     QString token_regex = QStringLiteral("[a-z]{48}");
 
 #if QT_VERSION_MAJOR >= 6
-    QRegularExpressionValidator *username_validator = new QRegularExpressionValidator(this);
-    QRegularExpressionValidator *token_validator = new QRegularExpressionValidator(this);
+    QRegularExpressionValidator* username_validator = new QRegularExpressionValidator(this);
+    QRegularExpressionValidator* token_validator = new QRegularExpressionValidator(this);
 
     username_validator->setRegularExpression(QRegularExpression(user_regex));
     token_validator->setRegularExpression(QRegularExpression(token_regex));
 #else
-    QRegExpValidator *username_validator = new QRegExpValidator(this);
-    QRegExpValidator *token_validator = new QRegExpValidator(this);
+    QRegExpValidator* username_validator = new QRegExpValidator(this);
+    QRegExpValidator* token_validator = new QRegExpValidator(this);
 
     username_validator->setRegExp(QRegExp(user_regex));
     token_validator->setRegExp(QRegExp(token_regex));
@@ -121,7 +118,8 @@ void ConfigureWeb::VerifyLogin() {
         ui->label_token_verified->setToolTip(tr("All Good", "Tooltip"));
     } else {
         ui->label_token_verified->setPixmap(failed);
-        ui->label_token_verified->setToolTip(tr("Must be 48 characters, and lowercase a-z", "Tooltip"));
+        ui->label_token_verified->setToolTip(
+            tr("Must be 48 characters, and lowercase a-z", "Tooltip"));
     }
 }
 

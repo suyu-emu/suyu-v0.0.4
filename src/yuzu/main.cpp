@@ -5,8 +5,8 @@
 #include "startup_checks.h"
 
 #if YUZU_ROOM
-#include "dedicated_room/yuzu_room.h"
 #include <cstring>
+#include "dedicated_room/yuzu_room.h"
 #endif
 
 #include <common/detached_tasks.h>
@@ -62,9 +62,8 @@ static Qt::HighDpiScaleFactorRoundingPolicy GetHighDpiRoundingPolicy() {
 
     // Get the lower of the 2 ratios and truncate, this is the maximum integer scale.
     const qreal max_ratio = std::trunc(std::min(width_ratio, height_ratio));
-    return max_ratio > real_ratio
-        ? Qt::HighDpiScaleFactorRoundingPolicy::Round
-        : Qt::HighDpiScaleFactorRoundingPolicy::Floor;
+    return max_ratio > real_ratio ? Qt::HighDpiScaleFactorRoundingPolicy::Round
+                                  : Qt::HighDpiScaleFactorRoundingPolicy::Floor;
 #else
     // Other OSes should be better than Windows at fractional scaling.
     return Qt::HighDpiScaleFactorRoundingPolicy::PassThrough;
@@ -174,7 +173,7 @@ int main(int argc, char* argv[]) {
     main_window.show();
 
     app.connect(&app, &QGuiApplication::applicationStateChanged, &main_window,
-                     &MainWindow::OnAppFocusStateChanged);
+                &MainWindow::OnAppFocusStateChanged);
 
     int result = app.exec();
     detached_tasks.WaitForAllTasks();

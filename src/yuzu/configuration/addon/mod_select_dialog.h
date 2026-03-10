@@ -14,11 +14,12 @@ class ModSelectDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ModSelectDialog(const QStringList &mods, QWidget* parent = nullptr);
+    explicit ModSelectDialog(const QStringList& mods, QWidget* parent = nullptr);
     ~ModSelectDialog();
 
 signals:
-    void modsSelected(const QStringList &mods);
+    void modsSelected(const QStringList& mods);
+
 private:
     Ui::ModSelectDialog* ui;
 

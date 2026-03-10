@@ -23,8 +23,7 @@ enum class FirmwareInstallResult {
     FailedCorrupted,
 };
 
-inline const QString GetFirmwareInstallResultString(FirmwareInstallResult result)
-{
+inline const QString GetFirmwareInstallResultString(FirmwareInstallResult result) {
     return LOOKUP_ENUM(result, FwInstallSuccess);
 }
 
@@ -33,30 +32,29 @@ inline const QString GetFirmwareInstallResultString(FirmwareInstallResult result
  * \param result The result code.
  * \return A string representation of the passed result code.
  */
-inline const QString GetKeyInstallResultString(FirmwareManager::KeyInstallResult result)
-{
+inline const QString GetKeyInstallResultString(FirmwareManager::KeyInstallResult result) {
     return LOOKUP_ENUM(result, KeyInstallSuccess);
 }
 
-void InstallFirmware(const QString &location, bool recursive);
+void InstallFirmware(const QString& location, bool recursive);
 
-QString UnzipFirmwareToTmp(const QString &location);
+QString UnzipFirmwareToTmp(const QString& location);
 
 // Keys //
 void InstallKeys();
 
 // Content //
-void VerifyGameContents(const std::string &game_path);
+void VerifyGameContents(const std::string& game_path);
 void VerifyInstalledContents();
 
-void ClearDataDir(FrontendCommon::DataManager::DataDir dir, const std::string &user_id = "");
-void ExportDataDir(FrontendCommon::DataManager::DataDir dir,
-                   const std::string &user_id = "",
-                   const QString &name = QStringLiteral("export"),
+void ClearDataDir(FrontendCommon::DataManager::DataDir dir, const std::string& user_id = "");
+void ExportDataDir(FrontendCommon::DataManager::DataDir dir, const std::string& user_id = "",
+                   const QString& name = QStringLiteral("export"),
                    std::function<void()> callback = {});
-void ImportDataDir(FrontendCommon::DataManager::DataDir dir, const std::string &user_id = "", std::function<void()> callback = {});
+void ImportDataDir(FrontendCommon::DataManager::DataDir dir, const std::string& user_id = "",
+                   std::function<void()> callback = {});
 
 // Profiles //
 void FixProfiles();
-}
+} // namespace QtCommon::Content
 #endif // QT_CONTENT_UTIL_H

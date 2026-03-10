@@ -13,6 +13,7 @@
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/internal_network/network_interface.h"
 #include "network/network.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_lobby.h"
 #include "yuzu/game/game_list_p.h"
 #include "yuzu/main_window.h"
@@ -22,7 +23,6 @@
 #include "yuzu/multiplayer/message.h"
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/multiplayer/validation.h"
-#include "qt_common/config/uisettings.h"
 #ifdef ENABLE_WEB_SERVICE
 #include "web_service/web_backend.h"
 #endif
@@ -30,8 +30,7 @@
 Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
              std::shared_ptr<Core::AnnounceMultiplayerSession> session, Core::System& system_)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::Lobby>()),
-      announce_multiplayer_session(session), system{system_} {
+      ui(std::make_unique<Ui::Lobby>()), announce_multiplayer_session(session), system{system_} {
     ui->setupUi(this);
 
     // setup the watcher for background connections

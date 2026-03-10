@@ -13,8 +13,7 @@ namespace fs = std::filesystem;
 
 namespace QtCommon::FS {
 
-void LinkRyujinx(std::filesystem::path &from, std::filesystem::path &to)
-{
+void LinkRyujinx(std::filesystem::path& from, std::filesystem::path& to) {
     std::error_code ec;
 
     // "ignore" errors--if the dir fails to be deleted, error handling later will handle it
@@ -25,12 +24,12 @@ void LinkRyujinx(std::filesystem::path &from, std::filesystem::path &to)
     } else {
         QtCommon::Frontend::Critical(
             tr("Failed to link save data"),
-            tr("Could not link directory:\n\t%1\nTo:\n\t%2").arg(QString::fromStdString(from.string()), QString::fromStdString(to.string())));
+            tr("Could not link directory:\n\t%1\nTo:\n\t%2")
+                .arg(QString::fromStdString(from.string()), QString::fromStdString(to.string())));
     }
 }
 
-bool CheckUnlink(const fs::path &eden_dir, const fs::path &ryu_dir)
-{
+bool CheckUnlink(const fs::path& eden_dir, const fs::path& ryu_dir) {
     bool eden_link = Common::FS::IsSymlink(eden_dir);
     bool ryu_link = Common::FS::IsSymlink(ryu_dir);
 
@@ -64,7 +63,7 @@ bool CheckUnlink(const fs::path &eden_dir, const fs::path &ryu_dir)
         // NB: do NOT use remove_all, as Windows treats this as a remove_all to the target,
         // NOT the junction
         fs::remove(linked);
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
         QtCommon::Frontend::Critical(
             tr("Failed to unlink old directory"),
             tr("OS returned error: %1").arg(QString::fromStdString(e.what())));
@@ -74,7 +73,7 @@ bool CheckUnlink(const fs::path &eden_dir, const fs::path &ryu_dir)
     // then COPY the other dir
     try {
         fs::copy(orig, linked, fs::copy_options::recursive);
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
         QtCommon::Frontend::Critical(
             tr("Failed to copy save data"),
             tr("OS returned error: %1").arg(QString::fromStdString(e.what())));
@@ -87,8 +86,7 @@ bool CheckUnlink(const fs::path &eden_dir, const fs::path &ryu_dir)
     return true;
 }
 
-const fs::path GetRyujinxSavePath(const fs::path &path_hint, const u64 &program_id)
-{
+const fs::path GetRyujinxSavePath(const fs::path& path_hint, const u64& program_id) {
     auto ryu_path = path_hint;
 
     auto kvdb_path = Common::FS::GetKvdbPath(ryu_path);
@@ -99,10 +97,13 @@ const fs::path GetRyujinxSavePath(const fs::path &path_hint, const u64 &program_
             tr("Could not find Ryujinx installation"),
             tr("Could not find a valid Ryujinx installation. This may typically occur if you are "
                "using Ryujinx in portable mode.\n\nWould you like to manually select a portable "
-               "folder to use?"), StandardButton::Yes | StandardButton::No);
+               "folder to use?"),
+            StandardButton::Yes | StandardButton::No);
 
         if (res == StandardButton::Yes) {
-            auto selected_path = GetExistingDirectory(tr("Ryujinx Portable Location"), QDir::homePath()).toStdString();
+            auto selected_path =
+                GetExistingDirectory(tr("Ryujinx Portable Location"), QDir::homePath())
+                    .toStdString();
             if (selected_path.empty())
                 return fs::path{};
 
@@ -131,7 +132,7 @@ const fs::path GetRyujinxSavePath(const fs::path &path_hint, const u64 &program_
     Common::FS::IMENReadResult res = Common::FS::ReadKvdb(kvdb_path, imens);
 
     if (res == Common::FS::IMENReadResult::Success) {
-        for (const Common::FS::IMEN &imen : imens) {
+        for (const Common::FS::IMEN& imen : imens) {
             if (imen.title_id == program_id)
                 return Common::FS::GetRyuSavePath(ryu_path, imen.save_id);
         }

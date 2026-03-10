@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "yuzu/configuration/configure_filesystem.h"
 #include <filesystem>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -12,10 +11,11 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/settings.h"
+#include "qt_common/config/uisettings.h"
 #include "qt_common/qt_compat.h"
 #include "qt_common/util/game.h"
-#include "qt_common/config/uisettings.h"
 #include "ui_configure_filesystem.h"
+#include "yuzu/configuration/configure_filesystem.h"
 
 ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureFilesystem>()) {
@@ -26,8 +26,7 @@ ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
             [this] { SetDirectory(DirectoryTarget::NAND, ui->nand_directory_edit); });
     connect(ui->sdmc_directory_button, &QToolButton::pressed, this,
             [this] { SetDirectory(DirectoryTarget::SD, ui->sdmc_directory_edit); });
-    connect(ui->save_directory_button, &QToolButton::pressed, this,
-            [this] { SetSaveDirectory(); });
+    connect(ui->save_directory_button, &QToolButton::pressed, this, [this] { SetSaveDirectory(); });
     connect(ui->gamecard_path_button, &QToolButton::pressed, this,
             [this] { SetDirectory(DirectoryTarget::Gamecard, ui->gamecard_path_edit); });
     connect(ui->dump_path_button, &QToolButton::pressed, this,
@@ -221,9 +220,9 @@ void ConfigureFilesystem::PromptSaveMigration(const QString& from_path, const QS
                       .arg(QString::fromStdString(dest_save_dir.string()));
     }
 
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this, tr("Migrate Save Data"), message,
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    QMessageBox::StandardButton reply =
+        QMessageBox::question(this, tr("Migrate Save Data"), message,
+                              QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
     if (reply != QMessageBox::Yes) {
         return;
@@ -249,17 +248,17 @@ void ConfigureFilesystem::PromptSaveMigration(const QString& from_path, const QS
     progress.close();
 
     if (ec) {
-        QMessageBox::warning(this, tr("Migration Failed"),
-                             tr("Failed to migrate save data:\n%1")
-                                 .arg(QString::fromStdString(ec.message())));
+        QMessageBox::warning(
+            this, tr("Migration Failed"),
+            tr("Failed to migrate save data:\n%1").arg(QString::fromStdString(ec.message())));
         return;
     }
 
-    QMessageBox::StandardButton deleteReply = QMessageBox::question(
-        this, tr("Migration Complete"),
-        tr("Save data has been migrated successfully.\n\n"
-           "Would you like to delete the old save data?"),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    QMessageBox::StandardButton deleteReply =
+        QMessageBox::question(this, tr("Migration Complete"),
+                              tr("Save data has been migrated successfully.\n\n"
+                                 "Would you like to delete the old save data?"),
+                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
     if (deleteReply == QMessageBox::Yes) {
         Common::FS::RemoveDirRecursively(source_save_dir);
@@ -277,7 +276,6 @@ void ConfigureFilesystem::UpdateEnabledControls() {
     ui->gamecard_path_button->setEnabled(ui->gamecard_inserted->isChecked() &&
                                          !ui->gamecard_current_game->isChecked());
 }
-
 
 void ConfigureFilesystem::RetranslateUI() {
     ui->retranslateUi(this);

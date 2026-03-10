@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -14,13 +14,13 @@
 #include <QTimer>
 #include "common/assert.h"
 #include "common/param_package.h"
-#include "qt_common/config/qt_config.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
 #include "input_common/main.h"
+#include "qt_common/config/qt_config.h"
 #include "ui_configure_input_player.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/configuration/configure_input_player.h"
@@ -294,11 +294,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                                            InputCommon::InputSubsystem* input_subsystem_,
                                            InputProfiles* profiles_, Core::HID::HIDCore& hid_core_,
                                            bool is_powered_on_, bool debug_)
-    : QWidget(parent),
-      ui(std::make_unique<Ui::ConfigureInputPlayer>()), player_index{player_index_}, debug{debug_},
-      is_powered_on{is_powered_on_}, input_subsystem{input_subsystem_}, profiles(profiles_),
-      timeout_timer(std::make_unique<QTimer>()),
-      poll_timer(std::make_unique<QTimer>()), bottom_row{bottom_row_}, hid_core{hid_core_} {
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()),
+      player_index{player_index_}, debug{debug_}, is_powered_on{is_powered_on_},
+      input_subsystem{input_subsystem_}, profiles(profiles_),
+      timeout_timer(std::make_unique<QTimer>()), poll_timer(std::make_unique<QTimer>()),
+      bottom_row{bottom_row_}, hid_core{hid_core_} {
     if (player_index == 0) {
         auto* emulated_controller_p1 =
             hid_core.GetEmulatedController(Core::HID::NpadIdType::Player1);
@@ -1215,10 +1215,8 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
     case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::Handheld:
         layout_hidden = {
-            ui->buttonShoulderButtonsSLSRLeft,
-            ui->buttonShoulderButtonsSLSRRight,
-            ui->horizontalSpacerShoulderButtonsWidget2,
-            ui->horizontalSpacerShoulderButtonsWidget4,
+            ui->buttonShoulderButtonsSLSRLeft,          ui->buttonShoulderButtonsSLSRRight,
+            ui->horizontalSpacerShoulderButtonsWidget2, ui->horizontalSpacerShoulderButtonsWidget4,
             ui->buttonMiscButtonsScreenshotGroup,
         };
         break;

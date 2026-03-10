@@ -20,15 +20,15 @@ struct User {
     QPixmap pixmap;
 };
 
-class NewUserDialog : public QDialog
-{
+class NewUserDialog : public QDialog {
     Q_OBJECT
     Q_PROPERTY(bool isDefaultAvatar READ isDefaultAvatar WRITE setIsDefaultAvatar NOTIFY
                    isDefaultAvatarChanged FINAL)
 
 public:
-    explicit NewUserDialog(QWidget *parent = nullptr);
-    explicit NewUserDialog(Common::UUID uuid, const std::string &username, const QString &title, QWidget *parent = nullptr);
+    explicit NewUserDialog(QWidget* parent = nullptr);
+    explicit NewUserDialog(Common::UUID uuid, const std::string& username, const QString& title,
+                           QWidget* parent = nullptr);
     ~NewUserDialog();
 
     bool isDefaultAvatar() const;
@@ -39,8 +39,8 @@ public:
     static QPixmap DefaultAvatar();
 
 private:
-    Ui::NewUserDialog *ui;
-    QGraphicsScene *m_scene;
+    Ui::NewUserDialog* ui;
+    QGraphicsScene* m_scene;
     QPixmap m_pixmap;
 
     ProfileAvatarDialog* avatar_dialog;
@@ -48,12 +48,12 @@ private:
     bool m_isDefaultAvatar = true;
     bool m_editing = false;
 
-    void setup(Common::UUID uuid, const std::string &username, const QString &title);
+    void setup(Common::UUID uuid, const std::string& username, const QString& title);
     bool LoadAvatarData();
     std::vector<uint8_t> DecompressYaz0(const FileSys::VirtualFile& file);
 
 public slots:
-    void setImage(const QPixmap &pixmap);
+    void setImage(const QPixmap& pixmap);
     void selectImage();
     void setAvatar();
 

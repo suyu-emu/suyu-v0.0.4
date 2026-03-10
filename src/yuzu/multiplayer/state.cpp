@@ -11,6 +11,7 @@
 #include "common/announce_multiplayer_room.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "qt_common/config/uisettings.h"
 #include "yuzu/game/game_list.h"
 #include "yuzu/multiplayer/client_room.h"
 #include "yuzu/multiplayer/direct_connect.h"
@@ -18,7 +19,6 @@
 #include "yuzu/multiplayer/lobby.h"
 #include "yuzu/multiplayer/message.h"
 #include "yuzu/multiplayer/state.h"
-#include "qt_common/config/uisettings.h"
 #include "yuzu/util/clickable_label.h"
 
 MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_list_model_,

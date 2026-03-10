@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "migration_dialog.h"
 
 #include <QApplication>
@@ -6,11 +9,8 @@
 #include <QPushButton>
 #include <QStyle>
 
-MigrationDialog::MigrationDialog(
-    QWidget *parent)
-    : QDialog(parent)
-{
-    QVBoxLayout *layout = new QVBoxLayout(this);
+MigrationDialog::MigrationDialog(QWidget* parent) : QDialog(parent) {
+    QVBoxLayout* layout = new QVBoxLayout(this);
 
     m_text = new QLabel(this);
     m_boxes = new QVBoxLayout;
@@ -26,23 +26,16 @@ MigrationDialog::~MigrationDialog() {
     m_buttons->deleteLater();
 }
 
-void MigrationDialog::setText(
-    const QString &text)
-{
+void MigrationDialog::setText(const QString& text) {
     m_text->setText(text);
 }
 
-void MigrationDialog::addBox(
-    QWidget *box)
-{
+void MigrationDialog::addBox(QWidget* box) {
     m_boxes->addWidget(box);
-
 }
 
-QAbstractButton *MigrationDialog::addButton(
-    const QString &text, const bool reject)
-{
-    QAbstractButton *button = new QPushButton(this);
+QAbstractButton* MigrationDialog::addButton(const QString& text, const bool reject) {
+    QAbstractButton* button = new QPushButton(this);
     button->setText(text);
     m_buttons->addWidget(button, 1);
 
@@ -58,7 +51,6 @@ QAbstractButton *MigrationDialog::addButton(
     return button;
 }
 
-QAbstractButton *MigrationDialog::clickedButton() const
-{
+QAbstractButton* MigrationDialog::clickedButton() const {
     return m_clickedButton;
 }

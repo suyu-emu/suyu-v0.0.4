@@ -218,11 +218,13 @@ void GameList::OnTextChanged(const QString& new_text) {
 
         for (int i = 0; i < row_count; ++i) {
             QStandardItem* item = item_model->item(i, 0);
-            if (!item) continue;
+            if (!item)
+                continue;
 
             children_total++;
 
-            const QString file_path = item->data(GameListItemPath::FullPathRole).toString().toLower();
+            const QString file_path =
+                item->data(GameListItemPath::FullPathRole).toString().toLower();
             const QString file_title = item->data(GameListItemPath::TitleRole).toString().toLower();
             const QString file_name = file_path.mid(file_path.lastIndexOf(QLatin1Char{'/'}) + 1) +
                                       QLatin1Char{' '} + file_title;
@@ -236,7 +238,8 @@ void GameList::OnTextChanged(const QString& new_text) {
         }
         search_field->setFilterResult(result_count, children_total);
     } else if (edit_filter_text.isEmpty()) {
-        hide(0, UISettings::values.favorited_ids.size() == 0, item_model->invisibleRootItem()->index());
+        hide(0, UISettings::values.favorited_ids.size() == 0,
+             item_model->invisibleRootItem()->index());
         for (int i = 1; i < item_model->rowCount() - 1; ++i) {
             folder = item_model->item(i, 0);
             const QModelIndex folder_index = folder->index();
@@ -362,7 +365,8 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
 
     external_watcher = new QFileSystemWatcher(this);
     ResetExternalWatcher();
-    connect(external_watcher, &QFileSystemWatcher::directoryChanged, this, &GameList::RefreshExternalContent);
+    connect(external_watcher, &QFileSystemWatcher::directoryChanged, this,
+            &GameList::RefreshExternalContent);
 
     this->main_window = parent;
     layout = new QVBoxLayout;
@@ -471,7 +475,7 @@ bool GameList::IsTreeMode() {
 }
 
 void GameList::ResetViewMode() {
-    auto &setting = UISettings::values.game_list_mode;
+    auto& setting = UISettings::values.game_list_mode;
     bool newTreeMode = false;
 
     switch (setting.GetValue()) {
@@ -678,7 +682,7 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
             return;
 
         QMenu blank_menu;
-        QAction *addGameDirAction = blank_menu.addAction(tr("&Add New Game Directory"));
+        QAction* addGameDirAction = blank_menu.addAction(tr("&Add New Game Directory"));
 
         connect(addGameDirAction, &QAction::triggered, this, &GameList::AddDirectory);
         blank_menu.exec(m_currentView->viewport()->mapToGlobal(menu_location));
@@ -1113,8 +1117,7 @@ const QStringList GameList::supported_file_extensions = {
     QStringLiteral("nso"), QStringLiteral("nro"), QStringLiteral("nca"),
     QStringLiteral("xci"), QStringLiteral("nsp"), QStringLiteral("kip")};
 
-void GameList::RefreshGameDirectory()
-{
+void GameList::RefreshGameDirectory() {
     // Reset the externals watcher whenever the game list is reloaded,
     // primarily ensures that new titles and external dirs are caught.
     ResetExternalWatcher();
@@ -1142,7 +1145,7 @@ void GameList::ResetExternalWatcher() {
         external_watcher->removePaths(watch_dirs);
     }
 
-    for (const std::string &dir : Settings::values.external_content_dirs) {
+    for (const std::string& dir : Settings::values.external_content_dirs) {
         external_watcher->addPath(QString::fromStdString(dir));
     }
 }
@@ -1286,8 +1289,8 @@ bool GameList::eventFilter(QObject* obj, QEvent* event) {
                 horizontal_scroll_target = m_currentView->horizontalScrollBar()->value();
 
             horizontal_scroll_target -= deltaX;
-            horizontal_scroll_target =
-                qBound(0, horizontal_scroll_target, m_currentView->horizontalScrollBar()->maximum());
+            horizontal_scroll_target = qBound(0, horizontal_scroll_target,
+                                              m_currentView->horizontalScrollBar()->maximum());
 
             horizontal_scroll->stop();
             horizontal_scroll->setStartValue(m_currentView->horizontalScrollBar()->value());

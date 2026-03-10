@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef MIGRATION_WORKER_H
@@ -8,7 +8,7 @@
 #include "common/fs/path_util.h"
 
 typedef struct Emulator {
-    const char *m_name;
+    const char* m_name;
 
     Common::FS::EmuPath e_user_dir;
     Common::FS::EmuPath e_config_dir;
@@ -26,14 +26,20 @@ typedef struct Emulator {
         return Common::FS::GetLegacyPath(e_cache_dir).string();
     }
 
-    const QString name() const { return QObject::tr(m_name);
+    const QString name() const {
+        return QObject::tr(m_name);
     }
 
-    const QString lower_name() const { return name().toLower();
+    const QString lower_name() const {
+        return name().toLower();
     }
 } Emulator;
 
-#define STRUCT_EMU(name, enumName) Emulator{name, Common::FS::enumName##Dir, Common::FS::enumName##ConfigDir, Common::FS::enumName##CacheDir}
+#define STRUCT_EMU(name, enumName)                                                                 \
+    Emulator {                                                                                     \
+        name, Common::FS::enumName##Dir, Common::FS::enumName##ConfigDir,                          \
+            Common::FS::enumName##CacheDir                                                         \
+    }
 
 static constexpr std::array<Emulator, 4> legacy_emus = {
     STRUCT_EMU(QT_TR_NOOP("Citron"), Citron),
@@ -42,8 +48,7 @@ static constexpr std::array<Emulator, 4> legacy_emus = {
     STRUCT_EMU(QT_TR_NOOP("Yuzu"), Yuzu),
 };
 
-class MigrationWorker : public QObject
-{
+class MigrationWorker : public QObject {
     Q_OBJECT
 public:
     enum class MigrationStrategy {
@@ -52,16 +57,15 @@ public:
         Link,
     };
 
-    MigrationWorker(const Emulator selected_emu,
-                    const bool clear_shader_cache,
+    MigrationWorker(const Emulator selected_emu, const bool clear_shader_cache,
                     const MigrationStrategy strategy);
 
 public slots:
     void process();
 
 signals:
-    void finished(const QString &success_text, const std::string &user_dir);
-    void error(const QString &error_message);
+    void finished(const QString& success_text, const std::string& user_dir);
+    void error(const QString& error_message);
 
 private:
     Emulator selected_emu;

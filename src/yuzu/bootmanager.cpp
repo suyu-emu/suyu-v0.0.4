@@ -54,12 +54,12 @@
 #include "input_common/drivers/tas_input.h"
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/main.h"
+#include "qt_common/qt_common.h"
 #include "video_core/gpu.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/main_window.h"
-#include "qt_common/qt_common.h"
 
 class QObject;
 class QPaintEngine;
@@ -282,8 +282,8 @@ struct NullRenderWidget : public RenderWidget {
 GRenderWindow::GRenderWindow(MainWindow* parent, EmuThread* emu_thread_,
                              std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_,
                              Core::System& system_)
-    : QWidget(parent),
-      emu_thread(emu_thread_), input_subsystem{std::move(input_subsystem_)}, system{system_} {
+    : QWidget(parent), emu_thread(emu_thread_), input_subsystem{std::move(input_subsystem_)},
+      system{system_} {
     setWindowTitle(QStringLiteral("Eden %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
                             QString::fromUtf8(Common::g_scm_branch),
@@ -887,13 +887,14 @@ void GRenderWindow::resizeEvent(QResizeEvent* event) {
 
 std::unique_ptr<Core::Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() const {
 #ifdef HAS_OPENGL
-    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLSL
-    || Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLASM
-    || Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_SPIRV) {
+    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLSL ||
+        Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLASM ||
+        Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_SPIRV) {
         auto c = static_cast<OpenGLSharedContext*>(main_context.get());
         // Bind the shared contexts to the main surface in case the backend wants to take over
         // presentation
-        return std::make_unique<OpenGLSharedContext>(c->GetShareContext(), child_widget->windowHandle());
+        return std::make_unique<OpenGLSharedContext>(c->GetShareContext(),
+                                                     child_widget->windowHandle());
     }
 #endif
     return std::make_unique<DummyContext>();
@@ -940,9 +941,9 @@ bool GRenderWindow::InitRenderTarget() {
     OnFramebufferSizeChanged();
     BackupGeometry();
 
-    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLSL
-    || Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLASM
-    || Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_SPIRV)
+    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLSL ||
+        Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLASM ||
+        Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_SPIRV)
         return LoadOpenGL();
     return true;
 }
@@ -1050,21 +1051,23 @@ bool GRenderWindow::LoadOpenGL() {
     }
     // Display various warnings (but not fatal errors) for missing OpenGL extensions or lack of
     // OpenGL 4.6 support
-    const QString renderer = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    const QString renderer =
+        QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     if (!GLAD_GL_VERSION_4_6) {
         QMessageBox::warning(this, tr("Error while initializing OpenGL 4.6!"),
-            tr("Your GPU may not support OpenGL 4.6, or you do not have the "
-            "latest graphics driver.<br><br>GL Renderer:<br>%1")
-            .arg(renderer));
+                             tr("Your GPU may not support OpenGL 4.6, or you do not have the "
+                                "latest graphics driver.<br><br>GL Renderer:<br>%1")
+                                 .arg(renderer));
         return false;
     }
     if (QStringList missing_ext = GetUnsupportedGLExtensions(); !missing_ext.empty()) {
         QMessageBox::warning(
             this, tr("Error while initializing OpenGL!"),
             tr("Your GPU may not support one or more required OpenGL extensions. Please ensure you "
-            "have the latest graphics driver.<br><br>GL Renderer:<br>%1<br><br>Unsupported "
-            "extensions:<br>%2")
-            .arg(renderer).arg(missing_ext.join(QStringLiteral("<br>"))));
+               "have the latest graphics driver.<br><br>GL Renderer:<br>%1<br><br>Unsupported "
+               "extensions:<br>%2")
+                .arg(renderer)
+                .arg(missing_ext.join(QStringLiteral("<br>"))));
         // Non fatal
     }
     return true;

@@ -70,7 +70,9 @@ std::string DiscordImpl::GetGameString(const std::string& title) {
 }
 
 static constexpr char DEFAULT_DISCORD_TEXT[] = "Eden is an emulator for the Nintendo Switch";
-static constexpr char DEFAULT_DISCORD_IMAGE[] = "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/dist/qt_themes/default/icons/256x256/eden.png";
+static constexpr char DEFAULT_DISCORD_IMAGE[] =
+    "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/dist/qt_themes/default/icons/256x256/"
+    "eden.png";
 
 void DiscordImpl::UpdateGameStatus(bool use_default) {
     const std::string url = use_default ? std::string{DEFAULT_DISCORD_IMAGE} : game_url;
@@ -120,7 +122,9 @@ void DiscordImpl::Update() {
         return;
     }
 
-    s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(
+                         std::chrono::system_clock::now().time_since_epoch())
+                         .count();
     DiscordRichPresence presence{};
     presence.largeImageKey = DEFAULT_DISCORD_IMAGE;
     presence.largeImageText = DEFAULT_DISCORD_TEXT;

@@ -5,7 +5,5 @@
 #define QT_APPLET_UTIL_H
 
 // TODO
-namespace QtCommon::Applets {
-
-}
+namespace QtCommon::Applets {}
 #endif // QT_APPLET_UTIL_H

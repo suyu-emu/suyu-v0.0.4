@@ -80,7 +80,8 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
     connect(ui->folder, &QAbstractButton::clicked, this, &ConfigurePerGameAddons::InstallModFolder);
     connect(ui->zip, &QAbstractButton::clicked, this, &ConfigurePerGameAddons::InstallModZip);
 
-    connect(tree_view, &QTreeView::customContextMenuRequested, this, &ConfigurePerGameAddons::showContextMenu);
+    connect(tree_view, &QTreeView::customContextMenuRequested, this,
+            &ConfigurePerGameAddons::showContextMenu);
 }
 
 ConfigurePerGameAddons::~ConfigurePerGameAddons() = default;
@@ -92,10 +93,10 @@ void ConfigurePerGameAddons::OnItemChanged(QStandardItem* item) {
             for (auto* update_item : update_items) {
                 if (update_item != item && update_item->checkState() == Qt::Checked) {
                     disconnect(item_model, &QStandardItemModel::itemChanged, this,
-                              &ConfigurePerGameAddons::OnItemChanged);
+                               &ConfigurePerGameAddons::OnItemChanged);
                     update_item->setCheckState(Qt::Unchecked);
                     connect(item_model, &QStandardItemModel::itemChanged, this,
-                           &ConfigurePerGameAddons::OnItemChanged);
+                            &ConfigurePerGameAddons::OnItemChanged);
                 }
             }
         }
@@ -109,7 +110,8 @@ void ConfigurePerGameAddons::ApplyConfiguration() {
         const auto disabled = item.front()->checkState() == Qt::Unchecked;
         if (disabled) {
             QVariant userData = item.front()->data(Qt::UserRole);
-            if (userData.isValid() && userData.canConvert<quint32>() && item.front()->text() == QStringLiteral("Update")) {
+            if (userData.isValid() && userData.canConvert<quint32>() &&
+                item.front()->text() == QStringLiteral("Update")) {
                 quint32 numeric_version = userData.toUInt();
                 disabled_addons.push_back(fmt::format("Update@{}", numeric_version));
             } else {
@@ -164,7 +166,7 @@ void ConfigurePerGameAddons::InstallMods(const QStringList& mods) {
     }
 }
 
-void ConfigurePerGameAddons::InstallModPath(const QString& path, const QString &fallbackName) {
+void ConfigurePerGameAddons::InstallModPath(const QString& path, const QString& fallbackName) {
     const auto mods = QtCommon::Mod::GetModFolders(path, fallbackName);
 
     if (mods.size() > 1) {
@@ -203,8 +205,9 @@ void ConfigurePerGameAddons::InstallModZip() {
 
 void ConfigurePerGameAddons::AddonDeleteRequested(QList<QModelIndex> selected) {
     QList<QModelIndex> filtered;
-    for (const QModelIndex &index : selected) {
-        if (!index.data(PATCH_LOCATION).toString().isEmpty()) filtered << index;
+    for (const QModelIndex& index : selected) {
+        if (!index.data(PATCH_LOCATION).toString().isEmpty())
+            filtered << index;
     }
 
     if (filtered.empty()) {
@@ -215,10 +218,9 @@ void ConfigurePerGameAddons::AddonDeleteRequested(QList<QModelIndex> selected) {
         return;
     }
 
-
     const auto header = tr("You are about to delete the following installed mods:\n");
     QString selected_str;
-    for (const QModelIndex &index : filtered) {
+    for (const QModelIndex& index : filtered) {
         selected_str = selected_str % index.data().toString() % QStringLiteral("\n");
     }
 
@@ -231,9 +233,10 @@ void ConfigurePerGameAddons::AddonDeleteRequested(QList<QModelIndex> selected) {
                                               QtCommon::Frontend::StandardButton::Yes |
                                                   QtCommon::Frontend::StandardButton::No);
 
-    if (choice == QtCommon::Frontend::StandardButton::No) return;
+    if (choice == QtCommon::Frontend::StandardButton::No)
+        return;
 
-    for (const QModelIndex &index : filtered) {
+    for (const QModelIndex& index : filtered) {
         std::filesystem::remove_all(index.data(PATCH_LOCATION).toString().toStdString());
     }
 
@@ -252,17 +255,18 @@ void ConfigurePerGameAddons::showContextMenu(const QPoint& pos) {
     auto selected = tree_view->selectionModel()->selectedRows();
     if (index.isValid() && selected.empty()) {
         QModelIndex idx = item_model->index(index.row(), 0);
-        if (idx.isValid()) selected << idx;
+        if (idx.isValid())
+            selected << idx;
     }
 
-    if (selected.empty()) return;
+    if (selected.empty())
+        return;
 
     QMenu menu(this);
 
-    QAction *remove = menu.addAction(tr("&Delete"));
-    connect(remove, &QAction::triggered, this, [this, selected]() {
-        AddonDeleteRequested(selected);
-    });
+    QAction* remove = menu.addAction(tr("&Delete"));
+    connect(remove, &QAction::triggered, this,
+            [this, selected]() { AddonDeleteRequested(selected); });
 
     if (selected.length() == 1) {
         auto loc = selected.at(0).data(PATCH_LOCATION).toString();
@@ -333,9 +337,11 @@ void ConfigurePerGameAddons::LoadConfiguration() {
         bool patch_disabled = false;
         if (is_external_update) {
             std::string disabled_key = fmt::format("Update@{}", patch.numeric_version);
-            patch_disabled = std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end();
+            patch_disabled =
+                std::find(disabled.begin(), disabled.end(), disabled_key) != disabled.end();
         } else {
-            patch_disabled = std::find(disabled.begin(), disabled.end(), name.toStdString()) != disabled.end();
+            patch_disabled =
+                std::find(disabled.begin(), disabled.end(), name.toStdString()) != disabled.end();
         }
 
         bool should_enable = !patch_disabled;

@@ -18,9 +18,9 @@
 
 #include "common/thread.h"
 #include "core/file_sys/registered_cache.h"
+#include "frontend_common/play_time_manager.h"
 #include "qt_common/config/uisettings.h"
 #include "yuzu/compatibility_list.h"
-#include "frontend_common/play_time_manager.h"
 
 namespace Core {
 class System;

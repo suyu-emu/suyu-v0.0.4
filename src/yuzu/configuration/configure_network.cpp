@@ -12,10 +12,7 @@
 #include "yuzu/configuration/configure_network.h"
 
 ConfigureNetwork::ConfigureNetwork(const Core::System& system_, QWidget* parent)
-    : QWidget(parent)
-    , ui(std::make_unique<Ui::ConfigureNetwork>())
-    , system{system_}
-{
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureNetwork>()), system{system_} {
     ui->setupUi(this);
     for (const auto& iface : Network::GetAvailableNetworkInterfaces())
         ui->network_interface->addItem(QString::fromStdString(iface.name));

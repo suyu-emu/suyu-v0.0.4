@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -76,9 +76,9 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
         } else if (setting->Id() == Settings::values.cpu_backend.Id()) {
             backend_layout->addWidget(widget);
             backend_combobox = widget->combobox;
-        } else if (setting->Id() == Settings::values.fast_cpu_time.Id()
-            || setting->Id() == Settings::values.vtable_bouncing.Id()
-            || setting->Id() == Settings::values.cpu_ticks.Id()) {
+        } else if (setting->Id() == Settings::values.fast_cpu_time.Id() ||
+                   setting->Id() == Settings::values.vtable_bouncing.Id() ||
+                   setting->Id() == Settings::values.cpu_ticks.Id()) {
             ui->general_layout->addWidget(widget);
         } else {
             // Presently, all other settings here are unsafe checkboxes
@@ -93,12 +93,12 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
     UpdateGroup();
 }
 
-void ConfigureCpu::UpdateGroup()
-{
+void ConfigureCpu::UpdateGroup() {
     const u32 accuracy = accuracy_combobox->currentIndex();
     const u32 backend = backend_combobox->currentIndex();
     // TODO(crueter): see if this works on NCE
-    ui->unsafe_group->setVisible(accuracy == (u32) Settings::CpuAccuracy::Unsafe && backend == (u32) Settings::CpuBackend::Dynarmic);
+    ui->unsafe_group->setVisible(accuracy == (u32)Settings::CpuAccuracy::Unsafe &&
+                                 backend == (u32)Settings::CpuBackend::Dynarmic);
 }
 
 void ConfigureCpu::ApplyConfiguration() {

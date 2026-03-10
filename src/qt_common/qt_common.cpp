@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "qt_common.h"
 #include "common/fs/fs.h"
+#include "qt_common.h"
 
 #include <QGuiApplication>
 #include <QStringLiteral>
@@ -28,8 +28,7 @@ std::unique_ptr<Core::System> system = nullptr;
 std::shared_ptr<FileSys::RealVfsFilesystem> vfs = nullptr;
 std::unique_ptr<FileSys::ManualContentProvider> provider = nullptr;
 
-Core::Frontend::WindowSystemType GetWindowSystemType()
-{
+Core::Frontend::WindowSystemType GetWindowSystemType() {
     // Determine WSI type based on Qt platform.
     QString platform_name = QGuiApplication::platformName();
     if (platform_name == QStringLiteral("windows"))
@@ -51,8 +50,7 @@ Core::Frontend::WindowSystemType GetWindowSystemType()
     return Core::Frontend::WindowSystemType::Windows;
 } // namespace Core::Frontend::WindowSystemType
 
-Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
-{
+Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window) {
     Core::Frontend::EmuWindow::WindowSystemInfo wsi;
     wsi.type = GetWindowSystemType();
 
@@ -60,8 +58,8 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     // Our Win32 Qt external doesn't have the private API.
     wsi.render_surface = reinterpret_cast<void*>(window->winId());
 #elif defined(__APPLE__)
-    id layer = reinterpret_cast<id (*) (id, SEL)>(
-        objc_msgSend)(reinterpret_cast<id>(window->winId()), sel_registerName("layer"));
+    id layer = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(
+        reinterpret_cast<id>(window->winId()), sel_registerName("layer"));
 
     // In Qt 6, the layer of the NSView might be a QContainerLayer.
     // MoltenVK needs a CAMetalLayer. We search for it in sublayers.
@@ -69,15 +67,20 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     id metal_layer = nullptr;
 
     if (layer) {
-        if (reinterpret_cast<bool (*) (id, SEL, Class)>(objc_msgSend)(layer, sel_registerName("isKindOfClass:"), metal_layer_class)) {
+        if (reinterpret_cast<bool (*)(id, SEL, Class)>(objc_msgSend)(
+                layer, sel_registerName("isKindOfClass:"), metal_layer_class)) {
             metal_layer = layer;
         } else {
-            id sublayers = reinterpret_cast<id (*) (id, SEL)>(objc_msgSend)(layer, sel_registerName("sublayers"));
+            id sublayers = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(
+                layer, sel_registerName("sublayers"));
             if (sublayers) {
-                unsigned long count = reinterpret_cast<unsigned long (*) (id, SEL)>(objc_msgSend)(sublayers, sel_registerName("count"));
+                unsigned long count = reinterpret_cast<unsigned long (*)(id, SEL)>(objc_msgSend)(
+                    sublayers, sel_registerName("count"));
                 for (unsigned long i = 0; i < count; ++i) {
-                    id sublayer = reinterpret_cast<id (*) (id, SEL, unsigned long)>(objc_msgSend)(sublayers, sel_registerName("objectAtIndex:"), i);
-                    if (reinterpret_cast<bool (*) (id, SEL, Class)>(objc_msgSend)(sublayer, sel_registerName("isKindOfClass:"), metal_layer_class)) {
+                    id sublayer = reinterpret_cast<id (*)(id, SEL, unsigned long)>(objc_msgSend)(
+                        sublayers, sel_registerName("objectAtIndex:"), i);
+                    if (reinterpret_cast<bool (*)(id, SEL, Class)>(objc_msgSend)(
+                            sublayer, sel_registerName("isKindOfClass:"), metal_layer_class)) {
                         metal_layer = sublayer;
                         break;
                     }
@@ -99,26 +102,22 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     return wsi;
 }
 
-const QString tr(const char* str)
-{
+const QString tr(const char* str) {
     return QGuiApplication::tr(str);
 }
 
-const QString tr(const std::string& str)
-{
+const QString tr(const std::string& str) {
     return QGuiApplication::tr(str.c_str());
 }
 
-void Init(QWidget* root)
-{
+void Init(QWidget* root) {
     system = std::make_unique<Core::System>();
     rootObject = root;
     vfs = std::make_unique<FileSys::RealVfsFilesystem>();
     provider = std::make_unique<FileSys::ManualContentProvider>();
 }
 
-std::filesystem::path GetEdenCommand()
-{
+std::filesystem::path GetEdenCommand() {
     std::filesystem::path command;
 
     // TODO: flatpak?

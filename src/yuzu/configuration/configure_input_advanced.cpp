@@ -9,8 +9,8 @@
 #include "core/core.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
-#include "ui_configure_input_advanced.h"
 #include "qt_common/qt_compat.h"
+#include "ui_configure_input_advanced.h"
 #include "yuzu/configuration/configure_input_advanced.h"
 
 ConfigureInputAdvanced::ConfigureInputAdvanced(Core::HID::HIDCore& hid_core_, QWidget* parent)

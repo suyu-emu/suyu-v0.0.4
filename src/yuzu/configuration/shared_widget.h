@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -10,10 +10,10 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <QObject>
 #include <QString>
 #include <QStringLiteral>
 #include <QWidget>
-#include <QObject>
 #include <qobjectdefs.h>
 #include "qt_common/config/shared_translation.h"
 

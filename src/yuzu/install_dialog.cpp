@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -10,8 +10,8 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QVBoxLayout>
-#include "yuzu/install_dialog.h"
 #include "qt_common/config/uisettings.h"
+#include "yuzu/install_dialog.h"
 
 InstallDialog::InstallDialog(QWidget* parent, const QStringList& files) : QDialog(parent) {
     file_list = new QListWidget(this);

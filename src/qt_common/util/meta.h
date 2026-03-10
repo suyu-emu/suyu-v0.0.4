@@ -11,5 +11,5 @@ namespace QtCommon::Meta {
 //
 void RegisterMetaTypes();
 
-}
+} // namespace QtCommon::Meta
 #endif // QT_META_H

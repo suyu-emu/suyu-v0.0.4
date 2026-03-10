@@ -19,8 +19,8 @@
 #include "ui_main.h"
 
 // Other Yuzu stuff //
-#include "debugger/controller.h"
 #include "debugger/console.h"
+#include "debugger/controller.h"
 
 #include "about_dialog.h"
 #include "data_dialog.h"
@@ -28,18 +28,18 @@
 #include "install_dialog.h"
 
 #include "bootmanager.h"
-#include "yuzu/game/game_list.h"
 #include "loading_screen.h"
 #include "ryujinx_dialog.h"
 #include "set_play_time_dialog.h"
 #include "util/util.h"
 #include "vk_device_info.h"
+#include "yuzu/game/game_list.h"
 
 #include "applets/qt_amiibo_settings.h"
 #include "applets/qt_controller.h"
+#include "applets/qt_error.h"
 #include "applets/qt_profile_select.h"
 #include "applets/qt_software_keyboard.h"
-#include "applets/qt_error.h"
 #include "applets/qt_web_browser.h"
 
 #include "configuration/configure_dialog.h"
@@ -48,8 +48,8 @@
 #include "configuration/configure_tas.h"
 
 #include "util/clickable_label.h"
-#include "util/overlay_dialog.h"
 #include "util/controller_navigation.h"
+#include "util/overlay_dialog.h"
 
 #include "multiplayer/state.h"
 
@@ -60,6 +60,7 @@
 #include <QStyleHints>
 #endif
 
+#include <QActionGroup>
 #include <QCheckBox>
 #include <QClipboard>
 #include <QDesktopServices>
@@ -68,32 +69,32 @@
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QInputDialog>
+#include <QMimeData>
 #include <QPalette>
 #include <QProgressDialog>
 #include <QScreen>
 #include <QShortcut>
 #include <QStatusBar>
 #include <QtConcurrentRun>
-#include <QMimeData>
-#include <QActionGroup>
 
 // Qt Common //
-#include "qt_common/config/uisettings.h"
 #include "qt_common/config/shared_translation.h"
+#include "qt_common/config/uisettings.h"
 
 #include "qt_common/abstract/frontend.h"
 
 #include "qt_common/qt_common.h"
 
-#include "qt_common/util/path.h"
-#include "qt_common/util/meta.h"
 #include "qt_common/util/content.h"
 #include "qt_common/util/fs.h"
+#include "qt_common/util/meta.h"
 #include "qt_common/util/mod.h"
+#include "qt_common/util/path.h"
 
 // These are wrappers to avoid the calls to CreateDirectory and CreateFile because of the Windows
 // defines.
-static FileSys::VirtualDir VfsFilesystemCreateDirectoryWrapper(const std::string& path, FileSys::OpenMode mode) {
+static FileSys::VirtualDir VfsFilesystemCreateDirectoryWrapper(const std::string& path,
+                                                               FileSys::OpenMode mode) {
     return QtCommon::vfs->CreateDirectory(path, mode);
 }
 
@@ -122,14 +123,14 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #endif
 
 // Core //
-#include "core/frontend/applets/software_keyboard.h"
-#include "core/frontend/applets/mii_edit.h"
 #include "core/frontend/applets/general.h"
+#include "core/frontend/applets/mii_edit.h"
+#include "core/frontend/applets/software_keyboard.h"
 
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applet_web_browser_types.h"
-#include "core/hle/kernel/k_process.h"
 
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/romfs.h"
@@ -142,8 +143,8 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/crypto/key_manager.h"
 
 // Input //
-#include "hid_core/hid_core.h"
 #include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
 #include "input_common/drivers/virtual_amiibo.h"
 
 // Video Core //
@@ -165,17 +166,17 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #ifdef __unix__
 
 #include <csignal>
+#include <QSocketNotifier>
 #include <sys/socket.h>
 #include "qt_common/gui_settings.h"
-#include <QSocketNotifier>
 
 #endif
 
 #include "qt_common/gamemode.h"
 
 #ifdef _WIN32
-#include "core/core_timing.h"
 #include "common/windows/timer_resolution.h"
+#include "core/core_timing.h"
 
 #include <QPlatformSurfaceEvent>
 #include <QSettings>
@@ -381,7 +382,7 @@ static QString PrettyProductName() {
 
 namespace {
 
-constexpr std::array<std::pair<u32, const char *>, 5> default_game_icon_sizes{
+constexpr std::array<std::pair<u32, const char*>, 5> default_game_icon_sizes{
     std::make_pair(0, QT_TRANSLATE_NOOP("MainWindow", "None")),
     std::make_pair(32, QT_TRANSLATE_NOOP("MainWindow", "Small (32x32)")),
     std::make_pair(64, QT_TRANSLATE_NOOP("MainWindow", "Standard (64x64)")),
@@ -393,7 +394,7 @@ QString GetTranslatedGameIconSize(size_t index) {
     return QCoreApplication::translate("MainWindow", default_game_icon_sizes[index].second);
 }
 
-}
+} // namespace
 
 #ifndef _WIN32
 // TODO(crueter): carboxyl does this, is it needed in qml?
@@ -412,7 +413,7 @@ inline static bool isDarkMode() {
 
 MainWindow::MainWindow(bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()},
-    input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, user_data_migrator{this} {
+      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, user_data_migrator{this} {
     QtCommon::Init(this);
 
     Common::FS::CreateEdenPaths();
@@ -423,17 +424,14 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 
         using namespace Common::FS;
 
-        static constexpr const std::array<const EdenPath, 4> paths = {EdenPath::NANDDir,
-                                                                      EdenPath::SDMCDir,
-                                                                      EdenPath::DumpDir,
-                                                                      EdenPath::LoadDir};
+        static constexpr const std::array<const EdenPath, 4> paths = {
+            EdenPath::NANDDir, EdenPath::SDMCDir, EdenPath::DumpDir, EdenPath::LoadDir};
 
         for (const EdenPath& path : paths) {
             std::string str_path = Common::FS::GetEdenPathString(path);
             if (str_path.starts_with(user_data_migrator.selected_emu.get_user_dir())) {
-                boost::replace_all(str_path,
-                                   user_data_migrator.selected_emu.lower_name().toStdString(),
-                                   "eden");
+                boost::replace_all(
+                    str_path, user_data_migrator.selected_emu.lower_name().toStdString(), "eden");
                 Common::FS::SetEdenPath(path, str_path);
             }
         }
@@ -531,7 +529,8 @@ MainWindow::MainWindow(bool has_broken_vulkan)
              std::chrono::duration_cast<std::chrono::duration<f64, std::milli>>(
                  Common::Windows::SetCurrentTimerResolutionToMaximum())
                  .count());
-    QtCommon::system->CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
+    QtCommon::system->CoreTiming().SetTimerResolutionNs(
+        Common::Windows::GetCurrentTimerResolution());
 #endif
     UpdateWindowTitle();
 
@@ -539,9 +538,8 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 
 #ifdef ENABLE_UPDATE_CHECKER
     if (UISettings::values.check_for_updates) {
-        update_future = QtConcurrent::run([]() -> std::optional<UpdateChecker::Update> {
-            return UpdateChecker::GetUpdate();
-        });
+        update_future = QtConcurrent::run(
+            []() -> std::optional<UpdateChecker::Update> { return UpdateChecker::GetUpdate(); });
         update_watcher.connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
                                &MainWindow::OnEmulatorUpdateAvailable);
         update_watcher.setFuture(update_future);
@@ -590,7 +588,8 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     if (has_broken_vulkan) {
         UISettings::values.has_broken_vulkan = true;
 
-        QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"), tr("Vulkan initialization failed during boot."));
+        QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"),
+                             tr("Vulkan initialization failed during boot."));
 #ifdef HAS_OPENGL
         Settings::values.renderer_backend = Settings::RendererBackend::OpenGL_GLSL;
 #else
@@ -652,7 +651,8 @@ MainWindow::MainWindow(bool has_broken_vulkan)
             if (!argument_ok) {
                 // try to look it up by username, only finds the first username that matches.
                 std::string const user_arg_str = args[user_arg_idx].toStdString();
-                auto const user_idx = QtCommon::system->GetProfileManager().GetUserIndex(user_arg_str);
+                auto const user_idx =
+                    QtCommon::system->GetProfileManager().GetUserIndex(user_arg_str);
                 if (user_idx != std::nullopt) {
                     selected_user = user_idx.value();
                 } else {
@@ -711,7 +711,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::AmiiboSettingsShowDialog(const Core::Frontend::CabinetParameters& parameters,
-                                           std::shared_ptr<Service::NFC::NfcDevice> nfp_device) {
+                                          std::shared_ptr<Service::NFC::NfcDevice> nfp_device) {
     cabinet_applet =
         new QtAmiiboSettingsDialog(this, parameters, input_subsystem.get(), nfp_device);
     SCOPE_EXIT {
@@ -915,7 +915,7 @@ void MainWindow::SoftwareKeyboardExit() {
 }
 
 void MainWindow::WebBrowserOpenWebPage(const std::string& main_url,
-                                        const std::string& additional_args, bool is_local) {
+                                       const std::string& additional_args, bool is_local) {
 #ifdef YUZU_USE_QT_WEB_ENGINE
 
     // Raw input breaks with the web applet, Disable web applets if enabled
@@ -1072,7 +1072,8 @@ void MainWindow::InitializeWidgets() {
     render_window = new GRenderWindow(this, emu_thread.get(), input_subsystem, *QtCommon::system);
     render_window->hide();
 
-    game_list = new GameList(QtCommon::vfs, QtCommon::provider.get(), *play_time_manager, *QtCommon::system, this);
+    game_list = new GameList(QtCommon::vfs, QtCommon::provider.get(), *play_time_manager,
+                             *QtCommon::system, this);
     ui->horizontalLayout->addWidget(game_list);
 
     game_list_placeholder = new GameListPlaceholder(this);
@@ -1229,8 +1230,7 @@ void MainWindow::InitializeWidgets() {
     filter_status_button = new QPushButton();
     filter_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
     filter_status_button->setFocusPolicy(Qt::NoFocus);
-    connect(filter_status_button, &QPushButton::clicked, this,
-            &MainWindow::OnToggleAdaptingFilter);
+    connect(filter_status_button, &QPushButton::clicked, this, &MainWindow::OnToggleAdaptingFilter);
     UpdateFilterText();
     filter_status_button->setCheckable(true);
     filter_status_button->setChecked(true);
@@ -1369,7 +1369,7 @@ void MainWindow::InitializeRecentFileMenuActions() {
 }
 
 void MainWindow::LinkActionShortcut(QAction* action, const QString& action_name,
-                                     const bool tas_allowed) {
+                                    const bool tas_allowed) {
     static const auto main_window = std::string("Main Window");
     action->setShortcut(hotkey_registry.GetKeySequence(main_window, action_name.toStdString()));
     action->setShortcutContext(
@@ -1378,7 +1378,8 @@ void MainWindow::LinkActionShortcut(QAction* action, const QString& action_name,
 
     this->addAction(action);
 
-    auto* controller = QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+    auto* controller =
+        QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
     const auto* controller_hotkey =
         hotkey_registry.GetControllerHotkey(main_window, action_name.toStdString(), controller);
     connect(
@@ -1404,17 +1405,16 @@ void MainWindow::InitializeHotkeys() {
     LinkActionShortcut(ui->action_Stop, QStringLiteral("Stop Emulation"));
     LinkActionShortcut(ui->action_Show_Filter_Bar, QStringLiteral("Toggle Filter Bar"));
     LinkActionShortcut(ui->action_Show_Status_Bar, QStringLiteral("Toggle Status Bar"));
-    LinkActionShortcut(ui->action_Show_Performance_Overlay, QStringLiteral("Toggle Performance Overlay"));
+    LinkActionShortcut(ui->action_Show_Performance_Overlay,
+                       QStringLiteral("Toggle Performance Overlay"));
     LinkActionShortcut(ui->action_Fullscreen, QStringLiteral("Fullscreen"));
     LinkActionShortcut(ui->action_Capture_Screenshot, QStringLiteral("Capture Screenshot"));
     LinkActionShortcut(ui->action_TAS_Start, QStringLiteral("TAS Start/Stop"), true);
     LinkActionShortcut(ui->action_TAS_Record, QStringLiteral("TAS Record"), true);
     LinkActionShortcut(ui->action_TAS_Reset, QStringLiteral("TAS Reset"), true);
-    LinkActionShortcut(ui->action_View_Lobby,
-                       QStringLiteral("Browse Public Game Lobby"));
+    LinkActionShortcut(ui->action_View_Lobby, QStringLiteral("Browse Public Game Lobby"));
     LinkActionShortcut(ui->action_Start_Room, QStringLiteral("Create Room"));
-    LinkActionShortcut(ui->action_Connect_To_Room,
-                       QStringLiteral("Direct Connect to Room"));
+    LinkActionShortcut(ui->action_Connect_To_Room, QStringLiteral("Direct Connect to Room"));
     LinkActionShortcut(ui->action_Show_Room, QStringLiteral("Show Current Room"));
     LinkActionShortcut(ui->action_Leave_Room, QStringLiteral("Leave Room"));
     LinkActionShortcut(ui->action_Configure, QStringLiteral("Configure"));
@@ -1424,7 +1424,8 @@ void MainWindow::InitializeHotkeys() {
     const auto connect_shortcut = [&]<typename Fn>(const QString& action_name, const Fn& function) {
         const auto* hotkey =
             hotkey_registry.GetHotkey(main_window.toStdString(), action_name.toStdString(), this);
-        auto* controller = QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+        auto* controller =
+            QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
         const auto* controller_hotkey = hotkey_registry.GetControllerHotkey(
             main_window.toStdString(), action_name.toStdString(), controller);
         connect(hotkey, &QShortcut::activated, this, function);
@@ -1438,8 +1439,7 @@ void MainWindow::InitializeHotkeys() {
             ToggleFullscreen();
         }
     });
-    connect_shortcut(QStringLiteral("Change Adapting Filter"),
-                     &MainWindow::OnToggleAdaptingFilter);
+    connect_shortcut(QStringLiteral("Change Adapting Filter"), &MainWindow::OnToggleAdaptingFilter);
     connect_shortcut(QStringLiteral("Change Docked Mode"), &MainWindow::OnToggleDockedMode);
     connect_shortcut(QStringLiteral("Change GPU Mode"), &MainWindow::OnToggleGpuAccuracy);
     connect_shortcut(QStringLiteral("Audio Mute/Unmute"), &MainWindow::OnMute);
@@ -1513,8 +1513,10 @@ void MainWindow::RestoreUIState() {
     ui->action_Show_Status_Bar->setChecked(UISettings::values.show_status_bar.GetValue());
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
 
-    ui->action_Show_Performance_Overlay->setChecked(UISettings::values.show_perf_overlay.GetValue());
-    if (perf_overlay) perf_overlay->setVisible(ui->action_Show_Performance_Overlay->isChecked());
+    ui->action_Show_Performance_Overlay->setChecked(
+        UISettings::values.show_perf_overlay.GetValue());
+    if (perf_overlay)
+        perf_overlay->setVisible(ui->action_Show_Performance_Overlay->isChecked());
     Debugger::ToggleConsole();
 }
 
@@ -1554,16 +1556,14 @@ void MainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::GameChosen, this, &MainWindow::OnGameListLoadFile);
     connect(game_list, &GameList::OpenDirectory, this, &MainWindow::OnGameListOpenDirectory);
     connect(game_list, &GameList::OpenFolderRequested, this, &MainWindow::OnGameListOpenFolder);
-    connect(game_list, &GameList::OpenTransferableShaderCacheRequested, this, [this](u64 program_id) {
-        QtCommon::Path::OpenShaderCache(program_id, this);
-    });
+    connect(game_list, &GameList::OpenTransferableShaderCacheRequested, this,
+            [this](u64 program_id) { QtCommon::Path::OpenShaderCache(program_id, this); });
     connect(game_list, &GameList::RemoveInstalledEntryRequested, this,
             &MainWindow::OnGameListRemoveInstalledEntry);
     connect(game_list, &GameList::RemoveFileRequested, this, &MainWindow::OnGameListRemoveFile);
     connect(game_list, &GameList::RemovePlayTimeRequested, this,
             &MainWindow::OnGameListRemovePlayTimeData);
-    connect(game_list, &GameList::SetPlayTimeRequested, this,
-            &MainWindow::OnGameListSetPlayTime);
+    connect(game_list, &GameList::SetPlayTimeRequested, this, &MainWindow::OnGameListSetPlayTime);
     connect(game_list, &GameList::DumpRomFSRequested, this, &MainWindow::OnGameListDumpRomFS);
     connect(game_list, &GameList::VerifyIntegrityRequested, this,
             &MainWindow::OnGameListVerifyIntegrity);
@@ -1581,11 +1581,9 @@ void MainWindow::ConnectWidgetEvents() {
 
     connect(game_list, &GameList::OpenPerGameGeneralRequested, this,
             &MainWindow::OnGameListOpenPerGameProperties);
-    connect(game_list, &GameList::LinkToRyujinxRequested, this,
-            &MainWindow::OnLinkToRyujinx);
+    connect(game_list, &GameList::LinkToRyujinxRequested, this, &MainWindow::OnLinkToRyujinx);
 
-    connect(this, &MainWindow::UpdateInstallProgress, this,
-            &MainWindow::IncrementInstallProgress);
+    connect(this, &MainWindow::UpdateInstallProgress, this, &MainWindow::IncrementInstallProgress);
 
     connect(this, &MainWindow::EmulationStarting, render_window,
             &GRenderWindow::OnEmulationStarting);
@@ -1652,10 +1650,11 @@ void MainWindow::ConnectMenuEvents() {
     for (size_t i = 0; i < default_game_icon_sizes.size(); i++) {
         const auto current_size = UISettings::values.game_icon_size.GetValue();
         const auto size = default_game_icon_sizes[i].first;
-        QAction *action = ui->menuGame_Icon_Size->addAction(GetTranslatedGameIconSize(i));
+        QAction* action = ui->menuGame_Icon_Size->addAction(GetTranslatedGameIconSize(i));
         action->setCheckable(true);
 
-        if (current_size == size) action->setChecked(true);
+        if (current_size == size)
+            action->setChecked(true);
 
         game_size_actions->addAction(action);
 
@@ -1687,35 +1686,38 @@ void MainWindow::ConnectMenuEvents() {
     connect(multiplayer_state, &MultiplayerState::SaveConfig, this, &MainWindow::OnSaveConfig);
 
     // Tools
-    connect_menu(ui->action_Launch_PhotoViewer, [this]{
+    connect_menu(ui->action_Launch_PhotoViewer, [this] {
         LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::PhotoViewer), std::nullopt);
     });
-    connect_menu(ui->action_Launch_MiiEdit, [this]{
+    connect_menu(ui->action_Launch_MiiEdit, [this] {
         LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::MiiEdit), std::nullopt);
     });
-    connect_menu(ui->action_Launch_Controller, [this]{
+    connect_menu(ui->action_Launch_Controller, [this] {
         LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Controller), std::nullopt);
     });
-    connect_menu(ui->action_Launch_QLaunch, [this]{
+    connect_menu(ui->action_Launch_QLaunch, [this] {
         LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
     });
     // Tools (cabinet)
-    connect_menu(ui->action_Launch_Cabinet_Nickname_Owner, [this]{
-        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartNicknameAndOwnerSettings});
+    connect_menu(ui->action_Launch_Cabinet_Nickname_Owner, [this] {
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet),
+                             {Service::NFP::CabinetMode::StartNicknameAndOwnerSettings});
     });
-    connect_menu(ui->action_Launch_Cabinet_Eraser, [this]{
-        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartGameDataEraser});
+    connect_menu(ui->action_Launch_Cabinet_Eraser, [this] {
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet),
+                             {Service::NFP::CabinetMode::StartGameDataEraser});
     });
-    connect_menu(ui->action_Launch_Cabinet_Restorer, [this]{
-        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartRestorer});
+    connect_menu(ui->action_Launch_Cabinet_Restorer, [this] {
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet),
+                             {Service::NFP::CabinetMode::StartRestorer});
     });
-    connect_menu(ui->action_Launch_Cabinet_Formatter, [this]{
-        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet), {Service::NFP::CabinetMode::StartFormatter});
+    connect_menu(ui->action_Launch_Cabinet_Formatter, [this] {
+        LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::Cabinet),
+                             {Service::NFP::CabinetMode::StartFormatter});
     });
 
     connect_menu(ui->action_Desktop, &MainWindow::OnCreateHomeMenuDesktopShortcut);
-    connect_menu(ui->action_Application_Menu,
-                 &MainWindow::OnCreateHomeMenuApplicationMenuShortcut);
+    connect_menu(ui->action_Application_Menu, &MainWindow::OnCreateHomeMenuApplicationMenuShortcut);
     connect_menu(ui->action_Capture_Screenshot, &MainWindow::OnCaptureScreenshot);
 
     // TAS
@@ -1754,15 +1756,10 @@ void MainWindow::UpdateMenuState() {
     };
 
     const std::array applet_actions{
-        ui->action_Launch_PhotoViewer,
-        ui->action_Launch_Cabinet_Nickname_Owner,
-        ui->action_Launch_Cabinet_Eraser,
-        ui->action_Launch_Cabinet_Restorer,
-        ui->action_Launch_Cabinet_Formatter,
-        ui->action_Launch_MiiEdit,
-        ui->action_Launch_QLaunch,
-        ui->action_Launch_Controller
-    };
+        ui->action_Launch_PhotoViewer,       ui->action_Launch_Cabinet_Nickname_Owner,
+        ui->action_Launch_Cabinet_Eraser,    ui->action_Launch_Cabinet_Restorer,
+        ui->action_Launch_Cabinet_Formatter, ui->action_Launch_MiiEdit,
+        ui->action_Launch_QLaunch,           ui->action_Launch_Controller};
 
     for (QAction* action : running_actions) {
         action->setEnabled(emulation_running);
@@ -1795,17 +1792,16 @@ void MainWindow::SetupPrepareForSleep() {
         const auto dbus_logind_service = QStringLiteral("org.freedesktop.login1");
         const auto dbus_logind_path = QStringLiteral("/org/freedesktop/login1");
         const auto dbus_logind_manager_if = QStringLiteral("org.freedesktop.login1.Manager");
-        //const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.login1.Session");
+        // const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.login1.Session");
 #else
         const auto dbus_logind_service = QStringLiteral("org.freedesktop.ConsoleKit");
         const auto dbus_logind_path = QStringLiteral("/org/freedesktop/ConsoleKit/Manager");
         const auto dbus_logind_manager_if = QStringLiteral("org.freedesktop.ConsoleKit.Manager");
-        //const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.ConsoleKit.Session");
+        // const auto dbus_logind_session_if = QStringLiteral("org.freedesktop.ConsoleKit.Session");
 #endif
-        const bool success = bus.connect(
-            dbus_logind_service, dbus_logind_path,
-            dbus_logind_manager_if, QStringLiteral("PrepareForSleep"),
-            QStringLiteral("b"), this, SLOT(OnPrepareForSleep(bool)));
+        const bool success = bus.connect(dbus_logind_service, dbus_logind_path,
+                                         dbus_logind_manager_if, QStringLiteral("PrepareForSleep"),
+                                         QStringLiteral("b"), this, SLOT(OnPrepareForSleep(bool)));
         if (!success)
             LOG_WARNING(Frontend, "Couldn't register PrepareForSleep signal");
     } else {
@@ -1934,13 +1930,14 @@ bool MainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPar
 
     /** Exec */
     const Core::SystemResultStatus result{
-                                          QtCommon::system->Load(*render_window, filename.toStdString(), params)};
+        QtCommon::system->Load(*render_window, filename.toStdString(), params)};
 
     const auto drd_callout = (UISettings::values.callout_flags.GetValue() &
                               static_cast<u32>(CalloutFlag::DRDDeprecation)) == 0;
 
     if (result == Core::SystemResultStatus::Success &&
-        QtCommon::system->GetAppLoader().GetFileType() == Loader::FileType::DeconstructedRomDirectory &&
+        QtCommon::system->GetAppLoader().GetFileType() ==
+            Loader::FileType::DeconstructedRomDirectory &&
         drd_callout) {
         UISettings::values.callout_flags = UISettings::values.callout_flags.GetValue() |
                                            static_cast<u32>(CalloutFlag::DRDDeprecation);
@@ -2047,7 +2044,7 @@ void MainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
 }
 
 void MainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletParameters params,
-                           StartGameType type) {
+                          StartGameType type) {
     LOG_INFO(Frontend, "Eden starting...");
 
     if (params.program_id == 0 ||
@@ -2066,7 +2063,8 @@ void MainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletPa
 
     ConfigureFilesystemProvider(filename.toStdString());
     const auto v_file = Core::GetGameFileFromPath(QtCommon::vfs, filename.toUtf8().constData());
-    const auto loader = Loader::GetLoader(*QtCommon::system, v_file, params.program_id, params.program_index);
+    const auto loader =
+        Loader::GetLoader(*QtCommon::system, v_file, params.program_id, params.program_index);
 
     if (loader != nullptr && loader->ReadProgramId(title_id) == Loader::ResultStatus::Success &&
         type == StartGameType::Normal) {
@@ -2085,11 +2083,11 @@ void MainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletPa
 
     if (UISettings::values.select_user_on_boot && !user_flag_cmd_line) {
         const Core::Frontend::ProfileSelectParameters parameters{
-                                                                 .mode = Service::AM::Frontend::UiMode::UserSelector,
-                                                                 .invalid_uid_list = {},
-                                                                 .display_options = {},
-                                                                 .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
-                                                                 };
+            .mode = Service::AM::Frontend::UiMode::UserSelector,
+            .invalid_uid_list = {},
+            .display_options = {},
+            .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
+        };
         if (SelectAndSetCurrentUser(parameters) == false) {
             return;
         }
@@ -2246,8 +2244,9 @@ bool MainWindow::OnShutdownBegin() {
 }
 
 void MainWindow::OnShutdownBeginDialog() {
-    shutdown_dialog = new OverlayDialog(this, *QtCommon::system, QString{}, tr("Closing software..."),
-                                        QString{}, QString{}, Qt::AlignHCenter | Qt::AlignVCenter);
+    shutdown_dialog =
+        new OverlayDialog(this, *QtCommon::system, QString{}, tr("Closing software..."), QString{},
+                          QString{}, Qt::AlignHCenter | Qt::AlignVCenter);
     shutdown_dialog->open();
 }
 
@@ -2384,7 +2383,7 @@ void MainWindow::OnGameListLoadFile(QString game_path, u64 program_id) {
 
 // TODO(crueter): Common profile selector
 void MainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
-                                       const std::string& game_path) {
+                                      const std::string& game_path) {
     std::filesystem::path path;
     QString open_target;
 
@@ -2414,8 +2413,8 @@ void MainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
     case GameListOpenTarget::SaveData: {
         open_target = tr("Save Data");
         const auto save_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::SaveDir);
-        auto vfs_save_dir =
-            QtCommon::vfs->OpenDirectory(Common::FS::PathToUTF8String(save_dir), FileSys::OpenMode::Read);
+        auto vfs_save_dir = QtCommon::vfs->OpenDirectory(Common::FS::PathToUTF8String(save_dir),
+                                                         FileSys::OpenMode::Read);
 
         if (has_user_save) {
             // User save data
@@ -2530,7 +2529,8 @@ static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& 
 // TODO(crueter): All this can be transfered to qt_common
 // Aldoe I need to decide re: message boxes for QML
 // translations_common? strings_common? qt_strings? who knows
-void MainWindow::OnGameListRemoveInstalledEntry(u64 program_id, QtCommon::Game::InstalledEntryType type) {
+void MainWindow::OnGameListRemoveInstalledEntry(u64 program_id,
+                                                QtCommon::Game::InstalledEntryType type) {
     const QString entry_question = [type] {
         switch (type) {
         case QtCommon::Game::InstalledEntryType::Game:
@@ -2570,7 +2570,7 @@ void MainWindow::OnGameListRemoveInstalledEntry(u64 program_id, QtCommon::Game::
 }
 
 void MainWindow::OnGameListRemoveFile(u64 program_id, QtCommon::Game::GameListRemoveTarget target,
-                                       const std::string& game_path) {
+                                      const std::string& game_path) {
     const QString question = [target] {
         switch (target) {
         case QtCommon::Game::GameListRemoveTarget::GlShaderCache:
@@ -2588,8 +2588,8 @@ void MainWindow::OnGameListRemoveFile(u64 program_id, QtCommon::Game::GameListRe
         }
     }();
 
-    if (!MainWindow::question(this, tr("Remove File"), question,
-                               QMessageBox::Yes | QMessageBox::No, QMessageBox::No)) {
+    if (!MainWindow::question(this, tr("Remove File"), question, QMessageBox::Yes | QMessageBox::No,
+                              QMessageBox::No)) {
         return;
     }
 
@@ -2624,7 +2624,6 @@ void MainWindow::OnGameListSetPlayTime(u64 program_id) {
     }
 }
 
-
 void MainWindow::OnGameListRemovePlayTimeData(u64 program_id) {
     if (QMessageBox::question(this, tr("Remove Play Time Data"), tr("Reset play time?"),
                               QMessageBox::Yes | QMessageBox::No,
@@ -2637,15 +2636,15 @@ void MainWindow::OnGameListRemovePlayTimeData(u64 program_id) {
 }
 
 void MainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_path,
-                                      DumpRomFSTarget target) {
+                                     DumpRomFSTarget target) {
     const auto failed = [this] {
         QMessageBox::warning(this, tr("RomFS Extraction Failed!"),
                              tr("There was an error copying the RomFS files or the user "
                                 "cancelled the operation."));
     };
 
-    const auto loader =
-        Loader::GetLoader(*QtCommon::system, QtCommon::vfs->OpenFile(game_path, FileSys::OpenMode::Read));
+    const auto loader = Loader::GetLoader(
+        *QtCommon::system, QtCommon::vfs->OpenFile(game_path, FileSys::OpenMode::Read));
     if (loader == nullptr) {
         failed();
         return;
@@ -2686,7 +2685,8 @@ void MainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pat
 
     const auto path = Common::FS::PathToUTF8String(dump_dir / romfs_dir);
 
-    const FileSys::PatchManager pm{title_id, QtCommon::system->GetFileSystemController(), installed};
+    const FileSys::PatchManager pm{title_id, QtCommon::system->GetFileSystemController(),
+                                   installed};
     auto romfs = pm.PatchRomFS(base_nca.get(), base_romfs, type, packed_update_raw, false);
 
     const auto out = VfsFilesystemCreateDirectoryWrapper(path, FileSys::OpenMode::ReadWrite);
@@ -2762,7 +2762,7 @@ void MainWindow::OnGameListCopyTID(u64 program_id) {
 }
 
 void MainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
-                                                  const CompatibilityList& compatibility_list) {
+                                                 const CompatibilityList& compatibility_list) {
     const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
     QString directory;
@@ -2770,11 +2770,14 @@ void MainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
         directory = it->second.second;
     }
 
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.emuready.com/listings?emulatorIds=43bfc023-ec22-422d-8324-048a8ec9f28f") + directory));
+    QDesktopServices::openUrl(QUrl(
+        QStringLiteral(
+            "https://www.emuready.com/listings?emulatorIds=43bfc023-ec22-422d-8324-048a8ec9f28f") +
+        directory));
 }
 
 void MainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
-                                           const QtCommon::Game::ShortcutTarget target) {
+                                          const QtCommon::Game::ShortcutTarget target) {
     // Create shortcu
     std::string arguments = fmt::format("-g \"{:s}\"", game_path);
 
@@ -2846,8 +2849,7 @@ void MainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
     OpenPerGameConfiguration(title_id, file);
 }
 
-void MainWindow::OnLinkToRyujinx(const u64& program_id)
-{
+void MainWindow::OnLinkToRyujinx(const u64& program_id) {
     namespace fs = std::filesystem;
 
     fs::path ryu_dir;
@@ -2862,17 +2864,18 @@ void MainWindow::OnLinkToRyujinx(const u64& program_id)
     // this function also prompts the user to manually specify a portable location
     ryu_dir = QtCommon::FS::GetRyujinxSavePath(existing_path, program_id);
 
-    if (ryu_dir.empty()) return;
+    if (ryu_dir.empty())
+        return;
 
     const std::string user_id = GetProfileIDString();
-    if (user_id.empty()) return;
+    if (user_id.empty())
+        return;
 
     const std::string hex_program = fmt::format("{:016X}", program_id);
 
     const fs::path eden_dir = FrontendCommon::DataManager::GetDataDir(
                                   FrontendCommon::DataManager::DataDir::Saves, user_id) /
                               hex_program;
-
 
     // CheckUnlink basically just checks to see if one or both are linked, and prompts the user to
     // unlink if this is the case.
@@ -3008,8 +3011,8 @@ void MainWindow::OnMenuInstallToNAND() {
                 return false;
             };
             future = QtConcurrent::run([&file, progress_callback] {
-                return ContentManager::InstallNSP(*QtCommon::system, *QtCommon::vfs, file.toStdString(),
-                                                  progress_callback);
+                return ContentManager::InstallNSP(*QtCommon::system, *QtCommon::vfs,
+                                                  file.toStdString(), progress_callback);
             });
 
             while (!future.isFinished()) {
@@ -3220,9 +3223,8 @@ void MainWindow::OnLoadComplete() {
     perf_overlay = new PerformanceOverlay(this);
     perf_overlay->setVisible(ui->action_Show_Performance_Overlay->isChecked());
 
-    connect(perf_overlay, &PerformanceOverlay::closed, perf_overlay, [this]() {
-        ui->action_Show_Performance_Overlay->setChecked(false);
-    });
+    connect(perf_overlay, &PerformanceOverlay::closed, perf_overlay,
+            [this]() { ui->action_Show_Performance_Overlay->setChecked(false); });
 }
 
 void MainWindow::OnExecuteProgram(std::size_t program_index) {
@@ -3244,8 +3246,8 @@ void MainWindow::OnSaveConfig() {
 }
 
 void MainWindow::ErrorDisplayDisplayError(QString error_code, QString error_text) {
-    error_applet = new OverlayDialog(render_window, *QtCommon::system, error_code, error_text, QString{},
-                                     tr("OK"), Qt::AlignLeft | Qt::AlignVCenter);
+    error_applet = new OverlayDialog(render_window, *QtCommon::system, error_code, error_text,
+                                     QString{}, tr("OK"), Qt::AlignLeft | Qt::AlignVCenter);
     SCOPE_EXIT {
         error_applet->deleteLater();
         error_applet = nullptr;
@@ -3266,37 +3268,41 @@ void MainWindow::OnMenuReportCompatibility() {
         tr("Function Disabled"),
         tr("Compatibility list reporting is currently disabled. Check back later!"));
 
-// #if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
-//     const auto& caps = Common::GetCPUCaps();
-//     const bool has_fma = caps.fma || caps.fma4;
-//     const auto processor_count = std::thread::hardware_concurrency();
-//     const bool has_4threads = processor_count == 0 || processor_count >= 4;
-//     const bool has_8gb_ram = Common::GetMemInfo().TotalPhysicalMemory >= 8_GiB;
-//     const bool has_broken_vulkan = UISettings::values.has_broken_vulkan;
+    // #if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
+    //     const auto& caps = Common::GetCPUCaps();
+    //     const bool has_fma = caps.fma || caps.fma4;
+    //     const auto processor_count = std::thread::hardware_concurrency();
+    //     const bool has_4threads = processor_count == 0 || processor_count >= 4;
+    //     const bool has_8gb_ram = Common::GetMemInfo().TotalPhysicalMemory >= 8_GiB;
+    //     const bool has_broken_vulkan = UISettings::values.has_broken_vulkan;
 
-//     if (!has_fma || !has_4threads || !has_8gb_ram || has_broken_vulkan) {
-//         QMessageBox::critical(this, tr("Hardware requirements not met"),
-//                               tr("Your system does not meet the recommended hardware requirements. "
-//                                  "Compatibility reporting has been disabled."));
-//         return;
-//     }
+    //     if (!has_fma || !has_4threads || !has_8gb_ram || has_broken_vulkan) {
+    //         QMessageBox::critical(this, tr("Hardware requirements not met"),
+    //                               tr("Your system does not meet the recommended hardware
+    //                               requirements. "
+    //                                  "Compatibility reporting has been disabled."));
+    //         return;
+    //     }
 
-//     if (!Settings::values.eden_token.GetValue().empty() &&
-//         !Settings::values.eden_username.GetValue().empty()) {
-//     } else {
-//         QMessageBox::critical(
-//             this, tr("Missing yuzu Account"),
-//             tr("In order to submit a game compatibility test case, you must set up your web token "
-//                "and "
-//                "username.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
-//                "&gt; "
-//                "Web."));
-//     }
-// #else
-//     QMessageBox::critical(this, tr("Hardware requirements not met"),
-//                           tr("Your system does not meet the recommended hardware requirements. "
-//                              "Compatibility reporting has been disabled."));
-// #endif
+    //     if (!Settings::values.eden_token.GetValue().empty() &&
+    //         !Settings::values.eden_username.GetValue().empty()) {
+    //     } else {
+    //         QMessageBox::critical(
+    //             this, tr("Missing yuzu Account"),
+    //             tr("In order to submit a game compatibility test case, you must set up your web
+    //             token "
+    //                "and "
+    //                "username.<br><br/>To link your eden account, go to Emulation &gt;
+    //                Configuration "
+    //                "&gt; "
+    //                "Web."));
+    //     }
+    // #else
+    //     QMessageBox::critical(this, tr("Hardware requirements not met"),
+    //                           tr("Your system does not meet the recommended hardware
+    //                           requirements. "
+    //                              "Compatibility reporting has been disabled."));
+    // #endif
 }
 
 void MainWindow::OpenURL(const QUrl& url) {
@@ -3431,7 +3437,8 @@ void MainWindow::ToggleWindowMode() {
 }
 
 void MainWindow::ResetWindowSize(u32 width, u32 height) {
-    const auto aspect_ratio = Layout::EmulationAspectRatio(Settings::values.aspect_ratio.GetValue(), float(height) / width);
+    const auto aspect_ratio = Layout::EmulationAspectRatio(Settings::values.aspect_ratio.GetValue(),
+                                                           float(height) / width);
     if (!ui->action_Single_Window_Mode->isChecked()) {
         render_window->resize(height / aspect_ratio, height);
     } else {
@@ -3488,7 +3495,8 @@ void MainWindow::CheckIconSize() {
         for (size_t i = 0; i < default_game_icon_sizes.size(); i++) {
             const auto current_size = newSize;
             const auto size = default_game_icon_sizes[i].first;
-            if (current_size == size) actions.at(i)->setChecked(true);
+            if (current_size == size)
+                actions.at(i)->setChecked(true);
         }
 
         // Update this if you add anything before None.
@@ -3499,7 +3507,7 @@ void MainWindow::CheckIconSize() {
 }
 
 void MainWindow::ToggleShowGameName() {
-    auto &setting = UISettings::values.show_game_name;
+    auto& setting = UISettings::values.show_game_name;
     const bool newValue = !setting.GetValue();
     ui->action_Show_Game_Name->setChecked(newValue);
     setting.SetValue(newValue);
@@ -3648,7 +3656,8 @@ void MainWindow::OnTasStartStop() {
     }
 
     // Disable system buttons to prevent TAS from executing a hotkey
-    auto* controller = QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+    auto* controller =
+        QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
     controller->ResetSystemButtons();
 
     input_subsystem->GetTas()->StartStop();
@@ -3664,7 +3673,8 @@ void MainWindow::OnTasRecord() {
     }
 
     // Disable system buttons to prevent TAS from recording a hotkey
-    auto* controller = QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+    auto* controller =
+        QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
     controller->ResetSystemButtons();
 
     const bool is_recording = input_subsystem->GetTas()->Record();
@@ -3690,8 +3700,10 @@ void MainWindow::OnTasReset() {
 
 void MainWindow::OnToggleDockedMode() {
     const bool is_docked = Settings::IsDockedMode();
-    auto* player_1 = QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
-    auto* handheld = QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+    auto* player_1 =
+        QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+    auto* handheld =
+        QtCommon::system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
 
     if (!is_docked && handheld->IsConnected()) {
         QMessageBox::warning(this, tr("Invalid config detected"),
@@ -3861,8 +3873,8 @@ void MainWindow::OnLoadAmiibo() {
 
 // TODO(crueter): does this need to be ported to QML?
 bool MainWindow::question(QWidget* parent, const QString& title, const QString& text,
-                           QMessageBox::StandardButtons buttons,
-                           QMessageBox::StandardButton defaultButton) {
+                          QMessageBox::StandardButtons buttons,
+                          QMessageBox::StandardButton defaultButton) {
     QMessageBox* box_dialog = new QMessageBox(parent);
     box_dialog->setWindowTitle(title);
     box_dialog->setText(text);
@@ -3914,23 +3926,19 @@ void MainWindow::OnOpenRootDataFolder() {
     QtCommon::Game::OpenRootDataFolder();
 }
 
-void MainWindow::OnOpenNANDFolder()
-{
+void MainWindow::OnOpenNANDFolder() {
     QtCommon::Game::OpenNANDFolder();
 }
 
-void MainWindow::OnOpenSDMCFolder()
-{
+void MainWindow::OnOpenSDMCFolder() {
     QtCommon::Game::OpenSDMCFolder();
 }
 
-void MainWindow::OnOpenModFolder()
-{
+void MainWindow::OnOpenModFolder() {
     QtCommon::Game::OpenModFolder();
 }
 
-void MainWindow::OnOpenLogFolder()
-{
+void MainWindow::OnOpenLogFolder() {
     QtCommon::Game::OpenLogFolder();
 }
 
@@ -3993,7 +4001,8 @@ void MainWindow::OnInstallFirmwareFromZIP() {
     if (!qCacheDir.isEmpty()) {
         InstallFirmware(qCacheDir, true);
         std::error_code ec;
-        std::filesystem::remove_all(std::filesystem::temp_directory_path() / "eden" / "firmware", ec);
+        std::filesystem::remove_all(std::filesystem::temp_directory_path() / "eden" / "firmware",
+                                    ec);
 
         if (ec) {
             QMessageBox::warning(this, tr("Firmware cleanup failed"),
@@ -4061,13 +4070,15 @@ void MainWindow::OnGameListRefresh() {
     SetFirmwareVersion();
 }
 
-void MainWindow::LaunchFirmwareApplet(u64 raw_program_id, std::optional<Service::NFP::CabinetMode> cabinet_mode) {
+void MainWindow::LaunchFirmwareApplet(u64 raw_program_id,
+                                      std::optional<Service::NFP::CabinetMode> cabinet_mode) {
     auto const program_id = Service::AM::AppletProgramId(raw_program_id);
     auto result = FirmwareManager::VerifyFirmware(*QtCommon::system.get());
     using namespace QtCommon::StringLookup;
     switch (result) {
     case FirmwareManager::ErrorFirmwareMissing:
-        QMessageBox::warning(this, tr("No firmware available"), Lookup(FwCheckErrorFirmwareMissing));
+        QMessageBox::warning(this, tr("No firmware available"),
+                             Lookup(FwCheckErrorFirmwareMissing));
         return;
     case FirmwareManager::ErrorFirmwareCorrupted:
         QMessageBox::warning(this, tr("Firmware Corrupted"), Lookup(FwCheckErrorFirmwareCorrupted));
@@ -4076,33 +4087,58 @@ void MainWindow::LaunchFirmwareApplet(u64 raw_program_id, std::optional<Service:
         break;
     }
     auto bis_system = QtCommon::system->GetFileSystemController().GetSystemNANDContents();
-    if (auto applet_nca = bis_system->GetEntry(u64(program_id), FileSys::ContentRecordType::Program); applet_nca) {
-        if (auto const applet_id = [program_id] {
-            using namespace Service::AM;
-            switch (program_id) {
-            case AppletProgramId::OverlayDisplay: return AppletId::OverlayDisplay;
-            case AppletProgramId::QLaunch: return AppletId::QLaunch;
-            case AppletProgramId::Starter: return AppletId::Starter;
-            case AppletProgramId::Auth: return AppletId::Auth;
-            case AppletProgramId::Cabinet: return AppletId::Cabinet;
-            case AppletProgramId::Controller: return AppletId::Controller;
-            case AppletProgramId::DataErase: return AppletId::DataErase;
-            case AppletProgramId::Error: return AppletId::Error;
-            case AppletProgramId::NetConnect: return AppletId::NetConnect;
-            case AppletProgramId::ProfileSelect: return AppletId::ProfileSelect;
-            case AppletProgramId::SoftwareKeyboard: return AppletId::SoftwareKeyboard;
-            case AppletProgramId::MiiEdit: return AppletId::MiiEdit;
-            case AppletProgramId::Web: return AppletId::Web;
-            case AppletProgramId::Shop: return AppletId::Shop;
-            case AppletProgramId::PhotoViewer: return AppletId::PhotoViewer;
-            case AppletProgramId::Settings: return AppletId::Settings;
-            case AppletProgramId::OfflineWeb: return AppletId::OfflineWeb;
-            case AppletProgramId::LoginShare: return AppletId::LoginShare;
-            case AppletProgramId::WebAuth: return AppletId::WebAuth;
-            case AppletProgramId::MyPage: return AppletId::MyPage;
-            default: return AppletId::None;
-        }
-        }(); applet_id != Service::AM::AppletId::None) {
+    if (auto applet_nca =
+            bis_system->GetEntry(u64(program_id), FileSys::ContentRecordType::Program);
+        applet_nca) {
+        if (auto const applet_id =
+                [program_id] {
+                    using namespace Service::AM;
+                    switch (program_id) {
+                    case AppletProgramId::OverlayDisplay:
+                        return AppletId::OverlayDisplay;
+                    case AppletProgramId::QLaunch:
+                        return AppletId::QLaunch;
+                    case AppletProgramId::Starter:
+                        return AppletId::Starter;
+                    case AppletProgramId::Auth:
+                        return AppletId::Auth;
+                    case AppletProgramId::Cabinet:
+                        return AppletId::Cabinet;
+                    case AppletProgramId::Controller:
+                        return AppletId::Controller;
+                    case AppletProgramId::DataErase:
+                        return AppletId::DataErase;
+                    case AppletProgramId::Error:
+                        return AppletId::Error;
+                    case AppletProgramId::NetConnect:
+                        return AppletId::NetConnect;
+                    case AppletProgramId::ProfileSelect:
+                        return AppletId::ProfileSelect;
+                    case AppletProgramId::SoftwareKeyboard:
+                        return AppletId::SoftwareKeyboard;
+                    case AppletProgramId::MiiEdit:
+                        return AppletId::MiiEdit;
+                    case AppletProgramId::Web:
+                        return AppletId::Web;
+                    case AppletProgramId::Shop:
+                        return AppletId::Shop;
+                    case AppletProgramId::PhotoViewer:
+                        return AppletId::PhotoViewer;
+                    case AppletProgramId::Settings:
+                        return AppletId::Settings;
+                    case AppletProgramId::OfflineWeb:
+                        return AppletId::OfflineWeb;
+                    case AppletProgramId::LoginShare:
+                        return AppletId::LoginShare;
+                    case AppletProgramId::WebAuth:
+                        return AppletId::WebAuth;
+                    case AppletProgramId::MyPage:
+                        return AppletId::MyPage;
+                    default:
+                        return AppletId::None;
+                    }
+                }();
+            applet_id != Service::AM::AppletId::None) {
             QtCommon::system->GetFrontendAppletHolder().SetCurrentAppletId(applet_id);
             if (cabinet_mode)
                 QtCommon::system->GetFrontendAppletHolder().SetCabinetMode(*cabinet_mode);
@@ -4111,10 +4147,12 @@ void MainWindow::LaunchFirmwareApplet(u64 raw_program_id, std::optional<Service:
             UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
             BootGame(filename, LibraryAppletParameters(u64(program_id), applet_id));
         } else {
-            QMessageBox::warning(this, tr("Unknown applet"), tr("Applet doesn't map to a known value."));
+            QMessageBox::warning(this, tr("Unknown applet"),
+                                 tr("Applet doesn't map to a known value."));
         }
     } else {
-        QMessageBox::warning(this, tr("Record not found"), tr("Applet not found. Please reinstall firmware."));
+        QMessageBox::warning(this, tr("Record not found"),
+                             tr("Applet not found. Please reinstall firmware."));
     }
 }
 
@@ -4170,26 +4208,23 @@ void MainWindow::OnEmulatorUpdateAvailable() {
     update_prompt.setIcon(QMessageBox::Information);
     update_prompt.addButton(QMessageBox::Yes);
     update_prompt.addButton(QMessageBox::Ignore);
-    update_prompt.setText(
-        tr("Download %1?").arg(QString::fromStdString(version->name)));
+    update_prompt.setText(tr("Download %1?").arg(QString::fromStdString(version->name)));
     update_prompt.exec();
     if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
-        auto const full_url = fmt::format("{}/{}/releases/tag/",
-                                          std::string{Common::g_build_auto_update_website},
-                                          std::string{Common::g_build_auto_update_repo}
-                                          );
+        auto const full_url =
+            fmt::format("{}/{}/releases/tag/", std::string{Common::g_build_auto_update_website},
+                        std::string{Common::g_build_auto_update_repo});
         QDesktopServices::openUrl(QUrl(QString::fromStdString(full_url + version->tag)));
     }
 }
 #endif
 
-void MainWindow::UpdateWindowTitle(std::string_view title_name, std::string_view title_version, std::string_view gpu_vendor) {
+void MainWindow::UpdateWindowTitle(std::string_view title_name, std::string_view title_version,
+                                   std::string_view gpu_vendor) {
     static const std::string build_id = std::string{Common::g_build_id};
-    static const std::string yuzu_title = fmt::format("{} | {} | {}",
-                                                      std::string{Common::g_build_name},
-                                                      std::string{Common::g_build_version},
-                                                      std::string{Common::g_compiler_id}
-                                                      );
+    static const std::string yuzu_title =
+        fmt::format("{} | {} | {}", std::string{Common::g_build_name},
+                    std::string{Common::g_build_version}, std::string{Common::g_compiler_id});
 
     const auto override_title =
         fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
@@ -4301,7 +4336,8 @@ void MainWindow::UpdateStatusBar() {
     }
 
     QString fpsText = tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0);
-    if (!m_fpsSuffix.isEmpty()) fpsText = fpsText % QStringLiteral(" (%1)").arg(m_fpsSuffix);
+    if (!m_fpsSuffix.isEmpty())
+        fpsText = fpsText % QStringLiteral(" (%1)").arg(m_fpsSuffix);
 
     game_fps_label->setText(fpsText);
 
@@ -4444,7 +4480,9 @@ void MainWindow::OnCheckGraphicsBackend() {
     if (platformName == QStringLiteral("xcb") || qtPlatform == "xcb")
         return;
 
-    const bool isWayland = platformName.startsWith(QStringLiteral("wayland"), Qt::CaseInsensitive) || qtPlatform.startsWith("wayland");
+    const bool isWayland =
+        platformName.startsWith(QStringLiteral("wayland"), Qt::CaseInsensitive) ||
+        qtPlatform.startsWith("wayland");
     if (!isWayland)
         return;
 
@@ -4454,9 +4492,10 @@ void MainWindow::OnCheckGraphicsBackend() {
 
     QMessageBox msgbox(this);
     msgbox.setWindowTitle(tr("Wayland Detected!"));
-    msgbox.setText(tr("Wayland is known to have significant performance issues and mysterious bugs.\n"
-                      "It's recommended to use X11 instead.\n\n"
-                      "Would you like to force it for future launches?"));
+    msgbox.setText(
+        tr("Wayland is known to have significant performance issues and mysterious bugs.\n"
+           "It's recommended to use X11 instead.\n\n"
+           "Would you like to force it for future launches?"));
     msgbox.setIcon(QMessageBox::Warning);
 
     QPushButton* okButton = msgbox.addButton(tr("Use X11"), QMessageBox::AcceptRole);
@@ -4477,8 +4516,7 @@ void MainWindow::OnCheckGraphicsBackend() {
     if (msgbox.clickedButton() == okButton) {
         UISettings::values.gui_force_x11.SetValue(true);
         GraphicsBackend::SetForceX11(true);
-        QMessageBox::information(this,
-                                 tr("Restart Required"),
+        QMessageBox::information(this, tr("Restart Required"),
                                  tr("Restart Eden to apply the X11 backend."));
     }
 }
@@ -4530,7 +4568,7 @@ void MainWindow::SetFPSSuffix() {
 }
 
 bool MainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installed, u64 program_id,
-                                        u64* selected_title_id, u8* selected_content_record_type) {
+                                       u64* selected_title_id, u8* selected_content_record_type) {
     using ContentInfo = std::tuple<u64, FileSys::TitleType, FileSys::ContentRecordType>;
     boost::container::flat_set<ContentInfo> available_title_ids;
 
@@ -4809,7 +4847,7 @@ void MainWindow::OnLanguageChanged(const QString& locale) {
         qApp->removeTranslator(&translator);
     }
 
-    QList<QAction *> actions = game_size_actions->actions();
+    QList<QAction*> actions = game_size_actions->actions();
     for (size_t i = 0; i < default_game_icon_sizes.size(); i++) {
         actions.at(i)->setText(GetTranslatedGameIconSize(i));
     }

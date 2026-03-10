@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
@@ -8,8 +8,8 @@
 
 #include <QRandomGenerator>
 
-#include <QWidget>
 #include <memory>
+#include <QWidget>
 
 namespace Ui {
 class ConfigureWeb;
@@ -32,7 +32,7 @@ private:
     void SetConfiguration();
 
     std::unique_ptr<Ui::ConfigureWeb> ui;
-    QRandomGenerator *m_rng;
+    QRandomGenerator* m_rng;
 
 private slots:
     void GenerateToken();

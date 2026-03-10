@@ -145,14 +145,15 @@ struct Values {
     // Linux/MinGW may support (requires libdl support)
     SwitchableSetting<bool> enable_gamemode{linkage,
 #ifndef _MSC_VER
-        true,
+                                            true,
 #else
-        false,
+                                            false,
 #endif
-        "enable_gamemode", Category::UiGeneral};
+                                            "enable_gamemode", Category::UiGeneral};
 #ifdef __unix__
     SwitchableSetting<bool> gui_force_x11{linkage, false, "gui_force_x11", Category::UiGeneral};
-    Setting<bool> gui_hide_backend_warning{linkage, false, "gui_hide_backend_warning", Category::UiGeneral};
+    Setting<bool> gui_hide_backend_warning{linkage, false, "gui_hide_backend_warning",
+                                           Category::UiGeneral};
 #endif
 
     // Discord RPC
@@ -210,7 +211,8 @@ struct Values {
     Setting<u32> folder_icon_size{linkage, 48, "folder_icon_size", Category::UiGameList};
     Setting<u8> row_1_text_id{linkage, 3, "row_1_text_id", Category::UiGameList};
     Setting<u8> row_2_text_id{linkage, 2, "row_2_text_id", Category::UiGameList};
-    Setting<Settings::GameListMode> game_list_mode{linkage, Settings::GameListMode::TreeView, "game_list_mode", Category::UiGameList};
+    Setting<Settings::GameListMode> game_list_mode{linkage, Settings::GameListMode::TreeView,
+                                                   "game_list_mode", Category::UiGameList};
     Setting<bool> show_game_name{linkage, true, "show_game_name", Category::UiGameList};
 
     std::atomic_bool is_game_list_reload_pending{false};

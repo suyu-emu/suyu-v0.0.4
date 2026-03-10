@@ -1,27 +1,22 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "migration_worker.h"
 #include "common/fs/symlink.h"
+#include "migration_worker.h"
 
+#include <filesystem>
 #include <QMap>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <filesystem>
 
 #include "common/fs/path_util.h"
 
-MigrationWorker::MigrationWorker(const Emulator selected_emu_,
-                                 const bool clear_shader_cache_,
+MigrationWorker::MigrationWorker(const Emulator selected_emu_, const bool clear_shader_cache_,
                                  const MigrationStrategy strategy_)
-    : QObject()
-    , selected_emu(selected_emu_)
-    , clear_shader_cache(clear_shader_cache_)
-    , strategy(strategy_)
-{}
+    : QObject(), selected_emu(selected_emu_), clear_shader_cache(clear_shader_cache_),
+      strategy(strategy_) {}
 
-void MigrationWorker::process()
-{
+void MigrationWorker::process() {
     namespace fs = std::filesystem;
     constexpr auto copy_options = fs::copy_options::update_existing | fs::copy_options::recursive;
 
@@ -42,7 +37,7 @@ void MigrationWorker::process()
 
     try {
         fs::remove_all(eden_dir);
-    } catch (fs::filesystem_error &_) {
+    } catch (fs::filesystem_error& _) {
         // ignore because linux does stupid crap sometimes
     }
 
@@ -53,7 +48,7 @@ void MigrationWorker::process()
         // Windows 11 has random permission nonsense to deal with.
         try {
             Common::FS::CreateSymlink(legacy_user_dir, eden_dir);
-        } catch (const fs::filesystem_error &e) {
+        } catch (const fs::filesystem_error& e) {
             emit error(tr("Linking the old directory failed. You may need to re-run with "
                           "administrative privileges on Windows.\nOS gave error: %1")
                            .arg(tr(e.what())));
@@ -74,8 +69,7 @@ void MigrationWorker::process()
 
         success_text.append(tr("\n\nNote that your configuration and data will be shared with %1.\n"
                                "If this is not desirable, delete the following files:\n%2\n%3\n%4")
-                                .arg(selected_emu.name(),
-                                     QString::fromStdString(eden_dir.string()),
+                                .arg(selected_emu.name(), QString::fromStdString(eden_dir.string()),
                                      QString::fromStdString(config_dir.string()),
                                      QString::fromStdString(cache_dir.string())));
 

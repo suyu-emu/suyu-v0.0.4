@@ -73,9 +73,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
         painter->restore();
     } else {
         // if there is no icon just draw a blank rect
-        iconRect = QRect(cardRect.left() + padding,
-                         cardRect.top() + padding,
-                         _iconsize, _iconsize);
+        iconRect = QRect(cardRect.left() + padding, cardRect.top() + padding, _iconsize, _iconsize);
     }
 
     if (UISettings::values.show_game_name.GetValue()) {

@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <QAbstractButton>
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <QAbstractButton>
 
 #include "libqt_common.h"
 #include "qt_common/abstract/frontend.h"
@@ -14,10 +14,11 @@
 
 namespace QtCommon::Frontend {
 
-StandardButton ShowMessage(
-    Icon icon, const QString &title, const QString &text, StandardButtons buttons, QObject *parent)
-{
-    QMessageBox *box = new QMessageBox(QMessageBox::Icon(int(icon)), title, text, QMessageBox::StandardButtons(int(buttons)), (QWidget *) parent);
+StandardButton ShowMessage(Icon icon, const QString& title, const QString& text,
+                           StandardButtons buttons, QObject* parent) {
+    QMessageBox* box =
+        new QMessageBox(QMessageBox::Icon(int(icon)), title, text,
+                        QMessageBox::StandardButtons(int(buttons)), (QWidget*)parent);
     return StandardButton(box->exec());
 }
 
@@ -81,15 +82,15 @@ void WidgetsProgressDialog::show() {
     m_dialog->show();
 }
 
-std::unique_ptr<QtProgressDialog> newProgressDialog(const QString& labelText, const QString& cancelButtonText,
-                                                    int minimum, int maximum, Qt::WindowFlags f) {
+std::unique_ptr<QtProgressDialog> newProgressDialog(const QString& labelText,
+                                                    const QString& cancelButtonText, int minimum,
+                                                    int maximum, Qt::WindowFlags f) {
     return std::make_unique<WidgetsProgressDialog>(labelText, cancelButtonText, minimum, maximum,
                                                    (QWidget*)rootObject, f);
 }
 
 QtProgressDialog* newProgressDialogPtr(const QString& labelText, const QString& cancelButtonText,
-                                       int minimum, int maximum,
-                                       Qt::WindowFlags f) {
+                                       int minimum, int maximum, Qt::WindowFlags f) {
     return new WidgetsProgressDialog(labelText, cancelButtonText, minimum, maximum,
                                      (QWidget*)rootObject, f);
 }
@@ -114,6 +115,5 @@ const QString GetTextInput(const QString& title, const QString& caption,
                            const QString& defaultText) {
     return QInputDialog::getText(rootObject, title, caption, QLineEdit::Normal, defaultText);
 }
-
 
 } // namespace QtCommon::Frontend

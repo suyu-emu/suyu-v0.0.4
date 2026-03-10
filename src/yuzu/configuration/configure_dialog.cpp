@@ -9,6 +9,7 @@
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/core.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_configure.h"
 #include "vk_device_info.h"
 #include "yuzu/configuration/configure_applets.h"
@@ -30,15 +31,14 @@
 #include "yuzu/configuration/configure_ui.h"
 #include "yuzu/configuration/configure_web.h"
 #include "yuzu/hotkeys.h"
-#include "qt_common/config/uisettings.h"
 
 ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
                                  InputCommon::InputSubsystem* input_subsystem,
                                  std::vector<VkDeviceInfo::Record>& vk_device_records,
                                  Core::System& system_, bool enable_web_config)
-    : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()},
-      registry(registry_), system{system_}, builder{std::make_unique<ConfigurationShared::Builder>(
-                                                this, !system_.IsPoweredOn())},
+    : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()}, registry(registry_),
+      system{system_},
+      builder{std::make_unique<ConfigurationShared::Builder>(this, !system_.IsPoweredOn())},
       applets_tab{std::make_unique<ConfigureApplets>(system_, nullptr, *builder, this)},
       audio_tab{std::make_unique<ConfigureAudio>(system_, nullptr, *builder, this)},
       cpu_tab{std::make_unique<ConfigureCpu>(system_, nullptr, *builder, this)},
@@ -46,9 +46,9 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
       filesystem_tab{std::make_unique<ConfigureFilesystem>(this)},
       general_tab{std::make_unique<ConfigureGeneral>(system_, nullptr, *builder, this)},
       graphics_advanced_tab{
-                            std::make_unique<ConfigureGraphicsAdvanced>(system_, nullptr, *builder, this)},
+          std::make_unique<ConfigureGraphicsAdvanced>(system_, nullptr, *builder, this)},
       graphics_extensions_tab{
-                              std::make_unique<ConfigureGraphicsExtensions>(system_, nullptr, *builder, this)},
+          std::make_unique<ConfigureGraphicsExtensions>(system_, nullptr, *builder, this)},
       ui_tab{std::make_unique<ConfigureUi>(system_, this)},
       graphics_tab{std::make_unique<ConfigureGraphics>(
           system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
@@ -113,7 +113,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
     adjustSize();
     ui->selectorList->setCurrentRow(0);
 
-           // Selects the leftmost button on the bottom bar (Cancel as of writing)
+    // Selects the leftmost button on the bottom bar (Cancel as of writing)
     ui->buttonBox->setFocus();
 }
 
@@ -172,16 +172,17 @@ Q_DECLARE_METATYPE(QList<QWidget*>);
 
 void ConfigureDialog::PopulateSelectionList() {
     const std::array<std::pair<QString, QList<QWidget*>>, 6> items{
-                                                                   {{tr("General"),
-                                                                     {general_tab.get(), hotkeys_tab.get(), ui_tab.get(), web_tab.get(), debug_tab_tab.get()}},
-                                                                    {tr("System"),
-                                                                     {system_tab.get(), profile_tab.get(), network_tab.get(), filesystem_tab.get(),
-                                                                      applets_tab.get()}},
-                                                                    {tr("CPU"), {cpu_tab.get()}},
-                                                                    {tr("Graphics"), {graphics_tab.get(), graphics_advanced_tab.get(), graphics_extensions_tab.get()}},
-                                                                    {tr("Audio"), {audio_tab.get()}},
-                                                                    {tr("Controls"), input_tab->GetSubTabs()}},
-                                                                   };
+        {{tr("General"),
+          {general_tab.get(), hotkeys_tab.get(), ui_tab.get(), web_tab.get(), debug_tab_tab.get()}},
+         {tr("System"),
+          {system_tab.get(), profile_tab.get(), network_tab.get(), filesystem_tab.get(),
+           applets_tab.get()}},
+         {tr("CPU"), {cpu_tab.get()}},
+         {tr("Graphics"),
+          {graphics_tab.get(), graphics_advanced_tab.get(), graphics_extensions_tab.get()}},
+         {tr("Audio"), {audio_tab.get()}},
+         {tr("Controls"), input_tab->GetSubTabs()}},
+    };
 
     [[maybe_unused]] const QSignalBlocker blocker(ui->selectorList);
 

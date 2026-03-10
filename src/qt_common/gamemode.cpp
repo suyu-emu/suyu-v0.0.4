@@ -9,9 +9,9 @@
 #ifdef __unix__
 #include <gamemode_client.h>
 #endif
-#include "qt_common/gamemode.h"
 #include "common/logging/log.h"
 #include "qt_common/config/uisettings.h"
+#include "qt_common/gamemode.h"
 
 namespace Common::FeralGamemode {
 
@@ -49,4 +49,4 @@ void Stop() noexcept {
     }
 }
 
-} // namespace Common::Linux
+} // namespace Common::FeralGamemode

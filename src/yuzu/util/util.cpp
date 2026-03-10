@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
@@ -157,11 +157,11 @@ const std::optional<Common::UUID> GetProfileID() {
 
     const auto select_profile = [] {
         const Core::Frontend::ProfileSelectParameters parameters{
-                                                                 .mode = Service::AM::Frontend::UiMode::UserSelector,
-                                                                 .invalid_uid_list = {},
-                                                                 .display_options = {},
-                                                                 .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
-                                                                 };
+            .mode = Service::AM::Frontend::UiMode::UserSelector,
+            .invalid_uid_list = {},
+            .display_options = {},
+            .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
+        };
         QtProfileSelectionDialog dialog(*QtCommon::system, QtCommon::rootObject, parameters);
         dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                               Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);

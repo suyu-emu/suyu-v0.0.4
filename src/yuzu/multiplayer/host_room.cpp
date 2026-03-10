@@ -18,6 +18,7 @@
 #include "core/core.h"
 #include "core/internal_network/network_interface.h"
 #include "network/announce_multiplayer_session.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_host_room.h"
 #include "yuzu/game/game_list_p.h"
 #include "yuzu/main_window.h"
@@ -25,7 +26,6 @@
 #include "yuzu/multiplayer/message.h"
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/multiplayer/validation.h"
-#include "qt_common/config/uisettings.h"
 #ifdef ENABLE_WEB_SERVICE
 #include "web_service/verify_user_jwt.h"
 #endif
@@ -34,8 +34,7 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
                                std::shared_ptr<Core::AnnounceMultiplayerSession> session,
                                Core::System& system_)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::HostRoom>()),
-      announce_multiplayer_session(session), system{system_} {
+      ui(std::make_unique<Ui::HostRoom>()), announce_multiplayer_session(session), system{system_} {
     ui->setupUi(this);
 
     // set up validation for all of the fields

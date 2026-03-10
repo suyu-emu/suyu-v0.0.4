@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
@@ -14,6 +14,7 @@
 #include "core/core.h"
 #include "core/internal_network/network_interface.h"
 #include "network/network.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_direct_connect.h"
 #include "yuzu/main_window.h"
 #include "yuzu/multiplayer/client_room.h"
@@ -21,7 +22,6 @@
 #include "yuzu/multiplayer/message.h"
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/multiplayer/validation.h"
-#include "qt_common/config/uisettings.h"
 
 enum class ConnectionType : u8 { TraversalServer, IP };
 

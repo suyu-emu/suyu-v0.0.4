@@ -1,24 +1,21 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "yuzu/deps_dialog.h"
 #include <QAbstractTextDocumentLayout>
 #include <QDesktopServices>
 #include <QIcon>
 #include <QPainter>
 #include <QTableWidget>
 #include <QTextEdit>
+#include <fmt/ranges.h>
 #include "dep_hashes.h"
 #include "ui_deps_dialog.h"
-#include <fmt/ranges.h>
+#include "yuzu/deps_dialog.h"
 
-DepsDialog::DepsDialog(QWidget* parent)
-    : QDialog(parent)
-    , ui{std::make_unique<Ui::DepsDialog>()}
-{
+DepsDialog::DepsDialog(QWidget* parent) : QDialog(parent), ui{std::make_unique<Ui::DepsDialog>()} {
     ui->setupUi(this);
 
-    constexpr int rows = (int) Common::dep_hashes.size();
+    constexpr int rows = (int)Common::dep_hashes.size();
     ui->tableDeps->setRowCount(rows);
 
     QStringList labels;
@@ -36,8 +33,8 @@ DepsDialog::DepsDialog(QWidget* parent)
 
         std::string dependency = fmt::format("<a href=\"{}\">{}</a>", url, name);
 
-        QTableWidgetItem *nameItem = new QTableWidgetItem(QString::fromStdString(dependency));
-        QTableWidgetItem *shaItem = new QTableWidgetItem(QString::fromStdString(sha));
+        QTableWidgetItem* nameItem = new QTableWidgetItem(QString::fromStdString(dependency));
+        QTableWidgetItem* shaItem = new QTableWidgetItem(QString::fromStdString(sha));
 
         ui->tableDeps->setItem(i, 0, nameItem);
         ui->tableDeps->setItem(i, 1, shaItem);
@@ -48,14 +45,10 @@ DepsDialog::DepsDialog(QWidget* parent)
 
 DepsDialog::~DepsDialog() = default;
 
-LinkItemDelegate::LinkItemDelegate(QObject *parent)
-    : QStyledItemDelegate(parent)
-{}
+LinkItemDelegate::LinkItemDelegate(QObject* parent) : QStyledItemDelegate(parent) {}
 
-void LinkItemDelegate::paint(QPainter *painter,
-                             const QStyleOptionViewItem &option,
-                             const QModelIndex &index) const
-{
+void LinkItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
+                             const QModelIndex& index) const {
     auto options = option;
     initStyleOption(&options, index);
 
@@ -71,8 +64,8 @@ void LinkItemDelegate::paint(QPainter *painter,
     painter->restore();
 }
 
-QSize LinkItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
+QSize LinkItemDelegate::sizeHint(const QStyleOptionViewItem& option,
+                                 const QModelIndex& index) const {
     QStyleOptionViewItem options = option;
     initStyleOption(&options, index);
 
@@ -82,13 +75,10 @@ QSize LinkItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     return QSize(doc.idealWidth(), doc.size().height());
 }
 
-bool LinkItemDelegate::editorEvent(QEvent *event,
-                                   QAbstractItemModel *model,
-                                   const QStyleOptionViewItem &option,
-                                   const QModelIndex &index)
-{
+bool LinkItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
+                                   const QStyleOptionViewItem& option, const QModelIndex& index) {
     if (event->type() == QEvent::MouseButtonRelease) {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
         if (mouseEvent->button() == Qt::LeftButton) {
             QString html = index.data(Qt::DisplayRole).toString();
             QTextDocument doc;
@@ -96,7 +86,7 @@ bool LinkItemDelegate::editorEvent(QEvent *event,
             doc.setTextWidth(option.rect.width());
 
             // this is kinda silly but it werks
-            QAbstractTextDocumentLayout *layout = doc.documentLayout();
+            QAbstractTextDocumentLayout* layout = doc.documentLayout();
 
             QPoint pos = mouseEvent->pos() - option.rect.topLeft();
             int charPos = layout->hitTest(pos, Qt::ExactHit);

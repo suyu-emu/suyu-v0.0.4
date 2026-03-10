@@ -45,8 +45,8 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_common.h"
-#include "qt_common/qt_compat.h"
 #include "qt_common/config/shared_translation.h"
+#include "qt_common/qt_compat.h"
 
 namespace ConfigurationShared {
 
@@ -170,7 +170,7 @@ QWidget* Widget::CreateCombobox(std::function<std::string()>& serializer,
 
     if (!Settings::IsConfiguringGlobal()) {
         combobox->connect(combobox, QOverload<int>::of(&QComboBox::activated),
-                         [touch]() { touch(); });
+                          [touch]() { touch(); });
     }
 
     return combobox;
@@ -413,13 +413,13 @@ QWidget* Widget::CreateDoubleSpinBox(const QString& given_suffix,
     };
 
     if (!Settings::IsConfiguringGlobal()) {
-        double_spinbox->connect(double_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-                         [this, touch]() {
-                             if (double_spinbox->value() !=
-                                 std::strtod(setting.ToStringGlobal().c_str(), nullptr)) {
-                                 touch();
-                             }
-                         });
+        double_spinbox->connect(
+            double_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this, touch]() {
+                if (double_spinbox->value() !=
+                    std::strtod(setting.ToStringGlobal().c_str(), nullptr)) {
+                    touch();
+                }
+            });
     }
 
     return double_spinbox;
@@ -491,11 +491,11 @@ QWidget* Widget::CreateDateTimeEdit(bool disabled, bool restrict,
 
     if (!Settings::IsConfiguringGlobal()) {
         date_time_edit->connect(date_time_edit, &QDateTimeEdit::editingFinished,
-                         [this, get_clear_val, touch]() {
-                             if (date_time_edit->dateTime() != get_clear_val()) {
-                                 touch();
-                             }
-                         });
+                                [this, get_clear_val, touch]() {
+                                    if (date_time_edit->dateTime() != get_clear_val()) {
+                                        touch();
+                                    }
+                                });
     }
 
     return date_time_edit;
@@ -570,7 +570,8 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
     }
 
     if (require_checkbox) {
-        QWidget* lhs = CreateCheckBox(other_setting, label, checkbox_serializer, checkbox_restore_func, touch);
+        QWidget* lhs =
+            CreateCheckBox(other_setting, label, checkbox_serializer, checkbox_restore_func, touch);
         layout->addWidget(lhs, 1);
     } else if (type_id != "bool") {
         QLabel* qt_label = CreateLabel(label);
@@ -665,16 +666,16 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         layout->addWidget(restore_button);
 
         restore_button->connect(restore_button, &QAbstractButton::clicked,
-                         [this, restore_func, checkbox_restore_func](bool) {
-                             LOG_DEBUG(Frontend, "Restore global state for \"{}\"",
-                                       setting.GetLabel());
+                                [this, restore_func, checkbox_restore_func](bool) {
+                                    LOG_DEBUG(Frontend, "Restore global state for \"{}\"",
+                                              setting.GetLabel());
 
-                             restore_button->setEnabled(false);
-                             restore_button->setVisible(false);
+                                    restore_button->setEnabled(false);
+                                    restore_button->setVisible(false);
 
-                             checkbox_restore_func();
-                             restore_func();
-                         });
+                                    checkbox_restore_func();
+                                    restore_func();
+                                });
 
         load_func = [this, serializer, require_checkbox, checkbox_serializer, other_setting]() {
             bool using_global = !restore_button->isEnabled();
@@ -766,8 +767,8 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
 
 Builder::Builder(QWidget* parent_, bool runtime_lock_)
     : translations{InitializeTranslations(parent_)},
-      combobox_translations{ComboboxEnumeration(parent_)}, parent{parent_}, runtime_lock{
-                                                                                runtime_lock_} {}
+      combobox_translations{ComboboxEnumeration(parent_)}, parent{parent_},
+      runtime_lock{runtime_lock_} {}
 
 Builder::~Builder() = default;
 

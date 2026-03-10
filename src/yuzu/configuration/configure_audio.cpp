@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -16,12 +16,12 @@
 #include "common/settings.h"
 #include "common/settings_common.h"
 #include "core/core.h"
+#include "qt_common/config/shared_translation.h"
+#include "qt_common/config/uisettings.h"
 #include "ui_configure_audio.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_audio.h"
-#include "qt_common/config/shared_translation.h"
 #include "yuzu/configuration/shared_widget.h"
-#include "qt_common/config/uisettings.h"
 
 ConfigureAudio::ConfigureAudio(const Core::System& system_,
                                std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
@@ -188,8 +188,8 @@ void ConfigureAudio::SetOutputSinkFromSinkID() {
 
     const std::string new_sink_id = []() -> const std::string {
         const Settings::AudioEngine sink_id = Settings::values.sink_id.GetValue();
-        const auto canonicalizations
-            = Settings::EnumMetadata<Settings::AudioEngine>::Canonicalizations();
+        const auto canonicalizations =
+            Settings::EnumMetadata<Settings::AudioEngine>::Canonicalizations();
 
         for (u32 i = 0; i < canonicalizations.size(); ++i) {
             const Settings::AudioEngine value = canonicalizations[i].second;
@@ -242,8 +242,8 @@ void ConfigureAudio::ApplyConfiguration() {
 
     const u32 new_sink_id = [this]() {
         const std::string sink_id = sink_combo_box->currentText().toStdString();
-        const auto canonicalizations
-            = Settings::EnumMetadata<Settings::AudioEngine>::Canonicalizations();
+        const auto canonicalizations =
+            Settings::EnumMetadata<Settings::AudioEngine>::Canonicalizations();
 
         for (u32 i = 0; i < canonicalizations.size(); ++i) {
             if (sink_id == canonicalizations[i].first)
@@ -291,7 +291,8 @@ void ConfigureAudio::InitializeAudioSinkComboBox() {
     sink_combo_box->clear();
     sink_combo_box->addItem(QString::fromUtf8(AudioCore::Sink::auto_device_name));
     for (const auto& id : AudioCore::Sink::GetSinkIDs())
-        sink_combo_box->addItem(QString::fromStdString(std::string{Settings::CanonicalizeEnum(id)}));
+        sink_combo_box->addItem(
+            QString::fromStdString(std::string{Settings::CanonicalizeEnum(id)}));
 }
 
 void ConfigureAudio::RetranslateUI() {

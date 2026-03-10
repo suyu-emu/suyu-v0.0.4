@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef DATA_DIALOG_H
@@ -14,26 +14,23 @@ namespace Ui {
 class DataDialog;
 }
 
-class DataDialog : public QDialog
-{
+class DataDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit DataDialog(QWidget *parent = nullptr);
+    explicit DataDialog(QWidget* parent = nullptr);
     ~DataDialog();
 
 private:
     std::unique_ptr<Ui::DataDialog> ui;
 };
 
-class DataWidget : public QWidget
-{
+class DataWidget : public QWidget {
     Q_OBJECT
 public:
     explicit DataWidget(FrontendCommon::DataManager::DataDir data_dir,
-                        QtCommon::StringLookup::StringKey tooltip,
-                        const QString &exportName,
-                        QWidget *parent = nullptr);
+                        QtCommon::StringLookup::StringKey tooltip, const QString& exportName,
+                        QWidget* parent = nullptr);
 
 public slots:
     void clear();

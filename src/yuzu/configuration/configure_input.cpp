@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -15,10 +15,10 @@
 #include "core/hle/service/sm/sm.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
+#include "qt_common/qt_compat.h"
 #include "ui_configure_input.h"
 #include "ui_configure_input_advanced.h"
 #include "ui_configure_input_player.h"
-#include "qt_common/qt_compat.h"
 #include "yuzu/configuration/configure_camera.h"
 #include "yuzu/configuration/configure_debug_controller.h"
 #include "yuzu/configuration/configure_input.h"
@@ -102,7 +102,7 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
     };
 
     for (std::size_t i = 0; i < player_tabs.size(); ++i) {
-        QHBoxLayout *tab_layout = new QHBoxLayout(player_tabs[i]);
+        QHBoxLayout* tab_layout = new QHBoxLayout(player_tabs[i]);
         tab_layout->addWidget(player_controllers[i]);
         connect(player_controllers[i], &ConfigureInputPlayer::Connected, [this, i](bool checked) {
             // Ensures that connecting a controller changes the number of players
@@ -125,10 +125,11 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
                 &ConfigureInput::UpdateAllInputDevices);
         connect(player_controllers[i], &ConfigureInputPlayer::RefreshInputProfiles, this,
                 &ConfigureInput::UpdateAllInputProfiles, Qt::QueuedConnection);
-        connect(connected_controller_checkboxes[i], &QCheckBox::STATE_CHANGED, [this, i](int state) {
-            // Keep activated controllers synced with the "Connected Controllers" checkboxes
-            player_controllers[i]->ConnectPlayer(state == Qt::Checked);
-        });
+        connect(connected_controller_checkboxes[i], &QCheckBox::STATE_CHANGED,
+                [this, i](int state) {
+                    // Keep activated controllers synced with the "Connected Controllers" checkboxes
+                    player_controllers[i]->ConnectPlayer(state == Qt::Checked);
+                });
 
         // Remove/hide all the elements that exceed max_players, if applicable.
         if (i >= max_players) {

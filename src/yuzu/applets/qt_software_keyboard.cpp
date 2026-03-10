@@ -1499,22 +1499,22 @@ void QtSoftwareKeyboardDialog::StartInputThread() {
             input_interpreter->PollInput();
             HandleButtonPressedOnce<
                 Core::HID::NpadButton::A, Core::HID::NpadButton::B, Core::HID::NpadButton::X,
-                Core::HID::NpadButton::Y, Core::HID::NpadButton::StickL, Core::HID::NpadButton::StickR,
-                Core::HID::NpadButton::L, Core::HID::NpadButton::R, Core::HID::NpadButton::Plus,
-                Core::HID::NpadButton::Left, Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
-                Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
-                Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
-                Core::HID::NpadButton::StickLDown, Core::HID::NpadButton::StickRLeft,
-                Core::HID::NpadButton::StickRUp, Core::HID::NpadButton::StickRRight,
-                Core::HID::NpadButton::StickRDown>();
+                Core::HID::NpadButton::Y, Core::HID::NpadButton::StickL,
+                Core::HID::NpadButton::StickR, Core::HID::NpadButton::L, Core::HID::NpadButton::R,
+                Core::HID::NpadButton::Plus, Core::HID::NpadButton::Left, Core::HID::NpadButton::Up,
+                Core::HID::NpadButton::Right, Core::HID::NpadButton::Down,
+                Core::HID::NpadButton::StickLLeft, Core::HID::NpadButton::StickLUp,
+                Core::HID::NpadButton::StickLRight, Core::HID::NpadButton::StickLDown,
+                Core::HID::NpadButton::StickRLeft, Core::HID::NpadButton::StickRUp,
+                Core::HID::NpadButton::StickRRight, Core::HID::NpadButton::StickRDown>();
             HandleButtonHold<Core::HID::NpadButton::B, Core::HID::NpadButton::L,
-                Core::HID::NpadButton::R, Core::HID::NpadButton::Left,
-                Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
-                Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
-                Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
-                Core::HID::NpadButton::StickLDown, Core::HID::NpadButton::StickRLeft,
-                Core::HID::NpadButton::StickRUp, Core::HID::NpadButton::StickRRight,
-                Core::HID::NpadButton::StickRDown>();
+                             Core::HID::NpadButton::R, Core::HID::NpadButton::Left,
+                             Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
+                             Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
+                             Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
+                             Core::HID::NpadButton::StickLDown, Core::HID::NpadButton::StickRLeft,
+                             Core::HID::NpadButton::StickRUp, Core::HID::NpadButton::StickRRight,
+                             Core::HID::NpadButton::StickRDown>();
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     });

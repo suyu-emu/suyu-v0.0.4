@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "data_dialog.h"
 #include "frontend_common/data_manager.h"
-#include "qt_common/util/content.h"
 #include "qt_common/qt_string_lookup.h"
+#include "qt_common/util/content.h"
 #include "ui_data_dialog.h"
 #include "util/util.h"
 
@@ -18,18 +18,14 @@
 
 #include <applets/qt_profile_select.h>
 
-DataDialog::DataDialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(std::make_unique<Ui::DataDialog>())
-{
+DataDialog::DataDialog(QWidget* parent) : QDialog(parent), ui(std::make_unique<Ui::DataDialog>()) {
     ui->setupUi(this);
 
     // TODO: Should we make this a single widget that pulls data from a model?
-#define WIDGET(label, name) \
-    ui->page->addWidget(new DataWidget(FrontendCommon::DataManager::DataDir::name, \
-                                       QtCommon::StringLookup::DataManager##name##Tooltip, \
-                                       QStringLiteral(#name), \
-                                       this)); \
+#define WIDGET(label, name)                                                                        \
+    ui->page->addWidget(new DataWidget(FrontendCommon::DataManager::DataDir::name,                 \
+                                       QtCommon::StringLookup::DataManager##name##Tooltip,         \
+                                       QStringLiteral(#name), this));                              \
     ui->labels->addItem(label);
 
     WIDGET(tr("Shaders"), Shaders)
@@ -53,14 +49,10 @@ DataDialog::DataDialog(QWidget *parent)
 DataDialog::~DataDialog() = default;
 
 DataWidget::DataWidget(FrontendCommon::DataManager::DataDir data_dir,
-                       QtCommon::StringLookup::StringKey tooltip,
-                       const QString &exportName,
-                       QWidget *parent)
-    : QWidget(parent)
-    , ui(std::make_unique<Ui::DataWidget>())
-    , m_dir(data_dir)
-    , m_exportName(exportName)
-{
+                       QtCommon::StringLookup::StringKey tooltip, const QString& exportName,
+                       QWidget* parent)
+    : QWidget(parent), ui(std::make_unique<Ui::DataWidget>()), m_dir(data_dir),
+      m_exportName(exportName) {
     ui->setupUi(this);
 
     ui->tooltip->setText(QtCommon::StringLookup::Lookup(tooltip));
@@ -78,28 +70,24 @@ DataWidget::DataWidget(FrontendCommon::DataManager::DataDir data_dir,
     scan();
 }
 
-void DataWidget::clear()
-{
+void DataWidget::clear() {
     std::string user_id = selectProfile();
     QtCommon::Content::ClearDataDir(m_dir, user_id);
     scan();
 }
 
-void DataWidget::open()
-{
+void DataWidget::open() {
     std::string user_id = selectProfile();
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         QString::fromStdString(FrontendCommon::DataManager::GetDataDirString(m_dir, user_id))));
 }
 
-void DataWidget::upload()
-{
+void DataWidget::upload() {
     std::string user_id = selectProfile();
     QtCommon::Content::ExportDataDir(m_dir, user_id, m_exportName);
 }
 
-void DataWidget::download()
-{
+void DataWidget::download() {
     std::string user_id = selectProfile();
     QtCommon::Content::ImportDataDir(m_dir, user_id, std::bind(&DataWidget::scan, this));
 }
@@ -107,7 +95,7 @@ void DataWidget::download()
 void DataWidget::scan() {
     ui->size->setText(tr("Calculating..."));
 
-    QFutureWatcher<u64> *watcher = new QFutureWatcher<u64>(this);
+    QFutureWatcher<u64>* watcher = new QFutureWatcher<u64>(this);
 
     connect(watcher, &QFutureWatcher<u64>::finished, this, [=, this]() {
         u64 size = watcher->result();
@@ -120,8 +108,7 @@ void DataWidget::scan() {
         QtConcurrent::run([this]() { return FrontendCommon::DataManager::DataDirSize(m_dir); }));
 }
 
-std::string DataWidget::selectProfile()
-{
+std::string DataWidget::selectProfile() {
     std::string user_id{};
     if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
         user_id = GetProfileIDString();

@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "gui_settings.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "gui_settings.h"
 
 namespace FS = Common::FS;
 
 namespace GraphicsBackend {
 
 QString GuiConfigPath() {
-    return QString::fromStdString(FS::PathToUTF8String(FS::GetEdenPath(FS::EdenPath::ConfigDir) / "gui_config.ini"));
+    return QString::fromStdString(
+        FS::PathToUTF8String(FS::GetEdenPath(FS::EdenPath::ConfigDir) / "gui_config.ini"));
 }
 
 void SetForceX11(bool state) {

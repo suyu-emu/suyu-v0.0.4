@@ -24,15 +24,15 @@
 #include "input_common/drivers/tas_input.h"
 #include "qt_common/config/qt_config.h"
 #include "qt_common/util/game.h"
-#include "yuzu/user_data_migration.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
+#include "yuzu/user_data_migration.h"
 
 #ifdef __unix__
 #include <QDBusObjectPath>
+#include <QSocketNotifier>
 #include <QVariant>
 #include <QtDBus/QDBusInterface>
-#include <QSocketNotifier>
 #endif
 
 #ifdef ENABLE_UPDATE_CHECKER
@@ -218,9 +218,10 @@ signals:
     void WebBrowserClosed(Service::AM::Frontend::WebExitReason exit_reason, std::string last_url);
 
     void SigInterrupt();
-    void sizeChanged(const QSize &size);
-    void positionChanged(const QPoint &pos);
-    void statsUpdated(const Core::PerfStatsResults &results, const VideoCore::ShaderNotify &shaders);
+    void sizeChanged(const QSize& size);
+    void positionChanged(const QPoint& pos);
+    void statsUpdated(const Core::PerfStatsResults& results,
+                      const VideoCore::ShaderNotify& shaders);
 
 public slots:
     void OnLoadComplete();
@@ -317,8 +318,8 @@ private:
     void RequestGameExit();
     void changeEvent(QEvent* event) override;
     void closeEvent(QCloseEvent* event) override;
-    void resizeEvent(QResizeEvent *event) override;
-    void moveEvent(QMoveEvent *event) override;
+    void resizeEvent(QResizeEvent* event) override;
+    void moveEvent(QMoveEvent* event) override;
 
     std::string CreateTASFramesString(
         std::array<size_t, InputCommon::TasInput::PLAYER_NUMBER> frames) const;
@@ -360,8 +361,7 @@ private slots:
     void OnGameListCopyTID(u64 program_id);
     void OnGameListNavigateToGamedbEntry(u64 program_id,
                                          const CompatibilityList& compatibility_list);
-    void OnGameListCreateShortcut(u64 program_id,
-                                  const std::string& game_path,
+    void OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
                                   const QtCommon::Game::ShortcutTarget target);
     void OnGameListOpenDirectory(const QString& directory);
     void OnGameListAddDirectory();
@@ -483,7 +483,7 @@ private:
      */
     bool question(QWidget* parent, const QString& title, const QString& text,
                   QMessageBox::StandardButtons buttons =
-                  QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
+                      QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
                   QMessageBox::StandardButton defaultButton = QMessageBox::NoButton);
 
     std::unique_ptr<Ui::MainWindow> ui;
@@ -504,7 +504,7 @@ private:
     LoadingScreen* loading_screen = nullptr;
     QTimer shutdown_timer;
     OverlayDialog* shutdown_dialog{};
-    PerformanceOverlay *perf_overlay = nullptr;
+    PerformanceOverlay* perf_overlay = nullptr;
 
     GameListPlaceholder* game_list_placeholder = nullptr;
 
@@ -551,7 +551,7 @@ private:
 
     QString startup_icon_theme;
 
-    QActionGroup *game_size_actions;
+    QActionGroup* game_size_actions;
 
     // Debugger panes
     ControllerDialog* controller_dialog = nullptr;
@@ -595,12 +595,9 @@ private:
 
     std::filesystem::path GetEdenCommand();
 
-    void CreateShortcut(const std::string& game_path,
-                        const u64 program_id,
-                        const std::string& game_title,
-                        QtCommon::Game::ShortcutTarget target,
-                        std::string arguments,
-                        const bool needs_title);
+    void CreateShortcut(const std::string& game_path, const u64 program_id,
+                        const std::string& game_title, QtCommon::Game::ShortcutTarget target,
+                        std::string arguments, const bool needs_title);
 
     void InstallFirmware(const QString& location, bool recursive = false);
 

@@ -63,8 +63,8 @@ QtNXWebEngineView::QtNXWebEngineView(QWidget* parent, Core::System& system,
     : QWebEngineView(parent), input_subsystem{input_subsystem_},
       url_interceptor(std::make_unique<UrlRequestInterceptor>()),
       input_interpreter(std::make_unique<InputInterpreter>(system)),
-      default_profile{QWebEngineProfile::defaultProfile()}, global_settings{
-                                                                default_profile->settings()} {
+      default_profile{QWebEngineProfile::defaultProfile()},
+      global_settings{default_profile->settings()} {
     default_profile->setPersistentStoragePath(QString::fromStdString(Common::FS::PathToUTF8String(
         Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir) / "qtwebengine")));
 
@@ -299,21 +299,21 @@ void QtNXWebEngineView::StartInputThread() {
         while (!stoken.stop_requested()) {
             input_interpreter->PollInput();
 
-            HandleWindowFooterButtonPressedOnce<Core::HID::NpadButton::A, Core::HID::NpadButton::B,
-                                                Core::HID::NpadButton::X, Core::HID::NpadButton::Y,
-                                                Core::HID::NpadButton::L, Core::HID::NpadButton::R>();
+            HandleWindowFooterButtonPressedOnce<
+                Core::HID::NpadButton::A, Core::HID::NpadButton::B, Core::HID::NpadButton::X,
+                Core::HID::NpadButton::Y, Core::HID::NpadButton::L, Core::HID::NpadButton::R>();
 
             HandleWindowKeyButtonPressedOnce<
-                Core::HID::NpadButton::Left, Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
-                Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
-                Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
-                Core::HID::NpadButton::StickLDown>();
+                Core::HID::NpadButton::Left, Core::HID::NpadButton::Up,
+                Core::HID::NpadButton::Right, Core::HID::NpadButton::Down,
+                Core::HID::NpadButton::StickLLeft, Core::HID::NpadButton::StickLUp,
+                Core::HID::NpadButton::StickLRight, Core::HID::NpadButton::StickLDown>();
 
             HandleWindowKeyButtonHold<
-                Core::HID::NpadButton::Left, Core::HID::NpadButton::Up, Core::HID::NpadButton::Right,
-                Core::HID::NpadButton::Down, Core::HID::NpadButton::StickLLeft,
-                Core::HID::NpadButton::StickLUp, Core::HID::NpadButton::StickLRight,
-                Core::HID::NpadButton::StickLDown>();
+                Core::HID::NpadButton::Left, Core::HID::NpadButton::Up,
+                Core::HID::NpadButton::Right, Core::HID::NpadButton::Down,
+                Core::HID::NpadButton::StickLLeft, Core::HID::NpadButton::StickLUp,
+                Core::HID::NpadButton::StickLRight, Core::HID::NpadButton::StickLDown>();
 
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }

@@ -14,12 +14,10 @@ class GameCard : public QStyledItemDelegate {
 public:
     explicit GameCard(QObject* parent = nullptr);
 
-    void paint(QPainter *painter,
-               const QStyleOptionViewItem &option,
-               const QModelIndex &index) const override;
+    void paint(QPainter* painter, const QStyleOptionViewItem& option,
+               const QModelIndex& index) const override;
 
-    QSize sizeHint(const QStyleOptionViewItem &option,
-                   const QModelIndex &index) const override;
+    QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
     void setSize(const QSize& newSize, const int padding);
 
 private:

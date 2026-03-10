@@ -39,12 +39,12 @@
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/core.h"
+#include "qt_common/config/uisettings.h"
+#include "qt_common/qt_common.h"
 #include "ui_configure_graphics.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
 #include "yuzu/configuration/shared_widget.h"
-#include "qt_common/qt_common.h"
-#include "qt_common/config/uisettings.h"
 #include "yuzu/vk_device_info.h"
 
 static const std::vector<VkPresentModeKHR> default_present_modes{VK_PRESENT_MODE_IMMEDIATE_KHR,
@@ -91,8 +91,7 @@ ConfigureGraphics::ConfigureGraphics(
     : ConfigurationShared::Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
       records{records_}, expose_compute_option{expose_compute_option_},
       update_aspect_ratio{update_aspect_ratio_}, system{system_},
-      combobox_translations{builder.ComboboxTranslations()}
-{
+      combobox_translations{builder.ComboboxTranslations()} {
     vulkan_device = Settings::values.vulkan_device.GetValue();
     RetrieveVulkanDevices();
 
@@ -215,9 +214,9 @@ void ConfigureGraphics::PopulateVSyncModeSelection(bool use_setting) {
 
         const Settings::VSyncMode global_vsync_mode = Settings::values.vsync_mode.GetValue(true);
         vsync_restore_global_button->setEnabled(
-            ((backend == Settings::RendererBackend::OpenGL_GLSL
-            || backend == Settings::RendererBackend::OpenGL_GLASM
-            || backend == Settings::RendererBackend::OpenGL_SPIRV) &&
+            ((backend == Settings::RendererBackend::OpenGL_GLSL ||
+              backend == Settings::RendererBackend::OpenGL_GLASM ||
+              backend == Settings::RendererBackend::OpenGL_SPIRV) &&
              (global_vsync_mode == Settings::VSyncMode::Immediate ||
               global_vsync_mode == Settings::VSyncMode::Fifo)) ||
             backend == Settings::RendererBackend::Vulkan);
@@ -286,7 +285,9 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             api_combobox = widget->combobox;
             api_restore_global_button = widget->restore_button;
             if (!Settings::IsConfiguringGlobal()) {
-                api_restore_global_button->connect(api_restore_global_button, &QAbstractButton::clicked, [this](bool) { UpdateAPILayout(); });
+                api_restore_global_button->connect(api_restore_global_button,
+                                                   &QAbstractButton::clicked,
+                                                   [this](bool) { UpdateAPILayout(); });
                 // Detach API's restore button and place it where we want
                 // Lets us put it on the side, and it will automatically scale if there's a
                 // second combobox (vulkan_device)
@@ -312,20 +313,21 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
                 widget->layout()->addWidget(restore_button);
 
                 restore_button->connect(restore_button, &QAbstractButton::clicked,
-                                 [restore_button, this](bool) {
-                                     Settings::values.vsync_mode.SetGlobal(true);
-                                     PopulateVSyncModeSelection(true);
+                                        [restore_button, this](bool) {
+                                            Settings::values.vsync_mode.SetGlobal(true);
+                                            PopulateVSyncModeSelection(true);
 
-                                     restore_button->setVisible(false);
-                                 });
+                                            restore_button->setVisible(false);
+                                        });
 
                 std::function<void()> set_non_global = [restore_button, this]() {
                     Settings::values.vsync_mode.SetGlobal(false);
                     UpdateVsyncSetting();
                     restore_button->setVisible(true);
                 };
-                widget->combobox->connect(widget->combobox, QOverload<int>::of(&QComboBox::activated),
-                                 [set_non_global]() { set_non_global(); });
+                widget->combobox->connect(widget->combobox,
+                                          QOverload<int>::of(&QComboBox::activated),
+                                          [set_non_global]() { set_non_global(); });
                 vsync_restore_global_button = restore_button;
             }
             hold_graphics.emplace(setting->Id(), widget);
@@ -364,15 +366,15 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
         ui->bg_widget->layout()->addWidget(bg_restore_button);
 
         bg_restore_button->connect(bg_restore_button, &QAbstractButton::clicked,
-                         [bg_restore_button, this](bool) {
-                             const int r = Settings::values.bg_red.GetValue(true);
-                             const int g = Settings::values.bg_green.GetValue(true);
-                             const int b = Settings::values.bg_blue.GetValue(true);
-                             UpdateBackgroundColorButton(QColor::fromRgb(r, g, b));
+                                   [bg_restore_button, this](bool) {
+                                       const int r = Settings::values.bg_red.GetValue(true);
+                                       const int g = Settings::values.bg_green.GetValue(true);
+                                       const int b = Settings::values.bg_blue.GetValue(true);
+                                       UpdateBackgroundColorButton(QColor::fromRgb(r, g, b));
 
-                             bg_restore_button->setVisible(false);
-                             bg_restore_button->setEnabled(false);
-                         });
+                                       bg_restore_button->setVisible(false);
+                                       bg_restore_button->setEnabled(false);
+                                   });
 
         ui->bg_button->connect(ui->bg_button, &QAbstractButton::clicked, [bg_restore_button](bool) {
             bg_restore_button->setVisible(true);
@@ -397,17 +399,19 @@ const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
                                                     Settings::RendererBackend backend) const {
     switch (mode) {
     case VK_PRESENT_MODE_IMMEDIATE_KHR:
-        return (backend == Settings::RendererBackend::OpenGL_GLSL
-            || backend == Settings::RendererBackend::OpenGL_GLASM
-            || backend == Settings::RendererBackend::OpenGL_SPIRV)
-            ? tr("Off") : QStringLiteral("Immediate (%1)").arg(tr("VSync Off"));
+        return (backend == Settings::RendererBackend::OpenGL_GLSL ||
+                backend == Settings::RendererBackend::OpenGL_GLASM ||
+                backend == Settings::RendererBackend::OpenGL_SPIRV)
+                   ? tr("Off")
+                   : QStringLiteral("Immediate (%1)").arg(tr("VSync Off"));
     case VK_PRESENT_MODE_MAILBOX_KHR:
         return QStringLiteral("Mailbox (%1)").arg(tr("Recommended"));
     case VK_PRESENT_MODE_FIFO_KHR:
-        return (backend == Settings::RendererBackend::OpenGL_GLSL
-            || backend == Settings::RendererBackend::OpenGL_GLASM
-            || backend == Settings::RendererBackend::OpenGL_SPIRV)
-            ? tr("On") : QStringLiteral("FIFO (%1)").arg(tr("VSync On"));
+        return (backend == Settings::RendererBackend::OpenGL_GLSL ||
+                backend == Settings::RendererBackend::OpenGL_GLASM ||
+                backend == Settings::RendererBackend::OpenGL_SPIRV)
+                   ? tr("On")
+                   : QStringLiteral("FIFO (%1)").arg(tr("VSync On"));
     case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
         return QStringLiteral("FIFO Relaxed");
     default:
@@ -416,7 +420,9 @@ const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
 }
 
 int ConfigureGraphics::FindIndex(u32 enumeration, int value) const {
-    for (u32 i = 0; enumeration < combobox_translations.size() && i < combobox_translations.at(enumeration).size(); i++)
+    for (u32 i = 0; enumeration < combobox_translations.size() &&
+                    i < combobox_translations.at(enumeration).size();
+         i++)
         if (combobox_translations.at(enumeration)[i].first == u32(value))
             return i;
     return -1;
@@ -432,10 +438,14 @@ void ConfigureGraphics::ApplyConfiguration() {
 
     Settings::values.vulkan_device.SetGlobal(true);
     auto const index = Settings::EnumMetadata<Settings::RendererBackend>::Index();
-    if (Settings::IsConfiguringGlobal() || (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
-        auto backend = index >= combobox_translations.size() || size_t(api_combobox->currentIndex()) >= combobox_translations.at(index).size()
-            ? Settings::values.renderer_backend.GetValue()
-            : Settings::RendererBackend(combobox_translations.at(index)[api_combobox->currentIndex()].first);
+    if (Settings::IsConfiguringGlobal() ||
+        (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
+        auto backend =
+            index >= combobox_translations.size() ||
+                    size_t(api_combobox->currentIndex()) >= combobox_translations.at(index).size()
+                ? Settings::values.renderer_backend.GetValue()
+                : Settings::RendererBackend(
+                      combobox_translations.at(index)[api_combobox->currentIndex()].first);
         switch (backend) {
         case Settings::RendererBackend::Vulkan:
             Settings::values.vulkan_device.SetGlobal(Settings::IsConfiguringGlobal());
@@ -506,12 +516,15 @@ Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
         auto const index = Settings::EnumMetadata<Settings::RendererBackend>::Index();
         if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled())
             return Settings::values.renderer_backend.GetValue(true);
-        return index >= combobox_translations.size() || size_t(api_combobox->currentIndex()) >= combobox_translations.at(index).size()
-            ? Settings::values.renderer_backend.GetValue()
-            : Settings::RendererBackend(combobox_translations.at(index).at(api_combobox->currentIndex()).first);
+        return index >= combobox_translations.size() || size_t(api_combobox->currentIndex()) >=
+                                                            combobox_translations.at(index).size()
+                   ? Settings::values.renderer_backend.GetValue()
+                   : Settings::RendererBackend(
+                         combobox_translations.at(index).at(api_combobox->currentIndex()).first);
     }();
 
-    if (selected_backend == Settings::RendererBackend::Vulkan && UISettings::values.has_broken_vulkan)
+    if (selected_backend == Settings::RendererBackend::Vulkan &&
+        UISettings::values.has_broken_vulkan)
         return Settings::RendererBackend::OpenGL_GLSL;
     return selected_backend;
 }
