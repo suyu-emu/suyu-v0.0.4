@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef QT_COMMON_H
@@ -14,11 +14,7 @@
 
 namespace QtCommon {
 
-#ifdef YUZU_QT_WIDGETS
 extern QWidget *rootObject;
-#else
-extern QObject *rootObject;
-#endif
 
 extern std::unique_ptr<Core::System> system;
 extern std::shared_ptr<FileSys::RealVfsFilesystem> vfs;
@@ -30,11 +26,7 @@ Core::Frontend::WindowSystemType GetWindowSystemType();
 
 Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow *window);
 
-#ifdef YUZU_QT_WIDGETS
 void Init(QWidget *root);
-#else
-void Init(QObject *root);
-#endif
 
 const QString tr(const char *str);
 const QString tr(const std::string &str);

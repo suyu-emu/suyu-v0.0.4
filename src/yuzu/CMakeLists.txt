@@ -244,6 +244,7 @@ add_executable(yuzu
     configuration/addon/mod_select_dialog.h configuration/addon/mod_select_dialog.cpp configuration/addon/mod_select_dialog.ui
 
     render/performance_overlay.h render/performance_overlay.cpp render/performance_overlay.ui
+    libqt_common.h libqt_common.cpp
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")

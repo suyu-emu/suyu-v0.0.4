@@ -3,18 +3,13 @@
 
 #include "qt_common.h"
 #include "common/fs/fs.h"
-#include "common/fs/ryujinx_compat.h"
 
 #include <QGuiApplication>
 #include <QStringLiteral>
 #include "common/logging/log.h"
 #include "core/frontend/emu_window.h"
-#include "qt_common/abstract/frontend.h"
-#include "qt_common/qt_string_lookup.h"
 
 #include <QFile>
-
-#include <QMessageBox>
 
 #include <JlCompress.h>
 
@@ -27,11 +22,7 @@
 
 namespace QtCommon {
 
-#ifdef YUZU_QT_WIDGETS
 QWidget* rootObject = nullptr;
-#else
-QObject* rootObject = nullptr;
-#endif
 
 std::unique_ptr<Core::System> system = nullptr;
 std::shared_ptr<FileSys::RealVfsFilesystem> vfs = nullptr;
@@ -118,11 +109,7 @@ const QString tr(const std::string& str)
     return QGuiApplication::tr(str.c_str());
 }
 
-#ifdef YUZU_QT_WIDGETS
 void Init(QWidget* root)
-#else
-void Init(QObject* root)
-#endif
 {
     system = std::make_unique<Core::System>();
     rootObject = root;

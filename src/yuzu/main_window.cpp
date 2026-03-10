@@ -1929,9 +1929,8 @@ bool MainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPar
 
     /** firmware check */
 
-    if (!QtCommon::Content::CheckGameFirmware(params.program_id, this)) {
+    if (!QtCommon::Content::CheckGameFirmware(params.program_id))
         return false;
-    }
 
     /** Exec */
     const Core::SystemResultStatus result{
