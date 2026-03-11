@@ -7,6 +7,7 @@ There are two main applications, an SDL2 based app (`eden-cli`) and a Qt based a
 - `-g <path>`: Alternate way to specify what to load, overrides. However let it be noted that arguments that use `-` will be treated as options/ignored, if your game, for some reason, starts with `-`, in order to safely handle it you may need to specify it as an argument.
 - `-f`: Use fullscreen.
 - `-u <number>`: Select the index of the user to load as.
+- `-input-profile <name>`: Specifies input profile name to use (for player #0 only).
 - `-qlaunch`: Launch QLaunch.
 - `-setup`: Launch setup applet.
 
@@ -20,3 +21,4 @@ There are two main applications, an SDL2 based app (`eden-cli`) and a Qt based a
 - `--program/-p`: Specify the program arguments to pass (optional).
 - `--user/-u`: Specify the user index.
 - `--version/-v`: Display version and quit.
+- `--input-profile/-i`: Specifies input profile name to use (for player #0 only).

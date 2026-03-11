@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
@@ -208,6 +208,7 @@ int main(int argc, char** argv) {
     std::string nickname{};
     std::string password{};
     std::string address{};
+    std::string input_profile{};
     u16 port = Network::DefaultRoomPort;
 
     static struct option long_options[] = {
@@ -221,12 +222,13 @@ int main(int argc, char** argv) {
         {"program", optional_argument, 0, 'p'},
         {"user", required_argument, 0, 'u'},
         {"version", no_argument, 0, 'v'},
+        {"input-profile", no_argument, 0, 'i'},
         {0, 0, 0, 0},
         // clang-format on
     };
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "g:fhvp::c:u:d:", long_options, &option_index);
+        int arg = getopt_long(argc, argv, "g:fhvcip::c:u:d:", long_options, &option_index);
         if (arg != -1) {
             switch (char(arg)) {
             case 'd':
@@ -245,6 +247,10 @@ int main(int argc, char** argv) {
             case 'g':
                 filepath = std::string(optarg);
                 break;
+            case 'i': {
+                input_profile = std::string(optarg);
+                break;
+            }
             case 'm': {
                 use_multiplayer = true;
                 const std::string str_arg(optarg);
@@ -309,6 +315,11 @@ int main(int argc, char** argv) {
 
     if (!program_args.empty()) {
         Settings::values.program_args = program_args;
+    }
+
+    if (!input_profile.empty()) {
+        auto& players = Settings::values.players.GetValue();
+        players[0].profile_name = input_profile;
     }
 
     if (selected_user.has_value()) {

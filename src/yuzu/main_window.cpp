@@ -670,6 +670,9 @@ MainWindow::MainWindow(bool has_broken_vulkan)
             // Launch game at path
             game_path = args[++i];
             has_gamepath = true;
+        } else if (args[i] == QStringLiteral("-input-profile") && i < args.size() - 1) {
+            auto& players = Settings::values.players.GetValue();
+            players[0].profile_name = args[++i].toStdString();
         } else if (args[i] == QStringLiteral("-qlaunch")) {
             should_launch_qlaunch = true;
         } else if (args[i] == QStringLiteral("-setup")) {
