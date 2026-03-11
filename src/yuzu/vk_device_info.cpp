@@ -77,4 +77,5 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
 } catch (const Vulkan::vk::Exception& exception) {
     LOG_ERROR(Frontend, "Failed to enumerate devices with error: {}", exception.what());
 }
+
 } // namespace VkDeviceInfo

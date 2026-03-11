@@ -70,8 +70,8 @@ These options control executables and build flavors.
 
 The following options are desktop only.
 
-- `ENABLE_LIBUSB` (ON) Enable the use of the libusb input frontend (HIGHLY RECOMMENDED)
-- `ENABLE_OPENGL` (ON) Enable the OpenGL graphics frontend
+- `ENABLE_LIBUSB` (ON) Enable the use of the libusb input backend (HIGHLY RECOMMENDED)
+- `ENABLE_OPENGL` (ON) Enable the OpenGL graphics backend
   - Unavailable on Windows/ARM64
   - You probably shouldn't turn this off.
 

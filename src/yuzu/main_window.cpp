@@ -3784,14 +3784,30 @@ void MainWindow::OnToggleAdaptingFilter() {
 
 void MainWindow::OnToggleGraphicsAPI() {
     auto api = Settings::values.renderer_backend.GetValue();
-    if (api != Settings::RendererBackend::Vulkan) {
-        api = Settings::RendererBackend::Vulkan;
-    } else {
+    switch (api) {
 #ifdef HAS_OPENGL
+    case Settings::RendererBackend::Vulkan:
         api = Settings::RendererBackend::OpenGL_GLSL;
-#else
+        break;
+    case Settings::RendererBackend::OpenGL_GLSL:
+        api = Settings::RendererBackend::OpenGL_GLSL;
+        break;
+    case Settings::RendererBackend::OpenGL_SPIRV:
+        api = Settings::RendererBackend::OpenGL_GLASM;
+        break;
+    case Settings::RendererBackend::OpenGL_GLASM:
         api = Settings::RendererBackend::Null;
+        break;
+#else
+    case Settings::RendererBackend::Vulkan:
+        api = Settings::RendererBackend::Null;
+        break;
 #endif
+    case Settings::RendererBackend::Null:
+        api = Settings::RendererBackend::Vulkan;
+        break;
+    default:
+        break;
     }
     Settings::values.renderer_backend.SetValue(api);
     renderer_status_button->setChecked(api == Settings::RendererBackend::Vulkan);

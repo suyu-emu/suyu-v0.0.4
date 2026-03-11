@@ -1,6 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// Don't move this! put it below and MSVC will get angry!
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 #ifdef _WIN32

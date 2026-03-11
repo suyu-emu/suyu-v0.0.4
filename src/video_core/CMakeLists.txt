@@ -111,64 +111,14 @@ add_library(video_core STATIC
     rasterizer_interface.h
     renderer_base.cpp
     renderer_base.h
+
+    # Null
     renderer_null/null_rasterizer.cpp
     renderer_null/null_rasterizer.h
     renderer_null/renderer_null.cpp
     renderer_null/renderer_null.h
-    renderer_opengl/present/filters.cpp
-    renderer_opengl/present/filters.h
-    renderer_opengl/present/fsr.cpp
-    renderer_opengl/present/fsr.h
-    renderer_opengl/present/fxaa.cpp
-    renderer_opengl/present/fxaa.h
-    renderer_opengl/present/layer.cpp
-    renderer_opengl/present/layer.h
-    renderer_opengl/present/present_uniforms.h
-    renderer_opengl/present/smaa.cpp
-    renderer_opengl/present/smaa.h
-    renderer_opengl/present/util.h
-    renderer_opengl/present/window_adapt_pass.cpp
-    renderer_opengl/present/window_adapt_pass.h
-    renderer_opengl/blit_image.cpp
-    renderer_opengl/blit_image.h
-    renderer_opengl/gl_blit_screen.cpp
-    renderer_opengl/gl_blit_screen.h
-    renderer_opengl/gl_buffer_cache_base.cpp
-    renderer_opengl/gl_buffer_cache.cpp
-    renderer_opengl/gl_buffer_cache.h
-    renderer_opengl/gl_compute_pipeline.cpp
-    renderer_opengl/gl_compute_pipeline.h
-    renderer_opengl/gl_device.cpp
-    renderer_opengl/gl_device.h
-    renderer_opengl/gl_fence_manager.cpp
-    renderer_opengl/gl_fence_manager.h
-    renderer_opengl/gl_graphics_pipeline.cpp
-    renderer_opengl/gl_graphics_pipeline.h
-    renderer_opengl/gl_rasterizer.cpp
-    renderer_opengl/gl_rasterizer.h
-    renderer_opengl/gl_resource_manager.cpp
-    renderer_opengl/gl_resource_manager.h
-    renderer_opengl/gl_shader_cache.cpp
-    renderer_opengl/gl_shader_cache.h
-    renderer_opengl/gl_shader_manager.cpp
-    renderer_opengl/gl_shader_manager.h
-    renderer_opengl/gl_shader_context.h
-    renderer_opengl/gl_shader_util.cpp
-    renderer_opengl/gl_shader_util.h
-    renderer_opengl/gl_state_tracker.cpp
-    renderer_opengl/gl_state_tracker.h
-    renderer_opengl/gl_staging_buffer_pool.cpp
-    renderer_opengl/gl_staging_buffer_pool.h
-    renderer_opengl/gl_texture_cache.cpp
-    renderer_opengl/gl_texture_cache.h
-    renderer_opengl/gl_texture_cache_base.cpp
-    renderer_opengl/gl_query_cache.cpp
-    renderer_opengl/gl_query_cache.h
-    renderer_opengl/maxwell_to_gl.h
-    renderer_opengl/renderer_opengl.cpp
-    renderer_opengl/renderer_opengl.h
-    renderer_opengl/util_shaders.cpp
-    renderer_opengl/util_shaders.h
+
+    # Vulkan
     renderer_vulkan/present/anti_alias_pass.h
     renderer_vulkan/present/filters.cpp
     renderer_vulkan/present/filters.h
@@ -244,6 +194,25 @@ add_library(video_core STATIC
     renderer_vulkan/vk_turbo_mode.h
     renderer_vulkan/vk_update_descriptor.cpp
     renderer_vulkan/vk_update_descriptor.h
+    vulkan_common/vulkan_debug_callback.cpp
+    vulkan_common/vulkan_debug_callback.h
+    vulkan_common/vulkan_device.cpp
+    vulkan_common/vulkan_device.h
+    vulkan_common/vulkan_instance.cpp
+    vulkan_common/vulkan_instance.h
+    vulkan_common/vulkan_library.cpp
+    vulkan_common/vulkan_library.h
+    vulkan_common/vulkan_memory_allocator.cpp
+    vulkan_common/vulkan_memory_allocator.h
+    vulkan_common/vulkan_surface.cpp
+    vulkan_common/vulkan_surface.h
+    vulkan_common/vulkan_wrapper.cpp
+    vulkan_common/vulkan_wrapper.h
+    vulkan_common/nsight_aftermath_tracker.cpp
+    vulkan_common/nsight_aftermath_tracker.h
+    vulkan_common/vma.h
+    vulkan_common/vulkan.h
+
     shader_cache.cpp
     shader_cache.h
     shader_environment.cpp
@@ -293,25 +262,66 @@ add_library(video_core STATIC
     transform_feedback.h
     video_core.cpp
     video_core.h
-    vulkan_common/vulkan_debug_callback.cpp
-    vulkan_common/vulkan_debug_callback.h
-    vulkan_common/vulkan_device.cpp
-    vulkan_common/vulkan_device.h
-    vulkan_common/vulkan_instance.cpp
-    vulkan_common/vulkan_instance.h
-    vulkan_common/vulkan_library.cpp
-    vulkan_common/vulkan_library.h
-    vulkan_common/vulkan_memory_allocator.cpp
-    vulkan_common/vulkan_memory_allocator.h
-    vulkan_common/vulkan_surface.cpp
-    vulkan_common/vulkan_surface.h
-    vulkan_common/vulkan_wrapper.cpp
-    vulkan_common/vulkan_wrapper.h
-    vulkan_common/nsight_aftermath_tracker.cpp
-    vulkan_common/nsight_aftermath_tracker.h
-    vulkan_common/vma.h
-    vulkan_common/vulkan.h
 )
+
+if (ENABLE_OPENGL)
+    target_sources(video_core PRIVATE
+        renderer_opengl/present/filters.cpp
+        renderer_opengl/present/filters.h
+        renderer_opengl/present/fsr.cpp
+        renderer_opengl/present/fsr.h
+        renderer_opengl/present/fxaa.cpp
+        renderer_opengl/present/fxaa.h
+        renderer_opengl/present/layer.cpp
+        renderer_opengl/present/layer.h
+        renderer_opengl/present/present_uniforms.h
+        renderer_opengl/present/smaa.cpp
+        renderer_opengl/present/smaa.h
+        renderer_opengl/present/util.h
+        renderer_opengl/present/window_adapt_pass.cpp
+        renderer_opengl/present/window_adapt_pass.h
+        renderer_opengl/blit_image.cpp
+        renderer_opengl/blit_image.h
+        renderer_opengl/gl_blit_screen.cpp
+        renderer_opengl/gl_blit_screen.h
+        renderer_opengl/gl_buffer_cache_base.cpp
+        renderer_opengl/gl_buffer_cache.cpp
+        renderer_opengl/gl_buffer_cache.h
+        renderer_opengl/gl_compute_pipeline.cpp
+        renderer_opengl/gl_compute_pipeline.h
+        renderer_opengl/gl_device.cpp
+        renderer_opengl/gl_device.h
+        renderer_opengl/gl_fence_manager.cpp
+        renderer_opengl/gl_fence_manager.h
+        renderer_opengl/gl_graphics_pipeline.cpp
+        renderer_opengl/gl_graphics_pipeline.h
+        renderer_opengl/gl_rasterizer.cpp
+        renderer_opengl/gl_rasterizer.h
+        renderer_opengl/gl_resource_manager.cpp
+        renderer_opengl/gl_resource_manager.h
+        renderer_opengl/gl_shader_cache.cpp
+        renderer_opengl/gl_shader_cache.h
+        renderer_opengl/gl_shader_manager.cpp
+        renderer_opengl/gl_shader_manager.h
+        renderer_opengl/gl_shader_context.h
+        renderer_opengl/gl_shader_util.cpp
+        renderer_opengl/gl_shader_util.h
+        renderer_opengl/gl_state_tracker.cpp
+        renderer_opengl/gl_state_tracker.h
+        renderer_opengl/gl_staging_buffer_pool.cpp
+        renderer_opengl/gl_staging_buffer_pool.h
+        renderer_opengl/gl_texture_cache.cpp
+        renderer_opengl/gl_texture_cache.h
+        renderer_opengl/gl_texture_cache_base.cpp
+        renderer_opengl/gl_query_cache.cpp
+        renderer_opengl/gl_query_cache.h
+        renderer_opengl/maxwell_to_gl.h
+        renderer_opengl/renderer_opengl.cpp
+        renderer_opengl/renderer_opengl.h
+        renderer_opengl/util_shaders.cpp
+        renderer_opengl/util_shaders.h
+    )
+endif()
 
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PUBLIC glad shader_recompiler stb bc_decoder gpu_logging)
@@ -369,6 +379,10 @@ else()
     if (CXX_GCC AND CMAKE_BUILD_TYPE MATCHES "Debug")
         set_source_files_properties(host1x/vic.cpp PROPERTIES COMPILE_OPTIONS "-O2")
     endif()
+endif()
+
+if (ENABLE_OPENGL)
+    target_compile_definitions(video_core PUBLIC HAS_OPENGL)
 endif()
 
 if (ARCHITECTURE_x86_64)

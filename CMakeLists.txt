@@ -196,7 +196,7 @@ option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${BUNDLED_SIRIT_DEFAULT})
 # FreeBSD 15+ has libusb, versions below should disable it
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "WIN32 OR PLATFORM_LINUX OR PLATFORM_FREEBSD OR APPLE" OFF)
 
-cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT WIN32 OR NOT ARCHITECTURE_arm64" OFF)
+cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT (WIN32 AND ARCHITECTURE_arm64) AND NOT APPLE" OFF)
 mark_as_advanced(FORCE ENABLE_OPENGL)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)

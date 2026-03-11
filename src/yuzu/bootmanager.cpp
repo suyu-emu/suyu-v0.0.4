@@ -1020,8 +1020,7 @@ bool GRenderWindow::InitializeOpenGL() {
 
     return true;
 #else
-    QMessageBox::warning(this, tr("OpenGL not available!"),
-                         tr("Eden has not been compiled with OpenGL support."));
+    QMessageBox::warning(this, tr("OpenGL not available!"), tr("Eden has not been compiled with OpenGL support."));
     return false;
 #endif
 }
@@ -1031,7 +1030,6 @@ bool GRenderWindow::InitializeVulkan() {
     child_widget = child;
     child_widget->windowHandle()->create();
     main_context = std::make_unique<DummyContext>();
-
     return true;
 }
 
