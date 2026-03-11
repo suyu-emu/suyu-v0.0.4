@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -14,23 +14,23 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.InstallableAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentInstallablesBinding
+import org.yuzu.yuzu_emu.model.AddonViewModel
+import org.yuzu.yuzu_emu.model.DriverViewModel
+import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.Installable
 import org.yuzu.yuzu_emu.model.TaskState
-import org.yuzu.yuzu_emu.ui.main.MainActivity
-import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FileUtil
+import org.yuzu.yuzu_emu.utils.InstallableActions
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.collect
@@ -45,6 +45,9 @@ class InstallableFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val homeViewModel: HomeViewModel by activityViewModels()
+    private val gamesViewModel: GamesViewModel by activityViewModels()
+    private val addonViewModel: AddonViewModel by activityViewModels()
+    private val driverViewModel: DriverViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,12 +68,10 @@ class InstallableFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val mainActivity = requireActivity() as MainActivity
-
         homeViewModel.setStatusBarShadeVisibility(visible = false)
 
         binding.toolbarInstallables.setNavigationOnClickListener {
-            binding.root.findNavController().popBackStack()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         homeViewModel.openImportSaves.collect(viewLifecycleOwner) {
@@ -84,8 +85,8 @@ class InstallableFragment : Fragment() {
             Installable(
                 R.string.user_data,
                 R.string.user_data_description,
-                install = { mainActivity.importUserData.launch(arrayOf("application/zip")) },
-                export = { mainActivity.exportUserData.launch("export.zip") }
+                install = { importUserDataLauncher.launch(arrayOf("application/zip")) },
+                export = { exportUserDataLauncher.launch("export.zip") }
             ),
             Installable(
                 R.string.manage_save_data,
@@ -127,27 +128,33 @@ class InstallableFragment : Fragment() {
             Installable(
                 R.string.install_game_content,
                 R.string.install_game_content_description,
-                install = { mainActivity.installGameUpdate.launch(arrayOf("*/*")) }
+                install = { installGameUpdateLauncher.launch(arrayOf("*/*")) }
             ),
             Installable(
                 R.string.install_firmware,
                 R.string.install_firmware_description,
-                install = { mainActivity.getFirmware.launch(arrayOf("application/zip")) }
+                install = { getFirmwareLauncher.launch(arrayOf("application/zip")) }
             ),
             Installable(
                 R.string.uninstall_firmware,
                 R.string.uninstall_firmware_description,
-                install = { mainActivity.uninstallFirmware() }
+                install = {
+                    InstallableActions.uninstallFirmware(
+                        activity = requireActivity(),
+                        fragmentManager = parentFragmentManager,
+                        homeViewModel = homeViewModel
+                    )
+                }
             ),
             Installable(
                 R.string.install_prod_keys,
                 R.string.install_prod_keys_description,
-                install = { mainActivity.getProdKey.launch(arrayOf("*/*")) }
+                install = { getProdKeyLauncher.launch(arrayOf("*/*")) }
             ),
             Installable(
                 R.string.install_amiibo_keys,
                 R.string.install_amiibo_keys_description,
-                install = { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) }
+                install = { getAmiiboKeyLauncher.launch(arrayOf("*/*")) }
             )
         )
 
@@ -178,6 +185,132 @@ class InstallableFragment : Fragment() {
             binding.listInstallables.updatePadding(bottom = barInsets.bottom)
 
             windowInsets
+        }
+
+    private val getProdKeyLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result != null) {
+                InstallableActions.processKey(
+                    activity = requireActivity(),
+                    fragmentManager = parentFragmentManager,
+                    gamesViewModel = gamesViewModel,
+                    result = result,
+                    extension = "keys"
+                )
+            }
+        }
+
+    private val getAmiiboKeyLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result != null) {
+                InstallableActions.processKey(
+                    activity = requireActivity(),
+                    fragmentManager = parentFragmentManager,
+                    gamesViewModel = gamesViewModel,
+                    result = result,
+                    extension = "bin"
+                )
+            }
+        }
+
+    private val getFirmwareLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result != null) {
+                InstallableActions.processFirmware(
+                    activity = requireActivity(),
+                    fragmentManager = parentFragmentManager,
+                    homeViewModel = homeViewModel,
+                    result = result
+                )
+            }
+        }
+
+    private val installGameUpdateLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { documents ->
+            if (documents.isEmpty()) {
+                return@registerForActivityResult
+            }
+
+            if (addonViewModel.game == null) {
+                InstallableActions.installContent(
+                    activity = requireActivity(),
+                    fragmentManager = parentFragmentManager,
+                    addonViewModel = addonViewModel,
+                    documents = documents
+                )
+                return@registerForActivityResult
+            }
+
+            ProgressDialogFragment.newInstance(
+                requireActivity(),
+                R.string.verifying_content,
+                false
+            ) { _, _ ->
+                var updatesMatchProgram = true
+                for (document in documents) {
+                    val valid = NativeLibrary.doesUpdateMatchProgram(
+                        addonViewModel.game!!.programId,
+                        document.toString()
+                    )
+                    if (!valid) {
+                        updatesMatchProgram = false
+                        break
+                    }
+                }
+
+                if (updatesMatchProgram) {
+                    requireActivity().runOnUiThread {
+                        InstallableActions.installContent(
+                            activity = requireActivity(),
+                            fragmentManager = parentFragmentManager,
+                            addonViewModel = addonViewModel,
+                            documents = documents
+                        )
+                    }
+                } else {
+                    requireActivity().runOnUiThread {
+                        MessageDialogFragment.newInstance(
+                            requireActivity(),
+                            titleId = R.string.content_install_notice,
+                            descriptionId = R.string.content_install_notice_description,
+                            positiveAction = {
+                                InstallableActions.installContent(
+                                    activity = requireActivity(),
+                                    fragmentManager = parentFragmentManager,
+                                    addonViewModel = addonViewModel,
+                                    documents = documents
+                                )
+                            },
+                            negativeAction = {}
+                        ).show(parentFragmentManager, MessageDialogFragment.TAG)
+                    }
+                }
+                return@newInstance Any()
+            }.show(parentFragmentManager, ProgressDialogFragment.TAG)
+        }
+
+    private val importUserDataLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result != null) {
+                InstallableActions.importUserData(
+                    activity = requireActivity(),
+                    fragmentManager = parentFragmentManager,
+                    gamesViewModel = gamesViewModel,
+                    driverViewModel = driverViewModel,
+                    result = result
+                )
+            }
+        }
+
+    private val exportUserDataLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { result ->
+            if (result != null) {
+                InstallableActions.exportUserData(
+                    activity = requireActivity(),
+                    fragmentManager = parentFragmentManager,
+                    result = result
+                )
+            }
         }
 
     private val importSaves =

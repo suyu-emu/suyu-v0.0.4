@@ -36,6 +36,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.features.fetcher.SpacingItemDecoration
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -126,8 +127,11 @@ class HomeSettingsFragment : Fragment() {
                     R.string.profile_manager_description,
                     R.drawable.ic_account_circle,
                     {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_profileManagerFragment)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.PROFILE_MANAGER,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
                     }
                 )
             )
@@ -137,8 +141,10 @@ class HomeSettingsFragment : Fragment() {
                     R.string.install_gpu_driver_description,
                     R.drawable.ic_build,
                     {
-                        val action = HomeSettingsFragmentDirections
-                            .actionHomeSettingsFragmentToDriverManagerFragment(null)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.DRIVER_MANAGER,
+                            null
+                        )
                         binding.root.findNavController().navigate(action)
                     },
                     { true },
@@ -154,7 +160,12 @@ class HomeSettingsFragment : Fragment() {
                         R.string.gpu_driver_settings,
                         R.drawable.ic_graphics,
                         {
-                            binding.root.findNavController().navigate(R.id.freedrenoSettingsFragment)
+                            val action =
+                                HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                                    SettingsSubscreen.FREEDRENO_SETTINGS,
+                                    null
+                                )
+                            binding.root.findNavController().navigate(action)
                         }
                     )
                 )
@@ -175,8 +186,11 @@ class HomeSettingsFragment : Fragment() {
                     R.string.applets_description,
                     R.drawable.ic_applet,
                     {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_appletLauncherFragment)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.APPLET_LAUNCHER,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
                     },
                     { NativeLibrary.isFirmwareAvailable() },
                     R.string.applets_error_firmware,
@@ -189,8 +203,11 @@ class HomeSettingsFragment : Fragment() {
                     R.string.manage_yuzu_data_description,
                     R.drawable.ic_install,
                     {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_installableFragment)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.INSTALLABLE,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
                     }
                 )
             )
@@ -200,8 +217,11 @@ class HomeSettingsFragment : Fragment() {
                     R.string.select_games_folder_description,
                     R.drawable.ic_add,
                     {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_gameFoldersFragment)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.GAME_FOLDERS,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
                     }
                 )
             )
@@ -284,9 +304,11 @@ class HomeSettingsFragment : Fragment() {
                     R.string.about_description,
                     R.drawable.ic_info_outline,
                     {
-                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
-                        parentFragmentManager.primaryNavigationFragment?.findNavController()
-                            ?.navigate(R.id.action_homeSettingsFragment_to_aboutFragment)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.ABOUT,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
                     }
                 )
             )

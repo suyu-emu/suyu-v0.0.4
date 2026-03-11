@@ -51,7 +51,7 @@ class ProfileManagerFragment : Fragment() {
         homeViewModel.setStatusBarShadeVisibility(visible = false)
 
         binding.toolbarProfiles.setNavigationOnClickListener {
-            findNavController().popBackStack()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         setupRecyclerView()

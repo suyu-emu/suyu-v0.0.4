@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -19,6 +19,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
+import org.yuzu.yuzu_emu.HomeNavigationDirections
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,6 +28,7 @@ import org.yuzu.yuzu_emu.adapters.DriverAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentDriverManagerBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen
 import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -105,7 +107,7 @@ class DriverManagerFragment : Fragment() {
         }
 
         binding.toolbarDrivers.setNavigationOnClickListener {
-            binding.root.findNavController().popBackStack()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         binding.buttonInstall.setOnClickListener {
@@ -113,9 +115,11 @@ class DriverManagerFragment : Fragment() {
         }
 
         binding.buttonFetch.setOnClickListener {
-            binding.root.findNavController().navigate(
-                R.id.action_driverManagerFragment_to_driverFetcherFragment
+            val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                SettingsSubscreen.DRIVER_FETCHER,
+                null
             )
+            binding.root.findNavController().navigate(action)
         }
 
         binding.listDrivers.apply {

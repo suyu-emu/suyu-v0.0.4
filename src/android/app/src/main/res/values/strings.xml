@@ -400,7 +400,7 @@
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="about_app_description">An open-source Switch emulator</string>
     <string name="contributors">Contributors</string>
-    <string name="contributors_description">Contributors who made Eden for Android possible</string>
+    <string name="contributors_description">People who made Eden for Android possible</string>
     <string name="contributors_link" translatable="false">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Projects that make Eden for Android possible</string>
     <string name="build">Build</string>

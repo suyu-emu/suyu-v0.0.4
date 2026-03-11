@@ -20,26 +20,7 @@
     <fragment
         android:id="@+id/homeSettingsFragment"
         android:name="org.yuzu.yuzu_emu.fragments.HomeSettingsFragment"
-        android:label="HomeSettingsFragment" >
-        <action
-            android:id="@+id/action_homeSettingsFragment_to_aboutFragment"
-            app:destination="@id/aboutFragment" />
-        <action
-            android:id="@+id/action_homeSettingsFragment_to_installableFragment"
-            app:destination="@id/installableFragment" />
-        <action
-            android:id="@+id/action_homeSettingsFragment_to_driverManagerFragment"
-            app:destination="@id/driverManagerFragment" />
-        <action
-            android:id="@+id/action_homeSettingsFragment_to_appletLauncherFragment"
-            app:destination="@id/appletLauncherFragment" />
-        <action
-            android:id="@+id/action_homeSettingsFragment_to_gameFoldersFragment"
-            app:destination="@id/gameFoldersFragment" />
-        <action
-            android:id="@+id/action_homeSettingsFragment_to_profileManagerFragment"
-            app:destination="@id/profileManagerFragment" />
-    </fragment>
+        android:label="HomeSettingsFragment" />
 
     <fragment
         android:id="@+id/firstTimeSetupFragment"
@@ -55,11 +36,7 @@
     <fragment
         android:id="@+id/aboutFragment"
         android:name="org.yuzu.yuzu_emu.fragments.AboutFragment"
-        android:label="AboutFragment" >
-        <action
-            android:id="@+id/action_aboutFragment_to_licensesFragment"
-            app:destination="@id/licensesFragment" />
-    </fragment>
+        android:label="AboutFragment" />
 
     <fragment
         android:id="@+id/licensesFragment"
@@ -101,11 +78,23 @@
 
     <action
         android:id="@+id/action_global_settingsActivity"
-        app:destination="@id/settingsActivity"
-        app:enterAnim="@anim/nav_default_enter_anim"
-        app:exitAnim="@anim/nav_default_exit_anim"
-        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        app:destination="@id/settingsActivity" />
+    <activity
+        android:id="@+id/settingsSubscreenActivity"
+        android:name="org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreenActivity"
+        android:label="SettingsSubscreenActivity">
+        <argument
+            android:name="destination"
+            app:argType="org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen" />
+        <argument
+            android:name="game"
+            app:argType="org.yuzu.yuzu_emu.model.Game"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </activity>
+    <action
+        android:id="@+id/action_global_settingsSubscreenActivity"
+        app:destination="@id/settingsSubscreenActivity" />
     <fragment
         android:id="@+id/installableFragment"
         android:name="org.yuzu.yuzu_emu.fragments.InstallableFragment"
@@ -119,9 +108,6 @@
             app:argType="org.yuzu.yuzu_emu.model.Game"
             app:nullable="true"
             android:defaultValue="@null" />
-        <action
-            android:id="@+id/action_driverManagerFragment_to_driverFetcherFragment"
-            app:destination="@id/driverFetcherFragment" />
     </fragment>
     <fragment
         android:id="@+id/appletLauncherFragment"

@@ -15,7 +15,6 @@ import androidx.core.view.updatePadding
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
@@ -61,7 +60,7 @@ class AddonsFragment : Fragment() {
         homeViewModel.setStatusBarShadeVisibility(false)
 
         binding.toolbarAddons.setNavigationOnClickListener {
-            binding.root.findNavController().popBackStack()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         binding.toolbarAddons.title = getString(R.string.addons_game, args.game.title)

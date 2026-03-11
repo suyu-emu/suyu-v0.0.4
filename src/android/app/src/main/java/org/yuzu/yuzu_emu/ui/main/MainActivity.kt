@@ -26,7 +26,6 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
-import java.io.FilenameFilter
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
@@ -39,16 +38,10 @@ import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
-import org.yuzu.yuzu_emu.model.InstallResult
 import android.os.Build
-import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.model.TaskViewModel
 import org.yuzu.yuzu_emu.utils.*
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
-import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 import androidx.core.content.edit
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import kotlin.text.compareTo
@@ -453,35 +446,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     }
 
     fun processKey(result: Uri, extension: String = "keys") {
-        contentResolver.takePersistableUriPermission(
-            result,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        InstallableActions.processKey(
+            activity = this,
+            fragmentManager = supportFragmentManager,
+            gamesViewModel = gamesViewModel,
+            result = result,
+            extension = extension
         )
-
-        val resultCode: Int = NativeLibrary.installKeys(result.toString(), extension)
-
-        if (resultCode == 0) {
-            // TODO(crueter): It may be worth it to switch some of these Toasts to snackbars,
-            // since most of it is foreground-only anyways.
-            Toast.makeText(
-                applicationContext,
-                R.string.keys_install_success,
-                Toast.LENGTH_SHORT
-            ).show()
-
-            gamesViewModel.reloadGames(true)
-
-            return
-        }
-
-        val resultString: String =
-            resources.getStringArray(R.array.installKeysResults)[resultCode]
-
-        MessageDialogFragment.newInstance(
-            titleId = R.string.keys_failed,
-            descriptionString = resultString,
-            helpLinkId = R.string.keys_missing_help
-        ).show(supportFragmentManager, MessageDialogFragment.TAG)
     }
 
     val getFirmware = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
@@ -491,75 +462,21 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     }
 
     fun processFirmware(result: Uri, onComplete: (() -> Unit)? = null) {
-        val filterNCA = FilenameFilter { _, dirName -> dirName.endsWith(".nca") }
-
-        val firmwarePath =
-            File(NativeConfig.getNandDir() + "/system/Contents/registered/")
-        val cacheFirmwareDir = File("${cacheDir.path}/registered/")
-
-        ProgressDialogFragment.newInstance(
-            this,
-            R.string.firmware_installing
-        ) { progressCallback, _ ->
-            var messageToShow: Any
-            try {
-                FileUtil.unzipToInternalStorage(
-                    result.toString(),
-                    cacheFirmwareDir,
-                    progressCallback
-                )
-                val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
-                val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
-                messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
-                    MessageDialogFragment.newInstance(
-                        this,
-                        titleId = R.string.firmware_installed_failure,
-                        descriptionId = R.string.firmware_installed_failure_description
-                    )
-                } else {
-                    firmwarePath.deleteRecursively()
-                    cacheFirmwareDir.copyRecursively(firmwarePath, true)
-                    NativeLibrary.initializeSystem(true)
-                    homeViewModel.setCheckKeys(true)
-                    getString(R.string.save_file_imported_success)
-                }
-            } catch (e: Exception) {
-                Log.error("[MainActivity] Firmware install failed - ${e.message}")
-                messageToShow = getString(R.string.fatal_error)
-            } finally {
-                cacheFirmwareDir.deleteRecursively()
-            }
-            messageToShow
-        }.apply {
-            onDialogComplete = onComplete
-        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
+        InstallableActions.processFirmware(
+            activity = this,
+            fragmentManager = supportFragmentManager,
+            homeViewModel = homeViewModel,
+            result = result,
+            onComplete = onComplete
+        )
     }
 
     fun uninstallFirmware() {
-        val firmwarePath =
-            File(NativeConfig.getNandDir() + "/system/Contents/registered/")
-        ProgressDialogFragment.newInstance(
-            this,
-            R.string.firmware_uninstalling
-        ) { progressCallback, _ ->
-            var messageToShow: Any
-            try {
-                // Ensure the firmware directory exists before attempting to delete
-                if (firmwarePath.exists()) {
-                    firmwarePath.deleteRecursively()
-                    // Optionally reinitialize the system or perform other necessary steps
-                    NativeLibrary.initializeSystem(true)
-                    homeViewModel.setCheckKeys(true)
-                    messageToShow = getString(R.string.firmware_uninstalled_success)
-                } else {
-                    messageToShow = getString(R.string.firmware_uninstalled_failure)
-                }
-            } catch (e: Exception) {
-                Log.error("[MainActivity] Firmware uninstall failed - ${e.message}")
-                messageToShow = getString(R.string.fatal_error)
-            }
-            messageToShow
-        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
+        InstallableActions.uninstallFirmware(
+            activity = this,
+            fragmentManager = supportFragmentManager,
+            homeViewModel = homeViewModel
+        )
     }
 
     val installGameUpdate = registerForActivityResult(
@@ -606,101 +523,12 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     }
 
     private fun installContent(documents: List<Uri>) {
-        ProgressDialogFragment.newInstance(
-            this@MainActivity,
-            R.string.installing_game_content
-        ) { progressCallback, messageCallback ->
-            var installSuccess = 0
-            var installOverwrite = 0
-            var errorBaseGame = 0
-            var error = 0
-            documents.forEach {
-                messageCallback.invoke(FileUtil.getFilename(it))
-                when (
-                    InstallResult.from(
-                        NativeLibrary.installFileToNand(
-                            it.toString(),
-                            progressCallback
-                        )
-                    )
-                ) {
-                    InstallResult.Success -> {
-                        installSuccess += 1
-                    }
-
-                    InstallResult.Overwrite -> {
-                        installOverwrite += 1
-                    }
-
-                    InstallResult.BaseInstallAttempted -> {
-                        errorBaseGame += 1
-                    }
-
-                    InstallResult.Failure -> {
-                        error += 1
-                    }
-                }
-            }
-
-            addonViewModel.refreshAddons(force = true)
-
-            val separator = System.lineSeparator() ?: "\n"
-            val installResult = StringBuilder()
-            if (installSuccess > 0) {
-                installResult.append(
-                    getString(
-                        R.string.install_game_content_success_install,
-                        installSuccess
-                    )
-                )
-                installResult.append(separator)
-            }
-            if (installOverwrite > 0) {
-                installResult.append(
-                    getString(
-                        R.string.install_game_content_success_overwrite,
-                        installOverwrite
-                    )
-                )
-                installResult.append(separator)
-            }
-            val errorTotal: Int = errorBaseGame + error
-            if (errorTotal > 0) {
-                installResult.append(separator)
-                installResult.append(
-                    getString(
-                        R.string.install_game_content_failed_count,
-                        errorTotal
-                    )
-                )
-                installResult.append(separator)
-                if (errorBaseGame > 0) {
-                    installResult.append(separator)
-                    installResult.append(
-                        getString(R.string.install_game_content_failure_base)
-                    )
-                    installResult.append(separator)
-                }
-                if (error > 0) {
-                    installResult.append(
-                        getString(R.string.install_game_content_failure_description)
-                    )
-                    installResult.append(separator)
-                }
-                return@newInstance MessageDialogFragment.newInstance(
-                    this,
-                    titleId = R.string.install_game_content_failure,
-                    descriptionString = installResult.toString().trim(),
-                    helpLinkId = R.string.install_game_content_help_link
-                )
-            } else {
-                return@newInstance MessageDialogFragment.newInstance(
-                    this,
-                    titleId = R.string.install_game_content_success,
-                    descriptionString = installResult.toString().trim()
-                )
-            }
-        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
+        InstallableActions.installContent(
+            activity = this,
+            fragmentManager = supportFragmentManager,
+            addonViewModel = addonViewModel,
+            documents = documents
+        )
     }
 
     val exportUserData = registerForActivityResult(
@@ -709,25 +537,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         if (result == null) {
             return@registerForActivityResult
         }
-
-        ProgressDialogFragment.newInstance(
-            this,
-            R.string.exporting_user_data,
-            true
-        ) { progressCallback, _ ->
-            val zipResult = FileUtil.zipFromInternalStorage(
-                File(DirectoryInitialization.userDirectory!!),
-                DirectoryInitialization.userDirectory!!,
-                BufferedOutputStream(contentResolver.openOutputStream(result)),
-                progressCallback,
-                compression = false
-            )
-            return@newInstance when (zipResult) {
-                TaskState.Completed -> getString(R.string.user_data_export_success)
-                TaskState.Failed -> R.string.export_failed
-                TaskState.Cancelled -> R.string.user_data_export_cancelled
-            }
-        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
+        InstallableActions.exportUserData(
+            activity = this,
+            fragmentManager = supportFragmentManager,
+            result = result
+        )
     }
 
     val importUserData =
@@ -735,58 +549,12 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (result == null) {
                 return@registerForActivityResult
             }
-
-            ProgressDialogFragment.newInstance(
-                this,
-                R.string.importing_user_data
-            ) { progressCallback, _ ->
-                val checkStream =
-                    ZipInputStream(BufferedInputStream(contentResolver.openInputStream(result)))
-                var isYuzuBackup = false
-                checkStream.use { stream ->
-                    var ze: ZipEntry? = null
-                    while (stream.nextEntry?.also { ze = it } != null) {
-                        val itemName = ze!!.name.trim()
-                        if (itemName == "/config/config.ini" || itemName == "config/config.ini") {
-                            isYuzuBackup = true
-                            return@use
-                        }
-                    }
-                }
-                if (!isYuzuBackup) {
-                    return@newInstance MessageDialogFragment.newInstance(
-                        this,
-                        titleId = R.string.invalid_yuzu_backup,
-                        descriptionId = R.string.user_data_import_failed_description
-                    )
-                }
-
-                // Clear existing user data
-                NativeConfig.unloadGlobalConfig()
-                File(DirectoryInitialization.userDirectory!!).deleteRecursively()
-
-                // Copy archive to internal storage
-                try {
-                    FileUtil.unzipToInternalStorage(
-                        result.toString(),
-                        File(DirectoryInitialization.userDirectory!!),
-                        progressCallback
-                    )
-                } catch (e: Exception) {
-                    return@newInstance MessageDialogFragment.newInstance(
-                        this,
-                        titleId = R.string.import_failed,
-                        descriptionId = R.string.user_data_import_failed_description
-                    )
-                }
-
-                // Reinitialize relevant data
-                NativeLibrary.initializeSystem(true)
-                NativeConfig.initializeGlobalConfig()
-                gamesViewModel.reloadGames(false)
-                driverViewModel.reloadDriverData()
-
-                return@newInstance getString(R.string.user_data_import_success)
-            }.show(supportFragmentManager, ProgressDialogFragment.TAG)
+            InstallableActions.importUserData(
+                activity = this,
+                fragmentManager = supportFragmentManager,
+                gamesViewModel = gamesViewModel,
+                driverViewModel = driverViewModel,
+                result = result
+            )
         }
 }

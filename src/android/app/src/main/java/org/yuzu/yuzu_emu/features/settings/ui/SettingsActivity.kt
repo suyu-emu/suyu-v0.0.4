@@ -111,16 +111,8 @@ class SettingsActivity : AppCompatActivity() {
         if (navHostFragment.childFragmentManager.backStackEntryCount > 0) {
             navHostFragment.navController.popBackStack()
         } else {
-            finishWithFragmentLikeAnimation()
+            finish()
         }
-    }
-
-    private fun finishWithFragmentLikeAnimation() {
-        finish()
-        overridePendingTransition(
-            androidx.navigation.ui.R.anim.nav_default_pop_enter_anim,
-            androidx.navigation.ui.R.anim.nav_default_pop_exit_anim
-        )
     }
 
     override fun onStart() {
@@ -178,7 +170,7 @@ class SettingsActivity : AppCompatActivity() {
             getString(R.string.settings_reset),
             Toast.LENGTH_LONG
         ).show()
-        finishWithFragmentLikeAnimation()
+        finish()
     }
 
     private fun setInsets() {
