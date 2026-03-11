@@ -4,7 +4,6 @@ The Eden emulator by itself lacks some functionality - or otherwise requires ext
 
 While most of the links mentioned in this guide are relatively "safe"; we urge users to use their due diligence and appropriatedly verify the integrity of all files downloaded and ensure they're not compromised.
 
-- [Nightly Eden builds](https://github.com/pflyly/eden-nightly)
 - [NixOS Eden Flake](https://github.com/Grantimatter/eden-flake)
 - [ES-DE Frontend Support](https://github.com/GlazedBelmont/es-de-android-custom-systems)
 
@@ -66,3 +65,9 @@ Note: Even though the site isn't Codeberg, it uses the same Forgejo/Gitea backen
 ```xml
 <command label="Eden (Standalone)">%EMULATOR_EDEN% %ACTION%=android.nfc.action.TECH_DISCOVERED %DATA%=%ROMPROVIDER%</command>
 ```
+
+## Configuring GameMode
+
+There is a checkbox to enable gamemode automatically. The `libgamemode.so` library must be findable on the standard `LD_LIBRARY_PATH` otherwise it will not properly be enabled. If for whatever reason it doesn't work, see [Arch wiki: GameMode](https://wiki.archlinux.org/title/GameMode) for more info.
+
+You may launch the emulator directly via the wrapper `gamemode <program>`, and things should work out of the box.

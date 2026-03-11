@@ -1,4 +1,12 @@
-# Allowing Eden to Run on MacOS
+# User Handbook - Run on macOS
+
+Current macOS support is still experimental and very reliant on MoltenVK developments, plans have shifted to properly provide support for KosmicKrisp and similar new GPU endeavours, but macOS users still are bound to MoltenVK itself.
+
+Users of macOS may wish to use [Asahi Linux](https://wiki.gentoo.org/wiki/Project:Asahi/Guide) for the rising KosmicKrisp support.
+
+As of writing, neither macOS nor Asahi has support for NCE; additionally Asahi has extraneous paging bugs with fastmem.
+
+## Allowing Eden to Run on MacOS
 
 Use this guide when you need to allow Eden to run on a Mac system, but are being blocked by Apple Security policy.
 
@@ -6,19 +14,19 @@ Use this guide when you need to allow Eden to run on a Mac system, but are being
 
 ---
 
-### Pre-Requisites
+#### Pre-Requisites
 
 - Permissions to modify settings in MacOS
 
 ---
 
-## Why am I Seeing This?
+### Why am I Seeing This?
 
 Recent versions of MacOS (Catalina & newer) introduced the **Gatekeeper** security functionality, requiring software to be signed by Apple or a trusted (aka - paying) developer.  If the signature isn’t on the list of trusted ones, it will stop the program from executing and display the message above.
 
 ---
 
-## Steps
+### Steps
 
 1. Open the *System Settings* panel.
 2. Navigate to *Privacy & Security*.

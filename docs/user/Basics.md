@@ -16,6 +16,15 @@ The CPU must support FMA for an optimal gameplay experience. The GPU needs to su
 
 If your GPU doesn't support or is just behind by a minor version, see Mesa environment variables below (*nix only).
 
+## Releases and versions
+
+- Stable releases/Versioned releases: Has a version number and it's the versions we expect 3rd party repositories to host (package managers and such), these are, well, stable, have low amount of regressions (wrt. to master and nightlies) and generally focus on "keeping things without regressions", recommended for the average user.
+    - RC releases: Release candidate, generally "less stable but still stable" versions.
+    - Full release: "The stablest possible you could get".
+- Nightly: Builds done around 2PM UTC (if there are any changes), generally stable, but not recommended for the average user. These contain daily updates and may contain critical fixes for some games.
+- Master: Unstable builds, can lead from a game working exceptionally fine to absolute crashing in some systems because someone forgot to check if NixOS or Solaris worked. These contain straight from the oven fixes, please don't use them unless you plan to contribute something! They're very experimental! Still 95% of the time it will work just fine.
+- PR builds: Highly experimental builds, testers may grab from these. The average user should treat them the same as master builds, except sometimes they straight up don't build/work.
+
 ## User configuration
 
 ### Configuration directories

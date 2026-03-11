@@ -50,5 +50,4 @@ See also [an extended breakdown of some options](./Graphics.md).
 
 ## Controls
 
-Most of the controls should work out of the box. If not, please use a joystick calibrator to ensure it's not an issue with your own controller, for example:
-- https://github.com/dkosmari/calibrate-joystick
+See [controllers](./Controllers.md).

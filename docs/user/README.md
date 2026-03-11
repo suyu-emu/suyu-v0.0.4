@@ -11,10 +11,12 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
 - **[The Basics](Basics.md)**
 - **[Quickstart](./QuickStart.md)**
 - **[Settings](./Settings.md)**
-- **[Installing Mods](./Mods.md)**
-- **[Run On macOS](./RunOnMacOS.md)**
+- **[Controllers](./Controllers.md)**
+    - **[Controller profiles](./Controllers.md#configuring-controller-profiles)**
 - **[Audio](Audio.md)**
 - **[Graphics](Graphics.md)**
+- **[Installing Mods](./Mods.md)**
+- **[Run On macOS](./RunOnMacOS.md)**
 - **[Data, Savefiles and Storage](Storage.md)**
 - **[Orphaned Profiles](Orphaned.md)**
 - **[Troubleshooting](./Troubleshoot.md)**
@@ -23,7 +25,6 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
 - **[Importing Saves](./ImportingSaves.md)**
 - **[Installing Atmosphere Mods](./InstallingAtmosphereMods.md)**
 - **[Installing Updates & DLCs](./InstallingUpdatesDLC.md)**
-- **[Controller Profiles](./ControllerProfiles.md)**
 - **[Alter Date & Time](./AlterDateTime.md)**
 
 ## 3rd-party Integration
@@ -35,6 +36,7 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
     - **[Obtainium](./ThirdParty.md#configuring-obtainium)**
     - **[ES-DE](./ThirdParty.md#configuring-es-de)**
     - **[Mirrors](./ThirdParty.md#mirrors)**
+    - **[GameMode](./ThirdParty.md#configuring-gamemode)**
 
 ## Advanced
 
