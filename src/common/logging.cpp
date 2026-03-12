@@ -410,39 +410,48 @@ struct Impl {
 
 // Constructor shall NOT depend upon Settings() or whatever
 // it's ran at global static ctor() time... so BE CAREFUL MFER!
-static Common::Log::Impl logging_instance{};
+static std::optional<Common::Log::Impl> logging_instance{};
 
 void Initialize() {
-    logging_instance.filter.ParseFilterString(Settings::values.log_filter.GetValue());
+    if (logging_instance) {
+        LOG_WARNING(Log, "Reinitializing logging backend");
+    } else {
+        logging_instance.emplace();
+        logging_instance->filter.ParseFilterString(Settings::values.log_filter.GetValue());
 #ifndef __OPENORBIS__
-    using namespace Common::FS;
-    const auto& log_dir = GetEdenPath(EdenPath::LogDir);
-    void(CreateDir(log_dir));
-    logging_instance.file_backend.emplace(log_dir / LOG_FILE);
+        using namespace Common::FS;
+        const auto& log_dir = GetEdenPath(EdenPath::LogDir);
+        void(CreateDir(log_dir));
+        logging_instance->file_backend.emplace(log_dir / LOG_FILE);
 #endif
+    }
 }
 
 void Start() {
-    logging_instance.StartBackendThread();
+    if (logging_instance)
+        logging_instance->StartBackendThread();
 }
 
 void Stop() {
-    logging_instance.StopBackendThread();
+    if (logging_instance)
+        logging_instance->StopBackendThread();
 }
 
 void SetGlobalFilter(const Filter& filter) {
-    logging_instance.filter = filter;
+    if (logging_instance)
+        logging_instance->filter = filter;
 }
 
 void SetColorConsoleBackendEnabled(bool enabled) {
-    logging_instance.color_console_backend.enabled = enabled;
+    if (logging_instance)
+        logging_instance->color_console_backend.enabled = enabled;
 }
 
 void FmtLogMessageImpl(Class log_class, Level log_level, const char* filename, unsigned int line_num, const char* function, fmt::string_view format, const fmt::format_args& args) {
-    if (logging_instance.filter.CheckMessage(log_class, log_level)) {
-        logging_instance.message_queue.EmplaceWait(Entry{
+    if (logging_instance && logging_instance->filter.CheckMessage(log_class, log_level)) {
+        logging_instance->message_queue.EmplaceWait(Entry{
             .message = fmt::vformat(format, args),
-            .timestamp = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - logging_instance.time_origin),
+            .timestamp = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - logging_instance->time_origin),
             .log_class = log_class,
             .log_level = log_level,
             .filename = TrimSourcePath(filename),
