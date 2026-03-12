@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <future>
 #include <nlohmann/json.hpp>
 #include "common/detached_tasks.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "web_service/announce_room_json.h"
 #include "web_service/web_backend.h"
 

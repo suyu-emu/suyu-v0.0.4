@@ -6,7 +6,7 @@
 
 #include <QGuiApplication>
 #include <QStringLiteral>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/frontend/emu_window.h"
 
 #include <QFile>

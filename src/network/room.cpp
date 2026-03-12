@@ -13,7 +13,7 @@
 #include <sstream>
 #include <thread>
 #include "common/polyfill_thread.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "enet/enet.h"
 #include "network/packet.h"
 #include "network/room.h"

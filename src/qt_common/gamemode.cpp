@@ -9,7 +9,7 @@
 #ifdef __unix__
 #include <gamemode_client.h>
 #endif
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "qt_common/config/uisettings.h"
 #include "qt_common/gamemode.h"
 

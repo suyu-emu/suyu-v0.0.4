@@ -15,7 +15,7 @@
 #include "common/assert.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "common/thread_worker.h"
 #include "shader_recompiler/backend/glasm/emit_glasm.h"

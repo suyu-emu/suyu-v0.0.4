@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project
@@ -9,7 +9,7 @@
 #include <boost/asio.hpp>
 #include <fmt/ranges.h>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/param_package.h"
 #include "common/settings.h"
 #include "input_common/drivers/udp_client.h"

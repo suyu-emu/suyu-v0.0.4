@@ -12,7 +12,7 @@
 #include <ankerl/unordered_dense.h>
 #include <utility>
 #include <vector>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/param_package.h"
 #include "common/uuid.h"
 

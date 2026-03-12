@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -19,7 +19,7 @@
 #include <boost/process/async_pipe.hpp>
 #endif
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/polyfill_thread.h"
 #include "common/thread.h"
 #include "core/core.h"

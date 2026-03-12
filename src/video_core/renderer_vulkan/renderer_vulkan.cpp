@@ -14,7 +14,7 @@
 
 #include <fmt/ranges.h>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include <ranges>
 #include "common/scope_exit.h"
 #include "common/settings.h"

@@ -18,7 +18,7 @@
 #include "common/atomic_ops.h"
 #include "common/common_types.h"
 #include "common/heap_tracker.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/page_table.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"

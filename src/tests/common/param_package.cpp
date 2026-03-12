@@ -1,15 +1,17 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <catch2/catch_test_macros.hpp>
 #include <math.h>
-#include "common/logging/backend.h"
+#include "common/logging.h"
 #include "common/param_package.h"
 
 namespace Common {
 
 TEST_CASE("ParamPackage", "[common]") {
-    Common::Log::DisableLoggingInTests();
     ParamPackage original{
         {"abc", "xyz"},
         {"def", "42"},

@@ -9,7 +9,7 @@
 #include <boost/algorithm/string/split.hpp>
 
 #include <fmt/format.h>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/scm_rev.h"
 #include "update_checker.h"
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
@@ -25,7 +25,7 @@
 #include <openssl/cert.h>
 #endif
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "web_service/web_backend.h"
 #include "web_service/web_result.h"
 

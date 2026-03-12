@@ -4,7 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/uuid.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ns/query_service.h"

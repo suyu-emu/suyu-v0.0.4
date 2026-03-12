@@ -11,7 +11,7 @@
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "video_core/engines/engine_interface.h"
 #include "video_core/engines/engine_upload.h"
 

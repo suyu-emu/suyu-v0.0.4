@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include "common/hex_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #ifndef _WIN32
 #include "common/string_util.h"

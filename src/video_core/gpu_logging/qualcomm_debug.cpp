@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "video_core/gpu_logging/qualcomm_debug.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 
 namespace GPU::Logging::Qualcomm {
 

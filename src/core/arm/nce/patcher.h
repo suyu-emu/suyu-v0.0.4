@@ -9,7 +9,7 @@
 #include <oaknut/code_block.hpp>
 #include <oaknut/oaknut.hpp>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/common_types.h"
 #include "common/settings.h"
 #include "core/hle/kernel/code_set.h"

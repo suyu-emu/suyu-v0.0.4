@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -6,7 +6,7 @@
 
 #include <fstream>
 #include "common/heap_tracker.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/assert.h"
 
 namespace Common {

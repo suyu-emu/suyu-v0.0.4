@@ -54,7 +54,7 @@
 #include "common/assert.h"
 #include "common/free_region_manager.h"
 #include "common/host_memory.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 
 #if defined(__ANDROID__) && __ANDROID_API__ < 30
 #include <sys/syscall.h>

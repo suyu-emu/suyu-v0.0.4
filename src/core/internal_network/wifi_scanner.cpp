@@ -24,7 +24,7 @@
 #include <net80211/ieee80211_ioctl.h>
 #endif
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/internal_network/network_interface.h"
 #include "core/internal_network/wifi_scanner.h"
 

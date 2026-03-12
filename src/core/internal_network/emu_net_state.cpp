@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/internal_network/emu_net_state.h"
 #include "core/internal_network/network.h"
 #include "core/internal_network/network_interface.h"

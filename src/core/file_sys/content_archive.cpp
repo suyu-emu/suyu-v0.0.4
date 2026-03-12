@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -9,7 +9,7 @@
 #include <optional>
 #include <utility>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include <ranges>
 #include "core/crypto/aes_util.h"
 #include "core/crypto/ctr_encryption_layer.h"

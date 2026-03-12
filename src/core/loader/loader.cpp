@@ -12,7 +12,7 @@
 #include <algorithm>
 #include "common/concepts.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/file_sys/card_image.h"

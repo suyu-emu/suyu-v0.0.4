@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <string_view>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "video_core/vulkan_common/vulkan_debug_callback.h"
 #include "video_core/gpu_logging/gpu_logging.h"

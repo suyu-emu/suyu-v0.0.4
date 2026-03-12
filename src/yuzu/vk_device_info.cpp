@@ -10,7 +10,7 @@
 #include "qt_common/qt_common.h"
 
 #include "common/dynamic_library.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"

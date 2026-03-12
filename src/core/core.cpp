@@ -9,7 +9,7 @@
 #include "game_settings.h"
 #include "audio_core/audio_core.h"
 #include "common/fs/fs.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "common/string_util.h"

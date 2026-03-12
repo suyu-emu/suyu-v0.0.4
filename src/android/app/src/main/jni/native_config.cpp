@@ -10,7 +10,7 @@
 #include "common/android/android_common.h"
 #include "common/android/id_cache.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "frontend_common/config.h"
 #include "frontend_common/settings_generator.h"

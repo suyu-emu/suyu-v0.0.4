@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/android/android_common.h"
 #include "common/android/id_cache.h"
 #include "common/android/applets/web_browser.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 
 static jclass s_native_library_class = nullptr;
 static jmethodID s_open_external_url = nullptr;

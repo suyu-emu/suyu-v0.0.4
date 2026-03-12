@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/game_settings.h"
@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cctype>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "video_core/renderer_base.h"
 

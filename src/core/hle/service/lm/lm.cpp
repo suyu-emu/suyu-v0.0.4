@@ -9,7 +9,7 @@
 #include <optional>
 #include <ankerl/unordered_dense.h>
 #include <boost/container_hash/hash.hpp>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/lm/lm.h"

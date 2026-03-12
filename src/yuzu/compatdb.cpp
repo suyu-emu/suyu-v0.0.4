@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
@@ -8,7 +8,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <qtconcurrentrun.h>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "ui_compatdb.h"
 #include "yuzu/compatdb.h"
 

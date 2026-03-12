@@ -12,7 +12,7 @@
 
 #include "common/common_types.h"
 #include "common/dynamic_library.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include <ranges>
 #include <vulkan/vulkan_core.h>
 #include "core/frontend/emu_window.h"

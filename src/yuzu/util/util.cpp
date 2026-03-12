@@ -8,7 +8,7 @@
 #include <QPainter>
 
 #include "applets/qt_profile_select.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/frontend/applets/profile_select.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "frontend_common/data_manager.h"

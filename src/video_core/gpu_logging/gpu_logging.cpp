@@ -10,7 +10,7 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/literals.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 
 namespace GPU::Logging {

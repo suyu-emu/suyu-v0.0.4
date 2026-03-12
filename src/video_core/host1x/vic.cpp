@@ -26,7 +26,7 @@ extern "C" {
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/bit_field.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/polyfill_thread.h"
 #include "common/settings.h"
 

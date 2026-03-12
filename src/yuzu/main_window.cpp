@@ -112,7 +112,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 
 // Common //
 #include "common/fs/fs.h"
-#include "common/logging/backend.h"
+#include "common/logging.h"
 #include "common/memory_detect.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"

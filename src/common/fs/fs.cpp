@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,7 +10,7 @@
 #include "common/fs/fs_android.h"
 #endif
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 
 namespace Common::FS {
 

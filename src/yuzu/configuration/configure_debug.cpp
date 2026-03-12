@@ -8,8 +8,7 @@
 #include <QMessageBox>
 #include <QUrl>
 #include "common/fs/path_util.h"
-#include "common/logging/backend.h"
-#include "common/logging/filter.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/crypto/key_manager.h"

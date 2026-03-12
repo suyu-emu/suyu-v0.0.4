@@ -6,7 +6,7 @@
 #include <fmt/format.h>
 #include "common/fs/fs.h"
 #include "common/fs/fs_types.h"
-#include "common/logging/backend.h"
+#include "common/logging.h"
 #include "frontend_common/data_manager.h"
 #include "mod_manager.h"
 

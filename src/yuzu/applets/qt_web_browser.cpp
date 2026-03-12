@@ -7,7 +7,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 
 #ifdef YUZU_USE_QT_WEB_ENGINE
 #include <bit>

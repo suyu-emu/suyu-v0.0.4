@@ -4,7 +4,7 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "input_common/main.h"
 #include "qt_config.h"
 #include "uisettings.h"

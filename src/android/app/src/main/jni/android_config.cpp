@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <common/fs/path_util.h>
-#include <common/logging/log.h>
+#include <common/logging.h>
 #include <common/settings.h>
 #include <input_common/main.h>
 #include "android_config.h"

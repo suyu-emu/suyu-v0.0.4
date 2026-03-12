@@ -4,7 +4,7 @@
 #ifdef ANDROID
 
 #include "video_core/gpu_logging/freedreno_debug.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 
 #include <cstdlib>
 

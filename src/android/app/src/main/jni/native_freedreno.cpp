@@ -23,7 +23,7 @@
 #include <jni.h>
 
 #include "common/android/android_common.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "native.h"
 
 namespace {

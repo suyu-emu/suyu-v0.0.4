@@ -9,7 +9,7 @@
 #include <QMessageBox>
 #include <QStandardItemModel>
 #include "common/announce_multiplayer_room.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "qt_common/config/uisettings.h"
 #include "yuzu/game/game_list.h"

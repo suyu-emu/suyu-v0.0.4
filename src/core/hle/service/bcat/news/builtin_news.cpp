@@ -7,7 +7,7 @@
 
 #include "common/fs/file.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/regex.hpp>

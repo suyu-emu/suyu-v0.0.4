@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "firmware_manager.h"
@@ -8,7 +8,7 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 
-#include "common/logging/backend.h"
+#include "common/logging.h"
 
 #include "core/crypto/key_manager.h"
 #include "frontend_common/content_manager.h"

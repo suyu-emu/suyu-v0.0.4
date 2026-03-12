@@ -9,7 +9,7 @@
 #include <limits>
 #include <vector>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"

@@ -28,8 +28,7 @@
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/backend.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/scm_rev.h"
 #include "common/settings.h"
 #include "common/string_util.h"
@@ -172,12 +171,6 @@ static void SaveBanList(const Network::Room::BanList& ban_list, const std::strin
     }
 }
 
-static void InitializeLogging(const std::string& log_file) {
-    Common::Log::Initialize();
-    Common::Log::SetColorConsoleBackendEnabled(true);
-    Common::Log::Start();
-}
-
 /// Application entry point
 void LaunchRoom(int argc, char** argv, bool called_by_option)
 {
@@ -225,7 +218,9 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
         {0, 0, 0, 0},
     };
 
-    InitializeLogging(log_file);
+    Common::Log::Initialize();
+    Common::Log::SetColorConsoleBackendEnabled(true);
+    Common::Log::Start();
 
     while (optind < argc) {
         int arg = getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);

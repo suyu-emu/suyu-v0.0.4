@@ -17,7 +17,7 @@
 #include <QTime>
 #include <QUrl>
 #include <QtConcurrentRun>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "network/announce_multiplayer_session.h"
 #include "ui_chat_room.h"
 #include "yuzu/game/game_list_p.h"

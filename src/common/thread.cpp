@@ -8,7 +8,7 @@
 #include <thread>
 
 #include "common/error.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/assert.h"
 #include "common/thread.h"
 #ifdef __APPLE__
