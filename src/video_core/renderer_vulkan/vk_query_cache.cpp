@@ -880,8 +880,6 @@ private:
         }
         has_flushed_end_pending = false;
 
-        // Refresh buffer state before ending transform feedback to ensure counters_count is up-to-date.
-        UpdateBuffers();
         if (buffers_count == 0) {
             LOG_DEBUG(Render_Vulkan, "EndTransformFeedbackEXT called with no counters (buffers_count=0)");
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
