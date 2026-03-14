@@ -27,6 +27,20 @@ class GpuUnswizzleSetting(
         override val isSaveable = true
         override val isRuntimeModifiable = true
         override val isSwitchable = true
+        override val pairedSettingKey: String = ""
+        override var global: Boolean
+            get() {
+                return BooleanSetting.GPU_UNSWIZZLE_ENABLED.global &&
+                    IntSetting.GPU_UNSWIZZLE_TEXTURE_SIZE.global &&
+                    IntSetting.GPU_UNSWIZZLE_STREAM_SIZE.global &&
+                    IntSetting.GPU_UNSWIZZLE_CHUNK_SIZE.global
+            }
+            set(value) {
+                BooleanSetting.GPU_UNSWIZZLE_ENABLED.global = value
+                IntSetting.GPU_UNSWIZZLE_TEXTURE_SIZE.global = value
+                IntSetting.GPU_UNSWIZZLE_STREAM_SIZE.global = value
+                IntSetting.GPU_UNSWIZZLE_CHUNK_SIZE.global = value
+            }
         override fun getValueAsString(needsGlobal: Boolean): String = "combined"
         override fun reset() {
             BooleanSetting.GPU_UNSWIZZLE_ENABLED.reset()
