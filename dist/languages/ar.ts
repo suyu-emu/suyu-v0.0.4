@@ -377,152 +377,177 @@ This would ban both their forum username and their IP address.</source>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="35"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="34"/>
         <source>Amiibo editor</source>
         <translation>محرر أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="36"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="35"/>
         <source>Controller configuration</source>
         <translation>إعدادات ذراع التحكم</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="37"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="36"/>
         <source>Data erase</source>
         <translation>محو البيانات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="38"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="37"/>
         <source>Error</source>
         <translation>خطأ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="39"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="38"/>
         <source>Net connect</source>
         <translation>اتصال الشبكة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="40"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="39"/>
         <source>Player select</source>
         <translation>اختيار اللاعب</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="41"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="40"/>
         <source>Software keyboard</source>
         <translation>لوحة المفاتيح البرمجية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="42"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="41"/>
         <source>Mii Edit</source>
         <translation>Mii تعديل الـ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="43"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="42"/>
         <source>Online web</source>
         <translation>الويب متصل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="44"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="43"/>
         <source>Shop</source>
         <translation>متجر</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="45"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="44"/>
         <source>Photo viewer</source>
         <translation>عارض الصور</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="46"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="45"/>
         <source>Offline web</source>
         <translation>الويب غير متصل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="47"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="46"/>
         <source>Login share</source>
         <translation>مشاركة تسجيل الدخول</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="48"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="47"/>
         <source>Wifi web auth</source>
         <translation>مصادقة الويب واي فاي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="49"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="48"/>
         <source>My page</source>
         <translation>صفحتي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="50"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="49"/>
         <source>Enable Overlay Applet</source>
         <translation>تمكين الطبقة للتطبيق الصغير</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="53"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="50"/>
+        <source>Enables Horizon&apos;s built-in overlay applet. Press and hold the home button for 1 second to show it.</source>
+        <translation>تمكين التطبيق الصغير المدمج في Horizon. اضغط مع الاستمرار على زر الشاشة الرئيسية لمدة 1 ثانية لإظهاره.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="54"/>
         <source>Output Engine:</source>
         <translation>محرك الإخراج:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="54"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="55"/>
         <source>Output Device:</source>
         <translation>جهاز الإخراج:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="55"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="56"/>
         <source>Input Device:</source>
         <translation>جهاز الإدخال:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="56"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="57"/>
         <source>Mute audio</source>
         <translation>كتم الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="57"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="58"/>
         <source>Volume:</source>
         <translation>الصوت:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="59"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="60"/>
         <source>Mute audio when in background</source>
         <translation>كتم الصوت عندما تكون في الخلفية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="65"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="63"/>
         <source>Multicore CPU Emulation</source>
         <translation>محاكاة وحدة المعالجة المركزية متعددة النواة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="66"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="64"/>
         <source>This option increases CPU emulation thread use from 1 to the maximum of 4.
 This is mainly a debug option and shouldn&apos;t be disabled.</source>
         <translation>يزيد هذا الخيار من استخدام خيط محاكاة وحدة المعالجة المركزية من 1 إلى الحد الأقصى وهو 4.
 هذا الخيار مخصص بشكل أساسي لتصحيح الأخطاء، ولا ينبغي تعطيله.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="71"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="66"/>
         <source>Memory Layout</source>
         <translation>تخطيط الذاكرة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="72"/>
-        <source>Increases the amount of emulated RAM from 4GB of the board to the devkit 8/6GB.
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="67"/>
+        <source>Increases the amount of emulated RAM.
 Doesn&apos;t affect performance/stability but may allow HD texture mods to load.</source>
-        <translation>يزيد حجم ذاكرة الوصول العشوائي RAM المُحاكاة من 4 جيجابايت للوحة إلى 8/6 جيجابايت لمجموعة التطوير. 
-لا يؤثر ذلك على الأداء/الاستقرار، ولكنه قد يسمح بتحميل تعديلات نسيجيه عالية الدقة.</translation>
+        <translation>يزيد من حجم ذاكرة الوصول العشوائي المُحاكاة.
+لا يؤثر على الأداء أو الاستقرار، ولكنه قد يسمح بتحميل تعديلات نسيج عالية الدقة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="78"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="72"/>
         <source>Limit Speed Percent</source>
         <translation>الحد من السرعة في المئة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="79"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="73"/>
         <source>Controls the game's maximum rendering speed, but it's up to each game if it runs faster or not.
 200% for a 30 FPS game is 60 FPS, and for a 60 FPS game it will be 120 FPS.
 Disabling it means unlocking the framerate to the maximum your PC can reach.</source>
         <translation>يتحكم هذا الخيار في أقصى سرعة عرض للعبة، ولكن لكل لعبة تحديد ما إذا كانت ستعمل أسرع أم لا.
 200% للعبة بمعدل 30 إطارًا في الثانية تعادل 60 إطارًا في الثانية، ولللعبة بمعدل 60 إطارًا في الثانية تعادل 120 إطارًا في الثانية.
 تعطيله يعني رفع معدل الإطارات إلى أقصى حد يمكن لجهاز الكمبيوتر الوصول إليه.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="78"/>
+        <source>Turbo Speed</source>
+        <translation>سرعة تيربو</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="79"/>
+        <source>When the Turbo Speed hotkey is pressed, the speed will be limited to this percentage.</source>
+        <translation>عند الضغط على مفتاح الاختصار لسرعة التوربو، سيتم تحديد السرعة بهذه النسبة المئوية.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="81"/>
+        <source>Slow Speed</source>
+        <translation>سرعة بطيئة</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="82"/>
+        <source>When the Slow Speed hotkey is pressed, the speed will be limited to this percentage.</source>
+        <translation>عند الضغط على مفتاح الاختصار للسرعة البطيئة، سيتم تحديد السرعة بهذه النسبة المئوية.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="85"/>
@@ -537,159 +562,159 @@ Can help reduce stuttering at lower framerates.</source>
 يساعد في تقليل التلعثم عند معدلات الإطارات المنخفضة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="93"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="91"/>
         <source>Accuracy:</source>
         <translation>الدقة:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="94"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="92"/>
         <source>Change the accuracy of the emulated CPU (for debugging only).</source>
         <translation>تغيير دقة وحدة المعالجة المركزية المحاكية (للتصحيح فقط).</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="95"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="110"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="93"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="106"/>
         <source>Backend:</source>
         <translation>الخلفية:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="99"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="95"/>
         <source>CPU Overclock</source>
         <translation>رفع تردد المعالج</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="100"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="96"/>
         <source>Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, and certain games may behave improperly.
 Use Boost (1700MHz) to run at the Switch&apos;s highest native clock, or Fast (2000MHz) to run at 2x clock.</source>
         <translation>يزيد من سرعة وحدة المعالجة المركزية المحاكية لإزالة بعض محددات الإطارات في الثانية. قد تشهد وحدات المعالجة المركزية الأضعف انخفاضًا في الأداء، وقد تعمل بعض الألعاب بشكل غير صحيح.
 استخدم المعزز (1700 ميجاهرتز) للتشغيل بأعلى سرعة ساعة أصلية لجهاز سويتش، أو السريع (2000 ميجاهرتز) للتشغيل بسرعة ساعة مضاعفة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="107"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="103"/>
         <source>Custom CPU Ticks</source>
         <translation>علامات وحدة المعالجة المركزية المخصصة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="108"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="104"/>
         <source>Set a custom value of CPU ticks. Higher values can increase performance, but may cause deadlocks. A range of 77-21000 is recommended.</source>
         <translation>تعيين قيمة مخصصة لدقات وحدة المعالجة المركزية. القيم الأعلى يمكن أن تزيد الأداء، ولكنها قد تسبب حالات توقف تام. يوصى باستخدام نطاق 77-21000.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="113"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="108"/>
         <source>Virtual Table Bouncing</source>
         <translation>Virtual Table Bouncing</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="114"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="109"/>
         <source>Bounces (by emulating a 0-valued return) any functions that triggers a prefetch abort</source>
         <translation>يرفض (عن طريق محاكاة عودة بقيمة 0) أي وظائف تؤدي إلى إيقاف عملية التخزين المسبق</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="119"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="116"/>
         <source>Enable Host MMU Emulation (fastmem)</source>
         <translation>(fastmem) المضيف MMU تمكين محاكاة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="120"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="117"/>
         <source>This optimization speeds up memory accesses by the guest program.
 Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host's MMU.
 Disabling this forces all memory accesses to use Software MMU Emulation.</source>
         <translation>يُسرّع هذا التحسين وصول برنامج الضيف إلى الذاكرة. يؤدي تفعيله إلى قراءة/كتابة ذاكرة الضيف مباشرةً في الذاكرة، واستخدام وحدة ذاكرة الجهاز المضيف MMU. أما تعطيله، فيُجبر جميع عمليات الوصول إلى الذاكرة على استخدام محاكاة وحدة ذاكرة الجهاز البرمجية MMU.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="124"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="122"/>
         <source>Unfuse FMA (improve performance on CPUs without FMA)</source>
         <translation>إلغاء استخدام FMA (تحسين الأداء على وحدات المعالجة المركزية بدون FMA)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="125"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="123"/>
         <source>This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.</source>
         <translation> أصلاً FMA يعمل هذا الخيار على تحسين السرعة عن طريق تقليل دقة تعليمات الضرب والإضافة المدمجة على وحدات المعالجة المركزية التي لا تدعم</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="130"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="126"/>
         <source>Faster FRSQRTE and FRECPE</source>
         <translation>FRSQRTE و FRECPE أسرع</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="131"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="127"/>
         <source>This option improves the speed of some approximate floating-point functions by using less accurate native approximations.</source>
         <translation>يعمل هذا الخيار على تحسين سرعة بعض وظائف النقاط العائمة التقريبية باستخدام تقريبات أصلية أقل دقة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="135"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="130"/>
         <source>Faster ASIMD instructions (32 bits only)</source>
         <translation>أسرع (32 بت فقط) ASIMD تعليمات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="136"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="131"/>
         <source>This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.</source>
         <translation>يعمل هذا الخيار على تحسين سرعة وظائف النقطة العائمة ASIMD ذات 32 بت من خلال التشغيل باستخدام أوضاع تقريب غير صحيحة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="140"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="133"/>
         <source>Inaccurate NaN handling</source>
         <translation>NaN معالجة غير دقيقة لـ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="141"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="134"/>
         <source>This option improves speed by removing NaN checking.
 Please note this also reduces accuracy of certain floating-point instructions.</source>
         <translation>NaN يعمل هذا الخيار على تحسين السرعة عن طريق إزالة فحص. 
 يرجى ملاحظة أن هذا يقلل أيضًا من دقة بعض تعليمات النقاط العائمة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="145"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="136"/>
         <source>Disable address space checks</source>
         <translation>تعطيل عمليات التحقق من مساحة العنوان</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="146"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="137"/>
         <source>This option improves speed by eliminating a safety check before every memory operation.
 Disabling it may allow arbitrary code execution.</source>
         <translation>يعمل هذا الخيار على تحسين السرعة من خلال إلغاء فحص الأمان قبل كل عملية ذاكرة. 
 قد يؤدي تعطيله إلى السماح بتنفيذ تعليمات برمجية عشوائية.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="151"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="140"/>
         <source>Ignore global monitor</source>
-        <translation>تجاهل المراقبة العالمية</translation>
+        <translation>تجاهل الشاشة العالمية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="152"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="141"/>
         <source>This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions.
 Please note this may result in deadlocks and other race conditions.</source>
         <translation>يُحسّن هذا الخيار السرعة بالاعتماد فقط على دلالات cmpxchg لضمان سلامة تعليمات الوصول الحصري. يُرجى ملاحظة أن هذا قد يؤدي إلى توقفات وحالات تسابق أخرى.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="160"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="146"/>
         <source>API:</source>
         <translation>واجهة برمجة التطبيقات:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="161"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="147"/>
         <source>Changes the output graphics API.
 Vulkan is recommended.</source>
         <translation>يُغيّر واجهة برمجة تطبيقات الرسومات الناتجة. 
 Vulkan يُنصح باستخدام</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="164"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="148"/>
         <source>Device:</source>
         <translation>جهاز:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="165"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="149"/>
         <source>This setting selects the GPU to use (Vulkan only).</source>
         <translation>(Vulkan فقط) يحدد هذا الإعداد وحدة معالجة الرسومات التي سيتم استخدامها</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="168"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="150"/>
         <source>Resolution:</source>
         <translation>الدقة:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="169"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="151"/>
         <source>Forces to render at a different resolution.
 Higher resolutions require more VRAM and bandwidth.
 Options lower than 1X can cause artifacts.</source>
@@ -698,27 +723,27 @@ Options lower than 1X can cause artifacts.</source>
 قد تؤدي الخيارات الأقل من 1X إلى حدوث تشوهات.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="172"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="154"/>
         <source>Window Adapting Filter:</source>
         <translation>مرشح تكييف النافذة:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="175"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="155"/>
         <source>FSR Sharpness:</source>
         <translation>FSR حدة:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="176"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="156"/>
         <source>Determines how sharpened the image will look using FSR&apos;s dynamic contrast.</source>
         <translation>FSR يقوم بتحديد مدى وضوح الصورة باستخدام التباين الديناميكي لـ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="179"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="157"/>
         <source>Anti-Aliasing Method:</source>
         <translation>طريقة مضاد التعرج:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="180"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="158"/>
         <source>The anti-aliasing method to use.
 SMAA offers the best quality.
 FXAA can produce a more stable picture in lower resolutions.</source>
@@ -727,12 +752,12 @@ FXAA can produce a more stable picture in lower resolutions.</source>
 يُمكن لـ FXAA إنتاج صورة أكثر ثباتًا بدقة أقل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="184"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="160"/>
         <source>Fullscreen Mode:</source>
         <translation>وضع ملء الشاشة:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="185"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="161"/>
         <source>The method used to render the window in fullscreen.
 Borderless offers the best compatibility with the on-screen keyboard that some games request for input.
 Exclusive fullscreen may offer better performance and better Freesync/Gsync support.</source>
@@ -741,12 +766,12 @@ Exclusive fullscreen may offer better performance and better Freesync/Gsync supp
 قد يوفر وضع ملء الشاشة الحصري أداءً أفضل ودعمًا أفضل لتقنيتي Freesync/Gsync.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="191"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="165"/>
         <source>Aspect Ratio:</source>
         <translation>نسبة العرض إلى الارتفاع:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="192"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="166"/>
         <source>Stretches the renderer to fit the specified aspect ratio.
 Most games only support 16:9, so modifications are required to get other ratios.
 Also controls the aspect ratio of captured screenshots.</source>
@@ -755,24 +780,24 @@ Also controls the aspect ratio of captured screenshots.</source>
 كما يتحكم في نسبة العرض إلى الارتفاع للقطات الشاشة الملتقطة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="197"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="169"/>
         <source>Use persistent pipeline cache</source>
         <translation>استخدام ذاكرة التخزين المؤقتة الدائمة للأنابيب</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="198"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="170"/>
         <source>Allows saving shaders to storage for faster loading on following game boots.
 Disabling it is only intended for debugging.</source>
         <translation>يسمح بحفظ التظليلات في وحدة التخزين لتحميلها بشكل أسرع عند تشغيل اللعبة في المرات التالية.
 لا يُقصد من تعطيله سوى تصحيح الأخطاء.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="202"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="172"/>
         <source>Optimize SPIRV output</source>
         <translation>SPIRV تحسين مخرجات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="203"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="173"/>
         <source>Runs an additional optimization pass over generated SPIRV shaders.
 Will increase time required for shader compilation.
 May slightly improve performance.
@@ -783,24 +808,24 @@ This feature is experimental.</source>
 هذه الميزة تجريبية.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="208"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="176"/>
         <source>NVDEC emulation:</source>
         <translation>NVDEC محاكاة:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="209"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="177"/>
         <source>Specifies how videos should be decoded.
 It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos).
 In most cases, GPU decoding provides the best performance.</source>
         <translation>يُحدد كيفية فك تشفير الفيديوهات.يمكن استخدام وحدة المعالجة المركزية CPU أو وحدة معالجة الرسومات GPU لفك التشفير، أو عدم فك التشفير إطلاقًا (شاشة سوداء على الفيديوهات).في معظم الحالات، يُوفر فك تشفير وحدة معالجة الرسومات GPU أفضل أداء.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="214"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="180"/>
         <source>ASTC Decoding Method:</source>
         <translation>ASTC طريقة فك تشفير:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="215"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="181"/>
         <source>This option controls how ASTC textures should be decoded.
 CPU: Use the CPU for decoding.
 GPU: Use the GPU's compute shaders to decode ASTC textures (recommended).
@@ -812,12 +837,12 @@ stuttering but may present artifacts.</source>
 وحدة المعالجة المركزية بشكل غير متزامن: استخدمها لفك تشفير قوام ASTC عند الطلب. يزيل هذا الخيار تقطع فك تشفير ASTC، ولكنه قد يُظهر بعض العيوب.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="223"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="186"/>
         <source>ASTC Recompression Method:</source>
         <translation>ASTC طريقة إعادة ضغط:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="224"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="187"/>
         <source>Most GPUs lack support for ASTC textures and must decompress to anintermediate format: RGBA8.
 BC1/BC3: The intermediate format will be recompressed to BC1 or BC3 format,
  saving VRAM but degrading image quality.</source>
@@ -825,34 +850,44 @@ BC1/BC3: The intermediate format will be recompressed to BC1 or BC3 format,
 BC1/BC3: سيتم إعادة ضغط الصيغة الوسيطة إلى صيغة BC1 أو BC3، مما يوفر مساحة على ذاكرة الوصول العشوائي للفيديو VRAM ولكنه يُضعف جودة الصورة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="230"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="191"/>
+        <source>Frame Pacing Mode (Vulkan only)</source>
+        <translation>(Vulkan فقط) وضع توقيت الإطارات</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="192"/>
+        <source>Controls how the emulator manages frame pacing to reduce stuttering and make the frame rate smoother and more consistent.</source>
+        <translation>يتحكم في كيفية إدارة المحاكي لسرعة الإطارات لتقليل التقطع وجعل معدل الإطارات أكثر سلاسة واتساقًا.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="194"/>
         <source>VRAM Usage Mode:</source>
         <translation>VRAM وضع استهلاك:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="231"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="195"/>
         <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
 Aggressive mode may impact performance of other applications such as recording software.</source>
         <translation>يُحدد ما إذا كان ينبغي على المُحاكي تفضيل توفير الذاكرة أو الاستفادة القصوى من ذاكرة الفيديو المُتاحة لتحسين الأداء. 
 قد يؤثر الوضع المُكثّف على أداء تطبيقات أخرى، مثل برامج التسجيل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="234"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="198"/>
         <source>Skip CPU Inner Invalidation</source>
         <translation>تخطي إبطال وحدة المعالجة المركزية الداخلية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="235"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="199"/>
         <source>Skips certain cache invalidations during memory updates, reducing CPU usage and improving latency. This may cause soft-crashes.</source>
         <translation>يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسّن زمن الوصول. قد يؤدي هذا إلى أعطال مؤقتة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="240"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="201"/>
         <source>VSync Mode:</source>
         <translation>VSync وضع:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="241"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="202"/>
         <source>FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
 FIFO Relaxed allows tearing as it recovers from a slow down.
 Mailbox can have lower latency than FIFO and does not tear but may drop frames.
@@ -863,12 +898,12 @@ Immediate (no synchronization) presents whatever is available and can exhibit te
 يُظهر الوضع الفوري (بدون مزامنة) كل ما هو متاح، وقد يُظهر تمزقًا.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="253"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="214"/>
         <source>Sync Memory Operations</source>
         <translation>مزامنة عمليات الذاكرة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="254"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="215"/>
         <source>Ensures data consistency between compute and memory operations.
 This option fixes issues in games, but may degrade performance.
 Unreal Engine 4 games often see the most significant changes thereof.</source>
@@ -877,87 +912,99 @@ Unreal Engine 4 games often see the most significant changes thereof.</source>
 التغييرات الأكثر أهمية Unreal Engine 4 غالبًا ما تشهد ألعاب.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="257"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="218"/>
         <source>Enable asynchronous presentation (Vulkan only)</source>
         <translation>(Vulkan فقط) تمكين العرض التقديمي غير المتزامن</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="258"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="219"/>
         <source>Slightly improves performance by moving presentation to a separate CPU thread.</source>
         <translation>تحسين الأداء بشكل طفيف عن طريق نقل العرض التقديمي إلى مؤشر ترابط منفصل في وحدة المعالجة المركزية.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="262"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="221"/>
         <source>Force maximum clocks (Vulkan only)</source>
         <translation>(Vulkan فقط) فرض الحد الأقصى للساعات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="263"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="222"/>
         <source>Runs work in the background while waiting for graphics commands to keep the GPU from lowering its clock speed.</source>
         <translation>يعمل في الخلفية أثناء انتظار أوامر الرسومات لمنع وحدة معالجة الرسومات من خفض سرعة الساعة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="267"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="224"/>
         <source>Anisotropic Filtering:</source>
         <translation>الترشيح المتباين الخواص:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="268"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="225"/>
         <source>Controls the quality of texture rendering at oblique angles.
 Safe to set at 16x on most GPUs.</source>
         <translation>يتحكم بجودة عرض الملمس بزوايا مائلة.
 من الآمن ضبطه على 16x على معظم وحدات معالجة الرسومات.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="271"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="227"/>
         <source>GPU Mode:</source>
         <translation>وضع وحدة معالجة الرسومات:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="272"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="228"/>
         <source>Controls the GPU emulation mode.
 Most games render fine with Fast or Balanced modes, but Accurate is still required for some.
 Particles tend to only render correctly with Accurate mode.</source>
         <translation>يتحكم في وضع محاكاة وحدة معالجة الرسومات.تُعرض معظم الألعاب بشكل جيد في الوضعين السريع أو المتوازن، ولكن الوضع الدقيق لا يزال مطلوبًا لبعض الألعاب.تميل الجسيمات إلى العرض بشكل صحيح فقط في الوضع الدقيق.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="276"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="231"/>
         <source>DMA Accuracy:</source>
         <translation>DMA دقة:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="277"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="232"/>
         <source>Controls the DMA precision accuracy. Safe precision fixes issues in some games but may degrade performance.</source>
         <translation> الدقة الآمنة تعمل على إصلاح المشكلات في بعض الألعاب ولكنها قد تؤدي إلى انخفاض الأداء DMA يتحكم في دقة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="280"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="234"/>
         <source>Enable asynchronous shader compilation</source>
         <translation>تفعيل تجميع التظليل غير المتزامن</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="281"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="235"/>
         <source>May reduce shader stutter.</source>
         <translation>قد يقلل من تقطع التظليل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="284"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="236"/>
         <source>Fast GPU Time</source>
         <translation>وقت معالجة الرسومات السريع</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="285"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="237"/>
         <source>Overclocks the emulated GPU to increase dynamic resolution and render distance.
 Use 256 for maximal performance and 512 for maximal graphics fidelity.</source>
         <translation>يزيد من سرعة وحدة معالجة الرسومات المحاكية لزيادة الدقة الديناميكية ومسافة العرض.استخدم 256 للحصول على أقصى أداء و 512 للحصول على أقصى دقة للرسومات.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="239"/>
+        <source>GPU Unswizzle</source>
+        <translation>إلغاء ترتيب بيانات وحدة معالجة الرسومات</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="240"/>
+        <source>Accelerates BCn 3D texture decoding using GPU compute.
+Disable if experiencing crashes or graphical glitches.</source>
+        <translation>باستخدام حوسبة وحدة معالجة الرسومات BCn 3D يسرع فك تشفير نسيج.
+قم بتعطيله في حالة حدوث أعطال أو مشاكل في الرسومات.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="242"/>
         <source>GPU Unswizzle Max Texture Size</source>
         <translation>الحد الأقصى لحجم النسيج في وحدة معالجة الرسومات بعد إعادة ترتيب البيانات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="243"/>
         <source>Sets the maximum size (MiB) for GPU-based texture unswizzling.
 While the GPU is faster for medium and large textures, the CPU may be more efficient for very small ones.
 Adjust this to find the balance between GPU acceleration and CPU overhead.</source>
@@ -966,48 +1013,48 @@ Adjust this to find the balance between GPU acceleration and CPU overhead.</sour
 اضبط هذا الخيار لإيجاد التوازن بين تسريع وحدة معالجة الرسومات وعبء وحدة المعالجة المركزية.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="295"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="247"/>
         <source>GPU Unswizzle Stream Size</source>
         <translation>حجم تدفق إلغاء ترتيب بيانات وحدة معالجة الرسومات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="296"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="248"/>
         <source>Sets the maximum amount of texture data (in MiB) processed per frame.
 Higher values can reduce stutter during texture loading but may impact frame consistency.</source>
         <translation>يحدد الحد الأقصى لكمية بيانات النسيج (بالميغابايت) التي تتم معالجتها لكل إطار.
 يمكن أن تقلل القيم الأعلى من التقطع أثناء تحميل النسيج، ولكنها قد تؤثر على اتساق الإطارات.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="300"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="251"/>
         <source>GPU Unswizzle Chunk Size</source>
         <translation>حجم كتلة إلغاء ترتيب بيانات وحدة معالجة الرسومات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="301"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="252"/>
         <source>Determines the number of depth slices processed in a single dispatch.
 Increasing this can improve throughput on high-end GPUs but may cause TDR or driver timeouts on weaker hardware.</source>
         <translation>يُحدد هذا الخيار عدد شرائح العمق التي تتم معالجتها في عملية إرسال واحدة.
 زيادة هذا الخيار قد تُحسّن الإنتاجية على وحدات معالجة الرسومات المتطورة، ولكنها قد تُسبب أخطاء في إعادة تعيين وقت الاستجابة أو انقطاع الاتصال ببرنامج التشغيل على الأجهزة ذات المواصفات الأقل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="306"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="256"/>
         <source>Use Vulkan pipeline cache</source>
         <translation>Vulkan استخدام ذاكرة التخزين المؤقتة لخط أنابيب</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="307"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="257"/>
         <source>Enables GPU vendor-specific pipeline cache.
 This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</source>
         <translation>يُفعّل ذاكرة التخزين المؤقت لخطوط الأنابيب الخاصة ببائع وحدة معالجة الرسومات.
 بتخزين ملفات ذاكرة التخزين المؤقتة للخطوط الداخلية Vulkan يمكن أن يؤدي هذا الخيار إلى تحسين وقت تحميل التظليل بشكل كبير في الحالات التي لا يقوم فيها برنامج تشغيل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="313"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="260"/>
         <source>Enable Compute Pipelines (Intel Vulkan Only)</source>
         <translation>(Intel Vulkan فقط) تمكين خطوط أنابيب الحوسبة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="314"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="261"/>
         <source>Required by some games.
 This setting only exists for Intel proprietary drivers and may crash if enabled.
 Compute pipelines are always enabled on all other drivers.</source>
@@ -1016,183 +1063,206 @@ Compute pipelines are always enabled on all other drivers.</source>
 خطوط أنابيب الحوسبة مفعلة دائمًا على جميع برامج التشغيل الأخرى.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="320"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="265"/>
         <source>Enable Reactive Flushing</source>
         <translation>تمكين التنظيف التفاعلي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="321"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="266"/>
         <source>Uses reactive flushing instead of predictive flushing, allowing more accurate memory syncing.</source>
         <translation>يستخدم التنظيف التفاعلي بدلاً من التنظيف التنبئي، مما يسمح بمزامنة الذاكرة بشكل أكثر دقة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="325"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="268"/>
         <source>Sync to framerate of video playback</source>
         <translation>المزامنة مع معدل الإطارات لتشغيل الفيديو</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="326"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="269"/>
         <source>Run the game at normal speed during video playback, even when the framerate is unlocked.</source>
         <translation>قم بتشغيل اللعبة بالسرعة العادية أثناء تشغيل الفيديو، حتى عندما يكون معدل الإطارات مفتوحًا.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="330"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="271"/>
         <source>Barrier feedback loops</source>
         <translation>حلقات ردود الفعل الحاجزة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="331"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="272"/>
         <source>Improves rendering of transparency effects in specific games.</source>
         <translation>يحسن عرض تأثيرات الشفافية في بعض الألعاب المحددة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="334"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="273"/>
+        <source>Enable buffer history</source>
+        <translation>تمكين سجل التخزين المؤقت</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="274"/>
+        <source>Enables access to previous buffer states.
+This option may improve rendering quality and performance consistency in some games.</source>
+        <translation>يُتيح هذا الخيار الوصول إلى حالات التخزين المؤقت السابقة. وقد يُحسّن جودة العرض وثبات الأداء في بعض الألعاب.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="276"/>
         <source>Fix bloom effects</source>
         <translation>إصلاح تأثيرات التوهج</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="335"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="276"/>
         <source>Removes bloom in Burnout.</source>
         <translation>يزيل التوهج في وضع الاحتراق.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="338"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="278"/>
+        <source>Enable Legacy Rescale Pass</source>
+        <translation>تفعيل ميزة إعادة التحجيم القديمة</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="279"/>
+        <source>May fix rescale issues in some games by relying on behavior from the previous implementation.
+Legacy behavior workaround that fixes line artifacts on AMD and Intel GPUs, and grey texture flicker on Nvidia GPUs in Luigis Mansion 3.</source>
+        <translation>قد يصلح مشاكل إعادة القياس في بعض الألعاب بالاعتماد على سلوك من التنفيذ السابق.
+حل لسلوك قديم يصلح تشوهات الخطوط على بطاقات AMD وIntel الرسومية، ووميض النسيج الرمادي على بطاقات Nvidia الرسومية في لعبة Luigi&apos;s Mansion 3.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="285"/>
         <source>Extended Dynamic State</source>
         <translation>الحالة الديناميكية الموسعة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="339"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="286"/>
         <source>Controls the number of features that can be used in Extended Dynamic State.
 Higher states allow for more features and can increase performance, but may cause additional graphical issues.</source>
         <translation>يتحكم في عدد الميزات التي يمكن استخدامها في الحالة الديناميكية الموسعة.تسمح الحالات الأعلى بمزيد من الميزات ويمكن أن تزيد من الأداء، ولكنها قد تسبب مشكلات رسومية إضافية.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="345"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
         <source>Vertex Input Dynamic State</source>
         <translation>حالة ديناميكية لإدخال الرأس</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="346"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="291"/>
         <source>Enables vertex input dynamic state feature for better quality and performance.</source>
         <translation>يتيح ميزة الحالة الديناميكية لإدخال الرأس لتحسين الجودة والأداء.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="350"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="293"/>
         <source>Provoking Vertex</source>
         <translation>استفزاز قمة الرأس</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="351"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="294"/>
         <source>Improves lighting and vertex handling in some games.
 Only Vulkan 1.0+ devices support this extension.</source>
         <translation>يُحسّن الإضاءة ومعالجة الرؤوس في بعض الألعاب.
 تدعم هذه الإضافة أجهزة Vulkan 1.0+‎ فقط.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="356"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="297"/>
         <source>Descriptor Indexing</source>
         <translation>فهرسة الوصف</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="357"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="298"/>
         <source>Improves texture &amp; buffer handling and the Maxwell translation layer.
 Some Vulkan 1.1+ and all 1.2+ devices support this extension.</source>
         <translation>يُحسّن معالجة الملمس والذاكرة المؤقتة وطبقة ترجمة ماكسويل.
 تدعم بعض أجهزة Vulkan الإصدار 1.1+‎ وجميع أجهزة 1.2+‎ هذه الإضافة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="362"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="302"/>
         <source>Sample Shading</source>
         <translation>تظليل العينة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="363"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="303"/>
         <source>Allows the fragment shader to execute per sample in a multi-sampled fragment instead of once per fragment. Improves graphics quality at the cost of performance.
 Higher values improve quality but degrade performance.</source>
         <translation>يسمح لمظلل الأجزاء بالتنفيذ لكل عينة في جزء متعدد العينات بدلاً من مرة واحدة لكل جزء. يحسن جودة الرسومات على حساب الأداء.
 القيم الأعلى تحسن الجودة ولكنها تقلل من الأداء.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="372"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="310"/>
         <source>RNG Seed</source>
         <translation>مولد الأرقام العشوائية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="373"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="311"/>
         <source>Controls the seed of the random number generator.
 Mainly used for speedrunning.</source>
         <translation>يتحكم في بذرة مولد الأرقام العشوائية. 
 يُستخدم بشكل رئيسي في سباقات السرعة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="375"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="313"/>
         <source>Device Name</source>
         <translation>اسم الجهاز</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="375"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="313"/>
         <source>The name of the console.</source>
         <translation>اسم وحدة التحكم.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="378"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="314"/>
         <source>Custom RTC Date:</source>
         <translation>المخصص RTC تاريخ:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="379"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="315"/>
         <source>This option allows to change the clock of the console.
 Can be used to manipulate time in games.</source>
         <translation>يتيح لك هذا الخيار تغيير ساعة وحدة التحكم.
 يمكن استخدامه للتحكم بالوقت في الألعاب.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="385"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="319"/>
         <source>The number of seconds from the current unix time</source>
         <translation>عدد الثواني من وقت يونكس الحالي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="388"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="320"/>
         <source>Language:</source>
         <translation>اللغة:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="389"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="321"/>
         <source>This option can be overridden when region setting is auto-select</source>
         <translation>يمكن تجاوز هذا الخيار عند تحديد إعداد المنطقة تلقائيًا</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="390"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="322"/>
         <source>Region:</source>
         <translation>المنطقة:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="390"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="322"/>
         <source>The region of the console.</source>
         <translation>منطقة وحدة التحكم.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="391"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="323"/>
         <source>Time Zone:</source>
         <translation>المنطقة الزمنية:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="391"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="323"/>
         <source>The time zone of the console.</source>
         <translation>المنطقة الزمنية لوحدة التحكم.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="392"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="324"/>
         <source>Sound Output Mode:</source>
         <translation>وضع إخراج الصوت:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="395"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="325"/>
         <source>Console Mode:</source>
         <translation>وضع وحدة التحكم:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="396"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="326"/>
         <source>Selects if the console is in Docked or Handheld mode.
 Games will change their resolution, details and supported controllers and depending on this setting.
 Setting to Handheld can help improve performance for low end systems.</source>
@@ -1201,997 +1271,1048 @@ Setting to Handheld can help improve performance for low end systems.</source>
 يُمكن أن يُساعد الضبط على الوضع المحمول على تحسين أداء الأجهزة منخفضة المواصفات.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="418"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="330"/>
+        <source>Unit Serial</source>
+        <translation>الرقم التسلسلي للوحدة</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="331"/>
+        <source>Battery Serial</source>
+        <translation>الرقم التسلسلي للبطارية</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="332"/>
+        <source>Debug knobs</source>
+        <translation>مقابض تصحيح الأخطاء</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="349"/>
         <source>Prompt for user profile on boot</source>
         <translation>المطالبة بملف تعريف المستخدم عند التشغيل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="419"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="350"/>
         <source>Useful if multiple people use the same PC.</source>
         <translation>مفيد إذا كان هناك عدة أشخاص يستخدمون نفس الكمبيوتر.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="422"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="351"/>
         <source>Pause when not in focus</source>
         <translation>توقف عند عدم التركيز</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="423"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="352"/>
         <source>Pauses emulation when focusing on other windows.</source>
         <translation>يوقف المحاكاة عند التركيز على نوافذ أخرى.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="426"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="353"/>
         <source>Confirm before stopping emulation</source>
         <translation>تأكيد قبل إيقاف المحاكاة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="427"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="354"/>
         <source>Overrides prompts asking to confirm stopping the emulation.
 Enabling it bypasses such prompts and directly exits the emulation.</source>
         <translation>يتجاوز المطالبات التي تطلب تأكيد إيقاف المحاكاة.
 يؤدي تمكينه إلى تجاوز هذه المطالبات والخروج مباشرة من المحاكاة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="431"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="356"/>
         <source>Hide mouse on inactivity</source>
         <translation>إخفاء الماوس عند عدم النشاط</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="432"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="357"/>
         <source>Hides the mouse after 2.5s of inactivity.</source>
         <translation>يخفي الماوس بعد 2.5 ثانية من عدم النشاط.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="435"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="358"/>
         <source>Disable controller applet</source>
         <translation>تعطيل تطبيق التحكم</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="436"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="359"/>
         <source>Forcibly disables the use of the controller applet in emulated programs.
 When a program attempts to open the controller applet, it is immediately closed.</source>
         <translation>يُعطّل استخدام أداة التحكم في البرامج المُحاكاة قسرًا. 
 عند محاولة أي برنامج فتح أداة التحكم، تُغلق فورًا.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="440"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="361"/>
         <source>Check for updates</source>
         <translation>التحقق من توفر التحديثات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="441"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="362"/>
         <source>Whether or not to check for updates upon startup.</source>
         <translation>ما إذا كان يجب التحقق من التحديثات عند بدء التشغيل أم لا.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="444"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="365"/>
         <source>Enable Gamemode</source>
         <translation>تمكين وضع اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="446"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="367"/>
         <source>Force X11 as Graphics Backend</source>
         <translation>كخلفية رسومات X11 فرض</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="473"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="394"/>
         <source>Custom frontend</source>
         <translation>الواجهة الأمامية المخصصة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="474"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="395"/>
         <source>Real applet</source>
         <translation>تطبيق صغير حقيقي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="479"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="400"/>
         <source>Never</source>
         <translation>أبداً</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="480"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="401"/>
         <source>On Load</source>
         <translation>عند التحميل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="481"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="402"/>
         <source>Always</source>
         <translation>دائماً</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="485"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="406"/>
         <source>CPU</source>
         <translation>وحدة المعالجة المركزية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="486"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="407"/>
         <source>GPU</source>
         <translation>وحدة معالجة الرسومات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="487"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="408"/>
         <source>CPU Asynchronous</source>
         <translation>وحدة المعالجة المركزية غير المتزامنة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="492"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="413"/>
         <source>Uncompressed (Best quality)</source>
         <translation>Uncompressed (أفضل جودة)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="493"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="414"/>
         <source>BC1 (Low quality)</source>
         <translation>BC1 (جودة منخفضة)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="494"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="415"/>
         <source>BC3 (Medium quality)</source>
         <translation>BC3 (جودة متوسطة)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="498"/>
-        <source>Conservative</source>
-        <translation>محافظ</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="499"/>
-        <source>Aggressive</source>
-        <translation>عدواني</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="502"/>
-        <source>Vulkan</source>
-        <translation>Vulkan</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="504"/>
-        <source>OpenGL GLSL</source>
-        <translation>OpenGL GLSL</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="505"/>
-        <source>OpenGL GLASM (Assembly Shaders, NVIDIA Only)</source>
-        <translation>OpenGL GLASM (Assembly Shaders, NVIDIA Only)</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="506"/>
-        <source>OpenGL SPIR-V (Experimental, AMD/Mesa Only)</source>
-        <translation>OpenGL SPIR-V (Experimental, AMD/Mesa Only)</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="508"/>
-        <source>Null</source>
-        <translation>لا شيء</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="512"/>
-        <source>Fast</source>
-        <translation>سريع</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="513"/>
-        <source>Balanced</source>
-        <translation>متوازن</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="514"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="526"/>
-        <source>Accurate</source>
-        <translation>دقه</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="518"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="597"/>
-        <source>Default</source>
-        <translation>افتراضي</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="519"/>
-        <source>Unsafe (fast)</source>
-        <translation>غير آمن (سريع)</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="520"/>
-        <source>Safe (stable)</source>
-        <translation>آمن (مستقر)</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="525"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="419"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="454"/>
         <source>Auto</source>
         <translation>تلقائي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="527"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="420"/>
+        <source>30 FPS</source>
+        <translation>30 إطارًا في الثانية</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="421"/>
+        <source>60 FPS</source>
+        <translation>60 إطارًا في الثانية</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="422"/>
+        <source>90 FPS</source>
+        <translation>90 إطارًا في الثانية</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="423"/>
+        <source>120 FPS</source>
+        <translation>120 إطارًا في الثانية</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="427"/>
+        <source>Conservative</source>
+        <translation>محافظ</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="428"/>
+        <source>Aggressive</source>
+        <translation>عدواني</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="432"/>
+        <source>Vulkan</source>
+        <translation>Vulkan</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="434"/>
+        <source>OpenGL GLSL</source>
+        <translation>OpenGL GLSL</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="435"/>
+        <source>OpenGL GLASM (Assembly Shaders, NVIDIA Only)</source>
+        <translation>OpenGL GLASM (Assembly Shaders, NVIDIA Only)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="436"/>
+        <source>OpenGL SPIR-V (Experimental, AMD/Mesa Only)</source>
+        <translation>OpenGL SPIR-V (Experimental, AMD/Mesa Only)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="438"/>
+        <source>Null</source>
+        <translation>لا شيء</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="441"/>
+        <source>Fast</source>
+        <translation>سريع</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="442"/>
+        <source>Balanced</source>
+        <translation>متوازن</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="443"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="455"/>
+        <source>Accurate</source>
+        <translation>دقه</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="447"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="526"/>
+        <source>Default</source>
+        <translation>افتراضي</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="448"/>
+        <source>Unsafe (fast)</source>
+        <translation>غير آمن (سريع)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="449"/>
+        <source>Safe (stable)</source>
+        <translation>آمن (مستقر)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="456"/>
         <source>Unsafe</source>
         <translation>غير آمن</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="528"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="457"/>
         <source>Paranoid (disables most optimizations)</source>
         <translation>جنون العظمة (يعطل معظم التحسينات)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="529"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="458"/>
         <source>Debugging</source>
         <translation>تصحيح الأخطاء</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="533"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="462"/>
         <source>Dynarmic</source>
         <translation>Dynarmic</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="534"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="463"/>
         <source>NCE</source>
         <translation>NCE</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="538"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="467"/>
         <source>Borderless Windowed</source>
         <translation>نافذة بلا حدود</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="539"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="468"/>
         <source>Exclusive Fullscreen</source>
         <translation>شاشة كاملة حصرية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="543"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="472"/>
         <source>No Video Output</source>
         <translation>لا يوجد إخراج فيديو</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="544"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="473"/>
         <source>CPU Video Decoding</source>
         <translation>فك تشفير فيديو وحدة المعالجة المركزية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="545"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="474"/>
         <source>GPU Video Decoding (Default)</source>
         <translation>فك تشفير فيديو وحدة معالجة الرسومات (افتراضي)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="550"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="479"/>
         <source>0.25X (180p/270p) [EXPERIMENTAL]</source>
         <translation>0.25X (180p/270p) [تجريبي]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="551"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="480"/>
         <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
         <translation>0.5X (360p/540p) [تجريبي]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="552"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="481"/>
         <source>0.75X (540p/810p) [EXPERIMENTAL]</source>
         <translation>0.75X (540p/810p) [تجريبي]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="553"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="482"/>
         <source>1X (720p/1080p)</source>
         <translation>1X (720p/1080p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="554"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="483"/>
         <source>1.25X (900p/1350p) [EXPERIMENTAL]</source>
         <translation>1.25X (900p/1350p) [تجريبي]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="555"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="484"/>
         <source>1.5X (1080p/1620p) [EXPERIMENTAL]</source>
         <translation>1.5X (1080p/1620p) [تجريبي]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="556"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="485"/>
         <source>2X (1440p/2160p)</source>
         <translation>2X (1440p/2160p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="557"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="486"/>
         <source>3X (2160p/3240p)</source>
         <translation>3X (2160p/3240p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="558"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="487"/>
         <source>4X (2880p/4320p)</source>
         <translation>4X (2880p/4320p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="559"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="488"/>
         <source>5X (3600p/5400p)</source>
         <translation>5X (3600p/5400p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="560"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="489"/>
         <source>6X (4320p/6480p)</source>
         <translation>6X (4320p/6480p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="561"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="490"/>
         <source>7X (5040p/7560p)</source>
         <translation>7X (5040p/7560p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="562"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="491"/>
         <source>8X (5760p/8640p)</source>
         <translation>8X (5760p/8640p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="566"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="495"/>
         <source>Nearest Neighbor</source>
         <translation>Nearest Neighbor</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="567"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="496"/>
         <source>Bilinear</source>
         <translation>Bilinear</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="568"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="497"/>
         <source>Bicubic</source>
         <translation>Bicubic</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="569"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="498"/>
         <source>Gaussian</source>
         <translation>Gaussian</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="570"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="499"/>
         <source>Lanczos</source>
         <translation>Lanczos</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="571"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="500"/>
         <source>ScaleForce</source>
         <translation>ScaleForce</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="572"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="501"/>
         <source>AMD FidelityFX Super Resolution</source>
         <translation>AMD FidelityFX Super Resolution</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="573"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="502"/>
         <source>Area</source>
         <translation>Area</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="574"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="503"/>
         <source>MMPX</source>
         <translation>MMPX</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="575"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="504"/>
         <source>Zero-Tangent</source>
         <translation>Zero-Tangent</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="576"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="505"/>
         <source>B-Spline</source>
         <translation>B-Spline</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="577"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="506"/>
         <source>Mitchell</source>
         <translation>Mitchell</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="578"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="507"/>
         <source>Spline-1</source>
         <translation>Spline-1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="582"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="604"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="511"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="533"/>
         <source>None</source>
         <translation>لا شيء</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="583"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="512"/>
         <source>FXAA</source>
         <translation>FXAA</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="584"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="513"/>
         <source>SMAA</source>
         <translation>SMAA</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="588"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="517"/>
         <source>Default (16:9)</source>
         <translation>(16:9) افتراضي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="589"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="518"/>
         <source>Force 4:3</source>
         <translation>4:3 فرض</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="590"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="519"/>
         <source>Force 21:9</source>
         <translation>21:9 فرض</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="591"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="520"/>
         <source>Force 16:10</source>
         <translation>16:10 فرض</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="592"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="521"/>
         <source>Stretch to Window</source>
         <translation>تمديد إلى النافذة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="596"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="525"/>
         <source>Automatic</source>
         <translation>تلقائي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="598"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="527"/>
         <source>2x</source>
         <translation>2x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="599"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="528"/>
         <source>4x</source>
         <translation>4x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="600"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="529"/>
         <source>8x</source>
         <translation>8x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="601"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="530"/>
         <source>16x</source>
         <translation>16x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="602"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="531"/>
         <source>32x</source>
         <translation>32x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="603"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="532"/>
         <source>64x</source>
         <translation>64x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="609"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="538"/>
         <source>Japanese (日本語)</source>
         <translation>اليابانية (日本語)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="610"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="539"/>
         <source>American English</source>
         <translation>الإنجليزية الأمريكية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="611"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="540"/>
         <source>French (français)</source>
         <translation>الفرنسية (français)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="612"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="541"/>
         <source>German (Deutsch)</source>
         <translation>الألمانية (Deutsch)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="613"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="542"/>
         <source>Italian (italiano)</source>
         <translation>الإيطالية (Italiano)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="614"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="543"/>
         <source>Spanish (español)</source>
         <translation>الإسبانية (español)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="615"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="544"/>
         <source>Chinese</source>
         <translation>الصينية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="616"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="545"/>
         <source>Korean (한국어)</source>
         <translation>الكورية (한국어)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="617"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="546"/>
         <source>Dutch (Nederlands)</source>
         <translation>الهولندية (Nederlands)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="618"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="547"/>
         <source>Portuguese (português)</source>
         <translation>البرتغالية (Português)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="619"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="548"/>
         <source>Russian (Русский)</source>
         <translation>الروسية (Русский)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="620"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="549"/>
         <source>Taiwanese</source>
         <translation>تايواني</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="621"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="550"/>
         <source>British English</source>
         <translation>الإنكليزية البريطانية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="622"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="551"/>
         <source>Canadian French</source>
         <translation>الكندية الفرنسية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="623"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="552"/>
         <source>Latin American Spanish</source>
         <translation>أمريكا اللاتينية الإسبانية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="624"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="553"/>
         <source>Simplified Chinese</source>
         <translation>الصينية المبسطة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="625"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="554"/>
         <source>Traditional Chinese (正體中文)</source>
         <translation>الصينية التقليدية (正體中文)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="626"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="555"/>
         <source>Brazilian Portuguese (português do Brasil)</source>
         <translation>البرتغالية البرازيلية (português do Brasil)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="627"/>
-        <source>Serbian (српски)</source>
-        <translation>الصربية (српски)</translation>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="556"/>
+        <source>Polish (polska)</source>
+        <translation>البولندية (polska)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="631"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="670"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="557"/>
+        <source>Thai (แบบไทย)</source>
+        <translation>التايلاندية (แบบไทย)</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="561"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="600"/>
         <source>Japan</source>
         <translation>اليابان</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="632"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="562"/>
         <source>USA</source>
         <translation>الولايات المتحدة الأمريكية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="633"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="563"/>
         <source>Europe</source>
         <translation>أوروبا</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="634"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="564"/>
         <source>Australia</source>
         <translation>أستراليا</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="635"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="565"/>
         <source>China</source>
         <translation>الصين</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="636"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="566"/>
         <source>Korea</source>
         <translation>كوريا</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="637"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="567"/>
         <source>Taiwan</source>
         <translation>تايوان</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="643"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="573"/>
         <source>Auto (%1)</source>
         <comment>Auto select time zone</comment>
         <translation>تلقائي (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="647"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="577"/>
         <source>Default (%1)</source>
         <comment>Default time zone</comment>
         <translation>افتراضي (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="649"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="579"/>
         <source>CET</source>
         <translation>CET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="650"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="580"/>
         <source>CST6CDT</source>
         <translation>CST6CDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="651"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="581"/>
         <source>Cuba</source>
         <translation>Cuba</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="652"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="582"/>
         <source>EET</source>
         <translation>EET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="653"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="583"/>
         <source>Egypt</source>
         <translation>Egypt</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="654"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="584"/>
         <source>Eire</source>
         <translation>Eire</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="655"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="585"/>
         <source>EST</source>
         <translation>EST</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="656"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="586"/>
         <source>EST5EDT</source>
         <translation>EST5EDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="657"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="587"/>
         <source>GB</source>
         <translation>GB</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="658"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="588"/>
         <source>GB-Eire</source>
         <translation>GB-Eire</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="659"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="589"/>
         <source>GMT</source>
         <translation>GMT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="660"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="590"/>
         <source>GMT+0</source>
         <translation>GMT+0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="661"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="591"/>
         <source>GMT-0</source>
         <translation>GMT-0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="662"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="592"/>
         <source>GMT0</source>
         <translation>GMT0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="663"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="593"/>
         <source>Greenwich</source>
         <translation>Greenwich</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="664"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="594"/>
         <source>Hongkong</source>
         <translation>Hongkong</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="665"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="595"/>
         <source>HST</source>
         <translation>HST</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="666"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="596"/>
         <source>Iceland</source>
         <translation>Iceland</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="667"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="597"/>
         <source>Iran</source>
         <translation>Iran</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="668"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="598"/>
         <source>Israel</source>
         <translation>Israel</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="669"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="599"/>
         <source>Jamaica</source>
         <translation>Jamaica</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="671"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="601"/>
         <source>Kwajalein</source>
         <translation>Kwajalein</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="672"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="602"/>
         <source>Libya</source>
         <translation>Libya</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="673"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="603"/>
         <source>MET</source>
         <translation>MET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="674"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="604"/>
         <source>MST</source>
         <translation>MST</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="675"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="605"/>
         <source>MST7MDT</source>
         <translation>MST7MDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="676"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="606"/>
         <source>Navajo</source>
         <translation>Navajo</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="677"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="607"/>
         <source>NZ</source>
         <translation>NZ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="678"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="608"/>
         <source>NZ-CHAT</source>
         <translation>NZ-CHAT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="679"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="609"/>
         <source>Poland</source>
         <translation>Poland</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="680"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="610"/>
         <source>Portugal</source>
         <translation>Portugal</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="681"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="611"/>
         <source>PRC</source>
         <translation>PRC</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="682"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="612"/>
         <source>PST8PDT</source>
         <translation>PST8PDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="683"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="613"/>
         <source>ROC</source>
         <translation>ROC</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="684"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="614"/>
         <source>ROK</source>
         <translation>ROK</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="685"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="615"/>
         <source>Singapore</source>
         <translation>Singapore</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="686"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="616"/>
         <source>Turkey</source>
         <translation>Turkey</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="687"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="617"/>
         <source>UCT</source>
         <translation>UCT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="688"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="618"/>
         <source>Universal</source>
         <translation>عالمي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="689"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="619"/>
         <source>UTC</source>
         <translation>UTC</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="690"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="620"/>
         <source>W-SU</source>
         <translation>W-SU</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="691"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="621"/>
         <source>WET</source>
         <translation>WET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="692"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="622"/>
         <source>Zulu</source>
         <translation>Zulu</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="696"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="626"/>
         <source>Mono</source>
         <translation>أحادي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="697"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="627"/>
         <source>Stereo</source>
         <translation>مجسم</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="698"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="628"/>
         <source>Surround</source>
         <translation>محيطي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="702"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="632"/>
         <source>4GB DRAM (Default)</source>
         <translation>4GB DRAM (افتراضي)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="703"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="633"/>
         <source>6GB DRAM (Unsafe)</source>
         <translation>6GB DRAM (غير آمنة)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="704"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="634"/>
         <source>8GB DRAM</source>
         <translation>8GB DRAM</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="705"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="635"/>
         <source>10GB DRAM (Unsafe)</source>
         <translation>10GB DRAM (غير آمنة)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="706"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="636"/>
         <source>12GB DRAM (Unsafe)</source>
         <translation>12GB DRAM (غير آمنة)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="710"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="640"/>
         <source>Docked</source>
         <translation>الإرساء</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="711"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="641"/>
         <source>Handheld</source>
         <translation>محمول</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="715"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="728"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="645"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="658"/>
         <source>Off</source>
         <translation>تعطيل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="716"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="646"/>
         <source>Boost (1700MHz)</source>
         <translation>تعزيز (1700 ميجا هرتز)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="717"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="647"/>
         <source>Fast (2000MHz)</source>
         <translation>سريع (2000 ميجاهرتز)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="722"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="652"/>
         <source>Always ask (Default)</source>
         <translation>اسأل دائمًا (افتراضي)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="723"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="653"/>
         <source>Only if game specifies not to stop</source>
         <translation>فقط إذا حددت اللعبة عدم التوقف</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="724"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="654"/>
         <source>Never ask</source>
         <translation>لا تسأل أبدا</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="729"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="753"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="659"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="683"/>
         <source>Medium (256)</source>
         <translation>متوسط (256)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="730"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="754"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="660"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="684"/>
         <source>High (512)</source>
         <translation>عالي (512)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="734"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="664"/>
         <source>Very Small (16 MB)</source>
         <translation>صغير جدًا (16 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="735"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="665"/>
         <source>Small (32 MB)</source>
         <translation>صغير (32 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="736"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="666"/>
         <source>Normal (128 MB)</source>
         <translation>قياسي (128 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="737"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="667"/>
         <source>Large (256 MB)</source>
         <translation>كبير (256 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="738"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="668"/>
         <source>Very Large (512 MB)</source>
         <translation>كبير جدًا (512 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="742"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="672"/>
         <source>Very Low (4 MB)</source>
         <translation>منخفض جدًا (4 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="743"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="673"/>
         <source>Low (8 MB)</source>
         <translation>منخفض (8 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="744"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="674"/>
         <source>Normal (16 MB)</source>
         <translation>قياسي (16 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="745"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="675"/>
         <source>Medium (32 MB)</source>
         <translation>متوسط (32 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="746"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="676"/>
         <source>High (64 MB)</source>
         <translation>عالي (64 ميغابايت)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="750"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="680"/>
         <source>Very Low (32)</source>
         <translation>منخفض جدًا (32)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="751"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="681"/>
         <source>Low (64)</source>
         <translation>منخفض (64)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="752"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="682"/>
         <source>Normal (128)</source>
         <translation>قياسي (128)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="759"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="689"/>
         <source>Disabled</source>
         <translation>معطل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="760"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="690"/>
         <source>ExtendedDynamicState 1</source>
         <translation>الحالة الديناميكية الممتدة 1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="761"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="691"/>
         <source>ExtendedDynamicState 2</source>
         <translation>الحالة الديناميكية الممتدة 2</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="762"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="692"/>
         <source>ExtendedDynamicState 3</source>
         <translation>الحالة الديناميكية الممتدة 3</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="697"/>
+        <source>Tree View</source>
+        <translation>عرض الشجرة</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="698"/>
+        <source>Grid View</source>
+        <translation>عرض الشبكة</translation>
     </message>
 </context>
 <context>
@@ -2226,7 +2347,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.ui" line="14"/>
         <source>Configure Infrared Camera</source>
-        <translation>إعداد كاميرا الأشعة فوق الحمراء</translation>
+        <translation>إعدادات كاميرا الأشعة فوق الحمراء</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.ui" line="26"/>
@@ -2264,7 +2385,7 @@ When a program attempts to open the controller applet, it is immediately closed.
         <translation>استعادة الإعدادات الافتراضية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_camera.cpp" line="140"/>
+        <location filename="../../src/yuzu/configuration/configure_camera.cpp" line="135"/>
         <source>Auto</source>
         <translation>تلقائي</translation>
     </message>
@@ -2715,81 +2836,86 @@ When a program attempts to open the controller applet, it is immediately closed.
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="441"/>
+        <source>Use dev.keys</source>
+        <translation>استخدام dev.keys</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="448"/>
         <source>Enable Debug Asserts</source>
         <translation>تمكين تأكيدات التصحيح</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="467"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="474"/>
         <source>Debugging</source>
         <translation>تصحيح الأخطاء</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="500"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="507"/>
         <source>Battery Serial:</source>
         <translation>رقم تسلسلي للبطارية:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="519"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="526"/>
         <source>Bitmask for quick development toggles</source>
         <translation>قناع بت للتبديل السريع بين أوضاع التطوير</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="522"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="529"/>
         <source>Set debug knobs (bitmask)</source>
         <translation>ضبط أزرار تصحيح الأخطاء (قناع البت)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="525"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="532"/>
         <source>16-bit debug knob set for quick development toggles</source>
         <translation>مجموعة أزرار تصحيح أخطاء 16 بت للتبديل السريع بين أوضاع التطوير</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="528"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="535"/>
         <source> (bitmask)</source>
         <translation>(قناع البت)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="531"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="538"/>
         <source>Debug Knobs: </source>
         <translation>أزرار تصحيح الأخطاء:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="565"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="572"/>
         <source>Unit Serial:</source>
         <translation>الرقم التسلسلي للوحدة:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="594"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="601"/>
         <source>Enable this to output the latest generated audio command list to the console. Only affects games using the audio renderer.</source>
         <translation>قم بتمكين هذه الخيار لإخراج أحدث قائمة أوامر صوتية تم إنشاؤها إلى وحدة التحكم. يؤثر فقط على الألعاب التي تستخدم عارض الصوت.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="597"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="604"/>
         <source>Dump Audio Commands To Console**</source>
         <translation>تفريغ أوامر الصوت إلى وحدة التحكم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="604"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="611"/>
         <source>Flush log output on each line</source>
         <translation>مسح إخراج السجل على كل سطر</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="611"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="618"/>
         <source>Enable FS Access Log</source>
         <translation>FS تمكين سجل وصول</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="618"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="625"/>
         <source>Enable Verbose Reporting Services**</source>
         <translation>تمكين خدمات التقارير التفصيلية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="625"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="632"/>
         <source>Censor username in logs</source>
         <translation>اخفي اسم المستخدم في السجلات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="661"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="668"/>
         <source>**This will be reset automatically when Eden closes.</source>
         <translation>**سيتم إعادة تعيين هذا تلقائيًا عند إغلاق إيدن.</translation>
     </message>
@@ -2799,7 +2925,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_controller.ui" line="14"/>
         <source>Configure Debug Controller</source>
-        <translation>إعداد تصحيح أخطاء ذراع التحكم</translation>
+        <translation>إعدادات تصحيح أخطاء ذراع التحكم</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_controller.ui" line="40"/>
@@ -2850,13 +2976,13 @@ When a program attempts to open the controller applet, it is immediately closed.
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="70"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="180"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="183"/>
         <source>Audio</source>
         <translation>الصوت</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="71"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="178"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="180"/>
         <source>CPU</source>
         <translation>المعالج</translation>
     </message>
@@ -2872,13 +2998,13 @@ When a program attempts to open the controller applet, it is immediately closed.
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="74"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="173"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="175"/>
         <source>General</source>
         <translation>عام</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="75"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="179"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="181"/>
         <source>Graphics</source>
         <translation>الرسومات</translation>
     </message>
@@ -2899,7 +3025,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="79"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="181"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="184"/>
         <source>Controls</source>
         <translation>ذراع التحكم</translation>
     </message>
@@ -2915,7 +3041,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="82"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="175"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="177"/>
         <source>System</source>
         <translation>النظام</translation>
     </message>
@@ -3033,58 +3159,58 @@ When a program attempts to open the controller applet, it is immediately closed.
         <translation>إعادة تعيين الذاكرة المؤقتة للبيانات الوصفية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="106"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="105"/>
         <source>Select Emulated NAND Directory...</source>
         <translation>حدد مجلد الذاكرة الداخلية المحاكاة...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="109"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="108"/>
         <source>Select Emulated SD Directory...</source>
         <translation>حدد مجلد بطاقة الذاكرة الذي تمت محاكاته</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="112"/>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="160"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="111"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="159"/>
         <source>Select Save Data Directory...</source>
         <translation>حدد مجلد بيانات الحفظ...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="115"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="114"/>
         <source>Select Gamecard Path...</source>
         <translation>أختر مسار بطاقة اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="118"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="117"/>
         <source>Select Dump Directory...</source>
         <translation>حدد مجلد التفريغ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="121"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="120"/>
         <source>Select Mod Load Directory...</source>
         <translation>حدد مجلد تحميل التعديل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="149"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="148"/>
         <source>Save Data Directory</source>
         <translation>مجلد بيانات الحفظ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="150"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="149"/>
         <source>Choose an action for the save data directory:</source>
         <translation>اختر إجراءً لمجلد بيانات الحفظ:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="152"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="151"/>
         <source>Set Custom Path</source>
         <translation>تعيين مسار مخصص</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="153"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="152"/>
         <source>Reset to NAND</source>
         <translation>إعادة ضبط إلى الذاكرة الداخلية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="209"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="208"/>
         <source>Save data exists in both the old and new locations.
 
 Old: %1
@@ -3095,7 +3221,7 @@ WARNING: This will overwrite any conflicting saves in the new location!</source>
         <translation>البيانات المحفوظة موجودة في كل من الموقعين القديم والجديد.القديم: %1الجديد: %2هل ترغب في نقل الملفات المحفوظة من الموقع القديم؟تحذير: سيؤدي هذا إلى استبدال أي ملفات حفظ متعارضة في الموقع الجديد!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="217"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="216"/>
         <source>Would you like to migrate your save data to the new location?
 
 From: %1
@@ -3103,28 +3229,28 @@ To: %2</source>
         <translation>هل ترغب في نقل بياناتك المحفوظة إلى الموقع الجديد؟من: %1الى: %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="225"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="224"/>
         <source>Migrate Save Data</source>
         <translation>نقل البيانات الحفظ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="232"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="231"/>
         <source>Migrating save data...</source>
         <translation>نقل بيانات الحفظ...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="232"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="231"/>
         <source>Cancel</source>
         <translation>إلغاء</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="240"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="239"/>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="252"/>
         <source>Migration Failed</source>
         <translation>فشل عملية النقل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="241"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="240"/>
         <source>Failed to create destination directory.</source>
         <translation>فشل في إنشاء مجلد الوجهة.</translation>
     </message>
@@ -3135,12 +3261,12 @@ To: %2</source>
         <translation>فشل نقل بيانات الحفظ:%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="259"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="258"/>
         <source>Migration Complete</source>
         <translation>اكتملت عملية النقل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="260"/>
+        <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="259"/>
         <source>Save data has been migrated successfully.
 
 Would you like to delete the old save data?</source>
@@ -3161,19 +3287,54 @@ Would you like to delete the old save data?</source>
         <translation>عام</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_general.ui" line="82"/>
+        <location filename="../../src/yuzu/configuration/configure_general.ui" line="52"/>
+        <source>External Content</source>
+        <translation>محتوى خارجي</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_general.ui" line="58"/>
+        <source>Add directories to scan for DLCs and Updates without installing to NAND</source>
+        <translation>إضافة مجلدات لفحصها بحثًا عن المحتوى القابل للتنزيل والتحديثات دون تثبيتها على الذاكرة الداخلية</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_general.ui" line="77"/>
+        <source>Add Directory</source>
+        <translation>إضافة مجلد</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_general.ui" line="84"/>
+        <source>Remove Selected</source>
+        <translation>إزالة ما تم اختياره</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_general.ui" line="142"/>
         <source>Reset All Settings</source>
         <translation>إعادة تعيين جميع الإعدادات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_general.cpp" line="87"/>
+        <location filename="../../src/yuzu/configuration/configure_general.cpp" line="101"/>
         <source>Eden</source>
         <translation>إيدن</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_general.cpp" line="88"/>
+        <location filename="../../src/yuzu/configuration/configure_general.cpp" line="102"/>
         <source>This reset all settings and remove all per-game configurations. This will not delete game directories, profiles, or input profiles. Proceed?</source>
         <translation>سيؤدي ذلك إلى إعادة تعيين جميع الإعدادات وإزالة جميع التكوينات الخاصة بكل لعبة. لن يؤدي ذلك إلى حذف مجلدات الألعاب أو ملفات التعريف أو ملفات تعريف الإدخال. هل تريد المتابعة؟</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_general.cpp" line="140"/>
+        <source>Select External Content Directory...</source>
+        <translation>حدد مجلد المحتوى الخارجي...</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_general.cpp" line="153"/>
+        <source>Directory Already Added</source>
+        <translation>تمت إضافة المجلد مسبقًا</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_general.cpp" line="154"/>
+        <source>This directory is already in the list.</source>
+        <translation>هذا المجلد موجود بالفعل في القائمة.</translation>
     </message>
 </context>
 <context>
@@ -3204,33 +3365,33 @@ Would you like to delete the old save data?</source>
         <translation>:لون الخلفية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="269"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="268"/>
         <source>%</source>
         <comment>FSR sharpening percentage (e.g. 50%)</comment>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="403"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="405"/>
         <source>Off</source>
         <translation>معطل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="403"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="406"/>
         <source>VSync Off</source>
         <translation>VSync معطل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="405"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="408"/>
         <source>Recommended</source>
         <translation>مستحسن</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="410"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="413"/>
         <source>On</source>
         <translation>مفعل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="410"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="414"/>
         <source>VSync On</source>
         <translation>VSync مفعل</translation>
     </message>
@@ -3281,13 +3442,13 @@ Would you like to delete the old save data?</source>
         <translation>Vulkan ملحقات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics_extensions.cpp" line="48"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics_extensions.cpp" line="49"/>
         <source>%</source>
         <comment>Sample Shading percentage (e.g. 50%)</comment>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics_extensions.cpp" line="67"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics_extensions.cpp" line="68"/>
         <source>Extended Dynamic State is disabled on macOS due to MoltenVK compatibility issues that cause black screens.</source>
         <translation>تم تعطيل الحالة الديناميكية الممتدة على نظام macOS بسبب مشكلات توافق MoltenVK التي تتسبب في ظهور شاشات سوداء.</translation>
     </message>
@@ -3398,7 +3559,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="14"/>
         <source>ConfigureInput</source>
-        <translation>إعداد الإدخال</translation>
+        <translation>إعدادات الإدخال</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="39"/>
@@ -3478,7 +3639,7 @@ Would you like to delete the old save data?</source>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="215"/>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="261"/>
         <source>Configure</source>
-        <translation>الإعداد</translation>
+        <translation>الإعدادات</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="225"/>
@@ -3551,7 +3712,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="14"/>
         <source>Configure Input</source>
-        <translation>إعداد الإدخال</translation>
+        <translation>إعدادات الإدخال</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="74"/>
@@ -3682,7 +3843,7 @@ Would you like to delete the old save data?</source>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2630"/>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2756"/>
         <source>Configure</source>
-        <translation>الإعداد</translation>
+        <translation>الإعدادات</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2609"/>
@@ -3825,7 +3986,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="14"/>
         <source>Configure Input</source>
-        <translation>إعداد الإدخال</translation>
+        <translation>إعدادات الإدخال</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="63"/>
@@ -3859,7 +4020,7 @@ Would you like to delete the old save data?</source>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="272"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1371"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1369"/>
         <source>Left Stick</source>
         <translation>العصا اليسرى</translation>
     </message>
@@ -3969,14 +4130,14 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1218"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1257"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1368"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1366"/>
         <source>ZL</source>
         <translation>ZL</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1283"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1322"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1376"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1374"/>
         <source>L</source>
         <translation>L</translation>
     </message>
@@ -3989,22 +4150,22 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1418"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1457"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1367"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1365"/>
         <source>Plus</source>
         <translation>Plus</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1525"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1564"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1369"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1367"/>
         <source>ZR</source>
         <translation>ZR</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1590"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1629"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1370"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1377"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1368"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1375"/>
         <source>R</source>
         <translation>R</translation>
     </message>
@@ -4061,7 +4222,7 @@ Would you like to delete the old save data?</source>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2328"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1372"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1370"/>
         <source>Right Stick</source>
         <translation>العصا اليمنى</translation>
     </message>
@@ -4073,7 +4234,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2875"/>
         <source>Configure</source>
-        <translation>الإعداد</translation>
+        <translation>الإعدادات</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="387"/>
@@ -4230,88 +4391,88 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
         <translation>Sega Genesis</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1375"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1373"/>
         <source>Start / Pause</source>
         <translation>Start / Pause</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1378"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1376"/>
         <source>Z</source>
         <translation>Z</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1379"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1377"/>
         <source>Control Stick</source>
         <translation>عصا التحكم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1380"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1378"/>
         <source>C-Stick</source>
         <translation>C-عصا</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1481"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1479"/>
         <source>Shake!</source>
         <translation>هزّ!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1483"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1481"/>
         <source>[waiting]</source>
         <translation>[انتظار]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1578"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1576"/>
         <source>New Profile</source>
         <translation>ملف تعريف جديد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1578"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1576"/>
         <source>Enter a profile name:</source>
         <translation>أدخل اسم ملف التعريف:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1586"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1594"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1584"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1592"/>
         <source>Create Input Profile</source>
         <translation>إنشاء ملف تعريف الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1587"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1585"/>
         <source>The given profile name is not valid!</source>
         <translation>اسم ملف التعريف المحدد غير صالح!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1595"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1593"/>
         <source>Failed to create the input profile &quot;%1&quot;</source>
         <translation>&quot;%1&quot; فشل في إنشاء ملف تعريف الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1615"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1613"/>
         <source>Delete Input Profile</source>
         <translation>حذف ملف تعريف الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1616"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1614"/>
         <source>Failed to delete the input profile &quot;%1&quot;</source>
         <translation>&quot;%1&quot; فشل في مسح ملف تعريف الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1638"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1636"/>
         <source>Load Input Profile</source>
         <translation>تحميل ملف تعريف الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1639"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1637"/>
         <source>Failed to load the input profile &quot;%1&quot;</source>
         <translation>&quot;%1&quot; فشل في تحميل ملف تعريف الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1664"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1662"/>
         <source>Save Input Profile</source>
         <translation>حفظ ملف تعريف الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1665"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1663"/>
         <source>Failed to save the input profile &quot;%1&quot;</source>
         <translation>&quot;%1&quot; فشل في حفظ ملف تعريف الإدخال</translation>
     </message>
@@ -4339,7 +4500,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="6"/>
         <source>Configure Motion / Touch</source>
-        <translation>إعداد الحركة / اللمس</translation>
+        <translation>إعدادات الحركة / اللمس</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="15"/>
@@ -4361,7 +4522,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="73"/>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="236"/>
         <source>Configure</source>
-        <translation>الإعداد</translation>
+        <translation>الإعدادات</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="57"/>
@@ -4452,7 +4613,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="219"/>
         <source>Configuring</source>
-        <translation>الإعداد</translation>
+        <translation>الإعدادات</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="250"/>
@@ -4485,7 +4646,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="6"/>
         <source>Configure mouse panning</source>
-        <translation>إعداد حركة الماوس</translation>
+        <translation>إعدادات حركة الماوس</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="12"/>
@@ -4606,11 +4767,6 @@ Current values are %1% and %2% respectively.</source>
         <source>Enable Airplane Mode</source>
         <translation>تمكين وضع الطيران</translation>
     </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_network.cpp" line="18"/>
-        <source>None</source>
-        <translation>لا شيء</translation>
-    </message>
 </context>
 <context>
     <name>ConfigurePerGame</name>
@@ -4665,52 +4821,57 @@ Current values are %1% and %2% respectively.</source>
         <translation>بعض الإعدادات متوفرة فقط عندما لا تكون اللعبة قيد التشغيل.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="75"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="77"/>
         <source>Add-Ons</source>
         <translation>الإضافات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="76"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="78"/>
         <source>System</source>
         <translation>النظام</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="77"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="79"/>
         <source>CPU</source>
         <translation>المعالج</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="78"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="80"/>
         <source>Graphics</source>
         <translation>الرسومات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="79"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="81"/>
         <source>Adv. Graphics</source>
         <translation>الرسومات المتقدمة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="80"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="82"/>
         <source>Ext. Graphics</source>
         <translation>الرسومات الخارجية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="81"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="83"/>
         <source>Audio</source>
         <translation>الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="82"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="84"/>
         <source>Input Profiles</source>
         <translation>ملفات تعريف الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="83"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="85"/>
         <source>Network</source>
         <translation>الشبكة</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="86"/>
+        <source>Applets</source>
+        <translation>التطبيقات الصغيرة</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="89"/>
         <source>Properties</source>
         <translation>خصائص</translation>
     </message>
@@ -4728,14 +4889,114 @@ Current values are %1% and %2% respectively.</source>
         <translation>الإضافات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="48"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.ui" line="23"/>
+        <source>Import Mod from ZIP</source>
+        <translation>استيراد التعديل من ملف مضغوط</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.ui" line="30"/>
+        <source>Import Mod from Folder</source>
+        <translation>استيراد التعديل من مجلد</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="56"/>
         <source>Patch Name</source>
         <translation>اسم التصحيح</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="49"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="57"/>
         <source>Version</source>
         <translation>الإصدار</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="153"/>
+        <source>Mod Install Succeeded</source>
+        <translation>تم تثبيت التعديل بنجاح</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="154"/>
+        <source>Successfully installed all mods.</source>
+        <translation>تم تثبيت جميع التعديلات بنجاح.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="163"/>
+        <source>Mod Install Failed</source>
+        <translation>فشل تثبيت التعديل</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="164"/>
+        <source>Failed to install the following mods:
+	%1
+Check the log for details.</source>
+        <translation>فشل تثبيت التعديلات التالية:
+	%1
+تحقق من السجل للحصول على التفاصيل.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="183"/>
+        <source>Mod Folder</source>
+        <translation>مجلد التعديلات</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="194"/>
+        <source>Zipped Mod Location</source>
+        <translation>موقع التعديل المضغوط</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="196"/>
+        <source>Zipped Archives (*.zip)</source>
+        <translation>(*.zip) موقع التعديل المضغوط</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="214"/>
+        <source>Invalid Selection</source>
+        <translation>اختيار غير صالح</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="215"/>
+        <source>Only mods, cheats, and patches can be deleted.
+To delete NAND-installed updates, right-click the game in the game list and click Remove -&gt; Remove Installed Update.</source>
+        <translation>يمكن حذف الإضافات والغش والتصحيحات فقط.
+لحذف التحديثات المثبتة على الذاكرة الداخلية، انقر بزر الماوس الأيمن على اللعبة في قائمة الألعاب ثم اختر إزالة -&gt; إزالة التحديث المثبت.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="221"/>
+        <source>You are about to delete the following installed mods:
+</source>
+        <translation>أنت على وشك حذف التعديلات المثبتة التالية:
+</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="227"/>
+        <source>
+Once deleted, these can NOT be recovered. Are you 100% sure you want to delete them?</source>
+        <translation>
+بمجرد حذفها، لا يمكن استعادتها. هل أنت متأكد 100% من رغبتك في حذفها؟</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="232"/>
+        <source>Delete add-on(s)?</source>
+        <translation>حذف التعديل(ات)؟</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="243"/>
+        <source>Successfully deleted</source>
+        <translation>تم الحذف بنجاح</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="244"/>
+        <source>Successfully deleted all selected mods.</source>
+        <translation>تم حذف جميع التعديلات المحددة بنجاح.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="267"/>
+        <source>&amp;Delete</source>
+        <translation>&amp;حذف</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="274"/>
+        <source>&amp;Open in File Manager</source>
+        <translation>&amp;فتح في مدير الملفات</translation>
     </message>
 </context>
 <context>
@@ -4784,80 +5045,80 @@ Current values are %1% and %2% respectively.</source>
 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="136"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="139"/>
         <source>Users</source>
         <translation>المستخدمين</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="190"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="194"/>
         <source>Error deleting image</source>
         <translation>خطأ في حذف الصورة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="191"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="195"/>
         <source>Error occurred attempting to overwrite previous image at: %1.</source>
         <translation>%1 حدث خطأ أثناء محاولة الكتابة فوق الصورة السابقة في</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="199"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="203"/>
         <source>Error deleting file</source>
         <translation>خطأ في حذف الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="200"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="204"/>
         <source>Unable to delete existing file: %1.</source>
         <translation>%1 غير قادر على حذف الملف الموجود</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="207"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="211"/>
         <source>Error creating user image directory</source>
         <translation>خطأ في إنشاء مجلد صورة المستخدم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="208"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="212"/>
         <source>Unable to create directory %1 for storing user images.</source>
         <translation>غير قادر على إنشاء الدليل %1 لتخزين صور المستخدم.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="213"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="217"/>
         <source>Error saving user image</source>
         <translation>خطأ في حفظ صورة المستخدم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="214"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="218"/>
         <source>Unable to save image to file</source>
         <translation>غير قادر على حفظ الصورة في الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="226"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="230"/>
         <source>&amp;Edit</source>
-        <translation type="unfinished"/>
+        <translation>&amp;تعديل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="227"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="231"/>
         <source>&amp;Delete</source>
-        <translation type="unfinished"/>
+        <translation>&amp;حذف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="287"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="291"/>
         <source>Edit User</source>
-        <translation type="unfinished"/>
+        <translation>تعديل المستخدم</translation>
     </message>
 </context>
 <context>
     <name>ConfigureProfileManagerDeleteDialog</name>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="354"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="359"/>
         <source>Delete this user? All of the user&apos;s save data will be deleted.</source>
         <translation>حذف هذا المستخدم؟ سيتم حذف جميع بيانات الحفظ الخاصة بالمستخدم.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="369"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="374"/>
         <source>Confirm Delete</source>
         <translation>تأكيد الحذف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="388"/>
+        <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="397"/>
         <source>Name: %1
 UUID: %2</source>
         <translation>الاسم: %1
@@ -4869,7 +5130,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="14"/>
         <source>Configure Ring Controller</source>
-        <translation>إعداد حلقة وحدة التحكم</translation>
+        <translation>إعدادات حلقة وحدة التحكم</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="26"/>
@@ -4964,7 +5225,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="293"/>
         <source>Configuring</source>
-        <translation>الإعداد</translation>
+        <translation>الإعدادات</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="305"/>
@@ -5059,17 +5320,22 @@ UUID: %2</source>
         <translation>إيقاف التنفيذ مؤقتا أثناء التحميل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_tas.ui" line="91"/>
+        <location filename="../../src/yuzu/configuration/configure_tas.ui" line="84"/>
+        <source>Show recording dialog</source>
+        <translation>عرض مربع حوار التسجيل</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_tas.ui" line="98"/>
         <source>Script Directory</source>
         <translation>مجلد السكربت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_tas.ui" line="97"/>
+        <location filename="../../src/yuzu/configuration/configure_tas.ui" line="104"/>
         <source>Path</source>
         <translation>المسار</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_tas.ui" line="104"/>
+        <location filename="../../src/yuzu/configuration/configure_tas.ui" line="111"/>
         <source>...</source>
         <translation>...</translation>
     </message>
@@ -5082,7 +5348,7 @@ UUID: %2</source>
         <translation>TAS تخصيص</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_tas.cpp" line="52"/>
+        <location filename="../../src/yuzu/configuration/configure_tas.cpp" line="55"/>
         <source>Select TAS Load Directory...</source>
         <translation>TAS حدد مجلد تحميل...</translation>
     </message>
@@ -5092,7 +5358,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.ui" line="14"/>
         <source>Configure Touchscreen Mappings</source>
-        <translation>إعداد تعيينات شاشة اللمس</translation>
+        <translation>إعدادات تعيينات شاشة اللمس</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.ui" line="22"/>
@@ -5184,7 +5450,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="14"/>
         <source>Configure Touchscreen</source>
-        <translation>إعداد شاشة اللمس</translation>
+        <translation>إعدادات شاشة اللمس</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="26"/>
@@ -5220,64 +5486,43 @@ Drag points to change position, or double-click table cells to edit values.</sou
 <context>
     <name>ConfigureUI</name>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="36"/>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="44"/>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="56"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="35"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="47"/>
         <source>None</source>
         <translation>لاشيء</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="37"/>
-        <source>Small (32x32)</source>
-        <translation>صغير (32*32)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="38"/>
-        <source>Standard (64x64)</source>
-        <translation>قياسي (64*64)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="39"/>
-        <source>Large (128x128)</source>
-        <translation>كبير (128*128)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="40"/>
-        <source>Full Size (256x256)</source>
-        <translation>الحجم الكامل (256*256)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="45"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="36"/>
         <source>Small (24x24)</source>
         <translation>صغير (24*24)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="46"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="37"/>
         <source>Standard (48x48)</source>
         <translation>قياسي (48*48)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="47"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="38"/>
         <source>Large (72x72)</source>
         <translation>كبير (72*72)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="52"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="43"/>
         <source>Filename</source>
         <translation>اسم الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="53"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="44"/>
         <source>Filetype</source>
         <translation>نوع الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="54"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="45"/>
         <source>Title ID</source>
         <translation>معرف العنوان</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="55"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="46"/>
         <source>Title Name</source>
         <translation>اسم العنوان</translation>
     </message>
@@ -5346,71 +5591,66 @@ Drag points to change position, or double-click table cells to edit values.</sou
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="119"/>
-        <source>Game Icon Size:</source>
-        <translation>:حجم أيقونة اللعبة</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="133"/>
         <source>Folder Icon Size:</source>
         <translation>:حجم أيقونة المجلد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="147"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="133"/>
         <source>Row 1 Text:</source>
         <translation>:نص السطر 1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="161"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="147"/>
         <source>Row 2 Text:</source>
         <translation>:نص السطر 2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="178"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="164"/>
         <source>Screenshots</source>
         <translation>لقطات الشاشة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="186"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="172"/>
         <source>Ask Where To Save Screenshots (Windows Only)</source>
         <translation>السؤال عن مكان حفظ لقطات الشاشة (ويندوز فقط)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="195"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="181"/>
         <source>Screenshots Path: </source>
         <translation>:مسار لقطات الشاشة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="205"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="191"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="221"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="207"/>
         <source>TextLabel</source>
         <translation>تسمية النص</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="240"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="226"/>
         <source>Resolution:</source>
         <translation>:الدقة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="148"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="133"/>
         <source>Select Screenshots Path...</source>
         <translation>أختر مسار لقطات الشاشة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="253"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="230"/>
         <source>&lt;System&gt;</source>
         <translation>&lt;System&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="254"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="231"/>
         <source>English</source>
         <translation>الإنجليزية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="341"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="314"/>
         <source>Auto (%1 x %2, %3 x %4)</source>
         <comment>Screenshot width value</comment>
         <translation>تلقائي (%1 x %2, %3 x %4)</translation>
@@ -5421,7 +5661,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_vibration.ui" line="14"/>
         <source>Configure Vibration</source>
-        <translation>إعداد الاهتزاز</translation>
+        <translation>إعدادات الاهتزاز</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_vibration.ui" line="23"/>
@@ -5544,20 +5784,20 @@ Drag points to change position, or double-click table cells to edit values.</sou
         <translation>عرض اللعبة الحالية في حالة ديسكورد الخاصة بك</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_web.cpp" line="113"/>
-        <location filename="../../src/yuzu/configuration/configure_web.cpp" line="121"/>
+        <location filename="../../src/yuzu/configuration/configure_web.cpp" line="110"/>
+        <location filename="../../src/yuzu/configuration/configure_web.cpp" line="118"/>
         <source>All Good</source>
         <comment>Tooltip</comment>
         <translation>كل شيء جيد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_web.cpp" line="116"/>
+        <location filename="../../src/yuzu/configuration/configure_web.cpp" line="113"/>
         <source>Must be between 4-20 characters</source>
         <comment>Tooltip</comment>
         <translation>يجب أن يكون بين 4-20 حرفًا</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_web.cpp" line="124"/>
+        <location filename="../../src/yuzu/configuration/configure_web.cpp" line="122"/>
         <source>Must be 48 characters, and lowercase a-z</source>
         <comment>Tooltip</comment>
         <translation>يجب أن يكون 48 حرفًا، وبأحرف صغيرة من a إلى z</translation>
@@ -5589,27 +5829,27 @@ Drag points to change position, or double-click table cells to edit values.</sou
         <translation>حذف أي بيانات أمر لا رجعة فيه!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/data_dialog.cpp" line="35"/>
+        <location filename="../../src/yuzu/data_dialog.cpp" line="31"/>
         <source>Shaders</source>
         <translation>التظليل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/data_dialog.cpp" line="36"/>
+        <location filename="../../src/yuzu/data_dialog.cpp" line="32"/>
         <source>UserNAND</source>
         <translation>UserNAND</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/data_dialog.cpp" line="37"/>
+        <location filename="../../src/yuzu/data_dialog.cpp" line="33"/>
         <source>SysNAND</source>
         <translation>SysNAND</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/data_dialog.cpp" line="38"/>
+        <location filename="../../src/yuzu/data_dialog.cpp" line="34"/>
         <source>Mods</source>
         <translation>التعديلات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/data_dialog.cpp" line="39"/>
+        <location filename="../../src/yuzu/data_dialog.cpp" line="35"/>
         <source>Saves</source>
         <translation>الحفظ</translation>
     </message>
@@ -5647,7 +5887,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
         <translation>استيراد البيانات لهذا المجلد. قد يستغرق هذا بعض الوقت، وسيؤدي إلى حذف جميع البيانات الموجودة!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/data_dialog.cpp" line="108"/>
+        <location filename="../../src/yuzu/data_dialog.cpp" line="96"/>
         <source>Calculating...</source>
         <translation>يتم الحساب...</translation>
     </message>
@@ -5670,12 +5910,12 @@ Drag points to change position, or double-click table cells to edit values.</sou
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;المشاريع التي تجعل إيدن ممكنة&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/deps_dialog.cpp" line="25"/>
+        <location filename="../../src/yuzu/deps_dialog.cpp" line="22"/>
         <source>Dependency</source>
         <translation>التبعية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/deps_dialog.cpp" line="25"/>
+        <location filename="../../src/yuzu/deps_dialog.cpp" line="22"/>
         <source>Version</source>
         <translation>الإصدار</translation>
     </message>
@@ -5851,44 +6091,44 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GRenderWindow</name>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1007"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1024"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1006"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1023"/>
         <source>OpenGL not available!</source>
         <translation>OpenGL غير متوفر!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1008"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1007"/>
         <source>OpenGL shared contexts are not supported.</source>
         <translation>OpenGL لا يتم دعم السياقات المشتركة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1025"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1023"/>
         <source>Eden has not been compiled with OpenGL support.</source>
         <translation>OpenGL لم يتم تجميع إيدن بدعم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1049"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1065"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1046"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1063"/>
         <source>Error while initializing OpenGL!</source>
         <translation>OpenGL حدث خطأ أثناء تهيئة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1050"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1047"/>
         <source>Your GPU may not support OpenGL, or you do not have the latest graphics driver.</source>
         <translation>أو قد لا يكون لديك أحدث برنامج تشغيل للرسومات OpenGL قد لا تدعم بطاقة الرسومات الخاصة بك</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1057"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1055"/>
         <source>Error while initializing OpenGL 4.6!</source>
         <translation>OpenGL 4.6 حدث خطأ أثناء تهيئة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1058"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1056"/>
         <source>Your GPU may not support OpenGL 4.6, or you do not have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</source>
         <translation>أو قد لا يكون لديك أحدث برنامج تشغيل للرسومات OpenGL 4.6 قد لا تدعم بطاقة الرسومات الخاصة بك.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1066"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1064"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
         <translation>قد لا تدعم وحدة معالجة الرسومات لديك ملحقًا واحدًا أو أكثر من ملحقات OpenGL المطلوبة. يُرجى التأكد من تثبيت أحدث برنامج تشغيل للرسومات.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;1%&lt;br&gt;&lt;br&gt;إضافات غير مدعومة: &lt;br&gt;2%</translation>
     </message>
@@ -5896,203 +6136,208 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameList</name>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="546"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="685"/>
+        <source>&amp;Add New Game Directory</source>
+        <translation>&amp;إضافة مجلد ألعاب جديد</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="719"/>
         <source>Favorite</source>
         <translation>مفضلة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="548"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="721"/>
         <source>Start Game</source>
         <translation>بدء اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="550"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="723"/>
         <source>Start Game without Custom Configuration</source>
         <translation>بدء اللعبة بدون الإعدادات المخصصة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="552"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="725"/>
         <source>Open Save Data Location</source>
         <translation>فتح موقع بيانات الحفظ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="553"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="726"/>
         <source>Open Mod Data Location</source>
         <translation>فتح موقع بيانات التعديلات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="555"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="728"/>
         <source>Open Transferable Pipeline Cache</source>
         <translation>ذاكرة التخزين المؤقتة المفتوحة القابلة للتحويل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="556"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="729"/>
         <source>Link to Ryujinx</source>
         <translation>Ryujinx ربط بـ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="558"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="731"/>
         <source>Remove</source>
         <translation>إزالة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="559"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="732"/>
         <source>Remove Installed Update</source>
         <translation>إزالة التحديث المثبت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="560"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="733"/>
         <source>Remove All Installed DLC</source>
         <translation>إزالة جميع المحتويات القابلة للتنزيل المثبتة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="561"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="734"/>
         <source>Remove Custom Configuration</source>
         <translation>إزالة الإعدادات المخصصة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="562"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="735"/>
         <source>Remove Cache Storage</source>
         <translation>إزالة تخزين ذاكرة التخزين المؤقتة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="563"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="736"/>
         <source>Remove OpenGL Pipeline Cache</source>
         <translation>OpenGL إزالة ذاكرة التخزين المؤقتة لخط أنابيب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="564"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="737"/>
         <source>Remove Vulkan Pipeline Cache</source>
         <translation>Vulkan إزالة ذاكرة التخزين المؤقتة لخط أنابيب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="566"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="739"/>
         <source>Remove All Pipeline Caches</source>
         <translation>إزالة جميع ذاكرات التخزين المؤقتة لخط الأنابيب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="567"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="740"/>
         <source>Remove All Installed Contents</source>
         <translation>إزالة كافة المحتويات المثبتة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="568"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="741"/>
         <source>Manage Play Time</source>
         <translation>إدارة زمن اللعب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="569"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="742"/>
         <source>Edit Play Time Data</source>
         <translation>تعديل بيانات زمن التشغيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="570"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="743"/>
         <source>Remove Play Time Data</source>
         <translation>إزالة بيانات زمن اللعب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="571"/>
-        <location filename="../../src/yuzu/game_list.cpp" line="572"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="744"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="745"/>
         <source>Dump RomFS</source>
         <translation>RomFS تفريغ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="573"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="746"/>
         <source>Dump RomFS to SDMC</source>
         <translation>SDMC إلى RomFS تفريغ </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="574"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="747"/>
         <source>Verify Integrity</source>
         <translation>التحقق من السلامة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="575"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="748"/>
         <source>Copy Title ID to Clipboard</source>
         <translation>نسخ معرف العنوان إلى الحافظة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="576"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="749"/>
         <source>Navigate to GameDB entry</source>
         <translation>انتقل إلى إدخال قاعدة بيانات الألعاب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="579"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="752"/>
         <source>Create Shortcut</source>
         <translation>إنشاء إختصار</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="580"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="753"/>
         <source>Add to Desktop</source>
         <translation>إضافة إلى سطح المكتب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="582"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="755"/>
         <source>Add to Applications Menu</source>
         <translation>إضافة إلى قائمة التطبيقات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="585"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="758"/>
         <source>Configure Game</source>
-        <translation>إعداد اللعبة</translation>
+        <translation>إعدادات اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="676"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="857"/>
         <source>Scan Subfolders</source>
         <translation>مسح الملفات الداخلية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="677"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="858"/>
         <source>Remove Game Directory</source>
         <translation>إزالة مجلد اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="696"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="877"/>
         <source>▲ Move Up</source>
         <translation>▲ نقل للأعلى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="697"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="878"/>
         <source>▼ Move Down</source>
         <translation>▼ نقل للأسفل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="698"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="879"/>
         <source>Open Directory Location</source>
         <translation>فتح موقع المجلد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="744"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="925"/>
         <source>Clear</source>
         <translation>مسح</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="808"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="989"/>
         <source>Name</source>
         <translation>الاسم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="809"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="990"/>
         <source>Compatibility</source>
         <translation>التوافق</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="810"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="991"/>
         <source>Add-ons</source>
         <translation>الإضافات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="811"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="992"/>
         <source>File type</source>
         <translation>نوع الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="812"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="993"/>
         <source>Size</source>
         <translation>الحجم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="813"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="994"/>
         <source>Play time</source>
         <translation>زمن اللعب</translation>
     </message>
@@ -6100,62 +6345,62 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameListItemCompat</name>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="153"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="186"/>
         <source>Ingame</source>
         <translation>في اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="153"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="186"/>
         <source>Game starts, but crashes or major glitches prevent it from being completed.</source>
         <translation>تبدأ اللعبة، لكن الأعطال أو الأخطاء الرئيسية تمنعها من الاكتمال.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="155"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="188"/>
         <source>Perfect</source>
         <translation>مثالي</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="155"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="188"/>
         <source>Game can be played without issues.</source>
         <translation>يمكن لعب اللعبة بدون مشاكل.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="156"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="189"/>
         <source>Playable</source>
         <translation>قابل للعب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="156"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="189"/>
         <source>Game functions with minor graphical or audio glitches and is playable from start to finish.</source>
         <translation>تحتوي وظائف اللعبة على بعض الأخطاء الرسومية أو الصوتية البسيطة ويمكن تشغيلها من البداية إلى النهاية.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="159"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="192"/>
         <source>Intro/Menu</source>
         <translation>مقدمة/القائمة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="159"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="192"/>
         <source>Game loads, but is unable to progress past the Start Screen.</source>
         <translation>يتم تحميل اللعبة، ولكنها غير قادرة على التقدم بعد شاشة البدء.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="160"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="193"/>
         <source>Won&apos;t Boot</source>
         <translation>لا تشتغل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="160"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="193"/>
         <source>The game crashes when attempting to startup.</source>
         <translation>تعطل اللعبة عند محاولة بدء التشغيل.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="161"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="194"/>
         <source>Not Tested</source>
         <translation>لم تختبر</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="161"/>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="194"/>
         <source>The game has not yet been tested.</source>
         <translation>لم يتم اختبار اللعبة بعد.</translation>
     </message>
@@ -6163,7 +6408,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameListPlaceholder</name>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="987"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="1332"/>
         <source>Double-click to add a new folder to the game list</source>
         <translation>انقر نقرًا مزدوجًا لإضافة مجلد جديد إلى قائمة الألعاب</translation>
     </message>
@@ -6171,17 +6416,17 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameListSearchField</name>
     <message numerus="yes">
-        <location filename="../../src/yuzu/game_list.cpp" line="87"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="96"/>
         <source>%1 of %n result(s)</source>
         <translation><numerusform>%1 من %n نتيجة (نتائج)</numerusform><numerusform>%1 من %n نتيجة (نتائج)</numerusform><numerusform>%1 من %n نتيجة (نتائج)</numerusform><numerusform>%1 من %n نتيجة (نتائج)</numerusform><numerusform>%1 من %n نتيجة (نتائج)</numerusform><numerusform>%1 من %n نتيجة (نتائج)</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="825"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="1006"/>
         <source>Filter:</source>
         <translation>:تصفية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="826"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="1007"/>
         <source>Enter pattern to filter</source>
         <translation>أدخل النمط المطلوب لتصفية النتائج</translation>
     </message>
@@ -6257,12 +6502,12 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>HostRoomWindow</name>
     <message>
-        <location filename="../../src/yuzu/multiplayer/host_room.cpp" line="187"/>
+        <location filename="../../src/yuzu/multiplayer/host_room.cpp" line="186"/>
         <source>Error</source>
         <translation>خطأ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/host_room.cpp" line="188"/>
+        <location filename="../../src/yuzu/multiplayer/host_room.cpp" line="187"/>
         <source>Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid Eden account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
 Debug Message: </source>
         <translation>فشل في الإعلان عن الغرفة في الردهة العامة. من أجل استضافة غرفة بشكل عام، يجب أن يكون لديك حساب إيدن صالح مُكوَّن في المحاكاة -&gt; الإعدادات -&gt; الويب. إذا كنت لا ترغب في نشر الغرفة في الردهة العامة، فاختر &quot;غير مدرجة&quot; بدلاً من ذلك.
@@ -6272,19 +6517,11 @@ Debug Message: </source>
 <context>
     <name>Hotkeys</name>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="250"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="258"/>
         <source>Audio Mute/Unmute</source>
         <translation>كتم الصوت/إلغاء كتم الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="250"/>
-        <location filename="../../src/qt_common/config/uisettings.h" line="251"/>
-        <location filename="../../src/qt_common/config/uisettings.h" line="252"/>
-        <location filename="../../src/qt_common/config/uisettings.h" line="253"/>
-        <location filename="../../src/qt_common/config/uisettings.h" line="254"/>
-        <location filename="../../src/qt_common/config/uisettings.h" line="255"/>
-        <location filename="../../src/qt_common/config/uisettings.h" line="256"/>
-        <location filename="../../src/qt_common/config/uisettings.h" line="257"/>
         <location filename="../../src/qt_common/config/uisettings.h" line="258"/>
         <location filename="../../src/qt_common/config/uisettings.h" line="259"/>
         <location filename="../../src/qt_common/config/uisettings.h" line="260"/>
@@ -6307,153 +6544,179 @@ Debug Message: </source>
         <location filename="../../src/qt_common/config/uisettings.h" line="277"/>
         <location filename="../../src/qt_common/config/uisettings.h" line="278"/>
         <location filename="../../src/qt_common/config/uisettings.h" line="279"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="280"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="281"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="282"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="283"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="284"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="285"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="286"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="287"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="288"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="289"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="290"/>
         <source>Main Window</source>
         <translation>النافذة الرئيسية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="251"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="259"/>
         <source>Audio Volume Down</source>
         <translation>خفض مستوى الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="252"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="260"/>
         <source>Audio Volume Up</source>
         <translation>رفع مستوى الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="253"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="261"/>
         <source>Capture Screenshot</source>
         <translation>لقطة شاشة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="254"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="262"/>
         <source>Change Adapting Filter</source>
         <translation>تغيير مرشح التكيف</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="255"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="263"/>
         <source>Change Docked Mode</source>
         <translation>تغيير وضع الإرساء</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="256"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="264"/>
         <source>Change GPU Mode</source>
         <translation>تغيير وضع وحدة معالجة الرسومات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="257"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="265"/>
         <source>Configure</source>
-        <translation>الإعداد</translation>
+        <translation>الإعدادات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="258"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="266"/>
         <source>Configure Current Game</source>
-        <translation>إعداد اللعبة الحالية</translation>
+        <translation>إعدادات اللعبة الحالية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="259"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="267"/>
         <source>Continue/Pause Emulation</source>
         <translation>استأنف/إيقاف مؤقت للمحاكاة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="260"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="268"/>
         <source>Exit Fullscreen</source>
         <translation>الخروج من وضع ملء الشاشة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="261"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="269"/>
         <source>Exit Eden</source>
         <translation>خروج من إيدن</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="262"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="270"/>
         <source>Fullscreen</source>
         <translation>ملء الشاشة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="263"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="271"/>
         <source>Load File</source>
         <translation>تحميل الملف</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="264"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="272"/>
         <source>Load/Remove Amiibo</source>
         <translation>تحميل/إزالة أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="265"/>
-        <source>Multiplayer Browse Public Game Lobby</source>
-        <translation>تصفح قائمة الألعاب العامة متعددة اللاعبين</translation>
+        <location filename="../../src/qt_common/config/uisettings.h" line="273"/>
+        <source>Browse Public Game Lobby</source>
+        <translation>تصفح قائمة الألعاب العامة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="266"/>
-        <source>Multiplayer Create Room</source>
-        <translation>إنشاء غرفة متعددة اللاعبين</translation>
+        <location filename="../../src/qt_common/config/uisettings.h" line="274"/>
+        <source>Create Room</source>
+        <translation>إنشاء غرفة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="267"/>
-        <source>Multiplayer Direct Connect to Room</source>
-        <translation>الاتصال المباشر بغرفة اللعب متعددة اللاعبين</translation>
+        <location filename="../../src/qt_common/config/uisettings.h" line="275"/>
+        <source>Direct Connect to Room</source>
+        <translation>اتصال مباشر بالغرفة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="268"/>
-        <source>Multiplayer Leave Room</source>
-        <translation>مغادرة الغرفة متعددة اللاعبين</translation>
+        <location filename="../../src/qt_common/config/uisettings.h" line="276"/>
+        <source>Leave Room</source>
+        <translation>مغادرة الغرفة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="269"/>
-        <source>Multiplayer Show Current Room</source>
-        <translation>عرض الغرفة الحالية متعددة اللاعبين</translation>
+        <location filename="../../src/qt_common/config/uisettings.h" line="277"/>
+        <source>Show Current Room</source>
+        <translation>عرض الغرفة الحالية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="270"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="278"/>
         <source>Restart Emulation</source>
         <translation>إعادة تشغيل المحاكاة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="271"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="279"/>
         <source>Stop Emulation</source>
         <translation>إيقاف المحاكاة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="272"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="280"/>
         <source>TAS Record</source>
         <translation>TAS سجل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="273"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="281"/>
         <source>TAS Reset</source>
         <translation>TAS إعادة تعيين</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="274"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="282"/>
         <source>TAS Start/Stop</source>
         <translation>TAS بدء/إيقاف</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="275"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="283"/>
         <source>Toggle Filter Bar</source>
         <translation>تبديل شريط التصفية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="276"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="284"/>
         <source>Toggle Framerate Limit</source>
         <translation>تبديل حد معدل الإطارات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="277"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="285"/>
+        <source>Toggle Turbo Speed</source>
+        <translation>تبديل سرعة تيربو</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/uisettings.h" line="286"/>
+        <source>Toggle Slow Speed</source>
+        <translation>تبديل السرعة البطيئة</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/uisettings.h" line="287"/>
         <source>Toggle Mouse Panning</source>
         <translation>تحريك الماوس</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="278"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="288"/>
         <source>Toggle Renderdoc Capture</source>
         <translation>Renderdoc تبديل التقاط</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/uisettings.h" line="279"/>
+        <location filename="../../src/qt_common/config/uisettings.h" line="289"/>
         <source>Toggle Status Bar</source>
         <translation>تبديل شريط الحالة</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/uisettings.h" line="290"/>
+        <source>Toggle Performance Overlay</source>
+        <translation>تبديل طبقة الأداء</translation>
     </message>
 </context>
 <context>
@@ -6507,22 +6770,22 @@ Debug Message: </source>
         <translation> 5m 4s الوقت المقدر</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/loading_screen.cpp" line="83"/>
+        <location filename="../../src/yuzu/loading_screen.cpp" line="86"/>
         <source>Loading...</source>
         <translation>جارٍ التحميل...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/loading_screen.cpp" line="84"/>
+        <location filename="../../src/yuzu/loading_screen.cpp" line="87"/>
         <source>Loading Shaders %1 / %2</source>
         <translation>%1 / %2 جارٍ تحميل التظليل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/loading_screen.cpp" line="85"/>
+        <location filename="../../src/yuzu/loading_screen.cpp" line="88"/>
         <source>Launching...</source>
         <translation>يتم التشغيل...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/loading_screen.cpp" line="170"/>
+        <location filename="../../src/yuzu/loading_screen.cpp" line="173"/>
         <source>Estimated Time %1</source>
         <translation>%1 الوقت المقدر</translation>
     </message>
@@ -6571,42 +6834,42 @@ Debug Message: </source>
         <translation>تحديث القائمة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="123"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="122"/>
         <source>Password Required to Join</source>
         <translation>كلمة المرور مطلوبة للإنظمام</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="123"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="122"/>
         <source>Password:</source>
         <translation>:كلمة المرور</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="230"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="229"/>
         <source>Players</source>
         <translation>اللاعبين</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="231"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="230"/>
         <source>Room Name</source>
         <translation>اسم الغرفة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="232"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="231"/>
         <source>Preferred Game</source>
         <translation>اللعبة المفضلة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="233"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="232"/>
         <source>Host</source>
         <translation>المستضيف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="240"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="239"/>
         <source>Refreshing</source>
         <translation>تحديث</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="297"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="296"/>
         <source>Refresh List</source>
         <translation>تحديث القائمة</translation>
     </message>
@@ -6655,714 +6918,776 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="110"/>
+        <source>&amp;Game List Mode</source>
+        <translation>&amp;وضع قائمة الألعاب</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="117"/>
+        <source>Game &amp;Icon Size</source>
+        <translation>اللعبة وحجم الأيقونة</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="122"/>
         <source>Reset Window Size to &amp;720p</source>
         <translation>720p إعادة تعيين حجم النافذة إلى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="113"/>
+        <location filename="../../src/yuzu/main.ui" line="125"/>
         <source>Reset Window Size to 720p</source>
         <translation>720p إعادة تعيين حجم النافذة إلى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="118"/>
+        <location filename="../../src/yuzu/main.ui" line="130"/>
         <source>Reset Window Size to &amp;900p</source>
         <translation>900p إعادة تعيين حجم النافذة إلى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="121"/>
+        <location filename="../../src/yuzu/main.ui" line="133"/>
         <source>Reset Window Size to 900p</source>
         <translation>900p إعادة تعيين حجم النافذة إلى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="126"/>
+        <location filename="../../src/yuzu/main.ui" line="138"/>
         <source>Reset Window Size to &amp;1080p</source>
         <translation>1080p إعادة تعيين حجم النافذة إلى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="129"/>
+        <location filename="../../src/yuzu/main.ui" line="141"/>
         <source>Reset Window Size to 1080p</source>
         <translation>1080p إعادة تعيين حجم النافذة إلى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="146"/>
+        <location filename="../../src/yuzu/main.ui" line="162"/>
         <source>&amp;Multiplayer</source>
         <translation>&amp;متعدد اللاعبين</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="157"/>
+        <location filename="../../src/yuzu/main.ui" line="173"/>
         <source>&amp;Tools</source>
         <translation>&amp;أدوات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="161"/>
+        <location filename="../../src/yuzu/main.ui" line="177"/>
         <source>Am&amp;iibo</source>
         <translation>أم&amp;يبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="170"/>
+        <location filename="../../src/yuzu/main.ui" line="186"/>
         <source>Launch &amp;Applet</source>
         <translation>تشغيل &amp;التطبيق المصغر</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="179"/>
+        <location filename="../../src/yuzu/main.ui" line="195"/>
         <source>&amp;TAS</source>
         <translation>&amp;TAS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="189"/>
+        <location filename="../../src/yuzu/main.ui" line="205"/>
         <source>&amp;Create Home Menu Shortcut</source>
         <translation>&amp;إنشاء اختصار لقائمة الشاشة الرئيسية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="196"/>
+        <location filename="../../src/yuzu/main.ui" line="212"/>
         <source>Install &amp;Firmware</source>
         <translation>تثبيت &amp;الفيرموير</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="215"/>
+        <location filename="../../src/yuzu/main.ui" line="231"/>
         <source>&amp;Help</source>
         <translation>&amp;مساعدة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="237"/>
+        <location filename="../../src/yuzu/main.ui" line="253"/>
         <source>&amp;Install Files to NAND...</source>
         <translation>&amp;تثبيت الملفات في الذاكرة الداخلية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="242"/>
+        <location filename="../../src/yuzu/main.ui" line="258"/>
         <source>L&amp;oad File...</source>
         <translation>ت&amp;حميل ملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="247"/>
+        <location filename="../../src/yuzu/main.ui" line="263"/>
         <source>Load &amp;Folder...</source>
         <translation>تحميل &amp;مجلد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="252"/>
+        <location filename="../../src/yuzu/main.ui" line="268"/>
         <source>E&amp;xit</source>
         <translation>خ&amp;روج</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="260"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="1715"/>
+        <location filename="../../src/yuzu/main.ui" line="276"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1784"/>
         <source>&amp;Pause</source>
         <translation>&amp;إيقاف مؤقت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="268"/>
+        <location filename="../../src/yuzu/main.ui" line="284"/>
         <source>&amp;Stop</source>
         <translation>&amp;إيقاف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="273"/>
+        <location filename="../../src/yuzu/main.ui" line="289"/>
         <source>&amp;Verify Installed Contents</source>
         <translation>&amp;التحقق من المحتويات المثبتة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="278"/>
+        <location filename="../../src/yuzu/main.ui" line="294"/>
         <source>&amp;About Eden</source>
         <translation>&amp;حول إيدن</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="286"/>
+        <location filename="../../src/yuzu/main.ui" line="302"/>
         <source>Single &amp;Window Mode</source>
         <translation>وضع &amp;النافذة الواحدة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="291"/>
+        <location filename="../../src/yuzu/main.ui" line="307"/>
         <source>Con&amp;figure...</source>
         <translation>الإع&amp;دادات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="294"/>
+        <location filename="../../src/yuzu/main.ui" line="310"/>
         <source>Ctrl+,</source>
         <translation>Ctrl+,</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="305"/>
+        <location filename="../../src/yuzu/main.ui" line="321"/>
         <source>Enable Overlay Display Applet</source>
         <translation>تمكين الطبقة للعرض التطبيق الصغير</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="313"/>
+        <location filename="../../src/yuzu/main.ui" line="329"/>
         <source>Show &amp;Filter Bar</source>
         <translation>عرض &amp;شريط التصفية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="321"/>
+        <location filename="../../src/yuzu/main.ui" line="337"/>
         <source>Show &amp;Status Bar</source>
         <translation>عرض &amp;شريط الحالة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="324"/>
+        <location filename="../../src/yuzu/main.ui" line="340"/>
         <source>Show Status Bar</source>
         <translation>عرض شريط الحالة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="332"/>
+        <location filename="../../src/yuzu/main.ui" line="348"/>
         <source>&amp;Browse Public Game Lobby</source>
         <translation>&amp;تصفح قائمة الألعاب العامة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="340"/>
+        <location filename="../../src/yuzu/main.ui" line="356"/>
         <source>&amp;Create Room</source>
         <translation>&amp;إنشاء غرفة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="348"/>
+        <location filename="../../src/yuzu/main.ui" line="364"/>
         <source>&amp;Leave Room</source>
         <translation>&amp;مغادرة الغرفة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="353"/>
+        <location filename="../../src/yuzu/main.ui" line="369"/>
         <source>&amp;Direct Connect to Room</source>
         <translation>&amp;الاتصال المباشر بالغرفة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="361"/>
+        <location filename="../../src/yuzu/main.ui" line="377"/>
         <source>&amp;Show Current Room</source>
         <translation>&amp;عرض الغرفة الحالية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="369"/>
+        <location filename="../../src/yuzu/main.ui" line="385"/>
         <source>F&amp;ullscreen</source>
         <translation>م&amp;لء الشاشة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="377"/>
+        <location filename="../../src/yuzu/main.ui" line="393"/>
         <source>&amp;Restart</source>
         <translation>&amp;إعادة التشغيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="385"/>
+        <location filename="../../src/yuzu/main.ui" line="401"/>
         <source>Load/Remove &amp;Amiibo...</source>
         <translation>تحميل/إزالة &amp;أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="393"/>
+        <location filename="../../src/yuzu/main.ui" line="409"/>
         <source>&amp;Report Compatibility</source>
         <translation>&amp;تقرير التوافق</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="401"/>
+        <location filename="../../src/yuzu/main.ui" line="417"/>
         <source>Open &amp;Mods Page</source>
         <translation>صفحة &amp;التعديلات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="406"/>
+        <location filename="../../src/yuzu/main.ui" line="422"/>
         <source>Open &amp;Quickstart Guide</source>
         <translation>&amp;دليل البدء السريع</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="411"/>
+        <location filename="../../src/yuzu/main.ui" line="427"/>
         <source>&amp;FAQ</source>
         <translation>&amp;الأسئلة الشائعة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="419"/>
+        <location filename="../../src/yuzu/main.ui" line="435"/>
         <source>&amp;Capture Screenshot</source>
         <translation>&amp;التقاط لقطة للشاشة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="424"/>
+        <location filename="../../src/yuzu/main.ui" line="440"/>
         <source>&amp;Album</source>
         <translation>&amp;الألبوم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="429"/>
+        <location filename="../../src/yuzu/main.ui" line="445"/>
         <source>&amp;Set Nickname and Owner</source>
         <translation>&amp;تعيين الاسم المستعار والمالك</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="434"/>
+        <location filename="../../src/yuzu/main.ui" line="450"/>
         <source>&amp;Delete Game Data</source>
         <translation>حذف بيانات اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="439"/>
+        <location filename="../../src/yuzu/main.ui" line="455"/>
         <source>&amp;Restore Amiibo</source>
         <translation>&amp;استعادة أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="444"/>
+        <location filename="../../src/yuzu/main.ui" line="460"/>
         <source>&amp;Format Amiibo</source>
         <translation>&amp;تنسيق أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="449"/>
+        <location filename="../../src/yuzu/main.ui" line="465"/>
         <source>&amp;Mii Editor</source>
-        <translation>&amp;محرر Mii</translation>
+        <translation>&amp;Mii محرر</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="454"/>
+        <location filename="../../src/yuzu/main.ui" line="470"/>
         <source>&amp;Configure TAS...</source>
         <translation>&amp;TAS إعدادات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="465"/>
+        <location filename="../../src/yuzu/main.ui" line="481"/>
         <source>Configure C&amp;urrent Game...</source>
-        <translation>إعداد اللعبة ال&amp;حالية</translation>
+        <translation>إعدادات اللعبة ال&amp;حالية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="476"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4115"/>
+        <location filename="../../src/yuzu/main.ui" line="492"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4311"/>
         <source>&amp;Start</source>
         <translation>&amp;بدء</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="484"/>
+        <location filename="../../src/yuzu/main.ui" line="500"/>
         <source>&amp;Reset</source>
         <translation>&amp;إعادة تعيين</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="492"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4116"/>
+        <location filename="../../src/yuzu/main.ui" line="508"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4312"/>
         <source>R&amp;ecord</source>
         <translation>ت&amp;سجيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="497"/>
+        <location filename="../../src/yuzu/main.ui" line="513"/>
         <source>Open &amp;Controller Menu</source>
         <translation>&amp;قائمة ذراع التحكم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="502"/>
+        <location filename="../../src/yuzu/main.ui" line="518"/>
         <source>Install Decryption &amp;Keys</source>
         <translation>تثبيت &amp;مفاتيح فك التشفير</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="507"/>
+        <location filename="../../src/yuzu/main.ui" line="523"/>
         <source>&amp;Home Menu</source>
         <translation>&amp;القائمة الرئيسية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="512"/>
+        <location filename="../../src/yuzu/main.ui" line="528"/>
         <source>&amp;Desktop</source>
         <translation>&amp;سطح المكتب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="517"/>
+        <location filename="../../src/yuzu/main.ui" line="533"/>
         <source>&amp;Application Menu</source>
         <translation>&amp;قائمة التطبيقات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="522"/>
+        <location filename="../../src/yuzu/main.ui" line="538"/>
         <source>&amp;Root Data Folder</source>
         <translation>&amp;مجلد البيانات الرئيسي</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="527"/>
+        <location filename="../../src/yuzu/main.ui" line="543"/>
         <source>&amp;NAND Folder</source>
         <translation>&amp;مجلد الذاكرة الداخلية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="532"/>
+        <location filename="../../src/yuzu/main.ui" line="548"/>
         <source>&amp;SDMC Folder</source>
         <translation>&amp;مجلد بطاقة الذاكرة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="537"/>
+        <location filename="../../src/yuzu/main.ui" line="553"/>
         <source>&amp;Mod Folder</source>
         <translation>&amp;مجلد التعديلات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="542"/>
+        <location filename="../../src/yuzu/main.ui" line="558"/>
         <source>&amp;Log Folder</source>
         <translation>&amp;مجلد السجلات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="547"/>
+        <location filename="../../src/yuzu/main.ui" line="563"/>
         <source>From Folder</source>
-        <translation>من المجلد</translation>
+        <translation>من مجلد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="552"/>
+        <location filename="../../src/yuzu/main.ui" line="568"/>
         <source>From ZIP</source>
         <translation>من ملف مضغوط</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="557"/>
+        <location filename="../../src/yuzu/main.ui" line="573"/>
         <source>&amp;Eden Dependencies</source>
         <translation>&amp;تبعيات إيدن</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="562"/>
+        <location filename="../../src/yuzu/main.ui" line="578"/>
         <source>&amp;Data Manager</source>
         <translation>&amp;مدير البيانات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="573"/>
+        <location filename="../../src/yuzu/main.ui" line="586"/>
+        <source>&amp;Tree View</source>
+        <translation>&amp;عرض الشجرة</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="594"/>
+        <source>&amp;Grid View</source>
+        <translation>&amp;عرض الشبكة</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="599"/>
+        <source>Game Icon Size</source>
+        <translation>حجم أيقونة اللعبة</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="604"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="386"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="31"/>
+        <source>None</source>
+        <translation>لا شيء</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="612"/>
+        <source>Show Game &amp;Name</source>
+        <translation>عرض اللعبة والاسم</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="620"/>
+        <source>Show &amp;Performance Overlay</source>
+        <translation>عرض &amp;طبقة الأداء</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main_window.cpp" line="387"/>
+        <source>Small (32x32)</source>
+        <translation>صغير (32x32)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main_window.cpp" line="388"/>
+        <source>Standard (64x64)</source>
+        <translation>قياسي (64x64)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main_window.cpp" line="389"/>
+        <source>Large (128x128)</source>
+        <translation>كبير (128x128)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main_window.cpp" line="390"/>
+        <source>Full Size (256x256)</source>
+        <translation>حجم كامل (256x256)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main_window.cpp" line="591"/>
         <source>Broken Vulkan Installation Detected</source>
         <translation>Vulkan تم الكشف عن تلف في تثبيت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="573"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="592"/>
         <source>Vulkan initialization failed during boot.</source>
         <translation>أثناء التشغيل Vulkan فشل تهيئة.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="594"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="613"/>
         <source>Running a game</source>
         <extracomment>TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the computer from sleeping</extracomment>
         <translation>تشغيل لعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="915"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="939"/>
         <source>Loading Web Applet...</source>
         <translation>جارٍ تحميل تطبيق الويب...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="965"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="968"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="989"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="992"/>
         <source>Disable Web Applet</source>
         <translation>تعطيل تطبيق الويب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="969"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="993"/>
         <source>Disabling the web applet can lead to undefined behavior and should only be used with Super Mario 3D All-Stars. Are you sure you want to disable the web applet?
 (This can be re-enabled in the Debug settings.)</source>
         <translation>قد يؤدي تعطيل أداة الويب إلى سلوك غير محدد، ويجب استخدامه فقط مع لعبة Super Mario 3D All-Stars. هل أنت متأكد من رغبتك في تعطيل أداة الويب؟
 (يمكن إعادة تفعيلها في إعدادات التصحيح.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1085"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1110"/>
         <source>The amount of shaders currently being built</source>
         <translation>كمية التظليلات التي يتم بناؤها حاليًا</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1087"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1112"/>
         <source>The current selected resolution scaling multiplier.</source>
         <translation>مضاعف قياس الدقة المحددة حالياً.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1090"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1115"/>
         <source>Current emulation speed. Values higher or lower than 100% indicate emulation is running faster or slower than a Switch.</source>
         <translation>Switch سرعة المحاكاة الحالية. تشير القيم الأعلى أو الأقل من 100٪ إلى أن المحاكاة تعمل بشكل أسرع أو أبطأ من.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1093"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1118"/>
         <source>How many frames per second the game is currently displaying. This will vary from game to game and scene to scene.</source>
         <translation>عدد الإطارات في الثانية التي تعرضها اللعبة حاليًا. يختلف هذا العدد من لعبة إلى أخرى ومن مشهد إلى آخر.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1097"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1122"/>
         <source>Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For full-speed emulation this should be at most 16.67 ms.</source>
         <translation>الوقت المستغرق لمحاكاة إطار على جهاز سويتش، بدون احتساب تحديد الإطارات أو المزامنة العمودية. لمحاكاة بسرعة كاملة، يجب أن يكون هذا في حدود 16.67 مللي ثانية كحد أقصى.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1158"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1183"/>
         <source>Unmute</source>
         <translation>إلغاء كتم الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1158"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1183"/>
         <source>Mute</source>
         <translation>كتم الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1163"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1188"/>
         <source>Reset Volume</source>
         <translation>إعادة تعيين مستوى الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1340"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1364"/>
         <source>&amp;Clear Recent Files</source>
         <translation>&amp;مسح الملفات الحديثة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1713"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1782"/>
         <source>&amp;Continue</source>
         <translation>&amp;متابعة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1880"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1948"/>
         <source>Warning: Outdated Game Format</source>
         <translation>تحذير: تنسيق اللعبة قديم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1881"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1949"/>
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;For an explanation of the various Switch formats Eden supports, out our user handbook. This message will not be shown again.</source>
         <translation>أنت تستخدم تنسيق مجلد ROM المُفكك لهذه اللعبة، وهو تنسيق قديم استُبدل بآخر مثل NCA وNAX وXCI وNSP. تفتقر مجلدات ROM المُفككة إلى الأيقونات والبيانات الوصفية ودعم التحديثات. &lt;br&gt;لتوضيح تنسيقات Switch المختلفة التي يدعمها Eden، يُرجى مراجعة دليل المستخدم. لن تظهر هذه الرسالة مرة أخرى.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1892"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="1924"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1960"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1992"/>
         <source>Error while loading ROM!</source>
         <translation>ROM خطأ أثناء تحميل  </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1893"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1961"/>
         <source>The ROM format is not supported.</source>
         <translation>غير مدعوم ROM تنسيق.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1897"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1965"/>
         <source>An error occurred initializing the video core.</source>
         <translation>حدث خطأ أثناء تهيئة نواة الفيديو.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1898"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1966"/>
         <source>Eden has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
         <translation>واجه إيدن خطأً أثناء تشغيل نواة الفيديو. عادةً ما يكون السبب هو برامج تشغيل وحدة معالجة الرسومات القديمة، بما في ذلك المدمجة منها. يُرجى مراجعة السجل لمزيد من التفاصيل. لمزيد من المعلومات حول الوصول إلى السجل، يُرجى زيارة الصفحة التالية: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;كيفيه رفع سجلات الإخطاء&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1913"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1981"/>
         <source>Error while loading ROM! %1</source>
         <comment>%1 signifies a numeric error code.</comment>
         <translation>حدث خطأ أثناء تحميل ROM! %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1916"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1984"/>
         <source>%1&lt;br&gt;Please redump your files or ask on Discord/Stoat for help.</source>
         <comment>%1 signifies an error string.</comment>
         <translation>%1&lt;br&gt;Discord/Stoat يرجى إعادة تحميل ملفاتك أو طلب المساعدة على</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1925"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1993"/>
         <source>An unknown error occurred. Please see the log for more details.</source>
         <translation>حدث خطأ غير معروف. يرجى الاطلاع على السجل لمزيد من التفاصيل.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2109"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2172"/>
         <source>(64-bit)</source>
         <translation>(64-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2109"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2172"/>
         <source>(32-bit)</source>
         <translation>(32-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2110"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2173"/>
         <source>%1 %2</source>
         <comment>%1 is the title name. %2 indicates if the title is 64-bit or 32-bit</comment>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2180"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2251"/>
         <source>Closing software...</source>
         <translation>جارٍ إغلاق البرنامج...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2346"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2417"/>
         <source>Save Data</source>
         <translation>بيانات الحفظ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2377"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2448"/>
         <source>Mod Data</source>
         <translation>بيانات التعديل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2390"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2461"/>
         <source>Error Opening %1 Folder</source>
         <translation>خطأ في فتح المجلد %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2391"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2735"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2462"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2810"/>
         <source>Folder does not exist!</source>
         <translation>المجلد غير موجود!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2468"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2540"/>
         <source>Remove Installed Game Contents?</source>
         <translation>إزالة محتويات اللعبة المثبتة؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2470"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2542"/>
         <source>Remove Installed Game Update?</source>
         <translation>إزالة تحديث اللعبة المثبت؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2472"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2544"/>
         <source>Remove Installed Game DLC?</source>
         <translation>إزالة المحتوى القابل للتنزيل المثبت للعبة؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2478"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2550"/>
         <source>Remove Entry</source>
         <translation>إزالة الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2508"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2580"/>
         <source>Delete OpenGL Transferable Shader Cache?</source>
         <translation>OpenGL Shader حذف ذاكرة التخزين المؤقتة القابلة للنقل لـ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2510"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2582"/>
         <source>Delete Vulkan Transferable Shader Cache?</source>
         <translation>Vulkan Shader حذف ذاكرة التخزين المؤقتة القابلة للنقل لـ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2512"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2584"/>
         <source>Delete All Transferable Shader Caches?</source>
         <translation>حذف جميع مخازن ذاكرة التظليل القابلة للنقل؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2514"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2586"/>
         <source>Remove Custom Game Configuration?</source>
         <translation>إزالة إعدادات اللعبة المخصص؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2516"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2588"/>
         <source>Remove Cache Storage?</source>
         <translation>إزالة ذاكرة التخزين المؤقتة؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2522"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2594"/>
         <source>Remove File</source>
         <translation>إزالة الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2560"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2631"/>
         <source>Remove Play Time Data</source>
         <translation>إزالة بيانات زمن اللعب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2560"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2631"/>
         <source>Reset play time?</source>
         <translation>إعادة تعيين زمن اللعب؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2573"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2657"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2644"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2729"/>
         <source>RomFS Extraction Failed!</source>
         <translation>RomFS فشل استخراج</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2574"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2645"/>
         <source>There was an error copying the RomFS files or the user cancelled the operation.</source>
         <translation>أو قام المستخدم بإلغاء العملية RomFS حدث خطأ أثناء نسخ ملفات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2632"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2704"/>
         <source>Full</source>
         <translation>كامل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2632"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2704"/>
         <source>Skeleton</source>
         <translation>Skeleton</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2634"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2706"/>
         <source>Select RomFS Dump Mode</source>
         <translation>RomFS حدد وضع تفريغ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2635"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2707"/>
         <source>Please select the how you would like the RomFS dumped.&lt;br&gt;Full will copy all of the files into the new directory while &lt;br&gt;skeleton will only create the directory structure.</source>
         <translation>الرجاء تحديد الطريقة التي تريد بها تفريغ RomFS. &lt;br&gt;سيتم نسخ جميع الملفات إلى المجلد الجديد في أثناء &lt;br&gt;قيام الهيكل العظمي بإنشاء بنية المجلد فقط.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2658"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2730"/>
         <source>There is not enough free space at %1 to extract the RomFS. Please free up space or select a different dump directory at Emulation &gt; Configure &gt; System &gt; Filesystem &gt; Dump Root</source>
         <translation>لا توجد مساحة فارغة كافية في %1 لاستخراج نظام الملفات RomFS. يُرجى تحرير مساحة أو اختيار مجلد تفريغ آخر من: المحاكاة &gt; التكوين &gt; النظام &gt; نظام الملفات &gt; تفريغ الجذر.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2665"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2737"/>
         <source>Extracting RomFS...</source>
         <translation>RomFS استخراج...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2665"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2919"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2737"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2994"/>
         <source>Cancel</source>
         <translation>إلغاء</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2675"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2747"/>
         <source>RomFS Extraction Succeeded!</source>
         <translation>بنجاح RomFS تم استخراج!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2676"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2748"/>
         <source>The operation completed successfully.</source>
         <translation>تمت العملية بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2734"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2809"/>
         <source>Error Opening %1</source>
         <translation>خطأ في فتح %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2743"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2818"/>
         <source>Select Directory</source>
         <translation>حدد المجلد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2772"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2847"/>
         <source>Properties</source>
         <translation>خصائص</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2773"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2848"/>
         <source>The game properties could not be loaded.</source>
         <translation>تعذر تحميل خصائص اللعبة.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2835"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2910"/>
         <source>Switch Executable (%1);;All Files (*.*)</source>
         <comment>%1 is an identifier for the Switch executable file extensions.</comment>
         <translation>تبديل الملف القابل للتنفيذ (%1);;جميع الملفات (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2839"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2914"/>
         <source>Load File</source>
         <translation>تحميل الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2852"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2927"/>
         <source>Open Extracted ROM Directory</source>
         <translation>المستخرج ROM فتح ملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2863"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2938"/>
         <source>Invalid Directory Selected</source>
         <translation>تم تحديد مجلد غير صالح</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2864"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2939"/>
         <source>The directory you have selected does not contain a &apos;main&apos; file.</source>
         <translation>لا يحتوي المجلد الذي حددته على ملف رئيسي</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2874"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2949"/>
         <source>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</source>
         <translation>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2879"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2954"/>
         <source>Install Files</source>
         <translation>تثبيت الملفات</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2926"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3001"/>
         <source>%n file(s) remaining</source>
         <translation><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2928"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3003"/>
         <source>Installing file &quot;%1&quot;...</source>
         <translation>تثبيت الملف ”%1“...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2982"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2996"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3057"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3071"/>
         <source>Install Results</source>
         <translation>نتائج التثبيت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2983"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3058"/>
         <source>To avoid possible conflicts, we discourage users from installing base games to the NAND.
 Please, only use this feature to install updates and DLC.</source>
         <translation>لتجنب أي تعارضات محتملة، ننصح المستخدمين بعدم تثبيت الألعاب الأساسية على الذاكرة الداخلية.
 يرجى استخدام هذه الميزة فقط لتثبيت التحديثات والمحتوى القابل للتنزيل.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2989"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3064"/>
         <source>%n file(s) were newly installed
 </source>
         <translation><numerusform>%n تم تثبيت ملف (ملفات) جديدة
@@ -7374,7 +7699,7 @@ Please, only use this feature to install updates and DLC.</source>
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2992"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3067"/>
         <source>%n file(s) were overwritten
 </source>
         <translation><numerusform>%n تم استبدال ملف (ملفات)
@@ -7386,7 +7711,7 @@ Please, only use this feature to install updates and DLC.</source>
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2994"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3069"/>
         <source>%n file(s) failed to install
 </source>
         <translation><numerusform>%n فشل تثبيت ملف (ملفات)
@@ -7398,214 +7723,214 @@ Please, only use this feature to install updates and DLC.</source>
 </numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3004"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3079"/>
         <source>System Application</source>
         <translation>تطبيق النظام</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3005"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3080"/>
         <source>System Archive</source>
         <translation>أرشيف النظام</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3006"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3081"/>
         <source>System Application Update</source>
         <translation>تحديث تطبيق النظام</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3007"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3082"/>
         <source>Firmware Package (Type A)</source>
         <translation>حزمة الفيرموير (النوع أ)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3008"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3083"/>
         <source>Firmware Package (Type B)</source>
         <translation>حزمة الفيرموير (النوع ب)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3009"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3084"/>
         <source>Game</source>
         <translation>لعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3010"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3085"/>
         <source>Game Update</source>
         <translation>تحديث اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3011"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3086"/>
         <source>Game DLC</source>
         <translation>الخاص باللعبة DLC الـ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3012"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3087"/>
         <source>Delta Title</source>
         <translation>Delta عنوان</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3015"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3090"/>
         <source>Select NCA Install Type...</source>
         <translation>NCA حدد نوع تثبيت...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3016"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3091"/>
         <source>Please select the type of title you would like to install this NCA as:
 (In most instances, the default &apos;Game&apos; is fine.)</source>
         <translation>يرجى تحديد نوع اللعبة التي ترغب في تثبيت NCA عليها:
 (في معظم الحالات، يكون الإعداد الافتراضي &quot;لعبة&quot; مناسبًا.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3022"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3097"/>
         <source>Failed to Install</source>
         <translation>فشل التثبيت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3023"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3098"/>
         <source>The title type you selected for the NCA is invalid.</source>
         <translation>غير صالح NCA نوع العنوان الذي حددته لـ.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3058"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3133"/>
         <source>File not found</source>
         <translation>لم يتم العثور على الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3059"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3134"/>
         <source>File &quot;%1&quot; not found</source>
         <translation>لم يتم العثور على الملف &quot;%1&quot;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3172"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3253"/>
         <source>OK</source>
         <translation>موافق</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3190"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3271"/>
         <source>Function Disabled</source>
         <translation>الوظيفة معطلة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3191"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3272"/>
         <source>Compatibility list reporting is currently disabled. Check back later!</source>
         <translation>تقارير قائمة التوافق معطلة حاليًا. يرجى التحقق لاحقًا!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3229"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3314"/>
         <source>Error opening URL</source>
         <translation>خطأ في فتح الرابط</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3230"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3315"/>
         <source>Unable to open the URL &quot;%1&quot;.</source>
         <translation>تعذر فتح الرابط ”%1“</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3540"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3688"/>
         <source>TAS Recording</source>
         <translation>TAS تسجيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3540"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3688"/>
         <source>Overwrite file of player 1?</source>
         <translation>الكتابة فوق ملف اللاعب 1؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3559"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3712"/>
         <source>Invalid config detected</source>
         <translation>تم اكتشاف إعدادات غير صالح</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3560"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3713"/>
         <source>Handheld controller can&apos;t be used on docked mode. Pro controller will be selected.</source>
         <translation>لا يمكن استخدام وحدة التحكم المحمولة في وضع الإرساء. سيتم اختيار وحدة تحكم احترافية.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3701"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3752"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3871"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3922"/>
         <source>Amiibo</source>
         <translation>أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3701"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3752"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3871"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3922"/>
         <source>The current amiibo has been removed</source>
         <translation>تمت إزالة أميبو الحالي.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3706"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3876"/>
         <source>Error</source>
         <translation>خطأ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3706"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3764"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3876"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3934"/>
         <source>The current game is not looking for amiibos</source>
         <translation>اللعبة الحالية لا تبحث عن أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3712"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3882"/>
         <source>Amiibo File (%1);; All Files (*.*)</source>
         <translation>جميع الملفات (%1)؛؛ ملف أميبو (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3713"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3883"/>
         <source>Load Amiibo</source>
         <translation>تحميل أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3748"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3918"/>
         <source>Error loading Amiibo data</source>
         <translation>خطأ أثناء تحميل بيانات أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3758"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3928"/>
         <source>The selected file is not a valid amiibo</source>
         <translation>الملف المحدد ليس أميبو صالح</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3761"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3931"/>
         <source>The selected file is already on use</source>
         <translation>الملف المحدد قيد الاستخدام بالفعل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3767"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3937"/>
         <source>An unknown error occurred</source>
         <translation>حدث خطأ غير معروف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3816"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3839"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3982"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4005"/>
         <source>Keys not installed</source>
         <translation>المفاتيح غير مثبتة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3817"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3840"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3983"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4006"/>
         <source>Install decryption keys and restart Eden before attempting to install firmware.</source>
         <translation>قم بتثبيت مفاتيح فك التشفير وأعد تشغيل إيدن قبل محاولة تثبيت الفيرموير.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3822"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3988"/>
         <source>Select Dumped Firmware Source Location</source>
         <translation>حدد موقع مصدر الفيرموير المفرغة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3845"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4011"/>
         <source>Select Dumped Firmware ZIP</source>
         <translation>حدد ملف الفيرموير المضغوط الذي تم تفريغه</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3845"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4011"/>
         <source>Zipped Archives (*.zip)</source>
         <translation>Zipped Archives (*.zip)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3860"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4027"/>
         <source>Firmware cleanup failed</source>
         <translation>فشل مسح الفيرموير</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3861"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4028"/>
         <source>Failed to clean up extracted firmware cache.
 Check write permissions in the system temp directory and try again.
 OS reported error: %1</source>
@@ -7614,155 +7939,155 @@ OS reported error: %1</source>
 أبلغ نظام التشغيل عن خطأ: %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3928"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4099"/>
         <source>No firmware available</source>
         <translation>لا يوجد فيرموير متوفر</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3931"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4103"/>
         <source>Firmware Corrupted</source>
         <translation>الفيرموير تالف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3972"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4169"/>
         <source>Unknown applet</source>
         <translation>تطبيق غير معروف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3972"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4170"/>
         <source>Applet doesn&apos;t map to a known value.</source>
         <translation>لا يرتبط التطبيق المصغر بقيمة معروفة.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3975"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4173"/>
         <source>Record not found</source>
         <translation>لم يتم العثور على السجل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3975"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4174"/>
         <source>Applet not found. Please reinstall firmware.</source>
         <translation>لم يتم العثور على التطبيق المصغر. يرجى إعادة تثبيت الفيرموير.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4009"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4208"/>
         <source>Capture Screenshot</source>
         <translation>التقاط لقطة شاشة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4010"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4209"/>
         <source>PNG Image (*.png)</source>
         <translation>PNG Image (*.png)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4027"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4226"/>
         <source>Update Available</source>
         <translation>تحديث متوفر</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4032"/>
-        <source>Download the %1 update?</source>
-        <translation>تنزيل التحديث %1؟</translation>
+        <location filename="../../src/yuzu/main_window.cpp" line="4230"/>
+        <source>Download %1?</source>
+        <translation>تنزيل 1%؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4091"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4287"/>
         <source>TAS state: Running %1/%2</source>
         <translation>حالة TAS: تشغيل %1/%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4095"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4291"/>
         <source>TAS state: Recording %1</source>
         <translation>حالة TAS: تسجيل %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4097"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4293"/>
         <source>TAS state: Idle %1/%2</source>
         <translation>حالة TAS: خامل %1/%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4101"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4297"/>
         <source>TAS State: Invalid</source>
         <translation>حالة TAS: غير صالحة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4115"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4311"/>
         <source>&amp;Stop Running</source>
         <translation>&amp;إيقاف التشغيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4116"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4312"/>
         <source>Stop R&amp;ecording</source>
         <translation>إيقاف ال&amp;تسجيل</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="4140"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4338"/>
         <source>Building: %n shader(s)</source>
         <translation><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4149"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4347"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
         <translation>الدقة: %1x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4152"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4350"/>
         <source>Speed: %1% / %2%</source>
         <translation>السرعة: %1% / %2%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4156"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4354"/>
         <source>Speed: %1%</source>
         <translation>السرعة: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4160"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4357"/>
         <source>Game: %1 FPS</source>
         <translation>اللعبة: %1 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4163"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4363"/>
         <source>Frame: %1 ms</source>
         <translation>الإطار: %1 ms</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4197"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4397"/>
         <location filename="../../src/qt_common/config/shared_translation.h" line="53"/>
         <source>FSR</source>
         <translation>FSR</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4205"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4405"/>
         <source>NO AA</source>
         <translation>NO AA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4214"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4414"/>
         <source>VOLUME: MUTE</source>
         <translation>الصوت: كتم الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4217"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4417"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
         <translation>%1% :الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4279"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4482"/>
         <source>Derivation Components Missing</source>
         <translation>مكونات الاشتقاق مفقودة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4280"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4483"/>
         <source>Decryption keys are missing. Install them now?</source>
-        <translation type="unfinished"/>
+        <translation>مفاتيح فك التشفير مفقودة. هل تريد تثبيتها الآن؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4308"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4513"/>
         <source>Wayland Detected!</source>
         <translation>Wayland تم الكشف عن</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4309"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4515"/>
         <source>Wayland is known to have significant performance issues and mysterious bugs.
 It's recommended to use X11 instead.
 
@@ -7773,70 +8098,80 @@ Would you like to force it for future launches?</source>
 هل ترغب في فرض استخدامه في عمليات التشغيل المستقبلية؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4314"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4520"/>
         <source>Use X11</source>
         <translation>X11 استخدم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4315"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4521"/>
         <source>Continue with Wayland</source>
         <translation>Wayland متابعة مع</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4318"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4524"/>
         <source>Don&apos;t show again</source>
         <translation>لا تعرض مرة أخرى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4333"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4538"/>
         <source>Restart Required</source>
         <translation>إعادة التشغيل مطلوبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4334"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4539"/>
         <source>Restart Eden to apply the X11 backend.</source>
         <translation>X11 أعد تشغيل إيدن لتطبيق الخلفية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4414"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4577"/>
+        <source>Slow</source>
+        <translation>بطيء</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main_window.cpp" line="4580"/>
+        <source>Turbo</source>
+        <translation>تيربو</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main_window.cpp" line="4584"/>
+        <source>Unlocked</source>
+        <translation>إلغاء القفل</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main_window.cpp" line="4634"/>
         <source>Select RomFS Dump Target</source>
         <translation>RomFS حدد هدف تفريغ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4415"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4635"/>
         <source>Please select which RomFS you would like to dump.</source>
         <translation>الذي تريد تفريغه RomFS الرجاء تحديد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4438"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4658"/>
         <source>Are you sure you want to close Eden?</source>
         <translation>هل أنت متأكد من أنك تريد إغلاق إيدن؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4439"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4519"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4531"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4659"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4748"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4760"/>
         <source>Eden</source>
         <translation>إيدن</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4520"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4749"/>
         <source>Are you sure you want to stop the emulation? Any unsaved progress will be lost.</source>
         <translation>هل أنت متأكد من أنك تريد إيقاف المحاكاة؟ سيتم فقدان أي تقدم لم يتم حفظه.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4528"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4757"/>
         <source>The currently running application has requested Eden to not exit.
 
 Would you like to bypass this and exit anyway?</source>
         <translation>طلب التطبيق الذي يتم تشغيله حاليًا من إيدن عدم الخروج.
 
 هل ترغب في تجاوز هذا والخروج على أي حال؟</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="31"/>
-        <source>None</source>
-        <translation>لا شيء</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="32"/>
@@ -7864,27 +8199,27 @@ Would you like to bypass this and exit anyway?</source>
         <translation>Bicubic</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="42"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="43"/>
         <source>Zero-Tangent</source>
         <translation>Zero-Tangent</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="43"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="44"/>
         <source>B-Spline</source>
         <translation>B-Spline</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="44"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="46"/>
         <source>Mitchell</source>
         <translation>Mitchell</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="46"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="47"/>
         <source>Spline-1</source>
         <translation>Spline-1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="48"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="49"/>
         <source>Gaussian</source>
         <translation>Gaussian</translation>
     </message>
@@ -7939,22 +8274,22 @@ Would you like to bypass this and exit anyway?</source>
         <translation>Vulkan</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="71"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="72"/>
         <source>OpenGL GLSL</source>
         <translation>OpenGL GLSL</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="72"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="74"/>
         <source>OpenGL SPIRV</source>
         <translation>OpenGL SPIRV</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="73"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="76"/>
         <source>OpenGL GLASM</source>
         <translation>OpenGL GLASM</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.h" line="74"/>
+        <location filename="../../src/qt_common/config/shared_translation.h" line="77"/>
         <source>Null</source>
         <translation>لا شيء</translation>
     </message>
@@ -7962,14 +8297,14 @@ Would you like to bypass this and exit anyway?</source>
 <context>
     <name>MigrationWorker</name>
     <message>
-        <location filename="../../src/yuzu/migration_worker.cpp" line="57"/>
+        <location filename="../../src/yuzu/migration_worker.cpp" line="52"/>
         <source>Linking the old directory failed. You may need to re-run with administrative privileges on Windows.
 OS gave error: %1</source>
         <translation>فشل ربط المجلد القديم. قد تحتاج إلى إعادة التشغيل باستخدام امتيازات المسؤول في ويندوز.
 أصدر نظام التشغيل خطأ: %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.cpp" line="75"/>
+        <location filename="../../src/yuzu/migration_worker.cpp" line="70"/>
         <source>
 
 Note that your configuration and data will be shared with %1.
@@ -7986,7 +8321,7 @@ If this is not desirable, delete the following files:
 %4</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.cpp" line="116"/>
+        <location filename="../../src/yuzu/migration_worker.cpp" line="110"/>
         <source>
 
 If you wish to clean up the files which were left in the old data location, you can do so by deleting the following directory:
@@ -7997,9 +8332,22 @@ If you wish to clean up the files which were left in the old data location, you 
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="70"/>
+        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
         <source>Data was migrated successfully.</source>
         <translation>تم نقل البيانات بنجاح.</translation>
+    </message>
+</context>
+<context>
+    <name>ModSelectDialog</name>
+    <message>
+        <location filename="../../src/yuzu/configuration/addon/mod_select_dialog.ui" line="14"/>
+        <source>Dialog</source>
+        <translation>حوار</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/addon/mod_select_dialog.ui" line="20"/>
+        <source>The specified folder or archive contains the following mods. Select which ones to install.</source>
+        <translation>يحتوي المجلد أو الأرشيف المحدد على التعديلات التالية. حدد التعديلات التي تريد تثبيتها.</translation>
     </message>
 </context>
 <context>
@@ -8132,127 +8480,127 @@ Proceed anyway?</source>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="14"/>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="61"/>
         <source>New User</source>
-        <translation type="unfinished"/>
+        <translation>مستخدم جديد</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="30"/>
         <source>Change Avatar</source>
-        <translation type="unfinished"/>
+        <translation>تغيير الصورة الرمزية</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="37"/>
         <source>Set Image</source>
-        <translation type="unfinished"/>
+        <translation>تعيين الصورة</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="53"/>
         <source>UUID</source>
-        <translation type="unfinished"/>
+        <translation>معرف فريد عالمي</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="60"/>
         <source>Eden</source>
-        <translation type="unfinished"/>
+        <translation>إيدن</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="70"/>
         <source>Username</source>
-        <translation type="unfinished"/>
+        <translation>اسم المستخدم</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="82"/>
         <source>UUID must be 32 hex characters (0-9, A-F)</source>
-        <translation type="unfinished"/>
+        <translation>يجب أن يكون UUID مكونًا من 32 حرفًا سداسيًا عشريًا (0-9، A-F)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="89"/>
         <source>Generate</source>
-        <translation type="unfinished"/>
+        <translation>إنشاء</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="136"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="138"/>
         <source>Select User Image</source>
-        <translation type="unfinished"/>
+        <translation>اختر صورة المستخدم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="137"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="139"/>
         <source>Image Formats (*.jpg *.jpeg *.png *.bmp)</source>
-        <translation type="unfinished"/>
+        <translation>تنسيقات الصور (*.jpg *.jpeg *.png *.bmp)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="169"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="171"/>
         <source>No firmware available</source>
-        <translation type="unfinished"/>
+        <translation>لا يوجد فيرموير متوفر</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="170"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="172"/>
         <source>Please install the firmware to use firmware avatars.</source>
-        <translation type="unfinished"/>
+        <translation>يرجى تثبيت الفيرموير لاستخدام صور الرمزية للفيرموير.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="175"/>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="182"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="177"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="184"/>
         <source>Error loading archive</source>
-        <translation type="unfinished"/>
+        <translation>خطأ في تحميل الأرشيف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="176"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="178"/>
         <source>Archive is not available. Please install/reinstall firmware.</source>
-        <translation type="unfinished"/>
+        <translation>الأرشيف غير متوفر. يُرجى تثبيت/إعادة تثبيت الفيرموير.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="183"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="185"/>
         <source>Could not locate RomFS. Your file or decryption keys may be corrupted.</source>
-        <translation type="unfinished"/>
+        <translation>تعذر العثور على نظام ملفات ROMFS. قد يكون ملفك أو مفاتيح فك التشفير تالفة.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="189"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="191"/>
         <source>Error extracting archive</source>
-        <translation type="unfinished"/>
+        <translation>خطأ في استخراج الأرشيف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="190"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="192"/>
         <source>Could not extract RomFS. Your file or decryption keys may be corrupted.</source>
-        <translation type="unfinished"/>
+        <translation>تعذر استخراج نظام ملفات ROMFS. قد يكون ملفك أو مفاتيح فك التشفير تالفة.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="195"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="197"/>
         <source>Error finding image directory</source>
-        <translation type="unfinished"/>
+        <translation>خطأ في العثور على مجلد الصور</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="196"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="198"/>
         <source>Failed to find image directory in the archive.</source>
-        <translation type="unfinished"/>
+        <translation>فشل في العثور على مجلد الصور في الأرشيف.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="216"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="218"/>
         <source>No images found</source>
-        <translation type="unfinished"/>
+        <translation>لم يتم العثور على صور</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="217"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="219"/>
         <source>No avatar images were found in the archive.</source>
-        <translation type="unfinished"/>
+        <translation>لم يتم العثور على صور رمزية في الأرشيف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="336"/>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="344"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="338"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="346"/>
         <source>All Good</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"/>
+        <translation>كل شيء جيد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="339"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="341"/>
         <source>Must be 32 hex characters (0-9, a-f)</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"/>
+        <translation>يجب أن تتكون من 32 حرفًا سداسيًا عشريًا (0-9، a-f)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="347"/>
+        <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="349"/>
         <source>Must be between 1 and 32 characters</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"/>
+        <translation>يجب أن يتكون من 1 إلى 32 حرفًا</translation>
     </message>
 </context>
 <context>
@@ -8289,6 +8637,80 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
+    <name>PerformanceOverlay</name>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="14"/>
+        <source>Form</source>
+        <translation>نموذج</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="32"/>
+        <source>Frametime</source>
+        <translation>زمن الإطار</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="45"/>
+        <source>0 ms</source>
+        <translation>0 مللي ثانية</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="63"/>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="143"/>
+        <source>Min: 0</source>
+        <translation>الحد الأدنى: 0</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="77"/>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="157"/>
+        <source>Max: 0</source>
+        <translation>الحد الأقصى: 0</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="91"/>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="171"/>
+        <source>Avg: 0</source>
+        <translation>المتوسط: 0</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="112"/>
+        <source>FPS</source>
+        <translation>معدل الإطارات في الثانية</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.ui" line="125"/>
+        <source>0 fps</source>
+        <translation>0 إطار في الثانية</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.cpp" line="103"/>
+        <source>%1 fps</source>
+        <translation>%1 معدل الإطارات في الثانية</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.cpp" line="124"/>
+        <location filename="../../src/yuzu/render/performance_overlay.cpp" line="174"/>
+        <source>Avg: %1</source>
+        <translation>المتوسط: %1</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.cpp" line="133"/>
+        <location filename="../../src/yuzu/render/performance_overlay.cpp" line="163"/>
+        <source>Min: %1</source>
+        <translation>الحد الأدنى: %1</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.cpp" line="134"/>
+        <location filename="../../src/yuzu/render/performance_overlay.cpp" line="164"/>
+        <source>Max: %1</source>
+        <translation>الحد الأقصى: %1</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/render/performance_overlay.cpp" line="151"/>
+        <source>%1 ms</source>
+        <translation>%1 مللي ثانية</translation>
+    </message>
+</context>
+<context>
     <name>PlayerControlPreview</name>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player_widget.cpp" line="1652"/>
@@ -8301,60 +8723,35 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/configuration/system/profile_avatar_dialog.cpp" line="18"/>
         <source>Select</source>
-        <translation type="unfinished"/>
+        <translation>اختر</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/profile_avatar_dialog.cpp" line="19"/>
         <source>Cancel</source>
-        <translation type="unfinished"/>
+        <translation>إلغاء</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/profile_avatar_dialog.cpp" line="20"/>
         <source>Background Color</source>
-        <translation type="unfinished"/>
+        <translation>لون الخلفية</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/profile_avatar_dialog.cpp" line="41"/>
         <source>Select Firmware Avatar</source>
-        <translation type="unfinished"/>
+        <translation>حدد الصورة الرمزية للفيرموير</translation>
     </message>
 </context>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="273"/>
-        <source>Installed SD Titles</source>
-        <translation>عناوين المثبتة على بطاقة الذاكرة</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="281"/>
-        <source>Installed NAND Titles</source>
-        <translation>عناوين المثبتة على الذاكرة الداخلية</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="289"/>
-        <source>System Titles</source>
-        <translation>عناوين النظام</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="332"/>
-        <source>Add New Game Directory</source>
-        <translation>إضافة مجلد ألعاب جديد</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="355"/>
-        <source>Favorites</source>
-        <translation>المفضلة</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="44"/>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="125"/>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="157"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="43"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="121"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="148"/>
         <source>Migration</source>
         <translation>الترحيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="58"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="57"/>
         <source>Clear Shader Cache</source>
         <translation>مسح ذاكرة التخزين المؤقتة للتظليل</translation>
     </message>
@@ -8389,19 +8786,19 @@ p, li { white-space: pre-wrap; }
         <translation>لا</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="126"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="122"/>
         <source>You can manually re-trigger this prompt by deleting the new config directory:
 %1</source>
         <translation>يمكنك إعادة تشغيل هذه المطالبة يدويًا عن طريق حذف دليل التكوين الجديد:
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="139"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="133"/>
         <source>Migrating</source>
         <translation>الترحيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/user_data_migration.cpp" line="140"/>
+        <location filename="../../src/yuzu/user_data_migration.cpp" line="134"/>
         <source>Migrating, this may take a while...</source>
         <translation>جارٍ الترحيل، قد يستغرق هذا بعض الوقت...</translation>
     </message>
@@ -8792,6 +9189,51 @@ p, li { white-space: pre-wrap; }
         <source>%1 is playing %2</source>
         <translation>%1 يلعب %2</translation>
     </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="88"/>
+        <source>Play Time: %1</source>
+        <translation>زمن اللعب: %1</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="91"/>
+        <source>Never Played</source>
+        <translation>لم تُلعب قط</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="99"/>
+        <source>Version: %1</source>
+        <translation>الإصدار: %1</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="101"/>
+        <source>Version: 1.0.0</source>
+        <translation>الإصدار: 1.0.0</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="308"/>
+        <source>Installed SD Titles</source>
+        <translation>عناوين المثبتة على بطاقة الذاكرة</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="316"/>
+        <source>Installed NAND Titles</source>
+        <translation>عناوين المثبتة على الذاكرة الداخلية</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="324"/>
+        <source>System Titles</source>
+        <translation>عناوين النظام</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="367"/>
+        <source>Add New Game Directory</source>
+        <translation>إضافة مجلد ألعاب جديد</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game/game_list_p.h" line="390"/>
+        <source>Favorites</source>
+        <translation>المفضلة</translation>
+    </message>
 </context>
 <context>
     <name>QtAmiiboSettingsDialog</name>
@@ -8909,47 +9351,47 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>QtCommon::Content</name>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="31"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="29"/>
         <source>Game Requires Firmware</source>
         <translation>تتطلب اللعبة الفيرموير</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="32"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="30"/>
         <source>The game you are trying to launch requires firmware to boot or to get past the opening menu. Please &lt;a href=&apos;https://yuzu-mirror.github.io/help/quickstart&apos;&gt;dump and install firmware&lt;/a&gt;, or press &quot;OK&quot; to launch anyways.</source>
         <translation>اللعبة التي تحاول تشغيلها تتطلب فيرموير للتشغيل أو لتجاوز قائمة الفتح. يُرجى &lt;a href=&apos;https://yuzu-mirror.github.io/help/quickstart&apos;&gt;تفريغ فيرموير وتثبيتها&lt;/a&gt;، أو اضغط &quot;حسنًا&quot; للعب على أي حال</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="46"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="44"/>
         <source>Installing Firmware...</source>
         <translation>تثبيت الفيرموير...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="47"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="225"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="293"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="417"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="492"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="44"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="209"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="265"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="382"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="445"/>
         <source>Cancel</source>
         <translation>إلغاء</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="63"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="56"/>
         <source>Firmware Install Failed</source>
         <translation>فشل تثبيت الفيرموير</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="64"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="57"/>
         <source>Firmware Install Succeeded</source>
         <translation>تم تثبيت الفيرموير بنجاح</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="179"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="165"/>
         <source>Firmware integrity verification failed!</source>
         <translation>فشل التحقق من سلامة الفيرموير!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="180"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="321"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="166"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="290"/>
         <source>Verification failed for the following files:
 
 %1</source>
@@ -8958,204 +9400,204 @@ p, li { white-space: pre-wrap; }
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="224"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="292"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="209"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="265"/>
         <source>Verifying integrity...</source>
         <translation>جارٍ التحقق من السلامة...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="244"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="315"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="224"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="283"/>
         <source>Integrity verification succeeded!</source>
         <translation>تم التحقق من السلامة بنجاح!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="245"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="316"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="225"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="284"/>
         <source>The operation completed successfully.</source>
         <translation>اكتملت العملية بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="249"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="320"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="228"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="289"/>
         <source>Integrity verification failed!</source>
         <translation>فشل التحقق من السلامة!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="250"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="229"/>
         <source>File contents may be corrupt or missing.</source>
         <translation>قد تكون محتويات الملف تالفة أو مفقودة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="255"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="233"/>
         <source>Integrity verification couldn&apos;t be performed</source>
         <translation>تعذر إجراء التحقق من السلامة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="256"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="234"/>
         <source>Firmware installation cancelled, firmware may be in a bad state or corrupted. File contents could not be checked for validity.</source>
         <translation>تم إلغاء تثبيت الفيرموير، قد يكون الفيرموير في حالة سيئة أو تآلف. تعذر التحقق من صحة محتويات الملف.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="264"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="241"/>
         <source>Select Dumped Keys Location</source>
         <translation>حدد موقع المفاتيح المفرغة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="281"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="254"/>
         <source>Decryption Keys install succeeded</source>
         <translation>تم تثبيت مفاتيح فك التشفير بنجاح</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="284"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="257"/>
         <source>Decryption Keys install failed</source>
         <translation>فشل تثبيت مفاتيح فك التشفير</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="360"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="329"/>
         <source>Orphaned Profiles Detected!</source>
         <translation>تم الكشف عن ملفات تعريف مهملة!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="361"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="330"/>
         <source>UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON&apos;T READ THIS!&lt;br&gt;Eden has detected the following save directories with no attached profile:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;The following profiles are valid:&lt;br&gt;%2&lt;br&gt;&lt;br&gt;Click &quot;OK&quot; to open your save folder and fix up your profiles.&lt;br&gt;Hint: copy the contents of the largest or last-modified folder elsewhere, delete all orphaned profiles, and move your copied contents to the good profile.&lt;br&gt;&lt;br&gt;Still confused? See the &lt;a href=&apos;https://git.eden-emu.dev/eden-emu/eden/src/branch/master/docs/user/Orphaned.md&apos;&gt;help page&lt;/a&gt;.&lt;br&gt;</source>
         <translation>قد تحدث أمور سيئة غير متوقعة إذا لم تقرأ هذا&lt;br&gt;!لقد اكتشف إيدن مجلدات الحفظ التالية بدون ملف تعريف مرفق:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;ملفات التعريف التالية صالحة:&lt;br&gt;%2&lt;br&gt;&lt;br&gt;انقر على ”موافق“ لفتح مجلد الحفظ وإصلاح ملفات التعريف الخاصة بك.&lt;br&gt;تلميح: انسخ محتويات المجلد الأكبر أو آخر مجلد تم تعديله إلى مكان آخر، واحذف جميع ملفات التعريف اليتيمة، وانقل المحتويات المنسوخة إلى ملف التعريف الصحيح.&lt;br&gt;&lt;br&gt;هل ما زلت تشعر بالارتباك؟ انظر إلى &lt;a href=&apos;https://git.eden-emu.dev/eden-emu/eden/src/branch/master/docs/user/Orphaned.md&apos;&gt;صفحة المساعدة&lt;/a&gt;.&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="377"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="349"/>
         <source>Really clear data?</source>
         <translation>مسح البيانات بالفعل؟</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="378"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="349"/>
         <source>Important data may be lost!</source>
         <translation>قد يتم فقدان بيانات مهمة!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="385"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="354"/>
         <source>Are you REALLY sure?</source>
         <translation>هل أنت متأكد حقًا؟</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="386"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="355"/>
         <source>Once deleted, your data will NOT come back!
 Only do this if you&apos;re 100% sure you want to delete this data.</source>
         <translation>بمجرد حذفها، لن تتمكن من استعادة بياناتك!
 قم بذلك فقط إذا كنت متأكدًا بنسبة 100٪ أنك تريد حذف هذه البيانات.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="393"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="362"/>
         <source>Clearing...</source>
         <translation>إزالة...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="409"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="376"/>
         <source>Select Export Location</source>
         <translation>حدد موقع التصدير</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="410"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="376"/>
         <source>%1.zip</source>
         <translation>%1.zip</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="411"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="477"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="376"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="430"/>
         <source>Zipped Archives (*.zip)</source>
         <translation>Zipped Archives (*.zip)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="417"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="382"/>
         <source>Exporting data. This may take a while...</source>
         <translation>تصدير البيانات. قد يستغرق هذا بعض الوقت...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="419"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="384"/>
         <source>Exporting</source>
         <translation>التصدير</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="449"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="405"/>
         <source>Exported Successfully</source>
         <translation>تم التصدير بنجاح</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="449"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="405"/>
         <source>Data was exported successfully.</source>
         <translation>تم تصدير البيانات بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="451"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="407"/>
         <source>Export Cancelled</source>
         <translation>تم إلغاء التصدير</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="451"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="407"/>
         <source>Export was cancelled by the user.</source>
         <translation>تم إلغاء التصدير من قبل المستخدم.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="454"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="410"/>
         <source>Export Failed</source>
         <translation>فشل التصدير</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="455"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="411"/>
         <source>Ensure you have write permissions on the targeted directory and try again.</source>
         <translation>تأكد من أن لديك أذونات الكتابة على المجلد المحدد وحاول مرة أخرى.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="475"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="430"/>
         <source>Select Import Location</source>
         <translation>حدد موقع الاستيراد</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="483"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="436"/>
         <source>Import Warning</source>
         <translation>تحذير الاستيراد</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="484"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="437"/>
         <source>All previous data in this directory will be deleted. Are you sure you wish to proceed?</source>
         <translation>سيتم حذف جميع البيانات السابقة في هذا المجلد. هل أنت متأكد من رغبتك في المتابعة؟</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="492"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="445"/>
         <source>Importing data. This may take a while...</source>
         <translation>استيراد البيانات. قد يستغرق هذا بعض الوقت...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="494"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="447"/>
         <source>Importing</source>
         <translation>استيراد</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="537"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="480"/>
         <source>Imported Successfully</source>
         <translation>تم الاستيراد بنجاح</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="537"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="480"/>
         <source>Data was imported successfully.</source>
         <translation>تم استيراد البيانات بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="539"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="482"/>
         <source>Import Cancelled</source>
         <translation>تم إلغاء الاستيراد</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="539"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="482"/>
         <source>Import was cancelled by the user.</source>
         <translation>تم إلغاء الاستيراد من قبل المستخدم.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="541"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="484"/>
         <source>Import Failed</source>
         <translation>فشل الاستيراد</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="542"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="485"/>
         <source>Ensure you have read permissions on the targeted directory and try again.</source>
         <translation>تأكد من أن لديك أذونات قراءة على المجلد المحدد وحاول مرة أخرى.</translation>
     </message>
@@ -9163,22 +9605,22 @@ Only do this if you&apos;re 100% sure you want to delete this data.</source>
 <context>
     <name>QtCommon::FS</name>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="24"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="23"/>
         <source>Linked Save Data</source>
         <translation>بيانات الحفظ المرتبطة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="24"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="23"/>
         <source>Save data has been linked.</source>
         <translation>تم ربط بيانات الحفظ.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="27"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="26"/>
         <source>Failed to link save data</source>
         <translation>فشل ربط بيانات الحفظ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="28"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="27"/>
         <source>Could not link directory:
 	%1
 To:
@@ -9189,48 +9631,48 @@ To:
 	%2</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="41"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="40"/>
         <source>Already Linked</source>
         <translation>تم الربط بالفعل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="42"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="41"/>
         <source>This title is already linked to Ryujinx. Would you like to unlink it?</source>
         <translation>هل تريد إلغاء الارتباط؟ Ryujinxهذا العنوان مرتبط بالفعل بـ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="69"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="68"/>
         <source>Failed to unlink old directory</source>
         <translation>فشل إلغاء ربط المجلد القديم</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="70"/>
-        <location filename="../../src/qt_common/util/fs.cpp" line="80"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="69"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="79"/>
         <source>OS returned error: %1</source>
         <translation>أعاد نظام التشغيل خطأ: %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="79"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="78"/>
         <source>Failed to copy save data</source>
         <translation>فشل نسخ بيانات الحفظ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="84"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="83"/>
         <source>Unlink Successful</source>
         <translation>إلغاء الارتباط تم بنجاح</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="85"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="84"/>
         <source>Successfully unlinked Ryujinx save data. Save data has been kept intact.</source>
         <translation>بنجاح تم الاحتفاظ ببيانات الحفظ سليمة Ryujinx تم فصل بيانات حفظ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="99"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="97"/>
         <source>Could not find Ryujinx installation</source>
         <translation>Ryujinx تعذر العثور على تثبيت</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="100"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="98"/>
         <source>Could not find a valid Ryujinx installation. This may typically occur if you are using Ryujinx in portable mode.
 
 Would you like to manually select a portable folder to use?</source>
@@ -9242,18 +9684,18 @@ Would you like to manually select a portable folder to use?</source>
         <translation>المحمول Ryujinx موقع</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="121"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="122"/>
         <source>Not a valid Ryujinx directory</source>
         <translation>غير صالح Ryujinx مجلد</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="122"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="123"/>
         <source>The specified directory does not contain valid Ryujinx data.</source>
         <translation>صالحة Ryujinx المجلد المحدد لا يحتوي على بيانات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/fs.cpp" line="140"/>
-        <location filename="../../src/qt_common/util/fs.cpp" line="144"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="141"/>
+        <location filename="../../src/qt_common/util/fs.cpp" line="145"/>
         <source>Could not find Ryujinx save data</source>
         <translation>Ryujinx تعذر العثور على بيانات حفظ</translation>
     </message>
@@ -9261,229 +9703,287 @@ Would you like to manually select a portable folder to use?</source>
 <context>
     <name>QtCommon::Game</name>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="209"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="192"/>
         <source>Error Removing Contents</source>
         <translation>خطأ في إزالة المحتويات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="211"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="194"/>
         <source>Error Removing Update</source>
         <translation>خطأ في إزالة التحديث</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="213"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="196"/>
         <source>Error Removing DLC</source>
         <translation>خطأ في إزالة المحتوى القابل للتنزيل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="225"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="239"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="256"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="284"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="320"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="346"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="207"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="220"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="236"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="263"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="297"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="322"/>
         <source>Successfully Removed</source>
         <translation>تم الإزالة بنجاح</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="226"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="208"/>
         <source>Successfully removed the installed base game.</source>
         <translation>تمت إزالة اللعبة الأساسية المثبتة بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="231"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="213"/>
         <source>The base game is not installed in the NAND and cannot be removed.</source>
         <translation>اللعبة الأساسية غير مثبتة في ذاكرة الداخلية ولا يمكن إزالتها.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="240"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="221"/>
         <source>Successfully removed the installed update.</source>
         <translation>تمت إزالة التحديث المثبت بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="243"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="224"/>
         <source>There is no update installed for this title.</source>
         <translation>لا يوجد تحديث مثبت لهذا العنوان.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="252"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="232"/>
         <source>There are no DLCs installed for this title.</source>
         <translation>لا يوجد محتوى قابل للتنزيل مثبت لهذا العنوان.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="257"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="237"/>
         <source>Successfully removed %1 installed DLC.</source>
         <translation>تمت إزالة المحتوى القابل للتنزيل المثبت %1 بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="279"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="287"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="258"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="266"/>
         <source>Error Removing Transferable Shader Cache</source>
         <translation>Transferable Shader حدث خطأ أثناء إزالة ذاكرة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="280"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="316"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="259"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="293"/>
         <source>A shader cache for this title does not exist.</source>
         <translation>لا يوجد ذاكرة تخزين مؤقتة للتظليل لهذا العنوان.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="285"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="264"/>
         <source>Successfully removed the transferable shader cache.</source>
         <translation>تم إزالة ذاكرة التخزين المؤقتة للتظليل القابلة للنقل بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="288"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="267"/>
         <source>Failed to remove the transferable shader cache.</source>
         <translation>فشل في إزالة ذاكرة التخزين المؤقتة للتظليل القابلة للنقل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="304"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="282"/>
         <source>Error Removing Vulkan Driver Pipeline Cache</source>
         <translation>Vulkan حدث خطأ أثناء إزالة ذاكرة التخزين المؤقتة لخط أنابيب برنامج تشغيل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="305"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="283"/>
         <source>Failed to remove the driver pipeline cache.</source>
         <translation>فشل في إزالة ذاكرة التخزين المؤقتة لخط أنابيب برنامج التشغيل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="315"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="325"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="292"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="302"/>
         <source>Error Removing Transferable Shader Caches</source>
         <translation>Transferable Shader حدث خطأ أثناء إزالة ذاكرة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="321"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="298"/>
         <source>Successfully removed the transferable shader caches.</source>
         <translation>تم إزالة ذاكرة التخزين المؤقتة للتظليل القابلة للنقل بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="326"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="303"/>
         <source>Failed to remove the transferable shader cache directory.</source>
         <translation>فشل في إزالة مجلد ذاكرة التخزين المؤقتة للتظليل القابل للتحويل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="340"/>
-        <location filename="../../src/qt_common/util/game.cpp" line="349"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="316"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="325"/>
         <source>Error Removing Custom Configuration</source>
         <translation>خطأ في إزالة التهيئة المخصصة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="341"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="317"/>
         <source>A custom configuration for this title does not exist.</source>
         <translation>لا يوجد إعدادات مخصص لهذا العنوان.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="347"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="323"/>
         <source>Successfully removed the custom game configuration.</source>
         <translation>تمت إزالة إعدادات اللعبة المخصص بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="350"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="326"/>
         <source>Failed to remove the custom game configuration.</source>
         <translation>فشل إزالة إعدادات اللعبة المخصص.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="378"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="347"/>
         <source>Reset Metadata Cache</source>
         <translation>إعادة تعيين ذاكرة التخزين المؤقتة للبيانات الوصفية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="385"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="353"/>
         <source>The metadata cache is already empty.</source>
         <translation>ذاكرة التخزين المؤقتة للبيانات الوصفية فارغة بالفعل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="391"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="358"/>
         <source>The operation completed successfully.</source>
         <translation>اكتملت العملية بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="398"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="364"/>
         <source>The metadata cache couldn&apos;t be deleted. It might be in use or non-existent.</source>
         <translation>تعذر حذف ذاكرة التخزين المؤقتة للبيانات الوصفية. قد تكون قيد الاستخدام أو غير موجودة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="413"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="380"/>
         <source>Create Shortcut</source>
         <translation>إنشاء اختصار</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="414"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="380"/>
         <source>Do you want to launch the game in fullscreen?</source>
         <translation>هل تريد تشغيل اللعبة في وضع ملء الشاشة؟</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="418"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="384"/>
         <source>Shortcut Created</source>
         <translation>تم إنشاء الاختصار</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="419"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="384"/>
         <source>Successfully created a shortcut to %1</source>
         <translation>تم إنشاء اختصار بنجاح إلى %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="424"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="389"/>
         <source>Shortcut may be Volatile!</source>
         <translation>قد يكون الاختصار متقلبًا!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="425"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="390"/>
         <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
         <translation>سيؤدي هذا إلى إنشاء اختصار لصورة التطبيق الحالية. قد لا يعمل هذا بشكل جيد إذا قمت بالتحديث. هل تريد المتابعة؟</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="431"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="396"/>
         <source>Failed to Create Shortcut</source>
         <translation>فشل في إنشاء اختصار</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="432"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="397"/>
         <source>Failed to create a shortcut to %1</source>
         <translation>فشل إنشاء اختصار إلى %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="504"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="463"/>
         <source>Create Icon</source>
         <translation>إنشاء أيقونة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="505"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="464"/>
         <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
         <translation>لا يمكن إنشاء ملف الرمز. المسار ”%1“ غير موجود ولا يمكن إنشاؤه.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="565"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="517"/>
         <source>No firmware available</source>
         <translation>لا يوجد فيرموير متوفر</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="566"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="518"/>
         <source>Please install firmware to use the home menu.</source>
         <translation>يرجى تثبيت الفيرموير لاستخدام القائمة الرئيسية.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="572"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="524"/>
         <source>Home Menu Applet</source>
         <translation>القائمة الرئيسية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/game.cpp" line="573"/>
+        <location filename="../../src/qt_common/util/game.cpp" line="525"/>
         <source>Home Menu is not available. Please reinstall firmware.</source>
         <translation>القائمة الرئيسية غير متوفرة. يرجى إعادة تثبيت الفيرموير.</translation>
     </message>
 </context>
 <context>
+    <name>QtCommon::Mod</name>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="44"/>
+        <source>Mod Name</source>
+        <translation>اسم التعديل</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="44"/>
+        <source>What should this mod be called?</source>
+        <translation>ما الاسم المناسب لهذا التعديل؟</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="54"/>
+        <source>RomFS</source>
+        <translation>RomFS</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="55"/>
+        <source>ExeFS/Patch</source>
+        <translation>ExeFS/التصحيح</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="56"/>
+        <source>Cheat</source>
+        <translation>الغش</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="60"/>
+        <source>Mod Type</source>
+        <translation>نوع التعديل</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="61"/>
+        <source>Could not detect mod type automatically. Please manually specify the type of mod you downloaded.
+
+Most mods are RomFS mods, but patches (.pchtxt) are typically ExeFS mods.</source>
+        <translation>تعذر الكشف عن نوع التعديل تلقائيًا. يرجى تحديد نوع التعديل الذي قمت بتنزيله يدويًا.
+
+  عادةً ما تكون تعديلات (.pchtxt) ولكن التصحيحات .RomFS معظم التعديلات هي  ExeFS.</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="120"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="133"/>
+        <source>Mod Extract Failed</source>
+        <translation>فشل استخراج التعديل</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="121"/>
+        <source>Failed to create temporary directory %1</source>
+        <translation>%1 فشل إنشاء مجلد المؤقت</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/util/mod.cpp" line="134"/>
+        <source>Zip file %1 is empty</source>
+        <translation>الملف المضغوط 1% فارغ</translation>
+    </message>
+</context>
+<context>
     <name>QtCommon::Path</name>
     <message>
-        <location filename="../../src/qt_common/util/path.cpp" line="21"/>
+        <location filename="../../src/qt_common/util/path.cpp" line="19"/>
         <source>Error Opening Shader Cache</source>
         <translation>خطأ في فتح ذاكرة التخزين المؤقتة للتظليل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/path.cpp" line="22"/>
+        <location filename="../../src/qt_common/util/path.cpp" line="20"/>
         <source>Failed to create or open shader cache for this title, ensure your app data directory has write permissions.</source>
         <translation>فشل إنشاء أو فتح ذاكرة التخزين المؤقتة للتظليل لهذا العنوان، تأكد من أن دليل بيانات التطبيق لديك يحتوي على أذونات الكتابة.</translation>
     </message>
@@ -9491,84 +9991,84 @@ Would you like to manually select a portable folder to use?</source>
 <context>
     <name>QtCommon::StringLookup</name>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="69"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="70"/>
         <source>Contains game save data. DO NOT REMOVE UNLESS YOU KNOW WHAT YOU&apos;RE DOING!</source>
         <translation>يحتوي على بيانات حفظ اللعبة. لا تحذفه إلا إذا كنت تعرف ما تفعله!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="71"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="72"/>
         <source>Contains Vulkan and OpenGL pipeline caches. Generally safe to remove.</source>
         <translation>يمكن إزالته بأمان بشكل عام Vulkan و OpenGL يحتوي على ذاكرات التخزين المؤقتة لخطوط أنابيب </translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="72"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="73"/>
         <source>Contains updates and DLC for games.</source>
         <translation>يحتوي على تحديثات ومحتوى قابل للتنزيل للألعاب.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="73"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="74"/>
         <source>Contains firmware and applet data.</source>
         <translation>يحتوي على بيانات الفيرموير والتطبيقات.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="74"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="75"/>
         <source>Contains game mods, patches, and cheats.</source>
         <translation>يحتوي على تعديلات اللعبة والتصحيحات والغش.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="78"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="79"/>
         <source>Decryption Keys were successfully installed</source>
         <translation>تم تثبيت مفاتيح فك التشفير بنجاح</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="79"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="80"/>
         <source>Unable to read key directory, aborting</source>
         <translation>تعذر قراءة مجلد المفاتيح، جارٍ الإلغاء</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="80"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="81"/>
         <source>One or more keys failed to copy.</source>
         <translation>فشل نسخ مفتاح واحد أو أكثر.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="82"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="83"/>
         <source>Verify your keys file has a .keys extension and try again.</source>
         <translation>وحاول مرة أخرى keys تأكد من أن ملف المفاتيح لديك يحتوي على امتداد</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="84"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="85"/>
         <source>Decryption Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</source>
         <translation>تعذّر تهيئة مفاتيح فك التشفير. تأكد من تحديث أدوات التفريغ لديك، ثم أعد تفريغ المفاتيح.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="90"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="91"/>
         <source>Successfully installed firmware version %1</source>
         <translation>تم تثبيت إصدار الفيرموير %1 بنجاح</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="91"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="92"/>
         <source>Unable to locate potential firmware NCA files</source>
         <translation>المحتملة للفيرموير NCA تعذر تحديد موقع ملفات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="92"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="93"/>
         <source>Failed to delete one or more firmware files.</source>
         <translation>فشل في حذف ملف واحد أو أكثر من ملفات الفيرموير.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="93"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="94"/>
         <source>One or more firmware files failed to copy into NAND.</source>
         <translation>فشل نسخ ملف واحد أو أكثر من ملفات الفيرموير إلى الذاكرة الداخلية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="95"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="96"/>
         <source>Firmware installation cancelled, firmware may be in a bad state or corrupted. Restart Eden or re-install firmware.</source>
         <translation>تم إلغاء تثبيت الفيرموير، فقد يكون في حالة سيئة أو تالفًا. أعد تشغيل إيدن أو أعد تثبيت الفيرموير.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="100"/>
-        <source>Firmware missing. Firmware is required to run certain games and use the Home Menu. Versions 19.0.1 or earlier are recommended, as 20.0.0+ is currently experimental.</source>
-        <translation>الفيرموير مفقود. يلزم وجود فيرموير لتشغيل بعض الألعاب واستخدام القائمة الرئيسية. يُنصح باستخدام الإصدار 19.0.1 أو إصدار أقدم، لأن الإصدار 20.0.0+ ما زال تجريبيًا.</translation>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="101"/>
+        <source>Firmware missing. Firmware is required to run certain games and use the Home Menu.</source>
+        <translation>الفيرموير مفقود. الفيرموير مطلوب لتشغيل بعض الألعاب واستخدام القائمة الرئيسية.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="104"/>
@@ -9590,60 +10090,60 @@ This may take a while.</source>
 قد يستغرق هذا بعض الوقت.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="116"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="115"/>
         <source>Clearing shader cache is recommended for all users.
 Do not uncheck unless you know what you&apos;re doing.</source>
         <translation>يوصى جميع المستخدمين بمسح ذاكرة التخزين المؤقتة للتظليل.
 لا تقم بإلغاء تحديد الخيار إلا إذا كنت تعرف ما تفعله.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="120"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="119"/>
         <source>Keeps the old data directory. This is recommended if you aren't
 space-constrained and want to keep separate data for the old emulator.</source>
         <translation>يحتفظ بدليل البيانات القديم. يُنصح بهذا إذا
  لم تكن لديك مساحة كافية وترغب في الاحتفاظ ببيانات منفصلة للمحاكي القديم.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="123"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="121"/>
         <source>Deletes the old data directory.
 This is recommended on devices with space constraints.</source>
         <translation>يحذف مجلد البيانات القديم.
  يُنصح بهذا على الأجهزة ذات المساحة المحدودة.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="126"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="124"/>
         <source>Creates a filesystem link between the old directory and Eden directory.
 This is recommended if you want to share data between emulators.</source>
         <translation>يُنشئ رابط نظام ملفات بين المجلد القديم ومجلد إيدن.
 يُنصح بهذا إذا كنت ترغب في مشاركة البيانات بين المحاكيات.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="131"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="129"/>
         <source>Ryujinx title database does not exist.</source>
         <translation>غير موجودة Ryujinx قاعدة بيانات عناوين</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="132"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="130"/>
         <source>Invalid header on Ryujinx title database.</source>
         <translation>Ryujinx رأس غير صالح في قاعدة بيانات عناوين</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="133"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="131"/>
         <source>Invalid magic header on Ryujinx title database.</source>
         <translation>Ryujinx رأس سحري غير صالح في قاعدة بيانات عناوين</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="134"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="132"/>
         <source>Invalid byte alignment on Ryujinx title database.</source>
         <translation>Ryujinx محاذاة بايت غير صالحة في قاعدة بيانات عناوين</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="135"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="133"/>
         <source>No items found in Ryujinx title database.</source>
         <translation>Ryujinx لم يتم العثور على أي عناصر في قاعدة بيانات عناوين</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/qt_string_lookup.h" line="136"/>
+        <location filename="../../src/qt_common/qt_string_lookup.h" line="134"/>
         <source>Title %1 not found in Ryujinx title database.</source>
         <translation>Ryujinx العنوان %1 غير موجود في قاعدة بيانات عناوين</translation>
     </message>
@@ -9684,7 +10184,7 @@ This is recommended if you want to share data between emulators.</source>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1656"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1857"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2054"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="469"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="470"/>
         <source>Pro Controller</source>
         <translation>Pro Controller</translation>
     </message>
@@ -9697,7 +10197,7 @@ This is recommended if you want to share data between emulators.</source>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1661"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1862"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2059"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="473"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="474"/>
         <source>Dual Joycons</source>
         <translation>جوي كون ثنائي</translation>
     </message>
@@ -9710,7 +10210,7 @@ This is recommended if you want to share data between emulators.</source>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1666"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1867"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2064"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="477"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="478"/>
         <source>Left Joycon</source>
         <translation>جوي كون اليسرى</translation>
     </message>
@@ -9723,7 +10223,7 @@ This is recommended if you want to share data between emulators.</source>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1671"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1872"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2069"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="481"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="482"/>
         <source>Right Joycon</source>
         <translation>جوي كون اليمنى</translation>
     </message>
@@ -9752,7 +10252,7 @@ This is recommended if you want to share data between emulators.</source>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="932"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2303"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="485"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="486"/>
         <source>Handheld</source>
         <translation>محمول</translation>
     </message>
@@ -9800,7 +10300,7 @@ This is recommended if you want to share data between emulators.</source>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2349"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2395"/>
         <source>Configure</source>
-        <translation>الإعداد</translation>
+        <translation>الإعدادات</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2359"/>
@@ -9873,32 +10373,32 @@ This is recommended if you want to share data between emulators.</source>
         <translation>لا توجد اذرع تحكم كافية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="489"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="490"/>
         <source>GameCube Controller</source>
         <translation>GameCube ذراع تحكم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="498"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="499"/>
         <source>Poke Ball Plus</source>
         <translation>Poke Ball Plus</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="502"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="503"/>
         <source>NES Controller</source>
         <translation>ذراع تحكم NES</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="506"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="507"/>
         <source>SNES Controller</source>
         <translation>ذراع تحكم SNES</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="510"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="511"/>
         <source>N64 Controller</source>
         <translation>ذراع تحكم N64</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="514"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="515"/>
         <source>Sega Genesis</source>
         <translation>Sega Genesis</translation>
     </message>
@@ -10053,13 +10553,13 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_software_keyboard.cpp" line="406"/>
-        <location filename="../../src/yuzu/applets/qt_software_keyboard.cpp" line="416"/>
+        <location filename="../../src/yuzu/applets/qt_software_keyboard.cpp" line="405"/>
+        <location filename="../../src/yuzu/applets/qt_software_keyboard.cpp" line="415"/>
         <source>OK</source>
         <translation>موافق</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_software_keyboard.cpp" line="416"/>
+        <location filename="../../src/yuzu/applets/qt_software_keyboard.cpp" line="415"/>
         <source>Cancel</source>
         <translation>إلغاء</translation>
     </message>
@@ -10096,12 +10596,12 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
         <translation>إلغاء</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/ryujinx_dialog.cpp" line="42"/>
+        <location filename="../../src/yuzu/ryujinx_dialog.cpp" line="37"/>
         <source>Failed to link save data</source>
         <translation>فشل ربط بيانات الحفظ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/ryujinx_dialog.cpp" line="43"/>
+        <location filename="../../src/yuzu/ryujinx_dialog.cpp" line="38"/>
         <source>OS returned error: %1</source>
         <translation>أعاد نظام التشغيل خطأ: %1</translation>
     </message>
@@ -10137,7 +10637,7 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
         <translation>:ثواني</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/set_play_time_dialog.cpp" line="46"/>
+        <location filename="../../src/yuzu/set_play_time_dialog.cpp" line="49"/>
         <source>Total play time reached maximum.</source>
         <translation>وصل إجمالي زمن التشغيل إلى الحد الأقصى.</translation>
     </message>

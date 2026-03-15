@@ -26,7 +26,6 @@
     <string name="enable_input_overlay_auto_hide">Ativar Esconder Sobreposição Automaticamente</string>
     <string name="hide_overlay_on_controller_input">Ocultar Sobreposição ao Usar Controle</string>
     <string name="hide_overlay_on_controller_input_description">Oculta automaticamente a sobreposição de controles touch quando um controle físico é usado. A sobreposição reaparece quando o controle é desconectado.</string>
-
     <string name="input_overlay_options">Controles na Tela</string>
     <string name="input_overlay_options_description">Ajustar a disposição dos controles na tela</string>
     <string name="edit_overlay_layout">Editar Layout da Sobreposição</string>
@@ -360,9 +359,7 @@
     <string name="qlaunch_description">Iniciar aplicativos a partir da tela inicial do sistema</string>
     <string name="applets">Launcher de Miniaplicativos</string>
     <string name="applets_description">Execute miniaplicativos do sistema usando o firmware instalado</string>
-    <string name="applets_error_firmware">Firmware não instalado ou versão inválida</string>
     <string name="applets_error_applet">Miniaplicativo indisponível</string>
-    <string name="applets_error_description"><![CDATA[Certifique-se de que seu arquivo <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> e <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> estejam instalados e tente novamente.<br>Além disso, verifique se seu firmware é a versão 19.0.1 ou mais antiga.]]></string>
     <string name="album_applet">Álbum</string>
     <string name="album_applet_description">Visualize imagens armazenadas na pasta de capturas de telas do usuário com o visualizador de imagens do sistema</string>
     <string name="mii_edit_applet">Editor de Mii</string>
@@ -380,7 +377,6 @@
     <string name="copied_to_clipboard">Copiado para a área de transferência</string>
     <string name="about_app_description">Um emulador de Switch de código aberto</string>
     <string name="contributors">Colaboradores</string>
-    <string name="contributors_description">Feito com \u2764 da equipe do Eden</string>
     <string name="licenses_description">Projetos que tornam o Eden para Android possível</string>
     <string name="build">Versão da Compilação</string>
     <string name="user_data">Dados do usuário</string>
@@ -461,8 +457,6 @@
     <string name="renderer_force_max_clock_description">Força a GPU a rodar na velocidade máxima (restrições térmicas serão aplicadas)</string>
     <string name="renderer_reactive_flushing">Usar flushing reativo</string>
     <string name="renderer_reactive_flushing_description">Melhora a precisão da renderização em alguns jogos ao custo de desempenho.</string>
-
-
     <string name="hacks">Hacks</string>
 
     <string name="skip_cpu_inner_invalidation">Ignorar Invalidação Interna da CPU</string>
@@ -930,12 +924,10 @@
     <string name="app_language_system">Padrão do Sistema</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Cor do tema</string>
-    <string name="eden_theme">Eden (Padrão)</string>
     <string name="violet">Roxo</string>
     <string name="blue">Azul</string>
     <string name="cyan">Ciano</string>
     <string name="red">Vermelho</string>
-    <string name="green">Verde</string>
     <string name="yellow">Amarelo</string>
     <string name="orange">Laranja</string>
     <string name="pink">Rosa</string>

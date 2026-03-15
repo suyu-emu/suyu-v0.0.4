@@ -29,7 +29,6 @@
     <string name="enable_input_overlay_auto_hide">Automatisches Ausblenden des Overlays aktivieren</string>
     <string name="hide_overlay_on_controller_input">Overlay bei Controller-Eingabe ausblenden</string>
     <string name="hide_overlay_on_controller_input_description">Blende die Touch-Bedienelemente automatisch aus wenn ein physischer Controller benutzt wird. Das Overlay wird wieder eingeblendet, wenn die Verbindung zum Controller getrennt wird.</string>
-
     <string name="input_overlay_options">Eingabe-Overlay</string>
     <string name="input_overlay_options_description">Bedienelemente auf dem Bildschirm konfigurieren</string>
     <string name="edit_overlay_layout">Overlay-Layout bearbeiten</string>
@@ -325,7 +324,7 @@ Wirklich fortfahren?</string>
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Benutzerdefinierte Treiber werden nicht unterstützt</string>
     <string name="custom_driver_not_supported_description">Das Laden von benutzerdefinierten Treibern wird für dieses Gerät momentan nicht unterstützt.\nSchau später einfach nochmal nach, ob die Unterstützung hinzugefügt wurde!</string>
-    <string name="manage_yuzu_data">Eden-Daten Verwalten</string>
+    <string name="manage_yuzu_data">Eden-Daten verwalten</string>
     <string name="manage_yuzu_data_description">Importieren/Exportieren Sie Firmware, Schlüssel, Benutzerdaten und mehr!</string>
     <string name="game_folders">Spiele-Ordner</string>
     <string name="deep_scan">Tiefer Scan</string>
@@ -365,9 +364,7 @@ Wirklich fortfahren?</string>
     <string name="qlaunch_description">Anwendungen vom Systemstartbildschirm aus starten</string>
     <string name="applets">Applet-Launcher</string>
     <string name="applets_description">System-Applets mit Firmware starten</string>
-    <string name="applets_error_firmware">Firmware nicht installiert oder ungültige Version</string>
     <string name="applets_error_applet">Applet nicht verfügbar</string>
-    <string name="applets_error_description"><![CDATA[Bitte stellen Sie sicher, dass Ihre <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>-Datei und <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">Firmware</a> installiert sind, und versuchen Sie es erneut.<br>Stellen Sie außerdem sicher, dass Ihre Firmware Version 19.0.1 oder älter ist.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Bilder im Screenshot-Ordner anzeigen</string>
     <string name="mii_edit_applet">Mii-Editor</string>
@@ -385,7 +382,6 @@ Wirklich fortfahren?</string>
     <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
     <string name="about_app_description">Ein quelloffener Switch-Emulator</string>
     <string name="contributors">Beitragende</string>
-    <string name="contributors_description">Gemacht mit \u2764 vom Eden Team</string>
     <string name="licenses_description">Projekte, die Eden für Android möglich machen </string>
     <string name="build">Build</string>
     <string name="user_data">Nutzerdaten</string>
@@ -402,6 +398,8 @@ Wirklich fortfahren?</string>
     <string name="frame_limit_enable_description">Limitiert die Geschwindigkeit auf einen von dir festgelegten Prozentsatz.</string>
     <string name="frame_limit_slider">Geschwindkeitsbegrenzung in Prozent</string>
     <string name="frame_limit_slider_description">Gibt die prozentuale Geschwindigkeit der Emulation an. 100% sind normal. Werte darüber oder drunter werden die Geschwindigkeit entsprechend verändern.</string>
+    <string name="turbo_speed_limit">Turbo Geschwindigkeit</string>
+    <string name="slow_speed_limit">Langsame Geschwindigkeit</string>
     <string name="cpu_backend">CPU-Backend</string>
     <string name="cpu_accuracy">CPU-Genauigkeit</string>
     <string name="value_with_units">%1$s%2$s</string>
@@ -471,8 +469,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="renderer_force_max_clock_description">Erzwingt maximale GPU-Taktfrequenz. (thermische Einschränkungen werden weiterhin angewendet).</string>
     <string name="renderer_reactive_flushing">Reaktives Flushing</string>
     <string name="renderer_reactive_flushing_description">Verbessert die Genauigkeit in einigen Spielen.</string>
-
-
     <string name="hacks">Hacks</string>
 
     <string name="fast_gpu_time">Schnelle GPU-Zeit</string>
@@ -1027,12 +1023,10 @@ Wirklich fortfahren?</string>
     <string name="app_language_system">System folgen</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Designfarbe</string>
-    <string name="eden_theme">Eden (Standard)</string>
     <string name="violet">Violett </string>
     <string name="blue">Blau</string>
     <string name="cyan">Cyan</string>
     <string name="red">Rot</string>
-    <string name="green">Grün</string>
     <string name="yellow">Gelb</string>
     <string name="orange">Orange</string>
     <string name="pink">Rosa</string>

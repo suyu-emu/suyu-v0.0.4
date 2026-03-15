@@ -291,10 +291,7 @@
     <string name="qlaunch_description">הפעלת יישומים ממסך הבית של המערכת</string>
     <string name="applets">משגר Applet</string>
     <string name="applets_description">מערכת שיגור Applet משתמשת בתוכנה המותקנת</string>
-    <string name="applets_error_firmware">קושחה לא מותקנת או גרסה לא תקינה</string>
     <string name="applets_error_applet">Applet לא זמין</string>
-    <string name="applets_error_description"><![CDATA[אנא ודא שקובץ ה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> שלך
-וה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">קושחה</a> מותקנים ונסה שוב.<br>כמו כן, ודא שהקושחה שלך בגרסה 19.0.1 או ישנה יותר.]]></string>
     <string name="album_applet">אלבום</string>
     <string name="album_applet_description">צפה בתמונות השמורות בתיקיית צילומי המסך של המשתמש בעזרת מציג התמונות של המערכת</string>
     <string name="mii_edit_applet">עורך Mii</string>
@@ -312,7 +309,6 @@
     <string name="copied_to_clipboard">הועתק ללוח</string>
     <string name="about_app_description">אמולטור Switch עם קוד פתוח</string>
     <string name="contributors">תורמים</string>
-    <string name="contributors_description">נוצר עם \u2764 מקבוצת Eden</string>
     <string name="licenses_description">פרוייקטים שהופכים את Eden ל Android אפשרי</string>
     <string name="build">גרסה</string>
     <string name="user_data">נתוני משתמש</string>
@@ -388,8 +384,6 @@
     <string name="renderer_force_max_clock_description">מכריח לדחוף את מהירויות המעבד הגרפי למקסימום (הגבלות חום ימשיכו לתפקד).</string>
     <string name="renderer_reactive_flushing">השתמש בהבהוב תגובתי</string>
     <string name="renderer_reactive_flushing_description">משפר את הדיוק של האמולציה במשחקים מסויימים במחיר של ביצועים.</string>
-
-
     <string name="skip_cpu_inner_invalidation">דלג על איפוס מטמון פנימי של המעבד</string>
     <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
     <string name="renderer_asynchronous_shaders">השתמש בשיידרים אסינכרונים</string>
@@ -682,7 +676,6 @@
     <string name="blue">כחול</string>
     <string name="cyan">טורקיז</string>
     <string name="red">אדום</string>
-    <string name="green">ירוק</string>
     <string name="yellow">צהוב</string>
     <string name="orange">כתום</string>
     <string name="pink">ורוד</string>

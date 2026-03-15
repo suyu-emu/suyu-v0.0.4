@@ -318,9 +318,7 @@
     <string name="qlaunch_description">Avvia applicazioni dalla schermata principale del sistema</string>
     <string name="applets">Avvia applet</string>
     <string name="applets_description">Avvia applet di sistema usando il firmware installato</string>
-    <string name="applets_error_firmware">Firmware non installato o versione non valida</string>
     <string name="applets_error_applet">Applet non disponibile</string>
-    <string name="applets_error_description"><![CDATA[Assicurati che il tuo file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> e <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> siano installati e riprova.<br>Inoltre, assicurati che il tuo firmware sia versione 19.0.1 o precedente.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Visualizza le immagini salvate nella cartella screenshots dell\'utente con il visualizzatore immagini di sistema</string>
     <string name="mii_edit_applet">Modifica Mii</string>
@@ -338,7 +336,6 @@
     <string name="copied_to_clipboard">Copiato negli appunti</string>
     <string name="about_app_description">Un emulatore della Switch open-source.</string>
     <string name="contributors">Collaboratori</string>
-    <string name="contributors_description">Realizzato con \u2764 dal team Eden</string>
     <string name="licenses_description">Progetti che rendono Eden per Android possibile</string>
     <string name="build">Compilazione</string>
     <string name="user_data">Dati Utente</string>
@@ -415,8 +412,6 @@
     <string name="renderer_force_max_clock_description">Forza la GPU a girare col massimo clock possibile (i vincoli alla temperatura saranno comunque applicati)</string>
     <string name="renderer_reactive_flushing">Abilita il Reactive Flushing</string>
     <string name="renderer_reactive_flushing_description">Migliora l\'accuratezza della grafica in alcuni giochi, al costo delle performance.</string>
-
-
     <string name="skip_cpu_inner_invalidation">Salta invalidamento interno CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Salta alcuni invalidamenti della cache lato CPU durante gli aggiornamenti di memoria, riducendo l\'uso della CPU e migliorandone le prestazioni. Potrebbe causare glitch o crash in alcuni giochi.</string>
     <string name="renderer_asynchronous_shaders">Usa shaders asincrone</string>
@@ -862,12 +857,10 @@
 
     <!-- Static Themes -->
     <string name="static_theme_color">Colore tema</string>
-    <string name="eden_theme">Eden (Default)</string>
     <string name="violet">Viola (Predefinito)</string>
     <string name="blue">Blu</string>
     <string name="cyan">Ciano</string>
     <string name="red">Rosso</string>
-    <string name="green">Verde</string>
     <string name="yellow">Giallo</string>
     <string name="orange">Arancione</string>
     <string name="pink">Rosa</string>

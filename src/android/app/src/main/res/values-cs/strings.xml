@@ -29,7 +29,6 @@
     <string name="enable_input_overlay_auto_hide">Zapnout automatické skrývání</string>
     <string name="hide_overlay_on_controller_input">Skrýt při použití ovladače</string>
     <string name="hide_overlay_on_controller_input_description">Automaticky skryje dotykové prvky, pokud použijete fyzický ovladač. Po jeho odpojení se prvky znovu objeví.</string>
-
     <string name="input_overlay_options">Dotykové ovládání</string>
     <string name="input_overlay_options_description">Nastavení ovládacích prvků na obrazovce</string>
     <string name="edit_overlay_layout">Upravit rozvržení</string>
@@ -368,9 +367,7 @@
     <string name="qlaunch_description">Spusťte aplikace ze systémové domovské obrazovky</string>
     <string name="applets">Spouštěč appletů</string>
     <string name="applets_description">Spusťte systémové applety prostřednictvím nainstalovaného firmwaru</string>
-    <string name="applets_error_firmware">Firmware není nainstalován nebo je jeho verze neplatná</string>
     <string name="applets_error_applet">Applet není dostupný</string>
-    <string name="applets_error_description"><![CDATA[Ujistěte se, že máte nainstalovaný soubor <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a>, a zkuste to znovu.<br>Dále se ujistěte, že verze vašeho firmware je 19.0.1 nebo starší.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Podívejte se na obrázky uložené v uživatelské složce se snímky obrazovky pomocí systémového prohlížeče fotografií</string>
     <string name="mii_edit_applet">Editor Mii</string>
@@ -388,7 +385,6 @@
     <string name="copied_to_clipboard">Zkopírováno do schránky</string>
     <string name="about_app_description">Open-source emulátor konzole Switch</string>
     <string name="contributors">Přispěvatelé</string>
-    <string name="contributors_description">Lidé, díky kterým Eden pro Android vznikl</string>
     <string name="licenses_description">Eden pro Android bylo možné zrealizovat díky těmto projektům</string>
     <string name="build">Číslo sestavení</string>
     <string name="user_data">Uživatelská data</string>
@@ -456,6 +452,8 @@
     <string name="renderer_accuracy_description">Určuje režim emulovaného GPU. Většina her běží bez problémů v rychlém, nebo vyváženém režimu, ale některé stále vyžadují přesný režim. Částicové efekty se většinou zobrazují korektně pouze v přesném režimu. </string>
     <string name="dma_accuracy">Přesnost DMA</string>
     <string name="dma_accuracy_description">Ovládá přesnost DMA. Bezpečná přesnost může vyřešit problémy v některých hrách, ale v některých případech může také ovlivnit výkon. Pokud si nejste jisti, použijte výchozí nastavení.</string>
+    <string name="frame_pacing_mode">Režim Framepacingu</string>
+    <string name="frame_pacing_mode_description">Řídí způsob jakým emulátor spravuje časování snímku aby  snížil trhání a zlepšení plynulost a stabilitu snímkové frekvence.</string>
     <string name="anisotropic_filtering">Anizotropní filtrování</string>
     <string name="anisotropic_filtering_description">Zlepšuje kvalitu textur při pohledu pod úhlem</string>
     <string name="vram_usage_mode">Režim využití VRAM</string>
@@ -473,8 +471,8 @@
     <string name="renderer_force_max_clock_description">Vynutí běh GPU na maximální možné frekvenci (teplotní limity stále platí).</string>
     <string name="renderer_reactive_flushing">Reaktivní flushing</string>
     <string name="renderer_reactive_flushing_description">Zlepšuje přesnost vykreslování v některých hrách na úkor výkonu.</string>
-
-
+    <string name="enable_buffer_history">Zapnout historii bufferu</string>
+    <string name="enable_buffer_history_description">Umožňuje přístup k předchozím stavům bufferu. Tato volba může u některých her zvýšit kvalitu vykreslování a zlepšit stabilitu výkonu.</string>
     <string name="hacks">Hacky</string>
 
     <string name="fast_gpu_time">Rychlé časování GPU</string>
@@ -768,7 +766,6 @@
     <string name="blue">Modrá</string>
     <string name="cyan">Tyrkysová</string>
     <string name="red">Červená</string>
-    <string name="green">Zelená</string>
     <string name="yellow">Žlutá</string>
     <string name="orange">Oranžová</string>
     <string name="pink">Růžová</string>

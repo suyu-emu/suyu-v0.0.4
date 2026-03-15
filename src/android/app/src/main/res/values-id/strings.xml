@@ -311,9 +311,7 @@
     <string name="qlaunch_description">Luncurkan aplikasi dari layar beranda sistem</string>
     <string name="applets">Luncurkan applet</string>
     <string name="applets_description">Meluncurkan sistem applet menggunakan firmware yang diinstal</string>
-    <string name="applets_error_firmware">Firmware tidak terinstal atau versi tidak valid</string>
     <string name="applets_error_applet">Applet tidak tersedia</string>
-    <string name="applets_error_description"><![CDATA[Pastikan file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> dan <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> Anda terinstal dan coba lagi.<br>Pastikan juga firmware Anda versi 19.0.1 atau lebih lama.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Lihat gambar yang disimpan di folder tangkapan layar pengguna dengan penampil foto sistem.</string>
     <string name="mii_edit_applet">Ubah Mii</string>
@@ -331,7 +329,6 @@
     <string name="copied_to_clipboard">Salin ke papan klip</string>
     <string name="about_app_description">Emulator Switch Open-Source</string>
     <string name="contributors">Kontributor</string>
-    <string name="contributors_description">Dibuat dengan \u2764 dari tim Eden</string>
     <string name="licenses_description">Proyek yang memungkinkan Eden untuk Android</string>
     <string name="build">Versi</string>
     <string name="user_data">Data pengguna</string>
@@ -408,8 +405,6 @@
     <string name="renderer_force_max_clock_description">Memaksa GPU untuk berjalan pada kecepatan maksimum yang mungkin (batasan termal masih akan diterapkan).</string>
     <string name="renderer_reactive_flushing">Gunakan reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Meningkatkan akurasi rendering dalam beberapa permainan dengan mengorbankan performa.</string>
-
-
     <string name="skip_cpu_inner_invalidation">Lewati Pembatalan Internal CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Melewati beberapa pembatalan cache sisi CPU selama pembaruan memori, mengurangi penggunaan CPU dan meningkatkan kinerjanya. Mungkin menyebabkan gangguan atau crash pada beberapa game.</string>
     <string name="renderer_asynchronous_shaders">Gunakan shader asinkron</string>
@@ -817,12 +812,10 @@
 
     <!-- Static Themes -->
     <string name="static_theme_color">Warna Tema</string>
-    <string name="eden_theme">Eden (Bawaan)</string>
     <string name="violet">Ungu (Bawaan)</string>
     <string name="blue">Biru</string>
     <string name="cyan">Sian</string>
     <string name="red">Merah</string>
-    <string name="green">Hijau</string>
     <string name="yellow">Kuning</string>
     <string name="orange">Oranye</string>
     <string name="pink">Merah Muda</string>

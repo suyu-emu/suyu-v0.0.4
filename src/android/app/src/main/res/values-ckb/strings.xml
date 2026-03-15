@@ -272,9 +272,7 @@
     <string name="qlaunch_description">ئەپەکان لە شاشەی سەرەکی سیستەم دەستپێبکە</string>
     <string name="applets">دەستپێکەری ئەپلێت</string>
     <string name="applets_description">ئەپلێتی سیستەم دەستپێبکە بە بەکارهێنانی پتەوواڵای دامەزراو</string>
-    <string name="applets_error_firmware">فریموێر نەنێردراوە یان وەشانێکی نادروستە</string>
     <string name="applets_error_applet">ئەپلێت بەردەست نییە</string>
-    <string name="applets_error_description"><![CDATA[تکایە دڵنیابە لەوەی فایلی <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">فریموێر</a>ەکەت نێردراوە و هەوڵ بدەرەوە.<br>هەروەها دڵنیابە لەوەی فریموێرەکەت وەشانی ١٩.٠.١ یان کەمتر بێت.]]></string>
     <string name="album_applet">ئەلبوم</string>
     <string name="album_applet_description">وێنەکان لە فۆڵدەری وێنەی بەکارهێنەر ببینە</string>
     <string name="mii_edit_applet">دەستکاریی Mii</string>
@@ -292,7 +290,6 @@
     <string name="copied_to_clipboard">کۆپی کرا بۆ تەختەی نووسین</string>
     <string name="about_app_description">ئیمۆلیتەرێکی سەرچاوە-کراوەی سویچ</string>
     <string name="contributors">بەشداربووان</string>
-    <string name="contributors_description">دروستکراوە لەگەڵ \u2764 لەلایەن تیمەکەی یوزو</string>
     <string name="licenses_description">ئەو پڕۆژانەی کە یوزوی بۆ ئەندرۆید ڕەخساند</string>
     <string name="build">بونیات</string>
     <!-- General settings strings -->
@@ -357,8 +354,6 @@
     <string name="renderer_force_max_clock_description">GPU ناچار دەکات بە زۆرترین کاتژمێر کاربکات (هێشتا سنووردارکردنی گەرمی جێبەجێ دەکرێت).</string>
     <string name="renderer_reactive_flushing">بەکارهێنانی بەرپێچدەرەوە</string>
     <string name="renderer_reactive_flushing_description">وردی ڕێندەرکردن لە هەندێک یاریدا باشتر دەکات لەسەر تێچووی کارایی.</string>
-
-
     <string name="skip_cpu_inner_invalidation">بازنەکردنی ناوەکی CPU</string>
     <string name="skip_cpu_inner_invalidation_description">هەندێک لە بازنەکردنەکانی هەڵگر لە کاتی نوێکردنەوەی بیرگە دەنێرێت، کەمکردنەوەی بەکارهێنانی CPU و باشترکردنی کارایی. لەوانەیە لە هەندێک یاری کێشە درووست بکات.</string>
     <string name="renderer_asynchronous_shaders">بەکارهێنانی سێبەری ناهاوسەنگ</string>
@@ -634,7 +629,6 @@
     <string name="blue">شین</string>
     <string name="cyan">سایان</string>
     <string name="red">سوور</string>
-    <string name="green">سەوز</string>
     <string name="yellow">زەرد</string>
     <string name="orange">پرتەقاڵی</string>
     <string name="pink">پەمەیی</string>

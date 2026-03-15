@@ -283,9 +283,7 @@
     <string name="qlaunch_description">Покрените апликације са почетног екрана система</string>
     <string name="applets">Апплет бацач</string>
     <string name="applets_description">Покрените системске аплете помоћу инсталираног фирмвера</string>
-    <string name="applets_error_firmware">Фирмвер није инсталиран или је неважећа верзија</string>
     <string name="applets_error_applet">Апплет није доступан</string>
-    <string name="applets_error_description">prod.keys</string>
     <string name="album_applet">Албум</string>
     <string name="album_applet_description">Погледајте слике сачуване у фасцикли заслона корисника са системом Гледач фотографија</string>
     <string name="mii_edit_applet">Хиљаде Едит</string>
@@ -303,7 +301,6 @@
     <string name="copied_to_clipboard">Копирано у међуспремник</string>
     <string name="about_app_description">Емулатор прекидача отвореног кода</string>
     <string name="contributors">Сарадници</string>
-    <string name="contributors_description">Сарадници који су омогућили ЕДЕН за Андроид</string>
     <string name="licenses_description">Пројекти који омогућавају ЕДЕН за Андроид</string>
     <string name="build">Градити</string>
     <string name="user_data">Кориснички подаци</string>
@@ -379,8 +376,6 @@
     <string name="renderer_force_max_clock_description">Снагује ГПУ да се покреће максималним могућим сатовима (топлотна ограничења ће се и даље примењивати).</string>
     <string name="renderer_reactive_flushing">Користите реактивно испирање</string>
     <string name="renderer_reactive_flushing_description">Побољшава тачност приказивања у неким играма по цени перформанси.</string>
-
-
     <string name="skip_cpu_inner_invalidation">Preskoči unutrašnje poništavanje CPU-a</string>
     <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
     <string name="renderer_asynchronous_shaders">Користите асинхроне схадера</string>
@@ -784,7 +779,6 @@
     <string name="blue">Плава</string>
     <string name="cyan">Цијан</string>
     <string name="red">Црвено</string>
-    <string name="green">Зеленило</string>
     <string name="yellow">Жути</string>
     <string name="orange">Наранџаста</string>
     <string name="pink">Ружичаст</string>

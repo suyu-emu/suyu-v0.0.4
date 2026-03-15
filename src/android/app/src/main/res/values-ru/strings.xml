@@ -31,6 +31,8 @@
     <string name="enable_input_overlay_auto_hide">Включить авто-скрытие оверлея</string>
     <string name="hide_overlay_on_controller_input">Убрать оверлей на контроллере</string>
     <string name="hide_overlay_on_controller_input_description">Автоматически убирает оверлей контроллера когда используется физический котроллер. Оверлей появляется когда контроллер отсоединен.</string>
+    <string name="invert_confirm_back_controller_buttons">Инвертировать кнопки контроллера Подтвердить/Обратно</string>
+    <string name="invert_confirm_back_controller_buttons_description">Измените кнопки управления подтверждения и возврата Android, чтобы они соответствовали Switch и Xbox при использовании пользовательского интерфейса приложения</string>
 
     <string name="input_overlay_options">Оверлей ввода</string>
     <string name="input_overlay_options_description">Настройка экранного управления</string>
@@ -81,6 +83,8 @@
     <string name="soc_overlay_options">Оверлей устройства</string>
     <string name="soc_overlay_options_description">Настроить, какая информация отображается в оверлее устройства</string>
 
+    <string name="show_build_id">Показать ID сборки</string>
+    <string name="show_driver_version">Показать версию драйвера</string>
     <string name="show_device_model">Показать модель устройства</string>
     <string name="show_gpu_model">Показать модель ГПУ</string>
     <string name="show_soc_model">Показать модель SoC</string>
@@ -224,7 +228,7 @@
     <string name="enable_update_checks">Проверить обновления</string>
     <string name="enable_update_checks_description">Выполнять проверку обновлений при запуске с возможностью их автоматической загрузки и установки.</string>
     <string name="update_available">Обновление доступно</string>
-    <string name="update_available_description">Новая версия приложения доступна:%1$s\n\nНе хотите ли вы скачать его\?</string>
+    <string name="update_available_description">Новая версия приложения доступна: %1$s\n\nНе хотите ли вы скачать его\?</string>
     <string name="downloading_update">Загрузка обновления</string>
     <string name="update_download_failed">Не удалось загрузить обновление</string>
     <string name="update_installed_successfully">Обновление успешно установлено</string>
@@ -283,7 +287,7 @@
     <string name="install_amiibo_keys">Установить ключи Amiibo</string>
     <string name="install_amiibo_keys_description">Необходимо для использования Amiibo в играх</string>
     <string name="gpu_driver_fetcher">Получение драйверов ГПУ</string>
-    <string name="gpu_driver_manager">Менеджер драйверов ГП</string>
+    <string name="gpu_driver_manager">Менеджер драйверов ГПУ</string>
     <string name="install_gpu_driver_description">Установите альтернативные драйверы для потенциально лучшей производительности и/или точности</string>
     <string name="advanced_settings">Расширенные настройки</string>
     <string name="settings_description">Настройка параметров эмулятора</string>
@@ -313,6 +317,9 @@
     <string name="share_log">Поделиться журналом отладки</string>
     <string name="share_log_description">Поделиться журналом отладки Eden для устранения проблем</string>
     <string name="share_log_missing">Файл журнала не найден</string>
+    <string name="share_gpu_log">Поделиться журналом ГПУ</string>
+    <string name="share_gpu_log_description">Поделиться журналом ГПУ Eden для отладки графики</string>
+    <string name="share_gpu_log_missing">Журнал ГПУ не найден</string>
     <string name="install_game_content">Установить игровой контент</string>
     <string name="install_game_content_description">Установить обновления игры или дополнений</string>
     <string name="installing_game_content">Установка контента...</string>
@@ -370,9 +377,9 @@
     <string name="qlaunch_description">Запуск приложений с домашнего экрана системы</string>
     <string name="applets">Запуск апплета</string>
     <string name="applets_description">Запуск системных апплетов на установленной прошивке</string>
-    <string name="applets_error_firmware">Прошивка не установлена или неверная версия</string>
+    <string name="applets_error_firmware">Прошивка не установлена</string>
     <string name="applets_error_applet">Апплет недоступен</string>
-    <string name="applets_error_description"><![CDATA[Убедитесь, что файлы <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> и <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">прошивка</a> установлены, и попробуйте снова.<br>Также убедитесь, что ваша прошивка версии 19.0.1 или ниже.]]></string>
+    <string name="applets_error_description"><![CDATA[Убедитесь, что файлы <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> и <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">прошивка</a> установлены, и попробуйте снова.]]></string>
     <string name="album_applet">Альбом</string>
     <string name="album_applet_description">Просмотрите изображения, сохраненные в папке скриншотов пользователя, с помощью системного просмотрщика фотографий.</string>
     <string name="mii_edit_applet">Mii редактор</string>
@@ -390,7 +397,6 @@
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="about_app_description">Эмулятор Switch с открытым исходным кодом</string>
     <string name="contributors">Контрибьюторы</string>
-    <string name="contributors_description">Сделано с \u2764 от команды Eden</string>
     <string name="licenses_description">Проекты, которые сделали Eden для Android возможным</string>
     <string name="build">Сборка</string>
     <string name="user_data">Данные пользователя</string>
@@ -407,6 +413,10 @@
     <string name="frame_limit_enable_description">Ограничивает скорость эмуляции указанным процентом от нормальной скорости.</string>
     <string name="frame_limit_slider">Ограничение процента cкорости</string>
     <string name="frame_limit_slider_description">Указывает процент ограничения скорости эмуляции. 100% - это нормальная скорость. Значения больше или меньше увеличивают или уменьшают ограничение скорости.</string>
+    <string name="turbo_speed_limit">Турбо-режим</string>
+    <string name="turbo_speed_limit_description">Когда турбо-режим включён, эмуляция будет работать на этой скорости.</string>
+    <string name="slow_speed_limit">Замедленный режим</string>
+    <string name="slow_speed_limit_description">Когда замедленный режим включён, эмуляция будет работать на этой скорости.</string>
     <string name="cpu_backend">Бэкэнд ЦП</string>
     <string name="cpu_accuracy">Точность ЦП</string>
     <string name="value_with_units">%1$s%2$s</string>
@@ -454,10 +464,12 @@
 
     <string name="advanced">Расширенные</string>
 
-    <string name="renderer_accuracy">Режим ГП</string>
+    <string name="renderer_accuracy">Режим ГПУ</string>
     <string name="renderer_accuracy_description">Управляет режимом эмуляции графического процессора. Большинство игр нормально отображаются в режимах «Быстрый» или «Сбалансированный», но для некоторых требуется режим «Точный». Частицы обычно корректно отображаются только в режиме «Точный».</string>
     <string name="dma_accuracy">Точность DMA</string>
     <string name="dma_accuracy_description">Управляет точностью DMA. Безопасная точность может исправить проблемы в некоторых играх, но в некоторых случаях также может повлиять на производительность. Если не уверены, оставьте значение По умолчанию.</string>
+    <string name="frame_pacing_mode">Режим синхронизации кадров</string>
+    <string name="frame_pacing_mode_description">Управляет синхронизацией кадров в эмуляторе для уменьшения рывков и обеспечения более плавной и стабильной частоты кадров.</string>
     <string name="anisotropic_filtering">Анизотропная фильтрация</string>
     <string name="anisotropic_filtering_description">Улучшает качество текстур под углом</string>
     <string name="vram_usage_mode">Режим VRAM</string>
@@ -472,25 +484,35 @@
     <string name="use_disk_shader_cache">Кэш шейдеров на диске</string>
     <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
     <string name="renderer_force_max_clock">Принудительно заставить максимальную тактовую частоту (только для Adreno)</string>
-    <string name="renderer_force_max_clock_description">Заставляет ГП работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
+    <string name="renderer_force_max_clock_description">Заставляет ГПУ работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
     <string name="renderer_reactive_flushing">Реактивная очистка</string>
     <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
-
+    <string name="enable_buffer_history">Включить историю буфера</string>
+    <string name="enable_buffer_history_description">Позволяет обращаться к предыдущим состояниям буфера. Эта опция может повысить качество рендеринга и стабильность производительности в некоторых играх.</string>
+    <string name="use_optimized_vertex_buffers">Оптимизированные вершинные буферы</string>
+    <string name="use_optimized_vertex_buffers_description">Активирует оптимизированную привязку вершинных буферов для улучшения производительности. Требуются Mesa Turnip драйвера версией не ниже 26.0, на более старых драйверах будут происходить сбои и краши</string>
 
     <string name="hacks">Хаки</string>
 
-    <string name="fast_gpu_time">Быстрое время ГП</string>
+    <string name="fast_gpu_time">Быстрое время ГПУ</string>
     <string name="fast_gpu_time_description">Принудительно запускает большинство игр в их максимальном нативном разрешении. Используйте значение 256 для максимальной производительности и 512 для максимального качества графики.</string>
     <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
+    <string name="fix_bloom_effects">Исправить эффекты размытия</string>
+    <string name="fix_bloom_effects_description">Частично убирает размытие в LA/EOW (Adreno 700), полностью отключает его в Burnout. Внимание: может вызывать графические артефакты в других играх.</string>
     <string name="renderer_asynchronous_shaders">Использовать асинхронные шейдеры</string>
     <string name="renderer_asynchronous_shaders_description">Компилирует шейдеры асинхронно. Это может уменьшить подтормаживания, но также может вызвать графические артефакты.</string>
+    <string name="gpu_unswizzle_settings">Настройки распаковки текстур (Unswizzle)</string>
+    <string name="gpu_unswizzle_settings_description">Настройте параметры распаковки текстур на стороне ГПУ либо полностью отключите эту функцию. Изменение этих параметров позволяет найти баланс между производительностью и качеством загрузки текстур.</string>
+    <string name="gpu_unswizzle_enable">Включить распаковку текстур (Unswizzle)</string>
+    <string name="gpu_unswizzle_disabled">Отключено</string>
     <string name="gpu_unswizzle_texture_size">Макс. размер текстуры Unswizzle</string>
-    <string name="gpu_unswizzle_texture_size_description">Задает максимальный размер (в МБ) текстур для преобразования формата (unswizzle) на ГП. Хотя ГП быстрее работает со средними и большими текстурами, ЦП может быть эффективнее для очень маленьких. Настройте это значение, чтобы найти баланс между ускорением на ГП и нагрузкой на ЦП.</string>
+    <string name="gpu_unswizzle_texture_size_description">Задает максимальный размер (в МБ) текстур для преобразования формата (unswizzle) на ГПУ. Хотя ГПУ быстрее работает со средними и большими текстурами, ЦП может быть эффективнее для очень маленьких. Настройте это значение, чтобы найти баланс между ускорением на ГПУ и нагрузкой на ЦП.</string>
     <string name="gpu_unswizzle_stream_size">Размер потока Unswizzle</string>
-    <string name="gpu_unswizzle_stream_size_description">Задает лимит данных на кадр для преобразования крупных текстур (unswizzle). Высокие значения ускоряют загрузку текстур ценой увеличения задержки кадра; низкие значения снижают нагрузку на ГП, но могут вызывать заметную постепенную подгрузку текстур.</string>
+    <string name="gpu_unswizzle_stream_size_description">Задает лимит данных на кадр для преобразования крупных текстур (unswizzle). Высокие значения ускоряют загрузку текстур ценой увеличения задержки кадра; низкие значения снижают нагрузку на ГПУ, но могут вызывать заметную постепенную подгрузку текстур.</string>
     <string name="gpu_unswizzle_chunk_size">Размер блока Unswizzle</string>
-    <string name="gpu_unswizzle_chunk_size_description">Задает количество слоёв глубины, обрабатываемых за одну пачку для 3D-текстур. Увеличение этого значения улучшает пропускную способность на мощных ГП, но может вызывать подтормаживания или таймауты драйвера на слабом железе.</string>
+    <string name="gpu_unswizzle_chunk_size_description">Задает количество слоёв глубины, обрабатываемых за одну пачку для 3D-текстур. Увеличение этого значения улучшает пропускную способность на мощных ГПУ, но может вызывать подтормаживания или таймауты драйвера на слабом железе.</string>
+    <string name="gpu_unswizzle_default_button">По умолчанию</string>
 
 
     <string name="extensions">Расширения</string>
@@ -528,12 +550,30 @@
     <string name="renderer_debug">Отладка графики</string>
     <string name="renderer_debug_description">Переводит графический API в режим медленной отладки.</string>
     <string name="patch_old_qcom_drivers">Исправление текстур BCn</string>
-    <string name="patch_old_qcom_drivers_description">Переопределить автоматическое определение формата BCn-текстур на ГП Adreno. Обычно определяется автоматически на основе версии Android (включено начиная с API 28+).</string>
+    <string name="patch_old_qcom_drivers_description">Переопределить автоматическое определение формата BCn-текстур на ГПУ Adreno. Обычно определяется автоматически на основе версии Android (включено начиная с API 28+).</string>
     <string name="fastmem">Fastmem</string>
 
     <string name="log">Логирование</string>
     <string name="flush_by_line">Сбрасывать логи отладки построчно</string>
     <string name="flush_by_line_description">Сбрасывает логи отладки после каждой написанной строки, упрощая отладку в случае сбоев или зависаний.</string>
+
+    <!-- GPU Logging strings -->
+    <string name="gpu_logging_header">Ведение журнала ГПУ</string>
+    <string name="gpu_logging_enabled">Включить ведение журнала ГПУ</string>
+    <string name="gpu_logging_enabled_description">Записывать операции ГПУ в файл eden_gpu.log для отладки драйверов Adreno</string>
+    <string name="gpu_log_level">Уровень журналирования</string>
+    <string name="gpu_log_level_description">Уровень детализации логов ГПУ (больше значение = больше деталей, выше нагрузка)</string>
+    <string name="gpu_log_vulkan_calls">Записывать вызовы Vulkan API</string>
+    <string name="gpu_log_vulkan_calls_description">Отслеживать все вызовы Vulkan API в кольцевом буфере</string>
+    <string name="gpu_log_shader_dumps">Выгрузить шейдеры</string>
+    <string name="gpu_log_shader_dumps_description">Сохранять скомпилированные SPIR-V шейдеры в файлы</string>
+    <string name="gpu_log_memory_tracking">Отслеживать память ГПУ</string>
+    <string name="gpu_log_memory_tracking_description">Мониторить выделение и освобождение памяти ГПУ</string>
+    <string name="gpu_log_driver_debug">Отладочная информация драйвера</string>
+    <string name="gpu_log_driver_debug_description">Собирать специфичную для драйвера отладочную информацию (Turnip breadcrumbs и т.д.)</string>
+    <string name="gpu_log_ring_buffer_size">Размер кольцевого буфера</string>
+    <string name="gpu_log_ring_buffer_size_description">Количество последних вызовов Vulkan для отслеживания (по умолчанию: 512)</string>
+    <string name="gpu_log_ring_buffer_size_hint">От 64 до 4096 записей</string>
 
     <string name="general">Общие</string>
 
@@ -659,7 +699,7 @@
     <string name="select_gpu_driver_error">Выбран неподходящий драйвер</string>
     <string name="driver_already_installed">Драйвер уже установлен</string>
     <string name="installed_label">%1$s (Установлено)</string>
-    <string name="system_gpu_driver">Системный драйвер ГП</string>
+    <string name="system_gpu_driver">Системный драйвер ГПУ</string>
     <string name="installing_driver">Установка драйвера...</string>
 
     <!-- GPU driver fetcher -->
@@ -689,13 +729,15 @@
     <string name="preferences_graphics">Графика</string>
     <string name="preferences_graphics_description">Уровень точности, разрешение, кэш шейдеров</string>
     <string name="quick_settings">Быстрые настройки</string>
+    <string name="enable_quick_settings">Включить быстрые настройки</string>
+    <string name="enable_quick_settings_description">Разрешить открывать меню быстрых настроек свайпом и кнопкой меню</string>
     <string name="preferences_audio">Аудио</string>
     <string name="preferences_audio_description">Движок вывода, громкость</string>
     <string name="preferences_controls">Управление</string>
     <string name="preferences_controls_description">Маппинг контроллера</string>
     <string name="preferences_player">Игрок %d</string>
     <string name="preferences_debug">Отладка</string>
-    <string name="preferences_debug_description">Отладка ЦП/ГП, графический API, fastmem</string>
+    <string name="preferences_debug_description">Отладка ЦП/ГПУ, графический API, fastmem</string>
     <string name="preferences_custom_paths">Пользовательские пути</string>
     <string name="preferences_custom_paths_description">Папка сохранений</string>
 
@@ -792,7 +834,7 @@
     <string name="loader_error_encrypted_roms_description"><![CDATA[Пожалуйста, следуйте инструкциям по пересохранению <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">игровых картриджей</a> или <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">установленных игр</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Пожалуйста, убедитесь, что ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> установлен, чтобы игры можно было расшифровать.]]></string>
     <string name="loader_error_video_core">Произошла ошибка при инициализации видеоядра.</string>
-    <string name="loader_error_video_core_description">Обычно это вызвано несовместимым драйвером ГП. Установка пользовательского драйвера ГП может решить эту проблему.</string>
+    <string name="loader_error_video_core_description">Обычно это вызвано несовместимым драйвером ГПУ. Установка пользовательского драйвера ГПУ может решить эту проблему.</string>
     <string name="loader_error_file_not_found">Файл ROM не существует</string>
 
     <string name="loader_requires_firmware">Игре требуется прошивка</string>
@@ -805,7 +847,7 @@
     <string name="custom_settings_failed_message">Не удалось применить пользовательские настройки для %1$s: %2$s</string>
     <string name="launch_with_default_settings">Запустить с настройками по умолчанию</string>
     <string name="launch_cancelled">Запуск отменен</string>
-    <string name="custom_settings_failure_reasons">Не удалось применить запрошенные настройки. Это может быть связано с отсутствием драйверов GPU или проблемами конфигурации.</string>
+    <string name="custom_settings_failure_reasons">Не удалось применить запрошенные настройки. Это может быть связано с отсутствием драйверов ГПУ или проблемами конфигурации.</string>
     <string name="custom_settings_applied">Пользовательские настройки применены</string>
     <string name="launching_game">Запуск %1$s...</string>
     <string name="failed_to_initialize_game">Не удалось инициализировать игру</string>
@@ -827,8 +869,8 @@
     <string name="driver_not_found">Необходимый драйвер не установлен: %s</string>
     <string name="invalid_driver_file">Неверный файл драйвера: %s</string>
     <string name="network_unavailable">Сетевое соединение недоступно. Проверьте подключение к интернету и попробуйте снова.</string>
-    <string name="driver_missing_title">Требуется драйвер GPU</string>
-    <string name="driver_missing_message">Эта конфигурация игры требует драйвер GPU \"%s\" который не установлен на вашем устройстве. \n\nХотите скачать и установить его сейчас\?</string>
+    <string name="driver_missing_title">Требуется драйвер ГПУ</string>
+    <string name="driver_missing_message">Эта конфигурация игры требует драйвер ГПУ \"%s\" который не установлен на вашем устройстве. \n\nХотите скачать и установить его сейчас\?</string>
     <string name="driver_download_cancelled">Загрузка драйвера отменена. Игра не может быть запущена без необходимого драйвера.</string>
     <string name="download">Скачать</string>
 
@@ -952,6 +994,13 @@
     <string name="dma_accuracy_unsafe">Небезопасно</string>
     <string name="dma_accuracy_safe">Безопасный</string>
 
+    <!-- Frame Pacing Mode -->
+    <string name="frame_pacing_mode_target_Auto">Авто</string>
+    <string name="frame_pacing_mode_target_30">30 FPS</string>
+    <string name="frame_pacing_mode_target_60">60 FPS</string>
+    <string name="frame_pacing_mode_target_90">90 FPS</string>
+    <string name="frame_pacing_mode_target_120">120 FPS</string>
+
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Без сжатия</string>
     <!-- ASTC Recompression Method Choices -->
@@ -1034,18 +1083,23 @@
     <string name="use_black_backgrounds">Чёрный фон</string>
     <string name="use_black_backgrounds_description">При использовании темной темы применяйте черный фон.</string>
 
+    <!-- Buttons -->
+    <string name="enable_folder_button">Папка</string>
+    <string name="enable_folder_button_description">Показать кнопку для добавления папок с играми</string>
+    <string name="enable_qlaunch_button">QLaunch</string>
+    <string name="enable_qlaunch_button_description">Показать кнопку для запуска QLaunch</string>
+
     <!-- App Language -->
     <string name="app_language">Язык приложения</string>
     <string name="app_language_description">Поменять язык интерфейса приложения</string>
     <string name="app_language_system">Следовать системе</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Цвет темы</string>
-    <string name="eden_theme">Eden (По умолчанию)</string>
     <string name="violet">Фиолетовый </string>
     <string name="blue">Синий</string>
     <string name="cyan">Циановый</string>
     <string name="red">Красный</string>
-    <string name="green">Зелёный</string>
+    <string name="green">Зелёный (По умолчанию)</string>
     <string name="yellow">Жёлтый</string>
     <string name="orange">Оранжевый</string>
     <string name="pink">Розовый</string>
@@ -1077,7 +1131,39 @@
     <string name="enable_overlay">Включить апплет-оверлей</string>
     <string name="enable_overlay_description">Активирует встроенный в Horizon оверлейный апплет. Для его отображения нажмите и удерживайте кнопку «HOME» в течение одной секунды.</string>
 
+    <!-- Profile Management -->
+    <string name="profile_manager">Менеджер профилей</string>
+    <string name="profile_manager_description">Управление пользовательскими профилями</string>
+    <string name="profile_add_user">Добавить пользователя</string>
+    <string name="profile_new_user">Новый пользователь</string>
+    <string name="profile_edit_user">Редактировать пользователя</string>
+    <string name="profile_edit">Редактировать</string>
+    <string name="profile_delete">Удалить</string>
+    <string name="profile_username">Имя пользователя</string>
+    <string name="profile_uuid">ID пользователя (UUID)</string>
+    <string name="profile_uuid_description">Это уникальный идентификатор данного профиля пользователя. Его нельзя изменить после создания.</string>
+    <string name="profile_generate">Сгенерировать</string>
+    <string name="profile_avatar">Аватар пользователя</string>
+    <string name="profile_select_image">Выбрать изображение</string>
+    <string name="profile_firmware_avatars">Встроенные аватары</string>
+    <string name="profile_firmware_avatars_unavailable">Встроенные аватары профиля недоступны. Требуется установка прошивки.</string>
+    <string name="profile_revert_image">Восстановить по умолчанию</string>
+    <string name="profile_current_user">Текущий пользователь</string>
+    <string name="profile_max_users_title">Достигнут лимит пользователей</string>
+    <string name="profile_max_users_message">Вы не можете создать более 8 профилей пользователей. Удалите один из существующих профилей, чтобы создать новый.</string>
+    <string name="profile_delete_confirm_title">Удалить профиль\?</string>
+    <string name="profile_delete_confirm_message">Вы уверены, что хотите удалить %1$s\? Все сохранения этого пользователя будут удалены.</string>
+    <string name="profile_delete_current_user_message">Вы уверены, что хотите удалить %1$s\? Это текущий выбранный пользователь. После удаления будет автоматически выбран первый доступный пользователь.</string>
+    <string name="profile_create_failed">Не удалось создать профиль пользователя</string>
+    <string name="profile_update_failed">Не удалось обновить профиль пользователя</string>
+    <string name="profile_image_load_error">Не удалось загрузить изображение: %1$s</string>
+    <string name="profile_image_save_error">Не удалось сохранить изображение: %1$s</string>
+    <string name="error">Ошибка</string>
+
     <!-- Licenses screen strings -->
     <string name="licenses">Лицензии</string>
     <string name="license_fidelityfx_fsr_description">Высококачественное масштабирование от AMD</string>
-    </resources>
+    <string name="external_content">Дополнительный контент</string>
+    <string name="add_folders">Добавить папку</string>
+
+</resources>

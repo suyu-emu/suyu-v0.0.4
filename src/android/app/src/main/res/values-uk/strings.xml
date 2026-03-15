@@ -31,6 +31,8 @@
     <string name="enable_input_overlay_auto_hide">Увімкнути автоматичне приховування оверлею</string>
     <string name="hide_overlay_on_controller_input">Приховувати оверлей при введенні з контролера</string>
     <string name="hide_overlay_on_controller_input_description">Автоматично приховувати керування із сенсорного екрана при використанні фізичного контролера. Оверлей знову з’явиться при від’єднанні контролера.</string>
+    <string name="invert_confirm_back_controller_buttons">Інвертувати кнопки контролера «Підтвердити»/«Назад»</string>
+    <string name="invert_confirm_back_controller_buttons_description">Поміняти в Android місцями дії кнопок «Підтвердити» та «Назад», щоб пасувати стилям Switch та Xbox під час користування інтерфейсом застосунку.</string>
 
     <string name="input_overlay_options">Оверлей введення</string>
     <string name="input_overlay_options_description">Налаштувати наекранне керування</string>
@@ -315,6 +317,9 @@
     <string name="share_log">Поділитися логами</string>
     <string name="share_log_description">Поділіться лог-файлом для діагностики та допомоги з проблемою.</string>
     <string name="share_log_missing">Файл логу не знайдено</string>
+    <string name="share_gpu_log">Поділитися журналом ГП</string>
+    <string name="share_gpu_log_description">Поділитися файлом журналу ГП Eden’а для зневадження графічних помилок</string>
+    <string name="share_gpu_log_missing">Файл журналу ГП не виявлено</string>
     <string name="install_game_content">Встановити вміст гри</string>
     <string name="install_game_content_description">Встановити оновлення або DLC</string>
     <string name="installing_game_content">Встановлення вмісту…</string>
@@ -372,9 +377,9 @@
     <string name="qlaunch_description">Запуск додатків з домашнього екрану системи</string>
     <string name="applets">Аплети</string>
     <string name="applets_description">Запуск системних аплетів за допомогою прошивки.</string>
-    <string name="applets_error_firmware">Прошивка не встановлена або недійсна версія</string>
+    <string name="applets_error_firmware">Прошивку не встановлено</string>
     <string name="applets_error_applet">Аплет недоступний</string>
-    <string name="applets_error_description"><![CDATA[Переконайтеся, що ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> та <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">прошивка</a> встановлені, і спробуйте ще раз.<br>Також переконайтеся, що ваша прошивка має версію 19.0.1 або старішу.]]></string>
+    <string name="applets_error_description"><![CDATA[Переконайтеся, що файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">прошивка</a> встановлені та спробуйте ще раз.]]></string>
     <string name="album_applet">Альбом</string>
     <string name="album_applet_description">Перегляд зображень у папці скріншотів.</string>
     <string name="mii_edit_applet">Редактор Mii</string>
@@ -392,7 +397,7 @@
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
     <string name="about_app_description">Емулятор Switch із відкритим вихідним кодом</string>
     <string name="contributors">Автори проєкту</string>
-    <string name="contributors_description">Зроблено з \u2764 командою Eden</string>
+    <string name="contributors_description">Люди, які зробили Eden на Android можливим</string>
     <string name="licenses_description">Проєкти, які зробили запуск Eden на Android можливим</string>
     <string name="build">Збірка</string>
     <string name="user_data">Дані користувача</string>
@@ -409,6 +414,10 @@
     <string name="frame_limit_enable_description">Обмежує швидкість емуляції у відсотках від нормальної.</string>
     <string name="frame_limit_slider">Відсоток обмеження</string>
     <string name="frame_limit_slider_description">Вказує відсоток обмеження швидкості. 100% — звичайна швидкість.</string>
+    <string name="turbo_speed_limit">Прискорення</string>
+    <string name="turbo_speed_limit_description">Коли увімкнено «Прискорення», емуляція відбувається з цією швидкістю.</string>
+    <string name="slow_speed_limit">Сповільнення</string>
+    <string name="slow_speed_limit_description">Коли увімкнено «Сповільнення», емуляція відбувається з цією швидкістю.</string>
     <string name="cpu_backend">Режим CPU</string>
     <string name="cpu_accuracy">Точність CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
@@ -460,6 +469,8 @@
     <string name="renderer_accuracy_description">Керує режимом емуляції ГП. Більшість ігор добре візуалізуються з режимами «Швидко» або «Збалансовано», але деякі ігри можуть потребувати режиму «Точно». Частинки зазвичай правильно візуалізуються лише з режимом «Точно».</string>
     <string name="dma_accuracy">Точність DMA</string>
     <string name="dma_accuracy_description">Керує точністю DMA. Безпечна точність може виправити проблеми в деяких іграх, але в деяких випадках також може вплинути на продуктивність. Якщо не впевнені, залиште це значення за замовчуванням.</string>
+    <string name="frame_pacing_mode">Режим виведення кадрів</string>
+    <string name="frame_pacing_mode_description">Керує тим, як емулятор виконує виведення кадрів, щоб зменшити затримки й забезпечити плавнішу й стабільнішу частоту кадрів.</string>
     <string name="anisotropic_filtering">Анізотропне фільтрування</string>
     <string name="anisotropic_filtering_description">Покращує якість текстур під кутом.</string>
     <string name="vram_usage_mode">Режим використання VRAM</string>
@@ -477,7 +488,10 @@
     <string name="renderer_force_max_clock_description">Змушує GPU працювати на максимальній тактовій частоті.</string>
     <string name="renderer_reactive_flushing">Реактивне очищення</string>
     <string name="renderer_reactive_flushing_description">Покращує точність рендерингу в деяких іграх.</string>
-
+    <string name="enable_buffer_history">Увімкнути історію буфера</string>
+    <string name="enable_buffer_history_description">Вмикає доступ до попередніх станів буфера. Цей параметр може покращити якість візуалізації та стабільну продуктивність у деяких іграх.</string>
+    <string name="use_optimized_vertex_buffers">Оптимізовані буфери вершин</string>
+    <string name="use_optimized_vertex_buffers_description">Застосовує оптимізований буфер вершин, щоб покращити продуктивність. Потребує драйверів Mesa 26.0+ Turnip. На старіших драйверах виникатиме збій.</string>
 
     <string name="hacks">Обхідні рішення</string>
 
@@ -486,15 +500,20 @@
     <string name="skip_cpu_inner_invalidation">Пропустити внутрішнє інвалідування CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускає деякі інвалідації кешу на стороні CPU під час оновлення пам\'яті, зменшуючи навантаження на процесор і покращуючи продуктивність. Може спричинити збої в деяких іграх.</string>
     <string name="fix_bloom_effects">Виправити ефекти світіння</string>
-    <string name="fix_bloom_effects_description">Зменшує розмиття світіння в LA/EOW (Adreno 700), прибирає світіння в Burnout</string>
+    <string name="fix_bloom_effects_description">Зменшує розмиття світіння в LA/EOW (Adreno 700), прибирає світіння в Burnout. Увага: може спричинити графічні артефакти в інших іграх.</string>
     <string name="renderer_asynchronous_shaders">Асинхронні шейдери</string>
     <string name="renderer_asynchronous_shaders_description">Компілює шейдери асинхронно. Це може зменшити затримки, але також може спричинити графічні баги.</string>
-    <string name="gpu_unswizzle_texture_size">Максимальний розмір текстур для відновлення перевпорядковування за допомогою ГП</string>
-    <string name="gpu_unswizzle_texture_size_description">Встановлює максимальний розмір (МБ) для відновлення перевпорядкованих текстур за допомогою ГП. ГП швидше справляється з текстурами середніх і великих розмірів, а ЦП ефективніший для дуже маленьких. Налаштуйте, щоб збалансувати ГП-прискоренням і навантаженням на ЦП.</string>
-    <string name="gpu_unswizzle_stream_size">Розмір потоку відновлення перевпорядковування за допомогою ГП</string>
-    <string name="gpu_unswizzle_stream_size_description">Встановлює обмеження даних на кадр для відновлення перевпорядкування великих текстур. Вищі значення пришвидшують завантаження текстур за рахунок більших кадрових затримок; менші значення зменшують перевантаження ГП але може спричинити помітні появи текстур.</string>
-    <string name="gpu_unswizzle_chunk_size">Розмір блоків відновлення перевпорядковування за допомогою ГП</string>
+    <string name="gpu_unswizzle_settings">Налаштування розпакування за допомогою ГП</string>
+    <string name="gpu_unswizzle_settings_description">Налаштуйте розпакування текстур за допомогою ГП або повністю вимкнути його. Відкоригуйте ці налаштування, щоб урівноважити продуктивність і якість завантаження текстур.</string>
+    <string name="gpu_unswizzle_enable">Увімкнути розпакування за допомогою ГП</string>
+    <string name="gpu_unswizzle_disabled">Вимкнено</string>
+    <string name="gpu_unswizzle_texture_size">Максимальний розмір текстур для розпакування ГП за допомогою ГП</string>
+    <string name="gpu_unswizzle_texture_size_description">Встановлює максимальний розмір (МБ) для розпакування текстур за допомогою ГП. ГП швидше справляється з текстурами середніх і великих розмірів, а ЦП ефективніший для дуже маленьких. Налаштуйте, щоб збалансувати ГП-прискоренням і навантаженням на ЦП.</string>
+    <string name="gpu_unswizzle_stream_size">Розмір потоку розпакування за допомогою ГП</string>
+    <string name="gpu_unswizzle_stream_size_description">Встановлює обмеження даних на кадр для розпакування великих текстур. Вищі значення пришвидшують завантаження текстур за рахунок більших кадрових затримок; менші значення зменшують перевантаження ГП але може спричинити помітні появи текстур.</string>
+    <string name="gpu_unswizzle_chunk_size">Розмір блоків розпакування за допомогою ГП</string>
     <string name="gpu_unswizzle_chunk_size_description">Визначає кількість зрізів глибини, оброблених за партію 3D-текстур. Збільшення здатне покращити пропускну здатність на потужних ГП, але може призвести до затримок або затримок драйвера зі слабшим устаткуванням.</string>
+    <string name="gpu_unswizzle_default_button">Стандартно</string>
 
 
     <string name="extensions">Розширення</string>
@@ -535,9 +554,27 @@
     <string name="patch_old_qcom_drivers_description">Перехоплення автоматичного виявлення текстур у форматі BCn для ГП Adreno. Зазвичай автовиявлення залежить від версії Android (увімкнено на API 28+).</string>
     <string name="fastmem">Швидка пам\'ять</string>
 
-    <string name="log">Логування</string>
+    <string name="log">Журналювання</string>
     <string name="flush_by_line">Скидати логи налагодження по рядках</string>
     <string name="flush_by_line_description">Скидає логи налагодження після кожного написаного рядка, полегшуючи налагодження у випадках збоїв або зависань.</string>
+
+    <!-- GPU Logging strings -->
+    <string name="gpu_logging_header">Журналювання ГП</string>
+    <string name="gpu_logging_enabled">Увімкнути журналювання ГП</string>
+    <string name="gpu_logging_enabled_description">Журналювати операції ГП до eden_gpu.log для зневадження драйверів Adreno</string>
+    <string name="gpu_log_level">Рівень журналювання</string>
+    <string name="gpu_log_level_description">Рівень подробиць у журналі ГП (вищий = більше подробиць, більший вплив на швидкодію)</string>
+    <string name="gpu_log_vulkan_calls">Записувати виклики API Vulkan</string>
+    <string name="gpu_log_vulkan_calls_description">Відстежувати всі виклики API Vulkan у кільцевому буфері</string>
+    <string name="gpu_log_shader_dumps">Зберігати шейдери</string>
+    <string name="gpu_log_shader_dumps_description">Зберігати до файлів скомпільовані шейдери SPIR-V</string>
+    <string name="gpu_log_memory_tracking">Відстежувати пам’ять ГП</string>
+    <string name="gpu_log_memory_tracking_description">Відстежувати використання і звільнення пам’яті ГП</string>
+    <string name="gpu_log_driver_debug">Зневаджувальна інформація драйверів</string>
+    <string name="gpu_log_driver_debug_description">Збирати зневаджувальну інформацію щодо драйверів (breadcrumbs Turnip тощо)</string>
+    <string name="gpu_log_ring_buffer_size">Розмір кільцевого буфера</string>
+    <string name="gpu_log_ring_buffer_size_description">Кількість останніх викликів Vulkan для відстеження (стандартно: 512)</string>
+    <string name="gpu_log_ring_buffer_size_hint">Від 64 до 4096 записів</string>
 
     <string name="general">Загальні</string>
 
@@ -654,7 +691,7 @@
     <string name="import_complete">Імпорт завершено </string>
     <string name="use_global_setting">Використовувати глобальне налаштування</string>
     <string name="operation_completed_successfully">Операція завершилася успішно</string>
-    <string name="confirm">Підтвердити </string>
+    <string name="confirm">Підтвердити</string>
     <string name="load">Завантажити</string>
     <string name="save">Зберегти</string>
 
@@ -693,6 +730,8 @@
     <string name="preferences_graphics">Графіка</string>
     <string name="preferences_graphics_description">Рівень точності, роздільна здатність, кеш шейдерів</string>
     <string name="quick_settings">Швидкі налаштування</string>
+    <string name="enable_quick_settings">Увімкнути швидкі налаштування</string>
+    <string name="enable_quick_settings_description">Дозволяє отримувати доступ до меню швидких налаштувань за допомогою жесту і кнопку меню</string>
     <string name="preferences_audio">Аудіо</string>
     <string name="preferences_audio_description">Аудіорушій, гучність</string>
     <string name="preferences_controls">Керування</string>
@@ -956,6 +995,13 @@
     <string name="dma_accuracy_unsafe">Небезпечно</string>
     <string name="dma_accuracy_safe">Безпечно</string>
 
+    <!-- Frame Pacing Mode -->
+    <string name="frame_pacing_mode_target_Auto">Автоматично</string>
+    <string name="frame_pacing_mode_target_30">30 к/с</string>
+    <string name="frame_pacing_mode_target_60">60 к/с</string>
+    <string name="frame_pacing_mode_target_90">90 к/с</string>
+    <string name="frame_pacing_mode_target_120">120 к/с</string>
+
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Без стиснення</string>
     <!-- ASTC Recompression Method Choices -->
@@ -1038,18 +1084,24 @@
     <string name="use_black_backgrounds">Чорний фон</string>
     <string name="use_black_backgrounds_description">Використовувати чорний фон у темній темі.</string>
 
+    <!-- Buttons -->
+    <string name="enable_folder_button">Тека</string>
+    <string name="enable_folder_button_description">Показувати кнопку додавання тек з іграми</string>
+    <string name="enable_qlaunch_button">QLaunch</string>
+    <string name="enable_qlaunch_button_description">Показувати кнопку запуску QLaunch</string>
+
     <!-- App Language -->
     <string name="app_language">Мова застосунку</string>
     <string name="app_language_description">Змінити мову інтерфейсу застосунку</string>
     <string name="app_language_system">Як у системі</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Колір теми</string>
-    <string name="eden_theme">Eden (стандартно)</string>
-    <string name="violet">Фіолетовий (Типовий)</string>
+    <string name="eden_theme">Eden</string>
+    <string name="violet">Фіолетовий</string>
     <string name="blue">Синій</string>
     <string name="cyan">Блакитний</string>
     <string name="red">Червоний</string>
-    <string name="green">Зелений</string>
+    <string name="green">Зелений (стандартний)</string>
     <string name="yellow">Жовтий</string>
     <string name="orange">Помаранчевий</string>
     <string name="pink">Рожевий</string>
@@ -1081,7 +1133,39 @@
     <string name="enable_overlay">Увімкнути аплет оверлея</string>
     <string name="enable_overlay_description">Вмикає вбудований аплет-оверлей Horizon. Натисніть і утримуйте 1 секунду кнопку «Домівка», щоб показати його.</string>
 
+    <!-- Profile Management -->
+    <string name="profile_manager">Керування профілями</string>
+    <string name="profile_manager_description">Керувати профілями користувачів</string>
+    <string name="profile_add_user">Додати користувача</string>
+    <string name="profile_new_user">Новий користувач</string>
+    <string name="profile_edit_user">Редагувати користувача</string>
+    <string name="profile_edit">Редагувати</string>
+    <string name="profile_delete">Видалити</string>
+    <string name="profile_username">Ім’я користувача</string>
+    <string name="profile_uuid">ID користувача (UUID)</string>
+    <string name="profile_uuid_description">Це унікальний ідентифікатор цього профілю. Після створення його неможливо змінити.</string>
+    <string name="profile_generate">Згенерувати</string>
+    <string name="profile_avatar">Аватар користувача</string>
+    <string name="profile_select_image">Вибрати зображення</string>
+    <string name="profile_firmware_avatars">Аватари прошивки</string>
+    <string name="profile_firmware_avatars_unavailable">Аватари прошивки недоступні. Встановіть прошивку, щоб користуватися цією функцією.</string>
+    <string name="profile_revert_image">Повернути стандартне</string>
+    <string name="profile_current_user">Поточний користувач</string>
+    <string name="profile_max_users_title">Досягнуто максимуму користувачів</string>
+    <string name="profile_max_users_message">Ви не можете створити більше 8-ми профілів користувачів. Видаліть наявний профіль, щоб створити новий.</string>
+    <string name="profile_delete_confirm_title">Видалити профіль\?</string>
+    <string name="profile_delete_confirm_message">Ви впевнені, що хочете видалити %1$s\? Усі незбережені дані цього користувача будуть видалені.</string>
+    <string name="profile_delete_current_user_message">Ви впевнені, що хочете видалити %1$s\? Це наразі вибраний користувач. Натомість буде вибрано першого доступного користувача.</string>
+    <string name="profile_create_failed">Не вдалося створити профіль користувача</string>
+    <string name="profile_update_failed">Не вдалося оновити профіль користувача</string>
+    <string name="profile_image_load_error">Не вдалося завантажити зображення: %1$s</string>
+    <string name="profile_image_save_error">Не вдалося зберегти зображення: %1$s</string>
+    <string name="error">Помилка</string>
+
     <!-- Licenses screen strings -->
     <string name="licenses">Ліцензії</string>
     <string name="license_fidelityfx_fsr_description">Високоякісне масштабування від AMD</string>
-    </resources>
+    <string name="external_content">Зовнішній вміст</string>
+    <string name="add_folders">Додати теку</string>
+
+</resources>

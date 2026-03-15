@@ -29,7 +29,6 @@
     <string name="enable_input_overlay_auto_hide">Włącz automatyczne ukrywanie nakładki</string>
     <string name="hide_overlay_on_controller_input">Ukrywaj nakładkę przy użyciu kontrolera</string>
     <string name="hide_overlay_on_controller_input_description">Automatycznie ukrywaj nakładkę sterowania dotykowego, gdy używany jest fizyczny kontroler. Nakładka pojawi się ponownie po odłączeniu kontrolera.</string>
-
     <string name="input_overlay_options">Nakładka sterowania</string>
     <string name="input_overlay_options_description">Skonfiguruj sterowanie na ekranie</string>
     <string name="edit_overlay_layout">Edytuj układ nakładki</string>
@@ -368,9 +367,7 @@
     <string name="qlaunch_description">Uruchamianie aplikacji z ekranu głównego systemu</string>
     <string name="applets">Aplety</string>
     <string name="applets_description">Uruchamia aplety systemowe.</string>
-    <string name="applets_error_firmware">Firmware nie zainstalowany lub nieprawidłowa wersja</string>
     <string name="applets_error_applet">Aplet niedostępny</string>
-    <string name="applets_error_description"><![CDATA[Upewnij się, że plik <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> i <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> są zainstalowane i spróbuj ponownie.<br>Upewnij się również, że firmware jest w wersji 19.0.1 lub starszej.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Przeglądaj zrzuty ekranu.</string>
     <string name="mii_edit_applet">Edytor Mii</string>
@@ -388,7 +385,6 @@
     <string name="copied_to_clipboard">Skopiowano do schowka</string>
     <string name="about_app_description">Otwarto-źródłowy emulator konsoli Switch</string>
     <string name="contributors">Współtwórcy</string>
-    <string name="contributors_description">Stworzone z \u2764 przez zespół Eden</string>
     <string name="licenses_description">Projekty dzięki którym Eden mógł zostać stworzony</string>
     <string name="build">Wersja</string>
     <string name="user_data">Dane użytkownika</string>
@@ -473,8 +469,6 @@
     <string name="renderer_force_max_clock_description">Wymusza uruchomienie maksymalnego taktowania układu graficznego (zabezpieczenia termiczne będą dalej aktywne).</string>
     <string name="renderer_reactive_flushing">Użyj spłukiwania reaktywnego - reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Poprawia jakość renderowania w kilku grach, kosztem wydajności.</string>
-
-
     <string name="hacks">Hacki</string>
 
     <string name="fast_gpu_time">Szybki czas GPU</string>
@@ -985,12 +979,10 @@
     <string name="app_language_system">Zgodnie z systemem</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Kolor motywu</string>
-    <string name="eden_theme">Eden (Domyślnie)</string>
     <string name="violet">Fioletowy (Domyślny)</string>
     <string name="blue">Niebieski</string>
     <string name="cyan">Cyjan</string>
     <string name="red">Czerwony</string>
-    <string name="green">Zielony</string>
     <string name="yellow">Żółty</string>
     <string name="orange">Pomarańczowy</string>
     <string name="pink">Różowy</string>

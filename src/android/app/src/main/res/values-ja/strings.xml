@@ -283,9 +283,7 @@
     <string name="qlaunch_description">システムホーム画面からアプリを起動</string>
     <string name="applets">アプレットランチャー</string>
     <string name="applets_description">インストール済みファームウェアでシステムアプレットを起動</string>
-    <string name="applets_error_firmware">ファームウェアがインストールされていないか無効なバージョンです</string>
     <string name="applets_error_applet">アプレット利用不可</string>
-    <string name="applets_error_description"><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>ファイルと <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">ファームウェア</a>がインストールされていることを確認し、再度お試しください。<br>また、ファームウェアが19.0.1以下のバージョンであることを確認してください。]]></string>
     <string name="album_applet">アルバム</string>
     <string name="album_applet_description">システムフォトビューアでスクリーンショットを表示</string>
     <string name="mii_edit_applet">Mii編集</string>
@@ -303,7 +301,6 @@
     <string name="copied_to_clipboard">クリップボードにコピーしました</string>
     <string name="about_app_description">オープンソースのSwitchエミュレータ</string>
     <string name="contributors">貢献者</string>
-    <string name="contributors_description">Edenチームの\u2764で作られた</string>
     <string name="licenses_description">Eden for Androidの作成を可能にしたプロジェクト</string>
     <string name="build">ビルド</string>
     <string name="user_data">ユーザデータ</string>
@@ -374,8 +371,6 @@
     <string name="renderer_force_max_clock_description">GPUを最大限可能な周波数で動作させます (過熱制限は引き続き適用されます)。</string>
     <string name="renderer_reactive_flushing">即時書き込み</string>
     <string name="renderer_reactive_flushing_description">一部のゲームにおいて、パフォーマンスを犠牲にしながらも、レンダリング精度を向上させます。</string>
-
-
     <string name="skip_cpu_inner_invalidation">CPU内部無効化をスキップ</string>
     <string name="skip_cpu_inner_invalidation_description">メモリ更新時のCPU側キャッシュ無効化をスキップし、CPU使用率を減らして性能を向上させます。一部のゲームで不具合やクラッシュが発生する可能性があります。</string>
     <string name="renderer_asynchronous_shaders">非同期シェーダー</string>
@@ -677,7 +672,6 @@
     <string name="blue">青</string>
     <string name="cyan">シアン</string>
     <string name="red">赤</string>
-    <string name="green">緑</string>
     <string name="yellow">黄</string>
     <string name="orange">オレンジ</string>
     <string name="pink">ピンク</string>

@@ -281,9 +281,7 @@
     <string name="qlaunch_description">Alkalmazások indítása a rendszer kezdőképernyőjéről</string>
     <string name="applets">Applet indító</string>
     <string name="applets_description">Rendszer appletek indítása a telepített firmware-rel</string>
-    <string name="applets_error_firmware">A firmware nincs telepítve vagy érvénytelen verzió</string>
     <string name="applets_error_applet">Applet nem elérhető</string>
-    <string name="applets_error_description"><![CDATA[Kérjük, ellenőrizze, hogy a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> fájl és <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> telepítve van-e, majd próbálja újra.<br>Győződjön meg arról is, hogy a firmware verziója 19.0.1 vagy régebbi.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Képernyőképek megtekintése a rendszer fényképnézegetőjével</string>
     <string name="mii_edit_applet">Mii szerkesztés</string>
@@ -301,7 +299,6 @@
     <string name="copied_to_clipboard">Másolva a vágólapra</string>
     <string name="about_app_description">Egy nyílt forráskódú Switch emulátor</string>
     <string name="contributors">Hozzájárulók</string>
-    <string name="contributors_description">\u2764 által készítve a Eden csapattól</string>
     <string name="licenses_description">Projektek, amik nélkül a Eden nem jöhetett volna létre Androidra</string>
     <string name="user_data">Felhasználói adatok</string>
     <string name="exporting_user_data">Felhasználói adatok exportálása...</string>
@@ -376,8 +373,6 @@
     <string name="renderer_force_max_clock_description">Kényszeríti a GPU-t a lehető legnagyobb órajelen működésre (a hőmérséklet korlátozások továbbra is érvényben maradnak).</string>
     <string name="renderer_reactive_flushing">Reaktív ürítés használata</string>
     <string name="renderer_reactive_flushing_description">Javítja a renderelési pontosságot néhány játékban a teljesítmény rovására.</string>
-
-
     <string name="skip_cpu_inner_invalidation">CPU belső érvénytelenítés kihagyása</string>
     <string name="skip_cpu_inner_invalidation_description">Kihagy néhány CPU-oldali gyorsítótár-érvénytelenítést memóriafrissítések közben, csökkentve a CPU használatát és javítva a teljesítményt. Néhány játékban hibákat vagy összeomlást okozhat.</string>
     <string name="renderer_asynchronous_shaders">Aszinkron árnyékolók használata</string>
@@ -772,7 +767,6 @@
     <string name="blue">Kék</string>
     <string name="cyan">Cián</string>
     <string name="red">Piros</string>
-    <string name="green">Zöld</string>
     <string name="yellow">Sárga</string>
     <string name="orange">Narancs</string>
     <string name="pink">Rózsaszín</string>

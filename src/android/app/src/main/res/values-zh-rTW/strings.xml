@@ -16,6 +16,8 @@
     <string name="value_too_high">範圍最大必須為%1$d</string>
     <string name="invalid_value">無效的範圍</string>
 
+    <string name="using_per_game_config">使用自定義組態中</string>
+
     <!-- Input Overlay -->
     <string name="show_input_overlay">顯示虛擬按鍵</string>
     <string name="show_input_overlay_description">在遊玩時顯示虛擬按鍵</string>
@@ -29,9 +31,11 @@
     <string name="enable_input_overlay_auto_hide">啟用自動隱藏虛擬按鍵</string>
     <string name="hide_overlay_on_controller_input">使用控制器時自動隱藏虛擬按鍵</string>
     <string name="hide_overlay_on_controller_input_description">在使用控制器時自動隱藏畫面上的虛擬按鍵，會在控制器斷開連接後重新出現</string>
+    <string name="invert_confirm_back_controller_buttons">反轉手把的 確認/返回 按鈕</string>
+    <string name="invert_confirm_back_controller_buttons_description">使用Eden時將手把的確認及返回鍵反轉以符合Switch與Xbox的操作方式</string>
 
     <string name="input_overlay_options">虛擬按鍵設定</string>
-    <string name="input_overlay_options_description">虛擬按鍵設定</string>
+    <string name="input_overlay_options_description">調整虛擬按鍵的位置與顯示設定</string>
     <string name="edit_overlay_layout">編輯虛擬按鍵</string>
     <string name="edit_overlay_layout_description">調整虛擬按鍵的位置和大小</string>
 
@@ -79,9 +83,11 @@
     <string name="soc_overlay_options">裝置浮層</string>
     <string name="soc_overlay_options_description">設定裝置浮層中顯示的資訊</string>
 
+    <string name="show_build_id">顯示Eden的組建版本</string>
+    <string name="show_driver_version">顯示圖形驅動程式的版本</string>
     <string name="show_device_model">顯示裝置型號</string>
     <string name="show_gpu_model">顯示GPU型號</string>
-    <string name="show_soc_model">顯示SoC型號</string>
+    <string name="show_soc_model">顯示CPU型號</string>
     <string name="show_fw_version">顯示韌體版本</string>
 
     <!-- Eden\'s Veil -->
@@ -114,7 +120,7 @@
     <string name="multiplayer_public_room">瀏覽公開房間</string>
     <string name="multiplayer_username">使用者名稱</string>
     <string name="multiplayer_ip_address">IP位址</string>
-    <string name="multiplayer_ip_port">埠號</string>
+    <string name="multiplayer_ip_port">埠</string>
     <string name="multiplayer_create_room_success">房間建立成功</string>
     <string name="multiplayer_join_room_success">成功加入房間</string>
     <string name="multiplayer_exit_room">退出房間</string>
@@ -362,9 +368,7 @@
     <string name="qlaunch_description">從系統主畫面啟動應用程式</string>
     <string name="applets">小程式啟動器</string>
     <string name="applets_description">使用已安裝的韌體啟動系統小程式</string>
-    <string name="applets_error_firmware">韌體未安裝或版本無效</string>
     <string name="applets_error_applet">無法使用小程式</string>
-    <string name="applets_error_description"><![CDATA[請確認您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>檔案和 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">韌體</a>已安裝並重試。<br>同時請確認您的韌體版本為19.0.1或更早。]]></string>
     <string name="album_applet">相簿</string>
     <string name="album_applet_description">使用系統相片檢視器查看儲存在使用者螢幕截圖資料夾中的影像</string>
     <string name="mii_edit_applet">Mii 編輯</string>
@@ -382,9 +386,8 @@
     <string name="copied_to_clipboard">已複製到剪貼簿</string>
     <string name="about_app_description">一個開放原始碼的 Switch 模擬器</string>
     <string name="contributors">參與者</string>
-    <string name="contributors_description">由 Eden 團隊用 \u2764 製作</string>
     <string name="licenses_description">這些專案使 Eden Android 版成為可能</string>
-    <string name="build">組建</string>
+    <string name="build">組建版本</string>
     <string name="user_data">使用者資料</string>
     <string name="user_data_description">導入/導出所有應用程式資料。\n\n導入使用者資料時，現有的使用者資料將被取代！\n\n直接從 Citron 導入資料可能會出現問題，建議手動導入所有所需資料。</string>
     <string name="exporting_user_data">正在導出使用者資料…</string>
@@ -459,8 +462,6 @@
     <string name="renderer_force_max_clock_description">強制 GPU 以可能的最大時脈執行 (熱溫限制仍會被套用)。</string>
     <string name="renderer_reactive_flushing">使用重新啟用排清</string>
     <string name="renderer_reactive_flushing_description">犧牲效能，以改善部分遊戲的轉譯準確度。</string>
-
-
     <string name="skip_cpu_inner_invalidation">跳過CPU內部失效處理</string>
     <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取的失效處理，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
     <string name="renderer_asynchronous_shaders">使用非同步著色器</string>
@@ -532,7 +533,7 @@
     <string name="button_sl_right">右 SL</string>
     <string name="button_sr_right">右 SR</string>
     <string name="invalid">無效</string>
-    <string name="not_set">未設定</string>
+    <string name="not_set">無</string>
     <string name="unknown">未知</string>
     <string name="qualified_hat">%1$s%2$s%3$s方向鍵 %4$s</string>
     <string name="qualified_button_stick_axis">%1$s%2$s%3$s軸 %4$s</string>
@@ -926,12 +927,10 @@
     <string name="app_language_system">跟隨系統</string>
     <!-- Static Themes -->
     <string name="static_theme_color">主題色彩</string>
-    <string name="eden_theme">Eden（預設）</string>
     <string name="violet">紫色</string>
     <string name="blue">藍色</string>
     <string name="cyan">青色</string>
     <string name="red">紅色</string>
-    <string name="green">綠色</string>
     <string name="yellow">黃色</string>
     <string name="orange">橘色</string>
     <string name="pink">粉紅色</string>

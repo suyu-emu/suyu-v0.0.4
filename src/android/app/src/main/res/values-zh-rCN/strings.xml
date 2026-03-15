@@ -31,6 +31,8 @@
     <string name="enable_input_overlay_auto_hide">开启自动隐藏虚拟按键</string>
     <string name="hide_overlay_on_controller_input">使用控制器时自动隐藏虚拟输入</string>
     <string name="hide_overlay_on_controller_input_description">在使用控制器自动隐藏虚拟输入，当控制器断开会自动再现。</string>
+    <string name="invert_confirm_back_controller_buttons">反转 确认/返回 手柄按钮</string>
+    <string name="invert_confirm_back_controller_buttons_description">在使用应用界面时，将安卓确认和返回按钮的作切换到 Switch 和 Xbox 的样式。</string>
 
     <string name="input_overlay_options">虚拟按键输入</string>
     <string name="input_overlay_options_description">配置虚拟按键</string>
@@ -315,6 +317,9 @@
     <string name="share_log">分享调试日志</string>
     <string name="share_log_description">分享 Eden 日志文件以便调试</string>
     <string name="share_log_missing">未找到日志文件</string>
+    <string name="share_gpu_log">分享 GPU 日志</string>
+    <string name="share_gpu_log_description">分享 Eden 的 GPU 日志来调试图形问题</string>
+    <string name="share_gpu_log_missing">找不到 GPU 日志文件</string>
     <string name="install_game_content">安装游戏附加内容</string>
     <string name="install_game_content_description">安装游戏更新及 DLC</string>
     <string name="installing_game_content">安装中...</string>
@@ -366,9 +371,9 @@
     <string name="qlaunch_description">从系统主页启动应用</string>
     <string name="applets">小程序启动器</string>
     <string name="applets_description">从已安装的系统固件中启动系统小程序</string>
-    <string name="applets_error_firmware">固件未安装或版本无效</string>
+    <string name="applets_error_firmware">未安装固件</string>
     <string name="applets_error_applet">小程序不可用</string>
-    <string name="applets_error_description"><![CDATA[请确保您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>文件和 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">固件</a>已安装并重试。<br>同时请确保固件版本为19.0.1或更早。]]></string>
+    <string name="applets_error_description"><![CDATA[请确保您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>文件和 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">固件</a>已安装并重试。]]></string>
     <string name="album_applet">相册</string>
     <string name="album_applet_description">查看存储在用户屏幕截图文件夹中的图像</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -386,7 +391,6 @@
     <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="about_app_description">一款开源的 Switch 模拟器</string>
     <string name="contributors">贡献者</string>
-    <string name="contributors_description">Eden 团队的用 \u2764 制作</string>
     <string name="licenses_description">Android 版 Eden 离不开这些项目的支持</string>
     <string name="build">构建版本</string>
     <string name="user_data">用户数据</string>
@@ -403,6 +407,10 @@
     <string name="frame_limit_enable_description">将运行速度限制为正常速度的指定百分比。</string>
     <string name="frame_limit_slider">限制速度百分比</string>
     <string name="frame_limit_slider_description">指定限制运行速度的百分比。100% 为正常速度。更高或更低的值将增加或降低速度限制上限。</string>
+    <string name="turbo_speed_limit">加速模式</string>
+    <string name="turbo_speed_limit_description">当开启 加速模式 时，模拟器将以此速度百分比运行。</string>
+    <string name="slow_speed_limit">减速模式</string>
+    <string name="slow_speed_limit_description">当开启 减速模式 时，模拟器将以此速度百分比运行。</string>
     <string name="cpu_backend">CPU 后端</string>
     <string name="cpu_accuracy">CPU 精度</string>
     <string name="value_with_units">%1$s%2$s</string>
@@ -454,6 +462,8 @@
     <string name="renderer_accuracy_description">控制 GPU 模拟的精确度。大部分游戏在性能或平衡模式下可以正常渲染，但部分游戏需要设置为精确。粒子效果通常只有在精确模式下才能正确显示。</string>
     <string name="dma_accuracy">DMA 精度</string>
     <string name="dma_accuracy_description">控制 DMA 精度。安全精度可以修复某些游戏中的问题，但在某些情况下也可能影响性能。如果不确定，请保留为“默认”。</string>
+    <string name="frame_pacing_mode">帧同步模式</string>
+    <string name="frame_pacing_mode_description">控制模拟器如何管理帧同步，以减少卡顿，使帧率表现更加平稳顺滑。</string>
     <string name="anisotropic_filtering">各向异性过滤</string>
     <string name="anisotropic_filtering_description">提高斜角的纹理质量</string>
     <string name="vram_usage_mode">显存使用模式</string>
@@ -471,7 +481,10 @@
     <string name="renderer_force_max_clock_description">强制 GPU 以最大时钟运行 (仍被温控限制)。</string>
     <string name="renderer_reactive_flushing">启用反应性刷新</string>
     <string name="renderer_reactive_flushing_description">牺牲性能，提高某些游戏的渲染精度。</string>
-
+    <string name="enable_buffer_history">启用缓冲区历史</string>
+    <string name="enable_buffer_history_description">允许访问之前的缓冲状态。\n这个选项可能会提升某些游戏的渲染质量和性能一致性。</string>
+    <string name="use_optimized_vertex_buffers">优化顶点缓冲区</string>
+    <string name="use_optimized_vertex_buffers_description">实现优化顶点缓冲区绑定以提升性能。需要 Mesa 26.0+ Turnip 驱动。老驱动会崩溃。</string>
 
     <string name="hacks">Hacks</string>
 
@@ -480,15 +493,20 @@
     <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
     <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
     <string name="fix_bloom_effects">修复泛光效果</string>
-    <string name="fix_bloom_effects_description">降低了 LA/EOW（在 Adreno 700 系列 GPU 上）的泛光模糊；去除了《火爆狂飙》中的泛光特效。</string>
+    <string name="fix_bloom_effects_description">减少《塞尔达传说：智慧的再现》(LA/EOW) 在 Adreno 700 系列 GPU 上的模糊感，并移除《横冲直撞》(Burnout) 中的模糊特效。警告：可能会导致其他游戏出现画面花屏或异常。</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
     <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
+    <string name="gpu_unswizzle_settings">GPU 还原设置</string>
+    <string name="gpu_unswizzle_settings_description">配置基于 GPU 的纹理还原参数，或将其完全禁用。调整这些设置以平衡性能与纹理加载质量。</string>
+    <string name="gpu_unswizzle_enable">启用 GPU 还原</string>
+    <string name="gpu_unswizzle_disabled">禁用</string>
     <string name="gpu_unswizzle_texture_size">GPU 还原最大纹理尺寸</string>
     <string name="gpu_unswizzle_texture_size_description">设置基于 GPU 的纹理还原的最大尺寸（单位：MiB）。\n虽然 GPU 在处理中型和大型纹理时速度更快，但对于非常小的纹理，CPU 的效率可能更高。\n调整此设置，以便在 GPU 加速和 CPU 开销之间找到最佳平衡点。</string>
     <string name="gpu_unswizzle_stream_size">GPU 还原流大小</string>
     <string name="gpu_unswizzle_stream_size_description">设置每帧还原大型纹理的数据限制。较高的数值可以加快纹理加载速度，但代价是增加帧延迟（影响响应速度/平滑度）；较低的数值可以减少 GPU 开销，但可能会导致明显的纹理突然出现（Pop-in）现象。</string>
     <string name="gpu_unswizzle_chunk_size">GPU 还原块大小</string>
     <string name="gpu_unswizzle_chunk_size_description">定义了 3D 纹理在单个批次（Batch）中处理的深度切片（Depth Slices）数量。增加此数值可以提升强力 GPU 的吞吐效率，但在性能较弱的硬件上可能会引起卡顿或驱动程序超时（Driver Timeouts）。</string>
+    <string name="gpu_unswizzle_default_button">默认</string>
 
 
     <string name="extensions">扩展</string>
@@ -532,6 +550,24 @@
     <string name="log">日志记录</string>
     <string name="flush_by_line">按行刷新调试日志</string>
     <string name="flush_by_line_description">在每行写入时刷新调试日志，使在崩溃或冻结时调试更容易。</string>
+
+    <!-- GPU Logging strings -->
+    <string name="gpu_logging_header">GPU 日志</string>
+    <string name="gpu_logging_enabled">启用 GPU 日志</string>
+    <string name="gpu_logging_enabled_description">将 GPU 操作记录至 eden_gpu.log 以供调试 Adreno 驱动</string>
+    <string name="gpu_log_level">日志等级</string>
+    <string name="gpu_log_level_description">GPU 日志的详细级别(数值越高 = 细节越多,开销越大)</string>
+    <string name="gpu_log_vulkan_calls">记录 Vulkan API 调用</string>
+    <string name="gpu_log_vulkan_calls_description">在环形缓冲区中跟踪所有 Vulkan API 调用</string>
+    <string name="gpu_log_shader_dumps">转储着色器</string>
+    <string name="gpu_log_shader_dumps_description">保存已编译的着色器 SPIR-V 到文件中</string>
+    <string name="gpu_log_memory_tracking">追踪 GPU 内存</string>
+    <string name="gpu_log_memory_tracking_description">监控 GPU 内存的分配和释放</string>
+    <string name="gpu_log_driver_debug">驱动调试信息</string>
+    <string name="gpu_log_driver_debug_description">捕获驱动级调试信息  (Turnip breadcrumbs, 等)</string>
+    <string name="gpu_log_ring_buffer_size">环形缓存大小</string>
+    <string name="gpu_log_ring_buffer_size_description">要跟踪的最近 Vulkan 调用次数(默认值: 512)</string>
+    <string name="gpu_log_ring_buffer_size_hint">64 到 4096 条</string>
 
     <string name="general">常规</string>
 
@@ -687,6 +723,8 @@
     <string name="preferences_graphics">图形</string>
     <string name="preferences_graphics_description">精度等级、分辨率及着色器缓存</string>
     <string name="quick_settings">快速设置</string>
+    <string name="enable_quick_settings">启用快速设置</string>
+    <string name="enable_quick_settings_description">允许通过滑动和菜单按钮访问快速设置菜单</string>
     <string name="preferences_audio">声音</string>
     <string name="preferences_audio_description">输出引擎及音量</string>
     <string name="preferences_controls">控制</string>
@@ -950,6 +988,13 @@
     <string name="dma_accuracy_unsafe">不安全</string>
     <string name="dma_accuracy_safe">安全</string>
 
+    <!-- Frame Pacing Mode -->
+    <string name="frame_pacing_mode_target_Auto">自动</string>
+    <string name="frame_pacing_mode_target_30">30 FPS</string>
+    <string name="frame_pacing_mode_target_60">60 FPS</string>
+    <string name="frame_pacing_mode_target_90">90 FPS</string>
+    <string name="frame_pacing_mode_target_120">120 FPS</string>
+
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">不压缩</string>
     <!-- ASTC Recompression Method Choices -->
@@ -1032,18 +1077,23 @@
     <string name="use_black_backgrounds">使用黑色背景</string>
     <string name="use_black_backgrounds_description">使用深色主题时，套用黑色背景。</string>
 
+    <!-- Buttons -->
+    <string name="enable_folder_button">文件夹</string>
+    <string name="enable_folder_button_description">显示添加游戏文件夹的按钮</string>
+    <string name="enable_qlaunch_button">QLaunch</string>
+    <string name="enable_qlaunch_button_description">显示启动 QLaunch 的按钮</string>
+
     <!-- App Language -->
     <string name="app_language">App 语言</string>
     <string name="app_language_description">更改 app 界面的语言</string>
     <string name="app_language_system">跟随系统</string>
     <!-- Static Themes -->
     <string name="static_theme_color">主题颜色</string>
-    <string name="eden_theme">Eden (默认)</string>
+    <string name="eden_theme">Eden</string>
     <string name="violet">紫色（默认）</string>
     <string name="blue">蓝色</string>
     <string name="cyan">青色</string>
     <string name="red">红色</string>
-    <string name="green">绿色</string>
     <string name="yellow">黄色</string>
     <string name="orange">橙色</string>
     <string name="pink">粉色</string>
@@ -1075,7 +1125,39 @@
     <string name="enable_overlay">开启覆盖层小程序</string>
     <string name="enable_overlay_description">开启 Horizon 内置的覆盖层小程序。请按住 home 键 1 秒来显示它。</string>
 
+    <!-- Profile Management -->
+    <string name="profile_manager">用户配置管理</string>
+    <string name="profile_manager_description">管理用户文档</string>
+    <string name="profile_add_user">添加用户</string>
+    <string name="profile_new_user">新的用户 </string>
+    <string name="profile_edit_user">编辑用户</string>
+    <string name="profile_edit">编辑</string>
+    <string name="profile_delete">删除</string>
+    <string name="profile_username">用户名</string>
+    <string name="profile_uuid">用户 ID (UUID)</string>
+    <string name="profile_uuid_description">这是该用户配置文件的唯一标识符。它在创造后无法改变。</string>
+    <string name="profile_generate">生成</string>
+    <string name="profile_avatar">用户头像</string>
+    <string name="profile_select_image">选择图像</string>
+    <string name="profile_firmware_avatars">固件自带头像</string>
+    <string name="profile_firmware_avatars_unavailable">固件头像不可用。请安装固件以使用此功能。</string>
+    <string name="profile_revert_image">恢复默认</string>
+    <string name="profile_current_user">当前用户</string>
+    <string name="profile_max_users_title">达到的最大用户数</string>
+    <string name="profile_max_users_message">你不能创建超过 8 个用户资料。请删除已有的个人资料以创建新的。</string>
+    <string name="profile_delete_confirm_title">删除自定义设置？</string>
+    <string name="profile_delete_confirm_message">你确定要删除 %1$s 吗？该用户的所有存档数据将被删除。</string>
+    <string name="profile_delete_current_user_message">你确定要删除 %1$s 吗？这是当前被选中的用户。将选择第一个可用用户。</string>
+    <string name="profile_create_failed">用户配置文件创建失败</string>
+    <string name="profile_update_failed">用户配置文件更新失败</string>
+    <string name="profile_image_load_error">加载失败图片：%1$s</string>
+    <string name="profile_image_save_error">保存失败图片：%1$s</string>
+    <string name="error">错误</string>
+
     <!-- Licenses screen strings -->
     <string name="licenses">许可证</string>
     <string name="license_fidelityfx_fsr_description">来自 AMD 的高品质画质升级技术</string>
-    </resources>
+    <string name="external_content">外部内容</string>
+    <string name="add_folders">添加文件夹</string>
+
+</resources>

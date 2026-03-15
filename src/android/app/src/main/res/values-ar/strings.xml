@@ -31,6 +31,8 @@
     <string name="enable_input_overlay_auto_hide">تمكين إخفاء الطبقة تلقائيًا</string>
     <string name="hide_overlay_on_controller_input">إخفاء الطبقة عند إدخال ذراع التحكم</string>
     <string name="hide_overlay_on_controller_input_description">إخفاء تلقائي لطبقة عناصر التحكم باللمس عند استخدام ذراع تحكم فعلية. تظهر الطبقة مرة أخرى عند فصل ذراع التحكم.</string>
+    <string name="invert_confirm_back_controller_buttons">عكس أزرار التأكيد/الرجوع في وحدة التحكم</string>
+    <string name="invert_confirm_back_controller_buttons_description">قم بتبديل طريقة عمل زري التأكيد والرجوع في نظام Android لتتوافق مع أنماط Switch و Xbox أثناء استخدام واجهة المستخدم الخاصة بالتطبيق.</string>
 
     <string name="input_overlay_options">طبقة الإدخال</string>
     <string name="input_overlay_options_description">ضبط ذراع التحكم على الشاشة</string>
@@ -315,6 +317,9 @@
     <string name="share_log">مشاركة سجلات التصحيح</string>
     <string name="share_log_description">مشاركة ملف سجل Eden لتصحيح الأخطاء</string>
     <string name="share_log_missing">لم يتم العثور على ملف السجل</string>
+    <string name="share_gpu_log">مشاركة سجلات وحدة معالجة الرسومات</string>
+    <string name="share_gpu_log_description">شارك ملف سجل وحدة معالجة الرسومات الخاص بـ Eden لتصحيح مشكلات الرسومات</string>
+    <string name="share_gpu_log_missing">لم يتم العثور على ملف سجل وحدة معالجة الرسومات</string>
     <string name="install_game_content">تثبيت محتوى اللعبة</string>
     <string name="install_game_content_description">تثبيت تحديثات اللعبة أو المحتوى القابل للتنزيل</string>
     <string name="installing_game_content">جارٍ تثبيت المحتوى...</string>
@@ -376,9 +381,9 @@
     <string name="qlaunch_description">تشغيل التطبيقات من شاشة النظام الرئيسية</string>
     <string name="applets">مشغل التطبيقات الصغيرة</string>
     <string name="applets_description">تشغيل تطبيقات الصغيرة للنظام باستخدام الفيرموير المثبت</string>
-    <string name="applets_error_firmware">الفيرموير غير مثبت أو إصدار غير صالح</string>
+    <string name="applets_error_firmware">الفيرموير غير مثبت</string>
     <string name="applets_error_applet">التطبيق الصغير غير متوفر</string>
-    <string name="applets_error_description"><![CDATA[يرجى التأكد من أن ملف <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> الخاص بك و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">الفيرموير</a> مثبتة وحاول مرة أخرى.<br>بالإضافة إلى ذلك، تأكد من أن الفيرموير الخاص بك هو من الإصدار 19.0.1 أو أقدم.]]></string>
+    <string name="applets_error_description"><![CDATA[يرجى التأكد من <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> ملف و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">الفيرموير</a> تم تثبيتها وحاول مرة أخرى.]]></string>
     <string name="album_applet">الألبوم</string>
     <string name="album_applet_description">عرض الصور المخزنة في مجلد لقطات شاشة المستخدم باستخدام عارض صور النظام</string>
     <string name="mii_edit_applet">تعديل Mii</string>
@@ -396,7 +401,7 @@
     <string name="copied_to_clipboard">نسخ إلى الحافظة</string>
     <string name="about_app_description">محاكي Switch مفتوح المصدر</string>
     <string name="contributors">المساهمين</string>
-    <string name="contributors_description">المساهمون الذين جعلوا تطبيق Eden لنظام Android ممكناً</string>
+    <string name="contributors_description">الأشخاص الذين جعلوا تطبيق Eden لنظام Android ممكنًا</string>
     <string name="licenses_description">المشاريع التي تجعل Eden لأجهزة Android ممكنة</string>
     <string name="build">البناء</string>
     <string name="user_data">بيانات المستخدم</string>
@@ -412,7 +417,11 @@
     <string name="frame_limit_enable">الحد من السرعة</string>
     <string name="frame_limit_enable_description">يحدد سرعة المحاكاة بنسبة مئوية محددة من السرعة العادية.</string>
     <string name="frame_limit_slider">نسبة الحد الأقصى للسرعة</string>
-    <string name="frame_limit_slider_description">يحدد النسبة المئوية للحد من سرعة المحاكاة. 100٪ هي السرعة العادية. القيم الأعلى أو الأقل ستزيد أو تقلل من الحد الأقصى للسرعة.</string>
+    <string name="frame_limit_slider_description">يحدد النسبة المئوية للحد من سرعة المحاكاة. %100 هي السرعة الطبيعية. القيم الأعلى أو الأقل ستزيد أو تقلل من الحد الأقصى للسرعة.</string>
+    <string name="turbo_speed_limit">سرعة تيربو</string>
+    <string name="turbo_speed_limit_description">عند تمكين وضع التيربو، سيتم تشغيل المحاكاة بهذه السرعة.</string>
+    <string name="slow_speed_limit">سرعة بطيئة</string>
+    <string name="slow_speed_limit_description">عند تمكين الوضع البطيء، سيتم تشغيل المحاكاة بهذه السرعة.</string>
     <string name="cpu_backend">خلفية وحدة المعالجة المركزية</string>
     <string name="cpu_accuracy">دقة وحدة المعالجة المركزية</string>
     <string name="value_with_units">%1$s%2$s</string>
@@ -431,7 +440,7 @@
 
     <!-- CPU -->
     <string name="fast_cpu_time">رفع تردد المعالج</string>
-    <string name="fast_cpu_time_description">يُجبر هذا الخيار المعالج المُحاكى على العمل بتردد أعلى، مما يُقلل من بعض مُحددات معدل الإطارات. استخدم وضع Boost (1700 ميجاهرتز) للتشغيل بأعلى تردد أصلي لجهاز Switch، أو وضع Fast (2000 ميجاهرتز) للتشغيل بتردد مُضاعف.</string>
+    <string name="fast_cpu_time_description">يجبر وحدة المعالجة المركزية المحاكاة على العمل بتردد أعلى، مما يقلل بعض محددات معدل الإطارات. استخدم وضع التعزيز (1700 ميجاهرتز) لتشغيلها عند أعلى تردد أصلي لجهاز Switch، أو وضع السرعة (2000 ميجاهرتز) لتشغيلها بتردد مضاعف.</string>
     <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
     <string name="custom_cpu_ticks_description">قم بتعيين قيمة مخصصة لدورات المعالج. القيم الأعلى يمكن أن تزيد من الأداء، ولكنها قد تتسبب أيضًا في تجميد اللعبة. يوصى باستخدام نطاق 77-21000.</string>
     <string name="cpu_ticks">دورات</string>
@@ -464,6 +473,8 @@
     <string name="renderer_accuracy_description">يتحكم في وضع محاكاة وحدة معالجة الرسومات. تعمل معظم الألعاب بشكل جيد مع وضعي سريع أو متوازن، لكن الوضع الدقيق لا يزال مطلوبًا لبعض الألعاب. تميل الجسيمات إلى العرض بشكل صحيح فقط عند استخدام الوضع الدقيق.</string>
     <string name="dma_accuracy">دقة DMA</string>
     <string name="dma_accuracy_description">يتحكم في دقة DMA. يمكن أن تؤدي الدقة الآمنة إلى حل المشكلات في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا لم تكن متأكدًا، فاترك هذا الخيار على الإعداد الافتراضي.</string>
+    <string name="frame_pacing_mode">وضع توقيت الإطارات</string>
+    <string name="frame_pacing_mode_description">يتحكم في كيفية إدارة المحاكي لسرعة الإطارات لتقليل التقطع وجعل معدل الإطارات أكثر سلاسة واتساقًا.</string>
     <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
     <string name="anisotropic_filtering_description">يحسن جودة الأنسجة عند عرضها بزوايا مائلة</string>
     <string name="vram_usage_mode">وضع استخدام ذاكرة VRAM</string>
@@ -481,7 +492,10 @@
     <string name="renderer_force_max_clock_description">يجبر وحدة معالجة الرسومات على العمل بأقصى سرعة ممكنة (سيظل يتم تطبيق القيود الحرارية).</string>
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
     <string name="renderer_reactive_flushing_description">يحسن دقة العرض في بعض الألعاب على حساب الأداء.</string>
-
+    <string name="enable_buffer_history">تمكين سجل التخزين المؤقت</string>
+    <string name="enable_buffer_history_description">يُتيح هذا الخيار الوصول إلى حالات التخزين المؤقت السابقة. وقد يُحسّن جودة العرض وثبات الأداء في بعض الألعاب.</string>
+    <string name="use_optimized_vertex_buffers">مخازن الرؤوس المُحسّنة</string>
+    <string name="use_optimized_vertex_buffers_description">يُتيح ربطًا مُحسَّنًا لمخازن الرؤوس لتحسين الأداء. يتطلب برامج تشغيل Turnip من Mesa 26.0 أو أحدث. قد يتعطل على برامج التشغيل الأقدم.</string>
 
     <string name="hacks">اختراقات</string>
 
@@ -490,15 +504,20 @@
     <string name="skip_cpu_inner_invalidation">تخطي إبطال صلاحية وحدة المعالجة المركزية الداخلية</string>
     <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة من جانب وحدة المعالجة المركزية أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسن أداءها. قد يتسبب ذلك في حدوث أعطال أو تعطل في بعض الألعاب.</string>
     <string name="fix_bloom_effects">إصلاح تأثيرات التوهج</string>
-    <string name="fix_bloom_effects_description">يقلل من ضبابية التوهج في وضع LA/EOW (مخصص ل Adreno 700)، ويزيل التوهج في وضع الإحتراق</string>
+    <string name="fix_bloom_effects_description">يقلل من ضبابية التوهج في LA/EOW (Adreno 700)، ويزيل التوهج في Burnout. تحذير: قد يسبب ظهور خلل رسومي في ألعاب أخرى.</string>
     <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
     <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
+    <string name="gpu_unswizzle_settings">إعدادات إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
+    <string name="gpu_unswizzle_settings_description">قم بضبط معلمات فكّ تشابك النسيج المستندة إلى وحدة معالجة الرسومات أو تعطيلها تمامًا. اضبط هذه الإعدادات لتحقيق التوازن بين الأداء وجودة تحميل النسيج.</string>
+    <string name="gpu_unswizzle_enable">تفعيل إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
+    <string name="gpu_unswizzle_disabled">تعطيل</string>
     <string name="gpu_unswizzle_texture_size">الحد الأقصى لحجم النسيج في وحدة معالجة الرسومات بعد إعادة ترتيب البيانات</string>
     <string name="gpu_unswizzle_texture_size_description">يُحدد هذا الخيار الحد الأقصى لحجم (ميغابايت) معالجة الصور باستخدام وحدة معالجة الرسومات. مع أن وحدة معالجة الرسومات أسرع في معالجة الصور المتوسطة والكبيرة، إلا أن وحدة المعالجة المركزية قد تكون أكثر كفاءة في معالجة الصور الصغيرة جدًا. اضبط هذا الخيار لتحقيق التوازن الأمثل بين سرعة معالجة الرسومات واستهلاك وحدة المعالجة المركزية.</string>
     <string name="gpu_unswizzle_stream_size">حجم تدفق إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
     <string name="gpu_unswizzle_stream_size_description">يحدد هذا الخيار حد البيانات لكل إطار لمعالجة الصور الكبيرة. القيم الأعلى تُسرّع تحميل الصور على حساب زيادة زمن استجابة الإطارات؛ أما القيم الأقل فتُقلل من الحمل الزائد على وحدة معالجة الرسومات، ولكنها قد تتسبب في ظهور الصور بشكل مفاجئ.</string>
     <string name="gpu_unswizzle_chunk_size">حجم كتلة إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
     <string name="gpu_unswizzle_chunk_size_description">يُحدد هذا الخيار عدد شرائح العمق التي تتم معالجتها لكل دفعة من الصور ثلاثية الأبعاد (3D). زيادة هذا العدد تُحسّن كفاءة الإنتاجية على وحدات معالجة الرسومات القوية، ولكنها قد تُسبب تقطعًا أو انقطاعًا في عمل برنامج التشغيل على الأجهزة ذات المواصفات الأقل قوة.</string>
+    <string name="gpu_unswizzle_default_button">افتراضي</string>
 
 
     <string name="extensions">إضافات</string>
@@ -542,6 +561,24 @@
     <string name="log">السجلات</string>
     <string name="flush_by_line">تفريغ سجلات التصحيح حسب السطر</string>
     <string name="flush_by_line_description">يفرغ سجلات التصحيح عند كتابة كل سطر، مما يجعل التصحيح أسهل في حالات التوقف أو التجميد.</string>
+
+    <!-- GPU Logging strings -->
+    <string name="gpu_logging_header">تسجيل وحدة معالجة الرسومات</string>
+    <string name="gpu_logging_enabled">تمكين تسجيل وحدة معالجة الرسومات</string>
+    <string name="gpu_logging_enabled_description">تسجيل عمليات وحدة معالجة الرسومات في ملف eden_gpu.log لتصحيح أخطاء برامج تشغيل Adreno</string>
+    <string name="gpu_log_level">مستوى السجل</string>
+    <string name="gpu_log_level_description">مستوى التفاصيل لسجلات وحدة معالجة الرسومات (كلما زاد المستوى، زادت التفاصيل وزادت التكاليف الإضافية)</string>
+    <string name="gpu_log_vulkan_calls">تسجيل استدعاءات واجهة برمجة تطبيقات Vulkan</string>
+    <string name="gpu_log_vulkan_calls_description">تتبع جميع استدعاءات واجهة برمجة تطبيقات Vulkan في المخزن المؤقت الحلقي</string>
+    <string name="gpu_log_shader_dumps">تفريغ التظليل</string>
+    <string name="gpu_log_shader_dumps_description">حفظ تظليل SPIR-V المجمع في ملفات</string>
+    <string name="gpu_log_memory_tracking">تتبع ذاكرة وحدة معالجة الرسومات</string>
+    <string name="gpu_log_memory_tracking_description">مراقبة تخصيصات ذاكرة وحدة معالجة الرسومات وإلغاء تخصيصها</string>
+    <string name="gpu_log_driver_debug">معلومات تصحيح أخطاء برنامج التشغيل</string>
+    <string name="gpu_log_driver_debug_description">التقاط معلومات تصحيح الأخطاء الخاصة ببرنامج التشغيل (مسارات Turnip، وما إلى ذلك).</string>
+    <string name="gpu_log_ring_buffer_size">حجم المخزن المؤقت الحلقي</string>
+    <string name="gpu_log_ring_buffer_size_description">عدد استدعاءات Vulkan الأخيرة المراد تتبعها (الافتراضي: 512)</string>
+    <string name="gpu_log_ring_buffer_size_hint">من 64 إلى 4096 مدخلاً</string>
 
     <string name="general">عام</string>
 
@@ -631,7 +668,7 @@
     <string name="loading">جارٍ التحميل…</string>
     <string name="shutting_down">جارٍ إيقاف التشغيل...</string>
     <string name="reset_setting_confirmation">هل تريد إعادة تعيين هذا الإعداد إلى قيمته الافتراضية؟</string>
-    <string name="reset_to_default">إعادة التعيين إلى الوضع الافتراضي</string>
+    <string name="reset_to_default">إعادة التعيين إلى الإعدادات الافتراضية</string>
     <string name="reset_to_default_description">إعادة تعيين جميع الإعدادات المتقدمة</string>
     <string name="reset_all_settings">إعادة تعيين جميع الإعدادات؟</string>
     <string name="reset_all_settings_description">سيتم إعادة تعيين جميع الإعدادات المتقدمة إلى ضبطها الافتراضي. لا يمكن التراجع عن هذا الإجراء.</string>
@@ -697,6 +734,8 @@
     <string name="preferences_graphics">الرسومات</string>
     <string name="preferences_graphics_description">مستوى الدقة، الدقة، ذاكرة التخزين المؤقتة للتظليل</string>
     <string name="quick_settings">الإعدادات السريعة</string>
+    <string name="enable_quick_settings">تمكين الإعدادات السريعة</string>
+    <string name="enable_quick_settings_description">السماح بالوصول إلى قائمة الإعدادات السريعة عن طريق التمرير و زر القائمة</string>
     <string name="preferences_audio">الصوت</string>
     <string name="preferences_audio_description">محرك الإخراج، مستوى الصوت</string>
     <string name="preferences_controls">ذراع التحكم</string>
@@ -729,7 +768,7 @@
     <!-- Game properties -->
     <string name="info">معلومات</string>
     <string name="info_description">معرف العنوان، المطور، الإصدار</string>
-    <string name="per_game_settings">إعدادات خاصة للعبة</string>
+    <string name="per_game_settings">الإعدادات الخاصة للعبة</string>
     <string name="per_game_settings_description">تعديل الإعدادات الخاصة بهذه اللعبة</string>
     <string name="launch_options">تشغيل الإعدادات</string>
     <string name="path">المسار</string>
@@ -960,6 +999,13 @@
     <string name="dma_accuracy_unsafe">غير آمن</string>
     <string name="dma_accuracy_safe">آمن</string>
 
+    <!-- Frame Pacing Mode -->
+    <string name="frame_pacing_mode_target_Auto">تلقائي</string>
+    <string name="frame_pacing_mode_target_30">30 إطارًا في الثانية</string>
+    <string name="frame_pacing_mode_target_60">60 إطارًا في الثانية</string>
+    <string name="frame_pacing_mode_target_90">90 إطارًا في الثانية</string>
+    <string name="frame_pacing_mode_target_120">120 إطارًا في الثانية</string>
+
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">غير مضغوط</string>
     <!-- ASTC Recompression Method Choices -->
@@ -1042,18 +1088,24 @@
     <string name="use_black_backgrounds">خلفيات سوداء</string>
     <string name="use_black_backgrounds_description">عند استخدام السمة الداكنة، قم بتطبيق خلفيات سوداء.</string>
 
+    <!-- Buttons -->
+    <string name="enable_folder_button">مجلد</string>
+    <string name="enable_folder_button_description">عرض زر إضافة مجلدات الألعاب</string>
+    <string name="enable_qlaunch_button">القائمة الرئيسية</string>
+    <string name="enable_qlaunch_button_description">عرض زر تشغيل القائمة الرئيسية</string>
+
     <!-- App Language -->
     <string name="app_language">لغة التطبيق</string>
     <string name="app_language_description">تغيير لغة واجهة التطبيق</string>
     <string name="app_language_system">اتبع النظام</string>
     <!-- Static Themes -->
     <string name="static_theme_color">لون السمة</string>
-    <string name="eden_theme">Eden (افتراضي)</string>
+    <string name="eden_theme">إيدن</string>
     <string name="violet">بنفسجي</string>
     <string name="blue">أزرق</string>
     <string name="cyan">سماوي</string>
     <string name="red">أحمر</string>
-    <string name="green">أخضر</string>
+    <string name="green">أخضر (افتراضي)</string>
     <string name="yellow">أصفر</string>
     <string name="orange">برتقالي</string>
     <string name="pink">وردي</string>
@@ -1085,7 +1137,39 @@
     <string name="enable_overlay">تمكين التطبيق الصغير للطبقة</string>
     <string name="enable_overlay_description">تمكين التطبيق الصغير المدمج في Horizon. اضغط مع الاستمرار على زر الشاشة الرئيسية لمدة 1 ثانية لإظهاره.</string>
 
+    <!-- Profile Management -->
+    <string name="profile_manager">مدير الملف الشخصي</string>
+    <string name="profile_manager_description">إدارة ملفات تعريف المستخدمين</string>
+    <string name="profile_add_user">إضافة مستخدم</string>
+    <string name="profile_new_user">مستخدم جديد</string>
+    <string name="profile_edit_user">تعديل المستخدم</string>
+    <string name="profile_edit">تعديل</string>
+    <string name="profile_delete">حذف</string>
+    <string name="profile_username">اسم المستخدم</string>
+    <string name="profile_uuid">معرف المستخدم (UUID)</string>
+    <string name="profile_uuid_description">هذا هو المعرف الفريد لملف تعريف المستخدم هذا. لا يمكن تغييره بعد إنشائه.</string>
+    <string name="profile_generate">إنشاء</string>
+    <string name="profile_avatar">صورة المستخدم</string>
+    <string name="profile_select_image">اختر صورة</string>
+    <string name="profile_firmware_avatars">صور رمزية للفيرموير</string>
+    <string name="profile_firmware_avatars_unavailable">الصور الرمزية للفيرموير غير متوفرة. يرجى تثبيت الفيرموير لاستخدام هذه الميزة.</string>
+    <string name="profile_revert_image">العودة إلى الإعدادات الافتراضية</string>
+    <string name="profile_current_user">المستخدم الحالي</string>
+    <string name="profile_max_users_title">تم الوصول إلى الحد الأقصى للمستخدمين</string>
+    <string name="profile_max_users_message">لا يمكنك إنشاء أكثر من 8 ملفات تعريف مستخدم. يرجى حذف ملف تعريف موجود لإنشاء ملف تعريف جديد.</string>
+    <string name="profile_delete_confirm_title">حذف ملف التعريف؟</string>
+    <string name="profile_delete_confirm_message">هل تريد حذفها حقًا %1$s؟ سيتم حذف جميع البيانات المحفوظة لهذا المستخدم.</string>
+    <string name="profile_delete_current_user_message">هل تريد حذف هذا المستخدم %1$s؟ هذا هو المستخدم المحدد حالياً. سيتم تحديد أول مستخدم متاح بدلاً منه.</string>
+    <string name="profile_create_failed">فشل إنشاء ملف تعريف المستخدم</string>
+    <string name="profile_update_failed">فشل تحديث ملف تعريف المستخدم</string>
+    <string name="profile_image_load_error">فشل تحميل الصورة: %1$s</string>
+    <string name="profile_image_save_error">فشل حفظ الصورة: %1$s</string>
+    <string name="error">خطأ</string>
+
     <!-- Licenses screen strings -->
     <string name="licenses">التراخيص</string>
     <string name="license_fidelityfx_fsr_description">تحسين الجودة بدرجة عالية من AMD</string>
-    </resources>
+    <string name="external_content">محتوى خارجي</string>
+    <string name="add_folders">إضافة مجلد</string>
+
+</resources>
