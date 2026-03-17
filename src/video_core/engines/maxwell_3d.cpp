@@ -315,15 +315,10 @@ void Maxwell3D::ConsumeSinkImpl() {
 }
 
 void Maxwell3D::ProcessDirtyRegisters(u32 method, u32 argument) {
-    if (regs.reg_array[method] != argument) {
-        regs.reg_array[method] = argument;
-        auto const& table0 = dirty.tables[0];
-        auto const& table1 = dirty.tables[1];
-        u8 const flag0 = table0[method];
-        u8 const flag1 = table1[method];
-        dirty.flags[flag0] = true;
-        if (flag1 != flag0)
-            dirty.flags[flag1] = true;
+    regs.reg_array[method] = argument;
+
+    for (const auto& table : dirty.tables) {
+        dirty.flags[table[method]] = true;
     }
 }
 
