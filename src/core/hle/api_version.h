@@ -31,8 +31,8 @@ constexpr char DISPLAY_TITLE[] = "NintendoSDK Firmware for NX 22.0.0-3.0";
 // Atmosphere version constants.
 
 constexpr u8 ATMOSPHERE_RELEASE_VERSION_MAJOR = 1;
-constexpr u8 ATMOSPHERE_RELEASE_VERSION_MINOR = 9;
-constexpr u8 ATMOSPHERE_RELEASE_VERSION_MICRO = 1;
+constexpr u8 ATMOSPHERE_RELEASE_VERSION_MINOR = 10;
+constexpr u8 ATMOSPHERE_RELEASE_VERSION_MICRO = 2;
 
 constexpr u32 AtmosphereTargetFirmwareWithRevision(u8 major, u8 minor, u8 micro, u8 rev) {
     return u32{major} << 24 | u32{minor} << 16 | u32{micro} << 8 | u32{rev};
