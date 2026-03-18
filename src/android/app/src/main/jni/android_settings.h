@@ -56,7 +56,7 @@ namespace AndroidSettings {
 
         Settings::Setting<s32> theme{linkage, 0, "theme", Settings::Category::Android};
         Settings::Setting<s32> theme_mode{linkage, -1, "theme_mode", Settings::Category::Android};
-        Settings::Setting<s32> static_theme_color{linkage, 5, "static_theme_color", Settings::Category::Android};
+        Settings::Setting<s32> static_theme_color{linkage, 0, "static_theme_color", Settings::Category::Android};
         Settings::Setting<bool> black_backgrounds{linkage, false, "black_backgrounds",
                                                   Settings::Category::Android};
         Settings::Setting<s32> app_language{linkage, 0, "app_language", Settings::Category::Android};
