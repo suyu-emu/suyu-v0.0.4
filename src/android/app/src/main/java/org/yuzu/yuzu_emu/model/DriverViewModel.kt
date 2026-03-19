@@ -71,6 +71,8 @@ class DriverViewModel : ViewModel() {
     fun reloadDriverData() {
         _areDriversLoading.value = true
         driverData = GpuDriverHelper.getDrivers()
+            .filterNot { driversToDelete.contains(it.first) }
+            .toMutableList()
         updateDriverList()
         _areDriversLoading.value = false
     }
@@ -167,26 +169,25 @@ class DriverViewModel : ViewModel() {
 
     fun onCloseDriverManager(game: Game?) {
         _isDeletingDrivers.value = true
-        updateDriverNameForGame(game)
-        if (game == null) {
-            NativeConfig.saveGlobalConfig()
-        } else {
-            NativeConfig.savePerGameConfig()
-            NativeConfig.unloadPerGameConfig()
-            NativeConfig.reloadGlobalConfig()
-        }
-
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                driversToDelete.forEach {
-                    val driver = File(it)
-                    if (driver.exists()) {
-                        driver.delete()
-                    }
-                }
-                driversToDelete.clear()
-                _isDeletingDrivers.value = false
+        try {
+            updateDriverNameForGame(game)
+            if (game == null) {
+                NativeConfig.saveGlobalConfig()
+            } else {
+                NativeConfig.savePerGameConfig()
+                NativeConfig.unloadPerGameConfig()
+                NativeConfig.reloadGlobalConfig()
             }
+
+            driversToDelete.forEach {
+                val driver = File(it)
+                if (driver.exists()) {
+                    driver.delete()
+                }
+            }
+            driversToDelete.clear()
+        } finally {
+            _isDeletingDrivers.value = false
         }
     }
 

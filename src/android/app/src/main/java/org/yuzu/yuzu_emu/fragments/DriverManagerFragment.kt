@@ -142,6 +142,17 @@ class DriverManagerFragment : Fragment() {
         driverViewModel.onCloseDriverManager(args.game)
     }
 
+    override fun onResume() {
+        super.onResume()
+        refreshDriverList()
+    }
+
+    private fun refreshDriverList() {
+        driverViewModel.reloadDriverData()
+        (binding.listDrivers.adapter as? DriverAdapter)
+            ?.replaceList(driverViewModel.driverList.value)
+    }
+
     private fun setInsets() =
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
