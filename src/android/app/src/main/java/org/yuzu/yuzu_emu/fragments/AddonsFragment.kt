@@ -25,6 +25,7 @@ import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.AddonUtil
 import org.yuzu.yuzu_emu.utils.FileUtil.copyFilesTo
+import org.yuzu.yuzu_emu.utils.InstallableActions
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.collect
 import java.io.File
@@ -107,6 +108,12 @@ class AddonsFragment : Fragment() {
                 ).show(parentFragmentManager, MessageDialogFragment.TAG)
             }
         }
+        parentFragmentManager.setFragmentResultListener(
+            ContentTypeSelectionDialogFragment.REQUEST_INSTALL_GAME_UPDATE,
+            viewLifecycleOwner
+        ) { _, _ ->
+            installGameUpdate.launch(arrayOf("*/*"))
+        }
 
         binding.buttonInstall.setOnClickListener {
             ContentTypeSelectionDialogFragment().show(
@@ -130,7 +137,7 @@ class AddonsFragment : Fragment() {
         super.onDestroy()
     }
 
-    val installAddon =
+    private val installAddon =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
             if (result == null) {
                 return@registerForActivityResult
@@ -173,6 +180,17 @@ class AddonsFragment : Fragment() {
             } else {
                 errorMessage.show(parentFragmentManager, MessageDialogFragment.TAG)
             }
+        }
+
+    private val installGameUpdate =
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { documents ->
+            InstallableActions.verifyAndInstallContent(
+                activity = requireActivity(),
+                fragmentManager = parentFragmentManager,
+                addonViewModel = addonViewModel,
+                documents = documents,
+                programId = args.game.programId
+            )
         }
 
     private fun setInsets() =

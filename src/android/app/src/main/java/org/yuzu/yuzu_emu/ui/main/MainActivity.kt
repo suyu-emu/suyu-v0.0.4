@@ -32,7 +32,6 @@ import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.dialogs.NetPlayDialog
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.AddGameFolderDialogFragment
-import org.yuzu.yuzu_emu.fragments.ProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.model.DriverViewModel
@@ -477,49 +476,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             fragmentManager = supportFragmentManager,
             homeViewModel = homeViewModel
         )
-    }
-
-    val installGameUpdate = registerForActivityResult(
-        ActivityResultContracts.OpenMultipleDocuments()
-    ) { documents: List<Uri> ->
-        if (documents.isEmpty()) {
-            return@registerForActivityResult
-        }
-
-        if (addonViewModel.game == null) {
-            installContent(documents)
-            return@registerForActivityResult
-        }
-
-        ProgressDialogFragment.newInstance(
-            this@MainActivity,
-            R.string.verifying_content,
-            false
-        ) { _, _ ->
-            var updatesMatchProgram = true
-            for (document in documents) {
-                val valid = NativeLibrary.doesUpdateMatchProgram(
-                    addonViewModel.game!!.programId,
-                    document.toString()
-                )
-                if (!valid) {
-                    updatesMatchProgram = false
-                    break
-                }
-            }
-
-            if (updatesMatchProgram) {
-                homeViewModel.setContentToInstall(documents)
-            } else {
-                MessageDialogFragment.newInstance(
-                    this@MainActivity,
-                    titleId = R.string.content_install_notice,
-                    descriptionId = R.string.content_install_notice_description,
-                    positiveAction = { homeViewModel.setContentToInstall(documents) },
-                    negativeAction = {}
-                )
-            }
-        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
     }
 
     private fun installContent(documents: List<Uri>) {

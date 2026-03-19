@@ -26,6 +26,78 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 object InstallableActions {
+    private fun verifyGameContentAndInstall(
+        activity: FragmentActivity,
+        fragmentManager: FragmentManager,
+        documents: List<Uri>,
+        programId: String?,
+        onInstallConfirmed: () -> Unit
+    ) {
+        if (documents.isEmpty()) {
+            return
+        }
+
+        if (programId == null) {
+            onInstallConfirmed()
+            return
+        }
+
+        ProgressDialogFragment.newInstance(
+            activity,
+            R.string.verifying_content,
+            false
+        ) { _, _ ->
+            var updatesMatchProgram = true
+            for (document in documents) {
+                val valid = NativeLibrary.doesUpdateMatchProgram(
+                    programId,
+                    document.toString()
+                )
+                if (!valid) {
+                    updatesMatchProgram = false
+                    break
+                }
+            }
+
+            activity.runOnUiThread {
+                if (updatesMatchProgram) {
+                    onInstallConfirmed()
+                } else {
+                    MessageDialogFragment.newInstance(
+                        activity,
+                        titleId = R.string.content_install_notice,
+                        descriptionId = R.string.content_install_notice_description,
+                        positiveAction = onInstallConfirmed,
+                        negativeAction = {}
+                    ).show(fragmentManager, MessageDialogFragment.TAG)
+                }
+            }
+            return@newInstance Any()
+        }.show(fragmentManager, ProgressDialogFragment.TAG)
+    }
+
+    fun verifyAndInstallContent(
+        activity: FragmentActivity,
+        fragmentManager: FragmentManager,
+        addonViewModel: AddonViewModel,
+        documents: List<Uri>,
+        programId: String?
+    ) {
+        verifyGameContentAndInstall(
+            activity = activity,
+            fragmentManager = fragmentManager,
+            documents = documents,
+            programId = programId
+        ) {
+            installContent(
+                activity = activity,
+                fragmentManager = fragmentManager,
+                addonViewModel = addonViewModel,
+                documents = documents
+            )
+        }
+    }
+
     fun processKey(
         activity: FragmentActivity,
         fragmentManager: FragmentManager,

@@ -227,66 +227,13 @@ class InstallableFragment : Fragment() {
 
     private val installGameUpdateLauncher =
         registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { documents ->
-            if (documents.isEmpty()) {
-                return@registerForActivityResult
-            }
-
-            if (addonViewModel.game == null) {
-                InstallableActions.installContent(
-                    activity = requireActivity(),
-                    fragmentManager = parentFragmentManager,
-                    addonViewModel = addonViewModel,
-                    documents = documents
-                )
-                return@registerForActivityResult
-            }
-
-            ProgressDialogFragment.newInstance(
-                requireActivity(),
-                R.string.verifying_content,
-                false
-            ) { _, _ ->
-                var updatesMatchProgram = true
-                for (document in documents) {
-                    val valid = NativeLibrary.doesUpdateMatchProgram(
-                        addonViewModel.game!!.programId,
-                        document.toString()
-                    )
-                    if (!valid) {
-                        updatesMatchProgram = false
-                        break
-                    }
-                }
-
-                if (updatesMatchProgram) {
-                    requireActivity().runOnUiThread {
-                        InstallableActions.installContent(
-                            activity = requireActivity(),
-                            fragmentManager = parentFragmentManager,
-                            addonViewModel = addonViewModel,
-                            documents = documents
-                        )
-                    }
-                } else {
-                    requireActivity().runOnUiThread {
-                        MessageDialogFragment.newInstance(
-                            requireActivity(),
-                            titleId = R.string.content_install_notice,
-                            descriptionId = R.string.content_install_notice_description,
-                            positiveAction = {
-                                InstallableActions.installContent(
-                                    activity = requireActivity(),
-                                    fragmentManager = parentFragmentManager,
-                                    addonViewModel = addonViewModel,
-                                    documents = documents
-                                )
-                            },
-                            negativeAction = {}
-                        ).show(parentFragmentManager, MessageDialogFragment.TAG)
-                    }
-                }
-                return@newInstance Any()
-            }.show(parentFragmentManager, ProgressDialogFragment.TAG)
+            InstallableActions.verifyAndInstallContent(
+                activity = requireActivity(),
+                fragmentManager = parentFragmentManager,
+                addonViewModel = addonViewModel,
+                documents = documents,
+                programId = addonViewModel.game?.programId
+            )
         }
 
     private val importUserDataLauncher =
