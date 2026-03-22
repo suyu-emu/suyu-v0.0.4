@@ -20,6 +20,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
+import org.yuzu.yuzu_emu.utils.FullscreenHelper
 import org.yuzu.yuzu_emu.utils.InsetsHelper
 import org.yuzu.yuzu_emu.utils.ThemeHelper
 
@@ -89,12 +90,25 @@ class SettingsSubscreenActivity : AppCompatActivity() {
         )
 
         setInsets()
+        applyFullscreenPreference()
     }
 
     override fun onStart() {
         super.onStart()
         if (!DirectoryInitialization.areDirectoriesReady) {
             DirectoryInitialization.start()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applyFullscreenPreference()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            applyFullscreenPreference()
         }
     }
 
@@ -148,5 +162,9 @@ class SettingsSubscreenActivity : AppCompatActivity() {
 
             windowInsets
         }
+    }
+
+    private fun applyFullscreenPreference() {
+        FullscreenHelper.applyToActivity(this)
     }
 }

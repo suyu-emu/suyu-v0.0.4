@@ -103,6 +103,7 @@ class SettingsActivity : AppCompatActivity() {
         )
 
         setInsets()
+        applyFullscreenPreference()
     }
 
     fun navigateBack() {
@@ -119,6 +120,18 @@ class SettingsActivity : AppCompatActivity() {
         super.onStart()
         if (!DirectoryInitialization.areDirectoriesReady) {
             DirectoryInitialization.start()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applyFullscreenPreference()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            applyFullscreenPreference()
         }
     }
 
@@ -187,5 +200,9 @@ class SettingsActivity : AppCompatActivity() {
 
             windowInsets
         }
+    }
+
+    private fun applyFullscreenPreference() {
+        FullscreenHelper.applyToActivity(this)
     }
 }

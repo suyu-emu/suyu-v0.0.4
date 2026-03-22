@@ -31,15 +31,25 @@ import org.yuzu.yuzu_emu.databinding.DialogLobbyBrowserBinding
 import org.yuzu.yuzu_emu.databinding.ItemLobbyRoomBinding
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.network.NetPlayManager
+import org.yuzu.yuzu_emu.utils.CompatUtils
+import org.yuzu.yuzu_emu.utils.FullscreenHelper
 import java.util.Locale
 
 class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
     private lateinit var binding: DialogLobbyBrowserBinding
     private lateinit var adapter: LobbyRoomAdapter
     private val handler = Handler(Looper.getMainLooper())
+    private val hideSystemBars: Boolean by lazy {
+        runCatching {
+            FullscreenHelper.shouldHideSystemBars(CompatUtils.findActivity(context))
+        }.getOrElse {
+            FullscreenHelper.isFullscreenEnabled(context)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setOnShowListener { applyFullscreenMode() }
 
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.skipCollapsed =
@@ -81,6 +91,7 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
         behavior.expandedOffset = 0
         behavior.skipCollapsed = true
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        applyFullscreenMode()
     }
 
     private fun setupRecyclerView() {
@@ -274,4 +285,10 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
     }
 
     private inner class ScoreItem(val score: Double, val item: NetPlayManager.RoomInfo)
+
+    private fun applyFullscreenMode() {
+        window?.let { window ->
+            FullscreenHelper.applyToWindow(window, hideSystemBars)
+        }
+    }
 }

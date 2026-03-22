@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -22,6 +23,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentProfileManagerBinding
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.UserProfile
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class ProfileManagerFragment : Fragment() {
     private var _binding: FragmentProfileManagerBinding? = null
@@ -172,11 +174,19 @@ class ProfileManagerFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val fabLayoutParams = binding.buttonAddUser.layoutParams as ViewGroup.MarginLayoutParams
-            fabLayoutParams.leftMargin = leftInsets + 24
-            fabLayoutParams.rightMargin = rightInsets + 24
-            fabLayoutParams.bottomMargin = barInsets.bottom + 24
-            binding.buttonAddUser.layoutParams = fabLayoutParams
+            binding.toolbarProfiles.updateMargins(left = leftInsets, right = rightInsets)
+            binding.listProfiles.updateMargins(left = leftInsets, right = rightInsets)
+            binding.listProfiles.updatePadding(
+                bottom = barInsets.bottom +
+                    resources.getDimensionPixelSize(R.dimen.spacing_bottom_list_fab)
+            )
+
+            val fabSpacing = resources.getDimensionPixelSize(R.dimen.spacing_fab)
+            binding.buttonAddUser.updateMargins(
+                left = leftInsets + fabSpacing,
+                right = rightInsets + fabSpacing,
+                bottom = barInsets.bottom + fabSpacing
+            )
 
             windowInsets
         }

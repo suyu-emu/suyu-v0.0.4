@@ -1160,6 +1160,8 @@
     <string name="theme_material_you">Material You</string>
     <string name="app_settings">App Settings</string>
     <string name="theme_and_color">Theme And Color</string>
+    <string name="fullscreen_mode">Fullscreen mode</string>
+    <string name="fullscreen_mode_description">Hide Android system bars across app screens. Swipe from an edge to reveal them temporarily.</string>
 
     <!-- Theme Modes -->
     <string name="change_theme_mode">Change theme mode</string>

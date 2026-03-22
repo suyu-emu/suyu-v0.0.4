@@ -29,6 +29,8 @@ import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
+import org.yuzu.yuzu_emu.utils.FullscreenHelper
+import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 
@@ -1184,6 +1186,39 @@ class SettingsFragmentPresenter(
                     blackBackgrounds,
                     titleId = R.string.use_black_backgrounds,
                     descriptionId = R.string.use_black_backgrounds_description
+                )
+            )
+
+            val fullscreenSetting: AbstractBooleanSetting = object : AbstractBooleanSetting {
+                override fun getBoolean(needsGlobal: Boolean): Boolean =
+                    FullscreenHelper.isFullscreenEnabled(context)
+
+                override fun setBoolean(value: Boolean) {
+                    FullscreenHelper.setFullscreenEnabled(context, value)
+                    settingsViewModel.setShouldRecreate(true)
+                }
+
+                override val key: String = Settings.PREF_APP_FULLSCREEN
+                override val isRuntimeModifiable: Boolean = true
+                override val pairedSettingKey: String = ""
+                override val isSwitchable: Boolean = false
+                override var global: Boolean = true
+                override val isSaveable: Boolean = true
+                override val defaultValue: Boolean = Settings.APP_FULLSCREEN_DEFAULT
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    getBoolean(needsGlobal).toString()
+
+                override fun reset() {
+                    setBoolean(defaultValue)
+                }
+            }
+
+            add(
+                SwitchSetting(
+                    fullscreenSetting,
+                    titleId = R.string.fullscreen_mode,
+                    descriptionId = R.string.fullscreen_mode_description
                 )
             )
 

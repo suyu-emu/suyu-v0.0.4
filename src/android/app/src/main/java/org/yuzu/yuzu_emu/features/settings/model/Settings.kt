@@ -104,6 +104,8 @@ object Settings {
     const val PREF_THEME_MODE = "ThemeMode"
     const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
     const val PREF_STATIC_THEME_COLOR = "StaticThemeColor"
+    const val PREF_APP_FULLSCREEN = "AppFullscreen"
+    const val APP_FULLSCREEN_DEFAULT = false
 
     enum class EmulationOrientation(val int: Int) {
         Unspecified(0),
