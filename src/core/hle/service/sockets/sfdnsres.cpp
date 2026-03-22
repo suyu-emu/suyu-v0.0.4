@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -53,12 +53,15 @@ enum class NetDbError : s32 {
     NoData = 4,
 };
 
-static const constexpr std::array blockedDomains = {"srv.nintendo.net",
-                                                    "battle.net",
-                                                    "microsoft.com",
-                                                    "mojang.com",
-                                                    "xboxlive.com",
-                                                    "minecraftservices.com"};
+static const constexpr std::array blockedDomains = {
+    "srv.nintendo.net", //obvious
+    "phoenix-api.wbagora.com", //hogwarts legacy
+    "battle.net",
+    "microsoft.com", //minecraft dungeons + other games
+    "mojang.com",
+    "xboxlive.com",
+    "minecraftservices.com"
+};
 
 static bool IsBlockedHost(const std::string& host) {
     return std::any_of(
