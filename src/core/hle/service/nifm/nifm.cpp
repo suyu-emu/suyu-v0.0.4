@@ -183,8 +183,8 @@ struct NifmWirelessSettingData {
 static_assert(sizeof(NifmWirelessSettingData) == 0x70,
               "NifmWirelessSettingData has incorrect size.");
 
-#pragma pack(push, 1)
 // This is nn::nifm::detail::sf::NetworkProfileData
+#pragma pack(push, 1)
 struct SfNetworkProfileData {
     IpSettingData ip_setting_data{};
     u128 uuid{};
@@ -196,9 +196,11 @@ struct SfNetworkProfileData {
     SfWirelessSettingData wireless_setting_data{};
     INSERT_PADDING_BYTES(1);
 };
+#pragma pack(pop)
 static_assert(sizeof(SfNetworkProfileData) == 0x17C, "SfNetworkProfileData has incorrect size.");
 
 // This is nn::nifm::NetworkProfileData
+#pragma pack(push, 1)
 struct NifmNetworkProfileData {
     u128 uuid{};
     std::array<char, 0x40> network_name{};
@@ -210,8 +212,8 @@ struct NifmNetworkProfileData {
     NifmWirelessSettingData wireless_setting_data{};
     IpSettingData ip_setting_data{};
 };
-static_assert(sizeof(NifmNetworkProfileData) == 0x18E,
-              "NifmNetworkProfileData has incorrect size.");
+#pragma pack(pop)
+static_assert(sizeof(NifmNetworkProfileData) == 0x18E, "NifmNetworkProfileData has incorrect size.");
 
 struct PendingProfile {
     std::array<char, 0x21> ssid{};
