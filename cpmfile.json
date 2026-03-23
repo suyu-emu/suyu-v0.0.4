@@ -87,8 +87,8 @@
         "bundled": true
     },
     "llvm-mingw": {
-        "repo": "misc/llvm-mingw",
-        "git_host": "git.crueter.xyz",
+        "repo": "eden-emu/llvm-mingw",
+        "git_host": "git.eden-emu.dev",
         "tag": "%VERSION%",
         "version": "20250828",
         "artifact": "clang-rt-builtins.tar.zst",

@@ -246,12 +246,13 @@
     },
     "tzdb": {
         "package": "nx_tzdb",
-        "repo": "misc/tzdb_to_nx",
-        "git_host": "git.crueter.xyz",
+        "repo": "eden-emu/tzdb_to_nx",
+        "git_host": "git.eden-emu.dev",
         "artifact": "%VERSION%.tar.gz",
         "tag": "%VERSION%",
-        "hash": "dc37a189a44ce8b5c988ca550582431a6c7eadfd3c6e709bee6277116ee803e714333e85c9e6cbb5c69346a14d6f2cc7ed96e8aa09cc5fb8a89f945059651db6",
-        "version": "121125"
+        "hash": "cce65a12bf90f4ead43b24a0b95dfad77ac3d9bfbaaf66c55e6701346e7a1e44ca5d2f23f47ee35ee02271eb1082bf1762af207aad9fb236f1c8476812d008ed",
+        "version": "121125",
+        "git_version": "230326"
     },
     "vulkan-headers": {
         "repo": "KhronosGroup/Vulkan-Headers",
