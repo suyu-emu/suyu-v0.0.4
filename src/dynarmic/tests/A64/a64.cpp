@@ -9,8 +9,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <oaknut/oaknut.hpp>
 
-#include "./testenv.h"
-#include "../native/testenv.h"
+#include "dynarmic/tests/A64/testenv.h"
+#include "dynarmic/tests/native/testenv.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/interface/exclusive_monitor.h"
 #include "dynarmic/interface/optimization_flags.h"

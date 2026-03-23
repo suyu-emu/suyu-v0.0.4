@@ -19,10 +19,10 @@
 #include <mcl/bit/bit_field.hpp>
 #include "dynarmic/common/common_types.h"
 
-#include "../rand_int.h"
-#include "../unicorn_emu/a32_unicorn.h"
-#include "./testenv.h"
-#include "../native/testenv.h"
+#include "dynarmic/tests/rand_int.h"
+#include "dynarmic/tests/unicorn_emu/a32_unicorn.h"
+#include "dynarmic/tests/A32/testenv.h"
+#include "dynarmic/tests/native/testenv.h"
 #include "dynarmic/frontend/A32/FPSCR.h"
 #include "dynarmic/frontend/A32/PSR.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
@@ -107,7 +107,7 @@ static bool DoesBehaviorMatch(const A32Unicorn<ThumbTestEnv>& uni, const A32::Ji
     return std::equal(interp_regs.begin(), interp_regs.end(), jit_regs.begin(), jit_regs.end()) && uni.GetCpsr() == jit.Cpsr() && interp_write_records == jit_write_records;
 }
 
-static void RunInstance(size_t run_number, ThumbTestEnv& test_env, A32Unicorn<ThumbTestEnv>& uni, A32::Jit& jit, const ThumbTestEnv::RegisterArray& initial_regs, size_t instruction_count, size_t instructions_to_execute_count) {
+static void RunInstance(size_t run_number, ThumbTestEnv& test_env, A32::UserConfig const& config, A32Unicorn<ThumbTestEnv>& uni, A32::Jit& jit, const ThumbTestEnv::RegisterArray& initial_regs, size_t instruction_count, size_t instructions_to_execute_count) {
     uni.ClearPageCache();
     jit.ClearCache();
 
@@ -145,9 +145,8 @@ static void RunInstance(size_t run_number, ThumbTestEnv& test_env, A32Unicorn<Th
         printf("Failed at execution number %zu\n", run_number);
 
         printf("\nInstruction Listing: \n");
-        for (size_t i = 0; i < instruction_count; i++) {
-            printf("%04x %s\n", test_env.code_mem[i], A32::DisassembleThumb16(test_env.code_mem[i]).c_str());
-        }
+        for (size_t i = 0; i < instruction_count; i++)
+            printf("%04x\n", test_env.code_mem[i]);
 
         printf("\nInitial Register Listing: \n");
         for (size_t i = 0; i < initial_regs.size(); i++) {
@@ -175,11 +174,14 @@ static void RunInstance(size_t run_number, ThumbTestEnv& test_env, A32Unicorn<Th
         A32::PSR cpsr;
         cpsr.T(true);
 
+        IR::Block ir_block{A32::LocationDescriptor{0, {}, {}}};
+
         size_t num_insts = 0;
         while (num_insts < instructions_to_execute_count) {
             A32::LocationDescriptor descriptor = {u32(num_insts * 4), cpsr, A32::FPSCR{}};
-            IR::Block ir_block = A32::Translate(descriptor, &test_env, {});
-            Optimization::Optimize(ir_block, &test_env, {});
+            ir_block.Reset(descriptor);
+            A32::Translate(ir_block, descriptor, &test_env, {});
+            Optimization::Optimize(ir_block, config, {});
             printf("\n\nIR:\n%s", IR::DumpBlock(ir_block).c_str());
             printf("\n\nx86_64:\n");
             printf("%s", jit.Disassemble().c_str());
@@ -201,8 +203,9 @@ void FuzzJitThumb16(const size_t instruction_count, const size_t instructions_to
     test_env.code_mem.back() = 0xE7FE;  // b +#0
 
     // Prepare test subjects
+    A32::UserConfig config{GetUserConfig(&test_env)};
     A32Unicorn uni{test_env};
-    A32::Jit jit{GetUserConfig(&test_env)};
+    A32::Jit jit{config};
 
     for (size_t run_number = 0; run_number < run_count; run_number++) {
         ThumbTestEnv::RegisterArray initial_regs;
@@ -211,7 +214,7 @@ void FuzzJitThumb16(const size_t instruction_count, const size_t instructions_to
 
         std::generate_n(test_env.code_mem.begin(), instruction_count, instruction_generator);
 
-        RunInstance(run_number, test_env, uni, jit, initial_regs, instruction_count, instructions_to_execute_count);
+        RunInstance(run_number, test_env, config, uni, jit, initial_regs, instruction_count, instructions_to_execute_count);
     }
 }
 
@@ -225,7 +228,8 @@ void FuzzJitThumb32(const size_t instruction_count, const size_t instructions_to
 
     // Prepare test subjects
     A32Unicorn uni{test_env};
-    A32::Jit jit{GetUserConfig(&test_env)};
+    A32::UserConfig config{GetUserConfig(&test_env)};
+    A32::Jit jit{config};
 
     for (size_t run_number = 0; run_number < run_count; run_number++) {
         ThumbTestEnv::RegisterArray initial_regs;
@@ -241,7 +245,7 @@ void FuzzJitThumb32(const size_t instruction_count, const size_t instructions_to
             test_env.code_mem[i * 2 + 1] = first_halfword;
         }
 
-        RunInstance(run_number, test_env, uni, jit, initial_regs, instruction_count, instructions_to_execute_count);
+        RunInstance(run_number, test_env, config, uni, jit, initial_regs, instruction_count, instructions_to_execute_count);
     }
 }
 
@@ -504,7 +508,8 @@ TEST_CASE("Verify fix for off by one error in MemoryRead32 worked", "[Thumb][Thu
 
     // Prepare test subjects
     A32Unicorn<ThumbTestEnv> uni{test_env};
-    A32::Jit jit{GetUserConfig(&test_env)};
+    A32::UserConfig config{GetUserConfig(&test_env)};
+    A32::Jit jit{config};
 
     constexpr ThumbTestEnv::RegisterArray initial_regs{
         0xe90ecd70,
@@ -534,5 +539,5 @@ TEST_CASE("Verify fix for off by one error in MemoryRead32 worked", "[Thumb][Thu
         0xE7FE,  // b +#0
     };
 
-    RunInstance(1, test_env, uni, jit, initial_regs, 5, 5);
+    RunInstance(1, test_env, config, uni, jit, initial_regs, 5, 5);
 }

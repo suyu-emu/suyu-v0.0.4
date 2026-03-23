@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -6,17 +6,11 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "./a64_unicorn.h"
-
+#include <fmt/format.h>
+#include "dynarmic/tests/unicorn_emu/a64_unicorn.h"
 #include "dynarmic/common/assert.h"
 
-#define CHECKED(expr)                                                                                    \
-    do {                                                                                                 \
-        if (auto cerr_ = (expr)) {                                                                       \
-            ASSERT(false && "Call " #expr " failed with error: {} ({})\n", static_cast<size_t>(cerr_), \
-                       uc_strerror(cerr_));                                                              \
-        }                                                                                                \
-    } while (0)
+#define CHECKED(expr) do if ((expr)) ASSERT(false && "Call " #expr " failed with error\n"); while (0)
 
 constexpr u64 BEGIN_ADDRESS = 0;
 constexpr u64 END_ADDRESS = ~u64(0);
@@ -172,7 +166,7 @@ void A64Unicorn::DumpMemoryInformation() {
 void A64Unicorn::InterruptHook(uc_engine* uc, u32 int_number, void* user_data) {
     auto* this_ = static_cast<A64Unicorn*>(user_data);
 
-    u32 esr;
+    u32 esr = 0;
     //CHECKED(uc_reg_read(uc, UC_ARM64_REG_ESR_EL0, &esr));
 
     auto ec = esr >> 26;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -21,7 +21,7 @@
 
 #include "dynarmic/common/common_types.h"
 
-#include "../A64/testenv.h"
+#include "dynarmic/tests/A64/testenv.h"
 
 class A64Unicorn final {
 public:

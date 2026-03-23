@@ -22,8 +22,8 @@
 
 #include "./A32/testenv.h"
 #include "./A64/testenv.h"
-#include "./fuzz_util.h"
-#include "./rand_int.h"
+#include "dynarmic/tests/fuzz_util.h"
+#include "dynarmic/tests/rand_int.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/llvm_disassemble.h"

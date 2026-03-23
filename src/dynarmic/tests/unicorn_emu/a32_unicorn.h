@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -21,7 +21,7 @@
 
 #include "dynarmic/common/common_types.h"
 
-#include "../A32/testenv.h"
+#include "dynarmic/tests/A32/testenv.h"
 
 namespace Unicorn::A32 {
 static constexpr size_t num_gprs = 16;

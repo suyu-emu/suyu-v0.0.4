@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -11,8 +11,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include "dynarmic/common/common_types.h"
 
-#include "./testenv.h"
-#include "../native/testenv.h"
+#include "dynarmic/tests/A64/testenv.h"
+#include "dynarmic/tests/native/testenv.h"
 
 using namespace Dynarmic;
 

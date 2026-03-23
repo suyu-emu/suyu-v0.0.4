@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -6,22 +6,14 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "./a32_unicorn.h"
-
 #include <type_traits>
-
-#include "dynarmic/common/assert.h"
+#include <fmt/format.h>
 #include <mcl/bit/bit_field.hpp>
+#include "dynarmic/tests/unicorn_emu/a32_unicorn.h"
+#include "dynarmic/common/assert.h"
+#include "dynarmic/tests/A32/testenv.h"
 
-#include "../A32/testenv.h"
-
-#define CHECKED(expr)                                                                                    \
-    do {                                                                                                 \
-        if (auto cerr_ = (expr)) {                                                                       \
-            ASSERT(false && "Call " #expr " failed with error: {} ({})\n", static_cast<size_t>(cerr_), \
-                       uc_strerror(cerr_));                                                              \
-        }                                                                                                \
-    } while (0)
+#define CHECKED(expr) do if ((expr)) ASSERT(false && "Call " #expr " failed with error\n"); while (0)
 
 constexpr u32 BEGIN_ADDRESS = 0;
 constexpr u32 END_ADDRESS = ~u32(0);
