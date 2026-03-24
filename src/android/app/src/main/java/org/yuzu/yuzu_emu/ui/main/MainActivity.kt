@@ -86,8 +86,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
 
-        // Since Android 15, google automatically forces "games" to be 60 hrz
-        // This ensures the display's max refresh rate is actually used
         display?.let {
             val supportedModes = it.supportedModes
             val maxRefreshRate = supportedModes.maxByOrNull { mode -> mode.refreshRate }
