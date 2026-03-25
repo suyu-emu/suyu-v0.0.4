@@ -29,7 +29,6 @@ import org.yuzu.yuzu_emu.databinding.FragmentDriverManagerBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen
-import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.FileUtil
@@ -216,19 +215,23 @@ class DriverManagerFragment : Fragment() {
 
                 val driverData = GpuDriverHelper.getMetadataFromZip(driverFile)
                 val driverInList =
-                    driverViewModel.driverData.firstOrNull { it.second == driverData }
+                    driverViewModel.driverData.firstOrNull {
+                        it.first == driverPath || it.second == driverData
+                    }
                 if (driverInList != null) {
                     return@newInstance getString(R.string.driver_already_installed)
                 } else {
                     driverViewModel.onDriverAdded(Pair(driverPath, driverData))
                     withContext(Dispatchers.Main) {
                         if (_binding != null) {
+                            refreshDriverList()
                             val adapter = binding.listDrivers.adapter as DriverAdapter
-                            adapter.addItem(driverData.toDriver())
-                            adapter.selectItem(adapter.currentList.indices.last)
+                            val selectedPosition = adapter.currentList
+                                .indexOfFirst { it.selected }
+                                .let { if (it == -1) 0 else it }
                             driverViewModel.showClearButton(!StringSetting.DRIVER_PATH.global)
                             binding.listDrivers
-                                .smoothScrollToPosition(adapter.currentList.indices.last)
+                                .smoothScrollToPosition(selectedPosition)
                         }
                     }
                 }

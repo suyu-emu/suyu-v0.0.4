@@ -154,14 +154,29 @@ class DriverViewModel : ViewModel() {
     }
 
     fun onDriverRemoved(removedPosition: Int, selectedPosition: Int) {
-        driversToDelete.add(driverData[removedPosition - 1].first)
-        driverData.removeAt(removedPosition - 1)
-        onDriverSelected(selectedPosition)
+        val driverIndex = removedPosition - 1
+        if (driverIndex !in driverData.indices) {
+            updateDriverList()
+            return
+        }
+
+        driversToDelete.add(driverData[driverIndex].first)
+        driverData.removeAt(driverIndex)
+        val safeSelectedPosition = selectedPosition.coerceIn(0, driverData.size)
+        onDriverSelected(safeSelectedPosition)
     }
 
     fun onDriverAdded(driver: Pair<String, GpuDriverMetadata>) {
         if (driversToDelete.contains(driver.first)) {
             driversToDelete.remove(driver.first)
+        }
+
+        val existingDriverIndex = driverData.indexOfFirst {
+            it.first == driver.first || it.second == driver.second
+        }
+        if (existingDriverIndex != -1) {
+            onDriverSelected(existingDriverIndex + 1)
+            return
         }
         driverData.add(driver)
         onDriverSelected(driverData.size)
