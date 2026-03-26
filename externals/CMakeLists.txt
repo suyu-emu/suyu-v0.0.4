@@ -109,16 +109,15 @@ if(ENABLE_CUBEB)
     if (cubeb_ADDED)
         if (NOT MSVC)
             if (TARGET speex)
-                target_compile_options(speex PRIVATE -Wno-sign-compare)
+                target_compile_options(speex PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-compare>)
             endif()
-
             set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
             target_compile_options(cubeb INTERFACE
-                -Wno-implicit-const-int-float-conversion
-                -Wno-shadow
-                -Wno-missing-declarations
-                -Wno-return-type
-                -Wno-uninitialized
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-implicit-const-int-float-conversion>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-shadow>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-declarations>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-return-type>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-uninitialized>
             )
         else()
             target_compile_options(cubeb PRIVATE
@@ -184,7 +183,9 @@ if (YUZU_USE_BUNDLED_SIRIT)
 else()
     AddJsonPackage(sirit)
     if(MSVC AND CXX_CLANG)
-        target_compile_options(siritobj PRIVATE -Wno-error=unused-command-line-argument)
+        target_compile_options(siritobj PRIVATE
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-error=unused-command-line-argument>
+        )
     endif()
 endif()
 
@@ -220,7 +221,7 @@ AddJsonPackage(vulkan-memory-allocator)
 if (VulkanMemoryAllocator_ADDED)
     if (CXX_CLANG)
         target_compile_options(VulkanMemoryAllocator INTERFACE
-            -Wno-unused-variable
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-variable>
         )
     elseif(MSVC)
         target_compile_options(VulkanMemoryAllocator INTERFACE

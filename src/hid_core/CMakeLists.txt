@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -148,13 +151,10 @@ if (MSVC)
     )
 else()
     target_compile_options(hid_core PRIVATE
-        -Werror=conversion
-
-        -Wno-sign-conversion
-        -Wno-cast-function-type
-
-        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type>
+        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>)
 endif()
 
 create_target_directory_groups(hid_core)

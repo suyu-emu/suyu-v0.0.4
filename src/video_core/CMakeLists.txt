@@ -363,14 +363,14 @@ else()
     if (APPLE)
         # error: declaration shadows a typedef in 'interval_base_set<SubType, DomainT, Compare, Interval, Alloc>'
         # error: implicit conversion loses integer precision: 'int' to 'boost::icl::bound_type' (aka 'unsigned char')
-        target_compile_options(video_core PRIVATE -Wno-shadow -Wno-unused-local-typedef)
+        target_compile_options(video_core PRIVATE
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-shadow>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-local-typedef>)
     else()
-        target_compile_options(video_core PRIVATE -Werror=conversion)
+        target_compile_options(video_core PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>)
     endif()
 
-    target_compile_options(video_core PRIVATE
-        -Wno-sign-conversion
-    )
+    target_compile_options(video_core PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>)
 
     # xbyak
     set_source_files_properties(macro/macro_jit_x64.cpp PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-shadow")

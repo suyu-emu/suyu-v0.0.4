@@ -118,47 +118,42 @@ if (MSVC AND NOT CXX_CLANG)
 else()
     if (NOT MSVC)
         add_compile_options(
-            -fwrapv
-            -fno-rtti # Disable RTTI
-            -pipe
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-fwrapv>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-pipe>
+            # Disable RTTI (C++ only)
+            $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
     endif()
 
     add_compile_options(
-        -Werror=all
-        -Werror=extra
-        -Werror=missing-declarations
-        -Werror=shadow
-        -Werror=unused
-
-        -Wno-attributes
-        -Wno-invalid-offsetof
-        -Wno-unused-parameter
-        -Wno-missing-field-initializers
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=all>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=extra>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=missing-declarations>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=unused>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-attributes>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-invalid-offsetof>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-parameter>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>)
 
     if (CXX_CLANG OR CXX_ICC OR CXX_APPLE) # Clang, AppleClang, or Intel C++
         if (NOT MSVC)
             add_compile_options(
-                -Werror=shadow-uncaptured-local
-                -Werror=implicit-fallthrough
-                -Werror=type-limits
-            )
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow-uncaptured-local>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=implicit-fallthrough>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=type-limits>)
         endif()
-
         add_compile_options(
-            -Wno-braced-scalar-init
-            -Wno-unused-private-field
-            -Wno-nullability-completeness
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-braced-scalar-init>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-private-field>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-nullability-completeness>)
     endif()
 
     if (ARCHITECTURE_x86_64)
-        add_compile_options("-mcx16")
+        add_compile_options(-mcx16)
     endif()
 
     if (APPLE AND CXX_CLANG)
-        add_compile_options("-stdlib=libc++")
+        add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-stdlib=libc++>)
     endif()
 
     # GCC bugs
@@ -166,10 +161,9 @@ else()
         # These diagnostics would be great if they worked, but are just completely broken
         # and produce bogus errors on external libraries like fmt.
         add_compile_options(
-            -Wno-array-bounds
-            -Wno-stringop-overread
-            -Wno-stringop-overflow
-        )
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-array-bounds>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-stringop-overread>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-stringop-overflow>)
     endif()
 
     # Set file offset size to 64 bits.

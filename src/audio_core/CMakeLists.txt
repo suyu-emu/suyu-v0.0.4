@@ -222,10 +222,8 @@ if (MSVC)
     )
 else()
     target_compile_options(audio_core PRIVATE
-        -Werror=conversion
-
-        -Wno-sign-conversion
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>)
 endif()
 
 target_include_directories(audio_core PRIVATE ${OPUS_INCLUDE_DIRS})

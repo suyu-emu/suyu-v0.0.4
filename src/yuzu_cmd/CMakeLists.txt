@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
@@ -60,8 +60,8 @@ create_target_directory_groups(yuzu-cmd)
 # needed for vma
 if (NOT MSVC)
     target_compile_options(yuzu-cmd PRIVATE
-        -Wno-conversion
-        -Wno-unused-variable
-        -Wno-unused-parameter
-        -Wno-missing-field-initializers)
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-variable>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-parameter>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>)
 endif()

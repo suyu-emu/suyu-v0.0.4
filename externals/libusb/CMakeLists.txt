@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2020 yuzu Emulator Project
@@ -232,7 +232,7 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         )
         find_package(Threads REQUIRED)
         if(THREADS_HAVE_PTHREAD_ARG)
-          target_compile_options(usb PUBLIC "-pthread")
+          target_compile_options(usb PUBLIC $<$<COMPILE_LANGUAGE:C,CXX>:-pthread>)
         endif()
         if(CMAKE_THREAD_LIBS_INIT)
           target_link_libraries(usb PRIVATE "${CMAKE_THREAD_LIBS_INIT}")

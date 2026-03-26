@@ -443,10 +443,10 @@ endif()
 if (NOT MSVC AND (APPLE OR NOT YUZU_STATIC_BUILD))
     # needed for vma
     target_compile_options(yuzu PRIVATE
-        -Wno-conversion
-        -Wno-unused-variable
-        -Wno-unused-parameter
-        -Wno-missing-field-initializers)
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-variable>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-parameter>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>)
 endif()
 
 # Remember that the linker is incredibly stupid.
