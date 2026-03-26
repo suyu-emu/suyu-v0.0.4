@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -372,6 +372,8 @@ Result SharedBufferManager::PresentSharedFrameBuffer(android::Fence fence,
     R_UNLESS(producer->QueueBuffer(static_cast<s32>(slot), input, std::addressof(output)) ==
                  android::Status::NoError,
              VI::ResultOperationFailed);
+
+    (void)m_container.SetLayerZIndex(layer_id, 100000);
 
     // We succeeded.
     R_SUCCEED();
