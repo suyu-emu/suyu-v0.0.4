@@ -362,16 +362,27 @@ target_sources(yuzu
         ${LANGUAGES}
         ${THEMES})
 
+# TODO(crueter): Move Assets.car/icon/icns handling to its own Module.
 if (APPLE)
-    # Normal icns
-    set(MACOSX_ICON "${CMAKE_SOURCE_DIR}/dist/eden.icns")
-    set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    target_sources(yuzu PRIVATE ${MACOSX_ICON})
+    # Xcode will automatically generate the Assets.car and icns file for us.
+    set(_dist "${CMAKE_SOURCE_DIR}/dist")
+    if (CMAKE_GENERATOR MATCHES "Xcode")
+        set(_icons "${_dist}/eden.icon")
 
-    # Liquid glass
-    set(MACOSX_LIQUID_GLASS_ICON "${CMAKE_SOURCE_DIR}/dist/Assets.car")
-    set_source_files_properties(${MACOSX_LIQUID_GLASS_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    target_sources(yuzu PRIVATE ${MACOSX_LIQUID_GLASS_ICON})
+        set_target_properties(eden PROPERTIES
+            XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME eden
+            MACOSX_BUNDLE_ICON_FILE eden
+            # Also force xcode to manage signing for us.
+            XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED ON
+            XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED ON)
+    # Otherwise, we'll use our own.
+    else()
+        set(_icons "${_dist}/eden.icns" "${_dist}/Assets.car")
+    endif()
+
+    set_source_files_properties(${_icons} PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(yuzu PRIVATE ${_icons})
 
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE TRUE)
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
