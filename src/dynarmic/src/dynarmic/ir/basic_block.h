@@ -16,7 +16,7 @@
 #include <boost/container/container_fwd.hpp>
 #include <boost/container/static_vector.hpp>
 #include <boost/container/stable_vector.hpp>
-#include <mcl/container/intrusive_list.hpp>
+#include "dynarmic/mcl/intrusive_list.hpp"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/ir/location_descriptor.h"

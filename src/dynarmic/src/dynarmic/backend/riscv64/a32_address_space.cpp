@@ -99,7 +99,7 @@ void A32AddressSpace::SetCursorPtr(CodePtr ptr) {
 }
 
 size_t A32AddressSpace::GetRemainingSize() {
-    return conf.code_cache_size - (GetCursorPtr<sptr>() - GetMemPtr<sptr>());
+    return conf.code_cache_size - (GetCursorPtr<std::intptr_t>() - GetMemPtr<std::intptr_t>());
 }
 
 EmittedBlockInfo A32AddressSpace::Emit(IR::Block block) {

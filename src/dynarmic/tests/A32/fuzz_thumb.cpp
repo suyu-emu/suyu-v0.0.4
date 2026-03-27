@@ -16,7 +16,7 @@
 #include <tuple>
 
 #include <catch2/catch_test_macros.hpp>
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/tests/rand_int.h"

@@ -41,25 +41,25 @@ private:
 
     template<typename T>
     T GetMemPtr() {
-        static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
+        static_assert(std::is_pointer_v<T> || std::is_same_v<T, std::uintptr_t> || std::is_same_v<T, std::intptr_t>);
         return reinterpret_cast<T>(as.GetBufferPointer(0));
     }
 
     template<typename T>
     T GetMemPtr() const {
-        static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
+        static_assert(std::is_pointer_v<T> || std::is_same_v<T, std::uintptr_t> || std::is_same_v<T, std::intptr_t>);
         return reinterpret_cast<const T>(as.GetBufferPointer(0));
     }
 
     template<typename T>
     T GetCursorPtr() {
-        static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
+        static_assert(std::is_pointer_v<T> || std::is_same_v<T, std::uintptr_t> || std::is_same_v<T, std::intptr_t>);
         return reinterpret_cast<T>(as.GetCursorPointer());
     }
 
     template<typename T>
     T GetCursorPtr() const {
-        static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
+        static_assert(std::is_pointer_v<T> || std::is_same_v<T, std::uintptr_t> || std::is_same_v<T, std::intptr_t>);
         return reinterpret_cast<const T>(as.GetCursorPointer());
     }
 

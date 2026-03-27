@@ -13,9 +13,8 @@
 #include <iterator>
 
 #include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include <bit>
-#include <mcl/mp/metavalue/lift_value.hpp>
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/arm64/abi.h"
@@ -299,7 +298,7 @@ int RegAlloc::GenerateImmediate(const IR::Value& value) {
 
         return 0;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
+        UNREACHABLE();
     }
 }
 
@@ -366,7 +365,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
     } else if constexpr (required_kind == HostLoc::Kind::Flags) {
         UNREACHABLE(); //A simple read from flags is likely a logic error
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<required_kind>>);
+        UNREACHABLE();
     }
 }
 
@@ -390,7 +389,7 @@ int RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
         flags.SetupLocation(value);
         return 0;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
+        UNREACHABLE();
     }
 }
 
@@ -410,7 +409,7 @@ int RegAlloc::RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* 
     } else if constexpr (kind == HostLoc::Kind::Flags) {
         ASSERT(false && "Incorrect function for ReadWrite of flags");
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
+        UNREACHABLE();
     }
 }
 

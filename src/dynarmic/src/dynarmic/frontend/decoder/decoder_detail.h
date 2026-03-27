@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -13,8 +13,8 @@
 #include <tuple>
 
 #include "dynarmic/common/assert.h"
-#include <mcl/bitsizeof.hpp>
-#include <mcl/type_traits/function_info.hpp>
+#include "dynarmic/mcl/bit.hpp"
+#include "dynarmic/mcl/function_info.hpp"
 
 namespace Dynarmic::Decoder {
 namespace detail {
@@ -75,11 +75,11 @@ struct detail {
     /// An argument is specified by a continuous string of the same character.
     template<size_t N>
     static consteval auto GetArgInfo(std::array<char, opcode_bitsize> bitstring) {
+        //static_assert(N > 0, "unexpected field");
         std::array<opcode_type, N> masks = {};
         std::array<size_t, N> shifts = {};
         size_t arg_index = 0;
         char ch = 0;
-
         for (size_t i = 0; i < opcode_bitsize; i++) {
             if (bitstring[i] == '0' || bitstring[i] == '1' || bitstring[i] == '-') {
                 if (ch != 0) {
@@ -93,17 +93,10 @@ struct detail {
                     ch = bitstring[i];
                     arg_index++;
                 }
-
-                if constexpr (N > 0) {
-                    const size_t bit_position = opcode_bitsize - i - 1;
-                    if (arg_index >= N)
-                        throw std::out_of_range("Unexpected field");
-
-                    masks[arg_index] |= static_cast<opcode_type>(1) << bit_position;
-                    shifts[arg_index] = bit_position;
-                } else {
-                    throw std::out_of_range("Unexpected field");
-                }
+                const size_t bit_position = opcode_bitsize - i - 1;
+                //static_assert(arg_index >= N, "unexpected field");
+                masks[arg_index] |= opcode_type(1) << bit_position;
+                shifts[arg_index] = bit_position;
             }
         }
 #if !defined(DYNARMIC_IGNORE_ASSERTS) && !defined(__ANDROID__)

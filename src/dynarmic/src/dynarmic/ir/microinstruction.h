@@ -10,7 +10,7 @@
 
 #include <array>
 
-#include <mcl/container/intrusive_list.hpp>
+#include "dynarmic/mcl/intrusive_list.hpp"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/ir/value.h"

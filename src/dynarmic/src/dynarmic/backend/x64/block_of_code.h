@@ -13,7 +13,7 @@
 #include <memory>
 #include <type_traits>
 
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/common/common_types.h"
 #include "dynarmic/backend/x64/xbyak.h"
 #include "dynarmic/backend/x64/abi.h"

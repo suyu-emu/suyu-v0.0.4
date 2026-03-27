@@ -32,8 +32,7 @@ bool CondCanContinue(const ConditionalState cond_state, const A32::IREmitter& ir
 }
 
 bool IsConditionPassed(TranslatorVisitor& v, IR::Cond cond) {
-    ASSERT_MSG(v.cond_state != ConditionalState::Break,
-               "This should never happen. We requested a break but that wasn't honored.");
+    ASSERT(v.cond_state != ConditionalState::Break && "This should never happen. We requested a break but that wasn't honored.");
 
     if (cond == IR::Cond::NV) {
         // NV conditional is obsolete

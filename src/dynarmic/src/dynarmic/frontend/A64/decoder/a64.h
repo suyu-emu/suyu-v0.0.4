@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include <mcl/bit/bit_count.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/frontend/decoder/decoder_detail.h"

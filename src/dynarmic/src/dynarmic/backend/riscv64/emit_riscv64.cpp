@@ -12,7 +12,7 @@
 
 #include <biscuit/assembler.hpp>
 #include <fmt/ostream.h>
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/backend/riscv64/a32_jitstate.h"
 #include "dynarmic/backend/riscv64/abi.h"

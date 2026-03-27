@@ -27,8 +27,8 @@
 #include "dynarmic/ir/opcodes.h"
 #include "dynarmic/ir/opt_passes.h"
 #include "dynarmic/ir/type.h"
-#include "mcl/bit/swap.hpp"
-#include "mcl/bit/rotate.hpp"
+#include "dynarmic/mcl/bit.hpp"
+#include "dynarmic/mcl/bit.hpp"
 
 namespace Dynarmic::Optimization {
 

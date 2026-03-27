@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -12,7 +12,6 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include <mcl/mp/metavalue/lift_value.hpp>
 #include "dynarmic/common/common_types.h"
 #include "dynarmic/common/assert.h"
 #include <oaknut/oaknut.hpp>
@@ -37,7 +36,7 @@ constexpr auto Rscratch0() {
     } else if constexpr (bitsize == 64) {
         return Xscratch0;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<bitsize>>);
+        return Xscratch0; //UNREACHABLE();
     }
 }
 
@@ -48,7 +47,7 @@ constexpr auto Rscratch1() {
     } else if constexpr (bitsize == 64) {
         return Xscratch1;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<bitsize>>);
+        return Xscratch1; //UNREACHABLE();
     }
 }
 

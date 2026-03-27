@@ -15,8 +15,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_field.hpp>
-#include <mcl/scope_exit.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/common/common_types.h"
 #include <boost/container/static_vector.hpp>
 

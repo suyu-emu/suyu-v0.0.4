@@ -76,9 +76,6 @@ if (ARCHITECTURE_riscv64)
     AddJsonPackage(biscuit)
 endif()
 
-# mcl
-AddJsonPackage(mcl)
-
 # Vulkan stuff
 AddDependentPackages(vulkan-headers vulkan-utility-libraries)
 

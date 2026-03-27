@@ -8,7 +8,7 @@
 
 #include <type_traits>
 #include <fmt/format.h>
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/tests/unicorn_emu/a32_unicorn.h"
 #include "dynarmic/common/assert.h"
 #include "dynarmic/tests/A32/testenv.h"

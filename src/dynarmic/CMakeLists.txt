@@ -78,7 +78,9 @@ if (MSVC)
         /Zc:throwingNew     # Assumes new (without std::nothrow) never returns null.
         /volatile:iso       # Use strict standard-abiding volatile semantics
         /bigobj             # Increase number of sections in .obj files
-        /DNOMINMAX)
+        /DNOMINMAX
+        /GR-
+    )
 
     if (CXX_CLANG)
         list(APPEND DYNARMIC_CXX_FLAGS
@@ -91,8 +93,10 @@ else()
         -Wextra
         -Wcast-qual
         -pedantic
-        -Wno-missing-braces)
-
+        -Wno-missing-braces
+        -fno-rtti
+        #-fno-exceptions
+    )
     if (CXX_GCC)
         # GCC produces bogus -Warray-bounds warnings from xbyak headers for code paths that are not
         # actually reachable.  Specifically, it happens in cases where some code casts an Operand&
@@ -102,7 +106,6 @@ else()
         list(APPEND DYNARMIC_CXX_FLAGS -Wno-array-bounds)
         list(APPEND DYNARMIC_CXX_FLAGS -Wstack-usage=4096)
     endif()
-
     if (CXX_CLANG)
         # Bracket depth determines maximum size of a fold expression in Clang since 9c9974c3ccb6.
         # And this in turns limits the size of a std::array.
@@ -117,7 +120,6 @@ if (NOT Boost_FOUND)
 endif()
 
 find_package(fmt 8 CONFIG)
-find_package(mcl 0.1.12 REQUIRED)
 find_package(unordered_dense REQUIRED)
 
 if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)

@@ -9,8 +9,7 @@
 #pragma once
 
 #include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_field.hpp>
-#include <mcl/bit/rotate.hpp>
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/frontend/A32/a32_ir_emitter.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"

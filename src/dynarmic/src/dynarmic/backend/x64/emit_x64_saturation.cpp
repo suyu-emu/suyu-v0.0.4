@@ -9,9 +9,9 @@
 #include <limits>
 
 #include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/common/common_types.h"
-#include <mcl/type_traits/integer_of_size.hpp>
+#include "dynarmic/mcl/integer_of_size.hpp"
 
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/emit_x64.h"

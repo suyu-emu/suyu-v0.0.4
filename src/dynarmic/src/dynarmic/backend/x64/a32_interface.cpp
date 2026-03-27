@@ -14,7 +14,6 @@
 #include <fmt/format.h>
 #include "dynarmic/common/assert.h"
 #include <bit>
-#include <mcl/scope_exit.hpp>
 #include "dynarmic/common/common_types.h"
 #include "dynarmic/common/llvm_disassemble.h"
 
@@ -77,12 +76,7 @@ struct Jit::Impl {
     HaltReason Run() {
         ASSERT(!jit_interface->is_executing);
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
-
         jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
         const CodePtr current_codeptr = [this] {
             // RSB optimization
             const u32 new_rsb_ptr = (jit_state.rsb_ptr - 1) & A32JitState::RSBPtrMask;
@@ -93,27 +87,19 @@ struct Jit::Impl {
 
             return GetCurrentBlock();
         }();
-
         const HaltReason hr = block_of_code.RunCode(&jit_state, current_codeptr);
-
         PerformRequestedCacheInvalidation(hr);
-
+        jit_interface->is_executing = false;
         return hr;
     }
 
     HaltReason Step() {
         ASSERT(!jit_interface->is_executing);
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
-
         jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
         const HaltReason hr = block_of_code.StepCode(&jit_state, GetCurrentSingleStep());
-
         PerformRequestedCacheInvalidation(hr);
-
+        jit_interface->is_executing = false;
         return hr;
     }
 

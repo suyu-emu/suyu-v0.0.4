@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/macro/concatenate_tokens.hpp>
+#define CONCATENATE_TOKENS(x, y) CONCATENATE_TOKENS_IMPL(x, y)
+#define CONCATENATE_TOKENS_IMPL(x, y) x##y
 
 #define AxxEmitX64 CONCATENATE_TOKENS(Axx, EmitX64)
 #define AxxEmitContext CONCATENATE_TOKENS(Axx, EmitContext)

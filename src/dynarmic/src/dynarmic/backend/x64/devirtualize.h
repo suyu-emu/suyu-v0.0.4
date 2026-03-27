@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -13,7 +13,7 @@
 
 #include <bit>
 #include "dynarmic/common/common_types.h"
-#include <mcl/type_traits/function_info.hpp>
+#include "dynarmic/mcl/function_info.hpp"
 
 #include "dynarmic/backend/x64/callback.h"
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -10,11 +10,10 @@
 
 #include <cstddef>
 #include <tuple>
-
-#include <mcl/hash/xmrx.hpp>
-#include "dynarmic/common/common_types.h"
 #include <ankerl/unordered_dense.h>
 
+#include "dynarmic/mcl/bit.hpp"
+#include "dynarmic/common/common_types.h"
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/ir/location_descriptor.h"
 
@@ -22,9 +21,16 @@ namespace Dynarmic::Backend::Arm64 {
 
 using DoNotFastmemMarker = std::tuple<IR::LocationDescriptor, unsigned>;
 
+constexpr size_t xmrx(size_t x) noexcept {
+    x ^= x >> 32;
+    x *= 0xff51afd7ed558ccd;
+    x ^= mcl::bit::rotate_right(x, 47) ^ mcl::bit::rotate_right(x, 23);
+    return x;
+}
+
 struct DoNotFastmemMarkerHash {
-    size_t operator()(const DoNotFastmemMarker& value) const {
-        return mcl::hash::xmrx(std::get<0>(value).Value() ^ static_cast<u64>(std::get<1>(value)));
+    [[nodiscard]] constexpr size_t operator()(const DoNotFastmemMarker& value) const noexcept {
+        return xmrx(std::get<0>(value).Value() ^ u64(std::get<1>(value)));
     }
 };
 

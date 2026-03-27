@@ -11,9 +11,8 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include "dynarmic/common/assert.h"
-#include <mcl/scope_exit.hpp>
 #include "dynarmic/common/common_types.h"
-#include <mcl/type_traits/integer_of_size.hpp>
+#include "dynarmic/mcl/integer_of_size.hpp"
 #include <boost/container/static_vector.hpp>
 
 #include "dynarmic/backend/x64/a64_jitstate.h"

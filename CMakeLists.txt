@@ -526,7 +526,6 @@ if (NOT YUZU_STATIC_ROOM)
     find_package(SPIRV-Tools)
     find_package(sirit)
     find_package(gamemode)
-    find_package(mcl)
     find_package(frozen)
 
     if (ARCHITECTURE_riscv64)

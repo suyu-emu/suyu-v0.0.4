@@ -208,18 +208,6 @@
         "version": "0.9.1",
         "git_version": "0.19.0"
     },
-    "mcl": {
-        "version": "0.1.12",
-        "repo": "azahar-emu/mcl",
-        "sha": "7b08d83418",
-        "hash": "9c6ba624cb22ef622f78046a82abb99bf5026284ba17dfacaf46ac842cbd3b0f515f5ba45a1598c7671318a78a2e648db72ce8d10e7537f34e39800bdcb57694",
-        "options": [
-            "MCL_INSTALL OFF"
-        ],
-        "patches": [
-            "0001-assert-macro.patch"
-        ]
-    },
     "libusb": {
         "repo": "libusb/libusb",
         "tag": "v%VERSION%",

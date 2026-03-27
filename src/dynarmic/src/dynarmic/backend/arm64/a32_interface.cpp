@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -11,7 +11,6 @@
 
 #include <boost/icl/interval_set.hpp>
 #include "dynarmic/common/assert.h"
-#include <mcl/scope_exit.hpp>
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/backend/arm64/a32_address_space.h"
@@ -36,14 +35,9 @@ struct Jit::Impl final {
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&halt_reason)));
 
         jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
         HaltReason hr = core.Run(current_address_space, current_state, &halt_reason);
-
         PerformRequestedCacheInvalidation(hr);
-
+        jit_interface->is_executing = false;
         return hr;
     }
 
@@ -52,14 +46,9 @@ struct Jit::Impl final {
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&halt_reason)));
 
         jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
         HaltReason hr = core.Step(current_address_space, current_state, &halt_reason);
-
         PerformRequestedCacheInvalidation(hr);
-
+        jit_interface->is_executing = false;
         return hr;
     }
 

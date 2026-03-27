@@ -15,7 +15,6 @@
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/llvm_disassemble.h"
 #include <bit>
-#include <mcl/scope_exit.hpp>
 
 #include "dynarmic/backend/x64/a64_emit_x64.h"
 #include "dynarmic/backend/x64/a64_jitstate.h"
@@ -75,14 +74,8 @@ public:
     HaltReason Run() {
         ASSERT(!is_executing);
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
-
         is_executing = true;
-        SCOPE_EXIT {
-            this->is_executing = false;
-        };
-
         // TODO: Check code alignment
-
         const CodePtr current_code_ptr = [this] {
             // RSB optimization
             const u32 new_rsb_ptr = (jit_state.rsb_ptr - 1) & A64JitState::RSBPtrMask;
@@ -92,27 +85,19 @@ public:
             }
             return CodePtr((uintptr_t(GetCurrentBlock()) + 15) & ~uintptr_t(15));
         }();
-
         const HaltReason hr = block_of_code.RunCode(&jit_state, current_code_ptr);
-
         PerformRequestedCacheInvalidation(hr);
-
+        is_executing = false;
         return hr;
     }
 
     HaltReason Step() {
         ASSERT(!is_executing);
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
-
         is_executing = true;
-        SCOPE_EXIT {
-            this->is_executing = false;
-        };
-
         const HaltReason hr = block_of_code.StepCode(&jit_state, GetCurrentSingleStep());
-
         PerformRequestedCacheInvalidation(hr);
-
+        is_executing = false;
         return hr;
     }
 

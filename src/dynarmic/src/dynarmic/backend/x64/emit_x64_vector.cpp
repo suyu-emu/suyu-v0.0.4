@@ -13,11 +13,9 @@
 #include <type_traits>
 
 #include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_count.hpp>
-#include <mcl/bit/bit_field.hpp>
-#include <mcl/bitsizeof.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/common/common_types.h"
-#include <mcl/type_traits/function_info.hpp>
+#include "dynarmic/mcl/function_info.hpp"
 #include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/abi.h"

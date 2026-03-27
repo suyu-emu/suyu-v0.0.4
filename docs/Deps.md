@@ -76,7 +76,6 @@ Certain other dependencies will be fetched by CPM regardless. System packages *c
   * This package is known to be broken on the AUR.
 * [cpp-jwt](https://github.com/arun11299/cpp-jwt) 1.4+ - if `ENABLE_WEB_SERVICE` is on
 * [unordered-dense](https://github.com/martinus/unordered_dense)
-* [mcl](https://github.com/azahar-emu/mcl) - subject to removal
 
 On amd64:
 

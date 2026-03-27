@@ -8,9 +8,7 @@
 
 #include "dynarmic/frontend/A64/translate/impl/impl.h"
 
-#include <mcl/bit/bit_count.hpp>
-#include <mcl/bit/bit_field.hpp>
-#include <mcl/bit/rotate.hpp>
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/ir/terminal.h"
 

@@ -12,8 +12,7 @@
 
 #include "dynarmic/common/assert.h"
 #include <boost/variant/detail/apply_visitor_binary.hpp>
-#include <mcl/bit/bit_field.hpp>
-#include <mcl/scope_exit.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/common/common_types.h"
 #include <ankerl/unordered_dense.h>
 

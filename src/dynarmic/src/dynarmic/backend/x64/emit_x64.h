@@ -16,7 +16,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <mcl/bitsizeof.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include <ankerl/unordered_dense.h>
 #include "dynarmic/backend/x64/xbyak.h"
 #include <boost/container/small_vector.hpp>

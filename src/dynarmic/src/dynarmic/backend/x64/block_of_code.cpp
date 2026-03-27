@@ -25,7 +25,7 @@
 #include <cstring>
 
 #include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/a32_jitstate.h"

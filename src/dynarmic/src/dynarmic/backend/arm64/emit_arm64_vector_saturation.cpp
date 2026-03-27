@@ -1,9 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/mp/metavalue/lift_value.hpp>
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/backend/arm64/a32_jitstate.h"
@@ -39,7 +41,7 @@ static void Emit(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitF
     } else if constexpr (size == 64) {
         emit(Qresult->D2(), Qa->D2(), Qb->D2());
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+        UNREACHABLE();
     }
 }
 

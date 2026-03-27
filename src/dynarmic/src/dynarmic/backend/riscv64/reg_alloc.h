@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -18,7 +18,7 @@
 #include <biscuit/registers.hpp>
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
-#include <mcl/type_traits/is_instance_of_template.hpp>
+#include "dynarmic/mcl/is_instance_of_template.hpp"
 #include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/riscv64/stack_layout.h"

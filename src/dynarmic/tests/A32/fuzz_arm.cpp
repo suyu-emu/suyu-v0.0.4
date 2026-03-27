@@ -15,9 +15,7 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
-#include <mcl/bit/bit_count.hpp>
-#include <mcl/bit/swap.hpp>
-#include <mcl/scope_exit.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/tests/fuzz_util.h"
@@ -356,67 +354,67 @@ static void RunTestInstance(Dynarmic::A32::Jit& jit,
     uni_env.ticks_left = instructions.size();  // Unicorn counts thumb instructions weirdly.
     uni.Run();
 
-    SCOPE_FAIL {
-        fmt::print("Instruction Listing:\n");
-        fmt::print("{}\n", Common::DisassembleAArch32(std::is_same_v<TestEnv, ThumbTestEnv>, initial_pc, (const u8*)instructions.data(), instructions.size() * sizeof(instructions[0])));
+    // SCOPE_FAIL {
+    //     fmt::print("Instruction Listing:\n");
+    //     fmt::print("{}\n", Common::DisassembleAArch32(std::is_same_v<TestEnv, ThumbTestEnv>, initial_pc, (const u8*)instructions.data(), instructions.size() * sizeof(instructions[0])));
 
-        fmt::print("Initial register listing:\n");
-        for (size_t i = 0; i < regs.size(); ++i) {
-            fmt::print("{:3s}: {:08x}\n", static_cast<A32::Reg>(i), regs[i]);
-        }
-        for (size_t i = 0; i < vecs.size(); ++i) {
-            fmt::print("{:3s}: {:08x}\n", static_cast<A32::ExtReg>(i), vecs[i]);
-        }
-        fmt::print("cpsr {:08x}\n", cpsr);
-        fmt::print("fpcr {:08x}\n", fpscr);
-        fmt::print("fpcr.AHP   {}\n", FP::FPCR{fpscr}.AHP());
-        fmt::print("fpcr.DN    {}\n", FP::FPCR{fpscr}.DN());
-        fmt::print("fpcr.FZ    {}\n", FP::FPCR{fpscr}.FZ());
-        fmt::print("fpcr.RMode {}\n", static_cast<size_t>(FP::FPCR{fpscr}.RMode()));
-        fmt::print("fpcr.FZ16  {}\n", FP::FPCR{fpscr}.FZ16());
-        fmt::print("\n");
+    //     fmt::print("Initial register listing:\n");
+    //     for (size_t i = 0; i < regs.size(); ++i) {
+    //         fmt::print("{:3s}: {:08x}\n", static_cast<A32::Reg>(i), regs[i]);
+    //     }
+    //     for (size_t i = 0; i < vecs.size(); ++i) {
+    //         fmt::print("{:3s}: {:08x}\n", static_cast<A32::ExtReg>(i), vecs[i]);
+    //     }
+    //     fmt::print("cpsr {:08x}\n", cpsr);
+    //     fmt::print("fpcr {:08x}\n", fpscr);
+    //     fmt::print("fpcr.AHP   {}\n", FP::FPCR{fpscr}.AHP());
+    //     fmt::print("fpcr.DN    {}\n", FP::FPCR{fpscr}.DN());
+    //     fmt::print("fpcr.FZ    {}\n", FP::FPCR{fpscr}.FZ());
+    //     fmt::print("fpcr.RMode {}\n", static_cast<size_t>(FP::FPCR{fpscr}.RMode()));
+    //     fmt::print("fpcr.FZ16  {}\n", FP::FPCR{fpscr}.FZ16());
+    //     fmt::print("\n");
 
-        fmt::print("Final register listing:\n");
-        fmt::print("     unicorn  dynarmic\n");
-        const auto uni_regs = uni.GetRegisters();
-        for (size_t i = 0; i < regs.size(); ++i) {
-            fmt::print("{:3s}: {:08x} {:08x} {}\n", static_cast<A32::Reg>(i), uni_regs[i], jit.Regs()[i], uni_regs[i] != jit.Regs()[i] ? "*" : "");
-        }
-        const auto uni_ext_regs = uni.GetExtRegs();
-        for (size_t i = 0; i < vecs.size(); ++i) {
-            fmt::print("s{:2d}: {:08x} {:08x} {}\n", static_cast<size_t>(i), uni_ext_regs[i], jit.ExtRegs()[i], uni_ext_regs[i] != jit.ExtRegs()[i] ? "*" : "");
-        }
-        fmt::print("cpsr {:08x} {:08x} {}\n", uni.GetCpsr(), jit.Cpsr(), uni.GetCpsr() != jit.Cpsr() ? "*" : "");
-        fmt::print("fpsr {:08x} {:08x} {}\n", uni.GetFpscr(), jit.Fpscr(), (uni.GetFpscr() & 0xF0000000) != (jit.Fpscr() & 0xF0000000) ? "*" : "");
-        fmt::print("\n");
+    //     fmt::print("Final register listing:\n");
+    //     fmt::print("     unicorn  dynarmic\n");
+    //     const auto uni_regs = uni.GetRegisters();
+    //     for (size_t i = 0; i < regs.size(); ++i) {
+    //         fmt::print("{:3s}: {:08x} {:08x} {}\n", static_cast<A32::Reg>(i), uni_regs[i], jit.Regs()[i], uni_regs[i] != jit.Regs()[i] ? "*" : "");
+    //     }
+    //     const auto uni_ext_regs = uni.GetExtRegs();
+    //     for (size_t i = 0; i < vecs.size(); ++i) {
+    //         fmt::print("s{:2d}: {:08x} {:08x} {}\n", static_cast<size_t>(i), uni_ext_regs[i], jit.ExtRegs()[i], uni_ext_regs[i] != jit.ExtRegs()[i] ? "*" : "");
+    //     }
+    //     fmt::print("cpsr {:08x} {:08x} {}\n", uni.GetCpsr(), jit.Cpsr(), uni.GetCpsr() != jit.Cpsr() ? "*" : "");
+    //     fmt::print("fpsr {:08x} {:08x} {}\n", uni.GetFpscr(), jit.Fpscr(), (uni.GetFpscr() & 0xF0000000) != (jit.Fpscr() & 0xF0000000) ? "*" : "");
+    //     fmt::print("\n");
 
-        fmt::print("Modified memory:\n");
-        fmt::print("                 uni dyn\n");
-        auto uni_iter = uni_env.modified_memory.begin();
-        auto jit_iter = jit_env.modified_memory.begin();
-        while (uni_iter != uni_env.modified_memory.end() || jit_iter != jit_env.modified_memory.end()) {
-            if (uni_iter == uni_env.modified_memory.end() || (jit_iter != jit_env.modified_memory.end() && uni_iter->first > jit_iter->first)) {
-                fmt::print("{:08x}:    {:02x} *\n", jit_iter->first, jit_iter->second);
-                jit_iter++;
-            } else if (jit_iter == jit_env.modified_memory.end() || jit_iter->first > uni_iter->first) {
-                fmt::print("{:08x}: {:02x}    *\n", uni_iter->first, uni_iter->second);
-                uni_iter++;
-            } else if (uni_iter->first == jit_iter->first) {
-                fmt::print("{:08x}: {:02x} {:02x} {}\n", uni_iter->first, uni_iter->second, jit_iter->second, uni_iter->second != jit_iter->second ? "*" : "");
-                uni_iter++;
-                jit_iter++;
-            }
-        }
-        fmt::print("\n");
+    //     fmt::print("Modified memory:\n");
+    //     fmt::print("                 uni dyn\n");
+    //     auto uni_iter = uni_env.modified_memory.begin();
+    //     auto jit_iter = jit_env.modified_memory.begin();
+    //     while (uni_iter != uni_env.modified_memory.end() || jit_iter != jit_env.modified_memory.end()) {
+    //         if (uni_iter == uni_env.modified_memory.end() || (jit_iter != jit_env.modified_memory.end() && uni_iter->first > jit_iter->first)) {
+    //             fmt::print("{:08x}:    {:02x} *\n", jit_iter->first, jit_iter->second);
+    //             jit_iter++;
+    //         } else if (jit_iter == jit_env.modified_memory.end() || jit_iter->first > uni_iter->first) {
+    //             fmt::print("{:08x}: {:02x}    *\n", uni_iter->first, uni_iter->second);
+    //             uni_iter++;
+    //         } else if (uni_iter->first == jit_iter->first) {
+    //             fmt::print("{:08x}: {:02x} {:02x} {}\n", uni_iter->first, uni_iter->second, jit_iter->second, uni_iter->second != jit_iter->second ? "*" : "");
+    //             uni_iter++;
+    //             jit_iter++;
+    //         }
+    //     }
+    //     fmt::print("\n");
 
-        fmt::print("x86_64:\n");
-        fmt::print("{}", jit.Disassemble());
+    //     fmt::print("x86_64:\n");
+    //     fmt::print("{}", jit.Disassemble());
 
-        fmt::print("Interrupts:\n");
-        for (const auto& i : uni_env.interrupts) {
-            std::puts(i.c_str());
-        }
-    };
+    //     fmt::print("Interrupts:\n");
+    //     for (const auto& i : uni_env.interrupts) {
+    //         std::puts(i.c_str());
+    //     }
+    // };
 
     REQUIRE(uni_env.code_mem_modified_by_guest == jit_env.code_mem_modified_by_guest);
     if (uni_env.code_mem_modified_by_guest) {
