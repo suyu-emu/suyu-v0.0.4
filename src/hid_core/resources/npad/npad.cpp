@@ -800,6 +800,10 @@ Result NPad::DisconnectNpad(u64 aruid, Core::HID::NpadIdType npad_id) {
     auto& controller = GetControllerFromNpadIdType(aruid, npad_id);
 
     auto* shared_memory = controller.shared_memory;
+    if (!shared_memory) {
+        LOG_WARNING(Service_HID, "DisconnectNpad: shared_memory is null for npad_id={}", npad_id);
+        return ResultSuccess;
+    }
     // Don't reset shared_memory->assignment_mode this value is persistent
     shared_memory->style_tag.raw = Core::HID::NpadStyleSet::None; // Zero out
     shared_memory->device_type.raw = 0;
