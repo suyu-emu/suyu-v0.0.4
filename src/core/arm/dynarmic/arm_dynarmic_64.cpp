@@ -338,10 +338,6 @@ void ArmDynarmic64::MakeJit(Common::PageTable* page_table, std::size_t address_s
     // Safe optimisations
     case Settings::CpuAccuracy::Auto:
         config.unsafe_optimizations = true;
-#if !defined(__APPLE__) && !defined(__linux__) && !defined(__ANDROID__) && !defined(_WIN32)
-        config.fastmem_pointer = std::nullopt;
-        config.fastmem_exclusive_access = false;
-#endif
         config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
         config.fastmem_address_space_bits = 64;
         config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
@@ -354,6 +350,10 @@ void ArmDynarmic64::MakeJit(Common::PageTable* page_table, std::size_t address_s
     case Settings::CpuAccuracy::Accurate:
     default:
         break;
+    }
+    if (!Settings::IsFastmemEnabled()) {
+        config.fastmem_pointer = std::nullopt;
+        config.fastmem_exclusive_access = false;
     }
     m_jit.emplace(config);
 }

@@ -186,7 +186,7 @@ void ArmDynarmic32::MakeJit(Common::PageTable* page_table) {
         config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
         config.fastmem_pointer = page_table->fastmem_arena ?
-            std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)} :
+            std::optional<uintptr_t>{uintptr_t(page_table->fastmem_arena)} :
             std::nullopt;
 
         config.fastmem_exclusive_access = config.fastmem_pointer  != std::nullopt;
@@ -286,10 +286,6 @@ void ArmDynarmic32::MakeJit(Common::PageTable* page_table) {
     // Curated optimizations
     case Settings::CpuAccuracy::Auto:
         config.unsafe_optimizations = true;
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__) || defined(__DragonFly__) || defined(__NetBSD__)
-        config.fastmem_pointer = std::nullopt;
-        config.fastmem_exclusive_access = false;
-#endif
         config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
         config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
         config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
@@ -303,6 +299,10 @@ void ArmDynarmic32::MakeJit(Common::PageTable* page_table) {
     case Settings::CpuAccuracy::Accurate:
     default:
         break;
+    }
+    if (!Settings::IsFastmemEnabled()) {
+        config.fastmem_pointer = std::nullopt;
+        config.fastmem_exclusive_access = false;
     }
     m_jit.emplace(config);
 }
