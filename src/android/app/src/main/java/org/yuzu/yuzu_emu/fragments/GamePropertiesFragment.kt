@@ -133,8 +133,11 @@ class GamePropertiesFragment : Fragment() {
     }
 
     override fun onDestroy() {
+        val isChangingConfigurations = activity?.isChangingConfigurations == true
         super.onDestroy()
-        gamesViewModel.reloadGames(true)
+        if (!isChangingConfigurations) {
+            gamesViewModel.reloadGames(true)
+        }
     }
 
     private fun getPlayTime() {
