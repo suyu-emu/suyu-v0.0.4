@@ -473,8 +473,6 @@
     <string name="renderer_accuracy_description">يتحكم في وضع محاكاة وحدة معالجة الرسومات. تعمل معظم الألعاب بشكل جيد مع وضعي سريع أو متوازن، لكن الوضع الدقيق لا يزال مطلوبًا لبعض الألعاب. تميل الجسيمات إلى العرض بشكل صحيح فقط عند استخدام الوضع الدقيق.</string>
     <string name="dma_accuracy">دقة DMA</string>
     <string name="dma_accuracy_description">يتحكم في دقة DMA. يمكن أن تؤدي الدقة الآمنة إلى حل المشكلات في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا لم تكن متأكدًا، فاترك هذا الخيار على الإعداد الافتراضي.</string>
-    <string name="frame_pacing_mode">وضع توقيت الإطارات</string>
-    <string name="frame_pacing_mode_description">يتحكم في كيفية إدارة المحاكي لسرعة الإطارات لتقليل التقطع وجعل معدل الإطارات أكثر سلاسة واتساقًا.</string>
     <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
     <string name="anisotropic_filtering_description">يحسن جودة الأنسجة عند عرضها بزوايا مائلة</string>
     <string name="vram_usage_mode">وضع استخدام ذاكرة VRAM</string>
@@ -998,13 +996,6 @@
     <string name="dma_accuracy_default">افتراضي</string>
     <string name="dma_accuracy_unsafe">غير آمن</string>
     <string name="dma_accuracy_safe">آمن</string>
-
-    <!-- Frame Pacing Mode -->
-    <string name="frame_pacing_mode_target_Auto">تلقائي</string>
-    <string name="frame_pacing_mode_target_30">30 إطارًا في الثانية</string>
-    <string name="frame_pacing_mode_target_60">60 إطارًا في الثانية</string>
-    <string name="frame_pacing_mode_target_90">90 إطارًا في الثانية</string>
-    <string name="frame_pacing_mode_target_120">120 إطارًا في الثانية</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">غير مضغوط</string>

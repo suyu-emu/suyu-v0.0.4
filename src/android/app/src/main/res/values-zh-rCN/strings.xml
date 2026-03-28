@@ -462,8 +462,6 @@
     <string name="renderer_accuracy_description">控制 GPU 模拟的精确度。大部分游戏在性能或平衡模式下可以正常渲染，但部分游戏需要设置为精确。粒子效果通常只有在精确模式下才能正确显示。</string>
     <string name="dma_accuracy">DMA 精度</string>
     <string name="dma_accuracy_description">控制 DMA 精度。安全精度可以修复某些游戏中的问题，但在某些情况下也可能影响性能。如果不确定，请保留为“默认”。</string>
-    <string name="frame_pacing_mode">帧同步模式</string>
-    <string name="frame_pacing_mode_description">控制模拟器如何管理帧同步，以减少卡顿，使帧率表现更加平稳顺滑。</string>
     <string name="anisotropic_filtering">各向异性过滤</string>
     <string name="anisotropic_filtering_description">提高斜角的纹理质量</string>
     <string name="vram_usage_mode">显存使用模式</string>
@@ -987,13 +985,6 @@
     <string name="dma_accuracy_default">默认</string>
     <string name="dma_accuracy_unsafe">不安全</string>
     <string name="dma_accuracy_safe">安全</string>
-
-    <!-- Frame Pacing Mode -->
-    <string name="frame_pacing_mode_target_Auto">自动</string>
-    <string name="frame_pacing_mode_target_30">30 FPS</string>
-    <string name="frame_pacing_mode_target_60">60 FPS</string>
-    <string name="frame_pacing_mode_target_90">90 FPS</string>
-    <string name="frame_pacing_mode_target_120">120 FPS</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">不压缩</string>

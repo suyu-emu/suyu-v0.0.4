@@ -467,8 +467,6 @@
     <string name="renderer_accuracy_description">Controla el modo de la emulación de la GPU. La mayoría de los juegos se renderizan correctamente en los modos Rápido o Equilibrado, pero algunos requieren Preciso. Las partículas tienden a renderizarse correctamente solo con el modo Preciso.</string>
     <string name="dma_accuracy">Precisión de DMA</string>
     <string name="dma_accuracy_description">Controla la precisión de DMA. La precisión segura puede solucionar problemas en algunos juegos, pero también puede afectar al rendimiento en algunos casos. Si no está seguro, déjelo en Predeterminado.</string>
-    <string name="frame_pacing_mode">Modo de ritmo de fotogramas</string>
-    <string name="frame_pacing_mode_description">Controla cómo el emulador gestiona el ritmo de los fotogramas para reducir los tirones y hacer que la velocidad de los fotogramas sea más suave y consistente.</string>
     <string name="anisotropic_filtering">Filtrado anisotrópico</string>
     <string name="anisotropic_filtering_description">Mejora la calidad de las texturas al ser observadas desde ángulos oblicuos</string>
     <string name="vram_usage_mode">Modo de uso de VRAM</string>
@@ -992,13 +990,6 @@
     <string name="dma_accuracy_default">Predeterminado</string>
     <string name="dma_accuracy_unsafe">Inseguro</string>
     <string name="dma_accuracy_safe">Seguro</string>
-
-    <!-- Frame Pacing Mode -->
-    <string name="frame_pacing_mode_target_Auto">Automático</string>
-    <string name="frame_pacing_mode_target_30">30 FPS</string>
-    <string name="frame_pacing_mode_target_60">60 FPS</string>
-    <string name="frame_pacing_mode_target_90">90 FPS</string>
-    <string name="frame_pacing_mode_target_120">120 FPS</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Sin compresión</string>

@@ -452,8 +452,6 @@
     <string name="renderer_accuracy_description">Určuje režim emulovaného GPU. Většina her běží bez problémů v rychlém, nebo vyváženém režimu, ale některé stále vyžadují přesný režim. Částicové efekty se většinou zobrazují korektně pouze v přesném režimu. </string>
     <string name="dma_accuracy">Přesnost DMA</string>
     <string name="dma_accuracy_description">Ovládá přesnost DMA. Bezpečná přesnost může vyřešit problémy v některých hrách, ale v některých případech může také ovlivnit výkon. Pokud si nejste jisti, použijte výchozí nastavení.</string>
-    <string name="frame_pacing_mode">Režim Framepacingu</string>
-    <string name="frame_pacing_mode_description">Řídí způsob jakým emulátor spravuje časování snímku aby  snížil trhání a zlepšení plynulost a stabilitu snímkové frekvence.</string>
     <string name="anisotropic_filtering">Anizotropní filtrování</string>
     <string name="anisotropic_filtering_description">Zlepšuje kvalitu textur při pohledu pod úhlem</string>
     <string name="vram_usage_mode">Režim využití VRAM</string>

@@ -469,8 +469,6 @@
     <string name="renderer_accuracy_description">Керує режимом емуляції ГП. Більшість ігор добре візуалізуються з режимами «Швидко» або «Збалансовано», але деякі ігри можуть потребувати режиму «Точно». Частинки зазвичай правильно візуалізуються лише з режимом «Точно».</string>
     <string name="dma_accuracy">Точність DMA</string>
     <string name="dma_accuracy_description">Керує точністю DMA. Безпечна точність може виправити проблеми в деяких іграх, але в деяких випадках також може вплинути на продуктивність. Якщо не впевнені, залиште це значення за замовчуванням.</string>
-    <string name="frame_pacing_mode">Режим виведення кадрів</string>
-    <string name="frame_pacing_mode_description">Керує тим, як емулятор виконує виведення кадрів, щоб зменшити затримки й забезпечити плавнішу й стабільнішу частоту кадрів.</string>
     <string name="anisotropic_filtering">Анізотропне фільтрування</string>
     <string name="anisotropic_filtering_description">Покращує якість текстур під кутом.</string>
     <string name="vram_usage_mode">Режим використання VRAM</string>
@@ -994,13 +992,6 @@
     <string name="dma_accuracy_default">Типово</string>
     <string name="dma_accuracy_unsafe">Небезпечно</string>
     <string name="dma_accuracy_safe">Безпечно</string>
-
-    <!-- Frame Pacing Mode -->
-    <string name="frame_pacing_mode_target_Auto">Автоматично</string>
-    <string name="frame_pacing_mode_target_30">30 к/с</string>
-    <string name="frame_pacing_mode_target_60">60 к/с</string>
-    <string name="frame_pacing_mode_target_90">90 к/с</string>
-    <string name="frame_pacing_mode_target_120">120 к/с</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Без стиснення</string>
