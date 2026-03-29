@@ -29,7 +29,7 @@ constexpr size_t xmrx(size_t x) noexcept {
 }
 
 struct DoNotFastmemMarkerHash {
-    [[nodiscard]] constexpr size_t operator()(const DoNotFastmemMarker& value) const noexcept {
+    [[nodiscard]] size_t operator()(const DoNotFastmemMarker& value) const noexcept {
         return xmrx(std::get<0>(value).Value() ^ u64(std::get<1>(value)));
     }
 };
