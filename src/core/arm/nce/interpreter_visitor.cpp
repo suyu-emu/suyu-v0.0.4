@@ -773,7 +773,11 @@ std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, m
     bool was_executed = false;
 
     auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction);
-    was_executed = decoder.get().call(visitor, instruction);
+    if (decoder) {
+        was_executed = decoder->get().call(visitor, instruction);
+    } else {
+        was_executed = false;
+    }
     return was_executed ? std::optional<u64>(pc + 4) : std::nullopt;
 }
 

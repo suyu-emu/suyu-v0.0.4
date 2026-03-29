@@ -70,14 +70,15 @@ constexpr DecodeTable<V> GetDecodeTable() {
 
 /// In practice it must always suceed, otherwise something else unrelated would have gone awry
 template<typename V>
-std::reference_wrapper<const Matcher<V>> Decode(u32 instruction) {
+std::optional<std::reference_wrapper<const Matcher<V>>> Decode(u32 instruction) {
     alignas(64) static const auto table = GetDecodeTable<V>();
     const auto& subtable = table[detail::ToFastLookupIndex(instruction)];
     auto iter = std::find_if(subtable.begin(), subtable.end(), [instruction](const auto& matcher) {
         return matcher.Matches(instruction);
     });
-    DEBUG_ASSERT(iter != subtable.end());
-    return std::reference_wrapper<const Matcher<V>>(*iter);
+    return iter != subtable.end()
+        ? std::optional{ std::reference_wrapper<const Matcher<V>>(*iter) }
+        : std::nullopt;
 }
 
 template<typename V>

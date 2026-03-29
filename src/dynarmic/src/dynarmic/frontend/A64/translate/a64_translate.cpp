@@ -25,7 +25,11 @@ void Translate(IR::Block& block, LocationDescriptor descriptor, MemoryReadCodeFu
         const u64 pc = visitor.ir.current_location->PC();
         if (const auto instruction = memory_read_code(pc)) {
             auto decoder = Decode<TranslatorVisitor>(*instruction);
-            should_continue = decoder.get().call(visitor, *instruction);
+            if (decoder) {
+                should_continue = decoder->get().call(visitor, *instruction);
+            } else {
+                should_continue = visitor.RaiseException(Exception::UnallocatedEncoding);
+            }
         } else {
             should_continue = visitor.RaiseException(Exception::NoExecuteFault);
         }
@@ -45,13 +49,15 @@ bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor,
 
     bool should_continue = true;
     auto const decoder = Decode<TranslatorVisitor>(instruction);
-    should_continue = decoder.get().call(visitor, instruction);
+    if (decoder) {
+        should_continue = decoder->get().call(visitor, instruction);
+    } else {
+        should_continue = false;
+    }
 
     visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
     block.CycleCount()++;
-
     block.SetEndLocation(*visitor.ir.current_location);
-
     return should_continue;
 }
 
