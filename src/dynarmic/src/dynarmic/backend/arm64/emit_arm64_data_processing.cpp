@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -642,7 +642,7 @@ void EmitIR<IR::Opcode::ArithmeticShiftRight64>(oaknut::CodeGenerator& code, Emi
 }
 
 template<>
-void EmitIR<IR::Opcode::RotateRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+void EmitIR<IR::Opcode::BitRotateRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -708,7 +708,7 @@ void EmitIR<IR::Opcode::RotateRight32>(oaknut::CodeGenerator& code, EmitContext&
 }
 
 template<>
-void EmitIR<IR::Opcode::RotateRight64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+void EmitIR<IR::Opcode::BitRotateRight64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
     auto& shift_arg = args[1];

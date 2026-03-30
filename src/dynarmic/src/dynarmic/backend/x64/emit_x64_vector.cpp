@@ -5854,3 +5854,5 @@ void EmitX64::EmitZeroVector(EmitContext& ctx, IR::Inst* inst) {
 }
 
 }  // namespace Dynarmic::Backend::X64
+
+#undef ICODE

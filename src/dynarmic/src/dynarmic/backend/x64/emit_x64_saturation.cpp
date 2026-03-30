@@ -25,12 +25,12 @@ using namespace Xbyak::util;
 
 namespace {
 
-enum class Op {
+enum class SaturationOp {
     Add,
     Sub,
 };
 
-template<Op op, size_t size, bool has_overflow_inst = false>
+template<SaturationOp op, size_t size, bool has_overflow_inst = false>
 void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -51,7 +51,7 @@ void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) 
 
     // overflow now contains 0x7F... if a was positive, or 0x80... if a was negative
 
-    if constexpr (op == Op::Add) {
+    if constexpr (op == SaturationOp::Add) {
         code.add(result, addend);
     } else {
         code.sub(result, addend);
@@ -75,16 +75,16 @@ void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) 
     ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
-template<Op op, size_t size>
+template<SaturationOp op, size_t size>
 void EmitUnsignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     Xbyak::Reg op_result = ctx.reg_alloc.UseScratchGpr(code, args[0]).changeBit(size);
     Xbyak::Reg addend = ctx.reg_alloc.UseScratchGpr(code, args[1]).changeBit(size);
 
-    constexpr u64 boundary = op == Op::Add ? (std::numeric_limits<mcl::unsigned_integer_of_size<size>>::max)() : 0;
+    constexpr u64 boundary = op == SaturationOp::Add ? (std::numeric_limits<mcl::unsigned_integer_of_size<size>>::max)() : 0;
 
-    if constexpr (op == Op::Add) {
+    if constexpr (op == SaturationOp::Add) {
         code.add(op_result, addend);
     } else {
         code.sub(op_result, addend);
@@ -106,11 +106,11 @@ void EmitUnsignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst
 }  // anonymous namespace
 
 void EmitX64::EmitSignedSaturatedAddWithFlag32(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Add, 32, true>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Add, 32, true>(code, ctx, inst);
 }
 
 void EmitX64::EmitSignedSaturatedSubWithFlag32(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Sub, 32, true>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Sub, 32, true>(code, ctx, inst);
 }
 
 void EmitX64::EmitSignedSaturation(EmitContext& ctx, IR::Inst* inst) {
@@ -192,19 +192,19 @@ void EmitX64::EmitUnsignedSaturation(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitSignedSaturatedAdd8(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Add, 8>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Add, 8>(code, ctx, inst);
 }
 
 void EmitX64::EmitSignedSaturatedAdd16(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Add, 16>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Add, 16>(code, ctx, inst);
 }
 
 void EmitX64::EmitSignedSaturatedAdd32(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Add, 32>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Add, 32>(code, ctx, inst);
 }
 
 void EmitX64::EmitSignedSaturatedAdd64(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Add, 64>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Add, 64>(code, ctx, inst);
 }
 
 void EmitX64::EmitSignedSaturatedDoublingMultiplyReturnHigh16(EmitContext& ctx, IR::Inst* inst) {
@@ -256,51 +256,51 @@ void EmitX64::EmitSignedSaturatedDoublingMultiplyReturnHigh32(EmitContext& ctx, 
 }
 
 void EmitX64::EmitSignedSaturatedSub8(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Sub, 8>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Sub, 8>(code, ctx, inst);
 }
 
 void EmitX64::EmitSignedSaturatedSub16(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Sub, 16>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Sub, 16>(code, ctx, inst);
 }
 
 void EmitX64::EmitSignedSaturatedSub32(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Sub, 32>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Sub, 32>(code, ctx, inst);
 }
 
 void EmitX64::EmitSignedSaturatedSub64(EmitContext& ctx, IR::Inst* inst) {
-    EmitSignedSaturatedOp<Op::Sub, 64>(code, ctx, inst);
+    EmitSignedSaturatedOp<SaturationOp::Sub, 64>(code, ctx, inst);
 }
 
 void EmitX64::EmitUnsignedSaturatedAdd8(EmitContext& ctx, IR::Inst* inst) {
-    EmitUnsignedSaturatedOp<Op::Add, 8>(code, ctx, inst);
+    EmitUnsignedSaturatedOp<SaturationOp::Add, 8>(code, ctx, inst);
 }
 
 void EmitX64::EmitUnsignedSaturatedAdd16(EmitContext& ctx, IR::Inst* inst) {
-    EmitUnsignedSaturatedOp<Op::Add, 16>(code, ctx, inst);
+    EmitUnsignedSaturatedOp<SaturationOp::Add, 16>(code, ctx, inst);
 }
 
 void EmitX64::EmitUnsignedSaturatedAdd32(EmitContext& ctx, IR::Inst* inst) {
-    EmitUnsignedSaturatedOp<Op::Add, 32>(code, ctx, inst);
+    EmitUnsignedSaturatedOp<SaturationOp::Add, 32>(code, ctx, inst);
 }
 
 void EmitX64::EmitUnsignedSaturatedAdd64(EmitContext& ctx, IR::Inst* inst) {
-    EmitUnsignedSaturatedOp<Op::Add, 64>(code, ctx, inst);
+    EmitUnsignedSaturatedOp<SaturationOp::Add, 64>(code, ctx, inst);
 }
 
 void EmitX64::EmitUnsignedSaturatedSub8(EmitContext& ctx, IR::Inst* inst) {
-    EmitUnsignedSaturatedOp<Op::Sub, 8>(code, ctx, inst);
+    EmitUnsignedSaturatedOp<SaturationOp::Sub, 8>(code, ctx, inst);
 }
 
 void EmitX64::EmitUnsignedSaturatedSub16(EmitContext& ctx, IR::Inst* inst) {
-    EmitUnsignedSaturatedOp<Op::Sub, 16>(code, ctx, inst);
+    EmitUnsignedSaturatedOp<SaturationOp::Sub, 16>(code, ctx, inst);
 }
 
 void EmitX64::EmitUnsignedSaturatedSub32(EmitContext& ctx, IR::Inst* inst) {
-    EmitUnsignedSaturatedOp<Op::Sub, 32>(code, ctx, inst);
+    EmitUnsignedSaturatedOp<SaturationOp::Sub, 32>(code, ctx, inst);
 }
 
 void EmitX64::EmitUnsignedSaturatedSub64(EmitContext& ctx, IR::Inst* inst) {
-    EmitUnsignedSaturatedOp<Op::Sub, 64>(code, ctx, inst);
+    EmitUnsignedSaturatedOp<SaturationOp::Sub, 64>(code, ctx, inst);
 }
 
 }  // namespace Dynarmic::Backend::X64

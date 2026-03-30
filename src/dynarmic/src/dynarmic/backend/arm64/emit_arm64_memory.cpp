@@ -209,9 +209,9 @@ void CallbackOnlyEmitExclusiveWriteMemory(oaknut::CodeGenerator& code, EmitConte
     ctx.reg_alloc.DefineAsRegister(inst, X0);
 }
 
-constexpr size_t page_bits = 12;
-constexpr size_t page_size = 1 << page_bits;
-constexpr size_t page_mask = (1 << page_bits) - 1;
+constexpr size_t page_table_const_bits = 12;
+constexpr size_t page_table_const_size = 1 << page_table_const_bits;
+constexpr size_t page_table_const_mask = (1 << page_table_const_bits) - 1;
 
 // This function may use Xscratch0 as a scratch register
 // Trashes NZCV
@@ -242,28 +242,28 @@ void EmitDetectMisalignedVAddr(oaknut::CodeGenerator& code, EmitContext& ctx, oa
         code.TST(Xaddr, align_mask);
         code.B(NE, *fallback);
     } else {
-        // If (addr & page_mask) > page_size - byte_size, use fallback.
-        code.AND(Xscratch0, Xaddr, page_mask);
-        code.CMP(Xscratch0, page_size - bitsize / 8);
+        // If (addr & page_table_const_mask) > page_table_const_size - byte_size, use fallback.
+        code.AND(Xscratch0, Xaddr, page_table_const_mask);
+        code.CMP(Xscratch0, page_table_const_size - bitsize / 8);
         code.B(HI, *fallback);
     }
 }
 
-// Outputs Xscratch0 = page_table[addr >> page_bits]
+// Outputs Xscratch0 = page_table[addr >> page_table_const_bits]
 // May use Xscratch1 as scratch register
 // Address to read/write = [ret0 + ret1], ret0 is always Xscratch0 and ret1 is either Xaddr or Xscratch1
 // Trashes NZCV
 template<size_t bitsize>
 std::pair<oaknut::XReg, oaknut::XReg> InlinePageTableEmitVAddrLookup(oaknut::CodeGenerator& code, EmitContext& ctx, oaknut::XReg Xaddr, const SharedLabel& fallback) {
-    const size_t valid_page_index_bits = ctx.conf.page_table_address_space_bits - page_bits;
+    const size_t valid_page_index_bits = ctx.conf.page_table_address_space_bits - page_table_const_bits;
     const size_t unused_top_bits = 64 - ctx.conf.page_table_address_space_bits;
 
     EmitDetectMisalignedVAddr<bitsize>(code, ctx, Xaddr, fallback);
 
     if (ctx.conf.silently_mirror_page_table || unused_top_bits == 0) {
-        code.UBFX(Xscratch0, Xaddr, page_bits, valid_page_index_bits);
+        code.UBFX(Xscratch0, Xaddr, page_table_const_bits, valid_page_index_bits);
     } else {
-        code.LSR(Xscratch0, Xaddr, page_bits);
+        code.LSR(Xscratch0, Xaddr, page_table_const_bits);
         code.TST(Xscratch0, u64(~u64(0)) << valid_page_index_bits);
         code.B(NE, *fallback);
     }
@@ -283,7 +283,7 @@ std::pair<oaknut::XReg, oaknut::XReg> InlinePageTableEmitVAddrLookup(oaknut::Cod
     if (ctx.conf.absolute_offset_page_table) {
         return std::make_pair(Xscratch0, Xaddr);
     }
-    code.AND(Xscratch1, Xaddr, page_mask);
+    code.AND(Xscratch1, Xaddr, page_table_const_mask);
     return std::make_pair(Xscratch0, Xscratch1);
 }
 

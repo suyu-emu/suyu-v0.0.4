@@ -228,7 +228,7 @@ public:
     }
 
     ResultAndCarry<U32> RotateRight(const U32& value_in, const U8& shift_amount, const U1& carry_in) {
-        const auto result = Inst<U32>(Opcode::RotateRight32, value_in, shift_amount, carry_in);
+        const auto result = Inst<U32>(Opcode::BitRotateRight32, value_in, shift_amount, carry_in);
         const auto carry_out = Inst<U1>(Opcode::GetCarryFromOp, result);
         return {result, carry_out};
     }
@@ -265,9 +265,9 @@ public:
 
     U32U64 RotateRight(const U32U64& value_in, const U8& shift_amount) {
         if (value_in.GetType() == Type::U32) {
-            return Inst<U32>(Opcode::RotateRight32, value_in, shift_amount, Imm1(0));
+            return Inst<U32>(Opcode::BitRotateRight32, value_in, shift_amount, Imm1(0));
         } else {
-            return Inst<U64>(Opcode::RotateRight64, value_in, shift_amount);
+            return Inst<U64>(Opcode::BitRotateRight64, value_in, shift_amount);
         }
     }
 

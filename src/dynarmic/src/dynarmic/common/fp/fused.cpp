@@ -35,7 +35,7 @@ FPUnpacked FusedMulAdd(FPUnpacked addend, FPUnpacked op1, FPUnpacked op2) {
         return std::make_tuple(exponent, value);
     }();
 
-    if (product_value == 0) {
+    if (product_value == u128(0, 0)) {
         return addend;
     }
 
@@ -55,13 +55,13 @@ FPUnpacked FusedMulAdd(FPUnpacked addend, FPUnpacked op1, FPUnpacked op2) {
         }
 
         // addend < product
-        const u128 result = product_value + StickyLogicalShiftRight(addend.mantissa, exp_diff - normalized_point_position);
+        const u128 result = product_value + StickyLogicalShiftRight(u128(addend.mantissa, 0), exp_diff - normalized_point_position);
         return ReduceMantissa(product_sign, product_exponent, result);
     }
 
     // Subtraction
 
-    const u128 addend_long = u128(addend.mantissa) << normalized_point_position;
+    const u128 addend_long = u128(addend.mantissa, 0) << normalized_point_position;
 
     bool result_sign;
     u128 result;

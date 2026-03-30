@@ -1072,12 +1072,12 @@ static void ConstantPropagation(IR::Block& block) {
                 ReplaceUsesWith(inst, false, Safe::ArithmeticShiftRight<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
-        case Op::RotateRight32:
+        case Op::BitRotateRight32:
             if (FoldShifts(inst)) {
                 ReplaceUsesWith(inst, true, mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
-        case Op::RotateRight64:
+        case Op::BitRotateRight64:
             if (FoldShifts(inst)) {
                 ReplaceUsesWith(inst, false, mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }

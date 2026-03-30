@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -137,7 +137,7 @@ u128 StickyLogicalShiftRight(u128 operand, int amount) {
     }
 
     if (operand.lower != 0 || operand.upper != 0) {
-        return u128(1);
+        return u128(1, 0);
     }
     return {};
 }

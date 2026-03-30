@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -52,12 +52,12 @@ void EmitVectorSaturatedNative(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
     ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
-enum class Op {
+enum class VectorSaturationOp {
     Add,
     Sub,
 };
 
-template<Op op, size_t esize>
+template<VectorSaturationOp op, size_t esize>
 void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     static_assert(esize == 32 || esize == 64);
     constexpr u64 msb_mask = esize == 32 ? 0x8000000080000000 : 0x8000000000000000;
@@ -72,7 +72,7 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
 
         code.movaps(xmm0, operand1);
 
-        if constexpr (op == Op::Add) {
+        if constexpr (op == VectorSaturationOp::Add) {
             ICODE(vpadd)(result, operand1, operand2);
             code.vpternlogd(xmm0, result, operand2, 0b00100100);
         } else {
@@ -102,7 +102,7 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
     const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
 
     if (code.HasHostFeature(HostFeature::AVX)) {
-        if constexpr (op == Op::Add) {
+        if constexpr (op == VectorSaturationOp::Add) {
             ICODE(vpadd)(result, operand1, operand2);
         } else {
             ICODE(vpsub)(result, operand1, operand2);
@@ -112,7 +112,7 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
     } else {
         code.movaps(xmm0, operand1);
         code.movaps(tmp, operand1);
-        if constexpr (op == Op::Add) {
+        if constexpr (op == VectorSaturationOp::Add) {
             ICODE(padd)(result, operand2);
         } else {
             ICODE(psub)(result, operand2);
@@ -121,7 +121,7 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
         code.pxor(tmp, result);
     }
 
-    if constexpr (op == Op::Add) {
+    if constexpr (op == VectorSaturationOp::Add) {
         code.pandn(xmm0, tmp);
     } else {
         code.pand(xmm0, tmp);
@@ -165,7 +165,7 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
     }
 }
 
-template<Op op, size_t esize>
+template<VectorSaturationOp op, size_t esize>
 void EmitVectorUnsignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     static_assert(esize == 32 || esize == 64);
 
@@ -177,7 +177,7 @@ void EmitVectorUnsignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
         const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
         const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr(code).cvt8();
 
-        if constexpr (op == Op::Add) {
+        if constexpr (op == VectorSaturationOp::Add) {
             ICODE(vpadd)(result, operand1, operand2);
             ICODE(vpcmpu)(k1, result, operand1, CmpInt::LessThan);
             ICODE(vpternlog)(result | k1, result, result, u8(0xFF));
@@ -201,7 +201,7 @@ void EmitVectorUnsignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
     const Xbyak::Reg8 overflow = ctx.reg_alloc.ScratchGpr(code).cvt8();
     const Xbyak::Xmm tmp = ctx.reg_alloc.ScratchXmm(code);
 
-    if constexpr (op == Op::Add) {
+    if constexpr (op == VectorSaturationOp::Add) {
         if (code.HasHostFeature(HostFeature::AVX)) {
             code.vpxor(xmm0, operand1, operand2);
             code.vpand(tmp, operand1, operand2);
@@ -250,7 +250,7 @@ void EmitVectorUnsignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
     code.setnz(overflow);
     code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
 
-    if constexpr (op == Op::Add) {
+    if constexpr (op == VectorSaturationOp::Add) {
         code.por(result, tmp);
         ctx.reg_alloc.DefineValue(code, inst, result);
     } else {
@@ -270,11 +270,11 @@ void EmitX64::EmitVectorSignedSaturatedAdd16(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorSignedSaturatedAdd32(EmitContext& ctx, IR::Inst* inst) {
-    EmitVectorSignedSaturated<Op::Add, 32>(code, ctx, inst);
+    EmitVectorSignedSaturated<VectorSaturationOp::Add, 32>(code, ctx, inst);
 }
 
 void EmitX64::EmitVectorSignedSaturatedAdd64(EmitContext& ctx, IR::Inst* inst) {
-    EmitVectorSignedSaturated<Op::Add, 64>(code, ctx, inst);
+    EmitVectorSignedSaturated<VectorSaturationOp::Add, 64>(code, ctx, inst);
 }
 
 void EmitX64::EmitVectorSignedSaturatedSub8(EmitContext& ctx, IR::Inst* inst) {
@@ -286,11 +286,11 @@ void EmitX64::EmitVectorSignedSaturatedSub16(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorSignedSaturatedSub32(EmitContext& ctx, IR::Inst* inst) {
-    EmitVectorSignedSaturated<Op::Sub, 32>(code, ctx, inst);
+    EmitVectorSignedSaturated<VectorSaturationOp::Sub, 32>(code, ctx, inst);
 }
 
 void EmitX64::EmitVectorSignedSaturatedSub64(EmitContext& ctx, IR::Inst* inst) {
-    EmitVectorSignedSaturated<Op::Sub, 64>(code, ctx, inst);
+    EmitVectorSignedSaturated<VectorSaturationOp::Sub, 64>(code, ctx, inst);
 }
 
 void EmitX64::EmitVectorUnsignedSaturatedAdd8(EmitContext& ctx, IR::Inst* inst) {
@@ -302,11 +302,11 @@ void EmitX64::EmitVectorUnsignedSaturatedAdd16(EmitContext& ctx, IR::Inst* inst)
 }
 
 void EmitX64::EmitVectorUnsignedSaturatedAdd32(EmitContext& ctx, IR::Inst* inst) {
-    EmitVectorUnsignedSaturated<Op::Add, 32>(code, ctx, inst);
+    EmitVectorUnsignedSaturated<VectorSaturationOp::Add, 32>(code, ctx, inst);
 }
 
 void EmitX64::EmitVectorUnsignedSaturatedAdd64(EmitContext& ctx, IR::Inst* inst) {
-    EmitVectorUnsignedSaturated<Op::Add, 64>(code, ctx, inst);
+    EmitVectorUnsignedSaturated<VectorSaturationOp::Add, 64>(code, ctx, inst);
 }
 
 void EmitX64::EmitVectorUnsignedSaturatedSub8(EmitContext& ctx, IR::Inst* inst) {
@@ -318,11 +318,11 @@ void EmitX64::EmitVectorUnsignedSaturatedSub16(EmitContext& ctx, IR::Inst* inst)
 }
 
 void EmitX64::EmitVectorUnsignedSaturatedSub32(EmitContext& ctx, IR::Inst* inst) {
-    EmitVectorUnsignedSaturated<Op::Sub, 32>(code, ctx, inst);
+    EmitVectorUnsignedSaturated<VectorSaturationOp::Sub, 32>(code, ctx, inst);
 }
 
 void EmitX64::EmitVectorUnsignedSaturatedSub64(EmitContext& ctx, IR::Inst* inst) {
-    EmitVectorUnsignedSaturated<Op::Sub, 64>(code, ctx, inst);
+    EmitVectorUnsignedSaturated<VectorSaturationOp::Sub, 64>(code, ctx, inst);
 }
 
 }  // namespace Dynarmic::Backend::X64
