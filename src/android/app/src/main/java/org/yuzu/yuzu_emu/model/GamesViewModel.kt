@@ -100,42 +100,45 @@ class GamesViewModel : ViewModel() {
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                if (firstStartup) {
-                    // Retrieve list of cached games
-                    val storedGames =
-                        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-                            .getStringSet(GameHelper.KEY_GAMES, emptySet())
-                    if (storedGames!!.isNotEmpty()) {
-                        val deserializedGames = mutableSetOf<Game>()
-                        storedGames.forEach {
-                            val game: Game
-                            try {
-                                game = Json.decodeFromString(it)
-                            } catch (e: Exception) {
-                                // We don't care about any errors related to parsing the game cache
-                                return@forEach
-                            }
+                try {
+                    if (firstStartup) {
+                        // Retrieve list of cached games
+                        val storedGames =
+                            PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                                .getStringSet(GameHelper.KEY_GAMES, emptySet())
+                        if (storedGames!!.isNotEmpty()) {
+                            val deserializedGames = mutableSetOf<Game>()
+                            storedGames.forEach {
+                                val game: Game
+                                try {
+                                    game = Json.decodeFromString(it)
+                                } catch (e: Exception) {
+                                    // We don't care about any errors related to parsing the game cache
+                                    return@forEach
+                                }
 
-                            val gameExists =
-                                DocumentFile.fromSingleUri(
-                                    YuzuApplication.appContext,
-                                    Uri.parse(game.path)
-                                )?.exists()
-                            if (gameExists == true) {
-                                deserializedGames.add(game)
+                                val gameExists =
+                                    DocumentFile.fromSingleUri(
+                                        YuzuApplication.appContext,
+                                        Uri.parse(game.path)
+                                    )?.exists()
+                                if (gameExists == true) {
+                                    deserializedGames.add(game)
+                                }
                             }
+                            setGames(deserializedGames.toList())
                         }
-                        setGames(deserializedGames.toList())
                     }
-                }
 
-                setGames(GameHelper.getGames())
-                reloading.set(false)
-                _isReloading.value = false
-                _shouldScrollAfterReload.value = true
+                    setGames(GameHelper.getGames())
+                    _shouldScrollAfterReload.value = true
 
-                if (directoriesChanged) {
-                    setShouldSwapData(true)
+                    if (directoriesChanged) {
+                        setShouldSwapData(true)
+                    }
+                } finally {
+                    reloading.set(false)
+                    _isReloading.value = false
                 }
             }
         }

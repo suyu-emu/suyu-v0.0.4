@@ -23,8 +23,8 @@ object DirectoryInitialization {
     fun start() {
         if (!areDirectoriesReady) {
             initializeInternalStorage()
-            NativeLibrary.initializeSystem(false)
             NativeConfig.initializeGlobalConfig()
+            NativeLibrary.initializeSystem(false)
             NativeLibrary.reloadProfiles()
             migrateSettings()
             areDirectoriesReady = true
