@@ -45,11 +45,7 @@ static inline bool AddressSpaceContains(const Common::PageTable& table, const Co
 // from outside classes. This also allows modification to the internals of the memory
 // subsystem without needing to rebuild all files that make use of the memory interface.
 struct Memory::Impl {
-    explicit Impl(Core::System& system_) : system{system_} {
-        // Initialize thread count based on available cores for parallel memory operations
-        const unsigned int hw_concurrency = std::thread::hardware_concurrency();
-        thread_count = (std::max)(2u, (std::min)(hw_concurrency, 8u)); // Limit to 8 threads max
-    }
+    explicit Impl(Core::System& system_) : system{system_} {}
 
     void SetCurrentPageTable(Kernel::KProcess& process) {
         current_page_table = &process.GetPageTable().GetImpl();
@@ -856,13 +852,7 @@ struct Memory::Impl {
     Tegra::MaxwellDeviceMemoryManager* gpu_device_memory{};
     Common::PageTable* current_page_table = nullptr;
 
-    // Number of threads to use for parallel memory operations
-    unsigned int thread_count = 2;
-
-    // Minimum size in bytes for which parallel processing is beneficial
-    //size_t PARALLEL_THRESHOLD = (L3 CACHE * NUM PHYSICAL CORES); // 64 KB
-    std::array<VideoCore::RasterizerDownloadArea, Core::Hardware::NUM_CPU_CORES>
-        rasterizer_read_areas{};
+    std::array<VideoCore::RasterizerDownloadArea, Core::Hardware::NUM_CPU_CORES> rasterizer_read_areas{};
     std::array<GPUDirtyState, Core::Hardware::NUM_CPU_CORES> rasterizer_write_areas{};
     std::array<Common::ScratchBuffer<u32>, Core::Hardware::NUM_CPU_CORES> scratch_buffers{};
     std::span<Core::GPUDirtyMemoryManager> gpu_dirty_managers;
