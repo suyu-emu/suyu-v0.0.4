@@ -415,6 +415,105 @@ TEST_CASE("A64: URSHL", "[a64]") {
     CHECK(jit.GetVector(9) == Vector{0x0000000000000002, 0x12db8b8280e0ba});
 }
 
+TEST_CASE("A64: SQSHLU", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &env;
+    A64::Jit jit{jit_user_config};
+
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+    code.SQSHLU(V8.B16(), V0.B16(), 1);
+    code.SQSHLU(V9.H8(), V1.H8(), 2);
+    code.SQSHLU(V10.S4(), V2.S4(), 28);
+    code.SQSHLU(V11.D2(), V3.D2(), 4);
+    code.SQSHLU(V12.S4(), V0.S4(), 1);
+    code.SQSHLU(V13.S4(), V1.S4(), 3);
+    code.SQSHLU(V14.S4(), V2.S4(), 0);
+    code.SQSHLU(V15.S4(), V3.S4(), 0);
+
+    jit.SetVector(0, Vector{0xffffffff'18ba6a6a, 0x7fffffff'943b954f});
+    jit.SetVector(1, Vector{0x0000000b'0000000f, 0xffffffff'ffffffff});
+    jit.SetVector(2, Vector{0x00000001'000000ff, 0x00000010'0000007f});
+    jit.SetVector(3, Vector{0xffffffffffffffff, 0x96dc5c140705cd04});
+
+    env.ticks_left = env.code_mem.size();
+    CheckedRun([&]() { jit.Run(); });
+
+    CHECK(jit.GetVector(8) == Vector{0x3000d4d4, 0xfe0000000076009e});
+    CHECK(jit.GetVector(9) == Vector{0x2c0000003c, 0});
+    CHECK(jit.GetVector(10) == Vector{0x10000000'ffffffff, 0xffffffff'ffffffff});
+    CHECK(jit.GetVector(11) == Vector{0, 0});
+    CHECK(jit.GetVector(12) == Vector{0x3174d4d4, 0xfffffffe00000000});
+    CHECK(jit.GetVector(13) == Vector{0x5800000078, 0});
+    CHECK(jit.GetVector(14) == Vector{0x1000000ff, 0x100000007f});
+    CHECK(jit.GetVector(15) == Vector{0, 0x705cd04});
+}
+
+TEST_CASE("A64: SMIN", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &env;
+    A64::Jit jit{jit_user_config};
+
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+    code.SMIN(V8.B16(), V0.B16(), V3.B16());
+    code.SMIN(V9.H8(), V1.H8(), V2.H8());
+    code.SMIN(V10.S4(), V2.S4(), V3.S4());
+    code.SMIN(V11.S4(), V3.S4(), V3.S4());
+    code.SMIN(V12.S4(), V0.S4(), V3.S4());
+    code.SMIN(V13.S4(), V1.S4(), V2.S4());
+    code.SMIN(V14.S4(), V2.S4(), V1.S4());
+    code.SMIN(V15.S4(), V3.S4(), V0.S4());
+
+    jit.SetPC(0);
+    jit.SetVector(0, Vector{0xffffffff'18ba6a6a, 0x7fffffff'943b954f});
+    jit.SetVector(1, Vector{0x0000000b'0000000f, 0xffffffff'ffffffff});
+    jit.SetVector(2, Vector{0x00000001'000000ff, 0x00000010'0000007f});
+    jit.SetVector(3, Vector{0xffffffff'ffffffff, 0x96dc5c14'0705cd04});
+
+    env.ticks_left = 4;
+    CheckedRun([&]() { jit.Run(); });
+
+    REQUIRE(jit.GetVector(8) == Vector{0xffffffffffbaffff, 0x96dcffff94059504});
+    REQUIRE(jit.GetVector(9) == Vector{0x10000000f, 0xffffffffffffffff});
+    REQUIRE(jit.GetVector(10) == Vector{0xffffffffffffffff, 0x96dc5c140000007f});
+}
+
+TEST_CASE("A64: SMINP", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &env;
+    A64::Jit jit{jit_user_config};
+
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+    code.SMINP(V8.B16(), V0.B16(), V3.B16());
+    code.SMINP(V9.H8(), V1.H8(), V2.H8());
+    code.SMINP(V10.S4(), V2.S4(), V1.S4());
+    code.SMINP(V11.S4(), V3.S4(), V3.S4());
+    code.SMINP(V12.S4(), V0.S4(), V3.S4());
+    code.SMINP(V13.S4(), V1.S4(), V2.S4());
+    code.SMINP(V14.S4(), V2.S4(), V1.S4());
+    code.SMINP(V15.S4(), V3.S4(), V0.S4());
+
+    jit.SetPC(0);
+    jit.SetVector(0, Vector{0xffffffff'18ba6a6a, 0x7fffffff'943b954f});
+    jit.SetVector(1, Vector{0x0000000b'0000000f, 0xffffffff'ffffffff});
+    jit.SetVector(2, Vector{0x00000001'000000ff, 0x00000010'0000007f});
+    jit.SetVector(3, Vector{0xffffffff'ffffffff, 0x96dc5c14'0705cd04});
+
+    env.ticks_left = 4;
+    CheckedRun([&]() { jit.Run(); });
+
+    REQUIRE(jit.GetVector(8) == Vector{0xffff9495ffffba6a, 0x961405cdffffffff});
+    REQUIRE(jit.GetVector(9) == Vector{0xffffffff00000000, 0});
+    REQUIRE(jit.GetVector(10) == Vector{0x1000000001, 0xffffffff0000000b});
+    REQUIRE(jit.GetVector(11) == Vector{0x96dc5c14ffffffff, 0x96dc5c14ffffffff});
+    REQUIRE(jit.GetVector(12) == Vector{0x943b954fffffffff, 0x96dc5c14ffffffff});
+    REQUIRE(jit.GetVector(13) == Vector{0xffffffff0000000b, 0x1000000001});
+    REQUIRE(jit.GetVector(14) == Vector{0x1000000001, 0xffffffff0000000b});
+    REQUIRE(jit.GetVector(15) == Vector{0x96dc5c14ffffffff, 0x943b954fffffffff});
+}
+
 TEST_CASE("A64: XTN", "[a64]") {
     A64TestEnv env;
     A64::UserConfig jit_user_config{};
