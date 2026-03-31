@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -176,7 +176,7 @@ struct ExceptionHandler::Impl final {
 
         code.align(16);
         const u8* exception_handler_without_cb = code.getCurr<u8*>();
-        code.mov(code.eax, static_cast<u32>(ExceptionContinueSearch));
+        code.mov(code.eax, u32(ExceptionContinueSearch));
         code.ret();
 
         code.align(16);
@@ -192,20 +192,18 @@ struct ExceptionHandler::Impl final {
         code.lea(code.rsp, code.ptr[code.rsp - 8]);
         code.mov(code.ABI_PARAM1, std::bit_cast<u64>(&cb));
         code.mov(code.ABI_PARAM2, code.ABI_PARAM3);
-        code.CallLambda(
-            [](const std::function<FakeCall(u64)>& cb_, PCONTEXT ctx) {
-                FakeCall fc = cb_(ctx->Rip);
-
-                ctx->Rsp -= sizeof(u64);
-                *std::bit_cast<u64*>(ctx->Rsp) = fc.ret_rip;
-                ctx->Rip = fc.call_rip;
-            });
+        code.CallLambda([](const std::function<FakeCall(u64)>& cb_, PCONTEXT ctx) {
+            FakeCall fc = cb_(ctx->Rip);
+            ctx->Rsp -= sizeof(u64);
+            *std::bit_cast<u64*>(ctx->Rsp) = fc.ret_rip;
+            ctx->Rip = fc.call_rip;
+        });
         code.add(code.rsp, 8);
-        code.mov(code.eax, static_cast<u32>(ExceptionContinueExecution));
+        code.mov(code.eax, u32(ExceptionContinueExecution));
         code.ret();
 
-        exception_handler_without_cb_offset = static_cast<ULONG>(exception_handler_without_cb - code.getCode<u8*>());
-        exception_handler_with_cb_offset = static_cast<ULONG>(exception_handler_with_cb - code.getCode<u8*>());
+        exception_handler_without_cb_offset = ULONG(exception_handler_without_cb - code.getCode<u8*>());
+        exception_handler_with_cb_offset = ULONG(exception_handler_with_cb - code.getCode<u8*>());
 
         code.align(16);
         UNWIND_INFO* unwind_info = static_cast<UNWIND_INFO*>(code.AllocateFromCodeSpace(sizeof(UNWIND_INFO)));

@@ -417,7 +417,8 @@ HostLoc RegAlloc::SelectARegister(std::bitset<32> desired_locations) const noexc
             // While R13 and R14 are technically available, we avoid allocating for them
             // at all costs, because theoretically skipping them is better than spilling
             // all over the place - i also fixes bugs with high reg pressure
-            } else if (i >= HostLoc::R13 && i <= HostLoc::R15) {
+            // %rbp must not be trashed, so skip it as well
+            } else if (i == HostLoc::RBP || (i >= HostLoc::R13 && i <= HostLoc::R15)) {
                 // skip, do not touch
             // Intel recommends to reuse registers as soon as they're overwritable (DO NOT SPILL)
             } else if (loc_info.IsEmpty()) {
