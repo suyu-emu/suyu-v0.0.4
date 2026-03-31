@@ -11,6 +11,7 @@
 #include "common/common_types.h"
 #include "common/logging.h"
 #include "common/settings.h"
+#include "common/random.h"
 #include "common/swap.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
@@ -243,7 +244,7 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
     // TODO: this is bad form of ASLR, it sucks
     size_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
         ? ::Settings::values.rng_seed.GetValue()
-        : std::rand()) * 0x734287f27) & 0xfff000;
+        : Common::Random::Random64(0)) * 0x734287f27) & 0xfff000;
 
     // Setup the process code layout
     if (process

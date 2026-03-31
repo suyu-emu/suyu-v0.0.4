@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -216,12 +216,6 @@ public:
         }
 
         return t0;
-    }
-
-    u64 GenerateRandomU64() {
-        const u32 lo = this->GenerateRandomU32();
-        const u32 hi = this->GenerateRandomU32();
-        return (u64{hi} << 32) | u64{lo};
     }
 
     float GenerateRandomF32() {

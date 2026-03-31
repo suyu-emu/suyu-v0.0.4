@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include "common/logging.h"
+#include "common/random.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
@@ -229,7 +230,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     // TODO: this is bad form of ASLR, it sucks
     size_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
         ? ::Settings::values.rng_seed.GetValue()
-        : std::rand()) * 0x734287f27) & 0xfff000;
+        : Common::Random::Random64(0)) * 0x734287f27) & 0xfff000;
 
     // Setup the process code layout
     if (process.LoadFromMetadata(metadata, code_size, fastmem_base, aslr_offset, is_hbl).IsError()) {

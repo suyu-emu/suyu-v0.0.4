@@ -20,6 +20,7 @@
 #include "common/fiber.h"
 #include "common/logging.h"
 #include "common/settings.h"
+#include "common/random.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/hardware_properties.h"
@@ -45,8 +46,7 @@ namespace {
 
 constexpr inline s32 TerminatingThreadPriority = Kernel::Svc::SystemThreadPriorityHighest - 1;
 
-static void ResetThreadContext32(Kernel::Svc::ThreadContext& ctx, u64 stack_top, u64 entry_point,
-                                 u64 arg) {
+static void ResetThreadContext32(Kernel::Svc::ThreadContext& ctx, u64 stack_top, u64 entry_point, u64 arg) {
     ctx = {};
     ctx.r[0] = arg;
     ctx.r[15] = entry_point;
@@ -55,11 +55,10 @@ static void ResetThreadContext32(Kernel::Svc::ThreadContext& ctx, u64 stack_top,
     ctx.fpsr = 0;
 }
 
-static void ResetThreadContext64(Kernel::Svc::ThreadContext& ctx, u64 stack_top, u64 entry_point,
-                                 u64 arg) {
+static void ResetThreadContext64(Kernel::Svc::ThreadContext& ctx, u64 stack_top, u64 entry_point, u64 arg) {
     ctx = {};
     ctx.r[0] = arg;
-    ctx.r[18] = Kernel::KSystemControl::GenerateRandomU64() | 1;
+    ctx.r[18] = Common::Random::Random64(0) | 1;
     ctx.pc = entry_point;
     ctx.sp = stack_top;
     ctx.fpcr = 0;

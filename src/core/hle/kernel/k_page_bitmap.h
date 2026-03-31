@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -14,6 +14,7 @@
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/tiny_mt.h"
+#include "common/random.h"
 #include "core/hle/kernel/k_system_control.h"
 
 namespace Kernel {
@@ -23,7 +24,7 @@ public:
     class RandomBitGenerator {
     public:
         RandomBitGenerator() {
-            m_rng.Initialize(static_cast<u32>(KSystemControl::GenerateRandomU64()));
+            m_rng.Initialize(u32(Common::Random::Random64(0)));
         }
 
         u64 SelectRandomBit(u64 bitmap) {

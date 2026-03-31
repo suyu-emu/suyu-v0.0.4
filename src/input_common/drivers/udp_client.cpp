@@ -11,6 +11,7 @@
 
 #include "common/logging.h"
 #include "common/param_package.h"
+#include "common/random.h"
 #include "common/settings.h"
 #include "input_common/drivers/udp_client.h"
 #include "input_common/helpers/udp_protocol.h"
@@ -31,7 +32,7 @@ public:
 
     explicit Socket(const std::string& host, u16 port, SocketCallback callback_)
         : callback(std::move(callback_)), timer(io_context),
-          socket(io_context, udp::endpoint(udp::v4(), 0)), client_id(GenerateRandomClientId()) {
+          socket(io_context, udp::endpoint(udp::v4(), 0)), client_id(Common::Random::Random32(0)) {
         boost::system::error_code ec{};
         auto ipv4 = boost::asio::ip::make_address_v4(host, ec);
         if (ec.value() != boost::system::errc::success) {
@@ -64,11 +65,6 @@ public:
     }
 
 private:
-    u32 GenerateRandomClientId() const {
-        std::random_device device;
-        return device();
-    }
-
     void HandleReceive(const boost::system::error_code&, std::size_t bytes_transferred) {
         if (auto type = Response::Validate(receive_buffer.data(), bytes_transferred)) {
             switch (*type) {

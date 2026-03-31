@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include "common/settings.h"
+#include "common/random.h"
 #include "core/file_sys/kernel_executable.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
@@ -90,7 +91,7 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
     // TODO: this is bad form of ASLR, it sucks
     size_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
         ? ::Settings::values.rng_seed.GetValue()
-        : std::rand()) * 0x734287f27) & 0xfff000;
+        : Common::Random::Random64(0)) * 0x734287f27) & 0xfff000;
 
     // Setup the process code layout
     if (process.LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), codeset.memory.size(), 0, aslr_offset, false).IsError()) {

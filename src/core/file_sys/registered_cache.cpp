@@ -12,6 +12,7 @@
 #include "common/fs/path_util.h"
 #include "common/hex_util.h"
 #include "common/logging.h"
+#include "common/random.h"
 #include "common/string_util.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
@@ -490,17 +491,13 @@ std::vector<NcaID> PlaceholderCache::List() const {
 }
 
 NcaID PlaceholderCache::Generate() {
-    std::random_device device;
-    std::mt19937 gen(device());
+    auto gen = Common::Random::GetMT19937();
     std::uniform_int_distribution<u64> distribution(1, (std::numeric_limits<u64>::max)());
-
     NcaID out{};
-
     const auto v1 = distribution(gen);
     const auto v2 = distribution(gen);
     std::memcpy(out.data(), &v1, sizeof(u64));
     std::memcpy(out.data() + sizeof(u64), &v2, sizeof(u64));
-
     return out;
 }
 

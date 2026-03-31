@@ -23,8 +23,6 @@ namespace Network {
 
 class Room::RoomImpl {
 public:
-    std::mt19937 random_gen; ///< Random number generator. Used for GenerateFakeIPAddress
-
     ENetHost* server = nullptr; ///< Network interface.
 
     std::atomic<State> state{State::Closed}; ///< Current state of the room.
@@ -51,7 +49,7 @@ public:
     IPBanList ip_ban_list;             ///< List of banned IP addresses
     mutable std::mutex ban_list_mutex; ///< Mutex for the ban lists
 
-    RoomImpl() : random_gen(std::random_device()()) {}
+    RoomImpl() {}
 
     /// Thread that receives and dispatches network packets
     std::optional<std::jthread> room_thread;

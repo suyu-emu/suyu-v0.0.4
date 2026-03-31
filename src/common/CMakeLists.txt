@@ -134,6 +134,8 @@ add_library(
     typed_address.h
     uint128.h
     unique_function.h
+    random.cpp
+    random.h
     uuid.cpp
     uuid.h
     vector_math.h
