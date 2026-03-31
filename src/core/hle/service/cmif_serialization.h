@@ -438,20 +438,20 @@ void WriteOutArgument(bool is_domain, CallArguments& args, u8* raw_data, HLERequ
 
 template <bool Domain, typename T, typename... A>
 void CmifReplyWrapImpl(HLERequestContext& ctx, T& t, Result (T::*f)(A...)) {
+    const auto mgr = ctx.GetManager().get();
     // Verify domain state.
     if constexpr (!Domain) {
-        const auto _mgr = ctx.GetManager();
-        const bool _is_domain = _mgr ? _mgr->IsDomain() : false;
-        ASSERT_MSG(!_is_domain,
-                   "Non-domain reply used on domain session\n"
-                   "Service={} (TIPC={} CmdType={} Cmd=0x{:08X}\n"
-                   "HasDomainHeader={} DomainHandlers={}\nDesc={}",
-                   t.GetServiceName(), ctx.IsTipc(),
-                   static_cast<u32>(ctx.GetCommandType()), static_cast<u32>(ctx.GetCommand()),
-                   ctx.HasDomainMessageHeader(), _mgr ? static_cast<u32>(_mgr->DomainHandlerCount()) : 0u,
-                   ctx.Description());
+        const bool is_domain = mgr ? mgr->IsDomain() : false;
+        ASSERT_MSG(!is_domain,
+            "Non-domain reply used on domain session\n"
+            "Service={} (TIPC={} CmdType={} Cmd=0x{:08X}\n"
+            "HasDomainHeader={} DomainHandlers={}\nDesc={}",
+            t.GetServiceName(), ctx.IsTipc(),
+            u32(ctx.GetCommandType()), u32(ctx.GetCommand()),
+            ctx.HasDomainMessageHeader(), mgr ? u32(mgr->DomainHandlerCount()) : 0u,
+            ctx.Description());
     }
-    const bool is_domain = Domain ? ctx.GetManager()->IsDomain() : false;
+    const bool is_domain = Domain ? mgr->IsDomain() : false;
 
     static_assert(ConstIfReference<A...>(), "Arguments taken by reference must be const");
     using MethodArguments = std::tuple<std::remove_cvref_t<A>...>;

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -78,32 +81,29 @@ public:
         memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
 
         IPC::CommandHeader header{};
+        auto const mgr = ctx.GetManager().get();
 
         // The entire size of the raw data section in u32 units, including the 16 bytes of mandatory
         // padding.
-        u32 raw_data_size = ctx.write_size =
-            ctx.IsTipc() ? normal_params_size - 1 : normal_params_size;
+        u32 raw_data_size = ctx.write_size = ctx.IsTipc() ? normal_params_size - 1 : normal_params_size;
         u32 num_handles_to_move{};
         u32 num_domain_objects{};
-        const bool always_move_handles{
-            (static_cast<u32>(flags) & static_cast<u32>(Flags::AlwaysMoveHandles)) != 0};
-        if (!ctx.GetManager()->IsDomain() || always_move_handles) {
+        const bool always_move_handles = (u32(flags) & u32(Flags::AlwaysMoveHandles)) != 0;
+        if (!mgr->IsDomain() || always_move_handles) {
             num_handles_to_move = num_objects_to_move;
         } else {
             num_domain_objects = num_objects_to_move;
         }
 
-        if (ctx.GetManager()->IsDomain()) {
-            raw_data_size +=
-                static_cast<u32>(sizeof(DomainMessageHeader) / sizeof(u32) + num_domain_objects);
+        if (mgr->IsDomain()) {
+            raw_data_size += u32(sizeof(DomainMessageHeader) / sizeof(u32) + num_domain_objects);
             ctx.write_size += num_domain_objects;
         }
 
         if (ctx.IsTipc()) {
             header.type.Assign(ctx.GetCommandType());
         } else {
-            raw_data_size += static_cast<u32>(sizeof(IPC::DataPayloadHeader) / sizeof(u32) + 4 +
-                                              normal_params_size);
+            raw_data_size += u32(sizeof(IPC::DataPayloadHeader) / sizeof(u32) + 4 + normal_params_size);
         }
 
         header.data_size.Assign(raw_data_size);
@@ -126,7 +126,7 @@ public:
         if (!ctx.IsTipc()) {
             AlignWithPadding();
 
-            if (ctx.GetManager()->IsDomain() && ctx.HasDomainMessageHeader()) {
+            if (mgr->IsDomain() && ctx.HasDomainMessageHeader()) {
                 IPC::DomainMessageHeader domain_header{};
                 domain_header.num_objects = num_domain_objects;
                 PushRaw(domain_header);
