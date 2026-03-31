@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -29,7 +29,7 @@ namespace Dynarmic::Backend::X64 {
 class RegAlloc;
 
 struct A32EmitContext final : public EmitContext {
-    A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block);
+    A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block, boost::container::stable_vector<Xbyak::Label>& shared_labels);
 
     A32::LocationDescriptor Location() const;
     A32::LocationDescriptor EndLocation() const;
@@ -130,6 +130,7 @@ public:
     ankerl::unordered_dense::map<std::tuple<bool, size_t, int, int>, void (*)()> write_fallbacks;
     ankerl::unordered_dense::map<std::tuple<bool, size_t, int, int>, void (*)()> exclusive_write_fallbacks;
     ankerl::unordered_dense::set<DoNotFastmemMarker> do_not_fastmem;
+    boost::container::stable_vector<Xbyak::Label> shared_labels;
     void (*memory_read_128)() = nullptr;   // Dummy
     void (*memory_write_128)() = nullptr;  // Dummy
     const void* terminal_handler_pop_rsb_hint;

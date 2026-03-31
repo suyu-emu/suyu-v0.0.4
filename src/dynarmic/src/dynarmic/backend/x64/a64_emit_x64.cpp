@@ -37,8 +37,10 @@ namespace Dynarmic::Backend::X64 {
 
 using namespace Xbyak::util;
 
-A64EmitContext::A64EmitContext(const A64::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block)
-        : EmitContext(reg_alloc, block), conf(conf) {}
+A64EmitContext::A64EmitContext(const A64::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block, boost::container::stable_vector<Xbyak::Label>& shared_labels)
+    : EmitContext(reg_alloc, block, shared_labels)
+    , conf(conf)
+{}
 
 A64::LocationDescriptor A64EmitContext::Location() const {
     return A64::LocationDescriptor{block.Location()};
@@ -83,7 +85,8 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
             gprs.reset(size_t(HostLoc::R14));
         return gprs;
     }(), any_xmm};
-    A64EmitContext ctx{conf, reg_alloc, block};
+
+    A64EmitContext ctx{conf, reg_alloc, block, shared_labels};
 
     // Start emitting.
     code.align();
@@ -160,6 +163,7 @@ finish_this_inst:
 
     auto bdesc = RegisterBlock(descriptor, entrypoint, size);
     code.DisableWriting();
+    shared_labels.clear();
     return bdesc;
 }
 

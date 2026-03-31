@@ -16,11 +16,12 @@
 #include <type_traits>
 #include <vector>
 
-#include "dynarmic/mcl/bit.hpp"
 #include <ankerl/unordered_dense.h>
-#include "dynarmic/backend/x64/xbyak.h"
+#include <boost/container/stable_vector.hpp>
 #include <boost/container/small_vector.hpp>
 
+#include "dynarmic/backend/x64/xbyak.h"
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/backend/x64/reg_alloc.h"
 #include "dynarmic/common/fp/fpcr.h"
@@ -52,23 +53,22 @@ using VectorArray = std::array<T, A64FullVectorWidth::value / mcl::bitsizeof<T>>
 template<typename T>
 using HalfVectorArray = std::array<T, A64FullVectorWidth::value / mcl::bitsizeof<T> / 2>;
 
+using SharedLabel = Xbyak::Label*;
 struct EmitContext {
-    EmitContext(RegAlloc& reg_alloc, IR::Block& block);
+    EmitContext(RegAlloc& reg_alloc, IR::Block& block, boost::container::stable_vector<Xbyak::Label>& shared_labels);
     virtual ~EmitContext();
     virtual FP::FPCR FPCR(bool fpcr_controlled = true) const = 0;
     virtual bool HasOptimization(OptimizationFlag flag) const = 0;
 
-    RegAlloc& reg_alloc;
-    IR::Block& block;
+    [[nodiscard]] inline Xbyak::Label* GenSharedLabel() noexcept {
+        return &shared_labels.emplace_back();
+    }
 
     std::vector<std::function<void()>> deferred_emits;
+    RegAlloc& reg_alloc;
+    IR::Block& block;
+    boost::container::stable_vector<Xbyak::Label>& shared_labels;
 };
-
-using SharedLabel = std::shared_ptr<Xbyak::Label>;
-
-inline SharedLabel GenSharedLabel() {
-    return std::make_shared<Xbyak::Label>();
-}
 
 class EmitX64 {
 public:

@@ -59,8 +59,10 @@ static Xbyak::Address MJitStateExtReg(A32::ExtReg reg) {
     UNREACHABLE();
 }
 
-A32EmitContext::A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block)
-        : EmitContext(reg_alloc, block), conf(conf) {}
+A32EmitContext::A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block, boost::container::stable_vector<Xbyak::Label>& shared_labels)
+    : EmitContext(reg_alloc, block, shared_labels)
+    , conf(conf)
+{}
 
 A32::LocationDescriptor A32EmitContext::Location() const {
     return A32::LocationDescriptor{block.Location()};
@@ -109,7 +111,8 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
             gprs.reset(size_t(HostLoc::R14));
         return gprs;
     }(), any_xmm);
-    A32EmitContext ctx{conf, reg_alloc, block};
+
+    A32EmitContext ctx{conf, reg_alloc, block, shared_labels};
 
     // Start emitting.
     code.align();
@@ -168,6 +171,7 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 
     auto const bdesc = RegisterBlock(descriptor, entrypoint, size);
     code.DisableWriting();
+    shared_labels.clear();
     return bdesc;
 }
 

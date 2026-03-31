@@ -86,7 +86,7 @@ void AxxEmitX64::EmitMemoryRead(AxxEmitContext& ctx, IR::Inst* inst) {
 
     const auto wrapped_fn = read_fallbacks[std::make_tuple(ordered, bitsize, vaddr.getIdx(), value_idx)];
 
-    SharedLabel abort = GenSharedLabel(), end = GenSharedLabel();
+    SharedLabel abort = ctx.GenSharedLabel(), end = ctx.GenSharedLabel();
 
     if (fastmem_marker) {
         // Use fastmem
@@ -108,7 +108,7 @@ void AxxEmitX64::EmitMemoryRead(AxxEmitContext& ctx, IR::Inst* inst) {
                     conf.recompile_on_fastmem_failure,
                 });
 
-            EmitCheckMemoryAbort(ctx, inst, end.get());
+            EmitCheckMemoryAbort(ctx, inst, end);
             code.jmp(*end, code.T_NEAR);
         });
     } else {
@@ -120,7 +120,7 @@ void AxxEmitX64::EmitMemoryRead(AxxEmitContext& ctx, IR::Inst* inst) {
         ctx.deferred_emits.emplace_back([=, this, &ctx] {
             code.L(*abort);
             code.call(wrapped_fn);
-            EmitCheckMemoryAbort(ctx, inst, end.get());
+            EmitCheckMemoryAbort(ctx, inst, end);
             code.jmp(*end, code.T_NEAR);
         });
     }
@@ -173,7 +173,7 @@ void AxxEmitX64::EmitMemoryWrite(AxxEmitContext& ctx, IR::Inst* inst) {
 
     const auto wrapped_fn = write_fallbacks[std::make_tuple(ordered, bitsize, vaddr.getIdx(), value_idx)];
 
-    SharedLabel abort = GenSharedLabel(), end = GenSharedLabel();
+    SharedLabel abort = ctx.GenSharedLabel(), end = ctx.GenSharedLabel();
 
     if (fastmem_marker) {
         // Use fastmem
@@ -195,7 +195,7 @@ void AxxEmitX64::EmitMemoryWrite(AxxEmitContext& ctx, IR::Inst* inst) {
                     conf.recompile_on_fastmem_failure,
                 });
 
-            EmitCheckMemoryAbort(ctx, inst, end.get());
+            EmitCheckMemoryAbort(ctx, inst, end);
             code.jmp(*end, code.T_NEAR);
         });
     } else {
@@ -207,7 +207,7 @@ void AxxEmitX64::EmitMemoryWrite(AxxEmitContext& ctx, IR::Inst* inst) {
         ctx.deferred_emits.emplace_back([=, this, &ctx] {
             code.L(*abort);
             code.call(wrapped_fn);
-            EmitCheckMemoryAbort(ctx, inst, end.get());
+            EmitCheckMemoryAbort(ctx, inst, end);
             code.jmp(*end, code.T_NEAR);
         });
     }
@@ -352,7 +352,7 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
 
     const auto fastmem_marker = ShouldFastmem(ctx, inst);
     if (fastmem_marker) {
-        SharedLabel abort = GenSharedLabel(), end = GenSharedLabel();
+        SharedLabel abort = ctx.GenSharedLabel(), end = ctx.GenSharedLabel();
         bool require_abort_handling = false;
 
         const auto src_ptr = EmitFastmemVAddr(code, ctx, *abort, vaddr, require_abort_handling);
@@ -427,7 +427,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
 
     EmitExclusiveLock(code, conf, tmp, tmp2.cvt32());
 
-    SharedLabel end = GenSharedLabel();
+    SharedLabel end = ctx.GenSharedLabel();
 
     code.mov(status, u32(1));
     code.movzx(tmp.cvt32(), code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)]);
@@ -460,7 +460,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
 
     const auto fastmem_marker = ShouldFastmem(ctx, inst);
     if (fastmem_marker) {
-        SharedLabel abort = GenSharedLabel();
+        SharedLabel abort = ctx.GenSharedLabel();
         bool require_abort_handling = false;
 
         const auto dest_ptr = EmitFastmemVAddr(code, ctx, *abort, vaddr, require_abort_handling, tmp);

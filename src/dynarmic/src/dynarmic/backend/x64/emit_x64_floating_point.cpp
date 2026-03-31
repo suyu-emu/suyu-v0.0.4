@@ -136,7 +136,7 @@ void ForceToDefaultNaN(BlockOfCode& code, Xbyak::Xmm result) {
 
 template<size_t fsize>
 SharedLabel ProcessNaN(BlockOfCode& code, EmitContext& ctx, Xbyak::Xmm a) {
-    SharedLabel nan = GenSharedLabel(), end = GenSharedLabel();
+    SharedLabel nan = ctx.GenSharedLabel(), end = ctx.GenSharedLabel();
 
     FCODE(ucomis)(a, a);
     code.jp(*nan, code.T_NEAR);
@@ -251,7 +251,7 @@ template<size_t fsize, typename Function>
 void FPTwoOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    SharedLabel end = GenSharedLabel();
+    SharedLabel end = ctx.GenSharedLabel();
 
     Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(code, args[0]);
 
@@ -304,7 +304,7 @@ void FPThreeOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, Function fn)
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
     const Xbyak::Reg64 tmp = ctx.reg_alloc.ScratchGpr(code);
 
-    SharedLabel end = GenSharedLabel(), nan = GenSharedLabel();
+    SharedLabel end = ctx.GenSharedLabel(), nan = ctx.GenSharedLabel();
 
     code.movaps(result, op1);
     if constexpr (std::is_member_function_pointer_v<Function>) {
@@ -413,7 +413,7 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, bo
 
     DenormalsAreZero<fsize>(code, ctx, {result, operand});
 
-    SharedLabel equal = GenSharedLabel(), end = GenSharedLabel();
+    SharedLabel equal = ctx.GenSharedLabel(), end = ctx.GenSharedLabel();
 
     FCODE(ucomis)(result, operand);
     code.jz(*equal, code.T_NEAR);
@@ -484,7 +484,7 @@ static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::
             }
         };
 
-        SharedLabel end = GenSharedLabel(), z = GenSharedLabel();
+        SharedLabel end = ctx.GenSharedLabel(), z = ctx.GenSharedLabel();
 
         FCODE(ucomis)(op1, op2);
         code.jz(*z, code.T_NEAR);
@@ -632,7 +632,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, bo
         }
 
         if (code.HasHostFeature(HostFeature::FMA | HostFeature::AVX)) {
-            SharedLabel fallback = GenSharedLabel(), end = GenSharedLabel();
+            SharedLabel fallback = ctx.GenSharedLabel(), end = ctx.GenSharedLabel();
 
             const Xbyak::Xmm operand1 = ctx.reg_alloc.UseXmm(code, args[0]);
             const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -843,7 +843,7 @@ static void EmitFPMulX(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
     const Xbyak::Reg64 tmp = do_default_nan ? INVALID_REG : ctx.reg_alloc.ScratchGpr(code);
 
-    SharedLabel end = GenSharedLabel(), nan = GenSharedLabel();
+    SharedLabel end = ctx.GenSharedLabel(), nan = ctx.GenSharedLabel();
 
     if (code.HasHostFeature(HostFeature::AVX)) {
         FCODE(vmuls)(result, op1, op2);
@@ -981,7 +981,7 @@ static void EmitFPRecipStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
         }
 
         if (code.HasHostFeature(HostFeature::FMA)) {
-            SharedLabel end = GenSharedLabel(), fallback = GenSharedLabel();
+            SharedLabel end = ctx.GenSharedLabel(), fallback = ctx.GenSharedLabel();
 
             const Xbyak::Xmm operand1 = ctx.reg_alloc.UseXmm(code, args[0]);
             const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -1129,7 +1129,7 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
         const Xbyak::Xmm value = ctx.reg_alloc.ScratchXmm(code);
         [[maybe_unused]] const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
-        SharedLabel bad_values = GenSharedLabel(), end = GenSharedLabel();
+        SharedLabel bad_values = ctx.GenSharedLabel(), end = ctx.GenSharedLabel();
 
         code.movaps(value, operand);
 
@@ -1296,7 +1296,7 @@ static void EmitFPRSqrtStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
         }
 
         if (code.HasHostFeature(HostFeature::FMA | HostFeature::AVX)) {
-            SharedLabel end = GenSharedLabel(), fallback = GenSharedLabel();
+            SharedLabel end = ctx.GenSharedLabel(), fallback = ctx.GenSharedLabel();
 
             const Xbyak::Xmm operand1 = ctx.reg_alloc.UseXmm(code, args[0]);
             const Xbyak::Xmm operand2 = ctx.reg_alloc.UseXmm(code, args[1]);
@@ -1641,7 +1641,7 @@ static void EmitFPToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                 const Xbyak::Xmm scratch = ctx.reg_alloc.ScratchXmm(code);
 
                 if (!unsigned_) {
-                    SharedLabel saturate_max = GenSharedLabel(), end = GenSharedLabel();
+                    SharedLabel saturate_max = ctx.GenSharedLabel(), end = ctx.GenSharedLabel();
 
                     ZeroIfNaN<64>(code, src, scratch);
 
