@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -159,6 +159,7 @@ private:
     std::array<Shader::Info, NUM_STAGES> stage_infos;
     std::array<u32, 5> enabled_uniform_buffer_masks{};
     VideoCommon::UniformBufferSizes uniform_buffer_sizes{};
+    size_t num_image_elements{};
     u32 num_textures{};
     bool fragment_has_color0_output{};
 

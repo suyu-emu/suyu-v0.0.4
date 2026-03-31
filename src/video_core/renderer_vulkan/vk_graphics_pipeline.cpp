@@ -49,7 +49,7 @@ using VideoCore::Surface::PixelFormatFromDepthFormat;
 using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 
 constexpr size_t NUM_STAGES = Maxwell::MaxShaderStage;
-constexpr size_t MAX_IMAGE_ELEMENTS = 64;
+constexpr size_t INLINE_IMAGE_ELEMENTS = 64;
 
 DescriptorLayoutBuilder MakeBuilder(const Device& device, std::span<const Shader::Info> infos) {
     DescriptorLayoutBuilder builder{device};
@@ -264,7 +264,11 @@ GraphicsPipeline::GraphicsPipeline(
         stage_infos[stage] = *info;
         enabled_uniform_buffer_masks[stage] = info->constant_buffer_mask;
         std::ranges::copy(info->constant_buffer_used_sizes, uniform_buffer_sizes[stage].begin());
+        num_image_elements += Shader::NumDescriptors(info->texture_buffer_descriptors);
+        num_image_elements += Shader::NumDescriptors(info->image_buffer_descriptors);
         num_textures += Shader::NumDescriptors(info->texture_descriptors);
+        num_image_elements += Shader::NumDescriptors(info->texture_descriptors);
+        num_image_elements += Shader::NumDescriptors(info->image_descriptors);
     }
     fragment_has_color0_output = stage_infos[NUM_STAGES - 1].stores_frag_color[0];
     auto func{[this, shader_notify, &render_pass_cache, &descriptor_pool, pipeline_statistics] {
@@ -310,10 +314,10 @@ void GraphicsPipeline::AddTransition(GraphicsPipeline* transition) {
 
 template <typename Spec>
 bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
-    std::array<VideoCommon::ImageViewInOut, MAX_IMAGE_ELEMENTS> views;
-    std::array<VideoCommon::SamplerId, MAX_IMAGE_ELEMENTS> samplers;
-    size_t sampler_index{};
-    size_t view_index{};
+    small_vector<VideoCommon::ImageViewInOut, INLINE_IMAGE_ELEMENTS> views;
+    small_vector<VideoCommon::SamplerId, INLINE_IMAGE_ELEMENTS> samplers;
+    views.reserve(num_image_elements);
+    samplers.reserve(num_textures);
 
     texture_cache.SynchronizeGraphicsDescriptors();
 
@@ -358,11 +362,11 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         const auto add_image{[&](const auto& desc, bool blacklist) LAMBDA_FORCEINLINE {
             for (u32 index = 0; index < desc.count; ++index) {
                 const auto handle{read_handle(desc, index)};
-                views[view_index++] = {
+                views.push_back({
                     .index = handle.first,
                     .blacklist = blacklist,
                     .id = {}
-                };
+                });
             }
         }};
         if constexpr (Spec::has_texture_buffers) {
@@ -378,10 +382,10 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         for (const auto& desc : info.texture_descriptors) {
             for (u32 index = 0; index < desc.count; ++index) {
                 const auto handle{read_handle(desc, index)};
-                views[view_index++] = {handle.first};
+                views.push_back({handle.first});
 
                 VideoCommon::SamplerId sampler{texture_cache.GetGraphicsSamplerId(handle.second)};
-                samplers[sampler_index++] = sampler;
+                samplers.push_back(sampler);
             }
         }
         if constexpr (Spec::has_images) {
@@ -407,7 +411,9 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     if constexpr (Spec::enabled_stages[4]) {
         config_stage(4);
     }
-    texture_cache.FillGraphicsImageViews<Spec::has_images>(std::span(views.data(), view_index));
+    ASSERT(views.size() == num_image_elements);
+    ASSERT(samplers.size() == num_textures);
+    texture_cache.FillGraphicsImageViews<Spec::has_images>(std::span(views.data(), views.size()));
 
     VideoCommon::ImageViewInOut* texture_buffer_it{views.data()};
     const auto bind_stage_info{[&](size_t stage) LAMBDA_FORCEINLINE {
@@ -501,7 +507,8 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         buffer_cache.any_buffer_uploaded = false;
     }
     texture_cache.UpdateRenderTargets(false);
-    texture_cache.CheckFeedbackLoop(views);
+    texture_cache.CheckFeedbackLoop(std::span<const VideoCommon::ImageViewInOut>{views.data(),
+                                                                                 views.size()});
     ConfigureDraw(rescaling, render_area);
 
     return true;
@@ -987,7 +994,7 @@ void GraphicsPipeline::Validate() {
         num_images += Shader::NumDescriptors(info.texture_descriptors);
         num_images += Shader::NumDescriptors(info.image_descriptors);
     }
-    ASSERT(num_images <= MAX_IMAGE_ELEMENTS);
+    ASSERT(num_images == num_image_elements);
 }
 
 } // namespace Vulkan
