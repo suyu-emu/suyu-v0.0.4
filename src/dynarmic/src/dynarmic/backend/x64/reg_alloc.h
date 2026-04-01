@@ -50,7 +50,7 @@ public:
     }
     inline void ReadLock() noexcept {
         ASSERT(size_t(is_being_used_count) + 1 < (std::numeric_limits<decltype(is_being_used_count)>::max)());
-        ASSERT(!is_scratch);
+        ASSERT(!bool(is_scratch));
         is_being_used_count++;
     }
     inline void WriteLock() noexcept {

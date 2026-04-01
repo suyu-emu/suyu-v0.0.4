@@ -316,8 +316,8 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
         return current_location->index;
     }
 
-    ASSERT(!ValueInfo(*current_location).realized);
-    ASSERT(ValueInfo(*current_location).locked);
+    ASSERT(!bool(ValueInfo(*current_location).realized));
+    ASSERT(bool(ValueInfo(*current_location).locked));
 
     if constexpr (required_kind == HostLoc::Kind::Gpr) {
         const int new_location_index = AllocateRegister(gprs, gpr_order);
