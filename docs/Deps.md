@@ -334,7 +334,7 @@ pacman -Syuu --needed --noconfirm $packages
 <summary>HaikuOS</summary>
 
 ```sh
-pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.89_devel vulkan_devel qt6_base_devel qt6_declarative_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt5_devel qt6_5compat_devel glslang qt6_devel qt6_charts_devel
+pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.90_devel vulkan_devel qt6_base_devel qt6_declarative_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt5_devel qt6_5compat_devel glslang qt6_devel qt6_charts_devel
 ```
 
 [Caveats](./Caveats.md#haikuos).

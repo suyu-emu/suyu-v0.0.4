@@ -56,7 +56,7 @@ Use this when you need to connect to a multiplayer room for LDN functionality in
 - Multiplayer Options Configured in Eden Settings
 - Network Access
 
-## Steps
+### Steps
 There are 2 primary methods that you can use to connect to an existing room, depending on how the room is hosted.
 
 - Joining a Public Lobby
@@ -70,7 +70,7 @@ There are 2 primary methods that you can use to connect to an existing room, dep
 
 </aside>
 
-### Joining a Public Lobby
+## Joining a Public Lobby
 1. Open Eden and navigate to *Multiplayer → Browse Public Game Lobby*.
 2. The **Public Room Browser** will now open and display a list of publicly accessible rooms.  Find one you want to connect to and double click it.
     
@@ -90,7 +90,7 @@ If the hoster has not made the lobby public, or you don't want to find it in the
 
 ---
 
-# Hosting a Multiplayer Room
+## Hosting a Multiplayer Room
 Use this guide for when you want to host a multiplayer lobby to play with others in Eden.  In order to have someone access the room from outside your local network, see the *Access Your Multiplayer Room Externally* section for next steps.
 
 **Click [Here](https://evilperson1337.notion.site/Hosting-a-Multiplayer-Room-2c357c2edaf6819481dbe8a99926cea2) for a version of this guide with images & visual elements.**
@@ -100,7 +100,7 @@ Use this guide for when you want to host a multiplayer lobby to play with others
 - Network Access
 - Ability to allow programs through the firewall on your device.
 
-## Steps
+### Steps
 1. Open Eden and navigate to *Emulation → Multiplayer → Create Room.*    
 2. Fill out the following information in the popup dialog box.
     
@@ -120,7 +120,7 @@ Use this guide for when you want to host a multiplayer lobby to play with others
 
 ---
 
-# Access Your Multiplayer Room Externally
+## Access Your Multiplayer Room Externally
 Quite often the person with whom you want to play is located off of your internal network (LAN).  If you want to host a room and play with them you will need to get your devices to communicate with each other.  This guide will go over your options on how to do this so that you can play together.
 
 **Click [Here](https://evilperson1337.notion.site/Access-Your-Multiplayer-Room-Externally-2c357c2edaf681c0ab2ce2ee624d809d) for a version of this guide with images & visual elements.**
@@ -129,9 +129,9 @@ Quite often the person with whom you want to play is located off of your interna
 - Eden set up and Functioning
 - Network Access
 
-## Options
+### Options
 
-### Port Forwarding
+#### Port Forwarding
 
 - **Difficulty Level**: High
     
@@ -148,8 +148,9 @@ The process works by creating a static mapping—often called a “port-forward 
 
 For our purposes we would pick the port we want to expose (*e.g. 24872*) and we would access our router's configuration and create a port-forward rule to send the traffic from an external connection to your local machine over our specified port (*24872)*.  The exact way to do so, varies greatly by router manufacturer - and sometimes require contacting your ISP to do so depending on your agreement.  You can look up your router on [*portforward.com*](https://portforward.com/router.htm) which may have instructions on how to do so for your specific equipment.  If it is not there, you will have to use Google/ChatGPT to determine the steps for your equipment.
 
+Remember you can't have one port open for multiple devices at the same time - you must only host from one device (or do more convoluted networking which we will not cover here).
 
-### Use a Tunnelling Service
+#### Use a Tunnelling Service
 - **Difficulty Level**: Easy
     
     <aside>
@@ -167,7 +168,7 @@ For our purposes we would spawn the listener for the port that way chose when ho
 - [*Playit.GG*](https://playit.gg/)
 
 
-### Use a VPN Service
+#### Use a VPN Service
 
 - **Difficulty**: Easy
 
@@ -189,7 +190,7 @@ The VPN solution is a good compromise between the tunnelling solution and port f
 
 ---
 
-# Finding the Server Information for a Multiplayer Room
+## Finding the Server Information for a Multiplayer Room
 Use this guide when you need to determine the connection information for the Public Multiplayer Lobby you are connected to.
 
 **Click [Here](https://evilperson1337.notion.site/Finding-the-Server-Information-for-a-Multiplayer-Room-2c557c2edaf6809e94e8ed3429b9eb26) for a version of this guide with images & visual elements.**
@@ -198,7 +199,7 @@ Use this guide when you need to determine the connection information for the Pub
 - Eden set up and configured
 - Internet Access
 
-## Steps
+### Steps
 
 ### Method 1: Grabbing the Address from the Log File
 1. Open Eden and Connect to the room you want to identify.
@@ -222,7 +223,7 @@ Use this guide when you need to determine the connection information for the Pub
 2. Open the terminal supported by your operating system.
 3. Run one of the following commands, replacing *<Name>* with the name of the server from step 1.
     
-    ### PowerShell Command [Windows Users]
+    #### PowerShell Command [Windows Users]
     
     ```powershell
     # Calls the API to get the address and port information
@@ -235,7 +236,7 @@ Use this guide when you need to determine the connection information for the Pub
     #}
     ```
     
-    ### CURL Command [MacOS/Linux Users] **Requires jq*
+    #### CURL Command [MacOS/Linux Users] **Requires jq*
     
     ```bash
     # Calls the API to get the address and port information
@@ -252,7 +253,7 @@ Use this guide when you need to determine the connection information for the Pub
 
 ---
 
-# Multiplayer for Local Co-Op Games
+## Multiplayer for Local Co-Op Games
 Use this guide when you want to play with a friend on a different system for games that only support local co-op.
 
 **Click [Here](https://evilperson1337.notion.site/Multiplayer-for-Local-Co-Op-Games-2c657c2edaf680c59975ec6b52022a2d) for a version of this guide with images & visual elements.**
@@ -271,7 +272,7 @@ In either situation at its core, we are emulating an input device on the host ma
     - Parsec is free to use for personal, non-commercial use.  For instructions on how to set up an account and install the client you should refer to the Parsec documentation on it's site.
 - Parsec client installed on your machine and remote (friend's) machine
 
-## Steps
+### Steps
 
 <aside>
 
@@ -294,3 +295,22 @@ This guide will assume you are the one hosting the game and go over things *Pars
 10. Set up the remote player's controller.
 11. Hit **OK** to apply the changes.
 12. Launch the game you want to play and enter the co-op mode.  How this works depends on the game, so you will have to look in the menus or online to find out.
+
+## Metaserver troubleshooting
+
+If you can't connect to the metaserver, it's likely your ISP is blocking the requests.
+
+### Linux and Steamdeck
+
+Most Linux systems and Steamdeck should allow to modify the base `/etc/hosts` file, this should fix the DNS lookup issue; hence add the following to said file:
+```
+28.165.181.135 api.ynet-fun.xyz api.ynet-fun.xyz
+```
+
+### Zapret
+
+In `lists/list-general.txt` add the following:
+```
+api.ynet-fun.xyz
+ynet-fun.xyz
+```
