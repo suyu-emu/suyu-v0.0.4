@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -23,8 +23,8 @@ template<typename Visitor>
 using Thumb32Matcher = Decoder::Matcher<Visitor, u32>;
 
 template<typename V>
-std::optional<std::reference_wrapper<const Thumb32Matcher<V>>> DecodeThumb32(u32 instruction) {
-    alignas(64) static const std::vector<Thumb32Matcher<V>> table = {
+static std::optional<std::reference_wrapper<const Thumb32Matcher<V>>> DecodeThumb32(u32 instruction) {
+    alignas(64) static const auto table = std::array{
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(Thumb32Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./thumb32.inc"
 #undef INST
@@ -36,7 +36,7 @@ std::optional<std::reference_wrapper<const Thumb32Matcher<V>>> DecodeThumb32(u32
 }
 
 template<typename V>
-std::optional<std::string_view> GetNameThumb32(u32 inst) noexcept {
+static std::optional<std::string_view> GetNameThumb32(u32 inst) noexcept {
     std::vector<std::pair<std::string_view, Thumb32Matcher<V>>> list = {
 #define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(Thumb32Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
 #include "./thumb32.inc"
