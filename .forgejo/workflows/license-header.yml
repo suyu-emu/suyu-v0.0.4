@@ -1,0 +1,22 @@
+name: eden-license
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  license-header:
+    runs-on: source
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch
+        run: git fetch origin master:master
+
+      - name: Make script executable
+        run: chmod +x ./.ci/license-header.sh
+
+      - name: Check license headers
+        run: ./.ci/license-header.sh
