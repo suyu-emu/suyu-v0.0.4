@@ -1985,6 +1985,13 @@ void EmitX64::EmitFPVectorToHalf32(EmitContext& ctx, IR::Inst* inst) {
 //         output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fbits, unsigned_, fpcr, rounding_mode, fpsr));
 // }
 
+template<size_t fsize, bool unsigned_, FP::RoundingMode rounding_mode, size_t fbits>
+static void EmitFPVectorToFixedThunk(VectorArray<mcl::unsigned_integer_of_size<fsize>>& output, const VectorArray<mcl::unsigned_integer_of_size<fsize>>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
+    using FPT = mcl::unsigned_integer_of_size<fsize>;
+    for (size_t i = 0; i < output.size(); ++i)
+        output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fbits, unsigned_, fpcr, rounding_mode, fpsr));
+}
+
 template<size_t fsize, bool unsigned_>
 void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     const size_t fbits = inst->GetArg(1).GetU8();
@@ -2106,43 +2113,88 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
         ctx.reg_alloc.DefineValue(code, inst, src);
         return;
     }
+    auto const fpt_fn = [fbits, rounding]() -> void (*)(VectorArray<mcl::unsigned_integer_of_size<fsize>>& output, const VectorArray<mcl::unsigned_integer_of_size<fsize>>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
+#define ROUNDING_MODE_CASE(CASE, N) \
+    if (rounding == FP::RoundingMode::CASE && fsize >= (N) && fbits == (N)) return &EmitFPVectorToFixedThunk<fsize, unsigned_, FP::RoundingMode::CASE, N>;
+#define ROUNDING_MODE_SWITCH(CASE) \
+    ROUNDING_MODE_CASE(CASE, 0x00) \
+    ROUNDING_MODE_CASE(CASE, 0x01) \
+    ROUNDING_MODE_CASE(CASE, 0x02) \
+    ROUNDING_MODE_CASE(CASE, 0x03) \
+    ROUNDING_MODE_CASE(CASE, 0x04) \
+    ROUNDING_MODE_CASE(CASE, 0x05) \
+    ROUNDING_MODE_CASE(CASE, 0x06) \
+    ROUNDING_MODE_CASE(CASE, 0x07) \
+    ROUNDING_MODE_CASE(CASE, 0x08) \
+    ROUNDING_MODE_CASE(CASE, 0x09) \
+    ROUNDING_MODE_CASE(CASE, 0x0a) \
+    ROUNDING_MODE_CASE(CASE, 0x0b) \
+    ROUNDING_MODE_CASE(CASE, 0x0c) \
+    ROUNDING_MODE_CASE(CASE, 0x0d) \
+    ROUNDING_MODE_CASE(CASE, 0x0e) \
+    ROUNDING_MODE_CASE(CASE, 0x0f) \
+    ROUNDING_MODE_CASE(CASE, 0x10) \
+    ROUNDING_MODE_CASE(CASE, 0x11) \
+    ROUNDING_MODE_CASE(CASE, 0x12) \
+    ROUNDING_MODE_CASE(CASE, 0x13) \
+    ROUNDING_MODE_CASE(CASE, 0x14) \
+    ROUNDING_MODE_CASE(CASE, 0x15) \
+    ROUNDING_MODE_CASE(CASE, 0x16) \
+    ROUNDING_MODE_CASE(CASE, 0x17) \
+    ROUNDING_MODE_CASE(CASE, 0x18) \
+    ROUNDING_MODE_CASE(CASE, 0x19) \
+    ROUNDING_MODE_CASE(CASE, 0x1a) \
+    ROUNDING_MODE_CASE(CASE, 0x1b) \
+    ROUNDING_MODE_CASE(CASE, 0x1c) \
+    ROUNDING_MODE_CASE(CASE, 0x1d) \
+    ROUNDING_MODE_CASE(CASE, 0x1e) \
+    ROUNDING_MODE_CASE(CASE, 0x1f) \
+    ROUNDING_MODE_CASE(CASE, 0x20) \
+    ROUNDING_MODE_CASE(CASE, 0x21) \
+    ROUNDING_MODE_CASE(CASE, 0x22) \
+    ROUNDING_MODE_CASE(CASE, 0x23) \
+    ROUNDING_MODE_CASE(CASE, 0x24) \
+    ROUNDING_MODE_CASE(CASE, 0x25) \
+    ROUNDING_MODE_CASE(CASE, 0x26) \
+    ROUNDING_MODE_CASE(CASE, 0x27) \
+    ROUNDING_MODE_CASE(CASE, 0x28) \
+    ROUNDING_MODE_CASE(CASE, 0x29) \
+    ROUNDING_MODE_CASE(CASE, 0x2a) \
+    ROUNDING_MODE_CASE(CASE, 0x2b) \
+    ROUNDING_MODE_CASE(CASE, 0x2c) \
+    ROUNDING_MODE_CASE(CASE, 0x2d) \
+    ROUNDING_MODE_CASE(CASE, 0x2e) \
+    ROUNDING_MODE_CASE(CASE, 0x2f) \
+    ROUNDING_MODE_CASE(CASE, 0x30) \
+    ROUNDING_MODE_CASE(CASE, 0x31) \
+    ROUNDING_MODE_CASE(CASE, 0x32) \
+    ROUNDING_MODE_CASE(CASE, 0x33) \
+    ROUNDING_MODE_CASE(CASE, 0x34) \
+    ROUNDING_MODE_CASE(CASE, 0x35) \
+    ROUNDING_MODE_CASE(CASE, 0x36) \
+    ROUNDING_MODE_CASE(CASE, 0x37) \
+    ROUNDING_MODE_CASE(CASE, 0x38) \
+    ROUNDING_MODE_CASE(CASE, 0x39) \
+    ROUNDING_MODE_CASE(CASE, 0x3a) \
+    ROUNDING_MODE_CASE(CASE, 0x3b) \
+    ROUNDING_MODE_CASE(CASE, 0x3c) \
+    ROUNDING_MODE_CASE(CASE, 0x3d) \
+    ROUNDING_MODE_CASE(CASE, 0x3e) \
+    ROUNDING_MODE_CASE(CASE, 0x3f)
 
-    using FPT = mcl::unsigned_integer_of_size<fsize>; // WORKAROUND: For issue 678 on MSVC
-    auto const func = [rounding]() -> void(*)(VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-        switch (rounding) {
-        case FP::RoundingMode::ToNearest_TieEven:
-            return [](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                for (size_t i = 0; i < output.size(); ++i)
-                    output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fsize, unsigned_, fpcr, FP::RoundingMode::ToNearest_TieEven, fpsr));
-            };
-        case FP::RoundingMode::TowardsPlusInfinity:
-            return [](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                for (size_t i = 0; i < output.size(); ++i)
-                    output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fsize, unsigned_, fpcr, FP::RoundingMode::TowardsPlusInfinity, fpsr));
-            };
-        case FP::RoundingMode::TowardsMinusInfinity:
-            return [](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                for (size_t i = 0; i < output.size(); ++i)
-                    output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fsize, unsigned_, fpcr, FP::RoundingMode::TowardsMinusInfinity, fpsr));
-            };
-        case FP::RoundingMode::TowardsZero:
-            return [](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                for (size_t i = 0; i < output.size(); ++i)
-                    output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fsize, unsigned_, fpcr, FP::RoundingMode::TowardsZero, fpsr));
-            };
-        case FP::RoundingMode::ToNearest_TieAwayFromZero:
-            return [](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                for (size_t i = 0; i < output.size(); ++i)
-                    output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fsize, unsigned_, fpcr, FP::RoundingMode::ToNearest_TieAwayFromZero, fpsr));
-            };
-        case FP::RoundingMode::ToOdd:
-            return [](VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-                for (size_t i = 0; i < output.size(); ++i)
-                    output[i] = FPT(FP::FPToFixed<FPT>(fsize, input[i], fsize, unsigned_, fpcr, FP::RoundingMode::ToOdd, fpsr));
-            };
-        }
+        // FUCK YOU MSVC, FUCKING DEPTH CANT EVEN HANDLE 8+16+32+64 DEPTH OF A ELSE STATMENT YOU FUCKING STUPID
+        // BURN MSVC BURN IT STUPID COMPILER CAN'T EVEN COMPILE THE MOST BASIC C++
+        ROUNDING_MODE_SWITCH(ToNearest_TieEven)
+        ROUNDING_MODE_SWITCH(TowardsPlusInfinity)
+        ROUNDING_MODE_SWITCH(TowardsMinusInfinity)
+        ROUNDING_MODE_SWITCH(TowardsZero)
+        ROUNDING_MODE_SWITCH(ToNearest_TieAwayFromZero)
+#undef ROUNDING_MODE_SWITCH
+#undef ROUNDING_MODE_CASE
+        return nullptr;
     }();
-    EmitTwoOpFallback<3>(code, ctx, inst, func);
+
+    EmitTwoOpFallback<3>(code, ctx, inst, fpt_fn);
 }
 
 void EmitX64::EmitFPVectorToSignedFixed16(EmitContext& ctx, IR::Inst* inst) {
