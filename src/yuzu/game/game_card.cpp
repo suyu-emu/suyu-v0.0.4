@@ -92,9 +92,6 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
     }
 
     if (UISettings::values.show_game_name.GetValue()) {
-        // if "none" is selected, pretend there's a
-        _iconsize = _iconsize ? _iconsize : 96;
-
         // padding + text
         QRect textRect = cardRect;
         textRect.setTop(iconRect.bottom() + margins);
@@ -110,8 +107,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
         font.setBold(true);
 
         // TODO(crueter): fix this abysmal scaling
-        // If "none" is selected, then default to 8.5 point font.
-        font.setPointSize(1 + std::max(7.0, _iconsize ? std::sqrt(_iconsize * 0.6) : 7.5));
+        font.setPixelSize(1.5 + std::max(10.0, std::sqrt(_iconsize)));
 
         // TODO(crueter): elide mode
         painter->setFont(font);
