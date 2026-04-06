@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -10,7 +10,7 @@
 
 #include <array>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 namespace Dynarmic::Common::Crypto::AES {
 
@@ -133,8 +133,8 @@ static void InverseShiftRows(State& out_state, const State& state) {
 }
 
 static void SubBytes(State& state, const SubstitutionTable& table) {
-    for (size_t i = 0; i < 4; i++) {
-        for (size_t j = 0; j < 4; j++) {
+    for (std::size_t i = 0; i < 4; i++) {
+        for (std::size_t j = 0; j < 4; j++) {
             state[4 * i + j] = table[state[4 * i + j]];
         }
     }
@@ -151,7 +151,7 @@ void EncryptSingleRound(State& out_state, const State& state) {
 }
 
 void MixColumns(State& out_state, const State& state) {
-    for (size_t i = 0; i < out_state.size(); i += 4) {
+    for (std::size_t i = 0; i < out_state.size(); i += 4) {
         const u8 a = state[i];
         const u8 b = state[i + 1];
         const u8 c = state[i + 2];
@@ -167,7 +167,7 @@ void MixColumns(State& out_state, const State& state) {
 }
 
 void InverseMixColumns(State& out_state, const State& state) {
-    for (size_t i = 0; i < out_state.size(); i += 4) {
+    for (std::size_t i = 0; i < out_state.size(); i += 4) {
         const u8 a = state[i];
         const u8 b = state[i + 1];
         const u8 c = state[i + 2];

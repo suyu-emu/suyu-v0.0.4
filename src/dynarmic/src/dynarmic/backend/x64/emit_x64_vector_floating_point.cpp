@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/mcl/function_info.hpp"
 #include "dynarmic/mcl/integer_of_size.hpp"
 #include "dynarmic/backend/x64/xbyak.h"

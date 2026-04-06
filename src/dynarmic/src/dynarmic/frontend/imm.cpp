@@ -8,9 +8,9 @@
 
 #include "dynarmic/frontend/imm.h"
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 namespace Dynarmic {
 

@@ -13,7 +13,7 @@
 #include <span>
 #include <utility>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include <ankerl/unordered_dense.h>
 #include "dynarmic/backend/x64/xbyak.h"
 

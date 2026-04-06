@@ -11,7 +11,7 @@
 #include <functional>
 #include <vector>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/backend/x64/xbyak.h"
 
 namespace Dynarmic::Backend::X64 {

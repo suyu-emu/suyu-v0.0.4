@@ -9,7 +9,7 @@
 #include <iterator>
 #include <memory>
 #include <type_traits>
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 namespace mcl {
 

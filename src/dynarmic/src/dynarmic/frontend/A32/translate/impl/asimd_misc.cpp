@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"

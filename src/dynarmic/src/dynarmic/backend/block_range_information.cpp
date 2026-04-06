@@ -10,7 +10,7 @@
 
 #include <boost/icl/interval_map.hpp>
 #include <boost/icl/interval_set.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include <ankerl/unordered_dense.h>
 
 namespace Dynarmic::Backend {

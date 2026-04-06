@@ -24,7 +24,7 @@
 #include <array>
 #include <cstring>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/backend/x64/xbyak.h"
 

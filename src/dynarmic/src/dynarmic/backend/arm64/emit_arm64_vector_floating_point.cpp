@@ -32,7 +32,7 @@
 namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
-using A64FullVectorWidth = std::integral_constant<size_t, 128>;
+using A64FullVectorWidth = std::integral_constant<std::size_t, 128>;
 
 // Array alias that always sizes itself according to the given type T
 // relative to the size of a vector register. e.g. T = u32 would result
@@ -65,7 +65,7 @@ static void EmitTwoOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* i
     MaybeStandardFPSCRValue(code, ctx, fpcr_controlled, [&] { emit(Qresult, Qa); });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitTwoOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitTwoOp(code, ctx, inst, [&](auto& Qresult, auto& Qa) {
         if constexpr (size == 16) {
@@ -93,7 +93,7 @@ static void EmitThreeOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*
     MaybeStandardFPSCRValue(code, ctx, fpcr_controlled, [&] { emit(Qresult, Qa, Qb); });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         if constexpr (size == 16) {
@@ -108,7 +108,7 @@ static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, I
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitFMA(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qresult = ctx.reg_alloc.ReadWriteQ(args[0], inst);
@@ -131,7 +131,7 @@ static void EmitFMA(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* ins
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitFromFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qto = ctx.reg_alloc.WriteQ(inst);
@@ -153,12 +153,12 @@ static void EmitFromFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Ins
     });
 }
 
-template<size_t fsize, bool is_signed>
+template<std::size_t fsize, bool is_signed>
 void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qto = ctx.reg_alloc.WriteQ(inst);
     auto Qfrom = ctx.reg_alloc.ReadQ(args[0]);
-    const size_t fbits = args[1].GetImmediateU8();
+    const std::size_t fbits = args[1].GetImmediateU8();
     const auto rounding_mode = static_cast<FP::RoundingMode>(args[2].GetImmediateU8());
     const bool fpcr_controlled = inst->GetArg(3).GetU1();
     RegAlloc::Realize(Qto, Qfrom);
@@ -272,7 +272,7 @@ static void EmitTwoOpFallbackWithoutRegAlloc(oaknut::CodeGenerator& code, EmitCo
     ABI_PopRegisters(code, ABI_CALLER_SAVE & ~(1ull << Qresult.index()), stack_size);
 }
 
-template<size_t fpcr_controlled_arg_index = 1, typename Lambda>
+template<std::size_t fpcr_controlled_arg_index = 1, typename Lambda>
 static void EmitTwoOpFallback(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, Lambda lambda) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qarg1 = ctx.reg_alloc.ReadQ(args[0]);
@@ -562,7 +562,7 @@ void EmitIR<IR::Opcode::FPVectorRecipStepFused64>(oaknut::CodeGenerator& code, E
 /// TODO: we have space for a 5th parameter? :)
 template<typename FPT, FP::RoundingMode rounding_mode, bool exact>
 static void EmitIRVectorRoundInt16Thunk(VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-    for (size_t i = 0; i < output.size(); ++i)
+    for (std::size_t i = 0; i < output.size(); ++i)
         output[i] = FPT(FP::FPRoundInt<FPT>(input[i], fpcr, rounding_mode, exact, fpsr));
 }
 

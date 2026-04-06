@@ -8,7 +8,7 @@
 include_directories(.)
 
 # Dynarmic
-if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64 AND NOT YUZU_STATIC_ROOM)
+if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64 OR ARCHITECTURE_riscv64) AND NOT YUZU_STATIC_ROOM)
     add_subdirectory(dynarmic)
     add_library(dynarmic::dynarmic ALIAS dynarmic)
 endif()

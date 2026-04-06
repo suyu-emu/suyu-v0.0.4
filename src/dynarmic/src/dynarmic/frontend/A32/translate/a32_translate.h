@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/interface/A32/arch_version.h"
 

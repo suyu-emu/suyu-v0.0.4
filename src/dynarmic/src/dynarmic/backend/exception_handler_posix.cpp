@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -8,6 +8,7 @@
 
 #include <cstring>
 #include <functional>
+#include <algorithm>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -16,9 +17,9 @@
 #include <fmt/format.h>
 #include <ankerl/unordered_dense.h>
 #include "dynarmic/backend/exception_handler.h"
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/common/context.h"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #if defined(ARCHITECTURE_x86_64)
 #    include "dynarmic/backend/x64/block_of_code.h"
 #elif defined(ARCHITECTURE_arm64)
@@ -140,7 +141,15 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     }
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #elif defined(ARCHITECTURE_riscv64)
-    UNREACHABLE();
+    {
+        std::shared_lock guard(sig_handler->code_block_infos_mutex);
+        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_SEPC); iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->second.cb(CTX_SEPC);
+            CTX_SEPC = fc.call_sepc;
+            return;
+        }
+    }
+    fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_SEPC);
 #else
 #    error "Invalid architecture"
 #endif

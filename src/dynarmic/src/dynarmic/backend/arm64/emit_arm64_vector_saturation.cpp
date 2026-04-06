@@ -23,7 +23,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void Emit(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qresult = ctx.reg_alloc.WriteQ(inst);

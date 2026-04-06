@@ -10,7 +10,7 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/tests/rand_int.h"
 #include "dynarmic/common/fp/fpcr.h"

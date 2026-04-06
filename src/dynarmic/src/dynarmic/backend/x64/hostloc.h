@@ -10,8 +10,8 @@
 #include <bitset>
 #include <xbyak/xbyak.h>
 
-#include "dynarmic/common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include "common/assert.h"
+#include "common/common_types.h"
 #include "dynarmic/backend/x64/xbyak.h"
 
 namespace Dynarmic::Backend::X64 {

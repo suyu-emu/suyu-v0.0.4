@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/frontend/decoder/decoder_detail.h"
 #include "dynarmic/frontend/decoder/matcher.h"

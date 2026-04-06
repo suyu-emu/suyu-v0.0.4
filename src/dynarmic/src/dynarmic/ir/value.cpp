@@ -8,7 +8,7 @@
 
 #include "dynarmic/ir/value.h"
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/ir/microinstruction.h"

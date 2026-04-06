@@ -14,8 +14,8 @@
 #include <utility>
 #include <vector>
 
-#include "dynarmic/common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include "common/assert.h"
+#include "common/common_types.h"
 #include "dynarmic/mcl/is_instance_of_template.hpp"
 #include <oaknut/oaknut.hpp>
 #include <ankerl/unordered_dense.h>
@@ -141,11 +141,11 @@ private:
 
 struct HostLocInfo final {
     std::vector<const IR::Inst*> values;
-    size_t locked = 0;
+    std::size_t locked = 0;
     bool realized = false;
-    size_t uses_this_inst = 0;
-    size_t accumulated_uses = 0;
-    size_t expected_uses = 0;
+    std::size_t uses_this_inst = 0;
+    std::size_t accumulated_uses = 0;
+    std::size_t expected_uses = 0;
 
     bool Contains(const IR::Inst*) const;
     void SetupScratchLocation();
@@ -179,7 +179,7 @@ public:
     auto ReadH(Argument& arg) { return RAReg<oaknut::HReg>{*this, RWType::Read, arg.value, nullptr}; }
     auto ReadB(Argument& arg) { return RAReg<oaknut::BReg>{*this, RWType::Read, arg.value, nullptr}; }
 
-    template<size_t size>
+    template<std::size_t size>
     auto ReadReg(Argument& arg) {
         if constexpr (size == 64) {
             return ReadX(arg);
@@ -190,7 +190,7 @@ public:
         }
     }
 
-    template<size_t size>
+    template<std::size_t size>
     auto ReadVec(Argument& arg) {
         if constexpr (size == 128) {
             return ReadQ(arg);
@@ -218,7 +218,7 @@ public:
 
     auto WriteFlags(IR::Inst* inst) { return RAReg<FlagsTag>{*this, RWType::Write, {}, inst}; }
 
-    template<size_t size>
+    template<std::size_t size>
     auto WriteReg(IR::Inst* inst) {
         if constexpr (size == 64) {
             return WriteX(inst);
@@ -229,7 +229,7 @@ public:
         }
     }
 
-    template<size_t size>
+    template<std::size_t size>
     auto WriteVec(IR::Inst* inst) {
         if constexpr (size == 128) {
             return WriteQ(inst);
@@ -255,7 +255,7 @@ public:
     auto ReadWriteH(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::HReg>{*this, RWType::ReadWrite, arg.value, inst}; }
     auto ReadWriteB(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::BReg>{*this, RWType::ReadWrite, arg.value, inst}; }
 
-    template<size_t size>
+    template<std::size_t size>
     auto ReadWriteReg(Argument& arg, const IR::Inst* inst) {
         if constexpr (size == 64) {
             return ReadWriteX(arg, inst);
@@ -266,7 +266,7 @@ public:
         }
     }
 
-    template<size_t size>
+    template<std::size_t size>
     auto ReadWriteVec(Argument& arg, const IR::Inst* inst) {
         if constexpr (size == 128) {
             return ReadWriteQ(arg, inst);
@@ -335,7 +335,7 @@ private:
     HostLocInfo flags;
     std::array<HostLocInfo, SpillCount> spills;
 
-    mutable size_t alloc_candidate_index = 0;
+    mutable std::size_t alloc_candidate_index = 0;
     ankerl::unordered_dense::set<const IR::Inst*> defined_insts;
 };
 

@@ -13,10 +13,7 @@ add_library(dynarmic STATIC
     backend/block_range_information.h
     backend/exception_handler.h
     common/always_false.h
-    common/assert.cpp
-    common/assert.h
     common/cast_util.h
-    common/common_types.h
     common/crypto/aes.cpp
     common/crypto/aes.h
     common/crypto/crc32.cpp
@@ -258,7 +255,7 @@ if ("arm64" IN_LIST ARCHITECTURE)
     )
 endif()
 
-if ("riscv" IN_LIST ARCHITECTURE)
+if ("riscv64" IN_LIST ARCHITECTURE)
     target_link_libraries(dynarmic PRIVATE biscuit::biscuit)
 
     target_sources(dynarmic PRIVATE
@@ -281,6 +278,7 @@ if ("riscv" IN_LIST ARCHITECTURE)
         backend/riscv64/emit_riscv64_vector.cpp
         backend/riscv64/emit_riscv64.cpp
         backend/riscv64/emit_riscv64.h
+        backend/riscv64/exclusive_monitor.cpp
         backend/riscv64/reg_alloc.cpp
         backend/riscv64/reg_alloc.h
         backend/riscv64/stack_layout.h
@@ -289,9 +287,12 @@ if ("riscv" IN_LIST ARCHITECTURE)
         backend/riscv64/a32_address_space.h
         backend/riscv64/a32_core.h
         backend/riscv64/a32_interface.cpp
+        backend/riscv64/a64_interface.cpp
         backend/riscv64/code_block.h
+
+        common/spin_lock_riscv64.cpp
     )
-    message(FATAL_ERROR "TODO: Unimplemented frontend for this host architecture")
+    message(WARNING "TODO: Incomplete frontend for this host architecture")
 endif()
 
 if (WIN32)
@@ -359,7 +360,7 @@ set_target_properties(dynarmic PROPERTIES
 target_compile_options(dynarmic PRIVATE ${DYNARMIC_CXX_FLAGS})
 
 target_link_libraries(dynarmic PRIVATE unordered_dense::unordered_dense)
-target_link_libraries(dynarmic PUBLIC fmt::fmt)
+target_link_libraries(dynarmic PUBLIC fmt::fmt common)
 
 if (BOOST_NO_HEADERS)
     target_link_libraries(dynarmic PRIVATE Boost::variant Boost::icl Boost::pool)

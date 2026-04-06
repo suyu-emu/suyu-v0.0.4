@@ -13,7 +13,7 @@
 #include <optional>
 
 #include "boost/container/small_vector.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/backend/x64/xbyak.h"
 #include <boost/container/static_vector.hpp>
 #include <boost/container/flat_set.hpp>

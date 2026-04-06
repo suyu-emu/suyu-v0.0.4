@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -21,7 +21,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void EmitCRC(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit_fn) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 

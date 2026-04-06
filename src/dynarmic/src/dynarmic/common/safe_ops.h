@@ -11,7 +11,7 @@
 #include <type_traits>
 
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/common/u128.h"
 

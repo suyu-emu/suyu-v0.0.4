@@ -8,7 +8,7 @@
 
 #include "dynarmic/backend/riscv64/a32_address_space.h"
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 #include "dynarmic/backend/riscv64/abi.h"
 #include "dynarmic/backend/riscv64/emit_riscv64.h"

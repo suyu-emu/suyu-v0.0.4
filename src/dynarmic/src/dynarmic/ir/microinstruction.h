@@ -11,7 +11,7 @@
 #include <array>
 
 #include "dynarmic/mcl/intrusive_list.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/ir/value.h"
 #include "dynarmic/ir/opcodes.h"

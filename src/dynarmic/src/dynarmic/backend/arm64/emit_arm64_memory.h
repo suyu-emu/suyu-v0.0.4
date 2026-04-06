@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "dynarmic/common/common_types.h"
+#include <cstddef>
 
 namespace oaknut {
 struct CodeGenerator;
@@ -23,13 +23,13 @@ namespace Dynarmic::Backend::Arm64 {
 struct EmitContext;
 enum class LinkTarget;
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst);
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitExclusiveReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst);
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst);
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitExclusiveWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst);
 
 }  // namespace Dynarmic::Backend::Arm64

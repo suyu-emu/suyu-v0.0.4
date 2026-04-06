@@ -9,8 +9,8 @@
 #pragma once
 
 #include <ankerl/unordered_dense.h>
-#include "dynarmic/common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include "common/assert.h"
+#include "common/common_types.h"
 #include "dynarmic/interface/A64/a64.h"
 
 using Vector = Dynarmic::A64::Vector;

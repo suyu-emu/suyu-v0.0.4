@@ -19,7 +19,7 @@
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/common/llvm_disassemble.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
@@ -57,7 +57,7 @@ std::string_view GetNameOfA64Instruction(u32 instruction) {
 }
 
 void PrintA32Instruction(u32 instruction) {
-    fmt::print("{:08x} {}\n", instruction, Common::DisassembleAArch32(false, 0, (u8*)&instruction, sizeof(instruction)));
+    fmt::print("{:08x} {}\n", instruction, Dynarmic::Common::DisassembleAArch32(false, 0, (u8*)&instruction, sizeof(instruction)));
     fmt::print("Name: {}\n", GetNameOfA32Instruction(instruction));
 
     const A32::LocationDescriptor location{0, {}, {}};
@@ -75,7 +75,7 @@ void PrintA32Instruction(u32 instruction) {
 }
 
 void PrintA64Instruction(u32 instruction) {
-    fmt::print("{:08x} {}\n", instruction, Common::DisassembleAArch64(instruction));
+    fmt::print("{:08x} {}\n", instruction, Dynarmic::Common::DisassembleAArch64(instruction));
     fmt::print("Name: {}\n", GetNameOfA64Instruction(instruction));
 
     const A64::LocationDescriptor location{0, {}};
@@ -97,7 +97,7 @@ void PrintThumbInstruction(u32 instruction) {
     if (inst_size == 4)
         instruction = mcl::bit::swap_halves_32(instruction);
 
-    fmt::print("{:08x} {}\n", instruction, Common::DisassembleAArch32(true, 0, (u8*)&instruction, inst_size));
+    fmt::print("{:08x} {}\n", instruction, Dynarmic::Common::DisassembleAArch32(true, 0, (u8*)&instruction, inst_size));
 
     const A32::LocationDescriptor location{0, A32::PSR{0x1F0}, {}};
     IR::Block ir_block{location};

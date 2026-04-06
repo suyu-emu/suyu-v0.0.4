@@ -176,7 +176,7 @@ void EmitIR<IR::Opcode::NZCVFromPackedFlags>(oaknut::CodeGenerator&, EmitContext
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
 }
 
-static void EmitAddCycles(oaknut::CodeGenerator& code, EmitContext& ctx, size_t cycles_to_add) {
+static void EmitAddCycles(oaknut::CodeGenerator& code, EmitContext& ctx, std::size_t cycles_to_add) {
     if (!ctx.conf.enable_cycle_counting) {
         return;
     }

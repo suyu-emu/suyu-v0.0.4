@@ -19,8 +19,8 @@
 #include <bit>
 
 #include <fmt/format.h>
-#include "dynarmic/common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include "common/assert.h"
+#include "common/common_types.h"
 
 #include "dynarmic/backend/exception_handler.h"
 

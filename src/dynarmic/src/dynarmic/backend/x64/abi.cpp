@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/block_of_code.h"

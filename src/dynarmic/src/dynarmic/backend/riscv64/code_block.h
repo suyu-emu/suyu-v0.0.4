@@ -13,6 +13,9 @@
 
 #include <sys/mman.h>
 
+#include "common/assert.h"
+#include "common/common_types.h"
+
 namespace Dynarmic::Backend::RV64 {
 
 class CodeBlock {

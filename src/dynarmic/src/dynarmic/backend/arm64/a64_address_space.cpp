@@ -403,7 +403,7 @@ void A64AddressSpace::EmitPrelude() {
 
         if (conf.HasOptimization(OptimizationFlag::ReturnStackBuffer)) {
             code.LDR(Xscratch0, l_return_to_dispatcher);
-            for (size_t i = 0; i < RSBCount; i++) {
+            for (std::size_t i = 0; i < RSBCount; i++) {
                 code.STR(Xscratch0, SP, offsetof(StackLayout, rsb) + offsetof(RSBEntry, code_ptr) + i * sizeof(RSBEntry));
             }
         }
@@ -441,7 +441,7 @@ void A64AddressSpace::EmitPrelude() {
 
         if (conf.HasOptimization(OptimizationFlag::ReturnStackBuffer)) {
             code.LDR(Xscratch0, l_return_to_dispatcher);
-            for (size_t i = 0; i < RSBCount; i++) {
+            for (std::size_t i = 0; i < RSBCount; i++) {
                 code.STR(Xscratch0, SP, offsetof(StackLayout, rsb) + offsetof(RSBEntry, code_ptr) + i * sizeof(RSBEntry));
             }
         }

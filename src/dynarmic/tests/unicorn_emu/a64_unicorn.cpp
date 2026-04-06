@@ -8,7 +8,7 @@
 
 #include <fmt/format.h>
 #include "dynarmic/tests/unicorn_emu/a64_unicorn.h"
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 #define CHECKED(expr) do if ((expr)) ASSERT(false && "Call " #expr " failed with error\n"); while (0)
 

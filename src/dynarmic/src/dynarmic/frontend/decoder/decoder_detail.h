@@ -12,7 +12,7 @@
 #include <array>
 #include <tuple>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/mcl/function_info.hpp"
 

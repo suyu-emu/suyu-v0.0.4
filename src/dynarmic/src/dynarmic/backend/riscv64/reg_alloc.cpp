@@ -11,8 +11,8 @@
 #include <algorithm>
 #include <array>
 
-#include "dynarmic/common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include "common/assert.h"
+#include "common/common_types.h"
 
 #include "dynarmic/common/always_false.h"
 
@@ -161,7 +161,7 @@ u32 RegAlloc::GenerateImmediate(const IR::Value& value) {
 
         return new_location_index;
     } else if constexpr (kind == HostLoc::Kind::Fpr) {
-        UNIMPLEMENTED();
+        ASSERT(false && "Unimplemented instruction");
     } else {
         UNREACHABLE();
     }

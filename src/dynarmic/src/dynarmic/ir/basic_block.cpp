@@ -14,7 +14,7 @@
 #include <string>
 
 #include <fmt/format.h>
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/frontend/A32/a32_types.h"
 #include "dynarmic/frontend/A64/a64_types.h"
 #include "dynarmic/ir/cond.h"

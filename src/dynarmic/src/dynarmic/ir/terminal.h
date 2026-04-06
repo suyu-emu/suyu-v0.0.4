@@ -9,7 +9,7 @@
 #pragma once
 
 #include <boost/variant.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/ir/cond.h"
 #include "dynarmic/ir/location_descriptor.h"

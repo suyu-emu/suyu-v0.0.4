@@ -126,7 +126,7 @@ if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)
     find_package(oaknut 2.0.1 CONFIG)
 endif()
 
-if ("riscv" IN_LIST ARCHITECTURE)
+if ("riscv64" IN_LIST ARCHITECTURE)
     find_package(biscuit 0.9.1 REQUIRED)
 endif()
 

@@ -19,7 +19,7 @@
 #    include <unicorn/unicorn.h>
 #endif
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/tests/A64/testenv.h"
 

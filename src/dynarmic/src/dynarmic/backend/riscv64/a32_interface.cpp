@@ -10,8 +10,8 @@
 #include <mutex>
 
 #include <boost/icl/interval_set.hpp>
-#include "dynarmic/common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include "common/assert.h"
+#include "common/common_types.h"
 
 #include "dynarmic/backend/riscv64/a32_address_space.h"
 #include "dynarmic/backend/riscv64/a32_core.h"
@@ -42,7 +42,7 @@ struct Jit::Impl final {
     HaltReason Step() {
         ASSERT(!jit_interface->is_executing);
         jit_interface->is_executing = true;
-        UNIMPLEMENTED();
+        ASSERT(false && "Unimplemented instruction");
         RequestCacheInvalidation();
         jit_interface->is_executing = false;
         return HaltReason{};
@@ -106,6 +106,10 @@ struct Jit::Impl final {
 
     void ClearExclusiveState() {
         current_state.exclusive_state = false;
+    }
+
+    std::string Disassemble() const {
+        return {};
     }
 
 private:
@@ -196,6 +200,10 @@ void Jit::SetFpscr(u32 value) {
 
 void Jit::ClearExclusiveState() {
     impl->ClearExclusiveState();
+}
+
+std::string Jit::Disassemble() const {
+    return impl->Disassemble();
 }
 
 }  // namespace Dynarmic::A32

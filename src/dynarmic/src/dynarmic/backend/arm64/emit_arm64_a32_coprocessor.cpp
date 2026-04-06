@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -45,7 +45,7 @@ static void CallCoprocCallback(oaknut::CodeGenerator& code, EmitContext& ctx, A3
 template<>
 void EmitIR<IR::Opcode::A32CoprocInternalOperation>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
-    const size_t coproc_num = coproc_info[0];
+    const std::size_t coproc_num = coproc_info[0];
     const bool two = coproc_info[1] != 0;
     const auto opc1 = static_cast<unsigned>(coproc_info[2]);
     const auto CRd = static_cast<A32::CoprocReg>(coproc_info[3]);
@@ -72,7 +72,7 @@ template<>
 void EmitIR<IR::Opcode::A32CoprocSendOneWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
-    const size_t coproc_num = coproc_info[0];
+    const std::size_t coproc_num = coproc_info[0];
     const bool two = coproc_info[1] != 0;
     const auto opc1 = static_cast<unsigned>(coproc_info[2]);
     const auto CRn = static_cast<A32::CoprocReg>(coproc_info[3]);
@@ -115,7 +115,7 @@ void EmitIR<IR::Opcode::A32CoprocSendTwoWords>(oaknut::CodeGenerator& code, Emit
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
-    const size_t coproc_num = coproc_info[0];
+    const std::size_t coproc_num = coproc_info[0];
     const bool two = coproc_info[1] != 0;
     const auto opc = static_cast<unsigned>(coproc_info[2]);
     const auto CRm = static_cast<A32::CoprocReg>(coproc_info[3]);
@@ -158,7 +158,7 @@ template<>
 void EmitIR<IR::Opcode::A32CoprocGetOneWord>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
 
-    const size_t coproc_num = coproc_info[0];
+    const std::size_t coproc_num = coproc_info[0];
     const bool two = coproc_info[1] != 0;
     const auto opc1 = static_cast<unsigned>(coproc_info[2]);
     const auto CRn = static_cast<A32::CoprocReg>(coproc_info[3]);
@@ -199,7 +199,7 @@ void EmitIR<IR::Opcode::A32CoprocGetOneWord>(oaknut::CodeGenerator& code, EmitCo
 template<>
 void EmitIR<IR::Opcode::A32CoprocGetTwoWords>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
-    const size_t coproc_num = coproc_info[0];
+    const std::size_t coproc_num = coproc_info[0];
     const bool two = coproc_info[1] != 0;
     const unsigned opc = coproc_info[2];
     const auto CRm = static_cast<A32::CoprocReg>(coproc_info[3]);
@@ -243,7 +243,7 @@ void EmitIR<IR::Opcode::A32CoprocLoadWords>(oaknut::CodeGenerator& code, EmitCon
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
-    const size_t coproc_num = coproc_info[0];
+    const std::size_t coproc_num = coproc_info[0];
     const bool two = coproc_info[1] != 0;
     const bool long_transfer = coproc_info[2] != 0;
     const auto CRd = static_cast<A32::CoprocReg>(coproc_info[3]);
@@ -274,7 +274,7 @@ void EmitIR<IR::Opcode::A32CoprocStoreWords>(oaknut::CodeGenerator& code, EmitCo
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     const auto coproc_info = inst->GetArg(0).GetCoprocInfo();
-    const size_t coproc_num = coproc_info[0];
+    const std::size_t coproc_num = coproc_info[0];
     const bool two = coproc_info[1] != 0;
     const bool long_transfer = coproc_info[2] != 0;
     const auto CRd = static_cast<A32::CoprocReg>(coproc_info[3]);

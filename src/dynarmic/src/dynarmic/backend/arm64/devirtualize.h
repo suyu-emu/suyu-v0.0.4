@@ -9,7 +9,7 @@
 #pragma once
 
 #include <bit>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/mcl/function_info.hpp"
 
 namespace Dynarmic::Backend::Arm64 {

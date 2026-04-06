@@ -11,7 +11,7 @@
 #include <mutex>
 
 #include <boost/icl/interval_set.hpp>
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/llvm_disassemble.h"
 #include <bit>

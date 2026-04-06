@@ -35,17 +35,17 @@ void EmitIR<IR::Opcode::Identity>(biscuit::Assembler&, EmitContext& ctx, IR::Ins
 
 template<>
 void EmitIR<IR::Opcode::Breakpoint>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::CallHostFunction>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::PushRSB>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
@@ -56,12 +56,12 @@ void EmitIR<IR::Opcode::GetCarryFromOp>(biscuit::Assembler&, EmitContext& ctx, I
 
 template<>
 void EmitIR<IR::Opcode::GetOverflowFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::GetGEFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
@@ -87,12 +87,12 @@ void EmitIR<IR::Opcode::GetNZFromOp>(biscuit::Assembler& as, EmitContext& ctx, I
 
 template<>
 void EmitIR<IR::Opcode::GetUpperFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::GetLowerFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
@@ -109,7 +109,7 @@ void EmitIR<IR::Opcode::GetCFlagFromNZCV>(biscuit::Assembler& as, EmitContext& c
 
 template<>
 void EmitIR<IR::Opcode::NZCVFromPackedFlags>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 EmittedBlockInfo EmitRV64(biscuit::Assembler& as, IR::Block block, const EmitConfig& emit_conf) {

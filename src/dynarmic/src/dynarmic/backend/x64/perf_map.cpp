@@ -11,7 +11,7 @@
 #include <fmt/format.h>
 
 #include "dynarmic/backend/x64/perf_map.h"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #if defined(__linux__) && !defined(__ANDROID__)
 #    include <cstdio>
 #    include <cstdlib>

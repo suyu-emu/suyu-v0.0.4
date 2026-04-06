@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -34,51 +34,24 @@
 #    endif
 #endif
 
-#ifdef ARCHITECTURE_x86_64
+#ifdef ARCHITECTURE_arm64
 #   ifdef __OpenBSD__
 #       define CTX_DECLARE(raw_context) ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
 #   else
-#       define CTX_DECLARE(raw_context) \
-        ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);  \
-        [[maybe_unused]] auto& mctx = ucontext->uc_mcontext;
-#   endif
-#elif defined(ARCHITECTURE_arm64)
-#   ifdef __OpenBSD__
-#       define CTX_DECLARE(raw_context) ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
-#   else
-#       define CTX_DECLARE(raw_context) \
-        ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);  \
+#       define CTX_DECLARE(raw_context) ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);  \
         [[maybe_unused]] auto& mctx = ucontext->uc_mcontext; \
         [[maybe_unused]] const auto fpctx = GetFloatingPointState(mctx);
 #   endif
+#else
+#   ifdef __OpenBSD__
+#       define CTX_DECLARE(raw_context) ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
+#   else
+#       define CTX_DECLARE(raw_context) ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);  \
+        [[maybe_unused]] auto& mctx = ucontext->uc_mcontext;
+#   endif
 #endif
 
-#if defined(ARCHITECTURE_x86_64)
-#    if defined(__APPLE__)
-#        define CTX_RIP (mctx->__ss.__rip)
-#        define CTX_RSP (mctx->__ss.__rsp)
-#    elif defined(__linux__)
-#        define CTX_RIP (mctx.gregs[REG_RIP])
-#        define CTX_RSP (mctx.gregs[REG_RSP])
-#    elif defined(__FreeBSD__)
-#        define CTX_RIP (mctx.mc_rip)
-#        define CTX_RSP (mctx.mc_rsp)
-#    elif defined(__NetBSD__)
-#        define CTX_RIP (mctx.__gregs[_REG_RIP])
-#        define CTX_RSP (mctx.__gregs[_REG_RSP])
-#    elif defined(__OpenBSD__)
-#        define CTX_RIP (ucontext->sc_rip)
-#        define CTX_RSP (ucontext->sc_rsp)
-#    elif defined(__sun__)
-#        define CTX_RIP (mctx.gregs[REG_RIP])
-#        define CTX_RSP (mctx.gregs[REG_RSP])
-#    elif defined(__DragonFly__)
-#        define CTX_RIP (mctx.mc_rip)
-#        define CTX_RSP (mctx.mc_rsp)
-#    else
-#        error "Unknown platform"
-#    endif
-#elif defined(ARCHITECTURE_arm64)
+#ifdef ARCHITECTURE_arm64
 #    if defined(__APPLE__)
 #        define CTX_PC (mctx->__ss.__pc)
 #        define CTX_SP (mctx->__ss.__sp)
@@ -110,14 +83,113 @@
 #        define CTX_X(i) (mctx.mc_gpregs.gp_x[i])
 #        define CTX_Q(i) (mctx.mc_fpregs.fp_q[i])
 #    elif defined(__OpenBSD__)
+// https://github.com/openbsd/src/blob/master/sys/arch/arm64/include/signal.h
 #        define CTX_PC (ucontext->sc_elr)
 #        define CTX_SP (ucontext->sc_sp)
 #        define CTX_LR (ucontext->sc_lr)
 #        define CTX_X(i) (ucontext->sc_x[i])
 #        define CTX_Q(i) (ucontext->sc_q[i])
 #    else
-#        error "Unknown platform"
+#        error "unknown platform"
 #    endif
+#elif defined(__NetBSD__)
+// NetBSD always has useful macros for everything don't they?
+// Basically this special path means that for every arch that NetBSD supports
+// it atleast has the macro for _UC_MACHINE defined, thus it will be avoided on the
+// other macro branches!
+// https://github.com/NetBSD/src/blob/trunk/sys/arch/powerpc/include/mcontext.h
+// https://github.com/NetBSD/src/blob/trunk/sys/arch/mips/include/mcontext.h
+#   define CTX_PC (_UC_MACHINE_PC(ucontext))
+#   define CTX_SP (_UC_MACHINE_SP(ucontext))
+#elif defined(ARCHITECTURE_x86_64)
+#    if defined(__APPLE__)
+#        define CTX_RIP (mctx->__ss.__rip)
+#        define CTX_RSP (mctx->__ss.__rsp)
+#    elif defined(__linux__)
+#        define CTX_RIP (mctx.gregs[REG_RIP])
+#        define CTX_RSP (mctx.gregs[REG_RSP])
+#    elif defined(__FreeBSD__)
+#        define CTX_RIP (mctx.mc_rip)
+#        define CTX_RSP (mctx.mc_rsp)
+#    elif defined(__OpenBSD__)
+// https://github.com/openbsd/src/blob/master/sys/arch/x86_64/include/signal.h
+#        define CTX_RIP (ucontext->sc_rip)
+#        define CTX_RSP (ucontext->sc_rsp)
+#    elif defined(__sun__)
+#        define CTX_RIP (mctx.gregs[REG_RIP])
+#        define CTX_RSP (mctx.gregs[REG_RSP])
+#    elif defined(__DragonFly__)
+#        define CTX_RIP (mctx.mc_rip)
+#        define CTX_RSP (mctx.mc_rsp)
+#    else
+#        error "unknown platform"
+#    endif
+#elif defined(ARCHITECTURE_riscv64)
+#   if defined(__FreeBSD__)
+#       define CTX_SEPC (mctx.mc_gpregs.gp_sepc)
+#       define CTX_SP (mctx.mc_gpregs.gp_sp)
+#   elif defined(__linux__)
+#       define CTX_SEPC (mctx.__gregs[REG_PC])
+#       define CTX_SP (mctx.__gregs[REG_SP])
+#   elif defined(__OpenBSD__)
+// https://github.com/openbsd/src/blob/master/sys/arch/riscv64/include/signal.h
+#        define CTX_SEPC (ucontext->sc_sepc)
+#        define CTX_SP (ucontext->sc_sp)
+#    else
+#        error "unknown platform"
+#   endif
+#elif defined(ARCHITECTURE_powerpc64)
+#   if defined(__FreeBSD__)
+#       define CTX_PC (mctx.mc_srr0)
+#       define CTX_SP (mctx.mc_gpr[1])
+#   elif defined(__linux__)
+// https://github.com/lattera/glibc/blob/master/sysdeps/unix/sysv/linux/powerpc/sys/ucontext.h
+#       define CTX_PC (mctx.__regs[REG_PC])
+#       define CTX_SP (mctx.__regs[REG_SP])
+#   elif defined(__OpenBSD__)
+// https://github.com/openbsd/src/blob/master/sys/arch/powerpc64/include/signal.h
+#        define CTX_PC (ucontext->sc_pc)
+#        define CTX_SP (ucontext->sc_reg[1])
+#    else
+#        error "unknown platform"
+#   endif
+#elif defined(ARCHITECTURE_mips64)
+#   if defined(__linux__)
+// https://github.com/lattera/glibc/blob/master/sysdeps/unix/sysv/linux/mips/sys/ucontext.h
+#       define CTX_PC (mctx.__pc)
+#       define CTX_SP (mctx.__gregs[29])
+#   elif defined(__OpenBSD__)
+// https://github.com/openbsd/src/blob/master/sys/arch/mips64/include/signal.h
+#        define CTX_PC (ucontext->sc_pc)
+#        define CTX_SP (ucontext->sc_regs[29])
+#    else
+#        error "unknown platform"
+#   endif
+#elif defined(ARCHITECTURE_loongarch64)
+#   if defined(__linux__)
+// https://github.com/bminor/glibc/blob/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/loongarch/sys/ucontext.h
+#       define CTX_PC (mctx.__pc)
+#       define CTX_SP (mctx.__gregs[LARCH_REG_SP])
+#   elif defined(__OpenBSD__)
+// Literally MIPS64 copypaste?
+// https://github.com/openbsd/src/blob/master/sys/arch/loongson/include/signal.h
+#        define CTX_PC (ucontext->sc_pc)
+#        define CTX_SP (ucontext->sc_regs[29])
+#    else
+#        error "unknown platform"
+#   endif
+#elif defined(ARCHITECTURE_sparc64)
+#   if defined(__linux__)
+// https://github.com/lattera/glibc/blob/master/sysdeps/unix/sysv/linux/mips/sys/ucontext.h
+#       define CTX_PC (mctx.__gregs[1]) //%pc
+#       define CTX_SP (mctx.__gregs[17]) //%o6
+#   elif defined(__OpenBSD__)
+// https://github.com/openbsd/src/blob/master/sys/arch/sparc64/include/signal.h
+#        define CTX_PC (ucontext->sc_pc)
+#        define CTX_SP (ucontext->sc_sp)
+#    else
+#        error "unknown platform"
+#   endif
 #else
 #    error "unimplemented"
 #endif

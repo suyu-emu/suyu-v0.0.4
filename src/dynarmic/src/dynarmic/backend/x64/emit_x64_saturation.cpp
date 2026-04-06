@@ -8,9 +8,9 @@
 
 #include <limits>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/mcl/integer_of_size.hpp"
 
 #include "dynarmic/backend/x64/block_of_code.h"

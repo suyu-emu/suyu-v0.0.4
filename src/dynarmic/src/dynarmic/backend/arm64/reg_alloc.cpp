@@ -12,10 +12,10 @@
 #include <array>
 #include <iterator>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
 #include <bit>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/backend/arm64/abi.h"
 #include "dynarmic/backend/arm64/emit_context.h"
@@ -27,8 +27,8 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-constexpr size_t spill_offset = offsetof(StackLayout, spill);
-constexpr size_t spill_slot_size = sizeof(decltype(StackLayout::spill)::value_type);
+constexpr std::size_t spill_offset = offsetof(StackLayout, spill);
+constexpr std::size_t spill_slot_size = sizeof(decltype(StackLayout::spill)::value_type);
 
 static bool IsValuelessType(IR::Type type) {
     switch (type) {
@@ -131,7 +131,7 @@ void HostLocInfo::UpdateUses() {
 
 RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(IR::Inst* inst) {
     ArgumentInfo ret = {Argument{}, Argument{}, Argument{}, Argument{}};
-    for (size_t i = 0; i < inst->NumArgs(); i++) {
+    for (std::size_t i = 0; i < inst->NumArgs(); i++) {
         const IR::Value arg = inst->GetArg(i);
         ret[i].value = arg;
         if (!arg.IsImmediate() && !IsValuelessType(arg.GetType())) {
@@ -245,7 +245,7 @@ void RegAlloc::AssertNoMoreUses() const {
 void RegAlloc::EmitVerboseDebuggingOutput() {
     code.MOV(X19, std::bit_cast<u64>(&PrintVerboseDebuggingOutputLine));  // Non-volatile register
 
-    const auto do_location = [&](HostLocInfo& info, HostLocType type, size_t index) {
+    const auto do_location = [&](HostLocInfo& info, HostLocType type, std::size_t index) {
         using namespace oaknut::util;
         for (const IR::Inst* value : info.values) {
             code.MOV(X0, SP);
@@ -257,14 +257,14 @@ void RegAlloc::EmitVerboseDebuggingOutput() {
         }
     };
 
-    for (size_t i = 0; i < gprs.size(); i++) {
+    for (std::size_t i = 0; i < gprs.size(); i++) {
         do_location(gprs[i], HostLocType::X, i);
     }
-    for (size_t i = 0; i < fprs.size(); i++) {
+    for (std::size_t i = 0; i < fprs.size(); i++) {
         do_location(fprs[i], HostLocType::Q, i);
     }
     do_location(flags, HostLocType::Nzcv, 0);
-    for (size_t i = 0; i < spills.size(); i++) {
+    for (std::size_t i = 0; i < spills.size(); i++) {
         do_location(spills[i], HostLocType::Spill, i);
     }
 }
@@ -576,13 +576,13 @@ std::optional<HostLoc> RegAlloc::ValueLocation(const IR::Inst* value) const {
 HostLocInfo& RegAlloc::ValueInfo(HostLoc host_loc) {
     switch (host_loc.kind) {
     case HostLoc::Kind::Gpr:
-        return gprs[static_cast<size_t>(host_loc.index)];
+        return gprs[static_cast<std::size_t>(host_loc.index)];
     case HostLoc::Kind::Fpr:
-        return fprs[static_cast<size_t>(host_loc.index)];
+        return fprs[static_cast<std::size_t>(host_loc.index)];
     case HostLoc::Kind::Flags:
         return flags;
     case HostLoc::Kind::Spill:
-        return spills[static_cast<size_t>(host_loc.index)];
+        return spills[static_cast<std::size_t>(host_loc.index)];
     }
     UNREACHABLE();
 }

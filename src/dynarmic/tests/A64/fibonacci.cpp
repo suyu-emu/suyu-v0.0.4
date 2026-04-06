@@ -11,7 +11,7 @@
 #include <ankerl/unordered_dense.h>
 
 #include <catch2/catch_test_macros.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/interface/A64/a64.h"

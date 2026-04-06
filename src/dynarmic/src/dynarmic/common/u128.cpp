@@ -8,7 +8,7 @@
 
 #include "dynarmic/common/u128.h"
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 namespace Dynarmic {
 

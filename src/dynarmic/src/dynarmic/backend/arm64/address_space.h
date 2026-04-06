@@ -11,7 +11,7 @@
 #include <map>
 #include <optional>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include <oaknut/code_block.hpp>
 #include <oaknut/oaknut.hpp>
 #include <ankerl/unordered_dense.h>
@@ -26,7 +26,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 class AddressSpace {
 public:
-    explicit AddressSpace(size_t code_cache_size);
+    explicit AddressSpace(std::size_t code_cache_size);
     virtual ~AddressSpace();
 
     virtual void GenerateIR(IR::Block& ir_block, IR::LocationDescriptor) const = 0;
@@ -60,7 +60,7 @@ protected:
 #endif
     }
 
-    size_t GetRemainingSize();
+    std::size_t GetRemainingSize();
     EmittedBlockInfo Emit(IR::Block ir_block);
     void Link(EmittedBlockInfo& block);
     void LinkBlockLinks(const CodePtr entry_point, const CodePtr target_ptr, const std::vector<BlockRelocation>& block_relocations_list);
@@ -69,7 +69,7 @@ protected:
     FakeCall FastmemCallback(u64 host_pc);
 
     IR::Block ir_block;
-    const size_t code_cache_size;
+    const std::size_t code_cache_size;
     oaknut::CodeBlock mem;
     oaknut::CodeGenerator code;
 

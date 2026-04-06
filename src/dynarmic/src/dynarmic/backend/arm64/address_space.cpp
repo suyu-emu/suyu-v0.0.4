@@ -24,7 +24,7 @@
 
 namespace Dynarmic::Backend::Arm64 {
 
-AddressSpace::AddressSpace(size_t code_cache_size)
+AddressSpace::AddressSpace(std::size_t code_cache_size)
     : ir_block{IR::LocationDescriptor{0}}
     , code_cache_size(code_cache_size)
     , mem(code_cache_size)
@@ -102,8 +102,8 @@ void AddressSpace::ClearCache() {
     code.set_offset(prelude_info.end_of_prelude);
 }
 
-size_t AddressSpace::GetRemainingSize() {
-    return code_cache_size - static_cast<size_t>(code.offset());
+std::size_t AddressSpace::GetRemainingSize() {
+    return code_cache_size - static_cast<std::size_t>(code.offset());
 }
 
 EmittedBlockInfo AddressSpace::Emit(IR::Block block) {

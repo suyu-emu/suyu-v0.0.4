@@ -12,7 +12,7 @@
 #include <utility>
 
 #include <bit>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/mcl/function_info.hpp"
 
 #include "dynarmic/backend/x64/callback.h"

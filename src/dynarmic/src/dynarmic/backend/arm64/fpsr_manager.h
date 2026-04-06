@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "dynarmic/common/common_types.h"
+#include <cstddef>
 
 namespace oaknut {
 struct CodeGenerator;
@@ -19,7 +19,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 class FpsrManager {
 public:
-    explicit FpsrManager(oaknut::CodeGenerator& code, size_t state_fpsr_offset);
+    explicit FpsrManager(oaknut::CodeGenerator& code, std::size_t state_fpsr_offset);
 
     void Spill();
     void Load();
@@ -29,7 +29,7 @@ public:
 
 private:
     oaknut::CodeGenerator& code;
-    size_t state_fpsr_offset;
+    std::size_t state_fpsr_offset;
     bool fpsr_loaded = false;
 };
 

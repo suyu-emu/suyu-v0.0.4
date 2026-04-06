@@ -9,7 +9,7 @@
 #include "dynarmic/backend/riscv64/a32_jitstate.h"
 
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 namespace Dynarmic::Backend::RV64 {
 

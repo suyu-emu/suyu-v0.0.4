@@ -33,7 +33,7 @@ static void EmitTwoOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, 
     emit(Qresult, Qoperand);
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitTwoOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitTwoOp(code, ctx, inst, [&](auto& Qresult, auto& Qoperand) {
         if constexpr (size == 8) {
@@ -50,7 +50,7 @@ static void EmitTwoOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR:
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitTwoOpArrangedSaturated(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitTwoOpArranged<size>(code, ctx, inst, [&](auto Vresult, auto Voperand) {
         ctx.fpsr.Load();
@@ -58,7 +58,7 @@ static void EmitTwoOpArrangedSaturated(oaknut::CodeGenerator& code, EmitContext&
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitTwoOpArrangedWiden(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitTwoOp(code, ctx, inst, [&](auto& Qresult, auto& Qoperand) {
         if constexpr (size == 8) {
@@ -73,7 +73,7 @@ static void EmitTwoOpArrangedWiden(oaknut::CodeGenerator& code, EmitContext& ctx
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitTwoOpArrangedNarrow(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitTwoOp(code, ctx, inst, [&](auto& Qresult, auto& Qoperand) {
         if constexpr (size == 16) {
@@ -88,7 +88,7 @@ static void EmitTwoOpArrangedNarrow(oaknut::CodeGenerator& code, EmitContext& ct
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitTwoOpArrangedSaturatedNarrow(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitTwoOpArrangedNarrow<size>(code, ctx, inst, [&](auto Vresult, auto Voperand) {
         ctx.fpsr.Load();
@@ -96,7 +96,7 @@ static void EmitTwoOpArrangedSaturatedNarrow(oaknut::CodeGenerator& code, EmitCo
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitTwoOpArrangedPairWiden(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitTwoOp(code, ctx, inst, [&](auto& Qresult, auto& Qoperand) {
         if constexpr (size == 8) {
@@ -111,7 +111,7 @@ static void EmitTwoOpArrangedPairWiden(oaknut::CodeGenerator& code, EmitContext&
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitTwoOpArrangedLower(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitTwoOp(code, ctx, inst, [&](auto& Qresult, auto& Qoperand) {
         if constexpr (size == 8) {
@@ -137,7 +137,7 @@ static void EmitThreeOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst
     emit(Qresult, Qa, Qb);
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         if constexpr (size == 8) {
@@ -154,7 +154,7 @@ static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, I
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitThreeOpArrangedSaturated(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitThreeOpArranged<size>(code, ctx, inst, [&](auto Vresult, auto Va, auto Vb) {
         ctx.fpsr.Load();
@@ -162,7 +162,7 @@ static void EmitThreeOpArrangedSaturated(oaknut::CodeGenerator& code, EmitContex
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitThreeOpArrangedWiden(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         if constexpr (size == 8) {
@@ -179,7 +179,7 @@ static void EmitThreeOpArrangedWiden(oaknut::CodeGenerator& code, EmitContext& c
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitThreeOpArrangedSaturatedWiden(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitThreeOpArrangedWiden<size>(code, ctx, inst, [&](auto Vresult, auto Va, auto Vb) {
         ctx.fpsr.Load();
@@ -187,7 +187,7 @@ static void EmitThreeOpArrangedSaturatedWiden(oaknut::CodeGenerator& code, EmitC
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitThreeOpArrangedLower(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         if constexpr (size == 8) {
@@ -202,7 +202,7 @@ static void EmitThreeOpArrangedLower(oaknut::CodeGenerator& code, EmitContext& c
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitSaturatedAccumulate(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qaccumulator = ctx.reg_alloc.ReadWriteQ(args[1], inst);  // NB: Swapped
@@ -223,7 +223,7 @@ static void EmitSaturatedAccumulate(oaknut::CodeGenerator&, EmitContext& ctx, IR
     }
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitImmShift(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qresult = ctx.reg_alloc.WriteQ(inst);
@@ -244,7 +244,7 @@ static void EmitImmShift(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* ins
     }
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitImmShiftSaturated(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitImmShift<size>(code, ctx, inst, [&](auto Vresult, auto Voperand, u8 shift_amount) {
         ctx.fpsr.Load();
@@ -252,7 +252,7 @@ static void EmitImmShiftSaturated(oaknut::CodeGenerator& code, EmitContext& ctx,
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitReduce(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Vresult = ctx.reg_alloc.WriteVec<size>(inst);
@@ -272,13 +272,13 @@ static void EmitReduce(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst,
     }
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitGetElement(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(args[1].IsImmediate());
     const u8 index = args[1].GetImmediateU8();
 
-    auto Rresult = ctx.reg_alloc.WriteReg<std::max<size_t>(32, size)>(inst);
+    auto Rresult = ctx.reg_alloc.WriteReg<std::max<std::size_t>(32, size)>(inst);
     auto Qvalue = ctx.reg_alloc.ReadQ(args[0]);
     RegAlloc::Realize(Rresult, Qvalue);
 
@@ -307,14 +307,14 @@ void EmitIR<IR::Opcode::VectorGetElement64>(oaknut::CodeGenerator& code, EmitCon
     EmitGetElement<64>(code, ctx, inst, [&](auto& Xresult, auto& Qvalue, u8 index) { code.UMOV(Xresult, Qvalue->Delem()[index]); });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitSetElement(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(args[1].IsImmediate());
     const u8 index = args[1].GetImmediateU8();
 
     auto Qvector = ctx.reg_alloc.ReadWriteQ(args[0], inst);
-    auto Rvalue = ctx.reg_alloc.ReadReg<std::max<size_t>(32, size)>(args[2]);
+    auto Rvalue = ctx.reg_alloc.ReadReg<std::max<std::size_t>(32, size)>(args[2]);
     RegAlloc::Realize(Qvector, Rvalue);
 
     // TODO: fpr source
@@ -432,11 +432,11 @@ void EmitIR<IR::Opcode::VectorArithmeticVShift64>(oaknut::CodeGenerator& code, E
     EmitThreeOpArranged<64>(code, ctx, inst, [&](auto Vresult, auto Va, auto Vb) { code.SSHL(Vresult, Va, Vb); });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitBroadcast(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qvector = ctx.reg_alloc.WriteQ(inst);
-    auto Rvalue = ctx.reg_alloc.ReadReg<std::max<size_t>(32, size)>(args[0]);
+    auto Rvalue = ctx.reg_alloc.ReadReg<std::max<std::size_t>(32, size)>(args[0]);
     RegAlloc::Realize(Qvector, Rvalue);
 
     // TODO: fpr source
@@ -479,7 +479,7 @@ void EmitIR<IR::Opcode::VectorBroadcast64>(oaknut::CodeGenerator& code, EmitCont
     EmitBroadcast<64>(code, ctx, inst, [&](auto& Qvector, auto& Xvalue) { code.DUP(Qvector->D2(), Xvalue); });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitBroadcastElement(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qvector = ctx.reg_alloc.WriteQ(inst);
@@ -1612,17 +1612,17 @@ void EmitIR<IR::Opcode::VectorTableLookup64>(oaknut::CodeGenerator& code, EmitCo
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto table = ctx.reg_alloc.GetArgumentInfo(inst->GetArg(1).GetInst());
 
-    const size_t table_size = std::count_if(table.begin(), table.end(), [](const auto& elem) { return !elem.IsVoid(); });
+    const std::size_t table_size = std::count_if(table.begin(), table.end(), [](const auto& elem) { return !elem.IsVoid(); });
     const bool is_defaults_zero = inst->GetArg(0).IsZero();
 
     auto Dresult = is_defaults_zero ? ctx.reg_alloc.WriteD(inst) : ctx.reg_alloc.ReadWriteD(args[0], inst);
     auto Dindices = ctx.reg_alloc.ReadD(args[2]);
     std::vector<RAReg<oaknut::DReg>> Dtable;
-    for (size_t i = 0; i < table_size; i++) {
+    for (std::size_t i = 0; i < table_size; i++) {
         Dtable.emplace_back(ctx.reg_alloc.ReadD(table[i]));
     }
     RegAlloc::Realize(Dresult, Dindices);
-    for (size_t i = 0; i < table_size; i++) {
+    for (std::size_t i = 0; i < table_size; i++) {
         RegAlloc::Realize(Dtable[i]);
     }
 
@@ -1679,17 +1679,17 @@ void EmitIR<IR::Opcode::VectorTableLookup128>(oaknut::CodeGenerator& code, EmitC
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto table = ctx.reg_alloc.GetArgumentInfo(inst->GetArg(1).GetInst());
 
-    const size_t table_size = std::count_if(table.begin(), table.end(), [](const auto& elem) { return !elem.IsVoid(); });
+    const std::size_t table_size = std::count_if(table.begin(), table.end(), [](const auto& elem) { return !elem.IsVoid(); });
     const bool is_defaults_zero = inst->GetArg(0).IsZero();
 
     auto Qresult = is_defaults_zero ? ctx.reg_alloc.WriteQ(inst) : ctx.reg_alloc.ReadWriteQ(args[0], inst);
     auto Qindices = ctx.reg_alloc.ReadQ(args[2]);
     std::vector<RAReg<oaknut::QReg>> Qtable;
-    for (size_t i = 0; i < table_size; i++) {
+    for (std::size_t i = 0; i < table_size; i++) {
         Qtable.emplace_back(ctx.reg_alloc.ReadQ(table[i]));
     }
     RegAlloc::Realize(Qresult, Qindices);
-    for (size_t i = 0; i < table_size; i++) {
+    for (std::size_t i = 0; i < table_size; i++) {
         RegAlloc::Realize(Qtable[i]);
     }
 

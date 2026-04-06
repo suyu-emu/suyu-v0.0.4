@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -9,8 +9,9 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 namespace Dynarmic::Backend::X64 {
 
@@ -48,8 +49,8 @@ struct A32JitState {
     // Exclusive state
     u32 exclusive_state = 0;
 
-    static constexpr size_t RSBSize = 8;  // MUST be a power of 2.
-    static constexpr size_t RSBPtrMask = RSBSize - 1;
+    static constexpr std::size_t RSBSize = 8;  // MUST be a power of 2.
+    static constexpr std::size_t RSBPtrMask = RSBSize - 1;
     u32 rsb_ptr = 0;
     std::array<u64, RSBSize> rsb_location_descriptors;
     std::array<u64, RSBSize> rsb_codeptrs;

@@ -22,67 +22,67 @@ namespace Dynarmic::Backend::RV64 {
 
 template<>
 void EmitIR<IR::Opcode::Pack2x32To1x64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::Pack2x64To1x128>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::LeastSignificantWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::LeastSignificantHalf>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::LeastSignificantByte>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MostSignificantWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MostSignificantBit>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::IsZero32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::IsZero64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::TestBit>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ConditionalSelect32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ConditionalSelect64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ConditionalSelectNZCV>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
@@ -124,7 +124,7 @@ void EmitIR<IR::Opcode::LogicalShiftLeft32>(biscuit::Assembler& as, EmitContext&
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftLeft64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
@@ -153,72 +153,72 @@ void EmitIR<IR::Opcode::LogicalShiftRight32>(biscuit::Assembler& as, EmitContext
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftRight64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ArithmeticShiftRight32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ArithmeticShiftRight64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::BitRotateRight32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::BitRotateRight64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::RotateRightExtended>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftLeftMasked32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftLeftMasked64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftRightMasked32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::LogicalShiftRightMasked64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ArithmeticShiftRightMasked32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ArithmeticShiftRightMasked64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::RotateRightMasked32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::RotateRightMasked64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<size_t bitsize>
@@ -264,7 +264,7 @@ static void AddImmWithFlags(biscuit::Assembler& as, biscuit::GPR rd, biscuit::GP
         as.SLLI(Xscratch1, Xscratch1, 28);
         as.OR(flags, flags, Xscratch1);
     } else {
-        UNIMPLEMENTED();
+        ASSERT(false && "Unimplemented instruction");
     }
 }
 
@@ -279,7 +279,7 @@ static void EmitAddSub(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst)
     auto Xa = ctx.reg_alloc.ReadX(args[0]);
 
     if (overflow_inst) {
-        UNIMPLEMENTED();
+        ASSERT(false && "Unimplemented instruction");
     } else if (nzcv_inst) {
         if (args[1].IsImmediate()) {
             const u64 imm = args[1].GetImmediateU64();
@@ -294,17 +294,17 @@ static void EmitAddSub(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst)
                     AddImmWithFlags<bitsize>(as, *Xresult, *Xa, sub ? -imm : imm, *Xflags);
                 }
             } else {
-                UNIMPLEMENTED();
+                ASSERT(false && "Unimplemented instruction");
             }
         } else {
-            UNIMPLEMENTED();
+            ASSERT(false && "Unimplemented instruction");
         }
     } else {
         if (args[1].IsImmediate()) {
             const u64 imm = args[1].GetImmediateU64();
 
             if (args[2].IsImmediate()) {
-                UNIMPLEMENTED();
+                ASSERT(false && "Unimplemented instruction");
             } else {
                 auto Xnzcv = ctx.reg_alloc.ReadX(args[2]);
                 RegAlloc::Realize(Xresult, Xa, Xnzcv);
@@ -317,7 +317,7 @@ static void EmitAddSub(biscuit::Assembler& as, EmitContext& ctx, IR::Inst* inst)
                 as.ADDW(Xresult, Xa, Xscratch0);
             }
         } else {
-            UNIMPLEMENTED();
+            ASSERT(false && "Unimplemented instruction");
         }
     }
 }
@@ -329,7 +329,7 @@ void EmitIR<IR::Opcode::Add32>(biscuit::Assembler& as, EmitContext& ctx, IR::Ins
 
 template<>
 void EmitIR<IR::Opcode::Add64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
@@ -339,237 +339,237 @@ void EmitIR<IR::Opcode::Sub32>(biscuit::Assembler& as, EmitContext& ctx, IR::Ins
 
 template<>
 void EmitIR<IR::Opcode::Sub64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::Mul32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::Mul64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::SignedMultiplyHigh64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::UnsignedMultiplyHigh64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::UnsignedDiv32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::UnsignedDiv64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::SignedDiv32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::SignedDiv64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::And32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::And64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::AndNot32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::AndNot64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::Eor32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::Eor64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::Or32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::Or64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::Not32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::Not64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::SignExtendByteToWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::SignExtendHalfToWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::SignExtendByteToLong>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::SignExtendHalfToLong>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::SignExtendWordToLong>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ZeroExtendByteToWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ZeroExtendHalfToWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ZeroExtendByteToLong>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ZeroExtendHalfToLong>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ZeroExtendWordToLong>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ZeroExtendLongToQuad>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ByteReverseWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ByteReverseHalf>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ByteReverseDual>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::CountLeadingZeros32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::CountLeadingZeros64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ExtractRegister32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ExtractRegister64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ReplicateBit32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::ReplicateBit64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MaxSigned32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MaxSigned64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MaxUnsigned32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MaxUnsigned64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MinSigned32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MinSigned64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MinUnsigned32>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::MinUnsigned64>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 }  // namespace Dynarmic::Backend::RV64

@@ -11,7 +11,7 @@
 #include <string>
 
 #include <fmt/format.h>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 namespace Dynarmic::IR {
 
