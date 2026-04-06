@@ -18,9 +18,10 @@ public:
                const QModelIndex& index) const override;
 
     QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
-    void setSize(const QSize& newSize, const int padding);
+    void setSize(const QSize& newSize, const int padding, const int columns);
 
 private:
     QSize m_size;
     int m_padding;
+    int m_columns;
 };

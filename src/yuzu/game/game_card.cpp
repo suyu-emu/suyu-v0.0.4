@@ -18,8 +18,25 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
     painter->save();
     painter->setRenderHint(QPainter::Antialiasing);
 
-    // padding
-    QRect cardRect = option.rect.adjusted(4 + m_padding / 2, 4, -4 - m_padding / 2, -4);
+    // Padding, dimensions, alignment...
+    const int column = index.row() % m_columns;
+    const int cell_width = option.rect.width();
+    const int fixed_card_width = cell_width - m_padding;
+    const int margins = 8;
+
+    // The gist of it is that this anchors the left and right sides to the edges,
+    // while maintaining an even gap between each card.
+    // I just smashed random keys into my keyboard until something worked.
+    // Don't even bother trying to figure out what the hell this is doing.
+    const auto total_row_width = m_columns * cell_width;
+    const auto total_gap_space = total_row_width - (margins * 2) - (m_columns * fixed_card_width);
+    const auto gap = (m_columns > 1) ? (total_gap_space / (m_columns - 1)) : 0;
+
+    const auto relative_x = margins + (column * (fixed_card_width + gap));
+    const auto x_pos = option.rect.left() - (column * cell_width) + static_cast<int>(relative_x);
+
+    // also, add some additional padding here to prevent card overlap
+    QRect cardRect(x_pos + 4, option.rect.top() + 4, fixed_card_width - 8, option.rect.height() - margins);
 
     // colors
     QPalette palette = option.palette;
@@ -41,8 +58,6 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
     painter->setPen(QPen(borderColor, 1));
     painter->drawRoundedRect(cardRect, 10, 10);
 
-    static constexpr const int padding = 8;
-
     // icon
     int _iconsize = UISettings::values.game_icon_size.GetValue();
     QSize iconSize(_iconsize, _iconsize);
@@ -54,7 +69,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
         scaledSize.scale(iconSize, Qt::KeepAspectRatio);
 
         int x = cardRect.left() + (cardRect.width() - scaledSize.width()) / 2;
-        int y = cardRect.top() + padding;
+        int y = cardRect.top() + margins;
 
         iconRect = QRect(x, y, scaledSize.width(), scaledSize.height());
 
@@ -73,7 +88,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
         painter->restore();
     } else {
         // if there is no icon just draw a blank rect
-        iconRect = QRect(cardRect.left() + padding, cardRect.top() + padding, _iconsize, _iconsize);
+        iconRect = QRect(cardRect.left() + margins, cardRect.top() + margins, _iconsize, _iconsize);
     }
 
     if (UISettings::values.show_game_name.GetValue()) {
@@ -82,8 +97,8 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
 
         // padding + text
         QRect textRect = cardRect;
-        textRect.setTop(iconRect.bottom() + 8);
-        textRect.adjust(padding, 0, -padding, -padding);
+        textRect.setTop(iconRect.bottom() + margins);
+        textRect.adjust(margins, 0, -margins, -margins);
 
         // We are already crammed on space, ignore the row 2
         QString title = index.data(Qt::DisplayRole).toString();
@@ -111,7 +126,8 @@ QSize GameCard::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& 
     return m_size;
 }
 
-void GameCard::setSize(const QSize& newSize, const int padding) {
+void GameCard::setSize(const QSize& newSize, const int padding, const int columns) {
     m_size = newSize;
     m_padding = padding;
+    m_columns = columns;
 }

@@ -411,7 +411,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     list_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
     list_view->setContextMenuPolicy(Qt::CustomContextMenu);
     list_view->setGridSize(QSize(140, 160));
-    m_gameCard->setSize(list_view->gridSize(), 0);
+    m_gameCard->setSize(list_view->gridSize(), 0, 4);
 
     list_view->setSpacing(10);
     list_view->setWordWrap(true);
@@ -1051,8 +1051,8 @@ void GameList::UpdateIconSize() {
 
     // And now stretch it a bit to fill out remaining space.
     // Not perfect but works well enough for now
-    int columns = std::max(1, view_width / min_item_width);
-    int stretched_width = (view_width - (spacing * (columns - 1))) / columns;
+    int columns = std::max(1, (view_width - 16) / min_item_width);
+    int stretched_width = ((view_width) - (spacing * (columns - 1))) / columns;
 
     // only updates things if grid size is changed
     QSize grid_size(stretched_width, icon_size + heightMargin);
@@ -1060,7 +1060,7 @@ void GameList::UpdateIconSize() {
         list_view->setUpdatesEnabled(false);
 
         list_view->setGridSize(grid_size);
-        m_gameCard->setSize(grid_size, stretched_width - min_item_width);
+        m_gameCard->setSize(grid_size, stretched_width - min_item_width, columns);
 
         list_view->setUpdatesEnabled(true);
     }
