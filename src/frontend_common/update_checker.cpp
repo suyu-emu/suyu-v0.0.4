@@ -13,7 +13,7 @@
 #include "common/scm_rev.h"
 #include "update_checker.h"
 
-#include <httplib.h>
+#include "common/httplib.h"
 
 #ifdef YUZU_BUNDLED_OPENSSL
 #include <openssl/cert.h>

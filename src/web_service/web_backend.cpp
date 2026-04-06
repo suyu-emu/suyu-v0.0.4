@@ -9,17 +9,7 @@
 #include <string>
 
 #include <fmt/ranges.h>
-
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#ifndef __clang__
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-#endif
-#include <httplib.h>
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+#include "common/httplib.h"
 
 #ifdef YUZU_BUNDLED_OPENSSL
 #include <openssl/cert.h>

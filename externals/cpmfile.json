@@ -36,7 +36,8 @@
             "0002-fix-zstd.patch"
         ],
         "options": [
-            "HTTPLIB_REQUIRE_OPENSSL ON"
+            "HTTPLIB_REQUIRE_OPENSSL ON",
+            "HTTPLIB_DISABLE_MACOSX_AUTOMATIC_ROOT_CERTIFICATES ON"
         ]
     },
     "cpp-jwt": {

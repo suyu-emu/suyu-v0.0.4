@@ -15,9 +15,7 @@
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-#include <httplib.h>
-#endif
+#include "common/httplib.h"
 
 #include <chrono>
 #include <cstring>
@@ -103,8 +101,6 @@ std::vector<u8> TryLoadFromDisk(const std::filesystem::path& path) {
 
 std::vector<u8> DownloadImage(const std::string& url_path, const std::filesystem::path& cache_path) {
     LOG_INFO(Service_BCAT, "Downloading image: https://eden-emu.dev{}", url_path);
-
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
     try {
         httplib::Client cli("https://eden-emu.dev");
         cli.set_follow_location(true);
@@ -128,8 +124,6 @@ std::vector<u8> DownloadImage(const std::string& url_path, const std::filesystem
     } catch (...) {
         LOG_WARNING(Service_BCAT, "Failed to download: {}", url_path);
     }
-#endif
-
     return {};
 }
 
@@ -232,8 +226,6 @@ void WriteCachedJson(std::string_view json) {
 }
 
 std::optional<std::string> DownloadReleasesJson() {
-
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
     try {
         httplib::SSLClient cli{"api.github.com", 443};
         cli.set_connection_timeout(10);
@@ -255,7 +247,6 @@ std::optional<std::string> DownloadReleasesJson() {
     } catch (...) {
         LOG_WARNING(Service_BCAT, " failed to download releases");
     }
-#endif
     return std::nullopt;
 }
 

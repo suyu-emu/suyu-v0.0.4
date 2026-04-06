@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,4 +22,3 @@ target_link_libraries(web_service PRIVATE common network nlohmann_json::nlohmann
 
 find_package(OpenSSL REQUIRED)
 target_link_libraries(web_service PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-target_compile_definitions(web_service PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)

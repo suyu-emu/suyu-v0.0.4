@@ -62,6 +62,12 @@ endif()
 # unordered_dense
 AddJsonPackage(unordered-dense)
 
+# httplib
+if (IOS)
+    set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+endif()
+AddJsonPackage(httplib)
+
 if (YUZU_STATIC_ROOM)
     return()
 endif()
@@ -226,9 +232,6 @@ if (VulkanMemoryAllocator_ADDED)
         )
     endif()
 endif()
-
-# httplib
-AddJsonPackage(httplib)
 
 # cpp-jwt
 if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)

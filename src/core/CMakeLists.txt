@@ -1269,7 +1269,6 @@ endif()
 target_sources(core PRIVATE hle/service/ssl/ssl_backend_openssl.cpp)
 
 target_link_libraries(core PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-target_compile_definitions(core PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 
 # TODO
 

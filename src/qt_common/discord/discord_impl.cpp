@@ -9,7 +9,7 @@
 
 #include <QEventLoop>
 #include <boost/algorithm/string/replace.hpp>
-#include <httplib.h>
+#include "common/httplib.h"
 
 #include <discord_rpc.h>
 #include <fmt/format.h>
