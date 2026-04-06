@@ -30,6 +30,7 @@
         "tag": "v%VERSION%",
         "hash": "5efa8140aadffe105dcf39935b732476e95755f6c7473ada3d0b64df2bc02c557633ae3948a25b45e1cf67e89a3ff6329fb30362e4ac033b9a1d1e453aa2eded",
         "git_version": "0.37.0",
+        "version": "0.18.7",
         "find_args": "MODULE GLOBAL",
         "patches": [
             "0001-mingw.patch",
