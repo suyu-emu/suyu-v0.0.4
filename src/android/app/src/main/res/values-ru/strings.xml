@@ -352,7 +352,7 @@
         <item quantity="many">Импортировано %d сохранений</item>
         <item quantity="other">Импортировано %d сохранений</item>
     </plurals>
-    <string name="no_save_data_found">Не найдены сохраненмия</string>
+    <string name="no_save_data_found">Файлы сохранений не найдены</string>
     <string name="verify_installed_content">Подтвердить установленный контент</string>
     <string name="verify_installed_content_description">Проверяет весь установленный контент на наличие повреждений</string>
 
@@ -361,7 +361,7 @@
     <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
 
     <string name="uninstall_firmware">Удалить прошивку</string>
-    <string name="uninstall_firmware_description">Удаление прошивки сотрет ее с устройства и может повлиять на совместимость игр.</string>
+    <string name="uninstall_firmware_description">Удаление прошивки сотрёт её с устройства и может повлиять на совместимость игр.</string>
     <string name="firmware_uninstalling">Удаление прошивки...</string>
     <string name="firmware_uninstalled_success">Прошивка успешно удалена</string>
 
@@ -397,6 +397,7 @@
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="about_app_description">Эмулятор Switch с открытым исходным кодом</string>
     <string name="contributors">Контрибьюторы</string>
+    <string name="contributors_description">Люди, благодаря которым появился Eden для Android</string>
     <string name="licenses_description">Проекты, которые сделали Eden для Android возможным</string>
     <string name="build">Сборка</string>
     <string name="user_data">Данные пользователя</string>
@@ -481,7 +482,7 @@
     <string name="sync_memory_operations_description">Обеспечивает согласованность данных между вычислительными операциями и операциями с памятью. Эта опция должна исправлять проблемы в некоторых играх, но может снижать производительность в некоторых случаях. Наиболее сильно это затрагивает игры на Unreal Engine 4.</string>
     <string name="use_disk_shader_cache">Кэш шейдеров на диске</string>
     <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
-    <string name="renderer_force_max_clock">Принудительно заставить максимальную тактовую частоту (только для Adreno)</string>
+    <string name="renderer_force_max_clock">Принудительная максимальная тактовая частота (только для Adreno)</string>
     <string name="renderer_force_max_clock_description">Заставляет ГПУ работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
     <string name="renderer_reactive_flushing">Реактивная очистка</string>
     <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
@@ -1061,6 +1062,8 @@
     <string name="theme_material_you">Material You</string>
     <string name="app_settings">Настройки приложения</string>
     <string name="theme_and_color">Тема и цвет</string>
+    <string name="fullscreen_mode">Полноэкранный режим</string>
+    <string name="fullscreen_mode_description">Скрывать системные панели Android на всех экранах приложения. Проведите от края экрана, чтобы временно отобразить их</string>
 
     <!-- Theme Modes -->
     <string name="change_theme_mode">Сменить режим темы</string>
@@ -1090,7 +1093,7 @@
     <string name="blue">Синий</string>
     <string name="cyan">Циановый</string>
     <string name="red">Красный</string>
-    <string name="green">Зелёный (По умолчанию)</string>
+    <string name="green">Зелёный</string>
     <string name="yellow">Жёлтый</string>
     <string name="orange">Оранжевый</string>
     <string name="pink">Розовый</string>
@@ -1116,8 +1119,8 @@
 
     <string name="swkbd_applet">Программная клавиатура</string>
 
-    <string name="airplane_mode">Режим полета</string>
-    <string name="airplane_mode_description">Передает режим полета в ОС Switch</string>
+    <string name="airplane_mode">Режим полёта</string>
+    <string name="airplane_mode_description">Передаёт режим полёта в ОС Switch</string>
 
     <string name="enable_overlay">Включить апплет-оверлей</string>
     <string name="enable_overlay_description">Активирует встроенный в Horizon оверлейный апплет. Для его отображения нажмите и удерживайте кнопку «HOME» в течение одной секунды.</string>

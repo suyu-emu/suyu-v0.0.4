@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">此软件可以运行Nintendo Switch游戏机的游戏，但本身并不自带任何游戏或密钥。<br /><br />开始之前，请先选择<![CDATA[<b>密钥文件（prod.keys）</b>]]>。<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">详情</a>]]></string>
-    <string name="notice_notification_channel_name">通知及错误提醒</string>
+    <string name="app_disclaimer">本软件可以运行Nintendo Switch游戏主机的游戏，但自身并不包含任何游戏或密钥。<br /><br />请于开始之前选定位于你的设备存储空间中的<![CDATA[<b>prod.keys</b>]]>。<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">了解更多</a>]]></string>
+    <string name="notice_notification_channel_name">错误与注意事项</string>
     <string name="notice_notification_channel_description">当发生错误时显示通知。</string>
     <string name="notification_permission_not_granted">未授予通知权限！</string>
     <string name="app_notification_channel_description">Eden模拟器通知</string>
@@ -12,36 +12,36 @@
     <!-- Spinbox strings -->
     <string name="increment">增加</string>
     <string name="decrement">减少</string>
-    <string name="value_too_low">值必须最小为  %1$d</string>
-    <string name="value_too_high">值最大必须为  %1$d</string>
+    <string name="value_too_low">此值至少应为  %1$d</string>
+    <string name="value_too_high">此值至多应为  %1$d</string>
     <string name="invalid_value">无效的值</string>
 
-    <string name="using_per_game_config">使用针对特定游戏的配置</string>
+    <string name="using_per_game_config">使用各别游戏配置</string>
 
     <!-- Input Overlay -->
-    <string name="show_input_overlay">虚拟按键输入</string>
-    <string name="show_input_overlay_description">在模拟过程中显示触摸控制覆盖</string>
-    <string name="overlay_snap_to_grid">截图到网格</string>
-    <string name="overlay_snap_to_grid_description">编辑时将叠加控件吸附到网格</string>
-    <string name="overlay_grid_size">网格大小</string>
-    <string name="overlay_grid_size_description">网格单元的大小（以像素为单位）</string>
-    <string name="input_overlay_behavior">平衡</string>
-    <string name="overlay_auto_hide">自动隐藏虚拟按键</string>
-    <string name="overlay_auto_hide_description">在指定的时间间隔后自动隐藏触摸控制覆盖层。</string>
-    <string name="enable_input_overlay_auto_hide">开启自动隐藏虚拟按键</string>
-    <string name="hide_overlay_on_controller_input">使用控制器时自动隐藏虚拟输入</string>
-    <string name="hide_overlay_on_controller_input_description">在使用控制器自动隐藏虚拟输入，当控制器断开会自动再现。</string>
-    <string name="invert_confirm_back_controller_buttons">反转 确认/返回 手柄按钮</string>
-    <string name="invert_confirm_back_controller_buttons_description">在使用应用界面时，将安卓确认和返回按钮的作切换到 Switch 和 Xbox 的样式。</string>
+    <string name="show_input_overlay">显示输入叠加层</string>
+    <string name="show_input_overlay_description">在游戏模拟期间显示触控叠加层</string>
+    <string name="overlay_snap_to_grid">对齐到网格</string>
+    <string name="overlay_snap_to_grid_description">在编辑时将叠加层控件对齐到网格</string>
+    <string name="overlay_grid_size">网格尺寸</string>
+    <string name="overlay_grid_size_description">网格单元像素单位尺寸</string>
+    <string name="input_overlay_behavior">行为</string>
+    <string name="overlay_auto_hide">触控叠加层自动隐藏</string>
+    <string name="overlay_auto_hide_description">在指定时间内未进行任何操作后，自动隐藏触控叠加层。</string>
+    <string name="enable_input_overlay_auto_hide">启用触控叠加层自动隐藏</string>
+    <string name="hide_overlay_on_controller_input">使用控制器时隐藏触控叠加层</string>
+    <string name="hide_overlay_on_controller_input_description">在使用实体控制器时自动隐藏触控叠加层，而当控制器断开时触控叠加层则会重新显现。</string>
+    <string name="invert_confirm_back_controller_buttons">切换“确认/返回”控制器按钮功能</string>
+    <string name="invert_confirm_back_controller_buttons_description">在与本应用的界面交互时，交换 Android 的“确认”与“返回”按钮的处理方式，以匹配 Switch 和 Xbox 的风格。</string>
 
-    <string name="input_overlay_options">虚拟按键输入</string>
-    <string name="input_overlay_options_description">配置虚拟按键</string>
-    <string name="edit_overlay_layout">编辑虚拟按键</string>
-    <string name="edit_overlay_layout_description">调整屏幕控件的的位置和大小</string>
+    <string name="input_overlay_options">输入叠加层</string>
+    <string name="input_overlay_options_description">配置屏上控件</string>
+    <string name="edit_overlay_layout">编辑触控叠加层布局</string>
+    <string name="edit_overlay_layout_description">调整屏上控件的的位置和大小</string>
 
 
     <!-- Stats Overlay settings -->
-    <string name="process_ram">进程内存: %1$d MB</string>
+    <string name="process_ram">进程内存占用: %1$d MB</string>
     <string name="shaders_prefix">正在编译</string>
     <string name="shaders_suffix">着色器</string>
     <string name="charging">(充电中)</string>
@@ -51,31 +51,31 @@
     <string name="stats_overlay_customization">自定义</string>
     <string name="stats_overlay_items">显示项</string>
     <string name="stats_overlay_options">悬浮窗</string>
-    <string name="enable_stats_overlay_">启用性能统计悬浮窗</string>
-    <string name="stats_overlay_options_description">配置悬浮窗中显示的性能信息</string>
+    <string name="enable_stats_overlay_">启用性能统计叠加层</string>
+    <string name="stats_overlay_options_description">配置性能统计叠加层中显示的信息</string>
     <string name="show_fps">显示帧率</string>
-    <string name="show_fps_description">显示当前帧率(FPS)</string>
+    <string name="show_fps_description">显示当前帧率</string>
     <string name="show_frametime">显示帧时间</string>
-    <string name="show_app_ram_usage">显示应用内存占用</string>
-    <string name="show_app_ram_usage_description">显示模拟器正在使用的内存量</string>
-    <string name="show_system_ram_usage">显示系统内存占用</string>
-    <string name="show_system_ram_usage_description">显示系统使用的内存量</string>
+    <string name="show_app_ram_usage">显示应用内存使用情况</string>
+    <string name="show_app_ram_usage_description">显示模拟器内存用量</string>
+    <string name="show_system_ram_usage">显示系统内存使用情况</string>
+    <string name="show_system_ram_usage_description">显示系统内存用量</string>
     <string name="show_bat_temperature">显示电池温度</string>
     <string name="bat_temperature_unit">电池温度单位</string>
     <string name="show_power_info">显示电池信息</string>
     <string name="show_power_info_description">显示当前功耗和电池剩余容量</string>
-    <string name="show_shaders_building">显示着色器构建</string>
-    <string name="show_shaders_building_description">显示当前正在构建的着色器数量</string>
-    <string name="overlay_position">悬浮窗位置</string>
-    <string name="overlay_position_description">选择悬浮窗在屏幕上的显示位置</string>
+    <string name="show_shaders_building">显示着色器编译信息</string>
+    <string name="show_shaders_building_description">显示当前正在编译的着色器数量</string>
+    <string name="overlay_position">叠加层位置</string>
+    <string name="overlay_position_description">选择叠加层在屏幕上显示的位置</string>
     <string name="overlay_position_top_left">左上</string>
     <string name="overlay_position_top_right">右上</string>
     <string name="overlay_position_bottom_left">左下</string>
     <string name="overlay_position_bottom_right">右下</string>
     <string name="overlay_position_center_top">顶部居中</string>
     <string name="overlay_position_center_bottom">底部居中</string>
-    <string name="perf_overlay_background">悬浮窗背景</string>
-    <string name="perf_overlay_background_description">为悬浮窗添加背景以提高可读性</string>
+    <string name="perf_overlay_background">叠加层背景</string>
+    <string name="perf_overlay_background_description">为叠加层添加背景以提高可读性</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">显示设备信息叠加层</string>
@@ -391,6 +391,7 @@
     <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="about_app_description">一款开源的 Switch 模拟器</string>
     <string name="contributors">贡献者</string>
+    <string name="contributors_description">Eden Android 版的诞生离不开这些人的支持</string>
     <string name="licenses_description">Android 版 Eden 离不开这些项目的支持</string>
     <string name="build">构建版本</string>
     <string name="user_data">用户数据</string>
@@ -628,7 +629,7 @@
     <string name="toggle_axis">切换轴</string>
     <string name="connected">已连接</string>
     <string name="use_system_vibrator">使用系统马达</string>
-    <string name="input_overlay">虚拟按键输入</string>
+    <string name="input_overlay">输入叠加层</string>
     <string name="vibration">震动</string>
     <string name="vibration_strength">震动强度</string>
     <string name="profile">用户配置</string>
@@ -876,19 +877,19 @@
     <string name="emulation_show_overlay">显示控制器</string>
     <string name="emulation_hide_overlay">隐藏控制器</string>
     <string name="emulation_toggle_all">全部切换</string>
-    <string name="emulation_control_adjust">调整虚拟按键</string>
+    <string name="emulation_control_adjust">调整触控叠加层</string>
     <string name="emulation_control_scale">缩放</string>
     <string name="emulation_control_opacity">不透明度</string>
-    <string name="emulation_touch_overlay_reset">重置虚拟按键</string>
-    <string name="emulation_touch_overlay_edit">编辑虚拟按键</string>
+    <string name="emulation_touch_overlay_reset">重置触控叠加层</string>
+    <string name="emulation_touch_overlay_edit">编辑触控叠加层</string>
     <string name="emulation_snap_to_grid">截图到网格</string>
     <string name="emulation_pause">暂停模拟</string>
     <string name="emulation_unpause">继续模拟</string>
-    <string name="emulation_input_overlay">虚拟按键选项</string>
+    <string name="emulation_input_overlay">触控叠加层选项</string>
     <string name="load_amiibo">加载 Amiibo</string>
     <string name="touchscreen">触摸屏</string>
-    <string name="lock_drawer">锁定侧边菜单</string>
-    <string name="unlock_drawer">解锁侧边菜单</string>
+    <string name="lock_drawer">锁定侧边栏</string>
+    <string name="unlock_drawer">解锁侧边栏</string>
     <string name="reset">重置</string>
 
     <!-- Amiibo -->
@@ -902,7 +903,7 @@
 
 
     <!-- Software keyboard -->
-    <string name="software_keyboard">软件键盘</string>
+    <string name="software_keyboard">软键盘</string>
 
     <!-- Errors and warnings -->
     <string name="abort_button">中止</string>
@@ -913,7 +914,7 @@
     <string name="save_load_error">保存/载入发生错误</string>
     <string name="fatal_error">致命错误</string>
     <string name="fatal_error_message">发生致命错误。请查阅日志获取详细信息。\n继续模拟可能会导致崩溃。</string>
-    <string name="device_memory_inadequate">设备RAM：%1$s\n建议：%2$s</string>
+    <string name="device_memory_inadequate">设备内存：%1$s\n建议：%2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">当前没有可启动的游戏！</string>
 
@@ -924,7 +925,7 @@
     <string name="region_australia">澳大利亚</string>
     <string name="region_china">中国</string>
     <string name="region_korea">韩国</string>
-    <string name="region_taiwan">台湾地区</string>
+    <string name="region_taiwan">台湾</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4GB (推荐)</string>
@@ -941,21 +942,21 @@
     <string name="fast_gpu_high">高 (512)</string>
 
     <!-- GPU swizzle texture size -->
-    <string name="gpu_texturesizeswizzle_verysmall">很小 (16 MB)</string>
+    <string name="gpu_texturesizeswizzle_verysmall">极小 (16 MB)</string>
     <string name="gpu_texturesizeswizzle_small">较小 (32 MB)</string>
     <string name="gpu_texturesizeswizzle_normal">正常 (128 MB)</string>
     <string name="gpu_texturesizeswizzle_large">较大 (256 MB)</string>
-    <string name="gpu_texturesizeswizzle_verylarge">很大 (512 MB)</string>
+    <string name="gpu_texturesizeswizzle_verylarge">极大 (512 MB)</string>
 
     <!-- GPU swizzle streams -->
-    <string name="gpu_swizzle_verylow">很低 (4 MB)</string>
+    <string name="gpu_swizzle_verylow">极低 (4 MB)</string>
     <string name="gpu_swizzle_low">低 (8 MB)</string>
     <string name="gpu_swizzle_normal">正常 (16 MB)</string>
     <string name="gpu_swizzle_medium">中 (32 MB)</string>
     <string name="gpu_swizzle_high">高 (64 MB)</string>
 
     <!-- GPU swizzle chunks -->
-    <string name="gpu_swizzlechunk_verylow">很低 (32)</string>
+    <string name="gpu_swizzlechunk_verylow">极低 (32)</string>
     <string name="gpu_swizzlechunk_low">低 (64)</string>
     <string name="gpu_swizzlechunk_normal">正常 (128)</string>
     <string name="gpu_swizzlechunk_medium">中 (256)</string>
@@ -1053,8 +1054,10 @@
     <string name="change_app_theme">切换主题</string>
     <string name="theme_default">系统默认</string>
     <string name="theme_material_you">Material You</string>
-    <string name="app_settings">App 设置</string>
+    <string name="app_settings">应用设置</string>
     <string name="theme_and_color">主题与颜色</string>
+    <string name="fullscreen_mode">全屏模式</string>
+    <string name="fullscreen_mode_description">于应用中隐藏 Android 系统栏，若要短暂显示只需从屏幕边缘向内滑动即可。</string>
 
     <!-- Theme Modes -->
     <string name="change_theme_mode">更改主题模式</string>
@@ -1075,16 +1078,17 @@
     <string name="enable_qlaunch_button_description">显示启动 QLaunch 的按钮</string>
 
     <!-- App Language -->
-    <string name="app_language">App 语言</string>
-    <string name="app_language_description">更改 app 界面的语言</string>
+    <string name="app_language">应用使用的语言</string>
+    <string name="app_language_description">更改应用界面语言</string>
     <string name="app_language_system">跟随系统</string>
     <!-- Static Themes -->
     <string name="static_theme_color">主题颜色</string>
     <string name="eden_theme">Eden</string>
-    <string name="violet">紫色（默认）</string>
+    <string name="violet">紫色</string>
     <string name="blue">蓝色</string>
     <string name="cyan">青色</string>
     <string name="red">红色</string>
+    <string name="green">绿色</string>
     <string name="yellow">黄色</string>
     <string name="orange">橙色</string>
     <string name="pink">粉色</string>
@@ -1108,13 +1112,13 @@
     <string name="applet_hle">自定义前端</string>
     <string name="applet_lle">真实小程序</string>
 
-    <string name="swkbd_applet">软件键盘</string>
+    <string name="swkbd_applet">软键盘</string>
 
     <string name="airplane_mode">飞行模式</string>
     <string name="airplane_mode_description">将飞行模式传递给Switch操作系统</string>
 
-    <string name="enable_overlay">开启覆盖层小程序</string>
-    <string name="enable_overlay_description">开启 Horizon 内置的覆盖层小程序。请按住 home 键 1 秒来显示它。</string>
+    <string name="enable_overlay">启用叠加层小程序</string>
+    <string name="enable_overlay_description">开启 Horizon 内建的叠加层小程序，要显示它请按压 home 键 1 秒</string>
 
     <!-- Profile Management -->
     <string name="profile_manager">用户配置管理</string>
@@ -1147,7 +1151,7 @@
 
     <!-- Licenses screen strings -->
     <string name="licenses">许可证</string>
-    <string name="license_fidelityfx_fsr_description">来自 AMD 的高品质画质升级技术</string>
+    <string name="license_fidelityfx_fsr_description">AMD 的高品质画面增强技术</string>
     <string name="external_content">外部内容</string>
     <string name="add_folders">添加文件夹</string>
 

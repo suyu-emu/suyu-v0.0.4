@@ -960,7 +960,6 @@
     <string name="theme_material_you">Material You</string>
     <string name="app_settings">Ustawienia aplikacji</string>
     <string name="theme_and_color">Motyw i kolor</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Zmień tryb motywu</string>
     <string name="theme_mode_follow_system">Podążaj za systemowym</string>

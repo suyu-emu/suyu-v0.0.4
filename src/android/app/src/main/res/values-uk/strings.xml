@@ -12,7 +12,7 @@
     <!-- Spinbox strings -->
     <string name="increment">Збільшення</string>
     <string name="decrement">Зменшення</string>
-    <string name="value_too_low">Значення повинно бути щонайменше %1$d</string>
+    <string name="value_too_low">Значення повинно бути не менше %1$d</string>
     <string name="value_too_high">Значення повинно бути не більше %1$d</string>
     <string name="invalid_value">Неправильне значення</string>
 
@@ -1062,6 +1062,8 @@
     <string name="theme_material_you">Material You</string>
     <string name="app_settings">Налаштування застосунку</string>
     <string name="theme_and_color">Тема і колір</string>
+    <string name="fullscreen_mode">Повноекранний режим</string>
+    <string name="fullscreen_mode_description">Приховати системні панелі Android у застосунку. Проведіть пальцем від краю екрана, щоб показати їх на короткий час.</string>
 
     <!-- Theme Modes -->
     <string name="change_theme_mode">Змінити режим теми</string>
@@ -1092,7 +1094,7 @@
     <string name="blue">Синій</string>
     <string name="cyan">Блакитний</string>
     <string name="red">Червоний</string>
-    <string name="green">Зелений (стандартний)</string>
+    <string name="green">Зелений</string>
     <string name="yellow">Жовтий</string>
     <string name="orange">Помаранчевий</string>
     <string name="pink">Рожевий</string>

@@ -275,8 +275,11 @@
     <string name="cpu_info">Informations sur le processeur central</string>
     <string name="gpu_information">Informations sur le processeur graphique</string>
     <string name="vulkan_driver_version">Version du pilote Vulkan</string>
+    <string name="error_getting_emulator_info">Impossible d’obtenir les infos de l’émulateur</string>
     <string name="memory_info">Informations sur la mémoire</string>
     <string name="total_memory">Capacité totale de mémoire</string>
+    <string name="soc">SOC:</string>
+
     <string name="warning_help">Aide</string>
     <string name="warning">Avertissement</string>
     <string name="warning_skip">Sauter</string>
@@ -314,6 +317,9 @@
     <string name="share_log">Partager les logs de débogage</string>
     <string name="share_log_description">Partagez le fichier de log de Eden pour déboguer les problèmes.</string>
     <string name="share_log_missing">Aucun fichier de log trouvé</string>
+    <string name="share_gpu_log">Partager les logs du GPU</string>
+    <string name="share_gpu_log_description">Partage les logs du GPU générés par Eden afin de déboguer les problèmes graphiques.</string>
+    <string name="share_gpu_log_missing">Aucun fichier de log du GPU trouvé,</string>
     <string name="install_game_content">Installer le contenu du jeu</string>
     <string name="install_game_content_description">Installer une mise à jour ou un DLC</string>
     <string name="installing_game_content">Installation du contenu en cours...</string>
@@ -369,7 +375,9 @@
     <string name="qlaunch_description">Lancer des applications depuis l\'écran d\'accueil du système</string>
     <string name="applets">Lanceur d\'applets</string>
     <string name="applets_description">Lancer des applets système en utilisant le firmware installé</string>
+    <string name="applets_error_firmware">Aucun firmware installé</string>
     <string name="applets_error_applet">Applet non disponible</string>
+    <string name="applets_error_description"><![CDATA[Veuillez vérifier que votre fichier<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> et le<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a>sont installés et réessayez.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Afficher les images stockées dans le dossier de captures d\'écran de l\'utilisateur avec le visualiseur de photos système.</string>
     <string name="mii_edit_applet">Éditeur Mii</string>
@@ -387,6 +395,7 @@
     <string name="copied_to_clipboard">Copié dans le presse-papier</string>
     <string name="about_app_description">Un émulateur Switch open source</string>
     <string name="contributors">Contributeurs</string>
+    <string name="contributors_description">Les gens qui ont rendu possible Eden pour Android</string>
     <string name="licenses_description">Des projets qui rendent possible Eden pour Android</string>
     <string name="build">Build</string>
     <string name="user_data">Données utilisateur</string>
@@ -403,6 +412,8 @@
     <string name="frame_limit_enable_description">Limiter la vitesse d\'émulation à un pourcentage spécifié de la vitesse normale</string>
     <string name="frame_limit_slider">Limiter le pourcentage de vitesse</string>
     <string name="frame_limit_slider_description">Spécifier le pourcentage pour limiter la vitesse d\'émulation. 100% correspond à la vitesse normale. Des valeurs plus élevées ou plus basses augmenteront ou diminueront la limite de vitesse.</string>
+    <string name="turbo_speed_limit">Vitesse turbo</string>
+    <string name="slow_speed_limit">Vitesse lente</string>
     <string name="cpu_backend">Backend du CPU</string>
     <string name="cpu_accuracy">Précision du CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
@@ -419,6 +430,9 @@
     <string name="use_custom_rtc_description">Vous permet de définir une horloge en temps réel personnalisée distincte de l\'heure actuelle de votre système.</string>
     <string name="set_custom_rtc">Définir l\'horloge RTC personnalisée</string>
 
+    <!-- CPU -->
+    <string name="fast_cpu_time">Overclock du CPU</string>
+    <string name="fast_cpu_time_description">Force le CPU émulé à fonctionner à une fréquence plus élevée, en contournant certaines limitations de FPS. Utilisez Boost (1700 MHz) pour atteindre la fréquence native maximale de la Nintendo Switch, ou Fast (2000 MHz) pour doubler la fréquence. C’est un “hack”. Certains chipsets moins puissants peuvent voir leurs performances réduites et les jeux peuvent se comporter différemment.</string>
     <string name="custom_cpu_ticks">Ticks CPU personnalisés</string>
     <string name="custom_cpu_ticks_description">Définissez une valeur personnalisée de ticks CPU. Des valeurs plus élevées peuvent améliorer les performances, mais peuvent aussi provoquer des gels du jeu. Une plage de 77 à 21000 est recommandée.</string>
     <string name="cpu_ticks">Ticks</string>
@@ -897,7 +911,6 @@
     <string name="theme_material_you">Material You</string>
     <string name="app_settings">Paramètres de l’App</string>
     <string name="theme_and_color">Thème et Couleur</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Changer le mode de thème</string>
     <string name="theme_mode_follow_system">Automatique</string>

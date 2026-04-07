@@ -302,7 +302,7 @@
     <string name="manage_save_data">Administrar datos de guardado</string>
     <string name="manage_save_data_description">Guardar los datos encontrados. Por favor, seleccione una opción de abajo.</string>
     <string name="import_save_warning">Importar datos de guardado</string>
-    <string name="import_save_warning_description">Ésto sobreescribirá todos los datos de guardado existentes con el archivo proporcionado. ¿Está seguro de querer continuar?</string>
+    <string name="import_save_warning_description">Esto sobreescribirá todos los datos de guardado existentes con el archivo proporcionado. ¿Está seguro de querer continuar\?</string>
     <string name="save_files_importing">Importando archivos de guardado...</string>
     <string name="save_files_exporting">Exportando archivos de guardado...</string>
     <string name="save_file_imported_success">Importado correctamente</string>
@@ -333,8 +333,8 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Controladores personalizados no soportados</string>
     <string name="custom_driver_not_supported_description">La carga de controladores personalizados no está disponible para este dispositivo.\n¡Compruebe más adelante si se añadió el soporte a esta opción!</string>
-    <string name="manage_yuzu_data">Administrar datos de Eden</string>
-    <string name="manage_yuzu_data_description">Importa/exporta el firmware, las claves, los datos de usuario, ¡y más!</string>
+    <string name="manage_yuzu_data">Gestionar datos de Eden</string>
+    <string name="manage_yuzu_data_description">Importar/exportar el firmware, las claves, los datos de usuario, ¡y más!</string>
     <string name="game_folders">Carpetas de juegos</string>
     <string name="deep_scan">Escaneo recursivo </string>
     <string name="add_game_folder">Añadir carpeta con juegos</string>
@@ -350,8 +350,8 @@
         <item quantity="many">%d archivos de guardado importados con éxito.</item>
         <item quantity="other">%d archivos de guardado importados con éxito.</item>
     </plurals>
-    <string name="no_save_data_found">No hay archivos de guardado</string>
-    <string name="verify_installed_content">Verificar contenidos instalados</string>
+    <string name="no_save_data_found">No se encontraron datos de guardado</string>
+    <string name="verify_installed_content">Verificar contenido instalado</string>
     <string name="verify_installed_content_description">Comprueba todo el contenido instalado por si hubiese alguno corrupto</string>
 
     <string name="keys_missing">Faltan las claves de encriptación</string>
@@ -768,7 +768,7 @@
     <string name="developer">Desarrollador</string>
     <string name="version">Versión</string>
     <string name="copy_details">Copiar detalles</string>
-    <string name="add_ons">Extras/Add-ons</string>
+    <string name="add_ons">Complementos</string>
     <string name="add_ons_description">Activa/desactiva mods, actualizaciones y contenidos descargables</string>
     <string name="playtime">Tiempo jugado:</string>
     <string name="reset_playtime">Borrar tiempo de juego</string>
@@ -791,28 +791,28 @@
     <string name="cleared_shaders_successfully">Sombreadores limpiados con éxito</string>
     <string name="driver_shader_wipe_dialog_title">Sombreadores limpiados</string>
     <string name="driver_shader_wipe_dialog_message">Eden ha limpiado automáticamente todos los sombreadores guardados para mantener la canalización de Vulkan válida. Esto es esencial al cambiar o actualizar los controladores de la GPU para prevenir errores y fallos gráficos. Es posible que experimente algunas interrupciones durante la reconstrucción de los sombreadores.</string>
-    <string name="addons_game">Addons: %1$s</string>
+    <string name="addons_game">Complementos: %1$s</string>
     <string name="save_data">Datos de guardado</string>
-    <string name="save_data_description">Controla los datos de guardado de este juego</string>
+    <string name="save_data_description">Gestiona los datos de guardado de este juego</string>
     <string name="delete_save_data">Borrar datos de guardado</string>
-    <string name="delete_save_data_description">Elimina todos los datos de guardado de este juego</string>
-    <string name="delete_save_data_warning_description">Ésto elimina de manera permanente todos los datos de guardado de este juego. ¿Seguro que quieres continuar?</string>
+    <string name="delete_save_data_description">Elimina todos los datos de guardado especificos de este juego</string>
+    <string name="delete_save_data_warning_description">Esto eliminará de manera permanente todos los datos de guardado de este juego. ¿Está seguro de que quiere continuar\?</string>
     <string name="save_data_deleted_successfully">Datos de guardado eliminados con éxito</string>
     <string name="select_content_type">Tipo de contenido</string>
     <string name="updates_and_dlc">Actualizaciones y contenido descargable</string>
     <string name="mods_and_cheats">Mods y trucos</string>
-    <string name="addon_notice">Aviso importante de addons</string>
+    <string name="addon_notice">Aviso importante de complementos</string>
     <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">Para instalar mods y trucos, debe seleccionar una carpeta que contenga los directorios cheats/, romfs/, o exefs/ . ¡No podemos confirmar si éstos serán compatibles con su juego, así que tenga cuidado!</string>
     <string name="invalid_directory">Directorio no válido</string>
     <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">Por favor, asegúrese de que el directorio que ha selecionado incluye las carpetas cheats/, romfs/, o exefs/ e inténtelo de nuevo.</string>
-    <string name="addon_installed_successfully">Addon instalado con éxito</string>
+    <string name="addon_installed_successfully">Complemento instalado con éxito</string>
     <string name="verifying_content">Verificando contenido...</string>
     <string name="content_install_notice">Aviso importante de contenido</string>
     <string name="content_install_notice_description">El contenido seleccionado no es de este juego.\n¿Instalar aun que\?</string>
     <string name="confirm_uninstall">Confirmar desinstalación</string>
-    <string name="confirm_uninstall_description">¿De verdad quieres desinstalar este addon?</string>
+    <string name="confirm_uninstall_description">¿Está seguro de que quiere desinstalar este complemento\?</string>
     <string name="verify_integrity">Verificar integridad</string>
     <string name="verifying">Verificando...</string>
     <string name="verify_success">¡La verificación de integridad ha sido un éxito!</string>
@@ -828,14 +828,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Su ROM está encriptada</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Siga las guías para volver a volcar sus <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">tarjetas de juego</a> o <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">títulos digitales</a>.]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Por favor, compruebe que su archivo <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> está instalado, para que los juegos sean descifrados.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Siga las guías para volver a volcar sus <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">tarjetas de juego</a> o <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">títulos instalados</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Por favor, compruebe que su archivo <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> está instalado, para que los juegos sean desencriptados.]]></string>
     <string name="loader_error_video_core">Ocurrió un error al inicializar el núcleo de video, posiblemente debido a una incompatibilidad con el driver seleccionado</string>
     <string name="loader_error_video_core_description">Esto suele deberse a un controlador de la GPU incompatible. La instalación de un controlador de la GPU personalizado puede resolver este problema.</string>
     <string name="loader_error_file_not_found">Archivo ROM no existe</string>
 
     <string name="loader_requires_firmware">El juego requiere firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[El juego que intentas iniciar requiere firmware para arrancar o pasar el menú de inicio. Por favor <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> vuelca e instala el firmware</a>, o pulsa \"Aceptar\" para continuar de todos modos.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[El juego que intenta iniciar requiere el firmware para arrancar o pasar el menú de inicio. Por favor <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> vuelque e instale el firmware</a>, o pulse \"Aceptar\" para continuar de todos modos.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Buscando juego...</string>
@@ -1060,6 +1060,8 @@
     <string name="theme_material_you">Material You</string>
     <string name="app_settings">Configuración de la aplicación</string>
     <string name="theme_and_color">Tema y color</string>
+    <string name="fullscreen_mode">Modo pantalla completa</string>
+    <string name="fullscreen_mode_description">Ocultar las barras del sistema de Android. Desliza la pantalla desde una esquina para mostrarlas temporalmente.</string>
 
     <!-- Theme Modes -->
     <string name="change_theme_mode">Cambiar modo del tema</string>
@@ -1090,7 +1092,7 @@
     <string name="blue">Azul</string>
     <string name="cyan">Cian</string>
     <string name="red">Rojo</string>
-    <string name="green">Verde (Predeterminado)</string>
+    <string name="green">Verde</string>
     <string name="yellow">Amarillo</string>
     <string name="orange">Naranja</string>
     <string name="pink">Rosa</string>
@@ -1119,7 +1121,7 @@
     <string name="airplane_mode">Modo avión</string>
     <string name="airplane_mode_description">Pasa el modo avión al sistema operativo Switch</string>
 
-    <string name="enable_overlay">Habilitar el Applet de superposición</string>
+    <string name="enable_overlay">Habilitar el applet de superposición</string>
     <string name="enable_overlay_description">Activa el applet integrado superpuesto de Horizon. Mantenga pulsado el botón de inicio durante 1 segundo para que aparezca.</string>
 
     <!-- Profile Management -->

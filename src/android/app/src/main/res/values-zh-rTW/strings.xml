@@ -908,7 +908,6 @@
     <string name="theme_material_you">質感設計3</string>
     <string name="app_settings">Eden介面設定</string>
     <string name="theme_and_color">主題和顏色</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">變更主題模式</string>
     <string name="theme_mode_follow_system">跟隨系統</string>

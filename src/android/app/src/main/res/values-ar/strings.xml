@@ -1066,6 +1066,8 @@
     <string name="theme_material_you">ألوان ديناميكية</string>
     <string name="app_settings">إعدادات التطبيق</string>
     <string name="theme_and_color">السمة واللون</string>
+    <string name="fullscreen_mode">وضع ملء الشاشة</string>
+    <string name="fullscreen_mode_description">إخفاء أشرطة نظام Android عبر شاشات التطبيق. اسحب من أحد الحواف لإظهارها مؤقتًا.</string>
 
     <!-- Theme Modes -->
     <string name="change_theme_mode">تغيير وضع السمة</string>
@@ -1096,7 +1098,7 @@
     <string name="blue">أزرق</string>
     <string name="cyan">سماوي</string>
     <string name="red">أحمر</string>
-    <string name="green">أخضر (افتراضي)</string>
+    <string name="green">أخضر</string>
     <string name="yellow">أصفر</string>
     <string name="orange">برتقالي</string>
     <string name="pink">وردي</string>

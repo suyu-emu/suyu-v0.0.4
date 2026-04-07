@@ -844,7 +844,6 @@
     <string name="theme_material_you">Material You</string>
     <string name="app_settings">Impostazioni app</string>
     <string name="theme_and_color">Tema e colore</string>
-
     <!-- Theme Modes -->
     <string name="change_theme_mode">Cambia la modalità del tema</string>
     <string name="theme_mode_follow_system">Segue il Sistema</string>
