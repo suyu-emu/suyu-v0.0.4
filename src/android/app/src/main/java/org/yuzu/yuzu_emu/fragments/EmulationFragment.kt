@@ -90,6 +90,7 @@ import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GameHelper
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.NativeFreedrenoConfig
@@ -114,6 +115,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     val handler = Handler(Looper.getMainLooper())
 
     private var controllerInputReceived = false
+    private var hasPhysicalControllerConnected = false
+    private var overlayHiddenByPhysicalController = false
 
     private var _binding: FragmentEmulationBinding? = null
 
@@ -666,6 +669,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         driverInUse = driverViewModel.selectedDriverVersion.value
 
         updateQuickOverlayMenuEntry(BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean())
+        onPhysicalControllerStateChanged(InputHandler.androidControllers.isNotEmpty())
 
         binding.surfaceEmulation.holder.addCallback(this)
         binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
@@ -760,11 +764,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 R.id.menu_quick_overlay -> {
                     val newState = !BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
-                    BooleanSetting.SHOW_INPUT_OVERLAY.setBoolean(newState)
-                    updateQuickOverlayMenuEntry(newState)
-                    binding.surfaceInputOverlay.refreshControls()
-                    // Sync view visibility with the setting
                     toggleOverlay(newState)
+                    updateQuickOverlayMenuEntry(BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean())
                     NativeConfig.saveGlobalConfig()
                     true
                 }
@@ -1053,7 +1054,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             val shouldShowOverlay = if (args.overlayGamelessEditMode) {
                 true
             } else {
-                showInputOverlay && emulationViewModel.emulationStarted.value
+                showInputOverlay && emulationViewModel.emulationStarted.value &&
+                    !hasPhysicalControllerConnected
             }
             b.surfaceInputOverlay.setVisible(shouldShowOverlay)
             if (!isInFoldableLayout) {
@@ -1078,6 +1080,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private fun addQuickSettings() {
         binding.quickSettingsSheet.apply {
             val container = binding.quickSettingsSheet.findViewById<ViewGroup>(R.id.quick_settings_container)
+            val isFsrSelected = isFsrScalingFilterSelected()
 
             container.removeAllViews()
 
@@ -1159,16 +1162,20 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 IntSetting.RENDERER_SCALING_FILTER,
                 R.array.rendererScalingFilterNames,
                 R.array.rendererScalingFilterValues
-            )
+            ) {
+                addQuickSettings()
+            }
 
-            quickSettings.addSliderSetting(
-                R.string.fsr_sharpness,
-                container,
-                IntSetting.FSR_SHARPENING_SLIDER,
-                minValue = 0,
-                maxValue = 100,
-                units = "%"
-            )
+            if (isFsrSelected) {
+                quickSettings.addSliderSetting(
+                    R.string.fsr_sharpness,
+                    container,
+                    IntSetting.FSR_SHARPENING_SLIDER,
+                    minValue = 0,
+                    maxValue = 100,
+                    units = "%"
+                )
+            }
 
             quickSettings.addIntSetting(
                 R.string.renderer_anti_aliasing,
@@ -1178,6 +1185,19 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.array.rendererAntiAliasingValues
             )
         }
+    }
+
+    private fun isFsrScalingFilterSelected(): Boolean {
+        val fsrFilterValue = resolveFsrScalingFilterValue() ?: return false
+        val selectedFilter = IntSetting.RENDERER_SCALING_FILTER.getInt(needsGlobal = false)
+        return selectedFilter == fsrFilterValue
+    }
+
+    private fun resolveFsrScalingFilterValue(): Int? {
+        val names = resources.getStringArray(R.array.rendererScalingFilterNames)
+        val values = resources.getIntArray(R.array.rendererScalingFilterValues)
+        val fsrIndex = names.indexOf(getString(R.string.scaling_filter_fsr))
+        return if (fsrIndex in values.indices) values[fsrIndex] else null
     }
 
     private fun openQuickSettingsMenu() {
@@ -2479,6 +2499,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     fun toggleOverlay(enable: Boolean) {
         if (!isAdded || _binding == null) return
+        if (enable && hasPhysicalControllerConnected && !args.overlayGamelessEditMode) return
         if (enable == !BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) {
             // Reset controller input flag so controller can hide overlay again
             if (!enable) {
@@ -2502,13 +2523,30 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     fun onControllerConnected() {
-        controllerInputReceived = false
+        onPhysicalControllerStateChanged(InputHandler.androidControllers.isNotEmpty())
     }
 
     fun onControllerDisconnected() {
-        if (!BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.getBoolean()) return
-        if (!BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) return
+        onPhysicalControllerStateChanged(InputHandler.androidControllers.isNotEmpty())
+    }
+
+    fun onPhysicalControllerStateChanged(hasConnectedControllers: Boolean) {
+        hasPhysicalControllerConnected = hasConnectedControllers
         controllerInputReceived = false
-        toggleOverlay(true)
+        if (!isAdded || _binding == null) return
+        if (binding.surfaceInputOverlay.isGamelessMode()) return
+
+        if (hasConnectedControllers) {
+            if (BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) {
+                overlayHiddenByPhysicalController = true
+                toggleOverlay(false)
+            }
+            return
+        }
+
+        if (overlayHiddenByPhysicalController) {
+            overlayHiddenByPhysicalController = false
+            toggleOverlay(true)
+        }
     }
 }

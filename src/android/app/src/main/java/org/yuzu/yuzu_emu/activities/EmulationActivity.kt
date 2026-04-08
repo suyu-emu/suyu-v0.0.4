@@ -246,6 +246,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
         nfcReader.startScanning()
         startMotionSensorListener()
         InputHandler.updateControllerData()
+        notifyPhysicalControllerState()
 
         buildPictureInPictureParams()
     }
@@ -403,8 +404,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
         val isPhysicalKeyboard = event.source and InputDevice.SOURCE_KEYBOARD == InputDevice.SOURCE_KEYBOARD &&
                                 event.device?.isVirtual == false
 
-        val isControllerInput = event.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK ||
-            event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+        val isControllerInput = InputHandler.isPhysicalGameController(event.device)
 
         if (!isControllerInput &&
             event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE &&
@@ -425,8 +425,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        val isControllerInput = event.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK ||
-            event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+        val isControllerInput = InputHandler.isPhysicalGameController(event.device)
 
         if (!isControllerInput &&
             event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
@@ -460,36 +459,34 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
     }
 
     private fun isGameController(deviceId: Int): Boolean {
-        val device = InputDevice.getDevice(deviceId) ?: return false
-        val sources = device.sources
-        return sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD ||
-            sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
+        return InputHandler.isPhysicalGameController(InputDevice.getDevice(deviceId))
     }
 
     override fun onInputDeviceAdded(deviceId: Int) {
         if (isGameController(deviceId)) {
             InputHandler.updateControllerData()
-            val navHostFragment =
-                supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
-            val emulationFragment =
-                navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
-            emulationFragment?.onControllerConnected()
+            notifyPhysicalControllerState()
         }
     }
 
     override fun onInputDeviceRemoved(deviceId: Int) {
         InputHandler.updateControllerData()
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
-        val emulationFragment =
-            navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
-        emulationFragment?.onControllerDisconnected()
+        notifyPhysicalControllerState()
     }
 
     override fun onInputDeviceChanged(deviceId: Int) {
         if (isGameController(deviceId)) {
             InputHandler.updateControllerData()
+            notifyPhysicalControllerState()
         }
+    }
+
+    private fun notifyPhysicalControllerState() {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
+        val emulationFragment =
+            navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
+        emulationFragment?.onPhysicalControllerStateChanged(InputHandler.androidControllers.isNotEmpty())
     }
 
     override fun onSensorChanged(event: SensorEvent) {

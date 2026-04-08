@@ -138,21 +138,6 @@
         <item>1</item> <!-- GPU -->
         <item>2</item> <!-- CPU Asynchronously -->
     </integer-array>
-
-    <!-- ASTC Recompression Method Choices -->
-    <string-array name="astcRecompressionMethodNames">
-        <item>@string/astc_recompression_uncompressed</item>
-        <item>@string/astc_recompression_bc1</item>
-        <item>@string/astc_recompression_bc3</item>
-    </string-array>
-
-    <!-- ASTC Recompression Method Values -->
-    <integer-array name="astcRecompressionMethodValues">
-        <item>0</item> <!-- Uncompressed -->
-        <item>1</item> <!-- BC1 -->
-        <item>2</item> <!-- BC3 -->
-    </integer-array>
-
     <!-- NVDEC Emulation Choices -->
     <string-array name="rendererNvdecNames">
         <item>@string/nvdec_emulation_none</item> <!-- Off -->

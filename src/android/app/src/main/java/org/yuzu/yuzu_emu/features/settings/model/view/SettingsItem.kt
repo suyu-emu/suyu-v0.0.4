@@ -351,15 +351,6 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
-                    IntSetting.RENDERER_ASTC_RECOMPRESSION,
-                    titleId = R.string.astc_recompression,
-                    descriptionId = R.string.astc_recompression_description,
-                    choicesId = R.array.astcRecompressionMethodNames,
-                    valuesId = R.array.astcRecompressionMethodValues
-                )
-            )
-            put(
-                SingleChoiceSetting(
                     IntSetting.RENDERER_VRAM_USAGE_MODE,
                     titleId = R.string.vram_usage_mode,
                     descriptionId = R.string.vram_usage_mode_description,
@@ -650,6 +641,20 @@ abstract class SettingsItem(
                     BooleanSetting.RENDERER_FORCE_MAX_CLOCK,
                     titleId = R.string.renderer_force_max_clock,
                     descriptionId = R.string.renderer_force_max_clock_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_ASYNCHRONOUS_GPU_EMULATION,
+                    titleId = R.string.renderer_asynchronous_gpu_emulation,
+                    descriptionId = R.string.renderer_asynchronous_gpu_emulation_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_ASYNC_PRESENTATION,
+                    titleId = R.string.renderer_async_presentation,
+                    descriptionId = R.string.renderer_async_presentation_description
                 )
             )
             put(

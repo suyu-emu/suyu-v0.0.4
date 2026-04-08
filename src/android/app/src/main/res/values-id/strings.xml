@@ -394,8 +394,6 @@
     <string name="vram_usage_mode_description">Kontrol seberapa agresif emulator mengalokasikan dan membebaskan memori GPU.</string>
     <string name="accelerate_astc">Metode Dekoding ASTC</string>
     <string name="accelerate_astc_description">Pilih cara tekstur terkompresi ASTC didekode untuk rendering: CPU (lambat, aman), GPU (cepat, direkomendasikan), atau CPU Async (tanpa lag, mungkin menyebabkan masalah)</string>
-    <string name="astc_recompression">Metode Rekompresi ASTC</string>
-    <string name="astc_recompression_description">Pilih cara tekstur ASTC dikompresi ulang untuk meningkatkan kompatibilitas dan performa. Mengaktifkan opsi ini menghemat VRAM tetapi dapat menurunkan kualitas tekstur.</string>
 
     <string name="sync_memory_operations">Sinkronisasi Operasi Memori</string>
     <string name="sync_memory_operations_description">Memastikan konsistensi data antara operasi komputasi dan memori. Opsi ini seharusnya memperbaiki masalah di beberapa game, tetapi mungkin mengurangi performa dalam beberapa kasus. Game dengan Unreal Engine 4 tampaknya yang paling terpengaruh.</string>
@@ -757,9 +755,6 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Bawaan</string>
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Tidak Dikompresi</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Konservatif</string>
     <string name="vram_usage_aggressive">Agresif</string>
 

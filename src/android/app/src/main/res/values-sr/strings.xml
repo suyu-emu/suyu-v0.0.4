@@ -365,8 +365,6 @@
     <string name="vram_usage_mode_description">Контролишите колико агресивно емулатор додељује и ослобађа ГПУ меморију.</string>
     <string name="accelerate_astc">АСТЦ метода декодирања</string>
     <string name="accelerate_astc_description">Изаберите како су текстуре са компримираним текстовима декодиране за приказивање: ЦПУ (споро, сигуран), ГПУ (Фаст, Препоручи) или ЦПУ АСИНЦ (без затезача, могу да изазове питања)</string>
-    <string name="astc_recompression">Метода рекомпресије АСТЦ-а</string>
-    <string name="astc_recompression_description">Изаберите како се текстуре АСТЦ препоручују да би се побољшале компатибилност и перформансе. Омогућавање ове опције штеди ВРАМ, али може смањити квалитет текстуре.</string>
 
     <string name="sync_memory_operations">Синхронизација меморијских операција</string>
     <string name="sync_memory_operations_description">Осигурава конзистентност података између рачунских и меморијских операција. Ова опција би требало да поправи проблеме у неким играма, али може смањити перформансе у неким случајевима. Чини се да су игре са Unreal Engine 4 највише погођене.</string>
@@ -720,9 +718,6 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Подразумевано</string>
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Некомпримован</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Конзервативан</string>
     <string name="vram_usage_aggressive">Агресиван</string>
 

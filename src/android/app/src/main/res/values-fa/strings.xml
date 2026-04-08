@@ -114,12 +114,6 @@
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU ناهمگام</string>
 
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">روش فشرده‌سازی مجدد ASTC</string>
-    <string name="astc_recompression_description">انتخاب کنید که بافت‌های ASTC چگونه فشرده‌سازی مجدد شوند تا سازگاری و عملکرد بهبود یابد. فعال کردن این گزینه VRAM را ذخیره می‌کند اما ممکن است کیفیت بافت را کاهش دهد.</string>
-    <string name="astc_recompression_uncompressed">فشرده‌نشده</string>
-    <string name="astc_recompression_bc1">BC1 (کیفیت پایین)</string>
-    <string name="astc_recompression_bc3">BC3 (کیفیت متوسط)</string>
 
     <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">حالت استفاده از VRAM</string>

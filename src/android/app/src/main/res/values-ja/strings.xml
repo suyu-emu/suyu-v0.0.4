@@ -360,8 +360,6 @@
     <string name="vram_usage_mode_description">VRAMの使用効率を設定</string>
     <string name="accelerate_astc">ASTCデコード方法</string>
     <string name="accelerate_astc_description">ASTC圧縮テクスチャのデコード方法を選択: CPU (低速、安全)、GPU (高速、推奨)、またはCPU非同期 (カクつきなし、問題が発生する可能性あり)</string>
-    <string name="astc_recompression">ASTC再圧縮方法</string>
-    <string name="astc_recompression_description">ASTCテクスチャの再圧縮方法を選択して互換性とパフォーマンスを向上させます。このオプションを有効にするとVRAMを節約できますが、テクスチャ品質が低下する可能性があります。</string>
 
     <string name="sync_memory_operations">メモリ操作の同期</string>
     <string name="sync_memory_operations_description">計算処理とメモリ操作間のデータ一貫性を保証します。 このオプションは一部のゲームの問題を修正しますが、場合によってはパフォーマンスが低下する可能性があります。 Unreal Engine 4のゲームが最も影響を受けるようです。</string>
@@ -618,9 +616,6 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">デフォルト</string>
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">非圧縮</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">保守的</string>
     <string name="vram_usage_aggressive">積極的</string>
 

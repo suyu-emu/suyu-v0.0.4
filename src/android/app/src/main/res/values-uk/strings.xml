@@ -475,8 +475,6 @@
     <string name="vram_usage_mode_description">Налаштування виділення пам`яті GPU</string>
     <string name="accelerate_astc">Метод декодування ASTC</string>
     <string name="accelerate_astc_description">Виберіть спосіб декодування стиснених текстур ASTC для рендерингу: CPU (повільно, безпечно), GPU (швидко, рекомендовано) або CPU Async (без затримок, можуть виникнути несправності)</string>
-    <string name="astc_recompression">Метод перестиснення ASTC</string>
-    <string name="astc_recompression_description">Виберіть спосіб перестиснення текстур ASTC для покращення сумісності та продуктивності. Увімкнення цієї опції зберігає VRAM, але може знизити якість текстур.</string>
 
     <string name="sync_memory_operations">Синхронізація операцій з пам\'яттю</string>
     <string name="sync_memory_operations_description">Забезпечує узгодженість даних між обчислювальними операціями та операціями з пам\'яттю. Ця опція має виправляти проблеми в деяких іграх, але може знижувати продуктивність у деяких випадках. Ігри на Unreal Engine 4, здається, найбільш постраждалі.</string>
@@ -993,9 +991,6 @@
     <string name="dma_accuracy_unsafe">Небезпечно</string>
     <string name="dma_accuracy_safe">Безпечно</string>
 
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Без стиснення</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Консервативний</string>
     <string name="vram_usage_aggressive">Агресивний</string>
 

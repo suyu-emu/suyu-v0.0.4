@@ -29,6 +29,7 @@ import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
 import org.yuzu.yuzu_emu.databinding.DialogSpinboxBinding
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.input.model.AnalogDirection
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.AnalogInputSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.ButtonInputSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.IntSingleChoiceSetting
@@ -380,6 +381,10 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                         .show()
                 }
                 scSetting.setSelectedValue(value)
+
+                if (scSetting.setting.key == IntSetting.RENDERER_SCALING_FILTER.key) {
+                    settingsViewModel.setShouldReloadSettingsList(true)
+                }
 
                 if (scSetting.setting.key == "app_language") {
                     settingsViewModel.setShouldRecreateForLanguageChange(true)

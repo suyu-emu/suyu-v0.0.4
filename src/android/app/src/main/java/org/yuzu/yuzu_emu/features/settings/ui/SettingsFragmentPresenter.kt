@@ -58,17 +58,36 @@ class SettingsFragmentPresenter(
         val pairedSettingKey = item.setting.pairedSettingKey
 
         if (pairedSettingKey.isNotEmpty()) {
+            val needsGlobal = getNeedsGlobalForKey(pairedSettingKey)
             val pairedSettingValue = NativeConfig.getBoolean(
                 pairedSettingKey,
-                if (NativeLibrary.isRunning() && !NativeConfig.isPerGameConfigLoaded()) {
-                    !NativeConfig.usingGlobal(pairedSettingKey)
-                } else {
-                    NativeConfig.usingGlobal(pairedSettingKey)
-                }
+                needsGlobal
             )
             if (!pairedSettingValue) return
         }
         add(item)
+    }
+
+    private fun getNeedsGlobalForKey(key: String): Boolean {
+        return if (NativeLibrary.isRunning() && !NativeConfig.isPerGameConfigLoaded()) {
+            !NativeConfig.usingGlobal(key)
+        } else {
+            NativeConfig.usingGlobal(key)
+        }
+    }
+
+    private fun isFsrScalingFilterSelected(): Boolean {
+        val fsrFilterValue = resolveFsrScalingFilterValue() ?: return false
+        val needsGlobal = getNeedsGlobalForKey(IntSetting.RENDERER_SCALING_FILTER.key)
+        val selectedFilter = IntSetting.RENDERER_SCALING_FILTER.getInt(needsGlobal)
+        return selectedFilter == fsrFilterValue
+    }
+
+    private fun resolveFsrScalingFilterValue(): Int? {
+        val names = context.resources.getStringArray(R.array.rendererScalingFilterNames)
+        val values = context.resources.getIntArray(R.array.rendererScalingFilterValues)
+        val fsrIndex = names.indexOf(context.getString(R.string.scaling_filter_fsr))
+        return if (fsrIndex in values.indices) values[fsrIndex] else null
     }
 
     // Allows you to show/hide abstract settings based on the paired setting key
@@ -248,7 +267,9 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_RESOLUTION.key)
             add(IntSetting.RENDERER_VSYNC.key)
             add(IntSetting.RENDERER_SCALING_FILTER.key)
-            add(IntSetting.FSR_SHARPENING_SLIDER.key)
+            if (isFsrScalingFilterSelected()) {
+                add(IntSetting.FSR_SHARPENING_SLIDER.key)
+            }
             add(IntSetting.RENDERER_ANTI_ALIASING.key)
             add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
 
@@ -259,11 +280,12 @@ class SettingsFragmentPresenter(
             add(IntSetting.MAX_ANISOTROPY.key)
             add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
             add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
-            add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
 
             add(BooleanSetting.SYNC_MEMORY_OPERATIONS.key)
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
+            add(BooleanSetting.RENDERER_ASYNCHRONOUS_GPU_EMULATION.key)
+            add(BooleanSetting.RENDERER_ASYNC_PRESENTATION.key)
             add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
             add(BooleanSetting.ENABLE_BUFFER_HISTORY.key)
             add(BooleanSetting.USE_OPTIMIZED_VERTEX_BUFFERS.key)

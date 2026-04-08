@@ -343,8 +343,6 @@
     <string name="vram_usage_mode_description">کۆنتڕۆڵی بەکارهێنانی VRAM</string>
     <string name="accelerate_astc">ڕێگای دیکۆدکردنی ASTC</string>
     <string name="accelerate_astc_description">هەڵبژێرە چۆن تێکستوورە پەستووکراوەکانی ASTC دەکرێنەوە بۆ ڕێندرکردن: CPU (هێواش، سەلامەت)، GPU (خێرا، پێشنیارکراو)، یان CPU Async (بێ ستەتەر، لەوانەیە کێشە دروست بکات)</string>
-    <string name="astc_recompression">ڕێگای پێکهێنانەوەی ASTC</string>
-    <string name="astc_recompression_description">هەڵبژێرە چۆن تێکستوورەکانی ASTC پەستوو دەکرێنەوە بۆ باشترکردنی گونجاندن و کارایی. چالاککردنی ئەم هەڵبژاردە VRAM هەڵدەگرێت بەڵام لەوانەیە کەمکردنەوەی کوالێتی تێکستوور بکات.</string>
 
     <string name="sync_memory_operations">هاوبەشیی کردارەکانی بیرگە</string>
     <string name="sync_memory_operations_description">دڵنیایی داتا لە نێوان کردارەکانی کۆمپیوتەر و بیرگە. ئەم هەڵبژاردە کێشەکان لە هەندێک یاری چارەسەر دەکات، بەڵام لە هەندێک حاڵەت کارایی کەم دەکاتەوە. وا دیارە یارییەکانی Unreal Engine 4 زۆرترین کاریگەریان هەیە.</string>
@@ -577,9 +575,6 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">بنەڕەتی</string>
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">پێکهێنەنەوە</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">پارێزەر</string>
     <string name="vram_usage_aggressive">توند</string>
 

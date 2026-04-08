@@ -341,8 +341,6 @@
     <string name="vram_usage_mode_description">Kiểm soát cách cấp phát bộ nhớ GPU</string>
     <string name="accelerate_astc">Phương thức giải mã ASTC</string>
     <string name="accelerate_astc_description">Chọn cách giải mã texture nén ASTC để kết xuất: CPU (chậm, an toàn), GPU (nhanh, khuyên dùng) hoặc CPU Async (không giật, có thể gây ra sự cố)</string>
-    <string name="astc_recompression">Phương thức nén lại ASTC</string>
-    <string name="astc_recompression_description">Chọn cách nén lại texture ASTC để cải thiện khả năng tương thích và hiệu suất. Bật tùy chọn này tiết kiệm VRAM nhưng có thể làm giảm chất lượng texture.</string>
 
     <string name="sync_memory_operations">Đồng bộ hoá thao tác bộ nhớ</string>
     <string name="sync_memory_operations_description">Đảm bảo tính nhất quán dữ liệu giữa các thao tác tính toán và bộ nhớ. Tùy chọn này nên khắc phục sự cố trong một số trò chơi, nhưng có thể làm giảm hiệu suất trong một số trường hợp. Các trò chơi với Unreal Engine 4 có vẻ bị ảnh hưởng nhiều nhất.</string>
@@ -586,9 +584,6 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Mặc định</string>
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Không nén</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Bảo thủ</string>
     <string name="vram_usage_aggressive">Mạnh</string>
 

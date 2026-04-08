@@ -485,8 +485,6 @@
     <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
     <string name="accelerate_astc">ASTC Decoding Method</string>
     <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering: CPU (slow, safe), GPU (fast, recommended), or CPU Async (no stutters, may cause issues)</string>
-    <string name="astc_recompression">ASTC Recompression Method</string>
-    <string name="astc_recompression_description">Choose how ASTC textures are recompressed to improve compatibility and performance. Enabling this option saves VRAM but may lower texture quality.</string>
 
     <string name="sync_memory_operations">Sync Memory Operations</string>
     <string name="sync_memory_operations_description">Ensures data consistency between compute and memory operations. This option should fix issues in some games, but may also reduce performance in some cases. Unreal Engine 4 games often see the most significant changes thereof.</string>
@@ -494,6 +492,10 @@
     <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
     <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
+    <string name="renderer_asynchronous_gpu_emulation">GPU async emulation</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">Runs GPU emulation asynchronously to reduce CPU stalls and improve throughput. Disable this only if you run into timing-related issues.</string>
+    <string name="renderer_async_presentation">Asynchronous presentation</string>
+    <string name="renderer_async_presentation_description">Slightly improves performance by moving presentation to a separate CPU thread.</string>
     <string name="renderer_reactive_flushing">Use reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
     <string name="enable_buffer_history">Enable buffer history</string>
@@ -1041,12 +1043,7 @@
     <string name="accelerate_astc_gpu" translatable="false">GPU</string>
     <string name="accelerate_astc_async" translatable="false">CPU Async</string>
 
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Uncompressed</string>
-    <string name="astc_recompression_bc1" translatable="false">BC1</string>
-    <string name="astc_recompression_bc3" translatable="false">BC3</string>
 
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Conservative</string>
     <string name="vram_usage_aggressive">Aggressive</string>
 

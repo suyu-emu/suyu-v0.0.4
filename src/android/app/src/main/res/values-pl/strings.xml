@@ -458,8 +458,6 @@
     <string name="vram_usage_mode_description">Kontroluj alokację i zwalnianie pamięci GPU.</string>
     <string name="accelerate_astc">Metoda dekodowania ASTC</string>
     <string name="accelerate_astc_description">Wybierz sposób dekodowania tekstur skompresowanych w formacie ASTC do renderowania: CPU (wolne, bezpieczne), GPU (szybkie, zalecane) lub CPU Async (bez zacięć, może powodować problemy)</string>
-    <string name="astc_recompression">Metoda rekompresji ASTC</string>
-    <string name="astc_recompression_description">Wybierz sposób ponownej kompresji tekstur ASTC w celu poprawy zgodności i wydajności. Włączenie tej opcji oszczędza VRAM, ale może obniżyć jakość tekstur.</string>
 
     <string name="sync_memory_operations">Synchronizuj operacje pamięci</string>
     <string name="sync_memory_operations_description">Zapewnia spójność danych między operacjami obliczeniowymi i pamięciowymi. Ta opcja powinna naprawiać problemy w niektórych grach, ale może zmniejszyć wydajność w niektórych przypadkach. Gry z Unreal Engine 4 wydają się być najbardziej dotknięte.</string>
@@ -913,9 +911,6 @@
     <string name="dma_accuracy_unsafe">Niezalecane</string>
     <string name="dma_accuracy_safe">Bezpieczne</string>
 
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Bez kompresji</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Oszczędny</string>
     <string name="vram_usage_aggressive">Agresywny</string>
 

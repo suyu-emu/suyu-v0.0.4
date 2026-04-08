@@ -57,7 +57,8 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
         container: ViewGroup,
         setting: IntSetting,
         namesArrayId: Int,
-        valuesArrayId: Int
+        valuesArrayId: Int,
+        onValueChanged: ((Int) -> Unit)? = null
     ) {
         val inflater = LayoutInflater.from(emulationFragment.requireContext())
         val itemView = inflater.inflate(R.layout.item_quick_settings_menu, container, false)
@@ -89,6 +90,7 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
                     setting.setInt(values[index])
                     saveSettings()
                     valueView.text = name
+                    onValueChanged?.invoke(values[index])
                 }
             }
             radioGroup.addView(radioButton)

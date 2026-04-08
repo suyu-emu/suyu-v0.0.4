@@ -458,8 +458,6 @@
     <string name="vram_usage_mode_description">Určuje, jak moc agresivně emulátor přiděluje a uvolňuje grafickou paměť.</string>
     <string name="accelerate_astc">Metoda dekódování ASTC</string>
     <string name="accelerate_astc_description">Vyberte způsob jak se dekódují ASTC textury: CPU (pomalé, bezpečné), GPU (rychlé, doporučené) nebo CPU Async (asynchronní, žádné zasekávání, ale může způsobit problémy)</string>
-    <string name="astc_recompression">Metoda rekomprese ASTC</string>
-    <string name="astc_recompression_description">Vyberte způsob rekomprese textur ASTC pro zlepšení kompatibility a výkonu. Zapnutí této volby ušetří VRAM, ale může snížit kvalitu textur.</string>
 
     <string name="sync_memory_operations">Synchronizace paměťových operací</string>
     <string name="sync_memory_operations_description">Zajišťuje konzistenci dat mezi výpočetními a paměťovými operacemi. Tato volba by měla opravit problémy v některých hrách, ale může v některých případech snížit výkon. Největší změny se týkají her založených na Unreal Engine 4.</string>
@@ -727,9 +725,6 @@
     <string name="dma_accuracy_unsafe">Nebezpečné</string>
     <string name="dma_accuracy_safe">Bezpečné</string>
 
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Nekomprimované</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Konzervativní</string>
     <string name="vram_usage_aggressive">Agresivní</string>
 

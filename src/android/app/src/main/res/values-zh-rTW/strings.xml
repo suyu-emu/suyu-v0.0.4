@@ -451,8 +451,6 @@
     <string name="vram_usage_mode_description">控制GPU記憶體的分配與釋放策略</string>
     <string name="accelerate_astc">ASTC解碼方式</string>
     <string name="accelerate_astc_description">選擇ASTC壓縮紋理的解碼方式：CPU（慢速、安全）、GPU（快速、推薦）或CPU非同步（無卡頓，可能導致問題）</string>
-    <string name="astc_recompression">ASTC重新壓縮方式</string>
-    <string name="astc_recompression_description">選擇ASTC紋理的重新壓縮方式以提高相容性和效能。啟用此選項可節省VRAM，但可能會降低紋理品質。</string>
 
     <string name="sync_memory_operations">同步記憶體操作</string>
     <string name="sync_memory_operations_description">確保計算和記憶體操作之間的資料一致性。 此選項應能修復某些遊戲中的問題，但在某些情況下可能會降低效能。 使用Unreal Engine 4的遊戲似乎受影響最大。</string>
@@ -861,9 +859,6 @@
     <string name="dma_accuracy_unsafe">不安全</string>
     <string name="dma_accuracy_safe">安全</string>
 
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">未壓縮</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">保守</string>
     <string name="vram_usage_aggressive">積極</string>
 

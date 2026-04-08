@@ -58,6 +58,7 @@ class DriverViewModel : ViewModel() {
     private val driversToDelete = mutableListOf<String>()
 
     private var previousDriverPath: String = ""
+    private var activeGame: Game? = null
 
     private val _shouldShowDriverShaderDialog = MutableStateFlow(false)
     val shouldShowDriverShaderDialog: StateFlow<Boolean> get() = _shouldShowDriverShaderDialog
@@ -98,6 +99,7 @@ class DriverViewModel : ViewModel() {
     }
 
     fun onOpenDriverManager(game: Game?) {
+        activeGame = game
         if (game != null) {
             SettingsFile.loadCustomConfig(game)
         }
@@ -116,10 +118,12 @@ class DriverViewModel : ViewModel() {
         }
 
         if (!skipShaderWipe && newDriverPath != previousDriverPath) {
-            wipeAllShaders()
+            activeGame?.let {
+                wipeGameShaders(it)
 
-            if (!BooleanSetting.DONT_SHOW_DRIVER_SHADER_WARNING.getBoolean(needsGlobal = true)) {
-                _shouldShowDriverShaderDialog.value = true
+                if (!BooleanSetting.DONT_SHOW_DRIVER_SHADER_WARNING.getBoolean(needsGlobal = true)) {
+                    _shouldShowDriverShaderDialog.value = true
+                }
             }
         }
 
@@ -139,12 +143,14 @@ class DriverViewModel : ViewModel() {
         _shouldShowDriverShaderDialog.value = false
     }
 
-    private fun wipeAllShaders() {
+    private fun wipeGameShaders(game: Game) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
+                val externalFilesDir = YuzuApplication.appContext.getExternalFilesDir(null)
+                    ?: return@withContext
                 val shaderDir = File(
-                    YuzuApplication.appContext.getExternalFilesDir(null)?.canonicalPath +
-                    "/shader/"
+                    externalFilesDir.absolutePath +
+                    "/shader/" + game.settingsName.lowercase()
                 )
                 if (shaderDir.exists()) {
                     shaderDir.deleteRecursively()
@@ -202,6 +208,7 @@ class DriverViewModel : ViewModel() {
             }
             driversToDelete.clear()
         } finally {
+            activeGame = null
             _isDeletingDrivers.value = false
         }
     }

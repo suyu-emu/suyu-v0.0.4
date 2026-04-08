@@ -360,8 +360,6 @@
     <string name="vram_usage_mode_description">GPU 메모리 할당/해제 방식 선택</string>
     <string name="accelerate_astc">ASTC 디코딩 방법</string>
     <string name="accelerate_astc_description">ASTC 압축 텍스처의 디코딩 방식을 선택하세요: CPU (느림, 안전), GPU (빠름, 권장), 또는 CPU 비동기 (끊김 없음, 문제 발생 가능)</string>
-    <string name="astc_recompression">ASTC 재압축 방법</string>
-    <string name="astc_recompression_description">ASTC 텍스처의 재압축 방식을 선택하여 호환성과 성능을 향상시킵니다. 이 옵션을 활성화하면 VRAM을 절약할 수 있지만 텍스처 품질이 저하될 수 있습니다.</string>
 
     <string name="sync_memory_operations">메모리 작업 동기화</string>
     <string name="sync_memory_operations_description">컴퓨팅 및 메모리 작업 간 데이터 일관성을 보장합니다. 이 옵션은 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능이 저하될 수 있습니다. Unreal Engine 4 게임이 가장 큰 영향을 받는 것으로 보입니다.</string>
@@ -670,9 +668,6 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">기본값</string>
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">비압축</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">보수적</string>
     <string name="vram_usage_aggressive">적극적</string>
 

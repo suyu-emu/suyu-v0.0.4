@@ -343,8 +343,6 @@
     <string name="vram_usage_mode_description">Kontroller minnetildeling for GPU</string>
     <string name="accelerate_astc">ASTC-dekoding</string>
     <string name="accelerate_astc_description">Velg hvordan ASTC-komprimerte teksturer skal dekodes for rendering: CPU (tregt, sikkert), GPU (raskt, anbefalt) eller CPU Async (ingen stuttering, kan forårsake problemer)</string>
-    <string name="astc_recompression">ASTC-komprimering</string>
-    <string name="astc_recompression_description">Velg hvordan ASTC-teksturer komprimeres på nytt for å forbedre kompatibilitet og ytelse. Å aktivere dette alternativet sparer VRAM, men kan redusere teksturkvaliteten.</string>
 
     <string name="sync_memory_operations">Synkroniser minneoperasjoner</string>
     <string name="sync_memory_operations_description">Sikrer datakonsistens mellom beregnings- og minneoperasjoner. Dette alternativet bør fikse problemer i noen spill, men kan redusere ytelsen i noen tilfeller. Spill med Unreal Engine 4 ser ut til å være de mest berørte.</string>
@@ -590,9 +588,6 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Ukomprimert</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Konservativ</string>
     <string name="vram_usage_aggressive">Aggressiv</string>
 

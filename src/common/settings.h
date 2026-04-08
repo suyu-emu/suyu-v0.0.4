@@ -359,7 +359,11 @@ struct Values {
                                                     true,
                                                     true};
     SwitchableSetting<int, true> fsr_sharpening_slider{linkage,
+#ifdef ANDROID
+                                                       0,
+#else
                                                        25,
+#endif
                                                        0,
                                                        200,
                                                        "fsr_sharpening_slider",
@@ -450,11 +454,7 @@ struct Values {
                                                            "max_anisotropy",
                                                            Category::RendererAdvanced};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
-#ifdef ANDROID
-                                                            AstcDecodeMode::Cpu,
-#else
                                                             AstcDecodeMode::Gpu,
-#endif
                                                             "accelerate_astc",
                                                             Category::RendererAdvanced};
 
@@ -583,7 +583,9 @@ struct Values {
                                                   Category::RendererHacks};
 
     SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
-#if defined (ANDROID) || defined (__APPLE__)
+#if defined(ANDROID)
+                                           ExtendedDynamicState::EDS1,
+#elif defined(__APPLE__)
                                            ExtendedDynamicState::Disabled,
 #else
                                            ExtendedDynamicState::EDS2,

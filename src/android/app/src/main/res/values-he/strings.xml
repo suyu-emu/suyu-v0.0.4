@@ -373,8 +373,6 @@
     <string name="vram_usage_mode_description">שליטה בקצב הקצאת ושחרור זיכרון GPU</string>
     <string name="accelerate_astc">שיטת פענוח ASTC</string>
     <string name="accelerate_astc_description">בחר כיצד לפרק את הטקסטורות הדחוסות ב-ASTC עבור רינדור: CPU (איטי, בטוח), GPU (מהיר, מומלץ) או CPU Async (ללא קפיצות, עלול לגרום לבעיות)</string>
-    <string name="astc_recompression">שיטת דחיסת ASTC</string>
-    <string name="astc_recompression_description">בחר כיצד דחיסה מחדש של טקסטורות ASTC משפרת תאימות וביצועים. הפעלת אפשרות זו חוסכת VRAM אך עלולה להוריד את איכות הטקסטורה.</string>
 
     <string name="sync_memory_operations">סנכרון פעולות זיכרון</string>
     <string name="sync_memory_operations_description">מבטיח עקביות נתונים בין פעולות חישוב וזיכרון. אפשרות זו אמורה לתקן בעיות במשחקים מסוימים, אך עלולה להפחית ביצועים במקרים מסוימים. נראה שהמשחקים עם Unreal Engine 4 הם המושפעים ביותר.</string>
@@ -622,9 +620,6 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">ברירת מחדל</string>
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">לא דחוס</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">שמרני</string>
     <string name="vram_usage_aggressive">אגרסיבי</string>
 

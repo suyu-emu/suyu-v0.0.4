@@ -362,8 +362,6 @@
     <string name="vram_usage_mode_description">GPU memória kezelésének módja</string>
     <string name="accelerate_astc">ASTC dekódolási módszer</string>
     <string name="accelerate_astc_description">Válassza ki, hogyan legyenek dekódolva az ASTC tömörített textúrák a rendereléshez: CPU (lassú, biztonságos), GPU (gyors, ajánlott) vagy CPU Async (nincs megakadás, de problémákat okozhat)</string>
-    <string name="astc_recompression">ASTC újratömörítési módszer</string>
-    <string name="astc_recompression_description">Válassza ki, hogyan történik az ASTC textúrák újratömörítése a kompatibilitás és a teljesítmény javításáért. Ez az opció VRAM-ot takarít meg, de csökkentheti a textúra minőségét.</string>
 
     <string name="sync_memory_operations">Memória-műveletek szinkronizálása</string>
     <string name="sync_memory_operations_description">Biztosítja az adatok konzisztenciáját a számítási és memória-műveletek között. Ez az opciónak javítania kell néhány játékban előforduló problémát, de bizonyos esetekben csökkentheti a teljesítményt. Az Unreal Engine 4-et használó játékok látszanak a legérintettebbek.</string>
@@ -711,9 +709,6 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Alapértelmezett</string>
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Tömörítetlen</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">Konzervatív</string>
     <string name="vram_usage_aggressive">Aggresszív</string>
 

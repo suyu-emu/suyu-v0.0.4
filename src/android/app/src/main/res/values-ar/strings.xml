@@ -479,8 +479,6 @@
     <string name="vram_usage_mode_description">تحكم في مدى قوة تخصيص المحاكي لذاكرة وحدة معالجة الرسومات وتحريرها.</string>
     <string name="accelerate_astc">طريقة فك ضغط ASTC</string>
     <string name="accelerate_astc_description">حدد كيفية فك ضغط نسيج ASTC للعرض: CPU (بطيء، آمن)، GPU (سريع، موصى به)، أو CPU Async (بدون توقف، قد يسبب مشاكل)</string>
-    <string name="astc_recompression">طريقة إعادة ضغط ASTC</string>
-    <string name="astc_recompression_description">حدد كيفية إعادة ضغط نسيج ASTC لتحسين التوافق والأداء. تمكين هذا الخيار يوفر VRAM ولكن قد يقلل من جودة النسيج.</string>
 
     <string name="sync_memory_operations">مزامنة عمليات الذاكرة</string>
     <string name="sync_memory_operations_description">يضمن اتساق البيانات بين عمليات الحوسبة والذاكرة. هذا الخيار قد يحل المشكلات في بعض الألعاب، ولكن قد يقلل الأداء في بعض الحالات. يبدو أن الألعاب التي تستخدم Unreal Engine 4 هي الأكثر تأثرًا.</string>
@@ -997,9 +995,6 @@
     <string name="dma_accuracy_unsafe">غير آمن</string>
     <string name="dma_accuracy_safe">آمن</string>
 
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">غير مضغوط</string>
-    <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_conservative">محافظ</string>
     <string name="vram_usage_aggressive">عدواني</string>
 
