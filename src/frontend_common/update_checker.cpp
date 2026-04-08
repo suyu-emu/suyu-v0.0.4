@@ -81,9 +81,7 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
 }
 
 std::optional<UpdateChecker::Update> UpdateChecker::GetLatestRelease(bool include_prereleases) {
-    // For some unbeknownst reason, only Android likes when https is specified.
-    // Consider dropping support for this radioactive platform.
-#ifdef __ANDROID__
+#ifdef YUZU_BUNDLED_OPENSSL
     const auto update_check_url = fmt::format("https://{}", Common::g_build_auto_update_api);
 #else
     const auto update_check_url = std::string{Common::g_build_auto_update_api};
