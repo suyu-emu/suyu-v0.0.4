@@ -1,0 +1,54 @@
+name: update-deps
+
+on:
+  #  saturday at noon
+  schedule:
+    - cron: '0 12 * * 6'
+  workflow_dispatch:
+
+jobs:
+  tx-update:
+    runs-on: source
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update deps
+        run: |
+          git config --local user.name "Eden CI"
+          git config --local user.email "ci@eden-emu.dev"
+          git config --local user.signingkey "D57652791BB25D2A"
+          git config --local push.autoSetupRemote true
+
+          git remote set-url origin ci:eden-emu/eden.git
+
+          DATE=$(date +"%b %d")
+          echo "DATE=$DATE" >> "$GITHUB_ENV"
+
+          git switch -c update-deps-$DATE
+          tools/cpmutil.sh package update -ac
+          git push
+
+      - name: Create PR
+        run: |
+          TITLE="[externals] Dependency update for $DATE"
+          BODY="$(git show -s --format='%b')"
+          BASE=master
+          HEAD=update-deps-$DATE
+
+          cat << EOF > data.json
+          {
+            "base": "$BASE",
+            "body": "$BODY",
+            "head": "$HEAD",
+            "title": "$TITLE"
+          }
+          EOF
+
+          curl -X 'POST' \
+            'https://git.eden-emu.dev/api/v1/repos/eden-emu/eden/pulls' \
+            -H 'accept: application/json' \
+            -H 'Authorization: Bearer ${{ secrets.CI_FJ_TOKEN }}' \
+            -H 'Content-Type: application/json' \
+            -d "@data.json" --fail
