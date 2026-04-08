@@ -465,18 +465,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         first_next = &diagnostics_nv;
     }
 
-    VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT,
-        .pNext = use_diagnostics_nv ? static_cast<void*>(&diagnostics_nv) : static_cast<void*>(&features2),
-        .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
-        .descriptorBindingPartiallyBound = VK_TRUE,
-        .descriptorBindingVariableDescriptorCount = VK_TRUE,
-    };
-
-    if (extensions.descriptor_indexing && Settings::values.descriptor_indexing.GetValue()) {
-        first_next = &descriptor_indexing;
-    }
-
     is_blit_depth24_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D24_UNORM_S8_UINT);
     is_blit_depth32_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D32_SFLOAT_S8_UINT);
     is_optimal_astc_supported = ComputeIsOptimalAstcSupported();
@@ -1078,11 +1066,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR;
         SetNext(next, properties.maintenance5);
     }
-    if (extensions.multi_draw) {
-        properties.multi_draw.sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_PROPERTIES_EXT;
-        SetNext(next, properties.multi_draw);
-    }
 
     // Perform the property fetch.
     physical.GetProperties2(properties2);
@@ -1196,7 +1179,7 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.depth_clip_control, features.depth_clip_control,
                                        VK_EXT_DEPTH_CLIP_CONTROL_EXTENSION_NAME);
 
-    /* */ // VK_EXT_extended_dynamic_state
+    // VK_EXT_extended_dynamic_state
     extensions.extended_dynamic_state = features.extended_dynamic_state.extendedDynamicState;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state,
                                        features.extended_dynamic_state,
@@ -1268,7 +1251,6 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
 
     // VK_EXT_robustness2
-    // Enable if at least one robustness2 feature is available
     extensions.robustness_2 = features.robustness2.robustBufferAccess2 ||
                               features.robustness2.robustImageAccess2 ||
                               features.robustness2.nullDescriptor;
@@ -1277,24 +1259,9 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
 
     // VK_EXT_image_robustness
-    // Enable if robustImageAccess is available
     extensions.image_robustness = features.image_robustness.robustImageAccess;
     RemoveExtensionFeatureIfUnsuitable(extensions.image_robustness, features.image_robustness,
                                        VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
-
-    // VK_EXT_provoking_vertex
-    if (Settings::values.provoking_vertex.GetValue()) {
-        extensions.provoking_vertex = features.provoking_vertex.provokingVertexLast
-                                      && features.provoking_vertex
-                                             .transformFeedbackPreservesProvokingVertex;
-        RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex,
-                                           features.provoking_vertex,
-                                           VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-    } else {
-        RemoveExtensionFeature(extensions.provoking_vertex,
-                               features.provoking_vertex,
-                               VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-    }
 
     // VK_KHR_shader_atomic_int64
     extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics &&
@@ -1319,21 +1286,12 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME);
 
     // VK_EXT_transform_feedback
-    // We only require the basic transformFeedback feature and at least
-    // one transform feedback buffer. We keep transformFeedbackQueries as it's used by
-    // the streaming byte count implementation. GeometryStreams and multiple streams
-    // are not strictly required since we currently support only stream 0.
     extensions.transform_feedback =
         features.transform_feedback.transformFeedback &&
         properties.transform_feedback.maxTransformFeedbackBuffers > 0 &&
         properties.transform_feedback.transformFeedbackQueries;
     RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
                                        VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
-    if (extensions.transform_feedback) {
-        LOG_INFO(Render_Vulkan, "VK_EXT_transform_feedback enabled (buffers={}, queries={})",
-                 properties.transform_feedback.maxTransformFeedbackBuffers,
-                 properties.transform_feedback.transformFeedbackQueries);
-    }
 
     // VK_EXT_vertex_input_dynamic_state
     extensions.vertex_input_dynamic_state =
@@ -1341,17 +1299,6 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
                                        features.vertex_input_dynamic_state,
                                        VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-
-    // VK_EXT_multi_draw
-    extensions.multi_draw = features.multi_draw.multiDraw;
-
-    if (extensions.multi_draw) {
-        LOG_INFO(Render_Vulkan, "VK_EXT_multi_draw: maxMultiDrawCount={}",
-                 properties.multi_draw.maxMultiDrawCount);
-    }
-
-    RemoveExtensionFeatureIfUnsuitable(extensions.multi_draw, features.multi_draw,
-                                       VK_EXT_MULTI_DRAW_EXTENSION_NAME);
 
     // VK_KHR_pipeline_executable_properties
     if (Settings::values.renderer_shader_feedback.GetValue()) {
@@ -1377,35 +1324,15 @@ void Device::RemoveUnsuitableExtensions() {
                                        features.workgroup_memory_explicit_layout,
                                        VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
 
-    // VK_EXT_swapchain_maintenance1 (extension only, has features)
-    // Requires VK_EXT_surface_maintenance1 instance extension
-    extensions.swapchain_maintenance1 = features.swapchain_maintenance1.swapchainMaintenance1;
-    if (extensions.swapchain_maintenance1) {
-        // Check if VK_EXT_surface_maintenance1 instance extension is available
-        const auto instance_extensions = vk::EnumerateInstanceExtensionProperties(dld);
-        const bool has_surface_maintenance1 = instance_extensions && std::ranges::any_of(*instance_extensions,
-            [](const VkExtensionProperties& prop) {
-                return std::strcmp(prop.extensionName, VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME) == 0;
-            });
-        if (!has_surface_maintenance1) {
-            LOG_WARNING(Render_Vulkan,
-                        "VK_EXT_swapchain_maintenance1 requires VK_EXT_surface_maintenance1, disabling");
-            extensions.swapchain_maintenance1 = false;
-            features.swapchain_maintenance1.swapchainMaintenance1 = false;
-        }
-    }
-    RemoveExtensionFeatureIfUnsuitable(extensions.swapchain_maintenance1, features.swapchain_maintenance1,
-                                       VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
-
-    // VK_KHR_maintenance1 (core in Vulkan 1.1, no features)
+    // VK_KHR_maintenance1
     extensions.maintenance1 = loaded_extensions.contains(VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance1, VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
 
-    // VK_KHR_maintenance2 (core in Vulkan 1.1, no features)
+    // VK_KHR_maintenance2
     extensions.maintenance2 = loaded_extensions.contains(VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance2, VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
 
-    // VK_KHR_maintenance3 (core in Vulkan 1.1, no features)
+    // VK_KHR_maintenance3
     extensions.maintenance3 = loaded_extensions.contains(VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance3, VK_KHR_MAINTENANCE_3_EXTENSION_NAME);
 
@@ -1416,17 +1343,6 @@ void Device::RemoveUnsuitableExtensions() {
 
     // VK_KHR_maintenance5
     extensions.maintenance5 = features.maintenance5.maintenance5;
-
-    if (extensions.maintenance5) {
-        LOG_INFO(Render_Vulkan, "VK_KHR_maintenance5 properties: polygonModePointSize={} "
-                                "depthStencilSwizzleOne={} earlyFragmentTests={} nonStrictWideLines={}",
-                 properties.maintenance5.polygonModePointSize,
-                 properties.maintenance5.depthStencilSwizzleOneSupport,
-                 properties.maintenance5.earlyFragmentMultisampleCoverageAfterSampleCounting &&
-                 properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting,
-                 properties.maintenance5.nonStrictWideLinesUseParallelogram);
-    }
-
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance5, features.maintenance5,
                                        VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
 
@@ -1435,17 +1351,13 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.maintenance6, features.maintenance6,
                                        VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
 
-    // VK_KHR_maintenance7 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance7
     extensions.maintenance7 = loaded_extensions.contains(VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance7, VK_KHR_MAINTENANCE_7_EXTENSION_NAME);
 
-    // VK_KHR_maintenance8 (proposed for Vulkan 1.4, no features)
+    // VK_KHR_maintenance8
     extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
-
-    // VK_KHR_maintenance9 (proposed for Vulkan 1.4, no features)
-    extensions.maintenance9 = loaded_extensions.contains(VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
-    RemoveExtensionIfUnsuitable(extensions.maintenance9, VK_KHR_MAINTENANCE_9_EXTENSION_NAME);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {

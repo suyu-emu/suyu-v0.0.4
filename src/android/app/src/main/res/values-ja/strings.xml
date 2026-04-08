@@ -375,10 +375,6 @@
     <string name="renderer_asynchronous_shaders_description">シェーダーを非同期でコンパイルします。これによりカクつきが減る可能性がありますが、グラフィックの不具合が発生する場合もあります。</string>
     <string name="dyna_state">拡張ダイナミックステート</string>
     <string name="disabled">無効</string>
-    <string name="provoking_vertex">プロボーキング頂点</string>
-    <string name="provoking_vertex_description">特定のゲームで照明と頂点処理を改善します。Vulkan 1.0+ GPUでのみサポートされています。</string>
-    <string name="descriptor_indexing">ディスクリプタインデキシング</string>
-    <string name="descriptor_indexing_description">テクスチャとバッファの処理、およびMaxwell翻訳レイヤーを改善します。一部のVulkan 1.1 GPUとすべてのVulkan 1.2+ GPUでサポートされています。</string>
     <string name="display">ディスプレイ</string>
 
     <string name="renderer_screen_layout">画面の向き</string>

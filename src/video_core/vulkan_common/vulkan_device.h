@@ -57,14 +57,12 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, 4444Formats, 4444_FORMATS, format_a4b4g4r4)                                       \
     FEATURE(EXT, IndexTypeUint8, INDEX_TYPE_UINT8, index_type_uint8)                               \
     FEATURE(EXT, LineRasterization, LINE_RASTERIZATION, line_rasterization)                        \
-    FEATURE(EXT, MultiDraw, MULTI_DRAW, multi_draw)                                                \
     FEATURE(EXT, PrimitiveTopologyListRestart, PRIMITIVE_TOPOLOGY_LIST_RESTART,                    \
             primitive_topology_list_restart)                                                       \
     FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \
     FEATURE(EXT, Robustness2, ROBUSTNESS_2, robustness2)                                           \
     FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback)                        \
     FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state)  \
-    FEATURE(EXT, SwapchainMaintenance1, SWAPCHAIN_MAINTENANCE_1, swapchain_maintenance1)           \
     FEATURE(KHR, Maintenance5, MAINTENANCE_5, maintenance5)                                        \
     FEATURE(KHR, Maintenance6, MAINTENANCE_6, maintenance6)                                        \
     FEATURE(KHR, PipelineExecutableProperties, PIPELINE_EXECUTABLE_PROPERTIES,                     \
@@ -100,12 +98,10 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                                    \
     EXTENSION(KHR, MAINTENANCE_7, maintenance7)                                                    \
     EXTENSION(KHR, MAINTENANCE_8, maintenance8)                                                    \
-    EXTENSION(KHR, MAINTENANCE_9, maintenance9)                                                    \
     EXTENSION(NV, DEVICE_DIAGNOSTICS_CONFIG, device_diagnostics_config)                            \
     EXTENSION(NV, GEOMETRY_SHADER_PASSTHROUGH, geometry_shader_passthrough)                        \
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
-    EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)                                       \
     EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
     EXTENSION(IMG, FILTER_CUBIC, filter_cubic_img)                                                 \
     EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
@@ -443,11 +439,6 @@ public:
         return extensions.viewport_array2;
     }
 
-    /// Returns true if the device supporst VK_EXT_DESCRIPTOR_INDEXING
-    bool isExtDescriptorIndexingSupported() const {
-        return extensions.descriptor_indexing;
-    }
-
     /// Returns true if the device supports VK_NV_geometry_shader_passthrough.
     bool IsNvGeometryShaderPassthroughSupported() const {
         return extensions.geometry_shader_passthrough;
@@ -471,11 +462,6 @@ public:
     /// Returns true if VK_KHR_swapchain_mutable_format is enabled.
     bool IsKhrSwapchainMutableFormatEnabled() const {
         return extensions.swapchain_mutable_format;
-    }
-
-    /// Returns true if VK_EXT_swapchain_maintenance1 is enabled.
-    bool IsExtSwapchainMaintenance1Enabled() const {
-        return extensions.swapchain_maintenance1;
     }
 
     /// Returns true if VK_KHR_shader_float_controls is enabled.
@@ -719,6 +705,22 @@ public:
         return extensions.provoking_vertex;
     }
 
+    /// Returns true if first vertex provoking mode can be used.
+    bool SupportsProvokingVertexFirstMode() const {
+        return extensions.provoking_vertex;
+    }
+
+    /// Returns true if last vertex provoking mode can be used.
+    bool SupportsProvokingVertexLastMode() const {
+        return extensions.provoking_vertex && features.provoking_vertex.provokingVertexLast;
+    }
+
+    /// Returns true if transform feedback preserves provoking vertex mode semantics.
+    bool SupportsTransformFeedbackProvokingVertexPreservation() const {
+        return extensions.provoking_vertex &&
+               features.provoking_vertex.transformFeedbackPreservesProvokingVertex;
+    }
+
     /// Returns true if the device supports VK_KHR_shader_atomic_int64.
     bool IsExtShaderAtomicInt64Supported() const {
         return extensions.shader_atomic_int64;
@@ -878,11 +880,6 @@ public:
         return extensions.maintenance6;
     }
 
-    /// Returns true if the device supports VK_EXT_multi_draw.
-    bool IsExtMultiDrawSupported() const {
-        return extensions.multi_draw;
-    }
-
     /// Returns true if the device supports VK_KHR_maintenance7.
     bool IsKhrMaintenance7Supported() const {
         return extensions.maintenance7;
@@ -891,11 +888,6 @@ public:
     /// Returns true if the device supports VK_KHR_maintenance8.
     bool IsKhrMaintenance8Supported() const {
         return extensions.maintenance8;
-    }
-
-    /// Returns true if the device supports VK_KHR_maintenance9.
-    bool IsKhrMaintenance9Supported() const {
-        return extensions.maintenance9;
     }
 
     /// Returns true if the device supports UINT8 index buffer conversion via compute shader.
@@ -1025,7 +1017,6 @@ private:
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
         VkPhysicalDeviceMaintenance5PropertiesKHR maintenance5{};
-        VkPhysicalDeviceMultiDrawPropertiesEXT multi_draw{};
 
         VkPhysicalDeviceProperties properties{};
     };

@@ -275,6 +275,19 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return VK_COMPONENT_SWIZZLE_ZERO;
 }
 
+void SanitizeDepthStencilSwizzle(std::array<SwizzleSource, 4>& swizzle,
+                                 bool supports_depth_stencil_swizzle_one) {
+    if (supports_depth_stencil_swizzle_one) {
+        return;
+    }
+    std::replace_if(swizzle.begin(), swizzle.end(),
+                    [](SwizzleSource value) {
+                        return value == SwizzleSource::OneFloat ||
+                               value == SwizzleSource::OneInt;
+                    },
+                    SwizzleSource::Zero);
+}
+
 [[nodiscard]] VkImageViewType ImageViewType(Shader::TextureType type) {
     switch (type) {
     case Shader::TextureType::Color1D:
@@ -2109,6 +2122,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
                                     !device->IsExt4444FormatsSupported());
         if ((aspect_mask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) != 0) {
             std::ranges::transform(swizzle, swizzle.begin(), ConvertGreenRed);
+            SanitizeDepthStencilSwizzle(swizzle, device->SupportsDepthStencilSwizzleOne());
         }
     }
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);

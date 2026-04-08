@@ -200,11 +200,6 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache, device, scheduler),
       wfi_event(device.GetLogical().CreateEvent()) {
     scheduler.SetQueryCache(query_cache);
-
-    // Log multi-draw support
-    if (device.IsExtMultiDrawSupported()) {
-        LOG_INFO(Render_Vulkan, "VK_EXT_multi_draw is enabled for optimized draw calls");
-    }
 }
 
 RasterizerVulkan::~RasterizerVulkan() = default;
@@ -243,43 +238,16 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
         const u32 num_instances{instance_count};
         const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
 
-        // Use VK_EXT_multi_draw if available (single draw becomes multi-draw with count=1)
-        if (device.IsExtMultiDrawSupported()) {
-            scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
-                if (draw_params.is_indexed) {
-                    // Use multi-draw indexed with single draw
-                    const VkMultiDrawIndexedInfoEXT multi_draw_info{
-                        .firstIndex = draw_params.first_index,
-                        .indexCount = draw_params.num_vertices,
-                    };
-                    const int32_t vertex_offset = static_cast<int32_t>(draw_params.base_vertex);
-                    cmdbuf.DrawMultiIndexedEXT(1, &multi_draw_info, draw_params.num_instances,
-                                               draw_params.base_instance,
-                                               sizeof(VkMultiDrawIndexedInfoEXT), &vertex_offset);
-                } else {
-                    // Use multi-draw with single draw
-                    const VkMultiDrawInfoEXT multi_draw_info{
-                        .firstVertex = draw_params.base_vertex,
-                        .vertexCount = draw_params.num_vertices,
-                    };
-                    cmdbuf.DrawMultiEXT(1, &multi_draw_info, draw_params.num_instances,
-                                        draw_params.base_instance,
-                                        sizeof(VkMultiDrawInfoEXT));
-                }
-            });
-        } else {
-            // Fallback to standard draw calls
-            scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
-                if (draw_params.is_indexed) {
-                    cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
-                                       draw_params.first_index, draw_params.base_vertex,
-                                       draw_params.base_instance);
-                } else {
-                    cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
-                                draw_params.base_vertex, draw_params.base_instance);
-                }
-            });
-        }
+        scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
+            if (draw_params.is_indexed) {
+                cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
+                                   draw_params.first_index, draw_params.base_vertex,
+                                   draw_params.base_instance);
+            } else {
+                cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
+                            draw_params.base_vertex, draw_params.base_instance);
+            }
+        });
 
         // Log draw call
         if (Settings::values.gpu_logging_enabled.GetValue() &&

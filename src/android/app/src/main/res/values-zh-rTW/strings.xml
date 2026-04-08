@@ -468,10 +468,6 @@
     <string name="disabled">已停用</string>
     <string name="vertex_input_dynamic_state">頂點輸入動態狀態</string>
     <string name="vertex_input_dynamic_state_description">啟用頂點輸入動態狀態以取得更佳的品質及性能</string>
-    <string name="provoking_vertex">引發頂點</string>
-    <string name="provoking_vertex_description">改善某些遊戲中的光照和頂點處理。僅支援Vulkan 1.0+ GPU。</string>
-    <string name="descriptor_indexing">描述符索引</string>
-    <string name="descriptor_indexing_description">改進紋理和緩衝區處理以及Maxwell轉換層。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支援。</string>
     <string name="display">顯示</string>
 
     <string name="renderer_screen_layout">方向</string>

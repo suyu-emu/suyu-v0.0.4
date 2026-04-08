@@ -513,10 +513,6 @@
     <string name="disabled">已禁用</string>
     <string name="vertex_input_dynamic_state">顶点输入动态状态</string>
     <string name="vertex_input_dynamic_state_description">开启顶点输入动态状态功能来获得更好的质量和性能。</string>
-    <string name="provoking_vertex">引发顶点</string>
-    <string name="provoking_vertex_description">改善某些游戏中的光照和顶点处理。仅支持Vulkan 1.0+ GPU。</string>
-    <string name="descriptor_indexing">描述符索引</string>
-    <string name="descriptor_indexing_description">改进纹理和缓冲区处理以及Maxwell转换层。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支持。</string>
     <string name="sample_shading_fraction">采样着色</string>
     <string name="sample_shading_fraction_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。</string>
 

@@ -1145,30 +1145,6 @@ Higher states allow for more features and can increase performance, but may caus
         <translation>Вмикає можливість динамічного стану введення вершин для кращих якості й продуктивності.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
-        <source>Provoking Vertex</source>
-        <translation>Провокативна вершина</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
-        <source>Improves lighting and vertex handling in some games.
-Only Vulkan 1.0+ devices support this extension.</source>
-        <translation>Покращує освітлення та взаємодію з вершинами у деяких іграх.
-Це розширення підтримують лише пристрої з Vulkan 1.0+.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="293"/>
-        <source>Descriptor Indexing</source>
-        <translation>Індексування дескрипторів</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="294"/>
-        <source>Improves texture &amp; buffer handling and the Maxwell translation layer.
-Some Vulkan 1.1+ and all 1.2+ devices support this extension.</source>
-        <translation>Покращує взаємодію з текстурами й буфером, а також шар перетворення Maxwell.
-Це розширення підтримують деякі пристрої з Vulkan 1.1+ та всі з 1.2+.</translation>
-    </message>
-    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="298"/>
         <source>Sample Shading</source>
         <translation>Шейдинг зразків</translation>

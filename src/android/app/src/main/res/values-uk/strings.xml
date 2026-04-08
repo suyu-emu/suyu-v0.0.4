@@ -519,10 +519,6 @@
     <string name="disabled">Вимкнено</string>
     <string name="vertex_input_dynamic_state">Динамічний стан введення вершин</string>
     <string name="vertex_input_dynamic_state_description">Вмикає можливість динамічного стану введення вершин для кращих якості й продуктивності.</string>
-    <string name="provoking_vertex">Провокативна вершина</string>
-    <string name="provoking_vertex_description">Покращує освітлення та взаємодію з вершинами у деяких іграх. Лише для ГП з підтримкою Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Індексація дескрипторів</string>
-    <string name="descriptor_indexing_description">Покращує обробку текстур та буферів, а також шар перекладу Maxwell. Підтримується деякими GPU Vulkan 1.1 та всіма GPU Vulkan 1.2+.</string>
     <string name="sample_shading_fraction">Простий шейдинг</string>
     <string name="sample_shading_fraction_description">Дозволяє виконувати фрагмент шейдера для кожного зразка в багатозразковому фрагменті замість одного разу для кожного фрагмента. Покращує якість графікі ціною втрати продуктивності.</string>
 

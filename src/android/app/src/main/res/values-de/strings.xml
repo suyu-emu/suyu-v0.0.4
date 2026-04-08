@@ -482,10 +482,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="disabled">Deaktiviert</string>
     <string name="vertex_input_dynamic_state">Vertex Input Dynamic State</string>
     <string name="vertex_input_dynamic_state_description">Aktiviert die Funktion \"Vertex Input Dynamic State\" für bessere Qualität und Leistung.</string>
-    <string name="provoking_vertex">Provokanter Vertex</string>
-    <string name="provoking_vertex_description">Verbessert die Beleuchtung und die Vertex-Verarbeitung in einigen Spielen. Wird nur von GPUs mit Vulkan 1.0+ unterstützt.</string>
-    <string name="descriptor_indexing">Deskriptor-Indizierung</string>
-    <string name="descriptor_indexing_description">Verbessert die Textur- und Puffer-Verarbeitung sowie die Maxwell-Übersetzungsschicht. Wird von einigen Vulkan 1.1-GPUs und allen Vulkan 1.2+-GPUs unterstützt.</string>
     <string name="sample_shading_fraction">Sample Shading</string>
     <string name="sample_shading_fraction_description">Ermöglicht es dem Fragment-Shader, in einem Multisample-Fragment pro Sample anstatt einmal pro Fragment ausgeführt zu werden. Verbessert die Grafikqualität auf Kosten der Leistung.</string>
 

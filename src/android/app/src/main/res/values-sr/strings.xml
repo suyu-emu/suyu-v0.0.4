@@ -380,10 +380,6 @@
     <string name="renderer_asynchronous_shaders_description">Саставља схадера асинхроно. Ово може умањити затезаче, али могу такође да уведе пропусте.</string>
     <string name="dyna_state">Проширена динамичка држава</string>
     <string name="disabled">Искључено</string>
-    <string name="provoking_vertex">Провоцирајући врх</string>
-    <string name="provoking_vertex_description">Побољшава осветљење и вертификат руковања у одређеним играма. Подржан само на Вулкану 1.0+ ГПУ-у.</string>
-    <string name="descriptor_indexing">Индексирање дескриптора</string>
-    <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
     <string name="display">Приказ</string>
 
     <string name="renderer_screen_layout">Оријентација</string>

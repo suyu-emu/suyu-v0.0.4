@@ -482,10 +482,6 @@
     <string name="disabled">Wyłączone</string>
     <string name="vertex_input_dynamic_state">Dynamiczny stan wejścia wierzchołków</string>
     <string name="vertex_input_dynamic_state_description">Włącza funkcję dynamicznego stanu wejścia wierzchołków, poprawiając jakość i wydajność.</string>
-    <string name="provoking_vertex">Wierzchołek prowokujący</string>
-    <string name="provoking_vertex_description">Poprawia oświetlenie i obsługę wierzchołków w niektórych grach. Obsługiwane tylko przez GPU Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Indeksowanie deskryptorów</string>
-    <string name="descriptor_indexing_description">Poprawia obsługę tekstur i buforów oraz warstwę tłumaczenia Maxwell. Obsługiwane przez niektóre GPU Vulkan 1.1 i wszystkie GPU Vulkan 1.2+.</string>
     <string name="sample_shading_fraction">Cieniowanie próbkowane</string>
     <string name="sample_shading_fraction_description">Pozwala uruchamiać shader fragmentów dla każdej próbki w wielopróbkowanym fragmencie zamiast raz na fragment. Poprawia jakość grafiki kosztem części wydajności.</string>
 

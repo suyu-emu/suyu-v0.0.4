@@ -1142,30 +1142,6 @@ Números más altos permiten úsar más funciones y pueden aumentar el rendimien
         <translation>Activa la función de estado dinámico de entrada de vértices para una mejor calidad y rendimiento.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
-        <source>Provoking Vertex</source>
-        <translation>Vértice provocante</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
-        <source>Improves lighting and vertex handling in some games.
-Only Vulkan 1.0+ devices support this extension.</source>
-        <translation>Mejora la iluminación y la gestión de vértices en algunos juegos.
-Solo los dispositivos Vulkan 1.0+ son compatibles con esta extensión.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="293"/>
-        <source>Descriptor Indexing</source>
-        <translation>Indexación del descriptor</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="294"/>
-        <source>Improves texture &amp; buffer handling and the Maxwell translation layer.
-Some Vulkan 1.1+ and all 1.2+ devices support this extension.</source>
-        <translation>Mejora el manejo de texturas, búferes y la capa de traducción de Maxwell.
-Algunos dispositivos Vulkan 1.1+ y todos los 1.2+ son compatibles con esta extensión.</translation>
-    </message>
-    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="298"/>
         <source>Sample Shading</source>
         <translation>Sombreado de muestra</translation>

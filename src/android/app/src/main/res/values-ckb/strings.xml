@@ -358,10 +358,6 @@
     <string name="renderer_asynchronous_shaders_description">کۆمپایلکردنی شادەرەکان بەشێوەی ناڕێک. ئەمە ڕەنگە کەمکردنەوەی ستەتەر بکات بەڵام لەوانەیە هەڵەش دروست بکات.</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
     <string name="disabled">ناچالاک</string>
-    <string name="provoking_vertex">الرأس المثير</string>
-    <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.0+.</string>
-    <string name="descriptor_indexing">فهرسة الواصفات</string>
-    <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
     <string name="display">پیشاندان</string>
 
     <string name="renderer_screen_layout">ڕێکخستنی شاشە</string>

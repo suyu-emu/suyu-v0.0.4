@@ -483,10 +483,6 @@
     <string name="disabled">Désactivé</string>
     <string name="vertex_input_dynamic_state">État dynamique d\'entrée de sommet</string>
     <string name="vertex_input_dynamic_state_description">Active la fonctionnalité d\'état dynamique des entrées de sommets pour une meilleure qualité et de meilleures performances.</string>
-    <string name="provoking_vertex">Provoque des Vertex</string>
-    <string name="provoking_vertex_description">Améliore l`éclairage et la gestion des vertex dans certains jeux. Pris en charge uniquement par les GPU Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Indexation des descripteurs</string>
-    <string name="descriptor_indexing_description">Améliore la gestion des textures et des tampons, ainsi que la couche de traduction Maxwell. Pris en charge par certains GPU Vulkan 1.1 et tous les GPU Vulkan 1.2+.</string>
     <string name="display">Affichage</string>
 
     <string name="renderer_screen_layout">Orientation</string>

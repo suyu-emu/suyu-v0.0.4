@@ -517,10 +517,6 @@
     <string name="disabled">Desactivado</string>
     <string name="vertex_input_dynamic_state">Estado dinámico de entrada de vértices</string>
     <string name="vertex_input_dynamic_state_description">Activa la función de estado dinámico de entrada de vértices para una mejor calidad y rendimiento.</string>
-    <string name="provoking_vertex">Vértice provocante</string>
-    <string name="provoking_vertex_description">Mejora la iluminación y el manejo de vértices en ciertos juegos. Solo es compatible con las GPU Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Indexación del descriptor</string>
-    <string name="descriptor_indexing_description">Mejora la textura y el manejo del búfer, así como la capa de traducción Maxwell. Compatible con algunas GPU Vulkan 1.1 y todas las GPU Vulkan 1.2+.</string>
     <string name="sample_shading_fraction">Muestreo de sombreado</string>
     <string name="sample_shading_fraction_description">Permite que el sombreador de fragmentos se ejecute por muestra en un fragmento multimuestreado, en lugar de una sola vez por fragmento. Mejora la calidad de los gráficos a coste de algo de rendimiento.</string>
 

@@ -1137,30 +1137,6 @@ Higher states allow for more features and can increase performance, but may caus
         <translation>يتيح ميزة الحالة الديناميكية لإدخال الرأس لتحسين الجودة والأداء.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
-        <source>Provoking Vertex</source>
-        <translation>استفزاز قمة الرأس</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
-        <source>Improves lighting and vertex handling in some games.
-Only Vulkan 1.0+ devices support this extension.</source>
-        <translation>يُحسّن الإضاءة ومعالجة الرؤوس في بعض الألعاب.
-تدعم هذه الإضافة أجهزة Vulkan 1.0+‎ فقط.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="293"/>
-        <source>Descriptor Indexing</source>
-        <translation>فهرسة الوصف</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="294"/>
-        <source>Improves texture &amp; buffer handling and the Maxwell translation layer.
-Some Vulkan 1.1+ and all 1.2+ devices support this extension.</source>
-        <translation>يُحسّن معالجة الملمس والذاكرة المؤقتة وطبقة ترجمة ماكسويل.
-تدعم بعض أجهزة Vulkan الإصدار 1.1+‎ وجميع أجهزة 1.2+‎ هذه الإضافة.</translation>
-    </message>
-    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="298"/>
         <source>Sample Shading</source>
         <translation>تظليل العينة</translation>

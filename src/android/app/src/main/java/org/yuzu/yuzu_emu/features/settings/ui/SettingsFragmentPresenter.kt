@@ -302,8 +302,6 @@ class SettingsFragmentPresenter(
 
             add(IntSetting.RENDERER_DYNA_STATE.key)
             add(BooleanSetting.RENDERER_VERTEX_INPUT_DYNAMIC_STATE.key)
-            add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
-            add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
             add(IntSetting.RENDERER_SAMPLE_SHADING.key)
 
             add(HeaderSetting(R.string.display))

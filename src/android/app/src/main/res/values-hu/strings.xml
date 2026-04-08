@@ -377,10 +377,6 @@
     <string name="renderer_asynchronous_shaders_description">A shaderek aszinkron fordítása. Csökkentheti a belassulásokat, de hibákat is okozhat.</string>
     <string name="dyna_state">Kiterjesztett Dinamikus Állapot</string>
     <string name="disabled">Letiltva</string>
-    <string name="provoking_vertex">Provokáló csúcs</string>
-    <string name="provoking_vertex_description">Javítja a világítást és a csúcskezelést bizonyos játékokban. Csak Vulkan 1.0+ GPU-kon támogatott.</string>
-    <string name="descriptor_indexing">Deskriptor Indexelés</string>
-    <string name="descriptor_indexing_description">Javítja a textúrák és pufferek kezelését, valamint a Maxwell fordítási réteget. Néhány Vulkan 1.1 GPU és minden Vulkan 1.2+ GPU támogatja.</string>
     <string name="display">Kijelző</string>
 
     <string name="renderer_screen_layout">Orientáció</string>

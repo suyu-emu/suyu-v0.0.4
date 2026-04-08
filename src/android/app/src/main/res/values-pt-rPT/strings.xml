@@ -381,10 +381,6 @@
     <string name="renderer_asynchronous_shaders_description">Compila shaders de forma assíncrona. Isto pode reduzir engasgadelas, mas também pode introduzir falhas gráficas.</string>
     <string name="dyna_state">Estado Dinâmico Estendido</string>
     <string name="disabled">Desativado</string>
-    <string name="provoking_vertex">Vértice provocante</string>
-    <string name="provoking_vertex_description">Melhora a iluminação e o tratamento de vértices em certos jogos. Suportado apenas em GPUs Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Indexação de descritores</string>
-    <string name="descriptor_indexing_description">Melhora o tratamento de texturas e buffers, assim como a camada de tradução Maxwell. Suportado por algumas GPUs Vulkan 1.1 e todas Vulkan 1.2+.</string>
     <string name="display">Ecrã</string>
 
     <string name="renderer_screen_layout">Oriantação</string>

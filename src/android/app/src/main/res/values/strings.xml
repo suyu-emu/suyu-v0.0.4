@@ -533,10 +533,6 @@
     <string name="disabled">Disabled</string>
     <string name="vertex_input_dynamic_state">Vertex Input Dynamic State</string>
     <string name="vertex_input_dynamic_state_description">Enables vertex input dynamic state feature for better quality and performance.</string>
-    <string name="provoking_vertex">Provoking Vertex</string>
-    <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
-    <string name="descriptor_indexing">Descriptor Indexing</string>
-    <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
     <string name="sample_shading_fraction">Sample Shading</string>
     <string name="sample_shading_fraction_description">Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance.</string>
 

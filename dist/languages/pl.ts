@@ -1136,30 +1136,6 @@ Wyższe poziomy pozwalają na użycie większej liczby funkcji i mogą zwiększy
         <translation>Włącza funkcję dynamicznego stanu wejścia wierzchołków, poprawiając jakość i wydajność.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
-        <source>Provoking Vertex</source>
-        <translation>Wierzchołek prowokujący</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
-        <source>Improves lighting and vertex handling in some games.
-Only Vulkan 1.0+ devices support this extension.</source>
-        <translation>Poprawia oświetlenie i obsługę wierzchołków w niektórych grach.
-To rozszerzenie jest obsługiwane tylko na urządzeniach z Vulkanem 1.0+.</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="293"/>
-        <source>Descriptor Indexing</source>
-        <translation>Indeksowanie deskryptorów</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="294"/>
-        <source>Improves texture &amp; buffer handling and the Maxwell translation layer.
-Some Vulkan 1.1+ and all 1.2+ devices support this extension.</source>
-        <translation>Poprawia obsługę tekstur i buforów oraz warstwę translacji Maxwell.
-Niektóre urządzenia z Vulkanem 1.1+ i wszystkie z 1.2+ obsługują to rozszerzenie.</translation>
-    </message>
-    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="298"/>
         <source>Sample Shading</source>
         <translation>Cieniowanie próbkowe</translation>

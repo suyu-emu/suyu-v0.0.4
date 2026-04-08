@@ -519,10 +519,6 @@
     <string name="disabled">Отключено</string>
     <string name="vertex_input_dynamic_state">Динамическое состояние ввода вершин</string>
     <string name="vertex_input_dynamic_state_description">Включает функцию динамического состояния ввода вершин для повышения качества и производительности</string>
-    <string name="provoking_vertex">Определяющая вершина</string>
-    <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только ГПУ с Vulkan 1.0+.</string>
-    <string name="descriptor_indexing">Индексирование дескрипторов</string>
-    <string name="descriptor_indexing_description">Улучшает обработку текстур и буферов, а также слой перевода Maxwell. Поддерживается некоторыми ГПУ Vulkan 1.1 и всеми ГПУ Vulkan 1.2+.</string>
     <string name="sample_shading_fraction">Сэмпловое затенение</string>
     <string name="sample_shading_fraction_description">Позволяет шейдеру фрагментов выполняться для каждого сэмпла в многосэмпловом фрагменте, а не один раз на фрагмент. Улучшает качество графики ценой некоторого падения производительности.</string>
 

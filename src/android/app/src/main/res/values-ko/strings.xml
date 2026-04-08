@@ -375,10 +375,6 @@
     <string name="renderer_asynchronous_shaders_description">셰이더를 비동기적으로 컴파일합니다. 이로 인해 끊김 현상이 줄어들 수 있지만 그래픽 오류가 발생할 수도 있습니다.</string>
     <string name="dyna_state">확장 동적 상태</string>
     <string name="disabled">비활성화됨</string>
-    <string name="provoking_vertex">프로보킹 버텍스</string>
-    <string name="provoking_vertex_description">일부 게임에서 조명과 버텍스 처리를 개선합니다. Vulkan 1.0+ GPU에서만 지원됩니다.</string>
-    <string name="descriptor_indexing">디스크립터 인덱싱</string>
-    <string name="descriptor_indexing_description">텍스처 및 버퍼 처리와 Maxwell 변환 레이어를 개선합니다. 일부 Vulkan 1.1 GPU 및 모든 Vulkan 1.2+ GPU에서 지원됩니다.</string>
     <string name="display">디스플레이</string>
 
     <string name="renderer_screen_layout">화면 방향</string>

@@ -490,6 +490,14 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
     dynamic_features.has_dynamic_vertex_input =
         device.IsExtVertexInputDynamicStateSupported() &&
         Settings::values.vertex_input_dynamic_state.GetValue();
+
+    dynamic_features.has_provoking_vertex = device.IsExtProvokingVertexSupported();
+    dynamic_features.has_provoking_vertex_first_mode =
+        device.SupportsProvokingVertexFirstMode();
+    dynamic_features.has_provoking_vertex_last_mode =
+        device.SupportsProvokingVertexLastMode();
+    dynamic_features.has_provoking_vertex_tf_preserve =
+        device.SupportsTransformFeedbackProvokingVertexPreservation();
 }
 
 PipelineCache::~PipelineCache() {
@@ -603,6 +611,18 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
             (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {
             return;
         }
+
+        const bool key_requests_provoking_last = key.state.provoking_vertex_last != 0;
+        if (key_requests_provoking_last && !dynamic_features.has_provoking_vertex_last_mode) {
+            return;
+        }
+
+        const bool key_uses_transform_feedback = key.state.xfb_enabled != 0;
+        if (key_uses_transform_feedback && key_requests_provoking_last &&
+            !dynamic_features.has_provoking_vertex_tf_preserve) {
+            return;
+        }
+
         workers.QueueWork([this, key, envs_ = std::move(envs), &state, &callback]() mutable {
             ShaderPools pools;
             boost::container::static_vector<Shader::Environment*, 5> env_ptrs;

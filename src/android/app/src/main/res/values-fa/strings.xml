@@ -71,10 +71,6 @@
     <string name="uninstall_firmware_description">حذف فرمور آن را از دستگاه پاک می‌کند و ممکن است بر سازگاری بازی‌ها تأثیر بگذارد</string>
     <string name="firmware_uninstalling">در حال حذف فرمور</string>
     <string name="firmware_uninstalled_success">فرمور با موفقیت حذف شد</string>
-    <string name="provoking_vertex">رأس تحریک‌کننده</string>
-    <string name="provoking_vertex_description">نورپردازی و مدیریت رأس را در برخی بازی‌ها بهبود می‌بخشد. فقط در کارت‌های گرافیک با پشتیبانی از ولکان 1.0+ قابل استفاده است</string>
-    <string name="descriptor_indexing">نمایه‌سازی توصیفگر</string>
-    <string name="descriptor_indexing_description">مدیریت بافت‌ها و بافرها و همچنین لایه ترجمه ماکسول را بهبود می‌بخشد. توسط برخی کارت‌های گرافیک ولکان 1.1 و تمام کارت‌های گرافیک ولکان 1.2+ پشتیبانی می‌شود</string>
     <string name="fast_gpu_time">فاکتور اورکلاک GPU</string>
     <string name="fast_gpu_time_description">برای حداکثر عملکرد از 128 و برای حداکثر وفاداری گرافیکی از 512 استفاده کنید.</string>
     <string name="fast_gpu_medium">متوسط (256)</string>

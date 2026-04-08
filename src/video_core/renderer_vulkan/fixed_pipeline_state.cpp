@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -83,7 +83,29 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     depth_enabled.Assign(regs.zeta_enable != 0 ? 1 : 0);
     depth_format.Assign(static_cast<u32>(regs.zeta.format));
     y_negate.Assign(regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft ? 1 : 0);
-    provoking_vertex_last.Assign(regs.provoking_vertex == Maxwell::ProvokingVertex::Last ? 1 : 0);
+
+    bool use_last_provoking_vertex = false;
+    const bool provoking_vertex_available = features.has_provoking_vertex;
+    const bool supports_first_mode = features.has_provoking_vertex_first_mode;
+    const bool supports_last_mode = features.has_provoking_vertex_last_mode;
+    const bool transform_feedback_active = regs.transform_feedback_enabled != 0;
+    const bool tf_preserves_provoking_vertex = features.has_provoking_vertex_tf_preserve;
+
+    if (provoking_vertex_available && (supports_first_mode || supports_last_mode)) {
+        use_last_provoking_vertex = regs.provoking_vertex == Maxwell::ProvokingVertex::Last;
+
+        if (transform_feedback_active && !tf_preserves_provoking_vertex) {
+            use_last_provoking_vertex = false;
+        }
+
+        if (use_last_provoking_vertex && !supports_last_mode) {
+            use_last_provoking_vertex = false;
+        } else if (!use_last_provoking_vertex && !supports_first_mode) {
+            use_last_provoking_vertex = true;
+        }
+    }
+
+    provoking_vertex_last.Assign(use_last_provoking_vertex ? 1 : 0);
     conservative_raster_enable.Assign(regs.conservative_raster_enable != 0 ? 1 : 0);
     smooth_lines.Assign(regs.line_anti_alias_enable != 0 ? 1 : 0);
     alpha_to_coverage_enabled.Assign(regs.anti_alias_alpha_control.alpha_to_coverage != 0 ? 1 : 0);

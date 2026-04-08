@@ -465,10 +465,6 @@
     <string name="disabled">Desativado</string>
     <string name="vertex_input_dynamic_state">Vertex Input Dynamic State</string>
     <string name="vertex_input_dynamic_state_description">Ativa o recurso de vertex input dynamic state para melhor qualidade e desempenho.</string>
-    <string name="provoking_vertex">Provoking Vertex</string>
-    <string name="provoking_vertex_description">Vértice Provocante: Melhora a iluminação e o processamento de vértices em certos jogos. Suportado apenas em GPUs com Vulkan 1.0 ou superior.</string>
-    <string name="descriptor_indexing">Descriptor Indexing</string>
-    <string name="descriptor_indexing_description">Indexação de Descritores: Melhora o processamento de texturas e buffers, assim como a camada de tradução Maxwell. Suportado por algumas GPUs Vulkan 1.1 e todas as GPUs Vulkan 1.2 ou superiores.</string>
     <string name="display">Tela</string>
 
     <string name="renderer_screen_layout">Orientação</string>
