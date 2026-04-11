@@ -65,8 +65,10 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
             return mode;
         }
     }();
+    if (setting == Settings::VSyncMode::Immediate && !has_imm) {
+        setting = Settings::VSyncMode::Mailbox;
+    }
     if ((setting == Settings::VSyncMode::Mailbox && !has_mailbox) ||
-        (setting == Settings::VSyncMode::Immediate && !has_imm) ||
         (setting == Settings::VSyncMode::FifoRelaxed && !has_fifo_relaxed)) {
         setting = Settings::VSyncMode::Fifo;
     }
