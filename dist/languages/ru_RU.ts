@@ -1142,98 +1142,98 @@ Higher states allow for more features and can increase performance, but may caus
         <translation>Включает функцию динамического состояния вершинного ввода для повышения качества и производительности.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="298"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="290"/>
         <source>Sample Shading</source>
         <translation>Сэмпловый шейдинг</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="299"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="291"/>
         <source>Allows the fragment shader to execute per sample in a multi-sampled fragment instead of once per fragment. Improves graphics quality at the cost of performance.
 Higher values improve quality but degrade performance.</source>
         <translation>Позволяет шейдеру фрагментов выполняться на каждый сэмпл в мульти-сэмпловом фрагменте вместо одного раза на фрагмент. Улучшает качество графики ценой производительности. 
 Более высокие значения повышают качество, но снижают производительность.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="306"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="298"/>
         <source>RNG Seed</source>
         <translation>Сид RNG</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="307"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="299"/>
         <source>Controls the seed of the random number generator.
 Mainly used for speedrunning.</source>
         <translation>Управляет начальным значением генератора случайных чисел.
  В основном используется для спидранов.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="309"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="301"/>
         <source>Device Name</source>
         <translation>Название устройства</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="309"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="301"/>
         <source>The name of the console.</source>
         <translation>Имя консоли.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="310"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="302"/>
         <source>Custom RTC Date:</source>
         <translation>Пользовательская RTC-дата:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="311"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="303"/>
         <source>This option allows to change the clock of the console.
 Can be used to manipulate time in games.</source>
         <translation>Этот параметр позволяет изменить эмулируемые часы на консоли.
 Может использоваться для манипуляции временем в играх.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="315"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="307"/>
         <source>The number of seconds from the current unix time</source>
         <translation>Количество секунд от текущего времени unix</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="316"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="308"/>
         <source>Language:</source>
         <translation>Язык:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="317"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="309"/>
         <source>This option can be overridden when region setting is auto-select</source>
         <translation>Это Может быть перезаписано если регион выбирается автоматически</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="318"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="310"/>
         <source>Region:</source>
         <translation>Регион:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="318"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="310"/>
         <source>The region of the console.</source>
         <translation>Регион консоли.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="319"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="311"/>
         <source>Time Zone:</source>
         <translation>Часовой пояс:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="319"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="311"/>
         <source>The time zone of the console.</source>
         <translation>Часовой пояс консоли.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="320"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="312"/>
         <source>Sound Output Mode:</source>
         <translation>Режим вывода звука:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="321"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="313"/>
         <source>Console Mode:</source>
         <translation>Консольный режим:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="322"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="314"/>
         <source>Selects if the console is in Docked or Handheld mode.
 Games will change their resolution, details and supported controllers and depending on this setting.
 Setting to Handheld can help improve performance for low end systems.</source>
@@ -1242,1046 +1242,1046 @@ Setting to Handheld can help improve performance for low end systems.</source>
 Установка в режим портативной консоли может помочь улучшить производительность для слабых устройств.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="326"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="318"/>
         <source>Unit Serial</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="327"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="319"/>
         <source>Battery Serial</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="328"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="320"/>
         <source>Debug knobs</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="345"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="337"/>
         <source>Prompt for user profile on boot</source>
         <translation>Спрашивать профиль пользователя при запуске</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="346"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="338"/>
         <source>Useful if multiple people use the same PC.</source>
         <translation>Полезно, если несколько человек используют один и тот же компьютер.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="347"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="339"/>
         <source>Pause when not in focus</source>
         <translation>Делает паузу, когда не в фокусе</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="348"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="340"/>
         <source>Pauses emulation when focusing on other windows.</source>
         <translation>Ставит на паузу эмуляцию, когда фокусируешься на другие окна.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="349"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="341"/>
         <source>Confirm before stopping emulation</source>
         <translation>Подтвердите перед остановкой эмуляции</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="350"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="342"/>
         <source>Overrides prompts asking to confirm stopping the emulation.
 Enabling it bypasses such prompts and directly exits the emulation.</source>
         <translation>Эта настройка переопределяет запросы игры, запрашивающие подтверждение остановки игры.
 Включение этой настройки обходит такие запросы и непосредственно завершает эмуляцию.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="352"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="344"/>
         <source>Hide mouse on inactivity</source>
         <translation>Спрятать мышь при неактивности</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="353"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="345"/>
         <source>Hides the mouse after 2.5s of inactivity.</source>
         <translation>Эта настройка скрывает указатель мыши после 2,5 секунды бездействия.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="354"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="346"/>
         <source>Disable controller applet</source>
         <translation>Отключить веб-апплет</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="355"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="347"/>
         <source>Forcibly disables the use of the controller applet in emulated programs.
 When a program attempts to open the controller applet, it is immediately closed.</source>
         <translation>Принудительно отключает использование приложения контроллера в эмулированных программах.
  При попытке программы открыть приложение контроллера, оно немедленно закрывается.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="357"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="349"/>
         <source>Check for updates</source>
         <translation>Проверка обновлений</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="358"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="350"/>
         <source>Whether or not to check for updates upon startup.</source>
         <translation>Следует ли проверять наличие обновлений при запуске.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="361"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="353"/>
         <source>Enable Gamemode</source>
         <translation>Включить режим игры</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="363"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="355"/>
         <source>Force X11 as Graphics Backend</source>
         <translation>Использовать X11 в качестве графического бэкенда</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="390"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="382"/>
         <source>Custom frontend</source>
         <translation>Свой фронтенд</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="391"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="383"/>
         <source>Real applet</source>
         <translation>Реальное приложение</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="396"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="388"/>
         <source>Never</source>
         <translation>Никогда</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="397"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="389"/>
         <source>On Load</source>
         <translation>При загрузке</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="398"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="390"/>
         <source>Always</source>
         <translation>Всегда</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="402"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="394"/>
         <source>CPU</source>
         <translation>ЦП</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="403"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="395"/>
         <source>GPU</source>
         <translation>графический процессор</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="404"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="396"/>
         <source>CPU Asynchronous</source>
         <translation>Асинхронный ГП</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="409"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="401"/>
         <source>Uncompressed (Best quality)</source>
         <translation>Без сжатия (наилучшее качество)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="410"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="402"/>
         <source>BC1 (Low quality)</source>
         <translation>BC1 (низкое качество)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="411"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="403"/>
         <source>BC3 (Medium quality)</source>
         <translation>BC3 (среднее качество)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="415"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="450"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="407"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="442"/>
         <source>Auto</source>
         <translation>Авто</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="416"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="408"/>
         <source>30 FPS</source>
         <translation>30 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="417"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="409"/>
         <source>60 FPS</source>
         <translation>60 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="418"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="410"/>
         <source>90 FPS</source>
         <translation>90 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="419"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="411"/>
         <source>120 FPS</source>
         <translation>120 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="423"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="415"/>
         <source>Conservative</source>
         <translation>Консервативный</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="424"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="416"/>
         <source>Aggressive</source>
         <translation>Агрессивный</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="428"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="420"/>
         <source>Vulkan</source>
         <translation>Vulkan</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="430"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="422"/>
         <source>OpenGL GLSL</source>
         <translation>OpenGL GLSL</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="431"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="423"/>
         <source>OpenGL GLASM (Assembly Shaders, NVIDIA Only)</source>
         <translation>OpenGL GLASM (ассемблерные шейдеры, только для NVIDIA)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="432"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="424"/>
         <source>OpenGL SPIR-V (Experimental, AMD/Mesa Only)</source>
         <translation>OpenGL SPIR-V (Экспериментальный, только для AMD/Mesa)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="434"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="426"/>
         <source>Null</source>
         <translation>Null</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="437"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="429"/>
         <source>Fast</source>
         <translation>Быстро</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="438"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="430"/>
         <source>Balanced</source>
         <translation>Сбалансированный</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="439"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="451"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="431"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="443"/>
         <source>Accurate</source>
         <translation>Точно</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="443"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="522"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="435"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="514"/>
         <source>Default</source>
         <translation>По умолчанию</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="444"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="436"/>
         <source>Unsafe (fast)</source>
         <translation>Небезопасно (быстро)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="445"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="437"/>
         <source>Safe (stable)</source>
         <translation>Безопасно (стабильно)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="452"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="444"/>
         <source>Unsafe</source>
         <translation>Небезопасно</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="453"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="445"/>
         <source>Paranoid (disables most optimizations)</source>
         <translation>Параноик (отключает большинство оптимизаций)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="454"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="446"/>
         <source>Debugging</source>
         <translation>Отладка</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="458"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="450"/>
         <source>Dynarmic</source>
         <translation>Dynarmic</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="459"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="451"/>
         <source>NCE</source>
         <translation>NCE</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="463"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="455"/>
         <source>Borderless Windowed</source>
         <translation>Окно без границ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="464"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="456"/>
         <source>Exclusive Fullscreen</source>
         <translation>Эксклюзивный полноэкранный</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="468"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="460"/>
         <source>No Video Output</source>
         <translation>Отсутствие видеовыхода</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="469"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="461"/>
         <source>CPU Video Decoding</source>
         <translation>Декодирование видео на ЦП</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="470"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="462"/>
         <source>GPU Video Decoding (Default)</source>
         <translation>Декодирование видео на ГП (по умолчанию)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="475"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="467"/>
         <source>0.25X (180p/270p) [EXPERIMENTAL]</source>
         <translation>0.25X (180p/270p)[ЭКСПЕРИМЕНТАЛЬНО]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="476"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="468"/>
         <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
         <translation>0.5X (360p/540p) [ЭКСПЕРИМЕНТАЛЬНО]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="477"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="469"/>
         <source>0.75X (540p/810p) [EXPERIMENTAL]</source>
         <translation>0.75X (540p/810p) [ЭКСПЕРИМЕНТАЛЬНО]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="478"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="470"/>
         <source>1X (720p/1080p)</source>
         <translation>1X (720p/1080p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="479"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="471"/>
         <source>1.25X (900p/1350p) [EXPERIMENTAL]</source>
         <translation>1.25X (900p/1350p) [ЭКПЕРИМЕНТАЛЬНО]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="480"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="472"/>
         <source>1.5X (1080p/1620p) [EXPERIMENTAL]</source>
         <translation>1.5X (1080p/1620p) [ЭКСПЕРИМЕНТАЛЬНО]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="481"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="473"/>
         <source>2X (1440p/2160p)</source>
         <translation>2X (1440p/2160p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="482"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="474"/>
         <source>3X (2160p/3240p)</source>
         <translation>3X (2160p/3240p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="483"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="475"/>
         <source>4X (2880p/4320p)</source>
         <translation>4X (2880p/4320p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="484"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="476"/>
         <source>5X (3600p/5400p)</source>
         <translation>5X (3600p/5400p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="485"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="477"/>
         <source>6X (4320p/6480p)</source>
         <translation>6X (4320p/6480p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="486"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="478"/>
         <source>7X (5040p/7560p)</source>
         <translation>7X (5040p/7560p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="487"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="479"/>
         <source>8X (5760p/8640p)</source>
         <translation>8X (5760p/8640p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="491"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="483"/>
         <source>Nearest Neighbor</source>
         <translation>Ближайший сосед</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="492"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="484"/>
         <source>Bilinear</source>
         <translation>Билинейный</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="493"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="485"/>
         <source>Bicubic</source>
         <translation>Бикубический</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="494"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="486"/>
         <source>Gaussian</source>
         <translation>Гаусс</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="495"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="487"/>
         <source>Lanczos</source>
         <translation>Lanczos</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="496"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="488"/>
         <source>ScaleForce</source>
         <translation>ScaleForce</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="497"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="489"/>
         <source>AMD FidelityFX Super Resolution</source>
         <translation>AMD FidelityFX™️ Super Resolution</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="498"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="490"/>
         <source>Area</source>
         <translation>Зона</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="499"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="491"/>
         <source>MMPX</source>
         <translation>MMPX</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="500"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="492"/>
         <source>Zero-Tangent</source>
         <translation>Zero-Tangent</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="501"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="493"/>
         <source>B-Spline</source>
         <translation>B-Spline</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="502"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="494"/>
         <source>Mitchell</source>
         <translation>Mitchell</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="503"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="495"/>
         <source>Spline-1</source>
         <translation>Spline-1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="507"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="529"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="499"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="521"/>
         <source>None</source>
         <translation>Никакой</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="508"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="500"/>
         <source>FXAA</source>
         <translation>FXAA</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="509"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="501"/>
         <source>SMAA</source>
         <translation>SMAA</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="513"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="505"/>
         <source>Default (16:9)</source>
         <translation>Стандартное (16:9)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="514"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="506"/>
         <source>Force 4:3</source>
         <translation>Заставить 4:3</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="515"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="507"/>
         <source>Force 21:9</source>
         <translation>Заставить 21:9</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="516"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="508"/>
         <source>Force 16:10</source>
         <translation>Заставить 16:10</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="517"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="509"/>
         <source>Stretch to Window</source>
         <translation>Растянуть до окна</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="521"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="513"/>
         <source>Automatic</source>
         <translation>Автоматически</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="523"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="515"/>
         <source>2x</source>
         <translation>2x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="524"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="516"/>
         <source>4x</source>
         <translation>4x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="525"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="517"/>
         <source>8x</source>
         <translation>8x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="526"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="518"/>
         <source>16x</source>
         <translation>16x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="527"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="519"/>
         <source>32x</source>
         <translation>32x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="528"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="520"/>
         <source>64x</source>
         <translation>64x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="534"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="526"/>
         <source>Japanese (日本語)</source>
         <translation>Японский (日本語)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="535"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="527"/>
         <source>American English</source>
         <translation>Американский английский</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="536"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="528"/>
         <source>French (français)</source>
         <translation>Французский (français)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="537"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="529"/>
         <source>German (Deutsch)</source>
         <translation>Немецкий (Deutsch)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="538"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="530"/>
         <source>Italian (italiano)</source>
         <translation>Итальянский (italiano)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="539"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="531"/>
         <source>Spanish (español)</source>
         <translation>Испанский (español)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="540"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="532"/>
         <source>Chinese</source>
         <translation>Китайский</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="541"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="533"/>
         <source>Korean (한국어)</source>
         <translation>Корейский (한국어)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="542"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="534"/>
         <source>Dutch (Nederlands)</source>
         <translation>Голландский (Nederlands)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="543"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="535"/>
         <source>Portuguese (português)</source>
         <translation>Португальский (português)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="544"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="536"/>
         <source>Russian (Русский)</source>
         <translation>Русский</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="545"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="537"/>
         <source>Taiwanese</source>
         <translation>Тайваньский</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="546"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="538"/>
         <source>British English</source>
         <translation>Британский английский</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="547"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="539"/>
         <source>Canadian French</source>
         <translation>Канадский французский</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="548"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="540"/>
         <source>Latin American Spanish</source>
         <translation>Латиноамериканский испанский</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="549"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="541"/>
         <source>Simplified Chinese</source>
         <translation>Упрощённый китайский</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="550"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="542"/>
         <source>Traditional Chinese (正體中文)</source>
         <translation>Традиционный китайский (正體中文)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="551"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="543"/>
         <source>Brazilian Portuguese (português do Brasil)</source>
         <translation>Бразильский португальский (português do Brasil)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="552"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="544"/>
         <source>Polish (polska)</source>
         <translation>Польский (polska)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="553"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="545"/>
         <source>Thai (แบบไทย)</source>
         <translation>Тайский (แบบไทย)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="557"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="596"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="549"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="588"/>
         <source>Japan</source>
         <translation>Япония</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="558"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="550"/>
         <source>USA</source>
         <translation>США</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="559"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="551"/>
         <source>Europe</source>
         <translation>Европа</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="560"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="552"/>
         <source>Australia</source>
         <translation>Австралия</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="561"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="553"/>
         <source>China</source>
         <translation>Китай</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="562"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="554"/>
         <source>Korea</source>
         <translation>Корея</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="563"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="555"/>
         <source>Taiwan</source>
         <translation>Тайвань</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="569"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="561"/>
         <source>Auto (%1)</source>
         <comment>Auto select time zone</comment>
         <translation>Авто (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="573"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="565"/>
         <source>Default (%1)</source>
         <comment>Default time zone</comment>
         <translation>По умолчанию (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="575"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="567"/>
         <source>CET</source>
         <translation>CET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="576"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="568"/>
         <source>CST6CDT</source>
         <translation>CST6CDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="577"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="569"/>
         <source>Cuba</source>
         <translation>Куба</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="578"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="570"/>
         <source>EET</source>
         <translation>EET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="579"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="571"/>
         <source>Egypt</source>
         <translation>Египт</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="580"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="572"/>
         <source>Eire</source>
         <translation>Эйре</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="581"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="573"/>
         <source>EST</source>
         <translation>EST</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="582"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="574"/>
         <source>EST5EDT</source>
         <translation>EST5EDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="583"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="575"/>
         <source>GB</source>
         <translation>GB</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="584"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="576"/>
         <source>GB-Eire</source>
         <translation>GB-Эйре</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="585"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="577"/>
         <source>GMT</source>
         <translation>GMT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="586"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="578"/>
         <source>GMT+0</source>
         <translation>GMT+0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="587"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="579"/>
         <source>GMT-0</source>
         <translation>GMT-0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="588"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="580"/>
         <source>GMT0</source>
         <translation>GMT0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="589"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="581"/>
         <source>Greenwich</source>
         <translation>Гринвич</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="590"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="582"/>
         <source>Hongkong</source>
         <translation>Гонконг</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="591"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="583"/>
         <source>HST</source>
         <translation>HST</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="592"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="584"/>
         <source>Iceland</source>
         <translation>Исландия</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="593"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="585"/>
         <source>Iran</source>
         <translation>Иран</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="594"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="586"/>
         <source>Israel</source>
         <translation>Израиль</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="595"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="587"/>
         <source>Jamaica</source>
         <translation>Ямайка</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="597"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="589"/>
         <source>Kwajalein</source>
         <translation>Кваджалейн</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="598"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="590"/>
         <source>Libya</source>
         <translation>Ливия</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="599"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="591"/>
         <source>MET</source>
         <translation>MET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="600"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="592"/>
         <source>MST</source>
         <translation>MST</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="601"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="593"/>
         <source>MST7MDT</source>
         <translation>MST7MDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="602"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="594"/>
         <source>Navajo</source>
         <translation>Навахо</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="603"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="595"/>
         <source>NZ</source>
         <translation>NZ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="604"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="596"/>
         <source>NZ-CHAT</source>
         <translation>NZ-CHAT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="605"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="597"/>
         <source>Poland</source>
         <translation>Польша</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="606"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="598"/>
         <source>Portugal</source>
         <translation>Португалия</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="607"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="599"/>
         <source>PRC</source>
         <translation>PRC</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="608"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="600"/>
         <source>PST8PDT</source>
         <translation>PST8PDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="609"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="601"/>
         <source>ROC</source>
         <translation>ROC</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="610"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="602"/>
         <source>ROK</source>
         <translation>ROK</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="611"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="603"/>
         <source>Singapore</source>
         <translation>Сингапур</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="612"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="604"/>
         <source>Turkey</source>
         <translation>Турция</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="613"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="605"/>
         <source>UCT</source>
         <translation>UCT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="614"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="606"/>
         <source>Universal</source>
         <translation>Универсальный</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="615"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="607"/>
         <source>UTC</source>
         <translation>UTC</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="616"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="608"/>
         <source>W-SU</source>
         <translation>W-SU</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="617"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="609"/>
         <source>WET</source>
         <translation>WET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="618"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="610"/>
         <source>Zulu</source>
         <translation>Зулусы</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="622"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="614"/>
         <source>Mono</source>
         <translation>Моно</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="623"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="615"/>
         <source>Stereo</source>
         <translation>Стерео</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="624"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="616"/>
         <source>Surround</source>
         <translation>Объёмный звук</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="628"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="620"/>
         <source>4GB DRAM (Default)</source>
         <translation>4 ГБ ОЗУ (по умолчанию)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="629"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="621"/>
         <source>6GB DRAM (Unsafe)</source>
         <translation>6GB ОЗУ (Небезопасно)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="630"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="622"/>
         <source>8GB DRAM</source>
         <translation>8ГБ ОЗУ</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="631"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="623"/>
         <source>10GB DRAM (Unsafe)</source>
         <translation>10ГБ ОЗУ(Небезопасно)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="632"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="624"/>
         <source>12GB DRAM (Unsafe)</source>
         <translation>12ГБ ОЗУ(Небезопасно)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="636"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="628"/>
         <source>Docked</source>
         <translation>В док-станции</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="637"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="629"/>
         <source>Handheld</source>
         <translation>Портативный</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="641"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="654"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="633"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="646"/>
         <source>Off</source>
         <translation>Выкл.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="642"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="634"/>
         <source>Boost (1700MHz)</source>
         <translation>Разгон (1700MHz)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="643"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="635"/>
         <source>Fast (2000MHz)</source>
         <translation>Быстрая (2000MHz)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="648"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="640"/>
         <source>Always ask (Default)</source>
         <translation>Всегда спрашивать (По умолчанию)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="649"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="641"/>
         <source>Only if game specifies not to stop</source>
         <translation>Только если игра указывает не останавливаться</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="650"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="642"/>
         <source>Never ask</source>
         <translation>Никогда не спрашивать</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="655"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="679"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="647"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="671"/>
         <source>Medium (256)</source>
         <translation>Средний (256)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="656"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="680"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="648"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="672"/>
         <source>High (512)</source>
         <translation>Высокий (512)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="660"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="652"/>
         <source>Very Small (16 MB)</source>
         <translation>Очень малый (16 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="661"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="653"/>
         <source>Small (32 MB)</source>
         <translation>Малый (32 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="662"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="654"/>
         <source>Normal (128 MB)</source>
         <translation>Обычный (128 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="663"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="655"/>
         <source>Large (256 MB)</source>
         <translation>Большой (256 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="664"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="656"/>
         <source>Very Large (512 MB)</source>
         <translation>Очень большой (512 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="668"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="660"/>
         <source>Very Low (4 MB)</source>
         <translation>Очень низкий (4 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="669"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="661"/>
         <source>Low (8 MB)</source>
         <translation>Низкий (8 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="670"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="662"/>
         <source>Normal (16 MB)</source>
         <translation>Обычный (16 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="671"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="663"/>
         <source>Medium (32 MB)</source>
         <translation>Средний (32 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="672"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="664"/>
         <source>High (64 MB)</source>
         <translation>Высокий (64 МБ)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="676"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="668"/>
         <source>Very Low (32)</source>
         <translation>Очень низкий (32)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="677"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="669"/>
         <source>Low (64)</source>
         <translation>Низкий (64)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="678"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="670"/>
         <source>Normal (128)</source>
         <translation>Обычный (128)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="685"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="677"/>
         <source>Disabled</source>
         <translation>Выключено</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="686"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="678"/>
         <source>ExtendedDynamicState 1</source>
         <translation>Расширенное динамическое состояние 1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="687"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="679"/>
         <source>ExtendedDynamicState 2</source>
         <translation>Расширенное динамическое состояние 2</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="688"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="680"/>
         <source>ExtendedDynamicState 3</source>
         <translation>Расширенное динамическое состояние 3</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="693"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="685"/>
         <source>Tree View</source>
         <translation>В виде списка</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="694"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="686"/>
         <source>Grid View</source>
         <translation>В виде сетки</translation>
     </message>

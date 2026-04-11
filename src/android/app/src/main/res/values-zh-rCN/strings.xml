@@ -55,7 +55,7 @@
     <string name="stats_overlay_options_description">配置性能统计叠加层中显示的信息</string>
     <string name="show_fps">显示帧率</string>
     <string name="show_fps_description">显示当前帧率</string>
-    <string name="show_frametime">显示帧时间</string>
+    <string name="show_frametime">显示 Frametime</string>
     <string name="show_app_ram_usage">显示应用内存使用情况</string>
     <string name="show_app_ram_usage_description">显示模拟器内存用量</string>
     <string name="show_system_ram_usage">显示系统内存使用情况</string>

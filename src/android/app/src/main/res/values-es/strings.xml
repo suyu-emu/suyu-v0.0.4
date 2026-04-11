@@ -351,7 +351,7 @@
         <item quantity="other">%d archivos de guardado importados con éxito.</item>
     </plurals>
     <string name="no_save_data_found">No se encontraron datos de guardado</string>
-    <string name="verify_installed_content">Verificar contenido instalado</string>
+    <string name="verify_installed_content">Verificar los contenidos instalados</string>
     <string name="verify_installed_content_description">Comprueba todo el contenido instalado por si hubiese alguno corrupto</string>
 
     <string name="keys_missing">Faltan las claves de encriptación</string>
@@ -480,6 +480,10 @@
     <string name="use_disk_shader_cache_description">Reduce los tirones almacenando y cargando los sombreadores generados.</string>
     <string name="renderer_force_max_clock">Forzar velocidad al máximo (solo Adreno)</string>
     <string name="renderer_force_max_clock_description">Fuerza a la GPU a ejecutarse a la velocidad máxima de reloj posible (se seguirán aplicando restricciones térmicas).</string>
+    <string name="renderer_asynchronous_gpu_emulation">Emulación de GPU asíncrona</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">Ejecuta la emulación de la GPU de forma asíncrona para reducir los bloqueos de la CPU y mejorar el rendimiento. Desactiva esta opción solo si experimentas problemas de sincronización.</string>
+    <string name="renderer_async_presentation">Presentación asíncrona</string>
+    <string name="renderer_async_presentation_description">Mejora ligeramente el rendimiento al mover la presentación a un hilo independiente de la CPU.</string>
     <string name="renderer_reactive_flushing">Usar limpieza reactiva</string>
     <string name="renderer_reactive_flushing_description">Mejora la precisión de renderizado en algunos juegos, pero reduce el rendimiento.</string>
     <string name="enable_buffer_history">Activar el historial del búfer</string>

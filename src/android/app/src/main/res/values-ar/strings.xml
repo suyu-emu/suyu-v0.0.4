@@ -287,7 +287,7 @@
     <string name="install_amiibo_keys">تثبيت مفاتيح أميبو</string>
     <string name="install_amiibo_keys_description">مطلوب لاستخدام أميبو في اللعبة</string>
     <string name="gpu_driver_fetcher">أداة جلب برامج تشغيل وحدة المعالجة الرسومية</string>
-    <string name="gpu_driver_manager">مدير برامج تشغيل وحدة معالجة الرسومات</string>
+    <string name="gpu_driver_manager">إدارة برامج تشغيل وحدة معالجة الرسومات</string>
     <string name="install_gpu_driver_description">تثبيت برامج تشغيل بديلة لأداء أو دقة أفضل</string>
     <string name="advanced_settings">الإعدادات المتقدمة</string>
     <string name="settings_description">ضبط إعدادات المحاكي</string>
@@ -486,6 +486,10 @@
     <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
     <string name="renderer_force_max_clock">إجبار السرعة القصوى (لأجهزة Adreno فقط)</string>
     <string name="renderer_force_max_clock_description">يجبر وحدة معالجة الرسومات على العمل بأقصى سرعة ممكنة (سيظل يتم تطبيق القيود الحرارية).</string>
+    <string name="renderer_asynchronous_gpu_emulation">محاكاة غير متزامنة لوحدة معالجة الرسومات</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">يُشغّل هذا الخيار محاكاة وحدة معالجة الرسومات بشكل غير متزامن لتقليل توقف وحدة المعالجة المركزية وتحسين الإنتاجية. عطّل هذا الخيار فقط في حال واجهت مشاكل متعلقة بالتوقيت.</string>
+    <string name="renderer_async_presentation">عرض غير متزامن</string>
+    <string name="renderer_async_presentation_description">يحسّن الأداء بشكل طفيف عن طريق نقل عملية العرض إلى خيط معالجة منفصل لوحدة المعالجة المركزية.</string>
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
     <string name="renderer_reactive_flushing_description">يحسن دقة العرض في بعض الألعاب على حساب الأداء.</string>
     <string name="enable_buffer_history">تمكين سجل التخزين المؤقت</string>
@@ -682,8 +686,8 @@
     <string name="import_success">تم الاستيراد بنجاح</string>
     <string name="export_success">تم التصدير بنجاح</string>
     <string name="start">بدء</string>
-    <string name="global">المتغيرات العامة</string>
-    <string name="custom">مخصص</string>
+    <string name="global">الإعدادات العامة</string>
+    <string name="custom">الإعدادات المخصصة للعبة</string>
     <string name="import_complete">اكتمل الاستيراد</string>
     <string name="use_global_setting">استخدام الإعداد العام</string>
     <string name="operation_completed_successfully">اكتملت العملية بنجاح</string>
@@ -762,7 +766,7 @@
     <string name="info_description">معرف العنوان، المطور، الإصدار</string>
     <string name="per_game_settings">الإعدادات الخاصة للعبة</string>
     <string name="per_game_settings_description">تعديل الإعدادات الخاصة بهذه اللعبة</string>
-    <string name="launch_options">تشغيل الإعدادات</string>
+    <string name="launch_options">إعدادات التشغيل</string>
     <string name="path">المسار</string>
     <string name="program_id">معرف العنوان</string>
     <string name="developer">المطور</string>
@@ -1122,7 +1126,7 @@
     <string name="enable_overlay_description">تمكين التطبيق الصغير المدمج في Horizon. اضغط مع الاستمرار على زر الشاشة الرئيسية لمدة 1 ثانية لإظهاره.</string>
 
     <!-- Profile Management -->
-    <string name="profile_manager">مدير الملف الشخصي</string>
+    <string name="profile_manager">إدارة ملف التعريف</string>
     <string name="profile_manager_description">إدارة ملفات تعريف المستخدمين</string>
     <string name="profile_add_user">إضافة مستخدم</string>
     <string name="profile_new_user">مستخدم جديد</string>
