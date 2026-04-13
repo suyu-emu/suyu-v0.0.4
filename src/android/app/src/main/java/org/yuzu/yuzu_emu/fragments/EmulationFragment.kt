@@ -291,13 +291,23 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 // Game launched via intent (check for existing custom config)
                 intentGame != null -> {
                     game?.let { gameInstance ->
+                        runCatching { GameHelper.restoreContentForGame(gameInstance) }
+                            .onFailure {
+                                Log.warning(
+                                    "[EmulationFragment] Failed to restore content for intent launch: ${it.message}"
+                                )
+                            }
+
                         val customConfigFile = SettingsFile.getCustomSettingsFile(gameInstance)
                         if (customConfigFile.exists()) {
+                            shouldUseCustom = true
                             Log.info(
                                 "[EmulationFragment] Found existing custom settings for ${gameInstance.title}, loading them"
                             )
                             SettingsFile.loadCustomConfig(gameInstance)
+                            NativeConfig.unloadPerGameConfig()
                         } else {
+                            shouldUseCustom = false
                             Log.info(
                                 "[EmulationFragment] No custom settings found for ${gameInstance.title}, using global settings"
                             )
@@ -871,7 +881,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 if (drawerView == binding.quickSettingsSheet) {
                     isQuickSettingsMenuOpen = true
                     if (shouldUseCustom) {
-                        SettingsFile.loadCustomConfig(args.game!!)
+                        SettingsFile.loadCustomConfig(game!!)
                     }
                 }
             }
