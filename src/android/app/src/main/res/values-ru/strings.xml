@@ -482,6 +482,10 @@
     <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
     <string name="renderer_force_max_clock">Принудительная максимальная тактовая частота (только для Adreno)</string>
     <string name="renderer_force_max_clock_description">Заставляет ГПУ работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
+    <string name="renderer_asynchronous_gpu_emulation">Асинхронная эмуляция ГПУ</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">Выполняет эмуляцию ГПУ асинхронно для снижения задержек ЦП и увеличения производительности. Отключайте только при возникновении проблем с таймингами.</string>
+    <string name="renderer_async_presentation">Асинхронная презентация</string>
+    <string name="renderer_async_presentation_description">Немного улучшает производительность, перемещая презентацию в отдельный поток ЦП.</string>
     <string name="renderer_reactive_flushing">Реактивная очистка</string>
     <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
     <string name="enable_buffer_history">Включить историю буфера</string>
@@ -1080,6 +1084,7 @@
     <string name="app_language_system">Следовать системе</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Цвет темы</string>
+    <string name="eden_theme">Eden</string>
     <string name="violet">Фиолетовый </string>
     <string name="blue">Синий</string>
     <string name="cyan">Циановый</string>

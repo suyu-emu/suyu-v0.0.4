@@ -482,6 +482,10 @@
     <string name="use_disk_shader_cache_description">Зменшує затримки шляхом збереження шейдерів.</string>
     <string name="renderer_force_max_clock">Максимальна тактова частота (тільки Adreno)</string>
     <string name="renderer_force_max_clock_description">Змушує GPU працювати на максимальній тактовій частоті.</string>
+    <string name="renderer_asynchronous_gpu_emulation">Асинхронна емуляція ГП</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">Емуляція ГП виконується асинхронно для зменшення затримок ЦП й покращення пропускної здатності. Вимкніть лише у випадку виникнення проблем із таймінгами.</string>
+    <string name="renderer_async_presentation">Асинхронне подання</string>
+    <string name="renderer_async_presentation_description">Трохи покращує продуктивність завдяки переміщенню подання на окремий потік ЦП.</string>
     <string name="renderer_reactive_flushing">Реактивне очищення</string>
     <string name="renderer_reactive_flushing_description">Покращує точність рендерингу в деяких іграх.</string>
     <string name="enable_buffer_history">Увімкнути історію буфера</string>
