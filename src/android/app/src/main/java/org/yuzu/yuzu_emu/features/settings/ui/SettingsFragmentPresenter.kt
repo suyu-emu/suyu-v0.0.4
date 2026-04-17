@@ -284,8 +284,6 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.SYNC_MEMORY_OPERATIONS.key)
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
-            add(BooleanSetting.RENDERER_ASYNCHRONOUS_GPU_EMULATION.key)
-            add(BooleanSetting.RENDERER_ASYNC_PRESENTATION.key)
             add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
             add(BooleanSetting.ENABLE_BUFFER_HISTORY.key)
             add(BooleanSetting.USE_OPTIMIZED_VERTEX_BUFFERS.key)
@@ -296,6 +294,8 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
             add(BooleanSetting.FIX_BLOOM_EFFECTS.key)
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
+            add(BooleanSetting.RENDERER_ASYNCHRONOUS_GPU_EMULATION.key)
+            add(BooleanSetting.RENDERER_ASYNC_PRESENTATION.key)
             add(SettingsItem.GPU_UNSWIZZLE_COMBINED)
 
             add(HeaderSetting(R.string.extensions))
