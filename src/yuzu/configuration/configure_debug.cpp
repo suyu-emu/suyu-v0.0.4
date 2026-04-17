@@ -51,6 +51,8 @@ void ConfigureDebug::SetConfiguration() {
     ui->enable_all_controllers->setChecked(Settings::values.enable_all_controllers.GetValue());
     ui->extended_logging->setChecked(Settings::values.extended_logging.GetValue());
     ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
+    ui->serial_battery_edit->setText(QString::fromStdString(std::to_string(Settings::values.serial_battery.GetValue())));
+    ui->serial_board_edit->setText(QString::fromStdString(std::to_string(Settings::values.serial_unit.GetValue())));
 #ifdef YUZU_USE_QT_WEB_ENGINE
     ui->disable_web_applet->setChecked(Settings::values.disable_web_applet.GetValue());
 #else
@@ -126,6 +128,8 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.extended_logging = ui->extended_logging->isChecked();
     Settings::values.perform_vulkan_check = ui->perform_vulkan_check->isChecked();
     Settings::values.disable_web_applet = ui->disable_web_applet->isChecked();
+    Settings::values.serial_battery = ui->serial_battery_edit->text().toUInt();
+    Settings::values.serial_unit = ui->serial_board_edit->text().toUInt();
     Settings::values.debug_knobs = ui->debug_knobs_spinbox->value();
     Debugger::ToggleConsole();
     Common::Log::Filter filter;

@@ -636,8 +636,8 @@ struct Values {
                                                      Category::System};
     SwitchableSetting<Region, true> region_index{linkage, Region::Usa, "region_index", Category::System};
     SwitchableSetting<TimeZone, true> time_zone_index{linkage, TimeZone::Auto, "time_zone_index", Category::System};
-    Setting<u32> serial_battery{linkage, 0, "serial_battery", Category::System};
-    Setting<u32> serial_unit{linkage, 0, "serial_unit", Category::System};
+    Setting<u32> serial_battery{linkage, 0, "serial_battery", Category::Debugging};
+    Setting<u32> serial_unit{linkage, 0, "serial_unit", Category::Debugging};
     // Measured in seconds since epoch
     SwitchableSetting<bool> custom_rtc_enabled{linkage, false, "custom_rtc_enabled", Category::System, Specialization::Paired, true, true};
     SwitchableSetting<s64> custom_rtc{
@@ -807,7 +807,7 @@ struct Values {
                                            0,
                                            65535,
                                            "debug_knobs",
-                                           Category::Core,
+                                           Category::Debugging,
                                            Specialization::Countable,
                                            true,
                                            true};
