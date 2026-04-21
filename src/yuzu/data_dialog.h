@@ -45,7 +45,7 @@ private:
     FrontendCommon::DataManager::DataDir m_dir;
     const QString m_exportName;
 
-    std::string selectProfile();
+    std::optional<std::string> selectProfile();
 };
 
 #endif // DATA_DIALOG_H

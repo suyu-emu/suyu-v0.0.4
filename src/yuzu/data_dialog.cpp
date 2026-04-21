@@ -23,27 +23,18 @@ DataDialog::DataDialog(QWidget* parent) : QDialog(parent), ui(std::make_unique<U
 
     // TODO: Should we make this a single widget that pulls data from a model?
 #define WIDGET(label, name)                                                                        \
-    ui->page->addWidget(new DataWidget(FrontendCommon::DataManager::DataDir::name,                 \
-                                       QtCommon::StringLookup::DataManager##name##Tooltip,         \
-                                       QStringLiteral(#name), this));                              \
-    ui->labels->addItem(label);
+    ui->pages->addTab(new DataWidget(FrontendCommon::DataManager::DataDir::name,                   \
+                                     QtCommon::StringLookup::DataManager##name##Tooltip,           \
+                                     QStringLiteral(#name), this),                                 \
+                      label);
 
     WIDGET(tr("Shaders"), Shaders)
-    WIDGET(tr("UserNAND"), UserNand)
-    WIDGET(tr("SysNAND"), SysNand)
+    WIDGET(tr("User NAND"), UserNand)
+    WIDGET(tr("System NAND"), SysNand)
     WIDGET(tr("Mods"), Mods)
     WIDGET(tr("Saves"), Saves)
 
 #undef WIDGET
-
-    connect(ui->labels, &QListWidget::itemSelectionChanged, this, [this]() {
-        const auto items = ui->labels->selectedItems();
-        if (items.isEmpty()) {
-            return;
-        }
-
-        ui->page->setCurrentIndex(ui->labels->row(items[0]));
-    });
 }
 
 DataDialog::~DataDialog() = default;
@@ -71,25 +62,29 @@ DataWidget::DataWidget(FrontendCommon::DataManager::DataDir data_dir,
 }
 
 void DataWidget::clear() {
-    std::string user_id = selectProfile();
-    QtCommon::Content::ClearDataDir(m_dir, user_id);
+    std::optional<std::string> user_id = selectProfile();
+    if (!user_id) return;
+    QtCommon::Content::ClearDataDir(m_dir, user_id.value());
     scan();
 }
 
 void DataWidget::open() {
-    std::string user_id = selectProfile();
+    std::optional<std::string> user_id = selectProfile();
+    if (!user_id) return;
     QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(FrontendCommon::DataManager::GetDataDirString(m_dir, user_id))));
+        QString::fromStdString(FrontendCommon::DataManager::GetDataDirString(m_dir, user_id.value()))));
 }
 
 void DataWidget::upload() {
-    std::string user_id = selectProfile();
-    QtCommon::Content::ExportDataDir(m_dir, user_id, m_exportName);
+    std::optional<std::string> user_id = selectProfile();
+    if (!user_id) return;
+    QtCommon::Content::ExportDataDir(m_dir, user_id.value(), m_exportName);
 }
 
 void DataWidget::download() {
-    std::string user_id = selectProfile();
-    QtCommon::Content::ImportDataDir(m_dir, user_id, std::bind(&DataWidget::scan, this));
+    std::optional<std::string> user_id = selectProfile();
+    if (!user_id) return;
+    QtCommon::Content::ImportDataDir(m_dir, user_id.value(), std::bind(&DataWidget::scan, this));
 }
 
 void DataWidget::scan() {
@@ -108,10 +103,11 @@ void DataWidget::scan() {
         QtConcurrent::run([this]() { return FrontendCommon::DataManager::DataDirSize(m_dir); }));
 }
 
-std::string DataWidget::selectProfile() {
+std::optional<std::string> DataWidget::selectProfile() {
     std::string user_id{};
     if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
         user_id = GetProfileIDString();
+        if (user_id.empty()) return std::nullopt;
     }
 
     return user_id;
