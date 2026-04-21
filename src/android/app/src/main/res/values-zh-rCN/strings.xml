@@ -476,21 +476,25 @@
     <string name="use_disk_shader_cache_description">将生成的着色器缓存于磁盘中并进行读取，以减少卡顿。</string>
     <string name="renderer_force_max_clock">强制最大时钟 (仅限 Adreno)</string>
     <string name="renderer_force_max_clock_description">强制 GPU 以最大时钟运行 (仍被温控限制)。</string>
+    <string name="renderer_asynchronous_gpu_emulation">GPU 异步模拟</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">异步运行 GPU 模拟，以减少 CPU 停顿并提高吞吐量。仅当遇到与时序相关的问题时才应禁用此功能。</string>
+    <string name="renderer_async_presentation">异步呈现</string>
+    <string name="renderer_async_presentation_description">通过将呈现操作移至单独的 CPU 线程来略微提升性能。</string>
     <string name="renderer_reactive_flushing">启用反应性刷新</string>
-    <string name="renderer_reactive_flushing_description">牺牲性能，提高某些游戏的渲染精度。</string>
+    <string name="renderer_reactive_flushing_description">通过牺牲性能来提高某些游戏的渲染精度。</string>
     <string name="enable_buffer_history">启用缓冲区历史</string>
-    <string name="enable_buffer_history_description">允许访问之前的缓冲状态。\n这个选项可能会提升某些游戏的渲染质量和性能一致性。</string>
+    <string name="enable_buffer_history_description">启用对先前缓冲区状态的访问。此选项可在某些游戏中提升渲染质量并保持性能的一致性。</string>
     <string name="use_optimized_vertex_buffers">优化顶点缓冲区</string>
-    <string name="use_optimized_vertex_buffers_description">实现优化顶点缓冲区绑定以提升性能。需要 Mesa 26.0+ Turnip 驱动。老驱动会崩溃。</string>
+    <string name="use_optimized_vertex_buffers_description">启用经过优化的顶点缓冲区绑定以提升性能。需要 Mesa 26.0 及以上版本的 Turnip 驱动程序。在旧版驱动程序上会导致程序崩溃。</string>
 
     <string name="hacks">Hacks</string>
 
     <string name="fast_gpu_time">GPU 超频频率</string>
-    <string name="fast_gpu_time_description">强制大多数游戏以其最高原生分辨率运行。使用 256 以获得最大性能，使用 512 以获得最大图形保真度。</string>
+    <string name="fast_gpu_time_description">强制大多数游戏以其最高原生分辨率运行。设置为 256 可获得最佳性能，设置为 512 可获得最佳画面保真度。</string>
     <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
     <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
-    <string name="fix_bloom_effects">修复泛光效果</string>
-    <string name="fix_bloom_effects_description">减少《塞尔达传说：智慧的再现》(LA/EOW) 在 Adreno 700 系列 GPU 上的模糊感，并移除《横冲直撞》(Burnout) 中的模糊特效。警告：可能会导致其他游戏出现画面花屏或异常。</string>
+    <string name="fix_bloom_effects">修复 Bloom 效果</string>
+    <string name="fix_bloom_effects_description">减少《塞尔达传说：智慧的再现》（Adreno 700）中的 bloom 模糊，并移除《Burnout》中的 bloom 效果。警告：可能会导致在其他游戏中出现画面显示问题。</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
     <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
     <string name="gpu_unswizzle_settings">GPU 还原设置</string>
