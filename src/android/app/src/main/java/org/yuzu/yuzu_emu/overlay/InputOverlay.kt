@@ -17,16 +17,23 @@ import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.InputType
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.WindowInsets
+import android.view.inputmethod.BaseInputConnection
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
 import androidx.core.content.ContextCompat
 import androidx.window.layout.WindowMetricsCalculator
 import kotlin.math.max
 import kotlin.math.min
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.input.model.NativeAnalog
@@ -49,6 +56,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()
     private val overlayJoysticks: MutableSet<InputOverlayDrawableJoystick> = HashSet()
+    private val imeEditable = Editable.Factory.getInstance().newEditable("")
 
     private var inEditMode = false
     private var gamelessMode = false
@@ -74,6 +82,63 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
     // External listener for EmulationFragment joypad overlay auto-hide
     var touchEventListener: ((MotionEvent) -> Unit)? = null
+
+    override fun onCheckIsTextEditor(): Boolean = true
+
+    override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
+        imeEditable.clear()
+        outAttrs.inputType =
+            InputType.TYPE_CLASS_TEXT or
+                InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
+                InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI or EditorInfo.IME_ACTION_DONE
+        outAttrs.initialSelStart = 0
+        outAttrs.initialSelEnd = 0
+
+        return object : BaseInputConnection(this, true) {
+            override fun getEditable(): Editable = imeEditable
+
+            override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
+                if (!text.isNullOrEmpty()) {
+                    forwardCommittedText(text)
+                }
+                return super.commitText(text, newCursorPosition)
+            }
+
+            override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
+                repeat(beforeLength.coerceAtLeast(0)) {
+                    NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_DEL)
+                }
+                return super.deleteSurroundingText(beforeLength, afterLength)
+            }
+
+            override fun sendKeyEvent(event: KeyEvent): Boolean {
+                if (event.action != KeyEvent.ACTION_DOWN) {
+                    return true
+                }
+
+                when (event.keyCode) {
+                    KeyEvent.KEYCODE_BACK,
+                    KeyEvent.KEYCODE_DEL,
+                    KeyEvent.KEYCODE_ENTER -> {
+                        NativeLibrary.submitInlineKeyboardInput(event.keyCode)
+                    }
+                    else -> {
+                        val textChar = event.unicodeChar
+                        if (textChar != 0) {
+                            NativeLibrary.submitInlineKeyboardText(textChar.toChar().toString())
+                        }
+                    }
+                }
+                return true
+            }
+
+            override fun performEditorAction(actionCode: Int): Boolean {
+                NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_ENTER)
+                return true
+            }
+        }
+    }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
@@ -116,6 +181,25 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         }
         for (joystick in overlayJoysticks) {
             joystick.draw(canvas)
+        }
+    }
+
+    private fun forwardCommittedText(text: CharSequence) {
+        val builder = StringBuilder()
+        text.forEach { character ->
+            when (character) {
+                '\n' -> {
+                    if (builder.isNotEmpty()) {
+                        NativeLibrary.submitInlineKeyboardText(builder.toString())
+                        builder.clear()
+                    }
+                    NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_ENTER)
+                }
+                else -> builder.append(character)
+            }
+        }
+        if (builder.isNotEmpty()) {
+            NativeLibrary.submitInlineKeyboardText(builder.toString())
         }
     }
 
