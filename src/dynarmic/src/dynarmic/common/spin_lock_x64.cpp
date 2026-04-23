@@ -23,16 +23,14 @@ static const auto default_cg_mode = nullptr; //Allow RWE
 namespace Dynarmic {
 
 void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32 tmp, bool waitpkg) {
-    // TODO: this is because we lack regalloc - so better to be safe :(
-    if (waitpkg) {
-        code.push(Xbyak::util::eax);
-        code.push(Xbyak::util::ebx);
-        code.push(Xbyak::util::edx);
-    }
     Xbyak::Label start, loop;
     code.jmp(start, code.T_NEAR);
     code.L(loop);
     if (waitpkg) {
+        // TODO: this is because we lack regalloc - so better to be safe :(
+        code.push(Xbyak::util::rax);
+        code.push(Xbyak::util::rbx);
+        code.push(Xbyak::util::rdx);
         // TODO: This clobbers EAX and EDX did we tell the regalloc?
         // ARM ptr for address-monitoring
         code.umonitor(ptr);
@@ -49,6 +47,9 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32
         code.umwait(Xbyak::util::ebx);
         // CF == 1 if we hit the OS-timeout in IA32_UMWAIT_CONTROL without a write
         // CF == 0 if we exited the wait for any other reason
+        code.pop(Xbyak::util::rdx);
+        code.pop(Xbyak::util::rbx);
+        code.pop(Xbyak::util::rax);
     } else {
         code.pause();
     }
@@ -57,11 +58,6 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32
     /*code.lock();*/ code.xchg(code.dword[ptr], tmp);
     code.test(tmp, tmp);
     code.jnz(loop, code.T_NEAR);
-    if (waitpkg) {
-        code.pop(Xbyak::util::edx);
-        code.pop(Xbyak::util::ebx);
-        code.pop(Xbyak::util::eax);
-    }
 }
 
 void EmitSpinLockUnlock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32 tmp) {
