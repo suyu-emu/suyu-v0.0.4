@@ -1726,9 +1726,8 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(
         jobject obj,
         jstring version) {
     const char* version_str = env->GetStringUTFChars(version, nullptr);
-    const std::string url = fmt::format("{}/{}/releases/tag/{}",
-        std::string{Common::g_build_auto_update_website},
-        std::string{Common::g_build_auto_update_repo},
+    const std::string url = fmt::format("{}/{}",
+        std::string{Common::g_build_auto_update_api},
         version_str);
     env->ReleaseStringUTFChars(version, version_str);
     return env->NewStringUTF(url.c_str());
@@ -1760,11 +1759,10 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateApkUrl(
     }
 
     const std::string apk_filename = fmt::format("Eden-Android-{}-{}.apk", artifact_str, variant);
-    const std::string url = fmt::format("{}/{}/releases/download/{}/{}",
-        std::string{Common::g_build_auto_update_website},
-        std::string{Common::g_build_auto_update_repo},
-        version_str,
-        apk_filename);
+
+    const std::string url = fmt::format("{}/{}/{}",
+        std::string{Common::g_build_auto_update_api},
+        version_str, apk_filename);
 
     env->ReleaseStringUTFChars(tag, version_str);
     env->ReleaseStringUTFChars(artifact, artifact_str);

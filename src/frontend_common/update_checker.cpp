@@ -80,55 +80,24 @@ std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::stri
     }
 }
 
-std::optional<UpdateChecker::Update> UpdateChecker::GetLatestRelease(bool include_prereleases) {
+std::optional<UpdateChecker::Update> UpdateChecker::GetLatestRelease() {
 #ifdef YUZU_BUNDLED_OPENSSL
     const auto update_check_url = fmt::format("https://{}", Common::g_build_auto_update_api);
 #else
     const auto update_check_url = std::string{Common::g_build_auto_update_api};
 #endif
 
-    auto update_check_path = fmt::format("{}{}", std::string{Common::g_build_auto_update_api_path},
-                                         std::string{Common::g_build_auto_update_repo});
+    auto update_check_path = std::string{Common::g_build_auto_update_api_path};
     try {
-        if (include_prereleases) { // This can return either a prerelease or a stable release,
-            // whichever is more recent.
-            const auto update_check_tags_path = update_check_path + "/tags";
-            const auto update_check_releases_path = update_check_path + "/releases";
+        const auto response = UpdateChecker::GetResponse(update_check_url, update_check_path);
 
-            const auto tags_response = UpdateChecker::GetResponse(update_check_url, update_check_tags_path);
-            const auto releases_response = UpdateChecker::GetResponse(update_check_url, update_check_releases_path);
+        if (!response)
+            return {};
 
-            if (!tags_response || !releases_response)
-                return {};
+        const std::string latest_tag = nlohmann::json::parse(response.value()).at("tag_name");
+        const std::string latest_name = nlohmann::json::parse(response.value()).at("name");
 
-            const std::string latest_tag
-                = nlohmann::json::parse(tags_response.value()).at(0).at("name");
-            const std::string latest_name =
-                nlohmann::json::parse(releases_response.value()).at(0).at("name");
-
-            const bool latest_tag_has_release = releases_response.value().find(
-                                                    fmt::format("\"{}\"", latest_tag))
-                                                != std::string::npos;
-
-            // If there is a newer tag, but that tag has no associated release, don't prompt the
-            // user to update.
-            if (!latest_tag_has_release)
-                return {};
-
-            return Update{latest_tag, latest_name};
-        } else { // This is a stable release, only check for other stable releases.
-            update_check_path += "/releases/latest";
-            const auto response = UpdateChecker::GetResponse(update_check_url, update_check_path);
-
-            if (!response)
-                return {};
-
-            const std::string latest_tag = nlohmann::json::parse(response.value()).at("tag_name");
-            const std::string latest_name = nlohmann::json::parse(response.value()).at("name");
-
-            return Update{latest_tag, latest_name};
-        }
-
+        return Update{latest_tag, latest_name};
     } catch (nlohmann::detail::out_of_range&) {
         LOG_ERROR(Frontend,
                   "Parsing JSON response from {}{} failed during update check: "
@@ -147,12 +116,8 @@ std::optional<UpdateChecker::Update> UpdateChecker::GetLatestRelease(bool includ
 }
 
 std::optional<UpdateChecker::Update> UpdateChecker::GetUpdate() {
-    const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
-                                (strstr(Common::g_build_version, "alpha") != NULL) ||
-                                (strstr(Common::g_build_version, "beta") != NULL) ||
-                                (strstr(Common::g_build_version, "rc") != NULL));
     const std::optional<UpdateChecker::Update> latest_release_tag =
-        UpdateChecker::GetLatestRelease(is_prerelease);
+        UpdateChecker::GetLatestRelease();
 
     if (!latest_release_tag)
         goto empty;

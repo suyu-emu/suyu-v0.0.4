@@ -35,17 +35,17 @@ set(GIT_DESC ${BUILD_VERSION})
 # Generate cpp with Git revision from template
 # Also if this is a CI build, add the build name (ie: Nightly, Canary) to the scm_rev file as well
 
-# Auto-updater metadata! Must somewhat mirror GitHub API endpoint
+# Auto-updater metadata! Must somewhat mirror GitHub/Forgejo API endpoint
+
+set(BUILD_AUTO_UPDATE_API_PATH "/latest/release.json")
 if (NIGHTLY_BUILD)
     set(BUILD_AUTO_UPDATE_WEBSITE "https://git.eden-emu.dev")
-    set(BUILD_AUTO_UPDATE_API "git.eden-emu.dev")
-    set(BUILD_AUTO_UPDATE_API_PATH "/api/v1/repos/")
+    set(BUILD_AUTO_UPDATE_API "nightly.eden-emu.dev")
     set(BUILD_AUTO_UPDATE_REPO "eden-ci/nightly")
     set(REPO_NAME "Eden Nightly")
 else()
     set(BUILD_AUTO_UPDATE_WEBSITE "https://git.eden-emu.dev")
-    set(BUILD_AUTO_UPDATE_API "git.eden-emu.dev")
-    set(BUILD_AUTO_UPDATE_API_PATH "/api/v1/repos/")
+    set(BUILD_AUTO_UPDATE_API "stable.eden-emu.dev")
     set(BUILD_AUTO_UPDATE_REPO "eden-emu/eden")
     set(REPO_NAME "Eden")
 endif()
