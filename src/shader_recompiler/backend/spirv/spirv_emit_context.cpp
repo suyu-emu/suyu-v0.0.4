@@ -178,6 +178,9 @@ void DefineGenericOutput(EmitContext& ctx, size_t index, std::optional<u32> invo
             ctx.Decorate(id, spv::Decoration::XfbBuffer, xfb_varying->buffer);
             ctx.Decorate(id, spv::Decoration::XfbStride, xfb_varying->stride);
             ctx.Decorate(id, spv::Decoration::Offset, xfb_varying->offset);
+            if (ctx.stage == Stage::Geometry && xfb_varying->stream != 0) {
+                ctx.Decorate(id, spv::Decoration::Stream, xfb_varying->stream);
+            }
         }
         if (num_components < 4 || element > 0) {
             const std::string_view subswizzle{swizzle.substr(element, num_components)};

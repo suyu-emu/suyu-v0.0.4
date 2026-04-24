@@ -17,6 +17,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     USE_CUSTOM_CPU_TICKS("use_custom_cpu_ticks"),
     SKIP_CPU_INNER_INVALIDATION("skip_cpu_inner_invalidation"),
     FIX_BLOOM_EFFECTS("fix_bloom_effects"),
+    EMULATE_BGR565("emulate_bgr565"),
     CPUOPT_UNSAFE_HOST_MMU("cpuopt_unsafe_host_mmu"),
     USE_DOCKED_MODE("use_docked_mode"),
     USE_AUTO_STUB("use_auto_stub"),

@@ -176,7 +176,18 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .pViewFormats = view_formats.data(),
     };
     if (view_formats.size() > 1) {
-        image_ci.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+        image_ci.flags |=
+            VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT;
+
+        const bool has_storage_compatible_view =
+            std::any_of(view_formats.begin(), view_formats.end(), [&device](VkFormat view_format) {
+                return device.IsFormatSupported(view_format, VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT,
+                                                FormatType::Optimal);
+            });
+        if (has_storage_compatible_view) {
+            image_ci.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+        }
+
         if (device.IsKhrImageFormatListSupported()) {
             image_ci.pNext = &image_format_list;
         }
@@ -668,10 +679,15 @@ void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage im
 }
 
 void TryTransformSwizzleIfNeeded(PixelFormat format, std::array<SwizzleSource, 4>& swizzle,
-                                 bool emulate_a4b4g4r4) {
+                                 bool emulate_bgr565, bool emulate_a4b4g4r4) {
     switch (format) {
     case PixelFormat::A1B5G5R5_UNORM:
         std::ranges::transform(swizzle, swizzle.begin(), SwapBlueRed);
+        break;
+    case PixelFormat::B5G6R5_UNORM:
+        if (emulate_bgr565) {
+            std::ranges::transform(swizzle, swizzle.begin(), SwapBlueRed);
+        }
         break;
     case PixelFormat::A5B5G5R1_UNORM:
         std::ranges::transform(swizzle, swizzle.begin(), SwapSpecial);
@@ -2119,22 +2135,21 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     if (!info.IsRenderTarget()) {
         swizzle = info.Swizzle();
         TryTransformSwizzleIfNeeded(format, swizzle,
-                                    !device->IsExt4444FormatsSupported());
+                        device->MustEmulateBGR565(),
+                        !device->IsExt4444FormatsSupported());
         if ((aspect_mask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) != 0) {
             std::ranges::transform(swizzle, swizzle.begin(), ConvertGreenRed);
             SanitizeDepthStencilSwizzle(swizzle, device->SupportsDepthStencilSwizzleOne());
         }
     }
     const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
-    if (ImageUsageFlags(format_info, format) != image.UsageFlags()) {
-        LOG_WARNING(Render_Vulkan,
-                    "Image view format {} has different usage flags than image format {}", format,
-                    image.info.format);
-    }
+    const VkImageUsageFlags requested_view_usage = ImageUsageFlags(format_info, format);
+    const VkImageUsageFlags image_usage = image.UsageFlags();
+    const VkImageUsageFlags clamped_view_usage = requested_view_usage & image_usage;
     const VkImageViewUsageCreateInfo image_view_usage{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
         .pNext = nullptr,
-        .usage = ImageUsageFlags(format_info, format),
+        .usage = clamped_view_usage,
     };
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -2300,23 +2315,18 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
 
 Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& tsc) {
     const auto& device = runtime.device;
-    // Check if custom border colors are supported
-    const bool has_custom_border_colors = runtime.device.IsCustomBorderColorsSupported();
-    const bool has_format_undefined = runtime.device.IsCustomBorderColorWithoutFormatSupported();
+    const bool has_custom_border_extension = runtime.device.IsExtCustomBorderColorSupported();
+    const bool has_format_undefined =
+        has_custom_border_extension && runtime.device.IsCustomBorderColorWithoutFormatSupported();
+    const bool has_custom_border_colors =
+        has_format_undefined && runtime.device.IsCustomBorderColorsSupported();
     const auto color = tsc.BorderColor();
-
-    // Determine border format based on available features:
-    // - If customBorderColorWithoutFormat is available: use VK_FORMAT_UNDEFINED (most flexible)
-    // - If only customBorderColors is available: use concrete format (R8G8B8A8_UNORM)
-    // - If neither is available: use standard border colors (handled by ConvertBorderColor)
-    const VkFormat border_format = has_format_undefined ? VK_FORMAT_UNDEFINED
-                                                        : VK_FORMAT_R8G8B8A8_UNORM;
 
     const VkSamplerCustomBorderColorCreateInfoEXT border_ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
         .pNext = nullptr,
         .customBorderColor = std::bit_cast<VkClearColorValue>(color),
-        .format = border_format,
+        .format = VK_FORMAT_UNDEFINED,
     };
     const void* pnext = nullptr;
     if (has_custom_border_colors) {

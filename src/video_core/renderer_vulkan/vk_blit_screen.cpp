@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <vulkan/vulkan_core.h>
+#include <mutex>
 #include "video_core/framebuffer_config.h"
 #include "video_core/present.h"
 #include "video_core/renderer_vulkan/present/filters.h"
@@ -31,7 +32,10 @@ BlitScreen::~BlitScreen() = default;
 void BlitScreen::WaitIdle() {
     present_manager.WaitPresent();
     scheduler.Finish();
-    device.GetLogical().WaitIdle();
+    {
+        std::scoped_lock lock{scheduler.submit_mutex};
+        device.GetLogical().WaitIdle();
+    }
 }
 
 void BlitScreen::SetWindowAdaptPass() {

@@ -76,6 +76,7 @@ enum class TessSpacing {
 
 struct TransformFeedbackVarying {
     u32 buffer{};
+    u32 stream{};
     u32 stride{};
     u32 offset{};
     u32 components{};

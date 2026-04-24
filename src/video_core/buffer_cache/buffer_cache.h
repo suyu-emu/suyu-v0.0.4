@@ -1067,26 +1067,29 @@ void BufferCache<P>::BindHostTransformFeedbackBuffers() {
     HostBindings<typename P::Buffer> host_bindings;
     for (u32 index = 0; index < NUM_TRANSFORM_FEEDBACK_BUFFERS; ++index) {
         const Binding& binding = channel_state->transform_feedback_buffers[index];
-        if (maxwell3d->regs.transform_feedback.controls[index].varying_count == 0 &&
-            maxwell3d->regs.transform_feedback.controls[index].stride == 0) {
-            break;
+        const auto& control = maxwell3d->regs.transform_feedback.controls[index];
+        const bool has_layout = control.varying_count != 0 || control.stride != 0;
+
+        Buffer* host_buffer = &slot_buffers[NULL_BUFFER_ID];
+        u32 offset = 0;
+        u32 size = 0;
+
+        if (has_layout && binding.buffer_id != NULL_BUFFER_ID && binding.size != 0) {
+            Buffer& buffer = slot_buffers[binding.buffer_id];
+            TouchBuffer(buffer, binding.buffer_id);
+            size = binding.size;
+            SynchronizeBuffer(buffer, binding.device_addr, size);
+            MarkWrittenBuffer(binding.buffer_id, binding.device_addr, size);
+            offset = buffer.Offset(binding.device_addr);
+            buffer.MarkUsage(offset, size);
+            host_buffer = &buffer;
         }
-        Buffer& buffer = slot_buffers[binding.buffer_id];
-        TouchBuffer(buffer, binding.buffer_id);
-        const u32 size = binding.size;
-        SynchronizeBuffer(buffer, binding.device_addr, size);
 
-        MarkWrittenBuffer(binding.buffer_id, binding.device_addr, size);
-
-        const u32 offset = buffer.Offset(binding.device_addr);
-        buffer.MarkUsage(offset, size);
-        host_bindings.buffers.push_back(&buffer);
+        host_bindings.buffers.push_back(host_buffer);
         host_bindings.offsets.push_back(offset);
         host_bindings.sizes.push_back(size);
     }
-    if (host_bindings.buffers.size() > 0) {
-        runtime.BindTransformFeedbackBuffers(host_bindings);
-    }
+    runtime.BindTransformFeedbackBuffers(host_bindings);
 }
 
 template <class P>

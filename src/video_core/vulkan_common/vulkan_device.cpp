@@ -869,6 +869,10 @@ bool Device::HasTimelineSemaphore() const {
     return features.timeline_semaphore.timelineSemaphore;
 }
 
+bool Device::MustEmulateBGR565() const {
+    return Settings::values.emulate_bgr565.GetValue();
+}
+
 bool Device::GetSuitability(bool requires_swapchain) {
     // Assume we will be suitable.
     bool suitable = true;
@@ -918,6 +922,17 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     FOR_EACH_VK_FEATURE_EXT(FEATURE_EXTENSION);
     FOR_EACH_VK_EXTENSION(EXTENSION);
+
+    if (supported_extensions.contains(VK_KHR_ROBUSTNESS_2_EXTENSION_NAME)) {
+        loaded_extensions.erase(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+        loaded_extensions.insert(VK_KHR_ROBUSTNESS_2_EXTENSION_NAME);
+        extensions.robustness_2 = true;
+    } else if (supported_extensions.contains(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME)) {
+        loaded_extensions.insert(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+        extensions.robustness_2 = true;
+    } else {
+        extensions.robustness_2 = false;
+    }
 
 #undef FEATURE_EXTENSION
 #undef EXTENSION
@@ -1131,8 +1146,6 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
     if (u32(Settings::values.dyna_state.GetValue()) == 0) {
         LOG_INFO(Render_Vulkan, "Extended Dynamic State disabled by user setting, clearing all EDS features");
-        features.custom_border_color.customBorderColors = false;
-        features.custom_border_color.customBorderColorWithoutFormat = false;
         features.extended_dynamic_state.extendedDynamicState = false;
         features.extended_dynamic_state2.extendedDynamicState2 = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
@@ -1148,24 +1161,13 @@ bool Device::GetSuitability(bool requires_swapchain) {
 
 void Device::RemoveUnsuitableExtensions() {
     // VK_EXT_custom_border_color
-    // Enable extension if driver supports it, then check individual features
-    // - customBorderColors: Required to use VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
-    // - customBorderColorWithoutFormat: Optional, allows VK_FORMAT_UNDEFINED
-    // If only customBorderColors is available, we must provide a specific format
     if (extensions.custom_border_color) {
-        // Verify that at least customBorderColors is available
-        if (!features.custom_border_color.customBorderColors) {
-            LOG_WARNING(Render_Vulkan,
-                        "VK_EXT_custom_border_color reported but customBorderColors feature not available, disabling");
-            extensions.custom_border_color = false;
-        }
+        extensions.custom_border_color =
+            features.custom_border_color.customBorderColors &&
+            features.custom_border_color.customBorderColorWithoutFormat;
     }
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
-    // VK_KHR_unified_image_layouts
-    extensions.unified_image_layouts = features.unified_image_layouts.unifiedImageLayouts;
-    RemoveExtensionFeatureIfUnsuitable(extensions.unified_image_layouts, features.unified_image_layouts,
-                                       VK_KHR_UNIFIED_IMAGE_LAYOUTS_EXTENSION_NAME);
 
     // VK_EXT_depth_bias_control
     extensions.depth_bias_control =
@@ -1251,16 +1253,22 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
 
     // VK_EXT_robustness2
-    extensions.robustness_2 = features.robustness2.robustBufferAccess2 ||
-                              features.robustness2.robustImageAccess2 ||
-                              features.robustness2.nullDescriptor;
+    features.robustness2.robustBufferAccess2 = VK_FALSE;
+    features.robustness2.robustImageAccess2 = VK_FALSE;
+    extensions.robustness_2 = features.robustness2.nullDescriptor;
+
+    const char* robustness2_extension_name =
+        loaded_extensions.contains(VK_KHR_ROBUSTNESS_2_EXTENSION_NAME)
+            ? VK_KHR_ROBUSTNESS_2_EXTENSION_NAME
+            : VK_EXT_ROBUSTNESS_2_EXTENSION_NAME;
 
     RemoveExtensionFeatureIfUnsuitable(extensions.robustness_2, features.robustness2,
-                                       VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+                                       robustness2_extension_name);
 
-    // VK_EXT_image_robustness
-    extensions.image_robustness = features.image_robustness.robustImageAccess;
-    RemoveExtensionFeatureIfUnsuitable(extensions.image_robustness, features.image_robustness,
+    // Image robustness
+    extensions.robust_image_access = features.robust_image_access.robustImageAccess;
+    RemoveExtensionFeatureIfUnsuitable(extensions.robust_image_access,
+                                       features.robust_image_access,
                                        VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
 
     // VK_KHR_shader_atomic_int64
@@ -1288,8 +1296,7 @@ void Device::RemoveUnsuitableExtensions() {
     // VK_EXT_transform_feedback
     extensions.transform_feedback =
         features.transform_feedback.transformFeedback &&
-        properties.transform_feedback.maxTransformFeedbackBuffers > 0 &&
-        properties.transform_feedback.transformFeedbackQueries;
+        properties.transform_feedback.maxTransformFeedbackBuffers > 0;
     RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
                                        VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
 

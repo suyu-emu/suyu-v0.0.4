@@ -63,7 +63,8 @@ public:
 
 private:
     void HostConditionalRenderingCompareValueImpl(VideoCommon::LookupData object, bool is_equal);
-    void HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal);
+    void HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal,
+                                               bool compare_to_zero = false);
     friend struct QueryCacheRuntimeImpl;
     std::unique_ptr<QueryCacheRuntimeImpl> impl;
 };

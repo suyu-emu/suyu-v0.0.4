@@ -157,8 +157,9 @@ public:
         ReserveHostQuery();
 
         scheduler.Record([query_pool = current_query_pool,
-                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+                          query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             const bool use_precise = Settings::IsGPULevelHigh();
+            cmdbuf.ResetQueryPool(query_pool, static_cast<u32>(query_index), 1);
             cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
                               use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
         });
@@ -220,8 +221,7 @@ public:
         }
         PauseCounter();
         const auto driver_id = device.GetDriverID();
-        if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-            driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+        if (driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
             pending_sync.clear();
             sync_values_stash.clear();
             return;
@@ -666,13 +666,18 @@ public:
         offsets.fill(0);
         last_queries.fill(0);
         last_queries_stride.fill(1);
+        stream_to_slot.fill(INVALID_SLOT);
+        VkBufferUsageFlags counter_buffer_usage =
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        if (device.IsExtTransformFeedbackSupported()) {
+            counter_buffer_usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
+        }
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = TFBQueryBank::QUERY_SIZE * NUM_STREAMS,
-            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                     VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT,
+            .usage = counter_buffer_usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
@@ -692,6 +697,9 @@ public:
     ~TFBCounterStreamer() = default;
 
     void StartCounter() override {
+        if (!device.IsExtTransformFeedbackSupported()) {
+            return;
+        }
         FlushBeginTFB();
         has_started = true;
     }
@@ -706,7 +714,9 @@ public:
 
     void CloseCounter() override {
         if (has_flushed_end_pending) {
-            FlushEndTFB();
+            if (scheduler.IsRenderPassActive()) {
+                FlushEndTFB();
+            }
         }
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             if (maxwell3d.regs.transform_feedback_enabled == 0) {
@@ -756,18 +766,33 @@ public:
         if (has_timestamp) {
             new_query->flags |= VideoCommon::QueryFlagBits::HasTimestamp;
         }
+        if (!device.IsExtTransformFeedbackSupported()) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
         if (!subreport_) {
             new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             return index;
         }
         const size_t subreport = static_cast<size_t>(*subreport_);
+        if (subreport >= NUM_STREAMS) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
         last_queries[subreport] = address;
         if ((streams_mask & (1ULL << subreport)) == 0) {
             new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             return index;
         }
+        const size_t slot = stream_to_slot[subreport];
+        if (slot >= NUM_STREAMS) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
+        
+        scheduler.RequestOutsideRenderPassOperationContext();
         CloseCounter();
-        auto [bank_slot, data_slot] = ProduceCounterBuffer(subreport);
+        auto [bank_slot, data_slot] = ProduceCounterBuffer(slot);
         new_query->start_bank_id = static_cast<u32>(bank_slot);
         new_query->size_banks = 1;
         new_query->start_slot = static_cast<u32>(data_slot);
@@ -778,6 +803,9 @@ public:
     }
 
     std::optional<std::pair<DAddr, size_t>> GetLastQueryStream(size_t stream) {
+        if (stream >= NUM_STREAMS) {
+            return std::nullopt;
+        }
         if (last_queries[stream] != 0) {
             std::pair<DAddr, size_t> result(last_queries[stream], last_queries_stride[stream]);
             return result;
@@ -787,6 +815,10 @@ public:
 
     Maxwell3D::Regs::PrimitiveTopology GetOutputTopology() const {
         return out_topology;
+    }
+
+    u32 GetPatchVertices() const {
+        return patch_vertices;
     }
 
     bool HasUnsyncedQueries() const override {
@@ -855,6 +887,9 @@ public:
 
 private:
     void FlushBeginTFB() {
+        if (!device.IsExtTransformFeedbackSupported()) [[unlikely]] {
+            return;
+        }
         if (has_flushed_end_pending) [[unlikely]] {
             return;
         }
@@ -868,12 +903,24 @@ private:
             });
             return;
         }
+        static constexpr VkMemoryBarrier COUNTER_RESUME_BARRIER{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT,
+            .dstAccessMask = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT,
+        };
         scheduler.Record([this, total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
+                                   VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT, 0,
+                                   COUNTER_RESUME_BARRIER);
             cmdbuf.BeginTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
         });
     }
 
     void FlushEndTFB() {
+        if (!device.IsExtTransformFeedbackSupported()) [[unlikely]] {
+            return;
+        }
         if (!has_flushed_end_pending) [[unlikely]] {
             UNREACHABLE();
             return;
@@ -899,28 +946,48 @@ private:
     void UpdateBuffers() {
         last_queries.fill(0);
         last_queries_stride.fill(1);
+        stream_to_slot.fill(INVALID_SLOT);
         streams_mask = 0; // reset previously recorded streams
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             buffers_count = 0;
             out_topology = maxwell3d.draw_manager->GetDrawState().topology;
+            patch_vertices = std::max(maxwell3d.regs.patch_vertices, 1U);
+            if (out_topology == Maxwell3D::Regs::PrimitiveTopology::Patches) {
+                switch (maxwell3d.regs.tessellation.params.output_primitives.Value()) {
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Points:
+                    out_topology = Maxwell3D::Regs::PrimitiveTopology::Points;
+                    break;
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Lines:
+                    out_topology = Maxwell3D::Regs::PrimitiveTopology::LineStrip;
+                    break;
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Triangles_CW:
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Triangles_CCW:
+                    out_topology = Maxwell3D::Regs::PrimitiveTopology::TriangleStrip;
+                    break;
+                }
+            }
             for (size_t i = 0; i < Maxwell3D::Regs::NumTransformFeedbackBuffers; i++) {
                 const auto& tf = maxwell3d.regs.transform_feedback;
                 if (tf.buffers[i].enable == 0) {
                     continue;
                 }
+                buffers_count = std::max<size_t>(buffers_count, i + 1);
                 const size_t stream = tf.controls[i].stream;
                 if (stream >= last_queries_stride.size()) {
                     LOG_WARNING(Render_Vulkan, "TransformFeedback stream {} out of range", stream);
                     continue;
                 }
+                if ((streams_mask & (1ULL << stream)) != 0) {
+                    continue;
+                }
                 last_queries_stride[stream] = tf.controls[i].stride;
+                stream_to_slot[stream] = i;
                 streams_mask |= 1ULL << stream;
-                buffers_count = std::max<size_t>(buffers_count, stream + 1);
             }
         });
     }
 
-    std::pair<size_t, size_t> ProduceCounterBuffer(size_t stream) {
+    std::pair<size_t, size_t> ProduceCounterBuffer(size_t slot_index) {
         if (current_bank == nullptr || current_bank->IsClosed()) {
             current_bank_id =
                 bank_pool.ReserveBank([this](std::deque<TFBQueryBank>& queue, size_t index) {
@@ -946,7 +1013,8 @@ private:
         };
         scheduler.RequestOutsideRenderPassOperationContext();
         scheduler.Record([dst_buffer = current_bank->GetBuffer(),
-                          src_buffer = counter_buffers[stream], src_offset = offsets[stream],
+                          src_buffer = counter_buffers[slot_index],
+                          src_offset = offsets[slot_index],
                           slot](vk::CommandBuffer cmdbuf) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
                                    VK_PIPELINE_STAGE_TRANSFER_BIT, 0, READ_BARRIER);
@@ -965,6 +1033,7 @@ private:
     friend class PrimitivesSucceededStreamer;
 
     static constexpr size_t NUM_STREAMS = 4;
+    static constexpr size_t INVALID_SLOT = NUM_STREAMS;
 
     QueryCacheRuntime& runtime;
     const Device& device;
@@ -994,7 +1063,9 @@ private:
     std::array<VkDeviceSize, NUM_STREAMS> offsets{};
     std::array<DAddr, NUM_STREAMS> last_queries;
     std::array<size_t, NUM_STREAMS> last_queries_stride;
+    std::array<size_t, NUM_STREAMS> stream_to_slot;
     Maxwell3D::Regs::PrimitiveTopology out_topology;
+    u32 patch_vertices{1};
     u64 streams_mask;
 };
 
@@ -1015,6 +1086,7 @@ public:
     u64 stride{};
     DAddr dependant_address{};
     Maxwell3D::Regs::PrimitiveTopology topology{Maxwell3D::Regs::PrimitiveTopology::Points};
+    u32 patch_vertices{1};
     size_t dependant_index{};
     bool dependant_manage{};
 };
@@ -1030,6 +1102,10 @@ public:
     }
 
     ~PrimitivesSucceededStreamer() = default;
+
+    void ResetCounter() override {
+        tfb_streamer.ResetCounter();
+    }
 
     size_t WriteCounter(DAddr address, bool has_timestamp, u32 value,
                         std::optional<u32> subreport_) override {
@@ -1048,6 +1124,7 @@ public:
         auto dependant_address_opt = tfb_streamer.GetLastQueryStream(subreport);
         bool must_manage_dependance = false;
         new_query->topology = tfb_streamer.GetOutputTopology();
+        new_query->patch_vertices = tfb_streamer.GetPatchVertices();
         if (dependant_address_opt) {
             auto [dep_address, stride] = *dependant_address_opt;
             new_query->dependant_address = dep_address;
@@ -1068,6 +1145,7 @@ public:
             }
             new_query->stride = 1;
             runtime.View3DRegs([new_query, subreport](Maxwell3D& maxwell3d) {
+                new_query->patch_vertices = std::max(maxwell3d.regs.patch_vertices, 1U);
                 for (size_t i = 0; i < Maxwell3D::Regs::NumTransformFeedbackBuffers; i++) {
                     const auto& tf = maxwell3d.regs.transform_feedback;
                     if (tf.buffers[i].enable == 0) {
@@ -1131,27 +1209,39 @@ public:
                 }
             }
             query->value = [&]() -> u64 {
+                const auto saturating_subtract = [](u64 value, u64 amount) {
+                    return value > amount ? value - amount : 0;
+                };
                 switch (query->topology) {
                 case Maxwell3D::Regs::PrimitiveTopology::Points:
                     return num_vertices;
                 case Maxwell3D::Regs::PrimitiveTopology::Lines:
                     return num_vertices / 2;
                 case Maxwell3D::Regs::PrimitiveTopology::LineLoop:
-                    return (num_vertices / 2) + 1;
+                    return num_vertices > 1 ? num_vertices : 0;
                 case Maxwell3D::Regs::PrimitiveTopology::LineStrip:
-                    return num_vertices - 1;
-                case Maxwell3D::Regs::PrimitiveTopology::Patches:
+                    return saturating_subtract(num_vertices, 1);
+                case Maxwell3D::Regs::PrimitiveTopology::LinesAdjacency:
+                    return num_vertices / 4;
+                case Maxwell3D::Regs::PrimitiveTopology::LineStripAdjacency:
+                    return saturating_subtract(num_vertices, 3);
                 case Maxwell3D::Regs::PrimitiveTopology::Triangles:
-                case Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
                     return num_vertices / 3;
+                case Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
+                    return num_vertices / 6;
                 case Maxwell3D::Regs::PrimitiveTopology::TriangleFan:
                 case Maxwell3D::Regs::PrimitiveTopology::TriangleStrip:
+                    return saturating_subtract(num_vertices, 2);
                 case Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
-                    return num_vertices - 2;
+                    return num_vertices > 4 ? (num_vertices - 4) / 2 : 0;
                 case Maxwell3D::Regs::PrimitiveTopology::Quads:
                     return num_vertices / 4;
+                case Maxwell3D::Regs::PrimitiveTopology::QuadStrip:
+                    return num_vertices > 2 ? (num_vertices - 2) / 2 : 0;
                 case Maxwell3D::Regs::PrimitiveTopology::Polygon:
-                    return 1U;
+                    return num_vertices >= 3 ? 1U : 0U;
+                case Maxwell3D::Regs::PrimitiveTopology::Patches:
+                    return num_vertices / std::max<u64>(query->patch_vertices, 1U);
                 default:
                     return num_vertices;
                 }
@@ -1202,16 +1292,24 @@ struct QueryCacheRuntimeImpl {
         hcr_setup.pNext = nullptr;
         hcr_setup.flags = 0;
 
-        conditional_resolve_pass = std::make_unique<ConditionalRenderingResolvePass>(
-            device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+        const bool has_conditional_rendering = device.IsExtConditionalRendering();
+        if (has_conditional_rendering) {
+            conditional_resolve_pass = std::make_unique<ConditionalRenderingResolvePass>(
+                device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+        }
+
+        VkBufferUsageFlags hcr_buffer_usage =
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        if (has_conditional_rendering) {
+            hcr_buffer_usage |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
+        }
 
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = sizeof(u32),
-            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                     VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
+            .usage = hcr_buffer_usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
@@ -1338,15 +1436,17 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
     }
 }
 
-void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal) {
+void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal,
+                                                              bool compare_to_zero) {
     VkBuffer to_resolve;
     u32 to_resolve_offset;
+    const u32 resolve_size = compare_to_zero ? 8 : 24;
     {
         std::scoped_lock lk(impl->buffer_cache.mutex);
-        static constexpr auto sync_info = VideoCommon::ObtainBufferSynchronize::NoSynchronize;
+        const auto sync_info = VideoCommon::ObtainBufferSynchronize::FullSynchronize;
         const auto post_op = VideoCommon::ObtainBufferOperation::DoNothing;
         const auto [buffer, offset] =
-            impl->buffer_cache.ObtainCPUBuffer(address, 24, sync_info, post_op);
+            impl->buffer_cache.ObtainCPUBuffer(address, resolve_size, sync_info, post_op);
         to_resolve = buffer->Handle();
         to_resolve_offset = static_cast<u32>(offset);
     }
@@ -1355,7 +1455,7 @@ void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, boo
         PauseHostConditionalRendering();
     }
     impl->conditional_resolve_pass->Resolve(*impl->hcr_resolve_buffer, to_resolve,
-                                            to_resolve_offset, false);
+                                            to_resolve_offset, compare_to_zero);
     impl->hcr_setup.buffer = *impl->hcr_resolve_buffer;
     impl->hcr_setup.offset = 0;
     impl->hcr_setup.flags = is_equal ? 0 : VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT;
@@ -1371,7 +1471,7 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValue(VideoCommon::Lookup
     if (!impl->device.IsExtConditionalRendering()) {
         return false;
     }
-    HostConditionalRenderingCompareValueImpl(object_1, false);
+    HostConditionalRenderingCompareBCImpl(object_1.address, true, true);
     return true;
 }
 
@@ -1420,7 +1520,8 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
     auto driver_id = impl->device.GetDriverID();
     const bool is_gpu_high = Settings::IsGPULevelHigh();
 
-    if ((!is_gpu_high && driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) || driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+    if ((!is_gpu_high && driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) || driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+        EndHostConditionalRendering();
         return true;
     }
 
@@ -1437,10 +1538,12 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
     }
 
     if (!is_gpu_high) {
+        EndHostConditionalRendering();
         return true;
     }
 
     if (!is_in_bc[0] && !is_in_bc[1]) {
+        EndHostConditionalRendering();
         return true;
     }
     HostConditionalRenderingCompareBCImpl(object_1.address, equal_check);

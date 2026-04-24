@@ -225,6 +225,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdEndTransformFeedbackEXT vkCmdEndTransformFeedbackEXT{};
     PFN_vkCmdFillBuffer vkCmdFillBuffer{};
     PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier{};
+    PFN_vkCmdResetQueryPool vkCmdResetQueryPool{};
     PFN_vkCmdPushConstants vkCmdPushConstants{};
     PFN_vkCmdPushDescriptorSetWithTemplateKHR vkCmdPushDescriptorSetWithTemplateKHR{};
     PFN_vkCmdResolveImage vkCmdResolveImage{};
@@ -1166,6 +1167,10 @@ public:
 
     void EndQuery(VkQueryPool query_pool, u32 query) const noexcept {
         dld->vkCmdEndQuery(handle, query_pool, query);
+    }
+
+    void ResetQueryPool(VkQueryPool query_pool, u32 first_query, u32 query_count) const noexcept {
+        dld->vkCmdResetQueryPool(handle, query_pool, first_query, query_count);
     }
 
     void BindDescriptorSets(VkPipelineBindPoint bind_point, VkPipelineLayout layout, u32 first,

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -92,7 +92,16 @@ void ThreadManager::InvalidateRegion(DAddr addr, u64 size) {
 }
 
 void ThreadManager::FlushAndInvalidateRegion(DAddr addr, u64 size) {
-    // Skip flush on asynch mode, as FlushAndInvalidateRegion is not used for anything too important
+    if (Settings::IsGPULevelHigh()) {
+        if (!is_async) {
+            PushCommand(FlushRegionCommand(addr, size));
+        } else {
+            auto& gpu = system.GPU();
+            const u64 fence = gpu.RequestFlush(addr, size);
+            TickGPU();
+            gpu.WaitForSyncOperation(fence);
+        }
+    }
     rasterizer->OnCacheInvalidation(addr, size);
 }
 

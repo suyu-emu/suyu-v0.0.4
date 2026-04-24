@@ -637,12 +637,10 @@ void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings<
     for (u32 i = 0; i < bindings.buffers.size(); ++i) {
         auto handle = bindings.buffers[i]->Handle();
         if (handle == VK_NULL_HANDLE) {
+            ReserveNullBuffer();
+            handle = *null_buffer;
             bindings.offsets[i] = 0;
-            bindings.sizes[i] = VK_WHOLE_SIZE;
-            if (!device.HasNullDescriptor()) {
-                ReserveNullBuffer();
-                handle = *null_buffer;
-            }
+            bindings.sizes[i] = 0;
         }
         buffer_handles[i] = handle;
     }

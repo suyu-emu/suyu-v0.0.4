@@ -758,6 +758,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.EMULATE_BGR565,
+                    titleId = R.string.emulate_bgr565,
+                    descriptionId = R.string.emulate_bgr565_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.CPUOPT_UNSAFE_HOST_MMU,
                     titleId = R.string.cpuopt_unsafe_host_mmu,
                     descriptionId = R.string.cpuopt_unsafe_host_mmu_description

@@ -63,6 +63,11 @@ public:
     /// of a renderpass.
     void RequestOutsideRenderPassOperationContext();
 
+    /// Returns true when a render pass is currently active in the scheduler state.
+    bool IsRenderPassActive() const {
+        return state.renderpass != VK_NULL_HANDLE;
+    }
+
     /// Update the pipeline to the current execution context.
     bool UpdateGraphicsPipeline(GraphicsPipeline* pipeline);
 

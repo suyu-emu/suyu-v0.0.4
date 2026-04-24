@@ -324,6 +324,8 @@ void Scheduler::EndRenderPass()
             return;
         }
 
+        query_cache->CounterClose(VideoCommon::QueryType::StreamingByteCount);
+
         // Log render pass end
         if (Settings::values.gpu_logging_enabled.GetValue() &&
             Settings::values.gpu_log_vulkan_calls.GetValue()) {

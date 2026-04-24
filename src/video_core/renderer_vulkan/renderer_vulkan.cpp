@@ -8,6 +8,7 @@
 #include <array>
 #include <cstring>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
@@ -171,7 +172,11 @@ try
 
 RendererVulkan::~RendererVulkan() {
     scheduler.RegisterOnSubmit([] {});
-    void(device.GetLogical().WaitIdle());
+    scheduler.Finish();
+    {
+        std::scoped_lock lock{scheduler.submit_mutex};
+        void(device.GetLogical().WaitIdle());
+    }
 }
 
 void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {

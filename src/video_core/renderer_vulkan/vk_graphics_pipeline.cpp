@@ -467,6 +467,10 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         bind_stage_info(4);
     }
 
+    if (regs.transform_feedback_enabled != 0) {
+        scheduler.RequestOutsideRenderPassOperationContext();
+    }
+
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
     buffer_cache.BindHostGeometryBuffers(is_indexed);
 

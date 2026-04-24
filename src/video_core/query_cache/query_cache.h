@@ -412,6 +412,7 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
                     .found_query = nullptr,
                 };
             }
+            it_current = it_current_2;
         }
         auto* query = impl->ObtainQuery(it_current->second);
         qc_dirty |= True(query->flags & QueryFlagBits::IsHostManaged) &&

@@ -189,7 +189,7 @@ void PresentManager::RecreateFrame(Frame* frame, u32 width, u32 height, VkFormat
     frame->image = memory_allocator.CreateImage({
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
-        .flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT,
+        .flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT,
         .imageType = VK_IMAGE_TYPE_2D,
         .format = swapchain.GetImageFormat(),
         .extent =

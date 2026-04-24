@@ -173,6 +173,28 @@ DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances,
     }
     return params;
 }
+
+bool SupportsPrimitiveRestart(VkPrimitiveTopology topology) {
+    switch (topology) {
+    case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+    case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+    case VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY:
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY:
+    case VK_PRIMITIVE_TOPOLOGY_PATCH_LIST:
+        return false;
+    default:
+        return true;
+    }
+}
+
+bool IsPrimitiveRestartSupported(const Device& device, VkPrimitiveTopology topology) {
+    return ((topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+             device.IsTopologyListPrimitiveRestartSupported()) ||
+            SupportsPrimitiveRestart(topology) ||
+            (topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+             device.IsPatchListPrimitiveRestartSupported()));
+}
 } // Anonymous namespace
 
 RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
@@ -225,6 +247,7 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
 
     UpdateDynamicStates();
 
+    query_cache.NotifySegment(true);
     HandleTransformFeedback();
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
                               maxwell3d->regs.zpass_pixel_count_enable);
@@ -336,6 +359,7 @@ void RasterizerVulkan::DrawTexture() {
 
     UpdateDynamicStates();
 
+    query_cache.NotifySegment(true);
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
                               maxwell3d->regs.zpass_pixel_count_enable);
     const auto& draw_texture_state = maxwell3d->draw_manager->GetDrawTextureState();
@@ -575,11 +599,17 @@ void RasterizerVulkan::DispatchCompute() {
 }
 
 void RasterizerVulkan::ResetCounter(VideoCommon::QueryType type) {
-    if (type != VideoCommon::QueryType::ZPassPixelCount64) {
+    switch (type) {
+    case VideoCommon::QueryType::ZPassPixelCount64:
+    case VideoCommon::QueryType::StreamingByteCount:
+    case VideoCommon::QueryType::StreamingPrimitivesSucceeded:
+    case VideoCommon::QueryType::VtgPrimitivesOut:
+        query_cache.CounterReset(type);
+        return;
+    default:
         LOG_DEBUG(Render_Vulkan, "Unimplemented counter reset={}", type);
         return;
     }
-    query_cache.CounterReset(type);
 }
 
 void RasterizerVulkan::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
@@ -766,6 +796,9 @@ void RasterizerVulkan::ReleaseFences(bool force) {
 
 void RasterizerVulkan::FlushAndInvalidateRegion(DAddr addr, u64 size,
                                                 VideoCommon::CacheType which) {
+    if (Settings::IsGPULevelHigh()) {
+        FlushRegion(addr, size, which);
+    }
     InvalidateRegion(addr, size, which);
 }
 
@@ -828,6 +861,10 @@ void RasterizerVulkan::TickFrame() {
 bool RasterizerVulkan::AccelerateConditionalRendering() {
     gpu_memory->FlushCaching();
     return query_cache.AccelerateHostConditionalRendering();
+}
+
+bool RasterizerVulkan::HasDrawTransformFeedback() {
+    return device.IsTransformFeedbackDrawSupported();
 }
 
 bool RasterizerVulkan::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,
@@ -976,6 +1013,12 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
+    auto& flags = maxwell3d->dirty.flags;
+    const auto topology = maxwell3d->draw_manager->GetDrawState().topology;
+    if (state_tracker.ChangePrimitiveTopology(topology)) {
+        flags[Dirty::DepthBiasEnable] = true;
+        flags[Dirty::PrimitiveRestartEnable] = true;
+    }
 
     // Core Dynamic States (Vulkan 1.0) - Always active regardless of dyna_state setting
     UpdateViewportsState(regs);
@@ -1084,6 +1127,9 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     if (!state_tracker.TouchViewports()) {
         return;
     }
+
+    maxwell3d->dirty.flags[Dirty::Scissors] = true;
+
     if (!regs.viewport_scale_offset_enabled) {
         float x = static_cast<float>(regs.surface_clip.x);
         float y = static_cast<float>(regs.surface_clip.y);
@@ -1101,8 +1147,12 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
-        scheduler.Record([viewport](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetViewport(0, viewport);
+        scheduler.Record([this, viewport](vk::CommandBuffer cmdbuf) {
+            const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+            std::array<VkViewport, Maxwell::NumViewports> viewport_list{};
+            viewport_list.fill(viewport);
+            const vk::Span<VkViewport> viewports(viewport_list.data(), num_viewports);
+            cmdbuf.SetViewport(0, viewports);
         });
         return;
     }
@@ -1142,8 +1192,12 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         scissor.offset.y = static_cast<int32_t>(y);
         scissor.extent.width  = width;
         scissor.extent.height = height;
-        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) {
-            cmdbuf.SetScissor(0, scissor);
+        scheduler.Record([this, scissor](vk::CommandBuffer cmdbuf) {
+            const u32 num_scissors = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+            std::array<VkRect2D, Maxwell::NumViewports> scissor_list{};
+            scissor_list.fill(scissor);
+            const vk::Span<VkRect2D> scissors(scissor_list.data(), num_scissors);
+            cmdbuf.SetScissor(0, scissors);
         });
         return;
     }
@@ -1388,7 +1442,17 @@ void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::R
     if (!state_tracker.TouchPrimitiveRestartEnable()) {
         return;
     }
-    scheduler.Record([enable = regs.primitive_restart.enabled](vk::CommandBuffer cmdbuf) {
+
+    bool enable = regs.primitive_restart.enabled != 0;
+    if (device.IsMoltenVK()) {
+        enable = true;
+    } else if (enable) {
+        const auto topology =
+            MaxwellToVK::PrimitiveTopology(device, maxwell3d->draw_manager->GetDrawState().topology);
+        enable = IsPrimitiveRestartSupported(device, topology);
+    }
+
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetPrimitiveRestartEnableEXT(enable);
     });
 }
@@ -1727,7 +1791,9 @@ void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& 
 
 void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) {
     auto& dirty{maxwell3d->dirty.flags};
-    if (!dirty[Dirty::VertexInput]) {
+    const bool vertex_input_dirty = dirty[Dirty::VertexInput];
+    const bool vertex_buffers_dirty = dirty[VideoCommon::Dirty::VertexBuffers];
+    if (!vertex_input_dirty && !vertex_buffers_dirty) {
         return;
     }
     dirty[Dirty::VertexInput] = false;
@@ -1735,38 +1801,31 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
     boost::container::static_vector<VkVertexInputBindingDescription2EXT, 32> bindings;
     boost::container::static_vector<VkVertexInputAttributeDescription2EXT, 32> attributes;
 
-    // There seems to be a bug on Nvidia's driver where updating only higher attributes ends up
-    // generating dirty state. Track the highest dirty attribute and update all attributes until
-    // that one.
-    size_t highest_dirty_attr{};
-    for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
-        if (dirty[Dirty::VertexAttribute0 + index]) {
-            highest_dirty_attr = index;
-        }
-    }
-    for (size_t index = 0; index < highest_dirty_attr; ++index) {
+    const u32 max_attributes =
+        static_cast<u32>(std::min<size_t>(Maxwell::NumVertexAttributes,
+                                          device.GetMaxVertexInputAttributes()));
+    const u32 max_bindings =
+        static_cast<u32>(std::min<size_t>(Maxwell::NumVertexArrays,
+                                          device.GetMaxVertexInputBindings()));
+
+
+    for (u32 index = 0; index < max_attributes; ++index) {
         const Maxwell::VertexAttribute attribute{regs.vertex_attrib_format[index]};
         const u32 binding{attribute.buffer};
-        dirty[Dirty::VertexAttribute0 + index] = false;
-        dirty[Dirty::VertexBinding0 + static_cast<size_t>(binding)] = true;
-        if (!attribute.constant) {
-            attributes.push_back({
-                .sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
-                .pNext = nullptr,
-                .location = static_cast<u32>(index),
-                .binding = binding,
-                .format = MaxwellToVK::VertexFormat(device, attribute.type, attribute.size),
-                .offset = attribute.offset,
-            });
-        }
-    }
-    for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
-        if (!dirty[Dirty::VertexBinding0 + index]) {
+        if (attribute.constant || binding >= max_bindings) {
             continue;
         }
-        dirty[Dirty::VertexBinding0 + index] = false;
+        attributes.push_back({
+            .sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
+            .pNext = nullptr,
+            .location = index,
+            .binding = binding,
+            .format = MaxwellToVK::VertexFormat(device, attribute.type, attribute.size),
+            .offset = attribute.offset,
+        });
+    }
 
-        const u32 binding{static_cast<u32>(index)};
+    for (u32 binding = 0; binding < max_bindings; ++binding) {
         const auto& input_binding{regs.vertex_streams[binding]};
         const bool is_instanced{regs.vertex_stream_instances.IsInstancingEnabled(binding)};
         bindings.push_back({
@@ -1778,6 +1837,14 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
             .divisor = is_instanced ? input_binding.frequency : 1,
         });
     }
+
+    for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
+        dirty[Dirty::VertexAttribute0 + index] = false;
+    }
+    for (size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
+        dirty[Dirty::VertexBinding0 + index] = false;
+    }
+
     scheduler.Record([bindings, attributes](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetVertexInputEXT(bindings, attributes);
     });

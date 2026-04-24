@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -88,13 +88,13 @@ std::pair<std::array<Shader::TransformFeedbackVarying, 256>, u32> MakeTransformF
                 return 0;
             };
 
-            UNIMPLEMENTED_IF_MSG(layout.stream != 0, "Stream is not zero: {}", layout.stream);
             Shader::TransformFeedbackVarying varying{
                 .buffer = static_cast<u32>(buffer),
                 .stride = layout.stride,
                 .offset = offset * 4,
                 .components = 1,
             };
+                varying.stream = layout.stream;
             const u32 base_offset = offset;
             const auto attribute{get_attribute(offset)};
             if (std::ranges::find(VECTORS, Common::AlignDown(attribute, 4)) != VECTORS.end()) {

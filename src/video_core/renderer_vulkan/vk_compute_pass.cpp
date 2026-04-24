@@ -228,6 +228,10 @@ struct QueriesPrefixScanPushConstants {
     u32 accumulation_limit;
     u32 buffer_offset;
 };
+
+struct ConditionalRenderingResolvePushConstants {
+    u32 compare_to_zero;
+};
 } // Anonymous namespace
 
 ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
@@ -413,7 +417,8 @@ ConditionalRenderingResolvePass::ConditionalRenderingResolvePass(
     const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
     ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
     : ComputePass(device_, descriptor_pool_, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
-                  INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO, nullptr,
+                  INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO,
+                  COMPUTE_PUSH_CONSTANT_RANGE<sizeof(ConditionalRenderingResolvePushConstants)>,
                   RESOLVE_CONDITIONAL_RENDER_COMP_SPV),
       scheduler{scheduler_}, compute_pass_descriptor_queue{compute_pass_descriptor_queue_} {}
 
@@ -430,7 +435,7 @@ void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_
     const void* const descriptor_data{compute_pass_descriptor_queue.UpdateData()};
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([this, descriptor_data](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([this, descriptor_data, compare_to_zero](vk::CommandBuffer cmdbuf) {
         static constexpr VkMemoryBarrier read_barrier{
             .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -443,6 +448,9 @@ void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_
             .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
             .dstAccessMask = VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT,
         };
+        const ConditionalRenderingResolvePushConstants uniforms{
+            .compare_to_zero = compare_to_zero ? 1U : 0U,
+        };
         const VkDescriptorSet set = descriptor_allocator.Commit();
         device.GetLogical().UpdateDescriptorSet(set, *descriptor_template, descriptor_data);
 
@@ -450,9 +458,11 @@ void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_
                                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, read_barrier);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *layout, 0, set, {});
+        cmdbuf.PushConstants(*layout, VK_SHADER_STAGE_COMPUTE_BIT, uniforms);
         cmdbuf.Dispatch(1, 1, 1);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, write_barrier);
+                               VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT, 0,
+                               write_barrier);
     });
 }
 
@@ -520,7 +530,7 @@ void QueriesPrefixScanPass::Run(VkBuffer accumulation_buffer, VkBuffer dst_buffe
             const VkDescriptorSet set = descriptor_allocator.Commit();
             device.GetLogical().UpdateDescriptorSet(set, *descriptor_template, descriptor_data);
 
-            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
                                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, read_barrier);
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
             cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *layout, 0, set, {});

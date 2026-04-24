@@ -501,7 +501,7 @@
     <string name="enable_buffer_history">Enable buffer history</string>
     <string name="enable_buffer_history_description">Enables access to previous buffer states. This option may improve rendering quality and performance consistency in some games.</string>
     <string name="use_optimized_vertex_buffers">Optimized Vertex Buffers</string>
-    <string name="use_optimized_vertex_buffers_description">Enables optimized vertex buffer binding for improved performance. Requires Mesa 26.0+ Turnip drivers. Will crash on older drivers.</string>
+    <string name="use_optimized_vertex_buffers_description">Enables optimized vertex buffer binding for improved performance. Requires Mesa 26.0+ Turnip drivers/ QCOM drivers. Will crash on older Turnip drivers.</string>
 
     <string name="hacks">Hacks</string>
 
@@ -510,7 +510,9 @@
     <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
     <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
     <string name="fix_bloom_effects">Fix Bloom Effects</string>
-    <string name="fix_bloom_effects_description">Reduces bloom blur in LA/EOW (Adreno 700), removes bloom in Burnout. Warning: may cause graphical artifacts in other games.</string>
+    <string name="fix_bloom_effects_description">Reduces bloom blur in LA/EOW (Adreno A6XX - A7XX/ Turnip), removes bloom in Burnout. Warning: may cause graphical artifacts in other games.</string>
+    <string name="emulate_bgr565">Emulate BGR565</string>
+    <string name="emulate_bgr565_description">Fixes problems with inverted colors in games or strange artifacts or strange shadows.</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously. This may reduce stutters but may also introduce glitches.</string>
     <string name="gpu_unswizzle_settings">GPU Unswizzle Settings</string>

@@ -123,6 +123,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdEndDebugUtilsLabelEXT);
     X(vkCmdFillBuffer);
     X(vkCmdPipelineBarrier);
+    X(vkCmdResetQueryPool);
     X(vkCmdPushConstants);
     X(vkCmdPushDescriptorSetWithTemplateKHR);
     X(vkCmdSetBlendConstants);

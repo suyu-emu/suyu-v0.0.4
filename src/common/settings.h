@@ -555,6 +555,9 @@ struct Values {
     SwitchableSetting<bool> fix_bloom_effects{linkage, false, "fix_bloom_effects",
                                                      Category::RendererHacks};
 
+    SwitchableSetting<bool> emulate_bgr565{linkage, false, "emulate_bgr565",
+                                            Category::RendererHacks};
+
     SwitchableSetting<bool> rescale_hack{linkage, false, "rescale_hack",
                                                      Category::RendererHacks};
 
@@ -584,7 +587,7 @@ struct Values {
 
     SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
 #if defined(ANDROID)
-                                           ExtendedDynamicState::EDS1,
+                                           ExtendedDynamicState::Disabled,
 #elif defined(__APPLE__)
                                            ExtendedDynamicState::Disabled,
 #else

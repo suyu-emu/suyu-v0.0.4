@@ -190,9 +190,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             }
         }
     }
-    if (!extended_dynamic_state_3_enables) {
-        dynamic_state.Refresh3(regs);
-    }
+    dynamic_state.Refresh3(regs, features);
     if (xfb_enabled) {
         RefreshXfbState(xfb_state, regs);
     }
@@ -295,16 +293,22 @@ void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs,
     depth_bias_enable.Assign(enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]] != 0 ? 1 : 0);
 }
 
-void FixedPipelineState::DynamicState::Refresh3(const Maxwell& regs) {
-    logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
-    depth_clamp_disabled.Assign(regs.viewport_clip_control.geometry_clip ==
-                                    Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
-                                regs.viewport_clip_control.geometry_clip ==
-                                    Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
-                                regs.viewport_clip_control.geometry_clip ==
-                                    Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
-
-    line_stipple_enable.Assign(regs.line_stipple_enable);
+void FixedPipelineState::DynamicState::Refresh3(const Maxwell& regs,
+                                                const DynamicFeatures& features) {
+    if (!features.has_dynamic_state3_logic_op_enable) {
+        logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
+    }
+    if (!features.has_dynamic_state3_depth_clamp_enable) {
+        depth_clamp_disabled.Assign(regs.viewport_clip_control.geometry_clip ==
+                                        Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
+                                    regs.viewport_clip_control.geometry_clip ==
+                                        Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
+                                    regs.viewport_clip_control.geometry_clip ==
+                                        Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
+    }
+    if (!features.has_dynamic_state3_line_stipple_enable) {
+        line_stipple_enable.Assign(regs.line_stipple_enable);
+    }
 }
 
 size_t FixedPipelineState::Hash() const noexcept {
