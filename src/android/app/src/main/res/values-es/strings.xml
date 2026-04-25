@@ -272,7 +272,7 @@
     <string name="general_information">Información general</string>
     <string name="hardware">Hardware</string>
     <string name="supported_abis">ABIs soportadas</string>
-    <string name="cpu_info">Información del procesador</string>
+    <string name="cpu_info">Información de la CPU</string>
     <string name="gpu_information">Información de la GPU</string>
     <string name="vulkan_driver_version">Versión del controlador de Vulkan</string>
     <string name="error_getting_emulator_info">Error al obtener la información del emulador</string>
@@ -416,8 +416,8 @@
     <string name="turbo_speed_limit_description">Cuando el modo turbo esté activado, la emulación se ejecutará a esta velocidad.</string>
     <string name="slow_speed_limit">Velocidad lenta</string>
     <string name="slow_speed_limit_description">Cuando el modo lento esté activado, la emulación se ejecutará a esta velocidad.</string>
-    <string name="cpu_backend">Motor del procesador</string>
-    <string name="cpu_accuracy">Precisión del procesador</string>
+    <string name="cpu_backend">Motor de la CPU</string>
+    <string name="cpu_accuracy">Precisión de la CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
@@ -433,7 +433,7 @@
     <string name="set_custom_rtc">Configurar RTC personalizado</string>
 
     <!-- CPU -->
-    <string name="fast_cpu_time">Overclock del procesador</string>
+    <string name="fast_cpu_time">Overclock de la CPU</string>
     <string name="fast_cpu_time_description">Fuerza a la CPU emulada a ejecutarser a una velocidad de reloj más alta, lo cual reduce ciertos limitadores de fotogramas por segundo. Usa Boost (1700 MHz) para ejecutar a la velocidad de reloj nativa más alta de la Switch, o Fast (2000 MHz) para ejecutar a una velocidad doble de reloj.</string>
     <string name="custom_cpu_ticks">Ticks de CPU personalizados</string>
     <string name="custom_cpu_ticks_description">Establezca un valor personalizado de los ciclos de la CPU. Los valores más altos pueden aumentar el rendimiento, pero también pueden hacer que el juego se congele. Se recomienda un rango de 77–21000.</string>
@@ -489,7 +489,7 @@
     <string name="enable_buffer_history">Activar el historial del búfer</string>
     <string name="enable_buffer_history_description">Permite el acceso al estado del búfer anterior. Esta opción puede mejorar la calidad de renderizado y la consistencia en el rendimiento de algunos juegos.</string>
     <string name="use_optimized_vertex_buffers">Búferes de vértices optimizados</string>
-    <string name="use_optimized_vertex_buffers_description">Permite la vinculación optimizada del búfer de vértices para un mejor rendimiento. Requiere controladores de Mesa 26.0+ Turnip. Se producirán fallos en controladores más antiguos.</string>
+    <string name="use_optimized_vertex_buffers_description">Permite la optimización del enlace del búfer de vértices para un mejor rendimiento. Requiere controladores Mesa 26.0+ Turnip/ controladores QCOM. Causará fallos con controladores Turnip más antiguos.</string>
 
     <string name="hacks">Hacks</string>
 
@@ -498,7 +498,9 @@
     <string name="skip_cpu_inner_invalidation">Omitir invalidación interna de la CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Omite ciertas invalidaciones de caché de la CPU durante las actualizaciones de memoria, lo que reduce el uso de la CPU y mejora su rendimiento. Esto puede causar fallos o bloqueos en algunos juegos.</string>
     <string name="fix_bloom_effects">Arreglar los efectos de resplandor</string>
-    <string name="fix_bloom_effects_description">Reduce el efecto de resplandor en LA/EOW (Adreno 700), elimina el resplandor en Burnout. Advertencia: puede causar artefactos gráficos en otros juegos.</string>
+    <string name="fix_bloom_effects_description">Reduce el efecto de resplandor en LA/EOW (Adreno A6XX - A7XX/ Turnip), elimina el resplandor en Burnout. Advertencia: puede causar artefactos gráficos en otros juegos.</string>
+    <string name="emulate_bgr565">Emular BGR565</string>
+    <string name="emulate_bgr565_description">Soluciona problemas con colores invertidos en juegos, artefactos o sombras extrañas.</string>
     <string name="renderer_asynchronous_shaders">Usar sombreadores asíncronos</string>
     <string name="renderer_asynchronous_shaders_description">Compila los sombreadores de forma asíncrona. Esto puede reducir los tirones, pero también puede introducir errores gráficos.</string>
     <string name="gpu_unswizzle_settings">Ajustes de desentrelazado de la GPU</string>
@@ -536,7 +538,7 @@
     <string name="warning_resolution">Escalar la resolución a 2x o más puede causar problemas y ralentizar significativamente su dispositivo.</string>
 
     <!-- Debug settings strings -->
-    <string name="cpu">Procesador</string>
+    <string name="cpu">CPU</string>
     <string name="use_auto_stub">Usar Auto Stub</string>
     <string name="use_auto_stub_description">Rellena automáticamente servicios y funciones ausentes. Puede mejorar la compatibilidad pero puede causar cierres inesperados.</string>
 

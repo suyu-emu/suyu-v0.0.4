@@ -239,7 +239,7 @@ Esto vetará su nombre de usuario del foro y su dirección IP.</translation>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="36"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href=&quot;https://eden-emulator.github.io/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;eden Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Which version of eden you are running&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The connected eden account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Si elijes entregar un caso de prueba a la &lt;/span&gt;&lt;a href=&quot;https://eden-emulator.github.io/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;lista de compatibilidad de Eden&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, Se recopilará y mostrará la siguiente información en el sito:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Información del hardware (Procesador / Tarjeta gráfica / Sistema operativo)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Qué version de Eden estás usando&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;La cuenta de eden que está conectada &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Si elijes entregar un caso de prueba a la &lt;/span&gt;&lt;a href=&quot;https://eden-emulator.github.io/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;lista de compatibilidad de Eden&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, Se recopilará y mostrará la siguiente información en el sito:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Información del hardware (CPU / GPU / Sistema operativo)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Qué version de Eden estás usando&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;La cuenta de eden que está conectada &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="77"/>
@@ -492,14 +492,14 @@ Esto vetará su nombre de usuario del foro y su dirección IP.</translation>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="63"/>
         <source>Multicore CPU Emulation</source>
-        <translation>Emulación del procesador multinúcleo </translation>
+        <translation>Emulación de la CPU multinúcleo </translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="64"/>
         <source>This option increases CPU emulation thread use from 1 to the maximum of 4.
 This is mainly a debug option and shouldn&apos;t be disabled.</source>
-        <translation>Esta opción aumenta el uso de hilos de emulación del procesador de 1 a un máximo de 4.
-Principalmente es una opción de depuración y no debería desactivarse.</translation>
+        <translation>Esta opción aumenta el uso de hilos de emulación de la CPU de 1 a un máximo de 4.
+Esta es una opción principalmente de depuración y no debería desactivarse.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="66"/>
@@ -556,7 +556,7 @@ Desactivarlo hará que el juego se renderice lo más rápido posible según tu o
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="86"/>
         <source>Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
 Can help reduce stuttering at lower framerates.</source>
-        <translation>Sincroniza la velocidad del núcleo del procesador con la velocidad máxima de renderizado del juego para aumentar los fotogramas por segundo sin afectar la velocidad del juego (animaciones, físicas, etc.).
+        <translation>Sincroniza la velocidad del núcleo de la CPU con la velocidad máxima de renderizado del juego para aumentar los fotogramas por segundo sin afectar la velocidad del juego (animaciones, físicas, etc.).
 Puede ayudar a reducir los tirones o parpadeos en tasas de fotogramas bajas.</translation>
     </message>
     <message>
@@ -567,7 +567,7 @@ Puede ayudar a reducir los tirones o parpadeos en tasas de fotogramas bajas.</tr
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="92"/>
         <source>Change the accuracy of the emulated CPU (for debugging only).</source>
-        <translation>Cambia la precisión del procesador emulado (solo para depuración)</translation>
+        <translation>Cambia la precisión de la CPU emulada (solo para depuración)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="93"/>
@@ -578,7 +578,7 @@ Puede ayudar a reducir los tirones o parpadeos en tasas de fotogramas bajas.</tr
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="95"/>
         <source>CPU Overclock</source>
-        <translation>Overclock del procesador</translation>
+        <translation>Overclock de la CPU</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="96"/>
@@ -806,7 +806,7 @@ Esta función es experimental.</translation>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="173"/>
         <source>Uses an extra CPU thread for rendering.
 This option should always remain enabled.</source>
-        <translation>Usa un hilo adicional del procesador para el renderizado.
+        <translation>Usa un hilo adicional de la CPU para el renderizado.
 Esta opción siempre debe permanecer activada.</translation>
     </message>
     <message>
@@ -836,9 +836,9 @@ GPU: Use the GPU's compute shaders to decode ASTC textures (recommended).
 CPU Asynchronously: Use the CPU to decode ASTC textures on demand. EliminatesASTC decoding
 stuttering but may present artifacts.</source>
         <translation>Esta opción controla cómo deben descodificarse las texturas ASTC.
-CPU: utiliza el procesador para la descodificación.
-GPU: utiliza los sombreadores computables de la tarjeta gráfica para descodificar las texturas ASTC (recomendado).
-CPU asíncrono: usa el procesador para descodificar las texturas ASTC bajo demanda. Elimina los tirones causados por la descodificación ASTC, pero puede generar errores visuales.</translation>
+CPU: utiliza la CPU para la descodificación.
+GPU: utiliza los sombreadores computables de la GPU para descodificar las texturas ASTC (recomendado).
+CPU asíncrona: usa la CPU para descodificar las texturas ASTC bajo demanda. Elimina los tirones causados por la descodificación ASTC, pero puede generar errores visuales.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="184"/>
@@ -1354,7 +1354,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="393"/>
         <source>CPU</source>
-        <translation>Procesador</translation>
+        <translation>CPU</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="394"/>
@@ -1364,7 +1364,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="395"/>
         <source>CPU Asynchronous</source>
-        <translation>Procesador asíncrono</translation>
+        <translation>CPU asíncrona</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="400"/>
@@ -1517,7 +1517,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="460"/>
         <source>CPU Video Decoding</source>
-        <translation>Decodificación de vídeo en el procesador</translation>
+        <translation>Decodificación de vídeo en la CPU</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="461"/>
@@ -2367,7 +2367,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="17"/>
         <source>CPU</source>
-        <translation>Procesador</translation>
+        <translation>CPU</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="28"/>
@@ -2382,12 +2382,12 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="68"/>
         <source>CPU Backend</source>
-        <translation>Motor del procesador</translation>
+        <translation>Motor de la CPU</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="95"/>
         <source>Unsafe CPU Optimization Settings</source>
-        <translation>Ajustes de optimización del procesador inseguro</translation>
+        <translation>Ajustes inseguros de la optimización de la CPU</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="101"/>
@@ -2405,12 +2405,12 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="17"/>
         <source>CPU</source>
-        <translation>Procesador</translation>
+        <translation>CPU</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="25"/>
         <source>Toggle CPU Optimizations</source>
-        <translation>Cambiar las optimizaciones del procesador</translation>
+        <translation>Cambiar las optimizaciones de la CPU</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="31"/>
@@ -2606,7 +2606,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="212"/>
         <source>CPU settings are available only when game is not running.</source>
-        <translation>Los ajustes del procesador solo están disponibles cuando no se esté ejecutando ningún juego.</translation>
+        <translation>Los ajustes de la CPU solo están disponibles cuando no se esté ejecutando ningún juego.</translation>
     </message>
 </context>
 <context>
@@ -2644,17 +2644,17 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="209"/>
         <source>Enable Extended Logging**</source>
-        <translation>Habilitar registro extendido**</translation>
+        <translation>Habilitar el registro extendido**</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="216"/>
         <source>Show Log in Console</source>
-        <translation>Ver registro en consola</translation>
+        <translation>Ver el registro en la consola</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="223"/>
         <source>Open Log Location</source>
-        <translation>Abrir ubicación del archivo de registro</translation>
+        <translation>Abrir la ubicación del archivo de registro</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="235"/>
@@ -2689,7 +2689,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="282"/>
         <source>Dump Maxwell Macros</source>
-        <translation>Volcar Macros Maxwell</translation>
+        <translation>Volcar macros Maxwell</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="289"/>
@@ -2734,7 +2734,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="338"/>
         <source>Disable Macro HLE</source>
-        <translation>Desactivar Macro HLE</translation>
+        <translation>Desactivar macro HLE</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="348"/>
@@ -2844,7 +2844,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="538"/>
         <source>Debug Knobs: </source>
-        <translation>perillas de depuración:</translation>
+        <translation>Interruptores de depuración:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="572"/>
@@ -2864,7 +2864,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="611"/>
         <source>Flush log output on each line</source>
-        <translation>Limpia lg salida en cada linea</translation>
+        <translation>Limpia el registro de salida en cada línea</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="618"/>
@@ -2879,7 +2879,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="632"/>
         <source>Censor username in logs</source>
-        <translation>Censura nombre de usario en logs</translation>
+        <translation>Censura del nombre de usuario en los archivos de registro</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="668"/>
@@ -2921,7 +2921,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_tab.cpp" line="17"/>
         <source>CPU</source>
-        <translation>Procesador</translation>
+        <translation>CPU</translation>
     </message>
 </context>
 <context>
@@ -2951,7 +2951,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="71"/>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="180"/>
         <source>CPU</source>
-        <translation>Procesador</translation>
+        <translation>CPU</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="72"/>
@@ -2978,7 +2978,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="76"/>
         <source>GraphicsAdvanced</source>
-        <translation>Gráficosavanzados</translation>
+        <translation>GráficosAvanzados</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="77"/>
@@ -3063,7 +3063,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="65"/>
         <source>Save Data</source>
-        <translation>Datos guardados</translation>
+        <translation>Datos de guardado</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="101"/>
@@ -3169,7 +3169,7 @@ Cuando un programa intenta abrir el applet del controlador, se cierra inmediatam
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="151"/>
         <source>Set Custom Path</source>
-        <translation>Configure ruta personalizado</translation>
+        <translation>Configura una ruta personalizado</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="152"/>
@@ -4812,7 +4812,7 @@ Los valores actuales son %1% y %2% respectivamente.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="79"/>
         <source>CPU</source>
-        <translation>Procesador</translation>
+        <translation>CPU</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="80"/>
@@ -5814,12 +5814,12 @@ Arrastre los puntos para cambiar de posición, o haga doble clic en las celdas d
     <message>
         <location filename="../../src/yuzu/data_dialog.cpp" line="32"/>
         <source>User NAND</source>
-        <translation type="unfinished"/>
+        <translation>NAND del usuario</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_dialog.cpp" line="33"/>
         <source>System NAND</source>
-        <translation type="unfinished"/>
+        <translation>NAND del sistema</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_dialog.cpp" line="34"/>

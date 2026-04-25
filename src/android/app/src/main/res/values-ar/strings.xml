@@ -495,7 +495,7 @@
     <string name="enable_buffer_history">تمكين سجل التخزين المؤقت</string>
     <string name="enable_buffer_history_description">يُتيح هذا الخيار الوصول إلى حالات التخزين المؤقت السابقة. وقد يُحسّن جودة العرض وثبات الأداء في بعض الألعاب.</string>
     <string name="use_optimized_vertex_buffers">مخازن الرؤوس المُحسّنة</string>
-    <string name="use_optimized_vertex_buffers_description">يُتيح ربطًا مُحسَّنًا لمخازن الرؤوس لتحسين الأداء. يتطلب برامج تشغيل Turnip من Mesa 26.0 أو أحدث. قد يتعطل على برامج التشغيل الأقدم.</string>
+    <string name="use_optimized_vertex_buffers_description">يتيح ربط مخزن الرؤوس المُحسّن لتحسين الأداء. يتطلب برامج تشغيل Turnip/QCOM من إصدار Mesa 26.0 أو أحدث. سيؤدي إلى تعطل النظام عند استخدام برامج تشغيل Turnip الأقدم.</string>
 
     <string name="hacks">اختراقات</string>
 
@@ -504,7 +504,9 @@
     <string name="skip_cpu_inner_invalidation">تخطي إبطال صلاحية وحدة المعالجة المركزية الداخلية</string>
     <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة من جانب وحدة المعالجة المركزية أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسن أداءها. قد يتسبب ذلك في حدوث أعطال أو تعطل في بعض الألعاب.</string>
     <string name="fix_bloom_effects">إصلاح تأثيرات التوهج</string>
-    <string name="fix_bloom_effects_description">يقلل من ضبابية التوهج في LA/EOW (Adreno 700)، ويزيل التوهج في Burnout. تحذير: قد يسبب ظهور خلل رسومي في ألعاب أخرى.</string>
+    <string name="fix_bloom_effects_description">يقلل من ضبابية التوهج في LA/EOW  (Adreno A6XX - A7XX/ Turnip)، ويزيل التوهج في Burnout. تحذير: قد يسبب تشوهات رسومية في ألعاب أخرى.</string>
+    <string name="emulate_bgr565">محاكاة BGR565</string>
+    <string name="emulate_bgr565_description">يُصلح مشاكل انعكاس الألوان في الألعاب أو ظهور تشوهات غريبة أو ظلال غريبة.</string>
     <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
     <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
     <string name="gpu_unswizzle_settings">إعدادات إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>

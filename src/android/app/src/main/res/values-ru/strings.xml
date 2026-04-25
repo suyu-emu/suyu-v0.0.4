@@ -491,8 +491,6 @@
     <string name="enable_buffer_history">Включить историю буфера</string>
     <string name="enable_buffer_history_description">Позволяет обращаться к предыдущим состояниям буфера. Эта опция может повысить качество рендеринга и стабильность производительности в некоторых играх.</string>
     <string name="use_optimized_vertex_buffers">Оптимизированные вершинные буферы</string>
-    <string name="use_optimized_vertex_buffers_description">Активирует оптимизированную привязку вершинных буферов для улучшения производительности. Требуются Mesa Turnip драйвера версией не ниже 26.0, на более старых драйверах будут происходить сбои и краши</string>
-
     <string name="hacks">Хаки</string>
 
     <string name="fast_gpu_time">Быстрое время ГПУ</string>
@@ -500,7 +498,6 @@
     <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
     <string name="fix_bloom_effects">Исправить эффекты размытия</string>
-    <string name="fix_bloom_effects_description">Частично убирает размытие в LA/EOW (Adreno 700), полностью отключает его в Burnout. Внимание: может вызывать графические артефакты в других играх.</string>
     <string name="renderer_asynchronous_shaders">Использовать асинхронные шейдеры</string>
     <string name="renderer_asynchronous_shaders_description">Компилирует шейдеры асинхронно. Это может уменьшить подтормаживания, но также может вызвать графические артефакты.</string>
     <string name="gpu_unswizzle_settings">Настройки распаковки текстур (Unswizzle)</string>

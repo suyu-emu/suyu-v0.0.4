@@ -491,7 +491,7 @@
     <string name="enable_buffer_history">Увімкнути історію буфера</string>
     <string name="enable_buffer_history_description">Вмикає доступ до попередніх станів буфера. Цей параметр може покращити якість візуалізації та стабільну продуктивність у деяких іграх.</string>
     <string name="use_optimized_vertex_buffers">Оптимізовані буфери вершин</string>
-    <string name="use_optimized_vertex_buffers_description">Застосовує оптимізований буфер вершин, щоб покращити продуктивність. Потребує драйверів Mesa 26.0+ Turnip. На старіших драйверах виникатиме збій.</string>
+    <string name="use_optimized_vertex_buffers_description">Застосовує оптимізований буфер вершин, щоб покращити продуктивність. Потребує драйверів Mesa 26.0+ Turnip / QCOM. На старіших драйверах Turnip виникатиме збій.</string>
 
     <string name="hacks">Обхідні рішення</string>
 
@@ -500,7 +500,9 @@
     <string name="skip_cpu_inner_invalidation">Пропустити внутрішнє інвалідування CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускає деякі інвалідації кешу на стороні CPU під час оновлення пам\'яті, зменшуючи навантаження на процесор і покращуючи продуктивність. Може спричинити збої в деяких іграх.</string>
     <string name="fix_bloom_effects">Виправити ефекти світіння</string>
-    <string name="fix_bloom_effects_description">Зменшує розмиття світіння в LA/EOW (Adreno 700), прибирає світіння в Burnout. Увага: може спричинити графічні артефакти в інших іграх.</string>
+    <string name="fix_bloom_effects_description">Зменшує розмиття світіння в LA/EOW (Adreno A6XX–A7XX / Turnip), прибирає світіння в Burnout. Увага: може спричинити графічні артефакти в інших іграх.</string>
+    <string name="emulate_bgr565">Емулювати BGR565</string>
+    <string name="emulate_bgr565_description">Виправляє проблеми з інвертованими кольорами в іграх або дивними артефактами чи тінями.</string>
     <string name="renderer_asynchronous_shaders">Асинхронні шейдери</string>
     <string name="renderer_asynchronous_shaders_description">Компілює шейдери асинхронно. Це може зменшити затримки, але також може спричинити графічні баги.</string>
     <string name="gpu_unswizzle_settings">Налаштування розпакування за допомогою ГП</string>
