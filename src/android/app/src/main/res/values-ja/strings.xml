@@ -349,7 +349,6 @@
     <string name="renderer_vsync">垂直同期モード</string>
     <string name="renderer_scaling_filter">ウィンドウ適応フィルター</string>
     <string name="renderer_anti_aliasing">アンチエイリアス方式</string>
-    <string name="renderer_optimize_spirv_output_description">コンパイル済みシェーダーを最適化し、GPUの効率を向上させます。</string>
 
 
     <string name="dma_accuracy">DMA精度</string>

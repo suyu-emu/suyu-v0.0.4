@@ -349,7 +349,6 @@
     <string name="renderer_vsync">수직동기화 모드</string>
     <string name="renderer_scaling_filter">윈도우 적응 필터</string>
     <string name="renderer_anti_aliasing">안티에일리어싱 방법</string>
-    <string name="renderer_optimize_spirv_output_description">컴파일된 셰이더를 최적화하여 GPU 효율성을 향상시킵니다.</string>
 
 
     <string name="dma_accuracy">DMA 정확도</string>

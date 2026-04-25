@@ -463,8 +463,6 @@
     <string name="fsr_sharpness">حدة FSR</string>
     <string name="fsr_sharpness_description">يحدد مدى وضوح الصورة عند استخدام التباين الديناميكي لـ FSR</string>
     <string name="renderer_anti_aliasing">طريقة مضاد التعرج</string>
-    <string name="renderer_optimize_spirv_output">تحسين مخرجات SPIRV</string>
-    <string name="renderer_optimize_spirv_output_description">يعمل على تحسين أداء برامج التظليل المجمعة لتحسين كفاءة وحدة معالجة الرسومات، ولكنه قد يؤدي إلى زيادة وقت التحميل وإبطاء السرعة في البداية.</string>
 
 
     <string name="advanced">متقدم</string>

@@ -354,7 +354,6 @@
     <string name="fsr_sharpness">ФСР оштрина</string>
     <string name="fsr_sharpness_description">Одређује колико ће се слика наоштрен трајати док користи \"ФСР\" динамички контраст</string>
     <string name="renderer_anti_aliasing">Метода против алиасирања</string>
-    <string name="renderer_optimize_spirv_output_description">Оптимизира састављена схадер за побољшање ефикасности ГПУ-а.</string>
 
 
     <string name="dma_accuracy">DMA тачност</string>

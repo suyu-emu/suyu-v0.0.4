@@ -442,8 +442,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="fsr_sharpness">FSR-Schärfe</string>
     <string name="fsr_sharpness_description">Bestimmt die Schärfe bei FSR-Nutzung.</string>
     <string name="renderer_anti_aliasing">Kantenglättung</string>
-    <string name="renderer_optimize_spirv_output">Optimiere SPIRV-Ausgabe</string>
-    <string name="renderer_optimize_spirv_output_description">Optimiert den kompilierten Shader, um die GPU-Effizienz zu verbessern.</string>
 
 
     <string name="advanced">Erweitert</string>

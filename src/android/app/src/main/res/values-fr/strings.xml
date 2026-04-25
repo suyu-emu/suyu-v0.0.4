@@ -455,7 +455,6 @@
     <string name="fsr_sharpness">Netteté FSR</string>
     <string name="fsr_sharpness_description">Détermine à quel point l\'image sera affinée lors de l\'utilisation du contraste dynamique FSR.</string>
     <string name="renderer_anti_aliasing">Méthode d\'anticrénelage</string>
-    <string name="renderer_optimize_spirv_output_description">Optimise le shader compilé pour améliorer l\'efficacité du GPU.</string>
 
 
     <string name="dma_accuracy">Précision DMA</string>

@@ -442,8 +442,6 @@
     <string name="fsr_sharpness">Ostrost FSR</string>
     <string name="fsr_sharpness_description">Určuje jak ostře bude obraz vypadat při použití dynamického kontrastu FSR.</string>
     <string name="renderer_anti_aliasing">Metoda anti-aliasingu</string>
-    <string name="renderer_optimize_spirv_output">Optimalizovat výstup SPIRV</string>
-    <string name="renderer_optimize_spirv_output_description">Optimalizuje kompilované shadery pro zlepšení efektivity GPU, ale mohou se objevit delší nahrávací časy a zpomalení v úvodu.</string>
 
 
     <string name="advanced">Pokročilé</string>

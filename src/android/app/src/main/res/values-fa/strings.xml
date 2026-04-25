@@ -125,8 +125,6 @@
     <string name="nvdec_emulation_none">هیچ‌کدام</string>
 
     <!-- Optimize Spir-V output -->
-    <string name="renderer_optimize_spirv_output">بهینه‌سازی خروجی Spir-V</string>
-    <string name="renderer_optimize_spirv_output_description">شیدر کامپایل شده را برای بهبود کارایی GPU بهینه‌سازی می‌کند.</string>
     <string name="never">هرگز</string>
     <string name="on_load">در هنگام بارگذاری</string>
     <string name="always">همیشه</string>

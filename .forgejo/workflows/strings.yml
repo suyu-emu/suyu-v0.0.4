@@ -3,6 +3,8 @@ name: Check Strings
 on:
   push:
     branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   check-strings:
@@ -10,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Find Unused Strings
         run: ./tools/unused-strings.sh

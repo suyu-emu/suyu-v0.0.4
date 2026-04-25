@@ -453,8 +453,6 @@
     <string name="fsr_sharpness">FSR 锐化度</string>
     <string name="fsr_sharpness_description">指定使用 FSR 时图像的锐化程度</string>
     <string name="renderer_anti_aliasing">抗锯齿方式</string>
-    <string name="renderer_optimize_spirv_output">优化 SPIRV 输出</string>
-    <string name="renderer_optimize_spirv_output_description">优化编译后的着色器以提高GPU效率。</string>
 
 
     <string name="advanced">高级</string>

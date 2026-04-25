@@ -332,7 +332,6 @@
     <string name="fsr_sharpness">FSR-skarphet</string>
     <string name="fsr_sharpness_description">Bestemmer bildekvalitet med FSR</string>
     <string name="renderer_anti_aliasing">Anti-aliasing-metode</string>
-    <string name="renderer_optimize_spirv_output_description">Optimaliserer den kompilerte shaderen for å forbedre GPU-effektiviteten.</string>
 
 
     <string name="dma_accuracy">DMA-nøyaktighet</string>

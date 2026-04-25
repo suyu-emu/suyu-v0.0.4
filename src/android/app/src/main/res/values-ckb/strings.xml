@@ -332,7 +332,6 @@
     <string name="fsr_sharpness">تیژی FSR</string>
     <string name="fsr_sharpness_description">دیاریکردنی تیژی وێنە لە کاتی بەکارهێنانی FSR</string>
     <string name="renderer_anti_aliasing">شێوازی دژە-خاوڕۆیی</string>
-    <string name="renderer_optimize_spirv_output_description">شێیدەرە کۆمپایلکراوەکان باش دەکات بۆ باشترکردنی کارایی GPU.</string>
 
 
     <string name="dma_accuracy">وردیی DMA</string>

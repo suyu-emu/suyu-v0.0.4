@@ -469,8 +469,6 @@
     <string name="fsr_sharpness">FSR sharpness</string>
     <string name="fsr_sharpness_description">Determines how sharpened the image will look while using FSR\'s dynamic contrast</string>
     <string name="renderer_anti_aliasing">Anti-aliasing method</string>
-    <string name="renderer_optimize_spirv_output">Optimize SPIRV output</string>
-    <string name="renderer_optimize_spirv_output_description">Optimizes compiled shaders to improve GPU efficiency, but may introduce longer loading times and initial slowdowns.</string>
 
 
     <string name="advanced">Advanced</string>

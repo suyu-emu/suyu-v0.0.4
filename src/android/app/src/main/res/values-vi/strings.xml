@@ -330,7 +330,6 @@
     <string name="fsr_sharpness">Độ sắc nét FSR</string>
     <string name="fsr_sharpness_description">Độ sắc nét khi dùng FSR</string>
     <string name="renderer_anti_aliasing">Phương pháp khử răng cưa</string>
-    <string name="renderer_optimize_spirv_output_description">Tối ưu hóa shader đã biên dịch để cải thiện hiệu suất GPU.</string>
 
 
     <string name="dma_accuracy">Độ chính xác DMA</string>

@@ -351,7 +351,6 @@
     <string name="fsr_sharpness">FSR élesség</string>
     <string name="fsr_sharpness_description">Meghatározza, milyen éles lesz a kép az FSR dinamikus kontraszt használata közben.</string>
     <string name="renderer_anti_aliasing">Élsimítási módszer</string>
-    <string name="renderer_optimize_spirv_output_description">Optimalizálja a lefordított shadert a GPU hatékonyságának javításáért.</string>
 
 
     <string name="dma_accuracy">DMA pontosság</string>

@@ -457,8 +457,6 @@
     <string name="fsr_sharpness">Nitidez FSR</string>
     <string name="fsr_sharpness_description">Ajusta la intensidad del filtro de enfoque al usar el contraste dinámico de FSR.</string>
     <string name="renderer_anti_aliasing">Método de suavizado de bordes</string>
-    <string name="renderer_optimize_spirv_output">Optimizar la salida de SPIRV</string>
-    <string name="renderer_optimize_spirv_output_description">Optimiza los sombreadores compilados para mejorar la eficiencia de la GPU.</string>
 
 
     <string name="advanced">Avanzado</string>

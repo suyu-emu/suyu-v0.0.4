@@ -459,8 +459,6 @@
     <string name="fsr_sharpness">Різкість FSR</string>
     <string name="fsr_sharpness_description">Визначає різкість зображення при використанні FSR.</string>
     <string name="renderer_anti_aliasing">Згладжування</string>
-    <string name="renderer_optimize_spirv_output">Оптимізовувати виведення SPIRV</string>
-    <string name="renderer_optimize_spirv_output_description">Оптимізує скомпільований шейдер для покращення ефективності GPU.</string>
 
 
     <string name="advanced">Додаткові</string>

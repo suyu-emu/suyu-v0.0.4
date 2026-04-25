@@ -440,7 +440,6 @@
     <string name="fsr_sharpness">FSR 銳化度</string>
     <string name="fsr_sharpness_description">使用 FSR 時圖片的銳化程度</string>
     <string name="renderer_anti_aliasing">抗鋸齒</string>
-    <string name="renderer_optimize_spirv_output_description">最佳化編譯後的著色器以提高GPU效率。</string>
 
 
     <string name="dma_accuracy">DMA 準確度</string>

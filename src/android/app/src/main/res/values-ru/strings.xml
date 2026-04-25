@@ -459,8 +459,6 @@
     <string name="fsr_sharpness">Резкость FSR</string>
     <string name="fsr_sharpness_description">Определяет, насколько чётким будет изображение при использовании динамического контраста FSR.</string>
     <string name="renderer_anti_aliasing">Метод сглаживания</string>
-    <string name="renderer_optimize_spirv_output">Оптимизация вывода SPIRV</string>
-    <string name="renderer_optimize_spirv_output_description">Оптимизирует скомпилированный шейдер для повышения эффективности ГПУ.</string>
 
 
     <string name="advanced">Расширенные</string>

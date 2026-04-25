@@ -442,8 +442,6 @@
     <string name="fsr_sharpness">Ostrość FSR</string>
     <string name="fsr_sharpness_description">Kontroluje ostrość obrazu w FSR.</string>
     <string name="renderer_anti_aliasing">Metoda wygładzania krawędzi</string>
-    <string name="renderer_optimize_spirv_output">Optymalizuj wyjście SPIRV</string>
-    <string name="renderer_optimize_spirv_output_description">Optymalizuje skompilowany shader w celu poprawy wydajności GPU.</string>
 
 
     <string name="advanced">Zaawansowane</string>

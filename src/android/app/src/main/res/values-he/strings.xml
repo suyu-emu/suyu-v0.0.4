@@ -362,7 +362,6 @@
     <string name="fsr_sharpness">חדות FSR</string>
     <string name="fsr_sharpness_description">קובע את מידת החדות בעת שימוש ב-FSR.</string>
     <string name="renderer_anti_aliasing">שיטת Anti-aliasing</string>
-    <string name="renderer_optimize_spirv_output_description">משפר את השאדר המהודר כדי להגביר את יעילות ה-GPU.</string>
 
 
     <string name="dma_accuracy">דיוק DMA</string>

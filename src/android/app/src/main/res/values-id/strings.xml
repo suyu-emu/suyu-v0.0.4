@@ -383,7 +383,6 @@
     <string name="fsr_sharpness">Ketajaman FSR</string>
     <string name="fsr_sharpness_description">Menentukan seberapa tajam gambar akan terlihat saat menggunakan kontras dinamis FSR</string>
     <string name="renderer_anti_aliasing">Metode anti-aliasing</string>
-    <string name="renderer_optimize_spirv_output_description">Mengoptimalkan shader yang dikompilasi untuk meningkatkan efisiensi GPU.</string>
 
 
     <string name="dma_accuracy">Akurasi DMA</string>
