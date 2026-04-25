@@ -165,10 +165,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
     INSERT(Settings, use_disk_shader_cache, tr("Use persistent pipeline cache"),
            tr("Allows saving shaders to storage for faster loading on following game "
               "boots.\nDisabling it is only intended for debugging."));
-    INSERT(Settings, optimize_spirv_output, tr("Optimize SPIRV output"),
-           tr("Runs an additional optimization pass over generated SPIRV shaders.\n"
-              "Will increase time required for shader compilation.\nMay slightly improve "
-              "performance.\nThis feature is experimental."));
     INSERT(Settings, use_asynchronous_gpu_emulation, tr("Use asynchronous GPU emulation"),
            tr("Uses an extra CPU thread for rendering.\nThis option should always remain enabled."));
     INSERT(Settings, nvdec_emulation, tr("NVDEC emulation:"),

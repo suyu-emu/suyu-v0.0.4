@@ -192,14 +192,6 @@ else()
     endif()
 endif()
 
-# SPIRV Tools
-AddJsonPackage(spirv-tools)
-
-if (SPIRV-Tools_ADDED)
-    add_library(SPIRV-Tools::SPIRV-Tools ALIAS SPIRV-Tools-static)
-    target_link_libraries(SPIRV-Tools-static PRIVATE SPIRV-Tools-opt SPIRV-Tools-link)
-endif()
-
 # Catch2
 if (YUZU_TESTS OR DYNARMIC_TESTS)
     AddJsonPackage(catch2)

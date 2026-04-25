@@ -388,10 +388,6 @@ struct Values {
                                                   true,
                                                   true};
 
-    SwitchableSetting<SpirvOptimizeMode, true> optimize_spirv_output{linkage,
-                                                                     SpirvOptimizeMode::Never,
-                                                                     "optimize_spirv_output",
-                                                                     Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
                                                            linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.

@@ -243,7 +243,7 @@ add_library(shader_recompiler STATIC
 
 )
 
-target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit::sirit SPIRV-Tools::SPIRV-Tools)
+target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit::sirit)
 
 if (MSVC)
     target_compile_options(shader_recompiler PRIVATE

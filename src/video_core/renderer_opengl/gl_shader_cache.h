@@ -76,7 +76,6 @@ private:
     VideoCore::ShaderNotify& shader_notify;
     const bool use_asynchronous_shaders;
     const bool strict_context_required;
-    bool optimize_spirv_output{};
 
     GraphicsPipelineKey graphics_key{};
     GraphicsPipeline* current_pipeline{};
