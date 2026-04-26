@@ -23,6 +23,7 @@
 #include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QKeyEvent>
+#include <QString>
 #include <QLayout>
 #include <QList>
 #include <QMessageBox>
@@ -81,49 +82,82 @@ void EmuThread::run() {
 
     m_system.RegisterHostThread();
 
-    // Main process has been loaded. Make the context current to this thread and begin GPU and CPU
-    // execution.
-    gpu.ObtainContext();
+    try {
+        // Main process has been loaded. Make the context current to this thread and begin GPU and
+        // CPU execution.
+        gpu.ObtainContext();
 
-    emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
-    if (Settings::values.use_disk_shader_cache.GetValue()) {
-        m_system.Renderer().ReadRasterizer()->LoadDiskResources(
-            m_system.GetApplicationProcessProgramID(), stop_token,
-            [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
-                emit LoadProgress(stage, value, total);
-            });
-    }
-    emit LoadProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
-
-    gpu.ReleaseContext();
-    gpu.Start();
-
-    m_system.GetCpuManager().OnGpuReady();
-
-    if (m_system.DebuggerEnabled()) {
-        m_system.InitializeDebugger();
-    }
-
-    while (!stop_token.stop_requested()) {
-        std::unique_lock lk{m_should_run_mutex};
-        if (m_should_run) {
-            m_system.Run();
-            m_stopped.Reset();
-
-            Common::CondvarWait(m_should_run_cv, lk, stop_token, [&] { return !m_should_run; });
-        } else {
-            m_system.Pause();
-            m_stopped.Set();
-
-            EmulationPaused(lk);
-            Common::CondvarWait(m_should_run_cv, lk, stop_token, [&] { return m_should_run; });
-            EmulationResumed(lk);
+        emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
+        if (Settings::values.use_disk_shader_cache.GetValue()) {
+            // Guard disk shader cache loading separately — a corrupted cache should not prevent the
+            // game from booting; we simply skip it and continue without the pre-compiled shaders.
+            try {
+                m_system.Renderer().ReadRasterizer()->LoadDiskResources(
+                    m_system.GetApplicationProcessProgramID(), stop_token,
+                    [this](VideoCore::LoadCallbackStage stage, std::size_t value,
+                           std::size_t total) { emit LoadProgress(stage, value, total); });
+            } catch (const std::exception& cache_ex) {
+                LOG_ERROR(Frontend,
+                          "Disk shader cache loading failed ({}), continuing without cache.",
+                          cache_ex.what());
+            } catch (...) {
+                LOG_ERROR(Frontend,
+                          "Disk shader cache loading failed with unknown error, continuing without "
+                          "cache.");
+            }
         }
-    }
+        emit LoadProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
 
-    // Shutdown the main emulated process
-    m_system.DetachDebugger();
-    m_system.ShutdownMainProcess();
+        gpu.ReleaseContext();
+        gpu.Start();
+
+        m_system.GetCpuManager().OnGpuReady();
+
+        if (m_system.DebuggerEnabled()) {
+            m_system.InitializeDebugger();
+        }
+
+        while (!stop_token.stop_requested()) {
+            std::unique_lock lk{m_should_run_mutex};
+            if (m_should_run) {
+                m_system.Run();
+                m_stopped.Reset();
+
+                Common::CondvarWait(m_should_run_cv, lk, stop_token,
+                                    [&] { return !m_should_run; });
+            } else {
+                m_system.Pause();
+                m_stopped.Set();
+
+                EmulationPaused(lk);
+                Common::CondvarWait(m_should_run_cv, lk, stop_token,
+                                    [&] { return m_should_run; });
+                EmulationResumed(lk);
+            }
+        }
+
+        // Shutdown the main emulated process
+        m_system.DetachDebugger();
+        m_system.ShutdownMainProcess();
+    } catch (const std::exception& e) {
+        LOG_CRITICAL(Frontend, "Fatal exception in emulation thread: {}", e.what());
+        try {
+            m_system.SetShuttingDown(true);
+            m_system.DetachDebugger();
+            m_system.ShutdownMainProcess();
+        } catch (...) {}
+        emit FatalError(QString::fromUtf8(e.what()));
+        return;
+    } catch (...) {
+        LOG_CRITICAL(Frontend, "Unknown fatal exception in emulation thread");
+        try {
+            m_system.SetShuttingDown(true);
+            m_system.DetachDebugger();
+            m_system.ShutdownMainProcess();
+        } catch (...) {}
+        emit FatalError(QStringLiteral("An unknown error occurred in the emulation thread."));
+        return;
+    }
 
 #if MICROPROFILE_ENABLED
     MicroProfileOnThreadExit();
@@ -294,10 +328,13 @@ GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
                              Core::System& system_)
     : QWidget(parent),
       emu_thread(emu_thread_), input_subsystem{std::move(input_subsystem_)}, system{system_} {
-    setWindowTitle(QStringLiteral("suyu %1 | %2-%3")
-                       .arg(QString::fromUtf8(Common::g_build_name),
-                            QString::fromUtf8(Common::g_scm_branch),
-                            QString::fromUtf8(Common::g_scm_desc)));
+    const QString build_title = QString::fromUtf8(Common::g_build_fullname).isEmpty()
+        ? QStringLiteral("suyu %1 | %2-%3")
+              .arg(QString::fromUtf8(Common::g_build_name),
+                   QString::fromUtf8(Common::g_scm_branch),
+                   QString::fromUtf8(Common::g_scm_desc))
+        : QString::fromUtf8(Common::g_build_fullname);
+    setWindowTitle(build_title);
     setAttribute(Qt::WA_AcceptTouchEvents);
     auto* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -949,6 +986,9 @@ bool GRenderWindow::InitRenderTarget() {
         break;
 #endif
     case Settings::RendererBackend::Null:
+        InitializeNull();
+        break;
+    default:
         InitializeNull();
         break;
     }

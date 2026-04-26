@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <chrono>
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <regex>
@@ -38,7 +39,9 @@
 #include "sdl_config.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_gl.h"
+#ifdef __APPLE__
 #include "suyu_cmd/emu_window/emu_window_sdl2_mtl.h"
+#endif
 #include "suyu_cmd/emu_window/emu_window_sdl2_null.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_vk.h"
 #include "video_core/renderer_base.h"
@@ -200,6 +203,8 @@ int main(int argc, char** argv) {
         freopen("CONOUT$", "wb", stderr);
     }
 #endif
+
+    try {
 
     Common::Log::Initialize();
     Common::Log::SetColorConsoleBackendEnabled(true);
@@ -386,9 +391,16 @@ int main(int argc, char** argv) {
     case Settings::RendererBackend::Vulkan:
         emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem, system, fullscreen);
         break;
+#ifdef __APPLE__
     case Settings::RendererBackend::Metal:
         emu_window = std::make_unique<EmuWindow_SDL2_MTL>(&input_subsystem, system, fullscreen);
         break;
+#else
+    case Settings::RendererBackend::Metal:
+        LOG_ERROR(Frontend, "Metal backend is only supported on Apple platforms");
+        emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem, system, fullscreen);
+        break;
+#endif
     case Settings::RendererBackend::Null:
         emu_window = std::make_unique<EmuWindow_SDL2_Null>(&input_subsystem, system, fullscreen);
         break;
@@ -476,9 +488,21 @@ int main(int argc, char** argv) {
     system.GetCpuManager().OnGpuReady();
 
     if (Settings::values.use_disk_shader_cache.GetValue()) {
-        system.Renderer().ReadRasterizer()->LoadDiskResources(
-            system.GetApplicationProcessProgramID(), std::stop_token{},
-            [](VideoCore::LoadCallbackStage, size_t value, size_t total) {});
+        LOG_WARNING(Frontend,
+                    "suyu-cmd: disabling disk shader cache for this run to avoid known startup instability");
+        Settings::values.use_disk_shader_cache.SetValue(false);
+    }
+
+    if (Settings::values.use_disk_shader_cache.GetValue()) {
+        try {
+            system.Renderer().ReadRasterizer()->LoadDiskResources(
+                system.GetApplicationProcessProgramID(), std::stop_token{},
+                [](VideoCore::LoadCallbackStage, size_t value, size_t total) {});
+        } catch (const std::exception& e) {
+            LOG_ERROR(Frontend, "Failed to load disk shader cache: {}", e.what());
+        } catch (...) {
+            LOG_ERROR(Frontend, "Failed to load disk shader cache due to unknown exception");
+        }
     }
 
     system.RegisterExitCallback([&] {
@@ -507,4 +531,11 @@ int main(int argc, char** argv) {
 
     detached_tasks.WaitForAllTasks();
     return 0;
+    } catch (const std::exception& e) {
+        LOG_CRITICAL(Frontend, "Unhandled fatal exception in suyu-cmd: {}", e.what());
+        return -1;
+    } catch (...) {
+        LOG_CRITICAL(Frontend, "Unhandled unknown fatal exception in suyu-cmd");
+        return -1;
+    }
 }

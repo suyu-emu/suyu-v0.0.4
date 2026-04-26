@@ -64,14 +64,14 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
         QString::fromStdString(UISettings::values.multiplayer_nickname.GetValue()));
 
     // Try find the best nickname by default
-    if (ui->nickname->text().isEmpty() || ui->nickname->text() == QStringLiteral("suyu")) {
-        if (!Settings::values.suyu_username.GetValue().empty()) {
+    if (ui->nickname->text().isEmpty() || ui->nickname->text() == QStringLiteral("Eden")) {
+        if (!Settings::values.eden_username.GetValue().empty()) {
             ui->nickname->setText(
-                QString::fromStdString(Settings::values.suyu_username.GetValue()));
+                QString::fromStdString(Settings::values.eden_username.GetValue()));
         } else if (!GetProfileUsername().empty()) {
             ui->nickname->setText(QString::fromStdString(GetProfileUsername()));
         } else {
-            ui->nickname->setText(QStringLiteral("suyu"));
+            ui->nickname->setText(QStringLiteral("Eden"));
         }
     }
 
@@ -187,11 +187,11 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_uid, this] {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
-        if (!Settings::values.suyu_username.GetValue().empty() &&
-            !Settings::values.suyu_token.GetValue().empty()) {
+        if (!Settings::values.eden_username.GetValue().empty() &&
+            !Settings::values.eden_token.GetValue().empty()) {
             WebService::Client client(Settings::values.web_api_url.GetValue(),
-                                      Settings::values.suyu_username.GetValue(),
-                                      Settings::values.suyu_token.GetValue());
+                                      Settings::values.eden_username.GetValue(),
+                                      Settings::values.eden_token.GetValue());
             token = client.GetExternalJWT(verify_uid).returned_data;
             if (token.empty()) {
                 LOG_ERROR(WebService, "Could not get external JWT, verification may fail");
@@ -200,6 +200,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
             }
         }
 #endif
+        static_cast<void>(verify_uid);
         if (auto room_member = room_network.GetRoomMember().lock()) {
             room_member->Join(nickname, ip.c_str(), port, 0, Network::NoPreferredIP, password,
                               token);
@@ -304,6 +305,16 @@ void Lobby::OnRefreshLobby() {
         for (int j = 0; j < parent->rowCount(); j++) {
             ui->room_list->setFirstColumnSpanned(j, proxy->index(i, 0), true);
         }
+    }
+
+    // If the backend returned rooms but none are visible, persisted filters are
+    // likely hiding everything. Reset filters once so users can see active rooms.
+    if (!new_room_list.empty() && proxy->rowCount() == 0) {
+        ui->search->clear();
+        ui->games_owned->setChecked(false);
+        ui->hide_empty->setChecked(false);
+        ui->hide_full->setChecked(false);
+        proxy->invalidate();
     }
 
     ui->room_list->sortByColumn(Column::GAME_NAME, Qt::AscendingOrder);

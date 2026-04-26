@@ -20,7 +20,9 @@
 
 #include "common/common_types.h"
 #include "suyu/game_card.h"
+#include "suyu/game_list.h"
 #include "suyu/compatibility_list.h"
+#include "suyu/uisettings.h"
 
 class GameLibraryWorker;
 class GMainWindow;
@@ -199,6 +201,7 @@ public:
 public slots:
     void AddInstalledTitlesToGameList();
     void FillControllerList(const QVector<UISettings::GameDir>& game_dirs);
+    void RequestStop() { stop_processing.store(true, std::memory_order_relaxed); }
 
 signals:
     void EntryReady(const QString& title, const QString& file_path, const QString& program_id,

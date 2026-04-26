@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
+#include "video_core/optimized_rasterizer.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/blit_image.h"
 #include "video_core/renderer_opengl/gl_blit_screen.h"
@@ -23,7 +24,6 @@
 #include "video_core/renderer_opengl/gl_query_cache.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
-#include "video_core/optimized_rasterizer.h"
 
 namespace Core::Memory {
 class Memory;
@@ -73,7 +73,8 @@ private:
     TextureCache& texture_cache;
 };
 
-class RasterizerOpenGL : public VideoCore::OptimizedRasterizer {
+class RasterizerOpenGL : public VideoCore::OptimizedRasterizer,
+                         protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
     explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                               Tegra::MaxwellDeviceMemoryManager& device_memory_,

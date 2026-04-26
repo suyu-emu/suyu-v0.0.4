@@ -14,8 +14,8 @@ This document catalogs additional Eden emulator improvements discovered during a
 ## P0: Already Migrated ✓
 
 ### 1. Game-Specific Override System
-**File:** `src/core/core.cpp`  
-**Status:** ✓ Migrated  
+**File:** `src/core/core.cpp`
+**Status:** ✓ Migrated
 **Benefit:** Enables per-game fixes for problematic titles, especially on Android
 
 **Details:**
@@ -28,9 +28,9 @@ void LoadOverrides(u64 programId) const {
 ```
 
 ### 2. Windows Macro Safety
-**File:** `src/core/core.cpp`  
-**Status:** ✓ Migrated  
-**Change:** `std::min()` → `(std::min)()`  
+**File:** `src/core/core.cpp`
+**Status:** ✓ Migrated
+**Change:** `std::min()` → `(std::min)()`
 **Benefit:** Prevents Windows min/max macro expansion issues
 
 ---
@@ -38,7 +38,7 @@ void LoadOverrides(u64 programId) const {
 ## P1: High Priority - Recommended for Next PR
 
 ### 1. Configurable GPU Timing
-**File:** `src/video_core/gpu.cpp`  
+**File:** `src/video_core/gpu.cpp`
 **Impact:** High - Performance tuning flexibility
 
 **Current Code (Suyu):**
@@ -51,7 +51,7 @@ if (Settings::values.use_fast_gpu_time.GetValue()) {
 **Eden Improvement:**
 ```cpp
 if (Settings::values.use_fast_gpu_time.GetValue()) {
-    gpu_tick /= (u64)(128 * std::pow(2, 
+    gpu_tick /= (u64)(128 * std::pow(2,
         static_cast<u32>(Settings::values.fast_gpu_time.GetValue())));
 }
 ```
@@ -65,7 +65,7 @@ if (Settings::values.use_fast_gpu_time.GetValue()) {
 1. Add `fast_gpu_time` setting to `src/common/settings.h`:
 ```cpp
 RangedSetting<u8> fast_gpu_time{
-    linkage, 1, 0, 4, "fast_gpu_time", 
+    linkage, 1, 0, 4, "fast_gpu_time",
     Category::RendererAdvanced, Specialization::Default,
     true, true
 };
@@ -83,7 +83,7 @@ RangedSetting<u8> fast_gpu_time{
 ---
 
 ### 2. Logging System Improvements
-**File:** `src/common/logging/log.h`  
+**File:** `src/common/logging/log.h`
 **Impact:** Medium - Better debugging capabilities
 
 **Eden Changes:**
@@ -104,7 +104,7 @@ RangedSetting<u8> fast_gpu_time{
 **Benefit:** Prevents namespace conflicts in complex includes
 
 #### b) Enhanced Format Support
-**Current:** `#include <fmt/format.h>`  
+**Current:** `#include <fmt/format.h>`
 **Eden:** `#include <fmt/ranges.h>`
 
 **Benefit:** Adds support for formatting STL containers (vectors, maps, etc.)
@@ -118,7 +118,7 @@ LOG_INFO(Core, "Values: {}", values);  // Now works!
 #### c) Simplified Path Handling
 **Eden Removed:** `TrimSourcePath()` function
 
-**Benefit:** 
+**Benefit:**
 - Simpler code
 - Full paths aid debugging in complex projects
 - Reduces cognitive overhead
@@ -135,7 +135,7 @@ LOG_INFO(Core, "Values: {}", values);  // Now works!
 ## P2: Medium Priority - Plan for Future
 
 ### 1. CMake Modernization
-**Files:** Various `CMakeLists.txt`  
+**Files:** Various `CMakeLists.txt`
 **Impact:** Build system quality
 
 **Eden Changes:**
@@ -162,7 +162,7 @@ if (USE_CCACHE OR SUYU_USE_PRECOMPILED_HEADERS)
 endif()
 
 # New (Eden):
-if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR 
+if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
                CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
     string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO ...)
     string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG ...)
@@ -190,7 +190,7 @@ endif()
 ---
 
 ### 2. Android Drawable Resources
-**Location:** `src/android/app/src/main/res/drawable/`  
+**Location:** `src/android/app/src/main/res/drawable/`
 **Status:** Partial migration (8 eden_*.xml files exist)
 
 **Eden Drawables Present:**
@@ -219,7 +219,7 @@ These Eden UI components could inform Issue #43 (NEW UI)
 ## P3: Low Priority - Long-term Architectural
 
 ### 1. Network Singleton Pattern
-**File:** `src/core/core.cpp`  
+**File:** `src/core/core.cpp`
 **Impact:** Architectural change
 
 **Current (Suyu):**
@@ -263,7 +263,7 @@ if (auto room_member = Network::GetRoomMember().lock()) {
 ---
 
 ### 2. Microprofile Removal
-**Files:** Various (core, video_core, etc.)  
+**Files:** Various (core, video_core, etc.)
 **Impact:** Large - removes profiling infrastructure
 
 **Eden Changes:**
@@ -304,7 +304,7 @@ Eden reverted many `SUYU_*` constants back to `YUZU_*`:
 
 **Reason:** Eden is poorly rebranded
 
-**SuyuEclipse Policy:** 
+**SuyuEclipse Policy:**
 - Keep SUYU branding
 - Don't blindly copy Eden's YUZU references
 - Maintain project identity
@@ -348,11 +348,11 @@ For each migration:
    ```bash
    # Clone Eden repository for comparison
    git clone https://git.eden-emu.dev/eden-emu/eden eden-temp
-   
+
    # Compare specific directories
    diff -r src/core eden-temp/src/core > eden_core_diff.txt
    diff -r src/video_core eden-temp/src/video_core > eden_video_diff.txt
-   
+
    # Clean up
    rm -rf eden-temp
    ```
@@ -368,8 +368,8 @@ For each migration:
 
 **Note:** The Eden source folders were used for initial analysis and have been removed after migration. All key improvements are documented in this file.
 
-**Repository:** https://git.eden-emu.dev/eden-emu/eden  
-**Analysis Completed:** 2025-11-04  
+**Repository:** https://git.eden-emu.dev/eden-emu/eden
+**Analysis Completed:** 2025-11-04
 **Status:** Analysis complete, folders removed from codebase
 
 **For Future Updates:**

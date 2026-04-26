@@ -33,4 +33,23 @@
         <item name="rippleColor">@color/suyu_inversePrimary</item>
     </style>
 
+    <!-- Text styles used across game card layouts -->
+    <style name="SynthwaveText" />
+
+    <style name="SynthwaveText.Title" parent="">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="SynthwaveText.Body" parent="">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- Shape appearance for carousel image cards -->
+    <style name="ShapeAppearance.Eden.CarouselImage" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">12dp</item>
+    </style>
+
 </resources>

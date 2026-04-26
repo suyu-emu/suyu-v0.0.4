@@ -64,6 +64,8 @@ add_library(common STATIC
     fs/fs_util.h
     fs/path_util.cpp
     fs/path_util.h
+    fs/symlink.cpp
+    fs/symlink.h
     hash.h
     heap_tracker.cpp
     heap_tracker.h
@@ -106,6 +108,8 @@ add_library(common STATIC
     point.h
     precompiled_headers.h
     quaternion.h
+    random.cpp
+    random.h
     range_map.h
     range_mutex.h
     range_sets.h

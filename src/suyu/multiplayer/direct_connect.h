@@ -35,11 +35,18 @@ signals:
 
 private slots:
     void OnConnection();
+    void OnServerSelected(int index);
+    void OnAddServer();
+    void OnRemoveServer();
 
 private:
     void Connect();
     void BeginConnecting();
     void EndConnecting();
+    void LoadSavedServers();
+    void SaveSavedServers();
+    void UpdateSavedServerList();
+    bool ParseSavedServerEntry(const QString& entry, QString& host, QString& port) const;
 
     QFutureWatcher<void>* watcher;
     std::unique_ptr<Ui::DirectConnect> ui;

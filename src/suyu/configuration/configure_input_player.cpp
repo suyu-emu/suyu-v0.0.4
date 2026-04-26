@@ -155,7 +155,21 @@ QString GetDirectionName(const std::string& direction) {
     if (direction == "down") {
         return QObject::tr("Down");
     }
-    UNIMPLEMENTED_MSG("Unimplemented direction name={}", direction);
+    if (direction == "up-left" || direction == "upleft") {
+        return QObject::tr("Up-Left");
+    }
+    if (direction == "up-right" || direction == "upright") {
+        return QObject::tr("Up-Right");
+    }
+    if (direction == "down-left" || direction == "downleft") {
+        return QObject::tr("Down-Left");
+    }
+    if (direction == "down-right" || direction == "downright") {
+        return QObject::tr("Down-Right");
+    }
+    if (direction.empty()) {
+        return QObject::tr("[unknown]");
+    }
     return QString::fromStdString(direction);
 }
 

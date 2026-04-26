@@ -30,7 +30,7 @@ namespace {
 // Anti-piracy friction delays (in milliseconds)
 // These make piracy harder by adding inconvenience without blocking legitimate users
 constexpr int VERIFIED_GAME_DELAY_MS = 0;           // No delay for verified games
-constexpr int NINTENDO_LIBRARY_DELAY_MS = 0;        // No delay for Nintendo Library matches  
+constexpr int NINTENDO_LIBRARY_DELAY_MS = 0;        // No delay for Nintendo Library matches
 constexpr int LEGITIMATE_DUMP_DELAY_MS = 500;       // Small delay for legitimate dumps
 constexpr int UNKNOWN_GAME_DELAY_MS = 3000;         // 3 second delay for unknown games
 constexpr int SUSPICIOUS_GAME_DELAY_MS = 8000;      // 8 second delay for suspicious games
@@ -304,12 +304,12 @@ std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile 
         auto& anti_piracy = *system.GetAntiPiracyManager();
         if (anti_piracy.IsInitialized()) {
             LOG_INFO(Loader, "Performing anti-piracy validation for: {}", file->GetName());
-            
+
             auto validation_result = anti_piracy.ValidateRom(file);
             auto validation_message = anti_piracy.GetValidationMessage(validation_result);
-            
+
             LOG_INFO(Loader, "Anti-piracy validation result: {}", validation_message);
-            
+
             // Apply friction delay based on validation result
             // This makes piracy harder by adding inconvenience without blocking legitimate users
             int delay_ms = GetFrictionDelay(validation_result);
@@ -318,16 +318,16 @@ std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile 
                 LOG_INFO(Loader, "To reduce or eliminate this delay, verify game ownership through:");
                 LOG_INFO(Loader, "  - Nintendo Account linking (Settings > Nintendo Library)");
                 LOG_INFO(Loader, "  - Using legitimate dump tools like NXDumpTool");
-                
+
                 std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
             }
-            
+
             // Show educational message for suspicious or invalid ROMs
             if (validation_result == Core::ValidationResult::Suspicious ||
                 validation_result == Core::ValidationResult::Invalid) {
                 LOG_WARNING(Loader, "ROM validation concerns detected.");
                 LOG_INFO(Loader, "Educational message: {}", anti_piracy.GetEducationalMessage());
-                
+
                 // Log legitimate source suggestions
                 auto suggestions = anti_piracy.GetLegitimateSourceSuggestions();
                 LOG_INFO(Loader, "Consider these legitimate sources:");
@@ -335,7 +335,7 @@ std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile 
                     LOG_INFO(Loader, "  - {}", suggestion);
                 }
             }
-            
+
             // Note: We don't block loading even for suspicious ROMs, as this is educational
             // and the emulator should remain functional for legitimate use cases
         }

@@ -13,7 +13,7 @@
 #include <QFileDialog>
 #include <QFutureWatcher>
 #include <QProgressDialog>
-#include <QtConcurrentRun>
+#include <QtConcurrent/QtConcurrentRun>
 
 #include <core/frontend/applets/profile_select.h>
 

@@ -123,11 +123,35 @@ void RoomJson::ClearPlayers() {
 }
 
 AnnounceMultiplayerRoom::RoomList RoomJson::GetRoomList() {
-    auto reply = client.GetJson("/lobby", true).returned_data;
-    if (reply.empty()) {
+    auto result = client.GetJson("/lobby", true);
+    if (result.result_code != WebService::WebResult::Code::Success || result.returned_data.empty()) {
+        // Compatibility fallback for alternate room-list endpoints.
+        result = client.GetJson("/lobbies", true);
+    }
+
+    if (result.result_code != WebService::WebResult::Code::Success || result.returned_data.empty()) {
         return {};
     }
-    return nlohmann::json::parse(reply).at("rooms").get<AnnounceMultiplayerRoom::RoomList>();
+
+    const auto payload = nlohmann::json::parse(result.returned_data, nullptr, false);
+    if (payload.is_discarded()) {
+        return {};
+    }
+
+    if (payload.is_array()) {
+        return payload.get<AnnounceMultiplayerRoom::RoomList>();
+    }
+
+    if (payload.is_object()) {
+        if (payload.contains("rooms")) {
+            return payload.at("rooms").get<AnnounceMultiplayerRoom::RoomList>();
+        }
+        if (payload.contains("lobbies")) {
+            return payload.at("lobbies").get<AnnounceMultiplayerRoom::RoomList>();
+        }
+    }
+
+    return {};
 }
 
 void RoomJson::Delete() {

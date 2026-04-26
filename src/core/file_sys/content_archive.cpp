@@ -45,15 +45,18 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
         return;
     }
 
-    // Ensure we have the proper key area keys to continue.
+    RightsId rights_id{};
+    reader->GetRightsId(rights_id.data(), rights_id.size());
     const u8 master_key_id = MasterKeyIdForKeyGeneration(reader->GetKeyGeneration());
-    if (!keys.HasKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, reader->GetKeyIndex())) {
+    const bool has_rights_id = rights_id != RightsId{};
+
+    // Key area keys are only required for NCAs that do not use rights-ID titlekey encryption.
+    if (!has_rights_id &&
+        !keys.HasKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, reader->GetKeyIndex())) {
         status = Loader::ResultStatus::ErrorMissingKeyAreaKey;
         return;
     }
 
-    RightsId rights_id{};
-    reader->GetRightsId(rights_id.data(), rights_id.size());
     if (rights_id != RightsId{}) {
         // External decryption key required; provide it here.
         u128 rights_id_u128;

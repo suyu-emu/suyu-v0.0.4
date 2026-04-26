@@ -11,7 +11,7 @@
 #include "qt_common/abstract/frontend.h"
 #include "qt_common/config/uisettings.h"
 #include "qt_common/qt_common.h"
-#include "yuzu/util/util.h"
+#include "suyu/util/util.h"
 
 #include <QDesktopServices>
 #include <QStandardPaths>
@@ -147,7 +147,7 @@ bool MakeShortcutIcoPath(const u64 program_id,
     // Get path to Yuzu icons directory & icon extension
     std::string ico_extension = "png";
 #if defined(_WIN32)
-    out_icon_path = Common::FS::GetEdenPath(Common::FS::EdenPath::IconsDir);
+    out_icon_path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::IconsDir);
     ico_extension = "ico";
 #elif !defined(__ANDROID__) // Any *nix but android
     out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
@@ -164,42 +164,42 @@ bool MakeShortcutIcoPath(const u64 program_id,
     return true;
 }
 
-void OpenEdenFolder(const Common::FS::EdenPath& path)
+void OpenSuyuFolder(const Common::FS::SuyuPath& path)
 {
     QDesktopServices::openUrl(
-        QUrl::fromLocalFile(QString::fromStdString(Common::FS::GetEdenPathString(path))));
+        QUrl::fromLocalFile(QString::fromStdString(Common::FS::GetSuyuPathString(path))));
 }
 
 void OpenRootDataFolder()
 {
-    OpenEdenFolder(Common::FS::EdenPath::EdenDir);
+    OpenSuyuFolder(Common::FS::SuyuPath::SuyuDir);
 }
 
 void OpenNANDFolder()
 {
-    OpenEdenFolder(Common::FS::EdenPath::NANDDir);
+    OpenSuyuFolder(Common::FS::SuyuPath::NANDDir);
 }
 
 void OpenSaveFolder()
 {
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
+    const auto path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir)
                       / "user/save/0000000000000000";
     QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(path.string())));
 }
 
 void OpenSDMCFolder()
 {
-    OpenEdenFolder(Common::FS::EdenPath::SDMCDir);
+    OpenSuyuFolder(Common::FS::SuyuPath::SDMCDir);
 }
 
 void OpenModFolder()
 {
-    OpenEdenFolder(Common::FS::EdenPath::LoadDir);
+    OpenSuyuFolder(Common::FS::SuyuPath::LoadDir);
 }
 
 void OpenLogFolder()
 {
-    OpenEdenFolder(Common::FS::EdenPath::LogDir);
+    OpenSuyuFolder(Common::FS::SuyuPath::LogDir);
 }
 
 static QString GetGameListErrorRemoving(QtCommon::Game::InstalledEntryType type)
@@ -271,7 +271,7 @@ void RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target)
             return "";
         }
     }();
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::ShaderDir);
     const auto shader_cache_folder_path = shader_cache_dir / fmt::format("{:016x}", program_id);
     const auto target_file = shader_cache_folder_path / target_file_name;
 
@@ -293,7 +293,7 @@ void RemoveVulkanDriverPipelineCache(u64 program_id)
 {
     static constexpr std::string_view target_file_name = "vulkan_pipelines.bin";
 
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::ShaderDir);
     const auto shader_cache_folder_path = shader_cache_dir / fmt::format("{:016x}", program_id);
     const auto target_file = shader_cache_folder_path / target_file_name;
 
@@ -308,7 +308,7 @@ void RemoveVulkanDriverPipelineCache(u64 program_id)
 
 void RemoveAllTransferableShaderCaches(u64 program_id)
 {
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::ShaderDir);
     const auto program_shader_cache_dir = shader_cache_dir / fmt::format("{:016x}", program_id);
 
     if (!Common::FS::Exists(program_shader_cache_dir)) {
@@ -333,7 +333,7 @@ void RemoveCustomConfiguration(u64 program_id, const std::string& game_path)
     const auto config_file_name
         = program_id == 0 ? Common::FS::PathToUTF8String(file_path.filename()).append(".ini")
                           : fmt::format("{:016X}.ini", program_id);
-    const auto custom_config_file_path = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir)
+    const auto custom_config_file_path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::ConfigDir)
                                          / "custom" / config_file_name;
 
     if (!Common::FS::Exists(custom_config_file_path)) {
@@ -353,7 +353,7 @@ void RemoveCustomConfiguration(u64 program_id, const std::string& game_path)
 
 void RemoveCacheStorage(u64 program_id)
 {
-    const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
+    const auto nand_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir);
     auto vfs_nand_dir = vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir),
                                            FileSys::OpenMode::Read);
 
@@ -377,14 +377,14 @@ void ResetMetadata(bool show_message)
 {
     const QString title = tr("Reset Metadata Cache");
 
-    if (!Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir)
+    if (!Common::FS::Exists(Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir)
                             / "game_list/")) {
         if (show_message)
             QtCommon::Frontend::Warning(rootObject,
                                         title,
                                         tr("The metadata cache is already empty."));
     } else if (Common::FS::RemoveDirRecursively(
-                   Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
+                   Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "game_list")) {
         if (show_message)
             QtCommon::Frontend::Information(rootObject,
                                             title,

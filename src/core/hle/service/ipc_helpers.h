@@ -77,6 +77,8 @@ public:
 
         memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
 
+        auto const mgr = ctx.GetManager().get();
+
         IPC::CommandHeader header{};
 
         // The entire size of the raw data section in u32 units, including the 16 bytes of mandatory
@@ -87,13 +89,13 @@ public:
         u32 num_domain_objects{};
         const bool always_move_handles{
             (static_cast<u32>(flags) & static_cast<u32>(Flags::AlwaysMoveHandles)) != 0};
-        if (!ctx.GetManager()->IsDomain() || always_move_handles) {
+        if (!mgr->IsDomain() || always_move_handles) {
             num_handles_to_move = num_objects_to_move;
         } else {
             num_domain_objects = num_objects_to_move;
         }
 
-        if (ctx.GetManager()->IsDomain()) {
+        if (mgr->IsDomain()) {
             raw_data_size +=
                 static_cast<u32>(sizeof(DomainMessageHeader) / sizeof(u32) + num_domain_objects);
             ctx.write_size += num_domain_objects;
@@ -126,7 +128,7 @@ public:
         if (!ctx.IsTipc()) {
             AlignWithPadding();
 
-            if (ctx.GetManager()->IsDomain() && ctx.HasDomainMessageHeader()) {
+            if (mgr->IsDomain() && ctx.HasDomainMessageHeader()) {
                 IPC::DomainMessageHeader domain_header{};
                 domain_header.num_objects = num_domain_objects;
                 PushRaw(domain_header);

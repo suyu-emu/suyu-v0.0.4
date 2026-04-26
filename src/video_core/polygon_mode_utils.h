@@ -43,4 +43,3 @@ inline Tegra::Engines::Maxwell3D::Regs::PolygonMode EffectivePolygonMode(
 }
 
 } // namespace VideoCore
-

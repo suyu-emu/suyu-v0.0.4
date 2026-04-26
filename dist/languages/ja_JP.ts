@@ -236,8 +236,8 @@ This would ban both their forum username and their IP address.</source>
     </message>
     <message>
         <location filename="../../src/suyu/compatdb.ui" line="36"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href=&quot;https://suyu-emu.github.io/website/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;suyu Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Which version of suyu you are running&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The connected suyu account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;テストケースを&lt;/span&gt;&lt;a href=&quot;https://suyu-emu.github.io/website/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;suyu互換性リスト&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;に送信した場合、以下の情報が収集され、サイトに表示されます：&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;ハードウェア情報（CPU／GPU／OS）&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;実行中のsuyuバージョン&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;接続中のsuyuアカウント&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href=&quot;https://suyu-emu.github.io/website/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;suyu Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Which version of suyu you are running&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The connected suyu account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;テストケースを&lt;/span&gt;&lt;a href=&quot;https://suyu-emu.github.io/website/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;suyu互換性リスト&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;に送信した場合、以下の情報が収集され、サイトに表示されます：&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;ハードウェア情報（CPU／GPU／OS）&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;実行中のsuyuバージョン&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;接続中のsuyuアカウント&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/suyu/compatdb.ui" line="77"/>
@@ -4468,8 +4468,8 @@ UUID: %2</translation>
     </message>
     <message>
         <location filename="../../src/suyu/configuration/configure_tas.ui" line="17"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href=&quot;https://suyu-emu.github.io/website/help/feature/tas/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;help page&lt;/span&gt;&lt;/a&gt; on the suyu website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TAS-nxスクリプトと同じフォーマットでスクリプトからコントローラー入力を読み込みます。&lt;br/&gt;より詳細な説明は、suyuホームページの&lt;a href=&quot;https://suyu-emu.github.io/website/help/feature/tas/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;ヘルプ&lt;/span&gt;&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the &lt;a href=&quot;https://suyu-emu.github.io/website/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;help page&lt;/span&gt;&lt;/a&gt; on the suyu website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TAS-nxスクリプトと同じフォーマットでスクリプトからコントローラー入力を読み込みます。&lt;br/&gt;より詳細な説明は、suyuホームページの&lt;a href=&quot;https://suyu-emu.github.io/website/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;ヘルプ&lt;/span&gt;&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/suyu/configuration/configure_tas.ui" line="27"/>
@@ -5187,8 +5187,8 @@ Drag points to change position, or double-click table cells to edit values.</sou
     </message>
     <message>
         <location filename="../../src/suyu/main.cpp" line="451"/>
-        <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href=&apos;https://suyu-emu.github.io/website/wiki/faq/#suyu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
-        <translation>起動時にVulkanの初期化に失敗しました。&lt;br&gt;&lt;br&gt;この問題を解決するための手順は&lt;a href=&apos;https://suyu-emu.github.io/website/wiki/faq/#suyu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;こちら&lt;/a&gt;。</translation>
+        <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href=&apos;https://suyu-emu.github.io/website/faq#suyu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
+        <translation>起動時にVulkanの初期化に失敗しました。&lt;br&gt;&lt;br&gt;この問題を解決するための手順は&lt;a href=&apos;https://suyu-emu.github.io/website/faq#suyu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;こちら&lt;/a&gt;。</translation>
     </message>
     <message>
         <location filename="../../src/suyu/main.cpp" line="476"/>
@@ -5276,8 +5276,8 @@ Drag points to change position, or double-click table cells to edit values.</sou
     </message>
     <message>
         <location filename="../../src/suyu/main.cpp" line="1818"/>
-        <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats suyu supports, &lt;a href=&apos;https://suyu-emu.github.io/website/wiki/overview-of-switch-game-formats&apos;&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
-        <translation>このゲームでは、分解されたROMディレクトリフォーマットを使用しています。これは、NCA、NAX、XCI、またはNSPなどに取って代わられた古いフォーマットです。分解されたROMディレクトリには、アイコン、メタデータ、およびアップデートサポートがありません。&lt;br&gt;&lt;br&gt;suyuがサポートするSwitchフォーマットの説明については、&lt;a href=&apos;https://suyu-emu.github.io/website/wiki/overview-of-switch-game-formats&apos;&gt;wikiをチェックしてください&lt;/a&gt;。このメッセージは二度と表示されません。</translation>
+        <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats suyu supports, &lt;a href=&apos;https://suyu-emu.github.io/website/&apos;&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
+        <translation>このゲームでは、分解されたROMディレクトリフォーマットを使用しています。これは、NCA、NAX、XCI、またはNSPなどに取って代わられた古いフォーマットです。分解されたROMディレクトリには、アイコン、メタデータ、およびアップデートサポートがありません。&lt;br&gt;&lt;br&gt;suyuがサポートするSwitchフォーマットの説明については、&lt;a href=&apos;https://suyu-emu.github.io/website/&apos;&gt;wikiをチェックしてください&lt;/a&gt;。このメッセージは二度と表示されません。</translation>
     </message>
     <message>
         <location filename="../../src/suyu/main.cpp" line="1830"/>
@@ -5297,8 +5297,8 @@ Drag points to change position, or double-click table cells to edit values.</sou
     </message>
     <message>
         <location filename="../../src/suyu/main.cpp" line="1836"/>
-        <source>suyu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://suyu-emu.github.io/website/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
-        <translation>suyuは、ビデオコアの実行中にエラーが発生しました。これは通常、内蔵GPUも含め、古いGPUドライバが原因です。詳しくはログをご覧ください。ログへのアクセス方法については、以下のページをご覧ください:&lt;a href=&apos;https://suyu-emu.github.io/website/help/reference/log-files/&apos;&gt;ログファイルのアップロード方法について&lt;/a&gt;。</translation>
+        <source>suyu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://suyu-emu.github.io/website/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
+        <translation>suyuは、ビデオコアの実行中にエラーが発生しました。これは通常、内蔵GPUも含め、古いGPUドライバが原因です。詳しくはログをご覧ください。ログへのアクセス方法については、以下のページをご覧ください:&lt;a href=&apos;https://suyu-emu.github.io/website/&apos;&gt;ログファイルのアップロード方法について&lt;/a&gt;。</translation>
     </message>
     <message>
         <location filename="../../src/suyu/main.cpp" line="1851"/>
@@ -5308,9 +5308,9 @@ Drag points to change position, or double-click table cells to edit values.</sou
     </message>
     <message>
         <location filename="../../src/suyu/main.cpp" line="1854"/>
-        <source>%1&lt;br&gt;Please follow &lt;a href=&apos;https://suyu-emu.github.io/website/help/quickstart/&apos;&gt;the suyu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the suyu wiki&lt;/a&gt; or the suyu Discord&lt;/a&gt; for help.</source>
+        <source>%1&lt;br&gt;Please follow &lt;a href=&apos;https://suyu-emu.github.io/website//&apos;&gt;the suyu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the suyu wiki&lt;/a&gt; or the suyu Discord&lt;/a&gt; for help.</source>
         <comment>%1 signifies an error string.</comment>
-        <translation>%1&lt;br&gt;&lt;a href=&apos;https://suyu-emu.github.io/website/help/quickstart/&apos;&gt;suyuクイックスタートガイド&lt;/a&gt;を参照してファイルを再ダンプしてください。&lt;br&gt;またはsuyu wiki及び&lt;/a&gt;suyu Discord&lt;/a&gt;を参照するとよいでしょう。</translation>
+        <translation>%1&lt;br&gt;&lt;a href=&apos;https://suyu-emu.github.io/website//&apos;&gt;suyuクイックスタートガイド&lt;/a&gt;を参照してファイルを再ダンプしてください。&lt;br&gt;またはsuyu wiki及び&lt;/a&gt;suyu Discord&lt;/a&gt;を参照するとよいでしょう。</translation>
     </message>
     <message>
         <location filename="../../src/suyu/main.cpp" line="1865"/>
@@ -6261,7 +6261,7 @@ Please, only use this feature to install updates and DLC.</source>
     </message>
     <message>
         <location filename="../../src/suyu/main.cpp" line="4795"/>
-        <source>Encryption keys are missing. &lt;br&gt;Please follow &lt;a href=&apos;https://suyu-emu.github.io/website/help/quickstart/&apos;&gt;the suyu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.</source>
+        <source>Encryption keys are missing. &lt;br&gt;Please follow &lt;a href=&apos;https://suyu-emu.github.io/website//&apos;&gt;the suyu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.</source>
         <translation type="unfinished"/>
     </message>
     <message>

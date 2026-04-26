@@ -3,6 +3,7 @@
 
 #include <QComboBox>
 #include <QFuture>
+#include <QInputDialog>
 #include <QIntValidator>
 #include <QRegularExpressionValidator>
 #include <QString>
@@ -36,24 +37,124 @@ DirectConnectWindow::DirectConnectWindow(Core::System& system_, QWidget* parent)
     ui->nickname->setValidator(validation.GetNickname());
     ui->nickname->setText(
         QString::fromStdString(UISettings::values.multiplayer_nickname.GetValue()));
-    if (ui->nickname->text().isEmpty() && !Settings::values.suyu_username.GetValue().empty()) {
-        // Use suyu Web Service user name as nickname by default
-        ui->nickname->setText(QString::fromStdString(Settings::values.suyu_username.GetValue()));
+    if (ui->nickname->text().isEmpty() && !Settings::values.eden_username.GetValue().empty()) {
+        // Use Eden Web Service user name as nickname by default
+        ui->nickname->setText(QString::fromStdString(Settings::values.eden_username.GetValue()));
     }
     ui->ip->setValidator(validation.GetIP());
     ui->ip->setText(QString::fromStdString(UISettings::values.multiplayer_ip.GetValue()));
     ui->port->setValidator(validation.GetPort());
     ui->port->setText(QString::number(UISettings::values.multiplayer_port.GetValue()));
 
-    // TODO(jroweboy): Show or hide the connection options based on the current value of the combo
-    // box. Add this back in when the traversal server support is added.
+    connect(ui->server_list, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &DirectConnectWindow::OnServerSelected);
+    connect(ui->add_server, &QPushButton::clicked, this, &DirectConnectWindow::OnAddServer);
+    connect(ui->remove_server, &QPushButton::clicked, this, &DirectConnectWindow::OnRemoveServer);
     connect(ui->connect, &QPushButton::clicked, this, &DirectConnectWindow::Connect);
+
+    LoadSavedServers();
 }
 
 DirectConnectWindow::~DirectConnectWindow() = default;
 
 void DirectConnectWindow::RetranslateUi() {
     ui->retranslateUi(this);
+}
+
+void DirectConnectWindow::LoadSavedServers() {
+    const QString saved = QString::fromStdString(UISettings::values.multiplayer_saved_servers.GetValue());
+    const QStringList entries = saved.split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+    ui->server_list->clear();
+    ui->server_list->addItem(tr("Custom Server"), QString());
+    for (const QString& entry : entries) {
+        QString host;
+        QString port;
+        if (!ParseSavedServerEntry(entry, host, port)) {
+            continue;
+        }
+        const QString label = entry.left(entry.indexOf(QLatin1String("||")));
+        const QString address = host + QLatin1Char(':') + port;
+        ui->server_list->addItem(label, address);
+    }
+    ui->remove_server->setEnabled(false);
+}
+
+void DirectConnectWindow::SaveSavedServers() {
+    QStringList entries;
+    for (int i = 1; i < ui->server_list->count(); ++i) {
+        const QString label = ui->server_list->itemText(i);
+        const QString address = ui->server_list->itemData(i).toString();
+        if (!label.isEmpty() && !address.isEmpty()) {
+            entries.append(label + QStringLiteral("||") + address);
+        }
+    }
+    UISettings::values.multiplayer_saved_servers = entries.join(QLatin1Char('\n')).toStdString();
+    emit SaveConfig();
+}
+
+void DirectConnectWindow::UpdateSavedServerList() {
+    LoadSavedServers();
+}
+
+bool DirectConnectWindow::ParseSavedServerEntry(const QString& entry, QString& host, QString& port) const {
+    const int separator = entry.indexOf(QLatin1String("||"));
+    if (separator < 0)
+        return false;
+    const QString address = entry.mid(separator + 2);
+    const int colon = address.lastIndexOf(QLatin1Char(':'));
+    if (colon <= 0 || colon == address.length() - 1)
+        return false;
+    host = address.left(colon);
+    port = address.mid(colon + 1);
+    return true;
+}
+
+void DirectConnectWindow::OnServerSelected(int index) {
+    if (index <= 0) {
+        ui->remove_server->setEnabled(false);
+        return;
+    }
+    const QString address = ui->server_list->itemData(index).toString();
+    ui->remove_server->setEnabled(!address.isEmpty());
+    const int colon = address.lastIndexOf(QLatin1Char(':'));
+    if (colon > 0) {
+        ui->ip->setText(address.left(colon));
+        ui->port->setText(address.mid(colon + 1));
+    }
+}
+
+void DirectConnectWindow::OnAddServer() {
+    bool ok;
+    const QString label = QInputDialog::getText(this, tr("Add Custom Server"),
+                                                tr("Server Name:"), QLineEdit::Normal,
+                                                QString(), &ok);
+    if (!ok || label.trimmed().isEmpty()) {
+        return;
+    }
+    const QString address = QInputDialog::getText(this, tr("Add Custom Server"),
+                                                  tr("Host:Port:"), QLineEdit::Normal,
+                                                  QString(), &ok);
+    if (!ok || address.trimmed().isEmpty()) {
+        return;
+    }
+    const int colon = address.lastIndexOf(QLatin1Char(':'));
+    if (colon <= 0 || colon == address.length() - 1) {
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::IP_ADDRESS_NOT_VALID);
+        return;
+    }
+    ui->server_list->addItem(label.trimmed(), address.trimmed());
+    ui->server_list->setCurrentIndex(ui->server_list->count() - 1);
+    SaveSavedServers();
+}
+
+void DirectConnectWindow::OnRemoveServer() {
+    const int index = ui->server_list->currentIndex();
+    if (index <= 0) {
+        return;
+    }
+    ui->server_list->removeItem(index);
+    ui->remove_server->setEnabled(false);
+    SaveSavedServers();
 }
 
 void DirectConnectWindow::Connect() {

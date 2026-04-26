@@ -25,6 +25,10 @@ public:
         return &m_rasterizer;
     }
 
+    VideoCore::OptimizedRasterizer* ReadOptimizedRasterizer() override {
+        return nullptr;
+    }
+
     [[nodiscard]] std::string GetDeviceVendor() const override {
         return "NULL";
     }

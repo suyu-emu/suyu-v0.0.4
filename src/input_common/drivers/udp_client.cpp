@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <random>
 #include <boost/asio.hpp>
 #include <fmt/format.h>
 
 #include "common/logging/log.h"
+#include "common/random.h"
 #include "common/param_package.h"
 #include "common/settings.h"
 #include "input_common/drivers/udp_client.h"
@@ -61,8 +61,7 @@ public:
 
 private:
     u32 GenerateRandomClientId() const {
-        std::random_device device;
-        return device();
+        return Common::Random::Random32();
     }
 
     void HandleReceive(const boost::system::error_code&, std::size_t bytes_transferred) {

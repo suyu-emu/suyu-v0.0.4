@@ -90,7 +90,7 @@ constexpr std::array<std::pair<std::string_view, KeyIndex<S128KeyType>>, 30> s12
     {"sd_card_kek", {S128KeyType::SDKek, 0, 0}},
 }};
 
-auto Find128ByName(std::string_view name) {
+[[maybe_unused]] auto Find128ByName(std::string_view name) {
     return std::find_if(s128_file_id.begin(), s128_file_id.end(),
                         [&name](const auto& pair) { return pair.first == name; });
 }
@@ -104,17 +104,22 @@ constexpr std::array<std::pair<std::string_view, KeyIndex<S256KeyType>>, 6> s256
     {"sd_card_nca_key", {S256KeyType::SDKey, static_cast<u64>(SDKeyType::NCA), 0}},
 }};
 
-auto Find256ByName(std::string_view name) {
+[[maybe_unused]] auto Find256ByName(std::string_view name) {
     return std::find_if(s256_file_id.begin(), s256_file_id.end(),
                         [&name](const auto& pair) { return pair.first == name; });
 }
 
-using KeyArray = std::array<std::pair<std::pair<S128KeyType, u64>, std::string_view>, 7>;
+using KeyArray = std::array<std::pair<std::pair<S128KeyType, u64>, std::string_view>, 10>;
 constexpr KeyArray KEYS_VARIABLE_LENGTH{{
     {{S128KeyType::Master, 0}, "master_key_"},
     {{S128KeyType::Package1, 0}, "package1_key_"},
     {{S128KeyType::Package2, 0}, "package2_key_"},
     {{S128KeyType::Titlekek, 0}, "titlekek_"},
+    {{S128KeyType::KeyArea, static_cast<u64>(KeyAreaKeyType::Application)},
+     "key_area_key_application_"},
+    {{S128KeyType::KeyArea, static_cast<u64>(KeyAreaKeyType::Ocean)}, "key_area_key_ocean_"},
+    {{S128KeyType::KeyArea, static_cast<u64>(KeyAreaKeyType::System)},
+     "key_area_key_system_"},
     {{S128KeyType::Source, static_cast<u64>(SourceKeyType::Keyblob)}, "keyblob_key_source_"},
     {{S128KeyType::Keyblob, 0}, "keyblob_key_"},
     {{S128KeyType::KeyblobMAC, 0}, "keyblob_mac_key_"},
@@ -639,37 +644,36 @@ KeyManager::KeyManager() {
 }
 
 void KeyManager::ReloadKeys() {
-    /* ENCRYPTION DISABLED - Phase 2: Key loading disabled
-     * Original functionality preserved below
-     * 
-     * Keys are no longer loaded from files. Pre-decrypted game files should be used.
-     * Supported formats: .nso, .bin, .nro, .kip, folders (deconstructed ROM)
-     */
-    LOG_INFO(Crypto, "Key loading disabled - please use pre-decrypted game files");
-    return;
-    
-    /* Original code preserved:
-    // Initialize keys
-    const auto suyu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+    s128_keys.clear();
+    s256_keys.clear();
+    common_tickets.clear();
+    personal_tickets.clear();
+    ticket_databases_loaded = false;
 
-    if (!Common::FS::CreateDir(suyu_keys_dir)) {
-        LOG_ERROR(Crypto, "Failed to create the keys directory.");
+    const auto keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+    if (!Common::FS::CreateDir(keys_dir)) {
+        LOG_WARNING(Crypto, "Could not create keys directory: {}", keys_dir.generic_string());
     }
 
     if (Settings::values.use_dev_keys) {
         dev_mode = true;
-        LoadFromFile(suyu_keys_dir / "dev.keys", false);
+        LoadFromFile(keys_dir / "dev.keys", false);
     } else {
         dev_mode = false;
-        LoadFromFile(suyu_keys_dir / "prod.keys", false);
+        LoadFromFile(keys_dir / "prod.keys", false);
     }
+    LoadFromFile(keys_dir / "title.keys", true);
+    LoadFromFile(keys_dir / "console.keys", false);
 
-    LoadFromFile(suyu_keys_dir / "title.keys", true);
-    LoadFromFile(suyu_keys_dir / "console.keys", false);
-    */
+    DeriveBase();
+    PopulateTickets();
+
+    LOG_INFO(Crypto, "Loaded {} 128-bit keys and {} 256-bit keys", s128_keys.size(),
+             s256_keys.size());
 }
 
-static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_t length) {
+[[maybe_unused]] static bool ValidCryptoRevisionString(std::string_view base, size_t begin,
+                                                       size_t length) {
     if (base.size() < begin + length) {
         return false;
     }
@@ -678,124 +682,145 @@ static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_
 }
 
 void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys) {
-    /* ENCRYPTION DISABLED - Phase 2: Key file loading disabled
-     * Original functionality preserved below
-     * Keys are no longer loaded from prod.keys/title.keys/console.keys files
-     */
-    LOG_INFO(Crypto, "Key file loading disabled for '{}'", file_path.generic_string());
-    return;
-    
-    /* Original code preserved:
-    if (!Common::FS::Exists(file_path)) {
-        LOG_ERROR(Crypto, "Cannot handle key file '{}': File not found",
-                  file_path.generic_string());
-        return;
-    }
-
-    std::ifstream file;
-    Common::FS::OpenFileStream(file, file_path, std::ios_base::in);
-
+    std::ifstream file(file_path);
     if (!file.is_open()) {
-        LOG_ERROR(Crypto, "Failed to load key file at '{}': Can't open file",
-                  file_path.generic_string());
         return;
     }
 
-    LOG_INFO(Crypto, "Loading key file at '{}'", file_path.generic_string());
+    auto trim = [](std::string& s) {
+        const auto begin = s.find_first_not_of(" \t\r\n");
+        if (begin == std::string::npos) {
+            s.clear();
+            return;
+        }
+        const auto end = s.find_last_not_of(" \t\r\n");
+        s = s.substr(begin, end - begin + 1);
+    };
+
+    auto to_lower = [](std::string& s) {
+        std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) {
+            return static_cast<char>(std::tolower(c));
+        });
+    };
+
+    auto compact_hex = [](std::string& s) {
+        s.erase(std::remove_if(s.begin(), s.end(), [](unsigned char c) {
+                    return std::isspace(c) || c == ':';
+                }),
+                s.end());
+    };
+
+    auto parse_hex_array = [](std::string_view hex, auto& out) {
+        constexpr size_t out_size = std::tuple_size_v<std::remove_reference_t<decltype(out)>>;
+        if (hex.size() != out_size * 2) {
+            return false;
+        }
+        for (size_t i = 0; i < out_size; ++i) {
+            const char hi = hex[i * 2];
+            const char lo = hex[i * 2 + 1];
+            if (!std::isxdigit(static_cast<unsigned char>(hi)) ||
+                !std::isxdigit(static_cast<unsigned char>(lo))) {
+                return false;
+            }
+            const std::string byte_str{hi, lo};
+            out[i] = static_cast<u8>(std::stoul(byte_str, nullptr, 16));
+        }
+        return true;
+    };
+
     std::string line;
     while (std::getline(file, line)) {
-        std::vector<std::string> out;
-        std::stringstream stream(line);
-        std::string item;
-        while (std::getline(stream, item, '=')) {
-            out.push_back(std::move(item));
+        const auto comment = line.find('#');
+        if (comment != std::string::npos) {
+            line = line.substr(0, comment);
         }
-
-        if (out.size() != 2) {
+        trim(line);
+        if (line.empty()) {
             continue;
         }
 
-        out[0].erase(std::remove(out[0].begin(), out[0].end(), ' '), out[0].end());
-        out[1].erase(std::remove(out[1].begin(), out[1].end(), ' '), out[1].end());
-
-        if (out[0].compare(0, 1, "#") == 0) {
+        const auto equals = line.find('=');
+        if (equals == std::string::npos) {
             continue;
         }
+
+        std::string key_name = line.substr(0, equals);
+        std::string key_value = line.substr(equals + 1);
+        trim(key_name);
+        trim(key_value);
+        to_lower(key_name);
+        to_lower(key_value);
+        compact_hex(key_value);
 
         if (is_title_keys) {
-            auto rights_id_raw = Common::HexStringToArray<16>(out[0]);
-            u128 rights_id{};
-            std::memcpy(rights_id.data(), rights_id_raw.data(), rights_id_raw.size());
-            Key128 key = Common::HexStringToArray<16>(out[1]);
+            if (key_name.size() != 32 || key_value.size() != 32) {
+                continue;
+            }
 
-            LOG_INFO(Crypto, "Successfully loaded title key");
-            s128_keys[{S128KeyType::Titlekey, rights_id[1], rights_id[0]}] = key;
-        } else {
-            out[0] = Common::ToLower(out[0]);
-            if (const auto iter128 = Find128ByName(out[0]); iter128 != s128_file_id.end()) {
-                const auto& index = iter128->second;
-                const Key128 key = Common::HexStringToArray<16>(out[1]);
-                s128_keys[{index.type, index.field1, index.field2}] = key;
-            } else if (const auto iter256 = Find256ByName(out[0]); iter256 != s256_file_id.end()) {
-                const auto& index = iter256->second;
-                const Key256 key = Common::HexStringToArray<32>(out[1]);
-                s256_keys[{index.type, index.field1, index.field2}] = key;
-            } else if (out[0].compare(0, 8, "keyblob_") == 0 &&
-                       out[0].compare(0, 9, "keyblob_k") != 0) {
-                if (!ValidCryptoRevisionString(out[0], 8, 2)) {
+            Key128 title_key{};
+            if (!parse_hex_array(key_value, title_key)) {
+                continue;
+            }
+
+            Key128 rights_id{};
+            if (!parse_hex_array(key_name, rights_id)) {
+                continue;
+            }
+
+            u64 field2{};
+            u64 field1{};
+            std::memcpy(&field2, rights_id.data(), sizeof(u64));
+            std::memcpy(&field1, rights_id.data() + sizeof(u64), sizeof(u64));
+            SetKey(S128KeyType::Titlekey, title_key, field1, field2);
+            continue;
+        }
+
+        if (key_value.size() == 32) {
+            const auto fixed_128 = Find128ByName(key_name);
+            if (fixed_128 != s128_file_id.end()) {
+                Key128 k{};
+                if (parse_hex_array(key_value, k)) {
+                    const auto idx = fixed_128->second;
+                    SetKey(idx.type, k, idx.field1, idx.field2);
+                }
+                continue;
+            }
+
+            bool matched_variable = false;
+            for (const auto& [base, prefix] : KEYS_VARIABLE_LENGTH) {
+                if (!key_name.starts_with(prefix)) {
                     continue;
                 }
 
-                const auto index = std::strtoul(out[0].substr(8, 2).c_str(), nullptr, 16);
-                keyblobs[index] = Common::HexStringToArray<0x90>(out[1]);
-            } else if (out[0].compare(0, 18, "encrypted_keyblob_") == 0) {
-                if (!ValidCryptoRevisionString(out[0], 18, 2)) {
+                const auto suffix = key_name.substr(prefix.size());
+                if (suffix.empty() || !std::all_of(suffix.begin(), suffix.end(), [](char c) {
+                    return std::isxdigit(static_cast<unsigned char>(c));
+                    })) {
                     continue;
                 }
 
-                const auto index = std::strtoul(out[0].substr(18, 2).c_str(), nullptr, 16);
-                encrypted_keyblobs[index] = Common::HexStringToArray<0xB0>(out[1]);
-            } else if (out[0].compare(0, 20, "eticket_extended_kek") == 0) {
-                eticket_extended_kek = Common::HexStringToArray<576>(out[1]);
-            } else if (out[0].compare(0, 19, "eticket_rsa_keypair") == 0) {
-                const auto key_data = Common::HexStringToArray<528>(out[1]);
-                std::memcpy(eticket_rsa_keypair.decryption_key.data(), key_data.data(),
-                            eticket_rsa_keypair.decryption_key.size());
-                std::memcpy(eticket_rsa_keypair.modulus.data(), key_data.data() + 0x100,
-                            eticket_rsa_keypair.modulus.size());
-                std::memcpy(eticket_rsa_keypair.exponent.data(), key_data.data() + 0x200,
-                            eticket_rsa_keypair.exponent.size());
-            } else {
-                for (const auto& kv : KEYS_VARIABLE_LENGTH) {
-                    if (!ValidCryptoRevisionString(out[0], kv.second.size(), 2)) {
-                        continue;
-                    }
-                    if (out[0].compare(0, kv.second.size(), kv.second) == 0) {
-                        const auto index =
-                            std::strtoul(out[0].substr(kv.second.size(), 2).c_str(), nullptr, 16);
-                        const auto sub = kv.first.second;
-                        if (sub == 0) {
-                            s128_keys[{kv.first.first, index, 0}] =
-                                Common::HexStringToArray<16>(out[1]);
-                        } else {
-                            s128_keys[{kv.first.first, kv.first.second, index}] =
-                                Common::HexStringToArray<16>(out[1]);
-                        }
-
-                        break;
-                    }
+                Key128 k{};
+                if (!parse_hex_array(key_value, k)) {
+                    continue;
                 }
 
-                static constexpr std::array<const char*, 3> kak_names = {
-                    "key_area_key_application_", "key_area_key_ocean_", "key_area_key_system_"};
-                for (size_t j = 0; j < kak_names.size(); ++j) {
-                    const auto& match = kak_names[j];
-                    if (out[0].compare(0, std::strlen(match), match) == 0) {
-                        const auto index =
-                            std::strtoul(out[0].substr(std::strlen(match), 2).c_str(), nullptr, 16);
-                        s128_keys[{S128KeyType::KeyArea, index, j}] =
-                            Common::HexStringToArray<16>(out[1]);
-                    }
+                const u64 index = std::stoull(suffix, nullptr, 16);
+                SetKey(base.first, k, index, base.second);
+                matched_variable = true;
+                break;
+            }
+            if (matched_variable) {
+                continue;
+            }
+        }
+
+        if (key_value.size() == 64) {
+            const auto fixed_256 = Find256ByName(key_name);
+            if (fixed_256 != s256_file_id.end()) {
+                Key256 k{};
+                if (parse_hex_array(key_value, k)) {
+                    const auto idx = fixed_256->second;
+                    SetKey(idx.type, k, idx.field1, idx.field2);
                 }
             }
         }
@@ -807,45 +832,7 @@ bool KeyManager::AreKeysLoaded() const {
 }
 
 bool KeyManager::BaseDeriveNecessary() const {
-    /* ENCRYPTION DISABLED - Phase 2: Base key derivation check disabled
-     * Always returns false since keys are not derived from files
-     */
-    return false;
-    
-    /* Original code preserved:
-    const auto check_key_existence = [this](auto key_type, u64 index1 = 0, u64 index2 = 0) {
-        return !HasKey(key_type, index1, index2);
-    };
-
-    // Ensure the files exists
-    const auto suyu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
-
-    if (!Common::FS::Exists(suyu_keys_dir /
-                            (Settings::values.use_dev_keys ? "dev.keys" : "prod.keys"))) {
-        LOG_ERROR(Crypto, "No {} found",
-                  (Settings::values.use_dev_keys ? "dev.keys" : "prod.keys"));
-        return true;
-    }
-
-    if (!Common::FS::Exists(suyu_keys_dir / "title.keys")) {
-        LOG_WARNING(Crypto, "Could not locate a title.keys file");
-    }
-
-    if (check_key_existence(S256KeyType::Header)) {
-        return true;
-    }
-
-    for (size_t i = 0; i < CURRENT_CRYPTO_REVISION; ++i) {
-        if (check_key_existence(S128KeyType::Master, i) ||
-            check_key_existence(S128KeyType::KeyArea, i,
-                                static_cast<u64>(KeyAreaKeyType::Application)) ||
-            check_key_existence(S128KeyType::KeyArea, i, static_cast<u64>(KeyAreaKeyType::Ocean)) ||
-            check_key_existence(S128KeyType::KeyArea, i,
-                                static_cast<u64>(KeyAreaKeyType::System)) ||
-            check_key_existence(S128KeyType::Titlekek, i))
-            return true;
-    }
-
+    // Base derivation not required when using pre-processed content.
     return false;
 }
 
@@ -907,24 +894,8 @@ void KeyManager::SetKey(S256KeyType id, Key256 key, u64 field1, u64 field2) {
 }
 
 bool KeyManager::KeyFileExists(bool title) {
-    /* ENCRYPTION DISABLED - Phase 2: Key file existence check disabled
-     * Always returns false since key files are not used
-     */
-    return false;
-    
-    /* Original code preserved:
-    const auto suyu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
-
-    if (title) {
-        return Common::FS::Exists(suyu_keys_dir / "title.keys");
-    }
-
-    if (Settings::values.use_dev_keys) {
-        return Common::FS::Exists(suyu_keys_dir / "dev.keys");
-    }
-
-    return Common::FS::Exists(suyu_keys_dir / "prod.keys");
-    */
+    const auto keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+    return Common::FS::Exists(keys_dir / (title ? "title.keys" : "prod.keys"));
 }
 
 void KeyManager::DeriveSDSeedLazy() {

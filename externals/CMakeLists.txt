@@ -166,8 +166,17 @@ if (SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
 endif()
 
 # SPIRV-Tools
-if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+if (SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     add_subdirectory(SPIRV-Tools)
+    # SPIRV-Tools requires C++17; override the root-level /std:c++20 compile option
+    # to avoid C++20 operator== recursion issues in small_vector.h
+    if (MSVC)
+        foreach(_spirv_target SPIRV-Tools-static SPIRV-Tools-opt)
+            if (TARGET ${_spirv_target})
+                target_compile_options(${_spirv_target} PRIVATE /std:c++17)
+            endif()
+        endforeach()
+    endif()
 endif()
 
 # TZDB (Time Zone Database)

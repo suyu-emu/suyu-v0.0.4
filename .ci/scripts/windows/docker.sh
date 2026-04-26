@@ -55,6 +55,13 @@ cp -rv "${QT_PLUGINS_PATH}/imageformats/" package/
 cp -rv "${QT_PLUGINS_PATH}/styles/" package/
 rm -f package/mediaservice/*d.dll
 
+# Copy OpenSSL runtime DLLs required by Qt network/SSL support.
+for lib in libssl-3.dll libcrypto-3.dll libssl-1_1.dll libcrypto-1_1.dll; do
+  if [ -f "/usr/x86_64-w64-mingw32/bin/${lib}" ]; then
+    cp -v "/usr/x86_64-w64-mingw32/bin/${lib}" package/
+  fi
+done
+
 for i in package/*.exe; do
   # we need to process pdb here, however, cv2pdb
   # does not work here, so we just simply strip all the debug symbols

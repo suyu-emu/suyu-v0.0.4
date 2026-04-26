@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include <array>
+
 #include <QObject>
 #include <QString>
-#include "frozen/map.h"
-#include "frozen/string.h"
 
 namespace QtCommon::StringLookup {
 
@@ -52,7 +52,7 @@ enum StringKey {
 
 };
 
-static const constexpr frozen::map<StringKey, frozen::string, 27> strings = {
+static constexpr std::array<std::pair<StringKey, const char*>, 27> strings = {{
     // 0-4
     {SavesTooltip,
      QT_TR_NOOP("Contains game save data. DO NOT REMOVE UNLESS YOU KNOW WHAT YOU'RE DOING!")},
@@ -114,11 +114,16 @@ static const constexpr frozen::map<StringKey, frozen::string, 27> strings = {
     {KvdbMisaligned, QT_TR_NOOP("Invalid byte alignment on Ryujinx title database.")},
     {KvdbNoImens, QT_TR_NOOP("No items found in Ryujinx title database.")},
     {RyujinxNoSaveId, QT_TR_NOOP("Title %1 not found in Ryujinx title database.")},
-};
+}};
 
 static inline const QString Lookup(StringKey key)
 {
-    return QObject::tr(strings.at(key).data());
+    for (const auto& [entry_key, entry_value] : strings) {
+        if (entry_key == key) {
+            return QObject::tr(entry_value);
+        }
+    }
+    return {};
 }
 
 } // namespace QtCommon::StringLookup

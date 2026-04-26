@@ -2352,7 +2352,9 @@ void TextureCache<P>::PrepareImage(ImageId image_id, bool is_modification, bool 
         }
     } else {
         RefreshContents(image, image_id);
-        SynchronizeAliases(image_id);
+        if (!image.aliased_images.empty()) {
+            SynchronizeAliases(image_id);
+        }
     }
     if (is_modification) {
         MarkModification(image);

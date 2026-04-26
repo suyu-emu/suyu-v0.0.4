@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 #include <QWidget>
-#include "yuzu/configuration/configuration_shared.h"
+#include "suyu/configuration/configuration_shared.h"
 
 namespace Core {
 class System;

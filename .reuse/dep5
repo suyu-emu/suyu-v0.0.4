@@ -191,10 +191,6 @@ Files: externals/metal-cpp/*
 Copyright: 2020-2024 Apple Inc.
 License: Apache-2.0
 
-Files: src.bak.20251103_153257/*
-Copyright: 2018-2024 yuzu Emulator Project, 2024 suyu Emulator Project
-License: GPL-3.0-or-later
-
 Files: vcpkg*.log vcpkg-configuration.json tools/eden_migration.sh
 Copyright: Various
 License: GPL-3.0-or-later
@@ -203,7 +199,7 @@ Files: .github/workflows/android-build.yml
 Copyright: 2024 suyu Emulator Project
 License: GPL-3.0-or-later
 
-Files: src/suyu_cmd/emu_window/emu_window_sdl2_mtl.* src.bak.20251103_153257/suyu_cmd/emu_window/emu_window_sdl2_mtl.*
+Files: src/suyu_cmd/emu_window/emu_window_sdl2_mtl.*
 Copyright: 2024 suyu Emulator Project
 License: GPL-3.0-or-later
 
@@ -217,4 +213,114 @@ License: GPL-3.0-or-later
 
 Files: src/dedicated_room/yuzu_room.h
 Copyright: 2018-2024 yuzu Emulator Project, 2024 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: .github/workflows/auto-fix-workflows.lock.yml
+       .github/workflows/auto-fix-workflows.md
+       .github/workflows/autofix.yml
+       .github/workflows/autoupdate.yml
+       .github/workflows/autoupdate.yml.backup
+       .github/workflows/clone-issues.yml
+       .github/workflows/cmake-multi-platform.yml
+       .github/workflows/eden-sync.md
+       .github/workflows/post-logs-comment.yml
+       .github/workflows/test-connection.yml
+Copyright: 2025 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: .cleanthat/.cleanthat.yaml
+       .coderabbit.yaml
+       BUILD_FIX_STATUS.md
+       CONAN_MIGRATION_PLAN.md
+       ENCRYPTION_DISABLE_PLAN.md
+       MIGRATION_COMPLETE.md
+       README.md
+       SESSION_SUMMARY.md
+       WORKFLOW_MONITORING.md
+       WORK_COMPLETED_SUMMARY.md
+       boost-cmake-install.log
+       conanfile.txt
+       vcpkg_install_log.txt
+       vcpkg_llvm_install_log.txt
+Copyright: 2025 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: docs/*
+Copyright: 2025 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: scripts/*
+Copyright: 2025 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/dynarmic/.clang-format
+       src/dynarmic/.gitignore
+       src/dynarmic/CMakeModules/CreateDirectoryGroups.cmake
+       src/dynarmic/CMakeModules/DetectArchitecture.cmake
+       src/dynarmic/CMakeModules/FindUnicorn.cmake
+       src/dynarmic/CMakeModules/TargetArchitectureSpecificSources.cmake
+       src/dynarmic/CMakeModules/dynarmicConfig.cmake.in
+       src/dynarmic/CMakeModules/impl/TargetArchitectureSpecificSourcesWrapFile.cmake
+       src/dynarmic/docs/Design.md
+       src/dynarmic/docs/Doxyfile
+       src/dynarmic/docs/FastMemory.md
+       src/dynarmic/docs/Fastmem.svg
+       src/dynarmic/docs/HostToGuest.svg
+       src/dynarmic/docs/RegisterAllocator.md
+       src/dynarmic/docs/ReturnStackBufferOptimization.md
+       src/dynarmic/externals/cpmfile.json
+       src/dynarmic/src/dynarmic/frontend/A32/decoder/arm.inc
+       src/dynarmic/src/dynarmic/frontend/A32/decoder/asimd.inc
+       src/dynarmic/src/dynarmic/frontend/A32/decoder/thumb16.inc
+       src/dynarmic/src/dynarmic/frontend/A32/decoder/thumb32.inc
+       src/dynarmic/src/dynarmic/frontend/A32/decoder/vfp.inc
+       src/dynarmic/src/dynarmic/frontend/A32/translate/impl/common.h
+       src/dynarmic/src/dynarmic/frontend/A64/decoder/a64.inc
+       src/dynarmic/src/dynarmic/ir/opcodes.inc
+       src/dynarmic/tests/A32/vfp_vadd_f32.inc
+       src/dynarmic/tests/A32/vfp_vsub_f32.inc
+       src/dynarmic/tests/rsqrt_test_fn.s
+       src/dynarmic/README.md
+Copyright: 2016-2025 dynarmic contributors
+           2025 Eden Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/android/app/src/main/legacy/drawable/ic_icon_bg.png
+       src/android/app/src/main/legacy/drawable/ic_icon_bg_orig.png
+Copyright: 2025 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/core/libretro_wrapper.cpp
+       src/core/libretro_wrapper.h
+       src/nintendo_library/nintendo_library.cpp
+       src/nintendo_library/nintendo_library.h
+       src/qt_common/externals/cpmfile.json
+       src/suyu/icons/folder.svg
+       src/suyu/icons/game_placeholder.svg
+       src/suyu/icons/grid_view.svg
+       src/suyu/icons/list_view.svg
+       src/suyu/icons/play.svg
+       src/suyu/icons/search.svg
+       src/suyu/icons/settings.svg
+       src/suyu/migration_dialog.cpp
+       src/suyu/migration_dialog.h
+       src/suyu/modern_dark.qss
+Copyright: 2025 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/video_core/host_shaders/convert_astc_hdr_to_rgba16f.comp
+       src/video_core/host_shaders/convert_bc7_to_rgba8.comp
+       src/video_core/host_shaders/convert_rgb_to_yuv420.comp
+       src/video_core/host_shaders/convert_rgba16f_to_rgba8.frag
+       src/video_core/host_shaders/convert_rgba8_to_bgra8.frag
+       src/video_core/host_shaders/convert_yuv420_to_rgb.comp
+       src/video_core/host_shaders/dither_temporal.frag
+       src/video_core/host_shaders/dynamic_resolution_scale.comp
+       src/video_core/host_shaders/present_area.frag
+Copyright: 2025 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: vcpkg-overlays/mcl/portfile.cmake
+       vcpkg-overlays/mcl/vcpkg.json
+Copyright: 2025 suyu Emulator Project
 License: GPL-3.0-or-later

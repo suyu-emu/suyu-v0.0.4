@@ -8,7 +8,7 @@
 #include "core/frontend/emu_window.h"
 #include "suyu/qt_common.h"
 
-#if !defined(WIN32) && !defined(__APPLE__)
+#if !defined(_WIN32) && !defined(__APPLE__)
 #include <qpa/qplatformnativeinterface.h>
 #elif defined(__APPLE__)
 #include <objc/message.h>
@@ -39,7 +39,7 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     Core::Frontend::EmuWindow::WindowSystemInfo wsi;
     wsi.type = GetWindowSystemType();
 
-#if defined(WIN32)
+#if defined(_WIN32)
     // Our Win32 Qt external doesn't have the private API.
     wsi.render_surface = reinterpret_cast<void*>(window->winId());
 #elif defined(__APPLE__)

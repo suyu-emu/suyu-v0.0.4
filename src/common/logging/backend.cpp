@@ -106,8 +106,8 @@ public:
 
         bytes_written += file->WriteString(FormatLogMessage(entry).append(1, '\n'));
 
-               // Option to log each line rather than 4k buffers
-        if (Settings::values.log_flush_lines.GetValue()) {
+               // Flush on each line when extended logging is enabled
+        if (Settings::values.extended_logging.GetValue()) {
             file->Flush();
         }
 
@@ -200,7 +200,7 @@ public:
             return;
         }
         using namespace Common::FS;
-        const auto& log_dir = GetEdenPath(EdenPath::LogDir);
+        const auto& log_dir = GetSuyuPath(SuyuPath::LogDir);
         void(CreateDir(log_dir));
         Filter filter;
         filter.ParseFilterString(Settings::values.log_filter.GetValue());

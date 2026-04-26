@@ -53,6 +53,10 @@ public:
         return &rasterizer;
     }
 
+    VideoCore::OptimizedRasterizer* ReadOptimizedRasterizer() override {
+        return &rasterizer;
+    }
+
     [[nodiscard]] std::string GetDeviceVendor() const override {
         return device.GetDriverName();
     }

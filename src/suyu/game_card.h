@@ -12,6 +12,7 @@
 #include <QMouseEvent>
 #include <QPropertyAnimation>
 #include <QGraphicsDropShadowEffect>
+#include <QStyle>
 
 #include "common/common_types.h"
 #include "suyu/compatibility_list.h"
@@ -23,19 +24,19 @@ public:
     explicit GameCard(QWidget* parent = nullptr);
     ~GameCard() override;
 
-    void SetGameInfo(const QString& title, const QString& file_path, const QString& program_id,
-                     const QString& developer, u64 program_id_numeric, const QString& version,
-                     const QString& type, u64 size, const QString& compatibility,
+    void SetGameInfo(const QString& title, const QString& game_path, const QString& pid,
+                     const QString& dev, u64 pid_numeric, const QString& ver,
+                     const QString& game_type, u64 size, const QString& compat,
                      const QPixmap& icon);
 
     void SetTitle(const QString& title);
     void SetIcon(const QPixmap& icon);
-    void SetCompatibility(const QString& compatibility);
-    void SetPlayTime(const QString& play_time);
+    void SetCompatibility(const QString& compat);
+    void SetPlayTime(const QString& time_str);
     void SetSize(u64 size);
-    void SetType(const QString& type);
-    void SetVersion(const QString& version);
-    void SetDeveloper(const QString& developer);
+    void SetType(const QString& type_str);
+    void SetVersion(const QString& ver_str);
+    void SetDeveloper(const QString& dev_str);
 
     QString GetTitle() const;
     QString GetFilePath() const;
@@ -62,7 +63,7 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
-    void enterEvent(QEnterEvent* event) override;
+    void enterEvent(QEvent* event) override;
     void leaveEvent(QEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void focusInEvent(QFocusEvent* event) override;
@@ -77,7 +78,7 @@ private:
     void UpdateCardStyle();
     void StartHoverAnimation(bool hover_in);
     QString FormatFileSize(u64 size) const;
-    QColor GetCompatibilityColor(const QString& compatibility) const;
+    QColor GetCompatibilityColor(const QString& compat_str) const;
 
     // UI Components
     QVBoxLayout* main_layout;
@@ -111,8 +112,7 @@ private:
     QPropertyAnimation* hover_animation;
     QGraphicsDropShadowEffect* shadow_effect;
 
-    // Default icon
-    static QPixmap default_icon;
+    // Default icon (lazy-initialized, see GetDefaultIcon())
     static QPixmap GetDefaultIcon();
 };
 
@@ -129,7 +129,7 @@ public:
     QSize minimumSize() const override;
     int count() const override;
     QLayoutItem* itemAt(int index) const override;
-    QLayoutItem* takeAt(int index) const override;
+    QLayoutItem* takeAt(int index) override;
     void setGeometry(const QRect& rect) override;
 
     void setSpacing(int spacing);

@@ -217,14 +217,6 @@ if (SUYU_CMD)
     add_subdirectory(suyu_cmd)
 endif()
 
-if (SUYU_TESTS)
-    add_subdirectory(tests)
-endif()
-
-if (ENABLE_SDL2)
-    add_subdirectory(suyu_cmd)
-endif()
-
 if (ENABLE_QT)
     add_subdirectory(suyu)
 endif()

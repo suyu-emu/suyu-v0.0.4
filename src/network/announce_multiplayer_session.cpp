@@ -22,9 +22,12 @@ static constexpr std::chrono::seconds announce_time_interval(15);
 AnnounceMultiplayerSession::AnnounceMultiplayerSession(Network::RoomNetwork& room_network_)
     : room_network{room_network_} {
 #ifdef ENABLE_WEB_SERVICE
-    backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url.GetValue(),
-                                                     Settings::values.suyu_username.GetValue(),
-                                                     Settings::values.suyu_token.GetValue());
+    const auto announce_url = Settings::values.multiplayer_announce_url.GetValue().empty()
+                                  ? Settings::values.web_api_url.GetValue()
+                                  : Settings::values.multiplayer_announce_url.GetValue();
+    backend = std::make_unique<WebService::RoomJson>(announce_url,
+                                                     Settings::values.eden_username.GetValue(),
+                                                     Settings::values.eden_token.GetValue());
 #else
     backend = std::make_unique<AnnounceMultiplayerRoom::NullBackend>();
 #endif
@@ -156,8 +159,8 @@ void AnnounceMultiplayerSession::UpdateCredentials() {
 
 #ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url.GetValue(),
-                                                     Settings::values.suyu_username.GetValue(),
-                                                     Settings::values.suyu_token.GetValue());
+                                                     Settings::values.eden_username.GetValue(),
+                                                     Settings::values.eden_token.GetValue());
 #endif
 }
 

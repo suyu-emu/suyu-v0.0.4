@@ -140,6 +140,10 @@ signals:
     void DebugModeLeft();
 
     void LoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
+
+    /// Emitted when the emulation thread encounters a fatal unhandled exception.
+    /// Use Qt::QueuedConnection so the handler runs on the main thread.
+    void FatalError(const QString& message);
 };
 
 class GRenderWindow : public QWidget, public Core::Frontend::EmuWindow {

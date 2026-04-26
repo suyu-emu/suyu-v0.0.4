@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "set_play_time_dialog.h"
-#include "frontend_common/play_time_manager.h"
 #include "ui_set_play_time_dialog.h"
 
 SetPlayTimeDialog::SetPlayTimeDialog(QWidget* parent, u64 current_play_time)
     : QDialog(parent), ui{std::make_unique<Ui::SetPlayTimeDialog>()} {
     ui->setupUi(this);
 
-    ui->hoursSpinBox->setValue(
-        QString::fromStdString(PlayTime::PlayTimeManager::GetPlayTimeHours(current_play_time)).toInt());
-    ui->minutesSpinBox->setValue(
-        QString::fromStdString(PlayTime::PlayTimeManager::GetPlayTimeMinutes(current_play_time)).toInt());
-    ui->secondsSpinBox->setValue(
-        QString::fromStdString(PlayTime::PlayTimeManager::GetPlayTimeSeconds(current_play_time)).toInt());
+    const u64 hours = current_play_time / 3600;
+    const u64 minutes = (current_play_time % 3600) / 60;
+    const u64 seconds = current_play_time % 60;
+
+    ui->hoursSpinBox->setValue(static_cast<int>(hours));
+    ui->minutesSpinBox->setValue(static_cast<int>(minutes));
+    ui->secondsSpinBox->setValue(static_cast<int>(seconds));
 
     connect(ui->hoursSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this,
             &SetPlayTimeDialog::OnValueChanged);

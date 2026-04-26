@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
-#include <random>
 #include <regex>
 #include <mbedtls/sha256.h>
 #include "common/assert.h"
@@ -10,6 +9,7 @@
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
+#include "common/random.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/common_funcs.h"
@@ -271,14 +271,10 @@ std::vector<NcaID> PlaceholderCache::List() const {
 }
 
 NcaID PlaceholderCache::Generate() {
-    std::random_device device;
-    std::mt19937 gen(device());
-    std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
-
     NcaID out{};
 
-    const auto v1 = distribution(gen);
-    const auto v2 = distribution(gen);
+    const auto v1 = Common::Random::Random64();
+    const auto v2 = Common::Random::Random64();
     std::memcpy(out.data(), &v1, sizeof(u64));
     std::memcpy(out.data() + sizeof(u64), &v2, sizeof(u64));
 

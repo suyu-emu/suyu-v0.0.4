@@ -262,16 +262,48 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
         case EventType::AutoCorrect: {
             m_standard_user_auto_correct_clock_event->Clear();
 
-            bool automatic_correction{};
-            R_ASSERT(m_time_sm->IsStandardUserSystemClockAutomaticCorrectionEnabled(
-                &automatic_correction));
+            try {
+                bool automatic_correction{};
+                auto res = m_time_sm->IsStandardUserSystemClockAutomaticCorrectionEnabled(
+                    &automatic_correction);
+                if (res != ResultSuccess) {
+                    LOG_ERROR(Service_Time,
+                              "AutoCorrect: failed to query automatic correction enabled state: {}",
+                              res.raw);
+                    break;
+                }
 
-            Service::PSC::Time::SteadyClockTimePoint time_point{};
-            R_ASSERT(
-                m_time_sm->GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(&time_point));
+                Service::PSC::Time::SteadyClockTimePoint time_point{};
+                res = m_time_sm->GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
+                    &time_point);
+                if (res != ResultSuccess) {
+                    LOG_ERROR(Service_Time,
+                              "AutoCorrect: failed to query automatic correction updated time: {}",
+                              res.raw);
+                    break;
+                }
 
-            m_set_sys->SetUserSystemClockAutomaticCorrectionEnabled(automatic_correction);
-            m_set_sys->SetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
+                res = m_set_sys->SetUserSystemClockAutomaticCorrectionEnabled(automatic_correction);
+                if (res != ResultSuccess) {
+                    LOG_ERROR(Service_Time,
+                              "AutoCorrect: failed to persist automatic correction enabled state: {}",
+                              res.raw);
+                    break;
+                }
+
+                res = m_set_sys->SetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
+                if (res != ResultSuccess) {
+                    LOG_ERROR(Service_Time,
+                              "AutoCorrect: failed to persist automatic correction updated time: {}",
+                              res.raw);
+                }
+            } catch (const std::exception& e) {
+                LOG_ERROR(Service_Time, "AutoCorrect: exception while syncing time settings: {}",
+                          e.what());
+            } catch (...) {
+                LOG_ERROR(Service_Time,
+                          "AutoCorrect: unknown exception while syncing time settings");
+            }
             break;
         }
 

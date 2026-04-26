@@ -9,7 +9,7 @@ This document describes the fixes applied to resolve vcpkg build issues with boo
 
 **Root Cause**: The vcpkg baseline being used (`01f602195983451bc83e72f4214af2cbc495aa94`) had compatibility issues with boost-cmake dependencies. Manual overrides for vcpkg-cmake tools and boost packages were creating version conflicts.
 
-**Solution**: 
+**Solution**:
 - **Updated Baseline**: Changed to `a42af01b72c28a8e1d7b48107b33e4f286a55ef6` (from original suyu repository)
 - **Simplified Dependencies**: Removed manual vcpkg-cmake and vcpkg-cmake-config from dependencies (handled automatically by vcpkg)
 - **Removed Conflicting Overrides**: Removed all boost version overrides that were causing conflicts
@@ -84,7 +84,7 @@ To verify the fix is working:
 ## Additional Notes
 
 - The updated baseline (`a42af01b72c28a8e1d7b48107b33e4f286a55ef6`) is from the original suyu repository
-- All existing features (suyu-tests, web-service, android) remain functional  
+- All existing features (suyu-tests, web-service, android) remain functional
 - The changes maintain Windows x64 target platform compatibility
 - CI/CD pipeline optimizations reduce build time significantly
 

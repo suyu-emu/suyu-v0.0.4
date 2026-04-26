@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <vector>
+#include <QLabel>
 #include <QWidget>
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/shared_translation.h"
@@ -40,6 +41,11 @@ private:
     void RetranslateUI();
 
     void UpdateGroup(int index);
+    void UpdateAvailabilityUi();
+    int FindComboboxIndex(u32 enum_index, u32 value) const;
+    void SetOptionEnabled(QComboBox* combobox, int index, bool enabled,
+                          const QString& disabled_reason);
+    void EnsureCurrentSelectionEnabled(QComboBox* combobox) const;
 
     void Setup(const ConfigurationShared::Builder& builder);
 
@@ -50,6 +56,9 @@ private:
     const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
     std::vector<std::function<void(bool)>> apply_funcs{};
 
-    QComboBox* accuracy_combobox;
-    QComboBox* backend_combobox;
+    QLabel* backend_status_label{};
+    QComboBox* accuracy_combobox{};
+    QComboBox* execution_path_combobox{};
+    QComboBox* recompiler_combobox{};
+    QComboBox* core_provider_combobox{};
 };

@@ -7,7 +7,7 @@ This directory contains utility scripts to help with building and maintaining th
 ### `fix-vcpkg-build.ps1` (Recommended)
 Comprehensive automated script that resolves vcpkg build issues:
 - Cleans existing boost installations
-- Clears vcpkg cache and buildtrees  
+- Clears vcpkg cache and buildtrees
 - Reinstalls dependencies in correct order
 - Provides troubleshooting guidance
 
@@ -40,7 +40,7 @@ scripts\clean-boost.bat
 **Error:** `include could not find requested file: vcpkg-cmake/vcpkg-port-config.cmake`
 **Solution:** Run `fix-vcpkg-build.ps1` to install dependencies in correct order
 
-### Boost Version Conflicts  
+### Boost Version Conflicts
 **Error:** `no version database entry for boost-cobalt at 1.80.0`
 **Solution:** Run `clean-boost.ps1` then reinstall with `vcpkg install`
 

@@ -431,7 +431,9 @@ const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
 }
 
 int ConfigureGraphics::FindIndex(u32 enumeration, int value) const {
-    for (u32 i = 0; i < combobox_translations.at(enumeration).size(); i++) {
+    for (u32 i = 0; enumeration < combobox_translations.size() &&
+                    i < combobox_translations.at(enumeration).size();
+         i++) {
         if (combobox_translations.at(enumeration)[i].first == static_cast<u32>(value)) {
             return i;
         }
@@ -449,13 +451,17 @@ void ConfigureGraphics::ApplyConfiguration() {
 
     Settings::values.vulkan_device.SetGlobal(true);
     Settings::values.shader_backend.SetGlobal(true);
+    const auto api_index = Settings::EnumMetadata<Settings::RendererBackend>::Index();
     if (Settings::IsConfiguringGlobal() ||
         (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
-        auto backend = static_cast<Settings::RendererBackend>(
-            combobox_translations
-                .at(Settings::EnumMetadata<
-                    Settings::RendererBackend>::Index())[api_combobox->currentIndex()]
-                .first);
+        auto backend =
+            api_index >= combobox_translations.size() ||
+                    static_cast<size_t>(api_combobox->currentIndex()) >=
+                        combobox_translations.at(api_index).size()
+                ? Settings::values.renderer_backend.GetValue()
+                : static_cast<Settings::RendererBackend>(
+                      combobox_translations.at(api_index)[api_combobox->currentIndex()]
+                          .first);
         switch (backend) {
         case Settings::RendererBackend::OpenGL:
             Settings::values.shader_backend.SetGlobal(Settings::IsConfiguringGlobal());
@@ -538,8 +544,14 @@ Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
         if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
             return Settings::values.renderer_backend.GetValue(true);
         }
+        const auto api_index = Settings::EnumMetadata<Settings::RendererBackend>::Index();
+        if (api_index >= combobox_translations.size() ||
+            static_cast<size_t>(api_combobox->currentIndex()) >=
+                combobox_translations.at(api_index).size()) {
+            return Settings::values.renderer_backend.GetValue();
+        }
         return static_cast<Settings::RendererBackend>(
-            combobox_translations.at(Settings::EnumMetadata<Settings::RendererBackend>::Index())
+            combobox_translations.at(api_index)
                 .at(api_combobox->currentIndex())
                 .first);
     }();

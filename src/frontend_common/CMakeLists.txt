@@ -5,6 +5,10 @@ add_library(frontend_common STATIC
     config.cpp
     config.h
     content_manager.h
+    data_manager.cpp
+    data_manager.h
+    firmware_manager.cpp
+    firmware_manager.h
 )
 
 create_target_directory_groups(frontend_common)

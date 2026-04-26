@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 **Notes**: We do not support or condone piracy in any form. In order to use suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
-We're in need of developers. Please join our chat below or DM a developer if you want to contribute as part of the team, one-time or infrequent contributions can be done through the Git. 
+We're in need of developers. Please join our chat below or DM a developer if you want to contribute as part of the team, one-time or infrequent contributions can be done through the Git.
 
 This repo is currently based on Eden with the code being "evolved" from the core upward to combat legal and performance related concerns.
 
@@ -18,7 +18,7 @@ Our only website is https://suyu-emu.github.io/ so please be cautious when using
 
 <h1 align="center">
   <br>
-  <a href="https://suyu.dev"><img src="dist/readme/suyu__Logo-Pill.svg" alt="suyu" height="128"></a>
+  <a href="https://suyu-emu.github.io/website"><img src="dist/readme/suyu__Logo-Pill.svg" alt="suyu" height="128"></a>
   <br>
   <b>suyu</b>
   <br>

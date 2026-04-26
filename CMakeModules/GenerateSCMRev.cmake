@@ -54,4 +54,11 @@ if (BUILD_REPOSITORY)
   endif()
 endif()
 
+if (NOT BUILD_FULLNAME)
+  # Local/development builds should present a stable product version name.
+  set(REPO_NAME "suyu")
+  set(BUILD_FULLNAME "suyu v0.0.4 (Early Access)")
+  set(BUILD_VERSION "0.0.4")
+endif()
+
 configure_file(scm_rev.cpp.in scm_rev.cpp @ONLY)

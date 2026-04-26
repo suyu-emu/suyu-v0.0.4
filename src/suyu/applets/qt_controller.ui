@@ -1,5 +1,5 @@
-<!-- SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project -->
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project -->
 <ui version="4.0">
  <class>QtControllerSelectorDialog</class>
  <widget class="QDialog" name="QtControllerSelectorDialog">

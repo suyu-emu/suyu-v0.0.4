@@ -4,12 +4,38 @@
 #include "migration_worker.h"
 #include "common/fs/symlink.h"
 
+#include <array>
 #include <QMap>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <filesystem>
 
 #include "common/fs/path_util.h"
+
+std::array<Emulator, 4> BuildLegacyEmulators() {
+#ifdef _WIN32
+    const auto roaming = Common::FS::GetAppDataRoamingDirectory();
+    return {
+        Emulator{QT_TR_NOOP("Citron"), roaming / "Citron", roaming / "Citron", roaming / "Citron"},
+        Emulator{QT_TR_NOOP("Sudachi"), roaming / "Sudachi", roaming / "Sudachi", roaming / "Sudachi"},
+        Emulator{QT_TR_NOOP("Suyu"), roaming / "suyu", roaming / "suyu", roaming / "suyu"},
+        Emulator{QT_TR_NOOP("Yuzu"), roaming / "yuzu", roaming / "yuzu", roaming / "yuzu"},
+    };
+#else
+    const auto home = Common::FS::GetHomeDirectory();
+    const auto share = home / ".local" / "share";
+    const auto config = home / ".config";
+    const auto cache = home / ".cache";
+    return {
+        Emulator{QT_TR_NOOP("Citron"), share / "citron", config / "citron", cache / "citron"},
+        Emulator{QT_TR_NOOP("Sudachi"), share / "sudachi", config / "sudachi", cache / "sudachi"},
+        Emulator{QT_TR_NOOP("Suyu"), share / "suyu", config / "suyu", cache / "suyu"},
+        Emulator{QT_TR_NOOP("Yuzu"), share / "yuzu", config / "yuzu", cache / "yuzu"},
+    };
+#endif
+}
+
+const std::array<Emulator, 4> legacy_emus = BuildLegacyEmulators();
 
 MigrationWorker::MigrationWorker(const Emulator selected_legacy_emu_,
                                  const bool clear_shader_cache_,
@@ -37,7 +63,7 @@ void MigrationWorker::process()
 
     try {
         fs::remove_all(suyu_dir);
-    } catch (fs::filesystem_error &_) {
+    } catch (const fs::filesystem_error&) {
         // ignore because linux does stupid crap sometimes
     }
 

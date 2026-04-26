@@ -172,12 +172,12 @@ enum class KMemoryPermission : u8 {
 DECLARE_ENUM_FLAG_OPERATORS(KMemoryPermission);
 
 constexpr KMemoryPermission ConvertToKMemoryPermission(Svc::MemoryPermission perm) {
+    const bool has_write =
+        (static_cast<u8>(perm) & static_cast<u8>(Svc::MemoryPermission::Write)) != 0;
     return static_cast<KMemoryPermission>(
         (static_cast<KMemoryPermission>(perm) & KMemoryPermission::UserMask) |
         KMemoryPermission::KernelRead |
-        ((static_cast<KMemoryPermission>(perm) & Svc::MemoryPermission::UserWrite)
-             ? KMemoryPermission::KernelWrite
-             : KMemoryPermission::None) |
+        (has_write ? KMemoryPermission::KernelWrite : KMemoryPermission::None) |
         (perm == Svc::MemoryPermission::None ? KMemoryPermission::NotMapped
                                              : KMemoryPermission::None));
 }

@@ -611,7 +611,10 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
             data_component = CreateCombobox(serializer, restore_func, touch);
             break;
         default:
-            UNIMPLEMENTED();
+            LOG_WARNING(Frontend, "Unsupported integral request type {} for setting {}. Falling back to line edit.",
+                        static_cast<int>(request), setting.GetLabel());
+            data_component = CreateLineEdit(serializer, restore_func, touch);
+            break;
         }
     } else if (setting.IsFloatingPoint()) {
         switch (request) {
@@ -625,7 +628,10 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
                                           serializer, restore_func, touch);
             break;
         default:
-            UNIMPLEMENTED();
+            LOG_WARNING(Frontend, "Unsupported floating point request type {} for setting {}. Falling back to line edit.",
+                        static_cast<int>(request), setting.GetLabel());
+            data_component = CreateDoubleSpinBox(suffix, serializer, restore_func, touch);
+            break;
         }
     } else if (type == typeid(std::string)) {
         switch (request) {
@@ -637,7 +643,10 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
             data_component = CreateCombobox(serializer, restore_func, touch);
             break;
         default:
-            UNIMPLEMENTED();
+            LOG_WARNING(Frontend, "Unsupported string request type {} for setting {}. Falling back to line edit.",
+                        static_cast<int>(request), setting.GetLabel());
+            data_component = CreateLineEdit(serializer, restore_func, touch);
+            break;
         }
     }
 

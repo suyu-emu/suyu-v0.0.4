@@ -2,9 +2,6 @@
 <ui version="4.0">
  <class>ConfigureWeb</class>
  <widget class="QWidget" name="ConfigureWeb">
-  <property name="enabled">
-   <bool>true</bool>
-  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -25,44 +22,11 @@
      <item>
       <widget class="QGroupBox" name="groupBoxWebConfig">
        <property name="title">
-        <string>suyu Web Service</string>
+        <string>Eden Web Service</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayoutSuyuWebService">
+       <layout class="QVBoxLayout" name="verticalLayoutEdenWebService">
         <item>
-         <widget class="QLabel" name="web_credentials_disclaimer">
-          <property name="text">
-           <string>By providing your username and token, you agree to allow suyu to collect additional usage data, which may include user identifying information.</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QGridLayout" name="gridLayoutSuyuUsername">
-          <item row="2" column="3">
-           <widget class="QPushButton" name="button_verify_login">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::RightToLeft</enum>
-            </property>
-            <property name="text">
-             <string>Verify</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="web_signup_link">
-            <property name="text">
-             <string>Sign up</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1" colspan="3">
-           <widget class="QLabel" name="username"/>
-          </item>
+         <layout class="QGridLayout" name="gridLayoutEdenUsername">
           <item row="1" column="0">
            <widget class="QLabel" name="label_token">
             <property name="text">
@@ -70,37 +34,82 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="4">
-           <widget class="QLabel" name="label_token_verified"/>
-          </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_username">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Username: </string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1" colspan="3">
+          <item row="0" column="1" colspan="4">
+           <widget class="QLineEdit" name="edit_username">
+            <property name="maxLength">
+             <number>20</number>
+            </property>
+            <property name="echoMode">
+             <enum>QLineEdit::EchoMode::Normal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="5">
+           <widget class="QLabel" name="label_token_verified">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>24</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="4">
            <widget class="QLineEdit" name="edit_token">
+            <property name="inputMethodHints">
+             <set>Qt::InputMethodHint::ImhLowercaseOnly</set>
+            </property>
             <property name="maxLength">
              <number>80</number>
             </property>
             <property name="echoMode">
-             <enum>QLineEdit::Password</enum>
+             <enum>QLineEdit::EchoMode::Normal</enum>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="web_token_info_link">
+          <item row="0" column="5">
+           <widget class="QLabel" name="label_username_verified">
             <property name="text">
-             <string>What is my token?</string>
+             <string/>
             </property>
            </widget>
           </item>
-          <item row="2" column="2">
+          <item row="2" column="4">
+           <widget class="QPushButton" name="button_generate">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Generate</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="3">
            <spacer name="horizontalSpacer">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -109,6 +118,34 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_web_api_url">
+            <property name="text">
+             <string>Web API URL: </string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1" colspan="4">
+           <widget class="QLineEdit" name="edit_web_api_url">
+            <property name="placeholderText">
+             <string>https://api.ynet-fun.xyz</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_announce_url">
+            <property name="text">
+             <string>Announce URL: </string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1" colspan="4">
+           <widget class="QLineEdit" name="edit_multiplayer_announce_url">
+            <property name="placeholderText">
+             <string>(optional, defaults to Web API URL)</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>

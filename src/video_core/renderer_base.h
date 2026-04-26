@@ -11,8 +11,8 @@
 #include "common/common_types.h"
 #include "core/frontend/framebuffer_layout.h"
 #include "video_core/gpu.h"
-#include "video_core/rasterizer_interface.h"
 #include "video_core/optimized_rasterizer.h"
+#include "video_core/rasterizer_interface.h"
 
 namespace Core::Frontend {
 class EmuWindow;

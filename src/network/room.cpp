@@ -5,12 +5,12 @@
 #include <atomic>
 #include <iomanip>
 #include <mutex>
-#include <random>
 #include <regex>
 #include <shared_mutex>
 #include <sstream>
 #include <thread>
 #include "common/logging/log.h"
+#include "common/random.h"
 #include "enet/enet.h"
 #include "network/packet.h"
 #include "network/room.h"
@@ -20,7 +20,7 @@ namespace Network {
 
 class Room::RoomImpl {
 public:
-    std::mt19937 random_gen; ///< Random number generator. Used for GenerateFakeIPAddress
+
 
     ENetHost* server = nullptr; ///< Network interface.
 
@@ -48,7 +48,7 @@ public:
     IPBanList ip_ban_list;             ///< List of banned IP addresses
     mutable std::mutex ban_list_mutex; ///< Mutex for the ban lists
 
-    RoomImpl() : random_gen(std::random_device()()) {}
+    RoomImpl() = default;
 
     /// Thread that receives and dispatches network packets
     std::unique_ptr<std::thread> room_thread;
@@ -811,7 +811,7 @@ IPv4Address Room::RoomImpl::GenerateFakeIPAddress() {
     std::uniform_int_distribution<> dis(0x01, 0xFE); // Random byte between 1 and 0xFE
     do {
         for (std::size_t i = 2; i < result_ip.size(); ++i) {
-            result_ip[i] = static_cast<u8>(dis(random_gen));
+            result_ip[i] = static_cast<u8>(dis(Common::Random::GetMT19937()));
         }
     } while (!IsValidFakeIPAddress(result_ip));
 

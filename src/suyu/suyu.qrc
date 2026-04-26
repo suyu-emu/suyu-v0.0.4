@@ -9,8 +9,8 @@ SPDX-License-Identifier: GPL-2.0-or-later
         <file alias="suyu.svg">../../dist/suyu.svg</file>
         <file alias="suyu_logo.svg">../../dist/readme/suyu__Logo-Pill.svg</file>
     </qresource>
-    <qresource prefix="/themes">
-        <file alias="modern_dark.qss">modern_dark.qss</file>
+    <qresource prefix="/modern_dark">
+        <file alias="style.qss">modern_dark.qss</file>
     </qresource>
     <qresource prefix="/icons">
         <file alias="play.svg">icons/play.svg</file>

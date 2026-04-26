@@ -265,7 +265,7 @@ The focus on branding preservation, thorough testing, and community involvement 
 
 ---
 
-**Document Status**: Initial Draft  
-**Last Updated**: 2024-01-XX  
-**Next Review**: After Phase 1 completion  
-**Responsible Team**: Suyu Development Team  
+**Document Status**: Initial Draft
+**Last Updated**: 2024-01-XX
+**Next Review**: After Phase 1 completion
+**Responsible Team**: Suyu Development Team

@@ -11,7 +11,7 @@ When reviewing a pull request, you can monitor CI workflow status from:
 
 **CMake on multiple platforms** status indicators:
 - ⏳ **IN PROGRESS** - Build is running
-- ✅ **SUCCESS** - Build completed successfully  
+- ✅ **SUCCESS** - Build completed successfully
 - ❌ **FAILURE** - Build failed
 
 **Other Workflows**:
@@ -85,7 +85,7 @@ The current build (5ce476e) is testing a critical fix:
 ## Project Board Migration Task
 
 ### Source
-https://git.suyu.dev/suyu/suyu/projects/11
+https://web.archive.org/web/20250615055256/https://git.suyu.dev/suyu/suyu/projects/11
 
 ### Target
 https://github.com/orgs/suyu-emu/projects/1/

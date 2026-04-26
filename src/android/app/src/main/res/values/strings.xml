@@ -3,7 +3,7 @@
 
     <!-- General application strings -->
     <string name="app_name" translatable="false">suyu</string>
-    <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href="https://suyu.dev/help/quickstart">Learn more</a>]]></string>
+    <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href="https://suyu-emu.github.io/website/">Learn more</a>]]></string>
     <string name="notice_notification_channel_name">Notices and errors</string>
     <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
     <string name="notice_notification_channel_description">Shows notifications when something goes wrong.</string>
@@ -38,7 +38,7 @@
     <string name="select_games_folder_description">Allows suyu to populate the games list</string>
     <string name="add_games_warning">Skip selecting games folder?</string>
     <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
-    <string name="add_games_warning_help">https://suyu.dev/help/quickstart/#dumping-games</string>
+    <string name="add_games_warning_help">https://suyu-emu.github.io/website//#dumping-games</string>
     <string name="home_search_games">Search games</string>
     <string name="search_settings">Search settings</string>
     <string name="games_dir_selected">Games directory selected</string>
@@ -46,7 +46,7 @@
     <string name="install_prod_keys_description">Required to decrypt retail games</string>
     <string name="install_prod_keys_warning">Skip adding keys?</string>
     <string name="install_prod_keys_warning_description">Valid keys are required to emulate retail games. Only homebrew apps will function if you continue.</string>
-    <string name="install_prod_keys_warning_help">https://suyu.dev/help/quickstart/#guide-introduction</string>
+    <string name="install_prod_keys_warning_help">https://suyu-emu.github.io/website//#guide-introduction</string>
     <string name="notifications">Notifications</string>
     <string name="notifications_description">Grant the notification permission with the button below.</string>
     <string name="give_permission">Grant permission</string>
@@ -67,7 +67,7 @@
     <string name="install_prod_keys_failure_extension_description">Verify your keys file has a .keys extension and try again.</string>
     <string name="install_amiibo_keys_failure_extension_description">Verify your keys file has a .bin extension and try again.</string>
     <string name="invalid_keys_error">Invalid encryption keys</string>
-    <string name="dumping_keys_quickstart_link">https://suyu.dev/help/quickstart/#dumping-decryption-keys</string>
+    <string name="dumping_keys_quickstart_link">https://suyu-emu.github.io/website//#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">The selected file is incorrect or corrupt. Please redump your keys.</string>
     <string name="gpu_driver_manager">GPU driver manager</string>
     <string name="install_gpu_driver">Install GPU driver</string>
@@ -117,7 +117,7 @@
     <string name="install_game_content_success">Game content(s) installed successfully</string>
     <string name="install_game_content_success_install">%1$d installed successfully</string>
     <string name="install_game_content_success_overwrite">%1$d overwritten successfully</string>
-    <string name="install_game_content_help_link">https://suyu.dev/help/quickstart/#dumping-installed-updates</string>
+    <string name="install_game_content_help_link">https://suyu-emu.github.io/website//#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Custom drivers not supported</string>
     <string name="custom_driver_not_supported_description">Custom driver loading isn\'t currently supported for this device.\nCheck this option again in the future to see if support was added!</string>
     <string name="manage_suyu_data">Manage suyu data</string>
@@ -142,7 +142,7 @@
     <string name="verify_installed_content_description">Checks all installed content for corruption</string>
     <string name="keys_missing">Encryption keys are missing</string>
     <string name="keys_missing_description">Firmware and retail games cannot be decrypted</string>
-    <string name="keys_missing_help">https://suyu.dev/help/quickstart/#dumping-decryption-keys</string>
+    <string name="keys_missing_help">https://suyu-emu.github.io/website//#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -151,7 +151,7 @@
     <string name="applets_description">Launch system applets using installed firmware</string>
     <string name="applets_error_firmware">Firmware not installed</string>
     <string name="applets_error_applet">Applet not available</string>
-    <string name="applets_error_description"><![CDATA[Please ensure your <a href="https://suyu.dev/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file and <a href="https://suyu.dev/help/quickstart/#dumping-system-firmware">firmware</a> are installed and try again.]]></string>
+    <string name="applets_error_description"><![CDATA[Please ensure your <a href="https://suyu-emu.github.io/website//#dumping-prodkeys-and-titlekeys">prod.keys</a> file and <a href="https://suyu-emu.github.io/website//#dumping-system-firmware">firmware</a> are installed and try again.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">See images stored in the user screenshots folder with the system photo viewer</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -170,7 +170,7 @@
     <string name="about_app_description">An open-source Switch emulator</string>
     <string name="contributors">Contributors</string>
     <string name="contributors_description">Made with \u2764 from the suyu team</string>
-    <string name="contributors_link">https://git.suyu.dev/suyu/suyu/activity/</string>
+    <string name="contributors_link">https://web.archive.org/web/20241002013828/https://git.suyu.dev/suyu/suyu/activity/contributors</string>
     <string name="licenses_description">Projects that make suyu for Android possible</string>
     <string name="build">Build</string>
     <string name="user_data">User data</string>
@@ -184,7 +184,7 @@
     <string name="user_data_export_cancelled">Export cancelled</string>
     <string name="user_data_import_failed_description">Make sure the user data folders are at the root of the zip folder and contain a config file at config/config.ini and try again.</string>
     <string name="support_link">https://chat.suyu.dev/</string>
-    <string name="website_link">https://suyu.dev/</string>
+    <string name="website_link">https://suyu-emu.github.io/website/</string>
     <string name="github_link">https://git.suyu.dev/</string>
 
     <!-- Early access upgrade strings -->
@@ -463,8 +463,8 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href="https://suyu.dev/help/quickstart/#dumping-physical-titles-game-cards">game cartidges</a> or <a href="https://suyu.dev/help/quickstart/#dumping-digital-titles-eshop">installed titles</a>.]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Please ensure your <a href="https://suyu.dev/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file is installed so that games can be decrypted.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href="https://suyu-emu.github.io/website//#dumping-physical-titles-game-cards">game cartidges</a> or <a href="https://suyu-emu.github.io/website//#dumping-digital-titles-eshop">installed titles</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Please ensure your <a href="https://suyu-emu.github.io/website//#dumping-prodkeys-and-titlekeys">prod.keys</a> file is installed so that games can be decrypted.]]></string>
     <string name="loader_error_video_core">An error occurred initializing the video core</string>
     <string name="loader_error_video_core_description">This is usually caused by an incompatible GPU driver. Installing a custom GPU driver may resolve this problem.</string>
     <string name="loader_error_invalid_format">Unable to load ROM</string>
@@ -1169,5 +1169,49 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </string>
+
+    <!-- Game card / UI strings -->
+    <string name="game_image_desc">Game cover art</string>
+
+    <!-- Multiplayer / Chat strings -->
+    <string name="multiplayer">Multiplayer</string>
+    <string name="multiplayer_description">Host your own game room or join an existing one to play with people</string>
+    <string name="multiplayer_create_room">Create</string>
+    <string name="multiplayer_join_room">Join</string>
+    <string name="multiplayer_public_room">Browse Public Rooms</string>
+    <string name="multiplayer_username">Username</string>
+    <string name="multiplayer_ip_address">IP Address</string>
+    <string name="multiplayer_ip_port">Port</string>
+    <string name="multiplayer_exit_room">Exit Room</string>
+    <string name="multiplayer_password">Password</string>
+    <string name="multiplayer_joining">Joining…</string>
+    <string name="multiplayer_creating">Creating…</string>
+    <string name="multiplayer_room_name">Room Name</string>
+    <string name="multiplayer_max_players_value">Max Players: %d</string>
+    <string name="multiplayer_chat">Chat</string>
+    <string name="multiplayer_more_options">More Options</string>
+    <string name="multiplayer_moderation">Moderation</string>
+    <string name="multiplayer_unban">Unban</string>
+    <string name="multiplayer_no_rooms_found">No public rooms found</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Game</string>
+    <string name="multiplayer_password_protected">Password protected room</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Tap refresh to check again</string>
+    <string name="multiplayer_preferred_game_name">Preferred Game</string>
+    <string name="multiplayer_lobby_type">Lobby Type</string>
+    <string name="chat">Chat</string>
+    <string name="type_message">Type a message…</string>
+    <string name="send_message">Send</string>
+    <string name="multiplayer_room_browser">Room Browser</string>
+    <string name="refresh">Refresh</string>
+    <string name="multiplayer_search_public_lobbies">Search public lobbies</string>
+    <string name="multiplayer_hide_empty_rooms">Hide empty rooms</string>
+    <string name="multiplayer_hide_full_rooms">Hide full rooms</string>
+    <string name="room_list">Room list</string>
+
+    <!-- Time unit strings -->
+    <string name="hours">Hours</string>
+    <string name="minutes">Minutes</string>
+    <string name="seconds">Seconds</string>
 
 </resources>

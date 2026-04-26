@@ -204,6 +204,7 @@ add_library(core STATIC
     hle/ipc.h
     hle/kernel/board/nintendo/nx/k_memory_layout.cpp
     hle/kernel/board/nintendo/nx/k_memory_layout.h
+    libretro_wrapper_compat.cpp
     hle/kernel/board/nintendo/nx/k_system_control.cpp
     hle/kernel/board/nintendo/nx/k_system_control.h
     hle/kernel/board/nintendo/nx/secure_monitor.h
@@ -1142,6 +1143,8 @@ add_library(core STATIC
     reporter.h
     tools/freezer.cpp
     tools/freezer.h
+    tools/hactool_integration.cpp
+    tools/hactool_integration.h
     tools/renderdoc.cpp
     tools/renderdoc.h
 )

@@ -29,6 +29,7 @@ const Themes included_themes{{
     {"Mine Shaft monochrome", ":/qdarkstyle_monochrome"},
     {"Midnight Blue", ":/qdarkstyle_midnight_blue"},
     {"Midnight Blue monochrome", ":/qdarkstyle_midnight_blue_monochrome"},
+    {"Modern Dark", ":/modern_dark"},
 }};
 
 Values values = {};

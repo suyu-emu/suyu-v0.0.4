@@ -14,7 +14,7 @@ namespace QtCommon::Path {
 
 bool OpenShaderCache(u64 program_id, QObject *parent)
 {
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::ShaderDir);
     const auto shader_cache_folder_path{shader_cache_dir / fmt::format("{:016x}", program_id)};
     if (!Common::FS::CreateDirs(shader_cache_folder_path)) {
         QtCommon::Frontend::ShowMessage(QMessageBox::Warning,

@@ -320,8 +320,8 @@ void OneTimeInit() {
 void OneTimeInitLogFile() {
     const char* logfile = getenv("SSLKEYLOGFILE");
     if (logfile) {
-        key_log_file.Open(logfile, FileAccessMode::Append, FileType::TextFile,
-                          FileShareFlag::ShareWriteOnly);
+        key_log_file.Open(std::filesystem::path(logfile), FileAccessMode::Append,
+                          FileType::TextFile, FileShareFlag::ShareWriteOnly);
         if (key_log_file.IsOpen()) {
             SSL_CTX_set_keylog_callback(ssl_ctx, &SSLConnectionBackendOpenSSL::KeyLogCallback);
         } else {

@@ -43,6 +43,9 @@ SWITCHABLE(AstcDecodeMode, true);
 SWITCHABLE(AstcRecompression, true);
 SWITCHABLE(AudioMode, true);
 SWITCHABLE(CpuBackend, true);
+SWITCHABLE(CpuCoreProvider, true);
+SWITCHABLE(CpuExecutionPath, true);
+SWITCHABLE(CpuRecompilerEngine, true);
 SWITCHABLE(CpuAccuracy, true);
 SWITCHABLE(FullscreenMode, true);
 SWITCHABLE(GpuAccuracy, true);
@@ -118,7 +121,7 @@ void LogSettings() {
     LOG_INFO(Config, "suyu Configuration:");
     for (auto& [category, settings] : values.linkage.by_category) {
         for (const auto& setting : settings) {
-            if (setting->Id() == values.suyu_token.Id()) {
+            if (setting->Id() == values.eden_token.Id()) {
                 // Hide the token secret, for security reasons.
                 continue;
             }
@@ -158,10 +161,94 @@ bool IsFastmemEnabled() {
     return true;
 }
 
+bool IsBallisticAvailable() {
+#ifdef ENABLE_BALLISTIC
+    return false;
+#else
+    return false;
+#endif
+}
+
+bool IsRemAvailable() {
+#ifdef ENABLE_REM
+    return false;
+#else
+    return false;
+#endif
+}
+
+void SanitizeCpuBackendSettings() {
+    auto& execution_path = values.cpu_execution_path;
+    auto& recompiler = values.cpu_recompiler_engine;
+    auto& core_provider = values.cpu_core_provider;
+
+#ifndef HAS_NCE
+    if (execution_path.GetValue(true) == CpuExecutionPath::Nce) {
+        LOG_WARNING(Common, "NCE is unavailable on this host build; switching CPU execution path "
+                            "back to JIT");
+        execution_path.SetGlobal(true);
+        execution_path = CpuExecutionPath::Jit;
+    }
+    if (!execution_path.UsingGlobal() && execution_path.GetValue(false) == CpuExecutionPath::Nce) {
+        LOG_WARNING(Common, "Per-game NCE selection is unavailable on this host build; switching "
+                            "CPU execution path back to JIT");
+        execution_path.SetGlobal(false);
+        execution_path = CpuExecutionPath::Jit;
+    }
+#endif
+
+    if (!IsBallisticAvailable() &&
+        recompiler.GetValue(true) == CpuRecompilerEngine::BallisticExperimental) {
+        LOG_WARNING(Common, "Ballistic was requested but is unavailable in this build; switching "
+                            "CPU recompiler back to Dynarmic");
+        recompiler.SetGlobal(true);
+        recompiler = CpuRecompilerEngine::Dynarmic;
+    }
+    if (!recompiler.UsingGlobal() &&
+        !IsBallisticAvailable() &&
+        recompiler.GetValue(false) == CpuRecompilerEngine::BallisticExperimental) {
+        LOG_WARNING(Common, "Per-game Ballistic selection is unavailable in this build; "
+                            "switching CPU recompiler back to Dynarmic");
+        recompiler.SetGlobal(false);
+        recompiler = CpuRecompilerEngine::Dynarmic;
+    }
+
+    if (!IsRemAvailable() && core_provider.GetValue(true) == CpuCoreProvider::RemExperimental) {
+        LOG_WARNING(Common, "REM was requested but is unavailable in this build; switching CPU "
+                            "core provider back to the built-in emulator");
+        core_provider.SetGlobal(true);
+        core_provider = CpuCoreProvider::Builtin;
+    }
+    if (!core_provider.UsingGlobal() &&
+        !IsRemAvailable() &&
+        core_provider.GetValue(false) == CpuCoreProvider::RemExperimental) {
+        LOG_WARNING(Common, "Per-game REM selection is unavailable in this build; switching CPU "
+                            "core provider back to the built-in emulator");
+        core_provider.SetGlobal(false);
+        core_provider = CpuCoreProvider::Builtin;
+    }
+
+    if (core_provider.GetValue(true) == CpuCoreProvider::RemExperimental &&
+        execution_path.GetValue(true) == CpuExecutionPath::Nce) {
+        LOG_WARNING(Common, "REM currently supports the JIT execution path only; switching CPU "
+                            "execution path back to JIT");
+        execution_path.SetGlobal(true);
+        execution_path = CpuExecutionPath::Jit;
+    }
+    if (!core_provider.UsingGlobal() && !execution_path.UsingGlobal() &&
+        core_provider.GetValue(false) == CpuCoreProvider::RemExperimental &&
+        execution_path.GetValue(false) == CpuExecutionPath::Nce) {
+        LOG_WARNING(Common, "Per-game REM currently supports the JIT execution path only; "
+                            "switching CPU execution path back to JIT");
+        execution_path.SetGlobal(false);
+        execution_path = CpuExecutionPath::Jit;
+    }
+}
+
 static bool is_nce_enabled = false;
 
 void SetNceEnabled(bool is_39bit) {
-    const bool is_nce_selected = values.cpu_backend.GetValue() == CpuBackend::Nce;
+    const bool is_nce_selected = values.cpu_execution_path.GetValue() == CpuExecutionPath::Nce;
     if (is_nce_selected && !IsFastmemEnabled()) {
         LOG_WARNING(Common, "Fastmem is required to natively execute code in a performant manner, "
                             "falling back to Dynarmic");

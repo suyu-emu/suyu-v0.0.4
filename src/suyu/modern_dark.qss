@@ -78,12 +78,12 @@ QStatusBar {
 }
 
 .GameCard:hover {
-    border-color: #0078d4;
+    border-color: #7c3aed;
     background-color: #353535;
 }
 
 .GameCard:focus {
-    border-color: #0078d4;
+    border-color: #7c3aed;
     background-color: #353535;
 }
 
@@ -166,7 +166,7 @@ QLineEdit {
 }
 
 QLineEdit:focus {
-    border-color: #0078d4;
+    border-color: #7c3aed;
 }
 
 QLineEdit::placeholder {
@@ -175,7 +175,7 @@ QLineEdit::placeholder {
 
 /* Buttons */
 QPushButton {
-    background-color: #0078d4;
+    background-color: #7c3aed;
     color: #ffffff;
     border: none;
     border-radius: 6px;
@@ -185,11 +185,11 @@ QPushButton {
 }
 
 QPushButton:hover {
-    background-color: #106ebe;
+    background-color: #8b5cf6;
 }
 
 QPushButton:pressed {
-    background-color: #005a9e;
+    background-color: #6d28d9;
 }
 
 QPushButton:disabled {
@@ -237,7 +237,7 @@ QToolButton:pressed {
 }
 
 QToolButton:checked {
-    background-color: #0078d4;
+    background-color: #7c3aed;
 }
 
 /* Dock Widgets */
@@ -271,7 +271,7 @@ QTabBar::tab {
 }
 
 QTabBar::tab:selected {
-    background-color: #0078d4;
+    background-color: #7c3aed;
 }
 
 QTabBar::tab:hover {
@@ -288,7 +288,7 @@ QProgressBar {
 }
 
 QProgressBar::chunk {
-    background-color: #0078d4;
+    background-color: #7c3aed;
     border-radius: 4px;
 }
 
@@ -310,7 +310,7 @@ QTreeView {
     background-color: #1a1a1a;
     color: #ffffff;
     border: none;
-    selection-background-color: #0078d4;
+    selection-background-color: #7c3aed;
     alternate-background-color: #252525;
 }
 
@@ -320,7 +320,7 @@ QTreeView::item {
 }
 
 QTreeView::item:selected {
-    background-color: #0078d4;
+    background-color: #7c3aed;
 }
 
 QTreeView::item:hover {
@@ -346,7 +346,7 @@ QComboBox {
 }
 
 QComboBox:hover {
-    border-color: #0078d4;
+    border-color: #7c3aed;
 }
 
 QComboBox::drop-down {
@@ -367,7 +367,7 @@ QComboBox QAbstractItemView {
     color: #ffffff;
     border: 1px solid #404040;
     border-radius: 6px;
-    selection-background-color: #0078d4;
+    selection-background-color: #7c3aed;
 }
 
 /* Spin Box */
@@ -380,7 +380,7 @@ QSpinBox, QDoubleSpinBox {
 }
 
 QSpinBox:focus, QDoubleSpinBox:focus {
-    border-color: #0078d4;
+    border-color: #7c3aed;
 }
 
 /* Check Box */
@@ -398,12 +398,12 @@ QCheckBox::indicator {
 }
 
 QCheckBox::indicator:checked {
-    background-color: #0078d4;
-    border-color: #0078d4;
+    background-color: #7c3aed;
+    border-color: #7c3aed;
 }
 
 QCheckBox::indicator:hover {
-    border-color: #0078d4;
+    border-color: #7c3aed;
 }
 
 /* Radio Button */
@@ -421,12 +421,12 @@ QRadioButton::indicator {
 }
 
 QRadioButton::indicator:checked {
-    background-color: #0078d4;
-    border-color: #0078d4;
+    background-color: #7c3aed;
+    border-color: #7c3aed;
 }
 
 QRadioButton::indicator:hover {
-    border-color: #0078d4;
+    border-color: #7c3aed;
 }
 
 /* Slider */
@@ -437,7 +437,7 @@ QSlider::groove:horizontal {
 }
 
 QSlider::handle:horizontal {
-    background-color: #0078d4;
+    background-color: #7c3aed;
     width: 18px;
     height: 18px;
     border-radius: 9px;
@@ -445,7 +445,7 @@ QSlider::handle:horizontal {
 }
 
 QSlider::handle:horizontal:hover {
-    background-color: #106ebe;
+    background-color: #8b5cf6;
 }
 
 /* Group Box */

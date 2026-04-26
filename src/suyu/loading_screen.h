@@ -49,6 +49,7 @@ public:
 
     /// Slot used to update the status of the progress bar
     void OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
+    void UpdateSpinner();
 
     /// Hides the LoadingScreen with a fade out effect
     void OnLoadComplete();
@@ -75,6 +76,13 @@ private:
 
     QGraphicsOpacityEffect* opacity_effect = nullptr;
     std::unique_ptr<QPropertyAnimation> fadeout_animation;
+    QTimer* spinner_timer_ = nullptr;
+    QTimer* background_timer_ = nullptr;
+    qreal logo_angle_ = 0.0;
+    int background_offset_ = 0;
+    QPixmap spinner_pixmap_;
+    QPixmap pattern_pixmap_;
+    QString game_title_;
 
     // Definitions for the differences in text and styling for each stage
     std::unordered_map<VideoCore::LoadCallbackStage, const char*> progressbar_style;

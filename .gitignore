@@ -55,3 +55,4 @@ conan_cache/
 
 # Local backup directories
 .local_backups/
+actionlint

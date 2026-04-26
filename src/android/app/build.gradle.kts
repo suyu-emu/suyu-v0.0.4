@@ -170,6 +170,7 @@ android {
                     "-DENABLE_QT=0", // Don't use QT
                     "-DENABLE_SDL2=0", // Don't use SDL
                     "-DENABLE_WEB_SERVICE=0", // Don't use telemetry
+                    "-DSUYU_TESTS=0", // Don't build tests for Android
                     "-DBUNDLE_SPEEX=ON",
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
                     "-DSUYU_USE_BUNDLED_VCPKG=ON",

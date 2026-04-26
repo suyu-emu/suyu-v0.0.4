@@ -116,6 +116,8 @@
     <addaction name="separator"/>
     <addaction name="action_Open_suyu_Folder"/>
     <addaction name="separator"/>
+    <addaction name="action_Export_Game"/>
+    <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
    <widget class="QMenu" name="menu_Emulation">
@@ -181,6 +183,7 @@
     <addaction name="action_Show_Filter_Bar"/>
     <addaction name="action_Show_Status_Bar"/>
     <addaction name="action_Show_Folders_In_List"/>
+    <addaction name="action_Change_Interface_Mode"/>
     <addaction name="separator"/>
     <addaction name="menu_Reset_Window_Size"/>
     <addaction name="menu_View_Debugging"/>
@@ -222,7 +225,7 @@
      <addaction name="separator"/>
      <addaction name="action_Configure_Tas"/>
     </widget>
-    <addaction name="action_Install_Keys"/>
+    <addaction name="action_Configure_External_Decryption"/>
     <addaction name="action_Install_Firmware"/>
     <addaction name="action_Verify_installed_contents"/>
     <addaction name="separator"/>
@@ -234,6 +237,9 @@
     <addaction name="separator"/>
     <addaction name="action_Capture_Screenshot"/>
     <addaction name="menuTAS"/>
+    <addaction name="separator"/>
+    <addaction name="action_Nintendo_Account"/>
+    <addaction name="action_Steam_Integration"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -243,6 +249,8 @@
     <addaction name="action_Open_Mods_Page"/>
     <addaction name="action_Open_Quickstart_Guide"/>
     <addaction name="action_Open_FAQ"/>
+    <addaction name="separator"/>
+    <addaction name="action_Open_User_Manual"/>
     <addaction name="separator"/>
     <addaction name="action_About"/>
    </widget>
@@ -354,6 +362,11 @@
    </property>
    <property name="iconText">
     <string>Show Status Bar</string>
+   </property>
+  </action>
+  <action name="action_Change_Interface_Mode">
+   <property name="text">
+    <string>Change Interface Mode...</string>
    </property>
   </action>
   <action name="action_View_Lobby">
@@ -543,10 +556,38 @@
    <property name="text">
     <string>Install Decryption Keys</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_Configure_External_Decryption">
+   <property name="text">
+    <string>Configure External Decryption Tool...</string>
+   </property>
   </action>
   <action name="action_Load_Home_Menu">
    <property name="text">
     <string>Open Home Menu</string>
+   </property>
+  </action>
+  <action name="action_Export_Game">
+   <property name="text">
+    <string>&amp;Export Game...</string>
+   </property>
+  </action>
+  <action name="action_Nintendo_Account">
+   <property name="text">
+    <string>&amp;Nintendo Account...</string>
+   </property>
+  </action>
+  <action name="action_Steam_Integration">
+   <property name="text">
+    <string>&amp;Steam Integration...</string>
+   </property>
+  </action>
+  <action name="action_Open_User_Manual">
+   <property name="text">
+    <string>&amp;User Manual</string>
    </property>
   </action>
  </widget>

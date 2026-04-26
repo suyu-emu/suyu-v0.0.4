@@ -1,5 +1,5 @@
-<!-- SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project -->
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project -->
 <ui version="4.0">
  <class>QtSoftwareKeyboardDialog</class>
  <widget class="QDialog" name="QtSoftwareKeyboardDialog">

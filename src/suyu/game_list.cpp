@@ -13,8 +13,10 @@
 #include <QJsonObject>
 #include <QList>
 #include <QMenu>
+#include <QMessageBox>
 #include <QThreadPool>
 #include <QToolButton>
+#include <vector>
 #include <fmt/format.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
@@ -28,6 +30,7 @@
 #include "suyu/main.h"
 #include "suyu/uisettings.h"
 #include "suyu/util/controller_navigation.h"
+#include "suyu/nintendo_account.h"
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist_, QObject* parent)
     : QObject(parent), gamelist{gamelist_} {}
@@ -111,6 +114,36 @@ QString GameList::GetLastFilterResultItem() const {
     }
 
     return file_path;
+}
+
+QString GameList::GetSelectedGamePath() const {
+    const auto selected = tree_view->selectionModel()->selectedRows(0);
+    if (selected.isEmpty()) {
+        return {};
+    }
+
+    const auto* item = item_model->itemFromIndex(selected.first());
+    if (!item || item->data(GameListItemPath::TypeRole).toInt() !=
+                      static_cast<int>(GameListItemType::Game)) {
+        return {};
+    }
+
+    return item->data(GameListItemPath::FullPathRole).toString();
+}
+
+u64 GameList::GetSelectedProgramId() const {
+    const auto selected = tree_view->selectionModel()->selectedRows(0);
+    if (selected.isEmpty()) {
+        return 0;
+    }
+
+    const auto* item = item_model->itemFromIndex(selected.first());
+    if (!item || item->data(GameListItemPath::TypeRole).toInt() !=
+                      static_cast<int>(GameListItemType::Game)) {
+        return 0;
+    }
+
+    return static_cast<u64>(item->data(GameListItemPath::ProgramIdRole).toULongLong());
 }
 
 void GameListSearchField::clear() {
@@ -428,6 +461,29 @@ void GameList::AddRootEntry(const QList<QStandardItem*>& entry_items) {
     item_model->invisibleRootItem()->appendRow(entry_items);
 }
 
+void GameList::AddNintendoLibraryEntries() {
+    const auto owned_games = LoadNintendoOwnedLibrary();
+    if (owned_games.empty()) {
+        return;
+    }
+
+    auto* library_dir = new GameListNintendoLibraryDir();
+    item_model->invisibleRootItem()->appendRow(library_dir);
+
+    for (const auto& owned_game : owned_games) {
+        const QString owned_path = QStringLiteral("owned://%1").arg(owned_game.title);
+        QList<QStandardItem*> row;
+        row.append(new GameListItemPath(owned_path, std::vector<u8>(), owned_game.title,
+                                       QStringLiteral("Nintendo Digital"), 0));
+        row.append(new GameListItem); // Compatibility
+        row.append(new GameListItem(owned_game.purchase_date));
+        row.append(new GameListItem(QStringLiteral("Nintendo Digital")));
+        row.append(new GameListItemSize(0));
+        row.append(new GameListItemPlayTime(0));
+        library_dir->appendRow(row);
+    }
+}
+
 void GameList::ValidateEntry(const QModelIndex& item) {
     const auto selected = item.sibling(item.row(), 0);
 
@@ -436,6 +492,15 @@ void GameList::ValidateEntry(const QModelIndex& item) {
         const QString file_path = selected.data(GameListItemPath::FullPathRole).toString();
         if (file_path.isEmpty())
             return;
+
+        if (file_path.startsWith(QStringLiteral("owned://"))) {
+            QMessageBox::information(
+                this, tr("Nintendo Digital Library"),
+                tr("This game is owned digitally on Nintendo Account. Add the ROM or decrypted game folder "
+                   "to your library scan paths to make it playable in Suyu."));
+            return;
+        }
+
         const QFileInfo file_info(file_path);
         if (!file_info.exists())
             return;
@@ -496,6 +561,8 @@ void GameList::DonePopulating(const QStringList& watch_list) {
     for (const auto id : UISettings::values.favorited_ids) {
         AddFavorite(id);
     }
+
+    AddNintendoLibraryEntries();
 
     // Clear out the old directories to watch for changes and add the new ones
     auto watch_dirs = watcher->directories();
@@ -594,23 +661,44 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     QAction* create_applications_menu_shortcut =
         shortcut_menu->addAction(tr("Add to Applications Menu"));
 #endif
+    QAction* add_to_steam = context_menu.addAction(tr("Add to Steam"));
     context_menu.addSeparator();
     QAction* properties = context_menu.addAction(tr("Properties"));
 
-    favorite->setVisible(program_id != 0);
+    const bool is_owned_placeholder = QString::fromStdString(path).startsWith(QStringLiteral("owned://"));
+#if !defined(__APPLE__)
+    create_desktop_shortcut->setVisible(program_id != 0 && !is_owned_placeholder);
+    create_applications_menu_shortcut->setVisible(program_id != 0 && !is_owned_placeholder);
+#endif
+    add_to_steam->setVisible(program_id != 0 && !is_owned_placeholder);
+    favorite->setVisible(program_id != 0 && !is_owned_placeholder);
     favorite->setCheckable(true);
     favorite->setChecked(UISettings::values.favorited_ids.contains(program_id));
-    open_save_location->setVisible(program_id != 0);
-    open_mod_location->setVisible(program_id != 0);
-    open_transferable_shader_cache->setVisible(program_id != 0);
-    remove_update->setVisible(program_id != 0);
-    remove_dlc->setVisible(program_id != 0);
-    remove_gl_shader_cache->setVisible(program_id != 0);
-    remove_vk_shader_cache->setVisible(program_id != 0);
-    remove_shader_cache->setVisible(program_id != 0);
-    remove_all_content->setVisible(program_id != 0);
+    open_save_location->setVisible(program_id != 0 && !is_owned_placeholder);
+    open_mod_location->setVisible(program_id != 0 && !is_owned_placeholder);
+    open_transferable_shader_cache->setVisible(program_id != 0 && !is_owned_placeholder);
+    remove_update->setVisible(program_id != 0 && !is_owned_placeholder);
+    remove_dlc->setVisible(program_id != 0 && !is_owned_placeholder);
+    remove_gl_shader_cache->setVisible(program_id != 0 && !is_owned_placeholder);
+    remove_vk_shader_cache->setVisible(program_id != 0 && !is_owned_placeholder);
+    remove_shader_cache->setVisible(program_id != 0 && !is_owned_placeholder);
+    remove_all_content->setVisible(program_id != 0 && !is_owned_placeholder);
     auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
-    navigate_to_gamedb_entry->setVisible(it != compatibility_list.end() && program_id != 0);
+    navigate_to_gamedb_entry->setVisible(it != compatibility_list.end() && program_id != 0 && !is_owned_placeholder);
+    verify_integrity->setVisible(!is_owned_placeholder);
+    copy_tid->setVisible(program_id != 0 && !is_owned_placeholder);
+    properties->setVisible(program_id != 0 && !is_owned_placeholder);
+    if (is_owned_placeholder) {
+        start_game->setVisible(false);
+        start_game_global->setVisible(false);
+        QAction* add_rom = context_menu.addAction(tr("Add ROM or decrypted folder..."));
+        connect(add_rom, &QAction::triggered, this, [this]() {
+            QMessageBox::information(
+                this, tr("Nintendo Digital Library"),
+                tr("This title is owned on your linked Nintendo account, but no local game file was found. "
+                   "Add the decrypted ROM or folder to your library directories and rescan to play it."));
+        });
+    }
 
     connect(favorite, &QAction::triggered, [this, program_id]() { ToggleFavorite(program_id); });
     connect(open_save_location, &QAction::triggered, [this, program_id, path]() {
@@ -666,6 +754,8 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     });
 // TODO: Implement shortcut creation for macOS
 #if !defined(__APPLE__)
+    create_desktop_shortcut->setVisible(program_id != 0 && !is_owned_placeholder);
+    create_applications_menu_shortcut->setVisible(program_id != 0 && !is_owned_placeholder);
     connect(create_desktop_shortcut, &QAction::triggered, [this, program_id, path]() {
         emit CreateShortcut(program_id, path, GameListShortcutTarget::Desktop);
     });
@@ -673,6 +763,10 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
         emit CreateShortcut(program_id, path, GameListShortcutTarget::Applications);
     });
 #endif
+    add_to_steam->setVisible(program_id != 0 && !is_owned_placeholder);
+    connect(add_to_steam, &QAction::triggered, [this, program_id, path]() {
+        emit CreateSteamShortcut(program_id, path);
+    });
     connect(properties, &QAction::triggered,
             [this, path]() { emit OpenPerGameGeneralRequested(path); });
 };
@@ -865,6 +959,11 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     QThreadPool::globalInstance()->start(current_worker.get());
 }
 
+void GameList::CancelPopulate() {
+    current_worker.reset();
+    tree_view->setEnabled(true);
+}
+
 void GameList::SaveInterfaceLayout() {
     UISettings::values.gamelist_header_state = tree_view->header()->saveState();
 }
@@ -886,7 +985,7 @@ const QStringList GameList::supported_file_extensions = {
     QStringLiteral("xci"), QStringLiteral("nsp"), QStringLiteral("kip")};
 
 void GameList::RefreshGameDirectory() {
-    if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
+    if (!UISettings::values.game_dirs.empty()) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
         PopulateAsync(UISettings::values.game_dirs);
     }

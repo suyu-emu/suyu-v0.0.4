@@ -22,14 +22,19 @@ if (SUYU_CMD)  # Corrected variable name from SUZU_CMD to SUYU_CMD
         emu_window/emu_window_sdl2_null.h
         emu_window/emu_window_sdl2_vk.cpp
         emu_window/emu_window_sdl2_vk.h
-        emu_window/emu_window_sdl2_mtl.cpp  # Added Metal support from metal-dev
-        emu_window/emu_window_sdl2_mtl.h     # Added Metal support from metal-dev
         precompiled_headers.h
         sdl_config.cpp
         sdl_config.h
         suyu.cpp
         suyu.rc
     )
+
+    if (APPLE)
+        target_sources(suyu-cmd PRIVATE
+            emu_window/emu_window_sdl2_mtl.cpp
+            emu_window/emu_window_sdl2_mtl.h
+        )
+    endif()
 
     target_link_libraries(suyu-cmd PRIVATE common core input_common frontend_common)
     target_link_libraries(suyu-cmd PRIVATE glad)
@@ -61,7 +66,7 @@ if (SUYU_CMD)  # Corrected variable name from SUZU_CMD to SUYU_CMD
         target_link_libraries(suyu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)  # Fixed typo: yuzu-cmd -> suyu-cmd
     endif()
 
-    if (MSVC)
+    if (MSVC AND SUYU_USE_BUNDLED_SDL2)
         include(CopySuyuSDLDeps)
         copy_suyu_SDL_deps(suyu-cmd)
     endif()

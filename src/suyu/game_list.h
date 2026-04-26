@@ -19,6 +19,7 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
+#include "suyu/game_list_p.h"
 #include "suyu/compatibility_list.h"
 #include "suyu/play_time_manager.h"
 #include "uisettings.h"
@@ -98,6 +99,10 @@ public:
 
     void LoadCompatibilityList();
     void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
+    void CancelPopulate();
+
+    QString GetSelectedGamePath() const;
+    u64 GetSelectedProgramId() const;
 
     void SaveInterfaceLayout();
     void LoadInterfaceLayout();
@@ -124,6 +129,7 @@ signals:
     void CopyTIDRequested(u64 program_id);
     void CreateShortcut(u64 program_id, const std::string& game_path,
                         GameListShortcutTarget target);
+    void CreateSteamShortcut(u64 program_id, const std::string& game_path);
     void NavigateToGamedbEntryRequested(u64 program_id,
                                         const CompatibilityList& compatibility_list);
     void OpenPerGameGeneralRequested(const std::string& file);
@@ -147,6 +153,7 @@ private:
     void AddEntry(const QList<QStandardItem*>& entry_items, GameListDir* parent);
     void AddRootEntry(const QList<QStandardItem*>& entry_items);
     void DonePopulating(const QStringList& watch_list);
+    void AddNintendoLibraryEntries();
 
 private:
     void ValidateEntry(const QModelIndex& item);

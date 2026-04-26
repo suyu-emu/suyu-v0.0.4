@@ -17,6 +17,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modul
 # Set CPM cache for better dependency management
 set(CPM_SOURCE_CACHE "${CMAKE_SOURCE_DIR}/.cache/cpm")
 
+include(DetectPlatform)
+include(DetectArchitecture)
 include(DownloadExternals)
 include(CMakeDependentOption)
 include(CTest)
@@ -27,7 +29,8 @@ option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
 # Disabled: Migrated to Conan package manager
 CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" OFF "ENABLE_SDL2;MSVC" OFF)
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
-CMAKE_DEPENDENT_OPTION(SUYU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
+# Allow MSVC to compile external SDL2 from externals/ as well
+CMAKE_DEPENDENT_OPTION(SUYU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2" OFF)
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
@@ -96,13 +99,9 @@ CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead
 option(USE_CCACHE "Use CCache for faster building" ON)
 
 set(DEFAULT_ENABLE_OPENSSL ON)
-if (ANDROID OR WIN32 OR APPLE)
-    # - Windows defaults to the Schannel backend.
-    # - macOS defaults to the SecureTransport backend.
-    # - Android currently has no SSL backend as the NDK doesn't include any SSL
-    #   library; a proper 'native' backend would have to go through Java.
-    # But you can force builds for those platforms to use OpenSSL if you have
-    # your own copy of it.
+if (ANDROID)
+    # Android currently has no SSL backend as the NDK doesn't include any SSL
+    # library; a proper 'native' backend would have to go through Java.
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
@@ -132,7 +131,7 @@ endif()
 if (SUYU_USE_BUNDLED_VCPKG)
     # Configure vcpkg overlay ports to use custom package definitions
     set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlays")
-    
+
     if (ANDROID)
         set(ENV{ANDROID_NDK_HOME} "${ANDROID_NDK}")
         list(APPEND VCPKG_MANIFEST_FEATURES "android")
@@ -445,6 +444,10 @@ function(set_suyu_qt_components)
     if (USE_DISCORD_PRESENCE)
         list(APPEND SUYU_QT_COMPONENTS2 Network)
     endif()
+    # Network is also needed for MCP server
+    if (NOT "Network" IN_LIST SUYU_QT_COMPONENTS2)
+        list(APPEND SUYU_QT_COMPONENTS2 Network)
+    endif()
     set(SUYU_QT_COMPONENTS ${SUYU_QT_COMPONENTS2} PARENT_SCOPE)
 endfunction(set_suyu_qt_components)
 
@@ -657,6 +660,8 @@ endif()
 if (APPLE)
     # Umbrella framework for everything GUI-related
     find_library(COCOA_LIBRARY Cocoa)
+    find_library(IOKIT_LIBRARY IOKit)
+    find_library(COREVIDEO_LIBRARY CoreVideo)
     set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
@@ -666,7 +671,7 @@ elseif (WIN32)
         # PSAPI is the Process Status API
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
     endif()
-elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
+elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS|FreeBSD|OpenBSD|NetBSD)$")
     set(PLATFORM_LIBRARIES rt)
 endif()
 

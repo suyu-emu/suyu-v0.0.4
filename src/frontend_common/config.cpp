@@ -354,6 +354,58 @@ void Config::ReadCpuValues() {
     ReadCategory(Settings::Category::CpuDebug);
     ReadCategory(Settings::Category::CpuUnsafe);
 
+    const auto has_setting = [this](const char* key) {
+        return Exists(GetSection(), key) ||
+               Exists(GetSection(), std::string(key).append("\\default")) ||
+               Exists(GetSection(), std::string(key).append("\\use_global"));
+    };
+
+    if (!has_setting("cpu_core_provider") && !has_setting("cpu_execution_path") &&
+        !has_setting("cpu_recompiler_engine") && has_setting("cpu_backend")) {
+        const auto legacy_backend = static_cast<Settings::CpuBackend>(
+            ReadIntegerSetting("cpu_backend",
+                               static_cast<s64>(Settings::CpuBackend::Dynarmic)));
+        const bool use_global = global ? true : ReadBooleanSetting("cpu_backend\\use_global", true);
+
+        Settings::values.cpu_core_provider.SetGlobal(use_global);
+        Settings::values.cpu_execution_path.SetGlobal(use_global);
+        Settings::values.cpu_recompiler_engine.SetGlobal(use_global);
+
+        const auto apply_legacy_backend = [&](Settings::CpuBackend backend) {
+            switch (backend) {
+            case Settings::CpuBackend::Nce:
+                Settings::values.cpu_core_provider = Settings::CpuCoreProvider::Builtin;
+                Settings::values.cpu_execution_path = Settings::CpuExecutionPath::Nce;
+                Settings::values.cpu_recompiler_engine =
+                    Settings::CpuRecompilerEngine::Dynarmic;
+                break;
+            case Settings::CpuBackend::Ballistic:
+                Settings::values.cpu_core_provider = Settings::CpuCoreProvider::Builtin;
+                Settings::values.cpu_execution_path = Settings::CpuExecutionPath::Jit;
+                Settings::values.cpu_recompiler_engine =
+                    Settings::CpuRecompilerEngine::BallisticExperimental;
+                break;
+            case Settings::CpuBackend::Rem:
+                Settings::values.cpu_core_provider = Settings::CpuCoreProvider::RemExperimental;
+                Settings::values.cpu_execution_path = Settings::CpuExecutionPath::Jit;
+                Settings::values.cpu_recompiler_engine =
+                    Settings::CpuRecompilerEngine::Dynarmic;
+                break;
+            case Settings::CpuBackend::Dynarmic:
+            default:
+                Settings::values.cpu_core_provider = Settings::CpuCoreProvider::Builtin;
+                Settings::values.cpu_execution_path = Settings::CpuExecutionPath::Jit;
+                Settings::values.cpu_recompiler_engine =
+                    Settings::CpuRecompilerEngine::Dynarmic;
+                break;
+            }
+        };
+
+        apply_legacy_backend(legacy_backend);
+    }
+
+    Settings::SanitizeCpuBackendSettings();
+
     EndGroup();
 }
 
@@ -661,6 +713,10 @@ void Config::SaveCpuValues() {
     WriteCategory(Settings::Category::Cpu);
     WriteCategory(Settings::Category::CpuDebug);
     WriteCategory(Settings::Category::CpuUnsafe);
+
+    config->Delete(GetSection().c_str(), "cpu_backend", true);
+    config->Delete(GetSection().c_str(), "cpu_backend\\default", true);
+    config->Delete(GetSection().c_str(), "cpu_backend\\use_global", true);
 
     EndGroup();
 }

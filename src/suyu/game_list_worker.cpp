@@ -148,6 +148,12 @@ bool IsExtractedNCAMain(const std::string& file_name) {
     return QFileInfo(QString::fromStdString(file_name)).fileName() == QStringLiteral("main");
 }
 
+bool IsHactoolOutputDirectory(const std::string& dir_path) {
+    const auto exefs_main = dir_path + "/exefs/main";
+    const auto exefs_npdm = dir_path + "/exefs/main.npdm";
+    return Common::FS::Exists(exefs_main) && Common::FS::Exists(exefs_npdm);
+}
+
 QString FormatGameName(const std::string& physical_name) {
     const QString physical_name_as_qstring = QString::fromStdString(physical_name);
     const QFileInfo file_info(physical_name_as_qstring);
@@ -302,6 +308,7 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
     }
 
     for (const auto& [slot, game] : installed_games) {
+        try {
         if (slot == ContentProviderUnionSlot::FrontendManual) {
             continue;
         }
@@ -337,12 +344,21 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
                 game_list->AddRootEntry(entry);
             }
         });
+        } catch (const std::exception& e) {
+            LOG_ERROR(Frontend, "Game scan: exception while listing installed title {:016X}: {}",
+                      game.title_id, e.what());
+        } catch (...) {
+            LOG_ERROR(Frontend,
+                      "Game scan: unknown exception while listing installed title {:016X}",
+                      game.title_id);
+        }
     }
 }
 
 void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_path, bool deep_scan,
                                     GameListDir* parent_dir) {
     const auto callback = [this, target, parent_dir](const std::filesystem::path& path) -> bool {
+        try {
         if (stop_requested) {
             // Breaks the callback loop.
             return false;
@@ -350,22 +366,41 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
 
         const auto physical_name = Common::FS::PathToUTF8String(path);
         const auto is_dir = Common::FS::IsDir(path);
+        const auto physical_name_q = QString::fromStdString(physical_name);
+
+        if (!is_dir && physical_name_q.contains(QStringLiteral(".cnmt.nca"), Qt::CaseInsensitive)) {
+            // Firmware metadata NCAs are not launchable games and should not pollute the list.
+            return true;
+        }
 
         if (!is_dir &&
             (HasSupportedFileExtension(physical_name) || IsExtractedNCAMain(physical_name))) {
             const auto file = vfs->OpenFile(physical_name, FileSys::OpenMode::Read);
             if (!file) {
+                LOG_WARNING(Frontend, "Game scan: could not open file '{}'",
+                            physical_name);
                 return true;
             }
 
             auto loader = Loader::GetLoader(system, file);
             if (!loader) {
+                LOG_WARNING(Frontend, "Game scan: no loader for '{}'", physical_name);
                 return true;
             }
 
             const auto file_type = loader->GetFileType();
             if (file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) {
+                LOG_WARNING(Frontend,
+                            "Game scan: unknown/error file type for '{}'",
+                            physical_name);
                 return true;
+            }
+
+            if (file_type == Loader::FileType::NCA) {
+                const auto nca_type = FileSys::NCA{file}.GetType();
+                if (nca_type != FileSys::NCAContentType::Program) {
+                    return true;
+                }
             }
 
             u64 program_id = 0;
@@ -420,8 +455,11 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                     std::vector<u8> icon;
                     [[maybe_unused]] const auto res1 = loader->ReadIcon(icon);
 
-                    std::string name = " ";
+                    std::string name;
                     [[maybe_unused]] const auto res3 = loader->ReadTitle(name);
+                    if (name.empty()) {
+                        name = std::filesystem::path(physical_name).stem().string();
+                    }
 
                     const FileSys::PatchManager patch{program_id, system.GetFileSystemController(),
                                                       system.GetContentProvider()};
@@ -441,9 +479,57 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
             }
         } else if (is_dir) {
             watch_list.append(QString::fromStdString(physical_name));
+
+            // Check if this directory is a hactool-extracted game (has exefs/ with main+main.npdm)
+            if (IsHactoolOutputDirectory(physical_name)) {
+                const auto exefs_main_path = physical_name + "/exefs/main";
+                const auto file = vfs->OpenFile(exefs_main_path, FileSys::OpenMode::Read);
+                if (file) {
+                    auto loader = Loader::GetLoader(system, file);
+                    if (loader) {
+                        const auto file_type = loader->GetFileType();
+                        if (file_type != Loader::FileType::Unknown &&
+                            file_type != Loader::FileType::Error) {
+                            u64 program_id = 0;
+                            loader->ReadProgramId(program_id);
+
+                            std::vector<u8> icon;
+                            loader->ReadIcon(icon);
+
+                            std::string name = " ";
+                            loader->ReadTitle(name);
+
+                            const FileSys::PatchManager patch{
+                                program_id, system.GetFileSystemController(),
+                                system.GetContentProvider()};
+
+                            auto entry = MakeGameListEntry(
+                                physical_name, name, 0, icon, *loader, program_id,
+                                compatibility_list, play_time_manager, patch);
+
+                            RecordEvent([=](GameList* game_list) {
+                                if (UISettings::values.show_folders_in_list) {
+                                    game_list->AddEntry(entry, parent_dir);
+                                } else {
+                                    game_list->AddRootEntry(entry);
+                                }
+                            });
+                        }
+                    }
+                }
+            }
         }
 
         return true;
+        } catch (const std::exception& e) {
+            LOG_ERROR(Frontend, "Game scan: exception while processing '{}': {}",
+                      Common::FS::PathToUTF8String(path), e.what());
+            return true;
+        } catch (...) {
+            LOG_ERROR(Frontend, "Game scan: unknown exception while processing '{}'",
+                      Common::FS::PathToUTF8String(path));
+            return true;
+        }
     };
 
     if (deep_scan) {
@@ -455,53 +541,59 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
 }
 
 void GameListWorker::run() {
-    watch_list.clear();
-    provider->ClearAllEntries();
+    try {
+        watch_list.clear();
+        provider->ClearAllEntries();
 
-    const auto DirEntryReady = [&](GameListDir* game_list_dir) {
-        RecordEvent([=](GameList* game_list) { game_list->AddDirEntry(game_list_dir); });
-    };
+        const auto DirEntryReady = [&](GameListDir* game_list_dir) {
+            RecordEvent([=](GameList* game_list) { game_list->AddDirEntry(game_list_dir); });
+        };
 
-    for (UISettings::GameDir& game_dir : game_dirs) {
-        if (stop_requested) {
-            break;
+        for (UISettings::GameDir& game_dir : game_dirs) {
+            if (stop_requested) {
+                break;
+            }
+
+            if (game_dir.path == std::string("SDMC")) {
+                auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SdmcDir);
+
+                if (UISettings::values.show_folders_in_list)
+                    DirEntryReady(game_list_dir);
+
+                AddTitlesToGameList(game_list_dir);
+            } else if (game_dir.path == std::string("UserNAND")) {
+                auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::UserNandDir);
+
+                if (UISettings::values.show_folders_in_list)
+                    DirEntryReady(game_list_dir);
+
+                AddTitlesToGameList(game_list_dir);
+            } else if (game_dir.path == std::string("SysNAND")) {
+                auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SysNandDir);
+
+                if (UISettings::values.show_folders_in_list)
+                    DirEntryReady(game_list_dir);
+
+                AddTitlesToGameList(game_list_dir);
+            } else {
+                watch_list.append(QString::fromStdString(game_dir.path));
+                auto* const game_list_dir = new GameListDir(game_dir);
+
+                if (UISettings::values.show_folders_in_list)
+                    DirEntryReady(game_list_dir);
+
+                ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path,
+                               game_dir.deep_scan, game_list_dir);
+                ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path, game_dir.deep_scan,
+                               game_list_dir);
+            }
         }
 
-        if (game_dir.path == std::string("SDMC")) {
-            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SdmcDir);
-
-            if (UISettings::values.show_folders_in_list)
-                DirEntryReady(game_list_dir);
-
-            AddTitlesToGameList(game_list_dir);
-        } else if (game_dir.path == std::string("UserNAND")) {
-            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::UserNandDir);
-
-            if (UISettings::values.show_folders_in_list)
-                DirEntryReady(game_list_dir);
-
-            AddTitlesToGameList(game_list_dir);
-        } else if (game_dir.path == std::string("SysNAND")) {
-            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SysNandDir);
-
-            if (UISettings::values.show_folders_in_list)
-                DirEntryReady(game_list_dir);
-
-            AddTitlesToGameList(game_list_dir);
-        } else {
-            watch_list.append(QString::fromStdString(game_dir.path));
-            auto* const game_list_dir = new GameListDir(game_dir);
-
-            if (UISettings::values.show_folders_in_list)
-                DirEntryReady(game_list_dir);
-
-            ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path, game_dir.deep_scan,
-                           game_list_dir);
-            ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path, game_dir.deep_scan,
-                           game_list_dir);
-        }
+        RecordEvent([this](GameList* game_list) { game_list->DonePopulating(watch_list); });
+    } catch (const std::exception& e) {
+        LOG_CRITICAL(Frontend, "Unhandled exception in GameListWorker: {}", e.what());
+    } catch (...) {
+        LOG_CRITICAL(Frontend, "Unhandled unknown exception in GameListWorker");
     }
-
-    RecordEvent([this](GameList* game_list) { game_list->DonePopulating(watch_list); });
     processing_completed.Set();
 }

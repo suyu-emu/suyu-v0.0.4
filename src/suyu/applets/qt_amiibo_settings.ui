@@ -1,5 +1,5 @@
-<!-- SPDX-FileCopyrightText: Copyright 2022 suyu Emulator Project -->
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright 2022 suyu Emulator Project -->
 <ui version="4.0">
  <class>QtAmiiboSettingsDialog</class>
  <widget class="QDialog" name="QtAmiiboSettingsDialog">

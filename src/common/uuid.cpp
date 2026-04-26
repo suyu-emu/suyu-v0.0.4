@@ -3,9 +3,9 @@
 
 #include <bit>
 #include <optional>
-#include <random>
-
 #include <fmt/format.h>
+
+#include "common/random.h"
 
 #include "common/assert.h"
 #include "common/tiny_mt.h"
@@ -175,9 +175,7 @@ u128 UUID::AsU128() const {
 }
 
 UUID UUID::MakeRandom() {
-    std::random_device device;
-
-    return MakeRandomWithSeed(device());
+    return MakeRandomWithSeed(Common::Random::Random32());
 }
 
 UUID UUID::MakeRandomWithSeed(u32 seed) {

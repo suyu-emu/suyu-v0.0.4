@@ -28,24 +28,24 @@ namespace Core {
 // Implementation class using PIMPL pattern
 class AntiPiracyManager::Impl {
 public:
-    explicit Impl(Core::System& system_) 
+    explicit Impl(Core::System& system_)
         : system(system_), nintendo_library(std::make_unique<Nintendo::Library>()) {}
 
     Core::System& system;
     std::unique_ptr<Nintendo::Library> nintendo_library;
     ValidationConfig config;
     ValidationStats stats;
-    
+
     bool initialized = false;
     bool nintendo_authenticated = false;
-    
+
     // Validation cache: file_hash -> ValidationResult
     std::unordered_map<std::string, ValidationResult> validation_cache;
-    
+
     // Nintendo game library cache
     std::vector<Nintendo::GameInfo> nintendo_games;
     std::chrono::steady_clock::time_point last_library_refresh;
-    
+
     // Known legitimate dump tool signatures
     std::unordered_set<std::string> legitimate_dump_signatures = {
         "NXDumpTool",
@@ -55,15 +55,15 @@ public:
         "SX Dumper",
         "Goldleaf"
     };
-    
+
     // Educational messages
-    const std::string educational_message = 
+    const std::string educational_message =
         "suyu supports legitimate game ownership. Please ensure you own the games you're playing.\n"
         "You can verify your game library by linking your Nintendo account in the settings.\n"
         "For more information about legitimate game dumping, visit our documentation.";
 };
 
-AntiPiracyManager::AntiPiracyManager(Core::System& system) 
+AntiPiracyManager::AntiPiracyManager(Core::System& system)
     : impl(std::make_unique<Impl>(system)) {}
 
 AntiPiracyManager::~AntiPiracyManager() {
@@ -86,7 +86,7 @@ bool AntiPiracyManager::Initialize() {
 
     // Load configuration
     LoadConfigFromFile("anti_piracy_config.json");
-    
+
     // Load validation cache
     LoadValidationCache();
 
@@ -104,7 +104,7 @@ void AntiPiracyManager::Shutdown() {
 
     // Save validation cache
     SaveValidationCache();
-    
+
     // Save configuration
     SaveConfigToFile("anti_piracy_config.json");
 
@@ -135,7 +135,7 @@ bool AntiPiracyManager::AuthenticateWithNintendo(const std::string& username, co
     }
 
     LOG_INFO(Core, "Attempting Nintendo account authentication");
-    
+
     bool success = impl->nintendo_library->StartAuthentication(username, password);
     if (success) {
         // Wait for authentication to complete (with timeout)
@@ -148,10 +148,10 @@ bool AntiPiracyManager::AuthenticateWithNintendo(const std::string& username, co
                 return false;
             }
         }
-        
-        impl->nintendo_authenticated = 
+
+        impl->nintendo_authenticated =
             (impl->nintendo_library->GetAuthenticationState() == Nintendo::AuthenticationState::Authenticated);
-        
+
         if (impl->nintendo_authenticated) {
             LOG_INFO(Core, "Nintendo account authentication successful");
             // Refresh game library
@@ -160,7 +160,7 @@ bool AntiPiracyManager::AuthenticateWithNintendo(const std::string& username, co
             LOG_WARNING(Core, "Nintendo account authentication failed");
         }
     }
-    
+
     return impl->nintendo_authenticated;
 }
 
@@ -182,17 +182,17 @@ std::vector<Nintendo::GameInfo> AntiPiracyManager::GetNintendoGameLibrary() {
     // Check if we need to refresh the library (cache for 1 hour)
     auto now = std::chrono::steady_clock::now();
     auto cache_duration = std::chrono::hours(1);
-    
-    if (impl->nintendo_games.empty() || 
+
+    if (impl->nintendo_games.empty() ||
         (now - impl->last_library_refresh) > cache_duration) {
-        
+
         LOG_INFO(Core, "Refreshing Nintendo game library");
         impl->nintendo_games = impl->nintendo_library->GetGameList();
         impl->last_library_refresh = now;
-        
+
         LOG_INFO(Core, "Retrieved {} games from Nintendo library", impl->nintendo_games.size());
     }
-    
+
     return impl->nintendo_games;
 }
 
@@ -213,7 +213,7 @@ ValidationResult AntiPiracyManager::ValidateRom(FileSys::VirtualFile file) {
 
     // Extract ROM metadata
     RomMetadata metadata = ExtractRomMetadata(file);
-    
+
     // Check cache first
     if (impl->config.cache_validation_results && !metadata.file_hash.empty()) {
         auto cached_result = GetCachedResult(metadata.file_hash);
@@ -273,7 +273,7 @@ ValidationResult AntiPiracyManager::ValidateRom(FileSys::VirtualFile file) {
         CacheValidationResult(metadata.file_hash, result);
     }
 
-    LOG_INFO(Core, "ROM validation complete: {} - Result: {}", 
+    LOG_INFO(Core, "ROM validation complete: {} - Result: {}",
              metadata.title_name, static_cast<int>(result));
 
     return result;
@@ -302,7 +302,7 @@ RomMetadata AntiPiracyManager::ExtractRomMetadata(FileSys::VirtualFile file) {
             // Check for NXDump signature
             metadata.has_nxdump_signature = DetectNXDumpSignature(file);
             metadata.dump_tool_signature = DetectDumpToolSignature(file);
-            
+
             // Validate headers
             metadata.has_proper_headers = (ValidateHeaders(file) != ValidationResult::Invalid);
         }
@@ -406,15 +406,15 @@ ValidationResult AntiPiracyManager::ValidateWithNintendoLibrary(const RomMetadat
     try {
         auto nintendo_games = GetNintendoGameLibrary();
         auto matching_game = FindMatchingGame(metadata);
-        
+
         if (matching_game.has_value()) {
             LOG_INFO(Core, "ROM matches Nintendo purchase history: {}", metadata.title_name);
             return ValidationResult::ValidNintendoLibrary;
         }
-        
+
         LOG_DEBUG(Core, "ROM not found in Nintendo purchase history: {}", metadata.title_name);
         return ValidationResult::Unknown;
-        
+
     } catch (const std::exception& e) {
         LOG_ERROR(Core, "Error validating with Nintendo Library: {}", e.what());
         return ValidationResult::NetworkError;
@@ -426,7 +426,7 @@ ValidationResult AntiPiracyManager::ValidateDumpTool(const RomMetadata& metadata
         LOG_INFO(Core, "ROM has NXDump signature - appears to be legitimate dump");
         return ValidationResult::ValidLegitimateRip;
     }
-    
+
     if (!metadata.dump_tool_signature.empty()) {
         if (impl->legitimate_dump_signatures.count(metadata.dump_tool_signature) > 0) {
             LOG_INFO(Core, "ROM created with legitimate dump tool: {}", metadata.dump_tool_signature);
@@ -436,7 +436,7 @@ ValidationResult AntiPiracyManager::ValidateDumpTool(const RomMetadata& metadata
             return ValidationResult::Suspicious;
         }
     }
-    
+
     return ValidationResult::Unknown;
 }
 
@@ -446,23 +446,23 @@ ValidationResult AntiPiracyManager::ValidateHeaders(FileSys::VirtualFile file) {
         if (!file || file->GetSize() == 0) {
             return ValidationResult::Invalid;
         }
-        
+
         // Check for common piracy indicators in file structure
         auto loader = Loader::GetLoader(impl->system, file);
         if (!loader) {
             return ValidationResult::Invalid;
         }
-        
+
         // Verify the file can be properly parsed
         u64 program_id;
         if (loader->ReadProgramId(program_id) != Loader::ResultStatus::Success) {
             LOG_WARNING(Core, "Failed to read program ID from ROM");
             return ValidationResult::Suspicious;
         }
-        
+
         // Additional header validation could be added here
         return ValidationResult::Valid;
-        
+
     } catch (const std::exception& e) {
         LOG_ERROR(Core, "Error validating ROM headers: {}", e.what());
         return ValidationResult::Invalid;
@@ -475,22 +475,22 @@ bool AntiPiracyManager::DetectNXDumpSignature(FileSys::VirtualFile file) {
         // NXDump typically adds metadata to the end of files
         const size_t file_size = file->GetSize();
         const size_t signature_search_size = std::min(file_size, static_cast<size_t>(1024));
-        
+
         if (signature_search_size == 0) {
             return false;
         }
-        
+
         // Read from the end of the file using offset-based read
         size_t offset = file_size > signature_search_size ? file_size - signature_search_size : 0;
         std::vector<u8> buffer = file->ReadBytes(signature_search_size, offset);
-        
+
         std::string content(buffer.begin(), buffer.end());
-        
+
         // Look for NXDump signatures
         return content.find("nxdumptool") != std::string::npos ||
                content.find("NXDumpTool") != std::string::npos ||
                content.find("NXDT") != std::string::npos;
-               
+
     } catch (const std::exception& e) {
         LOG_WARNING(Core, "Error detecting NXDump signature: {}", e.what());
         return false;
@@ -502,16 +502,16 @@ std::string AntiPiracyManager::CalculateFileHash(FileSys::VirtualFile file) {
         // Calculate hash of the first 1MB for performance
         const size_t hash_size = std::min(file->GetSize(), static_cast<size_t>(1024 * 1024));
         std::vector<u8> buffer = file->ReadBytes(hash_size, 0);
-        
+
         // Simple hash calculation (in a real implementation, use proper SHA-256)
         std::hash<std::string> hasher;
         std::string data(buffer.begin(), buffer.end());
         size_t hash = hasher(data);
-        
+
         std::stringstream ss;
         ss << std::hex << hash;
         return ss.str();
-        
+
     } catch (const std::exception& e) {
         LOG_WARNING(Core, "Error calculating file hash: {}", e.what());
         return "";
@@ -520,7 +520,7 @@ std::string AntiPiracyManager::CalculateFileHash(FileSys::VirtualFile file) {
 
 std::optional<Nintendo::GameInfo> AntiPiracyManager::FindMatchingGame(const RomMetadata& metadata) {
     auto nintendo_games = GetNintendoGameLibrary();
-    
+
     for (const auto& game : nintendo_games) {
         // Try exact title ID match first
         if (metadata.title_id != 0) {
@@ -530,25 +530,28 @@ std::optional<Nintendo::GameInfo> AntiPiracyManager::FindMatchingGame(const RomM
                 return game;
             }
         }
-        
+
         // Try fuzzy title name matching
         if (!metadata.title_name.empty() && !game.title_name.empty()) {
             std::string rom_title = metadata.title_name;
             std::string lib_title = game.title_name;
-            
+
             // Convert to lowercase for comparison
-            std::transform(rom_title.begin(), rom_title.end(), rom_title.begin(), ::tolower);
-            std::transform(lib_title.begin(), lib_title.end(), lib_title.begin(), ::tolower);
-            
+            const auto to_lower_char = [](unsigned char c) {
+                return static_cast<char>(std::tolower(c));
+            };
+            std::transform(rom_title.begin(), rom_title.end(), rom_title.begin(), to_lower_char);
+            std::transform(lib_title.begin(), lib_title.end(), lib_title.begin(), to_lower_char);
+
             // Remove common suffixes and prefixes
             std::regex cleanup_regex(R"(\s*\(.*\)|\s*\[.*\]|\s*-.*$)");
             rom_title = std::regex_replace(rom_title, cleanup_regex, "");
             lib_title = std::regex_replace(lib_title, cleanup_regex, "");
-            
+
             if (rom_title == lib_title) {
                 return game;
             }
-            
+
             // Check if one title contains the other
             if (rom_title.find(lib_title) != std::string::npos ||
                 lib_title.find(rom_title) != std::string::npos) {
@@ -556,7 +559,7 @@ std::optional<Nintendo::GameInfo> AntiPiracyManager::FindMatchingGame(const RomM
             }
         }
     }
-    
+
     return std::nullopt;
 }
 
@@ -565,18 +568,18 @@ std::string AntiPiracyManager::DetectDumpToolSignature(FileSys::VirtualFile file
         // Search for dump tool signatures in file metadata
         const size_t search_size = std::min(file->GetSize(), static_cast<size_t>(2048));
         std::vector<u8> buffer = file->ReadBytes(search_size, 0);
-        
+
         std::string content(buffer.begin(), buffer.end());
-        
+
         // Check for known dump tool signatures
         for (const auto& signature : impl->legitimate_dump_signatures) {
             if (content.find(signature) != std::string::npos) {
                 return signature;
             }
         }
-        
+
         return "";
-        
+
     } catch (const std::exception& e) {
         LOG_WARNING(Core, "Error detecting dump tool signature: {}", e.what());
         return "";
@@ -602,7 +605,7 @@ void AntiPiracyManager::SaveValidationCache() {
 void AntiPiracyManager::LoadConfigFromFile(const std::string& config_path) {
     // TODO: Implement configuration file loading
     LOG_DEBUG(Core, "Loading anti-piracy config from: {}", config_path);
-    
+
     // Set default configuration for now
     impl->config = ValidationConfig{};
 }

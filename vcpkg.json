@@ -1,0 +1,36 @@
+{
+  "name": "suyu",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "boost-container",
+    "boost-asio",
+    "boost-context",
+    "boost-crc",
+    "boost-heap",
+    "boost-icl",
+    "boost-process",
+    "boost-variant",
+    "fmt",
+    "lz4",
+    "nlohmann-json",
+    "zlib",
+    "zstd",
+    "ffmpeg",
+    "sdl2",
+    "openssl"
+  ],
+  "features": {
+    "android": {
+      "description": "Android build dependencies",
+      "dependencies": []
+    },
+    "suyu-tests": {
+      "description": "Test framework dependencies",
+      "dependencies": ["catch2"]
+    },
+    "web-service": {
+      "description": "Web service dependencies",
+      "dependencies": []
+    }
+  }
+}

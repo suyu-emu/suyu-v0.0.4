@@ -24,14 +24,24 @@ vec4 textureLanczos(sampler2D textureSampler, vec2 p) {
     vec2 cc = floor(p * res) / res;
     // kernel size = (2r + 1)^2
     const int r = 3; //radius (1 = 3 steps)
-    for (int x = -r; x <= r; x++)
-        for (int y = -r; y <= r; y++) {
-            vec2 kp = 0.5f * (vec2(x, y) / res); // 0.5 = half-pixel level resampling
-            vec2 uv = cc + kp;
-            float w = lanczos(kp, float(r));
-            c_sum += w * texture(textureSampler, p + kp).rgb;
-            w_sum += w;
-        }
+#define LANCZOS_LOOP_STEP(x, y) \
+    { \
+        vec2 kp = 0.5f * (vec2(x, y) / res); /* 0.5 = half-pixel level resampling */ \
+        vec2 uv = cc + kp; \
+        float w = lanczos(kp, float(r)); \
+        c_sum += w * texture(textureSampler, p + kp).rgb; \
+        w_sum += w; \
+    }
+
+    for (int y = -r; y <= r; ++y) {
+        LANCZOS_LOOP_STEP(-3, y);
+        LANCZOS_LOOP_STEP(-2, y);
+        LANCZOS_LOOP_STEP(-1, y);
+        LANCZOS_LOOP_STEP(-0, y);
+        LANCZOS_LOOP_STEP(+1, y);
+        LANCZOS_LOOP_STEP(+2, y);
+        LANCZOS_LOOP_STEP(+3, y);
+    }
     return vec4(c_sum / w_sum, 1.0f);
 }
 

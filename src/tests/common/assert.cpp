@@ -3,8 +3,8 @@
 
 #include <stdexcept>
 #include <catch2/catch_test_macros.hpp>
-#include "common/settings.h"
 #include "common/assert.h"
+#include "common/settings.h"
 
 // Test state tracking
 namespace {
@@ -39,8 +39,8 @@ TEST_CASE("assert_fail_impl behavior when debug asserts enabled", "[common][asse
     SECTION("when use_debug_asserts is true") {
         Settings::values.use_debug_asserts.SetValue(true);
 
-        // When use_debug_asserts is true, assert_fail_impl calls Crash() which terminates the process.
-        // We cannot directly test this in a unit test as it would kill the test runner.
+        // When use_debug_asserts is true, assert_fail_impl calls Crash() which terminates the
+        // process. We cannot directly test this in a unit test as it would kill the test runner.
         // However, we can verify that the function exists and the setting is properly read.
         // The actual crash behavior would need to be tested through integration tests.
 
@@ -155,7 +155,8 @@ TEST_CASE("Assert macros compilation and basic behavior", "[common][assert]") {
         Settings::values.use_debug_asserts.SetValue(false);
 
         // UNIMPLEMENTED_IF_MSG should not crash when debug asserts are disabled
-        REQUIRE_NOTHROW(UNIMPLEMENTED_IF_MSG(true, "Condition is true"));  // Should trigger but not crash
+        REQUIRE_NOTHROW(
+            UNIMPLEMENTED_IF_MSG(true, "Condition is true")); // Should trigger but not crash
         REQUIRE_NOTHROW(UNIMPLEMENTED_IF_MSG(false, "Condition is false")); // Should not trigger
     }
 
@@ -207,7 +208,8 @@ TEST_CASE("Debug assert macros in debug builds", "[common][assert]") {
 
         // In debug builds, DEBUG_ASSERT_MSG should behave like ASSERT_MSG
         REQUIRE_NOTHROW(DEBUG_ASSERT_MSG(true, "This should not trigger"));
-        REQUIRE_NOTHROW(DEBUG_ASSERT_MSG(false, "This should not crash when debug asserts are off"));
+        REQUIRE_NOTHROW(
+            DEBUG_ASSERT_MSG(false, "This should not crash when debug asserts are off"));
     }
 
     RestoreOriginalSettings();
@@ -248,7 +250,8 @@ TEST_CASE("Macro edge cases and complex scenarios", "[common][assert]") {
 
         // Test with complex boolean expressions
         REQUIRE_NOTHROW(ASSERT(value > 0 && value < 10));
-        REQUIRE_NOTHROW(ASSERT(value < 0 || value > 10)); // Should not crash when debug asserts are off
+        REQUIRE_NOTHROW(
+            ASSERT(value < 0 || value > 10)); // Should not crash when debug asserts are off
     }
 
     SECTION("ASSERT_OR_EXECUTE with complex execution blocks") {

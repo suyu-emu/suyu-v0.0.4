@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QKeyEvent>
@@ -17,6 +18,8 @@
 #include <QTimer>
 #include <QToolTip>
 #include <QUrl>
+
+#include <QRegularExpression>
 
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
@@ -31,7 +34,6 @@
 #include "suyu/game_list_p.h"
 #include "suyu/main.h"
 #include "suyu/uisettings.h"
-#include "uisettings.h"
 
 GameLibrary::GameLibrary(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
                         FileSys::ManualContentProvider* provider_,
@@ -47,17 +49,17 @@ GameLibrary::GameLibrary(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
       provider(provider_), play_time_manager(play_time_manager_), system(system_),
       main_window(parent) {
 
-    setObjectName("gameLibraryContainer");
+    setObjectName(QStringLiteral("gameLibraryContainer"));
     SetupUI();
-    
+
     // Initialize worker thread
     worker = new GameLibraryWorker(vfs, provider, play_time_manager, system);
     worker_thread = new QThread(this);
     worker->moveToThread(worker_thread);
-    
+
     // Connect worker signals
     connect(worker_thread, &QThread::started, worker, &GameLibraryWorker::AddInstalledTitlesToGameList);
-    connect(worker, &GameLibraryWorker::EntryReady, this, 
+    connect(worker, &GameLibraryWorker::EntryReady, this,
             [this](const QString& title, const QString& file_path, const QString& program_id,
                    const QString& developer, u64 program_id_numeric, const QString& version,
                    const QString& type, u64 size, const QString& compatibility,
@@ -68,7 +70,7 @@ GameLibrary::GameLibrary(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
     connect(worker, &GameLibraryWorker::Finished, this, &GameLibrary::OnPopulationCompleted);
     connect(this, &GameLibrary::ShouldCancelWorker, worker, [this]() {
         if (worker) {
-            worker->stop_processing.store(true, std::memory_order_relaxed);
+            worker->RequestStop();
         }
     });
     connect(worker_thread, &QThread::finished, worker, &QObject::deleteLater);
@@ -112,7 +114,7 @@ void GameLibrary::SetupToolbar() {
 
     // Search bar
     search_bar = new QLineEdit();
-    search_bar->setPlaceholderText("Search games...");
+    search_bar->setPlaceholderText(QStringLiteral("Search games..."));
     search_bar->setMinimumWidth(300);
     search_bar->setMaximumWidth(500);
     connect(search_bar, &QLineEdit::textChanged, this, &GameLibrary::OnFilterTextChanged);
@@ -121,26 +123,26 @@ void GameLibrary::SetupToolbar() {
     toolbar_layout->addStretch();
 
     // Game count label
-    game_count_label = new QLabel("0 games");
-    game_count_label->setObjectName("subtitle");
+    game_count_label = new QLabel(QStringLiteral("0 games"));
+    game_count_label->setObjectName(QStringLiteral("subtitle"));
     toolbar_layout->addWidget(game_count_label);
 
     // Sort combo box
     sort_combo = new QComboBox();
-    sort_combo->addItem("Sort by Title", static_cast<int>(GameLibrarySortMode::Title));
-    sort_combo->addItem("Sort by Developer", static_cast<int>(GameLibrarySortMode::Developer));
-    sort_combo->addItem("Sort by Size", static_cast<int>(GameLibrarySortMode::Size));
-    sort_combo->addItem("Sort by Play Time", static_cast<int>(GameLibrarySortMode::PlayTime));
-    sort_combo->addItem("Sort by Compatibility", static_cast<int>(GameLibrarySortMode::Compatibility));
-    sort_combo->addItem("Sort by Type", static_cast<int>(GameLibrarySortMode::Type));
-    connect(sort_combo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+    sort_combo->addItem(QStringLiteral("Sort by Title"), static_cast<int>(GameLibrarySortMode::Title));
+    sort_combo->addItem(QStringLiteral("Sort by Developer"), static_cast<int>(GameLibrarySortMode::Developer));
+    sort_combo->addItem(QStringLiteral("Sort by Size"), static_cast<int>(GameLibrarySortMode::Size));
+    sort_combo->addItem(QStringLiteral("Sort by Play Time"), static_cast<int>(GameLibrarySortMode::PlayTime));
+    sort_combo->addItem(QStringLiteral("Sort by Compatibility"), static_cast<int>(GameLibrarySortMode::Compatibility));
+    sort_combo->addItem(QStringLiteral("Sort by Type"), static_cast<int>(GameLibrarySortMode::Type));
+    connect(sort_combo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &GameLibrary::OnSortModeChanged);
     toolbar_layout->addWidget(sort_combo);
 
     // View mode button
     view_mode_button = new QPushButton();
-    view_mode_button->setIcon(QIcon(":/icons/grid_view.svg"));
-    view_mode_button->setToolTip("Switch to List View");
+    view_mode_button->setIcon(QIcon(QStringLiteral(":/icons/grid_view.svg")));
+    view_mode_button->setToolTip(QStringLiteral("Switch to List View"));
     view_mode_button->setFixedSize(32, 32);
     connect(view_mode_button, &QPushButton::clicked, this, &GameLibrary::OnViewModeChanged);
     toolbar_layout->addWidget(view_mode_button);
@@ -158,7 +160,7 @@ void GameLibrary::SetupGameArea() {
 
     // Create game container
     game_container = new QWidget();
-    game_container->setObjectName("gameContainer");
+    game_container->setObjectName(QStringLiteral("gameContainer"));
 
     // Create game layout
     game_layout = new GameCardLayout(game_container);
@@ -170,16 +172,17 @@ void GameLibrary::SetupGameArea() {
 }
 
 void GameLibrary::LoadCompatibilityList() {
-    compatibility_list.LoadCompatibilityList();
+    // CompatibilityList is loaded by the worker thread
+    compatibility_list.clear();
 }
 
 void GameLibrary::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     if (worker_thread && !worker_thread->isRunning()) {
         // Clear existing games
         ClearGameCards();
-        
+
         // Start worker thread
-        connect(worker, &GameLibraryWorker::FillControllerList, worker, 
+        connect(worker, &GameLibraryWorker::FillControllerList, worker,
                 [this, game_dirs]() mutable {
                     worker->FillControllerList(game_dirs);
                 });
@@ -213,14 +216,14 @@ void GameLibrary::SetViewMode(GameLibraryViewMode mode) {
     if (view_mode != mode) {
         view_mode = mode;
         UpdateLayout();
-        
+
         // Update button icon and tooltip
         if (mode == GameLibraryViewMode::Grid) {
-            view_mode_button->setIcon(QIcon(":/icons/list_view.svg"));
-            view_mode_button->setToolTip("Switch to List View");
+            view_mode_button->setIcon(QIcon(QStringLiteral(":/icons/list_view.svg")));
+            view_mode_button->setToolTip(QStringLiteral("Switch to List View"));
         } else {
-            view_mode_button->setIcon(QIcon(":/icons/grid_view.svg"));
-            view_mode_button->setToolTip("Switch to Grid View");
+            view_mode_button->setIcon(QIcon(QStringLiteral(":/icons/grid_view.svg")));
+            view_mode_button->setToolTip(QStringLiteral("Switch to Grid View"));
         }
     }
 }
@@ -260,8 +263,8 @@ void GameLibrary::OnFilterTextChanged(const QString& new_text) {
 
 void GameLibrary::OnUpdateThemedIcons() {
     // Update icons for current theme
-    view_mode_button->setIcon(view_mode == GameLibraryViewMode::Grid ? 
-                             QIcon(":/icons/list_view.svg") : QIcon(":/icons/grid_view.svg"));
+    view_mode_button->setIcon(view_mode == GameLibraryViewMode::Grid ?
+                             QIcon(QStringLiteral(":/icons/list_view.svg")) : QIcon(QStringLiteral(":/icons/grid_view.svg")));
 }
 
 void GameLibrary::OnGameCardSelected(const QString& file_path) {
@@ -283,7 +286,7 @@ void GameLibrary::OnGameCardRightClicked(const QString& file_path, const QPoint&
 }
 
 void GameLibrary::OnViewModeChanged() {
-    GameLibraryViewMode new_mode = (view_mode == GameLibraryViewMode::Grid) ? 
+    GameLibraryViewMode new_mode = (view_mode == GameLibraryViewMode::Grid) ?
                                    GameLibraryViewMode::List : GameLibraryViewMode::Grid;
     SetViewMode(new_mode);
 }
@@ -301,15 +304,15 @@ void GameLibrary::OnSearchTimerTimeout() {
 
 void GameLibrary::OnPopulationCompleted() {
     emit PopulatingCompleted();
-    
+
     // Update game count
     int visible_count = filtered_cards.size();
     int total_count = game_cards.size();
-    
+
     if (current_filter.isEmpty()) {
-        game_count_label->setText(QString("%1 games").arg(total_count));
+        game_count_label->setText(QStringLiteral("%1 games").arg(total_count));
     } else {
-        game_count_label->setText(QString("%1 of %2 games").arg(visible_count).arg(total_count));
+        game_count_label->setText(QStringLiteral("%1 of %2 games").arg(visible_count).arg(total_count));
     }
 }
 
@@ -333,7 +336,7 @@ void GameLibrary::resizeEvent(QResizeEvent* event) {
 
 void GameLibrary::UpdateLayout() {
     if (!game_layout) return;
-    
+
     // Force layout update
     game_layout->invalidate();
     game_container->updateGeometry();
@@ -342,9 +345,9 @@ void GameLibrary::UpdateLayout() {
 
 void GameLibrary::ApplyFilter() {
     QMutexLocker locker(&cards_mutex);
-    
+
     filtered_cards.clear();
-    
+
     if (current_filter.isEmpty()) {
         filtered_cards = game_cards;
     } else {
@@ -355,23 +358,23 @@ void GameLibrary::ApplyFilter() {
             }
         }
     }
-    
+
     // Hide/show cards based on filter
     for (GameCard* card : game_cards) {
         card->setVisible(filtered_cards.contains(card));
     }
-    
+
     SortGameCards();
     UpdateLayout();
-    
+
     // Update game count
     OnPopulationCompleted();
 }
 
 void GameLibrary::SortGameCards() {
     if (filtered_cards.isEmpty()) return;
-    
-    std::sort(filtered_cards.begin(), filtered_cards.end(), 
+
+    std::sort(filtered_cards.begin(), filtered_cards.end(),
               [this](const GameCard* a, const GameCard* b) {
         switch (sort_mode) {
             case GameLibrarySortMode::Title:
@@ -398,7 +401,7 @@ void GameLibrary::SortGameCards() {
                 return a->GetTitle().toLower() < b->GetTitle().toLower();
         }
     });
-    
+
     // Reorder cards in layout
     for (int i = 0; i < filtered_cards.size(); ++i) {
         GameCard* card = filtered_cards[i];
@@ -412,30 +415,30 @@ void GameLibrary::AddGameCard(const QString& title, const QString& file_path, co
                              const QString& type, u64 size, const QString& compatibility,
                              const QPixmap& icon, const QString& play_time) {
     QMutexLocker locker(&cards_mutex);
-    
+
     // Check if card already exists
     if (file_path_to_card.contains(file_path)) {
         return;
     }
-    
+
     GameCard* card = new GameCard(game_container);
     card->SetGameInfo(title, file_path, program_id, developer, program_id_numeric,
                      version, type, size, compatibility, icon);
     card->SetPlayTime(play_time);
-    
+
     // Connect signals
     connect(card, &GameCard::GameSelected, this, &GameLibrary::OnGameCardSelected);
     connect(card, &GameCard::GameDoubleClicked, this, &GameLibrary::OnGameCardDoubleClicked);
     connect(card, &GameCard::GameRightClicked, this, &GameLibrary::OnGameCardRightClicked);
-    
+
     // Add to collections
     game_cards.append(card);
     file_path_to_card[file_path] = card;
     program_id_to_card[program_id_numeric] = card;
-    
+
     // Add to layout
     game_layout->addWidget(card);
-    
+
     // Apply current filter
     if (!current_filter.isEmpty()) {
         QString filter_lower = current_filter.toLower();
@@ -450,20 +453,20 @@ void GameLibrary::AddGameCard(const QString& title, const QString& file_path, co
 
 void GameLibrary::RemoveGameCard(const QString& file_path) {
     QMutexLocker locker(&cards_mutex);
-    
+
     GameCard* card = file_path_to_card.value(file_path, nullptr);
     if (!card) return;
-    
+
     // Remove from collections
     game_cards.removeAll(card);
     filtered_cards.removeAll(card);
     file_path_to_card.remove(file_path);
     program_id_to_card.remove(card->GetProgramIdNumeric());
-    
+
     // Remove from layout and delete
     game_layout->removeWidget(card);
     card->deleteLater();
-    
+
     if (selected_card == card) {
         selected_card = nullptr;
     }
@@ -471,13 +474,13 @@ void GameLibrary::RemoveGameCard(const QString& file_path) {
 
 void GameLibrary::ClearGameCards() {
     QMutexLocker locker(&cards_mutex);
-    
+
     // Clear collections
     for (GameCard* card : game_cards) {
         game_layout->removeWidget(card);
         card->deleteLater();
     }
-    
+
     game_cards.clear();
     filtered_cards.clear();
     file_path_to_card.clear();
@@ -494,12 +497,12 @@ void GameLibrary::UpdateGameCardPlayTime(u64 program_id, const QString& play_tim
 
 void GameLibrary::SelectGameCard(GameCard* card) {
     if (selected_card == card) return;
-    
+
     // Deselect previous card
     if (selected_card) {
         selected_card->SetSelected(false);
     }
-    
+
     // Select new card
     selected_card = card;
     if (selected_card) {
@@ -526,28 +529,29 @@ GameCard* GameLibrary::FindGameCardByProgramId(u64 program_id) const {
 void GameLibrary::ShowContextMenu(const QString& file_path, const QPoint& global_pos) {
     GameCard* card = FindGameCard(file_path);
     if (!card) return;
-    
+
     QMenu context_menu(this);
-    
+
     // Add standard game actions
-    QAction* play_action = context_menu.addAction("Play");
+    QAction* play_action = context_menu.addAction(QStringLiteral("Play"));
     connect(play_action, &QAction::triggered, [this, file_path, card]() {
         emit GameChosen(file_path, card->GetProgramIdNumeric());
     });
-    
+
     context_menu.addSeparator();
-    
-    QAction* open_folder_action = context_menu.addAction("Open Game Folder");
+
+    QAction* open_folder_action = context_menu.addAction(QStringLiteral("Open Game Folder"));
     connect(open_folder_action, &QAction::triggered, [this, file_path]() {
         QFileInfo file_info(file_path);
         emit OpenDirectory(file_info.absolutePath());
     });
-    
-    QAction* properties_action = context_menu.addAction("Properties");
-    connect(properties_action, &QAction::triggered, [this, card]() {
+
+    QAction* properties_action = context_menu.addAction(QStringLiteral("Properties"));
+    connect(properties_action, &QAction::triggered, [card]() {
         // Could open a properties dialog
+        Q_UNUSED(card);
     });
-    
+
     context_menu.exec(global_pos);
 }
 
@@ -557,17 +561,17 @@ void GameLibrary::UpdateSearchResults() {
 
 void GameLibrary::AnimateFilterChange() {
     if (!filter_animation || !opacity_effect) return;
-    
+
     filter_animation->setStartValue(opacity_effect->opacity());
     filter_animation->setEndValue(0.0);
     filter_animation->start();
-    
+
     connect(filter_animation, &QPropertyAnimation::finished, this, [this]() {
         ApplyFilter();
         filter_animation->setStartValue(0.0);
         filter_animation->setEndValue(1.0);
         filter_animation->start();
-    }, Qt::SingleShotConnection);
+    });
 }
 
 void GameLibrary::AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path) {
@@ -587,25 +591,24 @@ GameLibraryWorker::GameLibraryWorker(std::shared_ptr<FileSys::VfsFilesystem> vfs
                                     FileSys::ManualContentProvider* provider_,
                                     PlayTime::PlayTimeManager& play_time_manager_,
                                     Core::System& system_)
-    : vfs(std::move(vfs_)), provider(provider_), play_time_manager(play_time_manager_), 
+    : vfs(std::move(vfs_)), provider(provider_), play_time_manager(play_time_manager_),
       system(system_) {
-    compatibility_list.LoadCompatibilityList();
 }
 
 GameLibraryWorker::~GameLibraryWorker() = default;
 
 void GameLibraryWorker::AddInstalledTitlesToGameList() {
     if (stop_processing) return;
-    
+
     // This would scan installed titles and emit EntryReady signals
     // Implementation would be similar to existing GameListWorker
-    
+
     emit Finished();
 }
 
 void GameLibraryWorker::FillControllerList(const QVector<UISettings::GameDir>& game_dirs) {
     if (stop_processing) return;
-    
+
     ScanFileSystem(const_cast<QVector<UISettings::GameDir>&>(game_dirs));
     emit Finished();
 }
@@ -613,47 +616,138 @@ void GameLibraryWorker::FillControllerList(const QVector<UISettings::GameDir>& g
 void GameLibraryWorker::ScanFileSystem(QVector<UISettings::GameDir>& game_dirs) {
     for (const auto& game_dir : game_dirs) {
         if (stop_processing) break;
-        
-        QDir dir(game_dir.path);
+
+        const QString base_path = QString::fromStdString(game_dir.path);
+        QDir dir(base_path);
         if (!dir.exists()) continue;
-        
-        QStringList filters;
-        filters << "*.nsp" << "*.xci" << "*.nca" << "*.nro";
-        
-        QFileInfoList files = dir.entryInfoList(filters, QDir::Files | QDir::Readable);
-        for (const QFileInfo& file : files) {
+
+        QDirIterator it(base_path,
+                        QStringList{QStringLiteral("*.nsp"), QStringLiteral("*.xci"),
+                                    QStringLiteral("*.nro")},
+                        QDir::Files | QDir::Readable,
+                        QDirIterator::Subdirectories);
+        while (it.hasNext()) {
             if (stop_processing) break;
-            ProcessFile(file.absoluteFilePath());
+            const QString file_path = it.next();
+            if (file_path.contains(QStringLiteral(".cnmt.nca"), Qt::CaseInsensitive)) {
+                continue;
+            }
+            ProcessFile(file_path);
         }
     }
 }
 
 void GameLibraryWorker::ProcessFile(const QString& file_path) {
     if (stop_processing) return;
-    
-    // This would process individual game files
-    // For now, emit a placeholder entry
-    QPixmap icon = QPixmap(":/icons/game_placeholder.svg");
-    QString title = QFileInfo(file_path).baseName();
-    QString developer = "Unknown";
-    QString version = "1.0.0";
+
+    const auto path = file_path.toStdString();
+    const auto file = vfs->OpenFile(path, FileSys::OpenMode::Read);
+    if (!file) {
+        LOG_WARNING(Frontend, "GameLibrary: could not open '{}'", path);
+        return;
+    }
+
+    auto loader = Loader::GetLoader(system, file);
+    if (!loader) {
+        LOG_WARNING(Frontend, "GameLibrary: no loader for '{}'", path);
+        return;
+    }
+
+    const auto file_type = loader->GetFileType();
+    if (file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) {
+        return;
+    }
+
+    if (file_type == Loader::FileType::NCA) {
+        const auto nca_type = FileSys::NCA{file}.GetType();
+        if (nca_type != FileSys::NCAContentType::Program) {
+            return;
+        }
+    }
+
+    // Extract program ID
+    u64 program_id = 0;
+    loader->ReadProgramId(program_id);
+
+    // Extract title
+    std::string raw_title;
+    loader->ReadTitle(raw_title);
+    QString title = raw_title.empty() ? QFileInfo(file_path).baseName()
+                                      : QString::fromStdString(raw_title);
+    if (title.trimmed().isEmpty()) {
+        return;
+    }
+
+    static const QRegularExpression hash_like_title(
+        QStringLiteral("^[0-9a-fA-F]{16,}$"));
+    if (hash_like_title.match(title.trimmed()).hasMatch()) {
+        return;
+    }
+
+    // Extract developer and version from NACP control data
+    QString developer = QStringLiteral("Unknown");
+    QString version = QStringLiteral("1.0.0");
+    FileSys::NACP nacp;
+    if (loader->ReadControlData(nacp) == Loader::ResultStatus::Success) {
+        const auto dev_name = nacp.GetDeveloperName();
+        if (!dev_name.empty()) {
+            developer = QString::fromStdString(dev_name);
+        }
+        const auto ver_str = nacp.GetVersionString();
+        if (!ver_str.empty()) {
+            version = QString::fromStdString(ver_str);
+        }
+    }
+
+    // Extract icon
+    QPixmap icon = GetGameIcon(program_id, file_path);
+
     QString type = QFileInfo(file_path).suffix().toUpper();
     u64 size = QFileInfo(file_path).size();
-    QString compatibility = "Unknown";
-    QString play_time = "0h 0m";
-    u64 program_id = 0; // Would extract from file
-    
-    emit EntryReady(title, file_path, QString::number(program_id, 16), developer, 
+    QString compatibility = GetCompatibilityRating(program_id);
+
+    // Play time
+    QString play_time = QStringLiteral("0h 0m");
+    const auto play_seconds =
+        play_time_manager.GetPlayTime(program_id);
+    if (play_seconds > 0) {
+        const auto hours = play_seconds / 3600;
+        const auto minutes = (play_seconds % 3600) / 60;
+        play_time = QStringLiteral("%1h %2m").arg(hours).arg(minutes);
+    }
+
+    emit EntryReady(title, file_path, QString::number(program_id, 16), developer,
                    program_id, version, type, size, compatibility, icon, play_time);
 }
 
 QPixmap GameLibraryWorker::GetGameIcon(u64 program_id, const QString& file_path) {
-    // Implementation would extract icon from game file
-    return QPixmap(":/icons/game_placeholder.svg");
+    const auto path = file_path.toStdString();
+    const auto file = vfs->OpenFile(path, FileSys::OpenMode::Read);
+    if (!file) {
+        return QPixmap(QStringLiteral(":/icons/game_placeholder.svg"));
+    }
+
+    auto loader = Loader::GetLoader(system, file);
+    if (!loader) {
+        return QPixmap(QStringLiteral(":/icons/game_placeholder.svg"));
+    }
+
+    std::vector<u8> icon_data;
+    if (loader->ReadIcon(icon_data) == Loader::ResultStatus::Success && !icon_data.empty()) {
+        QPixmap pixmap;
+        if (pixmap.loadFromData(icon_data.data(), static_cast<uint>(icon_data.size()))) {
+            return pixmap;
+        }
+    }
+    return QPixmap(QStringLiteral(":/icons/game_placeholder.svg"));
 }
 
 QString GameLibraryWorker::GetCompatibilityRating(u64 program_id) {
-    return compatibility_list.GetCompatibilityRating(program_id);
+    auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
+    if (it != compatibility_list.end()) {
+        return it->second.first;
+    }
+    return QStringLiteral("Unknown");
 }
 
 #include "game_library.moc"

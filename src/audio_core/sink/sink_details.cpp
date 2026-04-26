@@ -40,10 +40,10 @@ struct SinkDetails {
     /// SuitableFn is_suitable; // REVERTED FOR LatencyFn latency ABOVE - DIABLO 3 FIX
 };
 
-// NOTE TO PROBABLY FIX LATER FOR ANDROID - the return value "0u" for the first HAVE_OBOE 
+// NOTE TO PROBABLY FIX LATER FOR ANDROID - the return value "0u" for the first HAVE_OBOE
 // section below was just copied from the null section so there's a somewhat valid value
-// being returned, since the previous "true" value probably isn't compatible with the 
-// previous EA-3833 code. (HAVE_OBOE was introduced in a later release.) Eventually need 
+// being returned, since the previous "true" value probably isn't compatible with the
+// previous EA-3833 code. (HAVE_OBOE was introduced in a later release.) Eventually need
 // to change "0u" for something else directly from the oboe_sink.cpp functions.
 
 // sink_details is ordered in terms of desirability, with the best choice at the top.

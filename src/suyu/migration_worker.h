@@ -4,43 +4,44 @@
 #ifndef MIGRATION_WORKER_H
 #define MIGRATION_WORKER_H
 
+#include <array>
+#include <filesystem>
+#include <string>
+
 #include <QObject>
 #include "common/fs/path_util.h"
 
-using namespace Common::FS;
+struct Emulator {
+    const char* m_name{};
+    std::filesystem::path user_dir{};
+    std::filesystem::path config_dir{};
+    std::filesystem::path cache_dir{};
 
-typedef struct Emulator {
-    const char *m_name;
-
-    EmuPath e_user_dir;
-    EmuPath e_config_dir;
-    EmuPath e_cache_dir;
-
-    const std::string get_user_dir() const {
-        return Common::FS::GetLegacyPath(e_user_dir).string();
+    [[nodiscard]] std::string get_user_dir() const {
+        return user_dir.string();
     }
 
-    const std::string get_config_dir() const {
-        return Common::FS::GetLegacyPath(e_config_dir).string();
+    [[nodiscard]] std::string get_config_dir() const {
+        return config_dir.string();
     }
 
-    const std::string get_cache_dir() const {
-        return Common::FS::GetLegacyPath(e_cache_dir).string();
+    [[nodiscard]] std::string get_cache_dir() const {
+        return cache_dir.string();
     }
 
-    const QString name() const { return QObject::tr(m_name);
+    [[nodiscard]] QString name() const {
+        return QObject::tr(m_name);
     }
 
-    const QString lower_name() const { return name().toLower();
+    [[nodiscard]] QString lower_name() const {
+        return name().toLower();
     }
-} Emulator;
-
-static constexpr std::array<Emulator, 4> legacy_emus = {
-    Emulator{QT_TR_NOOP("Citron"), CitronDir, CitronConfigDir, CitronCacheDir},
-    Emulator{QT_TR_NOOP("Sudachi"), SudachiDir, SudachiConfigDir, SudachiCacheDir},
-    Emulator{QT_TR_NOOP("Suyu"), SuyuDir, SuyuConfigDir, SuyuCacheDir},
-    Emulator{QT_TR_NOOP("Yuzu"), YuzuDir, YuzuConfigDir, YuzuCacheDir},
 };
+
+Q_DECLARE_METATYPE(Emulator)
+
+std::array<Emulator, 4> BuildLegacyEmulators();
+extern const std::array<Emulator, 4> legacy_emus;
 
 class MigrationWorker : public QObject
 {

@@ -57,9 +57,9 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
     // Restore the settings:
     ui->username->setText(
         QString::fromStdString(UISettings::values.multiplayer_room_nickname.GetValue()));
-    if (ui->username->text().isEmpty() && !Settings::values.suyu_username.GetValue().empty()) {
-        // Use suyu Web Service user name as nickname by default
-        ui->username->setText(QString::fromStdString(Settings::values.suyu_username.GetValue()));
+    if (ui->username->text().isEmpty() && !Settings::values.eden_username.GetValue().empty()) {
+        // Use Eden Web Service user name as nickname by default
+        ui->username->setText(QString::fromStdString(Settings::values.eden_username.GetValue()));
     }
     ui->room_name->setText(
         QString::fromStdString(UISettings::values.multiplayer_room_name.GetValue()));
@@ -165,7 +165,7 @@ void HostRoomWindow::Host() {
             const bool created =
                 room->Create(ui->room_name->text().toStdString(),
                              ui->room_description->toPlainText().toStdString(), "", port, password,
-                             ui->max_player->value(), Settings::values.suyu_username.GetValue(),
+                             ui->max_player->value(), Settings::values.eden_username.GetValue(),
                              game, CreateVerifyBackend(is_public), ban_list);
             if (!created) {
                 NetworkMessage::ErrorManager::ShowError(
@@ -184,7 +184,7 @@ void HostRoomWindow::Host() {
                     QMessageBox::warning(
                         this, tr("Error"),
                         tr("Failed to announce the room to the public lobby. In order to host a "
-                           "room publicly, you must have a valid suyu account configured in "
+                           "room publicly, you must have a valid Eden account configured in "
                            "Emulation -> Configure -> Web. If you do not want to publish a room in "
                            "the public lobby, then select Unlisted instead.\nDebug Message: ") +
                             QString::fromStdString(result.result_string),
@@ -203,9 +203,11 @@ void HostRoomWindow::Host() {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
         if (is_public) {
-            WebService::Client client(Settings::values.web_api_url.GetValue(),
-                                      Settings::values.suyu_username.GetValue(),
-                                      Settings::values.suyu_token.GetValue());
+            const auto announce_url = Settings::values.multiplayer_announce_url.GetValue().empty()
+                                          ? Settings::values.web_api_url.GetValue()
+                                          : Settings::values.multiplayer_announce_url.GetValue();
+            WebService::Client client(announce_url, Settings::values.eden_username.GetValue(),
+                                      Settings::values.eden_token.GetValue());
             if (auto room = room_network.GetRoom().lock()) {
                 token = client.GetExternalJWT(room->GetVerifyUID()).returned_data;
             }

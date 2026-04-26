@@ -1,45 +1,49 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <QIcon>
 #include <QMessageBox>
-#include <QtConcurrent/QtConcurrentRun>
-#include "common/settings.h"
 #include "suyu/configuration/configure_web.h"
+
+#if QT_VERSION_MAJOR >= 6
+#include <QRegularExpressionValidator>
+#else
+#include <QRegExpValidator>
+#endif
+
+#include "common/settings.h"
 #include "suyu/uisettings.h"
 #include "ui_configure_web.h"
-#include "web_service/verify_login.h"
-
-static constexpr char token_delimiter{':'};
-
-static std::string GenerateDisplayToken(const std::string& username, const std::string& token) {
-    if (username.empty() || token.empty()) {
-        return {};
-    }
-
-    const std::string unencoded_display_token{username + token_delimiter + token};
-    QByteArray b{unencoded_display_token.c_str()};
-    QByteArray b64 = b.toBase64();
-    return b64.toStdString();
-}
-
-static std::string UsernameFromDisplayToken(const std::string& display_token) {
-    const std::string unencoded_display_token{
-        QByteArray::fromBase64(display_token.c_str()).toStdString()};
-    return unencoded_display_token.substr(0, unencoded_display_token.find(token_delimiter));
-}
-
-static std::string TokenFromDisplayToken(const std::string& display_token) {
-    const std::string unencoded_display_token{
-        QByteArray::fromBase64(display_token.c_str()).toStdString()};
-    return unencoded_display_token.substr(unencoded_display_token.find(token_delimiter) + 1);
-}
 
 ConfigureWeb::ConfigureWeb(QWidget* parent)
-    : QWidget(parent), ui(std::make_unique<Ui::ConfigureWeb>()) {
+    : QWidget(parent),
+      ui(std::make_unique<Ui::ConfigureWeb>()), m_rng{QRandomGenerator::system()} {
     ui->setupUi(this);
-    connect(ui->button_verify_login, &QPushButton::clicked, this, &ConfigureWeb::VerifyLogin);
-    connect(&verify_watcher, &QFutureWatcher<bool>::finished, this, &ConfigureWeb::OnLoginVerified);
+
+    QString user_regex = QStringLiteral(".{4,20}");
+    QString token_regex = QStringLiteral("[a-z]{48}");
+
+#if QT_VERSION_MAJOR >= 6
+    QRegularExpressionValidator* username_validator = new QRegularExpressionValidator(this);
+    QRegularExpressionValidator* token_validator = new QRegularExpressionValidator(this);
+
+    username_validator->setRegularExpression(QRegularExpression(user_regex));
+    token_validator->setRegularExpression(QRegularExpression(token_regex));
+#else
+    QRegExpValidator* username_validator = new QRegExpValidator(this);
+    QRegExpValidator* token_validator = new QRegExpValidator(this);
+
+    username_validator->setRegExp(QRegExp(user_regex));
+    token_validator->setRegExp(QRegExp(token_regex));
+#endif
+
+    ui->edit_username->setValidator(username_validator);
+    ui->edit_token->setValidator(token_validator);
+
+    connect(ui->button_generate, &QPushButton::clicked, this, &ConfigureWeb::GenerateToken);
 
 #ifndef USE_DISCORD_PRESENCE
     ui->discord_group->setVisible(false);
@@ -61,103 +65,71 @@ void ConfigureWeb::changeEvent(QEvent* event) {
 
 void ConfigureWeb::RetranslateUI() {
     ui->retranslateUi(this);
-
-    ui->web_signup_link->setText(
-        tr("<a href='https://suyu-emu.github.io/signup'><span style=\"text-decoration: underline; "
-           "color:#039be5;\">Sign up</span></a>"));
-
-    ui->web_token_info_link->setText(
-        tr("<a href='https://suyu-emu.github.io/account'><span style=\"text-decoration: "
-           "underline; color:#039be5;\">What is my token?</span></a>"));
 }
 
 void ConfigureWeb::SetConfiguration() {
-    ui->web_credentials_disclaimer->setWordWrap(true);
+    connect(ui->edit_username, &QLineEdit::textChanged, this, &ConfigureWeb::VerifyLogin);
+    connect(ui->edit_token, &QLineEdit::textChanged, this, &ConfigureWeb::VerifyLogin);
 
-    ui->web_signup_link->setOpenExternalLinks(true);
-    ui->web_token_info_link->setOpenExternalLinks(true);
+    ui->edit_username->setText(
+        QString::fromStdString(Settings::values.eden_username.GetValue()));
+    ui->edit_token->setText(
+        QString::fromStdString(Settings::values.eden_token.GetValue()));
+    ui->edit_web_api_url->setText(
+        QString::fromStdString(Settings::values.web_api_url.GetValue()));
+    ui->edit_multiplayer_announce_url->setText(
+        QString::fromStdString(Settings::values.multiplayer_announce_url.GetValue()));
 
-    if (Settings::values.suyu_username.GetValue().empty()) {
-        ui->username->setText(tr("Unspecified"));
-    } else {
-        ui->username->setText(QString::fromStdString(Settings::values.suyu_username.GetValue()));
-    }
-
-    ui->edit_token->setText(QString::fromStdString(GenerateDisplayToken(
-        Settings::values.suyu_username.GetValue(), Settings::values.suyu_token.GetValue())));
-
-    // Connect after setting the values, to avoid calling OnLoginChanged now
-    connect(ui->edit_token, &QLineEdit::textChanged, this, &ConfigureWeb::OnLoginChanged);
-
-    user_verified = true;
+    VerifyLogin();
 
     ui->toggle_discordrpc->setChecked(UISettings::values.enable_discord_presence.GetValue());
 }
 
-void ConfigureWeb::ApplyConfiguration() {
-    UISettings::values.enable_discord_presence = ui->toggle_discordrpc->isChecked();
-    if (user_verified) {
-        Settings::values.suyu_username =
-            UsernameFromDisplayToken(ui->edit_token->text().toStdString());
-        Settings::values.suyu_token = TokenFromDisplayToken(ui->edit_token->text().toStdString());
-    } else {
-        QMessageBox::warning(
-            this, tr("Token not verified"),
-            tr("Token was not verified. The change to your token has not been saved."));
+void ConfigureWeb::GenerateToken() {
+    constexpr size_t length = 48;
+    QString set = QStringLiteral("abcdefghijklmnopqrstuvwxyz");
+    QString result;
+
+    for (size_t i = 0; i < length; ++i) {
+        int idx = static_cast<int>(m_rng->bounded(static_cast<quint32>(set.length())));
+        result.append(set.at(idx));
     }
+
+    ui->edit_token->setText(result);
 }
 
-void ConfigureWeb::OnLoginChanged() {
-    if (ui->edit_token->text().isEmpty()) {
-        user_verified = true;
-        // Empty = no icon
-        ui->label_token_verified->setPixmap(QPixmap());
-        ui->label_token_verified->setToolTip(QString());
-    } else {
-        user_verified = false;
-
-        // Show an info icon if it's been changed, clearer than showing failure
-        const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("info")).pixmap(16);
-        ui->label_token_verified->setPixmap(pixmap);
-        ui->label_token_verified->setToolTip(
-            tr("Unverified, please click Verify before saving configuration", "Tooltip"));
-    }
+void ConfigureWeb::ApplyConfiguration() {
+    UISettings::values.enable_discord_presence = ui->toggle_discordrpc->isChecked();
+    Settings::values.eden_username = ui->edit_username->text().toStdString();
+    Settings::values.eden_token = ui->edit_token->text().toStdString();
+    Settings::values.web_api_url = ui->edit_web_api_url->text().toStdString();
+    Settings::values.multiplayer_announce_url =
+        ui->edit_multiplayer_announce_url->text().toStdString();
 }
 
 void ConfigureWeb::VerifyLogin() {
-    ui->button_verify_login->setDisabled(true);
-    ui->button_verify_login->setText(tr("Verifying..."));
-    ui->label_token_verified->setPixmap(QIcon::fromTheme(QStringLiteral("sync")).pixmap(16));
-    ui->label_token_verified->setToolTip(tr("Verifying..."));
-    verify_watcher.setFuture(QtConcurrent::run(
-        [username = UsernameFromDisplayToken(ui->edit_token->text().toStdString()),
-         token = TokenFromDisplayToken(ui->edit_token->text().toStdString())] {
-#ifdef ENABLE_WEB_SERVICE
-            return WebService::VerifyLogin(Settings::values.web_api_url.GetValue(), username,
-                                           token);
-#else
-            return false;
-#endif
-        }));
-}
+    const QPixmap checked = QIcon::fromTheme(QStringLiteral("checked")).pixmap(16);
+    const QPixmap failed = QIcon::fromTheme(QStringLiteral("failed")).pixmap(16);
 
-void ConfigureWeb::OnLoginVerified() {
-    ui->button_verify_login->setEnabled(true);
-    ui->button_verify_login->setText(tr("Verify"));
-    if (verify_watcher.result()) {
-        user_verified = true;
+    const bool username_good = ui->edit_username->hasAcceptableInput();
+    const bool token_good = ui->edit_token->hasAcceptableInput();
 
-        ui->label_token_verified->setPixmap(QIcon::fromTheme(QStringLiteral("checked")).pixmap(16));
-        ui->label_token_verified->setToolTip(tr("Verified", "Tooltip"));
-        ui->username->setText(
-            QString::fromStdString(UsernameFromDisplayToken(ui->edit_token->text().toStdString())));
+    if (username_good) {
+        ui->label_username_verified->setPixmap(checked);
+        ui->label_username_verified->setToolTip(tr("All Good", "Tooltip"));
     } else {
-        ui->label_token_verified->setPixmap(QIcon::fromTheme(QStringLiteral("failed")).pixmap(16));
-        ui->label_token_verified->setToolTip(tr("Verification failed", "Tooltip"));
-        ui->username->setText(tr("Unspecified"));
-        QMessageBox::critical(this, tr("Verification failed"),
-                              tr("Verification failed. Check that you have entered your token "
-                                 "correctly, and that your internet connection is working."));
+        ui->label_username_verified->setPixmap(failed);
+        ui->label_username_verified->setToolTip(
+            tr("Must be between 4-20 characters", "Tooltip"));
+    }
+
+    if (token_good) {
+        ui->label_token_verified->setPixmap(checked);
+        ui->label_token_verified->setToolTip(tr("All Good", "Tooltip"));
+    } else {
+        ui->label_token_verified->setPixmap(failed);
+        ui->label_token_verified->setToolTip(
+            tr("Must be 48 characters, and lowercase a-z", "Tooltip"));
     }
 }
 

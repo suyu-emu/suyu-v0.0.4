@@ -130,7 +130,11 @@ ENUM(ShaderBackend, Glsl, Glasm, SpirV);
 
 ENUM(GpuAccuracy, Normal, High, Extreme);
 
-ENUM(CpuBackend, Dynarmic, Nce);
+// Legacy combined backend enum kept for config migration.
+ENUM(CpuBackend, Dynarmic, Nce, Ballistic, Rem);
+ENUM(CpuCoreProvider, Builtin, RemExperimental);
+ENUM(CpuExecutionPath, Jit, Nce);
+ENUM(CpuRecompilerEngine, Dynarmic, BallisticExperimental);
 
 ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid);
 

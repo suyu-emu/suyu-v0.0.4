@@ -14,7 +14,6 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs/vfs_types.h"
-#include "libretro.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -141,6 +140,16 @@ enum class SystemResultStatus : u32 {
     ErrorUnknown,        ///< Any other error
     ErrorLoader,         ///< The base for loader errors (too many to repeat)
 };
+
+#ifndef SUYU_RETRO_GAME_INFO_DEFINED
+#define SUYU_RETRO_GAME_INFO_DEFINED
+struct retro_game_info {
+    const char* path{};
+    const void* data{};
+    std::size_t size{};
+    const char* meta{};
+};
+#endif
 
 class LibretroWrapper {
 public:

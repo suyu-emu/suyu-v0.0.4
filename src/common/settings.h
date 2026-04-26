@@ -66,6 +66,9 @@ SWITCHABLE(AstcDecodeMode, true);
 SWITCHABLE(AstcRecompression, true);
 SWITCHABLE(AudioMode, true);
 SWITCHABLE(CpuBackend, true);
+SWITCHABLE(CpuCoreProvider, true);
+SWITCHABLE(CpuExecutionPath, true);
+SWITCHABLE(CpuRecompilerEngine, true);
 SWITCHABLE(CpuAccuracy, true);
 SWITCHABLE(FullscreenMode, true);
 SWITCHABLE(GpuAccuracy, true);
@@ -216,20 +219,15 @@ struct Values {
     SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core, Specialization::Default};
 
     // Cpu
-    SwitchableSetting<CpuBackend, true> cpu_backend{linkage,
-#ifdef HAS_NCE
-                                                    CpuBackend::Nce,
-#else
-                                                    CpuBackend::Dynarmic,
-#endif
-                                                    CpuBackend::Dynarmic,
-#ifdef HAS_NCE
-                                                    CpuBackend::Nce,
-#else
-                                                    CpuBackend::Dynarmic,
-#endif
-                                                    "cpu_backend",
-                                                    Category::Cpu};
+    SwitchableSetting<CpuCoreProvider, true> cpu_core_provider{
+        linkage, CpuCoreProvider::Builtin, CpuCoreProvider::Builtin,
+        CpuCoreProvider::RemExperimental, "cpu_core_provider", Category::Cpu};
+    SwitchableSetting<CpuExecutionPath, true> cpu_execution_path{
+        linkage, CpuExecutionPath::Jit, CpuExecutionPath::Jit, CpuExecutionPath::Nce,
+        "cpu_execution_path", Category::Cpu};
+    SwitchableSetting<CpuRecompilerEngine, true> cpu_recompiler_engine{
+        linkage, CpuRecompilerEngine::Dynarmic, CpuRecompilerEngine::Dynarmic,
+        CpuRecompilerEngine::BallisticExperimental, "cpu_recompiler_engine", Category::Cpu};
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
                                                       CpuAccuracy::Auto, CpuAccuracy::Paranoid,
                                                       "cpu_accuracy",    Category::Cpu};
@@ -616,11 +614,13 @@ struct Values {
                                            Category::Network};
 
     // WebService
-    Setting<std::string> web_api_url{linkage, "https://suyu.dev", "web_api_url",
+    Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> suyu_username{linkage, std::string(), "suyu_username",
+    Setting<std::string> multiplayer_announce_url{
+        linkage, std::string(), "multiplayer_announce_url", Category::WebService};
+    Setting<std::string> eden_username{linkage, std::string(), "eden_username",
                                        Category::WebService};
-    Setting<std::string> suyu_token{linkage, std::string(), "suyu_token", Category::WebService};
+    Setting<std::string> eden_token{linkage, std::string(), "eden_token", Category::WebService};
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
@@ -633,6 +633,9 @@ bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
 
 bool IsFastmemEnabled();
+bool IsBallisticAvailable();
+bool IsRemAvailable();
+void SanitizeCpuBackendSettings();
 void SetNceEnabled(bool is_64bit);
 bool IsNceEnabled();
 

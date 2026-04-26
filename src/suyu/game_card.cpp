@@ -5,7 +5,7 @@
 
 #include <QApplication>
 #include <QContextMenuEvent>
-#include <QEnterEvent>
+#include <QEvent>
 #include <QFontMetrics>
 #include <QKeyEvent>
 #include <QMouseEvent>
@@ -13,8 +13,6 @@
 #include <QPainterPath>
 #include <QStyle>
 #include <QStyleOption>
-
-QPixmap GameCard::default_icon;
 
 GameCard::GameCard(QWidget* parent)
     : QWidget(parent), main_layout(nullptr), icon_label(nullptr), title_label(nullptr),
@@ -26,7 +24,7 @@ GameCard::GameCard(QWidget* parent)
     setFixedSize(CARD_WIDTH, CARD_HEIGHT);
     setFocusPolicy(Qt::StrongFocus);
     setAttribute(Qt::WA_Hover, true);
-    
+
     SetupUI();
     UpdateCardStyle();
 }
@@ -48,7 +46,7 @@ void GameCard::SetupUI() {
 
     // Title
     title_label = new QLabel();
-    title_label->setObjectName("title");
+    title_label->setObjectName(QStringLiteral("title"));
     title_label->setAlignment(Qt::AlignCenter);
     title_label->setWordWrap(true);
     title_label->setMaximumHeight(40);
@@ -60,7 +58,7 @@ void GameCard::SetupUI() {
 
     // Developer
     developer_label = new QLabel();
-    developer_label->setObjectName("subtitle");
+    developer_label->setObjectName(QStringLiteral("subtitle"));
     developer_label->setAlignment(Qt::AlignCenter);
     QFont dev_font = developer_label->font();
     dev_font.setPointSize(8);
@@ -72,14 +70,14 @@ void GameCard::SetupUI() {
     info_layout->setSpacing(4);
 
     version_label = new QLabel();
-    version_label->setObjectName("subtitle");
+    version_label->setObjectName(QStringLiteral("subtitle"));
     QFont version_font = version_label->font();
     version_font.setPointSize(7);
     version_label->setFont(version_font);
     info_layout->addWidget(version_label);
 
     type_label = new QLabel();
-    type_label->setObjectName("subtitle");
+    type_label->setObjectName(QStringLiteral("subtitle"));
     QFont type_font = type_label->font();
     type_font.setPointSize(7);
     type_label->setFont(type_font);
@@ -92,14 +90,14 @@ void GameCard::SetupUI() {
     stats_layout->setSpacing(4);
 
     size_label = new QLabel();
-    size_label->setObjectName("subtitle");
+    size_label->setObjectName(QStringLiteral("subtitle"));
     QFont size_font = size_label->font();
     size_font.setPointSize(7);
     size_label->setFont(size_font);
     stats_layout->addWidget(size_label);
 
     play_time_label = new QLabel();
-    play_time_label->setObjectName("subtitle");
+    play_time_label->setObjectName(QStringLiteral("subtitle"));
     QFont time_font = play_time_label->font();
     time_font.setPointSize(7);
     play_time_label->setFont(time_font);
@@ -110,7 +108,7 @@ void GameCard::SetupUI() {
     // Compatibility indicator
     compatibility_indicator = new QLabel();
     compatibility_indicator->setFixedSize(12, 12);
-    compatibility_indicator->setStyleSheet("border-radius: 6px;");
+    compatibility_indicator->setStyleSheet(QStringLiteral("border-radius: 6px;"));
     main_layout->addWidget(compatibility_indicator, 0, Qt::AlignHCenter);
 
     main_layout->addStretch();
@@ -128,28 +126,28 @@ void GameCard::SetupUI() {
     connect(hover_animation, &QPropertyAnimation::finished, this, &GameCard::OnHoverAnimationFinished);
 }
 
-void GameCard::SetGameInfo(const QString& title, const QString& file_path, const QString& program_id,
-                          const QString& developer, u64 program_id_numeric, const QString& version,
-                          const QString& type, u64 size, const QString& compatibility,
+void GameCard::SetGameInfo(const QString& title, const QString& game_path, const QString& pid,
+                          const QString& dev, u64 pid_numeric, const QString& ver,
+                          const QString& game_type, u64 size, const QString& compat,
                           const QPixmap& icon) {
     this->game_title = title;
-    this->file_path = file_path;
-    this->program_id = program_id;
-    this->developer = developer;
-    this->program_id_numeric = program_id_numeric;
-    this->version = version;
-    this->type = type;
+    this->file_path = game_path;
+    this->program_id = pid;
+    this->developer = dev;
+    this->program_id_numeric = pid_numeric;
+    this->version = ver;
+    this->type = game_type;
     this->file_size = size;
-    this->compatibility = compatibility;
+    this->compatibility = compat;
     this->game_icon = icon;
 
     SetTitle(title);
     SetIcon(icon);
-    SetDeveloper(developer);
-    SetVersion(version);
-    SetType(type);
+    SetDeveloper(dev);
+    SetVersion(ver);
+    SetType(game_type);
     SetSize(size);
-    SetCompatibility(compatibility);
+    SetCompatibility(compat);
 }
 
 void GameCard::SetTitle(const QString& title) {
@@ -175,20 +173,20 @@ void GameCard::SetIcon(const QPixmap& icon) {
     }
 }
 
-void GameCard::SetCompatibility(const QString& compatibility) {
-    this->compatibility = compatibility;
+void GameCard::SetCompatibility(const QString& compat) {
+    this->compatibility = compat;
     if (compatibility_indicator) {
-        QColor color = GetCompatibilityColor(compatibility);
+        QColor color = GetCompatibilityColor(compat);
         compatibility_indicator->setStyleSheet(
-            QString("background-color: %1; border-radius: 6px;").arg(color.name()));
-        compatibility_indicator->setToolTip(QString("Compatibility: %1").arg(compatibility));
+            QStringLiteral("background-color: %1; border-radius: 6px;").arg(color.name()));
+        compatibility_indicator->setToolTip(QStringLiteral("Compatibility: %1").arg(compat));
     }
 }
 
-void GameCard::SetPlayTime(const QString& play_time) {
-    this->play_time = play_time;
+void GameCard::SetPlayTime(const QString& time_str) {
+    this->play_time = time_str;
     if (play_time_label) {
-        play_time_label->setText(play_time);
+        play_time_label->setText(time_str);
     }
 }
 
@@ -199,27 +197,27 @@ void GameCard::SetSize(u64 size) {
     }
 }
 
-void GameCard::SetType(const QString& type) {
-    this->type = type;
+void GameCard::SetType(const QString& type_str) {
+    this->type = type_str;
     if (type_label) {
-        type_label->setText(type);
+        type_label->setText(type_str);
     }
 }
 
-void GameCard::SetVersion(const QString& version) {
-    this->version = version;
+void GameCard::SetVersion(const QString& ver_str) {
+    this->version = ver_str;
     if (version_label) {
-        version_label->setText(QString("v%1").arg(version));
+        version_label->setText(QStringLiteral("v%1").arg(ver_str));
     }
 }
 
-void GameCard::SetDeveloper(const QString& developer) {
-    this->developer = developer;
+void GameCard::SetDeveloper(const QString& dev_str) {
+    this->developer = dev_str;
     if (developer_label) {
         QFontMetrics metrics(developer_label->font());
-        QString elided_text = metrics.elidedText(developer, Qt::ElideRight, developer_label->width());
+        QString elided_text = metrics.elidedText(dev_str, Qt::ElideRight, developer_label->width());
         developer_label->setText(elided_text);
-        developer_label->setToolTip(developer);
+        developer_label->setToolTip(dev_str);
     }
 }
 
@@ -283,7 +281,7 @@ void GameCard::contextMenuEvent(QContextMenuEvent* event) {
     emit GameRightClicked(file_path, event->globalPos());
 }
 
-void GameCard::enterEvent(QEnterEvent* event) {
+void GameCard::enterEvent(QEvent* event) {
     SetHovered(true);
     QWidget::enterEvent(event);
 }
@@ -299,20 +297,28 @@ void GameCard::paintEvent(QPaintEvent* event) {
 
     // Draw card background
     QPainterPath path;
-    path.addRoundedRect(rect(), 12, 12);
+    path.addRoundedRect(rect(), 14, 14);
 
-    QColor bg_color = QColor(45, 45, 45); // #2d2d2d
+    QColor bg_color = QColor(32, 24, 48);
+    QColor border_color = Qt::transparent;
     if (is_selected) {
-        bg_color = QColor(53, 53, 53); // #353535
-        painter.setPen(QPen(QColor(0, 120, 212), 2)); // #0078d4
+        bg_color = QColor(62, 40, 96);
+        border_color = QColor(175, 110, 255, 220);
     } else if (is_hovered) {
-        bg_color = QColor(53, 53, 53); // #353535
-        painter.setPen(QPen(QColor(0, 120, 212), 2)); // #0078d4
-    } else {
-        painter.setPen(QPen(Qt::transparent, 2));
+        bg_color = QColor(46, 34, 78);
+        border_color = QColor(175, 110, 255, 160);
     }
 
-    painter.fillPath(path, bg_color);
+    QLinearGradient backgroundGradient(rect().topLeft(), rect().bottomRight());
+    backgroundGradient.setColorAt(0.0, bg_color.lighter(110));
+    backgroundGradient.setColorAt(1.0, bg_color.darker(105));
+    painter.fillPath(path, backgroundGradient);
+
+    if (border_color.alpha() > 0) {
+        painter.setPen(QPen(border_color, 2));
+    } else {
+        painter.setPen(Qt::NoPen);
+    }
     painter.drawPath(path);
 
     QWidget::paintEvent(event);
@@ -357,7 +363,7 @@ void GameCard::StartHoverAnimation(bool hover_in) {
     }
 
     hover_animation->stop();
-    
+
     if (hover_in) {
         hover_animation->setStartValue(shadow_effect->blurRadius());
         hover_animation->setEndValue(15.0);
@@ -365,12 +371,15 @@ void GameCard::StartHoverAnimation(bool hover_in) {
         hover_animation->setStartValue(shadow_effect->blurRadius());
         hover_animation->setEndValue(10.0);
     }
-    
+
     hover_animation->start();
 }
 
 QString GameCard::FormatFileSize(u64 size) const {
-    const char* units[] = {"B", "KB", "MB", "GB", "TB"};
+    static const QString units[] = {
+        QStringLiteral("B"), QStringLiteral("KB"), QStringLiteral("MB"),
+        QStringLiteral("GB"), QStringLiteral("TB")
+    };
     int unit_index = 0;
     double size_double = static_cast<double>(size);
 
@@ -379,19 +388,19 @@ QString GameCard::FormatFileSize(u64 size) const {
         unit_index++;
     }
 
-    return QString("%1 %2").arg(QString::number(size_double, 'f', 1)).arg(units[unit_index]);
+    return QStringLiteral("%1 %2").arg(QString::number(size_double, 'f', 1)).arg(units[unit_index]);
 }
 
-QColor GameCard::GetCompatibilityColor(const QString& compatibility) const {
-    if (compatibility == "Perfect") {
+QColor GameCard::GetCompatibilityColor(const QString& compat_str) const {
+    if (compat_str == QStringLiteral("Perfect")) {
         return QColor(0, 255, 0); // Green
-    } else if (compatibility == "Great") {
+    } else if (compat_str == QStringLiteral("Great")) {
         return QColor(50, 205, 50); // Lime green
-    } else if (compatibility == "Okay") {
+    } else if (compat_str == QStringLiteral("Okay")) {
         return QColor(255, 255, 0); // Yellow
-    } else if (compatibility == "Bad") {
+    } else if (compat_str == QStringLiteral("Bad")) {
         return QColor(255, 165, 0); // Orange
-    } else if (compatibility == "Intro/Menu") {
+    } else if (compat_str == QStringLiteral("Intro/Menu")) {
         return QColor(255, 0, 0); // Red
     } else {
         return QColor(128, 128, 128); // Gray for unknown
@@ -399,21 +408,22 @@ QColor GameCard::GetCompatibilityColor(const QString& compatibility) const {
 }
 
 QPixmap GameCard::GetDefaultIcon() {
-    if (default_icon.isNull()) {
+    static QPixmap icon;
+    if (icon.isNull()) {
         // Create a default icon if none exists
-        default_icon = QPixmap(ICON_SIZE, ICON_SIZE);
-        default_icon.fill(Qt::transparent);
-        
-        QPainter painter(&default_icon);
+        icon = QPixmap(ICON_SIZE, ICON_SIZE);
+        icon.fill(Qt::transparent);
+
+        QPainter painter(&icon);
         painter.setRenderHint(QPainter::Antialiasing);
-        
+
         // Draw a simple game controller icon
         painter.setPen(QPen(QColor(96, 96, 96), 2));
         painter.setBrush(QBrush(QColor(64, 64, 64)));
-        
+
         QRect icon_rect(16, 32, 96, 64);
         painter.drawRoundedRect(icon_rect, 8, 8);
-        
+
         // Draw some buttons
         painter.setBrush(QBrush(QColor(96, 96, 96)));
         painter.drawEllipse(32, 48, 12, 12);
@@ -421,7 +431,7 @@ QPixmap GameCard::GetDefaultIcon() {
         painter.drawEllipse(68, 48, 12, 12);
         painter.drawEllipse(84, 48, 12, 12);
     }
-    return default_icon;
+    return icon;
 }
 
 // GameCardLayout implementation
@@ -498,7 +508,7 @@ int GameCardLayout::doLayout(const QRect& rect, bool testOnly) const {
         const QWidget* wid = item->widget();
         int spaceX = spacing();
         int spaceY = spacing();
-        
+
         if (wid) {
             spaceX = wid->style()->layoutSpacing(QSizePolicy::PushButton, QSizePolicy::PushButton, Qt::Horizontal);
             spaceY = wid->style()->layoutSpacing(QSizePolicy::PushButton, QSizePolicy::PushButton, Qt::Vertical);

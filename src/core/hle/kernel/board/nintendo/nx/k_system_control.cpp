@@ -1,9 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <random>
-
 #include "common/literals.h"
+#include "common/random.h"
 #include "common/settings.h"
 
 #include "core/hle/kernel/board/nintendo/nx/k_system_control.h"
@@ -189,10 +188,7 @@ u64 GenerateUniformRange(u64 min, u64 max, F f) {
 } // Anonymous namespace
 
 u64 KSystemControl::GenerateRandomU64() {
-    std::random_device device;
-    std::mt19937 gen(device());
-    std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
-    return distribution(gen);
+    return Common::Random::Random64();
 }
 
 u64 KSystemControl::GenerateRandomRange(u64 min, u64 max) {

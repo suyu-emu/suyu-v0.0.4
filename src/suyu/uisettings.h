@@ -51,7 +51,7 @@ struct Shortcut {
 
 static constexpr std::string_view default_theme{":/default"};
 
-using Themes = std::array<std::pair<const char*, const char*>, 6>;
+using Themes = std::array<std::pair<const char*, const char*>, 7>;
 extern const Themes included_themes;
 
 struct GameDir {
@@ -164,6 +164,8 @@ struct Values {
     Setting<std::string> multiplayer_ip{linkage, {}, "ip", Category::Multiplayer};
     Setting<u16, true> multiplayer_port{linkage,    24872,  0,
                                         UINT16_MAX, "port", Category::Multiplayer};
+    Setting<std::string> multiplayer_saved_servers{
+        linkage, {}, "saved_servers", Category::Multiplayer};
     Setting<std::string> multiplayer_room_nickname{
         linkage, {}, "room_nickname", Category::Multiplayer};
     Setting<std::string> multiplayer_room_name{linkage, {}, "room_name", Category::Multiplayer};
@@ -215,7 +217,7 @@ void RestoreWindowState(std::unique_ptr<QtConfig>& qtConfig);
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
-const std::array<Shortcut, 28> default_hotkeys{{
+const std::array<Shortcut, 29> default_hotkeys{{
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Mute/Unmute")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+M"),  std::string("Home+Dpad_Right"), Qt::WindowShortcut, false}},
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Volume Down")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("-"),       std::string("Home+Dpad_Down"), Qt::ApplicationShortcut, true}},
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Volume Up")).toStdString(),          QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("="),       std::string("Home+Dpad_Up"), Qt::ApplicationShortcut, true}},

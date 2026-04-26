@@ -30,6 +30,7 @@ enum class GameListItemType {
     SysNandDir = QStandardItem::UserType + 5,
     AddDir = QStandardItem::UserType + 6,
     Favorites = QStandardItem::UserType + 7,
+    NintendoLibrary = QStandardItem::UserType + 8,
 };
 
 Q_DECLARE_METATYPE(GameListItemType);
@@ -354,6 +355,28 @@ public:
 
     int type() const override {
         return static_cast<int>(GameListItemType::Favorites);
+    }
+
+    bool operator<(const QStandardItem& other) const override {
+        return false;
+    }
+};
+
+class GameListNintendoLibraryDir : public GameListItem {
+public:
+    explicit GameListNintendoLibraryDir() {
+        setData(type(), TypeRole);
+
+        const int icon_size = UISettings::values.folder_icon_size.GetValue();
+        setData(QIcon::fromTheme(QStringLiteral("folder"))
+                    .pixmap(icon_size)
+                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+                Qt::DecorationRole);
+        setData(QObject::tr("Nintendo Digital Library"), Qt::DisplayRole);
+    }
+
+    int type() const override {
+        return static_cast<int>(GameListItemType::NintendoLibrary);
     }
 
     bool operator<(const QStandardItem& other) const override {

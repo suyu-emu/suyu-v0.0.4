@@ -40,6 +40,15 @@ struct Client::Impl {
         if (!this->host.empty() && this->host.back() == '/') {
             static_cast<void>(this->host.pop_back());
         }
+
+        // Accept host values both with and without a scheme.
+        // When no scheme is provided, default to https for public APIs and
+        // http for explicit local endpoints.
+        if (!this->host.empty() && this->host.find("://") == std::string::npos) {
+            const bool is_local = this->host.rfind("localhost", 0) == 0 ||
+                                  this->host.rfind("127.", 0) == 0;
+            this->host = std::string(is_local ? "http://" : "https://") + this->host;
+        }
     }
 
     /// A generic function handles POST, GET and DELETE request together

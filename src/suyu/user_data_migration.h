@@ -21,8 +21,7 @@ public:
 private:
     void ShowMigrationPrompt(QMainWindow* main_window);
     void ShowMigrationCancelledMessage(QMainWindow* main_window);
-    void MigrateUserData(QMainWindow* main_window,
-                         const Emulator selected_legacy_emu,
+    void MigrateUserData(QMainWindow* main_window, const Emulator selected_legacy_emu,
                          const bool clear_shader_cache,
                          const MigrationWorker::MigrationStrategy strategy);
 };

@@ -23,7 +23,7 @@ FirmwareManager::KeyInstallResult
 FirmwareManager::InstallKeys(std::string location, std::string extension) {
     LOG_INFO(Frontend, "Installing key files from {}", location);
 
-    const auto keys_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir);
+    const auto keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
 
 #ifdef ANDROID
     JNIEnv *env = Common::Android::GetEnvForThread();

@@ -22,6 +22,7 @@
 #include "input_common/drivers/tas_input.h"
 #include "suyu/compatibility_list.h"
 #include "suyu/hotkeys.h"
+#include "suyu/mode_selector.h"
 #include "suyu/util/controller_navigation.h"
 
 #ifdef __unix__
@@ -57,8 +58,20 @@ class GameListPlaceholder;
 class QtAmiiboSettingsDialog;
 class QtControllerSelectorDialog;
 class QtProfileSelectionDialog;
+class ExternalDecryptionTool;
 class QtSoftwareKeyboardDialog;
 class QtNXWebEngineView;
+
+class EmulatorCoreManager;
+class HackerEnvironment;
+class McpServer;
+class GamerEnvironment;
+class ProgrammerEnvironment;
+class SocialSidebar;
+class UserManualWidget;
+class GameExportDialog;
+class SteamIntegration;
+class NintendoAccountDialog;
 
 enum class StartGameType {
     Normal, // Can use custom configuration
@@ -174,6 +187,9 @@ public:
     bool DropAction(QDropEvent* event);
     void AcceptDropEvent(QDropEvent* event);
 
+    /// Adjusts visible menus, toolbars, and dock widgets for the given mode.
+    void ApplyAppMode(AppMode mode);
+
 signals:
 
     /**
@@ -245,6 +261,7 @@ public slots:
     void WebBrowserRequestExit();
     void OnAppFocusStateChanged(Qt::ApplicationState state);
     void OnTasStateChanged();
+    void OnChangeInterfaceMode();
 
 private:
     /// Updates an action's shortcut and text to reflect an updated hotkey from the hotkey registry.
@@ -370,6 +387,7 @@ private slots:
     void OnOpenModsPage();
     void OnOpenQuickstartGuide();
     void OnOpenFAQ();
+    void OnShowGameOverlay();
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path, u64 program_id);
     void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
@@ -386,6 +404,7 @@ private slots:
                                          const CompatibilityList& compatibility_list);
     void OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
                                   GameListShortcutTarget target);
+    void OnGameListCreateSteamShortcut(u64 program_id, const std::string& game_path);
     void OnGameListOpenDirectory(const QString& directory);
     void OnGameListAddDirectory();
     void OnGameListShowList(bool show);
@@ -413,10 +432,15 @@ private slots:
     void OnVerifyInstalledContents();
     void OnInstallFirmware();
     void OnInstallDecryptionKeys();
+    void OnConfigureExternalDecryption();
     void OnAbout();
     void OnToggleFilterBar();
     void OnToggleStatusBar();
     void OnToggleFoldersInList();
+    void OnExportGame();
+    void OnNintendoAccount();
+    void OnSteamIntegration();
+    void OnOpenUserManual();
     void OnDisplayTitleBars(bool);
     void InitializeHotkeys();
     void ToggleFullscreen();
@@ -534,6 +558,7 @@ private:
     QLabel* emu_frametime_label = nullptr;
     QLabel* tas_label = nullptr;
     QLabel* firmware_label = nullptr;
+    QLabel* ssl_status_label = nullptr;
     QPushButton* gpu_accuracy_button = nullptr;
     QPushButton* renderer_status_button = nullptr;
     QPushButton* dock_status_button = nullptr;
@@ -562,6 +587,9 @@ private:
     QString startup_icon_theme;
     bool alternate_base_modified = false;
     QColor last_window_color;
+    bool qt_ssl_available_ = false;
+    QString qt_ssl_build_version_;
+    QString qt_ssl_runtime_version_;
 
     // FS
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
@@ -572,6 +600,20 @@ private:
     MicroProfileDialog* microProfileDialog;
     WaitTreeWidget* waitTreeWidget;
     ControllerDialog* controller_dialog;
+
+    // Feature widgets
+    ProgrammerEnvironment* programmer_env_{};
+    QDockWidget* programmer_env_dock_{};
+    HackerEnvironment* hacker_env_{};
+    QDockWidget* hacker_env_dock_{};
+    QDockWidget* social_sidebar_dock_{};
+    SocialSidebar* social_sidebar_{};
+    GamerEnvironment* gamer_env_{};
+    UserManualWidget* user_manual_widget_{};
+    McpServer* mcp_server_{};
+    EmulatorCoreManager* core_manager_{};
+    ExternalDecryptionTool* external_decryption_tool_{};
+    AppMode current_mode_{AppMode::Gamer};
 
     QAction* actions_recent_files[max_recent_files_item];
 

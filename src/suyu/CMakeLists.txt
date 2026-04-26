@@ -220,6 +220,7 @@ add_executable(suyu
     precompiled_headers.h
     qt_common.cpp
     qt_common.h
+    qt_common_compat.cpp
     ryujinx_dialog.cpp
     ryujinx_dialog.h
     ryujinx_dialog.ui
@@ -251,6 +252,38 @@ add_executable(suyu
     vk_device_info.h
     compatdb.cpp
     compatdb.h
+    mode_selector.cpp
+    mode_selector.h
+    external_decryption_tool.cpp
+    external_decryption_tool.h
+    decryption_flow.cpp
+    decryption_flow.h
+    steam_integration.cpp
+    steam_integration.h
+    mcp_server.cpp
+    mcp_server.h
+    emulator_core_manager.cpp
+    emulator_core_manager.h
+    user_manual_widget.cpp
+    user_manual_widget.h
+    programmer_environment.cpp
+    programmer_environment.h
+    hacker_environment.cpp
+    hacker_environment.h
+    social_sidebar.cpp
+    social_sidebar.h
+    mods_browser_dialog.cpp
+    mods_browser_dialog.h
+    nintendo_account.cpp
+    nintendo_account.h
+    game_export.cpp
+    game_export.h
+    gamer_environment.cpp
+    gamer_environment.h
+    game_library.cpp
+    game_library.h
+    game_card.cpp
+    game_card.h
     suyu.qrc
     suyu.rc
 )
@@ -405,6 +438,7 @@ endif()
 
 target_link_libraries(suyu PRIVATE common core input_common frontend_common network video_core)
 target_link_libraries(suyu PRIVATE Boost::headers glad Qt${QT_MAJOR_VERSION}::Widgets)
+target_link_libraries(suyu PRIVATE Qt${QT_MAJOR_VERSION}::Network)
 target_link_libraries(suyu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 target_link_libraries(suyu PRIVATE Vulkan::Headers)
@@ -432,6 +466,7 @@ target_compile_definitions(suyu PRIVATE
 
     # Disable implicit QString->QUrl conversions to enforce use of proper resolving functions.
     -DQT_NO_URL_CAST_FROM_STRING
+    -DSDL_MAIN_HANDLED
 )
 
 if (SUYU_ENABLE_COMPATIBILITY_REPORTING)
@@ -465,9 +500,90 @@ if(UNIX AND NOT APPLE)
     install(TARGETS suyu)
 endif()
 
-if (WIN32 AND QT_VERSION VERSION_GREATER_EQUAL 6)
+if (WIN32)
     set(SUYU_EXE_DIR "$<TARGET_FILE_DIR:suyu>")
-    add_custom_command(TARGET suyu POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} "${SUYU_EXE_DIR}/suyu.exe" --dir "${SUYU_EXE_DIR}" --libdir "${SUYU_EXE_DIR}" --plugindir "${SUYU_EXE_DIR}/plugins" --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler --no-translations --verbose 0)
+
+    if (NOT WINDEPLOYQT_EXECUTABLE)
+        if (TARGET Qt${QT_MAJOR_VERSION}::qmake)
+            get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_MAJOR_VERSION}::qmake IMPORTED_LOCATION)
+            if (QT_QMAKE_EXECUTABLE)
+                get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
+                find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
+            endif()
+        endif()
+    endif()
+
+    if (WINDEPLOYQT_EXECUTABLE)
+        add_custom_command(TARGET suyu POST_BUILD
+            COMMAND "${WINDEPLOYQT_EXECUTABLE}" "${SUYU_EXE_DIR}/suyu.exe"
+                --dir "${SUYU_EXE_DIR}"
+                --libdir "${SUYU_EXE_DIR}"
+                --plugindir "${SUYU_EXE_DIR}/plugins"
+                --no-compiler-runtime
+                --no-opengl-sw
+                --no-system-d3d-compiler
+                --no-translations
+                --verbose 0
+        )
+    else()
+        message(WARNING "windeployqt was not found; suyu.exe may fail to start unless Qt runtime DLLs are on PATH.")
+    endif()
+
+    if (TARGET OpenSSL::SSL AND TARGET OpenSSL::Crypto)
+        set(OPENSSL_DLL_CANDIDATE_DIRS "")
+
+        get_target_property(OPENSSL_SSL_LOCATION OpenSSL::SSL IMPORTED_LOCATION_RELEASE)
+        if (NOT OPENSSL_SSL_LOCATION)
+            get_target_property(OPENSSL_SSL_LOCATION OpenSSL::SSL IMPORTED_LOCATION)
+        endif()
+        if (OPENSSL_SSL_LOCATION)
+            get_filename_component(OPENSSL_SSL_DIR "${OPENSSL_SSL_LOCATION}" DIRECTORY)
+            get_filename_component(OPENSSL_SSL_ROOT "${OPENSSL_SSL_DIR}" DIRECTORY)
+            list(APPEND OPENSSL_DLL_CANDIDATE_DIRS "${OPENSSL_SSL_DIR}")
+            if (EXISTS "${OPENSSL_SSL_ROOT}/bin")
+                list(APPEND OPENSSL_DLL_CANDIDATE_DIRS "${OPENSSL_SSL_ROOT}/bin")
+            endif()
+        endif()
+
+        get_target_property(OPENSSL_CRYPTO_LOCATION OpenSSL::Crypto IMPORTED_LOCATION_RELEASE)
+        if (NOT OPENSSL_CRYPTO_LOCATION)
+            get_target_property(OPENSSL_CRYPTO_LOCATION OpenSSL::Crypto IMPORTED_LOCATION)
+        endif()
+        if (OPENSSL_CRYPTO_LOCATION)
+            get_filename_component(OPENSSL_CRYPTO_DIR "${OPENSSL_CRYPTO_LOCATION}" DIRECTORY)
+            get_filename_component(OPENSSL_CRYPTO_ROOT "${OPENSSL_CRYPTO_DIR}" DIRECTORY)
+            list(APPEND OPENSSL_DLL_CANDIDATE_DIRS "${OPENSSL_CRYPTO_DIR}")
+            if (EXISTS "${OPENSSL_CRYPTO_ROOT}/bin")
+                list(APPEND OPENSSL_DLL_CANDIDATE_DIRS "${OPENSSL_CRYPTO_ROOT}/bin")
+            endif()
+        endif()
+
+        if (DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+            list(APPEND OPENSSL_DLL_CANDIDATE_DIRS
+                "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
+        endif()
+
+        list(REMOVE_DUPLICATES OPENSSL_DLL_CANDIDATE_DIRS)
+        set(OPENSSL_DLLS "")
+        foreach(_openssl_dir IN LISTS OPENSSL_DLL_CANDIDATE_DIRS)
+            if (EXISTS "${_openssl_dir}")
+                file(GLOB _openssl_dir_dlls
+                    "${_openssl_dir}/libcrypto*.dll"
+                    "${_openssl_dir}/libssl*.dll")
+                if (_openssl_dir_dlls)
+                    list(APPEND OPENSSL_DLLS ${_openssl_dir_dlls})
+                endif()
+            endif()
+        endforeach()
+
+        if (OPENSSL_DLLS)
+            list(REMOVE_DUPLICATES OPENSSL_DLLS)
+            add_custom_command(TARGET suyu POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${OPENSSL_DLLS} "$<TARGET_FILE_DIR:suyu>")
+        else()
+            message(WARNING "OpenSSL runtime DLLs were not found for suyu.exe; HTTPS features may fail at runtime.")
+        endif()
+    endif()
 endif()
 
 if (SUYU_USE_BUNDLED_QT AND QT_VERSION VERSION_LESS 6)
@@ -481,10 +597,14 @@ if (ENABLE_SDL2)
 endif()
 
 if (MSVC)
-    include(CopySuyuSDLDeps)
-    include(CopySuyuFFmpegDeps)
-    copy_suyu_SDL_deps(suyu)
-    copy_suyu_FFmpeg_deps(suyu)
+    if (SUYU_USE_BUNDLED_SDL2)
+        include(CopySuyuSDLDeps)
+        copy_suyu_SDL_deps(suyu)
+    endif()
+    if (SUYU_USE_BUNDLED_FFMPEG)
+        include(CopySuyuFFmpegDeps)
+        copy_suyu_FFmpeg_deps(suyu)
+    endif()
 endif()
 
 if (NOT APPLE AND ENABLE_OPENGL)
@@ -493,6 +613,11 @@ endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(suyu PRIVATE dynarmic::dynarmic)
+    # mcl is a LINK_ONLY dep of dynarmic, so its include path does not
+    # propagate to consumers. game_export.cpp includes Dynarmic headers that
+    # pull in mcl/assert.hpp, so we add the path explicitly here.
+    target_include_directories(suyu PRIVATE
+        "${CMAKE_SOURCE_DIR}/externals/dynarmic/externals/mcl/include")
 endif()
 
 if (SUYU_USE_PRECOMPILED_HEADERS)

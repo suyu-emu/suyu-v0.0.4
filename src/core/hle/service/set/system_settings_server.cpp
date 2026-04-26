@@ -1232,9 +1232,13 @@ Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
 Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
     const Service::PSC::Time::SteadyClockTimePoint& out_time_point) {
     LOG_INFO(Service_SET, "called");
+    LOG_INFO(Service_SET, "before assignment");
 
     m_system_settings.user_system_clock_automatic_correction_updated_time_point = out_time_point;
+    LOG_INFO(Service_SET, "after assignment");
+
     SetSaveNeeded();
+    LOG_INFO(Service_SET, "after save needed");
     R_SUCCEED();
 }
 

@@ -105,6 +105,12 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     }
 
     if (Common::FS::IsDir(path)) {
+        // Check for hactool-style output directory with exefs/ subdirectory
+        const auto exefs_main = path + "/exefs/main";
+        if (Common::FS::Exists(exefs_main)) {
+            return vfs->OpenFile(exefs_main, FileSys::OpenMode::Read);
+        }
+        // Standard deconstructed ROM directory (main at root)
         return vfs->OpenFile(path + "/main", FileSys::OpenMode::Read);
     }
 
@@ -335,7 +341,8 @@ struct System::Impl {
                                                   params.program_id, params.program_index);
 
         if (load_result != Loader::ResultStatus::Success) {
-            LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", load_result);
+            LOG_CRITICAL(Core, "Failed to load ROM (Error {}: {})!", load_result,
+                         Loader::GetResultStatusString(load_result));
             ShutdownMainProcess();
 
             return static_cast<SystemResultStatus>(
@@ -971,6 +978,14 @@ const Network::RoomNetwork& System::GetRoomNetwork() const {
 
 Tools::RenderdocAPI& System::GetRenderdocAPI() {
     return *impl->renderdoc_api;
+}
+
+AntiPiracyManager* System::GetAntiPiracyManager() {
+    return nullptr;
+}
+
+const AntiPiracyManager* System::GetAntiPiracyManager() const {
+    return nullptr;
 }
 
 void System::RunServer(std::unique_ptr<Service::ServerManager>&& server_manager) {

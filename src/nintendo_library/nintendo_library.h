@@ -47,16 +47,16 @@ public:
     bool IsAuthenticationInProgress() const;
     AuthenticationState GetAuthenticationState() const;
     LibraryError GetLastError() const;
-    
+
     // Game library management
     std::vector<GameInfo> GetGameList();
     bool RefreshGameList();
     void ClearCache();
-    
+
     // Configuration
     void SetCacheDirectory(const std::string& cache_dir);
     void SetUserAgent(const std::string& user_agent);
-    
+
     // Status and diagnostics
     bool IsInitialized() const;
     std::string GetStatusMessage() const;
@@ -64,7 +64,7 @@ public:
 private:
     class Impl;
     std::unique_ptr<Impl> impl;
-    
+
     // Private helper methods
     void PerformAuthentication();
     std::string ExtractCSRFToken(const std::string& html);

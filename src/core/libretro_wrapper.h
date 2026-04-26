@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <memory>
 
@@ -8,7 +9,15 @@ namespace Nintendo {
 class Library;
 }
 
-struct retro_game_info;
+#ifndef SUYU_RETRO_GAME_INFO_DEFINED
+#define SUYU_RETRO_GAME_INFO_DEFINED
+struct retro_game_info {
+    const char* path{};
+    const void* data{};
+    std::size_t size{};
+    const char* meta{};
+};
+#endif
 
 namespace Core {
 
@@ -22,7 +31,7 @@ public:
     void Run();
     void Reset();
     void Unload();
-    
+
     // Nintendo Library integration
     bool InitializeNintendoLibrary();
     bool AuthenticateNintendoAccount(const std::string& username, const std::string& password);

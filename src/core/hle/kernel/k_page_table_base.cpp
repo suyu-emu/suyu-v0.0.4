@@ -1622,7 +1622,7 @@ Result KPageTableBase::AllocateAndMapPagesImpl(PageLinkedList* page_list, KProce
     }
 
     // Map the pages.
-    R_RETURN(this->Operate(page_list, address, num_pages, pg, properties, OperationType::MapGroup,
+    R_RETURN(this->Operate(page_list, address, num_pages, pg, perm, OperationType::MapGroup,
                            false));
 }
 

@@ -3,8 +3,6 @@
 
 #pragma once
 
-struct RENDERDOC_API_1_6_0;
-
 namespace Tools {
 
 class RenderdocAPI {
@@ -15,7 +13,7 @@ public:
     void ToggleCapture();
 
 private:
-    RENDERDOC_API_1_6_0* rdoc_api{};
+    void* rdoc_api{};
     bool is_capturing{false};
 };
 

@@ -68,10 +68,10 @@ struct ValidationConfig {
 
 /**
  * Anti-Piracy Manager
- * 
+ *
  * Coordinates all anti-piracy validation efforts including Nintendo Library
  * cross-referencing, legitimate dump detection, and educational messaging.
- * 
+ *
  * This system is designed to encourage legitimate game ownership without
  * implementing restrictive DRM. All validation is optional and configurable.
  */
@@ -101,7 +101,7 @@ public:
     ValidationResult ValidateRom(const std::string& file_path);
     ValidationResult ValidateRom(FileSys::VirtualFile file);
     RomMetadata ExtractRomMetadata(FileSys::VirtualFile file);
-    
+
     // Asynchronous validation for better performance
     using ValidationCallback = std::function<void(ValidationResult, const RomMetadata&)>;
     void ValidateRomAsync(const std::string& file_path, ValidationCallback callback);
@@ -139,15 +139,15 @@ private:
     ValidationResult ValidateHeaders(FileSys::VirtualFile file);
     bool DetectNXDumpSignature(FileSys::VirtualFile file);
     std::string CalculateFileHash(FileSys::VirtualFile file);
-    
+
     // Nintendo Library cross-referencing
     bool MatchesNintendoLibrary(const RomMetadata& metadata);
     std::optional<Nintendo::GameInfo> FindMatchingGame(const RomMetadata& metadata);
-    
+
     // Legitimate dump detection
     bool HasLegitimateRipCharacteristics(FileSys::VirtualFile file);
     std::string DetectDumpToolSignature(FileSys::VirtualFile file);
-    
+
     // Caching and persistence
     void CacheValidationResult(const std::string& file_hash, ValidationResult result);
     void LoadValidationCache();

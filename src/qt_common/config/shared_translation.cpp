@@ -91,7 +91,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            cpu_accuracy,
            tr("Accuracy:"),
            tr("Change the accuracy of the emulated CPU (for debugging only)."));
-    INSERT(Settings, cpu_backend, tr("Backend:"), QString());
+    INSERT(Settings, cpu_execution_path, tr("Execution Path:"), QString());
+    INSERT(Settings, cpu_recompiler_engine, tr("Recompiler Engine:"), QString());
+    INSERT(Settings, cpu_core_provider, tr("CPU Core Provider:"), QString());
 
     INSERT(Settings, use_fast_cpu_time, QString(), QString());
     INSERT(Settings,
@@ -107,8 +109,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
            tr("Custom CPU Ticks"),
            tr("Set a custom value of CPU ticks. Higher values can increase performance, but may "
               "cause deadlocks. A range of 77-21000 is recommended."));
-    INSERT(Settings, cpu_backend, tr("Backend:"), QString());
-
     // Cpu Debug
 
     // Cpu Unsafe
@@ -516,10 +516,22 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent)
              PAIR(CpuAccuracy, Paranoid, tr("Paranoid (disables most optimizations)")),
              PAIR(CpuAccuracy, Debugging, tr("Debugging")),
          }});
-    translations->insert({Settings::EnumMetadata<Settings::CpuBackend>::Index(),
+    translations->insert({Settings::EnumMetadata<Settings::CpuExecutionPath>::Index(),
                           {
-                              PAIR(CpuBackend, Dynarmic, tr("Dynarmic")),
-                              PAIR(CpuBackend, Nce, tr("NCE")),
+                              PAIR(CpuExecutionPath, Jit, tr("JIT")),
+                              PAIR(CpuExecutionPath, Nce, tr("NCE")),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::CpuRecompilerEngine>::Index(),
+                          {
+                              PAIR(CpuRecompilerEngine, Dynarmic, tr("Dynarmic")),
+                              PAIR(CpuRecompilerEngine, BallisticExperimental,
+                                   tr("Ballistic (Experimental)")),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::CpuCoreProvider>::Index(),
+                          {
+                              PAIR(CpuCoreProvider, Builtin, tr("Built-in")),
+                              PAIR(CpuCoreProvider, RemExperimental,
+                                   tr("REM (Experimental)")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::FullscreenMode>::Index(),
                           {

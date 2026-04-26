@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <random>
 #include <span>
 
 #include "common/common_types.h"
+#include "common/random.h"
 #include "common/swap.h"
 #include "common/uuid.h"
 #include "core/hle/service/mii/mii_types.h"
@@ -65,8 +65,7 @@ public:
 
     template <typename T>
     static T GetRandomValue(T min, T max) {
-        std::random_device device;
-        std::mt19937 gen(device());
+        auto& gen = Common::Random::GetMT19937();
         std::uniform_int_distribution<u64> distribution(static_cast<u64>(min),
                                                         static_cast<u64>(max));
         return static_cast<T>(distribution(gen));

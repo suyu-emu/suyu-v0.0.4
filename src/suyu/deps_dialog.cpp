@@ -1,16 +1,26 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "yuzu/deps_dialog.h"
+#include "suyu/deps_dialog.h"
 #include <QAbstractTextDocumentLayout>
 #include <QDesktopServices>
 #include <QIcon>
 #include <QPainter>
 #include <QTableWidget>
 #include <QTextEdit>
-#include "dep_hashes.h"
 #include "ui_deps_dialog.h"
 #include <fmt/ranges.h>
+
+#if __has_include("dep_hashes.h")
+#include "dep_hashes.h"
+#else
+#include <array>
+namespace Common {
+static constexpr std::array<const char*, 0> dep_names{};
+static constexpr std::array<const char*, 0> dep_hashes{};
+static constexpr std::array<const char*, 0> dep_urls{};
+} // namespace Common
+#endif
 
 DepsDialog::DepsDialog(QWidget* parent)
     : QDialog(parent)
@@ -33,14 +43,15 @@ DepsDialog::DepsDialog(QWidget* parent)
         const std::string name = Common::dep_names.at(i);
         const std::string sha = Common::dep_hashes.at(i);
         const std::string url = Common::dep_urls.at(i);
+        const int row = static_cast<int>(i);
 
         std::string dependency = fmt::format("<a href=\"{}\">{}</a>", url, name);
 
         QTableWidgetItem *nameItem = new QTableWidgetItem(QString::fromStdString(dependency));
         QTableWidgetItem *shaItem = new QTableWidgetItem(QString::fromStdString(sha));
 
-        ui->tableDeps->setItem(i, 0, nameItem);
-        ui->tableDeps->setItem(i, 1, shaItem);
+        ui->tableDeps->setItem(row, 0, nameItem);
+        ui->tableDeps->setItem(row, 1, shaItem);
     }
 
     ui->tableDeps->setItemDelegateForColumn(0, new LinkItemDelegate(this));
