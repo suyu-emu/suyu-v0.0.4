@@ -31,11 +31,10 @@ ModSelectDialog::ModSelectDialog(const QStringList& mods, QWidget* parent)
     }
 
     ui->treeView->expandAll();
-    ui->treeView->resizeColumnToContents(0);
 
     int rows = item_model->rowCount();
     int height =
-        ui->treeView->contentsMargins().top() * 4 + ui->treeView->contentsMargins().bottom() * 4;
+        4 + ui->treeView->contentsMargins().top() * 4 + ui->treeView->contentsMargins().bottom() * 4;
     int width = 0;
 
     for (int i = 0; i < rows; ++i) {
@@ -46,7 +45,7 @@ ModSelectDialog::ModSelectDialog(const QStringList& mods, QWidget* parent)
     width +=
         ui->treeView->contentsMargins().left() * 4 + ui->treeView->contentsMargins().right() * 4;
     ui->treeView->setMinimumHeight(qMin(height, 600));
-    ui->treeView->setMinimumWidth(qMin(width, 700));
+    ui->treeView->setMinimumWidth(qMax(width, 540));
     adjustSize();
 
     connect(this, &QDialog::accepted, this, [this]() {

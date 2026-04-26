@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iostream>
 #include <fmt/format.h>
 #include "common/fs/fs.h"
 #include "common/fs/fs_types.h"
@@ -25,7 +26,10 @@ std::vector<std::filesystem::path> GetModFolder(const std::string& root) {
                                                                "romfslite"};
 
         if (std::ranges::find(valid_names, name) != valid_names.end()) {
-            paths.emplace_back(entry.path().parent_path());
+            const auto parent = entry.path().parent_path();
+            if (std::ranges::find(paths, parent) == paths.end()) {
+                paths.emplace_back(parent);
+            }
         }
 
         return true;
