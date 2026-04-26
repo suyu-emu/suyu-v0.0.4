@@ -291,13 +291,23 @@ pkg install gcc14 git cmake unzip nasm autoconf bash pkgconf ffmpeg glslang gmak
 
 </details>
 <details>
-<summary>Solaris / OpenIndiana</summary>
+<summary>OpenIndiana</summary>
 
 ```sh
-sudo pkg install qt6 boost glslang libzip library/lz4 libusb-1 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt
+sudo pkg install git cmake qt6 boost glslang libzip library/lz4 libusb-1 nlohmann-json openssl opus sdl2 zlib compress/zstd unzip pkg-config nasm autoconf mesa library/libdrm header-drm developer/fmt
 ```
 
-[Caveats](./Caveats.md#solaris).
+[Caveats](./Caveats.md#openindiana).
+
+</details>
+<details>
+<summary>OmniOS</summary>
+
+```sh
+sudo pkgin install git cmake autoconf build-essential libusb-1 nasm gcc13
+```
+
+[Caveats](./Caveats.md#omnios).
 
 </details>
 <details>

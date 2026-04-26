@@ -4,7 +4,8 @@
 - [Arch Linux](#arch-linux)
 - [Gentoo Linux](#gentoo-linux)
 - [macOS](#macos)
-- [Solaris](#solaris)
+- [OpenIndiana](#openindiana)
+- [OmniOS](#omnios)
 - [HaikuOS](#haikuos)
 - [OpenBSD](#openbsd)
 - [FreeBSD](#freebsd)
@@ -31,14 +32,14 @@ If you're having issues with building, always consult that ebuild.
 
 macOS is largely untested. Expect crashes, significant Vulkan issues, and other fun stuff.
 
-## Solaris
+## OpenIndiana
 
 Always consult [the OpenIndiana package list](https://pkg.openindiana.org/hipster/en/index.shtml) to cross-verify availability.
 
 Run the usual update + install of essential toolings: `sudo pkg update && sudo pkg install git cmake`.
 
-- **gcc**: `sudo pkg install developer/gcc-14`.
-- **clang**: Version 20 is broken, use `sudo pkg install developer/clang-19`.
+- **gcc**: Install either `developer/gcc-14`.
+- **clang**: Version 20 is broken, install `developer/clang-19`.
 
 Qt Widgets appears to be broken. For now, add `-DENABLE_QT=OFF` to your configure command. In the meantime, a Qt Quick frontend is in the works--check back later!
 
@@ -66,6 +67,31 @@ export LIBGL_ALWAYS_SOFTWARE=1
 - Modify the generated ffmpeg.make (in build dir) if using multiple threads (base system `make` doesn't use `-j4`, so change for `gmake`).
 - If using OpenIndiana, due to a bug in SDL2's CMake configuration, audio driver defaults to SunOS `<sys/audioio.h>`, which does not exist on OpenIndiana. Using external or bundled SDL2 may solve this.
 - System OpenSSL generally does not work. Instead, use `-DYUZU_USE_BUNDLED_OPENSSL=ON` to use a bundled static OpenSSL, or build a system dependency from source.
+
+## OmniOS
+
+Install `developer/gcc14` on OmniOS using pkgsrc.
+
+Since so many dependencies are missing on `OmniOS`, you may wish to use `-DCPMUTIL_FORCE_BUNDLED=ON -DYUZU_USE_EXTERNAL_SDL2=ON`
+
+For OmniOS you are required to build glslang yourself:
+```sh
+sudo pkg install python-313
+git clone --depth=1 https://github.com/KhronosGroup/glslang.git
+cd glslang
+python3.13 ./update_glslang_sources.py
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -- -j `nproc`
+cmake --install build
+```
+
+It may be tempting to specify `-t glslang`, but this will cause installation to fail. So don't.
+
+Using `--parallel` on CMake incorrectly passes `dmake ... -jn` instead of `dmake ... -j n`, this is a bug with OmniOS's CMake, and as such it's recommended to not use this option until it's fixed.
+
+You may also need to install `gmake` in order to properly build FFmpeg, this is provided by the `build-essential` package.
+
+If it wasn't obvious already, you require a X11 server to properly run the emulator within OmniOS, [this guide](https://web.archive.org/web/20260424200928/https://geekblood.wordpress.com/2017/10/26/installing-x11-and-a-desktop-environment-on-omnios/) is a great starting point for that, the links to pkgsrc are outdated so follow [this exemplar](https://pkgsrc.smartos.org/install-on-illumos/) as well:
 
 ## HaikuOS
 
