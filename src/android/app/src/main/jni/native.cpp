@@ -1760,7 +1760,7 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateApkUrl(
 
     const std::string apk_filename = fmt::format("Eden-Android-{}-{}.apk", artifact_str, variant);
 
-    const std::string url = fmt::format("{}/{}/{}",
+    const std::string url = fmt::format("https://{}/{}/{}",
         std::string{Common::g_build_auto_update_api},
         version_str, apk_filename);
 
