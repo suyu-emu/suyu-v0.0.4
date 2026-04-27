@@ -89,9 +89,8 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
     codeset.DataSegment().size += kip->GetBSSSize();
 
     // TODO: this is bad form of ASLR, it sucks
-    size_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
-        ? ::Settings::values.rng_seed.GetValue()
-        : Common::Random::Random64(0)) * 0x734287f27) & 0xfff000;
+    std::uintptr_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
+        ? ::Settings::values.rng_seed.GetValue() : Common::Random::Random64(0)) << 12) & 0xfff000;
 
     // Setup the process code layout
     if (process.LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), codeset.memory.size(), 0, aslr_offset, false).IsError()) {

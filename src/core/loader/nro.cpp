@@ -242,9 +242,8 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
     }();
 
     // TODO: this is bad form of ASLR, it sucks
-    size_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
-        ? ::Settings::values.rng_seed.GetValue()
-        : Common::Random::Random64(0)) * 0x734287f27) & 0xfff000;
+    std::uintptr_t aslr_offset = ((::Settings::values.rng_seed_enabled.GetValue()
+        ? ::Settings::values.rng_seed.GetValue() : Common::Random::Random64(0)) << 12) & 0xfff000;
 
     // Setup the process code layout
     if (process
