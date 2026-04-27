@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -283,7 +283,7 @@ std::string_view GDBStubA32::GetTargetXML() const {
     <reg name="r11" bitsize="32" type="uint32"/>
     <reg name="r12" bitsize="32" type="uint32"/>
     <reg name="sp" bitsize="32" type="data_ptr"/>
-    <reg name="lr" bitsize="32" type="code_ptr"/>
+    <reg name="lr" bitsize="32"/>
     <reg name="pc" bitsize="32" type="code_ptr"/>
     <!-- The CPSR is register 25, rather than register 16, because
          the FPA registers historically were placed between the PC
