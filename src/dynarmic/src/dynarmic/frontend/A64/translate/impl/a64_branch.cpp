@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -39,7 +39,7 @@ bool TranslatorVisitor::BL(Imm<26> imm26) {
     ir.PushRSB(ir.current_location->AdvancePC(4));
 
     const u64 target = ir.PC() + offset;
-    ir.SetTerm(IR::Term::LinkBlock{ir.current_location->SetPC(target)});
+    ir.SetTerm(IR::Term::LinkBlockFast{ir.current_location->SetPC(target)});
     return false;
 }
 
