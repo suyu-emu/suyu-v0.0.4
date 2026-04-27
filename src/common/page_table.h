@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -142,10 +142,8 @@ struct PageTable {
     VirtualBuffer<PageEntryData> entries;
     static_assert(sizeof(PageEntryData) == 32);
 
-    std::size_t current_address_space_width_in_bits{};
-
     u8* fastmem_arena{};
-
+    std::size_t current_address_space_width_in_bits{};
     std::size_t page_size{};
 };
 

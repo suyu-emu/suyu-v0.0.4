@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,7 +24,9 @@ public:
     //     "with the current allocator");
 
     constexpr VirtualBuffer() = default;
-    explicit VirtualBuffer(std::size_t count) : alloc_size{count * sizeof(T)} {
+    explicit VirtualBuffer(std::size_t count) noexcept
+        : alloc_size{count * sizeof(T)}
+    {
         base_ptr = reinterpret_cast<T*>(AllocateMemoryPages(alloc_size));
     }
 
@@ -33,8 +38,8 @@ public:
     VirtualBuffer& operator=(const VirtualBuffer&) = delete;
 
     VirtualBuffer(VirtualBuffer&& other) noexcept
-        : alloc_size{std::exchange(other.alloc_size, 0)}, base_ptr{std::exchange(other.base_ptr),
-                                                                   nullptr} {}
+        : alloc_size{std::exchange(other.alloc_size, 0)}, base_ptr{std::exchange(other.base_ptr), nullptr}
+    {}
 
     VirtualBuffer& operator=(VirtualBuffer&& other) noexcept {
         alloc_size = std::exchange(other.alloc_size, 0);
@@ -42,35 +47,31 @@ public:
         return *this;
     }
 
-    void resize(std::size_t count) {
-        const auto new_size = count * sizeof(T);
-        if (new_size == alloc_size) {
-            return;
+    void resize(std::size_t count) noexcept {
+        if (auto const new_size = count * sizeof(T); new_size != alloc_size) {
+            FreeMemoryPages(base_ptr, alloc_size);
+            alloc_size = new_size;
+            base_ptr = reinterpret_cast<T*>(AllocateMemoryPages(alloc_size));
         }
-
-        FreeMemoryPages(base_ptr, alloc_size);
-
-        alloc_size = new_size;
-        base_ptr = reinterpret_cast<T*>(AllocateMemoryPages(alloc_size));
     }
 
-    [[nodiscard]] constexpr const T& operator[](std::size_t index) const {
+    [[nodiscard]] constexpr const T& operator[](std::size_t index) const noexcept {
         return base_ptr[index];
     }
 
-    [[nodiscard]] constexpr T& operator[](std::size_t index) {
+    [[nodiscard]] constexpr T& operator[](std::size_t index) noexcept {
         return base_ptr[index];
     }
 
-    [[nodiscard]] constexpr T* data() {
+    [[nodiscard]] constexpr T* data() noexcept {
         return base_ptr;
     }
 
-    [[nodiscard]] constexpr const T* data() const {
+    [[nodiscard]] constexpr const T* data() const noexcept {
         return base_ptr;
     }
 
-    [[nodiscard]] constexpr std::size_t size() const {
+    [[nodiscard]] constexpr std::size_t size() const noexcept {
         return alloc_size / sizeof(T);
     }
 
