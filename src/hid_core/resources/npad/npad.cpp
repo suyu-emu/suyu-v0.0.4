@@ -157,11 +157,14 @@ void NPad::ControllerUpdate(Core::HID::ControllerTriggerType type, std::size_t c
             if (!controller.device->IsConnected()) {
                 return;
             }
-            auto* shared_memory = controller.shared_memory;
-            const auto& battery_level = controller.device->GetBattery();
-            shared_memory->battery_level_dual = battery_level.dual.battery_level;
-            shared_memory->battery_level_left = battery_level.left.battery_level;
-            shared_memory->battery_level_right = battery_level.right.battery_level;
+            if (auto* shared_memory = controller.shared_memory; shared_memory) {
+                const auto& battery_level = controller.device->GetBattery();
+                shared_memory->battery_level_dual = battery_level.dual.battery_level;
+                shared_memory->battery_level_left = battery_level.left.battery_level;
+                shared_memory->battery_level_right = battery_level.right.battery_level;
+            } else {
+                LOG_WARNING(Service_HID, "shared_memory is null {}", controller_idx);
+            }
             break;
         }
         default:
@@ -180,6 +183,10 @@ void NPad::InitNewlyAddedController(u64 aruid, Core::HID::NpadIdType npad_id) {
     const auto& body_colors = controller.device->GetColors();
     const auto& battery_level = controller.device->GetBattery();
     auto* shared_memory = controller.shared_memory;
+    if (!shared_memory) {
+        LOG_WARNING(Service_HID, "shared_memory is null for npad_id={}", npad_id);
+        return;
+    }
     if (controller_type == Core::HID::NpadStyleIndex::None) {
         npad_resource.SignalStyleSetUpdateEvent(aruid, npad_id);
         return;
@@ -801,7 +808,7 @@ Result NPad::DisconnectNpad(u64 aruid, Core::HID::NpadIdType npad_id) {
 
     auto* shared_memory = controller.shared_memory;
     if (!shared_memory) {
-        LOG_WARNING(Service_HID, "DisconnectNpad: shared_memory is null for npad_id={}", npad_id);
+        LOG_WARNING(Service_HID, "shared_memory is null for npad_id={}", npad_id);
         return ResultSuccess;
     }
     // Don't reset shared_memory->assignment_mode this value is persistent
@@ -1195,11 +1202,10 @@ const Core::HID::SixAxisSensorProperties& NPad::GetSixaxisProperties(
 
 AppletDetailedUiType NPad::GetAppletDetailedUiType(Core::HID::NpadIdType npad_id) {
     const auto aruid = applet_resource_holder.applet_resource->GetActiveAruid();
-    const auto& shared_memory = GetControllerFromNpadIdType(aruid, npad_id).shared_memory;
-
+    const auto* shared_memory = GetControllerFromNpadIdType(aruid, npad_id).shared_memory;
     return {
         .ui_variant = 0,
-        .footer = shared_memory->applet_footer_type,
+        .footer = shared_memory ? shared_memory->applet_footer_type : AppletFooterUiType::None,
     };
 }
 
