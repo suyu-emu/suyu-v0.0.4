@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -18,16 +18,13 @@
 #include "common/range_map.h"
 #include "common/scratch_buffer.h"
 #include "common/virtual_buffer.h"
+#include "video_core/invalidation_accumulator.h"
 #include "video_core/cache_types.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/pte_kind.h"
 
 namespace VideoCore {
 class RasterizerInterface;
-}
-
-namespace VideoCommon {
-class InvalidationAccumulator;
 }
 
 namespace Core {
@@ -249,7 +246,7 @@ private:
     static constexpr size_t continuous_bits = 64;
 
     const size_t unique_identifier;
-    std::unique_ptr<VideoCommon::InvalidationAccumulator> accumulator;
+    VideoCommon::InvalidationAccumulator accumulator;
 
     static std::atomic<size_t> unique_identifier_generator;
 
