@@ -32,7 +32,7 @@
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/delayed_destruction_ring.h"
 #include "video_core/dirty_flags.h"
-#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
@@ -305,7 +305,7 @@ public:
     [[nodiscard]] bool IsRegionCpuModified(DAddr addr, size_t size);
 
     void SetDrawIndirect(
-        const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect_) {
+        const Tegra::Engines::Maxwell3D::DrawManager::IndirectParams* current_draw_indirect_) {
         current_draw_indirect = current_draw_indirect_;
     }
 
@@ -480,7 +480,7 @@ private:
 #endif
     DelayedDestructionRing<Buffer, TICKS_TO_DESTROY> delayed_destruction_ring;
 
-    const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
+    const Tegra::Engines::Maxwell3D::DrawManager::IndirectParams* current_draw_indirect{};
 
     u32 last_index_count = 0;
 

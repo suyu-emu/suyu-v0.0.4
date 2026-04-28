@@ -25,6 +25,7 @@
 #include "video_core/gpu.h"
 #include "video_core/macro.h"
 #include "video_core/textures/texture.h"
+#include "video_core/engines/maxwell_3d.h"
 
 namespace Core {
 class System;
@@ -39,8 +40,6 @@ class RasterizerInterface;
 }
 
 namespace Tegra::Engines {
-
-class DrawManager;
 
 /**
  * This Engine is known as GF100_3D. Documentation can be found in:
@@ -543,7 +542,7 @@ public:
             }
             GPUVAddr StorageLimitAddress() const {
                 return (GPUVAddr{storage_limit_address_high} << 32) |
-                       GPUVAddr{storage_limit_address_low};
+                        GPUVAddr{storage_limit_address_low};
             }
         };
 
@@ -819,7 +818,7 @@ public:
 
             u32 Map(std::size_t index) const {
                 const std::array<u32, NumRenderTargets> maps{target0, target1, target2, target3,
-                                                             target4, target5, target6, target7};
+                                                                target4, target5, target6, target7};
                 ASSERT(index < maps.size());
                 return maps[index];
             }
@@ -1831,7 +1830,7 @@ public:
 
             bool AnyEnabled() const {
                 return output0_enable || output1_enable || output2_enable || output3_enable ||
-                       output4_enable || output5_enable || output6_enable || output7_enable;
+                        output4_enable || output5_enable || output6_enable || output7_enable;
             }
         };
 
@@ -1870,7 +1869,7 @@ public:
 
                 bool AnyEnabled() const {
                     return plane0 || plane1 || plane2 || plane3 || plane4 || plane5 || plane6 ||
-                           plane7;
+                            plane7;
                 }
             };
 
@@ -3023,8 +3022,7 @@ public:
                 u32 bindless_texture_const_buffer_slot;                                ///< 0x2608
                 u32 trap_handler;                                                      ///< 0x260C
                 INSERT_PADDING_BYTES_NOINIT(0x1F0);
-                std::array<std::array<StreamOutLayout, 32>, NumTransformFeedbackBuffers>
-                    stream_out_layout;                                                 ///< 0x2800
+                std::array<std::array<StreamOutLayout, 32>, NumTransformFeedbackBuffers> stream_out_layout;                                                 ///< 0x2800
                 INSERT_PADDING_BYTES_NOINIT(0x93C);
                 ShaderPerformance shader_performance;                                  ///< 0x333C
                 INSERT_PADDING_BYTES_NOINIT(0x18);
@@ -3034,6 +3032,62 @@ public:
         };
     };
     // clang-format on
+
+    struct DrawManager {
+        enum class DrawMode : u32 { General = 0, Instance, InlineIndex };
+        struct State {
+            Maxwell3D::Regs::PrimitiveTopology topology{};
+            DrawMode draw_mode{};
+            bool draw_indexed{};
+            u32 base_index{};
+            Maxwell3D::Regs::VertexBuffer vertex_buffer;
+            Maxwell3D::Regs::IndexBuffer index_buffer;
+            u32 base_instance{};
+            u32 instance_count{};
+            std::vector<u8> inline_index_draw_indexes;
+        };
+        struct DrawTextureState {
+            f32 dst_x0;
+            f32 dst_y0;
+            f32 dst_x1;
+            f32 dst_y1;
+            f32 src_x0;
+            f32 src_y0;
+            f32 src_x1;
+            f32 src_y1;
+            u32 src_sampler;
+            u32 src_texture;
+        };
+        struct IndirectParams {
+            bool is_byte_count;
+            bool is_indexed;
+            bool include_count;
+            GPUVAddr count_start_address;
+            GPUVAddr indirect_start_address;
+            size_t buffer_size;
+            size_t max_draw_counts;
+            size_t stride;
+        };
+        void ProcessMethodCall(Maxwell3D& maxwell3d, u32 method, u32 argument);
+        void Clear(Maxwell3D& maxwell3d, u32 layer_count);
+        void DrawDeferred(Maxwell3D& maxwell3d);
+        void DrawArray(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology, u32 vertex_first, u32 vertex_count, u32 base_instance, u32 num_instances);
+        void DrawArrayInstanced(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology, u32 vertex_first, u32 vertex_count, bool subsequent);
+        void DrawIndex(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology, u32 index_first, u32 index_count, u32 base_index, u32 base_instance, u32 num_instances);
+        void DrawArrayIndirect(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology);
+        void DrawIndexedIndirect(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology, u32 index_first, u32 index_count);
+        void SetInlineIndexBuffer(Maxwell3D& maxwell3d, u32 index);
+        void DrawBegin(Maxwell3D& maxwell3d);
+        void DrawEnd(Maxwell3D& maxwell3d, u32 instance_count = 1, bool force_draw = false);
+        void DrawIndexSmall(Maxwell3D& maxwell3d, u32 argument);
+        void DrawTexture(Maxwell3D& maxwell3d);
+        void UpdateTopology(Maxwell3D& maxwell3d);
+        void ProcessDraw(Maxwell3D& maxwell3d, bool draw_indexed, u32 instance_count);
+        void ProcessDrawIndirect(Maxwell3D& maxwell3d);
+        State draw_state{};
+        DrawTextureState draw_texture_state{};
+        IndirectParams indirect_state{};
+    };
 
     Regs regs{};
 
@@ -3102,8 +3156,7 @@ public:
         Tables tables{};
     } dirty;
 
-    std::unique_ptr<DrawManager> draw_manager;
-    friend class DrawManager;
+    DrawManager draw_manager;
 
     GPUVAddr GetMacroAddress(size_t index) const {
         return macro_addresses[index];

@@ -245,7 +245,7 @@ void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
 
     SyncState();
 
-    const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+    const auto& draw_state = maxwell3d->draw_manager.draw_state;
 
     const GLenum primitive_mode = MaxwellToGL::PrimitiveTopology(draw_state.topology);
     BeginTransformFeedback(pipeline, primitive_mode);
@@ -260,12 +260,12 @@ void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
 
 void RasterizerOpenGL::Draw(bool is_indexed, u32 instance_count) {
     PrepareDraw(is_indexed, [this, is_indexed, instance_count](GLenum primitive_mode) {
-        const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-        const GLuint base_instance = static_cast<GLuint>(draw_state.base_instance);
-        const GLsizei num_instances = static_cast<GLsizei>(instance_count);
+        const auto& draw_state = maxwell3d->draw_manager.draw_state;
+        const GLuint base_instance = GLuint(draw_state.base_instance);
+        const GLsizei num_instances = GLsizei(instance_count);
         if (is_indexed) {
-            const GLint base_vertex = static_cast<GLint>(draw_state.base_index);
-            const GLsizei num_vertices = static_cast<GLsizei>(draw_state.index_buffer.count);
+            const GLint base_vertex = GLint(draw_state.base_index);
+            const GLsizei num_vertices = GLsizei(draw_state.index_buffer.count);
             const GLvoid* const offset = buffer_cache_runtime.IndexOffset();
             const GLenum format = MaxwellToGL::IndexFormat(draw_state.index_buffer.format);
             if (num_instances == 1 && base_instance == 0 && base_vertex == 0) {
@@ -302,7 +302,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, u32 instance_count) {
 }
 
 void RasterizerOpenGL::DrawIndirect() {
-    const auto& params = maxwell3d->draw_manager->GetIndirectParams();
+    const auto& params = maxwell3d->draw_manager.indirect_state;
     buffer_cache.SetDrawIndirect(&params);
     PrepareDraw(params.is_indexed, [this, &params](GLenum primitive_mode) {
         if (params.is_byte_count) {
@@ -358,12 +358,12 @@ void RasterizerOpenGL::DrawTexture() {
 
     SyncState();
 
-    const auto& draw_texture_state = maxwell3d->draw_manager->GetDrawTextureState();
+    const auto& draw_texture_state = maxwell3d->draw_manager.draw_texture_state;
     const auto& sampler = texture_cache.GetGraphicsSampler(draw_texture_state.src_sampler);
     const auto& texture = texture_cache.GetImageView(draw_texture_state.src_texture);
 
     const auto Scale = [&](auto dim) -> s32 {
-        return Settings::values.resolution_info.ScaleUp(static_cast<s32>(dim));
+        return Settings::values.resolution_info.ScaleUp(s32(dim));
     };
 
     Region2D dst_region = {

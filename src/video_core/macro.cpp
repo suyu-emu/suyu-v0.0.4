@@ -31,7 +31,7 @@
 #include "common/settings.h"
 #include "common/container_hash.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/macro.h"
@@ -83,7 +83,7 @@ void HLE_DrawArraysIndirect::Execute(Engines::Maxwell3D& maxwell3d, std::span<co
         return;
     }
 
-    auto& params = maxwell3d.draw_manager->GetIndirectParams();
+    auto& params = maxwell3d.draw_manager.indirect_state;
     params.is_byte_count = false;
     params.is_indexed = false;
     params.include_count = false;
@@ -98,7 +98,7 @@ void HLE_DrawArraysIndirect::Execute(Engines::Maxwell3D& maxwell3d, std::span<co
         maxwell3d.SetHLEReplacementAttributeType(0, 0x640, Maxwell3D::HLEReplacementAttributeType::BaseInstance);
     }
 
-    maxwell3d.draw_manager->DrawArrayIndirect(topology);
+    maxwell3d.draw_manager.DrawArrayIndirect(maxwell3d, topology);
 
     if (extended) {
         maxwell3d.engine_state = Maxwell3D::EngineHint::None;
@@ -127,7 +127,7 @@ void HLE_DrawArraysIndirect::Fallback(Engines::Maxwell3D& maxwell3d, std::span<c
         maxwell3d.engine_state = Maxwell3D::EngineHint::OnHLEMacro;
         maxwell3d.SetHLEReplacementAttributeType(0, 0x640, Maxwell3D::HLEReplacementAttributeType::BaseInstance);
     }
-    maxwell3d.draw_manager->DrawArray(topology, vertex_first, vertex_count, base_instance, instance_count);
+    maxwell3d.draw_manager.DrawArray(maxwell3d, topology, vertex_first, vertex_count, base_instance, instance_count);
     if (extended) {
         maxwell3d.regs.global_base_instance_index = 0;
         maxwell3d.engine_state = Maxwell3D::EngineHint::None;
@@ -154,7 +154,7 @@ void HLE_DrawIndexedIndirect::Execute(Engines::Maxwell3D& maxwell3d, std::span<c
         maxwell3d.SetHLEReplacementAttributeType(0, 0x640, Maxwell3D::HLEReplacementAttributeType::BaseVertex);
         maxwell3d.SetHLEReplacementAttributeType(0, 0x644, Maxwell3D::HLEReplacementAttributeType::BaseInstance);
     }
-    auto& params = maxwell3d.draw_manager->GetIndirectParams();
+    auto& params = maxwell3d.draw_manager.indirect_state;
     params.is_byte_count = false;
     params.is_indexed = true;
     params.include_count = false;
@@ -164,7 +164,7 @@ void HLE_DrawIndexedIndirect::Execute(Engines::Maxwell3D& maxwell3d, std::span<c
     params.max_draw_counts = 1;
     params.stride = 0;
     maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-    maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, estimate);
+    maxwell3d.draw_manager.DrawIndexedIndirect(maxwell3d, topology, 0, estimate);
     maxwell3d.regs.vertex_id_base = 0x0;
     maxwell3d.regs.global_base_vertex_index = 0x0;
     maxwell3d.regs.global_base_instance_index = 0x0;
@@ -187,7 +187,7 @@ void HLE_DrawIndexedIndirect::Fallback(Engines::Maxwell3D& maxwell3d, std::span<
         maxwell3d.SetHLEReplacementAttributeType(0, 0x640, Maxwell3D::HLEReplacementAttributeType::BaseVertex);
         maxwell3d.SetHLEReplacementAttributeType(0, 0x644, Maxwell3D::HLEReplacementAttributeType::BaseInstance);
     }
-    maxwell3d.draw_manager->DrawIndex(Tegra::Maxwell3D::Regs::PrimitiveTopology(parameters[0]), parameters[3], parameters[1], element_base, base_instance, instance_count);
+    maxwell3d.draw_manager.DrawIndex(maxwell3d, Tegra::Maxwell3D::Regs::PrimitiveTopology(parameters[0]), parameters[3], parameters[1], element_base, base_instance, instance_count);
     maxwell3d.regs.vertex_id_base = 0x0;
     maxwell3d.regs.global_base_vertex_index = 0x0;
     maxwell3d.regs.global_base_instance_index = 0x0;
@@ -206,7 +206,7 @@ void HLE_MultiLayerClear::Execute(Engines::Maxwell3D& maxwell3d, std::span<const
     ASSERT(clear_params.layer == 0);
 
     maxwell3d.regs.clear_surface.raw = clear_params.raw;
-    maxwell3d.draw_manager->Clear(num_layers);
+    maxwell3d.draw_manager.Clear(maxwell3d, num_layers);
 }
 void HLE_MultiDrawIndexedIndirectCount::Execute(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters, [[maybe_unused]] u32 method) {
     const auto topology = Maxwell3D::Regs::PrimitiveTopology(parameters[2]);
@@ -230,7 +230,7 @@ void HLE_MultiDrawIndexedIndirectCount::Execute(Engines::Maxwell3D& maxwell3d, s
     const std::size_t draw_count = end_indirect - start_indirect;
     const u32 estimate = static_cast<u32>(maxwell3d.EstimateIndexBufferSize());
     maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-    auto& params = maxwell3d.draw_manager->GetIndirectParams();
+    auto& params = maxwell3d.draw_manager.indirect_state;
     params.is_byte_count = false;
     params.is_indexed = true;
     params.include_count = true;
@@ -244,7 +244,7 @@ void HLE_MultiDrawIndexedIndirectCount::Execute(Engines::Maxwell3D& maxwell3d, s
     maxwell3d.SetHLEReplacementAttributeType(0, 0x640, Maxwell3D::HLEReplacementAttributeType::BaseVertex);
     maxwell3d.SetHLEReplacementAttributeType(0, 0x644, Maxwell3D::HLEReplacementAttributeType::BaseInstance);
     maxwell3d.SetHLEReplacementAttributeType(0, 0x648, Maxwell3D::HLEReplacementAttributeType::DrawID);
-    maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, estimate);
+    maxwell3d.draw_manager.DrawIndexedIndirect(maxwell3d, topology, 0, estimate);
     maxwell3d.engine_state = Maxwell3D::EngineHint::None;
     maxwell3d.replace_table.clear();
 }
@@ -280,7 +280,7 @@ void HLE_MultiDrawIndexedIndirectCount::Fallback(Engines::Maxwell3D& maxwell3d, 
         maxwell3d.CallMethod(0x8e3, 0x648, true);
         maxwell3d.CallMethod(0x8e4, static_cast<u32>(index), true);
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-        maxwell3d.draw_manager->DrawIndex(topology, parameters[base + 2], parameters[base], base_vertex, base_instance, parameters[base + 1]);
+        maxwell3d.draw_manager.DrawIndex(maxwell3d, topology, parameters[base + 2], parameters[base], base_vertex, base_instance, parameters[base + 1]);
     }
 }
 void HLE_DrawIndirectByteCount::Execute(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters, [[maybe_unused]] u32 method) {
@@ -290,7 +290,7 @@ void HLE_DrawIndirectByteCount::Execute(Engines::Maxwell3D& maxwell3d, std::span
         return;
     }
     auto topology = Maxwell3D::Regs::PrimitiveTopology(parameters[0] & 0xFFFFU);
-    auto& params = maxwell3d.draw_manager->GetIndirectParams();
+    auto& params = maxwell3d.draw_manager.indirect_state;
     params.is_byte_count = true;
     params.is_indexed = false;
     params.include_count = false;
@@ -302,18 +302,14 @@ void HLE_DrawIndirectByteCount::Execute(Engines::Maxwell3D& maxwell3d, std::span
     maxwell3d.regs.draw.begin = parameters[0];
     maxwell3d.regs.draw_auto_stride = parameters[1];
     maxwell3d.regs.draw_auto_byte_count = parameters[2];
-    maxwell3d.draw_manager->DrawArrayIndirect(topology);
+    maxwell3d.draw_manager.DrawArrayIndirect(maxwell3d, topology);
 }
 void HLE_DrawIndirectByteCount::Fallback(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters) {
     maxwell3d.RefreshParameters();
-
     maxwell3d.regs.draw.begin = parameters[0];
     maxwell3d.regs.draw_auto_stride = parameters[1];
     maxwell3d.regs.draw_auto_byte_count = parameters[2];
-
-    maxwell3d.draw_manager->DrawArray(
-        maxwell3d.regs.draw.topology, 0,
-        maxwell3d.regs.draw_auto_byte_count / maxwell3d.regs.draw_auto_stride, 0, 1);
+    maxwell3d.draw_manager.DrawArray(maxwell3d, maxwell3d.regs.draw.topology, 0, maxwell3d.regs.draw_auto_byte_count / maxwell3d.regs.draw_auto_stride, 0, 1);
 }
 void HLE_C713C83D8F63CCF3::Execute(Engines::Maxwell3D& maxwell3d, std::span<const u32> parameters, [[maybe_unused]] u32 method) {
     maxwell3d.RefreshParameters();

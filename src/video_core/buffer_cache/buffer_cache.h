@@ -356,7 +356,7 @@ void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed) {
     if (is_indexed) {
         BindHostIndexBuffer();
     } else if constexpr (!HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
-        const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+        const auto& draw_state = maxwell3d->draw_manager.draw_state;
         if (draw_state.topology == Maxwell::PrimitiveTopology::Quads ||
             draw_state.topology == Maxwell::PrimitiveTopology::QuadStrip) {
             runtime.BindQuadIndexBuffer(draw_state.topology, draw_state.vertex_buffer.first,
@@ -740,30 +740,25 @@ void BufferCache<P>::BindHostIndexBuffer() {
     TouchBuffer(buffer, channel_state->index_buffer.buffer_id);
     const u32 offset = buffer.Offset(channel_state->index_buffer.device_addr);
     const u32 size = channel_state->index_buffer.size;
-    const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-    if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
+    const auto& draw_state = maxwell3d->draw_manager.draw_state;
+    if (draw_state.inline_index_draw_indexes.empty()) {
+        SynchronizeBuffer(buffer, channel_state->index_buffer.device_addr, size);
+    } else {
         if constexpr (USE_MEMORY_MAPS_FOR_UPLOADS) {
             auto upload_staging = runtime.UploadStagingBuffer(size);
-            std::array<BufferCopy, 1> copies{
-                {BufferCopy{.src_offset = upload_staging.offset, .dst_offset = 0, .size = size}}};
-            std::memcpy(upload_staging.mapped_span.data(),
-                        draw_state.inline_index_draw_indexes.data(), size);
+            std::array<BufferCopy, 1> copies{{BufferCopy{.src_offset = upload_staging.offset, .dst_offset = 0, .size = size}}};
+            std::memcpy(upload_staging.mapped_span.data(), draw_state.inline_index_draw_indexes.data(), size);
             runtime.CopyBuffer(buffer, upload_staging.buffer, copies, true);
         } else {
             buffer.ImmediateUpload(0, draw_state.inline_index_draw_indexes);
         }
-    } else {
-        SynchronizeBuffer(buffer, channel_state->index_buffer.device_addr, size);
     }
     if constexpr (HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
-        const u32 new_offset =
-            offset + draw_state.index_buffer.first * draw_state.index_buffer.FormatSizeInBytes();
+        const u32 new_offset = offset + draw_state.index_buffer.first * draw_state.index_buffer.FormatSizeInBytes();
         runtime.BindIndexBuffer(buffer, new_offset, size);
     } else {
         buffer.MarkUsage(offset, size);
-        runtime.BindIndexBuffer(draw_state.topology, draw_state.index_buffer.format,
-                                draw_state.index_buffer.first, draw_state.index_buffer.count,
-                                buffer, offset, size);
+        runtime.BindIndexBuffer(draw_state.topology, draw_state.index_buffer.format, draw_state.index_buffer.first, draw_state.index_buffer.count, buffer, offset, size);
     }
 }
 
@@ -945,10 +940,9 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
             return alignment > 1 && (offset % alignment) != 0;
         }
     }();
-    const bool use_fast_buffer = needs_alignment_stream ||
-                                 (has_host_buffer &&
-                                  size <= channel_state->uniform_buffer_skip_cache_size &&
-                                  !memory_tracker.IsRegionGpuModified(device_addr, size));
+    const bool use_fast_buffer = needs_alignment_stream
+        || (has_host_buffer && size <= channel_state->uniform_buffer_skip_cache_size
+            && !memory_tracker.IsRegionGpuModified(device_addr, size));
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
@@ -1229,7 +1223,7 @@ template <class P>
 void BufferCache<P>::UpdateIndexBuffer() {
     // We have to check for the dirty flags and index count
     // The index count is currently changed without updating the dirty flags
-    const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+    const auto& draw_state = maxwell3d->draw_manager.draw_state;
     const auto& index_buffer_ref = draw_state.index_buffer;
     auto& flags = maxwell3d->dirty.flags;
     if (!flags[Dirty::IndexBuffer]) {

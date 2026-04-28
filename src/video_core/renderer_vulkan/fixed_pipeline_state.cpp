@@ -12,7 +12,7 @@
 #include "common/cityhash.h"
 #include "common/common_types.h"
 #include "common/settings.h"
-#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 
@@ -54,7 +54,7 @@ void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& 
 
 void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFeatures& features) {
     const Maxwell& regs = maxwell3d.regs;
-    const auto topology_ = maxwell3d.draw_manager->GetDrawState().topology;
+    const auto topology_ = maxwell3d.draw_manager.draw_state.topology;
 
     raw1 = 0;
     extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);

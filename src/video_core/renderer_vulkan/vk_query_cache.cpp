@@ -16,7 +16,7 @@
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
-#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/query_cache/query_cache.h"
 #include "video_core/rasterizer_interface.h"
@@ -950,7 +950,7 @@ private:
         streams_mask = 0; // reset previously recorded streams
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             buffers_count = 0;
-            out_topology = maxwell3d.draw_manager->GetDrawState().topology;
+            out_topology = maxwell3d.draw_manager.draw_state.topology;
             patch_vertices = std::max(maxwell3d.regs.patch_vertices, 1U);
             if (out_topology == Maxwell3D::Regs::PrimitiveTopology::Patches) {
                 switch (maxwell3d.regs.tessellation.params.output_primitives.Value()) {

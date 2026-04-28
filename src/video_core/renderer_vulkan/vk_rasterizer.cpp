@@ -20,7 +20,7 @@
 #include "video_core/buffer_cache/buffer_cache.h"
 #include "video_core/gpu_logging/gpu_logging.h"
 #include "video_core/control/channel_state.h"
-#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
@@ -46,7 +46,6 @@
 namespace Vulkan {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-using MaxwellDrawState = Tegra::Engines::DrawManager::State;
 using VideoCommon::ImageViewId;
 using VideoCommon::ImageViewType;
 
@@ -151,7 +150,7 @@ VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u3
     return scissor;
 }
 
-DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances, bool is_indexed) {
+DrawParams MakeDrawParams(const Tegra::Engines::Maxwell3D::DrawManager::State& draw_state, u32 num_instances, bool is_indexed) {
     DrawParams params{
         .base_instance = draw_state.base_instance,
         .num_instances = num_instances,
@@ -249,15 +248,13 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
 
     query_cache.NotifySegment(true);
     HandleTransformFeedback();
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
-
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, maxwell3d->regs.zpass_pixel_count_enable);
     draw_func();
 }
 
 void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
     PrepareDraw(is_indexed, [this, is_indexed, instance_count] {
-        const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+        const auto& draw_state = maxwell3d->draw_manager.draw_state;
         const u32 num_instances{instance_count};
         const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
 
@@ -289,7 +286,7 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
 }
 
 void RasterizerVulkan::DrawIndirect() {
-    const auto& params = maxwell3d->draw_manager->GetIndirectParams();
+    const auto& params = maxwell3d->draw_manager.indirect_state;
     buffer_cache.SetDrawIndirect(&params);
     PrepareDraw(params.is_indexed, [this, &params] {
         const auto indirect_buffer = buffer_cache.GetDrawIndirectBuffer();
@@ -360,9 +357,8 @@ void RasterizerVulkan::DrawTexture() {
     UpdateDynamicStates();
 
     query_cache.NotifySegment(true);
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
-    const auto& draw_texture_state = maxwell3d->draw_manager->GetDrawTextureState();
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, maxwell3d->regs.zpass_pixel_count_enable);
+    const auto& draw_texture_state = maxwell3d->draw_manager.draw_texture_state;
     const auto& sampler = texture_cache.GetGraphicsSampler(draw_texture_state.src_sampler);
     const auto& texture = texture_cache.GetImageView(draw_texture_state.src_texture);
     const auto* framebuffer = texture_cache.GetFramebuffer();
@@ -1014,7 +1010,7 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
     auto& flags = maxwell3d->dirty.flags;
-    const auto topology = maxwell3d->draw_manager->GetDrawState().topology;
+    const auto topology = maxwell3d->draw_manager.draw_state.topology;
     if (state_tracker.ChangePrimitiveTopology(topology)) {
         flags[Dirty::DepthBiasEnable] = true;
         flags[Dirty::PrimitiveRestartEnable] = true;
@@ -1447,8 +1443,7 @@ void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::R
     if (device.IsMoltenVK()) {
         enable = true;
     } else if (enable) {
-        const auto topology =
-            MaxwellToVK::PrimitiveTopology(device, maxwell3d->draw_manager->GetDrawState().topology);
+        const auto topology = MaxwellToVK::PrimitiveTopology(device, maxwell3d->draw_manager.draw_state.topology);
         enable = IsPrimitiveRestartSupported(device, topology);
     }
 
@@ -1562,10 +1557,9 @@ void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& re
         regs.polygon_offset_line_enable,
         regs.polygon_offset_fill_enable,
     };
-    const u32 topology_index = static_cast<u32>(maxwell3d->draw_manager->GetDrawState().topology);
+    const u32 topology_index = u32(maxwell3d->draw_manager.draw_state.topology);
     const u32 enable = enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]];
-    scheduler.Record(
-        [enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBiasEnableEXT(enable != 0); });
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBiasEnableEXT(enable != 0); });
 }
 
 void RasterizerVulkan::UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs) {

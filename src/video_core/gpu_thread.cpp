@@ -63,9 +63,7 @@ ThreadManager::ThreadManager(Core::System& system_, bool is_async_)
 
 ThreadManager::~ThreadManager() = default;
 
-void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
-                                Core::Frontend::GraphicsContext& context,
-                                Tegra::Control::Scheduler& scheduler) {
+void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context, Tegra::Control::Scheduler& scheduler) {
     rasterizer = renderer.ReadRasterizer();
     thread = std::jthread(RunThread, std::ref(system), std::ref(renderer), std::ref(context),
                           std::ref(scheduler), std::ref(state));

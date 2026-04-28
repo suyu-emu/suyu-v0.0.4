@@ -13,7 +13,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "video_core/dirty_flags.h"
-#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
@@ -26,7 +26,8 @@ namespace Tegra::Engines {
 constexpr u32 MacroRegistersStart = 0xE00;
 
 Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
-    : draw_manager{std::make_unique<DrawManager>(this)}, system{system_}
+    : draw_manager()
+    , system{system_}
     , memory_manager{memory_manager_}
 #ifdef ARCHITECTURE_x86_64
     , macro_engine(bool(Settings::values.disable_macro_jit))
@@ -373,8 +374,7 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
     case MAXWELL3D_REG_INDEX(sync_info):
         return ProcessSyncPoint();
     case MAXWELL3D_REG_INDEX(launch_dma):
-        return upload_state.ProcessExec(regs.launch_dma.memory_layout.Value() ==
-                                        Regs::LaunchDMA::Layout::Pitch);
+        return upload_state.ProcessExec(regs.launch_dma.memory_layout.Value() == Regs::LaunchDMA::Layout::Pitch);
     case MAXWELL3D_REG_INDEX(inline_data):
         upload_state.ProcessData(argument, is_last_call);
         return;
@@ -386,7 +386,7 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
     case MAXWELL3D_REG_INDEX(tiled_cache_barrier):
         return rasterizer->TiledCacheBarrier();
     default:
-        draw_manager->ProcessMethodCall(method, argument);
+        draw_manager.ProcessMethodCall(*this, method, argument);
         break;
     }
 }
@@ -401,8 +401,7 @@ void Maxwell3D::CallMacroMethod(u32 method, const std::vector<u32>& parameters) 
 
     // Execute the current macro.
     macro_engine.Execute(*this, macro_positions[entry], parameters);
-
-    draw_manager->DrawDeferred();
+    draw_manager.DrawDeferred(*this);
 }
 
 void Maxwell3D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
