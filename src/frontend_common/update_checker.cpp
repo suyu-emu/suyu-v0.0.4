@@ -5,146 +5,45 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#ifdef NIGHTLY_BUILD
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#endif
 
 #include <fmt/format.h>
-#include "common/logging.h"
+#include "common/net/net.h"
 #include "common/scm_rev.h"
 #include "update_checker.h"
 
-#include "common/httplib.h"
+#include "common/logging.h"
 
-#ifdef YUZU_BUNDLED_OPENSSL
-#include <openssl/cert.h>
-#endif
+std::optional<Common::Net::Release> UpdateChecker::GetUpdate() {
+    const auto latest = Common::Net::GetLatestRelease();
+    if (!latest) return std::nullopt;
 
-#include <nlohmann/json.hpp>
-#include <optional>
-#include <string>
+    LOG_INFO(Frontend, "Received update {}", latest->title);
 
-std::optional<std::string> UpdateChecker::GetResponse(std::string url, std::string path)
-{
-    try {
-        constexpr std::size_t timeout_seconds = 15;
+#ifdef NIGHTLY_BUILD
+    std::vector<std::string> result;
 
-        std::unique_ptr<httplib::Client> client = std::make_unique<httplib::Client>(url);
-        client->set_connection_timeout(timeout_seconds);
-        client->set_read_timeout(timeout_seconds);
-        client->set_write_timeout(timeout_seconds);
-
-#ifdef YUZU_BUNDLED_OPENSSL
-        client->load_ca_cert_store(kCert, sizeof(kCert));
-#endif
-
-        if (client == nullptr) {
-            LOG_ERROR(Frontend, "Invalid URL {}{}", url, path);
-            return {};
-        }
-
-        httplib::Request request{
-            .method = "GET",
-            .path = path,
-        };
-
-        client->set_follow_location(true);
-        httplib::Result result = client->send(request);
-
-        if (!result) {
-            LOG_ERROR(Frontend, "GET to {}{} returned null", url, path);
-            return {};
-        }
-
-        const auto &response = result.value();
-        if (response.status >= 400) {
-            LOG_ERROR(Frontend,
-                      "GET to {}{} returned error status code: {}",
-                      url,
-                      path,
-                      response.status);
-            return {};
-        }
-        if (!response.headers.contains("content-type")) {
-            LOG_ERROR(Frontend, "GET to {}{} returned no content", url, path);
-            return {};
-        }
-
-        return response.body;
-    } catch (std::exception &e) {
-        LOG_ERROR(Frontend,
-                  "GET to {}{} failed during update check: {}",
-                  url,
-                  path,
-                  e.what());
+    boost::split(result, latest->tag, boost::is_any_of("."));
+    if (result.size() != 2)
         return std::nullopt;
-    }
-}
 
-std::optional<UpdateChecker::Update> UpdateChecker::GetLatestRelease() {
-#ifdef YUZU_BUNDLED_OPENSSL
-    const auto update_check_url = fmt::format("https://{}", Common::g_build_auto_update_api);
+    const std::string tag = result[1];
+
+    boost::split(result, std::string{Common::g_build_version}, boost::is_any_of("-"));
+    if (result.empty())
+        return std::nullopt;
+
+    const std::string build = result[0];
 #else
-    const auto update_check_url = std::string{Common::g_build_auto_update_api};
+    const std::string tag = latest->tag;
+    const std::string build = Common::g_build_version;
 #endif
 
-    auto update_check_path = std::string{Common::g_build_auto_update_api_path};
-    try {
-        const auto response = UpdateChecker::GetResponse(update_check_url, update_check_path);
+    if (tag != build)
+        return latest;
 
-        if (!response)
-            return {};
-
-        const std::string latest_tag = nlohmann::json::parse(response.value()).at("tag_name");
-        const std::string latest_name = nlohmann::json::parse(response.value()).at("name");
-
-        return Update{latest_tag, latest_name};
-    } catch (nlohmann::detail::out_of_range&) {
-        LOG_ERROR(Frontend,
-                  "Parsing JSON response from {}{} failed during update check: "
-                  "nlohmann::detail::out_of_range",
-                  update_check_url,
-                  update_check_path);
-        return {};
-    } catch (nlohmann::detail::type_error&) {
-        LOG_ERROR(Frontend,
-                  "Parsing JSON response from {}{} failed during update check: "
-                  "nlohmann::detail::type_error",
-                  update_check_url,
-                  update_check_path);
-        return {};
-    }
-}
-
-std::optional<UpdateChecker::Update> UpdateChecker::GetUpdate() {
-    const std::optional<UpdateChecker::Update> latest_release_tag =
-        UpdateChecker::GetLatestRelease();
-
-    if (!latest_release_tag)
-        goto empty;
-
-    {
-        std::string tag, build;
-        if (Common::g_is_nightly_build) {
-            std::vector<std::string> result;
-
-            boost::split(result, latest_release_tag->tag, boost::is_any_of("."));
-            if (result.size() != 2)
-                goto empty;
-            tag = result[1];
-
-            boost::split(result, std::string{Common::g_build_version}, boost::is_any_of("-"));
-            if (result.empty())
-                goto empty;
-            build = result[0];
-        } else {
-            tag = latest_release_tag->tag;
-            build = Common::g_build_version;
-        }
-
-        if (tag != build)
-            return latest_release_tag.value();
-    }
-
-empty:
     return std::nullopt;
 }

@@ -33,6 +33,18 @@ import org.yuzu.yuzu_emu.applets.web.WebBrowser
  * with the native side of the Yuzu code.
  */
 object NativeLibrary {
+    data class UpdateResult(
+        var tag: String = "",
+        var title: String = "",
+        var body: String = "",
+        var url: String = "",
+        var assets: MutableList<String> = mutableListOf()
+    ) {
+        fun addAsset(asset: String) {
+            assets.add(asset)
+        }
+    }
+
     @JvmField
     var sEmulationActivity = WeakReference<EmulationActivity?>(null)
 
@@ -240,17 +252,7 @@ object NativeLibrary {
     /**
      * Checks for available updates.
      */
-    external fun checkForUpdate(): Array<String>?
-
-    /**
-     * Return the URL to the release page
-     */
-    external fun getUpdateUrl(version: String): String
-
-    /**
-     * Return the URL to download the APK for the given version
-     */
-    external fun getUpdateApkUrl(tag: String, artifact: String, packageId: String): String
+    external fun checkForUpdate(): UpdateResult?
 
     /**
      * Returns whether the update checker is enabled through CMAKE options.

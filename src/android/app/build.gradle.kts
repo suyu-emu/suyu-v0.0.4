@@ -88,6 +88,7 @@ android {
                         "-DBUILD_TESTING=OFF",
                         "-DYUZU_TESTS=OFF",
                         "-DDYNARMIC_TESTS=OFF",
+                        "-DENABLE_UPDATE_CHECKER=ON",
                         *extraCMakeArgs.toTypedArray()
                     )
                 )
@@ -191,6 +192,12 @@ android {
 
             manifestPlaceholders += mapOf("appNameBase" to "Eden")
             resValue("string", "app_name_suffixed", "Eden")
+
+            externalNativeBuild {
+                cmake {
+                    arguments.add("-DGENSHIN_SPOOF=ON")
+                }
+            }
 
             ndk {
                 abiFilters += listOf("arm64-v8a")

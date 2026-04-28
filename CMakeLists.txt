@@ -268,11 +268,6 @@ if (NOT EXISTS ${PROJECT_BINARY_DIR}/${compat_json})
     file(WRITE ${PROJECT_BINARY_DIR}/${compat_json} "")
 endif()
 
-if (YUZU_LEGACY)
-    message(WARNING "Making legacy build. Performance may suffer.")
-    add_compile_definitions(YUZU_LEGACY)
-endif()
-
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
     add_compile_definitions(HAS_NCE=1)
@@ -424,10 +419,10 @@ if (zstd_ADDED)
     add_library(zstd::libzstd ALIAS libzstd_static)
 endif()
 
-if (NOT YUZU_STATIC_ROOM)
-    # nlohmann
-    AddJsonPackage(nlohmann)
+# nlohmann
+AddJsonPackage(nlohmann)
 
+if (NOT YUZU_STATIC_ROOM)
     # zlib
     AddJsonPackage(zlib)
 
@@ -485,7 +480,7 @@ endfunction()
 # =============================================
 
 if (APPLE)
-    foreach(fw Carbon Metal Cocoa IOKit CoreVideo CoreMedia)
+    foreach(fw Carbon Metal Cocoa IOKit CoreVideo CoreMedia Security)
         find_library(${fw}_LIBRARY ${fw} REQUIRED)
         list(APPEND PLATFORM_LIBRARIES ${${fw}_LIBRARY})
     endforeach()

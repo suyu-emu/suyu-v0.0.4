@@ -175,25 +175,25 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             val latestVersion = NativeLibrary.checkForUpdate()
             if (latestVersion != null) {
                 runOnUiThread {
-                    val tag: String = latestVersion[0]
-                    val name: String = latestVersion[1]
-                    showUpdateDialog(tag, name)
+                    showUpdateDialog(latestVersion)
                 }
             }
         }.start()
     }
 
-    private fun showUpdateDialog(tag: String, name: String) {
+    // TODO(crueter): body, "View on Forgejo" button
+    private fun showUpdateDialog(release: NativeLibrary.UpdateResult) {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.update_available)
-            .setMessage(getString(R.string.update_available_description, name))
+            .setMessage(getString(R.string.update_available_description, release.title))
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                var artifact = tag
-                // Nightly builds have a slightly different format
-                if (NativeLibrary.isNightlyBuild()) {
-                    artifact = tag.substringAfter('.', tag)
+                val assets = release.assets
+
+                if (assets.isEmpty()) {
+                    openLink(release.url)
+                } else {
+                    downloadAndInstallUpdate(release)
                 }
-                downloadAndInstallUpdate(tag, artifact)
             }
             .setNeutralButton(R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
@@ -206,17 +206,23 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             .show()
     }
 
-    private fun downloadAndInstallUpdate(version: String, artifact: String) {
+    private fun openLink(link: String) {
+        val intent = Intent(Intent.ACTION_VIEW, link.toUri())
+        startActivity(intent)
+    }
+
+    private fun downloadAndInstallUpdate(release: NativeLibrary.UpdateResult) {
         CoroutineScope(Dispatchers.IO).launch {
             val packageId = applicationContext.packageName
-            val apkUrl = NativeLibrary.getUpdateApkUrl(version, artifact, packageId)
+            val asset = release.assets[0]
+            val artifact = asset.split("/").last()
             val apkFile = File(cacheDir, "update-$artifact.apk")
 
             withContext(Dispatchers.Main) {
                 showDownloadProgressDialog()
             }
 
-            val downloader = APKDownloader(apkUrl, apkFile)
+            val downloader = APKDownloader(asset, apkFile)
             downloader.download(
                 onProgress = { progress ->
                     runOnUiThread {
@@ -248,7 +254,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         } else {
                             Toast.makeText(
                                 this@MainActivity,
-                                getString(R.string.update_download_failed) + "\n\nURL: $apkUrl",
+                                getString(R.string.update_download_failed) + "\n\nURL: $asset",
                                 Toast.LENGTH_LONG
                             ).show()
                         }
@@ -277,7 +283,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     private fun updateDownloadProgress(progress: Int) {
         progressBar?.progress = progress
-        progressMessage?.text = "$progress%"
+        progressMessage?.text = getString(R.string.percent, progress)
     }
 
     private fun dismissDownloadProgressDialog() {

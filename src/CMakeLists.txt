@@ -25,6 +25,16 @@ if (NIGHTLY_BUILD)
     add_compile_definitions(NIGHTLY_BUILD)
 endif()
 
+if (YUZU_LEGACY)
+    message(WARNING "Making legacy build. Performance may suffer.")
+    add_compile_definitions(YUZU_LEGACY)
+endif()
+
+if (GENSHIN_SPOOF)
+    message(WARNING "Making Genshin spoof build")
+    add_compile_definitions(GENSHIN_SPOOF)
+endif()
+
 # Set compilation flags
 if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "" FORCE)

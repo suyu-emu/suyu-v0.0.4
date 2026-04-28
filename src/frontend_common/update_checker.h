@@ -8,16 +8,10 @@
 #pragma once
 
 #include <optional>
-#include <string>
+#include "common/net/net.h"
 
 namespace UpdateChecker {
 
-typedef struct {
-    std::string tag;
-    std::string name;
-} Update;
+std::optional<Common::Net::Release> GetUpdate();
 
-std::optional<std::string> GetResponse(std::string url, std::string path);
-std::optional<Update> GetLatestRelease();
-std::optional<Update> GetUpdate();
 } // namespace UpdateChecker

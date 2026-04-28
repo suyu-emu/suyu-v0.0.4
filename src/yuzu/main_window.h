@@ -493,8 +493,8 @@ private:
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
 
 #ifdef ENABLE_UPDATE_CHECKER
-    QFuture<std::optional<UpdateChecker::Update>> update_future;
-    QFutureWatcher<std::optional<UpdateChecker::Update>> update_watcher;
+    QFuture<std::optional<Common::Net::Release>> update_future;
+    QFutureWatcher<std::optional<Common::Net::Release>> update_watcher;
 #endif
 
     MultiplayerState* multiplayer_state = nullptr;

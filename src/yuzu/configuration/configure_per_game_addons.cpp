@@ -330,7 +330,6 @@ void ConfigurePerGameAddons::LoadConfiguration() {
         if (is_external_update) {
             first_item->setData(static_cast<quint32>(patch.numeric_version), NUMERIC_VERSION);
         } else if (is_mod) {
-            // qDebug() << patch.location;
             first_item->setData(QString::fromStdString(patch.location), PATCH_LOCATION);
         }
 

@@ -8,6 +8,7 @@
 #include "frontend_common/settings_generator.h"
 #include "qt_common/qt_string_lookup.h"
 #include "render/performance_overlay.h"
+#include "updater/update_dialog.h"
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
 #endif
@@ -539,7 +540,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 #ifdef ENABLE_UPDATE_CHECKER
     if (UISettings::values.check_for_updates) {
         update_future = QtConcurrent::run(
-            []() -> std::optional<UpdateChecker::Update> { return UpdateChecker::GetUpdate(); });
+            []() -> std::optional<Common::Net::Release> { return UpdateChecker::GetUpdate(); });
         update_watcher.connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
                                &MainWindow::OnEmulatorUpdateAvailable);
         update_watcher.setFuture(update_future);
@@ -4218,23 +4219,12 @@ void MainWindow::OnCaptureScreenshot() {
 
 #ifdef ENABLE_UPDATE_CHECKER
 void MainWindow::OnEmulatorUpdateAvailable() {
-    std::optional<UpdateChecker::Update> version = update_future.result();
+    std::optional<Common::Net::Release> version = update_future.result();
     if (!version)
         return;
 
-    QMessageBox update_prompt(this);
-    update_prompt.setWindowTitle(tr("Update Available"));
-    update_prompt.setIcon(QMessageBox::Information);
-    update_prompt.addButton(QMessageBox::Yes);
-    update_prompt.addButton(QMessageBox::Ignore);
-    update_prompt.setText(tr("Download %1?").arg(QString::fromStdString(version->name)));
-    update_prompt.exec();
-    if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
-        auto const full_url =
-            fmt::format("{}/{}/releases/tag/", std::string{Common::g_build_auto_update_website},
-                        std::string{Common::g_build_auto_update_repo});
-        QDesktopServices::openUrl(QUrl(QString::fromStdString(full_url + version->tag)));
-    }
+    UpdateDialog dialog(version.value(), this);
+    dialog.exec();
 }
 #endif
 

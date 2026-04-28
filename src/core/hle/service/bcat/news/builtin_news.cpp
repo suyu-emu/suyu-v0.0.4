@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "common/net/net.h"
+#include "common/scm_rev.h"
 #include "core/hle/service/bcat/news/builtin_news.h"
 #include "core/hle/service/bcat/news/msgpack.h"
 #include "core/hle/service/bcat/news/news_storage.h"
@@ -22,10 +24,8 @@
 #include <filesystem>
 #include <fstream>
 #include <future>
-#include <iomanip>
 #include <mutex>
 #include <optional>
-#include <sstream>
 #include <thread>
 
 #ifdef YUZU_BUNDLED_OPENSSL
@@ -34,9 +34,6 @@
 
 namespace Service::News {
 namespace {
-
-// TODO(crueter): COMPILE DEFINITION
-constexpr const char* GitHubAPI_EdenReleases = "/api/v1/repos/eden-emu/eden/releases";
 
 // Cached logo data
 std::vector<u8> default_logo_small;
@@ -66,24 +63,6 @@ u32 HashToNewsId(std::string_view key) {
     return static_cast<u32>(std::hash<std::string_view>{}(key) & 0x7FFFFFFF);
 }
 
-u64 ParseIsoTimestamp(const std::string& iso) {
-    if (iso.empty()) return 0;
-
-    std::string buf = iso;
-    if (buf.back() == 'Z') buf.pop_back();
-
-    std::tm tm{};
-    std::istringstream ss(buf);
-    ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
-    if (ss.fail()) return 0;
-
-#ifdef _WIN32
-    return static_cast<u64>(_mkgmtime(&tm));
-#else
-    return static_cast<u64>(timegm(&tm));
-#endif
-}
-
 std::vector<u8> TryLoadFromDisk(const std::filesystem::path& path) {
     if (!std::filesystem::exists(path)) return {};
 
@@ -100,8 +79,9 @@ std::vector<u8> TryLoadFromDisk(const std::filesystem::path& path) {
     return data;
 }
 
+// TODO(crueter): Migrate to use Common::Net
 std::vector<u8> DownloadImage(const std::string& url_path, const std::filesystem::path& cache_path) {
-    LOG_INFO(Service_BCAT, "Downloading image: https://eden-emu.dev{}", url_path);
+    LOG_DEBUG(Service_BCAT, "Downloading image: https://eden-emu.dev{}", url_path);
     try {
         httplib::Client cli("https://eden-emu.dev");
         cli.set_follow_location(true);
@@ -226,67 +206,6 @@ void WriteCachedJson(std::string_view json) {
     (void)Common::FS::WriteStringToFile(path, Common::FS::FileType::TextFile, json);
 }
 
-std::optional<std::string> DownloadReleasesJson() {
-    try {
-#ifdef YUZU_BUNDLED_OPENSSL
-        const auto url = "https://git.eden-emu.dev";
-#else
-        const auto url = "git.eden-emu.dev";
-#endif
-
-        // TODO(crueter): This is duplicated between frontend and here.
-        constexpr auto path = GitHubAPI_EdenReleases;
-
-        constexpr std::size_t timeout_seconds = 15;
-
-        std::unique_ptr<httplib::Client> client = std::make_unique<httplib::Client>(url);
-        client->set_connection_timeout(timeout_seconds);
-        client->set_read_timeout(timeout_seconds);
-        client->set_write_timeout(timeout_seconds);
-
-#ifdef YUZU_BUNDLED_OPENSSL
-        client->load_ca_cert_store(kCert, sizeof(kCert));
-#endif
-
-        if (client == nullptr) {
-            LOG_ERROR(Service_BCAT, "Invalid URL {}{}", url, path);
-            return {};
-        }
-
-        httplib::Request request{
-            .method = "GET",
-            .path = path,
-        };
-
-        client->set_follow_location(true);
-        httplib::Result result = client->send(request);
-
-        if (!result) {
-            LOG_ERROR(Service_BCAT, "GET to {}{} returned null", url, path);
-            return {};
-        } else if (result->status < 400) {
-            return result->body;
-        }
-
-        if (result->status >= 400) {
-            LOG_ERROR(Service_BCAT,
-                      "GET to {}{} returned error status code: {}",
-                      url,
-                      path,
-                      result->status);
-            return {};
-        }
-
-        if (!result->headers.contains("content-type")) {
-            LOG_ERROR(Service_BCAT, "GET to {}{} returned no content", url, path);
-            return {};
-        }
-    } catch (...) {
-        LOG_WARNING(Service_BCAT, " failed to download releases");
-    }
-    return std::nullopt;
-}
-
 // idk but News App does not render Markdown or HTML, so remove some formatting.
 std::string SanitizeMarkdown(std::string_view markdown) {
     std::string result;
@@ -342,9 +261,7 @@ std::string SanitizeMarkdown(std::string_view markdown) {
     return text;
 }
 
-std::string FormatBody(const nlohmann::json& release, std::string_view title) {
-    std::string body = release.value("body", std::string{});
-
+std::string FormatBody(std::string body, const std::string_view &title) {
     if (body.empty()) {
         return std::string(title);
     }
@@ -375,52 +292,32 @@ std::string FormatBody(const nlohmann::json& release, std::string_view title) {
     return body;
 }
 
-void ImportReleases(std::string_view json_text) {
-    nlohmann::json root;
-    try {
-        root = nlohmann::json::parse(json_text);
-    } catch (...) {
-        LOG_WARNING(Service_BCAT, "failed to parse JSON");
-        return;
-    }
-
-    if (!root.is_array()) return;
-
+void ImportReleases(const std::vector<Common::Net::Release> &releases) {
     std::vector<u32> news_ids;
-    for (const auto& rel : root) {
-        if (!rel.is_object()) continue;
-        std::string title = rel.value("name", rel.value("tag_name", std::string{}));
-        if (title.empty()) continue;
-
-        const u64 release_id = rel.value("id", 0);
-        const u32 news_id = release_id ? static_cast<u32>(release_id & 0x7FFFFFFF) : HashToNewsId(title);
+    for (const auto& rel : releases) {
+        const u32 news_id = u32(rel.id & 0x7FFFFFFF);
         news_ids.push_back(news_id);
     }
 
     PreloadNewsImages(news_ids);
 
-    for (const auto& rel : root) {
-        if (!rel.is_object()) continue;
+    for (const auto& rel : releases) {
+        const std::string title = rel.title;
+        const std::string body = rel.body;
+        const std::string html_url = rel.html_url;
 
-        std::string title = rel.value("name", rel.value("tag_name", std::string{}));
-        if (title.empty()) continue;
-
-        const u64 release_id = rel.value("id", 0);
-        const u32 news_id = release_id ? static_cast<u32>(release_id & 0x7FFFFFFF) : HashToNewsId(title);
-        const u64 published = ParseIsoTimestamp(rel.value("published_at", std::string{}));
+        const u32 news_id = u32(rel.id & 0x7FFFFFFF);
+        const u64 published = rel.published;
         const u64 pickup_limit = published + 600000000;
-        const u32 priority = rel.value("prerelease", false) ? 1500 : 2500;
+        const u32 priority = rel.prerelease ? 1500 : 2500;
 
-        std::string author = "eden";
-        if (rel.contains("author") && rel["author"].is_object()) {
-            author = rel["author"].value("login", "eden");
-        }
+        std::string author = "Eden";
 
-        auto payload = BuildMsgpack(title, FormatBody(rel, title), title, published,
+        auto payload = BuildMsgpack(title, FormatBody(body, title), title, published,
                                     pickup_limit, priority, {"en"}, author, {},
-                                    rel.value("html_url", std::string{}), news_id);
+                                    html_url, news_id);
 
-        const std::string news_id_str = fmt::format("LA{:020}", news_id);
+        const std::string news_id_str = fmt::format("LA{:020}", rel.id);
 
         GithubNewsMeta meta{
             .news_id = news_id_str,
@@ -565,15 +462,21 @@ void EnsureBuiltinNewsLoaded() {
         LoadDefaultLogos();
 
         if (const auto cached = ReadCachedJson()) {
-            ImportReleases(*cached);
-            LOG_DEBUG(Service_BCAT, "news: {} entries loaded from cache", NewsStorage::Instance().ListAll().size());
+            const std::string_view body = cached.value();
+            const auto releases = Common::Net::Release::ListFromJson(body, Common::g_build_auto_update_stable_api, Common::g_build_auto_update_stable_repo);
+            ImportReleases(releases);
+
+            LOG_INFO(Service_BCAT, "news: {} entries loaded from cache", NewsStorage::Instance().ListAll().size());
         }
 
         std::thread([] {
-            if (const auto fresh = DownloadReleasesJson()) {
-                WriteCachedJson(*fresh);
-                ImportReleases(*fresh);
-                LOG_DEBUG(Service_BCAT, "news: {} entries updated from Forgejo", NewsStorage::Instance().ListAll().size());
+            if (const auto fresh = Common::Net::GetReleasesBody()) {
+                const std::string_view body = fresh.value();
+                WriteCachedJson(body);
+                const auto releases = Common::Net::Release::ListFromJson(body, Common::g_build_auto_update_stable_api, Common::g_build_auto_update_stable_repo);
+                ImportReleases(releases);
+
+                LOG_INFO(Service_BCAT, "news: {} entries updated from Forgejo", NewsStorage::Instance().ListAll().size());
             }
         }).detach();
     });

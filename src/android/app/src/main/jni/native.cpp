@@ -1699,76 +1699,76 @@ JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isNightlyBuild(
 #ifdef ENABLE_UPDATE_CHECKER
 
 
-JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
+JNIEXPORT jobject JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_checkForUpdate(
         JNIEnv* env,
         jobject obj) {
-    std::optional<UpdateChecker::Update> release = UpdateChecker::GetUpdate();
+    std::optional<Common::Net::Release> release = UpdateChecker::GetUpdate();
     if (!release) return nullptr;
 
     const std::string tag = release->tag;
-    const std::string name = release->name;
+    const std::string title = release->title;
+    const std::string body = release->body;
+    const std::string url = release->html_url;
 
-    jobjectArray result = env->NewObjectArray(2, env->FindClass("java/lang/String"), nullptr);
+    // Android *should* only ever define a single asset.
+    // If not, something has gone wrong, but the Kotlin side can handle it.
+    const auto assets = release->GetPlatformAssets();
 
-    const jstring jtag = env->NewStringUTF(tag.c_str());
-    const jstring jname = env->NewStringUTF(name.c_str());
-
-    env->SetObjectArrayElement(result, 0, jtag);
-    env->SetObjectArrayElement(result, 1, jname);
-    env->DeleteLocalRef(jtag);
-    env->DeleteLocalRef(jname);
-
-    return result;
-}
-
-JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateUrl(
-        JNIEnv* env,
-        jobject obj,
-        jstring version) {
-    const char* version_str = env->GetStringUTFChars(version, nullptr);
-    const std::string url = fmt::format("{}/{}",
-        std::string{Common::g_build_auto_update_api},
-        version_str);
-    env->ReleaseStringUTFChars(version, version_str);
-    return env->NewStringUTF(url.c_str());
-}
-
-JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUpdateApkUrl(
-        JNIEnv* env,
-        jobject obj,
-        jstring tag,
-        jstring artifact,
-        jstring packageId) {
-    const char* version_str = env->GetStringUTFChars(tag, nullptr);
-    const char* artifact_str = env->GetStringUTFChars(artifact, nullptr);
-    const char* package_id_str = env->GetStringUTFChars(packageId, nullptr);
-
-    std::string variant;
-    std::string package_id(package_id_str);
-
-    if (package_id.find("dev.legacy.eden_emulator") != std::string::npos) {
-        variant = "legacy";
-    } else if (package_id.find("com.miHoYo.Yuanshen") != std::string::npos) {
-        variant = "optimized";
-    } else {
-#ifdef ARCHITECTURE_arm64
-        variant = "standard";
-#else
-        variant = "chromeos";
-#endif
+    jclass updateResultClass = env->FindClass("org/yuzu/yuzu_emu/NativeLibrary$UpdateResult");
+    if (!updateResultClass) {
+        LOG_ERROR(Frontend, "Could not find UpdateResult class");
+        return nullptr;
     }
 
-    const std::string apk_filename = fmt::format("Eden-Android-{}-{}.apk", artifact_str, variant);
+    jmethodID updateResultCtor = env->GetMethodID(updateResultClass, "<init>", "()V");
 
-    const std::string url = fmt::format("https://{}/{}/{}",
-        std::string{Common::g_build_auto_update_api},
-        version_str, apk_filename);
+    if (!updateResultCtor) {
+        LOG_ERROR(Frontend, "Could not find UpdateResult ctor");
+        env->DeleteLocalRef(updateResultClass);
+        return nullptr;
+    }
 
-    env->ReleaseStringUTFChars(tag, version_str);
-    env->ReleaseStringUTFChars(artifact, artifact_str);
-    env->ReleaseStringUTFChars(packageId, package_id_str);
-    return env->NewStringUTF(url.c_str());
+    jmethodID setTag = env->GetMethodID(updateResultClass, "setTag", "(Ljava/lang/String;)V");
+    jmethodID setTitle = env->GetMethodID(updateResultClass, "setTitle", "(Ljava/lang/String;)V");
+    jmethodID setBody = env->GetMethodID(updateResultClass, "setBody", "(Ljava/lang/String;)V");
+    jmethodID setUrl = env->GetMethodID(updateResultClass, "setUrl", "(Ljava/lang/String;)V");
+    jmethodID addAsset = env->GetMethodID(updateResultClass, "addAsset", "(Ljava/lang/String;)V");
+
+    jobject updateResult = env->NewObject(updateResultClass, updateResultCtor);
+
+    LOG_DEBUG(Frontend, "Tag: {}", tag);
+    LOG_DEBUG(Frontend, "Title: {}", title);
+    LOG_DEBUG(Frontend, "Body: {}", body);
+    LOG_DEBUG(Frontend, "Url: {}", url);
+
+    const auto jtag = env->NewStringUTF(tag.c_str());
+    const auto jtitle = env->NewStringUTF(title.c_str());
+    const auto jbody = env->NewStringUTF(body.c_str());
+    const auto jurl = env->NewStringUTF(url.c_str());
+
+    env->CallVoidMethod(updateResult, setTag, jtag);
+    env->CallVoidMethod(updateResult, setTitle, jtitle);
+    env->CallVoidMethod(updateResult, setBody, jbody);
+    env->CallVoidMethod(updateResult, setUrl, jurl);
+
+    // TODO(crueter): Handling for multiple assets?
+    // Maybe another data class x(
+    for (const Common::Net::Asset &a : assets) {
+        const auto jaurl = env->NewStringUTF(a.path.c_str());
+        env->CallVoidMethod(updateResult, addAsset, jaurl);
+        env->DeleteLocalRef(jaurl);
+    }
+
+    env->DeleteLocalRef(jtag);
+    env->DeleteLocalRef(jtitle);
+    env->DeleteLocalRef(jbody);
+    env->DeleteLocalRef(jurl);
+
+    env->DeleteLocalRef(updateResultClass);
+
+    return updateResult;
 }
+
 #endif
 
 JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getBuildVersion(

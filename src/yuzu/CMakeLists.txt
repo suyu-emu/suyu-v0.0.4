@@ -245,6 +245,8 @@ add_executable(yuzu
 
     render/performance_overlay.h render/performance_overlay.cpp render/performance_overlay.ui
     libqt_common.h libqt_common.cpp
+    updater/update_dialog.h updater/update_dialog.cpp updater/update_dialog.ui
+
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
