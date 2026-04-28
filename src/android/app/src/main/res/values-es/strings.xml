@@ -767,7 +767,7 @@
     <string name="version">Versión</string>
     <string name="copy_details">Copiar detalles</string>
     <string name="add_ons">Complementos</string>
-    <string name="add_ons_description">Activa/desactiva mods, actualizaciones y contenidos descargables</string>
+    <string name="add_ons_description">Alternar mods, actualizaciones y contenido descargable</string>
     <string name="playtime">Tiempo jugado:</string>
     <string name="reset_playtime">Borrar tiempo de juego</string>
     <string name="reset_playtime_description">Restablecer el tiempo de juego actual a 0 segundos</string>
