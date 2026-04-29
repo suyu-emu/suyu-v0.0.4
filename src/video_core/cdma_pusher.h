@@ -18,11 +18,11 @@
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
 #include "core/memory.h"
+#include "video_core/host1x/control.h"
 
 namespace Tegra {
 
 namespace Host1x {
-class Control;
 class Host1x;
 class Nvdec;
 class SyncptIncrManager;
@@ -121,9 +121,6 @@ protected:
     virtual void ProcessMethod(u32 method, u32 arg) = 0;
 
 private:
-    /// Process the command entry
-    void ProcessEntries(std::stop_token stop_token);
-
     /// Invoke command class devices to execute the command based on the current state
     void ExecuteCommand(u32 state_offset, u32 data);
 
@@ -131,11 +128,11 @@ protected:
     ThiRegisters thi_regs{};
     std::deque<ChCommandHeaderList> command_lists;
     std::condition_variable_any command_cv;
-    std::jthread thread;
-    std::unique_ptr<Host1x::Control> host_processor;
+    Host1x::Control host_processor;
     std::mutex command_mutex;
     Host1x::Host1x& host1x;
     ChClassId current_class;
+    std::jthread thread;
 };
 
 } // namespace Tegra

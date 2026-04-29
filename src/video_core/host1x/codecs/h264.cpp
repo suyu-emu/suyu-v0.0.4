@@ -51,11 +51,11 @@ bool H264::IsInterlaced() {
 }
 
 std::span<const u8> H264::ComposeFrame() {
-    host1x.memory_manager.ReadBlock(regs.picture_info_offset.Address(), &current_context, sizeof(H264DecoderContext));
+    host1x.gmmu_manager.ReadBlock(regs.picture_info_offset.Address(), &current_context, sizeof(H264DecoderContext));
     const s64 frame_number = current_context.h264_parameter_set.frame_number.Value();
     if (!is_first_frame && frame_number != 0) {
         frame_scratch.resize_destructive(current_context.stream_len);
-        host1x.memory_manager.ReadBlock(regs.frame_bitstream_offset.Address(), frame_scratch.data(), frame_scratch.size());
+        host1x.gmmu_manager.ReadBlock(regs.frame_bitstream_offset.Address(), frame_scratch.data(), frame_scratch.size());
         return frame_scratch;
     }
 
@@ -177,7 +177,7 @@ std::span<const u8> H264::ComposeFrame() {
     const auto& encoded_header = writer.GetByteArray();
     frame_scratch.resize(encoded_header.size() + current_context.stream_len);
     std::memcpy(frame_scratch.data(), encoded_header.data(), encoded_header.size());
-    host1x.memory_manager.ReadBlock(regs.frame_bitstream_offset.Address(), frame_scratch.data() + encoded_header.size(), current_context.stream_len);
+    host1x.gmmu_manager.ReadBlock(regs.frame_bitstream_offset.Address(), frame_scratch.data() + encoded_header.size(), current_context.stream_len);
     return frame_scratch;
 }
 

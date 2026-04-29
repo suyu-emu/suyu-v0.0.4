@@ -19,45 +19,6 @@
 
 namespace VideoCommon::GPUThread {
 
-/// Runs the GPU thread
-static void RunThread(std::stop_token stop_token, Core::System& system,
-                      VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
-                      Tegra::Control::Scheduler& scheduler, SynchState& state) {
-    Common::SetCurrentThreadName("GPU");
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
-    system.RegisterHostThread();
-
-    auto current_context = context.Acquire();
-    VideoCore::RasterizerInterface* const rasterizer = renderer.ReadRasterizer();
-
-    CommandDataContainer next;
-
-    while (!stop_token.stop_requested()) {
-        state.queue.PopWait(next, stop_token);
-        if (stop_token.stop_requested()) {
-            break;
-        }
-        if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
-            scheduler.Push(submit_list->channel, std::move(submit_list->entries));
-        } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
-            system.GPU().TickWork();
-        } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
-            rasterizer->FlushRegion(flush->addr, flush->size);
-        } else if (const auto* invalidate = std::get_if<InvalidateRegionCommand>(&next.data)) {
-            rasterizer->OnCacheInvalidation(invalidate->addr, invalidate->size);
-        } else {
-            ASSERT(false);
-        }
-        state.signaled_fence.store(next.fence);
-        if (next.block) {
-            // We have to lock the write_lock to ensure that the condition_variable wait not get a
-            // race between the check and the lock itself.
-            std::scoped_lock lk{state.write_lock};
-            state.cv.notify_all();
-        }
-    }
-}
-
 ThreadManager::ThreadManager(Core::System& system_, bool is_async_)
     : system{system_}, is_async{is_async_} {}
 
@@ -65,8 +26,38 @@ ThreadManager::~ThreadManager() = default;
 
 void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context, Tegra::Control::Scheduler& scheduler) {
     rasterizer = renderer.ReadRasterizer();
-    thread = std::jthread(RunThread, std::ref(system), std::ref(renderer), std::ref(context),
-                          std::ref(scheduler), std::ref(state));
+    thread = std::jthread([&](std::stop_token stop_token) {
+        Common::SetCurrentThreadName("GPU");
+        Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
+        system.RegisterHostThread();
+
+        auto current_context = context.Acquire();
+        CommandDataContainer next;
+        while (!stop_token.stop_requested()) {
+            state.queue.PopWait(next, stop_token);
+            if (stop_token.stop_requested()) {
+                break;
+            }
+            if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
+                scheduler.Push(submit_list->channel, std::move(submit_list->entries));
+            } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
+                system.GPU().TickWork();
+            } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
+                renderer.ReadRasterizer()->FlushRegion(flush->addr, flush->size);
+            } else if (const auto* invalidate = std::get_if<InvalidateRegionCommand>(&next.data)) {
+                renderer.ReadRasterizer()->OnCacheInvalidation(invalidate->addr, invalidate->size);
+            } else {
+                ASSERT(false);
+            }
+            state.signaled_fence.store(next.fence);
+            if (next.block) {
+                // We have to lock the write_lock to ensure that the condition_variable wait not get a
+                // race between the check and the lock itself.
+                std::scoped_lock lk{state.write_lock};
+                state.cv.notify_all();
+            }
+        }
+    });
 }
 
 void ThreadManager::SubmitList(s32 channel, Tegra::CommandList&& entries) {
