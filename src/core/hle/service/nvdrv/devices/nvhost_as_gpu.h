@@ -165,35 +165,36 @@ private:
     NvCore::NvMap& nvmap;
 
     struct Mapping {
-        NvCore::NvMap::Handle::Id handle;
         DAddr ptr;
         u64 offset;
         u64 size;
-        bool fixed;
-        bool big_page; // Only valid if fixed == false
-        bool sparse_alloc;
+        NvCore::NvMap::Handle::Id handle;
+        bool fixed : 1;
+        bool big_page : 1; // Only valid if fixed == false
+        bool sparse_alloc : 1;
 
-        Mapping(NvCore::NvMap::Handle::Id handle_, DAddr ptr_, u64 offset_, u64 size_, bool fixed_,
-                bool big_page_, bool sparse_alloc_)
-            : handle(handle_), ptr(ptr_), offset(offset_), size(size_), fixed(fixed_),
-              big_page(big_page_), sparse_alloc(sparse_alloc_) {}
+        Mapping(NvCore::NvMap::Handle::Id handle_, DAddr ptr_, u64 offset_, u64 size_, bool fixed_, bool big_page_, bool sparse_alloc_)
+            : ptr(ptr_), offset(offset_), size(size_), handle(handle_)
+            , fixed(fixed_), big_page(big_page_), sparse_alloc(sparse_alloc_)
+        {}
     };
 
     struct Allocation {
+        std::vector<u64> mappings;
         u64 size;
-        std::list<std::shared_ptr<Mapping>> mappings;
         u32 page_size;
         bool sparse;
         bool big_pages;
     };
 
-    std::map<u64, std::shared_ptr<Mapping>>
-        mapping_map; //!< This maps the base addresses of mapped buffers to their total sizes and
-                     //!< mapping type, this is needed as what was originally a single buffer may
-                     //!< have been split into multiple GPU side buffers with the remap flag.
-    std::map<u64, Allocation> allocation_map; //!< Holds allocations created by AllocSpace from
-                                              //!< which fixed buffers can be mapped into
-    std::mutex mutex;                         //!< Locks all AS operations
+    //!< This maps the base addresses of mapped buffers to their total sizes and
+    //!< mapping type, this is needed as what was originally a single buffer may
+    //!< have been split into multiple GPU side buffers with the remap flag.
+    std::map<u64, Mapping> mapping_map;
+    //!< Holds allocations created by AllocSpace from
+    //!< which fixed buffers can be mapped into
+    std::map<u64, Allocation> allocation_map;
+    std::mutex mutex; //!< Locks all AS operations
 
     struct VM {
         static constexpr u32 YUZU_PAGESIZE{0x1000};
@@ -213,9 +214,8 @@ private:
 
         using Allocator = Common::FlatAllocator<u32, 0, 32>;
 
-        std::unique_ptr<Allocator> big_page_allocator;
-        std::shared_ptr<Allocator>
-            small_page_allocator; //! Shared as this is also used by nvhost::GpuChannel
+        std::optional<Allocator> big_page_allocator;
+        std::optional<Allocator> small_page_allocator; //! Shared as this is also used by nvhost::GpuChannel
 
         bool initialised{};
     } vm;
