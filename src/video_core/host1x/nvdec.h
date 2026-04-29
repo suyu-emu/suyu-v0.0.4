@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -8,10 +8,14 @@
 
 #include <memory>
 #include <vector>
+#include <variant>
 
 #include "common/common_types.h"
 #include "video_core/cdma_pusher.h"
 #include "video_core/host1x/codecs/decoder.h"
+#include "video_core/host1x/codecs/h264.h"
+#include "video_core/host1x/codecs/vp8.h"
+#include "video_core/host1x/codecs/vp9.h"
 
 namespace Tegra {
 
@@ -21,7 +25,7 @@ class FrameQueue;
 
 class Nvdec final : public CDmaPusher {
 public:
-    explicit Nvdec(Host1x& host1x, s32 id, u32 syncpt, FrameQueue& frame_queue_);
+    explicit Nvdec(Host1x& host1x, s32 id, u32 syncpt);
     ~Nvdec();
 
     /// Writes the method into the state, Invoke Execute() if encountered
@@ -38,12 +42,15 @@ private:
     /// Invoke codec to decode a frame
     void Execute();
 
+    NvdecCommon::NvdecRegisters regs{};
+    std::variant<
+        Decoders::H264,
+        Decoders::VP8,
+        Decoders::VP9,
+        std::monostate
+    > decoder = std::monostate{};
     s32 id;
     u32 syncpoint;
-    FrameQueue& frame_queue;
-
-    NvdecCommon::NvdecRegisters regs{};
-    std::unique_ptr<Decoder> decoder;
 };
 
 } // namespace Host1x

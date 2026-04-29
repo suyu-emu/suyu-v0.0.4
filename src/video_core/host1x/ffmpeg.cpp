@@ -9,7 +9,7 @@
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/memory.h"
-#include "video_core/host1x/ffmpeg/ffmpeg.h"
+#include "video_core/host1x/ffmpeg.h"
 #include "video_core/memory_manager.h"
 
 extern "C" {
@@ -34,7 +34,9 @@ constexpr std::array PreferredGpuDecoders = {
     AV_HWDEVICE_TYPE_DXVA2,
     AV_HWDEVICE_TYPE_D3D12VA,
 #elif defined(__FreeBSD__)
+    AV_HWDEVICE_TYPE_VAAPI,
     AV_HWDEVICE_TYPE_VDPAU,
+    AV_HWDEVICE_TYPE_DRM,
 #elif defined(__APPLE__)
     AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
 #elif defined(ANDROID)
@@ -105,18 +107,17 @@ Frame::~Frame() {
 Decoder::Decoder(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
     const AVCodecID av_codec = [&] {
         switch (codec) {
-            case Tegra::Host1x::NvdecCommon::VideoCodec::H264:
-                return AV_CODEC_ID_H264;
-            case Tegra::Host1x::NvdecCommon::VideoCodec::VP8:
-                return AV_CODEC_ID_VP8;
-            case Tegra::Host1x::NvdecCommon::VideoCodec::VP9:
-                return AV_CODEC_ID_VP9;
-            default:
-                UNIMPLEMENTED_MSG("Unknown codec {}", codec);
-                return AV_CODEC_ID_NONE;
+        case Tegra::Host1x::NvdecCommon::VideoCodec::H264:
+            return AV_CODEC_ID_H264;
+        case Tegra::Host1x::NvdecCommon::VideoCodec::VP8:
+            return AV_CODEC_ID_VP8;
+        case Tegra::Host1x::NvdecCommon::VideoCodec::VP9:
+            return AV_CODEC_ID_VP9;
+        default:
+            UNIMPLEMENTED_MSG("Unknown codec {}", codec);
+            return AV_CODEC_ID_NONE;
         }
     }();
-
     m_codec = avcodec_find_decoder(av_codec);
 }
 

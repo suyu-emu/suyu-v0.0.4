@@ -1,9 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <variant>
 #include "common/assert.h"
 
 #include "common/polyfill_thread.h"
@@ -19,10 +20,13 @@ namespace Tegra::Host1x {
 #define NVDEC_REG_INDEX(field_name)                                                                \
     (offsetof(NvdecCommon::NvdecRegisters, field_name) / sizeof(u64))
 
-Nvdec::Nvdec(Host1x& host1x_, s32 id_, u32 syncpt, FrameQueue& frame_queue_)
-    : CDmaPusher{host1x_, id_}, id{id_}, syncpoint{syncpt}, frame_queue{frame_queue_} {
+Nvdec::Nvdec(Host1x& host1x_, s32 id_, u32 syncpt)
+    : CDmaPusher{host1x_, id_}
+    , id{id_}
+    , syncpoint{syncpt}
+{
     LOG_INFO(HW_GPU, "Created nvdec {}", id);
-    frame_queue.Open(id);
+    host1x.frame_queue.Open(id);
 }
 
 Nvdec::~Nvdec() {
@@ -43,24 +47,22 @@ void Nvdec::ProcessMethod(u32 method, u32 argument) {
 }
 
 void Nvdec::CreateDecoder(NvdecCommon::VideoCodec codec) {
-    if (decoder.get()) {
-        return;
+    if (std::holds_alternative<std::monostate>(decoder)) {
+        switch (codec) {
+        case NvdecCommon::VideoCodec::H264:
+            decoder.emplace<Decoders::H264>(host1x, regs, id);
+            break;
+        case NvdecCommon::VideoCodec::VP8:
+            decoder.emplace<Decoders::VP8>(host1x, regs, id);
+            break;
+        case NvdecCommon::VideoCodec::VP9:
+            decoder.emplace<Decoders::VP9>(host1x, regs, id);
+            break;
+        default:
+            break;
+        }
+        LOG_INFO(HW_GPU, "Created decoder {} for id {}", codec, id);
     }
-    switch (codec) {
-    case NvdecCommon::VideoCodec::H264:
-        decoder = std::make_unique<Decoders::H264>(host1x, regs, id, frame_queue);
-        break;
-    case NvdecCommon::VideoCodec::VP8:
-        decoder = std::make_unique<Decoders::VP8>(host1x, regs, id, frame_queue);
-        break;
-    case NvdecCommon::VideoCodec::VP9:
-        decoder = std::make_unique<Decoders::VP9>(host1x, regs, id, frame_queue);
-        break;
-    default:
-        UNIMPLEMENTED_MSG("Codec {}", decoder->GetCurrentCodecName());
-        break;
-    }
-    LOG_INFO(HW_GPU, "Created decoder {} for id {}", decoder->GetCurrentCodecName(), id);
 }
 
 void Nvdec::Execute() {
@@ -70,15 +72,14 @@ void Nvdec::Execute() {
         std::this_thread::sleep_for(std::chrono::milliseconds(8));
         return;
     }
-    switch (decoder->GetCurrentCodec()) {
-    case NvdecCommon::VideoCodec::H264:
-    case NvdecCommon::VideoCodec::VP8:
-    case NvdecCommon::VideoCodec::VP9:
-        decoder->Decode();
-        break;
-    default:
-        UNIMPLEMENTED_MSG("Codec {}", decoder->GetCurrentCodecName());
-        break;
+    if (auto* h264 = std::get_if<Decoders::H264>(&decoder)) {
+        h264->Decode();
+    } else if (auto* vp8 = std::get_if<Decoders::VP8>(&decoder)) {
+        vp8->Decode();
+    } else if (auto* vp9 = std::get_if<Decoders::VP9>(&decoder)) {
+        vp9->Decode();
+    } else {
+        LOG_ERROR(HW_GPU, "Unrecognized codec executed?");
     }
 }
 

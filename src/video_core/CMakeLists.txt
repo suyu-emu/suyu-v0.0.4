@@ -8,7 +8,7 @@ add_subdirectory(host_shaders)
 add_subdirectory(gpu_logging)
 
 if(LIBVA_FOUND)
-    set_source_files_properties(host1x/ffmpeg/ffmpeg.cpp
+    set_source_files_properties(host1x/ffmpeg.cpp
         PROPERTIES COMPILE_DEFINITIONS LIBVA_FOUND=1)
     list(APPEND FFmpeg_LIBRARIES ${LIBVA_LIBRARIES})
 endif()
@@ -71,9 +71,9 @@ add_library(video_core STATIC
     host1x/codecs/vp8.h
     host1x/codecs/vp9.cpp
     host1x/codecs/vp9.h
-    host1x/codecs/vp9_types.h
-    host1x/ffmpeg/ffmpeg.cpp
-    host1x/ffmpeg/ffmpeg.h
+    host1x/codec_types.h
+    host1x/ffmpeg.cpp
+    host1x/ffmpeg.h
     host1x/control.cpp
     host1x/control.h
     host1x/gpu_device_memory_manager.cpp

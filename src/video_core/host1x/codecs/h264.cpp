@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -14,25 +14,11 @@
 #include "video_core/memory_manager.h"
 
 namespace Tegra::Decoders {
-namespace {
-// ZigZag LUTs from libavcodec.
-constexpr std::array<u8, 64> zig_zag_direct{
-    0,  1,  8,  16, 9,  2,  3,  10, 17, 24, 32, 25, 18, 11, 4,  5,  12, 19, 26, 33, 40, 48,
-    41, 34, 27, 20, 13, 6,  7,  14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23,
-    30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63,
-};
 
-constexpr std::array<u8, 16> zig_zag_scan{
-    0 + 0 * 4, 1 + 0 * 4, 0 + 1 * 4, 0 + 2 * 4, 1 + 1 * 4, 2 + 0 * 4, 3 + 0 * 4, 2 + 1 * 4,
-    1 + 2 * 4, 0 + 3 * 4, 1 + 3 * 4, 2 + 2 * 4, 3 + 1 * 4, 3 + 2 * 4, 2 + 3 * 4, 3 + 3 * 4,
-};
-} // Anonymous namespace
-
-H264::H264(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs_, s32 id_,
-           Host1x::FrameQueue& frame_queue_)
-    : Decoder{host1x_, id_, regs_, frame_queue_} {
-    codec = Host1x::NvdecCommon::VideoCodec::H264;
-    initialized = decode_api.Initialize(codec);
+H264::H264(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs_, s32 id_)
+    : Decoder{host1x_, id_, regs_}
+{
+    initialized = decode_api.Initialize(Host1x::NvdecCommon::VideoCodec::H264);
 }
 
 H264::~H264() = default;
@@ -65,14 +51,11 @@ bool H264::IsInterlaced() {
 }
 
 std::span<const u8> H264::ComposeFrame() {
-    memory_manager.ReadBlock(regs.picture_info_offset.Address(), &current_context,
-                             sizeof(H264DecoderContext));
-
+    host1x.memory_manager.ReadBlock(regs.picture_info_offset.Address(), &current_context, sizeof(H264DecoderContext));
     const s64 frame_number = current_context.h264_parameter_set.frame_number.Value();
     if (!is_first_frame && frame_number != 0) {
         frame_scratch.resize_destructive(current_context.stream_len);
-        memory_manager.ReadBlock(regs.frame_bitstream_offset.Address(), frame_scratch.data(),
-                                 frame_scratch.size());
+        host1x.memory_manager.ReadBlock(regs.frame_bitstream_offset.Address(), frame_scratch.data(), frame_scratch.size());
         return frame_scratch;
     }
 
@@ -174,15 +157,13 @@ std::span<const u8> H264::ComposeFrame() {
 
     for (s32 index = 0; index < 6; index++) {
         writer.WriteBit(true);
-        std::span<const u8> matrix{current_context.weight_scale_4x4};
-        writer.WriteScalingList(scan_scratch, matrix, index * 16, 16);
+        writer.WriteScalingList(current_context.weight_scale_4x4, index * 16, 16);
     }
 
     if (current_context.h264_parameter_set.transform_8x8_mode_flag) {
         for (s32 index = 0; index < 2; index++) {
             writer.WriteBit(true);
-            std::span<const u8> matrix{current_context.weight_scale_8x8};
-            writer.WriteScalingList(scan_scratch, matrix, index * 64, 64);
+            writer.WriteScalingList(current_context.weight_scale_8x8, index * 64, 64);
         }
     }
 
@@ -196,11 +177,7 @@ std::span<const u8> H264::ComposeFrame() {
     const auto& encoded_header = writer.GetByteArray();
     frame_scratch.resize(encoded_header.size() + current_context.stream_len);
     std::memcpy(frame_scratch.data(), encoded_header.data(), encoded_header.size());
-
-    memory_manager.ReadBlock(regs.frame_bitstream_offset.Address(),
-                             frame_scratch.data() + encoded_header.size(),
-                             current_context.stream_len);
-
+    host1x.memory_manager.ReadBlock(regs.frame_bitstream_offset.Address(), frame_scratch.data() + encoded_header.size(), current_context.stream_len);
     return frame_scratch;
 }
 
@@ -229,23 +206,37 @@ void H264BitWriter::WriteBit(bool state) {
     WriteBits(state ? 1 : 0, 1);
 }
 
-void H264BitWriter::WriteScalingList(Common::ScratchBuffer<u8>& scan, std::span<const u8> list,
-                                     s32 start, s32 count) {
-    scan.resize_destructive(count);
+void H264BitWriter::WriteScalingList(std::span<const u8> list, s32 start, s32 count) {
     if (count == 16) {
-        std::memcpy(scan.data(), zig_zag_scan.data(), scan.size());
+        u8 last_scale = 8;
+        for (s32 index = 0; index < count; index++) {
+            // libavcodec has a zig zag LUT, but we dont need it, just use a magic
+            // constant which is a packing of 4 bits for each component of the table
+            const u8 value = list[start + ((0xfeb7adc963258410 >> (index * 4)) & 0xf)];
+            const s32 delta_scale = s32(value - last_scale);
+            WriteSe(delta_scale);
+            last_scale = value;
+        }
     } else {
-        std::memcpy(scan.data(), zig_zag_direct.data(), scan.size());
-    }
-    u8 last_scale = 8;
-
-    for (s32 index = 0; index < count; index++) {
-        const u8 value = list[start + scan[index]];
-        const s32 delta_scale = static_cast<s32>(value - last_scale);
-
-        WriteSe(delta_scale);
-
-        last_scale = value;
+        // ZigZag LUTs from libavcodec: this is the famous zigzag pattern found in the ffmpeg logo itself!
+        static constexpr std::array<u8, 64> scan{
+            0,  1,  8,  16, 9,  2,  3,  10,
+            17, 24, 32, 25, 18, 11, 4,
+            5,  12, 19, 26, 33, 40, 48,
+            41, 34, 27, 20, 13, 6,  7,
+            14, 21, 28, 35, 42, 49, 56,
+            57, 50, 43, 36, 29, 22, 15,
+            23, 30, 37, 44, 51, 58, 59,
+            52, 45, 38, 31, 39, 46, 53,
+            60, 61, 54, 47, 55, 62, 63,
+        };
+        u8 last_scale = 8;
+        for (s32 index = 0; index < count; index++) {
+            const u8 value = list[start + scan[index]];
+            const s32 delta_scale = s32(value - last_scale);
+            WriteSe(delta_scale);
+            last_scale = value;
+        }
     }
 }
 
@@ -286,19 +277,15 @@ void H264BitWriter::WriteBits(s32 value, s32 bit_count) {
 
 void H264BitWriter::WriteExpGolombCodedInt(s32 value) {
     const s32 sign = value <= 0 ? 0 : 1;
-    if (value < 0) {
-        value = -value;
-    }
-    value = (value << 1) - sign;
-    WriteExpGolombCodedUInt(value);
+    if (!sign) value = -value;
+    WriteExpGolombCodedUInt((value << 1) - sign);
 }
 
 void H264BitWriter::WriteExpGolombCodedUInt(u32 value) {
     const s32 size = 32 - std::countl_zero(value + 1);
     WriteBits(1, size);
-
     value -= (1U << (size - 1)) - 1;
-    WriteBits(static_cast<s32>(value), size - 1);
+    WriteBits(s32(value), size - 1);
 }
 
 s32 H264BitWriter::GetFreeBufferBits() {

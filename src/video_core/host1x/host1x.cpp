@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
@@ -12,9 +12,12 @@
 namespace Tegra::Host1x {
 
 Host1x::Host1x(Core::System& system_)
-    : system{system_}, syncpoint_manager{},
-      memory_manager(system.DeviceMemory()), gmmu_manager{system, memory_manager, 32, 0, 12},
-      allocator{std::make_unique<Common::FlatAllocator<u32, 0, 32>>(1 << 12)} {}
+    : system{system_}
+    , syncpoint_manager{}
+    , memory_manager(system.DeviceMemory())
+    , gmmu_manager{system, memory_manager, 32, 0, 12}
+    , allocator{1 << 12}
+{}
 
 Host1x::~Host1x() = default;
 
@@ -24,13 +27,13 @@ void Host1x::StartDevice(s32 fd, ChannelType type, u32 syncpt) {
 #ifdef YUZU_LEGACY
         std::call_once(nvdec_first_init, []() {std::this_thread::sleep_for(std::chrono::milliseconds{500});}); // HACK: For Astroneer
 #endif
-        devices[fd] = std::make_unique<Tegra::Host1x::Nvdec>(*this, fd, syncpt, frame_queue);
+        devices[fd] = std::make_unique<Tegra::Host1x::Nvdec>(*this, fd, syncpt);
         break;
     case ChannelType::VIC:
 #ifdef YUZU_LEGACY
         std::call_once(vic_first_init, []() {std::this_thread::sleep_for(std::chrono::milliseconds{500});}); // HACK: For Astroneer
 #endif
-        devices[fd] = std::make_unique<Tegra::Host1x::Vic>(*this, fd, syncpt, frame_queue);
+        devices[fd] = std::make_unique<Tegra::Host1x::Vic>(*this, fd, syncpt);
         break;
     default:
         LOG_ERROR(HW_GPU, "Unimplemented host1x device {}", static_cast<u32>(type));

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -12,10 +12,11 @@
 
 namespace Tegra {
 
-Decoder::Decoder(Host1x::Host1x& host1x_, s32 id_, const Host1x::NvdecCommon::NvdecRegisters& regs_,
-                 Host1x::FrameQueue& frame_queue_)
-    : host1x(host1x_), memory_manager{host1x.GMMU()}, regs{regs_}, id{id_}, frame_queue{
-                                                                                frame_queue_} {}
+Decoder::Decoder(Host1x::Host1x& host1x_, s32 id_, const Host1x::NvdecCommon::NvdecRegisters& regs_)
+    : host1x(host1x_)
+    , regs{regs_}
+    , id{id_}
+{}
 
 Decoder::~Decoder() = default;
 
@@ -53,11 +54,11 @@ void Decoder::Decode() {
         }
 
         if (UsingDecodeOrder()) {
-            frame_queue.PushDecodeOrder(id, luma_top, std::move(frame));
-            frame_queue.PushDecodeOrder(id, luma_bottom, std::move(frame_copy));
+            host1x.frame_queue.PushDecodeOrder(id, luma_top, std::move(frame));
+            host1x.frame_queue.PushDecodeOrder(id, luma_bottom, std::move(frame_copy));
         } else {
-            frame_queue.PushPresentOrder(id, luma_top, std::move(frame));
-            frame_queue.PushPresentOrder(id, luma_bottom, std::move(frame_copy));
+            host1x.frame_queue.PushPresentOrder(id, luma_top, std::move(frame));
+            host1x.frame_queue.PushPresentOrder(id, luma_bottom, std::move(frame_copy));
         }
     } else {
         auto [luma_offset, chroma_offset] = GetProgressiveOffsets();
@@ -68,9 +69,9 @@ void Decoder::Decode() {
         }
 
         if (UsingDecodeOrder()) {
-            frame_queue.PushDecodeOrder(id, luma_offset, std::move(frame));
+            host1x.frame_queue.PushDecodeOrder(id, luma_offset, std::move(frame));
         } else {
-            frame_queue.PushPresentOrder(id, luma_offset, std::move(frame));
+            host1x.frame_queue.PushPresentOrder(id, luma_offset, std::move(frame));
         }
     }
 }

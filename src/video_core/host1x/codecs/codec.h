@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,16 +11,13 @@
 #include <string_view>
 #include <queue>
 #include "common/common_types.h"
-#include "video_core/host1x/ffmpeg/ffmpeg.h"
+#include "video_core/host1x/codecs/h264.h"
+#include "video_core/host1x/codecs/vp8.h"
+#include "video_core/host1x/codecs/vp9.h"
+#include "video_core/host1x/ffmpeg.h"
 #include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
-
-namespace Decoder {
-class H264;
-class VP8;
-class VP9;
-} // namespace Decoder
 
 namespace Host1x {
 class Host1x;
@@ -40,9 +40,6 @@ public:
     /// Returns next decoded frame
     [[nodiscard]] std::unique_ptr<FFmpeg::Frame> GetCurrentFrame();
 
-    /// Returns the value of current_codec
-    [[nodiscard]] Host1x::NvdecCommon::VideoCodec GetCurrentCodec() const;
-
     /// Return name of the current codec
     [[nodiscard]] std::string_view GetCurrentCodecName() const;
 
@@ -53,10 +50,9 @@ private:
 
     Host1x::Host1x& host1x;
     const Host1x::NvdecCommon::NvdecRegisters& state;
-    std::unique_ptr<Decoder::H264> h264_decoder;
-    std::unique_ptr<Decoder::VP8> vp8_decoder;
-    std::unique_ptr<Decoder::VP9> vp9_decoder;
-
+    Decoders::H264 h264_decoder;
+    Decoders::VP8 vp8_decoder;
+    Decoders::VP9 vp9_decoder;
     std::queue<std::unique_ptr<FFmpeg::Frame>> frames{};
 };
 

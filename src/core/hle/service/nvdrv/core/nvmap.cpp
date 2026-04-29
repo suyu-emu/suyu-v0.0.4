@@ -89,7 +89,7 @@ void NvMap::UnmapHandle(Handle& handle_description) {
 
     // Free and unmap the handle from Host1x GMMU
     if (handle_description.pin_virt_address) {
-        host1x.GMMU().Unmap(static_cast<GPUVAddr>(handle_description.pin_virt_address),
+        host1x.gmmu_manager.Unmap(static_cast<GPUVAddr>(handle_description.pin_virt_address),
                             handle_description.aligned_size);
         host1x.Allocator().Free(handle_description.pin_virt_address,
                                 static_cast<u32>(handle_description.aligned_size));
@@ -169,12 +169,8 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, bool low_area_pin) {
     std::scoped_lock lock(handle_description->mutex);
     const auto map_low_area = [&] {
         if (handle_description->pin_virt_address == 0) {
-            auto& gmmu_allocator = host1x.Allocator();
-            auto& gmmu = host1x.GMMU();
-            u32 address =
-                gmmu_allocator.Allocate(static_cast<u32>(handle_description->aligned_size));
-            gmmu.Map(static_cast<GPUVAddr>(address), handle_description->d_address,
-                     handle_description->aligned_size);
+            u32 address = host1x.Allocator().Allocate(u32(handle_description->aligned_size));
+            host1x.gmmu_manager.Map(GPUVAddr(address), handle_description->d_address, handle_description->aligned_size);
             handle_description->pin_virt_address = address;
         }
     };

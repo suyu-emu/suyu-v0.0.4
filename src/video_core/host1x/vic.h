@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -15,6 +15,7 @@
 #include "common/common_types.h"
 #include "common/scratch_buffer.h"
 #include "video_core/cdma_pusher.h"
+#include "video_core/host1x/host1x.h"
 
 namespace Tegra::Host1x {
 class Host1x;
@@ -605,7 +606,7 @@ public:
         SetOutputSurfaceChromaUnusedOffset = offsetof(VicRegisters, output_surface.chroma_v)
     };
 
-    explicit Vic(Host1x& host1x, s32 id, u32 syncpt, FrameQueue& frame_queue) noexcept;
+    explicit Vic(Host1x& host1x, s32 id, u32 syncpt) noexcept;
     ~Vic() noexcept;
 
     /// Write to the device state.
@@ -620,18 +621,17 @@ private:
     void WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) noexcept;
     void WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixelFormat format) noexcept;
 
-    s32 id;
-    s32 nvdec_id{-1};
-    u32 syncpoint;
-
     VicRegisters regs{};
-    FrameQueue& frame_queue;
 
     Common::ScratchBuffer<u8> swizzle_scratch;
     Common::ScratchBuffer<Pixel> output_surface;
     Common::ScratchBuffer<Pixel> slot_surface;
     Common::ScratchBuffer<u8> luma_scratch;
     Common::ScratchBuffer<u8> chroma_scratch;
+
+    s32 id;
+    s32 nvdec_id{-1};
+    u32 syncpoint;
 };
 
 } // namespace Tegra::Host1x

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,9 +16,12 @@
 namespace Tegra {
 
 Codec::Codec(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs)
-    : host1x(host1x_), state{regs}, h264_decoder(std::make_unique<Decoder::H264>(host1x)),
-      vp8_decoder(std::make_unique<Decoder::VP8>(host1x)),
-      vp9_decoder(std::make_unique<Decoder::VP9>(host1x)) {}
+    : host1x(host1x_)
+    , state{regs}
+    , h264_decoder(host1x_)
+    , vp8_decoder(host1x_)
+    , vp9_decoder(host1x_)
+{}
 
 Codec::~Codec() = default;
 
@@ -32,13 +38,11 @@ void Codec::SetTargetCodec(Host1x::NvdecCommon::VideoCodec codec) {
 
 void Codec::Decode() {
     const bool is_first_frame = !initialized;
-    if (is_first_frame) {
+    if (is_first_frame)
         Initialize();
-    }
 
-    if (!initialized) {
+    if (!initialized)
         return;
-    }
 
     // Assemble bitstream.
     bool vp9_hidden_frame = false;
@@ -46,13 +50,13 @@ void Codec::Decode() {
     const auto packet_data = [&]() {
         switch (current_codec) {
         case Tegra::Host1x::NvdecCommon::VideoCodec::H264:
-            return h264_decoder->ComposeFrame(state, &configuration_size, is_first_frame);
+            return h264_decoder.ComposeFrame(state, &configuration_size, is_first_frame);
         case Tegra::Host1x::NvdecCommon::VideoCodec::VP8:
-            return vp8_decoder->ComposeFrame(state);
+            return vp8_decoder.ComposeFrame(state);
         case Tegra::Host1x::NvdecCommon::VideoCodec::VP9:
-            vp9_decoder->ComposeFrame(state);
-            vp9_hidden_frame = vp9_decoder->WasFrameHidden();
-            return vp9_decoder->GetFrameBytes();
+            vp9_decoder.ComposeFrame(state);
+            vp9_hidden_frame = vp9_decoder.WasFrameHidden();
+            return vp9_decoder.GetFrameBytes();
         default:
             ASSERT(false);
             return std::span<const u8>{};
@@ -81,17 +85,11 @@ void Codec::Decode() {
 std::unique_ptr<FFmpeg::Frame> Codec::GetCurrentFrame() {
     // Sometimes VIC will request more frames than have been decoded.
     // in this case, return a blank frame and don't overwrite previous data.
-    if (frames.empty()) {
+    if (frames.empty())
         return {};
-    }
-
     auto frame = std::move(frames.front());
     frames.pop();
     return frame;
-}
-
-Host1x::NvdecCommon::VideoCodec Codec::GetCurrentCodec() const {
-    return current_codec;
 }
 
 std::string_view Codec::GetCurrentCodecName() const {

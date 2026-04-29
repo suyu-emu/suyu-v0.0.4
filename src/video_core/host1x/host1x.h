@@ -184,20 +184,12 @@ public:
         return memory_manager;
     }
 
-    Tegra::MemoryManager& GMMU() {
-        return gmmu_manager;
-    }
-
-    const Tegra::MemoryManager& GMMU() const {
-        return gmmu_manager;
-    }
-
     Common::FlatAllocator<u32, 0, 32>& Allocator() {
-        return *allocator;
+        return allocator;
     }
 
     const Common::FlatAllocator<u32, 0, 32>& Allocator() const {
-        return *allocator;
+        return allocator;
     }
 
     void StartDevice(s32 fd, ChannelType type, u32 syncpt);
@@ -211,12 +203,11 @@ public:
         it->second->PushEntries(std::move(entries));
     }
 
-private:
     Core::System& system;
     SyncpointManager syncpoint_manager;
     Tegra::MaxwellDeviceMemoryManager memory_manager;
     Tegra::MemoryManager gmmu_manager;
-    std::unique_ptr<Common::FlatAllocator<u32, 0, 32>> allocator;
+    Common::FlatAllocator<u32, 0, 32> allocator;
     FrameQueue frame_queue;
     ankerl::unordered_dense::map<s32, std::unique_ptr<CDmaPusher>> devices;
 #ifdef YUZU_LEGACY

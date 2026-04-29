@@ -85,18 +85,17 @@ void SwizzleSurface(std::span<u8> output, u32 out_stride, std::span<const u8> in
 
 } // namespace
 
-Vic::Vic(Host1x& host1x_, s32 id_, u32 syncpt, FrameQueue& frame_queue_) noexcept :
-    CDmaPusher{host1x_, id_}
+Vic::Vic(Host1x& host1x_, s32 id_, u32 syncpt) noexcept
+    : CDmaPusher{host1x_, id_}
     , id{id_}
     , syncpoint{syncpt}
-    , frame_queue{frame_queue_}
 {
     LOG_INFO(HW_GPU, "Created vic {}", id);
 }
 
 Vic::~Vic() noexcept {
     LOG_INFO(HW_GPU, "Destroying vic {}", id);
-    frame_queue.Close(id);
+    host1x.frame_queue.Close(id);
 }
 
 void Vic::ProcessMethod(u32 method, u32 arg) noexcept {
@@ -113,7 +112,7 @@ void Vic::ProcessMethod(u32 method, u32 arg) noexcept {
 
 void Vic::Execute() noexcept {
     ConfigStruct config{};
-    memory_manager.ReadBlock(regs.config_struct_offset.Address(), &config, sizeof(ConfigStruct));
+    host1x.gmmu_manager.ReadBlock(regs.config_struct_offset.Address(), &config, sizeof(ConfigStruct));
 
     auto output_width = config.output_surface_config.out_surface_width + 1;
     auto output_height = config.output_surface_config.out_surface_height + 1;
@@ -124,8 +123,8 @@ void Vic::Execute() noexcept {
             if (auto& slot_config = config.slot_structs[i]; slot_config.config.slot_enable) {
                 auto const luma_offset = regs.surfaces[i][SurfaceIndex::Current].luma.Address();
                 if (nvdec_id == -1)
-                    nvdec_id = frame_queue.VicFindNvdecFdFromOffset(luma_offset);
-                if (auto frame = frame_queue.GetFrame(nvdec_id, luma_offset); frame.get()) {
+                    nvdec_id = host1x.frame_queue.VicFindNvdecFdFromOffset(luma_offset);
+                if (auto frame = host1x.frame_queue.GetFrame(nvdec_id, luma_offset); frame.get()) {
                     switch (frame->GetPixelFormat()) {
                     case AV_PIX_FMT_YUV420P:
                         ReadY8__V8U8_N420(slot_config, regs.surfaces[i], std::move(frame), true);
@@ -881,8 +880,8 @@ void Vic::WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) n
         chroma_scratch.resize_destructive(out_chroma_size);
         Decode(luma_scratch.data(), chroma_scratch.data());
 
-        Tegra::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeWrite> out_luma(memory_manager, regs.output_surface.luma.Address(), out_luma_swizzle_size, &swizzle_scratch);
-        Tegra::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeWrite> out_chroma(memory_manager, regs.output_surface.chroma_u.Address(), out_chroma_swizzle_size, &swizzle_scratch);
+        Tegra::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeWrite> out_luma(host1x.gmmu_manager, regs.output_surface.luma.Address(), out_luma_swizzle_size, &swizzle_scratch);
+        Tegra::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeWrite> out_chroma(host1x.gmmu_manager, regs.output_surface.chroma_u.Address(), out_chroma_swizzle_size, &swizzle_scratch);
         if (block_height == 1) {
             SwizzleSurface(out_luma, out_luma_stride, luma_scratch, out_luma_stride, out_luma_height);
             SwizzleSurface(out_chroma, out_chroma_stride, chroma_scratch, out_chroma_stride, out_chroma_height);
@@ -910,8 +909,8 @@ void Vic::WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) n
         luma_scratch.resize_destructive(out_luma_size);
         chroma_scratch.resize_destructive(out_chroma_size);
         Decode(luma_scratch.data(), chroma_scratch.data());
-        memory_manager.WriteBlock(regs.output_surface.luma.Address(), luma_scratch.data(), out_luma_size);
-        memory_manager.WriteBlock(regs.output_surface.chroma_u.Address(), chroma_scratch.data(), out_chroma_size);
+        host1x.gmmu_manager.WriteBlock(regs.output_surface.luma.Address(), luma_scratch.data(), out_luma_size);
+        host1x.gmmu_manager.WriteBlock(regs.output_surface.chroma_u.Address(), chroma_scratch.data(), out_chroma_size);
     } break;
     default:
         UNREACHABLE();
@@ -1046,7 +1045,7 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixel
         luma_scratch.resize_destructive(out_luma_size);
         Decode(luma_scratch.data(), output_surface.data());
 
-        Tegra::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeWrite> out_luma(memory_manager, regs.output_surface.luma.Address(), out_swizzle_size, &swizzle_scratch);
+        Tegra::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeWrite> out_luma(host1x.gmmu_manager, regs.output_surface.luma.Address(), out_swizzle_size, &swizzle_scratch);
         if (block_height == 1) {
             SwizzleSurface(out_luma, out_luma_stride, luma_scratch, out_luma_stride, out_luma_height);
         } else {
@@ -1061,7 +1060,7 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixel
             surface_stride * surface_height * BytesPerPixel, out_luma_width, out_luma_height,
             out_luma_stride, out_luma_size);
         luma_scratch.resize_destructive(out_luma_size);
-        Tegra::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeWrite> out_luma(memory_manager, regs.output_surface.luma.Address(), out_luma_size, &luma_scratch);
+        Tegra::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeWrite> out_luma(host1x.gmmu_manager, regs.output_surface.luma.Address(), out_luma_size, &luma_scratch);
         Decode(out_luma.data(), output_surface.data());
     } break;
     default:

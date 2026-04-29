@@ -1,10 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm> // for std::copy
+#include <bit>
 #include <numeric>
 
 #include "common/alignment.h"
@@ -15,11 +16,11 @@
 
 namespace Tegra::Decoders {
 namespace {
-constexpr u32 diff_update_probability = 252;
-constexpr u32 frame_sync_code = 0x498342;
+static constexpr u32 diff_update_probability = 252;
+static constexpr u32 frame_sync_code = 0x498342;
 
 // Default compressed header probabilities once frame context resets
-constexpr Vp9EntropyProbs default_probs{
+static constexpr Vp9EntropyProbs default_probs{
     .y_mode_prob{
         65,  32, 18, 144, 162, 194, 41, 51, 98, 132, 68,  18, 165, 217, 196, 45, 40, 78,
         173, 80, 19, 176, 240, 193, 64, 35, 46, 221, 135, 38, 194, 248, 121, 96, 85, 29,
@@ -158,34 +159,6 @@ constexpr Vp9EntropyProbs default_probs{
     .high_precision{128, 128},
 };
 
-constexpr std::array<u8, 256> norm_lut{
-    0, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-};
-
-constexpr std::array<u8, 254> map_lut{
-    20,  21,  22,  23,  24,  25,  0,   26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,
-    1,   38,  39,  40,  41,  42,  43,  44,  45,  46,  47,  48,  49,  2,   50,  51,  52,  53,  54,
-    55,  56,  57,  58,  59,  60,  61,  3,   62,  63,  64,  65,  66,  67,  68,  69,  70,  71,  72,
-    73,  4,   74,  75,  76,  77,  78,  79,  80,  81,  82,  83,  84,  85,  5,   86,  87,  88,  89,
-    90,  91,  92,  93,  94,  95,  96,  97,  6,   98,  99,  100, 101, 102, 103, 104, 105, 106, 107,
-    108, 109, 7,   110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 8,   122, 123, 124,
-    125, 126, 127, 128, 129, 130, 131, 132, 133, 9,   134, 135, 136, 137, 138, 139, 140, 141, 142,
-    143, 144, 145, 10,  146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 11,  158, 159,
-    160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 12,  170, 171, 172, 173, 174, 175, 176, 177,
-    178, 179, 180, 181, 13,  182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 14,  194,
-    195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 15,  206, 207, 208, 209, 210, 211, 212,
-    213, 214, 215, 216, 217, 16,  218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 17,
-    230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 18,  242, 243, 244, 245, 246, 247,
-    248, 249, 250, 251, 252, 253, 19,
-};
-
 // 6.2.14 Tile size calculation
 
 [[nodiscard]] s32 CalcMinLog2TileCols(s32 frame_width) {
@@ -227,25 +200,17 @@ constexpr std::array<u8, 254> map_lut{
 [[nodiscard]] s32 RemapProbability(s32 new_prob, s32 old_prob) {
     new_prob--;
     old_prob--;
-
-    std::size_t index{};
-
-    if (old_prob * 2 <= 0xff) {
-        index = static_cast<std::size_t>((std::max)(0, RecenterNonNeg(new_prob, old_prob) - 1));
-    } else {
-        index = static_cast<std::size_t>(
-            (std::max)(0, RecenterNonNeg(0xff - 1 - new_prob, 0xff - 1 - old_prob) - 1));
-    }
-
-    return static_cast<s32>(map_lut[index]);
+    u8 i = old_prob * 2 <= 0xff
+        ? u8((std::max)(0, RecenterNonNeg(new_prob, old_prob) - 1))
+        : u8((std::max)(0, RecenterNonNeg(0xff - 1 - new_prob, 0xff - 1 - old_prob) - 1));
+    return s32((i + 7) % 13 == 0 ? (i + 7) / 13 - 1 : i + 20 - (i + 7) / 13);
 }
 } // Anonymous namespace
 
-VP9::VP9(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs_, s32 id_,
-         Host1x::FrameQueue& frame_queue_)
-    : Decoder{host1x_, id_, regs_, frame_queue_} {
-    codec = Host1x::NvdecCommon::VideoCodec::VP9;
-    initialized = decode_api.Initialize(codec);
+VP9::VP9(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs_, s32 id_)
+    : Decoder{host1x_, id_, regs_}
+{
+    initialized = decode_api.Initialize(Host1x::NvdecCommon::VideoCodec::VP9);
 }
 
 VP9::~VP9() = default;
@@ -377,8 +342,7 @@ void VP9::WriteSegmentation(VpxBitStreamWriter& writer) {
 
     if (update_map) {
         EntropyProbs entropy_probs{};
-        memory_manager.ReadBlock(regs.vp9_prob_tab_buffer_offset.Address(), &entropy_probs,
-                                 sizeof(entropy_probs));
+        host1x.gmmu_manager.ReadBlock(regs.vp9_prob_tab_buffer_offset.Address(), &entropy_probs, sizeof(entropy_probs));
 
         auto WriteProb = [&](u8 prob) {
             bool coded = prob != 255;
@@ -442,8 +406,7 @@ void VP9::WriteSegmentation(VpxBitStreamWriter& writer) {
 }
 
 Vp9PictureInfo VP9::GetVp9PictureInfo() {
-    memory_manager.ReadBlock(regs.picture_info_offset.Address(), &current_picture_info,
-                             sizeof(PictureInfo));
+    host1x.gmmu_manager.ReadBlock(regs.picture_info_offset.Address(), &current_picture_info, sizeof(PictureInfo));
     Vp9PictureInfo vp9_info = current_picture_info.Convert();
 
     InsertEntropy(regs.vp9_prob_tab_buffer_offset.Address(), vp9_info.entropy);
@@ -459,7 +422,7 @@ Vp9PictureInfo VP9::GetVp9PictureInfo() {
 
 void VP9::InsertEntropy(u64 offset, Vp9EntropyProbs& dst) {
     EntropyProbs entropy;
-    memory_manager.ReadBlock(offset, &entropy, sizeof(EntropyProbs));
+    host1x.gmmu_manager.ReadBlock(offset, &entropy, sizeof(EntropyProbs));
     entropy.Convert(dst);
 }
 
@@ -469,9 +432,7 @@ Vp9FrameContainer VP9::GetCurrentFrame() {
         // gpu.SyncGuestHost(); epic, why?
         current_frame.info = GetVp9PictureInfo();
         current_frame.bit_stream.resize(current_frame.info.bitstream_size);
-        memory_manager.ReadBlock(regs.frame_bitstream_offset.Address(),
-                                 current_frame.bit_stream.data(),
-                                 current_frame.info.bitstream_size);
+        host1x.gmmu_manager.ReadBlock(regs.frame_bitstream_offset.Address(), current_frame.bit_stream.data(), current_frame.info.bitstream_size);
     }
     if (!next_frame.bit_stream.empty()) {
         Vp9FrameContainer temp{
@@ -893,13 +854,9 @@ std::span<const u8> VP9::ComposeFrame() {
     // Write headers and frame to buffer
     frame_scratch.resize(uncompressed_header.size() + compressed_header.size() + bitstream.size());
     std::copy(uncompressed_header.begin(), uncompressed_header.end(), frame_scratch.begin());
-    std::copy(compressed_header.begin(), compressed_header.end(),
-              frame_scratch.begin() + uncompressed_header.size());
-    std::copy(bitstream.begin(), bitstream.end(),
-              frame_scratch.begin() + uncompressed_header.size() + compressed_header.size());
-
+    std::copy(compressed_header.begin(), compressed_header.end(), frame_scratch.begin() + uncompressed_header.size());
+    std::copy(bitstream.begin(), bitstream.end(), frame_scratch.begin() + uncompressed_header.size() + compressed_header.size());
     vp9_hidden_frame = WasFrameHidden();
-
     return GetFrameBytes();
 }
 
@@ -929,7 +886,7 @@ void VpxRangeEncoder::Write(bool bit, s32 probability) {
         local_range = range - split;
     }
 
-    s32 shift = static_cast<s32>(norm_lut[local_range]);
+    s32 shift = s32(local_range == 0 ? 0 : (std::countl_zero<uint32_t>(local_range) - 24));
     local_range <<= shift;
     count += shift;
 
