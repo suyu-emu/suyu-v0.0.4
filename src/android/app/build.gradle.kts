@@ -88,7 +88,6 @@ android {
                         "-DBUILD_TESTING=OFF",
                         "-DYUZU_TESTS=OFF",
                         "-DDYNARMIC_TESTS=OFF",
-                        "-DENABLE_UPDATE_CHECKER=ON",
                         *extraCMakeArgs.toTypedArray()
                     )
                 )
