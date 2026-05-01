@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -164,7 +167,7 @@ Result IndirectStorage::OperatePerEntry(s64 offset, s64 size, F func) {
     R_SUCCEED_IF(size == 0);
 
     // Get the table offsets.
-    BucketTree::Offsets table_offsets;
+    BucketTree::Offsets table_offsets{};
     R_TRY(m_table.GetOffsets(std::addressof(table_offsets)));
 
     // Validate arguments.

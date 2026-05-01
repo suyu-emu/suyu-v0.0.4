@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -270,7 +270,7 @@ Result BucketTree::Find(Visitor* visitor, s64 virtual_address) {
     R_UNLESS(virtual_address >= 0, ResultInvalidOffset);
     R_UNLESS(!this->IsEmpty(), ResultOutOfRange);
 
-    BucketTree::Offsets offsets;
+    BucketTree::Offsets offsets{};
     R_TRY(this->GetOffsets(std::addressof(offsets)));
 
     R_TRY(visitor->Initialize(this, offsets));

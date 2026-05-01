@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -125,7 +125,7 @@ private:
             }
 
             // Get the table offsets.
-            BucketTree::Offsets table_offsets;
+            BucketTree::Offsets table_offsets{};
             R_TRY(m_table.GetOffsets(std::addressof(table_offsets)));
 
             // Validate arguments.
@@ -177,7 +177,7 @@ private:
             ASSERT(out != nullptr);
 
             // Get our table offsets.
-            BucketTree::Offsets offsets;
+            BucketTree::Offsets offsets{};
             R_TRY(m_table.GetOffsets(std::addressof(offsets)));
 
             // Set the output.
@@ -195,7 +195,7 @@ private:
             R_SUCCEED_IF(size == 0);
 
             // Get the table offsets.
-            BucketTree::Offsets table_offsets;
+            BucketTree::Offsets table_offsets{};
             R_TRY(m_table.GetOffsets(std::addressof(table_offsets)));
 
             // Validate arguments.
