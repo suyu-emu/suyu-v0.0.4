@@ -1153,5 +1153,6 @@
     <string name="license_fidelityfx_fsr_description">Upscaling de alta calidad de AMD</string>
     <string name="external_content">Contenido externo</string>
     <string name="add_folders">Añadir carpeta</string>
+    <string name="percent">%1$d%%</string>
 
 </resources>

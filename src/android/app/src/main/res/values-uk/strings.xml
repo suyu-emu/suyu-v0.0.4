@@ -1155,5 +1155,6 @@
     <string name="license_fidelityfx_fsr_description">Високоякісне масштабування від AMD</string>
     <string name="external_content">Зовнішній вміст</string>
     <string name="add_folders">Додати теку</string>
+    <string name="percent">%1$d%%</string>
 
 </resources>

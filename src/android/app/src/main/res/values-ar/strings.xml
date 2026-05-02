@@ -1159,5 +1159,6 @@
     <string name="license_fidelityfx_fsr_description">تحسين الجودة بدرجة عالية من AMD</string>
     <string name="external_content">محتوى خارجي</string>
     <string name="add_folders">إضافة مجلد</string>
+    <string name="percent">%1$d%%</string>
 
 </resources>
