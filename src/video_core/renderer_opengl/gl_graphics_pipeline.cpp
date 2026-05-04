@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "common/logging/log.h"
 #include "common/settings.h" // for enum class Settings::ShaderBackend
 #include "common/thread_worker.h"
 #include "shader_recompiler/shader_info.h"
@@ -234,35 +235,57 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
     auto func{[this, sources_ = std::move(sources), sources_spirv_ = std::move(sources_spirv),
                shader_notify, backend, in_parallel,
                force_context_flush](ShaderContext::Context*) mutable {
-        for (size_t stage = 0; stage < 5; ++stage) {
-            switch (backend) {
-            case Settings::ShaderBackend::Glsl:
-                if (!sources_[stage].empty()) {
-                    source_programs[stage] = CreateProgram(sources_[stage], Stage(stage));
-                }
-                break;
-            case Settings::ShaderBackend::Glasm:
-                if (!sources_[stage].empty()) {
-                    assembly_programs[stage] =
-                        CompileProgram(sources_[stage], AssemblyStage(stage));
-                }
-                break;
-            case Settings::ShaderBackend::SpirV:
-                if (!sources_spirv_[stage].empty()) {
-                    source_programs[stage] = CreateProgram(sources_spirv_[stage], Stage(stage));
-                }
-                break;
+        const auto signal_failure = [this, force_context_flush, in_parallel] {
+            if (force_context_flush || in_parallel) {
+                std::scoped_lock lock{built_mutex};
+                build_failed = true;
+                built_condvar.notify_one();
+            } else {
+                build_failed = true;
+                is_built = true;
             }
+        };
+
+        try {
+            for (size_t stage = 0; stage < 5; ++stage) {
+                switch (backend) {
+                case Settings::ShaderBackend::Glsl:
+                    if (!sources_[stage].empty()) {
+                        source_programs[stage] = CreateProgram(sources_[stage], Stage(stage));
+                    }
+                    break;
+                case Settings::ShaderBackend::Glasm:
+                    if (!sources_[stage].empty()) {
+                        assembly_programs[stage] =
+                            CompileProgram(sources_[stage], AssemblyStage(stage));
+                    }
+                    break;
+                case Settings::ShaderBackend::SpirV:
+                    if (!sources_spirv_[stage].empty()) {
+                        source_programs[stage] =
+                            CreateProgram(sources_spirv_[stage], Stage(stage));
+                    }
+                    break;
+                }
+            }
+            if (force_context_flush || in_parallel) {
+                std::scoped_lock lock{built_mutex};
+                built_fence.Create();
+                // Flush this context to ensure compilation commands and fence are in the GPU pipe.
+                glFlush();
+                built_condvar.notify_one();
+            } else {
+                is_built = true;
+            }
+        } catch (const std::exception& e) {
+            LOG_ERROR(Render_OpenGL, "OpenGL graphics pipeline build failed: {}", e.what());
+            signal_failure();
+        } catch (...) {
+            LOG_ERROR(Render_OpenGL,
+                      "OpenGL graphics pipeline build failed with an unknown exception");
+            signal_failure();
         }
-        if (force_context_flush || in_parallel) {
-            std::scoped_lock lock{built_mutex};
-            built_fence.Create();
-            // Flush this context to ensure compilation commands and fence are in the GPU pipe.
-            glFlush();
-            built_condvar.notify_one();
-        } else {
-            is_built = true;
-        }
+
         if (shader_notify) {
             shader_notify->MarkShaderComplete();
         }
@@ -438,6 +461,9 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
 
     if (!IsBuilt()) {
         WaitForBuild();
+        if (build_failed) {
+            return;
+        }
     }
     const bool use_assembly{assembly_programs[0].handle != 0};
     if (use_assembly) {
@@ -615,15 +641,24 @@ void GraphicsPipeline::GenerateTransformFeedbackState() {
 }
 
 void GraphicsPipeline::WaitForBuild() {
+    if (build_failed) {
+        return;
+    }
     if (built_fence.handle == 0) {
         std::unique_lock lock{built_mutex};
-        built_condvar.wait(lock, [this] { return built_fence.handle != 0; });
+        built_condvar.wait(lock, [this] { return built_fence.handle != 0 || build_failed; });
+    }
+    if (build_failed) {
+        return;
     }
     ASSERT(glClientWaitSync(built_fence.handle, 0, GL_TIMEOUT_IGNORED) != GL_WAIT_FAILED);
     is_built = true;
 }
 
 bool GraphicsPipeline::IsBuilt() noexcept {
+    if (build_failed) {
+        return true;
+    }
     if (is_built) {
         return true;
     }

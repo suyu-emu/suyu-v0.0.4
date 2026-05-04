@@ -387,6 +387,9 @@ GraphicsPipeline* ShaderCache::CurrentGraphicsPipelineSlowPath() {
 }
 
 GraphicsPipeline* ShaderCache::BuiltPipeline(GraphicsPipeline* pipeline) const noexcept {
+    if (pipeline->BuildFailed()) {
+        return nullptr;
+    }
     if (pipeline->IsBuilt()) {
         return pipeline;
     }

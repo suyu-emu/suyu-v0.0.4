@@ -167,6 +167,11 @@ endif()
 
 # SPIRV-Tools
 if (SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+    set(_suyu_spirv_tools_headers_dir
+        ${CMAKE_SOURCE_DIR}/externals/spirv-headers-extract/SPIRV-Headers-6146b3d9ad4fcc5fb512209d348e97ce03749169)
+    if (EXISTS ${_suyu_spirv_tools_headers_dir}/CMakeLists.txt)
+        set(SPIRV-Headers_SOURCE_DIR ${_suyu_spirv_tools_headers_dir})
+    endif()
     add_subdirectory(SPIRV-Tools)
     # SPIRV-Tools requires C++17; override the root-level /std:c++20 compile option
     # to avoid C++20 operator== recursion issues in small_vector.h
@@ -177,6 +182,7 @@ if (SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
             endif()
         endforeach()
     endif()
+    unset(_suyu_spirv_tools_headers_dir)
 endif()
 
 # TZDB (Time Zone Database)

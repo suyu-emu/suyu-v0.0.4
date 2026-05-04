@@ -171,6 +171,7 @@ private:
     PrivateSettings m_private_settings{};
     DeviceSettings m_device_settings{};
     ApplnSettings m_appln_settings{};
+    std::mutex m_settings_mutex;
     std::mutex m_save_needed_mutex;
     std::jthread m_save_thread;
     bool m_save_needed{false};

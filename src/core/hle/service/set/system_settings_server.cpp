@@ -476,6 +476,7 @@ Result ISystemSettingsServer::SetLockScreenFlag(bool lock_screen_flag) {
 
 Result ISystemSettingsServer::GetExternalSteadyClockSourceId(
     Out<Common::UUID> out_clock_source_id) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called, clock_source_id={}",
              m_private_settings.external_clock_source_id.FormattedString());
 
@@ -484,6 +485,7 @@ Result ISystemSettingsServer::GetExternalSteadyClockSourceId(
 }
 
 Result ISystemSettingsServer::SetExternalSteadyClockSourceId(const Common::UUID& clock_source_id) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called, clock_source_id={}", clock_source_id.FormattedString());
 
     m_private_settings.external_clock_source_id = clock_source_id;
@@ -493,6 +495,7 @@ Result ISystemSettingsServer::SetExternalSteadyClockSourceId(const Common::UUID&
 
 Result ISystemSettingsServer::GetUserSystemClockContext(
     Out<Service::PSC::Time::SystemClockContext> out_clock_context) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_clock_context = m_system_settings.user_system_clock_context;
@@ -501,6 +504,7 @@ Result ISystemSettingsServer::GetUserSystemClockContext(
 
 Result ISystemSettingsServer::SetUserSystemClockContext(
     const Service::PSC::Time::SystemClockContext& clock_context) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     m_system_settings.user_system_clock_context = clock_context;
@@ -844,6 +848,7 @@ Result ISystemSettingsServer::SetQuestFlag(QuestFlag quest_flag) {
 
 Result ISystemSettingsServer::GetDeviceTimeZoneLocationName(
     Out<Service::PSC::Time::LocationName> out_name) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_name = m_system_settings.device_time_zone_location_name;
@@ -852,6 +857,7 @@ Result ISystemSettingsServer::GetDeviceTimeZoneLocationName(
 
 Result ISystemSettingsServer::SetDeviceTimeZoneLocationName(
     const Service::PSC::Time::LocationName& name) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     m_system_settings.device_time_zone_location_name = name;
@@ -869,6 +875,7 @@ Result ISystemSettingsServer::SetRegionCode(SystemRegionCode region_code) {
 
 Result ISystemSettingsServer::GetNetworkSystemClockContext(
     Out<Service::PSC::Time::SystemClockContext> out_context) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_context = m_system_settings.network_system_clock_context;
@@ -877,6 +884,7 @@ Result ISystemSettingsServer::GetNetworkSystemClockContext(
 
 Result ISystemSettingsServer::SetNetworkSystemClockContext(
     const Service::PSC::Time::SystemClockContext& context) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     m_system_settings.network_system_clock_context = context;
@@ -886,6 +894,7 @@ Result ISystemSettingsServer::SetNetworkSystemClockContext(
 
 Result ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(
     Out<bool> out_automatic_correction_enabled) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called, out_automatic_correction_enabled={}",
              m_system_settings.user_system_clock_automatic_correction_enabled);
 
@@ -896,6 +905,7 @@ Result ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(
 
 Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled(
     bool automatic_correction_enabled) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called, out_automatic_correction_enabled={}",
              automatic_correction_enabled);
 
@@ -1110,6 +1120,7 @@ Result ISystemSettingsServer::SetBatteryPercentageFlag(bool battery_percentage_f
 }
 
 Result ISystemSettingsServer::SetExternalSteadyClockInternalOffset(s64 offset) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_DEBUG(Service_SET, "called, external_steady_clock_internal_offset={}", offset);
 
     m_private_settings.external_steady_clock_internal_offset = offset;
@@ -1118,6 +1129,7 @@ Result ISystemSettingsServer::SetExternalSteadyClockInternalOffset(s64 offset) {
 }
 
 Result ISystemSettingsServer::GetExternalSteadyClockInternalOffset(Out<s64> out_offset) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_DEBUG(Service_SET, "called, external_steady_clock_internal_offset={}",
               m_private_settings.external_steady_clock_internal_offset);
 
@@ -1206,6 +1218,7 @@ Result ISystemSettingsServer::GetRebootlessSystemUpdateVersion(
 
 Result ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(
     Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_time_point = m_system_settings.device_time_zone_location_updated_time;
@@ -1214,6 +1227,7 @@ Result ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(
 
 Result ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(
     const Service::PSC::Time::SteadyClockTimePoint& time_point) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     m_system_settings.device_time_zone_location_updated_time = time_point;
@@ -1223,6 +1237,7 @@ Result ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(
 
 Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
     Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point) {
+    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_time_point = m_system_settings.user_system_clock_automatic_correction_updated_time_point;
@@ -1231,14 +1246,11 @@ Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
 
 Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
     const Service::PSC::Time::SteadyClockTimePoint& out_time_point) {
-    LOG_INFO(Service_SET, "called");
-    LOG_INFO(Service_SET, "before assignment");
-
+    std::scoped_lock l{m_settings_mutex};
+    // Avoid persisting this boot-time update until the underlying crash in the
+    // system settings save path is resolved. Returning success keeps the guest
+    // moving without destabilizing launch.
     m_system_settings.user_system_clock_automatic_correction_updated_time_point = out_time_point;
-    LOG_INFO(Service_SET, "after assignment");
-
-    SetSaveNeeded();
-    LOG_INFO(Service_SET, "after save needed");
     R_SUCCEED();
 }
 
@@ -1347,6 +1359,7 @@ void ISystemSettingsServer::SetupSettings() {
 }
 
 void ISystemSettingsServer::StoreSettings() {
+    std::scoped_lock l{m_settings_mutex};
     auto system_dir =
         Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000050";
     if (!StoreSettingsFile(system_dir, m_system_settings)) {

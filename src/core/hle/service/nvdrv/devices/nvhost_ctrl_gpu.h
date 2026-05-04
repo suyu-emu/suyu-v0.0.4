@@ -99,6 +99,21 @@ private:
     };
     static_assert(sizeof(IoctlActiveSlotMask) == 8, "IoctlActiveSlotMask is incorrect size");
 
+    struct IoctlNumVsms {
+        u32_le num_vsms{};
+        u32_le reserved{};
+    };
+    static_assert(sizeof(IoctlNumVsms) == 8, "IoctlNumVsms is incorrect size");
+
+    struct IoctlVsmsMapping {
+        u8 sm0_gpc_index{};
+        u8 sm0_tpc_index{};
+        u8 sm1_gpc_index{};
+        u8 sm1_tpc_index{};
+        u32_le reserved{};
+    };
+    static_assert(sizeof(IoctlVsmsMapping) == 8, "IoctlVsmsMapping is incorrect size");
+
     struct IoctlZcullGetCtxSize {
         u32_le size;
     };
@@ -159,6 +174,8 @@ private:
     NvResult GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u32> tpc_mask);
 
     NvResult GetActiveSlotMask(IoctlActiveSlotMask& params);
+    NvResult NumVsms(IoctlNumVsms& params);
+    NvResult VsmsMapping(IoctlVsmsMapping& params);
     NvResult ZCullGetCtxSize(IoctlZcullGetCtxSize& params);
     NvResult ZCullGetInfo(IoctlNvgpuGpuZcullGetInfoArgs& params);
     NvResult ZBCSetTable(IoctlZbcSetTable& params);

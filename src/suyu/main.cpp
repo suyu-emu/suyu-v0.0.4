@@ -6,6 +6,8 @@
 #include <cmath>
 #include <algorithm>
 #include <cctype>
+#include <cstdio>
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -119,8 +121,10 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #ifdef _WIN32
+#include <DbgHelp.h>
 #include <shlobj.h>
 #include "common/windows/timer_resolution.h"
+#pragma comment(lib, "Dbghelp.lib")
 #endif
 #ifdef ARCHITECTURE_x86_64
 #include "common/x64/cpu_detect.h"
@@ -186,6 +190,105 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "suyu/vk_device_info.h"
 #include "ui_main.h"
 #include "util/overlay_dialog.h"
+
+static void AppendTerminateMessage(std::string_view message) {
+    std::fprintf(stderr, "%.*s\n", static_cast<int>(message.size()), message.data());
+    try {
+        const auto log_path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::LogDir) /
+                              "suyu_log.txt";
+        std::ofstream log_file(log_path, std::ios::app);
+        if (log_file.is_open()) {
+            log_file << "[terminate] " << message << '\n';
+        }
+    } catch (...) {
+    }
+}
+
+static void InstallTerminateLogger() {
+    std::set_terminate([] {
+        std::string message{"Unhandled exception reached std::terminate without details."};
+        if (const auto exception = std::current_exception()) {
+            try {
+                std::rethrow_exception(exception);
+            } catch (const std::exception& e) {
+                message = fmt::format("Unhandled exception reached std::terminate: {}", e.what());
+            } catch (...) {
+                message = "Unhandled non-std exception reached std::terminate.";
+            }
+        }
+        AppendTerminateMessage(message);
+        std::abort();
+    });
+}
+
+#ifdef _WIN32
+static void LogStackTraceFromContext(CONTEXT context) {
+    HANDLE process = GetCurrentProcess();
+    HANDLE thread = GetCurrentThread();
+
+    SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_UNDNAME);
+    SymInitialize(process, nullptr, TRUE);
+
+    STACKFRAME64 stack_frame{};
+    DWORD machine_type = IMAGE_FILE_MACHINE_AMD64;
+    stack_frame.AddrPC.Offset = context.Rip;
+    stack_frame.AddrPC.Mode = AddrModeFlat;
+    stack_frame.AddrFrame.Offset = context.Rbp;
+    stack_frame.AddrFrame.Mode = AddrModeFlat;
+    stack_frame.AddrStack.Offset = context.Rsp;
+    stack_frame.AddrStack.Mode = AddrModeFlat;
+
+    alignas(SYMBOL_INFO) char symbol_storage[sizeof(SYMBOL_INFO) + MAX_SYM_NAME]{};
+    auto* symbol = reinterpret_cast<SYMBOL_INFO*>(symbol_storage);
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    symbol->MaxNameLen = MAX_SYM_NAME;
+
+    for (int frame_index = 0; frame_index < 32; ++frame_index) {
+        if (!StackWalk64(machine_type, process, thread, &stack_frame, &context, nullptr,
+                         SymFunctionTableAccess64, SymGetModuleBase64, nullptr) ||
+            stack_frame.AddrPC.Offset == 0) {
+            break;
+        }
+
+        DWORD64 displacement = 0;
+        if (SymFromAddr(process, stack_frame.AddrPC.Offset, &displacement, symbol)) {
+            AppendTerminateMessage(
+                fmt::format("[seh-stack] {} + 0x{:X}", symbol->Name, displacement));
+        } else {
+            AppendTerminateMessage(fmt::format("[seh-stack] 0x{:X}", stack_frame.AddrPC.Offset));
+        }
+    }
+}
+
+static LONG CALLBACK LogVectoredSehException(EXCEPTION_POINTERS* exception_pointers) {
+    constexpr DWORD cpp_exception_code = 0xE06D7363;
+    if (exception_pointers->ExceptionRecord->ExceptionCode != cpp_exception_code) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    static LONG logged_count = 0;
+    if (InterlockedIncrement(&logged_count) > 8) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    AppendTerminateMessage(fmt::format("Observed C++ exception 0x{:08X} at {}",
+                                       cpp_exception_code,
+                                       exception_pointers->ExceptionRecord->ExceptionAddress));
+    LogStackTraceFromContext(*exception_pointers->ContextRecord);
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+static LONG WINAPI LogUnhandledSehException(EXCEPTION_POINTERS* exception_pointers) {
+    const auto exception_code = exception_pointers->ExceptionRecord->ExceptionCode;
+    const auto exception_address = exception_pointers->ExceptionRecord->ExceptionAddress;
+    AppendTerminateMessage(
+        fmt::format("Unhandled SEH exception 0x{:08X} at {}", exception_code, exception_address));
+
+    LogStackTraceFromContext(*exception_pointers->ContextRecord);
+
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+#endif
 #include "video_core/gpu.h"
 #include "video_core/renderer_base.h"
 #include "video_core/shader_notify.h"
@@ -429,78 +532,20 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
         }
     }
 
-    game_list->LoadCompatibilityList();
-    game_list->PopulateAsync(UISettings::values.game_dirs);
-
-    // make sure menubar has the arrow cursor instead of inheriting from this
-    ui->menubar->setCursor(QCursor());
-    statusBar()->setCursor(QCursor());
-
-    mouse_hide_timer.setInterval(default_mouse_hide_timeout);
-    connect(&mouse_hide_timer, &QTimer::timeout, this, &GMainWindow::HideMouseCursor);
-    connect(ui->menubar, &QMenuBar::hovered, this, &GMainWindow::ShowMouseCursor);
-
-    update_input_timer.setInterval(default_input_update_timeout);
-    connect(&update_input_timer, &QTimer::timeout, this, &GMainWindow::UpdateInputDrivers);
-    update_input_timer.start();
-
-    MigrateConfigFiles();
-
-    if (has_broken_vulkan) {
-        UISettings::values.has_broken_vulkan = true;
-
-        QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"),
-                             tr("Vulkan initialization failed during boot.<br><br>Click <a "
-                                "href='https://suyu-emu.github.io/website/faq'>"
-                                "here for instructions to fix the issue</a>."));
-
-#ifdef HAS_OPENGL
-        Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
-#else
-        Settings::values.renderer_backend = Settings::RendererBackend::Null;
-#endif
-
-        UpdateAPIText();
-        renderer_status_button->setDisabled(true);
-        renderer_status_button->setChecked(false);
-    } else {
-        VkDeviceInfo::PopulateRecords(vk_device_records, this->window()->windowHandle());
-    }
-
-#if defined(HAVE_SDL2) && !defined(_WIN32)
-    SDL_InitSubSystem(SDL_INIT_VIDEO);
-
-    // Set a screensaver inhibition reason string. Currently passed to DBus by SDL and visible to
-    // the user through their desktop environment.
-    //: TRANSLATORS: This string is shown to the user to explain why suyu needs to prevent the
-    //: computer from sleeping
-    QByteArray wakelock_reason = tr("Running a game").toUtf8();
-    SDL_SetHint(SDL_HINT_SCREENSAVER_INHIBIT_ACTIVITY_NAME, wakelock_reason.data());
-
-    // SDL disables the screen saver by default, and setting the hint
-    // SDL_HINT_VIDEO_ALLOW_SCREENSAVER doesn't seem to work, so we just enable the screen saver
-    // for now.
-    SDL_EnableScreenSaver();
-#endif
-
-#ifdef __unix__
-    SetupPrepareForSleep();
-    ListenColorSchemeChange();
-#endif
-
     QStringList args = QApplication::arguments();
 
     auto FindBundledGamePath = [](const QString& exe_path) {
         const QFileInfo exe_info(exe_path);
         const QString base_name = exe_info.completeBaseName();
-        if (base_name.isEmpty() || base_name.compare(QStringLiteral("suyu"), Qt::CaseInsensitive) == 0) {
+        if (base_name.isEmpty() ||
+            base_name.compare(QStringLiteral("suyu"), Qt::CaseInsensitive) == 0) {
             return QString();
         }
 
         const QString exe_dir = exe_info.absolutePath();
         const QStringList rom_extensions = {QStringLiteral(".nsp"), QStringLiteral(".xci"),
-                                           QStringLiteral(".nca"), QStringLiteral(".nro"),
-                                           QStringLiteral(".rom"), QStringLiteral(".bin")};
+                                            QStringLiteral(".nca"), QStringLiteral(".nro"),
+                                            QStringLiteral(".rom"), QStringLiteral(".bin")};
 
         for (const QString& ext : rom_extensions) {
             const QString candidate = exe_dir + QDir::separator() + base_name + ext;
@@ -599,12 +644,74 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
 
     // Automatically load a bundled game if this executable is an exported game package.
     if (!has_gamepath) {
-        const QString bundled_game_path = FindBundledGamePath(QCoreApplication::applicationFilePath());
+        const QString bundled_game_path =
+            FindBundledGamePath(QCoreApplication::applicationFilePath());
         if (!bundled_game_path.isEmpty()) {
             game_path = bundled_game_path;
             has_gamepath = true;
         }
     }
+
+    if (!has_gamepath && !is_qlaunch) {
+        game_list->LoadCompatibilityList();
+        game_list->PopulateAsync(UISettings::values.game_dirs);
+    }
+
+    // make sure menubar has the arrow cursor instead of inheriting from this
+    ui->menubar->setCursor(QCursor());
+    statusBar()->setCursor(QCursor());
+
+    mouse_hide_timer.setInterval(default_mouse_hide_timeout);
+    connect(&mouse_hide_timer, &QTimer::timeout, this, &GMainWindow::HideMouseCursor);
+    connect(ui->menubar, &QMenuBar::hovered, this, &GMainWindow::ShowMouseCursor);
+
+    update_input_timer.setInterval(default_input_update_timeout);
+    connect(&update_input_timer, &QTimer::timeout, this, &GMainWindow::UpdateInputDrivers);
+    update_input_timer.start();
+
+    MigrateConfigFiles();
+
+    if (has_broken_vulkan) {
+        UISettings::values.has_broken_vulkan = true;
+
+        QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"),
+                             tr("Vulkan initialization failed during boot.<br><br>Click <a "
+                                "href='https://suyu-emu.github.io/website/faq'>"
+                                "here for instructions to fix the issue</a>."));
+
+#ifdef HAS_OPENGL
+        Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
+#else
+        Settings::values.renderer_backend = Settings::RendererBackend::Null;
+#endif
+
+        UpdateAPIText();
+        renderer_status_button->setDisabled(true);
+        renderer_status_button->setChecked(false);
+    } else {
+        VkDeviceInfo::PopulateRecords(vk_device_records, this->window()->windowHandle());
+    }
+
+#if defined(HAVE_SDL2) && !defined(_WIN32)
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
+
+    // Set a screensaver inhibition reason string. Currently passed to DBus by SDL and visible to
+    // the user through their desktop environment.
+    //: TRANSLATORS: This string is shown to the user to explain why suyu needs to prevent the
+    //: computer from sleeping
+    QByteArray wakelock_reason = tr("Running a game").toUtf8();
+    SDL_SetHint(SDL_HINT_SCREENSAVER_INHIBIT_ACTIVITY_NAME, wakelock_reason.data());
+
+    // SDL disables the screen saver by default, and setting the hint
+    // SDL_HINT_VIDEO_ALLOW_SCREENSAVER doesn't seem to work, so we just enable the screen saver
+    // for now.
+    SDL_EnableScreenSaver();
+#endif
+
+#ifdef __unix__
+    SetupPrepareForSleep();
+    ListenColorSchemeChange();
+#endif
 
     // Override fullscreen setting if gamepath or argument is provided
     if (has_gamepath || is_fullscreen) {
@@ -4786,7 +4893,8 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
     if (social_sidebar_dock_) social_sidebar_dock_->setVisible(false);
 
     // --- MCP Server (available in all modes) ---
-    if (!mcp_server_) {
+    const bool allow_runtime_mcp = !emulation_running;
+    if (allow_runtime_mcp && !mcp_server_) {
         mcp_server_ = new McpServer(this);
         mcp_server_->SetStateProvider([this]() -> QJsonObject {
             QJsonObject state;
@@ -4820,7 +4928,7 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
             return state;
         });
     }
-    if (!mcp_server_->IsRunning()) {
+    if (allow_runtime_mcp && mcp_server_ && !mcp_server_->IsRunning()) {
         if (!mcp_server_->Start(9742)) {
             LOG_ERROR(Frontend, "MCP Server failed to start on port 9742");
         } else {
@@ -6917,6 +7025,11 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<QtConfig> config = std::make_unique<QtConfig>();
     bool has_broken_vulkan = false;
     bool is_child = false;
+    InstallTerminateLogger();
+#ifdef _WIN32
+    AddVectoredExceptionHandler(1, LogVectoredSehException);
+    SetUnhandledExceptionFilter(LogUnhandledSehException);
+#endif
     if (CheckEnvVars(&is_child)) {
         return 0;
     }

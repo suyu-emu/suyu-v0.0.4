@@ -104,6 +104,10 @@ public:
 
     [[nodiscard]] bool IsBuilt() noexcept;
 
+    [[nodiscard]] bool BuildFailed() const noexcept {
+        return build_failed;
+    }
+
     template <typename Spec>
     static auto MakeConfigureSpecFunc() {
         return [](GraphicsPipeline* pipeline, bool is_indexed) {
@@ -161,6 +165,7 @@ private:
     std::condition_variable built_condvar;
     OGLSync built_fence{};
     bool is_built{false};
+    bool build_failed{false};
 };
 
 } // namespace OpenGL

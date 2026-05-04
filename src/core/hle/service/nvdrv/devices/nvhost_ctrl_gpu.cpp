@@ -41,6 +41,10 @@ NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8>
             return WrapFixed(this, &nvhost_ctrl_gpu::GetTPCMasks1, input, output);
         case 0x7:
             return WrapFixed(this, &nvhost_ctrl_gpu::FlushL2, input, output);
+        case 0x12:
+            return WrapFixed(this, &nvhost_ctrl_gpu::NumVsms, input, output);
+        case 0x13:
+            return WrapFixed(this, &nvhost_ctrl_gpu::VsmsMapping, input, output);
         case 0x14:
             return WrapFixed(this, &nvhost_ctrl_gpu::GetActiveSlotMask, input, output);
         case 0x1c:
@@ -71,6 +75,10 @@ NvResult nvhost_ctrl_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8>
         case 0x6:
             return WrapFixedInlOut(this, &nvhost_ctrl_gpu::GetTPCMasks3, input, output,
                                    inline_output);
+        case 0x12:
+            return WrapFixed(this, &nvhost_ctrl_gpu::NumVsms, input, output);
+        case 0x13:
+            return WrapFixed(this, &nvhost_ctrl_gpu::VsmsMapping, input, output);
         default:
             break;
         }
@@ -198,6 +206,23 @@ NvResult nvhost_ctrl_gpu::GetActiveSlotMask(IoctlActiveSlotMask& params) {
 
     params.slot = 0x07;
     params.mask = 0x01;
+    return NvResult::Success;
+}
+
+NvResult nvhost_ctrl_gpu::NumVsms(IoctlNumVsms& params) {
+    LOG_DEBUG(Service_NVDRV, "called");
+
+    params.num_vsms = 2;
+    return NvResult::Success;
+}
+
+NvResult nvhost_ctrl_gpu::VsmsMapping(IoctlVsmsMapping& params) {
+    LOG_DEBUG(Service_NVDRV, "called");
+
+    params.sm0_gpc_index = 0;
+    params.sm0_tpc_index = 0;
+    params.sm1_gpc_index = 0;
+    params.sm1_tpc_index = 1;
     return NvResult::Success;
 }
 

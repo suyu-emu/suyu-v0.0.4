@@ -12,7 +12,6 @@ class QProgressBar;
 class QPushButton;
 
 /// Guides users through the decryption key setup workflow.
-/// Does NOT perform decryption — points users to external tools.
 class DecryptionFlowWidget : public QWidget {
     Q_OBJECT
 
