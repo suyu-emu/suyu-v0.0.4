@@ -832,7 +832,40 @@ bool KeyManager::AreKeysLoaded() const {
 }
 
 bool KeyManager::BaseDeriveNecessary() const {
-    // Base derivation not required when using pre-processed content.
+    const auto check_key_existence = [this](auto key_type, u64 index1 = 0, u64 index2 = 0) {
+        return !HasKey(key_type, index1, index2);
+    };
+
+    const auto keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+    const auto main_keys_name = Settings::values.use_dev_keys ? "dev.keys" : "prod.keys";
+
+    if (!Common::FS::Exists(keys_dir / main_keys_name)) {
+        LOG_ERROR(Crypto, "No {} found", main_keys_name);
+        return true;
+    }
+
+    if (!Common::FS::Exists(keys_dir / "title.keys")) {
+        LOG_ERROR(Crypto, "No title.keys found");
+        return true;
+    }
+
+    if (check_key_existence(S256KeyType::Header)) {
+        return true;
+    }
+
+    for (size_t i = 0; i < CURRENT_CRYPTO_REVISION; ++i) {
+        if (check_key_existence(S128KeyType::Master, i) ||
+            check_key_existence(S128KeyType::KeyArea, i,
+                                static_cast<u64>(KeyAreaKeyType::Application)) ||
+            check_key_existence(S128KeyType::KeyArea, i,
+                                static_cast<u64>(KeyAreaKeyType::Ocean)) ||
+            check_key_existence(S128KeyType::KeyArea, i,
+                                static_cast<u64>(KeyAreaKeyType::System)) ||
+            check_key_existence(S128KeyType::Titlekek, i)) {
+            return true;
+        }
+    }
+
     return false;
 }
 
