@@ -61,7 +61,7 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     setMinimumSize(Layout::MinimumSize::Width, Layout::MinimumSize::Height);
     setAttribute(Qt::WA_OpaquePaintEvent, true);
 
-    spinner_pixmap_ = QPixmap(QStringLiteral(":/img/suyu_logo.svg")).scaled(120, 120,
+    spinner_pixmap_ = QPixmap(QStringLiteral(":/img/suyu.svg")).scaled(120, 120,
                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
     spinner_timer_ = new QTimer(this);
     spinner_timer_->setInterval(33);
@@ -126,17 +126,33 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
         game_title_ = QString::fromStdString(title);
     }
 
-    if (loader.ReadBanner(buffer) == Loader::ResultStatus::Success) {
+    ui->banner->clear();
+    ui->banner->setVisible(false);
+
+    if (loader.ReadIcon(buffer) == Loader::ResultStatus::Success) {
         QPixmap map;
         const int buffer_size = buffer.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())
                                      ? std::numeric_limits<int>::max()
                                      : static_cast<int>(buffer.size());
         map.loadFromData(buffer.data(), buffer_size);
-        ui->banner->setPixmap(map.scaled(QSize(230, 230), Qt::KeepAspectRatioByExpanding,
-                                         Qt::SmoothTransformation));
-        ui->banner->setVisible(true);
-        buffer.clear();
+        if (!map.isNull()) {
+            ui->banner->setPixmap(map.scaled(QSize(230, 230), Qt::KeepAspectRatioByExpanding,
+                                             Qt::SmoothTransformation));
+            ui->banner->setVisible(true);
+        }
+    } else if (loader.ReadBanner(buffer) == Loader::ResultStatus::Success) {
+        QPixmap map;
+        const int buffer_size = buffer.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())
+                                     ? std::numeric_limits<int>::max()
+                                     : static_cast<int>(buffer.size());
+        map.loadFromData(buffer.data(), buffer_size);
+        if (!map.isNull()) {
+            ui->banner->setPixmap(map.scaled(QSize(230, 230), Qt::KeepAspectRatioByExpanding,
+                                             Qt::SmoothTransformation));
+            ui->banner->setVisible(true);
+        }
     }
+    buffer.clear();
 
     ui->logo->setVisible(true);
     UpdateSpinner();
@@ -311,4 +327,7 @@ void LoadingScreen::Clear() {
     backing_buf.reset();
     backing_mem.reset();
 #endif
+    game_title_.clear();
+    ui->banner->clear();
+    ui->banner->setVisible(false);
 }

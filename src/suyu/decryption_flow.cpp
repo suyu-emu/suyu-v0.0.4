@@ -12,6 +12,7 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
+#include "common/fs/path_util.h"
 #include "suyu/decryption_flow.h"
 
 DecryptionFlowWidget::DecryptionFlowWidget(QWidget* parent) : QWidget(parent) {
@@ -59,9 +60,8 @@ void DecryptionFlowWidget::Refresh() {
 }
 
 void DecryptionFlowWidget::DetectKeys() {
-    const QString data_dir =
-        QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
-    const QDir keys_dir(data_dir + QStringLiteral("/suyu/keys/"));
+    const QDir keys_dir(
+        QString::fromStdString(Common::FS::GetSuyuPathString(Common::FS::SuyuPath::KeysDir)));
 
     const QFileInfo prod(keys_dir.filePath(QStringLiteral("prod.keys")));
     const QFileInfo title(keys_dir.filePath(QStringLiteral("title.keys")));
@@ -92,9 +92,8 @@ void DecryptionFlowWidget::DetectKeys() {
 }
 
 void DecryptionFlowWidget::OnBrowseKeys() {
-    const QString data_dir =
-        QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
-    const QDir keys_dir(data_dir + QStringLiteral("/suyu/keys/"));
+    const QDir keys_dir(
+        QString::fromStdString(Common::FS::GetSuyuPathString(Common::FS::SuyuPath::KeysDir)));
     keys_dir.mkpath(QStringLiteral("."));
     QDesktopServices::openUrl(QUrl::fromLocalFile(keys_dir.absolutePath()));
 }

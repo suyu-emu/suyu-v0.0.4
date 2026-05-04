@@ -947,9 +947,10 @@ void GamerEnvironment::PopulateFromModel() {
                 const QModelIndex idx = model->index(row, 0, parent);
                 const int itemType = idx.data(kGLItemTypeRole).toInt();
 
-                const QString path = NormalizeLaunchPath(idx.data(kGLPathRole).toString());
+                const QString raw_path = idx.data(kGLPathRole).toString();
+                const QString path = NormalizeLaunchPath(raw_path);
                 const bool looks_like_game_entry =
-                    itemType == kGLGameItemType || !path.isEmpty();
+                    itemType == kGLGameItemType || !raw_path.isEmpty();
 
                 if (looks_like_game_entry) {
                     QString title = idx.data(kGLTitleRole).toString();
@@ -964,9 +965,13 @@ void GamerEnvironment::PopulateFromModel() {
                         continue;
                     }
 
-                    if (path.isEmpty() ||
-                        path.endsWith(QStringLiteral(".nca"), Qt::CaseInsensitive) ||
-                        path.contains(QStringLiteral(".cnmt.nca"), Qt::CaseInsensitive)) {
+                    if (raw_path.endsWith(QStringLiteral(".nca"), Qt::CaseInsensitive) ||
+                        raw_path.contains(QStringLiteral(".cnmt.nca"), Qt::CaseInsensitive)) {
+                        continue;
+                    }
+
+                    const QString display_path = path.isEmpty() ? raw_path : path;
+                    if (display_path.isEmpty()) {
                         continue;
                     }
 
@@ -979,7 +984,7 @@ void GamerEnvironment::PopulateFromModel() {
                     }
 
                     auto* item = new QListWidgetItem(title);
-                    item->setData(Qt::UserRole, path);
+                    item->setData(Qt::UserRole, display_path);
                     if (!icon.isNull()) {
                         item->setIcon(icon);
                     }
@@ -987,7 +992,7 @@ void GamerEnvironment::PopulateFromModel() {
                         QSize(GameCardDelegate::CARD_W + GameCardDelegate::PAD * 2 + 8,
                               GameCardDelegate::CARD_H + GameCardDelegate::PAD * 2 + 8));
                     game_grid_->addItem(item);
-                    RequestCoverArtwork(path, title);
+                    RequestCoverArtwork(display_path, title);
                 }
                 if (model->hasChildren(idx)) traverse(idx);
             }

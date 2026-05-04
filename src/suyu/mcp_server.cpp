@@ -13,6 +13,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
+#include "common/fs/path_util.h"
 #include "suyu/mcp_server.h"
 
 namespace {
@@ -294,9 +295,8 @@ void McpServer::RegisterBuiltinTools() {
             "and whether an external decryption tool is configured."),
         MakeSchema({}),
         [](const QJsonObject& /*params*/) -> QJsonObject {
-            const QString data_dir =
-                QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
-            const QDir keys_dir(data_dir + QStringLiteral("/suyu/keys/"));
+            const QDir keys_dir(QString::fromStdString(
+                Common::FS::GetSuyuPathString(Common::FS::SuyuPath::KeysDir)));
 
             const QFileInfo prod(keys_dir.filePath(QStringLiteral("prod.keys")));
             const QFileInfo title(keys_dir.filePath(QStringLiteral("title.keys")));
