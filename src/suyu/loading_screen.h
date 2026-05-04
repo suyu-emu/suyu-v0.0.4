@@ -27,9 +27,15 @@ enum class LoadCallbackStage;
 
 class QBuffer;
 class QByteArray;
+class QHideEvent;
 class QGraphicsOpacityEffect;
+class QMediaPlayer;
 class QMovie;
 class QPropertyAnimation;
+class QVariantAnimation;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+class QAudioOutput;
+#endif
 
 class LoadingScreen : public QWidget {
     Q_OBJECT
@@ -56,6 +62,7 @@ public:
 
     // In order to use a custom widget with a stylesheet, you need to override the paintEvent
     // See https://wiki.qt.io/How_to_Change_the_Background_Color_of_QWidget
+    void hideEvent(QHideEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
 
 signals:
@@ -65,10 +72,27 @@ signals:
     void Hidden();
 
 private:
+    void StartLoadingMusic();
+    void FadeLoadingMusicTo(qreal target_volume, int duration_ms, bool stop_after_fade);
+    void StopLoadingMusic(bool immediate = true);
+    void ResetLoadingMusicSource();
+    qreal LoadingMusicVolume() const;
+    void SetLoadingMusicVolume(qreal volume);
+
 #ifndef SUYU_QT_MOVIE_MISSING
     std::unique_ptr<QMovie> animation;
     std::unique_ptr<QBuffer> backing_buf;
     std::unique_ptr<QByteArray> backing_mem;
+#endif
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    std::unique_ptr<QMediaPlayer> loading_music_player_;
+    std::unique_ptr<QByteArray> loading_music_data_;
+    std::unique_ptr<QBuffer> loading_music_buffer_;
+    std::unique_ptr<QVariantAnimation> loading_music_fade_animation_;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    std::unique_ptr<QAudioOutput> loading_music_output_;
+#endif
+    bool loading_music_stop_pending_ = false;
 #endif
     std::unique_ptr<Ui::LoadingScreen> ui;
     std::size_t previous_total = 0;

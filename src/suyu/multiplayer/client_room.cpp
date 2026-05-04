@@ -7,6 +7,7 @@
 #include <QList>
 #include <QLocale>
 #include <QMetaType>
+#include <QMessageBox>
 #include <QTime>
 #include <QtConcurrent/QtConcurrentRun>
 #include "common/logging/log.h"
@@ -43,6 +44,10 @@ ClientRoomWindow::ClientRoomWindow(QWidget* parent, Network::RoomNetwork& room_n
     connect(ui->disconnect, &QPushButton::clicked, this, &ClientRoomWindow::Disconnect);
     ui->disconnect->setDefault(false);
     ui->disconnect->setAutoDefault(false);
+    connect(ui->launch_preferred_game, &QPushButton::clicked, this,
+            &ClientRoomWindow::LaunchPreferredGame);
+    ui->launch_preferred_game->setDefault(false);
+    ui->launch_preferred_game->setAutoDefault(false);
     connect(ui->moderation, &QPushButton::clicked, [this] {
         ModerationDialog dialog(room_network, this);
         dialog.exec();
@@ -89,6 +94,34 @@ void ClientRoomWindow::Disconnect() {
     }
 }
 
+void ClientRoomWindow::LaunchPreferredGame() {
+    auto* parent = static_cast<MultiplayerState*>(parentWidget());
+    if (parent == nullptr) {
+        return;
+    }
+
+    const auto member = room_network.GetRoomMember().lock();
+    if (!member) {
+        return;
+    }
+
+    const auto room_information = member->GetRoomInformation();
+    const auto program_id = room_information.preferred_game.id;
+    if (program_id == 0) {
+        QMessageBox::information(this, tr("No Preferred Game"),
+                                 tr("This room does not advertise a preferred game."));
+        return;
+    }
+
+    if (!parent->LaunchLocalGame(program_id)) {
+        const auto preferred_name = QString::fromStdString(room_information.preferred_game.name);
+        QMessageBox::warning(this, tr("Preferred Game Not Available"),
+                             preferred_name.isEmpty()
+                                 ? tr("The room's preferred game is not available in your game library.")
+                                 : tr("%1 is not available in your game library.").arg(preferred_name));
+    }
+}
+
 void ClientRoomWindow::UpdateView() {
     if (auto member = room_network.GetRoomMember().lock()) {
         if (member->IsConnected()) {
@@ -97,6 +130,11 @@ void ClientRoomWindow::UpdateView() {
             auto memberlist = member->GetMemberInformation();
             ui->chat->SetPlayerList(memberlist);
             const auto information = member->GetRoomInformation();
+            ui->launch_preferred_game->setEnabled(
+                information.preferred_game.id != 0 &&
+                !static_cast<MultiplayerState*>(parentWidget())
+                     ->FindLocalGamePath(information.preferred_game.id)
+                     .isEmpty());
             setWindowTitle(QString(tr("%1 - %2 (%3/%4 members) - connected"))
                                .arg(QString::fromStdString(information.name))
                                .arg(QString::fromStdString(information.preferred_game.name))
@@ -106,6 +144,7 @@ void ClientRoomWindow::UpdateView() {
             return;
         }
     }
+    ui->launch_preferred_game->setEnabled(false);
     // TODO(B3N30): can't get RoomMember*, show error and close window
     close();
 }

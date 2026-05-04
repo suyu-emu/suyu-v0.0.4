@@ -5,7 +5,9 @@
 #include <unordered_map>
 #include <QBuffer>
 #include <QByteArray>
+#include <QFile>
 #include <QGraphicsOpacityEffect>
+#include <QHideEvent>
 #include <QIODevice>
 #include <QImage>
 #include <QPainter>
@@ -13,6 +15,9 @@
 #include <QPropertyAnimation>
 #include <QStyleOption>
 #include <QTimer>
+#include <QVariantAnimation>
+#include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/frontend/framebuffer_layout.h"
 #include "core/loader/loader.h"
 #include "suyu/loading_screen.h"
@@ -24,6 +29,36 @@
 #if !SUYU_QT_MOVIE_MISSING
 #include <QMovie>
 #endif
+
+#ifdef SUYU_USE_QT_MULTIMEDIA
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QAudioOutput>
+#include <QMediaPlayer>
+#else
+#include <QMediaContent>
+#include <QMediaPlayer>
+#endif
+#endif
+
+namespace {
+
+constexpr char LOADING_MUSIC_RESOURCE[] = ":/audio/suyu_loading.mp3";
+constexpr int LOADING_MUSIC_FADE_IN_MS = 420;
+constexpr int LOADING_MUSIC_FADE_OUT_MS = 320;
+constexpr qreal LOADING_MUSIC_VOLUME_SCALE = 0.25;
+constexpr qreal LOADING_MUSIC_VOLUME_CAP = 0.35;
+
+qreal GetLoadingMusicTargetVolume() {
+    if (Settings::values.audio_muted.GetValue()) {
+        return 0.0;
+    }
+
+    return std::min(static_cast<qreal>(Settings::values.volume.GetValue()) / 100.0 *
+                        LOADING_MUSIC_VOLUME_SCALE,
+                    LOADING_MUSIC_VOLUME_CAP);
+}
+
+} // namespace
 
 constexpr char PROGRESSBAR_STYLE_PREPARE[] = R"(
 QProgressBar {}
@@ -115,11 +150,77 @@ LoadingScreen::LoadingScreen(QWidget* parent)
         {VideoCore::LoadCallbackStage::Build, PROGRESSBAR_STYLE_BUILD},
         {VideoCore::LoadCallbackStage::Complete, PROGRESSBAR_STYLE_COMPLETE},
     };
+
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    QFile music_resource(QString::fromLatin1(LOADING_MUSIC_RESOURCE));
+    if (music_resource.open(QIODevice::ReadOnly)) {
+        loading_music_data_ = std::make_unique<QByteArray>(music_resource.readAll());
+        if (!loading_music_data_->isEmpty()) {
+            loading_music_buffer_ = std::make_unique<QBuffer>(loading_music_data_.get());
+            loading_music_player_ = std::make_unique<QMediaPlayer>(this);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            loading_music_output_ = std::make_unique<QAudioOutput>(this);
+            loading_music_output_->setVolume(0.0);
+            loading_music_player_->setAudioOutput(loading_music_output_.get());
+#else
+            loading_music_player_->setVolume(0);
+#endif
+
+            loading_music_fade_animation_ = std::make_unique<QVariantAnimation>(this);
+            connect(loading_music_fade_animation_.get(), &QVariantAnimation::valueChanged, this,
+                    [this](const QVariant& value) { SetLoadingMusicVolume(value.toReal()); });
+            connect(loading_music_fade_animation_.get(), &QVariantAnimation::finished, this,
+                    [this] {
+                        if (loading_music_stop_pending_) {
+                            StopLoadingMusic(true);
+                        }
+                    });
+            connect(loading_music_player_.get(), &QMediaPlayer::mediaStatusChanged, this,
+                    [this](QMediaPlayer::MediaStatus status) {
+                        if (status == QMediaPlayer::EndOfMedia && !loading_music_stop_pending_) {
+                            ResetLoadingMusicSource();
+                            if (loading_music_player_) {
+                                loading_music_player_->play();
+                            }
+                        }
+                    });
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            connect(loading_music_player_.get(), &QMediaPlayer::errorOccurred, this,
+                    [](QMediaPlayer::Error error, const QString& error_string) {
+                        if (error != QMediaPlayer::NoError) {
+                            LOG_WARNING(Frontend, "Loading screen music playback error: {}",
+                                        error_string.toStdString());
+                        }
+                    });
+#else
+            connect(loading_music_player_.get(),
+                    QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this,
+                    [this](QMediaPlayer::Error error) {
+                        if (error != QMediaPlayer::NoError && loading_music_player_) {
+                            LOG_WARNING(Frontend, "Loading screen music playback error: {}",
+                                        loading_music_player_->errorString().toStdString());
+                        }
+                    });
+#endif
+        } else {
+            LOG_WARNING(Frontend, "Loading screen music resource is empty: {}",
+                        LOADING_MUSIC_RESOURCE);
+        }
+    } else {
+        LOG_WARNING(Frontend, "Loading screen music resource could not be opened: {}",
+                    LOADING_MUSIC_RESOURCE);
+    }
+#endif
 }
 
-LoadingScreen::~LoadingScreen() = default;
+LoadingScreen::~LoadingScreen() {
+    StopLoadingMusic(true);
+}
 
 void LoadingScreen::Prepare(Loader::AppLoader& loader) {
+    fadeout_animation->stop();
+    opacity_effect->setOpacity(1);
+
     std::vector<u8> buffer;
     std::string title;
     if (loader.ReadTitle(title) == Loader::ResultStatus::Success) {
@@ -160,10 +261,17 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
 
     slow_shader_compile_start = false;
     OnLoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
+    StartLoadingMusic();
 }
 
 void LoadingScreen::OnLoadComplete() {
+    FadeLoadingMusicTo(0.0, fadeout_animation->duration(), true);
     fadeout_animation->start(QPropertyAnimation::KeepWhenStopped);
+}
+
+void LoadingScreen::hideEvent(QHideEvent* event) {
+    FadeLoadingMusicTo(0.0, LOADING_MUSIC_FADE_OUT_MS, true);
+    QWidget::hideEvent(event);
 }
 
 void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
@@ -330,4 +438,148 @@ void LoadingScreen::Clear() {
     game_title_.clear();
     ui->banner->clear();
     ui->banner->setVisible(false);
+
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    if (!loading_music_stop_pending_) {
+        StopLoadingMusic(true);
+    }
+#endif
+}
+
+void LoadingScreen::StartLoadingMusic() {
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    if (!loading_music_player_ || !loading_music_buffer_) {
+        return;
+    }
+
+    const qreal target_volume = GetLoadingMusicTargetVolume();
+    if (target_volume <= 0.0) {
+        StopLoadingMusic(true);
+        return;
+    }
+
+    loading_music_stop_pending_ = false;
+    if (loading_music_fade_animation_) {
+        loading_music_fade_animation_->stop();
+    }
+
+    SetLoadingMusicVolume(0.0);
+    ResetLoadingMusicSource();
+    loading_music_player_->play();
+    FadeLoadingMusicTo(target_volume, LOADING_MUSIC_FADE_IN_MS, false);
+#endif
+}
+
+void LoadingScreen::FadeLoadingMusicTo(qreal target_volume, int duration_ms, bool stop_after_fade) {
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    if (!loading_music_player_) {
+        return;
+    }
+
+    loading_music_stop_pending_ = stop_after_fade && target_volume <= 0.0;
+    if (!loading_music_fade_animation_) {
+        SetLoadingMusicVolume(target_volume);
+        if (loading_music_stop_pending_) {
+            StopLoadingMusic(true);
+        }
+        return;
+    }
+
+    loading_music_fade_animation_->stop();
+    const qreal current_volume = LoadingMusicVolume();
+    if (duration_ms <= 0 || qFuzzyCompare(current_volume + 1.0, target_volume + 1.0)) {
+        SetLoadingMusicVolume(target_volume);
+        if (loading_music_stop_pending_) {
+            StopLoadingMusic(true);
+        }
+        return;
+    }
+
+    loading_music_fade_animation_->setDuration(duration_ms);
+    loading_music_fade_animation_->setStartValue(current_volume);
+    loading_music_fade_animation_->setEndValue(target_volume);
+    loading_music_fade_animation_->start();
+#else
+    Q_UNUSED(target_volume);
+    Q_UNUSED(duration_ms);
+    Q_UNUSED(stop_after_fade);
+#endif
+}
+
+void LoadingScreen::StopLoadingMusic(bool immediate) {
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    if (!loading_music_player_) {
+        return;
+    }
+
+    if (!immediate) {
+        FadeLoadingMusicTo(0.0, LOADING_MUSIC_FADE_OUT_MS, true);
+        return;
+    }
+
+    loading_music_stop_pending_ = false;
+    if (loading_music_fade_animation_) {
+        loading_music_fade_animation_->stop();
+    }
+    SetLoadingMusicVolume(0.0);
+    loading_music_player_->stop();
+    if (loading_music_buffer_) {
+        loading_music_buffer_->seek(0);
+    }
+#else
+    Q_UNUSED(immediate);
+#endif
+}
+
+void LoadingScreen::ResetLoadingMusicSource() {
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    if (!loading_music_player_ || !loading_music_buffer_) {
+        return;
+    }
+
+    if (!loading_music_buffer_->isOpen()) {
+        loading_music_buffer_->open(QIODevice::ReadOnly);
+    }
+    loading_music_buffer_->seek(0);
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    loading_music_player_->setSourceDevice(loading_music_buffer_.get(),
+                                           QUrl(QStringLiteral("qrc:/audio/suyu_loading.mp3")));
+#else
+    loading_music_player_->setMedia(QMediaContent(), loading_music_buffer_.get());
+#endif
+#endif
+}
+
+qreal LoadingScreen::LoadingMusicVolume() const {
+#ifdef SUYU_USE_QT_MULTIMEDIA
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    if (loading_music_output_) {
+        return loading_music_output_->volume();
+    }
+#else
+    if (loading_music_player_) {
+        return static_cast<qreal>(loading_music_player_->volume()) / 100.0;
+    }
+#endif
+#endif
+    return 0.0;
+}
+
+void LoadingScreen::SetLoadingMusicVolume(qreal volume) {
+    const qreal clamped_volume = std::max<qreal>(0.0, std::min<qreal>(volume, 1.0));
+
+#ifdef SUYU_USE_QT_MULTIMEDIA
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    if (loading_music_output_) {
+        loading_music_output_->setVolume(clamped_volume);
+    }
+#else
+    if (loading_music_player_) {
+        loading_music_player_->setVolume(qRound(clamped_volume * 100.0));
+    }
+#endif
+#else
+    Q_UNUSED(clamped_volume);
+#endif
 }

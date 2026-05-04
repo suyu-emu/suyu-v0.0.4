@@ -5,11 +5,13 @@
 #include <QApplication>
 #include <QIcon>
 #include <QMessageBox>
+#include <QMetaObject>
 #include <QStandardItemModel>
 #include "common/announce_multiplayer_room.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "suyu/game_list.h"
+#include "suyu/game_list_p.h"
 #include "suyu/multiplayer/client_room.h"
 #include "suyu/multiplayer/direct_connect.h"
 #include "suyu/multiplayer/host_room.h"
@@ -59,6 +61,46 @@ MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_lis
 }
 
 MultiplayerState::~MultiplayerState() = default;
+
+namespace {
+
+QString FindLocalGamePathRecursive(const QAbstractItemModel* model, const QModelIndex& parent,
+                                   u64 program_id) {
+    const auto row_count = model->rowCount(parent);
+    for (int row = 0; row < row_count; ++row) {
+        const auto index = model->index(row, 0, parent);
+        if (index.data(GameListItemPath::ProgramIdRole).toULongLong() == program_id) {
+            return index.data(GameListItemPath::FullPathRole).toString();
+        }
+
+        const auto child_path = FindLocalGamePathRecursive(model, index, program_id);
+        if (!child_path.isEmpty()) {
+            return child_path;
+        }
+    }
+
+    return {};
+}
+
+} // namespace
+
+QString MultiplayerState::FindLocalGamePath(u64 program_id) const {
+    if (program_id == 0 || game_list_model == nullptr) {
+        return {};
+    }
+
+    return FindLocalGamePathRecursive(game_list_model, QModelIndex{}, program_id);
+}
+
+bool MultiplayerState::LaunchLocalGame(u64 program_id) {
+    const auto game_path = FindLocalGamePath(program_id);
+    if (game_path.isEmpty() || parentWidget() == nullptr) {
+        return false;
+    }
+
+    return QMetaObject::invokeMethod(parentWidget(), "OnGameListLoadFile", Qt::DirectConnection,
+                                     Q_ARG(QString, game_path), Q_ARG(u64, program_id));
+}
 
 void MultiplayerState::Close() {
     if (state_callback_handle) {

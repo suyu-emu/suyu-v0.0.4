@@ -270,7 +270,19 @@ inline std::vector<std::string> VerifyInstalledContents(
     }
 
     // Get associated NCA files.
-    std::vector<FileSys::VirtualFile> nca_files;
+    struct InstalledContentToVerify {
+        FileSys::VirtualFile file;
+        u64 title_id;
+    };
+
+    std::vector<InstalledContentToVerify> nca_files;
+
+    static constexpr std::array<u64, 4> skipped_boot_package_titles{
+        0x0100000000000819ULL,
+        0x010000000000081AULL,
+        0x010000000000081BULL,
+        0x010000000000081CULL,
+    };
 
     // Get all installed IDs.
     size_t total_size = 0;
@@ -283,8 +295,14 @@ inline std::vector<std::string> VerifyInstalledContents(
                 continue;
             }
 
+            if (std::find(skipped_boot_package_titles.begin(),
+                          skipped_boot_package_titles.end(),
+                          entry.title_id) != skipped_boot_package_titles.end()) {
+                continue;
+            }
+
             total_size += nca_file->GetSize();
-            nca_files.push_back(std::move(nca_file));
+            nca_files.push_back({std::move(nca_file), entry.title_id});
         }
     }
 
@@ -299,7 +317,8 @@ inline std::vector<std::string> VerifyInstalledContents(
     };
 
     // Using the NCA loader, determine if all NCAs are valid.
-    for (auto& nca_file : nca_files) {
+    for (auto& installed_content : nca_files) {
+        auto& nca_file = installed_content.file;
         Loader::AppLoader_NCA nca_loader(nca_file);
 
         auto status = nca_loader.VerifyIntegrity(nca_callback);
@@ -308,7 +327,7 @@ inline std::vector<std::string> VerifyInstalledContents(
         }
         if (status != Loader::ResultStatus::Success) {
             FileSys::NCA nca(nca_file);
-            const auto title_id = nca.GetTitleId();
+            const auto title_id = nca.GetTitleId() != 0 ? nca.GetTitleId() : installed_content.title_id;
             std::string title_name = "unknown";
 
             const auto control = provider.GetEntry(FileSys::GetBaseTitleID(title_id),

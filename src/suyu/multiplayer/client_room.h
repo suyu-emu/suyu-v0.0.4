@@ -30,6 +30,7 @@ signals:
 
 private:
     void Disconnect();
+    void LaunchPreferredGame();
     void UpdateView();
     void SetModPerms(bool is_mod);
 

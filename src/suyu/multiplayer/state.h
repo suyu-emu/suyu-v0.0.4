@@ -66,6 +66,9 @@ public:
      */
     void UpdateGameList(QStandardItemModel* game_list);
 
+    QString FindLocalGamePath(u64 program_id) const;
+    bool LaunchLocalGame(u64 program_id);
+
 public slots:
     void OnNetworkStateChanged(const Network::RoomMember::State& state);
     void OnNetworkError(const Network::RoomMember::Error& error);

@@ -73,6 +73,7 @@ signals:
     void OpenUserManualRequested();
 
 protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
 
 private slots:
@@ -104,6 +105,7 @@ private:
                                  const QIcon& svg_icon = QIcon());
     void ApplyNavSelection(QPushButton* btn);
     void PopulateFromModel();
+    void ShowGameMenu(QListWidgetItem* item, const QPoint& global_pos);
     void RequestCoverArtwork(const QString& game_path, const QString& title);
     void ApplyCoverToItem(const QString& game_path, const QIcon& icon);
     QString CoverCachePathForTitle(const QString& title) const;

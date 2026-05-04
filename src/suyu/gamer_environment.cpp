@@ -29,12 +29,37 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QDateTime>
+#include <QEvent>
+#include <QMetaObject>
+#include <QMouseEvent>
 #include <QRegularExpression>
 #include <QStandardPaths>
 #include <QUrlQuery>
 
 #include "suyu/game_list.h"
 #include "suyu/main.h"
+
+namespace {
+
+QIcon DecorationToIcon(const QVariant& decoration) {
+    if (decoration.canConvert<QIcon>()) {
+        const QIcon icon = qvariant_cast<QIcon>(decoration);
+        if (!icon.isNull()) {
+            return icon;
+        }
+    }
+
+    if (decoration.canConvert<QPixmap>()) {
+        const QPixmap pixmap = qvariant_cast<QPixmap>(decoration);
+        if (!pixmap.isNull()) {
+            return QIcon(pixmap);
+        }
+    }
+
+    return {};
+}
+
+} // namespace
 
 // ─── GameCardDelegate ─────────────────────────────────────────────────────────
 
@@ -82,7 +107,7 @@ void GameCardDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 
     painter->setClipPath(iconClip);
 
-    const QIcon icon   = index.data(Qt::DecorationRole).value<QIcon>();
+    const QIcon icon   = DecorationToIcon(index.data(Qt::DecorationRole));
     const QPixmap pix  = icon.pixmap(QSize(iconRect.width(), ICON_H));
     if (!pix.isNull()) {
         // Scale to fill, centre-crop
@@ -551,6 +576,7 @@ QWidget* GamerEnvironment::BuildLibraryPage() {
     game_grid_->setAutoFillBackground(false);
     game_grid_->viewport()->setAttribute(Qt::WA_TranslucentBackground);
     game_grid_->viewport()->setAutoFillBackground(false);
+    game_grid_->viewport()->installEventFilter(this);
 
     connect(game_grid_, &QListWidget::itemDoubleClicked,
             this, &GamerEnvironment::OnGameDoubleClicked);
@@ -975,7 +1001,7 @@ void GamerEnvironment::PopulateFromModel() {
                         continue;
                     }
 
-                    const QIcon   icon = idx.data(Qt::DecorationRole).value<QIcon>();
+                    const QIcon icon = DecorationToIcon(idx.data(Qt::DecorationRole));
 
                     // Apply search filter
                     if (!filter_text_.isEmpty() &&
@@ -1155,11 +1181,36 @@ void GamerEnvironment::OnGameDoubleClicked(QListWidgetItem* item) {
     }
 }
 
-void GamerEnvironment::OnGameContextMenu(const QPoint& pos) {
-    QListWidgetItem* item = game_grid_->itemAt(pos);
-    if (!item) return;
+bool GamerEnvironment::eventFilter(QObject* watched, QEvent* event) {
+    if (game_grid_ != nullptr && watched == game_grid_->viewport() && event != nullptr &&
+        event->type() == QEvent::MouseButtonRelease) {
+        auto* mouse_event = static_cast<QMouseEvent*>(event);
+        if (mouse_event->button() == Qt::LeftButton) {
+            if (QListWidgetItem* item = game_grid_->itemAt(mouse_event->pos())) {
+                const QRect item_rect = game_grid_->visualItemRect(item);
+                const QRect card_rect = item_rect.adjusted(GameCardDelegate::PAD,
+                                                           GameCardDelegate::PAD,
+                                                           -GameCardDelegate::PAD,
+                                                           -GameCardDelegate::PAD);
+                const QRect more_rect(card_rect.right() - 64, card_rect.bottom() - 34, 52, 18);
+                if (more_rect.contains(mouse_event->pos())) {
+                    ShowGameMenu(item, game_grid_->viewport()->mapToGlobal(mouse_event->pos()));
+                    return true;
+                }
+            }
+        }
+    }
 
-    const QString path = NormalizeLaunchPath(item->data(Qt::UserRole).toString());
+    return QWidget::eventFilter(watched, event);
+}
+
+void GamerEnvironment::ShowGameMenu(QListWidgetItem* item, const QPoint& global_pos) {
+    if (!item) {
+        return;
+    }
+
+    const QString stored_path = item->data(Qt::UserRole).toString();
+    const QString launch_path = NormalizeLaunchPath(stored_path);
     const QString title = item->text();
 
     QMenu menu(this);
@@ -1175,15 +1226,32 @@ void GamerEnvironment::OnGameContextMenu(const QPoint& pos) {
         "QMenu::item:selected { background: rgba(200,80,200,0.3); }"
     ));
 
-    QAction* launchAct = menu.addAction(tr("Launch \"%1\"").arg(title));
-    launchAct->setEnabled(!path.isEmpty());
-    connect(launchAct, &QAction::triggered, this, [this, path]() {
-        if (!path.isEmpty()) {
-            emit GameLaunchRequested(path);
+    QAction* launch_action = menu.addAction(tr("Launch \"%1\"").arg(title));
+    launch_action->setEnabled(!launch_path.isEmpty());
+    connect(launch_action, &QAction::triggered, this, [this, launch_path]() {
+        if (!launch_path.isEmpty()) {
+            emit GameLaunchRequested(launch_path);
         }
     });
 
-    menu.exec(game_grid_->viewport()->mapToGlobal(pos));
+    QAction* open_location_action = menu.addAction(tr("Open Game Location"));
+    open_location_action->setEnabled(!stored_path.isEmpty());
+    connect(open_location_action, &QAction::triggered, this, [stored_path]() {
+        const QFileInfo file_info(stored_path);
+        const QString target = file_info.isDir() ? file_info.absoluteFilePath()
+                                                 : file_info.absolutePath();
+        if (!target.isEmpty()) {
+            QDesktopServices::openUrl(QUrl::fromLocalFile(target));
+        }
+    });
+
+    menu.exec(global_pos);
+}
+
+void GamerEnvironment::OnGameContextMenu(const QPoint& pos) {
+    QListWidgetItem* item = game_grid_->itemAt(pos);
+    if (!item) return;
+    ShowGameMenu(item, game_grid_->viewport()->mapToGlobal(pos));
 }
 
 void GamerEnvironment::OnSearchChanged(const QString& text) {
@@ -1235,6 +1303,26 @@ void GamerEnvironment::OnNavMoreOptionsClicked() {
         "QMenu::item:selected { background: rgba(200,80,200,0.3); }"
     ));
     menu.addAction(tr("Refresh game list"), this, [this]() { PopulateFromModel(); });
+
+    if (main_window_ != nullptr) {
+        menu.addSeparator();
+        menu.addAction(tr("Install Decryption Keys"), this, [this]() {
+            QMetaObject::invokeMethod(main_window_, "OnInstallDecryptionKeys",
+                                      Qt::QueuedConnection);
+        });
+        menu.addAction(tr("Configure External Decryption"), this, [this]() {
+            QMetaObject::invokeMethod(main_window_, "OnConfigureExternalDecryption",
+                                      Qt::QueuedConnection);
+        });
+        menu.addAction(tr("Install Firmware"), this, [this]() {
+            QMetaObject::invokeMethod(main_window_, "OnInstallFirmware",
+                                      Qt::QueuedConnection);
+        });
+        menu.addAction(tr("Verify Installed Contents"), this, [this]() {
+            QMetaObject::invokeMethod(main_window_, "OnVerifyInstalledContents",
+                                      Qt::QueuedConnection);
+        });
+    }
 
     menu.exec(QCursor::pos());
 }

@@ -2204,12 +2204,9 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
         if (vulkan_device_index < vk_device_records.size() &&
             vk_device_records[vulkan_device_index].name.find("Intel") != std::string::npos) {
             LOG_WARNING(Frontend,
-                        "Selected Vulkan device '{}' is unstable on this system; "
-                        "falling back to OpenGL for this launch.",
+                        "Selected Vulkan device '{}' is marked as potentially unstable on this system, "
+                        "but keeping Vulkan as the active renderer.",
                         vk_device_records[vulkan_device_index].name);
-            Settings::values.renderer_backend.SetValue(Settings::RendererBackend::OpenGL);
-            Settings::values.use_disk_shader_cache.SetValue(false);
-            UpdateAPIText();
         }
     }
 #endif
