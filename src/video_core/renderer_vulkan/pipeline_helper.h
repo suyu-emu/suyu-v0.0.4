@@ -189,6 +189,7 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
     views += num_texture_buffers;
     views += num_image_buffers;
     for (const auto& desc : info.texture_descriptors) {
+        bool is_rescaled{};
         for (u32 index = 0; index < desc.count; ++index) {
             const VideoCommon::ImageViewId image_view_id{(views++)->id};
             const VideoCommon::SamplerId sampler_id{*(samplers++)};
@@ -200,10 +201,13 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             const VkSampler vk_sampler{use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
                                                             : sampler.Handle()};
             guest_descriptor_queue.AddSampledImage(vk_image_view, vk_sampler);
-            rescaling.PushTexture(texture_cache.IsRescaling(image_view));
+            const bool element_rescaled{texture_cache.IsRescaling(image_view)};
+            is_rescaled |= element_rescaled;
         }
+        rescaling.PushTexture(is_rescaled);
     }
     for (const auto& desc : info.image_descriptors) {
+        bool is_rescaled{};
         for (u32 index = 0; index < desc.count; ++index) {
             ImageView& image_view{texture_cache.GetImageView((views++)->id)};
             if (desc.is_written) {
@@ -211,8 +215,10 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             }
             const VkImageView vk_image_view{image_view.StorageView(desc.type, desc.format)};
             guest_descriptor_queue.AddImage(vk_image_view);
-            rescaling.PushImage(texture_cache.IsRescaling(image_view));
+            const bool element_rescaled{texture_cache.IsRescaling(image_view)};
+            is_rescaled |= element_rescaled;
         }
+        rescaling.PushImage(is_rescaled);
     }
 }
 
