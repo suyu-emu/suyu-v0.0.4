@@ -70,14 +70,10 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
             (std::max)((std::min)(device_local_memory - min_vacancy_critical, min_spacing_critical),
                      DEFAULT_CRITICAL_MEMORY));
         minimum_memory = static_cast<u64>((device_local_memory - mem_threshold) / 2);
-
-        lowmemorydevice = false;
     } else {
         expected_memory = DEFAULT_EXPECTED_MEMORY + 512_MiB;
         critical_memory = DEFAULT_CRITICAL_MEMORY + 1_GiB;
         minimum_memory = 0;
-
-        lowmemorydevice = true;
     }
 
     const bool gpu_unswizzle_enabled = Settings::values.gpu_unswizzle_enabled.GetValue();
@@ -122,102 +118,48 @@ void TextureCache<P>::RunGarbageCollector() {
     bool aggressive_mode = false;
     u64 ticks_to_destroy = 0;
     size_t num_iterations = 0;
-
     const auto Configure = [&](bool allow_aggressive) {
         high_priority_mode = total_used_memory >= expected_memory;
         aggressive_mode = allow_aggressive && total_used_memory >= critical_memory;
         ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 50ULL;
         num_iterations = aggressive_mode ? 40 : (high_priority_mode ? 20 : 10);
     };
-
-    const auto Cleanup = [this, &num_iterations, &high_priority_mode,
-                          &aggressive_mode](ImageId image_id) {
+    const auto Cleanup = [this, &num_iterations, &high_priority_mode, &aggressive_mode](ImageId image_id) {
         if (num_iterations == 0) {
             return true;
         }
-        --num_iterations;
         auto& image = slot_images[image_id];
-
-        // Never delete recently allocated sparse textures (within 3 frames)
-        const bool is_recently_allocated = image.allocation_tick >= frame_tick - 3;
-        if (is_recently_allocated && image.info.is_sparse) {
-            return false;
-        }
-
         if (True(image.flags & ImageFlagBits::IsDecoding)) {
-            // This image is still being decoded, deleting it will invalidate the slot
-            // used by the async decoder thread.
             return false;
         }
-
-        // Prioritize large sparse textures for cleanup
-        const bool is_large_sparse = lowmemorydevice &&
-                                     image.info.is_sparse &&
-                                     image.guest_size_bytes >= 256_MiB;
-
-        if (!aggressive_mode && !is_large_sparse &&
-            True(image.flags & ImageFlagBits::CostlyLoad)) {
+        const bool must_download = image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
+        if ((!aggressive_mode && True(image.flags & ImageFlagBits::CostlyLoad)) || (!high_priority_mode && must_download)) {
             return false;
         }
-
-        const bool must_download =
-            image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
-        if (!high_priority_mode && !is_large_sparse && must_download) {
-            return false;
-        }
-
-        if (must_download && !is_large_sparse) {
+        --num_iterations;
+        if (must_download) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
             const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
             image.DownloadMemory(map, copies);
             runtime.Finish();
-            SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span,
-                         swizzle_data_buffer);
+            SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span, swizzle_data_buffer);
         }
-
         if (True(image.flags & ImageFlagBits::Tracked)) {
             UntrackImage(image, image_id);
         }
         UnregisterImage(image_id);
         DeleteImage(image_id, image.scale_tick > frame_tick + 5);
-
-        if (total_used_memory < critical_memory) {
-            if (aggressive_mode) {
-                // Sink the aggresiveness.
-                num_iterations >>= 2;
-                aggressive_mode = false;
-                return false;
-            }
-            if (high_priority_mode && total_used_memory < expected_memory) {
-                num_iterations >>= 1;
-                high_priority_mode = false;
-            }
+        if (aggressive_mode && total_used_memory < critical_memory) {
+            num_iterations >>= 2;
+            aggressive_mode = false;
+        } else if (high_priority_mode && total_used_memory < expected_memory) {
+            num_iterations >>= 1;
+            high_priority_mode = false;
         }
         return false;
     };
-
-    // Aggressively clear massive sparse textures
-    if (total_used_memory >= expected_memory) {
-        lru_cache.ForEachItemBelow(frame_tick, [&](ImageId image_id) {
-            auto& image = slot_images[image_id];
-            // Only target sparse textures that are old enough
-            if (lowmemorydevice &&
-                image.info.is_sparse &&
-                image.guest_size_bytes >= 256_MiB &&
-                image.allocation_tick < frame_tick - 3) {
-                LOG_DEBUG(HW_GPU, "GC targeting old sparse texture at 0x{:X} ({} MiB, age: {} frames)",
-                         image.gpu_addr, image.guest_size_bytes / (1024 * 1024),
-                         frame_tick - image.allocation_tick);
-                return Cleanup(image_id);
-            }
-            return false;
-        });
-    }
-
     Configure(false);
     lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, Cleanup);
-
-    // If pressure is still too high, prune aggressively.
     if (total_used_memory >= critical_memory) {
         Configure(true);
         lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, Cleanup);
@@ -1196,9 +1138,6 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
     }
 
     image.flags &= ~ImageFlagBits::CpuModified;
-    if( lowmemorydevice && image.info.format == PixelFormat::BC1_RGBA_UNORM && MapSizeBytes(image) >= 256_MiB ) {
-        return;
-    }
 
     TrackImage(image, image_id);
 
@@ -1619,39 +1558,6 @@ ImageId TextureCache<P>::InsertImage(const ImageInfo& info, GPUVAddr gpu_addr,
         }
     }
     ASSERT_MSG(cpu_addr, "Tried to insert an image to an invalid gpu_addr=0x{:x}", gpu_addr);
-
-    // For large sparse textures, aggressively clean up old allocations at same address
-    if (lowmemorydevice && info.is_sparse && CalculateGuestSizeInBytes(info) >= 256_MiB) {
-        const auto alloc_it = image_allocs_table.find(gpu_addr);
-        if (alloc_it != image_allocs_table.end()) {
-            const ImageAllocId alloc_id = alloc_it->second;
-            auto& alloc_images = slot_image_allocs[alloc_id].images;
-
-            // Collect old images at this address that were created more than 2 frames ago
-            boost::container::small_vector<ImageId, 4> to_delete;
-            for (ImageId old_image_id : alloc_images) {
-                Image& old_image = slot_images[old_image_id];
-                if (old_image.info.is_sparse &&
-                    old_image.gpu_addr == gpu_addr &&
-                    old_image.allocation_tick < frame_tick - 2) {  // Try not to delete fresh textures
-                    to_delete.push_back(old_image_id);
-                }
-            }
-
-            // Delete old images immediately
-            for (ImageId old_id : to_delete) {
-                Image& old_image = slot_images[old_id];
-                LOG_DEBUG(HW_GPU, "Immediately deleting old sparse texture at 0x{:X} ({} MiB)",
-                         gpu_addr, old_image.guest_size_bytes / (1024 * 1024));
-                if (True(old_image.flags & ImageFlagBits::Tracked)) {
-                    UntrackImage(old_image, old_id);
-                }
-                UnregisterImage(old_id);
-                DeleteImage(old_id, true);
-            }
-        }
-    }
-
     const ImageId image_id = JoinImages(info, gpu_addr, *cpu_addr);
     const Image& image = slot_images[image_id];
     // Using "image.gpu_addr" instead of "gpu_addr" is important because it might be different
@@ -1667,27 +1573,6 @@ template <class P>
 ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DAddr cpu_addr) {
     ImageInfo new_info = info;
     const size_t size_bytes = CalculateGuestSizeInBytes(new_info);
-
-    // Proactive cleanup for large sparse texture allocations
-    if (lowmemorydevice && new_info.is_sparse && size_bytes >= 256_MiB) {
-        const u64 estimated_alloc_size = size_bytes;
-
-        if (total_used_memory + estimated_alloc_size >= critical_memory) {
-            LOG_DEBUG(HW_GPU, "Large sparse texture allocation ({} MiB) - running aggressive GC. "
-                       "Current memory: {} MiB, Critical: {} MiB",
-                       size_bytes / (1024 * 1024),
-                       total_used_memory / (1024 * 1024),
-                       critical_memory / (1024 * 1024));
-            RunGarbageCollector();
-
-            // If still over threshold after GC, try one more aggressive pass
-            if (total_used_memory + estimated_alloc_size >= critical_memory) {
-                LOG_DEBUG(HW_GPU, "Still critically low on memory, running second GC pass");
-                RunGarbageCollector();
-            }
-        }
-    }
-
     const bool broken_views = runtime.HasBrokenTextureViewFormats();
     const bool native_bgr = runtime.HasNativeBgr();
     join_overlap_ids.clear();
