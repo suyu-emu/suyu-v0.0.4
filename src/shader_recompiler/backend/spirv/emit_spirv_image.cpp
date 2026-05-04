@@ -14,6 +14,38 @@
 
 namespace Shader::Backend::SPIRV {
 namespace {
+class DescriptorIndex {
+public:
+    explicit DescriptorIndex(EmitContext& ctx, const IR::Value& index)
+        : id{index.IsImmediate() ? ctx.Const(index.U32()) : ctx.Def(index)},
+          is_non_uniform{ctx.profile.support_sampled_image_array_nonuniform_indexing &&
+                         !index.IsImmediate()} {
+        if (!is_non_uniform) {
+            return;
+        }
+        if (ctx.profile.supported_spirv < 0x00010400) {
+            ctx.AddExtension("SPV_EXT_descriptor_indexing");
+        }
+        ctx.AddCapability(spv::Capability::ShaderNonUniform);
+        ctx.AddCapability(spv::Capability::SampledImageArrayNonUniformIndexing);
+        Decorate(ctx, id);
+    }
+
+    Id Value() const {
+        return id;
+    }
+
+    void Decorate(EmitContext& ctx, Id object) const {
+        if (is_non_uniform) {
+            ctx.Decorate(object, spv::Decoration::NonUniform);
+        }
+    }
+
+private:
+    Id id;
+    bool is_non_uniform;
+};
+
 class ImageOperands {
 public:
     [[maybe_unused]] static constexpr bool ImageSampleOffsetAllowed = false;
@@ -189,8 +221,12 @@ private:
 Id Texture(EmitContext& ctx, IR::TextureInstInfo info, [[maybe_unused]] const IR::Value& index) {
     const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
     if (def.count > 1) {
-        const Id pointer{ctx.OpAccessChain(def.pointer_type, def.id, ctx.Def(index))};
-        return ctx.OpLoad(def.sampled_type, pointer);
+        const DescriptorIndex idx{ctx, index};
+        const Id pointer{ctx.OpAccessChain(def.pointer_type, def.id, idx.Value())};
+        idx.Decorate(ctx, pointer);
+        const Id object{ctx.OpLoad(def.sampled_type, pointer)};
+        idx.Decorate(ctx, object);
+        return object;
     } else {
         return ctx.OpLoad(def.sampled_type, def.id);
     }
@@ -208,9 +244,14 @@ Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& ind
     } else {
         const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
         if (def.count > 1) {
-            const Id idx{index.IsImmediate() ? ctx.Const(index.U32()) : ctx.Def(index)};
-            const Id ptr{ctx.OpAccessChain(def.pointer_type, def.id, idx)};
-            return ctx.OpImage(def.image_type, ctx.OpLoad(def.sampled_type, ptr));
+            const DescriptorIndex idx{ctx, index};
+            const Id ptr{ctx.OpAccessChain(def.pointer_type, def.id, idx.Value())};
+            idx.Decorate(ctx, ptr);
+            const Id object{ctx.OpLoad(def.sampled_type, ptr)};
+            idx.Decorate(ctx, object);
+            const Id image{ctx.OpImage(def.image_type, object)};
+            idx.Decorate(ctx, image);
+            return image;
         }
         return ctx.OpImage(def.image_type, ctx.OpLoad(def.sampled_type, def.id));
     }

@@ -412,6 +412,8 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_scaled_attributes = !device.MustEmulateScaledFormats(),
         .support_multi_viewport = device.SupportsMultiViewport(),
         .support_geometry_streams = device.AreTransformFeedbackGeometryStreamsSupported(),
+        .support_sampled_image_array_nonuniform_indexing =
+            device.IsSampledImageArrayNonUniformIndexingSupported(),
 
         .warp_size_potentially_larger_than_guest = device.IsWarpSizePotentiallyBiggerThanGuest(),
 

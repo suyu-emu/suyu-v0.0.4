@@ -33,6 +33,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(KHR, VariablePointer, VARIABLE_POINTERS, variable_pointer)
 
 #define FOR_EACH_VK_FEATURE_1_2(FEATURE)                                                           \
+    FEATURE(EXT, DescriptorIndexing, DESCRIPTOR_INDEXING, descriptor_indexing)                     \
     FEATURE(EXT, HostQueryReset, HOST_QUERY_RESET, host_query_reset)                               \
     FEATURE(KHR, 8BitStorage, 8BIT_STORAGE, bit8_storage)                                          \
     FEATURE(KHR, TimelineSemaphore, TIMELINE_SEMAPHORE, timeline_semaphore)
@@ -365,6 +366,10 @@ public:
     /// Returns true if descriptor aliasing is natively supported.
     bool IsDescriptorAliasingSupported() const {
         return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    }
+
+    bool IsSampledImageArrayNonUniformIndexingSupported() const {
+        return features.descriptor_indexing.shaderSampledImageArrayNonUniformIndexing;
     }
 
     /// Returns true if the device supports float64 natively.
