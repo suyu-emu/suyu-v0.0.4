@@ -340,9 +340,9 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {306, nullptr, "GetPinCodeReregistrationGuideAccounts"}, //20.0.0+
         {307, nullptr, "SetPinCodeReregistrationGuideAccounts"}, //20.0.0+
         {315, C<&ISystemSettingsServer::GetHttpAuthConfigs>, "GetHttpAuthConfigs"}, //21.0.0+
-        {319, nullptr, "GetAccountUserSettings"}, //21.0.0+
+        {319, C<&ISystemSettingsServer::GetAccountUserSettings>, "GetAccountUserSettings"}, //21.0.0+
         {320, nullptr, "SetAccountUserSettings"}, //21.0.0+
-        {321, nullptr, "GetDefaultAccountUserSettings"}, //21.0.0+
+        {321, C<&ISystemSettingsServer::GetDefaultAccountUserSettings>, "GetDefaultAccountUserSettings"}, //21.0.0+
     };
     // clang-format on
 
@@ -1425,6 +1425,23 @@ Result ISystemSettingsServer::SetPanelCrcMode(s32 panel_crc_mode) {
 Result ISystemSettingsServer::GetHttpAuthConfigs(Out<s32> out_count, OutBuffer<BufferAttr_HipcMapAlias> out_configs) {
     LOG_WARNING(Service_SET, "(STUBBED) called, buffer_size={}", out_configs.size());
     *out_count = 0;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetAccountUserSettings(
+    Out<u32> out_count,
+    OutLargeData<AccountUserSettings, BufferAttr_HipcMapAlias> out_settings) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    *out_count = 0;
+    *out_settings = {};
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetDefaultAccountUserSettings(Out<AccountUserSettings> out_settings) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    *out_settings = {};
     R_SUCCEED();
 }
 

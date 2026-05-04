@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -37,6 +37,7 @@ private:
     Result GetPopOutDataEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetPopInteractiveOutDataEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetIndirectLayerConsumerHandle(Out<u64> out_handle);
+    Result Unknown170(OutCopyHandle<Kernel::KReadableEvent> out_event);
 
     void FrontendExecute();
     void FrontendExecuteInteractive();

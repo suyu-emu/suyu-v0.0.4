@@ -76,11 +76,13 @@ namespace Kernel {
             std::atomic_uint16_t interrupt_flag;
             std::atomic_uint8_t cache_maintenance_flag;
             std::atomic_int64_t thread_cpu_time;
+            std::atomic_uint32_t current_thread_handle;
         };
         static_assert(offsetof(ThreadLocalRegion, disable_count) == 0x100);
         static_assert(offsetof(ThreadLocalRegion, interrupt_flag) == 0x102);
         static_assert(offsetof(ThreadLocalRegion, cache_maintenance_flag) == 0x104);
         static_assert(offsetof(ThreadLocalRegion, thread_cpu_time) == 0x108);
+        static_assert(offsetof(ThreadLocalRegion, current_thread_handle) == 0x110);
 
         class ThreadQueueImplForKThreadSleep final : public KThreadQueueWithoutEndWait {
         public:
@@ -128,24 +130,24 @@ namespace Kernel {
 
         // Next, assert things based on the type.
         switch (type) {
-            case ThreadType::Main:
-                ASSERT(arg == 0);
-                [[fallthrough]];
-            case ThreadType::User:
-                ASSERT(((owner == nullptr) ||
-                        (owner->GetCoreMask() | (1ULL << virt_core)) == owner->GetCoreMask()));
-                ASSERT(((owner == nullptr) || (prio > Svc::LowestThreadPriority) ||
-                        (owner->GetPriorityMask() | (1ULL << prio)) == owner->GetPriorityMask()));
-                break;
-            case ThreadType::HighPriority:
-            case ThreadType::Dummy:
-                break;
-            case ThreadType::Kernel:
-                UNIMPLEMENTED();
-                break;
-            default:
-                ASSERT_MSG(false, "KThread::Initialize: Unknown ThreadType {}", static_cast<u32>(type));
-                break;
+        case ThreadType::Main:
+            ASSERT(arg == 0);
+            [[fallthrough]];
+        case ThreadType::User:
+            ASSERT(((owner == nullptr) ||
+                    (owner->GetCoreMask() | (1ULL << virt_core)) == owner->GetCoreMask()));
+            ASSERT(((owner == nullptr) || (prio > Svc::LowestThreadPriority) ||
+                    (owner->GetPriorityMask() | (1ULL << prio)) == owner->GetPriorityMask()));
+            break;
+        case ThreadType::HighPriority:
+        case ThreadType::Dummy:
+            break;
+        case ThreadType::Kernel:
+            UNIMPLEMENTED();
+            break;
+        default:
+            ASSERT_MSG(false, "KThread::Initialize: Unknown ThreadType {}", static_cast<u32>(type));
+            break;
         }
         m_thread_type = type;
 

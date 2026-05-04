@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -40,7 +43,7 @@ ACC_U1::ACC_U1(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> 
         {152, nullptr, "LoadSignedDeviceIdentifierCacheForNintendoAccount"},
         {190, nullptr, "GetUserLastOpenedApplication"},
         {191, nullptr, "ActivateOpenContextHolder"},
-        {401, nullptr, "GetPinCodeLength"}, // 18.0.0+
+        {401, &ACC_U1::GetPinCodeLength, "GetPinCodeLength"}, // 18.0.0+
         {402, nullptr, "GetPinCode"}, // 18.0.0+
         {997, nullptr, "DebugInvalidateTokenCacheForUser"},
         {998, nullptr, "DebugSetUserStateClose"},

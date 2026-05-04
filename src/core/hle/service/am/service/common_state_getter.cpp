@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -75,7 +75,8 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {502, nullptr, "IsSleepEnabled"},
         {503, nullptr, "IsDisablingSleepSuppressed"},
         {600, nullptr, "Unknown600"}, //20.0.0+
-        {610, nullptr, "Unknown610"}, //21.0.0+
+        {610, D<&ICommonStateGetter::Unknown610>, "Unknown610"}, //21.0.0+
+        {611, D<&ICommonStateGetter::Unknown611>, "Unknown611"}, //22.0.0+
         {900, D<&ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled>, "SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled"}, //11.0.0+
         {910, nullptr, "GetLaunchRequiredTick"}, //17.0.0+
         {1000, nullptr, "BeginVrMode3d"}, //19.0.0+
@@ -359,6 +360,16 @@ Result ICommonStateGetter::SetHandlingHomeButtonShortPressedEnabled(bool enabled
 
     std::scoped_lock lk{m_applet->lock};
     m_applet->home_button_short_pressed_blocked = !enabled;
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::Unknown610() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::Unknown611() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
     R_SUCCEED();
 }
 

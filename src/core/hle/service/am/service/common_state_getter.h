@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -63,6 +63,8 @@ private:
     Result SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled();
     Result PushToGeneralChannel(SharedPointer<IStorage> storage); // cmd 20
     Result SetHandlingHomeButtonShortPressedEnabled(bool enabled);
+    Result Unknown610();
+    Result Unknown611();
 
     void SetCpuBoostMode(HLERequestContext& ctx);
 

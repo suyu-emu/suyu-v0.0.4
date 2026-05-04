@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -60,7 +60,7 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> 
         {291, nullptr, "ProxyProcedureForFloatingRegistrationWithNintendoAccount"},
         {299, nullptr, "SuspendBackgroundDaemon"},
         {400, nullptr, "SetPinCode"}, // 18.0.0+
-        {401, nullptr, "GetPinCodeLength"}, // 18.0.0+
+        {401, &ACC_SU::GetPinCodeLength, "GetPinCodeLength"}, // 18.0.0+
         {402, nullptr, "GetPinCode"}, // 18.0.0+
         {410, nullptr, "GetPinCodeErrorCount"}, // 18.0.0+
         {411, nullptr, "ResetPinCodeErrorCount"}, // 18.0.0+

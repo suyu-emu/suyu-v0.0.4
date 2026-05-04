@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -92,7 +92,7 @@ Result IApplicationCreator::CreateSystemApplication(
     std::unique_ptr<Loader::AppLoader> loader;
 
     auto process =
-        CreateProcess(system, application_id, 1, 21);
+        CreateProcess(system, application_id, 1, 22);
     R_UNLESS(process != nullptr, ResultUnknown);
 
     const auto applet = std::make_shared<Applet>(system, std::move(process), true);

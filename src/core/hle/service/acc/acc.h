@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -48,6 +48,7 @@ public:
         void StoreSaveDataThumbnailApplication(HLERequestContext& ctx);
         void GetBaasAccountManagerForSystemService(HLERequestContext& ctx);
         void StoreSaveDataThumbnailSystem(HLERequestContext& ctx);
+        void GetPinCodeLength(HLERequestContext& ctx);
 
     private:
         Result InitializeApplicationInfoBase();

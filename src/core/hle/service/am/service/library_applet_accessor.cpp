@@ -78,6 +78,7 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
         {120, nullptr, "GetLibraryAppletInfo"},
         {150, nullptr, "RequestForAppletToGetForeground"},
         {160, D<&ILibraryAppletAccessor::GetIndirectLayerConsumerHandle>, "GetIndirectLayerConsumerHandle"}, //2.0.0+
+        {170, D<&ILibraryAppletAccessor::Unknown170>, "Unknown170"}, //22.0.0+
     };
     // clang-format on
 
@@ -214,6 +215,12 @@ Result ILibraryAppletAccessor::GetIndirectLayerConsumerHandle(Out<u64> out_handl
     // We require a non-zero handle to be valid. Using 0xdeadbeef allows us to trace if this is
     // actually used anywhere
     *out_handle = 0xdeadbeef;
+    R_SUCCEED();
+}
+
+Result ILibraryAppletAccessor::Unknown170(OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    *out_event = m_applet->unknown_event.GetHandle();
     R_SUCCEED();
 }
 
