@@ -514,6 +514,8 @@ private:
     bool CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QString& game_title);
     bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
                              std::filesystem::path& out_icon_path);
+    bool InstallDecryptionKeysFromPath(const QString& key_source_location, QString* out_error,
+                                       int* out_copied_count = nullptr);
     bool CreateShortcutLink(const std::filesystem::path& shortcut_path, const std::string& comment,
                             const std::filesystem::path& icon_path,
                             const std::filesystem::path& command, const std::string& arguments,

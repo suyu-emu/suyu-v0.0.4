@@ -321,8 +321,8 @@ void McpServer::RegisterBuiltinTools() {
                 result[QStringLiteral("external_tool_path")] = ext_tool_path;
                 result[QStringLiteral("external_tool_configured")] = ext_tool_exists;
                 result[QStringLiteral("note")] = QStringLiteral(
-                    "Built-in decryption is disabled. Use an external "
-                    "tool (hactool, Ryujinx, Eden, etc.) for decryption.");
+                    "Built-in key loading is supported. You can install prod.keys/title.keys locally, "
+                    "or configure an external decryption tool if you prefer.");
                 return result;
             }
         });

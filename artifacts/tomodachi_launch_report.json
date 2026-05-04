@@ -1,0 +1,50 @@
+﻿{
+    "launch_time":  "2026-05-04T11:28:58.5554517+01:00",
+    "process_id":  2856,
+    "process_still_running":  true,
+    "checkpoints":  [
+                        {
+                            "checkpoint_s":  10,
+                            "alive":  true,
+                            "pid":  2856,
+                            "log_exists":  true,
+                            "log_size":  24330
+                        },
+                        {
+                            "checkpoint_s":  30,
+                            "alive":  true,
+                            "pid":  2856,
+                            "log_exists":  true,
+                            "log_size":  24330
+                        },
+                        {
+                            "checkpoint_s":  60,
+                            "alive":  true,
+                            "pid":  2856,
+                            "log_exists":  true,
+                            "log_size":  35046
+                        },
+                        {
+                            "checkpoint_s":  90,
+                            "alive":  true,
+                            "pid":  2856,
+                            "log_exists":  true,
+                            "log_size":  35046
+                        }
+                    ],
+    "match_counts":  {
+                         "AnyUnknownUnimplementedFunction":  1,
+                         "UserspacePanic":  1,
+                         "ExactUnknownIApplicationFunctions210":  1
+                     },
+    "relevant_lines":  [
+                           "000269: [  44.601686] Service.AM \u003cInfo\u003e core\\hle\\service\\am\\service\\self_controller.cpp:SetPerformanceModeChangedNotification:175: called, enabled=true",
+                           "000270: [  44.617095] Debug \u003cCritical\u003e core\\hle\\service\\service.cpp:operator ():78: Assertion Failed!",
+                           "000271: Unknown / unimplemented function \u0027210(\u003cunknown\u003e)\u0027: port=\u0027IApplicationFunctions\u0027 cmd_buf={[0]=0x6, [1]=0xC, [2]=0x0, [3]=0x0, [4]=0x100001, [5]=0x3, [6]=0x0, [7]=0x0, [8]=0x49434653}",
+                           "000272: [  44.702161] Service.AM \u003cInfo\u003e core\\hle\\service\\am\\service\\application_functions.cpp:SetTerminateResult:187: (STUBBED) called, result=0x1a80a (2010-0212)",
+                           "000273: [  44.715690] Debug.Emulated \u003cCritical\u003e core\\hle\\kernel\\svc\\svc_exception.cpp:Break:52: Userspace PANIC! info1=0x00000010CDFA3D48, info2=0x0000000000000004",
+                           "000274: [  44.715718] Debug.Emulated \u003cCritical\u003e core\\hle\\kernel\\svc\\svc_exception.cpp:operator ():33: debug_buffer_err_code=1A80A",
+                           "000275: [  44.715755] Debug.Emulated \u003cCritical\u003e core\\hle\\kernel\\svc\\svc_exception.cpp:Break:102: Emulated program broke execution! reason=0x0000000000000000, info1=0x00000010CDFA3D48, info2=0x0000000000000004"
+                       ],
+    "log_path":  "C:\\Users\\charl\\AppData\\Roaming\\suyu\\log\\suyu_log.txt"
+}

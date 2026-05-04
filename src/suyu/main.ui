@@ -556,9 +556,6 @@
    <property name="text">
     <string>Install Decryption Keys</string>
    </property>
-   <property name="visible">
-    <bool>false</bool>
-   </property>
   </action>
   <action name="action_Configure_External_Decryption">
    <property name="text">

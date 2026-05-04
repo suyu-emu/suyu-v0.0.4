@@ -1876,9 +1876,9 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
             const auto response = QMessageBox::warning(
                 this, tr("No Decryption Keys Detected"),
                 tr("No local decryption keys were detected.\n\n"
-                   "Configure an external decryption tool via\n"
-                   "Tools > Configure External Decryption Tool, or\n"
-                   "use pre-decrypted game files.\n\n"
+                   "Install your keys via\n"
+                   "Tools > Install Decryption Keys,\n"
+                   "or configure an external decryption tool if you prefer.\n\n"
                    "If your games are already decrypted, choose Continue."),
                 QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
             if (response != QMessageBox::Yes) {
@@ -4580,7 +4580,7 @@ void GMainWindow::OnInstallDecryptionKeys() {
     }
 
     const QString selected_path = QFileDialog::getOpenFileName(
-        this, tr("Select prod.keys (or cancel and choose Configure External Decryption Tool)"),
+        this, tr("Select prod.keys"),
         QString::fromStdString(Common::FS::GetSuyuPathString(Common::FS::SuyuPath::KeysDir)),
         tr("Keys (*.keys *.bin);;All files (*.*)"));
 
@@ -4588,7 +4588,20 @@ void GMainWindow::OnInstallDecryptionKeys() {
         return;
     }
 
-    const std::filesystem::path source_path = selected_path.toStdString();
+    QString error_message;
+    int copied_count = 0;
+    if (!InstallDecryptionKeysFromPath(selected_path, &error_message, &copied_count)) {
+        QMessageBox::critical(this, tr("Key Installation Failed"), error_message);
+        return;
+    }
+
+    QMessageBox::information(this, tr("Keys Installed"),
+                             tr("Installed %1 key file(s).").arg(copied_count));
+}
+
+bool GMainWindow::InstallDecryptionKeysFromPath(const QString& key_source_location,
+                                                QString* out_error, int* out_copied_count) {
+    const std::filesystem::path source_path = key_source_location.toStdString();
     std::filesystem::path source_dir;
     if (Common::FS::IsDir(source_path)) {
         source_dir = source_path;
@@ -4597,16 +4610,18 @@ void GMainWindow::OnInstallDecryptionKeys() {
     }
 
     if (!Common::FS::IsDir(source_dir)) {
-        QMessageBox::critical(this, tr("Key Installation Failed"),
-                              tr("The selected key directory does not exist."));
-        return;
+        if (out_error != nullptr) {
+            *out_error = tr("The selected key directory does not exist.");
+        }
+        return false;
     }
 
     const std::filesystem::path prod_key_path = source_dir / "prod.keys";
     if (!Common::FS::Exists(prod_key_path)) {
-        QMessageBox::critical(this, tr("Key Installation Failed"),
-                              tr("prod.keys was not found in the selected directory."));
-        return;
+        if (out_error != nullptr) {
+            *out_error = tr("prod.keys was not found in the selected directory.");
+        }
+        return false;
     }
 
     std::vector<std::filesystem::path> key_files{prod_key_path};
@@ -4628,11 +4643,13 @@ void GMainWindow::OnInstallDecryptionKeys() {
             std::error_code copy_ec;
             if (!std::filesystem::copy_file(key_file, destination_file,
                                             std::filesystem::copy_options::overwrite_existing,
-                                            copy_ec) || copy_ec) {
-                QMessageBox::critical(this, tr("Key Installation Failed"),
-                                      tr("Failed to copy one or more key files:\n%1")
-                                          .arg(QString::fromStdString(copy_ec.message())));
-                return;
+                                            copy_ec) ||
+                copy_ec) {
+                if (out_error != nullptr) {
+                    *out_error = tr("Failed to copy one or more key files:\n%1")
+                                     .arg(QString::fromStdString(copy_ec.message()));
+                }
+                return false;
             }
             ++copied_count;
         }
@@ -4642,17 +4659,23 @@ void GMainWindow::OnInstallDecryptionKeys() {
         game_list->PopulateAsync(UISettings::values.game_dirs);
         OnCheckFirmwareDecryption();
 
-        QMessageBox::information(this, tr("Keys Installed"),
-                                 tr("Installed %1 key file(s).").arg(copied_count));
+        if (out_copied_count != nullptr) {
+            *out_copied_count = copied_count;
+        }
+        return true;
     } catch (const std::exception& e) {
         LOG_ERROR(Frontend, "Exception installing decryption keys: {}", e.what());
-        QMessageBox::critical(this, tr("Key Installation Failed"),
-                              tr("An error occurred while installing keys:\n%1")
-                                  .arg(QString::fromUtf8(e.what())));
+        if (out_error != nullptr) {
+            *out_error = tr("An error occurred while installing keys:\n%1")
+                             .arg(QString::fromUtf8(e.what()));
+        }
+        return false;
     } catch (...) {
         LOG_ERROR(Frontend, "Unknown exception installing decryption keys");
-        QMessageBox::critical(this, tr("Key Installation Failed"),
-                              tr("An unexpected error occurred while installing keys."));
+        if (out_error != nullptr) {
+            *out_error = tr("An unexpected error occurred while installing keys.");
+        }
+        return false;
     }
 }
 
@@ -5200,8 +5223,7 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                     } else if (action == QStringLiteral("install_firmware_dialog")) {
                         OnInstallFirmware();
                     } else if (action == QStringLiteral("install_keys_dialog")) {
-                        // Redirect to external decryption tool configuration
-                        OnConfigureExternalDecryption();
+                        OnInstallDecryptionKeys();
                     } else {
                         return QJsonObject{{QStringLiteral("success"), false},
                                            {QStringLiteral("error"), QStringLiteral("Unknown action: %1").arg(action)}};
@@ -5356,10 +5378,16 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                                         QStringLiteral("Cannot install keys while emulation is running")}};
                 }
 
-                Q_UNUSED(key_source_location);
-                return QJsonObject{{QStringLiteral("success"), false},
-                                   {QStringLiteral("error"),
-                                    QStringLiteral("Local key installation is disabled. Configure an external decryption tool or use pre-decrypted games.")}};
+                QString error_message;
+                int copied_count = 0;
+                if (!InstallDecryptionKeysFromPath(key_source_location, &error_message,
+                                                   &copied_count)) {
+                    return QJsonObject{{QStringLiteral("success"), false},
+                                       {QStringLiteral("error"), error_message}};
+                }
+
+                return QJsonObject{{QStringLiteral("success"), true},
+                                   {QStringLiteral("copied_count"), copied_count}};
             };
 
             {
@@ -5378,8 +5406,7 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
 
                 mcp_server_->RegisterTool(
                     QStringLiteral("install_keys_from_path"),
-                    QStringLiteral(
-                        "This endpoint is disabled in external decryption mode. Configure an external decryption tool or use pre-decrypted games."),
+                    QStringLiteral("Install prod.keys/title.keys from a file path or directory."),
                     install_keys_schema,
                     [install_keys_from_directory](const QJsonObject& params) -> QJsonObject {
                         return install_keys_from_directory(params[QStringLiteral("path")].toString());
@@ -6137,9 +6164,7 @@ void GMainWindow::OnMouseActivity() {
 void GMainWindow::OnCheckFirmwareDecryption() {
     system->GetFileSystemController().CreateFactories(*vfs);
     if (!ContentManager::AreKeysPresent()) {
-        LOG_INFO(Frontend,
-                 "No built-in decryption keys detected. "
-                 "Use an external decryption tool if needed.");
+        LOG_INFO(Frontend, "No local decryption keys detected.");
     }
 
     SetFirmwareVersion();
