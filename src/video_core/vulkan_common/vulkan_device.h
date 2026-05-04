@@ -335,6 +335,18 @@ public:
         return properties.properties.limits.maxDescriptorSetUniformBuffersDynamic;
     }
 
+    u32 GetMaxPerStageDescriptorSampledImages() const {
+        return properties.properties.limits.maxPerStageDescriptorSampledImages;
+    }
+
+    u32 GetMaxPerStageResources() const {
+        return properties.properties.limits.maxPerStageResources;
+    }
+
+    u32 GetMaxDescriptorSetSampledImages() const {
+        return properties.properties.limits.maxDescriptorSetSampledImages;
+    }
+
     /// Returns float control properties of the device.
     const VkPhysicalDeviceFloatControlsPropertiesKHR& FloatControlProperties() const {
         return properties.float_controls;
