@@ -225,6 +225,7 @@
      <addaction name="separator"/>
      <addaction name="action_Configure_Tas"/>
     </widget>
+    <addaction name="action_Install_Keys"/>
     <addaction name="action_Configure_External_Decryption"/>
     <addaction name="action_Install_Firmware"/>
     <addaction name="action_Verify_installed_contents"/>

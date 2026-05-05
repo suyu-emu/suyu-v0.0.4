@@ -106,9 +106,9 @@ public:
 
         bytes_written += file->WriteString(FormatLogMessage(entry).append(1, '\n'));
 
-               // Flush on each line when extended logging is enabled
-        if (Settings::values.extended_logging.GetValue()) {
-            file->Flush();
+        if (!file->Flush()) {
+            enabled = false;
+            return;
         }
 
         using namespace Common::Literals;

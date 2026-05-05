@@ -14,6 +14,7 @@
 #include <QUrl>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QStandardPaths>
 
@@ -293,7 +294,6 @@ QByteArray SteamIntegration::SerializeShortcutsVdf(
         VdfWriteUint32(buf, "DevkitOverrideAppID", 0);
         VdfWriteUint32(buf, "LastPlayTime", static_cast<quint32>(sc.last_play_time));
         VdfWriteString(buf, VdfType::String, "FlatpakAppID", "");
-        VdfWriteString(buf, VdfType::String, "LastPlayTime", "");
 
         // Tags sub-section
         buf.append(static_cast<char>(VdfType::SubSection));
@@ -362,11 +362,13 @@ bool SteamIntegration::AddGameShortcut(const QString& game_title, const QString&
     new_sc.app_name = game_title;
     new_sc.exe = QStringLiteral("\"%1\"").arg(exe_path);
     new_sc.start_dir = QStringLiteral("\"%1\"").arg(QFileInfo(exe_path).absolutePath());
-    new_sc.icon = icon_path;
+    new_sc.icon = icon_path.isEmpty() ? QString() : QFileInfo(icon_path).absoluteFilePath();
+    new_sc.shortcut_path = QFileInfo(exe_path).absolutePath();
     new_sc.launch_options = QStringLiteral("-g \"%1\"").arg(rom_path);
     new_sc.allow_desktop_config = true;
     new_sc.allow_overlay = true;
     new_sc.tags.append(QStringLiteral("SuyuEclipse"));
+    new_sc.tags.append(QStringLiteral("Nintendo Switch"));
     new_sc.id = GenerateAppId(new_sc.exe, new_sc.app_name);
 
     shortcuts.push_back(std::move(new_sc));
@@ -452,6 +454,65 @@ QString NetworkReplyErrorString(QNetworkReply* reply) {
     return reply->errorString();
 }
 
+QString NormalizeSteamSearchText(QString text) {
+    text = text.toLower().trimmed();
+    text.replace(QRegularExpression(QStringLiteral(R"([^a-z0-9]+)")), QStringLiteral(" "));
+    text.replace(QRegularExpression(QStringLiteral(R"(\b(deluxe|ultimate|complete|edition|demo|bundle|remaster|remastered|goty)\b)")),
+                 QStringLiteral(" "));
+    text.replace(QRegularExpression(QStringLiteral(R"(\s+)")), QStringLiteral(" "));
+    return text.trimmed();
+}
+
+int SteamStoreMatchScore(const QString& query_title, const QString& candidate_title) {
+    const QString query = NormalizeSteamSearchText(query_title);
+    const QString candidate = NormalizeSteamSearchText(candidate_title);
+
+    if (query.isEmpty() || candidate.isEmpty()) {
+        return 0;
+    }
+    if (candidate == query) {
+        return 1000;
+    }
+    if (candidate.startsWith(query)) {
+        return 850;
+    }
+    if (candidate.contains(query)) {
+        return 700;
+    }
+
+    const QStringList query_parts = query.split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    int overlap = 0;
+    for (const QString& part : query_parts) {
+        if (candidate.contains(part)) {
+            overlap += 100;
+        }
+    }
+
+    return overlap - qAbs(candidate.size() - query.size());
+}
+
+qint64 SelectBestSteamStoreAppId(const QJsonArray& items, const QString& game_title) {
+    qint64 best_app_id = 0;
+    int best_score = std::numeric_limits<int>::min();
+
+    for (const QJsonValue& value : items) {
+        const QJsonObject item = value.toObject();
+        const qint64 app_id = item[QStringLiteral("id")].toVariant().toLongLong();
+        const QString candidate_title = item[QStringLiteral("name")].toString();
+        if (app_id == 0 || candidate_title.isEmpty()) {
+            continue;
+        }
+
+        const int score = SteamStoreMatchScore(game_title, candidate_title);
+        if (score > best_score) {
+            best_score = score;
+            best_app_id = app_id;
+        }
+    }
+
+    return best_app_id;
+}
+
 } // namespace
 
 void SteamIntegration::FetchArtwork(const QString& game_title, const QString& output_path,
@@ -477,7 +538,7 @@ void SteamIntegration::FetchArtwork(const QString& game_title, const QString& ou
                     return;
                 }
 
-                const qint64 app_id = items[0].toObject()[QStringLiteral("id")].toVariant().toLongLong();
+                const qint64 app_id = SelectBestSteamStoreAppId(items, game_title);
                 if (app_id == 0) {
                     emit ArtworkFetchFailed(game_title,
                                             QStringLiteral("Steam Store returned an invalid app id"));

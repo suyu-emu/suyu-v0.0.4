@@ -829,14 +829,17 @@ bool RegisteredCache::RawInstallSuyuMeta(const CNMT& cnmt) {
 ContentProviderUnion::~ContentProviderUnion() = default;
 
 void ContentProviderUnion::SetSlot(ContentProviderUnionSlot slot, ContentProvider* provider) {
+    std::scoped_lock lk{providers_mutex};
     providers[slot] = provider;
 }
 
 void ContentProviderUnion::ClearSlot(ContentProviderUnionSlot slot) {
+    std::scoped_lock lk{providers_mutex};
     providers[slot] = nullptr;
 }
 
 void ContentProviderUnion::Refresh() {
+    std::scoped_lock lk{providers_mutex};
     for (auto& provider : providers) {
         if (provider.second == nullptr)
             continue;
@@ -846,6 +849,7 @@ void ContentProviderUnion::Refresh() {
 }
 
 bool ContentProviderUnion::HasEntry(u64 title_id, ContentRecordType type) const {
+    std::scoped_lock lk{providers_mutex};
     for (const auto& provider : providers) {
         if (provider.second == nullptr)
             continue;
@@ -858,6 +862,7 @@ bool ContentProviderUnion::HasEntry(u64 title_id, ContentRecordType type) const 
 }
 
 std::optional<u32> ContentProviderUnion::GetEntryVersion(u64 title_id) const {
+    std::scoped_lock lk{providers_mutex};
     for (const auto& provider : providers) {
         if (provider.second == nullptr)
             continue;
@@ -871,6 +876,7 @@ std::optional<u32> ContentProviderUnion::GetEntryVersion(u64 title_id) const {
 }
 
 VirtualFile ContentProviderUnion::GetEntryUnparsed(u64 title_id, ContentRecordType type) const {
+    std::scoped_lock lk{providers_mutex};
     for (const auto& provider : providers) {
         if (provider.second == nullptr)
             continue;
@@ -884,6 +890,7 @@ VirtualFile ContentProviderUnion::GetEntryUnparsed(u64 title_id, ContentRecordTy
 }
 
 VirtualFile ContentProviderUnion::GetEntryRaw(u64 title_id, ContentRecordType type) const {
+    std::scoped_lock lk{providers_mutex};
     for (const auto& provider : providers) {
         if (provider.second == nullptr)
             continue;
@@ -897,6 +904,7 @@ VirtualFile ContentProviderUnion::GetEntryRaw(u64 title_id, ContentRecordType ty
 }
 
 std::unique_ptr<NCA> ContentProviderUnion::GetEntry(u64 title_id, ContentRecordType type) const {
+    std::scoped_lock lk{providers_mutex};
     for (const auto& provider : providers) {
         if (provider.second == nullptr)
             continue;
@@ -913,6 +921,7 @@ std::vector<ContentProviderEntry> ContentProviderUnion::ListEntriesFilter(
     std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
     std::optional<u64> title_id) const {
     std::vector<ContentProviderEntry> out;
+    std::scoped_lock lk{providers_mutex};
 
     for (const auto& provider : providers) {
         if (provider.second == nullptr)
@@ -933,6 +942,7 @@ ContentProviderUnion::ListEntriesFilterOrigin(std::optional<ContentProviderUnion
                                               std::optional<ContentRecordType> record_type,
                                               std::optional<u64> title_id) const {
     std::vector<std::pair<ContentProviderUnionSlot, ContentProviderEntry>> out;
+    std::scoped_lock lk{providers_mutex};
 
     for (const auto& provider : providers) {
         if (provider.second == nullptr)
@@ -955,6 +965,7 @@ ContentProviderUnion::ListEntriesFilterOrigin(std::optional<ContentProviderUnion
 
 std::optional<ContentProviderUnionSlot> ContentProviderUnion::GetSlotForEntry(
     u64 title_id, ContentRecordType type) const {
+    std::scoped_lock lk{providers_mutex};
     const auto iter =
         std::find_if(providers.begin(), providers.end(), [title_id, type](const auto& provider) {
             return provider.second != nullptr && provider.second->HasEntry(title_id, type);

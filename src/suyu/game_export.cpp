@@ -74,6 +74,24 @@
 // Filesystem helpers
 // ---------------------------------------------------------------------------
 
+static bool CopyFileReplacingExisting(const QString& src, const QString& dst) {
+    const QFileInfo src_info(src);
+    if (!src_info.exists() || !src_info.isFile()) {
+        return false;
+    }
+
+    const QFileInfo dst_info(dst);
+    if (!QDir().mkpath(dst_info.absolutePath())) {
+        return false;
+    }
+
+    if (QFile::exists(dst) && !QFile::remove(dst)) {
+        return false;
+    }
+
+    return QFile::copy(src, dst);
+}
+
 static bool CopyDirectoryRecursive(const QString& src, const QString& dst) {
     QDir src_dir(src);
     if (!src_dir.exists()) {
@@ -85,7 +103,7 @@ static bool CopyDirectoryRecursive(const QString& src, const QString& dst) {
 
     for (const QFileInfo& entry : src_dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         const QString dest_file = dst + QDir::separator() + entry.fileName();
-        if (!QFile::copy(entry.absoluteFilePath(), dest_file)) {
+        if (!CopyFileReplacingExisting(entry.absoluteFilePath(), dest_file)) {
             return false;
         }
     }
@@ -159,7 +177,7 @@ static bool CopyPortableSupportData(quint64 program_id, const QString& package_r
                 return false;
             }
             const QString config_dst = config_dst_dir + QDir::separator() + config_file_name;
-            if (!QFile::copy(config_src, config_dst)) {
+            if (!CopyFileReplacingExisting(config_src, config_dst)) {
                 return false;
             }
         }
@@ -755,9 +773,10 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
     QDir().mkpath(ir_dir);
 
     const bool full_scan = aot_full_scan_checkbox->isChecked();
-    const QString backend_name =
-        (backend == RecompileBackend::Ballistic) ? QStringLiteral("ballistic")
-                                                 : QStringLiteral("dynarmic");
+    const bool ballistic_requested = backend == RecompileBackend::Ballistic;
+    const QString requested_backend_name =
+        ballistic_requested ? QStringLiteral("ballistic") : QStringLiteral("dynarmic");
+    const QString effective_backend_name = QStringLiteral("dynarmic");
 
     // Collect NSO files to analyze — either from VFS (ROM containers) or from extracted ExeFS
     std::vector<NsoAnalysisResult> module_results;
@@ -868,7 +887,8 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         QTextStream out(&manifest);
         out << "{\n";
         out << "  \"version\": 2,\n";
-        out << "  \"backend\": \"" << backend_name << "\",\n";
+        out << "  \"requested_backend\": \"" << requested_backend_name << "\",\n";
+        out << "  \"effective_backend\": \"" << effective_backend_name << "\",\n";
         out << "  \"full_scan\": " << (full_scan ? "true" : "false") << ",\n";
         out << "  \"total_modules\": " << module_results.size() << ",\n";
         out << "  \"total_blocks_analyzed\": " << total_blocks << ",\n";
@@ -900,7 +920,11 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         out << "  ],\n";
              out << "  \"comment\": \"Dynarmic A64 frontend export. suyu serializes translated IR, "
                  "raw guest code slices, and block maps as inputs for a future custom runtime/codegen "
-                 "stage instead of bundling the existing frontend executable.\"\n";
+                 "stage instead of bundling the existing frontend executable."
+                 << (ballistic_requested
+                         ? " Ballistic was requested but currently falls back to the Dynarmic export path until a distinct Ballistic serializer is wired."
+                         : "")
+                 << "\"\n";
         out << "}\n";
         manifest.close();
     }
@@ -922,18 +946,21 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
     switch (platform) {
     case TargetPlatform::Windows: {
         const QString pkg_dir = output_dir + QDir::separator() + game_name;
-        QDir().mkpath(pkg_dir);
+        if (!QDir().mkpath(pkg_dir)) {
+            return false;
+        }
 
         // Bundle game data
         const QString bundled_rom = pkg_dir + QDir::separator() + game_name + rom_extension;
-        QFile::remove(bundled_rom);
-        if (!QFile::copy(rom_path, bundled_rom)) {
+        if (!CopyFileReplacingExisting(rom_path, bundled_rom)) {
             return false;
         }
 
         // Copy AOT cache
-        CopyDirectoryRecursive(cache_dir,
-                               pkg_dir + QDir::separator() + QStringLiteral("aot_cache"));
+        if (!CopyDirectoryRecursive(cache_dir,
+                                    pkg_dir + QDir::separator() + QStringLiteral("aot_cache"))) {
+            return false;
+        }
 
         QFile readme(pkg_dir + QDir::separator() + QStringLiteral("README_NATIVE_EXPORT.txt"));
         if (readme.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -957,16 +984,21 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
         const QString appdir =
             output_dir + QDir::separator() + game_name + QStringLiteral(".AppDir");
         const QString bin_dir = appdir + QDir::separator() + QStringLiteral("usr/bin");
-        QDir().mkpath(bin_dir);
+        if (!QDir().mkpath(bin_dir)) {
+            return false;
+        }
 
         // Bundle game data
         const QString bundled_rom = bin_dir + QDir::separator() + game_name + rom_extension;
-        QFile::remove(bundled_rom);
-        QFile::copy(rom_path, bundled_rom);
+        if (!CopyFileReplacingExisting(rom_path, bundled_rom)) {
+            return false;
+        }
 
         // Copy AOT cache
-        CopyDirectoryRecursive(cache_dir,
-                               bin_dir + QDir::separator() + QStringLiteral("aot_cache"));
+        if (!CopyDirectoryRecursive(cache_dir,
+                                    bin_dir + QDir::separator() + QStringLiteral("aot_cache"))) {
+            return false;
+        }
 
         QFile readme(appdir + QDir::separator() + QStringLiteral("README_NATIVE_EXPORT.txt"));
         if (readme.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -985,17 +1017,21 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             output_dir + QDir::separator() + game_name + QStringLiteral(".app");
         const QString contents_dir = app_bundle + QDir::separator() + QStringLiteral("Contents");
         const QString res_dir = contents_dir + QDir::separator() + QStringLiteral("Resources");
-        QDir().mkpath(contents_dir);
-        QDir().mkpath(res_dir);
+        if (!QDir().mkpath(contents_dir) || !QDir().mkpath(res_dir)) {
+            return false;
+        }
 
         // Bundle game data
         const QString bundled_rom = res_dir + QDir::separator() + game_name + rom_extension;
-        QFile::remove(bundled_rom);
-        QFile::copy(rom_path, bundled_rom);
+        if (!CopyFileReplacingExisting(rom_path, bundled_rom)) {
+            return false;
+        }
 
         // Copy AOT cache
-        CopyDirectoryRecursive(cache_dir,
-                               res_dir + QDir::separator() + QStringLiteral("aot_cache"));
+        if (!CopyDirectoryRecursive(cache_dir,
+                                    res_dir + QDir::separator() + QStringLiteral("aot_cache"))) {
+            return false;
+        }
 
         QFile readme(contents_dir + QDir::separator() + QStringLiteral("README_NATIVE_EXPORT.txt"));
         if (readme.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -1052,6 +1088,11 @@ void GameExportDialog::OnExport() {
     status_label->setText(tr("Preparing AOT export..."));
     QApplication::processEvents();
 
+    if (backend == RecompileBackend::Ballistic) {
+        status_label->setText(tr("Ballistic export is not wired yet; using Dynarmic export artifacts for this run."));
+        QApplication::processEvents();
+    }
+
     try {
     // Step 1: Create temporary working directories
     const QString work_dir = output_dir + QDir::separator() +
@@ -1071,9 +1112,13 @@ void GameExportDialog::OnExport() {
     if (rom_fi.isDir()) {
         const QString exefs_sub = rom_path + QDir::separator() + QStringLiteral("exefs");
         if (QDir(exefs_sub).exists()) {
-            CopyDirectoryRecursive(exefs_sub, exefs_work);
+            if (!CopyDirectoryRecursive(exefs_sub, exefs_work)) {
+                throw std::runtime_error("Failed to copy ExeFS staging directory");
+            }
         } else {
-            CopyDirectoryRecursive(rom_path, exefs_work);
+            if (!CopyDirectoryRecursive(rom_path, exefs_work)) {
+                throw std::runtime_error("Failed to copy ROM directory into export staging area");
+            }
         }
     }
     // For packaged ROM files (NSP/XCI/NCA), the AOT step uses VFS to extract ExeFS directly.
@@ -1130,8 +1175,10 @@ void GameExportDialog::OnExport() {
             break;
         }
 
-        CopyPortableSupportData(rom_program_id, pkg_root, include_save_data,
-                                include_shader_cache, include_custom_config);
+        if (!CopyPortableSupportData(rom_program_id, pkg_root, include_save_data,
+                                     include_shader_cache, include_custom_config)) {
+            throw std::runtime_error("Failed to bundle portable support data");
+        }
     }
     progress_bar->setValue(90);
 

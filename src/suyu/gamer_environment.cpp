@@ -1049,7 +1049,7 @@ QString GamerEnvironment::CoverCachePathForTitle(const QString& title) const {
     const QByteArray key = QCryptographicHash::hash(title.trimmed().toUtf8(),
                                                     QCryptographicHash::Sha1)
                                .toHex();
-    return QDir(cache_root).filePath(QString::fromLatin1(key) + QStringLiteral(".jpg"));
+    return QDir(cache_root).filePath(QString::fromLatin1(key) + QStringLiteral(".png"));
 }
 
 QString GamerEnvironment::ExtractIgdbImageUrl(const QString& html) const {
@@ -1066,8 +1066,10 @@ QString GamerEnvironment::ExtractIgdbImageUrl(const QString& html) const {
     if (url.startsWith(QStringLiteral("//"))) {
         url.prepend(QStringLiteral("https:"));
     }
-    // Request a reasonably sized cover variant if possible.
-    url.replace(QStringLiteral("/t_thumb/"), QStringLiteral("/t_cover_big/"));
+    // Request a higher resolution cover variant so the gamer grid is not limited by the
+    // initial thumbnail URL embedded in the search results.
+    static const QRegularExpression size_re(QStringLiteral(R"(/t_[^/]+/)"));
+    url.replace(size_re, QStringLiteral("/t_cover_big_2x/"));
     return url;
 }
 
@@ -1165,7 +1167,7 @@ void GamerEnvironment::RequestCoverArtwork(const QString& game_path, const QStri
 
                             QFile f(cache_path);
                             if (f.open(QIODevice::WriteOnly)) {
-                                px.save(&f, "JPG", 86);
+                                px.toImage().save(&f, "PNG");
                             }
 
                             LOG_INFO(Frontend, "Fetched IGDB cover art for '{}'", title.toStdString());

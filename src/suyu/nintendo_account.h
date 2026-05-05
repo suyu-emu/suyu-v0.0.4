@@ -49,6 +49,7 @@ signals:
     void AccountLinked(const QString& nickname);
     void AccountUnlinked();
     void LinkFailed(const QString& error);
+    void OwnedLibraryUpdated(int title_count);
 
 private slots:
     void OnLinkClicked();

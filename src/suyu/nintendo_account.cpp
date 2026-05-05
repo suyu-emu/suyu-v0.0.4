@@ -132,6 +132,9 @@ NintendoAccountDialog::NintendoAccountDialog(QWidget* parent) : QDialog(parent) 
     LoadCredentials();
     owned_library_ = LoadNintendoOwnedLibrary();
     RefreshStatus();
+    if (linked_ && session_token_.isEmpty() == false && owned_library_.empty()) {
+        FetchNintendoOwnedLibrary(session_token_);
+    }
 }
 
 void NintendoAccountDialog::SetupUi() {
@@ -433,6 +436,8 @@ void NintendoAccountDialog::FetchNintendoOwnedLibrary(const QString& token) {
                          QStringLiteral("session_token=%1").arg(token).toUtf8());
 
     progress_bar->setVisible(true);
+    library_summary_label->setText(tr("Syncing Nintendo digital library..."));
+    library_summary_label->setVisible(true);
     QNetworkReply* orders_reply = network_manager_->get(request);
     connect(orders_reply, &QNetworkReply::finished, this, [this, orders_reply]() {
         orders_reply->deleteLater();
@@ -454,6 +459,7 @@ void NintendoAccountDialog::FetchNintendoOwnedLibrary(const QString& token) {
             library_summary_label->setVisible(true);
         }
         RefreshStatus();
+        emit OwnedLibraryUpdated(static_cast<int>(owned_library_.size()));
     });
 }
 

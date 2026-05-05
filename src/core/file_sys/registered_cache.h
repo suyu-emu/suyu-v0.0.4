@@ -6,6 +6,7 @@
 #include <array>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 #include <boost/container/flat_map.hpp>
@@ -237,6 +238,7 @@ public:
                                                             ContentRecordType type) const;
 
 private:
+    mutable std::mutex providers_mutex;
     std::map<ContentProviderUnionSlot, ContentProvider*> providers;
 };
 

@@ -4744,6 +4744,15 @@ bool GMainWindow::InstallDecryptionKeysFromPath(const QString& key_source_locati
     try {
         for (const auto& key_file : key_files) {
             const std::filesystem::path destination_file = destination_dir / key_file.filename();
+            if (Common::FS::Exists(destination_file)) {
+                std::error_code equivalent_ec;
+                if (std::filesystem::equivalent(key_file, destination_file, equivalent_ec) &&
+                    !equivalent_ec) {
+                    ++copied_count;
+                    continue;
+                }
+            }
+
             std::error_code copy_ec;
             if (!std::filesystem::copy_file(key_file, destination_file,
                                             std::filesystem::copy_options::overwrite_existing,
@@ -4758,6 +4767,7 @@ bool GMainWindow::InstallDecryptionKeysFromPath(const QString& key_source_locati
             ++copied_count;
         }
 
+        game_list->CancelPopulate();
         Core::Crypto::KeyManager::Instance().ReloadKeys();
         system->GetFileSystemController().CreateFactories(*vfs);
         game_list->PopulateAsync(UISettings::values.game_dirs);
@@ -4809,6 +4819,7 @@ void GMainWindow::OnConfigureExternalDecryption() {
     if (dialog.exec() == QDialog::Accepted) {
         // Re-check keys and refresh state after tool configuration
         try {
+            game_list->CancelPopulate();
             Core::Crypto::KeyManager::Instance().ReloadKeys();
             system->GetFileSystemController().CreateFactories(*vfs);
             game_list->PopulateAsync(UISettings::values.game_dirs);
@@ -5637,7 +5648,7 @@ void GMainWindow::OnExportGame() {
 
 void GMainWindow::OnNintendoAccount() {
     NintendoAccountDialog dialog(this);
-    connect(&dialog, &NintendoAccountDialog::AccountLinked, this, [this](const QString&) {
+    connect(&dialog, &NintendoAccountDialog::OwnedLibraryUpdated, this, [this](int) {
         if (game_list) {
             game_list->PopulateAsync(UISettings::values.game_dirs);
         }
@@ -5773,7 +5784,26 @@ void GMainWindow::OnGameListCreateSteamShortcut(u64 program_id, const std::strin
 
     const QString cache_dir = GetSteamArtworkCacheDir();
     QDir().mkpath(cache_dir);
-    const QString steam_icon_path = QDir(cache_dir).filePath(QStringLiteral("%1.png").arg(program_id));
+    const QString steam_icon_path = QDir(cache_dir).filePath(
+        QStringLiteral("%1_%2.png").arg(program_id).arg(selected_artwork_type));
+    if (QFileInfo::exists(steam_icon_path)) {
+        if (steam->AddGameShortcut(qt_game_title, QString::fromStdString(game_path),
+                                   steam_icon_path)) {
+            QMessageBox::information(
+                this, tr("Steam Integration"),
+                tr("%1 has been added to Steam using cached %2 artwork.")
+                    .arg(qt_game_title,
+                         selected_artwork_label.isEmpty() ? tr("store")
+                                                          : selected_artwork_label.toLower()));
+        } else {
+            QMessageBox::warning(this, tr("Steam Integration"),
+                                 tr("Failed to add %1 to Steam using cached artwork.")
+                                     .arg(qt_game_title));
+        }
+        steam->deleteLater();
+        return;
+    }
+
     connect(steam, &SteamIntegration::ArtworkFetched, this,
             [this, steam, qt_game_title, game_path](const QString& title, const QString& path) {
                 Q_UNUSED(title);
@@ -6267,7 +6297,6 @@ void GMainWindow::OnMouseActivity() {
 }
 
 void GMainWindow::OnCheckFirmwareDecryption() {
-    system->GetFileSystemController().CreateFactories(*vfs);
     if (!ContentManager::AreKeysPresent()) {
         LOG_INFO(Frontend, "No local decryption keys detected.");
     }
