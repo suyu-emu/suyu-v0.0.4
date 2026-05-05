@@ -199,25 +199,28 @@ NvResult nvhost_as_gpu::AllocateSpace(IoctlAllocSpace& params) {
     return NvResult::Success;
 }
 
-void nvhost_as_gpu::FreeMappingLocked(u64 offset) {
-    auto const it = mapping_map.find(offset);
-    auto const mapping = it->second;
-    if (!mapping.fixed) {
-        auto& allocator{mapping.big_page ? *vm.big_page_allocator : *vm.small_page_allocator};
-        u32 page_size_bits{mapping.big_page ? vm.big_page_size_bits : VM::PAGE_SIZE_BITS};
-        u32 page_size{mapping.big_page ? vm.big_page_size : VM::YUZU_PAGESIZE};
-        u64 aligned_size{Common::AlignUp(mapping.size, page_size)};
-        allocator.Free(u32(mapping.offset >> page_size_bits), u32(aligned_size >> page_size_bits));
+bool nvhost_as_gpu::FreeMappingLocked(u64 offset) noexcept {
+    if (auto const it = mapping_map.find(offset); it != mapping_map.end()) {
+        auto const mapping = it->second;
+        if (!mapping.fixed) {
+            auto& allocator{mapping.big_page ? *vm.big_page_allocator : *vm.small_page_allocator};
+            u32 page_size_bits{mapping.big_page ? vm.big_page_size_bits : VM::PAGE_SIZE_BITS};
+            u32 page_size{mapping.big_page ? vm.big_page_size : VM::YUZU_PAGESIZE};
+            u64 aligned_size{Common::AlignUp(mapping.size, page_size)};
+            allocator.Free(u32(mapping.offset >> page_size_bits), u32(aligned_size >> page_size_bits));
+        }
+        nvmap.UnpinHandle(mapping.handle);
+        // Sparse mappings shouldn't be fully unmapped, just returned to their sparse state
+        // Only FreeSpace can unmap them fully
+        if (mapping.sparse_alloc) {
+            gmmu->MapSparse(offset, mapping.size, mapping.big_page);
+        } else {
+            gmmu->Unmap(offset, mapping.size);
+        }
+        mapping_map.erase(offset);
+        return true;
     }
-    nvmap.UnpinHandle(mapping.handle);
-    // Sparse mappings shouldn't be fully unmapped, just returned to their sparse state
-    // Only FreeSpace can unmap them fully
-    if (mapping.sparse_alloc) {
-        gmmu->MapSparse(offset, mapping.size, mapping.big_page);
-    } else {
-        gmmu->Unmap(offset, mapping.size);
-    }
-    mapping_map.erase(it);
+    return false;
 }
 
 NvResult nvhost_as_gpu::FreeSpace(IoctlFreeSpace& params) {
@@ -232,7 +235,8 @@ NvResult nvhost_as_gpu::FreeSpace(IoctlFreeSpace& params) {
             return NvResult::BadValue;
 
         for (const auto mapping_offset : allocation.mappings)
-            FreeMappingLocked(mapping_offset);
+            if (!FreeMappingLocked(mapping_offset))
+                return NvResult::BadValue;
 
         // Unset sparse flag if required
         if (allocation.sparse)
@@ -402,8 +406,8 @@ NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params) {
         }
 
         nvmap.UnpinHandle(mapping.handle);
-        mapping_map.erase(it);
-        map_buffer_offsets.erase(offset_it);
+        mapping_map.erase(params.offset);
+        map_buffer_offsets.erase(params.offset);
     }
     return NvResult::Success;
 }
