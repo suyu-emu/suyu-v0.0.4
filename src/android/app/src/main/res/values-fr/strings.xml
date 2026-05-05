@@ -413,7 +413,9 @@
     <string name="frame_limit_slider">Limiter le pourcentage de vitesse</string>
     <string name="frame_limit_slider_description">Spécifier le pourcentage pour limiter la vitesse d\'émulation. 100% correspond à la vitesse normale. Des valeurs plus élevées ou plus basses augmenteront ou diminueront la limite de vitesse.</string>
     <string name="turbo_speed_limit">Vitesse turbo</string>
+    <string name="turbo_speed_limit_description">Lorsque le mode Turbo est activé, l\'émulation s\'exécute à cette vitesse.</string>
     <string name="slow_speed_limit">Vitesse lente</string>
+    <string name="slow_speed_limit_description">Lorsque le mode Lent est activé, l\'émulation s\'exécute à cette vitesse.</string>
     <string name="cpu_backend">Backend du CPU</string>
     <string name="cpu_accuracy">Précision du CPU</string>
     <string name="value_with_units">%1$s%2$s</string>

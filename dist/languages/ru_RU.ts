@@ -3403,7 +3403,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="62"/>
         <source>Vulkan Extensions</source>
-        <translation>Расшиерния Vulcan</translation>
+        <translation>Расширения Vulcan</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.cpp" line="49"/>

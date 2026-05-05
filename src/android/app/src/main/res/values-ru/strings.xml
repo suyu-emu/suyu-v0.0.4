@@ -489,6 +489,8 @@
     <string name="enable_buffer_history">Включить историю буфера</string>
     <string name="enable_buffer_history_description">Позволяет обращаться к предыдущим состояниям буфера. Эта опция может повысить качество рендеринга и стабильность производительности в некоторых играх.</string>
     <string name="use_optimized_vertex_buffers">Оптимизированные вершинные буферы</string>
+    <string name="use_optimized_vertex_buffers_description">Включает оптимизированную привязку вершинного буфера для повышения производительности. Требует Mesa Turnip 26.0+ / QCOM драйверы. Приводит к вылету на старых версиях Turnip.</string>
+
     <string name="hacks">Хаки</string>
 
     <string name="fast_gpu_time">Быстрое время ГПУ</string>
@@ -496,6 +498,9 @@
     <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
     <string name="fix_bloom_effects">Исправить эффекты размытия</string>
+    <string name="fix_bloom_effects_description">Частично убирает размытие в LA/EOW (Adreno A6XX - A7XX/ Turnip), полностью отключает его в Burnout. Внимание: может вызывать графические артефакты в других играх.</string>
+    <string name="emulate_bgr565">Эмулировать BGR565</string>
+    <string name="emulate_bgr565_description">Исправляет проблемы с инвертированными цветами в играх, а также со странными артефактами или некорректными тенями.</string>
     <string name="renderer_asynchronous_shaders">Использовать асинхронные шейдеры</string>
     <string name="renderer_asynchronous_shaders_description">Компилирует шейдеры асинхронно. Это может уменьшить подтормаживания, но также может вызвать графические артефакты.</string>
     <string name="gpu_unswizzle_settings">Настройки распаковки текстур (Unswizzle)</string>
