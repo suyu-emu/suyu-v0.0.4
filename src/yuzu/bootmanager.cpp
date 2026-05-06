@@ -15,7 +15,10 @@
 
 #include <QtCore/qglobal.h>
 #include "common/settings_enums.h"
+
 #include "qt_common/config/uisettings.h"
+#include "qt_common/abstract/frontend.h"
+
 #if YUZU_USE_QT_MULTIMEDIA
 #include <QCamera>
 #include <QImageCapture>
