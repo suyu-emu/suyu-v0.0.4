@@ -323,7 +323,10 @@ if (ENABLE_OPENGL)
 endif()
 
 target_link_libraries(video_core PUBLIC common core)
-target_link_libraries(video_core PUBLIC glad shader_recompiler stb bc_decoder gpu_logging)
+target_link_libraries(video_core PUBLIC shader_recompiler stb bc_decoder gpu_logging)
+if (ENABLE_OPENGL)
+    target_link_libraries(video_core PUBLIC glad)
+endif()
 
 if (YUZU_USE_EXTERNAL_FFMPEG)
     add_dependencies(video_core ffmpeg-build)

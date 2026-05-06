@@ -59,20 +59,16 @@ private:
 };
 
 bool EmuWindow_SDL2_GL::SupportsRequiredGLExtensions() {
-    std::vector<std::string_view> unsupported_ext;
-
+    std::vector<std::string_view> unsupported_ext{};
+#ifdef HAS_OPENGL
     // Extensions required to support some texture formats.
-    if (!GLAD_GL_EXT_texture_compression_s3tc) {
+    if (!GLAD_GL_EXT_texture_compression_s3tc)
         unsupported_ext.push_back("EXT_texture_compression_s3tc");
-    }
-    if (!GLAD_GL_ARB_texture_compression_rgtc) {
+    if (!GLAD_GL_ARB_texture_compression_rgtc)
         unsupported_ext.push_back("ARB_texture_compression_rgtc");
-    }
-
-    for (const auto& extension : unsupported_ext) {
+    for (const auto& extension : unsupported_ext)
         LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", extension);
-    }
-
+#endif
     return unsupported_ext.empty();
 }
 

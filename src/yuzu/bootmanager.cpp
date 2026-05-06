@@ -8,7 +8,10 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
+
+#ifdef HAS_OPENGL
 #include <glad/glad.h>
+#endif
 
 #include <QtCore/qglobal.h>
 #include "common/settings_enums.h"
@@ -1039,11 +1042,12 @@ void GRenderWindow::InitializeNull() {
 }
 
 bool GRenderWindow::LoadOpenGL() {
+#ifdef HAS_OPENGL
     auto context = CreateSharedContext();
     auto scope = context->Acquire();
     if (!gladLoadGL()) {
-        QMessageBox::warning(
-            this, tr("Error while initializing OpenGL!"),
+        QtCommon::Frontend::Warning(
+            tr("Error while initializing OpenGL!"),
             tr("Your GPU may not support OpenGL, or you do not have the latest graphics driver."));
         return false;
     }
@@ -1052,15 +1056,16 @@ bool GRenderWindow::LoadOpenGL() {
     const QString renderer =
         QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     if (!GLAD_GL_VERSION_4_6) {
-        QMessageBox::warning(this, tr("Error while initializing OpenGL 4.6!"),
-                             tr("Your GPU may not support OpenGL 4.6, or you do not have the "
-                                "latest graphics driver.<br><br>GL Renderer:<br>%1")
-                                 .arg(renderer));
+        QtCommon::Frontend::Warning(
+            tr("Error while initializing OpenGL 4.6!"),
+            tr("Your GPU may not support OpenGL 4.6, or you do not have the "
+            "latest graphics driver.<br><br>GL Renderer:<br>%1")
+                .arg(renderer));
         return false;
     }
     if (QStringList missing_ext = GetUnsupportedGLExtensions(); !missing_ext.empty()) {
-        QMessageBox::warning(
-            this, tr("Error while initializing OpenGL!"),
+        QtCommon::Frontend::Warning(
+            tr("Error while initializing OpenGL!"),
             tr("Your GPU may not support one or more required OpenGL extensions. Please ensure you "
                "have the latest graphics driver.<br><br>GL Renderer:<br>%1<br><br>Unsupported "
                "extensions:<br>%2")
@@ -1069,10 +1074,17 @@ bool GRenderWindow::LoadOpenGL() {
         // Non fatal
     }
     return true;
+#else
+    QtCommon::Frontend::Warning(
+        tr("Error while initializing OpenGL!"),
+        tr("This build doesn't have OpenGL support."));
+    return false;
+#endif
 }
 
 QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
-    QStringList missing_ext;
+    QStringList missing_ext{};
+#ifdef HAS_OPENGL
     // Extensions required to support some texture formats.
     if (!GLAD_GL_EXT_texture_compression_s3tc)
         missing_ext.append(QStringLiteral("EXT_texture_compression_s3tc"));
@@ -1082,6 +1094,7 @@ QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
         LOG_ERROR(Frontend, "GPU does not support all required extensions");
     for (const QString& ext : missing_ext)
         LOG_ERROR(Frontend, "Unsupported GL extension: {}", ext.toStdString());
+#endif
     return missing_ext;
 }
 

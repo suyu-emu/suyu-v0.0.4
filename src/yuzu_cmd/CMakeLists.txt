@@ -15,11 +15,18 @@ function(create_resource file output filename)
     file(WRITE "${PROJECT_BINARY_DIR}/dist/${output}" "const unsigned char ${filename}[] = {${filedata}};\nconst unsigned ${filename}_size = sizeof(${filename});\n")
 endfunction()
 
+if (ENABLE_OPENGL)
+    list(APPEND OPENGL_SOURCES
+        emu_window/emu_window_sdl2_gl.cpp
+        emu_window/emu_window_sdl2_gl.h
+    )
+else()
+    set(OPENGL_SOURCES "")
+endif()
+
 add_executable(yuzu-cmd
     emu_window/emu_window_sdl2.cpp
     emu_window/emu_window_sdl2.h
-    emu_window/emu_window_sdl2_gl.cpp
-    emu_window/emu_window_sdl2_gl.h
     emu_window/emu_window_sdl2_null.cpp
     emu_window/emu_window_sdl2_null.h
     emu_window/emu_window_sdl2_vk.cpp
@@ -28,10 +35,13 @@ add_executable(yuzu-cmd
     sdl_config.h
     yuzu.cpp
     yuzu.rc
+    ${OPENGL_SOURCES}
 )
 
 target_link_libraries(yuzu-cmd PRIVATE common core input_common frontend_common video_core)
-target_link_libraries(yuzu-cmd PRIVATE glad)
+if (ENABLE_OPENGL)
+    target_link_libraries(yuzu-cmd PRIVATE glad)
+endif()
 if (MSVC)
     target_link_libraries(yuzu-cmd PRIVATE getopt)
 endif()

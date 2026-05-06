@@ -31,7 +31,9 @@
 #include "sdl_config.h"
 #include "video_core/renderer_base.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
+#ifdef HAS_OPENGL
 #include "yuzu_cmd/emu_window/emu_window_sdl2_gl.h"
+#endif
 #include "yuzu_cmd/emu_window/emu_window_sdl2_null.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_vk.h"
 
@@ -349,17 +351,22 @@ int main(int argc, char** argv) {
 
     std::unique_ptr<EmuWindow_SDL2> emu_window;
     switch (Settings::values.renderer_backend.GetValue()) {
+#ifdef HAS_OPENGL
     case Settings::RendererBackend::OpenGL_GLSL:
     case Settings::RendererBackend::OpenGL_GLASM:
     case Settings::RendererBackend::OpenGL_SPIRV:
         emu_window = std::make_unique<EmuWindow_SDL2_GL>(&input_subsystem, system, fullscreen);
         break;
+#endif
     case Settings::RendererBackend::Vulkan:
         emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem, system, fullscreen);
         break;
     case Settings::RendererBackend::Null:
         emu_window = std::make_unique<EmuWindow_SDL2_Null>(&input_subsystem, system, fullscreen);
         break;
+    default:
+        LOG_CRITICAL(Frontend, "Invalid renderer backend");
+        return -1;
     }
 
 #ifdef _WIN32
