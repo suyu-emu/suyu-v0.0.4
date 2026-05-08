@@ -74,6 +74,8 @@
 // Filesystem helpers
 // ---------------------------------------------------------------------------
 
+static bool CopyDirectoryRecursive(const QString& src, const QString& dst);
+
 static bool CopyFileReplacingExisting(const QString& src, const QString& dst) {
     const QFileInfo src_info(src);
     if (!src_info.exists() || !src_info.isFile()) {
@@ -90,6 +92,22 @@ static bool CopyFileReplacingExisting(const QString& src, const QString& dst) {
     }
 
     return QFile::copy(src, dst);
+}
+
+static bool CopyPathReplacingExisting(const QString& src, const QString& dst) {
+    const QFileInfo src_info(src);
+    if (!src_info.exists()) {
+        return false;
+    }
+
+    if (src_info.isDir()) {
+        if (QFileInfo::exists(dst) && !QDir(dst).removeRecursively()) {
+            return false;
+        }
+        return CopyDirectoryRecursive(src, dst);
+    }
+
+    return CopyFileReplacingExisting(src, dst);
 }
 
 static bool CopyDirectoryRecursive(const QString& src, const QString& dst) {
@@ -940,8 +958,11 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
                                            const QString& output_dir, const QString& game_name,
                                            TargetPlatform platform) {
     const QFileInfo rom_info(rom_path);
+    const bool rom_is_directory = rom_info.isDir();
     const QString rom_extension =
         rom_info.suffix().isEmpty() ? QStringLiteral("") : QStringLiteral(".") + rom_info.suffix();
+    const QString bundled_entry_name =
+        rom_is_directory ? game_name : game_name + rom_extension;
 
     switch (platform) {
     case TargetPlatform::Windows: {
@@ -951,8 +972,8 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
         }
 
         // Bundle game data
-        const QString bundled_rom = pkg_dir + QDir::separator() + game_name + rom_extension;
-        if (!CopyFileReplacingExisting(rom_path, bundled_rom)) {
+        const QString bundled_rom = pkg_dir + QDir::separator() + bundled_entry_name;
+        if (!CopyPathReplacingExisting(rom_path, bundled_rom)) {
             return false;
         }
 
@@ -968,7 +989,7 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             out << "Suyu native export artifact bundle\n\n";
             out << "This directory contains compiler-facing export data, not the suyu GUI binary.\n";
             out << "Contents:\n";
-            out << "- " << game_name << rom_extension << " : bundled game container\n";
+            out << "- " << bundled_entry_name << " : bundled game payload\n";
             out << "- aot_cache/blockmaps : discovered guest basic blocks\n";
             out << "- aot_cache/code : raw guest code slices per block\n";
             out << "- aot_cache/ir : Dynarmic-translated IR dumps per block\n";
@@ -989,8 +1010,8 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
         }
 
         // Bundle game data
-        const QString bundled_rom = bin_dir + QDir::separator() + game_name + rom_extension;
-        if (!CopyFileReplacingExisting(rom_path, bundled_rom)) {
+        const QString bundled_rom = bin_dir + QDir::separator() + bundled_entry_name;
+        if (!CopyPathReplacingExisting(rom_path, bundled_rom)) {
             return false;
         }
 
@@ -1022,8 +1043,8 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
         }
 
         // Bundle game data
-        const QString bundled_rom = res_dir + QDir::separator() + game_name + rom_extension;
-        if (!CopyFileReplacingExisting(rom_path, bundled_rom)) {
+        const QString bundled_rom = res_dir + QDir::separator() + bundled_entry_name;
+        if (!CopyPathReplacingExisting(rom_path, bundled_rom)) {
             return false;
         }
 

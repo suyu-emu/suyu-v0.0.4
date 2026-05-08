@@ -2222,13 +2222,12 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
     system->SetShuttingDown(false);
     game_list->setDisabled(true);
 
-    // Create and start the emulation thread.
-    // Mark emulation as running immediately so that ShutdownGame() / FatalError cleanup
-    // paths work correctly even if the game exits before the rest of BootGame() finishes.
+    // Create the emulation thread and wire all UI/error handlers before it starts.
+    // This avoids a race where the thread exits before the fatal-error connection is live,
+    // which can leave the loading screen visible indefinitely.
     emu_thread = std::make_unique<EmuThread>(*system);
     emit EmulationStarting(emu_thread.get());
     emulation_running = true;
-    emu_thread->start();
 
     // Register an ExecuteProgram callback such that Core can execute a sub-program
     system->RegisterExecuteProgramCallback(
@@ -2321,7 +2320,10 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
     loading_screen->Prepare(system->GetAppLoader());
     loading_screen->show();
 
-    // emulation_running was already set to true above when emu_thread was started.
+    // Start emulation only after the loading UI and failure handlers are fully armed.
+    emu_thread->start();
+
+    // emulation_running was already set to true above so early shutdown paths remain valid.
     if (ui->action_Fullscreen->isChecked()) {
         ShowFullscreen();
     }
