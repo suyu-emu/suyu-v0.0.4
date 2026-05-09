@@ -5955,46 +5955,52 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GRenderWindow</name>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1006"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1023"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1012"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1029"/>
         <source>OpenGL not available!</source>
         <translation>OpenGL nem elérhető!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1007"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1013"/>
         <source>OpenGL shared contexts are not supported.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1023"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1029"/>
         <source>Eden has not been compiled with OpenGL support.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1046"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1063"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1053"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1071"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1082"/>
         <source>Error while initializing OpenGL!</source>
         <translation>Hiba történt az OpenGL inicializálása során!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1047"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1054"/>
         <source>Your GPU may not support OpenGL, or you do not have the latest graphics driver.</source>
         <translation>Lehetséges, hogy a GPU-d nem támogatja az OpenGL-t, vagy nem a legfrissebb grafikus illesztőprogram van telepítve.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1055"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1063"/>
         <source>Error while initializing OpenGL 4.6!</source>
         <translation>Hiba történt az OpenGL 4.6 inicializálása során!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1056"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1064"/>
         <source>Your GPU may not support OpenGL 4.6, or you do not have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</source>
         <translation>Lehetséges, hogy a GPU-d nem támogatja az OpenGL 4.6-ot, vagy nem a legfrissebb grafikus illesztőprogram van telepítve.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1064"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1072"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
         <translation>Előfordulhat, hogy a GPU-d nem támogat egy vagy több szükséges OpenGL kiterjesztést. Győződj meg róla, hogy a legújabb videokártya-illesztőprogramot használod.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Nem támogatott kiterjesztések:&lt;br&gt;%2</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1083"/>
+        <source>This build doesn&apos;t have OpenGL support.</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>

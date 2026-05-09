@@ -6063,46 +6063,52 @@ Gå till Konfigurera -&gt; System -&gt; Nätverk och gör ett val.</translation>
 <context>
     <name>GRenderWindow</name>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1006"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1023"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1012"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1029"/>
         <source>OpenGL not available!</source>
         <translation>OpenGL är inte tillgängligt!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1007"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1013"/>
         <source>OpenGL shared contexts are not supported.</source>
         <translation>Delade OpenGL-kontexter stöds inte.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1023"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1029"/>
         <source>Eden has not been compiled with OpenGL support.</source>
         <translation>Eden har inte kompilerats med OpenGL-stöd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1046"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1063"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1053"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1071"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1082"/>
         <source>Error while initializing OpenGL!</source>
         <translation>Fel vid initiering av OpenGL!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1047"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1054"/>
         <source>Your GPU may not support OpenGL, or you do not have the latest graphics driver.</source>
         <translation>Din GPU kanske inte stöder OpenGL, eller så har du inte den senaste grafikdrivrutinen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1055"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1063"/>
         <source>Error while initializing OpenGL 4.6!</source>
         <translation>Fel vid initiering av OpenGL 4.6!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1056"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1064"/>
         <source>Your GPU may not support OpenGL 4.6, or you do not have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</source>
         <translation>Din GPU kanske inte stöder OpenGL 4.6, eller så har du inte den senaste grafikdrivrutinen.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="1064"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1072"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
         <translation>Din GPU kanske inte stöder ett eller flera av de nödvändiga OpenGL-tilläggen. Se till att du har den senaste grafikdrivrutinen.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Tillägg som inte stöds:&lt;br&gt;%2</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="1083"/>
+        <source>This build doesn&apos;t have OpenGL support.</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
