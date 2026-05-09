@@ -38,6 +38,13 @@ class ServiceManager;
 
 namespace Kernel {
 
+// Can only be used by a single implementation PER THREAD
+struct ThreadLocalData {
+    std::optional<KThread> raw_thread;
+    KThread* current_thread = nullptr;
+    KThread* thread = nullptr;
+};
+
 class KClientPort;
 class GlobalSchedulerContext;
 class KAutoObjectWithListContainer;

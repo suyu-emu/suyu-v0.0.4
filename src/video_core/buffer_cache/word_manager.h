@@ -382,7 +382,7 @@ public:
         const std::span<const u64> state_words = words.template Span<type>();
         [[maybe_unused]] const std::span<const u64> untracked_words =
             words.template Span<Type::Untracked>();
-        u64 begin = std::numeric_limits<u64>::max();
+        u64 begin = (std::numeric_limits<u64>::max)();
         u64 end = 0;
         IterateWords(offset, size, [&](size_t index, u64 mask) {
             if constexpr (type == Type::GPU) {

@@ -230,7 +230,7 @@ private:
         std::size_t remaining_size{size};
         std::size_t page_index{cpu_address >> HIGHER_PAGE_BITS};
         u64 page_offset{cpu_address & HIGHER_PAGE_MASK};
-        u64 begin = std::numeric_limits<u64>::max();
+        u64 begin = (std::numeric_limits<u64>::max)();
         u64 end = 0;
         while (remaining_size > 0) {
             const std::size_t copy_amount{
