@@ -349,35 +349,8 @@ struct Impl {
     // Well, I mean it's the default constructor!
     explicit Impl() noexcept : filter(Level::Trace) {}
 
-    void StartBackendThread() noexcept {
-        backend_thread = std::jthread([this](std::stop_token stop_token) {
-            Common::SetCurrentThreadName("Logger");
-            Entry entry;
-            const auto write_logs = [this, &entry]() {
-                ForEachBackend([&entry](Backend& backend) {
-                    backend.Write(entry);
-                });
-            };
-            do {
-                message_queue.PopWait(entry, stop_token);
-                write_logs();
-            } while (!stop_token.stop_requested());
-            // Drain the logging queue. Only writes out up to MAX_LOGS_TO_WRITE to prevent a
-            // case where a system is repeatedly spamming logs even on close.
-            int max_logs_to_write = filter.IsDebug() ? INT_MAX : 100;
-            while (max_logs_to_write-- && message_queue.TryPop(entry))
-                write_logs();
-        });
-    }
-
-    void StopBackendThread() noexcept {
-        backend_thread.request_stop();
-        if (backend_thread.joinable())
-            backend_thread.join();
-        ForEachBackend([](Backend& backend) { backend.Flush(); });
-    }
-
-    void ForEachBackend(auto lambda) noexcept {
+    template<typename F>
+    void ForEachBackend(F&& lambda) noexcept {
         lambda(static_cast<Backend&>(color_console_backend));
 #ifndef __OPENORBIS__
         if (file_backend)
@@ -402,9 +375,7 @@ struct Impl {
 #ifdef ANDROID
     LogcatBackend lc_backend{};
 #endif
-    MPSCQueue<Entry> message_queue{};
     std::chrono::steady_clock::time_point time_origin{std::chrono::steady_clock::now()};
-    std::jthread backend_thread;
 };
 } // namespace
 
@@ -428,13 +399,11 @@ void Initialize() {
 }
 
 void Start() {
-    if (logging_instance)
-        logging_instance->StartBackendThread();
 }
 
 void Stop() {
     if (logging_instance)
-        logging_instance->StopBackendThread();
+        logging_instance->ForEachBackend([](Backend& backend) { backend.Flush(); });
 }
 
 void SetGlobalFilter(const Filter& filter) {
@@ -449,14 +418,19 @@ void SetColorConsoleBackendEnabled(bool enabled) {
 
 void FmtLogMessageImpl(Class log_class, Level log_level, const char* filename, unsigned int line_num, const char* function, fmt::string_view format, const fmt::format_args& args) {
     if (logging_instance && logging_instance->filter.CheckMessage(log_class, log_level)) {
-        logging_instance->message_queue.EmplaceWait(Entry{
-            .message = fmt::vformat(format, args),
-            .timestamp = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - logging_instance->time_origin),
-            .log_class = log_class,
-            .log_level = log_level,
-            .filename = TrimSourcePath(filename),
-            .function = function,
-            .line_num = line_num,
+        auto const flush = ::Settings::values.log_flush_line.GetValue();
+        logging_instance->ForEachBackend([=](Backend& backend) {
+            backend.Write(Entry{
+                .message = fmt::vformat(format, args),
+                .timestamp = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - logging_instance->time_origin),
+                .log_class = log_class,
+                .log_level = log_level,
+                .filename = TrimSourcePath(filename),
+                .function = function,
+                .line_num = line_num,
+            });
+            if (flush)
+                backend.Flush();
         });
     }
 }
