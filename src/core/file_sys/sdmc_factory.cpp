@@ -1,15 +1,18 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <memory>
+#include "common/alignment.h"
+#include "common/literals.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/sdmc_factory.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/file_sys/xts_archive.h"
 
 namespace FileSys {
-
-constexpr u64 SDMC_TOTAL_SIZE = 0x10000000000; // 1 TiB
 
 SDMCFactory::SDMCFactory(VirtualDir sd_dir_, VirtualDir sd_mod_dir_)
     : sd_dir(std::move(sd_dir_)), sd_mod_dir(std::move(sd_mod_dir_)),
@@ -56,7 +59,11 @@ u64 SDMCFactory::GetSDMCFreeSpace() const {
 }
 
 u64 SDMCFactory::GetSDMCTotalSpace() const {
-    return SDMC_TOTAL_SIZE;
+    // Resize the SD space automatically, always leaving around 4GiB last from next chunk block
+    using namespace Common::Literals;
+    auto const bytes_per_sector = 512;
+    auto const size_block = (sd_dir->GetSize() + 4_GiB) / 4_GiB;
+    return Common::AlignUp(size_block * 4_GiB, bytes_per_sector);
 }
 
 } // namespace FileSys
