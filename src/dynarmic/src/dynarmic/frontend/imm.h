@@ -27,9 +27,8 @@ class Imm {
 public:
     static constexpr size_t bit_size = bit_size_;
 
-    explicit Imm(u32 value)
-            : value(value) {
-        ASSERT((mcl::bit::get_bits<0, bit_size - 1>(value) == value) && "More bits in value than expected");
+    explicit Imm(u32 value) : value(value) {
+        DEBUG_ASSERT((mcl::bit::get_bits<0, bit_size - 1>(value) == value) && "More bits in value than expected");
     }
 
     template<typename T = u32>

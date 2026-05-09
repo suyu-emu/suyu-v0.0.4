@@ -23,32 +23,18 @@ namespace Dynarmic::A32 {
 template<typename Visitor>
 using VFPMatcher = Decoder::Matcher<Visitor, u32>;
 
-template<typename V>
-static std::optional<std::reference_wrapper<const VFPMatcher<V>>> DecodeVFP(u32 instruction) {
-    using Table = std::vector<VFPMatcher<V>>;
-    alignas(64) static const struct Tables {
-        Table unconditional;
-        Table conditional;
-    } tables = []() {
-        Table list = {
-#define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(VFPMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
+template<typename V, typename ReturnType>
+static std::optional<ReturnType> DecodeVFP(V& visitor, u32 instruction) {
+    bool const i_uncond = (instruction & 0xF0000000) == 0xF0000000;
+#define INST(fn, name, bitstring) \
+    do { \
+        auto const [mask, expect] = DYNARMIC_DECODER_GET_MATCHER(VFPMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+        bool const m_uncond = (mask & 0xF0000000) == 0xF0000000; \
+        if ((instruction & mask) == expect && m_uncond == i_uncond) return DYNARMIC_DECODER_GET_MATCHER_FUNCTION(VFPMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+    } while (0);
 #include "./vfp.inc"
 #undef INST
-        };
-        auto const it = std::stable_partition(list.begin(), list.end(), [&](const auto& matcher) {
-            return (matcher.GetMask() & 0xF0000000) == 0xF0000000;
-        });
-        return Tables{
-            Table{list.begin(), it},
-            Table{it, list.end()},
-        };
-    }();
-    const bool is_unconditional = (instruction & 0xF0000000) == 0xF0000000;
-    const Table& table = is_unconditional ? tables.unconditional : tables.conditional;
-    auto iter = std::find_if(table.begin(), table.end(), [instruction](const auto& matcher) {
-        return matcher.Matches(instruction);
-    });
-    return iter != table.end() ? std::optional<std::reference_wrapper<const VFPMatcher<V>>>(*iter) : std::nullopt;
+    return std::nullopt;
 }
 
 template<typename V>

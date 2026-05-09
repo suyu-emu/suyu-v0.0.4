@@ -41,12 +41,12 @@ void TranslateArm(IR::Block& block, LocationDescriptor descriptor, TranslateCall
             tcb->PreCodeTranslationHook(false, arm_pc, visitor.ir);
             ticks_for_instruction = tcb->GetTicksForCode(false, arm_pc, *arm_instruction);
 
-            if (const auto vfp_decoder = DecodeVFP<TranslatorVisitor>(*arm_instruction)) {
-                should_continue = vfp_decoder->get().call(visitor, *arm_instruction);
-            } else if (const auto asimd_decoder = DecodeASIMD<TranslatorVisitor>(*arm_instruction)) {
-                should_continue = asimd_decoder->get().call(visitor, *arm_instruction);
-            } else if (const auto decoder = DecodeArm<TranslatorVisitor>(*arm_instruction)) {
-                should_continue = decoder->get().call(visitor, *arm_instruction);
+            if (const auto vfp_decoder = DecodeVFP<TranslatorVisitor, bool>(visitor, *arm_instruction)) {
+                should_continue = *vfp_decoder;
+            } else if (const auto asimd_decoder = DecodeASIMD<TranslatorVisitor, bool>(visitor, *arm_instruction)) {
+                should_continue = *asimd_decoder;
+            } else if (const auto decoder = DecodeArm<TranslatorVisitor, bool>(visitor, *arm_instruction)) {
+                should_continue = *decoder;
             } else {
                 should_continue = visitor.arm_UDF();
             }
@@ -88,12 +88,12 @@ bool TranslateSingleArmInstruction(IR::Block& block, LocationDescriptor descript
 
     const u64 ticks_for_instruction = 1;
 
-    if (const auto vfp_decoder = DecodeVFP<TranslatorVisitor>(arm_instruction)) {
-        should_continue = vfp_decoder->get().call(visitor, arm_instruction);
-    } else if (const auto asimd_decoder = DecodeASIMD<TranslatorVisitor>(arm_instruction)) {
-        should_continue = asimd_decoder->get().call(visitor, arm_instruction);
-    } else if (const auto decoder = DecodeArm<TranslatorVisitor>(arm_instruction)) {
-        should_continue = decoder->get().call(visitor, arm_instruction);
+    if (const auto vfp_decoder = DecodeVFP<TranslatorVisitor, bool>(visitor, arm_instruction)) {
+        should_continue = *vfp_decoder;
+    } else if (const auto asimd_decoder = DecodeASIMD<TranslatorVisitor, bool>(visitor, arm_instruction)) {
+        should_continue = *asimd_decoder;
+    } else if (const auto decoder = DecodeArm<TranslatorVisitor, bool>(visitor, arm_instruction)) {
+        should_continue = *decoder;
     } else {
         should_continue = visitor.arm_UDF();
     }

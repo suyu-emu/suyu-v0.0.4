@@ -26,45 +26,37 @@ namespace Dynarmic::A64 {
 template<typename Visitor>
 using Matcher = Decoder::Matcher<Visitor, u32>;
 
-template<typename Visitor>
-using DecodeTable = std::array<std::vector<Matcher<Visitor>>, 0x1000>;
-
-namespace detail {
-inline size_t ToFastLookupIndex(u32 instruction) {
-    return ((instruction >> 10) & 0x00F) | ((instruction >> 18) & 0xFF0);
-}
-}  // namespace detail
-
-template<typename V>
-inline DecodeTable<V> GetDecodeTable() {
-    DecodeTable<V> table{};
-    for (size_t i = 0; i < table.size(); ++i) {
-        // PLEASE HEAP ELLIDE
-        for (auto const& e : std::vector<Matcher<V>>{
-#define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
+template<typename V, typename ReturnType>
+static std::optional<ReturnType> Decode(V& visitor, u32 instruction) noexcept {
+    auto const make_fast_index = [](u32 a) {
+        return ((a >> 10) & 0x00F) | ((a >> 18) & 0xFF0);
+    };
+    struct Handler {
+        bool (*fn)(V&, u32);
+        u32 mask;
+        u32 expect;
+    };
+    alignas(64) static const std::array<std::vector<Handler>, 0x1000> table = [&] {
+        std::array<std::vector<Handler>, 0x1000> t{};
+        for (size_t i = 0; i < t.size(); ++i) {
+#define INST(fn, name, bitstring) \
+    do { \
+        auto const [mask, expect] = DYNARMIC_DECODER_GET_MATCHER(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+        if ((i & make_fast_index(mask)) == make_fast_index(expect)) { \
+            t[i].emplace_back([](V& visitor, u32 instruction) -> bool { \
+                return DYNARMIC_DECODER_GET_MATCHER_FUNCTION(Matcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+            }, mask, expect); \
+        } \
+    } while (0);
 #include "./a64.inc"
 #undef INST
-        }) {
-            const auto expect = detail::ToFastLookupIndex(e.GetExpected());
-            const auto mask = detail::ToFastLookupIndex(e.GetMask());
-            if ((i & mask) == expect)
-                table[i].push_back(e);
         }
-    }
-    return table;
-}
-
-/// In practice it must always suceed, otherwise something else unrelated would have gone awry
-template<typename V>
-inline std::optional<std::reference_wrapper<const Matcher<V>>> Decode(u32 instruction) {
-    alignas(64) static const auto table = GetDecodeTable<V>();
-    const auto& subtable = table[detail::ToFastLookupIndex(instruction)];
-    auto iter = std::find_if(subtable.begin(), subtable.end(), [instruction](const auto& matcher) {
-        return matcher.Matches(instruction);
-    });
-    return iter != subtable.end()
-        ? std::optional{ std::reference_wrapper<const Matcher<V>>(*iter) }
-        : std::nullopt;
+        return t;
+    }();
+    for (auto const& e : table[make_fast_index(instruction)])
+        if ((instruction & e.mask) == e.expect)
+            return e.fn(visitor, instruction);
+    return std::nullopt;
 }
 
 template<typename V>

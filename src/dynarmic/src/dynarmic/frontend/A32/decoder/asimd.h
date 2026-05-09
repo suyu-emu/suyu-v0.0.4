@@ -26,17 +26,16 @@ namespace Dynarmic::A32 {
 template<typename Visitor>
 using ASIMDMatcher = Decoder::Matcher<Visitor, u32>;
 
-template<typename V>
-static std::optional<std::reference_wrapper<const ASIMDMatcher<V>>> DecodeASIMD(u32 instruction) noexcept {
-    alignas(64) static const auto table = std::array{
-#define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(ASIMDMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
+template<typename V, typename ReturnType>
+static std::optional<ReturnType> DecodeASIMD(V& visitor, u32 instruction) noexcept {
+#define INST(fn, name, bitstring) \
+    do { \
+        auto const [mask, expect] = DYNARMIC_DECODER_GET_MATCHER(ASIMDMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+        if ((instruction & mask) == expect) return DYNARMIC_DECODER_GET_MATCHER_FUNCTION(ASIMDMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+    } while (0);
 #include "./asimd.inc"
 #undef INST
-    };
-    auto iter = std::find_if(table.begin(), table.end(), [instruction](const auto& matcher) {
-        return matcher.Matches(instruction);
-    });
-    return iter != table.end() ? std::optional<std::reference_wrapper<const ASIMDMatcher<V>>>(*iter) : std::nullopt;
+    return std::nullopt;
 }
 
 template<typename V>

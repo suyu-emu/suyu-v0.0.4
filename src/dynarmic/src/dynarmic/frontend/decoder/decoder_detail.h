@@ -8,31 +8,25 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <tuple>
-
+#include <utility>
 #include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/mcl/function_info.hpp"
 
 namespace Dynarmic::Decoder {
 namespace detail {
 
 template<size_t N>
-inline consteval std::array<char, N> StringToArray(const char (&str)[N + 1]) {
-    std::array<char, N> result{};
-    for (size_t i = 0; i < N; i++) {
-        result[i] = str[i];
-    }
-    return result;
+inline consteval std::array<char, N> StringToArray(const char (&s)[N + 1]) {
+    std::array<char, N> r{};
+    for (size_t i = 0; i < N; i++)
+        r[i] = s[i];
+    return r;
 }
 
-/**
- * Helper functions for the decoders.
- *
- * @tparam MatcherT The type of the Matcher to use.
- */
+/// @brief Helper functions for the decoders.
+/// @tparam MatcherT The type of the Matcher to use.
 template<class MatcherT>
 struct detail {
     using opcode_type = typename MatcherT::opcode_type;
@@ -40,17 +34,15 @@ struct detail {
 
     static constexpr size_t opcode_bitsize = mcl::bitsizeof<opcode_type>;
 
-    /**
-     * Generates the mask and the expected value after masking from a given bitstring.
-     * A '0' in a bitstring indicates that a zero must be present at that bit position.
-     * A '1' in a bitstring indicates that a one must be present at that bit position.
-     */
+    /// @brief Generates the mask and the expected value after masking from a given bitstring.
+    /// A '0' in a bitstring indicates that a zero must be present at that bit position.
+    /// A '1' in a bitstring indicates that a one must be present at that bit position.
 #ifdef __clang__
     static constexpr auto GetMaskAndExpect(std::array<char, opcode_bitsize> bitstring) {
 #else
     static consteval auto GetMaskAndExpect(std::array<char, opcode_bitsize> bitstring) {
 #endif
-        const auto one = static_cast<opcode_type>(1);
+        const auto one = opcode_type(1);
         opcode_type mask = 0, expect = 0;
         for (size_t i = 0; i < opcode_bitsize; i++) {
             const size_t bit_position = opcode_bitsize - i - 1;
@@ -101,7 +93,7 @@ struct detail {
         }
 #if !defined(DYNARMIC_IGNORE_ASSERTS) && !defined(__ANDROID__)
         // Avoids a MSVC ICE, and avoids Android NDK issue.
-        ASSERT(std::all_of(masks.begin(), masks.end(), [](auto m) { return m != 0; }));
+        DEBUG_ASSERT(std::all_of(masks.begin(), masks.end(), [](auto m) { return m != 0; }));
 #endif
         return std::make_tuple(masks, shifts);
     }
@@ -109,65 +101,32 @@ struct detail {
     /// @brief This struct's Make member function generates a lambda which decodes an instruction
     /// based on the provided arg_masks and arg_shifts. The Visitor member function to call is
     /// provided as a template argument.
-    template<typename FnT>
-    struct VisitorCaller;
-
 #ifdef _MSC_VER
 #    pragma warning(push)
 #    pragma warning(disable : 4800)  // forcing value to bool 'true' or 'false' (performance warning)
 #endif
-    template<typename V, typename... Args, typename ReturnType>
-    struct VisitorCaller<ReturnType (V::*)(Args...)> {
-        template<size_t... iota>
-        static constexpr auto Make(std::integer_sequence<size_t, iota...>,
-                         ReturnType (V::*const fn)(Args...),
-                         const std::array<opcode_type, sizeof...(iota)> arg_masks,
-                         const std::array<size_t, sizeof...(iota)> arg_shifts) {
-            static_assert(std::is_same_v<visitor_type, V>, "Member function is not from Matcher's Visitor");
-            return [fn, arg_masks, arg_shifts](V& v, opcode_type instruction) {
-                (void)instruction;
-                (void)arg_masks;
-                (void)arg_shifts;
-                return (v.*fn)(Args((instruction & arg_masks[iota]) >> arg_shifts[iota])...);
-            };
-        }
-    };
-
-    template<typename V, typename... Args, typename ReturnType>
-    struct VisitorCaller<ReturnType (V::*)(Args...) const> {
-        template<size_t... iota>
-        static constexpr auto Make(std::integer_sequence<size_t, iota...>,
-                         ReturnType (V::*const fn)(Args...) const,
-                         const std::array<opcode_type, sizeof...(iota)> arg_masks,
-                         const std::array<size_t, sizeof...(iota)> arg_shifts) {
-            static_assert(std::is_same_v<visitor_type, const V>, "Member function is not from Matcher's Visitor");
-            return [fn, arg_masks, arg_shifts](const V& v, opcode_type instruction) {
-                (void)instruction;
-                (void)arg_masks;
-                (void)arg_shifts;
-                return (v.*fn)(Args((instruction & arg_masks[iota]) >> arg_shifts[iota])...);
-            };
+    template<typename V, typename ReturnType, typename... Args>
+    struct VisitorCaller {
+        template<std::size_t... iota>
+        static inline constexpr auto Invoke(std::index_sequence<iota...>, V& visitor, [[maybe_unused]] opcode_type instruction, ReturnType (V::*const fn)(Args...), [[maybe_unused]] const std::array<opcode_type, sizeof...(Args)> arg_masks, [[maybe_unused]] const std::array<size_t, sizeof...(Args)> arg_shifts) {
+            return (visitor.*fn)(Args((instruction & arg_masks[iota]) >> arg_shifts[iota])...);
         }
     };
 #ifdef _MSC_VER
 #    pragma warning(pop)
 #endif
 
-    /// @brief Creates a matcher that can match and parse instructions based on bitstring.
-    /// See also: GetMaskAndExpect and GetArgInfo for format of bitstring.
-    template<auto bitstring, typename F>
-    static constexpr auto GetMatcher(F fn) {
-        constexpr size_t args_count = mcl::parameter_count_v<F>;
-        constexpr auto mask = std::get<0>(GetMaskAndExpect(bitstring));
-        constexpr auto expect = std::get<1>(GetMaskAndExpect(bitstring));
-        constexpr auto arg_masks = std::get<0>(GetArgInfo<args_count>(bitstring));
-        constexpr auto arg_shifts = std::get<1>(GetArgInfo<args_count>(bitstring));
-        const auto proxy_fn = VisitorCaller<F>::Make(std::make_index_sequence<args_count>(), fn, arg_masks, arg_shifts);
-        return MatcherT(mask, expect, proxy_fn);
+    template<auto bitstring, typename V, typename ReturnType, typename... Args>
+    static inline constexpr auto GetMatcherFunction(V& visitor, [[maybe_unused]] opcode_type instruction, ReturnType (V::*const fn)(Args...)) {
+        constexpr auto arg_masks = std::get<0>(GetArgInfo<sizeof...(Args)>(bitstring));
+        constexpr auto arg_shifts = std::get<1>(GetArgInfo<sizeof...(Args)>(bitstring));
+        return VisitorCaller<V, ReturnType, Args...>::Invoke(std::index_sequence_for<Args...>(), visitor, instruction, fn, arg_masks, arg_shifts);
     }
 };
 
-#define DYNARMIC_DECODER_GET_MATCHER(MatcherT, fn, name, bitstring) Decoder::detail::detail<MatcherT<V>>::template GetMatcher<bitstring>(&V::fn)
+#define DYNARMIC_DECODER_GET_MATCHER(MatcherT, fn, name, bitstring) Decoder::detail::detail<MatcherT<V>>::GetMaskAndExpect(bitstring)
+
+#define DYNARMIC_DECODER_GET_MATCHER_FUNCTION(MatcherT, fn, name, bitstring) Decoder::detail::detail<MatcherT<V>>::template GetMatcherFunction<bitstring, V>(visitor, instruction, &V::fn)
 
 }  // namespace detail
 }  // namespace Dynarmic::Decoder

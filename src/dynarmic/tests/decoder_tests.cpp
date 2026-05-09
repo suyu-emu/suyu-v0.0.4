@@ -51,7 +51,7 @@ TEST_CASE("ASIMD Decoder: Ensure table order correctness", "[decode][a32][.]") {
 
             const bool iserr = is_decode_error(*iter, instruction);
             const auto alternative = std::find_if(table.cbegin(), iter, [instruction](const auto& m) {
-                return m.Matches(instruction);
+                return (instruction & mask) == expect;
             });
             const bool altiserr = is_decode_error(*alternative, instruction);
 
