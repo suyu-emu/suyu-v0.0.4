@@ -80,17 +80,37 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
 
 #endif
 
-#ifdef _MSC_VER
-
-// Sets the debugger-visible name of the current thread.
-void SetCurrentThreadName(const char* name) {
-    SetThreadDescription(GetCurrentThread(), UTF8ToUTF16W(name).data());
+void SetCurrentThreadAffinity(u32 mask) {
+    SetThreadAffinityMask(GetCurrentThread(), mask);
 }
 
-#else // !MSVC_VER, so must be POSIX threads
+void SwitchCurrentThread() {
+    SwitchToThread();
+}
 
-// MinGW with the POSIX threading model does not support pthread_setname_np
-#if !defined(_WIN32) || defined(_MSC_VER)
+#else
+
+void SetCurrentThreadAffinity(u32 mask) {
+#ifdef __APPLE__
+    thread_policy_set(pthread_mach_thread_np(pthread_self()), THREAD_AFFINITY_POLICY, (integer_t*)&mask, 1);
+#elif (defined(__linux__) || defined(__FreeBSD__) && !(defined(ANDROID)))
+    cpu_set_t cpu_set;
+    CPU_ZERO(&cpu_set);
+
+    for (int i = 0; i != sizeof(mask) * 8; ++i)
+        if ((mask >> i) & 1)
+            CPU_SET(i, &cpu_set);
+
+    pthread_setaffinity_np(pthread_self(), sizeof(cpu_set), &cpu_set);
+#else
+    // Do Nothing on MingW
+#endif
+}
+
+void SwitchCurrentThread() {
+    usleep(1000 * 1);
+}
+
 void SetCurrentThreadName(const char* name) {
 #ifdef __APPLE__
     pthread_setname_np(name);
