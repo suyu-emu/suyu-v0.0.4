@@ -3,6 +3,7 @@
 
 #include <limits>
 #include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <QBuffer>
 #include <QByteArray>
 #include <QFile>
