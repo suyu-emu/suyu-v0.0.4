@@ -811,7 +811,7 @@ void BufferCache<P>::BindHostVertexBuffers() {
         auto& flags = maxwell3d->dirty.flags;
         u32 enabled_mask = enabled_vertex_buffers_mask;
         HostBindings<Buffer> bindings{};
-        u32 last_index = std::numeric_limits<u32>::max();
+        u32 last_index = (std::numeric_limits<u32>::max)();
         const auto flush_bindings = [&]() {
             if (bindings.buffers.empty()) {
                 return;
@@ -819,7 +819,7 @@ void BufferCache<P>::BindHostVertexBuffers() {
             bindings.max_index = bindings.min_index + static_cast<u32>(bindings.buffers.size());
             runtime.BindVertexBuffers(bindings);
             bindings = HostBindings<Buffer>{};
-            last_index = std::numeric_limits<u32>::max();
+            last_index = (std::numeric_limits<u32>::max)();
         };
         while (enabled_mask != 0) {
             const u32 index = std::countr_zero(enabled_mask);

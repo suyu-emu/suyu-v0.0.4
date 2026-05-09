@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-FileCopyrightText: 1996 Arthur David Olson
 // SPDX-License-Identifier: BSD-2-Clause
@@ -466,8 +469,8 @@ CalendarTimeInternal* timesub(const time_t* timep, s64 offset, const Rule* sp,
         int signed_y = static_cast<s32>(y);
         tmp->tm_year = signed_y - TM_YEAR_BASE;
     }
-    else if ((!std::is_signed_v<time_t> || std::numeric_limits<s32>::min() + TM_YEAR_BASE <= y) &&
-        y - TM_YEAR_BASE <= std::numeric_limits<s32>::max()) {
+    else if ((!std::is_signed_v<time_t> || (std::numeric_limits<s32>::min)() + TM_YEAR_BASE <= y) &&
+        y - TM_YEAR_BASE <= (std::numeric_limits<s32>::max)()) {
         tmp->tm_year = static_cast<s32>(y - TM_YEAR_BASE);
     }
     else {
@@ -558,8 +561,8 @@ CalendarTimeInternal* localsub(Rule const* sp, time_t const* timep, s64 setname,
             else {
                 newy += years;
             }
-            if (!(std::numeric_limits<s32>::min() <= newy &&
-                newy <= std::numeric_limits<s32>::max())) {
+            if (!((std::numeric_limits<s32>::min)() <= newy &&
+                newy <= (std::numeric_limits<s32>::max)())) {
                 return nullptr;
             }
             result->tm_year = static_cast<s32>(newy);

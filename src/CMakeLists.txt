@@ -185,7 +185,7 @@ else()
         add_compile_definitions(_FILE_OFFSET_BITS=64)
     endif()
 
-    if (YUZU_STATIC_BUILD AND NOT APPLE)
+    if (YUZU_STATIC_BUILD AND NOT APPLE AND NOT MSVC)
         add_compile_options(-static)
 
         # yuzu-cmd requires us to explicitly link libpthread, libgcc, and libstdc++ as static

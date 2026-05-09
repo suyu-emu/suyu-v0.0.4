@@ -88,8 +88,8 @@ public:
 
   /// If a ParameterPackExpansion (or similar type) is encountered, the offset
   /// into the pack that we're currently printing.
-  unsigned CurrentPackIndex = std::numeric_limits<unsigned>::max();
-  unsigned CurrentPackMax = std::numeric_limits<unsigned>::max();
+  unsigned CurrentPackIndex = (std::numeric_limits<unsigned>::max)();
+  unsigned CurrentPackMax = (std::numeric_limits<unsigned>::max)();
 
   /// When zero, we're printing template args and '>' needs to be parenthesized.
   /// Use a counter so we can simply increment inside parentheses.
