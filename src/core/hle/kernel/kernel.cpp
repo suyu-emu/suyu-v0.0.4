@@ -372,17 +372,17 @@ struct KernelCore::Impl {
     }
 
     // Gets the dummy KThread for the caller, allocating a new one if this is the first time
-    KThread* GetHostDummyThread(KThread* existing_thread) {
-        if (tls_data.thread == nullptr) {
+    KThread* GetHostDummyThread(ThreadLocalData& t, KThread* existing_thread) {
+        if (t.thread == nullptr) {
             auto const initialize{[](KThread* thread) {
                 ASSERT(KThread::InitializeDummyThread(thread, nullptr).IsSuccess());
                 return thread;
             }};
-            tls_data.raw_thread.emplace(system.Kernel());
-            tls_data.thread = existing_thread ? existing_thread : initialize(&*tls_data.raw_thread);
-            ASSERT(tls_data.thread != nullptr);
+            t.raw_thread.emplace(system.Kernel());
+            t.thread = existing_thread ? existing_thread : initialize(&*t.raw_thread);
+            ASSERT(t.thread != nullptr);
         }
-        return tls_data.thread;
+        return t.thread;
     }
 
     /// Registers a CPU core thread by allocating a host thread ID for it
@@ -395,7 +395,7 @@ struct KernelCore::Impl {
 
     /// Registers a new host thread by allocating a host thread ID for it
     void RegisterHostThread(KThread* existing_thread) {
-        (void)GetHostDummyThread(existing_thread);
+        (void)GetHostDummyThread(tls_data, existing_thread);
     }
 
     [[nodiscard]] u32 GetCurrentHostThreadID() {
@@ -419,9 +419,8 @@ struct KernelCore::Impl {
     }
 
     KThread* GetCurrentEmuThread() {
-        if (!tls_data.current_thread)
-            tls_data.current_thread = GetHostDummyThread(nullptr);
-        return tls_data.current_thread;
+        auto& t = tls_data;
+        return t.current_thread ? t.current_thread : (t.current_thread = GetHostDummyThread(t, nullptr));
     }
 
     void SetCurrentEmuThread(KThread* thread) {
