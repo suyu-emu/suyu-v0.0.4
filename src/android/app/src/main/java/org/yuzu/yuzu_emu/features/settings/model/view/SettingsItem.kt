@@ -749,6 +749,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.RESCALE_HACK,
+                    titleId = R.string.rescale_hack,
+                    descriptionId = R.string.rescale_hack_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.EMULATE_BGR565,
                     titleId = R.string.emulate_bgr565,
                     descriptionId = R.string.emulate_bgr565_description
