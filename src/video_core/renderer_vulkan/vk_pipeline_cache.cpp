@@ -45,6 +45,10 @@
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "video_core/gpu_logging/gpu_logging.h"
 
+#ifdef ANDROID
+#include "../../android/app/src/main/jni/android_settings.h"
+#endif
+
 namespace Vulkan {
 
 namespace {
@@ -325,13 +329,13 @@ size_t GetTotalPipelineWorkers() {
     const size_t max_core_threads =
         std::max<size_t>(static_cast<size_t>(std::thread::hardware_concurrency()), 2ULL) - 1ULL;
 #ifdef ANDROID
-    // Leave at least one core free on Android. Previously we reserved two, but
-    // shipping builds benefit from one extra compilation worker.
-    constexpr size_t free_cores = 1ULL;
-    if (max_core_threads <= free_cores) {
+    const int configured = AndroidSettings::values.pipeline_worker_count.GetValue();
+    const int clamped = std::clamp(configured, 4, 8);
+    const size_t desired = static_cast<size_t>(clamped);
+    if (desired == 0) {
         return 1ULL;
     }
-    return max_core_threads - free_cores;
+    return std::min(max_core_threads, desired);
 #else
     return max_core_threads;
 #endif
@@ -426,13 +430,12 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                                        driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA,
 
         .has_broken_spirv_clamp = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS,
-        .has_broken_spirv_position_input = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
+        .has_broken_spirv_position_input = driver_id == false,
         .has_broken_unsigned_image_offsets = false,
         .has_broken_signed_operations = false,
         .has_broken_fp16_float_controls = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY,
         .ignore_nan_fp_comparisons = false,
-        .has_broken_spirv_subgroup_mask_vector_extract_dynamic =
-            driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
+        .has_broken_spirv_subgroup_mask_vector_extract_dynamic = false,
         .has_broken_robust =
             device.IsNvidia() && device.GetNvidiaArch() <= NvidiaArchitecture::Arch_Pascal,
         .min_ssbo_alignment = device.GetStorageBufferAlignment(),

@@ -147,6 +147,13 @@ namespace AndroidSettings {
                                                       &show_performance_overlay};
 
 
+        Settings::Setting<s32> pipeline_worker_count{linkage, 4, "pipeline_worker_count",
+                                 Settings::Category::Android,
+                                 Settings::Specialization::Default,
+                                 true,
+                                 true};
+
+
         Settings::Setting<bool> show_input_overlay{linkage, true, "show_input_overlay",
                                                    Settings::Category::Overlay};
         Settings::Setting<bool> overlay_snap_to_grid{linkage, false, "overlay_snap_to_grid",

@@ -71,6 +71,8 @@
     <string name="show_power_info_description">Display current power draw and remaining capacity on battery</string>
     <string name="show_shaders_building">Show Shaders Building</string>
     <string name="show_shaders_building_description">Display current number of shaders being built</string>
+    <string name="pipeline_worker_cores">Pipeline Worker Threads</string>
+    <string name="pipeline_worker_cores_description">Manage the amount of cores used for building Vulkan pipelines, the higher value will improve pipeline compilation performance but temperatures will increase as well.</string>
     <string name="overlay_position">Overlay Position</string>
     <string name="overlay_position_description">Choose where the overlay is displayed on the screen</string>
     <string name="overlay_position_top_left">Top Left</string>
@@ -491,15 +493,15 @@
     <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
     <string name="renderer_asynchronous_gpu_emulation">GPU async emulation</string>
-    <string name="renderer_asynchronous_gpu_emulation_description">Runs GPU emulation asynchronously to reduce CPU stalls and improve throughput. Disable this only if you run into timing-related issues.</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">This hack can increase performance by running GPU emulation asynchronously at the cost of graphical issues and increased crash rates by timing-related operations.</string>
     <string name="renderer_async_presentation">Asynchronous presentation</string>
-    <string name="renderer_async_presentation_description">Slightly improves performance by moving presentation to a separate CPU thread.</string>
+    <string name="renderer_async_presentation_description">This hack can increase performance by moving presentation to a separate CPU thread at the cost of graphical issues.</string>
     <string name="renderer_reactive_flushing">Use reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
     <string name="enable_buffer_history">Enable buffer history</string>
     <string name="enable_buffer_history_description">Enables access to previous buffer states. This option may improve rendering quality and performance consistency in some games.</string>
     <string name="use_optimized_vertex_buffers">Optimized Vertex Buffers</string>
-    <string name="use_optimized_vertex_buffers_description">Enables optimized vertex buffer binding for improved performance. Requires Mesa 26.0+ Turnip drivers/ QCOM drivers. Will crash on older Turnip drivers.</string>
+    <string name="use_optimized_vertex_buffers_description">Enables optimized vertex buffer binding for improved performance. Requires Mesa 26.0+ Turnip drivers/ QCOM drivers. Will crash on older Turnip drivers (25.3 and below).</string>
 
     <string name="hacks">Hacks</string>
 
@@ -531,10 +533,10 @@
     <string name="extensions">Extensions</string>
 
     <string name="dyna_state">Extended Dynamic State</string>
-    <string name="dyna_state_description">Controls the number of features that can be used in Extended Dynamic State. Higher numbers allow for more features and can increase performance, but may cause issues with some drivers and vendors.</string>
+    <string name="dyna_state_description">Controls the number of features that can be used in ExtendedDynamicState (EDS). The higher value will allow to reduce the amount of pipeline compilations based on the dynamic state supported by driver.</string>
     <string name="disabled">Disabled</string>
     <string name="vertex_input_dynamic_state">Vertex Input Dynamic State</string>
-    <string name="vertex_input_dynamic_state_description">Enables vertex input dynamic state feature for better quality and performance.</string>
+    <string name="vertex_input_dynamic_state_description">Enabling this feature allows for more flexible vertex input handling, potentially reducing pipeline compilation time in vertex/buffer.</string>
     <string name="sample_shading_fraction">Sample Shading</string>
     <string name="sample_shading_fraction_description">Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance.</string>
 
