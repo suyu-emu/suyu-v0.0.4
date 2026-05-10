@@ -114,6 +114,14 @@ u64 NACP::GetDefaultJournalSaveSize() const {
     return raw.user_account_save_data_journal_size;
 }
 
+u64 NACP::GetUserAccountSaveDataMaxSize() const {
+    return raw.user_account_save_data_max_size;
+}
+
+u64 NACP::GetUserAccountSaveDataMaxJournalSize() const {
+    return raw.user_account_save_data_max_journal_size;
+}
+
 bool NACP::GetUserAccountSwitchLock() const {
     return raw.user_account_switch_lock != 0;
 }
@@ -124,6 +132,18 @@ u32 NACP::GetSupportedLanguages() const {
 
 u64 NACP::GetDeviceSaveDataSize() const {
     return raw.device_save_data_size;
+}
+
+u64 NACP::GetDeviceSaveDataJournalSize() const {
+    return raw.device_save_data_journal_size;
+}
+
+u64 NACP::GetDeviceSaveDataMaxSize() const {
+    return raw.device_save_data_max_size;
+}
+
+u64 NACP::GetDeviceSaveDataMaxJournalSize() const {
+    return raw.device_save_data_max_journal_size;
 }
 
 u32 NACP::GetParentalControlFlag() const {

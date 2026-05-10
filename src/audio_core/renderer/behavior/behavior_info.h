@@ -144,6 +144,20 @@ public:
     bool IsSplitterBugFixed() const;
 
     /**
+     * Check if the audio renderer supports biquad filters on splitter destinations.
+     *
+     * @return True if supported, otherwise false.
+     */
+    bool IsBiquadFilterParameterForSplitterEnabled() const;
+
+    /**
+     * Check if splitter destination parameters explicitly reset previous mix volume.
+     *
+     * @return True if supported, otherwise false.
+     */
+    bool IsSplitterPrevVolumeResetSupported() const;
+
+    /**
      * Check if effects version 2 are supported.
      * This gives support for returning effect states from the AudioRenderer, currently only used
      * for Limiter statistics.
@@ -301,6 +315,13 @@ public:
      * @return True if supported, otherwise false.
      */
     bool UseBiquadFilterFloatProcessing() const;
+
+    /**
+     * Check if voice biquad parameters use the REV15 float coefficient layout.
+     *
+     * @return True if supported, otherwise false.
+     */
+    bool IsBiquadFilterParameterFloatSupported() const;
 
     /**
      * Check if dirty-only mix updates are supported.

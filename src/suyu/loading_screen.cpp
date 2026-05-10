@@ -3,7 +3,6 @@
 
 #include <limits>
 #include <unordered_map>
-#include <ankerl/unordered_dense.h>
 #include <QBuffer>
 #include <QByteArray>
 #include <QFile>
@@ -44,6 +43,7 @@
 namespace {
 
 constexpr char LOADING_MUSIC_RESOURCE[] = ":/audio/suyu_loading.mp3";
+constexpr bool LOADING_MUSIC_ENABLED = false;
 constexpr int LOADING_MUSIC_FADE_IN_MS = 420;
 constexpr int LOADING_MUSIC_FADE_OUT_MS = 320;
 constexpr qreal LOADING_MUSIC_VOLUME_SCALE = 0.25;
@@ -88,6 +88,11 @@ QProgressBar {
   padding: 4px;
 }
 QProgressBar::chunk {
+    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                                                                        stop:0 rgba(235, 70, 104, 255),
+                                                                        stop:0.55 rgba(170, 79, 192, 255),
+                                                                        stop:1 rgba(64, 126, 255, 255));
+    border-radius: 10px;
 })";
 
 LoadingScreen::LoadingScreen(QWidget* parent)
@@ -96,6 +101,19 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     ui->setupUi(this);
     setMinimumSize(Layout::MinimumSize::Width, Layout::MinimumSize::Height);
     setAttribute(Qt::WA_OpaquePaintEvent, true);
+    setAutoFillBackground(false);
+
+    ui->fade_parent->setAttribute(Qt::WA_TranslucentBackground, true);
+    ui->fade_parent->setStyleSheet(QStringLiteral("background: transparent;"));
+    ui->contentLayout->setAlignment(ui->progressLayout, Qt::AlignVCenter);
+    ui->progressLayout->setAlignment(Qt::AlignVCenter);
+    ui->stage->setWordWrap(true);
+    ui->stage->setMaximumWidth(980);
+    ui->stage->setStyleSheet(QStringLiteral(
+        "background-color: transparent; color: rgb(246, 248, 255); font: 700 22pt \"Ubuntu\";"));
+    ui->progress_bar->setMaximumWidth(980);
+    ui->value->setMaximumWidth(980);
+    ui->log->setMaximumWidth(980);
 
     spinner_pixmap_ = QPixmap(QStringLiteral(":/img/suyu.svg")).scaled(120, 120,
                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -142,9 +160,9 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     qRegisterMetaType<VideoCore::LoadCallbackStage>();
 
     stage_translations = {
-        {VideoCore::LoadCallbackStage::Prepare, tr("Loading...")},
-        {VideoCore::LoadCallbackStage::Build, tr("Loading Shaders %1 / %2")},
-        {VideoCore::LoadCallbackStage::Complete, tr("Launching...")},
+        {VideoCore::LoadCallbackStage::Prepare, tr("Preparing game...")},
+        {VideoCore::LoadCallbackStage::Build, tr("Launching...")},
+        {VideoCore::LoadCallbackStage::Complete, tr("Starting emulation...")},
     };
     progressbar_style = {
         {VideoCore::LoadCallbackStage::Prepare, PROGRESSBAR_STYLE_PREPARE},
@@ -153,63 +171,65 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     };
 
 #ifdef SUYU_USE_QT_MULTIMEDIA
-    QFile music_resource(QString::fromLatin1(LOADING_MUSIC_RESOURCE));
-    if (music_resource.open(QIODevice::ReadOnly)) {
-        loading_music_data_ = std::make_unique<QByteArray>(music_resource.readAll());
-        if (!loading_music_data_->isEmpty()) {
-            loading_music_buffer_ = std::make_unique<QBuffer>(loading_music_data_.get());
-            loading_music_player_ = std::make_unique<QMediaPlayer>(this);
+    if constexpr (LOADING_MUSIC_ENABLED) {
+        QFile music_resource(QString::fromLatin1(LOADING_MUSIC_RESOURCE));
+        if (music_resource.open(QIODevice::ReadOnly)) {
+            loading_music_data_ = std::make_unique<QByteArray>(music_resource.readAll());
+            if (!loading_music_data_->isEmpty()) {
+                loading_music_buffer_ = std::make_unique<QBuffer>(loading_music_data_.get());
+                loading_music_player_ = std::make_unique<QMediaPlayer>(this);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            loading_music_output_ = std::make_unique<QAudioOutput>(this);
-            loading_music_output_->setVolume(0.0);
-            loading_music_player_->setAudioOutput(loading_music_output_.get());
+                loading_music_output_ = std::make_unique<QAudioOutput>(this);
+                loading_music_output_->setVolume(0.0);
+                loading_music_player_->setAudioOutput(loading_music_output_.get());
 #else
-            loading_music_player_->setVolume(0);
+                loading_music_player_->setVolume(0);
 #endif
 
-            loading_music_fade_animation_ = std::make_unique<QVariantAnimation>(this);
-            connect(loading_music_fade_animation_.get(), &QVariantAnimation::valueChanged, this,
-                    [this](const QVariant& value) { SetLoadingMusicVolume(value.toReal()); });
-            connect(loading_music_fade_animation_.get(), &QVariantAnimation::finished, this,
-                    [this] {
-                        if (loading_music_stop_pending_) {
-                            StopLoadingMusic(true);
-                        }
-                    });
-            connect(loading_music_player_.get(), &QMediaPlayer::mediaStatusChanged, this,
-                    [this](QMediaPlayer::MediaStatus status) {
-                        if (status == QMediaPlayer::EndOfMedia && !loading_music_stop_pending_) {
-                            ResetLoadingMusicSource();
-                            if (loading_music_player_) {
-                                loading_music_player_->play();
+                loading_music_fade_animation_ = std::make_unique<QVariantAnimation>(this);
+                connect(loading_music_fade_animation_.get(), &QVariantAnimation::valueChanged, this,
+                        [this](const QVariant& value) { SetLoadingMusicVolume(value.toReal()); });
+                connect(loading_music_fade_animation_.get(), &QVariantAnimation::finished, this,
+                        [this] {
+                            if (loading_music_stop_pending_) {
+                                StopLoadingMusic(true);
                             }
-                        }
-                    });
+                        });
+                connect(loading_music_player_.get(), &QMediaPlayer::mediaStatusChanged, this,
+                        [this](QMediaPlayer::MediaStatus status) {
+                            if (status == QMediaPlayer::EndOfMedia && !loading_music_stop_pending_) {
+                                ResetLoadingMusicSource();
+                                if (loading_music_player_) {
+                                    loading_music_player_->play();
+                                }
+                            }
+                        });
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            connect(loading_music_player_.get(), &QMediaPlayer::errorOccurred, this,
-                    [](QMediaPlayer::Error error, const QString& error_string) {
-                        if (error != QMediaPlayer::NoError) {
-                            LOG_WARNING(Frontend, "Loading screen music playback error: {}",
-                                        error_string.toStdString());
-                        }
-                    });
+                connect(loading_music_player_.get(), &QMediaPlayer::errorOccurred, this,
+                        [](QMediaPlayer::Error error, const QString& error_string) {
+                            if (error != QMediaPlayer::NoError) {
+                                LOG_WARNING(Frontend, "Loading screen music playback error: {}",
+                                            error_string.toStdString());
+                            }
+                        });
 #else
-            connect(loading_music_player_.get(),
-                    QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this,
-                    [this](QMediaPlayer::Error error) {
-                        if (error != QMediaPlayer::NoError && loading_music_player_) {
-                            LOG_WARNING(Frontend, "Loading screen music playback error: {}",
-                                        loading_music_player_->errorString().toStdString());
-                        }
-                    });
+                connect(loading_music_player_.get(),
+                        QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this,
+                        [this](QMediaPlayer::Error error) {
+                            if (error != QMediaPlayer::NoError && loading_music_player_) {
+                                LOG_WARNING(Frontend, "Loading screen music playback error: {}",
+                                            loading_music_player_->errorString().toStdString());
+                            }
+                        });
 #endif
+            } else {
+                LOG_WARNING(Frontend, "Loading screen music resource is empty: {}",
+                            LOADING_MUSIC_RESOURCE);
+            }
         } else {
-            LOG_WARNING(Frontend, "Loading screen music resource is empty: {}",
+            LOG_WARNING(Frontend, "Loading screen music resource could not be opened: {}",
                         LOADING_MUSIC_RESOURCE);
         }
-    } else {
-        LOG_WARNING(Frontend, "Loading screen music resource could not be opened: {}",
-                    LOADING_MUSIC_RESOURCE);
     }
 #endif
 }
@@ -327,20 +347,19 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
         }
     }
 
+    const auto launch_text = !game_title_.isEmpty() ? tr("Launching <b>%1</b>").arg(game_title_)
+                                                    : stage_translations[stage];
+
     // update labels and progress bar
     if (stage == VideoCore::LoadCallbackStage::Build) {
-        ui->stage->setText(stage_translations[stage].arg(value).arg(total));
+        ui->stage->setText(launch_text);
         ui->log->setText(tr("Shaders compiled: %1 / %2").arg(value).arg(total));
     } else if (stage == VideoCore::LoadCallbackStage::Complete) {
-        if (!game_title_.isEmpty()) {
-            ui->stage->setText(tr("Launching <b>%1</b>").arg(game_title_));
-        } else {
-            ui->stage->setText(stage_translations[stage]);
-        }
-        ui->log->setText(QString());
+        ui->stage->setText(launch_text);
+        ui->log->setText(tr("Starting emulation session"));
     } else {
-        ui->stage->setText(stage_translations[stage]);
-        ui->log->setText(QString());
+        ui->stage->setText(launch_text);
+        ui->log->setText(tr("Reading program metadata, icon, keys, and shader cache"));
     }
     ui->value->setText(estimate);
     const int safe_value = value > static_cast<std::size_t>(std::numeric_limits<int>::max())
@@ -375,6 +394,8 @@ void LoadingScreen::UpdateSpinner() {
 }
 
 void LoadingScreen::paintEvent(QPaintEvent* event) {
+    Q_UNUSED(event);
+
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing, true);
 
@@ -391,7 +412,6 @@ void LoadingScreen::paintEvent(QPaintEvent* event) {
         pattern_pixmap_.fill(Qt::transparent);
         QPainter painter(&pattern_pixmap_);
         painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.fillRect(pattern_pixmap_.rect(), QColor(5, 9, 18, 245));
         const QColor blue_ring(70, 130, 255, 55);
         const QColor red_ring(245, 80, 110, 45);
         for (int y = 32; y < tile_size; y += 64) {
@@ -415,19 +435,26 @@ void LoadingScreen::paintEvent(QPaintEvent* event) {
 
     const int tile_w = pattern_pixmap_.width();
     const int tile_h = pattern_pixmap_.height();
-    for (int y = -tile_h; y < r.height(); y += tile_h) {
+    p.setOpacity(0.9);
+    for (int y = -tile_h; y < r.height() * 0.58; y += tile_h) {
         for (int x = -background_offset_; x < r.width(); x += tile_w) {
             p.drawPixmap(x, y, pattern_pixmap_);
         }
     }
+    p.setOpacity(1.0);
+
+    QLinearGradient pattern_fade(r.topLeft(), QPointF(r.left(), r.height() * 0.72));
+    pattern_fade.setColorAt(0.0, QColor(0, 0, 0, 0));
+    pattern_fade.setColorAt(0.52, QColor(0, 0, 0, 85));
+    pattern_fade.setColorAt(1.0, QColor(0, 0, 0, 220));
+    p.fillRect(QRect(r.left(), r.top(), r.width(), static_cast<int>(r.height() * 0.72)),
+               pattern_fade);
 
     QLinearGradient vignette(r.topLeft(), r.bottomLeft());
     vignette.setColorAt(0.0, QColor(0, 0, 0, 25));
     vignette.setColorAt(0.5, QColor(0, 0, 0, 105));
     vignette.setColorAt(1.0, QColor(0, 0, 0, 185));
     p.fillRect(r, vignette);
-
-    QWidget::paintEvent(event);
 }
 
 void LoadingScreen::Clear() {

@@ -32,12 +32,18 @@ SplitterDestinationData& SplitterContext::GetData(const u32 index) {
 
 void SplitterContext::Setup(std::span<SplitterInfo> splitter_infos_, const u32 splitter_info_count_,
                             SplitterDestinationData* splitter_destinations_,
-                            const u32 destination_count_, const bool splitter_bug_fixed_) {
+                            const u32 destination_count_, const bool splitter_bug_fixed_,
+                            const bool biquad_filter_parameter_enabled_,
+                            const bool biquad_filter_parameter_float_supported_,
+                            const bool splitter_prev_volume_reset_supported_) {
     splitter_infos = splitter_infos_;
     info_count = splitter_info_count_;
     splitter_destinations = splitter_destinations_;
     destinations_count = destination_count_;
     splitter_bug_fixed = splitter_bug_fixed_;
+    biquad_filter_parameter_enabled = biquad_filter_parameter_enabled_;
+    biquad_filter_parameter_float_supported = biquad_filter_parameter_float_supported_;
+    splitter_prev_volume_reset_supported = splitter_prev_volume_reset_supported_;
 }
 
 bool SplitterContext::UsingSplitter() const {
@@ -81,7 +87,10 @@ bool SplitterContext::Initialize(const BehaviorInfo& behavior,
         }
 
         Setup(splitter_infos, params.splitter_infos, splitter_destinations,
-              params.splitter_destinations, behavior.IsSplitterBugFixed());
+              params.splitter_destinations, behavior.IsSplitterBugFixed(),
+              behavior.IsBiquadFilterParameterForSplitterEnabled(),
+              behavior.IsBiquadFilterParameterFloatSupported(),
+              behavior.IsSplitterPrevVolumeResetSupported());
     }
     return true;
 }
@@ -116,10 +125,10 @@ u32 SplitterContext::UpdateInfo(const u8* input, u32 offset, const u32 splitter_
         auto info_header{reinterpret_cast<const SplitterInfo::InParameter*>(input + offset)};
 
         if (info_header->magic != GetSplitterInfoMagic()) {
-            continue;
+            break;
         }
 
-        if (info_header->id < 0 || info_header->id > info_count) {
+        if (info_header->id < 0 || info_header->id >= info_count) {
             break;
         }
 
@@ -134,19 +143,38 @@ u32 SplitterContext::UpdateInfo(const u8* input, u32 offset, const u32 splitter_
 
 u32 SplitterContext::UpdateData(const u8* input, u32 offset, const u32 count) {
     for (u32 i = 0; i < count; i++) {
-        auto data_header{
-            reinterpret_cast<const SplitterDestinationData::InParameter*>(input + offset)};
+        auto data_header{reinterpret_cast<const SplitterDestinationData::InParameter*>(input +
+                                                                                       offset)};
 
         if (data_header->magic != GetSplitterSendDataMagic()) {
-            continue;
+            break;
         }
 
-        if (data_header->id < 0 || data_header->id > destinations_count) {
-            continue;
+        if (data_header->id < 0 || data_header->id >= destinations_count) {
+            break;
         }
 
-        splitter_destinations[data_header->id].Update(*data_header);
-        offset += sizeof(SplitterDestinationData::InParameter);
+        if (biquad_filter_parameter_enabled) {
+            if (biquad_filter_parameter_float_supported) {
+                const auto float_header{
+                    reinterpret_cast<const SplitterDestinationData::InParameterVersion3*>(
+                        input + offset)};
+                splitter_destinations[float_header->id].Update(*float_header,
+                                                               splitter_prev_volume_reset_supported);
+                offset += sizeof(SplitterDestinationData::InParameterVersion3);
+            } else {
+                const auto fixed_header{
+                    reinterpret_cast<const SplitterDestinationData::InParameterVersion2*>(
+                        input + offset)};
+                splitter_destinations[fixed_header->id].Update(*fixed_header,
+                                                               splitter_prev_volume_reset_supported);
+                offset += sizeof(SplitterDestinationData::InParameterVersion2);
+            }
+        } else {
+            splitter_destinations[data_header->id].Update(*data_header,
+                                                          splitter_prev_volume_reset_supported);
+            offset += sizeof(SplitterDestinationData::InParameter);
+        }
     }
 
     return offset;
@@ -179,9 +207,16 @@ void SplitterContext::RecomposeDestination(SplitterInfo& out_info,
 
     std::span<const u32> destination_ids{reinterpret_cast<const u32*>(&info_header[1]), dest_count};
 
+    if (destination_ids[0] >= static_cast<u32>(destinations_count)) {
+        return;
+    }
+
     auto head{&splitter_destinations[destination_ids[0]]};
     auto current_destination{head};
     for (u32 i = 1; i < dest_count; i++) {
+        if (destination_ids[i] >= static_cast<u32>(destinations_count)) {
+            break;
+        }
         auto next_destination{&splitter_destinations[destination_ids[i]]};
         current_destination->SetNext(next_destination);
         current_destination = next_destination;

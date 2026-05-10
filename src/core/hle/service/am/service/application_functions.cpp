@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <cstring>
+#include <utility>
+
 #include "common/settings.h"
 #include "common/uuid.h"
 #include "core/file_sys/control_metadata.h"
@@ -21,6 +25,83 @@
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::AM {
+namespace {
+
+constexpr u64 SufficientSaveDataSize = 0xF0000000;
+
+std::pair<u64, u64> GetNacpSaveDataSizeMax(Core::System& system, u64 program_id,
+                                           bool device_save) {
+    const auto read_from_raw = [device_save](const FileSys::RawNACP& raw_nacp) {
+        const u64 default_normal = device_save ? raw_nacp.device_save_data_size
+                                               : raw_nacp.user_account_save_data_size;
+        const u64 default_journal = device_save ? raw_nacp.device_save_data_journal_size
+                                                : raw_nacp.user_account_save_data_journal_size;
+        u64 max_normal = device_save ? raw_nacp.device_save_data_max_size
+                                     : raw_nacp.user_account_save_data_max_size;
+        u64 max_journal = device_save ? raw_nacp.device_save_data_max_journal_size
+                                      : raw_nacp.user_account_save_data_max_journal_size;
+
+        if (max_normal == 0) {
+            max_normal = default_normal;
+        }
+        if (max_journal == 0) {
+            max_journal = default_journal;
+        }
+
+        return std::make_pair(max_normal, max_journal);
+    };
+
+    std::vector<u8> raw_control;
+    if (system.GetARPManager().GetControlProperty(&raw_control, program_id).IsSuccess() &&
+        !raw_control.empty()) {
+        FileSys::RawNACP raw_nacp{};
+        std::memcpy(&raw_nacp, raw_control.data(), std::min(sizeof(raw_nacp), raw_control.size()));
+        const auto [max_normal, max_journal] = read_from_raw(raw_nacp);
+        if (max_normal != 0 || max_journal != 0) {
+            return {max_normal, max_journal};
+        }
+    }
+
+    const auto metadata = [&] {
+        const FileSys::PatchManager pm{program_id, system.GetFileSystemController(),
+                                       system.GetContentProvider()};
+        auto control = pm.GetControlMetadata();
+        if (control.first != nullptr) {
+            return control;
+        }
+
+        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(program_id),
+                                              system.GetFileSystemController(),
+                                              system.GetContentProvider()};
+        return pm_update.GetControlMetadata();
+    }();
+
+    if (metadata.first != nullptr) {
+        const auto& nacp = metadata.first;
+        const u64 default_normal =
+            device_save ? nacp->GetDeviceSaveDataSize() : nacp->GetDefaultNormalSaveSize();
+        const u64 default_journal = device_save ? nacp->GetDeviceSaveDataJournalSize()
+                                                : nacp->GetDefaultJournalSaveSize();
+        u64 max_normal = device_save ? nacp->GetDeviceSaveDataMaxSize()
+                                     : nacp->GetUserAccountSaveDataMaxSize();
+        u64 max_journal = device_save ? nacp->GetDeviceSaveDataMaxJournalSize()
+                                      : nacp->GetUserAccountSaveDataMaxJournalSize();
+
+        if (max_normal == 0) {
+            max_normal = default_normal;
+        }
+        if (max_journal == 0) {
+            max_journal = default_journal;
+        }
+        if (max_normal != 0 || max_journal != 0) {
+            return {max_normal, max_journal};
+        }
+    }
+
+    return {SufficientSaveDataSize, SufficientSaveDataSize};
+}
+
+} // namespace
 
 IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_ptr<Applet> applet)
     : ServiceFramework{system_, "IApplicationFunctions"}, m_applet{std::move(applet)} {
@@ -48,7 +129,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {32, D<&IApplicationFunctions::BeginBlockingHomeButton>, "BeginBlockingHomeButton"},
         {33, D<&IApplicationFunctions::EndBlockingHomeButton>, "EndBlockingHomeButton"},
         {34, nullptr, "SelectApplicationLicense"},
-        {35, nullptr, "GetDeviceSaveDataSizeMax"},
+        {35, D<&IApplicationFunctions::GetDeviceSaveDataSizeMax>, "GetDeviceSaveDataSizeMax"},
         {36, nullptr, "GetLimitedApplicationLicense"},
         {37, nullptr, "GetLimitedApplicationLicenseUpgradableEvent"},
         {40, D<&IApplicationFunctions::NotifyRunning>, "NotifyRunning"},
@@ -265,10 +346,14 @@ Result IApplicationFunctions::CreateCacheStorage(Out<u32> out_target_media,
 
 Result IApplicationFunctions::GetSaveDataSizeMax(Out<u64> out_max_normal_size,
                                                  Out<u64> out_max_journal_size) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    const auto [max_normal_size, max_journal_size] =
+        GetNacpSaveDataSizeMax(system, m_applet->program_id, false);
 
-    *out_max_normal_size = 0xFFFFFFF;
-    *out_max_journal_size = 0xFFFFFFF;
+    LOG_INFO(Service_AM, "called, max_normal={:#x}, max_journal={:#x}", max_normal_size,
+             max_journal_size);
+
+    *out_max_normal_size = max_normal_size;
+    *out_max_journal_size = max_journal_size;
 
     R_SUCCEED();
 }
@@ -285,6 +370,20 @@ Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_cache_storage_inde
 
     *out_cache_storage_index_max = static_cast<u32>(raw_nacp->cache_storage_max_index);
     *out_max_journal_size = static_cast<u64>(raw_nacp->cache_storage_data_and_journal_max_size);
+
+    R_SUCCEED();
+}
+
+Result IApplicationFunctions::GetDeviceSaveDataSizeMax(Out<u64> out_max_normal_size,
+                                                       Out<u64> out_max_journal_size) {
+    const auto [max_normal_size, max_journal_size] =
+        GetNacpSaveDataSizeMax(system, m_applet->program_id, true);
+
+    LOG_INFO(Service_AM, "called, max_normal={:#x}, max_journal={:#x}", max_normal_size,
+             max_journal_size);
+
+    *out_max_normal_size = max_normal_size;
+    *out_max_journal_size = max_journal_size;
 
     R_SUCCEED();
 }

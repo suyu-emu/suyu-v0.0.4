@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cmath>
+#include <limits>
+
 #include "audio_core/common/feature_support.h"
 #include "audio_core/renderer/behavior/behavior_info.h"
 #include "audio_core/renderer/behavior/info_updater.h"
@@ -16,6 +19,59 @@
 #include "audio_core/renderer/voice/voice_context.h"
 
 namespace AudioCore::Renderer {
+
+namespace {
+s16 FloatBiquadCoefficientToFixed(const f32 value) {
+    const auto scaled = value * 16384.0f;
+    if (scaled > static_cast<f32>(std::numeric_limits<s16>::max())) {
+        return std::numeric_limits<s16>::max();
+    }
+    if (scaled < static_cast<f32>(std::numeric_limits<s16>::min())) {
+        return std::numeric_limits<s16>::min();
+    }
+    return static_cast<s16>(std::lrint(scaled));
+}
+
+VoiceInfo::InParameter ConvertVoiceParameter(const VoiceInfo::InParameterVersion2& in_param) {
+    VoiceInfo::InParameter out_param{};
+    out_param.id = in_param.id;
+    out_param.node_id = in_param.node_id;
+    out_param.is_new = in_param.is_new;
+    out_param.in_use = in_param.in_use;
+    out_param.play_state = in_param.play_state;
+    out_param.sample_format = in_param.sample_format;
+    out_param.sample_rate = in_param.sample_rate;
+    out_param.priority = in_param.priority;
+    out_param.sort_order = in_param.sort_order;
+    out_param.channel_count = in_param.channel_count;
+    out_param.pitch = in_param.pitch;
+    out_param.volume = in_param.volume;
+
+    for (size_t i = 0; i < out_param.biquads.size(); i++) {
+        out_param.biquads[i].enabled = in_param.biquads[i].enabled;
+        for (size_t j = 0; j < out_param.biquads[i].b.size(); j++) {
+            out_param.biquads[i].b[j] = FloatBiquadCoefficientToFixed(in_param.biquads[i].b[j]);
+        }
+        for (size_t j = 0; j < out_param.biquads[i].a.size(); j++) {
+            out_param.biquads[i].a[j] = FloatBiquadCoefficientToFixed(in_param.biquads[i].a[j]);
+        }
+    }
+
+    out_param.wave_buffer_count = in_param.wave_buffer_count;
+    out_param.wave_buffer_index = in_param.wave_buffer_index;
+    out_param.src_data_address = in_param.src_data_address;
+    out_param.src_data_size = in_param.src_data_size;
+    out_param.mix_id = in_param.mix_id;
+    out_param.splitter_id = in_param.splitter_id;
+    out_param.wave_buffer_internal = in_param.wave_buffer_internal;
+    out_param.channel_resource_ids = in_param.channel_resource_ids;
+    out_param.clear_voice_drop = in_param.clear_voice_drop;
+    out_param.flush_buffer_count = in_param.flush_buffer_count;
+    out_param.flags = in_param.flags;
+    out_param.src_quality = in_param.src_quality;
+    return out_param;
+}
+} // namespace
 
 InfoUpdater::InfoUpdater(std::span<const u8> input_, std::span<u8> output_,
                          Kernel::KProcess* process_handle_, BehaviorInfo& behaviour_)
@@ -61,8 +117,10 @@ Result InfoUpdater::UpdateVoices(VoiceContext& voice_context,
     const PoolMapper pool_mapper(process_handle, memory_pools, memory_pool_count,
                                  behaviour.IsMemoryForceMappingEnabled());
     const auto voice_count{voice_context.GetCount()};
-    std::span<const VoiceInfo::InParameter> in_params{
-        reinterpret_cast<const VoiceInfo::InParameter*>(input), voice_count};
+    const bool use_biquad_float_parameters{behaviour.IsBiquadFilterParameterFloatSupported()};
+    const u32 voice_param_size{static_cast<u32>(
+        use_biquad_float_parameters ? sizeof(VoiceInfo::InParameterVersion2)
+                                    : sizeof(VoiceInfo::InParameter))};
     std::span<VoiceInfo::OutStatus> out_params{reinterpret_cast<VoiceInfo::OutStatus*>(output),
                                                voice_count};
 
@@ -74,7 +132,11 @@ Result InfoUpdater::UpdateVoices(VoiceContext& voice_context,
     u32 new_voice_count{0};
 
     for (u32 i = 0; i < voice_count; i++) {
-        const auto& in_param{in_params[i]};
+        const auto in_param{
+            use_biquad_float_parameters
+                ? ConvertVoiceParameter(
+                      reinterpret_cast<const VoiceInfo::InParameterVersion2*>(input)[i])
+                : reinterpret_cast<const VoiceInfo::InParameter*>(input)[i]};
         std::array<VoiceState*, MaxChannels> voice_states{};
 
         if (!in_param.in_use) {
@@ -118,7 +180,7 @@ Result InfoUpdater::UpdateVoices(VoiceContext& voice_context,
         new_voice_count += in_param.channel_count;
     }
 
-    auto consumed_input_size{voice_count * static_cast<u32>(sizeof(VoiceInfo::InParameter))};
+    auto consumed_input_size{voice_count * voice_param_size};
     auto consumed_output_size{voice_count * static_cast<u32>(sizeof(VoiceInfo::OutStatus))};
     if (consumed_input_size != in_header->voices_size) {
         LOG_ERROR(Service_Audio, "Consumed an incorrect voices size, header size={}, consumed={}",

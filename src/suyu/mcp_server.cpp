@@ -340,9 +340,9 @@ void McpServer::RegisterBuiltinTools() {
             const int max_lines = params[QStringLiteral("lines")].toInt(50);
             const int clamped = qBound(1, max_lines, 500);
 
-            const QString data_dir =
-                QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
-            const QString log_path = data_dir + QStringLiteral("/suyu/log/suyu_log.txt");
+            const QString log_path = QString::fromStdString(
+                (Common::FS::GetSuyuPath(Common::FS::SuyuPath::LogDir) / "suyu_log.txt")
+                    .string());
 
             QFile file(log_path);
             if (!file.exists() || !file.open(QIODevice::ReadOnly | QIODevice::Text)) {

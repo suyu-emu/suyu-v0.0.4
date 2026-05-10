@@ -13,9 +13,13 @@
 #include "common/polyfill_ranges.h"
 
 namespace AudioCore {
-constexpr u32 CurrentRevision = 13;
+constexpr u32 CurrentRevision = 15;
 
 enum class SupportTags {
+    BiquadFilterParameterFloat,
+    CommandProcessingTimeEstimatorVersion5,
+    SplitterPrevVolumeReset,
+    BiquadFilterParameterForSplitter,
     CommandProcessingTimeEstimatorVersion4,
     CommandProcessingTimeEstimatorVersion3,
     CommandProcessingTimeEstimatorVersion2,
@@ -88,6 +92,10 @@ constexpr bool CheckFeatureSupported(SupportTags tag, u32 user_revision) {
             {SupportTags::DelayChannelMappingChange, 11},
             {SupportTags::ReverbChannelMappingChange, 11},
             {SupportTags::I3dl2ReverbChannelMappingChange, 11},
+            {SupportTags::CommandProcessingTimeEstimatorVersion5, 11},
+            {SupportTags::BiquadFilterParameterForSplitter, 12},
+            {SupportTags::SplitterPrevVolumeReset, 13},
+            {SupportTags::BiquadFilterParameterFloat, 15},
         }};
 
     const auto& feature =

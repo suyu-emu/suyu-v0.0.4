@@ -171,7 +171,8 @@ private:
      */
     void Setup(std::span<SplitterInfo> splitter_infos, u32 splitter_info_count,
                SplitterDestinationData* splitter_destinations, u32 destination_count,
-               bool splitter_bug_fixed);
+               bool splitter_bug_fixed, bool biquad_filter_parameter_enabled,
+               bool biquad_filter_parameter_float_supported, bool splitter_prev_volume_reset_supported);
 
     /// Workbuffer for splitters
     std::span<SplitterInfo> splitter_infos{};
@@ -183,6 +184,12 @@ private:
     s32 destinations_count{};
     /// Is the splitter bug fixed?
     bool splitter_bug_fixed{};
+    /// Does the input use splitter biquad filter destination parameters?
+    bool biquad_filter_parameter_enabled{};
+    /// Does the input use float splitter biquad coefficients?
+    bool biquad_filter_parameter_float_supported{};
+    /// Does the input explicitly request previous mix-volume reset?
+    bool splitter_prev_volume_reset_supported{};
 };
 
 } // namespace Renderer

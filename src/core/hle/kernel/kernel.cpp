@@ -356,8 +356,7 @@ struct KernelCore::Impl {
         application_process->Open();
     }
 
-    static inline thread_local ThreadLocalData tls_data{};
-static inline thread_local u8 host_thread_id = UINT8_MAX;
+    static inline thread_local u8 host_thread_id = UINT8_MAX;
 
     /// Sets the host thread ID for the caller.
     LTO_NOINLINE u32 SetHostThreadId(std::size_t core_id) {
@@ -370,29 +369,38 @@ static inline thread_local u8 host_thread_id = UINT8_MAX;
         return host_thread_id;
     }
 
-/// Gets the host thread ID for the caller
-LTO_NOINLINE u32 GetHostThreadId() const {
-    return host_thread_id;
-}
+    /// Gets the host thread ID for the caller
+    LTO_NOINLINE u32 GetHostThreadId() const {
+        return host_thread_id;
+    }
 
-// Gets the dummy KThread for the caller, allocating a new one if this is first time
-LTO_NOINLINE KThread* GetHostDummyThread(KThread* existing_thread) {
-    const auto initialize{[](KThread* thread) LTO_NOINLINE {
-        ASSERT(KThread::InitializeDummyThread(thread, nullptr).IsSuccess());
+    // Gets the dummy KThread for the caller, allocating a new one if this is the first time
+    LTO_NOINLINE KThread* GetHostDummyThread(KThread* existing_thread) {
+        const auto initialize{[](KThread* thread) LTO_NOINLINE {
+            ASSERT(KThread::InitializeDummyThread(thread, nullptr).IsSuccess());
+            return thread;
+        }};
+
+        thread_local KThread raw_thread{system.Kernel()};
+        thread_local KThread* thread = existing_thread ? existing_thread : initialize(&raw_thread);
         return thread;
-    }};
+    }
 
-    thread_local KThread raw_thread{system.Kernel()};
-    thread_local KThread* thread = existing_thread ? existing_thread : initialize(&raw_thread);
-    return thread;
-}
+    /// Registers a CPU core thread by allocating a host thread ID for it
+    void RegisterCoreThread(std::size_t core_id) {
+        ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+        const auto this_id = SetHostThreadId(core_id);
+        if (!is_multicore) {
+            single_core_thread_id = this_id;
+        }
+    }
 
-// Registers a new host thread by allocating a host thread ID for it
-void RegisterHostThread(KThread* existing_thread) {
-    (void)GetHostDummyThread(tls_data, existing_thread);
-}
+    /// Registers a new host thread by allocating a host thread ID for it
+    void RegisterHostThread(KThread* existing_thread) {
+        [[maybe_unused]] const auto dummy_thread = GetHostDummyThread(existing_thread);
+    }
 
-[[nodiscard]] u32 GetCurrentHostThreadID() {
+    [[nodiscard]] u32 GetCurrentHostThreadID() {
         const auto this_id = GetHostThreadId();
         if (!is_multicore && single_core_thread_id == this_id) {
             return static_cast<u32>(system.GetCpuManager().CurrentCore());
@@ -418,8 +426,10 @@ void RegisterHostThread(KThread* existing_thread) {
     static inline thread_local KThread* current_thread{nullptr};
 
     LTO_NOINLINE KThread* GetCurrentEmuThread() {
-        auto& t = tls_data;
-        return t.current_thread ? t.current_thread : (t.current_thread = GetHostDummyThread(t, nullptr));
+        if (!current_thread) {
+            current_thread = GetHostDummyThread(nullptr);
+        }
+        return current_thread;
     }
 
     LTO_NOINLINE void SetCurrentEmuThread(KThread* thread) {

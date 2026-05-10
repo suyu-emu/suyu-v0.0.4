@@ -74,6 +74,14 @@ bool BehaviorInfo::IsSplitterBugFixed() const {
     return CheckFeatureSupported(SupportTags::SplitterBugFix, user_revision);
 }
 
+bool BehaviorInfo::IsBiquadFilterParameterForSplitterEnabled() const {
+    return CheckFeatureSupported(SupportTags::BiquadFilterParameterForSplitter, user_revision);
+}
+
+bool BehaviorInfo::IsSplitterPrevVolumeResetSupported() const {
+    return CheckFeatureSupported(SupportTags::SplitterPrevVolumeReset, user_revision);
+}
+
 bool BehaviorInfo::IsEffectInfoVersion2Supported() const {
     return CheckFeatureSupported(SupportTags::EffectInfoVer2, user_revision);
 }
@@ -107,7 +115,7 @@ bool BehaviorInfo::IsCommandProcessingTimeEstimatorVersion4Supported() const {
 }
 
 bool BehaviorInfo::IsCommandProcessingTimeEstimatorVersion5Supported() const {
-    return CheckFeatureSupported(SupportTags::CommandProcessingTimeEstimatorVersion4,
+    return CheckFeatureSupported(SupportTags::CommandProcessingTimeEstimatorVersion5,
                                  user_revision);
 }
 
@@ -164,6 +172,10 @@ bool BehaviorInfo::IsVolumeMixParameterPrecisionQ23Supported() const {
 
 bool BehaviorInfo::UseBiquadFilterFloatProcessing() const {
     return CheckFeatureSupported(SupportTags::BiquadFilterFloatProcessing, user_revision);
+}
+
+bool BehaviorInfo::IsBiquadFilterParameterFloatSupported() const {
+    return CheckFeatureSupported(SupportTags::BiquadFilterParameterFloat, user_revision);
 }
 
 bool BehaviorInfo::IsMixInParameterDirtyOnlyUpdateSupported() const {

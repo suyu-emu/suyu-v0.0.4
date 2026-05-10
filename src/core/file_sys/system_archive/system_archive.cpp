@@ -13,7 +13,7 @@
 namespace FileSys::SystemArchive {
 
 constexpr u64 SYSTEM_ARCHIVE_BASE_TITLE_ID = 0x0100000000000800;
-constexpr std::size_t SYSTEM_ARCHIVE_COUNT = 0x28;
+constexpr std::size_t SYSTEM_ARCHIVE_COUNT = 48;
 
 using SystemArchiveSupplier = VirtualDir (*)();
 
@@ -72,7 +72,6 @@ constexpr std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_ARCHI
     {0x0100000000000835, "ErrorMessageUtf8", nullptr},
     {0x0100000000000859, "ClientCertData", nullptr},
     {0x010000000000085C, "GameCardConfigurationData", nullptr},
-    default: return {nullptr, nullptr},
 }};
 
 VirtualFile SynthesizeSystemArchive(const u64 title_id) {
@@ -80,15 +79,26 @@ VirtualFile SynthesizeSystemArchive(const u64 title_id) {
         return nullptr;
     }
 
-    const auto& desc = SYSTEM_ARCHIVES[title_id - SYSTEM_ARCHIVE_BASE_TITLE_ID];
+    const SystemArchiveDescriptor* desc = nullptr;
+    for (const auto& archive : SYSTEM_ARCHIVES) {
+        if (archive.title_id == title_id) {
+            desc = &archive;
+            break;
+        }
+    }
 
-    LOG_INFO(Service_FS, "Synthesizing system archive '{}' (0x{:016X}).", desc.name, desc.title_id);
-
-    if (desc.supplier == nullptr) {
+    if (desc == nullptr) {
         return nullptr;
     }
 
-    const auto dir = desc.supplier();
+    LOG_INFO(Service_FS, "Synthesizing system archive '{}' (0x{:016X}).", desc->name,
+             desc->title_id);
+
+    if (desc->supplier == nullptr) {
+        return nullptr;
+    }
+
+    const auto dir = desc->supplier();
 
     if (dir == nullptr) {
         return nullptr;

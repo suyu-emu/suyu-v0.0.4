@@ -5,6 +5,12 @@
 
 namespace AudioCore::Renderer {
 
+namespace {
+f32 FixedBiquadCoefficientToFloat(const s16 value) {
+    return static_cast<f32>(value) / 16384.0f;
+}
+} // namespace
+
 SplitterDestinationData::SplitterDestinationData(const s32 id_) : id{id_} {}
 
 void SplitterDestinationData::ClearMixVolume() {
@@ -49,7 +55,28 @@ std::span<f32> SplitterDestinationData::GetMixVolumePrev() {
     return prev_mix_volumes;
 }
 
-void SplitterDestinationData::Update(const InParameter& params) {
+void SplitterDestinationData::Update(const InParameter& params,
+                                     const bool reset_prev_volume_supported) {
+    if (params.id != id || params.magic != GetSplitterSendDataMagic()) {
+        return;
+    }
+
+    destination_id = params.mix_id;
+    mix_volumes = params.mix_volumes;
+    biquad_filters = {};
+
+    const bool reset_prev_volume{
+        reset_prev_volume_supported ? params.reset_prev_volume : (!in_use && params.in_use)};
+    if (reset_prev_volume) {
+        prev_mix_volumes = mix_volumes;
+        need_update = false;
+    }
+
+    in_use = params.in_use;
+}
+
+void SplitterDestinationData::Update(const InParameterVersion2& params,
+                                     const bool reset_prev_volume_supported) {
     if (params.id != id || params.magic != GetSplitterSendDataMagic()) {
         return;
     }
@@ -57,7 +84,39 @@ void SplitterDestinationData::Update(const InParameter& params) {
     destination_id = params.mix_id;
     mix_volumes = params.mix_volumes;
 
-    if (!in_use && params.in_use) {
+    for (size_t i = 0; i < biquad_filters.size(); i++) {
+        biquad_filters[i].enabled = params.biquad_filters[i].enabled;
+        for (size_t j = 0; j < biquad_filters[i].b.size(); j++) {
+            biquad_filters[i].b[j] = FixedBiquadCoefficientToFloat(params.biquad_filters[i].b[j]);
+        }
+        for (size_t j = 0; j < biquad_filters[i].a.size(); j++) {
+            biquad_filters[i].a[j] = FixedBiquadCoefficientToFloat(params.biquad_filters[i].a[j]);
+        }
+    }
+
+    const bool reset_prev_volume{
+        reset_prev_volume_supported ? params.reset_prev_volume : (!in_use && params.in_use)};
+    if (reset_prev_volume) {
+        prev_mix_volumes = mix_volumes;
+        need_update = false;
+    }
+
+    in_use = params.in_use;
+}
+
+void SplitterDestinationData::Update(const InParameterVersion3& params,
+                                     const bool reset_prev_volume_supported) {
+    if (params.id != id || params.magic != GetSplitterSendDataMagic()) {
+        return;
+    }
+
+    destination_id = params.mix_id;
+    mix_volumes = params.mix_volumes;
+    biquad_filters = params.biquad_filters;
+
+    const bool reset_prev_volume{
+        reset_prev_volume_supported ? params.reset_prev_volume : (!in_use && params.in_use)};
+    if (reset_prev_volume) {
         prev_mix_volumes = mix_volumes;
         need_update = false;
     }

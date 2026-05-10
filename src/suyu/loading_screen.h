@@ -5,10 +5,10 @@
 
 #include <chrono>
 #include <memory>
+#include <unordered_map>
 #include <QString>
 #include <QWidget>
 #include <QtGlobal>
-#include <ankerl/unordered_dense.h>
 
 #if !QT_CONFIG(movie)
 #define SUYU_QT_MOVIE_MISSING 1
@@ -110,8 +110,8 @@ private:
     QString game_title_;
 
     // Definitions for the differences in text and styling for each stage
-    ankerl::unordered_dense::map<VideoCore::LoadCallbackStage, const char*> progressbar_style;
-    ankerl::unordered_dense::map<VideoCore::LoadCallbackStage, QString> stage_translations;
+    std::unordered_map<VideoCore::LoadCallbackStage, const char*> progressbar_style;
+    std::unordered_map<VideoCore::LoadCallbackStage, QString> stage_translations;
 
     // newly generated shaders are added to the end of the file, so when loading and compiling
     // shaders, it will start quickly but end slow if new shaders were added since previous launch.

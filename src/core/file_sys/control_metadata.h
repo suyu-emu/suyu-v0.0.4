@@ -109,10 +109,15 @@ public:
     std::string GetVersionString() const;
     u64 GetDefaultNormalSaveSize() const;
     u64 GetDefaultJournalSaveSize() const;
+    u64 GetUserAccountSaveDataMaxSize() const;
+    u64 GetUserAccountSaveDataMaxJournalSize() const;
     u32 GetSupportedLanguages() const;
     std::vector<u8> GetRawBytes() const;
     bool GetUserAccountSwitchLock() const;
     u64 GetDeviceSaveDataSize() const;
+    u64 GetDeviceSaveDataJournalSize() const;
+    u64 GetDeviceSaveDataMaxSize() const;
+    u64 GetDeviceSaveDataMaxJournalSize() const;
     u32 GetParentalControlFlag() const;
     const std::array<u8, 0x20>& GetRatingAge() const;
 
