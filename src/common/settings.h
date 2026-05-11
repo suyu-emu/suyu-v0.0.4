@@ -388,8 +388,13 @@ struct Values {
                                                   true,
                                                   true};
 
-    SwitchableSetting<bool> use_asynchronous_gpu_emulation{
-                                                           linkage, false, "use_asynchronous_gpu_emulation", Category::Renderer};
+    SwitchableSetting<bool> use_asynchronous_gpu_emulation{linkage,
+#ifdef __ANDROID__
+        false,
+#else
+        true,
+#endif
+        "use_asynchronous_gpu_emulation", Category::Renderer};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.
     SwitchableSetting<FullscreenMode, true> fullscreen_mode{linkage,
