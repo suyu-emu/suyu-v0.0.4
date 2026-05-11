@@ -609,7 +609,7 @@ struct Values {
 #if defined (ANDROID)
                                                        false,
 #else
-                                                       false,
+                                                       true,
 #endif
                                                        "vertex_input_dynamic_state", Category::RendererExtensions};
 
