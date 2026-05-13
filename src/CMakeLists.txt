@@ -159,7 +159,10 @@ else()
     endif()
 
     if (ARCHITECTURE_x86_64)
-        add_compile_options(-mcx16)
+        add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>)
+        if (PLATFORM_LINUX OR PLATFORM_FREEBSD)
+            add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-mtls-dialect=gnu2>)
+        endif()
     endif()
 
     if (APPLE AND CXX_CLANG)
