@@ -83,8 +83,9 @@ QStringList GetModFolders(const QString& root, const QString& fallbackName) {
             // now make a temp directory...
             const auto mod_dir = fs::temp_directory_path() / "eden" / "mod" / name.toStdString();
             const auto tmp = mod_dir / to_make;
-            fs::remove_all(mod_dir);
-            if (!fs::create_directories(tmp)) {
+            std::error_code ec;
+            fs::remove_all(mod_dir, ec);
+            if (!fs::create_directories(tmp, ec)) {
                 LOG_ERROR(Frontend, "Failed to create temporary directory {}", tmp.string());
                 return {};
             }
@@ -116,9 +117,9 @@ QStringList GetModFolders(const QString& root, const QString& fallbackName) {
 const QString ExtractMod(const QString& path) {
     namespace fs = std::filesystem;
     fs::path tmp{fs::temp_directory_path() / "eden" / "unzip_mod"};
-
-    fs::remove_all(tmp);
-    if (!fs::create_directories(tmp)) {
+    std::error_code ec;
+    fs::remove_all(tmp, ec);
+    if (!fs::create_directories(tmp, ec)) {
         QtCommon::Frontend::Critical(tr("Mod Extract Failed"),
                                      tr("Failed to create temporary directory %1")
                                          .arg(QString::fromStdString(tmp.string())));

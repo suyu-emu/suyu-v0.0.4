@@ -46,10 +46,10 @@ const std::string GetDataDirString(DataDir dir, const std::string &user_id)
 u64 ClearDir(DataDir dir, const std::string &user_id)
 {
     fs::path data_dir = GetDataDir(dir, user_id);
-    u64 result = fs::remove_all(data_dir);
-
+    std::error_code ec;
+    u64 result = fs::remove_all(data_dir, ec);
     // mkpath at the end just so it actually exists
-    fs::create_directories(data_dir);
+    fs::create_directories(data_dir, ec);
     return result;
 }
 
