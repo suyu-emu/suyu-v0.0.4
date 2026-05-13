@@ -43,7 +43,7 @@ public:
     Dynarmic::A64::Vector MemoryRead128(u64 vaddr) override;
     std::optional<u32> MemoryReadCode(u64 vaddr) override;
     void InstructionSynchronizationBarrierRaised() override {
-        last_code_addr = 0; //reset back, force refetch
+        last_code_addr = u64(-1); //reset back, force refetch
     }
     void MemoryWrite8(u64 vaddr, u8 value) override;
     void MemoryWrite16(u64 vaddr, u16 value) override;
@@ -65,7 +65,7 @@ public:
     void ReturnException(u64 pc, Dynarmic::HaltReason hr);
 
     Dynarmic::CodePage cached_code_page;
-    u64 last_code_addr = 0;
+    u64 last_code_addr = u64(-1);
     ArmDynarmic64& m_parent;
     Core::Memory::Memory& m_memory;
     u64 m_tpidrro_el0{};

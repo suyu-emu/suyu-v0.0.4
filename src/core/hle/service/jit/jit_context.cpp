@@ -24,15 +24,25 @@ using namespace Common::ELF;
 
 namespace Service::JIT {
 
+enum HelperFn {
+    None,
+    Stop,
+    Resolve,
+    Panic,
+    Memcpy,
+    Memmove,
+    Memset,
+    // sm64
+    PanicForPlugin,
+    AbortImpl,
+    UnexpectedImpl,
+    Count
+};
+
 constexpr std::array<u8, 8> SVC0_ARM64 = {
     0x01, 0x00, 0x00, 0xd4, // svc  #0
     0xc0, 0x03, 0x5f, 0xd6, // ret
 };
-
-constexpr std::array HELPER_FUNCTIONS{
-    "_stop", "_resolve", "_panic", "memcpy", "memmove", "memset",
-};
-
 constexpr size_t STACK_ALIGN = 16;
 
 class JITContextImpl;
@@ -42,10 +52,12 @@ using IntervalType = boost::icl::interval_set<VAddr>::interval_type;
 
 class DynarmicCallbacks64 : public Dynarmic::A64::UserCallbacks {
 public:
-    explicit DynarmicCallbacks64(Core::Memory::Memory& memory_, std::vector<u8>& local_memory_,
-                                 IntervalSet& mapped_ranges_, JITContextImpl& parent_)
-        : memory{memory_}, local_memory{local_memory_},
-          mapped_ranges{mapped_ranges_}, parent{parent_} {}
+    explicit DynarmicCallbacks64(Core::Memory::Memory& memory_, std::vector<u8>& local_memory_, IntervalSet& mapped_ranges_, JITContextImpl& parent_)
+        : memory{memory_}
+        , local_memory{local_memory_}
+        , mapped_ranges{mapped_ranges_}
+        , parent{parent_}
+    {}
 
     std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) override {
         static_assert(Core::Memory::YUZU_PAGESIZE == Dynarmic::CODE_PAGE_SIZE);
@@ -57,7 +69,7 @@ public:
         return cached_code_page.inst[(vaddr & Core::Memory::YUZU_PAGEMASK) / sizeof(u32)];
     }
     void InstructionSynchronizationBarrierRaised() override {
-        last_code_addr = 0; //reset back, force refetch
+        last_code_addr = u64(-1); //reset back, force refetch
     }
     u8 MemoryRead8(u64 vaddr) override {
         return ReadMemory<u8>(vaddr);
@@ -75,13 +87,10 @@ public:
         return ReadMemory<u128>(vaddr);
     }
     std::string MemoryReadCString(u64 vaddr) {
-        std::string result;
+        std::string result{};
         u8 next;
-
-        while ((next = MemoryRead8(vaddr++)) != 0) {
-            result += next;
-        }
-
+        while ((next = MemoryRead8(vaddr++)) != 0)
+            result += char(next);
         return result;
     }
 
@@ -157,32 +166,26 @@ private:
     std::vector<u8>& local_memory;
     IntervalSet& mapped_ranges;
     JITContextImpl& parent;
-
     Dynarmic::CodePage cached_code_page;
-    u64 last_code_addr = 0;
+    u64 last_code_addr = u64(-1);
 };
 
 class JITContextImpl {
 public:
     explicit JITContextImpl(Core::Memory::Memory& memory_) : memory{memory_} {
-        callbacks =
-            std::make_unique<DynarmicCallbacks64>(memory, local_memory, mapped_ranges, *this);
-        user_config.callbacks = callbacks.get();
-        jit = std::make_unique<Dynarmic::A64::Jit>(user_config);
+        callbacks.emplace(memory, local_memory, mapped_ranges, *this);
+        user_config.callbacks = std::addressof(callbacks.value());
+        jit.emplace(user_config);
     }
 
     bool LoadNRO(std::span<const u8> data) {
-        local_memory.clear();
-
         relocbase = local_memory.size();
         local_memory.insert(local_memory.end(), data.begin(), data.end());
-
         if (FixupRelocations()) {
             InsertHelperFunctions();
             InsertStack();
             return true;
         }
-
         return false;
     }
 
@@ -190,11 +193,9 @@ public:
         // The loaded NRO file has ELF relocations that must be processed before it can run.
         // Normally this would be processed by RTLD, but in HLE context, we don't have
         // the linker available, so we have to do it ourselves.
-
         const VAddr mod_offset{callbacks->MemoryRead32(4)};
-        if (callbacks->MemoryRead32(mod_offset) != Common::MakeMagic('M', 'O', 'D', '0')) {
+        if (callbacks->MemoryRead32(mod_offset) != Common::MakeMagic('M', 'O', 'D', '0'))
             return false;
-        }
 
         // For more info about dynamic entries, see the ELF ABI specification:
         // https://refspecs.linuxbase.org/elf/gabi4+/ch5.dynamic.html
@@ -205,40 +206,33 @@ public:
         while (true) {
             const auto dyn{callbacks->ReadMemory<Elf64_Dyn>(dynamic_offset)};
             dynamic_offset += sizeof(Elf64_Dyn);
-
             if (!dyn.d_tag) {
                 break;
-            }
-            if (dyn.d_tag == ElfDtRela) {
+            } else if (dyn.d_tag == ElfDtRela) {
                 rela_dyn = dyn.d_un.d_ptr;
-            }
-            if (dyn.d_tag == ElfDtRelasz) {
+            } else if (dyn.d_tag == ElfDtRelasz) {
                 num_rela = dyn.d_un.d_val / sizeof(Elf64_Rela);
-            }
-            if (dyn.d_tag == ElfDtRelr) {
+            } else if (dyn.d_tag == ElfDtRelr) {
                 relr_dyn = dyn.d_un.d_ptr;
-            }
-            if (dyn.d_tag == ElfDtRelrsz) {
+            } else if (dyn.d_tag == ElfDtRelrsz) {
                 num_relr = dyn.d_un.d_val / sizeof(Elf64_Relr);
             }
         }
 
         for (size_t i = 0; i < num_rela; i++) {
             const auto rela{callbacks->ReadMemory<Elf64_Rela>(rela_dyn + i * sizeof(Elf64_Rela))};
-            if (Elf64RelType(rela.r_info) != ElfAArch64Relative) {
-                continue;
+            if (Elf64RelType(rela.r_info) == ElfAArch64Relative) {
+                const VAddr contents{callbacks->MemoryRead64(rela.r_offset)};
+                callbacks->MemoryWrite64(rela.r_offset, contents + rela.r_addend);
             }
-            const VAddr contents{callbacks->MemoryRead64(rela.r_offset)};
-            callbacks->MemoryWrite64(rela.r_offset, contents + rela.r_addend);
         }
 
         VAddr relr_where = 0;
         for (size_t i = 0; i < num_relr; i++) {
-            const auto relr{callbacks->ReadMemory<Elf64_Relr>(relr_dyn + i * sizeof(Elf64_Relr))};
-            const auto incr{[&](VAddr where) {
+            const auto relr = callbacks->ReadMemory<Elf64_Relr>(relr_dyn + i * sizeof(Elf64_Relr));
+            const auto incr = [&](VAddr where) {
                 callbacks->MemoryWrite64(where, callbacks->MemoryRead64(where) + relocbase);
-            }};
-
+            };
             if ((relr & 1) == 0) {
                 // where pointer
                 relr_where = relocbase + relr;
@@ -254,13 +248,12 @@ public:
                 relr_where += 63 * sizeof(Elf64_Addr);
             }
         }
-
         return true;
     }
 
     void InsertHelperFunctions() {
-        for (const auto& name : HELPER_FUNCTIONS) {
-            helpers[name] = local_memory.size();
+        for (size_t i = 0; i < size_t(HelperFn::Count); ++i) {
+            helpers[i] = local_memory.size();
             local_memory.insert(local_memory.end(), SVC0_ARM64.begin(), SVC0_ARM64.end());
         }
     }
@@ -268,9 +261,8 @@ public:
     void InsertStack() {
         // Allocate enough space to avoid any reasonable risk of
         // overflowing the stack during plugin execution
-        const u64 pad_amount{Common::AlignUp(local_memory.size(), STACK_ALIGN) -
-                             local_memory.size()};
-        local_memory.insert(local_memory.end(), 0x10000 + pad_amount, 0);
+        const u64 pad_amount = Common::AlignUp(local_memory.size(), STACK_ALIGN) - local_memory.size();
+        local_memory.insert(local_memory.end(), (4096 * 32) + pad_amount, 0);
         top_of_stack = local_memory.size();
         heap_pointer = top_of_stack;
     }
@@ -297,27 +289,21 @@ public:
         //
         // For more info, see the AArch64 ABI PCS:
         // https://github.com/ARM-software/abi-aa/blob/main/aapcs64/aapcs64.rst
-
-        for (size_t i = 0; i < 8 && i < argument_stack.size(); i++) {
+        for (size_t i = 0; i < 8 && i < argument_stack.size(); i++)
             jit->SetRegister(i, argument_stack[i]);
-        }
-
         if (argument_stack.size() > 8) {
-            const VAddr new_sp = Common::AlignDown(
-                top_of_stack - (argument_stack.size() - 8) * sizeof(u64), STACK_ALIGN);
-            for (size_t i = 8; i < argument_stack.size(); i++) {
+            const VAddr new_sp = Common::AlignDown(top_of_stack - (argument_stack.size() - 8) * sizeof(u64), STACK_ALIGN);
+            for (size_t i = 8; i < argument_stack.size(); i++)
                 callbacks->MemoryWrite64(new_sp + (i - 8) * sizeof(u64), argument_stack[i]);
-            }
             jit->SetSP(new_sp);
         }
-
         // Reset the call state for the next invocation
         argument_stack.clear();
         heap_pointer = top_of_stack;
     }
 
     u64 CallFunction(VAddr func) {
-        jit->SetRegister(30, helpers["_stop"]);
+        jit->SetRegister(30, helpers[size_t(HelperFn::Stop)]);
         jit->SetSP(top_of_stack);
         SetupArguments();
 
@@ -326,21 +312,14 @@ public:
         return jit->GetRegister(0);
     }
 
-    VAddr GetHelper(const std::string& name) {
-        return helpers[name];
-    }
-
     VAddr AddHeap(const void* data, size_t size) {
         // Require all heap data types to have the same alignment as the
         // stack pointer, for compatibility
-        const size_t num_bytes{Common::AlignUp(size, STACK_ALIGN)};
-
+        const size_t num_bytes = Common::AlignUp(size, STACK_ALIGN);
         // Make additional memory space if required
         if (heap_pointer + num_bytes > local_memory.size()) {
-            local_memory.insert(local_memory.end(),
-                                (heap_pointer + num_bytes) - local_memory.size(), 0);
+            local_memory.insert(local_memory.end(), (heap_pointer + num_bytes) - local_memory.size(), 0);
         }
-
         const VAddr location{heap_pointer};
         std::memcpy(local_memory.data() + location, data, size);
         heap_pointer += num_bytes;
@@ -351,13 +330,29 @@ public:
         std::memcpy(data, local_memory.data() + location, size);
     }
 
-    std::unique_ptr<DynarmicCallbacks64> callbacks;
+    VAddr GetHelper(const std::string& name) {
+        if (name == "_resolve") return helpers[HelperFn::Resolve];
+        else if (name == "_panic") return helpers[HelperFn::Panic];
+        else if (name == "_stop") return helpers[HelperFn::Stop];
+        else if (name == "memset") return helpers[HelperFn::Memset];
+        else if (name == "memcpy") return helpers[HelperFn::Memcpy];
+        else if (name == "memmove") return helpers[HelperFn::Memmove];
+        else if (name == "PanicForPlugin") return helpers[HelperFn::PanicForPlugin];
+        else if (name == "_ZN2nn4diag6detail9AbortImplEPKcS3_S3_i") return helpers[HelperFn::AbortImpl];
+        else if (name == "_ZN2nn6detail21UnexpectedDefaultImplEPKcS2_i") return helpers[HelperFn::UnexpectedImpl];
+        else {
+            LOG_CRITICAL(Service_JIT, "unresolved {}", name);
+            return helpers[HelperFn::Panic];
+        }
+    }
+
+    std::optional<DynarmicCallbacks64> callbacks;
+    std::optional<Dynarmic::A64::Jit> jit;
     std::vector<u8> local_memory;
-    std::vector<u64> argument_stack;
+    std::vector<VAddr> argument_stack;
     IntervalSet mapped_ranges;
     Dynarmic::A64::UserConfig user_config;
-    std::unique_ptr<Dynarmic::A64::Jit> jit;
-    std::map<std::string, VAddr, std::less<>> helpers;
+    std::array<VAddr, size_t(HelperFn::Count)> helpers;
     Core::Memory::Memory& memory;
     VAddr top_of_stack;
     VAddr heap_pointer;
@@ -383,44 +378,41 @@ void DynarmicCallbacks64::CallSVC(u32 swi) {
     }
 
     u64 pc{parent.jit->GetPC() - 4};
-    auto& helpers{parent.helpers};
-
-    if (pc == helpers["memcpy"] || pc == helpers["memmove"]) {
+    if (pc == parent.helpers[size_t(HelperFn::Memcpy)] || pc == parent.helpers[size_t(HelperFn::Memmove)]) {
         const VAddr dest{parent.jit->GetRegister(0)};
         const VAddr src{parent.jit->GetRegister(1)};
         const size_t n{parent.jit->GetRegister(2)};
 
         if (dest < src) {
-            for (size_t i = 0; i < n; i++) {
+            for (size_t i = 0; i < n; i++)
                 MemoryWrite8(dest + i, MemoryRead8(src + i));
-            }
         } else {
-            for (size_t i = n; i > 0; i--) {
+            for (size_t i = n; i > 0; i--)
                 MemoryWrite8(dest + i - 1, MemoryRead8(src + i - 1));
-            }
         }
-    } else if (pc == helpers["memset"]) {
+    } else if (pc == parent.helpers[size_t(HelperFn::Memset)]) {
         const VAddr dest{parent.jit->GetRegister(0)};
         const u64 c{parent.jit->GetRegister(1)};
         const size_t n{parent.jit->GetRegister(2)};
-
-        for (size_t i = 0; i < n; i++) {
-            MemoryWrite8(dest + i, static_cast<u8>(c));
-        }
-    } else if (pc == helpers["_resolve"]) {
+        for (size_t i = 0; i < n; i++)
+            MemoryWrite8(dest + i, u8(c));
+    } else if (pc == parent.helpers[size_t(HelperFn::Resolve)]) {
         // X0 contains a char* for a symbol to resolve
         const auto name{MemoryReadCString(parent.jit->GetRegister(0))};
-        const auto helper{helpers[name]};
-
-        if (helper != 0) {
-            parent.jit->SetRegister(0, helper);
-        } else {
-            LOG_WARNING(Service_JIT, "plugin requested unknown function {}", name);
-            parent.jit->SetRegister(0, helpers["_panic"]);
-        }
-    } else if (pc == helpers["_stop"]) {
+        parent.jit->SetRegister(0, u64(parent.GetHelper(name)));
+    } else if (pc == parent.helpers[size_t(HelperFn::Stop)]) {
         parent.jit->HaltExecution();
-    } else if (pc == helpers["_panic"]) {
+    } else if (pc == parent.helpers[size_t(HelperFn::Panic)]) {
+        LOG_CRITICAL(Service_JIT, "plugin panicked!");
+        parent.jit->HaltExecution();
+    // SM64
+    } else if (pc == parent.helpers[size_t(HelperFn::PanicForPlugin)]) {
+        LOG_CRITICAL(Service_JIT, "plugin panicked!");
+        parent.jit->HaltExecution();
+    } else if (pc == parent.helpers[size_t(HelperFn::AbortImpl)]) {
+        LOG_CRITICAL(Service_JIT, "plugin panicked!");
+        parent.jit->HaltExecution();
+    } else if (pc == parent.helpers[size_t(HelperFn::UnexpectedImpl)]) {
         LOG_CRITICAL(Service_JIT, "plugin panicked!");
         parent.jit->HaltExecution();
     } else {
@@ -430,7 +422,8 @@ void DynarmicCallbacks64::CallSVC(u32 swi) {
 }
 
 void DynarmicCallbacks64::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
-    LOG_CRITICAL(Service_JIT, "Illegal operation PC @ {:08x}", pc);
+    auto const inst = MemoryRead32(pc);
+    LOG_CRITICAL(Service_JIT, "{} PC @ {:08x}, data = {:08x}", exception, pc, inst);
     parent.jit->HaltExecution();
 }
 

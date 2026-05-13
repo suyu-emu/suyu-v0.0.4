@@ -33,8 +33,7 @@ IScreenShotApplicationService::IScreenShotApplicationService(
 
 IScreenShotApplicationService::~IScreenShotApplicationService() = default;
 
-Result IScreenShotApplicationService::SetShimLibraryVersion(ShimLibraryVersion library_version,
-                                                            ClientAppletResourceUserId aruid) {
+Result IScreenShotApplicationService::SetShimLibraryVersion(ShimLibraryVersion library_version, ClientAppletResourceUserId aruid) {
     LOG_WARNING(Service_Capture, "(STUBBED) called. library_version={}, applet_resource_user_id={}",
                 library_version, aruid.pid);
     R_SUCCEED();

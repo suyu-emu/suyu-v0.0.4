@@ -36,7 +36,7 @@ public:
     u64 MemoryRead64(u32 vaddr) override;
     std::optional<u32> MemoryReadCode(u32 vaddr) override;
     void InstructionSynchronizationBarrierRaised() override {
-        last_code_addr = 0; //reset back, force refetch
+        last_code_addr = u64(-1); //reset back, force refetch
     }
     void MemoryWrite8(u32 vaddr, u8 value) override;
     void MemoryWrite16(u32 vaddr, u16 value) override;
@@ -54,7 +54,7 @@ public:
     void ReturnException(u32 pc, Dynarmic::HaltReason hr);
     //
     Dynarmic::CodePage cached_code_page;
-    u64 last_code_addr = 0;
+    u64 last_code_addr = u64(-1);
     ArmDynarmic32& m_parent;
     Core::Memory::Memory& m_memory;
     Kernel::KProcess* m_process{};

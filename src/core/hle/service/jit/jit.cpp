@@ -1,6 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/logging.h"
 #include "core/arm/debug.h"
 #include "core/arm/symbols.h"
 #include "core/core.h"
@@ -111,10 +115,7 @@ public:
         const VAddr input_ptr{context.AddHeap(in_data.data(), in_data.size())};
         const VAddr output_ptr{context.AddHeap(out_data.data(), out_data.size())};
 
-        const u64 wrapper_value{context.CallFunction(callbacks.Control, ret_ptr, configuration_ptr,
-                                                     command, input_ptr, in_data.size(), output_ptr,
-                                                     out_data.size())};
-
+        const u64 wrapper_value = context.CallFunction(callbacks.Control, ret_ptr, configuration_ptr, command, input_ptr, in_data.size(), output_ptr, out_data.size());
         *out_return_value = context.GetHeap<s32>(ret_ptr);
         context.GetHeap(output_ptr, out_data.data(), out_data.size());
 
@@ -126,9 +127,7 @@ public:
         R_THROW(ResultUnknown);
     }
 
-    Result LoadPlugin(u64 tmem_size, InCopyHandle<Kernel::KTransferMemory> tmem,
-                      InBuffer<BufferAttr_HipcMapAlias> nrr,
-                      InBuffer<BufferAttr_HipcMapAlias> nro) {
+    Result LoadPlugin(u64 tmem_size, InCopyHandle<Kernel::KTransferMemory> tmem, InBuffer<BufferAttr_HipcMapAlias> nrr, InBuffer<BufferAttr_HipcMapAlias> nro) {
         if (!tmem) {
             LOG_ERROR(Service_JIT, "Invalid transfer memory handle!");
             R_THROW(ResultUnknown);
@@ -139,9 +138,10 @@ public:
         configuration.transfer_memory.size = tmem_size;
 
         // Gather up all the callbacks from the loaded plugin
-        auto symbols{Core::Symbols::GetSymbols(nro, true)};
-        const auto GetSymbol{[&](const std::string& name) { return symbols[name].first; }};
-
+        auto symbols = Core::Symbols::GetSymbols(nro, true);
+        const auto GetSymbol = [&](const std::string& name) {
+            return symbols[name].first;
+        };
         callbacks.rtld_fini = GetSymbol("_fini");
         callbacks.rtld_init = GetSymbol("_init");
         callbacks.Control = GetSymbol("nnjitpluginControl");
@@ -153,8 +153,7 @@ public:
         callbacks.OnPrepared = GetSymbol("nnjitpluginOnPrepared");
         callbacks.Keeper = GetSymbol("nnjitpluginKeeper");
 
-        if (callbacks.GetVersion == 0 || callbacks.Configure == 0 || callbacks.GenerateCode == 0 ||
-            callbacks.OnPrepared == 0) {
+        if (callbacks.GetVersion == 0 || callbacks.Configure == 0 || callbacks.GenerateCode == 0 || callbacks.OnPrepared == 0 || callbacks.Control == 0) {
             LOG_ERROR(Service_JIT, "plugin does not implement all necessary functionality");
             R_THROW(ResultUnknown);
         }
@@ -164,12 +163,9 @@ public:
             R_THROW(ResultUnknown);
         }
 
-        context.MapProcessMemory(configuration.sys_ro_memory.offset,
-                                 configuration.sys_ro_memory.size);
-        context.MapProcessMemory(configuration.sys_rx_memory.offset,
-                                 configuration.sys_rx_memory.size);
-        context.MapProcessMemory(configuration.transfer_memory.offset,
-                                 configuration.transfer_memory.size);
+        context.MapProcessMemory(configuration.sys_ro_memory.offset, configuration.sys_ro_memory.size);
+        context.MapProcessMemory(configuration.sys_rx_memory.offset, configuration.sys_rx_memory.size);
+        context.MapProcessMemory(configuration.transfer_memory.offset, configuration.transfer_memory.size);
 
         // Run ELF constructors, if needed
         if (callbacks.rtld_init != 0) {
@@ -179,7 +175,7 @@ public:
         // Function prototype:
         // u64 GetVersion();
         const auto version{context.CallFunction(callbacks.GetVersion)};
-        if (version != 1) {
+        if (version > 1) {
             LOG_ERROR(Service_JIT, "unknown plugin version {}", version);
             R_THROW(ResultUnknown);
         }
