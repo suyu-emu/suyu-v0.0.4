@@ -569,11 +569,10 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
     layers.emplace_back(std::move(extracted));
 
     auto layered = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers));
-    if (layered == nullptr) {
+    auto layered_ext = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers_ext));
+    if (layered == nullptr && layered_ext == nullptr) {
         return;
     }
-
-    auto layered_ext = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers_ext));
 
     auto packed = CreateRomFS(std::move(layered), std::move(layered_ext));
     if (packed == nullptr) {
@@ -943,6 +942,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
             if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(mod, "romfs")) ||
                 IsDirValidAndNonEmpty(FindSubdirectoryCaseless(mod, "romfslite")))
                 AppendCommaIfNotEmpty(types, "LayeredFS");
+            if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(mod, "romfs_ext")))
+                AppendCommaIfNotEmpty(types, "ExtLayeredFS");
             if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(mod, "cheats")))
                 AppendCommaIfNotEmpty(types, "Cheats");
 
@@ -965,13 +966,13 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     const auto sdmc_mod_dir = fs_controller.GetSDMCModificationLoadRoot(title_id);
     if (sdmc_mod_dir != nullptr) {
         std::string types;
-        if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "exefs"))) {
+        if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "exefs")))
             AppendCommaIfNotEmpty(types, "LayeredExeFS");
-        }
         if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfs")) ||
-            IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfslite"))) {
+            IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfslite")))
             AppendCommaIfNotEmpty(types, "LayeredFS");
-            }
+        if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfs_ext")))
+            AppendCommaIfNotEmpty(types, "ExtLayeredFS");
 
         if (!types.empty()) {
             const auto mod_disabled =
