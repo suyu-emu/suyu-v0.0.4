@@ -478,10 +478,8 @@
     <string name="extensions">Rozšíření</string>
 
     <string name="dyna_state">Úroveň EDS</string>
-    <string name="dyna_state_description">Určuje počet funkcí využívaných v rámci rozšířeného dynamického stavu API Vulkan (Extended Dynamic State). Vyšší hodnoty umožňují využít více funkcí a mohou zvýšit výkon, ale u některých ovladačů a výrobců grafických karet mohou způsobovat problémy s kompatibilitou.</string>
     <string name="disabled">Vypnuto</string>
     <string name="vertex_input_dynamic_state">Dynamický stav vstupu vrcholů (Vertex Input)</string>
-    <string name="vertex_input_dynamic_state_description">Aktivuje funkci dynamického stavu vstupu vrcholů (Vertex Input Dynamic State) pro lepší kvalitu a výkon.</string>
     <string name="display">Zobrazení</string>
 
     <string name="renderer_screen_layout">Orientace</string>

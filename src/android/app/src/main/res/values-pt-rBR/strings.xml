@@ -463,7 +463,6 @@
     <string name="dyna_state">Extended Dynamic State</string>
     <string name="disabled">Desativado</string>
     <string name="vertex_input_dynamic_state">Vertex Input Dynamic State</string>
-    <string name="vertex_input_dynamic_state_description">Ativa o recurso de vertex input dynamic state para melhor qualidade e desempenho.</string>
     <string name="display">Tela</string>
 
     <string name="renderer_screen_layout">Orientação</string>

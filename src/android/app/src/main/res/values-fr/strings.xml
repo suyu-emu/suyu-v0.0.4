@@ -483,7 +483,6 @@
     <string name="dyna_state">État dynamique étendu</string>
     <string name="disabled">Désactivé</string>
     <string name="vertex_input_dynamic_state">État dynamique d\'entrée de sommet</string>
-    <string name="vertex_input_dynamic_state_description">Active la fonctionnalité d\'état dynamique des entrées de sommets pour une meilleure qualité et de meilleures performances.</string>
     <string name="display">Affichage</string>
 
     <string name="renderer_screen_layout">Orientation</string>

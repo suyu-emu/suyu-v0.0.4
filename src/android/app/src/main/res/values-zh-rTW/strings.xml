@@ -466,7 +466,6 @@
     <string name="dyna_state">擴展動態狀態</string>
     <string name="disabled">已停用</string>
     <string name="vertex_input_dynamic_state">頂點輸入動態狀態</string>
-    <string name="vertex_input_dynamic_state_description">啟用頂點輸入動態狀態以取得更佳的品質及性能</string>
     <string name="display">顯示</string>
 
     <string name="renderer_screen_layout">方向</string>

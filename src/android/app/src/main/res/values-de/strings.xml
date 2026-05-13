@@ -476,10 +476,8 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="extensions">Erweiterungen</string>
 
     <string name="dyna_state">Erweiterter dynamischer Status</string>
-    <string name="dyna_state_description">Steuert die Anzahl der Funktionen, die im \"Vertex Input Dynamic State\" werden können. Höhere Werte ermöglichen mehr Funktionen und können die Leistung steigern, können aber bei einigen Treibern und Anbietern zu Problemen führen.</string>
     <string name="disabled">Deaktiviert</string>
     <string name="vertex_input_dynamic_state">Vertex Input Dynamic State</string>
-    <string name="vertex_input_dynamic_state_description">Aktiviert die Funktion \"Vertex Input Dynamic State\" für bessere Qualität und Leistung.</string>
     <string name="sample_shading_fraction">Sample Shading</string>
     <string name="sample_shading_fraction_description">Ermöglicht es dem Fragment-Shader, in einem Multisample-Fragment pro Sample anstatt einmal pro Fragment ausgeführt zu werden. Verbessert die Grafikqualität auf Kosten der Leistung.</string>
 

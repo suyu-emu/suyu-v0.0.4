@@ -66,6 +66,8 @@
     <string name="show_power_info_description">Muestra el consumo de energía actual y la capacidad restante de la batería</string>
     <string name="show_shaders_building">Mostrar construcción de sombreadores</string>
     <string name="show_shaders_building_description">Muestra el número actual de sombreadores que se están construyendo</string>
+    <string name="pipeline_worker_cores">Hilos de trabajo de canalización</string>
+    <string name="pipeline_worker_cores_description">Gestiona la cantidad de núcleos usados para la construcción de canalizaciones de Vulkan; un valor más alto mejorará el rendimiento de la contrucción de canalización, pero también aumentarán las temperaturas.</string>
     <string name="overlay_position">Posición de la superposición</string>
     <string name="overlay_position_description">Elige dónde se muestra la superposición en la pantalla</string>
     <string name="overlay_position_top_left">Superior izquierda</string>
@@ -479,16 +481,14 @@
     <string name="renderer_force_max_clock">Forzar velocidad al máximo (solo Adreno)</string>
     <string name="renderer_force_max_clock_description">Fuerza a la GPU a ejecutarse a la velocidad máxima de reloj posible (se seguirán aplicando restricciones térmicas).</string>
     <string name="renderer_asynchronous_gpu_emulation">Emulación de GPU asíncrona</string>
-    <string name="renderer_asynchronous_gpu_emulation_description">Ejecuta la emulación de la GPU de forma asíncrona para reducir los bloqueos de la CPU y mejorar el rendimiento. Desactiva esta opción solo si experimentas problemas de sincronización.</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">Este hack puede aumentar el rendimiento ejecutando la emulación de la GPU de forma asíncrona, a costa de problemas gráficos y un aumento en la tasa de fallos debido a operaciones relacionadas con la sincronización.</string>
     <string name="renderer_async_presentation">Presentación asíncrona</string>
-    <string name="renderer_async_presentation_description">Mejora ligeramente el rendimiento al mover la presentación a un hilo independiente de la CPU.</string>
+    <string name="renderer_async_presentation_description">Este hack puede aumentar el rendimiento al mover la presentación a un hilo independiente de la CPU a costa de problemas gráficos.</string>
     <string name="renderer_reactive_flushing">Usar limpieza reactiva</string>
     <string name="renderer_reactive_flushing_description">Mejora la precisión de renderizado en algunos juegos, pero reduce el rendimiento.</string>
     <string name="enable_buffer_history">Activar el historial del búfer</string>
     <string name="enable_buffer_history_description">Permite el acceso al estado del búfer anterior. Esta opción puede mejorar la calidad de renderizado y la consistencia en el rendimiento de algunos juegos.</string>
     <string name="use_optimized_vertex_buffers">Búferes de vértices optimizados</string>
-    <string name="use_optimized_vertex_buffers_description">Permite la optimización del enlace del búfer de vértices para un mejor rendimiento. Requiere controladores Mesa 26.0+ Turnip/ controladores QCOM. Causará fallos con controladores Turnip más antiguos.</string>
-
     <string name="hacks">Hacks</string>
 
     <string name="fast_gpu_time">Tiempo rápido de la GPU</string>
@@ -499,6 +499,7 @@
     <string name="fix_bloom_effects_description">Reduce el efecto de resplandor en LA/EOW (Adreno A6XX - A7XX/ Turnip), elimina el resplandor en Burnout. Advertencia: puede causar artefactos gráficos en otros juegos.</string>
     <string name="emulate_bgr565">Emular BGR565</string>
     <string name="emulate_bgr565_description">Soluciona problemas con colores invertidos en juegos, artefactos o sombras extrañas.</string>
+    <string name="rescale_hack">Activar la pasada de reescalado heredada</string>
     <string name="renderer_asynchronous_shaders">Usar sombreadores asíncronos</string>
     <string name="renderer_asynchronous_shaders_description">Compila los sombreadores de forma asíncrona. Esto puede reducir los tirones, pero también puede introducir errores gráficos.</string>
     <string name="gpu_unswizzle_settings">Ajustes de desentrelazado de la GPU</string>
@@ -517,10 +518,8 @@
     <string name="extensions">Extensiones</string>
 
     <string name="dyna_state">Estado dinámico extendido</string>
-    <string name="dyna_state_description">Controla la cantidad de funciones que se pueden usar en el Estado Dinámico Extendido. Un número mayor permite más funciones y puede aumentar el rendimiento, pero puede causar problemas con algunos controladores y proveedores.</string>
     <string name="disabled">Desactivado</string>
     <string name="vertex_input_dynamic_state">Estado dinámico de entrada de vértices</string>
-    <string name="vertex_input_dynamic_state_description">Activa la función de estado dinámico de entrada de vértices para una mejor calidad y rendimiento.</string>
     <string name="sample_shading_fraction">Muestreo de sombreado</string>
     <string name="sample_shading_fraction_description">Permite que el sombreador de fragmentos se ejecute por muestra en un fragmento multimuestreado, en lugar de una sola vez por fragmento. Mejora la calidad de los gráficos a coste de algo de rendimiento.</string>
 

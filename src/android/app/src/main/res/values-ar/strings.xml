@@ -66,6 +66,8 @@
     <string name="show_power_info_description">عرض استهلاك الطاقة الحالي والسعة المتبقية في البطارية</string>
     <string name="show_shaders_building">عرض بناء التظليل</string>
     <string name="show_shaders_building_description">عرض عدد التظليل التي يتم بناؤها</string>
+    <string name="pipeline_worker_cores">خيوط عامل خط الأنابيب</string>
+    <string name="pipeline_worker_cores_description">قم بإدارة عدد النوى المستخدمة لبناء خطوط أنابيب Vulkan، فالقيمة الأعلى ستحسن أداء تجميع خط الأنابيب ولكن درجات الحرارة سترتفع أيضًا.</string>
     <string name="overlay_position">موضع الطبقة</string>
     <string name="overlay_position_description">حدد مكان عرض الطبقة على الشاشة</string>
     <string name="overlay_position_top_left">أعلى اليمين</string>
@@ -485,15 +487,15 @@
     <string name="renderer_force_max_clock">إجبار السرعة القصوى (لأجهزة Adreno فقط)</string>
     <string name="renderer_force_max_clock_description">يجبر وحدة معالجة الرسومات على العمل بأقصى سرعة ممكنة (سيظل يتم تطبيق القيود الحرارية).</string>
     <string name="renderer_asynchronous_gpu_emulation">محاكاة غير متزامنة لوحدة معالجة الرسومات</string>
-    <string name="renderer_asynchronous_gpu_emulation_description">يُشغّل هذا الخيار محاكاة وحدة معالجة الرسومات بشكل غير متزامن لتقليل توقف وحدة المعالجة المركزية وتحسين الإنتاجية. عطّل هذا الخيار فقط في حال واجهت مشاكل متعلقة بالتوقيت.</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">يمكن لهذه الحيلة أن تزيد الأداء عن طريق تشغيل محاكاة وحدة معالجة الرسومات بشكل غير متزامن على حساب مشاكل الرسومات وزيادة معدلات الأعطال بسبب العمليات المتعلقة بالتوقيت.</string>
     <string name="renderer_async_presentation">عرض غير متزامن</string>
-    <string name="renderer_async_presentation_description">يحسّن الأداء بشكل طفيف عن طريق نقل عملية العرض إلى خيط معالجة منفصل لوحدة المعالجة المركزية.</string>
+    <string name="renderer_async_presentation_description">يمكن لهذه الحيلة أن تزيد من الأداء عن طريق نقل عملية العرض إلى خيط معالجة منفصل على حساب مشاكل الرسوميات.</string>
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
     <string name="renderer_reactive_flushing_description">يحسن دقة العرض في بعض الألعاب على حساب الأداء.</string>
     <string name="enable_buffer_history">تمكين سجل التخزين المؤقت</string>
     <string name="enable_buffer_history_description">يُتيح هذا الخيار الوصول إلى حالات التخزين المؤقت السابقة. وقد يُحسّن جودة العرض وثبات الأداء في بعض الألعاب.</string>
     <string name="use_optimized_vertex_buffers">مخازن الرؤوس المُحسّنة</string>
-    <string name="use_optimized_vertex_buffers_description">يتيح ربط مخزن الرؤوس المُحسّن لتحسين الأداء. يتطلب برامج تشغيل Turnip/QCOM من إصدار Mesa 26.0 أو أحدث. سيؤدي إلى تعطل النظام عند استخدام برامج تشغيل Turnip الأقدم.</string>
+    <string name="use_optimized_vertex_buffers_description">يُتيح ربطًا مُحسَّنًا لمخازن الرؤوس لتحسين الأداء. يتطلب برامج تشغيل Mesa 26.0+ Turnip/ برامج تشغيل QCOM. قد يتعطل على برامج تشغيل Turnip القديمة (25.3 وما دون).</string>
 
     <string name="hacks">اختراقات</string>
 
@@ -505,6 +507,8 @@
     <string name="fix_bloom_effects_description">يقلل من ضبابية التوهج في LA/EOW  (Adreno A6XX - A7XX/ Turnip)، ويزيل التوهج في Burnout. تحذير: قد يسبب تشوهات رسومية في ألعاب أخرى.</string>
     <string name="emulate_bgr565">محاكاة BGR565</string>
     <string name="emulate_bgr565_description">يُصلح مشاكل انعكاس الألوان في الألعاب أو ظهور تشوهات غريبة أو ظلال غريبة.</string>
+    <string name="rescale_hack">تفعيل ميزة إعادة التحجيم القديمة</string>
+    <string name="rescale_hack_description">يُمكّن هذا الخيار من التعامل مع عملية إعادة تحجيم الألعاب بطريقة تقليدية باستخدام مسار إعادة التحجيم السريع</string>
     <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
     <string name="renderer_asynchronous_shaders_description">يقوم بتجميع التظليل بشكل غير متزامن. قد يقلل ذلك من التقطعات ولكنه قد يؤدي أيضًا إلى حدوث أخطاء.</string>
     <string name="gpu_unswizzle_settings">إعدادات إلغاء ترتيب بيانات وحدة معالجة الرسومات</string>
@@ -523,10 +527,10 @@
     <string name="extensions">إضافات</string>
 
     <string name="dyna_state">الحالة الديناميكية الموسعة</string>
-    <string name="dyna_state_description">يتحكم هذا الخيار في عدد الميزات التي يمكن استخدامها في حالة الديناميكية الموسعة. تسمح الأرقام الأعلى بمزيد من الميزات ويمكن أن تزيد من الأداء، ولكنها قد تسبب مشاكل مع بعض برامج التشغيل والأجهزة.</string>
+    <string name="dyna_state_description">يتحكم هذا الخيار في عدد الميزات التي يمكن استخدامها في ExtendedDynamicState (EDS). كلما زادت القيمة، قلّ عدد عمليات تجميع خط الأنابيب بناءً على الحالة الديناميكية التي يدعمها برنامج التشغيل.</string>
     <string name="disabled">معطل</string>
     <string name="vertex_input_dynamic_state">حالة ديناميكية لإدخال الرأس</string>
-    <string name="vertex_input_dynamic_state_description">يتيح ميزة الحالة الديناميكية لإدخال الرأس لتحسين الجودة والأداء.</string>
+    <string name="vertex_input_dynamic_state_description">يتيح تمكين هذه الميزة معالجة أكثر مرونة لمدخلات الرؤوس، مما قد يقلل من وقت تجميع خط الأنابيب في vertex/buffer.</string>
     <string name="sample_shading_fraction">تظليل العينة</string>
     <string name="sample_shading_fraction_description">يسمح هذا الخيار بتنفيذ مُظلل الأجزاء لكل عينة في جزء متعدد العينات بدلاً من تنفيذه مرة واحدة لكل جزء. يُحسّن هذا من جودة الرسومات على حساب بعض الأداء.</string>
 

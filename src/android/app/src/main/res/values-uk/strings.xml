@@ -66,6 +66,8 @@
     <string name="show_power_info_description">Показати поточне споживання енергії та залишкову ємність акумулятора</string>
     <string name="show_shaders_building">Показати побудову шейдерів</string>
     <string name="show_shaders_building_description">Показати поточну кількість шейдерів, які наразі компілюються</string>
+    <string name="pipeline_worker_cores">Потоки обробника конвеєра</string>
+    <string name="pipeline_worker_cores_description">Керує кількістю ядер, що використовуються для збірки конвеєрів Vulkan. Вище значення покращить продуктивність компіляції конвеєра, але також підвищить температуру.</string>
     <string name="overlay_position">Позиція оверлею</string>
     <string name="overlay_position_description">Обрати розташування виводу статистики на екрані</string>
     <string name="overlay_position_top_left">Вгорі ліворуч</string>
@@ -481,15 +483,15 @@
     <string name="renderer_force_max_clock">Максимальна тактова частота (тільки Adreno)</string>
     <string name="renderer_force_max_clock_description">Змушує GPU працювати на максимальній тактовій частоті.</string>
     <string name="renderer_asynchronous_gpu_emulation">Асинхронна емуляція ГП</string>
-    <string name="renderer_asynchronous_gpu_emulation_description">Емуляція ГП виконується асинхронно для зменшення затримок ЦП й покращення пропускної здатності. Вимкніть лише у випадку виникнення проблем із таймінгами.</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">Це обхідне рішення може покращити продуктивність завдяки асинхронному виконанню емуляції ГП, але спричинить проблеми з графікою та збільшить частоту збоїв чутливих до таймінгів операцій.</string>
     <string name="renderer_async_presentation">Асинхронне подання</string>
-    <string name="renderer_async_presentation_description">Трохи покращує продуктивність завдяки переміщенню подання на окремий потік ЦП.</string>
+    <string name="renderer_async_presentation_description">Це обхідне рішення може покращити продуктивність завдяки переміщенню подання на окремий потік ЦП, але спричинить проблеми з графікою.</string>
     <string name="renderer_reactive_flushing">Реактивне очищення</string>
     <string name="renderer_reactive_flushing_description">Покращує точність рендерингу в деяких іграх.</string>
     <string name="enable_buffer_history">Увімкнути історію буфера</string>
     <string name="enable_buffer_history_description">Вмикає доступ до попередніх станів буфера. Цей параметр може покращити якість візуалізації та стабільну продуктивність у деяких іграх.</string>
     <string name="use_optimized_vertex_buffers">Оптимізовані буфери вершин</string>
-    <string name="use_optimized_vertex_buffers_description">Застосовує оптимізований буфер вершин, щоб покращити продуктивність. Потребує драйверів Mesa 26.0+ Turnip / QCOM. На старіших драйверах Turnip виникатиме збій.</string>
+    <string name="use_optimized_vertex_buffers_description">Застосовує оптимізований буфер вершин, щоб покращити продуктивність. Потребує драйверів Mesa 26.0+ Turnip / QCOM. На старіших драйверах Turnip виникатиме збій (25.3 і нижче).</string>
 
     <string name="hacks">Обхідні рішення</string>
 
@@ -501,6 +503,8 @@
     <string name="fix_bloom_effects_description">Зменшує розмиття світіння в LA/EOW (Adreno A6XX–A7XX / Turnip), прибирає світіння в Burnout. Увага: може спричинити графічні артефакти в інших іграх.</string>
     <string name="emulate_bgr565">Емулювати BGR565</string>
     <string name="emulate_bgr565_description">Виправляє проблеми з інвертованими кольорами в іграх або дивними артефактами чи тінями.</string>
+    <string name="rescale_hack">Увімкнути застаріле масштабування</string>
+    <string name="rescale_hack_description">Вмикає застарілу обробку масштабування для ігор, використовуючи швидкий шлях масштабування</string>
     <string name="renderer_asynchronous_shaders">Асинхронні шейдери</string>
     <string name="renderer_asynchronous_shaders_description">Компілює шейдери асинхронно. Це може зменшити затримки, але також може спричинити графічні баги.</string>
     <string name="gpu_unswizzle_settings">Налаштування розпакування за допомогою ГП</string>
@@ -519,10 +523,10 @@
     <string name="extensions">Розширення</string>
 
     <string name="dyna_state">Розширений динамічний стан</string>
-    <string name="dyna_state_description">Керує кількістю функцій, які можна використовувати в «Розширеному динамічному стані». Вище число дозволяє більше функцій і може покращити продуктивність, але може спричинити проблеми з деякими драйверами й виробниками.</string>
+    <string name="dyna_state_description">Керує кількістю функцій, які можна використовувати в ExtendedDynamicState (EDS). Вище значення дозволить зменшити кількість компіляцій конвеєра на основі динамічного стану, підтримуваного драйвером.</string>
     <string name="disabled">Вимкнено</string>
     <string name="vertex_input_dynamic_state">Динамічний стан введення вершин</string>
-    <string name="vertex_input_dynamic_state_description">Вмикає можливість динамічного стану введення вершин для кращих якості й продуктивності.</string>
+    <string name="vertex_input_dynamic_state_description">Увімкнення цієї функції дозволить гнучкішу обробку введення вершин. Може зменшити час компіляції конвеєра для вершин/буфера.</string>
     <string name="sample_shading_fraction">Простий шейдинг</string>
     <string name="sample_shading_fraction_description">Дозволяє виконувати фрагмент шейдера для кожного зразка в багатозразковому фрагменті замість одного разу для кожного фрагмента. Покращує якість графікі ціною втрати продуктивності.</string>
 

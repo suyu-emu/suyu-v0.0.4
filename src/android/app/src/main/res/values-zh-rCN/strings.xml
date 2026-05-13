@@ -475,16 +475,12 @@
     <string name="renderer_force_max_clock">强制最大时钟 (仅限 Adreno)</string>
     <string name="renderer_force_max_clock_description">强制 GPU 以最大时钟运行 (仍被温控限制)。</string>
     <string name="renderer_asynchronous_gpu_emulation">GPU 异步模拟</string>
-    <string name="renderer_asynchronous_gpu_emulation_description">异步运行 GPU 模拟，以减少 CPU 停顿并提高吞吐量。仅当遇到与时序相关的问题时才应禁用此功能。</string>
     <string name="renderer_async_presentation">异步呈现</string>
-    <string name="renderer_async_presentation_description">通过将呈现操作移至单独的 CPU 线程来略微提升性能。</string>
     <string name="renderer_reactive_flushing">启用反应性刷新</string>
     <string name="renderer_reactive_flushing_description">通过牺牲性能来提高某些游戏的渲染精度。</string>
     <string name="enable_buffer_history">启用缓冲区历史</string>
     <string name="enable_buffer_history_description">启用对先前缓冲区状态的访问。此选项可在某些游戏中提升渲染质量并保持性能的一致性。</string>
     <string name="use_optimized_vertex_buffers">优化顶点缓冲区</string>
-    <string name="use_optimized_vertex_buffers_description">启用经过优化的顶点缓冲区绑定以提升性能。需要 Mesa 26.0 及以上版本的 Turnip 或 QCOM 驱动程序。若使用较旧版本的 Turnip 驱动则会导致崩溃。</string>
-
     <string name="hacks">Hacks</string>
 
     <string name="fast_gpu_time">GPU 超频频率</string>
@@ -513,10 +509,8 @@
     <string name="extensions">扩展</string>
 
     <string name="dyna_state">扩展动态状态</string>
-    <string name="dyna_state_description">控制在扩展动态状态中可使用的函数数量。更高的数值允许启用更多功能，并可能提升性能，但同时也可能导致额外的图形问题。</string>
     <string name="disabled">已禁用</string>
     <string name="vertex_input_dynamic_state">顶点输入动态状态</string>
-    <string name="vertex_input_dynamic_state_description">开启顶点输入动态状态功能来获得更好的质量和性能。</string>
     <string name="sample_shading_fraction">采样着色</string>
     <string name="sample_shading_fraction_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。</string>
 

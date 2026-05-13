@@ -66,6 +66,8 @@
     <string name="show_power_info_description">Показать текущее энергопотребление и оставшуюся емкость аккумулятора</string>
     <string name="show_shaders_building">Показать компиляцию шейдеров</string>
     <string name="show_shaders_building_description">Отображает текущее количество шейдеров, которые компилируются</string>
+    <string name="pipeline_worker_cores">Рабочие потоки конвейера</string>
+    <string name="pipeline_worker_cores_description">Позволяет настроить количество ядер, задействованных при построении конвейеров Vulkan. Чем выше значение, тем быстрее будет компиляция конвейеров, однако это приведёт к повышению температуры устройства.</string>
     <string name="overlay_position">Позиция оверлея</string>
     <string name="overlay_position_description">Расположение оверлея на экране</string>
     <string name="overlay_position_top_left">Сверху слева</string>
@@ -481,15 +483,15 @@
     <string name="renderer_force_max_clock">Принудительная максимальная тактовая частота (только для Adreno)</string>
     <string name="renderer_force_max_clock_description">Заставляет ГПУ работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
     <string name="renderer_asynchronous_gpu_emulation">Асинхронная эмуляция ГПУ</string>
-    <string name="renderer_asynchronous_gpu_emulation_description">Выполняет эмуляцию ГПУ асинхронно для снижения задержек ЦП и увеличения производительности. Отключайте только при возникновении проблем с таймингами.</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">Может повысить производительность за счёт асинхронного запуска эмуляции ГПУ, но ценой появления графических ошибок и увеличения частоты вылетов из-за операций, зависящих от синхронизации.</string>
     <string name="renderer_async_presentation">Асинхронная презентация</string>
-    <string name="renderer_async_presentation_description">Немного улучшает производительность, перемещая презентацию в отдельный поток ЦП.</string>
+    <string name="renderer_async_presentation_description">Может повысить производительность за счёт перемещения вывода кадров в отдельный поток ЦП, но ценой возникновения графических проблем.</string>
     <string name="renderer_reactive_flushing">Реактивная очистка</string>
     <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
     <string name="enable_buffer_history">Включить историю буфера</string>
     <string name="enable_buffer_history_description">Позволяет обращаться к предыдущим состояниям буфера. Эта опция может повысить качество рендеринга и стабильность производительности в некоторых играх.</string>
     <string name="use_optimized_vertex_buffers">Оптимизированные вершинные буферы</string>
-    <string name="use_optimized_vertex_buffers_description">Включает оптимизированную привязку вершинного буфера для повышения производительности. Требует Mesa Turnip 26.0+ / QCOM драйверы. Приводит к вылету на старых версиях Turnip.</string>
+    <string name="use_optimized_vertex_buffers_description">Включает оптимизированную привязку вершинного буфера для повышения производительности. Требует Mesa Turnip 26.0+ / QCOM. Приводит к вылету на старых версиях драйверов Turnip (25.3 и ниже).</string>
 
     <string name="hacks">Хаки</string>
 
@@ -501,6 +503,8 @@
     <string name="fix_bloom_effects_description">Частично убирает размытие в LA/EOW (Adreno A6XX - A7XX/ Turnip), полностью отключает его в Burnout. Внимание: может вызывать графические артефакты в других играх.</string>
     <string name="emulate_bgr565">Эмулировать BGR565</string>
     <string name="emulate_bgr565_description">Исправляет проблемы с инвертированными цветами в играх, а также со странными артефактами или некорректными тенями.</string>
+    <string name="rescale_hack">Включить старый метод изменения разрешения</string>
+    <string name="rescale_hack_description">Включает старый метод обработки этапа перенастройки масштабирования для игр за счёт использования быстрого алгоритма перемасштабирования.</string>
     <string name="renderer_asynchronous_shaders">Использовать асинхронные шейдеры</string>
     <string name="renderer_asynchronous_shaders_description">Компилирует шейдеры асинхронно. Это может уменьшить подтормаживания, но также может вызвать графические артефакты.</string>
     <string name="gpu_unswizzle_settings">Настройки распаковки текстур (Unswizzle)</string>
@@ -519,10 +523,10 @@
     <string name="extensions">Расширения</string>
 
     <string name="dyna_state">Расширенное динамическое состояние</string>
-    <string name="dyna_state_description">Управляет количеством функций, доступных в режиме «Расширенное динамическое состояние». Большее число позволяет задействовать больше функций и может повысить производительность, но способно вызывать проблемы с некоторыми драйверами и графикой.</string>
+    <string name="dyna_state_description">Управляет количеством функций, доступных для использования в расширенном динамическом состояние. Более высокое значение позволит сократить количество компиляций конвейеров за счёт поддержки динамического состояния драйвером.</string>
     <string name="disabled">Отключено</string>
     <string name="vertex_input_dynamic_state">Динамическое состояние ввода вершин</string>
-    <string name="vertex_input_dynamic_state_description">Включает функцию динамического состояния ввода вершин для повышения качества и производительности</string>
+    <string name="vertex_input_dynamic_state_description">Включение этой функции обеспечивает более гибкую обработку входных данных вершин, что потенциально сокращает время компиляции конвейера на этапе работы с вершинами и буферами.</string>
     <string name="sample_shading_fraction">Сэмпловое затенение</string>
     <string name="sample_shading_fraction_description">Позволяет шейдеру фрагментов выполняться для каждого сэмпла в многосэмпловом фрагменте, а не один раз на фрагмент. Улучшает качество графики ценой некоторого падения производительности.</string>
 
@@ -1155,4 +1159,6 @@
     <string name="license_fidelityfx_fsr_description">Высококачественное масштабирование от AMD</string>
     <string name="external_content">Дополнительный контент</string>
     <string name="add_folders">Добавить папку</string>
-    </resources>
+    <string name="percent">%1$d %%</string>
+
+</resources>
