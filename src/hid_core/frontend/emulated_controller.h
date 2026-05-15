@@ -11,8 +11,10 @@
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
-#include <ankerl/unordered_dense.h>
 #include <vector>
+#include <atomic>
+
+#include <ankerl/unordered_dense.h>
 
 #include "common/common_types.h"
 #include "common/input.h"
@@ -576,13 +578,7 @@ private:
     NpadButton GetTurboButtonMask() const;
 
     const NpadIdType npad_id_type;
-    NpadStyleIndex npad_type{NpadStyleIndex::None};
-    NpadStyleIndex original_npad_type{NpadStyleIndex::None};
     NpadStyleTag supported_style_tag{NpadStyleSet::All};
-    bool is_connected{false};
-    bool is_configuring{false};
-    bool is_initialized{false};
-    bool system_buttons_enabled{true};
     f32 motion_sensitivity{Core::HID::MotionInput::IsAtRestStandard};
     u32 turbo_button_state{0};
     std::size_t nfc_handles{0};
@@ -591,9 +587,16 @@ private:
     std::array<std::chrono::steady_clock::time_point, 2> last_vibration_timepoint{};
     std::array<bool, HIDCore::available_controllers> controller_connected{};
 
+    // Atomically synched values
+    std::atomic<HID::NpadStyleIndex> npad_type{HID::NpadStyleIndex::None};
+    std::atomic<HID::NpadStyleIndex> original_npad_type{HID::NpadStyleIndex::None};
     // Temporary values to avoid doing changes while the controller is in configuring mode
-    NpadStyleIndex tmp_npad_type{NpadStyleIndex::None};
-    bool tmp_is_connected{false};
+    std::atomic<HID::NpadStyleIndex> tmp_npad_type{HID::NpadStyleIndex::None};
+    std::atomic<bool> tmp_is_connected{false};
+    std::atomic<bool> is_connected{false};
+    std::atomic<bool> is_configuring{false};
+    std::atomic<bool> is_initialized{false};
+    std::atomic<bool> system_buttons_enabled{true};
 
     ButtonParams button_params;
     StickParams stick_params;
@@ -632,10 +635,7 @@ private:
     StickDevices virtual_stick_devices;
     ControllerMotionDevices virtual_motion_devices;
 
-    mutable std::shared_mutex mutex;
-    mutable std::shared_mutex callback_mutex;
-    mutable std::shared_mutex npad_mutex;
-    mutable std::shared_mutex connect_mutex;
+    mutable std::mutex callback_mutex;
     ankerl::unordered_dense::map<int, ControllerUpdateCallback> callback_list;
     int last_callback_key = 0;
 

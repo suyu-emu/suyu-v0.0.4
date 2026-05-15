@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -108,10 +108,10 @@ void EmulatedController::ReloadFromSettings() {
     // Other or debug controller should always be a pro controller
     if (npad_id_type != NpadIdType::Other) {
         SetNpadStyleIndex(MapSettingsTypeToNPad(player.controller_type));
-        original_npad_type = npad_type;
+        original_npad_type = npad_type.load();
     } else {
         SetNpadStyleIndex(NpadStyleIndex::Fullkey);
-        original_npad_type = npad_type;
+        original_npad_type = npad_type.load();
     }
 
     // Disable special features before disconnecting
@@ -577,10 +577,9 @@ void EmulatedController::UnloadInput() {
 }
 
 void EmulatedController::EnableConfiguration() {
-    std::unique_lock lock1{connect_mutex}, lock2{npad_mutex};
-    is_configuring = true;
-    tmp_is_connected = is_connected;
-    tmp_npad_type = npad_type;
+    is_configuring.store(true);
+    tmp_is_connected.store(is_connected);
+    tmp_npad_type.store(npad_type);
 }
 
 void EmulatedController::DisableConfiguration() {
@@ -600,7 +599,7 @@ void EmulatedController::DisableConfiguration() {
             Disconnect();
         }
         SetNpadStyleIndex(tmp_npad_type);
-        original_npad_type = tmp_npad_type;
+        original_npad_type.store(tmp_npad_type);
     }
 
     // Apply temporary connected status to the real controller
@@ -614,19 +613,16 @@ void EmulatedController::DisableConfiguration() {
 }
 
 void EmulatedController::EnableSystemButtons() {
-    std::unique_lock lock{mutex};
     system_buttons_enabled = true;
 }
 
 void EmulatedController::DisableSystemButtons() {
-    std::unique_lock lock{mutex};
     system_buttons_enabled = false;
     controller.home_button_state.raw = 0;
     controller.capture_button_state.raw = 0;
 }
 
 void EmulatedController::ResetSystemButtons() {
-    std::unique_lock lock{mutex};
     controller.home_button_state.home.Assign(false);
     controller.capture_button_state.capture.Assign(false);
 }
@@ -763,8 +759,7 @@ void EmulatedController::StartMotionCalibration() {
     }
 }
 
-void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback, std::size_t index,
-                                   Common::UUID uuid) {
+void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback, std::size_t index, Common::UUID uuid) {
     const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
 
@@ -772,7 +767,6 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
         return;
     }
 
-    std::unique_lock lock{mutex};
     bool value_changed = false;
     const auto new_status = TransformToButton(callback);
     auto& current_status = controller.button_values[index];
@@ -818,7 +812,6 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
         controller.debug_pad_button_state.raw = 0;
         controller.home_button_state.raw = 0;
         controller.capture_button_state.raw = 0;
-        lock.unlock();
         TriggerOnChange(ControllerTriggerType::Button, false);
         return;
     }
@@ -922,8 +915,6 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
         break;
     }
 
-    lock.unlock();
-
     if (!is_connected) {
         if (npad_type == NpadStyleIndex::Handheld) {
             if (npad_id_type == NpadIdType::Handheld) {
@@ -952,7 +943,6 @@ void EmulatedController::SetStick(const Common::Input::CallbackStatus& callback,
     auto trigger_guard = SCOPE_GUARD {
         TriggerOnChange(ControllerTriggerType::Stick, !is_configuring);
     };
-    std::unique_lock lock{mutex};
     const auto stick_value = TransformToStick(callback);
 
     // Only read stick values that have the same uuid or are over the threshold to avoid flapping
@@ -1009,7 +999,6 @@ void EmulatedController::SetTrigger(const Common::Input::CallbackStatus& callbac
     auto trigger_guard = SCOPE_GUARD {
         TriggerOnChange(ControllerTriggerType::Trigger, !is_configuring);
     };
-    std::unique_lock lock{mutex};
     const auto trigger_value = TransformToTrigger(callback);
 
     // Only read trigger values that have the same uuid or are pressed once
@@ -1057,7 +1046,6 @@ void EmulatedController::SetMotion(const Common::Input::CallbackStatus& callback
     SCOPE_EXIT {
         TriggerOnChange(ControllerTriggerType::Motion, !is_configuring);
     };
-    std::unique_lock lock{mutex};
     auto& raw_status = controller.motion_values[index].raw_status;
     auto& emulated = controller.motion_values[index].emulated;
 
@@ -1093,7 +1081,6 @@ void EmulatedController::SetColors(const Common::Input::CallbackStatus& callback
     auto trigger_guard = SCOPE_GUARD {
         TriggerOnChange(ControllerTriggerType::Color, !is_configuring);
     };
-    std::unique_lock lock{mutex};
     controller.color_values[index] = TransformToColor(callback);
 
     if (is_configuring) {
@@ -1136,15 +1123,13 @@ void EmulatedController::SetColors(const Common::Input::CallbackStatus& callback
     }
 }
 
-void EmulatedController::SetBattery(const Common::Input::CallbackStatus& callback,
-                                    std::size_t index) {
+void EmulatedController::SetBattery(const Common::Input::CallbackStatus& callback, std::size_t index) {
     if (index >= controller.battery_values.size()) {
         return;
     }
     SCOPE_EXIT {
         TriggerOnChange(ControllerTriggerType::Battery, !is_configuring);
     };
-    std::unique_lock lock{mutex};
     controller.battery_values[index] = TransformToBattery(callback);
 
     if (is_configuring) {
@@ -1209,47 +1194,33 @@ void EmulatedController::SetCamera(const Common::Input::CallbackStatus& callback
     SCOPE_EXIT {
         TriggerOnChange(ControllerTriggerType::IrSensor, !is_configuring);
     };
-    std::unique_lock lock{mutex};
     controller.camera_values = TransformToCamera(callback);
-
-    if (is_configuring) {
-        return;
+    if (!is_configuring) {
+        controller.camera_state.sample++;
+        controller.camera_state.format = Core::IrSensor::ImageTransferProcessorFormat(controller.camera_values.format);
+        controller.camera_state.data = controller.camera_values.data;
     }
-
-    controller.camera_state.sample++;
-    controller.camera_state.format =
-        static_cast<Core::IrSensor::ImageTransferProcessorFormat>(controller.camera_values.format);
-    controller.camera_state.data = controller.camera_values.data;
 }
 
 void EmulatedController::SetRingAnalog(const Common::Input::CallbackStatus& callback) {
     SCOPE_EXIT {
         TriggerOnChange(ControllerTriggerType::RingController, !is_configuring);
     };
-    std::unique_lock lock{mutex};
     const auto force_value = TransformToStick(callback);
-
     controller.ring_analog_value = force_value.x;
-
-    if (is_configuring) {
-        return;
+    if (!is_configuring) {
+        controller.ring_analog_state.force = force_value.x.value;
     }
-
-    controller.ring_analog_state.force = force_value.x.value;
 }
 
 void EmulatedController::SetNfc(const Common::Input::CallbackStatus& callback) {
     SCOPE_EXIT {
         TriggerOnChange(ControllerTriggerType::Nfc, !is_configuring);
     };
-    std::unique_lock lock{mutex};
     controller.nfc_values = TransformToNfc(callback);
-
-    if (is_configuring) {
-        return;
+    if (!is_configuring) {
+        controller.nfc_state = controller.nfc_values;
     }
-
-    controller.nfc_state = controller.nfc_values;
 }
 
 bool EmulatedController::SetVibration(bool should_vibrate) {
@@ -1258,7 +1229,6 @@ bool EmulatedController::SetVibration(bool should_vibrate) {
         vibration_value.high_amplitude = 1.0f;
         vibration_value.low_amplitude = 1.0f;
     }
-
     return SetVibration(DeviceIndex::Left, vibration_value);
 }
 
@@ -1268,7 +1238,6 @@ bool EmulatedController::SetVibration(u32 slot, Core::HID::VibrationGcErmCommand
         vibration_value.high_amplitude = 1.0f;
         vibration_value.low_amplitude = 1.0f;
     }
-
     return SetVibration(DeviceIndex::Left, vibration_value);
 }
 
@@ -1632,7 +1601,7 @@ void EmulatedController::SetSupportedNpadStyleTag(NpadStyleTag supported_styles)
     // Attempt to reconnect with the original type
     if (npad_type != original_npad_type) {
         Disconnect();
-        const auto current_npad_type = npad_type;
+        const auto current_npad_type = npad_type.load();
         SetNpadStyleIndex(original_npad_type);
         if (IsControllerSupported()) {
             Connect();
@@ -1650,7 +1619,7 @@ void EmulatedController::SetSupportedNpadStyleTag(NpadStyleTag supported_styles)
 
     // Fallback Fullkey controllers to Pro controllers
     if (IsControllerFullkey() && supported_style_tag.fullkey) {
-        LOG_WARNING(Service_HID, "Reconnecting controller type {} as Pro controller", npad_type);
+        LOG_WARNING(Service_HID, "Reconnecting controller type {} as Pro controller", npad_type.load());
         SetNpadStyleIndex(NpadStyleIndex::Fullkey);
         Connect();
         return;
@@ -1658,7 +1627,7 @@ void EmulatedController::SetSupportedNpadStyleTag(NpadStyleTag supported_styles)
 
     // Fallback Dual joycon controllers to Pro controllers
     if (npad_type == NpadStyleIndex::JoyconDual && supported_style_tag.fullkey) {
-        LOG_WARNING(Service_HID, "Reconnecting controller type {} as Pro controller", npad_type);
+        LOG_WARNING(Service_HID, "Reconnecting controller type {} as Pro controller", npad_type.load());
         SetNpadStyleIndex(NpadStyleIndex::Fullkey);
         Connect();
         return;
@@ -1666,19 +1635,16 @@ void EmulatedController::SetSupportedNpadStyleTag(NpadStyleTag supported_styles)
 
     // Fallback Pro controllers to Dual joycon
     if (npad_type == NpadStyleIndex::Fullkey && supported_style_tag.joycon_dual) {
-        LOG_WARNING(Service_HID, "Reconnecting controller type {} as Dual Joycons", npad_type);
+        LOG_WARNING(Service_HID, "Reconnecting controller type {} as Dual Joycons", npad_type.load());
         SetNpadStyleIndex(NpadStyleIndex::JoyconDual);
         Connect();
         return;
     }
-
-    LOG_ERROR(Service_HID, "Controller type {} is not supported. Disconnecting controller",
-              npad_type);
+    LOG_ERROR(Service_HID, "Controller type {} is not supported. Disconnecting controller", npad_type.load());
 }
 
 bool EmulatedController::IsControllerFullkey(bool use_temporary_value) const {
-    std::unique_lock lock{mutex};
-    const auto type = is_configuring && use_temporary_value ? tmp_npad_type : npad_type;
+    const auto type = is_configuring.load() && use_temporary_value ? tmp_npad_type.load() : npad_type.load();
     switch (type) {
     case NpadStyleIndex::Fullkey:
     case NpadStyleIndex::GameCube:
@@ -1693,39 +1659,26 @@ bool EmulatedController::IsControllerFullkey(bool use_temporary_value) const {
 }
 
 bool EmulatedController::IsControllerSupported(bool use_temporary_value) const {
-    std::unique_lock lock{mutex};
-    const auto type = is_configuring && use_temporary_value ? tmp_npad_type : npad_type;
+    const auto type = is_configuring.load() && use_temporary_value ? tmp_npad_type.load() : npad_type.load();
     switch (type) {
-    case NpadStyleIndex::Fullkey:
-        return supported_style_tag.fullkey.As<bool>();
-    case NpadStyleIndex::Handheld:
-        return supported_style_tag.handheld.As<bool>();
-    case NpadStyleIndex::JoyconDual:
-        return supported_style_tag.joycon_dual.As<bool>();
-    case NpadStyleIndex::JoyconLeft:
-        return supported_style_tag.joycon_left.As<bool>();
-    case NpadStyleIndex::JoyconRight:
-        return supported_style_tag.joycon_right.As<bool>();
-    case NpadStyleIndex::GameCube:
-        return supported_style_tag.gamecube.As<bool>();
-    case NpadStyleIndex::Pokeball:
-        return supported_style_tag.palma.As<bool>();
-    case NpadStyleIndex::NES:
-        return supported_style_tag.lark.As<bool>();
-    case NpadStyleIndex::SNES:
-        return supported_style_tag.lucia.As<bool>();
-    case NpadStyleIndex::N64:
-        return supported_style_tag.lagoon.As<bool>();
-    case NpadStyleIndex::SegaGenesis:
-        return supported_style_tag.lager.As<bool>();
-    default:
-        return false;
+    case NpadStyleIndex::Fullkey: return supported_style_tag.fullkey.As<bool>();
+    case NpadStyleIndex::Handheld: return supported_style_tag.handheld.As<bool>();
+    case NpadStyleIndex::JoyconDual: return supported_style_tag.joycon_dual.As<bool>();
+    case NpadStyleIndex::JoyconLeft: return supported_style_tag.joycon_left.As<bool>();
+    case NpadStyleIndex::JoyconRight: return supported_style_tag.joycon_right.As<bool>();
+    case NpadStyleIndex::GameCube: return supported_style_tag.gamecube.As<bool>();
+    case NpadStyleIndex::Pokeball: return supported_style_tag.palma.As<bool>();
+    case NpadStyleIndex::NES: return supported_style_tag.lark.As<bool>();
+    case NpadStyleIndex::SNES: return supported_style_tag.lucia.As<bool>();
+    case NpadStyleIndex::N64: return supported_style_tag.lagoon.As<bool>();
+    case NpadStyleIndex::SegaGenesis: return supported_style_tag.lager.As<bool>();
+    default: return false;
     }
 }
 
 void EmulatedController::Connect(bool use_temporary_value) {
     if (!IsControllerSupported(use_temporary_value)) {
-        const auto type = is_configuring && use_temporary_value ? tmp_npad_type : npad_type;
+        const auto type = is_configuring.load() && use_temporary_value ? tmp_npad_type.load() : npad_type.load();
         LOG_ERROR(Service_HID, "Controller type {} is not supported", type);
         return;
     }
@@ -1733,12 +1686,10 @@ void EmulatedController::Connect(bool use_temporary_value) {
     auto trigger_guard = SCOPE_GUARD {
         TriggerOnChange(ControllerTriggerType::Connected, !is_configuring);
     };
-    std::unique_lock lock1{connect_mutex}, lock2{mutex};
     if (is_configuring) {
         tmp_is_connected = true;
         return;
     }
-
     if (is_connected) {
         trigger_guard.Cancel();
         return;
@@ -1750,12 +1701,10 @@ void EmulatedController::Disconnect() {
     auto trigger_guard = SCOPE_GUARD {
         TriggerOnChange(ControllerTriggerType::Disconnected, !is_configuring);
     };
-    std::unique_lock lock1{connect_mutex}, lock2{mutex};
     if (is_configuring) {
         tmp_is_connected = false;
         return;
     }
-
     if (!is_connected) {
         trigger_guard.Cancel();
         return;
@@ -1764,19 +1713,16 @@ void EmulatedController::Disconnect() {
 }
 
 bool EmulatedController::IsConnected(bool get_temporary_value) const {
-    std::shared_lock lock{connect_mutex};
     if (get_temporary_value && is_configuring)
         return tmp_is_connected;
     return is_connected;
 }
 
 NpadIdType EmulatedController::GetNpadIdType() const {
-    std::shared_lock lock{mutex};
     return npad_id_type;
 }
 
 NpadStyleIndex EmulatedController::GetNpadStyleIndex(bool get_temporary_value) const {
-    std::shared_lock lock{npad_mutex};
     if (get_temporary_value && is_configuring)
         return tmp_npad_type;
     return npad_type;
@@ -1786,8 +1732,6 @@ void EmulatedController::SetNpadStyleIndex(NpadStyleIndex npad_type_) {
     auto trigger_guard = SCOPE_GUARD {
         TriggerOnChange(ControllerTriggerType::Type, !is_configuring);
     };
-    std::unique_lock lock1{mutex}, lock2{npad_mutex};
-
     if (is_configuring) {
         if (tmp_npad_type == npad_type_) {
             trigger_guard.Cancel();
@@ -1796,14 +1740,12 @@ void EmulatedController::SetNpadStyleIndex(NpadStyleIndex npad_type_) {
         tmp_npad_type = npad_type_;
         return;
     }
-
     if (npad_type == npad_type_) {
         trigger_guard.Cancel();
         return;
     }
     if (is_connected) {
-        LOG_WARNING(Service_HID, "Controller {} type changed while it's connected",
-                    Service::HID::NpadIdTypeToIndex(npad_id_type));
+        LOG_WARNING(Service_HID, "Controller {} type changed while it's connected", Service::HID::NpadIdTypeToIndex(npad_id_type));
     }
     npad_type = npad_type_;
 }
@@ -1832,37 +1774,30 @@ LedPattern EmulatedController::GetLedPattern() const {
 }
 
 ButtonValues EmulatedController::GetButtonsValues() const {
-    std::unique_lock lock{mutex};
     return controller.button_values;
 }
 
 SticksValues EmulatedController::GetSticksValues() const {
-    std::unique_lock lock{mutex};
     return controller.stick_values;
 }
 
 TriggerValues EmulatedController::GetTriggersValues() const {
-    std::unique_lock lock{mutex};
     return controller.trigger_values;
 }
 
 ControllerMotionValues EmulatedController::GetMotionValues() const {
-    std::unique_lock lock{mutex};
     return controller.motion_values;
 }
 
 ColorValues EmulatedController::GetColorsValues() const {
-    std::unique_lock lock{mutex};
     return controller.color_values;
 }
 
 BatteryValues EmulatedController::GetBatteryValues() const {
-    std::unique_lock lock{mutex};
     return controller.battery_values;
 }
 
 CameraValues EmulatedController::GetCameraValues() const {
-    std::unique_lock lock{mutex};
     return controller.camera_values;
 }
 
@@ -1871,72 +1806,54 @@ RingAnalogValue EmulatedController::GetRingSensorValues() const {
 }
 
 HomeButtonState EmulatedController::GetHomeButtons() const {
-    std::unique_lock lock{mutex};
-    if (is_configuring) {
+    if (is_configuring)
         return {};
-    }
     return controller.home_button_state;
 }
 
 CaptureButtonState EmulatedController::GetCaptureButtons() const {
-    std::unique_lock lock{mutex};
-    if (is_configuring) {
+    if (is_configuring)
         return {};
-    }
     return controller.capture_button_state;
 }
 
 NpadButtonState EmulatedController::GetNpadButtons() const {
-    std::unique_lock lock{mutex};
-    if (is_configuring) {
+    if (is_configuring)
         return {};
-    }
     return {controller.npad_button_state.raw & GetTurboButtonMask()};
 }
 
 DebugPadButton EmulatedController::GetDebugPadButtons() const {
-    std::unique_lock lock{mutex};
-    if (is_configuring) {
+    if (is_configuring)
         return {};
-    }
     return controller.debug_pad_button_state;
 }
 
 AnalogSticks EmulatedController::GetSticks() const {
-    std::unique_lock lock{mutex};
-
-    if (is_configuring) {
+    if (is_configuring)
         return {};
-    }
-
     return controller.analog_stick_state;
 }
 
 NpadGcTriggerState EmulatedController::GetTriggers() const {
-    std::unique_lock lock{mutex};
-    if (is_configuring) {
+    if (is_configuring)
         return {};
-    }
     return controller.gc_trigger_state;
 }
 
 MotionState EmulatedController::GetMotions() const {
-    std::unique_lock lock{mutex};
     return controller.motion_state;
 }
 
 ControllerColors EmulatedController::GetColors() const {
-    std::unique_lock lock{mutex};
     return controller.colors_state;
 }
 
 BatteryLevelState EmulatedController::GetBattery() const {
-    std::unique_lock lock{mutex};
     return controller.battery_state;
 }
 
 const CameraState& EmulatedController::GetCamera() const {
-    std::unique_lock lock{mutex};
     return controller.camera_state;
 }
 
@@ -1945,15 +1862,14 @@ RingSensorForce EmulatedController::GetRingSensorForce() const {
 }
 
 const NfcState& EmulatedController::GetNfc() const {
-    std::unique_lock lock{mutex};
     return controller.nfc_state;
 }
 
 NpadColor EmulatedController::GetNpadColor(u32 color) {
     return {
-        .r = static_cast<u8>((color >> 16) & 0xFF),
-        .g = static_cast<u8>((color >> 8) & 0xFF),
-        .b = static_cast<u8>(color & 0xFF),
+        .r = u8((color >> 16) & 0xFF),
+        .g = u8((color >> 8) & 0xFF),
+        .b = u8(color & 0xFF),
         .a = 0xff,
     };
 }
