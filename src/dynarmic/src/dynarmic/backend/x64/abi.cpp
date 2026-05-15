@@ -26,7 +26,7 @@ struct FrameInfo {
 };
 static_assert(ABI_SHADOW_SPACE <= 32);
 
-static FrameInfo CalculateFrameInfo(const size_t num_gprs, const size_t num_xmms, size_t frame_size) {
+static FrameInfo CalculateFrameInfo(const size_t num_gprs, const size_t num_xmms, size_t frame_size) noexcept {
     // We are initially 8 byte aligned because the return value is pushed onto an aligned stack after a call.
     const size_t rsp_alignment = (num_gprs % 2 == 0) ? 8 : 0;
     const size_t total_xmm_size = num_xmms * XMM_SIZE;
@@ -40,7 +40,7 @@ static FrameInfo CalculateFrameInfo(const size_t num_gprs, const size_t num_xmms
     };
 }
 
-void ABI_PushRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, std::bitset<32> const& regs) {
+static void ABI_PushRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, std::bitset<32> regs) noexcept {
     using namespace Xbyak::util;
 
     const size_t num_gprs = (ABI_ALL_GPRS & regs).count();
@@ -65,7 +65,7 @@ void ABI_PushRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size,
     }
 }
 
-void ABI_PopRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, std::bitset<32> const& regs) {
+static void ABI_PopRegistersAndAdjustStack(BlockOfCode& code, const size_t frame_size, std::bitset<32> regs) noexcept {
     using namespace Xbyak::util;
 
     const size_t num_gprs = (ABI_ALL_GPRS & regs).count();
@@ -107,13 +107,13 @@ void ABI_PopCallerSaveRegistersAndAdjustStack(BlockOfCode& code, const std::size
 
 // Windows ABI registers are not in the same allocation algorithm as unix's
 void ABI_PushCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
-    std::bitset<32> regs = ABI_ALL_CALLER_SAVE;
+    auto regs = ABI_ALL_CALLER_SAVE;
     regs.reset(size_t(exception));
     ABI_PushRegistersAndAdjustStack(code, 0, regs);
 }
 
 void ABI_PopCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
-    std::bitset<32> regs = ABI_ALL_CALLER_SAVE;
+    auto regs = ABI_ALL_CALLER_SAVE;
     regs.reset(size_t(exception));
     ABI_PopRegistersAndAdjustStack(code, 0, regs);
 }

@@ -8,8 +8,6 @@
 #pragma once
 
 #include <bitset>
-#include <xbyak/xbyak.h>
-
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "dynarmic/backend/x64/xbyak.h"

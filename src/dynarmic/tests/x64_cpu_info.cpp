@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2020 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -11,7 +14,7 @@
 #include <utility>
 
 #include <catch2/catch_test_macros.hpp>
-#include <xbyak/xbyak_util.h>
+#include "dynarmic/backend/x64/xbyak.h"
 
 TEST_CASE("Host CPU supports", "[a64]") {
     using Cpu = Xbyak::util::Cpu;

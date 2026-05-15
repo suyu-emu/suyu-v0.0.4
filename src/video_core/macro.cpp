@@ -11,17 +11,9 @@
 
 #include <fstream>
 #include <variant>
+
 #ifdef ARCHITECTURE_x86_64
-// xbyak hates human beings
-#ifdef __GNUC__
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wshadow"
-#endif
-#ifdef __clang__
-#pragma clang diagnostic ignored "-Wconversion"
-#pragma clang diagnostic ignored "-Wshadow"
-#endif
-#include <xbyak/xbyak.h>
+#include "common/x64/xbyak.h"
 #endif
 
 #include "common/assert.h"
@@ -39,10 +31,6 @@
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/logging.h"
-#ifdef ARCHITECTURE_x86_64
-#include "common/x64/xbyak_abi.h"
-#include "common/x64/xbyak_util.h"
-#endif
 #include "video_core/engines/maxwell_3d.h"
 
 namespace Tegra {

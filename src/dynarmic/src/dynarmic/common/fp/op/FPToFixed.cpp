@@ -78,7 +78,7 @@ u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, Rou
     }
 
     // Detect Overflow
-    const int min_exponent_for_overflow = static_cast<int>(ibits) - static_cast<int>(mcl::bit::highest_set_bit(value.mantissa + (round_up ? Safe::LogicalShiftRight<u64>(1, exponent) : 0))) - (unsigned_ ? 0 : 1);
+    const int min_exponent_for_overflow = int(ibits) - int(mcl::bit::highest_set_bit(value.mantissa + (round_up ? Safe::LogicalShiftRight<u64>(1, exponent) : 0))) - (unsigned_ ? 0 : 1);
     if (exponent >= min_exponent_for_overflow) {
         // Positive overflow
         if (unsigned_ || !sign) {
@@ -87,10 +87,10 @@ u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, Rou
         }
 
         // Negative overflow
-        const u64 min_value = Safe::Negate<u64>(static_cast<u64>(1) << (ibits - 1));
+        const u64 min_value = Safe::Negate<u64>(u64(1) << (ibits - 1));
         if (!(exponent == min_exponent_for_overflow && int_result == min_value)) {
             FPProcessException(FPExc::InvalidOp, fpcr, fpsr);
-            return static_cast<u64>(1) << (ibits - 1);
+            return u64(1) << (ibits - 1);
         }
     }
 
