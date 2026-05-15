@@ -128,10 +128,12 @@ Result SessionRequestManager::HandleDomainSyncRequest(Kernel::KServerSession* se
     return ResultSuccess;
 }
 
-HLERequestContext::HLERequestContext(Kernel::KernelCore& kernel_, Core::Memory::Memory& memory_,
-                                     Kernel::KServerSession* server_session_,
-                                     Kernel::KThread* thread_)
-    : server_session(server_session_), thread(thread_), kernel{kernel_}, memory{memory_} {
+HLERequestContext::HLERequestContext(Kernel::KernelCore& kernel_, Core::Memory::Memory& memory_, Kernel::KServerSession* server_session_, Kernel::KThread* thread_)
+    : server_session(server_session_)
+    , thread(thread_)
+    , kernel{kernel_}
+    , memory{memory_}
+{
     cmd_buf[0] = 0;
 }
 
@@ -155,9 +157,6 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
         }
         if (incoming) {
             // Populate the object lists with the data in the IPC request.
-            incoming_copy_handles.reserve(handle_descriptor_header->num_handles_to_copy);
-            incoming_move_handles.reserve(handle_descriptor_header->num_handles_to_move);
-
             for (u32 handle = 0; handle < handle_descriptor_header->num_handles_to_copy; ++handle) {
                 incoming_copy_handles.push_back(rp.Pop<Handle>());
             }
@@ -171,11 +170,6 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
             rp.Skip(handle_descriptor_header->num_handles_to_move, false);
         }
     }
-
-    buffer_x_descriptors.reserve(command_header->num_buf_x_descriptors);
-    buffer_a_descriptors.reserve(command_header->num_buf_a_descriptors);
-    buffer_b_descriptors.reserve(command_header->num_buf_b_descriptors);
-    buffer_w_descriptors.reserve(command_header->num_buf_w_descriptors);
 
     for (u32 i = 0; i < command_header->num_buf_x_descriptors; ++i) {
         buffer_x_descriptors.push_back(rp.PopRaw<IPC::BufferDescriptorX>());

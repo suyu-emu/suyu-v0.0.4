@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,6 +14,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <boost/container/static_vector.hpp>
 
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -181,8 +185,7 @@ private:
  */
 class HLERequestContext {
 public:
-    explicit HLERequestContext(Kernel::KernelCore& kernel, Core::Memory::Memory& memory,
-                               Kernel::KServerSession* session, Kernel::KThread* thread);
+    explicit HLERequestContext(Kernel::KernelCore& kernel, Core::Memory::Memory& memory, Kernel::KServerSession* session, Kernel::KThread* thread);
     ~HLERequestContext();
 
     /// Returns a pointer to the IPC command buffer for this request.
@@ -233,19 +236,19 @@ public:
         return data_payload_offset;
     }
 
-    [[nodiscard]] const std::vector<IPC::BufferDescriptorX>& BufferDescriptorX() const {
+    [[nodiscard]] const boost::container::static_vector<IPC::BufferDescriptorX, 16>& BufferDescriptorX() const {
         return buffer_x_descriptors;
     }
 
-    [[nodiscard]] const std::vector<IPC::BufferDescriptorABW>& BufferDescriptorA() const {
+    [[nodiscard]] const boost::container::static_vector<IPC::BufferDescriptorABW, 16>& BufferDescriptorA() const {
         return buffer_a_descriptors;
     }
 
-    [[nodiscard]] const std::vector<IPC::BufferDescriptorABW>& BufferDescriptorB() const {
+    [[nodiscard]] const boost::container::static_vector<IPC::BufferDescriptorABW, 16>& BufferDescriptorB() const {
         return buffer_b_descriptors;
     }
 
-    [[nodiscard]] const std::vector<IPC::BufferDescriptorC>& BufferDescriptorC() const {
+    [[nodiscard]] const boost::container::static_vector<IPC::BufferDescriptorC, 16>& BufferDescriptorC() const {
         return buffer_c_descriptors;
     }
 
@@ -399,38 +402,35 @@ private:
     Kernel::KHandleTable* client_handle_table{};
     Kernel::KThread* thread{};
 
-    std::vector<Handle> incoming_move_handles;
-    std::vector<Handle> incoming_copy_handles;
+    boost::container::static_vector<IPC::BufferDescriptorX, IPC::MAX_BUFFER_DESCRIPTORS> buffer_x_descriptors;
+    boost::container::static_vector<IPC::BufferDescriptorABW, IPC::MAX_BUFFER_DESCRIPTORS> buffer_a_descriptors;
+    boost::container::static_vector<IPC::BufferDescriptorABW, IPC::MAX_BUFFER_DESCRIPTORS> buffer_b_descriptors;
+    boost::container::static_vector<IPC::BufferDescriptorABW, IPC::MAX_BUFFER_DESCRIPTORS> buffer_w_descriptors;
+    boost::container::static_vector<IPC::BufferDescriptorC, IPC::MAX_BUFFER_DESCRIPTORS> buffer_c_descriptors;
+    boost::container::static_vector<Handle, IPC::MAX_INCOMING_MOVE_HANDLERS> incoming_move_handles;
+    boost::container::static_vector<Handle, IPC::MAX_INCOMING_COPY_HANDLERS> incoming_copy_handles;
+    boost::container::static_vector<Kernel::KAutoObject*, IPC::MAX_OUTGOING_MOVE_OBJECTS> outgoing_move_objects;
+    boost::container::static_vector<Kernel::KAutoObject*, IPC::MAX_OUTGOING_COPY_OBJECTS> outgoing_copy_objects;
+    boost::container::static_vector<SessionRequestHandlerPtr, IPC::MAX_OUTGOING_DOMAIN_OBJECTS> outgoing_domain_objects;
 
-    std::vector<Kernel::KAutoObject*> outgoing_move_objects;
-    std::vector<Kernel::KAutoObject*> outgoing_copy_objects;
-    std::vector<SessionRequestHandlerPtr> outgoing_domain_objects;
+    mutable std::array<Common::ScratchBuffer<u8>, 3> read_buffer_data_a{};
+    mutable std::array<Common::ScratchBuffer<u8>, 3> read_buffer_data_x{};
 
     std::optional<IPC::CommandHeader> command_header;
     std::optional<IPC::HandleDescriptorHeader> handle_descriptor_header;
     std::optional<IPC::DataPayloadHeader> data_payload_header;
     std::optional<IPC::DomainMessageHeader> domain_message_header;
-    std::vector<IPC::BufferDescriptorX> buffer_x_descriptors;
-    std::vector<IPC::BufferDescriptorABW> buffer_a_descriptors;
-    std::vector<IPC::BufferDescriptorABW> buffer_b_descriptors;
-    std::vector<IPC::BufferDescriptorABW> buffer_w_descriptors;
-    std::vector<IPC::BufferDescriptorC> buffer_c_descriptors;
+    std::weak_ptr<SessionRequestManager> manager{};
+    Kernel::KernelCore& kernel;
+    Core::Memory::Memory& memory;
 
-    u32_le command{};
     u64 pid{};
+    u32_le command{};
     u32 write_size{};
     u32 data_payload_offset{};
     u32 handles_offset{};
     u32 domain_offset{};
-
-    std::weak_ptr<SessionRequestManager> manager{};
-    bool is_deferred{false};
-
-    Kernel::KernelCore& kernel;
-    Core::Memory::Memory& memory;
-
-    mutable std::array<Common::ScratchBuffer<u8>, 3> read_buffer_data_a{};
-    mutable std::array<Common::ScratchBuffer<u8>, 3> read_buffer_data_x{};
+    bool is_deferred = false;
 };
 
 } // namespace Service

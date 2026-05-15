@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,6 +15,16 @@ namespace IPC {
 
 /// Size of the command buffer area, in 32-bit words.
 constexpr std::size_t COMMAND_BUFFER_LENGTH = 0x100 / sizeof(u32);
+
+/// Must match bitfields
+constexpr std::size_t MAX_BUFFER_DESCRIPTORS = 16;
+constexpr std::size_t MAX_INCOMING_MOVE_HANDLERS = 16;
+constexpr std::size_t MAX_INCOMING_COPY_HANDLERS = 16;
+
+/// Doesn't need to match bitfields but usually not big enough
+constexpr std::size_t MAX_OUTGOING_COPY_OBJECTS = 16;
+constexpr std::size_t MAX_OUTGOING_MOVE_OBJECTS = 16;
+constexpr std::size_t MAX_OUTGOING_DOMAIN_OBJECTS = 16;
 
 enum class ControlCommand : u32 {
     ConvertSessionToDomain = 0,
