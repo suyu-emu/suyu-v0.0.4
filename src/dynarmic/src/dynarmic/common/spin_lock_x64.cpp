@@ -26,6 +26,7 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32
     Xbyak::Label start, loop;
     code.jmp(start, code.T_NEAR);
     code.L(loop);
+
     if (waitpkg) {
         // TODO: this is because we lack regalloc - so better to be safe :(
         code.push(Xbyak::util::rax);
@@ -33,7 +34,14 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32
         code.push(Xbyak::util::rdx);
         // TODO: This clobbers EAX and EDX did we tell the regalloc?
         // ARM ptr for address-monitoring
-        code.umonitor(ptr);
+
+        // XBYAK BUG: code.umonitor(ptr); see issue #255
+        // replace once xbyak has been fixed
+        code.db(0xF3);
+        if (ptr.getIdx() >= 8) code.db(0x41);
+        code.db(0x0F); code.db(0xAE);
+        code.db(uint8_t((3 << 6) | ((6 & 7) << 3) | (ptr.getIdx() & 7)));
+
         // tmp.bit[0] = 0: C0.1 | Slow Wakup | Better Savings
         // tmp.bit[0] = 1: C0.2 | Fast Wakup | Lesser Savings
         // edx:eax is implicitly used as a 64-bit deadline timestamp
