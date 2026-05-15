@@ -111,6 +111,12 @@ namespace VideoCore::Surface {
     PIXEL_FORMAT_ELEM(ASTC_2D_6X5_UNORM, 6, 5, 128) \
     PIXEL_FORMAT_ELEM(ASTC_2D_6X5_SRGB, 6, 5, 128) \
     PIXEL_FORMAT_ELEM(E5B9G9R9_FLOAT, 1, 1, 32) \
+    PIXEL_FORMAT_ELEM(ETC2_RGB_UNORM, 4, 4, 64) \
+    PIXEL_FORMAT_ELEM(ETC2_RGBA_UNORM, 4, 4, 128) \
+    PIXEL_FORMAT_ELEM(ETC2_RGB_PTA_UNORM, 4, 4, 64) \
+    PIXEL_FORMAT_ELEM(ETC2_RGB_SRGB, 4, 4, 64) \
+    PIXEL_FORMAT_ELEM(ETC2_RGBA_SRGB, 4, 4, 128) \
+    PIXEL_FORMAT_ELEM(ETC2_RGB_PTA_SRGB, 4, 4, 64) \
     /* Depth formats */ \
     PIXEL_FORMAT_ELEM(D32_FLOAT, 1, 1, 32) \
     PIXEL_FORMAT_ELEM(D16_UNORM, 1, 1, 16) \
@@ -181,8 +187,6 @@ constexpr u32 BitsPerBlock(PixelFormat format) noexcept {
     }
 }
 
-#undef PIXEL_FORMAT_LIST
-
 /// Returns the sizer in bytes of the specified pixel format
 constexpr u32 BytesPerBlock(PixelFormat pixel_format) {
     return BitsPerBlock(pixel_format) / CHAR_BIT;
@@ -198,6 +202,7 @@ SurfaceType GetFormatType(PixelFormat pixel_format);
 bool HasAlpha(PixelFormat pixel_format);
 bool IsPixelFormatASTC(PixelFormat format);
 bool IsPixelFormatBCn(PixelFormat format);
+bool IsPixelFormatETC2(PixelFormat format);
 bool IsPixelFormatSRGB(PixelFormat format);
 bool IsPixelFormatInteger(PixelFormat format);
 bool IsPixelFormatSignedInteger(PixelFormat format);

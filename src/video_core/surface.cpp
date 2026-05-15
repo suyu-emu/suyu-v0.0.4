@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
@@ -336,6 +336,20 @@ bool IsPixelFormatBCn(PixelFormat format) {
     }
 }
 
+bool IsPixelFormatETC2(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::ETC2_RGB_UNORM:
+    case PixelFormat::ETC2_RGBA_UNORM:
+    case PixelFormat::ETC2_RGB_PTA_UNORM:
+    case PixelFormat::ETC2_RGB_SRGB:
+    case PixelFormat::ETC2_RGBA_SRGB:
+    case PixelFormat::ETC2_RGB_PTA_SRGB:
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool IsPixelFormatSRGB(PixelFormat format) {
     switch (format) {
     case PixelFormat::A8B8G8R8_SRGB:
@@ -344,6 +358,9 @@ bool IsPixelFormatSRGB(PixelFormat format) {
     case PixelFormat::BC2_SRGB:
     case PixelFormat::BC3_SRGB:
     case PixelFormat::BC7_SRGB:
+    case PixelFormat::ETC2_RGB_SRGB:
+    case PixelFormat::ETC2_RGBA_SRGB:
+    case PixelFormat::ETC2_RGB_PTA_SRGB:
     case PixelFormat::ASTC_2D_4X4_SRGB:
     case PixelFormat::ASTC_2D_8X8_SRGB:
     case PixelFormat::ASTC_2D_8X5_SRGB:

@@ -191,6 +191,20 @@ PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, 
         return PixelFormat::BC6H_SFLOAT;
     case Hash(TextureFormat::BC6H_U16, FLOAT):
         return PixelFormat::BC6H_UFLOAT;
+    /* ETC2 */
+    case Hash(TextureFormat::ETC2_RGB, UNORM, LINEAR):
+        return PixelFormat::ETC2_RGB_UNORM;
+    case Hash(TextureFormat::ETC2_RGB_PTA, UNORM, LINEAR):
+        return PixelFormat::ETC2_RGB_PTA_UNORM;
+    case Hash(TextureFormat::ETC2_RGBA, UNORM, LINEAR):
+        return PixelFormat::ETC2_RGBA_UNORM;
+    case Hash(TextureFormat::ETC2_RGB, UNORM, SRGB):
+        return PixelFormat::ETC2_RGB_SRGB;
+    case Hash(TextureFormat::ETC2_RGB_PTA, UNORM, SRGB):
+        return PixelFormat::ETC2_RGB_PTA_SRGB;
+    case Hash(TextureFormat::ETC2_RGBA, UNORM, SRGB):
+        return PixelFormat::ETC2_RGBA_SRGB;
+    /* ASTC */
     case Hash(TextureFormat::ASTC_2D_4X4, UNORM, LINEAR):
         return PixelFormat::ASTC_2D_4X4_UNORM;
     case Hash(TextureFormat::ASTC_2D_4X4, UNORM, SRGB):
