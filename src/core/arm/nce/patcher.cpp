@@ -3,7 +3,7 @@
 
 #include <numeric>
 #include <bit>
-#include "common/arm64/native_clock.h"
+#include "common/wall_clock.h"
 #include "common/alignment.h"
 #include "common/literals.h"
 #include "core/arm/nce/arm_nce.h"
@@ -578,7 +578,11 @@ void Patcher::WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg,
 }
 
 void Patcher::WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg, oaknut::VectorCodeGenerator& cg) {
-    static Common::Arm64::NativeClock clock{};
+#if defined(HAS_NCE)
+    static Common::WallClock clock(false, 1);
+#else
+    static Common::WallClock clock(true, 1);
+#endif
     const auto factor = clock.GetGuestCNTFRQFactor();
     const auto raw_factor = std::bit_cast<std::array<u64, 2>>(factor);
 

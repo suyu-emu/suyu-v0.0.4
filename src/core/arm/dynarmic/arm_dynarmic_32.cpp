@@ -113,8 +113,7 @@ void DynarmicCallbacks32::CallSVC(u32 swi) {
 }
 
 void DynarmicCallbacks32::AddTicks(u64 ticks) {
-    ASSERT_MSG(!m_parent.m_uses_wall_clock, "Dynarmic ticking disabled");
-
+    ASSERT(!m_parent.m_uses_wall_clock && "Dynarmic ticking disabled");
     // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
     // rough approximation of the amount of executed ticks in the system, it may be thrown off
     // if not all cores are doing a similar amount of work. Instead of doing this, we should
@@ -123,14 +122,12 @@ void DynarmicCallbacks32::AddTicks(u64 ticks) {
     u64 amortized_ticks = ticks / Core::Hardware::NUM_CPU_CORES;
     // Always execute at least one tick.
     amortized_ticks = std::max<u64>(amortized_ticks, 1);
-
     m_parent.m_system.CoreTiming().AddTicks(amortized_ticks);
 }
 
 u64 DynarmicCallbacks32::GetTicksRemaining() {
-    ASSERT_MSG(!m_parent.m_uses_wall_clock, "Dynarmic ticking disabled");
-
-    return std::max<s64>(m_parent.m_system.CoreTiming().GetDowncount(), 0);
+    ASSERT(!m_parent.m_uses_wall_clock && "Dynarmic ticking disabled");
+    return std::max<s64>(m_parent.m_system.CoreTiming().downcount, 0);
 }
 
 bool DynarmicCallbacks32::CheckMemoryAccess(u64 addr, u64 size, Kernel::DebugWatchpointType type) {

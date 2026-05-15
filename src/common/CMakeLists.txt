@@ -184,17 +184,11 @@ if(ARCHITECTURE_x86_64)
         x64/cpu_detect.h
         x64/cpu_wait.cpp
         x64/cpu_wait.h
-        x64/native_clock.cpp
-        x64/native_clock.h
         x64/rdtsc.cpp
         x64/rdtsc.h
         x64/xbyak_abi.h
         x64/xbyak_util.h)
     target_link_libraries(common PRIVATE xbyak::xbyak)
-endif()
-
-if(HAS_NCE)
-    target_sources(common PRIVATE arm64/native_clock.cpp arm64/native_clock.h)
 endif()
 
 if(MSVC)

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -20,28 +20,28 @@ public:
     static constexpr u64 GPUTickFreq = 614'400'000;   // GM20B GPU Tick Frequency = 614.4 MHz
     static constexpr u64 CPUTickFreq = 1'020'000'000; // T210/4 A57 CPU Tick Frequency = 1020.0 MHz
 
-    virtual ~WallClock() = default;
+    explicit WallClock(bool invariant, u64 rdtsc_frequency_) noexcept;
 
     /// @returns The time in nanoseconds since the construction of this clock.
-    virtual std::chrono::nanoseconds GetTimeNS() const = 0;
+    std::chrono::nanoseconds GetTimeNS() const;
 
     /// @returns The time in microseconds since the construction of this clock.
-    virtual std::chrono::microseconds GetTimeUS() const = 0;
+    std::chrono::microseconds GetTimeUS() const;
 
     /// @returns The time in milliseconds since the construction of this clock.
-    virtual std::chrono::milliseconds GetTimeMS() const = 0;
+    std::chrono::milliseconds GetTimeMS() const;
 
     /// @returns The guest CNTPCT ticks since the construction of this clock.
-    virtual s64 GetCNTPCT() const = 0;
+    s64 GetCNTPCT() const;
 
     /// @returns The guest GPU ticks since the construction of this clock.
-    virtual s64 GetGPUTick() const = 0;
+    s64 GetGPUTick() const;
 
     /// @returns The raw host timer ticks since an indeterminate epoch.
-    virtual s64 GetUptime() const = 0;
+    s64 GetUptime() const;
 
     /// @returns Whether the clock directly uses the host's hardware clock.
-    virtual bool IsNative() const = 0;
+    bool IsNative() const;
 
     static inline u64 NSToCNTPCT(u64 ns) {
         return ns * NsToCNTPCTRatio::num / NsToCNTPCTRatio::den;
@@ -85,8 +85,33 @@ protected:
     using CPUTickToUsRatio = std::ratio<std::micro::den, CPUTickFreq>;
     using CPUTickToCNTPCTRatio = std::ratio<CNTFRQ, CPUTickFreq>;
     using CPUTickToGPUTickRatio = std::ratio<GPUTickFreq, CPUTickFreq>;
+
+#if defined(ARCHITECTURE_x86_64)
+    bool invariant;
+    u64 rdtsc_frequency;
+    u64 ns_rdtsc_factor;
+    u64 us_rdtsc_factor;
+    u64 ms_rdtsc_factor;
+    u64 cntpct_rdtsc_factor;
+    u64 gputick_rdtsc_factor;
+#elif defined(HAS_NCE)
+public:
+    using FactorType = unsigned __int128;
+
+    FactorType GetGuestCNTFRQFactor() const {
+        return guest_cntfrq_factor;
+    }
+protected:
+    FactorType ns_cntfrq_factor;
+    FactorType us_cntfrq_factor;
+    FactorType ms_cntfrq_factor;
+    FactorType guest_cntfrq_factor;
+    FactorType gputick_cntfrq_factor;
+#else
+
+#endif
 };
 
-[[nodiscard]] std::unique_ptr<WallClock> CreateOptimalClock();
+[[nodiscard]] WallClock CreateOptimalClock() noexcept;
 
 } // namespace Common

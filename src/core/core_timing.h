@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -118,7 +118,7 @@ public:
 
     void Idle();
 
-    s64 GetDowncount() const {
+    s64 GetDowncount() const noexcept {
         return downcount;
     }
 
@@ -128,11 +128,8 @@ public:
     /// Returns the current GPU tick value.
     u64 GetGPUTicks() const;
 
-    /// Returns current time in microseconds.
-    std::chrono::microseconds GetGlobalTimeUs() const;
-
-    /// Returns current time in nanoseconds.
-    std::chrono::nanoseconds GetGlobalTimeNs() const;
+    [[nodiscard]] std::chrono::microseconds GetGlobalTimeUs() const noexcept;
+    [[nodiscard]] std::chrono::nanoseconds GetGlobalTimeNs() const noexcept;
 
     /// Checks for events manually and returns time in nanoseconds for next event, threadsafe.
     std::optional<s64> Advance();
@@ -141,13 +138,11 @@ public:
     void SetTimerResolutionNs(std::chrono::nanoseconds ns);
 #endif
 
-private:
     struct Event;
-    void ThreadLoop();
 
     void Reset();
 
-    std::unique_ptr<Common::WallClock> clock;
+    Common::WallClock clock;
 
     s64 global_timer = 0;
 
@@ -165,11 +160,10 @@ private:
     Common::Event pause_event{};
     mutable std::mutex basic_lock;
     std::mutex advance_lock;
-    std::optional<std::jthread> timer_thread;
+    std::jthread timer_thread;
     std::atomic<bool> paused{};
     std::atomic<bool> paused_set{};
     std::atomic<bool> wait_set{};
-    std::atomic<bool> shutting_down{};
     std::atomic<bool> has_started{};
     std::function<void()> on_thread_init{};
 

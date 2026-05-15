@@ -26,8 +26,11 @@ namespace Service::android {
 BufferQueueProducer::BufferQueueProducer(Service::KernelHelpers::ServiceContext& service_context_,
                                          std::shared_ptr<BufferQueueCore> buffer_queue_core_,
                                          Service::Nvidia::NvCore::NvMap& nvmap_)
-    : service_context{service_context_}, core{std::move(buffer_queue_core_)}, slots(core->slots),
-      clock{Common::CreateOptimalClock()}, nvmap(nvmap_) {
+    : service_context{service_context_}, core{std::move(buffer_queue_core_)}
+    , slots(core->slots)
+    , clock{Common::CreateOptimalClock()}
+    , nvmap(nvmap_)
+{
     buffer_wait_event = service_context.CreateEvent("BufferQueue:WaitEvent");
 }
 
@@ -485,7 +488,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         slots[slot].buffer_state = BufferState::Queued;
         slots[slot].frame_number = core->frame_counter;
         slots[slot].queue_time = timestamp;
-        slots[slot].presentation_time = clock->GetTimeNS().count();
+        slots[slot].presentation_time = clock.GetTimeNS().count();
         slots[slot].fence = fence;
 
         item.slot = slot;
