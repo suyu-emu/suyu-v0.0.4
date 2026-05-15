@@ -9,10 +9,10 @@
 
 namespace NxTzdb {
 
+// @DIRECTORY_NAME@
+
 // clang-format off
-const static std::map<const char*, const std::vector<uint8_t>> @DIRECTORY_NAME@ = 
-{
-@FILE_DATA@};
+@FILE_DATA@
 // clang-format on
 
 } // namespace NxTzdb
