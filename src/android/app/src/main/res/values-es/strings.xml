@@ -489,6 +489,8 @@
     <string name="enable_buffer_history">Activar el historial del búfer</string>
     <string name="enable_buffer_history_description">Permite el acceso al estado del búfer anterior. Esta opción puede mejorar la calidad de renderizado y la consistencia en el rendimiento de algunos juegos.</string>
     <string name="use_optimized_vertex_buffers">Búferes de vértices optimizados</string>
+    <string name="use_optimized_vertex_buffers_description">Permite la optimización del enlace del búfer de vértices para un mejor rendimiento. Requiere controladores Mesa 26.0+ Turnip/ controladores QCOM. Fallará con controladores Turnip más antiguos (versión 25.3 o inferior).</string>
+
     <string name="hacks">Hacks</string>
 
     <string name="fast_gpu_time">Tiempo rápido de la GPU</string>
@@ -500,6 +502,7 @@
     <string name="emulate_bgr565">Emular BGR565</string>
     <string name="emulate_bgr565_description">Soluciona problemas con colores invertidos en juegos, artefactos o sombras extrañas.</string>
     <string name="rescale_hack">Activar la pasada de reescalado heredada</string>
+    <string name="rescale_hack_description">Permite el manejo de versiones anteriores para el paso de configuración de reescalado para juegos mediante el uso de una ruta de reescalado rápida.</string>
     <string name="renderer_asynchronous_shaders">Usar sombreadores asíncronos</string>
     <string name="renderer_asynchronous_shaders_description">Compila los sombreadores de forma asíncrona. Esto puede reducir los tirones, pero también puede introducir errores gráficos.</string>
     <string name="gpu_unswizzle_settings">Ajustes de desentrelazado de la GPU</string>
@@ -518,8 +521,10 @@
     <string name="extensions">Extensiones</string>
 
     <string name="dyna_state">Estado dinámico extendido</string>
+    <string name="dyna_state_description">Controla la cantidad de características que se pueden usar en ExtendedDynamicState (EDS). Un valor más alto permitirá reducir la cantidad de compilaciones de canalización basadas en el estado dinámico compatible con el controlador.</string>
     <string name="disabled">Desactivado</string>
     <string name="vertex_input_dynamic_state">Estado dinámico de entrada de vértices</string>
+    <string name="vertex_input_dynamic_state_description">La activación de esta función permite un manejo más flexible de la entrada de vértices, lo que podría reducir el tiempo de compilación de la canalización en vértices/búfer.</string>
     <string name="sample_shading_fraction">Muestreo de sombreado</string>
     <string name="sample_shading_fraction_description">Permite que el sombreador de fragmentos se ejecute por muestra en un fragmento multimuestreado, en lugar de una sola vez por fragmento. Mejora la calidad de los gráficos a coste de algo de rendimiento.</string>
 

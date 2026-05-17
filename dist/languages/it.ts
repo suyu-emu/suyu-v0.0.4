@@ -9301,10 +9301,10 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="44"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="209"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="265"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="382"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="445"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="207"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="263"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="380"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="443"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
@@ -9325,7 +9325,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="166"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="290"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="288"/>
         <source>Verification failed for the following files:
 
 %1</source>
@@ -9334,204 +9334,204 @@ p, li { white-space: pre-wrap; }
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="209"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="265"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="207"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="263"/>
         <source>Verifying integrity...</source>
         <translation>Verifica dell&apos;integrità in corso...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="224"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="283"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="222"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="281"/>
         <source>Integrity verification succeeded!</source>
         <translation>Verifica dell&apos;integrità riuscita!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="225"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="284"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="223"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="282"/>
         <source>The operation completed successfully.</source>
         <translation>L&apos;operazione è stata completata con successo.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="228"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="289"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="226"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="287"/>
         <source>Integrity verification failed!</source>
         <translation>Verifica dell&apos;integrità fallita!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="229"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="227"/>
         <source>File contents may be corrupt or missing.</source>
         <translation>I contenuti dei file potrebbero essere corrotti o mancanti.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="233"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="231"/>
         <source>Integrity verification couldn&apos;t be performed</source>
         <translation>Impossibile effettuare la verifica dell&apos;integrità</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="234"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="232"/>
         <source>Firmware installation cancelled, firmware may be in a bad state or corrupted. File contents could not be checked for validity.</source>
         <translation>Installazione del firmware annullata, il firmware potrebbe essere corrotto o in cattivo stato. Non è stato possibile controllare la validità dei contenuti dei file.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="241"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="239"/>
         <source>Select Dumped Keys Location</source>
         <translation>Seleziona il percorso delle chiavi estratte</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="254"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="252"/>
         <source>Decryption Keys install succeeded</source>
         <translation>Installazione delle chiavi di crittografia riuscita</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="257"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="255"/>
         <source>Decryption Keys install failed</source>
         <translation>Installazione delle chiavi di crittografia fallita</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="329"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="327"/>
         <source>Orphaned Profiles Detected!</source>
         <translation>Rilevati profili scollegati!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="330"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="328"/>
         <source>UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON&apos;T READ THIS!&lt;br&gt;Eden has detected the following save directories with no attached profile:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;The following profiles are valid:&lt;br&gt;%2&lt;br&gt;&lt;br&gt;Click &quot;OK&quot; to open your save folder and fix up your profiles.&lt;br&gt;Hint: copy the contents of the largest or last-modified folder elsewhere, delete all orphaned profiles, and move your copied contents to the good profile.&lt;br&gt;&lt;br&gt;Still confused? See the &lt;a href=&apos;https://git.eden-emu.dev/eden-emu/eden/src/branch/master/docs/user/Orphaned.md&apos;&gt;help page&lt;/a&gt;.&lt;br&gt;</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="349"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="347"/>
         <source>Really clear data?</source>
         <translation>Eliminare i dati?</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="349"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="347"/>
         <source>Important data may be lost!</source>
         <translation>Potresti perdere dei dati importanti!</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="354"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="352"/>
         <source>Are you REALLY sure?</source>
         <translation>Sei DAVVERO sicuro?</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="355"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="353"/>
         <source>Once deleted, your data will NOT come back!
 Only do this if you&apos;re 100% sure you want to delete this data.</source>
         <translation>Una volta eliminati, i tuoi dati NON potranno essere ripristinati!
 Procedi solo se sei assolutamente sicuro di voler eliminare questi dati.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="362"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="360"/>
         <source>Clearing...</source>
         <translation>Eliminazione in corso...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="376"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="374"/>
         <source>Select Export Location</source>
         <translation>Scegli dove esportare i dati</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="376"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="374"/>
         <source>%1.zip</source>
         <translation>%1.zip</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="376"/>
-        <location filename="../../src/qt_common/util/content.cpp" line="430"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="374"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="428"/>
         <source>Zipped Archives (*.zip)</source>
         <translation>Archivi compressi (*.zip)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="382"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="380"/>
         <source>Exporting data. This may take a while...</source>
         <translation>Esportazione dei dati in corso. Potrebbe richiedere un po&apos; di tempo...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="384"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="382"/>
         <source>Exporting</source>
         <translation>Esportazione in corso</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="405"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="403"/>
         <source>Exported Successfully</source>
         <translation>Esportazione completata</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="405"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="403"/>
         <source>Data was exported successfully.</source>
         <translation>I dati sono stati esportati con successo.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="407"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="405"/>
         <source>Export Cancelled</source>
         <translation>Esportazione annullata</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="407"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="405"/>
         <source>Export was cancelled by the user.</source>
         <translation>L&apos;esportazione è stata annullata dall&apos;utente.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="410"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="408"/>
         <source>Export Failed</source>
         <translation>Esportazione fallita</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="411"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="409"/>
         <source>Ensure you have write permissions on the targeted directory and try again.</source>
         <translation>Assicurati di disporre dei permessi di scrittura nella cartella selezionata e poi riprova.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="430"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="428"/>
         <source>Select Import Location</source>
         <translation>Seleziona il file da importare</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="436"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="434"/>
         <source>Import Warning</source>
         <translation>Attenzione</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="437"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="435"/>
         <source>All previous data in this directory will be deleted. Are you sure you wish to proceed?</source>
         <translation>Tutti i dati già presenti in questa cartella verranno eliminati. Sei sicuro di voler procedere?</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="445"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="443"/>
         <source>Importing data. This may take a while...</source>
         <translation>Importazione dei dati in corso. Potrebbe richiedere un po&apos; di tempo...</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="447"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="445"/>
         <source>Importing</source>
         <translation>Importazione in corso</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="480"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="478"/>
         <source>Imported Successfully</source>
         <translation>Importazione completata</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="480"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="478"/>
         <source>Data was imported successfully.</source>
         <translation>I dati sono stati importati con successo.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="482"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="480"/>
         <source>Import Cancelled</source>
         <translation>Importazione annullata</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="482"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="480"/>
         <source>Import was cancelled by the user.</source>
         <translation>L&apos;importazione è stata annullata dall&apos;utente.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="484"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="482"/>
         <source>Import Failed</source>
         <translation>Importazione fallita</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/content.cpp" line="485"/>
+        <location filename="../../src/qt_common/util/content.cpp" line="483"/>
         <source>Ensure you have read permissions on the targeted directory and try again.</source>
         <translation>Assicurati di disporre dei permessi di lettura nella cartella selezionata e poi riprova.</translation>
     </message>
@@ -9895,18 +9895,18 @@ Most mods are RomFS mods, but patches (.pchtxt) are typically ExeFS mods.</sourc
 La maggior parte delle mod sono RomFS, ma le patch (.pchtxt) sono tipicamente ExeFS.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="122"/>
-        <location filename="../../src/qt_common/util/mod.cpp" line="135"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="123"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="136"/>
         <source>Mod Extract Failed</source>
         <translation>Estrazione mod fallita</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="123"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="124"/>
         <source>Failed to create temporary directory %1</source>
         <translation>Impossibile creare la cartella temporanea %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="136"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="137"/>
         <source>Zip file %1 is empty</source>
         <translation>Il file ZIP %1 è vuoto</translation>
     </message>

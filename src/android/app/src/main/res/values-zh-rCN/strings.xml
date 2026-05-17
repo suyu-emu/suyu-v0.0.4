@@ -66,6 +66,8 @@
     <string name="show_power_info_description">显示当前功耗和电池剩余容量</string>
     <string name="show_shaders_building">显示着色器编译信息</string>
     <string name="show_shaders_building_description">显示当前正在编译的着色器数量</string>
+    <string name="pipeline_worker_cores">管线工作线程</string>
+    <string name="pipeline_worker_cores_description">管理用于构建 Vulkan 管线的核心数量，数值越高则管线编译性能越好，但温度也会随之升高。</string>
     <string name="overlay_position">叠加层位置</string>
     <string name="overlay_position_description">选择叠加层在屏幕上显示的位置</string>
     <string name="overlay_position_top_left">左上</string>
@@ -473,14 +475,18 @@
     <string name="use_disk_shader_cache">磁盘着色器缓存</string>
     <string name="use_disk_shader_cache_description">将生成的着色器缓存于磁盘中并进行读取，以减少卡顿。</string>
     <string name="renderer_force_max_clock">强制最大时钟 (仅限 Adreno)</string>
-    <string name="renderer_force_max_clock_description">强制 GPU 以最大时钟运行 (仍被温控限制)。</string>
+    <string name="renderer_force_max_clock_description">强制 GPU 以最大时钟运行 (温控依然生效)。</string>
     <string name="renderer_asynchronous_gpu_emulation">GPU 异步模拟</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">此技巧可通过异步运行 GPU 模拟来提升性能，但在执行与时序相关的操作时，可能引入图形问题和增加崩溃概率。</string>
     <string name="renderer_async_presentation">异步呈现</string>
+    <string name="renderer_async_presentation_description">此技巧通过将图形呈现移至独立的 CPU 线程来提升性能，但可能会引入图形显示问题。</string>
     <string name="renderer_reactive_flushing">启用反应性刷新</string>
     <string name="renderer_reactive_flushing_description">通过牺牲性能来提高某些游戏的渲染精度。</string>
     <string name="enable_buffer_history">启用缓冲区历史</string>
     <string name="enable_buffer_history_description">启用对先前缓冲区状态的访问。此选项可在某些游戏中提升渲染质量并保持性能的一致性。</string>
     <string name="use_optimized_vertex_buffers">优化顶点缓冲区</string>
+    <string name="use_optimized_vertex_buffers_description">启用经过优化的顶点缓冲区绑定以提升性能。需要 Mesa 26.0 及以上版本的 Turnip 或 QCOM 驱动程序。若使用较旧版本的 Turnip 驱动 (25.3 及以下版本) 则会导致崩溃。</string>
+
     <string name="hacks">Hacks</string>
 
     <string name="fast_gpu_time">GPU 超频频率</string>
@@ -491,6 +497,8 @@
     <string name="fix_bloom_effects_description">减少《塞尔达传说：智慧的再现》（Adreno A6XX - A7XX/ Turnip）中的 bloom 模糊，并移除《Burnout》中的 bloom 效果。警告：可能会导致在其他游戏中出现图形异常。</string>
     <string name="emulate_bgr565">模拟 BGR565</string>
     <string name="emulate_bgr565_description">修复了游戏中的颜色反转以及出现的异常画面瑕疵或奇怪阴影问题</string>
+    <string name="rescale_hack">启用旧版缩放处理</string>
+    <string name="rescale_hack_description">启用通过使用快速缩放路径，来为游戏提供缩放配置处理的传统处理方式</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
     <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
     <string name="gpu_unswizzle_settings">GPU 还原设置</string>
@@ -509,8 +517,10 @@
     <string name="extensions">扩展</string>
 
     <string name="dyna_state">扩展动态状态</string>
+    <string name="dyna_state_description">控制扩展动态状态 (EDS) 可使用的功能数目。较高的数值将允许根据驱动程序支持的动态状态来减少管线编译的次数。</string>
     <string name="disabled">已禁用</string>
     <string name="vertex_input_dynamic_state">顶点输入动态状态</string>
+    <string name="vertex_input_dynamic_state_description">启用此功能可实现更灵活的顶点输入处理，可能减少顶点/缓冲区的管线编译时间。</string>
     <string name="sample_shading_fraction">采样着色</string>
     <string name="sample_shading_fraction_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。</string>
 
