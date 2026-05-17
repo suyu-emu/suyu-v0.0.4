@@ -44,6 +44,9 @@ These options control dependencies.
   - UNIX may be better off appending `-flto=thin` to compiler args
 - `USE_FASTER_LINKER` (OFF) Check if a faster linker is available
   - Not recommended outside of Linux
+- `YUZU_INSTALL_UDEV_RULES` (OFF) Install udev rules to enable hidraw access
+  - Needed for gyroscopes
+  - Only available on Linux
 
 ### Flavors
 
