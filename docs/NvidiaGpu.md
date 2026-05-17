@@ -853,6 +853,8 @@ Texture Query.
 
 Vote Across SIMD Thread Group
 
+`VOTE_vtg` is a kepler leftover.
+
 # VSET
 `0100 000- ---- ----`
 

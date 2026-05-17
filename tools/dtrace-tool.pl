@@ -9,9 +9,11 @@ use warnings;
 use POSIX qw(strftime);
 
 my $input;
-my $sampling_hz = '4000';
-my $sampling_time = '5';
+my $sampling_hz = '997';
+my $sampling_time = '60';
 my $sampling_pid = `pgrep eden`;
+chomp($sampling_pid);
+
 my $sampling_program = 'eden';
 my $sampling_type = 0;
 
@@ -39,43 +41,27 @@ sub dtrace_ask_params {
 
 sub dtrace_probe_profiling {
     if ($sampling_type eq 0) {
+        # profile both kernel stacks and user stacks
         return "
-profile-".$sampling_hz." /pid == ".$sampling_pid." && arg0/ {
-    @[stack(100)] = count();
-}
-profile-".$sampling_hz." /pid == ".$sampling_pid." && arg1/ {
-    @[ustack(100)] = count();
-}
-tick-".$sampling_time."s {
-    exit(0);
-}";
+profile-".$sampling_hz." /pid == ".$sampling_pid." && arg0/ { @[stack(100)] = count(); }
+profile-".$sampling_hz." /pid == ".$sampling_pid." && arg1/ { @[ustack(100)] = count(); }
+tick-".$sampling_time."s { exit(0); }";
     } elsif ($sampling_type eq 1) {
+        # trace syscall entries
         return "
-syscall:::entry /pid == ".$sampling_pid."/ {
-    \@traces[ustack(100)] = count();
-}
-tick-".$sampling_time."s {
-    exit(0);
-}";
+syscall:::entry /pid == ".$sampling_pid."/ { \@traces[ustack(100)] = count(); }
+tick-".$sampling_time."s { exit(0); }";
     } elsif ($sampling_type eq 2) {
+        # profile both kernel and user stacks with thread names attached
         return "
-profile-".$sampling_hz." /pid == ".$sampling_pid." && arg0/ {
-    @[stringof(curthread->td_name), stack(100)] = count();
-}
-profile-".$sampling_hz." /pid == ".$sampling_pid." && arg1/ {
-    @[stringof(curthread->td_name), ustack(100)] = count();
-}
-tick-".$sampling_time."s {
-    exit(0);
-}";
+profile-".$sampling_hz." /pid == ".$sampling_pid." && arg0/ { @[stringof(curthread->td_name), stack(100)] = count(); }
+profile-".$sampling_hz." /pid == ".$sampling_pid." && arg1/ { @[stringof(curthread->td_name), ustack(100)] = count(); }
+tick-".$sampling_time."s { exit(0); }";
     } elsif ($sampling_type eq 3) {
+        # trace I/O requests
         return "
-io::start /pid == ".$sampling_pid."/ {
-    @[ustack(100)] = count();
-}
-tick-".$sampling_time."s {
-    exit(0);
-}";
+io::start /pid == ".$sampling_pid."/ { @[ustack(100)] = count(); }
+tick-".$sampling_time."s { exit(0); }";
     } else {
         die "idk";
     }
@@ -111,11 +97,17 @@ sub dtrace_generate {
 
 foreach my $i (0 .. $#ARGV) {
     if ($ARGV[$i] eq '-h') {
-        print "Usage: $0\n";
-        printf "%-20s%s\n", "-p", "Prompt for parameters";
-        printf "%-20s%s\n", "-g", "Generate dtrace output";
-        printf "%-20s%s\n", "-s", "Continously generate output until Ctrl^C";
-        printf "%-20s%s\n", "-<n>", "Select dtrace type";
+        print "
+Usage: $0\n
+-p          Prompt for parameters\n
+-g          Generate dtrace output\n
+-s          Continously generate output until Ctrl^C\n
+-<n>        Select dtrace type\n
+            0: Profile kernel + user stacks (default)\n
+            1: Trace syscall entries\n
+            2: Profile kernel + user stacks with thread names\n
+            3: Trace I/O requests\n
+";
     } elsif ($ARGV[$i] eq '-g') {
         dtrace_generate;
     } elsif ($ARGV[$i] eq '-s') {

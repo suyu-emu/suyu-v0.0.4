@@ -1,4 +1,4 @@
-# Multiplayer
+# User Handbook - Multiplayer
 Use this guide to answer questions regarding and to start using the multiplayer functionality of Eden.
 
 ## Multiplayer FAQ

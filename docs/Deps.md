@@ -35,6 +35,11 @@ If you are on desktop and plan to use the Qt frontend, you *must* install Qt 6, 
 
 * For help setting up Qt Creator, run `./install.sh -h qtcreator`
 
+* If you're using clang-cl and want to still use MSVC
+  * Check the option to add "C++ clang compiler for Windows" on Visual Studio installer and uncheck "x64/x86 build tool for MSVC" while selecting "C++ desktop developement tools" and change Visual Studio to 2026, from 2022.
+  * At qt creator section generator tab change Visual Studio 17 2022 to 2026.
+  * Finally, to use clang-cl: `cmake -S . -B build -G "Visual Studio 17 2026" -T ClangCL`
+
 If you are on **Windows** and building with **MSVC** or **clang-cl**, you may go [back home](Build.md) and continue.
 
 ## Externals
@@ -264,7 +269,10 @@ If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 <details>
 <summary>NetBSD</summary>
 
-For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers spirv-tools ffmpeg7 libva nlohmann-json jq libopus qt6 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1 libcxx`.
+For NetBSD +10.1:
+```sh
+pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv-headers spirv-tools ffmpeg7 libva nlohmann-json jq libopus qt6 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1 libcxx frozen
+```
 
 [Caveats](./Caveats.md#netbsd).
 
@@ -274,7 +282,7 @@ For NetBSD +10.1: `pkgin install git cmake boost fmtlib SDL2 catch2 libjwt spirv
 
 ```sh
 pkg_add -u
-pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2 libusb1-1.0.29
+pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl2 libusb1-1.0.29 quazip-qt6
 ```
 
 [Caveats](./Caveats.md#openbsd).
@@ -344,7 +352,7 @@ pacman -Syuu --needed --noconfirm $packages
 <summary>HaikuOS</summary>
 
 ```sh
-pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.90_devel vulkan_devel qt6_base_devel qt6_declarative_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt5_devel qt6_5compat_devel glslang qt6_devel qt6_charts_devel
+pkgman install git cmake patch libfmt_devel nlohmann_json lz4_devel opus_devel boost1.90_devel vulkan_devel qt6_base_devel qt6_declarative_devel libsdl2_devel ffmpeg7_devel libx11_devel enet_devel catch2_devel quazip1_qt5_devel qt6_5compat_devel glslang qt6_devel qt6_charts_devel cubeb_devel simpleini quazip_qt6_devel
 ```
 
 [Caveats](./Caveats.md#haikuos).

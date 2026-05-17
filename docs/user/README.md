@@ -25,12 +25,12 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
 - **[Importing Saves](./ImportingSaves.md)**
 - **[Installing Atmosphere Mods](./InstallingAtmosphereMods.md)**
 - **[Installing Updates & DLCs](./InstallingUpdatesDLC.md)**
-- **[Alter Date & Time](./AlterDateTime.md)**
+- **[Multiplayer](./Multiplayer.md)**
 
 ## 3rd-party Integration
 
 - **[Configuring Steam ROM Manager](./SteamROM.md)**
-- **[Server hosting](ServerHosting.md)**
+- **[Server hosting](./ServerHosting.md)**
 - **[Syncthing Guide](./SyncthingGuide.md)**
 - **[Third Party](./ThirdParty.md)**
     - **[Obtainium](./ThirdParty.md#configuring-obtainium)**
@@ -40,12 +40,13 @@ A copy of this handbook is [available online](https://git.eden-emu.dev/eden-emu/
 
 ## Advanced
 
+- **[Command Line](./CommandLine.md)**
 - **[Custom Firmware](./CFW.md)**
+- **[Alter Date & Time](./AlterDateTime.md)**
 - **[How To Access Logs](./HowToAccessLogs.md)**
 - **[Gyro Controls](./GyroControls.md)**
-- **[Platforms and Architectures](Architectures.md)**
-- **[Command Line](CommandLine.md)**
-- **[Native Application Development](Native.md)**
-- **[Adding Boolean Settings Toggles](AddingBooleanToggles.md)**
+- **[Platforms and Architectures](./Architectures.md)**
+- **[Native Application Development](./Native.md)**
+- **[Adding Boolean Settings Toggles](./AddingBooleanToggles.md)**
 - **[Adding Debug Knobs](./AddingDebugKnobs.md)**
-- **[Testing](Testing.md)**
+- **[Testing](./Testing.md)**

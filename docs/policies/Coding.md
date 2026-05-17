@@ -1,126 +1,70 @@
 # Coding guidelines
 
-These are mostly "suggestions", if you feel like your code is readable, comprehensible to others; and most importantly doesn't result in unreadable spaghetti you're fine to go.
+These are **not** stylistic guidelines, they're, for the most part, suggestions on how to architecture new systems or improve upon the existing codebase.
 
-But for new developers you may find that following these guidelines will make everything x10 easier.
+# Foreword
 
-## Naming conventions
+Don't try to micro-optimize out of the get go, while yes, most of the code is pretty, subpar, most of these are aftertoughts and details that can be glossed over **generally**.
 
-Simply put, types/classes are named as `PascalCase`, same for methods and functions like `AddElement`. Variables are named `like_this_snake_case` and constants are `IN_SCREAMING_CASE`.
+Architectural issues are more important, for example an API returning a `std::string` is not as efficient as one that operates on `std::string_view` directly (cost of constructing an `std::string` w/o small-string optimization and all of that).
 
-Except for Qt MOC where `functionName` is preferred.
+Regardless of the details, try to keep things simple. As a general rule of thumb.
 
-Template typenames prefer short names like `T`, `I`, `U`, if a longer name is required either `Iterator` or `perform_action` are fine as well. Do not use names like `SS` as systems like solaris define it for registers, in general do not use any of the following for short names:
+# C++ guidelines
 
-- `SS`, `DS`, `GS`, `FS`: Segment registers, defined by Solaris `<ucontext.h>`
-- `EAX`, `EBX`, `ECX`, `EDX`, `ESI`, `EDI`, `ESP`, `EBP`, `EIP`: Registers, defined by Solaris.
-- `X`: Defined by some utility headers, avoid.
-- `_`: Defined by gettext, avoid.
-- `N`, `M`, `S`: Preferably don't use this for types, use it for numeric constants.
-- `TR`: Used by some weird `<ucontext.h>` whom define the Task Register as a logical register to provide to the user... (Need to remember which OS in specific).
+Everyone has their own way of viewing good/bad C++ practices, my general outline:
 
-Macros must always be in `SCREAMING_CASE`. Do not use short letter macros as systems like Solaris will conflict with them; a good rule of thumb is >5 characters per macro - i.e `THIS_MACRO_IS_GOOD`, `AND_ALSO_THIS_ONE`.
+- At your disposal you may use `boost::container::static_vector<>` (beware it has a ctor/initialization cost which goes up the more elements you add).
+    - Or you may use `boost::container::small_vector<>` (which has an initialization cost as well, and will use extra book-keeping for heap, try to keep a balance).
+- Don't use `[[likely]]` or `[[unlikely]]`; PGO builds exist for that.
+- Don't use inline assembly to try to outsmart the compiler unless you're 100% sure the assembly you're writing is actually good.
+    - And if so, try to restructure your C++ code so the compiler vectorizes it/makes it better, right?
+    - Or if that fails, use intrinsics instead of raw `asm volatile`.
+- Use `std::optional<>` instead of `std::unique_ptr<>` if possible.
+    - `std::unique_ptr<>` carries indirection cost due to it being memory allocated on the heap.
+    - It isn't often that objects that contain `std::unique_ptr<>`, are allocated on the heap themselves, allocating even more things on the heap seems redundant.
+- Avoid `std::recursive_mutex` at all costs.
+    - It's basically implemented as a linked list most of the time and has HEAVY performance penalties.
+- Exploit the fact `std::atomic<uint32_t>/std::atomic<int32_t>` is basically free on most arches that matter.
+    - In x86_64, an atomic `uint32_t` is basically `mov [m32], r32`, which is essentially free/cheap.
+- Avoid template parameters unless you really need them.
+    - For small inlineable functions this is fine, for more complex ones, please consider the generated assembly.
+- Dont make your own memcpy/memset/strcpy/strncpy/etc.
+    - Seriously DON'T DO THIS. You will NOT beat the compiler.
+    - Nor 30 years of writing optimized `mem*`.
+    - If your code is slow, don't blame `mem*`, blame your code.
+- Try to avoid using `virtual` since vtable indirection has a cost
+- Avoid `dynamic_cast` and `typeid` at all costs.
+    - The reason is because the project has `-fno-rtti` disabled by default, due to the costs of dynamic polymorphism.
+- Always copy-on-value for objects with `sizeof(void *) >= sizeof(T) * 2`, i.e objects sized as 2 pointers or less, for bigger objects you can use ref/pointer as usual.
+- Try using move semantics instead of references, whenever possible.
+- Remember function parameters are extremelly cheap as fuck, don't be afraid to place upto 8 parameters on a given function.
+- Don't save a reference in structures of a parent object, i.e:
+    ```c++
+    struct Child {
+        Parent& parent;
+        void Mehod() {
+            parent.Something();
+        }
+    };
+    ```
+    - Instead you can do the following:
+    ```c++
+    struct Child {
+        void Mehod(Parent& parent) {
+            parent.Something();
+        }
+    };
+    ```
+    - This reduces the amount of pointers you have lying around, and also works better because of the aforementioned cheapness of parameter functions.
 
-Try not using hungarian notation, if you're able.
+# Engineering guidelines
 
-## Formatting
+Coding isn't also writing stuff but architecturing stuff, consider the following:
 
-Formatting is extremelly lax, the general rule of thumb is: Don't add new lines just to increase line count. The less lines we have to look at, the better. This means also packing densely your code while not making it a clusterfuck. Strike a balance of "this is a short and comprehensible piece of code" and "my eyes are actually happy to see this!". Don't just drop the entire thing in a single line and call it "dense code", that's just spaghetti posing as code. In general, be mindful of what other devs need to look at.
-
-Do not put if/while/etc braces after lines:
-
-```c++
-// no dont do this
-// this is more lines of code for no good reason (why braces need their separate lines?)
-// and those take space in someone's screen, cumulatively
-if (thing)
-{ //<--
-    some(); // ...
-} //<-- 2 lines of code for basically "opening" and "closing" an statment
-
-// do this
-if (thing) { //<-- [...] and with your brain you can deduce it's this piece of code
-             //    that's being closed
-    some(); // ...
-} //<-- only one line, and it's clearer since you know its closing something [...]
-
-// or this, albeit the extra line isn't needed (at your discretion of course)
-if (thing)
-    some(); // ...
-
-// this is also ok, keeps things in one line and makes it extremely clear
-if (thing) some();
-
-// NOT ok, don't be "clever" and use the comma operator to stash a bunch of statments
-// in a single line, doing this will definitely ruin someone's day - just do the thing below
-// vvv
-if (thing) some(), thing(), a2(a1(), y1(), j1()), do_complex_shit(wa(), wo(), ploo());
-// ... and in general don't use the comma operator for "multiple statments", EXCEPT if you think
-// that it makes the code more readable (the situation may be rare however)
-
-// Wow so much clearer! Now I can actually see what each statment is meant to do!
-if (thing) {
-    some();
-    thing();
-    a2(a1(), y1(), j1());
-    do_complex_shit(wa(), wo(), ploo());
-}
-```
-
-Brace rules are lax, if you can get the point across, do it:
-
-```c++
-// this is fine
-do {
-    if (thing) {
-        return 0;
-    }
-} while (other);
-
-// this is also ok --- albeit a bit more dense
-do if (thing) return 0; while (other);
-
-// ok as well
-do {
-    if (thing) return 0;
-} while (other);
-```
-
-There is no 80-column limit but preferably be mindful of other developer's readability (like don't just put everything onto one line).
-
-```c++
-// someone is going to be mad due to this
-SDL_AudioSpec obtained;
-device_name.empty() ? device = SDL_OpenAudioDevice(nullptr, capture, &spec, &obtained, false) : device = SDL_OpenAudioDevice(device_name.c_str(), capture, &spec, &obtained, false);
-
-// maybe consider this
-SDL_AudioSpec obtained;
-if (device_name.empty()) {
-    device = SDL_OpenAudioDevice(nullptr, capture, &spec, &obtained, false);
-} else {
-    device = SDL_OpenAudioDevice(device_name.c_str(), capture, &spec, &obtained, false);
-}
-
-// or this is fine as well
-SDL_AudioSpec obtained;
-device = SDL_OpenAudioDevice(device_name.empty() ? nullptr : device_name.c_str(), capture, &spec, &obtained, false);
-```
-
-A note about operators: Use them sparingly, yes, the language is lax on them, but some usages can be... tripping to say the least.
-
-```c++
-a, b, c; //<-- NOT OK multiple statments with comma operator is definitely a recipe for disaster
-return c ? a : b; //<-- OK ternaries at end of return statments are clear and fine
-return a, b; //<-- NOT OK return will take value of `b` but also evaluate `a`, just use a separate statment
-void f(int a[]) //<-- OK? if you intend to use the pointer as an array, otherwise just mark it as *
-```
-
-And about templates, use them sparingly, don't just do meta-templating for the sake of it, do it when you actually need it. This isn't a competition to see who can make the most complicated and robust meta-templating system. Just use what works, and preferably stick to the standard libary instead of reinventing the wheel. Additionally:
-
-```c++
-// NOT OK This will create (T * N * C * P) versions of the same function. DO. NOT. DO. THIS.
-template<typename T, size_t N, size_t C, size_t P> inline void what() const noexcept;
-
-// OK use parameters like a normal person, don't be afraid to use them :)
-template<typename T> inline void what(size_t n, size_t c, size_t p) const noexcept;
-```
+- Try to reduce dependency on... dependencies
+    - While some dependencies are useful `boost::container` and `fmt` to name a few, remember each dependency added incurs a cost.
+    - It may also be subpar with a hand rolled implementation, biggest exemplar of this is `spirv-tools` providing subpar SPIRV optimizations in comparison to the in-house optimizer.
+- Try to rely less on indirection for architecturing systems
+    - If the underlying HLE kernel emulation requires it, try making a solution that keeps things local
+        - For example, there isn't a need for file descriptors to each be a pointer, when they could be a fixed table size with elements that may be emplaced at will.
