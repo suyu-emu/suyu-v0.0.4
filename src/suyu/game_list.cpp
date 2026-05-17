@@ -443,6 +443,9 @@ void GameList::ClearFilter() {
 }
 
 void GameList::WorkerEvent() {
+    if (!current_worker) {
+        return;
+    }
     current_worker->ProcessEvents(this);
 }
 
@@ -943,7 +946,13 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     tree_view->setColumnHidden(COLUMN_PLAY_TIME, !UISettings::values.show_play_time);
 
     // Cancel any existing worker.
-    current_worker.reset();
+    if (current_worker) {
+        QObject::disconnect(current_worker.get(), nullptr, this, nullptr);
+        if (QThreadPool::globalInstance()->tryTake(current_worker.get())) {
+            current_worker->CancelBeforeRun();
+        }
+        current_worker.reset();
+    }
 
     // Delete any rows that might already exist if we're repopulating
     item_model->removeRows(0, item_model->rowCount());
@@ -953,14 +962,27 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
                                                       play_time_manager, system);
 
     // Get events from the worker as data becomes available
-    connect(current_worker.get(), &GameListWorker::DataAvailable, this, &GameList::WorkerEvent,
+    auto* worker = current_worker.get();
+    connect(worker, &GameListWorker::DataAvailable, this,
+            [this, worker] {
+                if (current_worker.get() != worker) {
+                    return;
+                }
+                worker->ProcessEvents(this);
+            },
             Qt::QueuedConnection);
 
     QThreadPool::globalInstance()->start(current_worker.get());
 }
 
 void GameList::CancelPopulate() {
-    current_worker.reset();
+    if (current_worker) {
+        QObject::disconnect(current_worker.get(), nullptr, this, nullptr);
+        if (QThreadPool::globalInstance()->tryTake(current_worker.get())) {
+            current_worker->CancelBeforeRun();
+        }
+        current_worker.reset();
+    }
     tree_view->setEnabled(true);
 }
 

@@ -52,8 +52,9 @@ namespace Tegra::Host1x {
 namespace {
 static bool HasSSE41() {
 #if defined(ARCHITECTURE_x86_64)
-    const auto& cpu_caps{Common::GetCPUCaps()};
-    return cpu_caps.sse4_1;
+    // Eden removed the hand-written vector VIC paths after Windows codegen regressions.
+    // Keep this build on the scalar path until the newer VIC implementation is migrated in full.
+    return false;
 #else
     return false;
 #endif

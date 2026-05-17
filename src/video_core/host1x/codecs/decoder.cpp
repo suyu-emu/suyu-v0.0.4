@@ -34,6 +34,9 @@ void Decoder::Decode() {
 
     // Receive output frames from decoder.
     auto frame = decode_api.ReceiveFrame();
+    if (!frame) {
+        return;
+    }
 
     if (IsInterlaced()) {
         auto [luma_top, luma_bottom, chroma_top, chroma_bottom] = GetInterlacedOffsets();

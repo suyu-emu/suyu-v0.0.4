@@ -225,7 +225,7 @@ int main(int argc, char** argv) {
         case EXCEPTION_DEBUG_EVENT: {
             const auto& info = event.u.Exception;
             const DWORD code = info.ExceptionRecord.ExceptionCode;
-            if ((code == EXCEPTION_ACCESS_VIOLATION || !info.dwFirstChance) && !printed) {
+            if ((!info.dwFirstChance || code == STATUS_STACK_BUFFER_OVERRUN) && !printed) {
                 printed = true;
                 std::cout << "EXCEPTION code=0x" << std::hex << code << std::dec
                           << " firstChance=" << info.dwFirstChance << " address="

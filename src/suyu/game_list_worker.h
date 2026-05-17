@@ -48,6 +48,9 @@ public:
     /// Starts the processing of directory tree information.
     void run() override;
 
+    /// Marks a worker removed from the thread pool as completed so destruction cannot block.
+    void CancelBeforeRun();
+
 public:
     /**
      * Synchronously processes any events queued by the worker.

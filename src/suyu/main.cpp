@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
-#include <cstring>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -223,36 +222,6 @@ static void InstallTerminateLogger() {
 }
 
 #ifdef _WIN32
-static void AppendRawCrashMessage(const char* message) {
-    HANDLE file = CreateFileA("C:\\Users\\charl\\Documents\\SuyuEclipse\\artifacts\\seh_crash.log",
-                              FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
-                              OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (file == INVALID_HANDLE_VALUE) {
-        return;
-    }
-    DWORD written = 0;
-    WriteFile(file, message, static_cast<DWORD>(std::strlen(message)), &written, nullptr);
-    WriteFile(file, "\r\n", 2, &written, nullptr);
-    CloseHandle(file);
-}
-
-static void WriteCrashDump(EXCEPTION_POINTERS* exception_pointers) {
-    HANDLE file = CreateFileA(
-        "C:\\Users\\charl\\Documents\\SuyuEclipse\\artifacts\\dumps\\suyu-vectored.dmp",
-        GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (file == INVALID_HANDLE_VALUE) {
-        return;
-    }
-
-    MINIDUMP_EXCEPTION_INFORMATION dump_exception_info{};
-    dump_exception_info.ThreadId = GetCurrentThreadId();
-    dump_exception_info.ExceptionPointers = exception_pointers;
-    dump_exception_info.ClientPointers = FALSE;
-    MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, MiniDumpWithFullMemory,
-                      &dump_exception_info, nullptr, nullptr);
-    CloseHandle(file);
-}
-
 static void LogStackTraceFromContext(CONTEXT context) {
     HANDLE process = GetCurrentProcess();
     HANDLE thread = GetCurrentThread();
@@ -289,34 +258,6 @@ static void LogStackTraceFromContext(CONTEXT context) {
             AppendTerminateMessage(fmt::format("[seh-stack] 0x{:X}", stack_frame.AddrPC.Offset));
         }
     }
-}
-
-static LONG CALLBACK LogVectoredSehException(EXCEPTION_POINTERS* exception_pointers) {
-    constexpr DWORD cpp_exception_code = 0xE06D7363;
-    constexpr DWORD access_violation_code = EXCEPTION_ACCESS_VIOLATION;
-    const auto exception_code = exception_pointers->ExceptionRecord->ExceptionCode;
-    if (exception_code != cpp_exception_code && exception_code != access_violation_code) {
-        return EXCEPTION_CONTINUE_SEARCH;
-    }
-
-    static LONG logged_count = 0;
-    const LONG current_logged_count = InterlockedIncrement(&logged_count);
-    if (current_logged_count > 8) {
-        return EXCEPTION_CONTINUE_SEARCH;
-    }
-
-    char raw_message[256]{};
-    std::snprintf(raw_message, sizeof(raw_message), "Observed SEH exception 0x%08lX at %p",
-                  exception_code, exception_pointers->ExceptionRecord->ExceptionAddress);
-    AppendRawCrashMessage(raw_message);
-    if (exception_code == access_violation_code && current_logged_count == 1) {
-        WriteCrashDump(exception_pointers);
-    }
-
-    AppendTerminateMessage(fmt::format("Observed SEH exception 0x{:08X} at {}", exception_code,
-                                       exception_pointers->ExceptionRecord->ExceptionAddress));
-    LogStackTraceFromContext(*exception_pointers->ContextRecord);
-    return EXCEPTION_CONTINUE_SEARCH;
 }
 
 static LONG WINAPI LogUnhandledSehException(EXCEPTION_POINTERS* exception_pointers) {
@@ -7141,7 +7082,6 @@ int main(int argc, char* argv[]) {
     bool is_child = false;
     InstallTerminateLogger();
 #ifdef _WIN32
-    AddVectoredExceptionHandler(1, LogVectoredSehException);
     SetUnhandledExceptionFilter(LogUnhandledSehException);
 #endif
     if (CheckEnvVars(&is_child)) {

@@ -5,6 +5,7 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <iterator>
 #include <queue>
 
 #include "common/common_types.h"
@@ -69,6 +70,11 @@ public:
         if (map == m_presentation_order.end()) {
             return;
         }
+
+        if (map->second.size() >= MaxPresentQueue) {
+            map->second.pop_front();
+        }
+
         map->second.emplace_back(offset, std::move(frame));
     }
 
@@ -79,6 +85,12 @@ public:
             return;
         }
         map->second.insert_or_assign(offset, std::move(frame));
+
+        if (map->second.size() > MaxDecodeMap) {
+            auto it = map->second.begin();
+            std::advance(it, map->second.size() - MaxDecodeMap);
+            map->second.erase(map->second.begin(), it);
+        }
     }
 
     std::shared_ptr<FFmpeg::Frame> GetFrame(s32 fd, u64 offset) {
@@ -128,6 +140,9 @@ private:
     std::mutex m_mutex{};
     std::unordered_map<s32, std::deque<std::pair<u64, FramePtr>>> m_presentation_order;
     std::unordered_map<s32, std::unordered_map<u64, FramePtr>> m_decode_order;
+
+    static constexpr size_t MaxPresentQueue = 100;
+    static constexpr size_t MaxDecodeMap = 200;
 };
 
 enum class ChannelType : u32 {

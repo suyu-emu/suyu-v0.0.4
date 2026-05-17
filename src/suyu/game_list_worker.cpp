@@ -252,6 +252,11 @@ GameListWorker::~GameListWorker() {
     processing_completed.Wait();
 }
 
+void GameListWorker::CancelBeforeRun() {
+    stop_requested.store(true);
+    processing_completed.Set();
+}
+
 void GameListWorker::ProcessEvents(GameList* game_list) {
     while (true) {
         std::function<void(GameList*)> func;
