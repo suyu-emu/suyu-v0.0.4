@@ -22,11 +22,11 @@ namespace Common {
 WallClock::WallClock(bool invariant_, u64 rdtsc_frequency_) noexcept
     : invariant{invariant_}
     , rdtsc_frequency{rdtsc_frequency_}
-    , ns_rdtsc_factor{GetFixedPoint64Factor(NsRatio::den, rdtsc_frequency_)}
-    , us_rdtsc_factor{GetFixedPoint64Factor(UsRatio::den, rdtsc_frequency_)}
-    , ms_rdtsc_factor{GetFixedPoint64Factor(MsRatio::den, rdtsc_frequency_)}
-    , cntpct_rdtsc_factor{GetFixedPoint64Factor(CNTFRQ, rdtsc_frequency_)}
-    , gputick_rdtsc_factor{GetFixedPoint64Factor(GPUTickFreq, rdtsc_frequency_)}
+    , ns_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(NsRatio::den, rdtsc_frequency_)}
+    , us_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(UsRatio::den, rdtsc_frequency_)}
+    , ms_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(MsRatio::den, rdtsc_frequency_)}
+    , cntpct_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(CNTFRQ, rdtsc_frequency_)}
+    , gputick_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(GPUTickFreq, rdtsc_frequency_)}
 {}
 
 std::chrono::nanoseconds WallClock::GetTimeNS() const {
@@ -186,7 +186,7 @@ bool WallClock::IsNative() const {
 WallClock CreateOptimalClock() noexcept {
 #if defined(ARCHITECTURE_x86_64)
     auto const& caps = GetCPUCaps();
-    return WallClock(!(caps.invariant_tsc && caps.tsc_frequency >= std::nano::den), std::max<u64>(caps.tsc_frequency, 1));
+    return WallClock(!(caps.invariant_tsc && caps.tsc_frequency >= std::nano::den), caps.tsc_frequency);
 #elif defined(HAS_NCE)
     return WallClock(false, 1);
 #else
