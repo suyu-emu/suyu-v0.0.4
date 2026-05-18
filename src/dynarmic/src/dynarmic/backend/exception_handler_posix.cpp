@@ -121,15 +121,15 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
 #if defined(ARCHITECTURE_x86_64)
     {
         std::shared_lock guard(sig_handler->code_block_infos_mutex);
-        if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_RIP); iter != sig_handler->code_block_infos.end()) {
-            FakeCall fc = iter->second.cb(CTX_RIP);
-            CTX_RSP -= sizeof(u64);
-            *std::bit_cast<u64*>(CTX_RSP) = fc.ret_rip;
-            CTX_RIP = fc.call_rip;
+        if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_PC); iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->second.cb(CTX_PC);
+            CTX_SP -= sizeof(u64);
+            *std::bit_cast<u64*>(CTX_SP) = fc.ret_rip;
+            CTX_PC = fc.call_rip;
             return;
         }
     }
-    fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_RIP);
+    fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #elif defined(ARCHITECTURE_arm64)
     {
         std::shared_lock guard(sig_handler->code_block_infos_mutex);

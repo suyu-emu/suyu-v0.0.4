@@ -51,7 +51,25 @@
 #   endif
 #endif
 
-#ifdef ARCHITECTURE_arm64
+// Some OSes define generic helper macros for all architectures
+#if defined(__NetBSD__)
+// NetBSD always has useful macros for everything don't they?
+// Basically this special path means that for every arch that NetBSD supports
+// it atleast has the macro for _UC_MACHINE defined, thus it will be avoided on the
+// other macro branches!
+// https://github.com/NetBSD/src/blob/trunk/sys/arch/powerpc/include/mcontext.h
+// https://github.com/NetBSD/src/blob/trunk/sys/arch/mips/include/mcontext.h
+#   define CTX_PC (_UC_MACHINE_PC(ucontext))
+// NetBSD defines a redzone for SP but we don't require nor want that
+// ((uc)->uc_mcontext.__gregs[_REG_RSP] - 128) -> this is not desirable due to calcs
+#if defined(ARCHITECTURE_x86_64)
+#   define CTX_SP (mctx.__gregs[_REG_RSP])
+#else
+#   define CTX_SP (_UC_MACHINE_SP(ucontext))
+#endif
+#endif
+
+#if defined(ARCHITECTURE_arm64)
 #    if defined(__APPLE__)
 #        define CTX_PC (mctx->__ss.__pc)
 #        define CTX_SP (mctx->__ss.__sp)
@@ -76,9 +94,7 @@
 #        define CTX_LR (mctx.mc_gpregs.gp_lr)
 #        define CTX_X(i) (mctx.mc_gpregs.gp_x[i])
 #        define CTX_Q(i) (mctx.mc_fpregs.fp_q[i])
-#    elif defined(__NetBSD__)
-#        define CTX_PC (mctx.mc_gpregs.gp_elr)
-#        define CTX_SP (mctx.mc_gpregs.gp_sp)
+#    elif defined(__NetBSD__) // SP + PC defined above
 #        define CTX_LR (mctx.mc_gpregs.gp_lr)
 #        define CTX_X(i) (mctx.mc_gpregs.gp_x[i])
 #        define CTX_Q(i) (mctx.mc_fpregs.fp_q[i])
@@ -92,35 +108,29 @@
 #    else
 #        error "unknown platform"
 #    endif
-#elif defined(__NetBSD__)
-// NetBSD always has useful macros for everything don't they?
-// Basically this special path means that for every arch that NetBSD supports
-// it atleast has the macro for _UC_MACHINE defined, thus it will be avoided on the
-// other macro branches!
-// https://github.com/NetBSD/src/blob/trunk/sys/arch/powerpc/include/mcontext.h
-// https://github.com/NetBSD/src/blob/trunk/sys/arch/mips/include/mcontext.h
-#   define CTX_PC (_UC_MACHINE_PC(ucontext))
-#   define CTX_SP (_UC_MACHINE_SP(ucontext))
 #elif defined(ARCHITECTURE_x86_64)
 #    if defined(__APPLE__)
-#        define CTX_RIP (mctx->__ss.__rip)
-#        define CTX_RSP (mctx->__ss.__rsp)
+#        define CTX_PC (mctx->__ss.__rip)
+#        define CTX_SP (mctx->__ss.__rsp)
 #    elif defined(__linux__)
-#        define CTX_RIP (mctx.gregs[REG_RIP])
-#        define CTX_RSP (mctx.gregs[REG_RSP])
+#        define CTX_PC (mctx.gregs[REG_RIP])
+#        define CTX_SP (mctx.gregs[REG_RSP])
 #    elif defined(__FreeBSD__)
-#        define CTX_RIP (mctx.mc_rip)
-#        define CTX_RSP (mctx.mc_rsp)
+#        define CTX_PC (mctx.mc_rip)
+#        define CTX_SP (mctx.mc_rsp)
 #    elif defined(__OpenBSD__)
 // https://github.com/openbsd/src/blob/master/sys/arch/x86_64/include/signal.h
-#        define CTX_RIP (ucontext->sc_rip)
-#        define CTX_RSP (ucontext->sc_rsp)
+#        define CTX_PC (ucontext->sc_rip)
+#        define CTX_SP (ucontext->sc_rsp)
 #    elif defined(__sun__)
-#        define CTX_RIP (mctx.gregs[REG_RIP])
-#        define CTX_RSP (mctx.gregs[REG_RSP])
+#        define CTX_PC (mctx.gregs[REG_RIP])
+#        define CTX_SP (mctx.gregs[REG_RSP])
 #    elif defined(__DragonFly__)
-#        define CTX_RIP (mctx.mc_rip)
-#        define CTX_RSP (mctx.mc_rsp)
+#        define CTX_PC (mctx.mc_rip)
+#        define CTX_SP (mctx.mc_rsp)
+#    elif defined(__managarm__)
+#        define CTX_PC (mctx.__pollution(gregs)[REG_RIP])
+#        define CTX_SP (mctx.__pollution(gregs)[REG_RSP])
 #    else
 #        error "unknown platform"
 #    endif
