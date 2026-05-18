@@ -247,11 +247,11 @@ if(ANDROID)
     target_compile_definitions(audio_core PUBLIC HAVE_OBOE)
 else()
     target_sources(audio_core PRIVATE
-        sink/sdl2_sink.cpp
-        sink/sdl2_sink.h)
+        sink/sdl3_sink.cpp
+        sink/sdl3_sink.h)
 
-    target_link_libraries(audio_core PRIVATE SDL2::SDL2)
-    target_compile_definitions(audio_core PRIVATE HAVE_SDL2)
+    target_link_libraries(audio_core PRIVATE SDL3::SDL3)
+    target_compile_definitions(audio_core PRIVATE HAVE_SDL3)
 endif()
 
 create_target_directory_groups(audio_core)

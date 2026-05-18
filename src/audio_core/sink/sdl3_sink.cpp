@@ -7,16 +7,40 @@
 #include <span>
 #include <vector>
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "audio_core/common/common.h"
-#include "audio_core/sink/sdl2_sink.h"
+#include "audio_core/sink/sdl3_sink.h"
 #include "audio_core/sink/sink_stream.h"
 #include "common/logging.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
 
 namespace AudioCore::Sink {
+
+namespace {
+SDL_AudioDeviceID FindAudioDeviceByName(const std::string& device_name, bool capture) {
+    int device_count = 0;
+    SDL_AudioDeviceID* devices = capture ? SDL_GetAudioRecordingDevices(&device_count)
+                                         : SDL_GetAudioPlaybackDevices(&device_count);
+    if (devices == nullptr) {
+        return capture ? SDL_AUDIO_DEVICE_DEFAULT_RECORDING : SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK;
+    }
+
+    SDL_AudioDeviceID selected = capture ? SDL_AUDIO_DEVICE_DEFAULT_RECORDING
+                                         : SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK;
+    for (int i = 0; i < device_count; ++i) {
+        const char* current_name = SDL_GetAudioDeviceName(devices[i]);
+        if (current_name != nullptr && device_name == current_name) {
+            selected = devices[i];
+            break;
+        }
+    }
+    SDL_free(devices);
+    return selected;
+}
+} // Anonymous namespace
+
 /**
  * SDL sink stream, responsible for sinking samples to hardware.
  */
@@ -39,13 +63,10 @@ public:
         system_channels = system_channels_;
         device_channels = device_channels_;
 
-        SDL_AudioSpec spec;
+        SDL_AudioSpec spec{};
         spec.freq = TargetSampleRate;
         spec.channels = static_cast<u8>(device_channels);
-        spec.format = AUDIO_S16SYS;
-        spec.samples = TargetSampleCount * 2;
-        spec.callback = &SDLSinkStream::DataCallback;
-        spec.userdata = this;
+        spec.format = SDL_AUDIO_S16;
 
         std::string device_name{output_device};
         bool capture{false};
@@ -54,22 +75,28 @@ public:
             capture = true;
         }
 
-        SDL_AudioSpec obtained;
-        if (device_name.empty()) {
-            device = SDL_OpenAudioDevice(nullptr, capture, &spec, &obtained, false);
-        } else {
-            device = SDL_OpenAudioDevice(device_name.c_str(), capture, &spec, &obtained, false);
-        }
+        const SDL_AudioDeviceID audio_device =
+            device_name.empty() ? (capture ? SDL_AUDIO_DEVICE_DEFAULT_RECORDING
+                                           : SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK)
+                                : FindAudioDeviceByName(device_name, capture);
 
-        if (device == 0) {
+        stream = SDL_OpenAudioDeviceStream(audio_device, &spec, &SDLSinkStream::DataCallback,
+                                           this);
+
+        if (stream == nullptr) {
             LOG_CRITICAL(Audio_Sink, "Error opening SDL audio device: {}", SDL_GetError());
             return;
         }
 
+        SDL_AudioSpec stream_in{};
+        SDL_AudioSpec stream_out{};
+        static_cast<void>(SDL_GetAudioStreamFormat(stream, &stream_in, &stream_out));
+
         LOG_INFO(Service_Audio,
                  "Opening SDL stream {} with: rate {} channels {} (system channels {}) "
-                 " samples {}",
-                 device, obtained.freq, obtained.channels, system_channels, obtained.samples);
+                 " format {}",
+                 static_cast<const void*>(stream), stream_out.freq, stream_out.channels,
+                 system_channels, static_cast<int>(stream_out.format));
     }
 
     /**
@@ -84,13 +111,14 @@ public:
      * Finalize the sink stream.
      */
     void Finalize() override {
-        if (device == 0) {
+        if (stream == nullptr) {
             return;
         }
 
         Stop();
-        SDL_ClearQueuedAudio(device);
-        SDL_CloseAudioDevice(device);
+        SDL_ClearAudioStream(stream);
+        SDL_DestroyAudioStream(stream);
+        stream = nullptr;
     }
 
     /**
@@ -100,23 +128,23 @@ public:
      *                 Default false.
      */
     void Start(bool resume = false) override {
-        if (device == 0 || !paused) {
+        if (stream == nullptr || !paused) {
             return;
         }
 
         paused = false;
-        SDL_PauseAudioDevice(device, 0);
+        static_cast<void>(SDL_ResumeAudioStreamDevice(stream));
     }
 
     /**
      * Stop the sink stream.
      */
     void Stop() override {
-        if (device == 0 || paused) {
+        if (stream == nullptr || paused) {
             return;
         }
         SignalPause();
-        SDL_PauseAudioDevice(device, 1);
+        static_cast<void>(SDL_PauseAudioStreamDevice(stream));
     }
 
 private:
@@ -128,7 +156,8 @@ private:
      * @param stream   - Buffer of samples to be filled or read.
      * @param len      - Length of the stream in bytes.
      */
-    static void DataCallback(void* userdata, Uint8* stream, int len) {
+    static void DataCallback(void* userdata, SDL_AudioStream* stream, int additional_amount,
+                             int total_amount) {
         auto* impl = static_cast<SDLSinkStream*>(userdata);
 
         if (!impl) {
@@ -137,25 +166,46 @@ private:
 
         const std::size_t num_channels = impl->GetDeviceChannels();
         const std::size_t frame_size = num_channels;
-        const std::size_t num_frames{len / num_channels / sizeof(s16)};
 
         if (impl->type == StreamType::In) {
-            std::span<const s16> input_buffer{reinterpret_cast<const s16*>(stream),
-                                              num_frames * frame_size};
+            const int bytes_available = SDL_GetAudioStreamAvailable(stream);
+            if (bytes_available <= 0) {
+                return;
+            }
+
+            std::vector<s16> input(bytes_available / static_cast<int>(sizeof(s16)));
+            const int bytes_read = SDL_GetAudioStreamData(stream, input.data(), bytes_available);
+            if (bytes_read <= 0) {
+                return;
+            }
+
+            const std::size_t num_frames =
+                static_cast<std::size_t>(bytes_read) / sizeof(s16) / frame_size;
+            std::span<const s16> input_buffer{input.data(),
+                                              static_cast<std::size_t>(bytes_read) / sizeof(s16)};
             impl->ProcessAudioIn(input_buffer, num_frames);
         } else {
-            std::span<s16> output_buffer{reinterpret_cast<s16*>(stream), num_frames * frame_size};
+            if (additional_amount <= 0 && total_amount <= 0) {
+                return;
+            }
+
+            const int bytes_requested = additional_amount > 0 ? additional_amount : total_amount;
+            std::vector<s16> output(bytes_requested / static_cast<int>(sizeof(s16)));
+            const std::size_t num_frames =
+                static_cast<std::size_t>(bytes_requested) / sizeof(s16) / frame_size;
+            std::span<s16> output_buffer{output.data(), output.size()};
             impl->ProcessAudioOutAndRender(output_buffer, num_frames);
+            static_cast<void>(SDL_PutAudioStreamData(stream, output.data(), bytes_requested));
         }
     }
 
-    /// SDL device id of the opened input/output device
-    SDL_AudioDeviceID device{};
+    /// SDL stream attached to an opened input/output device
+    SDL_AudioStream* stream{};
 };
 
 SDLSink::SDLSink(std::string_view target_device_name) {
     if (!SDL_WasInit(SDL_INIT_AUDIO)) {
-        if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
+        if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
             LOG_CRITICAL(Audio_Sink, "SDL_InitSubSystem audio failed: {}", SDL_GetError());
             return;
         }
@@ -218,18 +268,26 @@ std::vector<std::string> ListSDLSinkDevices(bool capture) {
     std::vector<std::string> device_list;
 
     if (!SDL_WasInit(SDL_INIT_AUDIO)) {
-        if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
+        if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
             LOG_CRITICAL(Audio_Sink, "SDL_InitSubSystem audio failed: {}", SDL_GetError());
             return {};
         }
     }
 
-    const int device_count = SDL_GetNumAudioDevices(capture);
+    int device_count = 0;
+    SDL_AudioDeviceID* devices =
+        capture ? SDL_GetAudioRecordingDevices(&device_count)
+                : SDL_GetAudioPlaybackDevices(&device_count);
+    if (devices == nullptr) {
+        return device_list;
+    }
+
     for (int i = 0; i < device_count; ++i) {
-        if (const char* name = SDL_GetAudioDeviceName(i, capture)) {
+        if (const char* name = SDL_GetAudioDeviceName(devices[i])) {
             device_list.emplace_back(name);
         }
     }
+    SDL_free(devices);
 
     return device_list;
 }
@@ -242,7 +300,7 @@ u32 GetSDLLatency() {
 // REVERTED back to 3833 - Below function IsSDLSuitable() removed, reverting to GetSDLLatency() above. - DIABLO 3 FIX
 /*
 bool IsSDLSuitable() {
-#if !defined(HAVE_SDL2)
+#if !defined(HAVE_SDL3)
     return false;
 #else
     // Check SDL can init

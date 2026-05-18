@@ -153,7 +153,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "video_core/renderer_base.h"
 #include "video_core/shader_notify.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <boost/container/flat_set.hpp>
 

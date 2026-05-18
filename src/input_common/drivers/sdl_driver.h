@@ -11,25 +11,22 @@
 #include <thread>
 #include <ankerl/unordered_dense.h>
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "common/common_types.h"
 #include "common/threadsafe_queue.h"
 #include "input_common/input_engine.h"
 
 union SDL_Event;
-using SDL_GameController = struct _SDL_GameController;
-using SDL_Joystick = struct _SDL_Joystick;
-using SDL_JoystickID = s32;
 
 namespace InputCommon {
 
 class SDLJoystick;
 
 using ButtonBindings =
-    std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerButton>, 20>;
+    std::array<std::pair<Settings::NativeButton::Values, SDL_GamepadButton>, 20>;
 using ZButtonBindings =
-    std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerAxis>, 2>;
+    std::array<std::pair<Settings::NativeButton::Values, SDL_GamepadAxis>, 2>;
 
 class SDLDriver : public InputEngine {
 public:
@@ -46,6 +43,7 @@ public:
 
     /// Get the nth joystick with the corresponding GUID
     std::shared_ptr<SDLJoystick> GetSDLJoystickBySDLID(SDL_JoystickID sdl_id);
+    std::shared_ptr<SDLJoystick> GetSDLJoystickByGamepadID(SDL_JoystickID sdl_id);
 
     /**
      * Check how many identical joysticks (by guid) were connected before the one with sdl_id and so
@@ -72,7 +70,7 @@ public:
     bool IsVibrationEnabled(const PadIdentifier& identifier) override;
 
 private:
-    void InitJoystick(int joystick_index);
+    void InitJoystick(SDL_JoystickID joystick_id);
     void CloseJoystick(SDL_Joystick* sdl_joystick);
 
     /// Needs to be called before SDL_QuitSubSystem.
@@ -92,7 +90,7 @@ private:
     Common::ParamPackage BuildMotionParam(int port, const Common::UUID& guid) const;
 
     Common::ParamPackage BuildParamPackageForBinding(
-        int port, const Common::UUID& guid, const SDL_GameControllerButtonBind& binding) const;
+        int port, const Common::UUID& guid, const SDL_GamepadBinding& binding) const;
 
     Common::ParamPackage BuildParamPackageForAnalog(PadIdentifier identifier, int axis_x,
                                                     int axis_y, float offset_x,

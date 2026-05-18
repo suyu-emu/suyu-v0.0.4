@@ -92,11 +92,13 @@ struct EnumMetadata {
 // AudioEngine must be specified discretely due to having existing but slightly different
 // canonicalizations
 // TODO (lat9nq): Remove explicit definition of AudioEngine/sink_id
-enum class AudioEngine : u32 { Auto, Cubeb, Sdl2, Null, Oboe, };
+enum class AudioEngine : u32 { Auto, Cubeb, Sdl3, Null, Oboe, };
 template<>
 inline std::vector<std::pair<std::string_view, AudioEngine>> EnumMetadata<AudioEngine>::Canonicalizations() {
     return {
-        {"auto", AudioEngine::Auto}, {"cubeb", AudioEngine::Cubeb}, {"sdl2", AudioEngine::Sdl2},
+        {"auto", AudioEngine::Auto},
+        {"cubeb", AudioEngine::Cubeb},
+        {"sdl3", AudioEngine::Sdl3},
         {"null", AudioEngine::Null}, {"oboe", AudioEngine::Oboe},
     };
 }

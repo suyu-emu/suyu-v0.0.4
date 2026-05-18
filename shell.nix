@@ -16,7 +16,7 @@ pkgs.mkShellNoCC {
     qt6.qtbase qt6.qtmultimedia qt6.qtwayland qt6.qttools
     qt6.qtwebengine qt6.qt5compat
     # eden-cli
-    SDL2
+    SDL3
     # optional components
     discord-rpc gamemode
   ];

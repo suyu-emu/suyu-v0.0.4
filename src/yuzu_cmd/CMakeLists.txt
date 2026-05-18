@@ -17,20 +17,20 @@ endfunction()
 
 if (ENABLE_OPENGL)
     list(APPEND OPENGL_SOURCES
-        emu_window/emu_window_sdl2_gl.cpp
-        emu_window/emu_window_sdl2_gl.h
+        emu_window/emu_window_sdl3_gl.cpp
+        emu_window/emu_window_sdl3_gl.h
     )
 else()
     set(OPENGL_SOURCES "")
 endif()
 
 add_executable(yuzu-cmd
-    emu_window/emu_window_sdl2.cpp
-    emu_window/emu_window_sdl2.h
-    emu_window/emu_window_sdl2_null.cpp
-    emu_window/emu_window_sdl2_null.h
-    emu_window/emu_window_sdl2_vk.cpp
-    emu_window/emu_window_sdl2_vk.h
+    emu_window/emu_window_sdl3.cpp
+    emu_window/emu_window_sdl3.h
+    emu_window/emu_window_sdl3_null.cpp
+    emu_window/emu_window_sdl3_null.h
+    emu_window/emu_window_sdl3_vk.cpp
+    emu_window/emu_window_sdl3_vk.h
     sdl_config.cpp
     sdl_config.h
     yuzu.cpp
@@ -50,7 +50,7 @@ target_link_libraries(yuzu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 create_resource("../../dist/eden.bmp" "yuzu_cmd/yuzu_icon.h" "yuzu_icon")
 target_include_directories(yuzu-cmd PRIVATE ${RESOURCES_DIR})
 
-target_link_libraries(yuzu-cmd PRIVATE SDL2::SDL2)
+target_link_libraries(yuzu-cmd PRIVATE SDL3::SDL3)
 
 if(UNIX AND NOT APPLE)
     install(TARGETS yuzu-cmd)

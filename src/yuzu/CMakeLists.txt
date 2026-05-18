@@ -466,6 +466,6 @@ if (NOT MSVC AND (APPLE OR NOT YUZU_STATIC_BUILD))
 endif()
 
 # Remember that the linker is incredibly stupid.
-target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto SDL2::SDL2)
+target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto SDL3::SDL3)
 
 create_target_directory_groups(yuzu)

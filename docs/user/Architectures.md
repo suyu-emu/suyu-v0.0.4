@@ -40,7 +40,7 @@ Windows/riscv64 doesn't exist, and may never (until corporate greed no longer co
 
 Android/riscv64 is interesting. While support for it may be added if and when RISC-V phones/handhelds ever go mainstream, arm64 devices will always be preferred due to NCE.
 
-Only Fedora/riscv64 has been tested, but in theory, every riscv64 distribution that has *at least* the standard build tools, Qt, FFmpeg, and SDL2 should work.
+Only Fedora/riscv64 has been tested, but in theory, every riscv64 distribution that has *at least* the standard build tools, Qt, FFmpeg, and SDL3 should work.
 
 ## Other
 

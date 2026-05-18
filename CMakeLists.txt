@@ -119,13 +119,13 @@ if (YUZU_STATIC_BUILD)
         set(QuaZip-Qt6_FORCE_BUNDLED ON)
 
         set(YUZU_USE_BUNDLED_FFMPEG ON)
-        set(YUZU_USE_BUNDLED_SDL2 ON)
+        set(YUZU_USE_BUNDLED_SDL3 ON)
         set(YUZU_USE_BUNDLED_OPENSSL ON)
 
         set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
     elseif(APPLE)
         set(YUZU_USE_BUNDLED_FFMPEG ON)
-        set(YUZU_USE_BUNDLED_SDL2 ON)
+        set(YUZU_USE_BUNDLED_SDL3 ON)
         set(YUZU_USE_BUNDLED_OPENSSL ON)
 
         # these libs do not properly provide static libs/let you do it with cmake
@@ -194,8 +194,7 @@ if(MSVC)
 endif()
 
 # TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
-cmake_dependent_option(YUZU_USE_EXTERNAL_SDL2 "Build SDL2 from external source" OFF "NOT MSVC;NOT ANDROID" OFF)
-cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_USE_BUNDLED_SDL3 "Download bundled SDL3 build" "${MSVC}" "NOT ANDROID" OFF)
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
@@ -360,10 +359,6 @@ if (CXX_GCC OR CXX_CLANG)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${march} -mtune=${mtune}")
     endif()
 endif()
-
-# Other presets, e.g. steamdeck
-# TODO(crueter): Just have every Linux/Windows use old sdl2
-set(YUZU_SYSTEM_PROFILE "generic" CACHE STRING "CMake and Externals profile to use. One of: generic, steamdeck")
 
 # Configure C++ standard
 # ===========================
@@ -562,7 +557,7 @@ if (NOT YUZU_STATIC_ROOM)
     endif()
 
     if (NOT ANDROID)
-        find_package(SDL2)
+        find_package(SDL3)
     endif()
 
     if (USE_DISCORD_PRESENCE)

@@ -65,14 +65,13 @@ export LIBGL_ALWAYS_SOFTWARE=1
 ```
 
 - Modify the generated ffmpeg.make (in build dir) if using multiple threads (base system `make` doesn't use `-j4`, so change for `gmake`).
-- If using OpenIndiana, due to a bug in SDL2's CMake configuration, audio driver defaults to SunOS `<sys/audioio.h>`, which does not exist on OpenIndiana. Using external or bundled SDL2 may solve this.
 - System OpenSSL generally does not work. Instead, use `-DYUZU_USE_BUNDLED_OPENSSL=ON` to use a bundled static OpenSSL, or build a system dependency from source.
 
 ## OmniOS
 
 Install `developer/gcc14` on OmniOS using pkgsrc.
 
-Since so many dependencies are missing on `OmniOS`, you may wish to use `-DCPMUTIL_FORCE_BUNDLED=ON -DYUZU_USE_EXTERNAL_SDL2=ON`
+Since so many dependencies are missing on `OmniOS`, you may wish to use `-DCPMUTIL_FORCE_BUNDLED=ON`
 
 For OmniOS you are required to build glslang yourself:
 ```sh

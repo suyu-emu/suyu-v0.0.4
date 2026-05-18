@@ -29,8 +29,7 @@ These options control dependencies.
 - `YUZU_TZDB_PATH` (string) Path to a pre-downloaded timezone database (useful for nixOS and Gentoo)
 - `YUZU_USE_BUNDLED_MOLTENVK` (ON, macOS only) Download bundled MoltenVK lib
 - `YUZU_USE_BUNDLED_OPENSSL` (ON for MSVC, Android, Solaris, and OpenBSD) Download bundled OpenSSL build
-- `YUZU_USE_EXTERNAL_SDL2` (OFF) Compiles SDL2 from source
-- `YUZU_USE_BUNDLED_SDL2` (ON for MSVC) Download a prebuilt SDL2
+- `YUZU_USE_BUNDLED_SDL3` (ON for MSVC) Download a prebuilt SDL3
 
 ### Miscellaneous
 
@@ -63,7 +62,7 @@ These options control executables and build flavors.
 
 **Desktop only**:
 
-- `YUZU_CMD` (ON) Compile the SDL2 frontend (eden-cli)
+- `YUZU_CMD` (ON) Compile the SDL-based frontend (eden-cli)
 - `YUZU_ROOM` (OFF) Compile dedicated room functionality into the main executable
 - `YUZU_ROOM_STANDALONE` (OFF) Compile a separate executable for room functionality
 - `YUZU_STATIC_ROOM` (OFF) Compile the room executable *only* as a static, portable executable
@@ -99,5 +98,6 @@ The following options were a part of Eden at one point, but have since been reti
 - `ENABLE_SDL2` - While technically possible to *not* use SDL2 on desktop, this is **NOT** a supported configuration under any means, and adding this matrix to our build system was not worth the effort.
 - `YUZU_USE_CPM` - This option once had a purpose, but that purpose has long since passed us by. *All* builds use CPMUtil to manage dependencies now.
   - If you want to *force* the usage of system dependencies, use `-DCPMUTIL_FORCE_SYSTEM=ON`.
+- `YUZU_USE_EXTERNAL_SDL` - This is now handled automatically. It was included even after CPM for purposes that have not applied for a very long time.
 
 See `src/dynarmic/CMakeLists.txt` for additional options--usually, these don't need changed

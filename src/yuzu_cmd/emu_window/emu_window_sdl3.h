@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -22,10 +23,10 @@ class InputSubsystem;
 enum class MouseButton;
 } // namespace InputCommon
 
-class EmuWindow_SDL2 : public Core::Frontend::EmuWindow {
+class EmuWindow_SDL3 : public Core::Frontend::EmuWindow {
 public:
-    explicit EmuWindow_SDL2(InputCommon::InputSubsystem* input_subsystem_, Core::System& system_);
-    ~EmuWindow_SDL2();
+    explicit EmuWindow_SDL3(InputCommon::InputSubsystem* input_subsystem_, Core::System& system_);
+    ~EmuWindow_SDL3();
 
     /// Whether the window is still open, and a close request hasn't yet been sent
     bool IsOpen() const;
@@ -85,7 +86,7 @@ protected:
     /// Is the window being shown?
     bool is_shown = true;
 
-    /// Internal SDL2 render window
+    /// Internal SDL3 render window
     SDL_Window* render_window{};
 
     /// Keeps track of how often to update the title bar during gameplay
