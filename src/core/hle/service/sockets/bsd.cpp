@@ -629,7 +629,7 @@ Errno BSD::BindImpl(s32 fd, std::span<const u8> addr) {
     if (!IsFileDescriptorValid(fd)) {
         return Errno::BADF;
     }
-    ASSERT(addr.size() == sizeof(SockAddrIn));
+    ASSERT(addr.size() >= 16);
     auto addr_in = GetValue<SockAddrIn>(addr);
 
     return Translate(file_descriptors[fd]->socket->Bind(Translate(addr_in)));
@@ -640,7 +640,7 @@ Errno BSD::ConnectImpl(s32 fd, std::span<const u8> addr) {
         return Errno::BADF;
     }
 
-    UNIMPLEMENTED_IF(addr.size() != sizeof(SockAddrIn));
+    ASSERT(addr.size() >= 16);
     auto addr_in = GetValue<SockAddrIn>(addr);
 
     const Errno result = Translate(file_descriptors[fd]->socket->Connect(Translate(addr_in)));
@@ -874,7 +874,7 @@ std::pair<s32, Errno> BSD::RecvFromImpl(s32 fd, u32 flags, std::vector<u8>& mess
         if (ret < 0) {
             addr.clear();
         } else {
-            ASSERT(addr.size() == sizeof(SockAddrIn));
+            ASSERT(addr.size() >= 16);
             const SockAddrIn result = Translate(addr_in);
             PutValue(addr, result);
         }
@@ -899,7 +899,7 @@ std::pair<s32, Errno> BSD::SendToImpl(s32 fd, u32 flags, std::span<const u8> mes
     Network::SockAddrIn addr_in;
     Network::SockAddrIn* p_addr_in = nullptr;
     if (!addr.empty()) {
-        ASSERT(addr.size() == sizeof(SockAddrIn));
+        ASSERT(addr.size() >= 16);
         auto guest_addr_in = GetValue<SockAddrIn>(addr);
         addr_in = Translate(guest_addr_in);
         p_addr_in = &addr_in;

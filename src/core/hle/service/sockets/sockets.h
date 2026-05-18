@@ -110,8 +110,9 @@ struct SockAddrIn {
     u8 family;
     u16 portno;
     std::array<u8, 4> ip;
-    std::array<u8, 8> zeroes;
+    std::array<u8, 248> zeroes;
 };
+static_assert(sizeof(SockAddrIn) == 0x100);
 
 enum class PollEvents : u16 {
     // Using Pascal case because IN is a macro on Windows.

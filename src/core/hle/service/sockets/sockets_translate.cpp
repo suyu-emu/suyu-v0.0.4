@@ -265,13 +265,9 @@ PollEvents Translate(Network::PollEvents flags) {
 }
 
 Network::SockAddrIn Translate(SockAddrIn value) {
-    if (value.len != 0 && value.len != sizeof(value) && value.len != 6) {
-        LOG_WARNING(Service, "Unexpected SockAddrIn len={}, expected 0, {}, or 6",
-                    value.len, sizeof(value));
-    }
-
+    // All lengths are valid, from [0 upto 256]
     return {
-        .family = Translate(static_cast<Domain>(value.family)),
+        .family = Translate(Domain(value.family)),
         .ip = value.ip,
         .portno = static_cast<u16>(value.portno >> 8 | value.portno << 8),
     };
@@ -279,7 +275,7 @@ Network::SockAddrIn Translate(SockAddrIn value) {
 
 SockAddrIn Translate(Network::SockAddrIn value) {
     return {
-        .len = sizeof(SockAddrIn),
+        .len = 16,
         .family = static_cast<u8>(Translate(value.family)),
         .portno = static_cast<u16>(value.portno >> 8 | value.portno << 8),
         .ip = value.ip,
