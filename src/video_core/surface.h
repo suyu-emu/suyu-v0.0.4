@@ -5,6 +5,8 @@
 
 #pragma once
 
+#undef PIXEL_FORMAT_LIST
+
 #include <climits>
 #include <utility>
 #include "common/assert.h"
@@ -128,7 +130,7 @@ namespace VideoCore::Surface {
     PIXEL_FORMAT_ELEM(S8_UINT_D24_UNORM, 1, 1, 32) \
     PIXEL_FORMAT_ELEM(D32_FLOAT_S8_UINT, 1, 1, 64)
 
-enum class PixelFormat {
+enum class PixelFormat : u32 {
 #define PIXEL_FORMAT_ELEM(name, ...) name,
     PIXEL_FORMAT_LIST
 #undef PIXEL_FORMAT_ELEM
@@ -191,6 +193,13 @@ constexpr u32 BitsPerBlock(PixelFormat format) noexcept {
 constexpr u32 BytesPerBlock(PixelFormat pixel_format) {
     return BitsPerBlock(pixel_format) / CHAR_BIT;
 }
+
+}
+
+#include "video_core/gpu.h"
+#include "video_core/textures/texture.h"
+
+namespace VideoCore::Surface {
 
 SurfaceTarget SurfaceTargetFromTextureType(Tegra::Texture::TextureType texture_type);
 bool SurfaceTargetIsLayered(SurfaceTarget target);
