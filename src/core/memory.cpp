@@ -58,9 +58,9 @@ struct Memory::Impl {
 
 #ifdef __ANDROID__
         heap_tracker.emplace(system.DeviceMemory().buffer);
-        buffer = std::addressof(*heap_tracker);
+        host_buffer = std::addressof(*heap_tracker);
 #else
-        buffer = std::addressof(system.DeviceMemory().buffer);
+        host_buffer = std::addressof(system.DeviceMemory().buffer);
 #endif
     }
 
@@ -75,8 +75,7 @@ struct Memory::Impl {
                  Common::PageType::Memory);
 
         if (current_page_table->fastmem_arena) {
-            buffer->Map(GetInteger(base), GetInteger(target) - DramMemoryMap::Base, size, perms,
-                        separate_heap);
+            host_buffer->Map(GetInteger(base), GetInteger(target) - DramMemoryMap::Base, size, perms, separate_heap);
         }
     }
 
@@ -88,7 +87,7 @@ struct Memory::Impl {
                  Common::PageType::Unmapped);
 
         if (current_page_table->fastmem_arena) {
-            buffer->Unmap(GetInteger(base), size, separate_heap);
+            host_buffer->Unmap(GetInteger(base), size, separate_heap);
         }
     }
 
@@ -107,7 +106,7 @@ struct Memory::Impl {
             switch (page_type) {
             case Common::PageType::RasterizerCachedMemory:
                 if (protect_bytes > 0) {
-                    buffer->Protect(protect_begin, protect_bytes, perms);
+                    host_buffer->Protect(protect_begin, protect_bytes, perms);
                     protect_bytes = 0;
                 }
                 break;
@@ -119,7 +118,7 @@ struct Memory::Impl {
         }
 
         if (protect_bytes > 0) {
-            buffer->Protect(protect_begin, protect_bytes, perms);
+            host_buffer->Protect(protect_begin, protect_bytes, perms);
         }
     }
 
@@ -233,225 +232,138 @@ struct Memory::Impl {
         return string;
     }
 
-    bool WalkBlock(const Common::ProcessAddress addr, const std::size_t size, auto on_unmapped,
-                   auto on_memory, auto on_rasterizer, auto increment) {
-        const auto& page_table = *current_page_table;
+    template<typename F1, typename F2, typename F3>
+    inline bool WalkBlock(const Common::ProcessAddress addr, const std::size_t size, F1&& on_unmapped, F2&& on_memory, F3&& on_rasterizer) {
+        std::size_t offset = 0;
+        if (!AddressSpaceContains(*current_page_table, addr, size)) {
+            on_unmapped(offset, size, addr);
+            return false;
+        }
         std::size_t remaining_size = size;
         std::size_t page_index = addr >> YUZU_PAGEBITS;
         std::size_t page_offset = addr & YUZU_PAGEMASK;
         bool user_accessible = true;
-
-        if (!AddressSpaceContains(page_table, addr, size)) [[unlikely]] {
-            on_unmapped(size, addr);
-            return false;
-        }
-
-        while (remaining_size) {
-            const std::size_t copy_amount =
-                (std::min)(static_cast<std::size_t>(YUZU_PAGESIZE) - page_offset, remaining_size);
-            const auto current_vaddr =
-                static_cast<u64>((page_index << YUZU_PAGEBITS) + page_offset);
-
-            const auto [pointer, type] = page_table.entries[page_index].ptr.PointerType();
+        while (remaining_size != 0) {
+            const std::size_t copy_amount = (std::min)(std::size_t(YUZU_PAGESIZE) - page_offset, remaining_size);
+            const auto current_vaddr = u64((page_index << YUZU_PAGEBITS) + page_offset);
+            const auto [pointer, type] = current_page_table->entries[page_index].ptr.PointerType();
             switch (type) {
             case Common::PageType::Unmapped: {
                 user_accessible = false;
-                on_unmapped(copy_amount, current_vaddr);
+                on_unmapped(offset, copy_amount, current_vaddr);
                 break;
             }
             case Common::PageType::Memory: {
-                u8* mem_ptr =
-                    reinterpret_cast<u8*>(pointer + page_offset + (page_index << YUZU_PAGEBITS));
-                on_memory(copy_amount, mem_ptr);
+                u8* mem_ptr = reinterpret_cast<u8*>(pointer + page_offset + (page_index << YUZU_PAGEBITS));
+                on_memory(offset, copy_amount, mem_ptr);
                 break;
             }
             case Common::PageType::DebugMemory: {
-                u8* const mem_ptr{GetPointerFromDebugMemory(current_vaddr)};
-                on_memory(copy_amount, mem_ptr);
+                u8* const mem_ptr = GetPointerFromDebugMemory(current_vaddr);
+                on_memory(offset, copy_amount, mem_ptr);
                 break;
             }
             case Common::PageType::RasterizerCachedMemory: {
-                u8* const host_ptr{GetPointerFromRasterizerCachedMemory(current_vaddr)};
-                on_rasterizer(current_vaddr, copy_amount, host_ptr);
+                u8* const host_ptr = GetPointerFromRasterizerCachedMemory(current_vaddr);
+                on_rasterizer(current_vaddr, offset, copy_amount, host_ptr);
                 break;
             }
             default:
                 UNREACHABLE();
             }
-
             page_index++;
             page_offset = 0;
-            increment(copy_amount);
+            offset += copy_amount;
             remaining_size -= copy_amount;
         }
-
         return user_accessible;
     }
 
-    template <bool UNSAFE>
-    bool ReadBlockImpl(const Common::ProcessAddress src_addr, void* dest_buffer,
-                       const std::size_t size) {
-        return WalkBlock(
-            src_addr, size,
-            [src_addr, size, &dest_buffer](const std::size_t copy_amount,
-                                           const Common::ProcessAddress current_vaddr) {
-                LOG_ERROR(HW_Memory,
-                          "Unmapped ReadBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
-                          GetInteger(current_vaddr), GetInteger(src_addr), size);
-               std::memset(dest_buffer, 0, copy_amount);
-            },
-            [&](const std::size_t copy_amount, const u8* const src_ptr) {
-                std::memcpy(dest_buffer, src_ptr, copy_amount);
-            },
-            [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
-                const u8* const host_ptr) {
-                if constexpr (!UNSAFE) {
-                    HandleRasterizerDownload(GetInteger(current_vaddr), copy_amount);
-                }
-                std::memcpy(dest_buffer, host_ptr, copy_amount);
-            },
-            [&](const std::size_t copy_amount) {
-                dest_buffer = static_cast<u8*>(dest_buffer) + copy_amount;
-            });
-    }
-
-    bool ReadBlock(const Common::ProcessAddress src_addr, void* dest_buffer,
-                   const std::size_t size) {
-        // TODO: If you want a proper multithreaded implementation (w/o cache coherency fights)
-        // use TBB or something that splits the job properly
-        return ReadBlockImpl<false>(src_addr, dest_buffer, size);
-    }
-
-    bool ReadBlockUnsafe(const Common::ProcessAddress src_addr, void* dest_buffer,
-                         const std::size_t size) {
-        return ReadBlockImpl<true>(src_addr, dest_buffer, size);
-    }
-
-    const u8* GetSpan(const VAddr src_addr, const std::size_t size) const {
-        if (current_page_table->entries[src_addr >> YUZU_PAGEBITS].block ==
-            current_page_table->entries[(src_addr + size) >> YUZU_PAGEBITS].block) {
-            return GetPointerSilent(src_addr);
-        }
-        return nullptr;
-    }
-
-    u8* GetSpan(const VAddr src_addr, const std::size_t size) {
-        if (current_page_table->entries[src_addr >> YUZU_PAGEBITS].block ==
-            current_page_table->entries[(src_addr + size) >> YUZU_PAGEBITS].block) {
-            return GetPointerSilent(src_addr);
-        }
-        return nullptr;
-    }
-
-    template <bool UNSAFE>
-    bool WriteBlockImpl(const Common::ProcessAddress dest_addr, const void* src_buffer,
-                        const std::size_t size) {
-        return WalkBlock(
-            dest_addr, size,
-            [dest_addr, size](const std::size_t copy_amount,
-                              const Common::ProcessAddress current_vaddr) {
-                LOG_ERROR(HW_Memory,
-                          "Unmapped WriteBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
-                          GetInteger(current_vaddr), GetInteger(dest_addr), size);
-            },
-            [&](const std::size_t copy_amount, u8* const dest_ptr) {
-                std::memcpy(dest_ptr, src_buffer, copy_amount);
-            },
-            [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
-                u8* const host_ptr) {
-                if constexpr (!UNSAFE) {
-                    HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
-                }
-                std::memcpy(host_ptr, src_buffer, copy_amount);
-            },
-            [&](const std::size_t copy_amount) {
-                src_buffer = static_cast<const u8*>(src_buffer) + copy_amount;
-            });
-    }
-
-    bool WriteBlock(const Common::ProcessAddress dest_addr, const void* src_buffer,
-                    const std::size_t size) {
-        // TODO: If you want a proper multithreaded implementation (w/o cache coherency fights)
-        // use TBB or something that splits the job properly
-        return WriteBlockImpl<false>(dest_addr, src_buffer, size);
-    }
-
-    bool WriteBlockUnsafe(const Common::ProcessAddress dest_addr, const void* src_buffer,
-                          const std::size_t size) {
-        return WriteBlockImpl<true>(dest_addr, src_buffer, size);
-    }
-
-    bool ZeroBlock(const Common::ProcessAddress dest_addr, const std::size_t size) {
-        return WalkBlock(
-            dest_addr, size,
-            [dest_addr, size](const std::size_t copy_amount,
-                              const Common::ProcessAddress current_vaddr) {
-                LOG_ERROR(HW_Memory,
-                          "Unmapped ZeroBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
-                          GetInteger(current_vaddr), GetInteger(dest_addr), size);
-            },
-            [](const std::size_t copy_amount, u8* const dest_ptr) {
-               std::memset(dest_ptr, 0, copy_amount);
-            },
-            [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
-                u8* const host_ptr) {
-                HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
-               std::memset(host_ptr, 0, copy_amount);
-            },
-            [](const std::size_t copy_amount) {});
-    }
-
-    bool CopyBlock(Common::ProcessAddress dest_addr, Common::ProcessAddress src_addr,
-                   const std::size_t size) {
-        return WalkBlock(
-            dest_addr, size,
-            [&](const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
-                LOG_ERROR(HW_Memory,
-                          "Unmapped CopyBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
-                          GetInteger(current_vaddr), GetInteger(src_addr), size);
-                ZeroBlock(dest_addr, copy_amount);
-            },
-            [&](const std::size_t copy_amount, const u8* const src_ptr) {
-                WriteBlockImpl<false>(dest_addr, src_ptr, copy_amount);
-            },
-            [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
-                u8* const host_ptr) {
+    bool ReadBlockImpl(const Common::ProcessAddress addr, void* buffer, const std::size_t size, bool unsafe) {
+        return WalkBlock(addr, size,
+        [addr, size, &buffer](const std::size_t offset, const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
+            LOG_ERROR(HW_Memory, "Unmapped @ {:#016X} (start address = {:#016X}, size = {})", GetInteger(current_vaddr), GetInteger(addr), size);
+            std::memset(reinterpret_cast<u8*>(buffer) + offset, 0, copy_amount);
+        },
+        [&](const std::size_t offset, const std::size_t copy_amount, const u8* const ptr) {
+            std::memcpy(reinterpret_cast<u8*>(buffer) + offset, ptr, copy_amount);
+        },
+        [&](const Common::ProcessAddress current_vaddr, const std::size_t offset, const std::size_t copy_amount, const u8* const ptr) {
+            if (!unsafe) {
                 HandleRasterizerDownload(GetInteger(current_vaddr), copy_amount);
-                WriteBlockImpl<false>(dest_addr, host_ptr, copy_amount);
-            },
-            [&](const std::size_t copy_amount) {
-                dest_addr += copy_amount;
-                src_addr += copy_amount;
-            });
+            }
+            std::memcpy(reinterpret_cast<u8*>(buffer) + offset, ptr, copy_amount);
+        });
+    }
+
+    [[nodiscard]] inline const u8* GetSpan(const VAddr addr, const std::size_t size) const noexcept {
+        return (current_page_table->entries[addr >> YUZU_PAGEBITS].block == current_page_table->entries[(addr + size) >> YUZU_PAGEBITS].block) ? GetPointerSilent(addr) : nullptr;
+    }
+    [[nodiscard]] inline u8* GetSpan(const VAddr addr, const std::size_t size) noexcept {
+        return (current_page_table->entries[addr >> YUZU_PAGEBITS].block == current_page_table->entries[(addr + size) >> YUZU_PAGEBITS].block) ? GetPointerSilent(addr) : nullptr;
+    }
+
+    bool WriteBlockImpl(const Common::ProcessAddress addr, const void* buffer, const std::size_t size, bool unsafe) {
+        return WalkBlock(addr, size,
+        [addr, size](const std::size_t offset, const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
+            LOG_ERROR(HW_Memory, "Unmapped @ 0x{:016X} (start address = 0x{:016X}, size = {})", GetInteger(current_vaddr), GetInteger(addr), size);
+        },
+        [&](const std::size_t offset, const std::size_t copy_amount, u8* const ptr) {
+            std::memcpy(ptr, reinterpret_cast<u8 const*>(buffer) + offset, copy_amount);
+        },
+        [&](const Common::ProcessAddress current_vaddr, const std::size_t offset, const std::size_t copy_amount, u8* const ptr) {
+            if (!unsafe) {
+                HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
+            }
+            std::memcpy(ptr, reinterpret_cast<u8 const*>(buffer) + offset, copy_amount);
+        });
+    }
+
+    bool ZeroBlock(const Common::ProcessAddress addr, const std::size_t size) {
+        return WalkBlock(addr, size,
+        [addr, size](const std::size_t offset, const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
+            LOG_ERROR(HW_Memory, "Unmapped @ {:#016X} (start address = {:#016X}, size = {})", GetInteger(current_vaddr), GetInteger(addr), size);
+        },
+        [=](const std::size_t offset, const std::size_t copy_amount, u8* const ptr) {
+            std::memset(ptr, 0, copy_amount);
+        },
+        [&](const Common::ProcessAddress current_vaddr, const std::size_t offset, const std::size_t copy_amount, u8* const ptr) {
+            HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
+            std::memset(ptr, 0, copy_amount);
+        });
+    }
+
+    bool CopyBlock(Common::ProcessAddress dest_addr, Common::ProcessAddress src_addr, const std::size_t size) {
+        return WalkBlock(dest_addr, size,
+        [&](const std::size_t offset, const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
+            LOG_ERROR(HW_Memory, "Unmapped @ {:#016X} (start address = {:#016X}, size = {})", GetInteger(current_vaddr), GetInteger(src_addr), size);
+            ZeroBlock(dest_addr + offset, copy_amount);
+        },
+        [&](const std::size_t offset, const std::size_t copy_amount, const u8* const ptr) {
+            WriteBlockImpl(dest_addr + offset, ptr, copy_amount, false);
+        },
+        [&](const Common::ProcessAddress current_vaddr, const std::size_t offset, const std::size_t copy_amount, u8* const ptr) {
+            HandleRasterizerDownload(GetInteger(current_vaddr), copy_amount);
+            WriteBlockImpl(dest_addr + offset, ptr, copy_amount, false);
+        });
     }
 
     template <typename Callback>
-    Result PerformCacheOperation(Common::ProcessAddress dest_addr, std::size_t size,
-                                 Callback&& cb) {
-        class InvalidMemoryException : public std::exception {};
-
-        try {
-            WalkBlock(
-                dest_addr, size,
-                [&](const std::size_t block_size, const Common::ProcessAddress current_vaddr) {
-                    LOG_ERROR(HW_Memory, "Unmapped cache maintenance @ {:#018X}",
-                              GetInteger(current_vaddr));
-                    throw InvalidMemoryException();
-                },
-                [&](const std::size_t block_size, u8* const host_ptr) {},
-                [&](const Common::ProcessAddress current_vaddr, const std::size_t block_size,
-                    u8* const host_ptr) { cb(current_vaddr, block_size); },
-                [](const std::size_t block_size) {});
-        } catch (InvalidMemoryException&) {
-            return Kernel::ResultInvalidCurrentMemory;
-        }
-
-        return ResultSuccess;
+    Result PerformCacheOperation(Common::ProcessAddress dest_addr, std::size_t size, Callback&& cb) {
+        bool had_unmapped = false;
+        WalkBlock(dest_addr, size,
+            [&](const std::size_t offset, const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
+                LOG_ERROR(HW_Memory, "Unmapped @ {:#018X}", GetInteger(current_vaddr));
+                had_unmapped = true;
+            },
+            [](const std::size_t offset, const std::size_t copy_amount, u8* const host_ptr) {},
+            [&](const Common::ProcessAddress current_vaddr, const std::size_t offset, const std::size_t copy_amount, u8* const host_ptr) { cb(current_vaddr, offset, copy_amount); }
+        );
+        return had_unmapped ? Kernel::ResultInvalidCurrentMemory : ResultSuccess;
     }
 
     Result InvalidateDataCache(Common::ProcessAddress dest_addr, std::size_t size) {
-        auto on_rasterizer = [&](const Common::ProcessAddress current_vaddr,
-                                 const std::size_t block_size) {
+        auto on_rasterizer = [&](const Common::ProcessAddress current_vaddr, const std::size_t offset, const std::size_t block_size) {
             // dc ivac: Invalidate to point of coherency
             // GPU flush -> CPU invalidate
             HandleRasterizerDownload(GetInteger(current_vaddr), block_size);
@@ -460,8 +372,7 @@ struct Memory::Impl {
     }
 
     Result StoreDataCache(Common::ProcessAddress dest_addr, std::size_t size) {
-        auto on_rasterizer = [&](const Common::ProcessAddress current_vaddr,
-                                 const std::size_t block_size) {
+        auto on_rasterizer = [&](const Common::ProcessAddress current_vaddr, const std::size_t offset, const std::size_t block_size) {
             // dc cvac: Store to point of coherency
             // CPU flush -> GPU invalidate
             HandleRasterizerWrite(GetInteger(current_vaddr), block_size);
@@ -470,8 +381,7 @@ struct Memory::Impl {
     }
 
     Result FlushDataCache(Common::ProcessAddress dest_addr, std::size_t size) {
-        auto on_rasterizer = [&](const Common::ProcessAddress current_vaddr,
-                                 const std::size_t block_size) {
+        auto on_rasterizer = [&](const Common::ProcessAddress current_vaddr, const std::size_t offset, const std::size_t block_size) {
             // dc civac: Store to point of coherency, and invalidate from cache
             // CPU flush -> GPU invalidate
             HandleRasterizerWrite(GetInteger(current_vaddr), block_size);
@@ -487,7 +397,7 @@ struct Memory::Impl {
         if (current_page_table->fastmem_arena) {
             const auto perm{debug ? Common::MemoryPermission{}
                                   : Common::MemoryPermission::ReadWrite};
-            buffer->Protect(vaddr, size, perm);
+            host_buffer->Protect(vaddr, size, perm);
         }
 
         // Iterate over a contiguous CPU address space, marking/unmarking the region.
@@ -547,7 +457,7 @@ struct Memory::Impl {
             if (!cached) {
                 perm |= Common::MemoryPermission::Write;
             }
-            buffer->Protect(vaddr, size, perm);
+            host_buffer->Protect(vaddr, size, perm);
         }
 
         // Iterate over a contiguous CPU address space, which corresponds to the specified GPU
@@ -859,9 +769,9 @@ struct Memory::Impl {
     std::mutex sys_core_guard;
 #ifdef __ANDROID__
     std::optional<Common::HeapTracker> heap_tracker;
-    Common::HeapTracker* buffer{};
+    Common::HeapTracker* host_buffer{};
 #else
-    Common::HostMemory* buffer{};
+    Common::HostMemory* host_buffer{};
 #endif
 };
 
@@ -989,12 +899,12 @@ std::string Memory::ReadCString(Common::ProcessAddress vaddr, std::size_t max_le
 
 bool Memory::ReadBlock(const Common::ProcessAddress src_addr, void* dest_buffer,
                        const std::size_t size) {
-    return impl->ReadBlock(src_addr, dest_buffer, size);
+    return impl->ReadBlockImpl(src_addr, dest_buffer, size, false);
 }
 
 bool Memory::ReadBlockUnsafe(const Common::ProcessAddress src_addr, void* dest_buffer,
                              const std::size_t size) {
-    return impl->ReadBlockUnsafe(src_addr, dest_buffer, size);
+    return impl->ReadBlockImpl(src_addr, dest_buffer, size, true);
 }
 
 const u8* Memory::GetSpan(const VAddr src_addr, const std::size_t size) const {
@@ -1007,12 +917,12 @@ u8* Memory::GetSpan(const VAddr src_addr, const std::size_t size) {
 
 bool Memory::WriteBlock(const Common::ProcessAddress dest_addr, const void* src_buffer,
                         const std::size_t size) {
-    return impl->WriteBlock(dest_addr, src_buffer, size);
+    return impl->WriteBlockImpl(dest_addr, src_buffer, size, false);
 }
 
 bool Memory::WriteBlockUnsafe(const Common::ProcessAddress dest_addr, const void* src_buffer,
                               const std::size_t size) {
-    return impl->WriteBlockUnsafe(dest_addr, src_buffer, size);
+    return impl->WriteBlockImpl(dest_addr, src_buffer, size, true);
 }
 
 bool Memory::CopyBlock(Common::ProcessAddress dest_addr, Common::ProcessAddress src_addr,
@@ -1066,7 +976,7 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
 
 #ifdef __ANDROID__
     if (!rasterizer && mapped) {
-        impl->buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
+        impl->host_buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
     }
 #endif
 
@@ -1075,7 +985,7 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
 
 bool Memory::InvalidateSeparateHeap(void* fault_address) {
 #ifdef __ANDROID__
-    return impl->buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
+    return impl->host_buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
 #else
     return false;
 #endif
