@@ -3,6 +3,7 @@
 
 // Qt on macOS doesn't define VMA shit
 #include <boost/algorithm/string/split.hpp>
+#include "common/fs/path_util.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "frontend_common/settings_generator.h"
@@ -635,6 +636,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 
     QString game_path;
     bool should_launch_qlaunch = false;
+    bool should_launch_hlaunch = false;
     bool should_launch_setup = false;
     bool has_gamepath = false;
     bool is_fullscreen = false;
@@ -676,6 +678,8 @@ MainWindow::MainWindow(bool has_broken_vulkan)
             players[0].profile_name = args[++i].toStdString();
         } else if (args[i] == QStringLiteral("-qlaunch")) {
             should_launch_qlaunch = true;
+        } else if (args[i] == QStringLiteral("-hlaunch")) {
+            should_launch_hlaunch = true;
         } else if (args[i] == QStringLiteral("-setup")) {
             should_launch_setup = true;
         } else {
@@ -694,10 +698,12 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     } else {
         if (!game_path.isEmpty()) {
             BootGame(game_path, ApplicationAppletParameters());
-        } else {
-            if (should_launch_qlaunch) {
-                LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
-            }
+        } else if (should_launch_qlaunch) {
+            LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
+        } else if (should_launch_hlaunch) {
+            std::filesystem::path const sd_dir = Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir);
+            auto const hbl_path = (sd_dir / "atmosphere" / "hbl.nsp").string();
+            BootGame(QString::fromStdString(hbl_path), ApplicationAppletParameters());
         }
     }
 }

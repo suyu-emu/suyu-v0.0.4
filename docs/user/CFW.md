@@ -9,3 +9,11 @@ At the moment of writing, we do not support CFW such as Atmosphere, due to:
 We do however, maintain HLE compatibility with the former mentioned CFW, applications that require Atmosphere to run will run fine in the emulator without any adjustments.
 
 If they don't run - then that's a bug!
+
+## Atmosphere
+
+Fusee Galee, the bootloader and other low-level mechanisms are not emulated at the moment.
+
+Having OFW is recommended, but may not be required (untested).
+
+Extract the contents of Atmosphere into `sdmc`. Then to launch simply use `-hlaunch` instead (orthogonal to `-qlaunch`).

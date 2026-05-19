@@ -10,6 +10,9 @@ There are two main applications, an SDL-based app (`eden-cli`) and a Qt based ap
 - `-u <number>`: Select the index of the user to load as.
 - `-input-profile <name>`: Specifies input profile name to use (for player #0 only).
 - `-qlaunch`: Launch QLaunch.
+- `-hlaunch`: Launch homebrew launcher `nx-hbloader`.
+    - Requires a copy of Atmosphere to be extracted onto `sdmc`.
+    - This is a shorthand for `<eden folder>/sdmc/atmosphere/hbl.nsp`.
 - `-setup`: Launch setup applet.
 
 ## eden-cli
