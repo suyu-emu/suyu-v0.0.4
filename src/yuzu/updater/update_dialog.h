@@ -15,7 +15,7 @@ class UpdateDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit UpdateDialog(const Common::Net::Release &release, QWidget* parent = nullptr);
+    explicit UpdateDialog(const Common::Net::Release& release, QWidget* parent = nullptr);
     ~UpdateDialog();
 
 private slots:
@@ -23,6 +23,6 @@ private slots:
 
 private:
     Ui::UpdateDialog* ui;
-    QList<QRadioButton *> m_buttons;
+    QList<QRadioButton*> m_buttons;
     Common::Net::Asset m_asset;
 };

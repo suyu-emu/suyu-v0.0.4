@@ -4,14 +4,7 @@
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
 #include <functional>
-#include <iosfwd>
-#include <iterator>
-#include <string>
-#include <tuple>
-#include <typeinfo>
-#include <utility>
 #include <vector>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -34,52 +27,15 @@
 #include <vulkan/vulkan_core.h>
 
 #include "common/common_types.h"
-#include "common/dynamic_library.h"
-#include "common/logging.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/core.h"
 #include "qt_common/config/uisettings.h"
-#include "qt_common/qt_common.h"
+#include "qt_common/util/vk.h"
 #include "ui_configure_graphics.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
 #include "yuzu/configuration/shared_widget.h"
-#include "yuzu/vk_device_info.h"
-
-static const std::vector<VkPresentModeKHR> default_present_modes{VK_PRESENT_MODE_IMMEDIATE_KHR,
-                                                                 VK_PRESENT_MODE_FIFO_KHR};
-
-// Converts a setting to a present mode (or vice versa)
-static constexpr VkPresentModeKHR VSyncSettingToMode(Settings::VSyncMode mode) {
-    switch (mode) {
-    case Settings::VSyncMode::Immediate:
-        return VK_PRESENT_MODE_IMMEDIATE_KHR;
-    case Settings::VSyncMode::Mailbox:
-        return VK_PRESENT_MODE_MAILBOX_KHR;
-    case Settings::VSyncMode::Fifo:
-        return VK_PRESENT_MODE_FIFO_KHR;
-    case Settings::VSyncMode::FifoRelaxed:
-        return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
-    default:
-        return VK_PRESENT_MODE_FIFO_KHR;
-    }
-}
-
-static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode) {
-    switch (mode) {
-    case VK_PRESENT_MODE_IMMEDIATE_KHR:
-        return Settings::VSyncMode::Immediate;
-    case VK_PRESENT_MODE_MAILBOX_KHR:
-        return Settings::VSyncMode::Mailbox;
-    case VK_PRESENT_MODE_FIFO_KHR:
-        return Settings::VSyncMode::Fifo;
-    case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
-        return Settings::VSyncMode::FifoRelaxed;
-    default:
-        return Settings::VSyncMode::Fifo;
-    }
-}
 
 ConfigureGraphics::ConfigureGraphics(
     const Core::System& system_, std::vector<VkDeviceInfo::Record>& records_,

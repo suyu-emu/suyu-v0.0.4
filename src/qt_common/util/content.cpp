@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "core/file_sys/card_image.h"
 #include "qt_common/util/content.h"
 #include "qt_common/util/game.h"
 
@@ -494,5 +495,94 @@ void ImportDataDir(FrontendCommon::DataManager::DataDir data_dir, const std::str
     });
 }
 
-// TODO(crueter): Port InstallFirmware et al. from QML Branch
+bool CheckKeys() {
+    if (!ContentManager::AreKeysPresent()) {
+        QtCommon::Frontend::Information(
+            tr("Keys not installed"),
+            tr("Install decryption keys and restart Eden before attempting to install firmware."));
+        return false;
+    }
+
+    return true;
+}
+
+void InstallFirmware() {
+    if (!CheckKeys())
+        return;
+
+    const QString firmware_source_location =
+        QtCommon::Frontend::GetExistingDirectory(tr("Select Dumped Firmware Source Location"), {});
+
+    if (!firmware_source_location.isEmpty())
+        QtCommon::Content::InstallFirmware(firmware_source_location, false);
+}
+
+void InstallFirmwareZip() {
+    if (!CheckKeys())
+        return;
+
+    const QString firmware_zip_location = QtCommon::Frontend::GetOpenFileName(
+        tr("Select Dumped Firmware ZIP"), {}, tr("Zipped Archives (*.zip)"));
+
+    if (firmware_zip_location.isEmpty())
+        return;
+
+    const QString qCacheDir = QtCommon::Content::UnzipFirmwareToTmp(firmware_zip_location);
+
+    // In this case, it has to be done recursively, since sometimes people
+    // will pack it into a subdirectory after dumping
+    if (!qCacheDir.isEmpty()) {
+        QtCommon::Content::InstallFirmware(qCacheDir, true);
+        std::error_code ec;
+        std::filesystem::remove_all(std::filesystem::temp_directory_path() / "eden" / "firmware",
+                                    ec);
+
+        if (ec) {
+            QtCommon::Frontend::Warning(
+                tr("Firmware cleanup failed"),
+                tr("Failed to clean up extracted firmware cache.\n"
+                   "Check write permissions in the system temp directory and try "
+                   "again.\nOS reported error: %1")
+                    .arg(QString::fromStdString(ec.message())));
+        }
+    }
+}
+
+void configureFilesystemProvider(const std::string& filepath) {
+    // Ensure all NCAs are registered before launching the game
+    const auto file = QtCommon::vfs->OpenFile(filepath, FileSys::OpenMode::Read);
+    if (!file) {
+        return;
+    }
+
+    auto loader = Loader::GetLoader(*QtCommon::system, file);
+    if (!loader) {
+        return;
+    }
+
+    const auto file_type = loader->GetFileType();
+    if (file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) {
+        return;
+    }
+
+    u64 program_id = 0;
+    const auto res2 = loader->ReadProgramId(program_id);
+    if (res2 == Loader::ResultStatus::Success && file_type == Loader::FileType::NCA) {
+        QtCommon::provider->AddEntry(FileSys::TitleType::Application,
+                                     FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()),
+                                     program_id, file);
+    } else if (res2 == Loader::ResultStatus::Success &&
+               (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
+        const auto nsp = file_type == Loader::FileType::NSP
+                             ? std::make_shared<FileSys::NSP>(file)
+                             : FileSys::XCI{file}.GetSecurePartitionNSP();
+        for (const auto& title : nsp->GetNCAs()) {
+            for (const auto& entry : title.second) {
+                QtCommon::provider->AddEntry(entry.first.first, entry.first.second, title.first,
+                                             entry.second->GetBaseFile());
+            }
+        }
+    }
+}
+
 } // namespace QtCommon::Content

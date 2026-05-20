@@ -11,7 +11,6 @@
 #endif
 
 #include "common/logging.h"
-#include "yuzu/debugger/console.h"
 #include "qt_common/config/uisettings.h"
 #include "yuzu/debugger/console.h"
 

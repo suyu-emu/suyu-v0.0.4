@@ -1113,10 +1113,6 @@ void GameList::LoadInterfaceLayout() {
     header->resizeSection(COLUMN_NAME, 840);
 }
 
-const QStringList GameList::supported_file_extensions = {
-    QStringLiteral("nso"), QStringLiteral("nro"), QStringLiteral("nca"),
-    QStringLiteral("xci"), QStringLiteral("nsp"), QStringLiteral("kip")};
-
 void GameList::RefreshGameDirectory() {
     // Reset the externals watcher whenever the game list is reloaded,
     // primarily ensures that new titles and external dirs are caught.

@@ -715,8 +715,8 @@ function(AddCIPackage)
             "${${ARTIFACT_PACKAGE}_SOURCE_DIR}" PARENT_SCOPE)
 
         if (PKG_ARGS_MODULE)
-            list(APPEND CMAKE_PREFIX_PATH "${${ARTIFACT_PACKAGE}_SOURCE_DIR}")
-            set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
+            list(PREPEND CMAKE_PREFIX_PATH "${${ARTIFACT_PACKAGE}_SOURCE_DIR}")
+            Propagate(CMAKE_PREFIX_PATH)
         endif()
     else()
         find_package(${ARTIFACT_PACKAGE} ${ARTIFACT_MIN_VERSION} REQUIRED)
@@ -730,7 +730,7 @@ function(AddQt version)
     endif()
 
     AddCIPackage(
-        NAME Qt
+        NAME qt
         PACKAGE Qt6
         VERSION ${version}
         MIN_VERSION 6
@@ -740,5 +740,8 @@ function(AddQt version)
             freebsd-amd64 solaris-amd64 openbsd-amd64
         MODULE)
 
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
+    find_package(Qt6 REQUIRED PATHS ${Qt6_SOURCE_DIR} NO_DEFAULT_PATH)
+
+    Propagate(CMAKE_PREFIX_PATH)
+    Propagate(Qt6_SOURCE_DIR)
 endfunction()

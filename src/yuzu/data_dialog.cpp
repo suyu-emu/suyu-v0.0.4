@@ -63,27 +63,31 @@ DataWidget::DataWidget(FrontendCommon::DataManager::DataDir data_dir,
 
 void DataWidget::clear() {
     std::optional<std::string> user_id = selectProfile();
-    if (!user_id) return;
+    if (!user_id)
+        return;
     QtCommon::Content::ClearDataDir(m_dir, user_id.value());
     scan();
 }
 
 void DataWidget::open() {
     std::optional<std::string> user_id = selectProfile();
-    if (!user_id) return;
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
-        QString::fromStdString(FrontendCommon::DataManager::GetDataDirString(m_dir, user_id.value()))));
+    if (!user_id)
+        return;
+    QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(
+        FrontendCommon::DataManager::GetDataDirString(m_dir, user_id.value()))));
 }
 
 void DataWidget::upload() {
     std::optional<std::string> user_id = selectProfile();
-    if (!user_id) return;
+    if (!user_id)
+        return;
     QtCommon::Content::ExportDataDir(m_dir, user_id.value(), m_exportName);
 }
 
 void DataWidget::download() {
     std::optional<std::string> user_id = selectProfile();
-    if (!user_id) return;
+    if (!user_id)
+        return;
     QtCommon::Content::ImportDataDir(m_dir, user_id.value(), std::bind(&DataWidget::scan, this));
 }
 
@@ -107,7 +111,8 @@ std::optional<std::string> DataWidget::selectProfile() {
     std::string user_id{};
     if (m_dir == FrontendCommon::DataManager::DataDir::Saves) {
         user_id = GetProfileIDString();
-        if (user_id.empty()) return std::nullopt;
+        if (user_id.empty())
+            return std::nullopt;
     }
 
     return user_id;

@@ -36,7 +36,8 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
     const auto x_pos = option.rect.left() - (column * cell_width) + static_cast<int>(relative_x);
 
     // also, add some additional padding here to prevent card overlap
-    QRect cardRect(x_pos + 4, option.rect.top() + 4, fixed_card_width - 8, option.rect.height() - margins);
+    QRect cardRect(x_pos + 4, option.rect.top() + 4, fixed_card_width - 8,
+                   option.rect.height() - margins);
 
     // colors
     QPalette palette = option.palette;

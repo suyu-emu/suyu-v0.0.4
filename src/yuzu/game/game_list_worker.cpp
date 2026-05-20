@@ -20,17 +20,18 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/card_image.h"
-#include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
-#include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/loader/loader.h"
+
 #include "qt_common/config/uisettings.h"
+#include "qt_common/qt_common.h"
+
 #include "yuzu/compatibility_list.h"
 #include "yuzu/game/game_list.h"
 #include "yuzu/game/game_list_p.h"
@@ -148,7 +149,7 @@ void GetMetadataFromControlNCA(const FileSys::PatchManager& patch_manager, const
 
 bool HasSupportedFileExtension(const std::string& file_name) {
     const QFileInfo file = QFileInfo(QString::fromStdString(file_name));
-    return GameList::supported_file_extensions.contains(file.suffix(), Qt::CaseInsensitive);
+    return QtCommon::supported_file_extensions.contains(file.suffix(), Qt::CaseInsensitive);
 }
 
 bool IsExtractedNCAMain(const std::string& file_name) {

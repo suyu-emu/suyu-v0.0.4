@@ -37,8 +37,11 @@ inline const QString GetKeyInstallResultString(FirmwareManager::KeyInstallResult
 }
 
 void InstallFirmware(const QString& location, bool recursive);
-
 QString UnzipFirmwareToTmp(const QString& location);
+
+bool CheckKeys();
+void InstallFirmware();
+void InstallFirmwareZip();
 
 // Keys //
 void InstallKeys();
@@ -53,6 +56,9 @@ void ExportDataDir(FrontendCommon::DataManager::DataDir dir, const std::string& 
                    std::function<void()> callback = {});
 void ImportDataDir(FrontendCommon::DataManager::DataDir dir, const std::string& user_id = "",
                    std::function<void()> callback = {});
+
+// Loader //
+void configureFilesystemProvider(const std::string& filepath);
 
 // Profiles //
 void FixProfiles();

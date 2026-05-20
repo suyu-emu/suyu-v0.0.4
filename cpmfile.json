@@ -112,7 +112,8 @@
         "options": [
             "QUAZIP_QT_MAJOR_VERSION 6",
             "QUAZIP_INSTALL OFF",
-            "QUAZIP_ENABLE_QTEXTCODEC OFF"
+            "QUAZIP_ENABLE_QTEXTCODEC OFF",
+            "QUAZIP_BZIP2 OFF"
         ]
     }
 }

@@ -51,8 +51,10 @@ void ConfigureDebug::SetConfiguration() {
     ui->enable_all_controllers->setChecked(Settings::values.enable_all_controllers.GetValue());
     ui->extended_logging->setChecked(Settings::values.extended_logging.GetValue());
     ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
-    ui->serial_battery_edit->setText(QString::fromStdString(std::to_string(Settings::values.serial_battery.GetValue())));
-    ui->serial_board_edit->setText(QString::fromStdString(std::to_string(Settings::values.serial_unit.GetValue())));
+    ui->serial_battery_edit->setText(
+        QString::fromStdString(std::to_string(Settings::values.serial_battery.GetValue())));
+    ui->serial_board_edit->setText(
+        QString::fromStdString(std::to_string(Settings::values.serial_unit.GetValue())));
 #ifdef YUZU_USE_QT_WEB_ENGINE
     ui->disable_web_applet->setChecked(Settings::values.disable_web_applet.GetValue());
 #else

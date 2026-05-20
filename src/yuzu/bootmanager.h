@@ -6,12 +6,9 @@
 
 #pragma once
 
-#include <condition_variable>
 #include <cstddef>
 #include <memory>
-#include <mutex>
 #include <utility>
-#include <vector>
 
 #include <QByteArray>
 #include <QImage>
@@ -27,9 +24,6 @@
 #include <qobjectdefs.h>
 
 #include "common/common_types.h"
-#include "common/logging.h"
-#include "common/polyfill_thread.h"
-#include "common/thread.h"
 #include "core/frontend/emu_window.h"
 
 class MainWindow;
@@ -46,6 +40,7 @@ class QShowEvent;
 class QTouchEvent;
 class QWheelEvent;
 
+class EmuThread;
 namespace Core {
 class System;
 } // namespace Core
@@ -63,96 +58,12 @@ namespace VideoCore {
 enum class LoadCallbackStage;
 } // namespace VideoCore
 
-class EmuThread final : public QThread {
-    Q_OBJECT
-
-public:
-    explicit EmuThread(Core::System& system);
-    ~EmuThread() override;
-
-    /**
-     * Start emulation (on new thread)
-     * @warning Only call when not running!
-     */
-    void run() override;
-
-    /**
-     * Sets whether the emulation thread should run or not
-     * @param should_run Boolean value, set the emulation thread to running if true
-     */
-    void SetRunning(bool should_run) {
-        // TODO: Prevent other threads from modifying the state until we finish.
-        {
-            // Notify the running thread to change state.
-            std::unique_lock run_lk{m_should_run_mutex};
-            m_should_run = should_run;
-            m_should_run_cv.notify_one();
-        }
-
-        // Wait until paused, if pausing.
-        if (!should_run) {
-            m_stopped.Wait();
-        }
-    }
-
-    /**
-     * Check if the emulation thread is running or not
-     * @return True if the emulation thread is running, otherwise false
-     */
-    bool IsRunning() const {
-        return m_should_run;
-    }
-
-    /**
-     * Requests for the emulation thread to immediately stop running
-     */
-    void ForceStop() {
-        LOG_WARNING(Frontend, "Force stopping EmuThread");
-        m_stop_source.request_stop();
-    }
-
-private:
-    void EmulationPaused(std::unique_lock<std::mutex>& lk);
-    void EmulationResumed(std::unique_lock<std::mutex>& lk);
-
-private:
-    Core::System& m_system;
-
-    std::stop_source m_stop_source;
-    std::mutex m_should_run_mutex;
-    std::condition_variable_any m_should_run_cv;
-    Common::Event m_stopped;
-    bool m_should_run{true};
-
-signals:
-    /**
-     * Emitted when the CPU has halted execution
-     *
-     * @warning When connecting to this signal from other threads, make sure to specify either
-     * Qt::QueuedConnection (invoke slot within the destination object's message thread) or even
-     * Qt::BlockingQueuedConnection (additionally block source thread until slot returns)
-     */
-    void DebugModeEntered();
-
-    /**
-     * Emitted right before the CPU continues execution
-     *
-     * @warning When connecting to this signal from other threads, make sure to specify either
-     * Qt::QueuedConnection (invoke slot within the destination object's message thread) or even
-     * Qt::BlockingQueuedConnection (additionally block source thread until slot returns)
-     */
-    void DebugModeLeft();
-
-    void LoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
-};
-
 class GRenderWindow : public QWidget, public Core::Frontend::EmuWindow {
     Q_OBJECT
 
 public:
-    explicit GRenderWindow(MainWindow* parent, EmuThread* emu_thread_,
-                           std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_,
-                           Core::System& system_);
+    explicit GRenderWindow(MainWindow* parent,
+                           std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_);
     ~GRenderWindow() override;
 
     // EmuWindow implementation.
@@ -217,8 +128,6 @@ public:
     void Exit();
 
 public slots:
-    void OnEmulationStarting(EmuThread* emu_thread_);
-    void OnEmulationStopping();
     void OnFramebufferSizeChanged();
 
 signals:
@@ -247,7 +156,6 @@ private:
     bool LoadOpenGL();
     QStringList GetUnsupportedGLExtensions() const;
 
-    EmuThread* emu_thread;
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
 
     // Main context that will be shared with all other contexts that are requested.
@@ -276,8 +184,6 @@ private:
 #endif
 
     QTimer mouse_constrain_timer;
-
-    Core::System& system;
 
 protected:
     void showEvent(QShowEvent* event) override;

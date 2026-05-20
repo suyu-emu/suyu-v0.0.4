@@ -217,8 +217,6 @@ add_executable(yuzu
     util/url_request_interceptor.h
     util/util.cpp
     util/util.h
-    vk_device_info.cpp
-    vk_device_info.h
     compatdb.cpp
     compatdb.h
     user_data_migration.cpp
@@ -245,9 +243,7 @@ add_executable(yuzu
 
     render/performance_overlay.h render/performance_overlay.cpp render/performance_overlay.ui
     libqt_common.h libqt_common.cpp
-    updater/update_dialog.h updater/update_dialog.cpp updater/update_dialog.ui
-
-)
+    updater/update_dialog.h updater/update_dialog.cpp updater/update_dialog.ui)
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
 

@@ -18,7 +18,7 @@
 #include "frontend_common/config.h"
 #include "qt_common/config/qt_config.h"
 #include "qt_common/config/shared_translation.h"
-#include "vk_device_info.h"
+#include "qt_common/util/vk.h"
 #include "yuzu/configuration/configuration_shared.h"
 
 namespace Core {

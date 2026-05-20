@@ -33,8 +33,8 @@ ModSelectDialog::ModSelectDialog(const QStringList& mods, QWidget* parent)
     ui->treeView->expandAll();
 
     int rows = item_model->rowCount();
-    int height =
-        4 + ui->treeView->contentsMargins().top() * 4 + ui->treeView->contentsMargins().bottom() * 4;
+    int height = 4 + ui->treeView->contentsMargins().top() * 4 +
+                 ui->treeView->contentsMargins().bottom() * 4;
     int width = 0;
 
     for (int i = 0; i < rows; ++i) {

@@ -582,8 +582,6 @@ if (ENABLE_QT)
         else()
             AddQt(6.9.3)
         endif()
-
-        set(YUZU_STATIC_BUILD ON)
     else()
         message(STATUS "Using system Qt")
         if (NOT Qt6_DIR)
@@ -592,23 +590,7 @@ if (ENABLE_QT)
         list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
-    find_package(Qt6 CONFIG REQUIRED COMPONENTS Widgets Charts Concurrent)
-
-    if (YUZU_USE_QT_MULTIMEDIA)
-        find_package(Qt6 REQUIRED COMPONENTS Multimedia)
-    endif()
-
-    if (PLATFORM_LINUX OR PLATFORM_FREEBSD)
-        # yes Qt, we get it
-        set(QT_NO_PRIVATE_MODULE_WARNING ON)
-        find_package(Qt6 REQUIRED COMPONENTS DBus OPTIONAL_COMPONENTS GuiPrivate)
-    elseif (UNIX AND NOT APPLE)
-        find_package(Qt6 REQUIRED COMPONENTS DBus Gui)
-    endif()
-
-    if (ENABLE_QT_TRANSLATION)
-        find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
-    endif()
+    find_package(Qt6 REQUIRED COMPONENTS Core)
 
     if (NOT DEFINED QT_TARGET_PATH)
         get_target_property(qtcore_path Qt6::Core LOCATION_Release)
@@ -631,21 +613,27 @@ if (ENABLE_QT)
     ## Components ##
 
     # Best practice is to ask for all components at once, so they are from the same version
-    set(YUZU_QT_COMPONENTS Core Widgets Charts Concurrent)
-    if (PLATFORM_LINUX)
+    set(YUZU_QT_COMPONENTS Core Widgets Charts Concurrent Gui)
+    if (PLATFORM_LINUX OR PLATFORM_FREEBSD)
         list(APPEND YUZU_QT_COMPONENTS DBus)
+        # yes Qt, we get it
+        set(QT_NO_PRIVATE_MODULE_WARNING ON)
+        list(APPEND YUZU_QT_OPTIONAL GuiPrivate)
     endif()
+
     if (YUZU_USE_QT_MULTIMEDIA)
         list(APPEND YUZU_QT_COMPONENTS Multimedia)
     endif()
+
     if (YUZU_USE_QT_WEB_ENGINE)
         list(APPEND YUZU_QT_COMPONENTS WebEngineCore WebEngineWidgets)
     endif()
+
     if (ENABLE_QT_TRANSLATION)
         list(APPEND YUZU_QT_COMPONENTS LinguistTools)
     endif()
 
-    find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
+    find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS} OPTIONAL_COMPONENTS ${YUZU_QT_OPTIONAL})
     set(QT_MAJOR_VERSION 6)
     # Qt6 sets cxx_std_17 and we need to undo that
     set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")

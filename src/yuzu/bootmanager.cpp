@@ -6,8 +6,6 @@
 #include <cmath>
 #include <cstring>
 #include <string>
-#include <tuple>
-#include <type_traits>
 
 #ifdef HAS_OPENGL
 #include <glad/glad.h>
@@ -45,16 +43,13 @@
 #include <QOpenGLContext>
 #endif
 
-#include "common/polyfill_thread.h"
 #include "common/scm_rev.h"
 #include "common/settings.h"
 #include "common/settings_input.h"
-#include "common/thread.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/frontend/framebuffer_layout.h"
 #include "core/frontend/graphics_context.h"
-#include "input_common/drivers/camera.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
 #include "input_common/drivers/tas_input.h"
@@ -62,188 +57,18 @@
 #include "input_common/main.h"
 #include "qt_common/qt_common.h"
 #include "video_core/gpu.h"
-#include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/main_window.h"
+
+#include "qt_common/render/context.h"
+#include "qt_common/render/emu_thread.h"
 
 class QObject;
 class QPaintEngine;
 class QSurface;
 
 constexpr int default_mouse_constrain_timeout = 10;
-
-EmuThread::EmuThread(Core::System& system) : m_system{system} {}
-
-EmuThread::~EmuThread() = default;
-
-void EmuThread::run() {
-    Common::SetCurrentThreadName("EmuControlThread");
-
-    auto& gpu = m_system.GPU();
-    auto stop_token = m_stop_source.get_token();
-
-    m_system.RegisterHostThread();
-
-    // Main process has been loaded. Make the context current to this thread and begin GPU and CPU
-    // execution.
-    gpu.ObtainContext();
-
-    emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
-    if (Settings::values.use_disk_shader_cache.GetValue()) {
-        m_system.Renderer().ReadRasterizer()->LoadDiskResources(
-            m_system.GetApplicationProcessProgramID(), stop_token,
-            [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
-                emit LoadProgress(stage, value, total);
-            });
-    }
-    emit LoadProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
-
-    gpu.ReleaseContext();
-    gpu.Start();
-
-    m_system.GetCpuManager().OnGpuReady();
-
-    if (m_system.DebuggerEnabled()) {
-        m_system.InitializeDebugger();
-    }
-
-    while (!stop_token.stop_requested()) {
-        std::unique_lock lk{m_should_run_mutex};
-        if (m_should_run) {
-            m_system.Run();
-            m_stopped.Reset();
-
-            m_should_run_cv.wait(lk, stop_token, [&] { return !m_should_run; });
-        } else {
-            m_system.Pause();
-            m_stopped.Set();
-
-            EmulationPaused(lk);
-            m_should_run_cv.wait(lk, stop_token, [&] { return m_should_run; });
-            EmulationResumed(lk);
-        }
-    }
-
-    // Shutdown the main emulated process
-    m_system.DetachDebugger();
-    m_system.ShutdownMainProcess();
-}
-
-// Unlock while emitting signals so that the main thread can
-// continue pumping events.
-
-void EmuThread::EmulationPaused(std::unique_lock<std::mutex>& lk) {
-    lk.unlock();
-    emit DebugModeEntered();
-    lk.lock();
-}
-
-void EmuThread::EmulationResumed(std::unique_lock<std::mutex>& lk) {
-    lk.unlock();
-    emit DebugModeLeft();
-    lk.lock();
-}
-
-#ifdef HAS_OPENGL
-class OpenGLSharedContext : public Core::Frontend::GraphicsContext {
-public:
-    /// Create the original context that should be shared from
-    explicit OpenGLSharedContext(QSurface* surface_) : surface{surface_} {
-        QSurfaceFormat format;
-        format.setVersion(4, 6);
-        format.setProfile(QSurfaceFormat::CompatibilityProfile);
-        format.setOption(QSurfaceFormat::FormatOption::DeprecatedFunctions);
-        if (Settings::values.renderer_debug) {
-            format.setOption(QSurfaceFormat::FormatOption::DebugContext);
-        }
-        // TODO: expose a setting for buffer value (ie default/single/double/triple)
-        format.setSwapBehavior(QSurfaceFormat::DefaultSwapBehavior);
-        format.setSwapInterval(0);
-
-        context = std::make_unique<QOpenGLContext>();
-        context->setFormat(format);
-        if (!context->create()) {
-            LOG_ERROR(Frontend, "Unable to create main openGL context");
-        }
-    }
-
-    /// Create the shared contexts for rendering and presentation
-    explicit OpenGLSharedContext(QOpenGLContext* share_context, QSurface* main_surface = nullptr) {
-
-        // disable vsync for any shared contexts
-        auto format = share_context->format();
-        const int swap_interval =
-            Settings::values.vsync_mode.GetValue() == Settings::VSyncMode::Immediate ? 0 : 1;
-
-        format.setSwapInterval(main_surface ? swap_interval : 0);
-
-        context = std::make_unique<QOpenGLContext>();
-        context->setShareContext(share_context);
-        context->setFormat(format);
-        if (!context->create()) {
-            LOG_ERROR(Frontend, "Unable to create shared openGL context");
-        }
-
-        if (!main_surface) {
-            offscreen_surface = std::make_unique<QOffscreenSurface>(nullptr);
-            offscreen_surface->setFormat(format);
-            offscreen_surface->create();
-            surface = offscreen_surface.get();
-        } else {
-            surface = main_surface;
-        }
-    }
-
-    ~OpenGLSharedContext() {
-        DoneCurrent();
-    }
-
-    void SwapBuffers() override {
-        if (auto window = static_cast<QWindow*>(surface)) {
-            if (!window->isExposed()) {
-                LOG_DEBUG(Frontend, "SwapBuffers ignored: window not exposed");
-                return;
-            }
-        }
-
-        context->swapBuffers(surface);
-    }
-
-    void MakeCurrent() override {
-        // We can't track the current state of the underlying context in this wrapper class because
-        // Qt may make the underlying context not current for one reason or another. In particular,
-        // the WebBrowser uses GL, so it seems to conflict if we aren't careful.
-        // Instead of always just making the context current (which does not have any caching to
-        // check if the underlying context is already current) we can check for the current context
-        // in the thread local data by calling `currentContext()` and checking if its ours.
-        if (QOpenGLContext::currentContext() != context.get()) {
-            context->makeCurrent(surface);
-        }
-    }
-
-    void DoneCurrent() override {
-        context->doneCurrent();
-    }
-
-    QOpenGLContext* GetShareContext() {
-        return context.get();
-    }
-
-    const QOpenGLContext* GetShareContext() const {
-        return context.get();
-    }
-
-private:
-    // Avoid using Qt parent system here since we might move the QObjects to new threads
-    // As a note, this means we should avoid using slots/signals with the objects too
-    std::unique_ptr<QOpenGLContext> context;
-    std::unique_ptr<QOffscreenSurface> offscreen_surface{};
-    QSurface* surface;
-};
-#endif
-
-class DummyContext : public Core::Frontend::GraphicsContext {};
 
 class RenderWidget : public QWidget {
 public:
@@ -285,11 +110,9 @@ struct NullRenderWidget : public RenderWidget {
     explicit NullRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {}
 };
 
-GRenderWindow::GRenderWindow(MainWindow* parent, EmuThread* emu_thread_,
-                             std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_,
-                             Core::System& system_)
-    : QWidget(parent), emu_thread(emu_thread_), input_subsystem{std::move(input_subsystem_)},
-      system{system_} {
+GRenderWindow::GRenderWindow(MainWindow* parent,
+                             std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_)
+    : QWidget(parent), input_subsystem{std::move(input_subsystem_)} {
     setWindowTitle(QStringLiteral("Eden %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
                             QString::fromUtf8(Common::g_scm_branch),
@@ -708,10 +531,11 @@ void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 void GRenderWindow::ConstrainMouse() {
-    if (emu_thread == nullptr || !Settings::values.mouse_panning) {
+    if (QtCommon::emu_thread == nullptr || !Settings::values.mouse_panning) {
         mouse_constrain_timer.stop();
         return;
     }
+
     if (!this->isActiveWindow()) {
         mouse_constrain_timer.stop();
         return;
@@ -964,7 +788,7 @@ void GRenderWindow::ReleaseRenderTarget() {
 }
 
 void GRenderWindow::CaptureScreenshot(const QString& screenshot_path) {
-    auto& renderer = system.Renderer();
+    auto& renderer = QtCommon::system->Renderer();
 
     if (renderer.IsScreenshotPending()) {
         LOG_WARNING(Render,
@@ -989,7 +813,12 @@ void GRenderWindow::CaptureScreenshot(const QString& screenshot_path) {
         screenshot_image.bits(),
         [=, this](bool invert_y) {
             const std::string std_screenshot_path = screenshot_path.toStdString();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+            if (screenshot_image.flipped(invert_y ? Qt::Vertical : (Qt::Orientations)0)
+                    .save(screenshot_path)) {
+#else
             if (screenshot_image.mirrored(false, invert_y).save(screenshot_path)) {
+#endif
                 LOG_INFO(Frontend, "Screenshot saved to \"{}\"", std_screenshot_path);
             } else {
                 LOG_ERROR(Frontend, "Failed to save screenshot to \"{}\"", std_screenshot_path);
@@ -1026,7 +855,8 @@ bool GRenderWindow::InitializeOpenGL() {
 
     return true;
 #else
-    QMessageBox::warning(this, tr("OpenGL not available!"), tr("Eden has not been compiled with OpenGL support."));
+    QMessageBox::warning(this, tr("OpenGL not available!"),
+                         tr("Eden has not been compiled with OpenGL support."));
     return false;
 #endif
 }
@@ -1072,8 +902,7 @@ bool GRenderWindow::LoadOpenGL() {
             tr("Your GPU may not support one or more required OpenGL extensions. Please ensure you "
                "have the latest graphics driver.<br><br>GL Renderer:<br>%1<br><br>Unsupported "
                "extensions:<br>%2")
-                .arg(renderer)
-                .arg(missing_ext.join(QStringLiteral("<br>"))));
+                .arg(renderer, missing_ext.join(QStringLiteral("<br>"))));
         // Non fatal
     }
     return true;
@@ -1099,14 +928,6 @@ QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
         LOG_ERROR(Frontend, "Unsupported GL extension: {}", ext.toStdString());
 #endif
     return missing_ext;
-}
-
-void GRenderWindow::OnEmulationStarting(EmuThread* emu_thread_) {
-    emu_thread = emu_thread_;
-}
-
-void GRenderWindow::OnEmulationStopping() {
-    emu_thread = nullptr;
 }
 
 void GRenderWindow::showEvent(QShowEvent* event) {

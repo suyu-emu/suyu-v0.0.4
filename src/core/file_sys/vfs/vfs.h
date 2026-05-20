@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,6 +18,12 @@
 #include "common/common_types.h"
 #include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/vfs/vfs_types.h"
+
+#undef CreateFile
+#undef CopyFile
+#undef MoveFile
+#undef DeleteFile
+#undef CreateDirectory
 
 namespace FileSys {
 

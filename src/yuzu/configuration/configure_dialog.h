@@ -11,8 +11,8 @@
 #include <QDialog>
 #include "configuration/shared_widget.h"
 #include "qt_common/config/shared_translation.h"
+#include "qt_common/util/vk.h"
 #include "yuzu/configuration/configuration_shared.h"
-#include "yuzu/vk_device_info.h"
 
 namespace Core {
 class System;
