@@ -3120,7 +3120,7 @@ void MainWindow::OnMenuReportCompatibility() {
 
     // #if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
     //     const auto& caps = Common::GetCPUCaps();
-    //     const bool has_fma = caps.fma || caps.fma4;
+    //     const bool has_fma = caps.fma;
     //     const auto processor_count = std::thread::hardware_concurrency();
     //     const bool has_4threads = processor_count == 0 || processor_count >= 4;
     //     const bool has_8gb_ram = Common::GetMemInfo().TotalPhysicalMemory >= 8_GiB;

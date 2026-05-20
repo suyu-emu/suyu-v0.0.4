@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2013 Dolphin Emulator Project / 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -36,15 +39,12 @@ struct CPUCaps {
     u32 crystal_frequency;
     u64 tsc_frequency; // Derived from the above three values
 
-    bool sse : 1;
-    bool sse2 : 1;
     bool sse3 : 1;
     bool ssse3 : 1;
     bool sse4_1 : 1;
     bool sse4_2 : 1;
 
     bool avx : 1;
-    bool avx_vnni : 1;
     bool avx2 : 1;
     bool avx512f : 1;
     bool avx512dq : 1;
@@ -59,7 +59,6 @@ struct CPUCaps {
     bool bmi2 : 1;
     bool f16c : 1;
     bool fma : 1;
-    bool fma4 : 1;
     bool gfni : 1;
     bool invariant_tsc : 1;
     bool lzcnt : 1;
