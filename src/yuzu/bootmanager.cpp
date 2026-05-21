@@ -22,7 +22,11 @@
 #include <QImageCapture>
 #include <QMediaCaptureSession>
 #include <QMediaDevices>
+
+#include "input_common/drivers/camera.h"
+
 #endif
+
 #include <QCursor>
 #include <QEvent>
 #include <QGuiApplication>
