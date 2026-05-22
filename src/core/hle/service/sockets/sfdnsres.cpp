@@ -91,6 +91,7 @@ static const constexpr std::array blockedDomains = {
     "microsoft.com", //minecraft dungeons + other games
     "mojang.com",
     "xboxlive.com",
+    "api.epicgames.dev", // marvel cosmic invasion +?
     "minecraftservices.com"
 };
 
