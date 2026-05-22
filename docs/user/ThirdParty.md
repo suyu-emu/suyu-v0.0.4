@@ -13,6 +13,7 @@ The main origin repository is always at https://git.eden-emu.dev/eden-emu/eden.
 
 - https://github.com/eden-emulator/mirror
 - https://git.crueter.xyz/mirror/eden
+- https://codeberg.org/eden-emu/eden
 - https://collective.taymaerz.de/eden/eden
 
 Other mirrors obviously exist on the internet, but we can't guarantee their reliability and/or availability.

@@ -7,7 +7,7 @@
 EXCLUDE_FILES="CPM.cmake CPMUtil.cmake GetSCMRev.cmake renderdoc_app.h tools/cpm tools/shellcheck.sh tools/update-cpm.sh tools/windows/vcvarsall.sh externals/stb externals/glad externals/getopt externals/gamemode externals/FidelityFX-FSR externals/demangle externals/bc_decoder externals/cmake-modules"
 
 # license header constants, please change when needed :))))
-YEAR=2026
+YEAR=$(date "+%Y")
 HOLDER="Eden Emulator Project"
 LICENSE="GPL-3.0-or-later"
 
@@ -112,10 +112,10 @@ for file in $FILES; do
 	[ "$excluded" = "true" ] && continue
 
 	case "$file" in
-		*.cmake|*.sh|*CMakeLists.txt)
+		*.cmake|*.sh|*.ps1|*.py|*.rb|*.perl|*.pl|*.nix|*CMakeLists.txt)
 			begin="#"
 			;;
-		*.kt*|*.cpp|*.h|*.qml)
+		*.kt|*.kts|*.cpp|*.h|*.qml|*.c|*.hpp|*.hxx|*.cxx|*.h.in|*.inc)
 			begin="//"
 			;;
 		*)
@@ -185,11 +185,12 @@ if [ "$UPDATE" = "true" ]; then
 
 	for file in $SRC_FILES $OTHER_FILES; do
 		case $(basename -- "$file") in
-			*.cmake|*CMakeLists.txt)
+			# Windows Powershell wont use shebangs
+			*.cmake|*.ps1|*CMakeLists.txt)
 				begin="#"
 				shell="false"
 				;;
-			*.sh)
+			*.sh|*.py|*.rb|*.perl|*.pl|*.nix)
 				begin="#"
 				shell=true
 				;;

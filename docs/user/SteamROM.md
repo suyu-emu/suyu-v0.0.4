@@ -59,7 +59,7 @@ EmuDeck will automatically create an *Emulators - Emulators* parser for ***Steam
 4. Paste the following code into the contents of the file, save and close the file.
     
     ```bash
-    #!/bin/bash
+    #!/bin/sh -e
     emuName="eden" #parameterize me
     
     . "$HOME/.config/EmuDeck/backend/functions/all.sh"

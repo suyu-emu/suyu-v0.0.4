@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/sh -e
 
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 SOURCES=$(find src/yuzu src/qt_common -type f \( -name "*.ui" -o -name "*.cpp" -o -name "*.h" -o -name "*.plist" \))

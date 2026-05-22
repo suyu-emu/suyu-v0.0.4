@@ -1,5 +1,5 @@
-#!/usr/bin/python3
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -212,7 +212,7 @@ def emit_size_check():
         if type != "void":
             lines.append(f"static_assert(sizeof({type}) == {size});")
 
-    return "\n".join(lines)
+    return f"\n{lines}"
 
 
 # Replaces a type with an arch-specific one, if it exists.
@@ -423,7 +423,7 @@ def emit_lines(lines, indent='    '):
             output_lines.append(line)
         first = False
 
-    return "\n".join(output_lines)
+    return f"\n{output_lines}"
 
 
 # Emit a C++ function to wrap a guest SVC.
@@ -601,7 +601,7 @@ def emit_call(bitness, names, suffix):
     lines.append(f"{indent}}}")
     lines.append("}")
 
-    return "\n".join(lines)
+    return f"\n{lines}"
 
 
 def build_fn_declaration(return_type, name, arguments):
@@ -623,7 +623,7 @@ def build_enum_declarations():
         lines.append(f"{indent}{name} = {hex(imm)},")
 
     lines.append("};")
-    return "\n".join(lines)
+    return f"\n{lines}"
 
 
 def main():
@@ -665,11 +665,11 @@ def main():
     with open("src/core/hle/kernel/svc.h", "w") as f:
         f.write(COPYRIGHT)
         f.write(PROLOGUE_H)
-        f.write("\n".join(svc_fw_declarations))
+        f.write(f"\n{svc_fw_declarations}")
         f.write("\n\n")
-        f.write("\n".join(arch_fw_declarations[BIT_32]))
+        f.write(f"\n{arch_fw_declarations[BIT_32]}")
         f.write("\n\n")
-        f.write("\n".join(arch_fw_declarations[BIT_64]))
+        f.write(f"\n{arch_fw_declarations[BIT_64]}")
         f.write("\n\n")
         f.write(enum_decls)
         f.write(EPILOGUE_H)
@@ -679,7 +679,7 @@ def main():
         f.write(PROLOGUE_CPP)
         f.write(emit_size_check())
         f.write("\n\n")
-        f.write("\n\n".join(wrapper_fns))
+        f.write(f"\n\n{wrapper_fns}")
         f.write("\n\n")
         f.write(call_32)
         f.write("\n\n")

@@ -1,5 +1,6 @@
-#!/bin/sh
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+#!/bin/sh -e
+
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # This script basically allows you to "dirtily" use llvmpipe in any configuration

@@ -46,7 +46,7 @@ Qt Widgets appears to be broken. For now, add `-DENABLE_QT=OFF` to your configur
 This is needed for some dependencies that call cc directly (tz):
 
 ```sh
-echo '#!/bin/sh' >cc
+echo '#!/bin/sh -e' >cc
 echo 'gcc $@' >>cc
 chmod +x cc
 export PATH="$PATH:$PWD"
