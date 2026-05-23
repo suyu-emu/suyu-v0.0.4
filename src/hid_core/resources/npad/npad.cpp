@@ -712,6 +712,11 @@ bool NPad::SetNpadMode(u64 aruid, Core::HID::NpadIdType& new_npad_id, Core::HID:
     }
 
     auto& controller = GetControllerFromNpadIdType(aruid, npad_id);
+    if (!controller.shared_memory) {
+        LOG_WARNING(Service_HID, "shared_memory is null for npad_id={}", npad_id);
+        return false;
+    }
+
     if (controller.shared_memory->assignment_mode != assignment_mode) {
         controller.shared_memory->assignment_mode = assignment_mode;
     }

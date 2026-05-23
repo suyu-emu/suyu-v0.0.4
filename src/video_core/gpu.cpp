@@ -303,26 +303,25 @@ struct GPU::Impl {
                 free_swap_counters.pop_front();
             }
         }
-        const auto wait_fence =
-            RequestSyncOperation([this, current_request_counter, &layers, &fences, num_fences] {
-                auto& syncpoint_manager = host1x.GetSyncpointManager();
-                if (num_fences == 0) {
-                    renderer->Composite(layers);
-                }
-                const auto executer = [this, current_request_counter, layers_copy = layers]() {
-                    {
-                        std::unique_lock<std::mutex> lk(request_swap_mutex);
-                        if (--request_swap_counters[current_request_counter] != 0) {
-                            return;
-                        }
-                        free_swap_counters.push_back(current_request_counter);
+        const auto wait_fence = RequestSyncOperation([this, current_request_counter, &layers, &fences, num_fences] {
+            auto& syncpoint_manager = host1x.GetSyncpointManager();
+            if (num_fences == 0) {
+                renderer->Composite(layers);
+            }
+            const auto executer = [this, current_request_counter, layers_copy = layers]() {
+                {
+                    std::unique_lock<std::mutex> lk(request_swap_mutex);
+                    if (--request_swap_counters[current_request_counter] != 0) {
+                        return;
                     }
-                    renderer->Composite(layers_copy);
-                };
-                for (size_t i = 0; i < num_fences; i++) {
-                    syncpoint_manager.RegisterGuestAction(fences[i].id, fences[i].value, executer);
+                    free_swap_counters.push_back(current_request_counter);
                 }
-            });
+                renderer->Composite(layers_copy);
+            };
+            for (size_t i = 0; i < num_fences; i++) {
+                syncpoint_manager.RegisterGuestAction(fences[i].id, fences[i].value, executer);
+            }
+        });
         gpu_thread.TickGPU();
         WaitForSyncOperation(wait_fence);
     }
