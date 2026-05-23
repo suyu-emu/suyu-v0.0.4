@@ -75,6 +75,8 @@ cmake_dependent_option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet im
 set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
 cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
+option(ENABLE_DEBUG_TOOLS "Enable debugging tools (maxwell disassembler, SPIRV translator, etc)" OFF)
+
 # non-linux bundled qt are static
 if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX))
     set(YUZU_STATIC_BUILD ON)
@@ -700,6 +702,12 @@ if (MSVC AND CXX_CLANG)
 endif()
 
 add_subdirectory(src)
+
+if (ENABLE_DEBUG_TOOLS)
+    add_subdirectory(tools/maxwell-disas)
+    add_subdirectory(tools/maxwell-spirv)
+    add_subdirectory(tools/maxwell-ir)
+endif()
 
 # Set yuzu project or yuzu-cmd project as default StartUp Project in Visual Studio depending on whether QT is enabled or not
 if(ENABLE_QT)

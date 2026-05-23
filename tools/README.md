@@ -6,7 +6,13 @@ Tools for Eden and other subprojects. When adding new scripts please use `#!/bin
 
 - [CPMUtil Scripts](./cpm)
 
-## Eden
+## Binaries
+
+- `maxwell-spirv`: Converts Maxwell shaders (dumped from `.ash` files) into SPIR-V code (emitted into STDOUT).
+- `maxwell-disas`: Dumb raw Maxwell dissasembler.
+- `maxwell-ir`: Dump generated IR of Maxwell shaders.
+
+## Scripts
 
 - `generate_converters.py`: Generates converters for given formats of textures (C++ helper).
 - `svc_generator.py`: Generates the files `src/core/hle/kernel/svc.cpp` and `src/core/hle/kernel/svc.h` based off prototypes.
