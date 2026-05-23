@@ -388,7 +388,7 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
     }
 }
 
-const std::size_t CACHE_PAGE_SIZE = 4096;
+[[maybe_unused]] const std::size_t CACHE_PAGE_SIZE = 4096;
 
 void ArmNce::ClearInstructionCache() {
 #ifdef __aarch64__
