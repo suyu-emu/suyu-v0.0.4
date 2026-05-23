@@ -752,6 +752,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.ANTIFLICKER,
+                    titleId = R.string.antiflicker,
+                    descriptionId = R.string.antiflicker_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.FIX_BLOOM_EFFECTS,
                     titleId = R.string.fix_bloom_effects,
                     descriptionId = R.string.fix_bloom_effects_description

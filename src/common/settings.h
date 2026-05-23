@@ -545,6 +545,13 @@ struct Values {
                                                         Specialization::Default,
                                                         true,
                                                         true};
+    SwitchableSetting<bool> antiflicker{linkage,
+                                        false,
+                                        "antiflicker",
+                                        Category::RendererHacks,
+                                        Specialization::Default,
+                                        true,
+                                        true};
     SwitchableSetting<bool> async_presentation{linkage,
 #ifdef ANDROID
                                                false,

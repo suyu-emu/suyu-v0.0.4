@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -76,9 +76,9 @@ public:
             TryReleasePendingFences<false>();
         }
         const bool should_flush = ShouldFlush();
-        const bool delay_fence = Settings::IsGPULevelHigh() || (Settings::IsGPULevelMedium() && should_flush);
+        const bool delay_fence = Settings::values.antiflicker.GetValue() || !Settings::IsGPULevelLow();
         CommitAsyncFlushes();
-        TFence new_fence = CreateFence(!should_flush);
+        TFence new_fence = CreateFence(!should_flush && !delay_fence);
         if constexpr (can_async_check) {
             guard.lock();
         }
