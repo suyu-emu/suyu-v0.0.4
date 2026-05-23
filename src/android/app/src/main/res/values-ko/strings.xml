@@ -6,8 +6,8 @@
     <string name="notification_permission_not_granted">알림 권한이 부여되지 않았습니다!</string>
     <!-- Stats Overlay settings -->
     <string name="process_ram">프로세스 RAM: %1$d MB</string>
-    <string name="shaders_prefix">셰이더</string>
-    <string name="shaders_suffix">빌드 중</string>
+    <string name="shaders_prefix">구축 중</string>
+    <string name="shaders_suffix">개 셰이더</string>
     <string name="charging">(충전 중)</string>
 
     <string name="system_info_label">시스템:</string>

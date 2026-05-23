@@ -106,7 +106,7 @@
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC模拟</string>
-    <string name="nvdec_emulation_description">选择视频解码处理方式</string>
+    <string name="nvdec_emulation_description">播放过场与开场动画期间的视频解码处理方式（NVDEC）。</string>
     <string name="nvdec_emulation_none">禁用</string>
 
     <!-- Optimize SPIRV output -->
@@ -181,14 +181,14 @@
     <string name="multiplayer_hide_full_rooms">隐藏满员房间</string>
     <string name="multiplayer_hide_empty_rooms">隐藏空房间</string>
     <string name="multiplayer_tap_refresh_to_check_again">点击刷新重试</string>
-    <string name="multiplayer_search_public_lobbies">搜索房间…</string>
+    <string name="multiplayer_search_public_lobbies">搜索游戏大厅…</string>
     <string name="multiplayer_preferred_game_name">首选游戏</string>
-    <string name="multiplayer_lobby_type">大厅类型</string>
+    <string name="multiplayer_lobby_type">游戏大厅类型</string>
     <string name="multiplayer_room_name_error">长度需为3-20个字符</string>
     <string name="multiplayer_required">必填</string>
     <string name="multiplayer_token_required">需要Web令牌，请前往高级设置 -> 系统 -> 网络</string>
     <string name="multiplayer_ip_error">IP格式无效</string>
-    <string name="multiplayer_username_error">必须为4-20个字符（仅字母数字、点号、连字符、下划线和空格）</string>
+    <string name="multiplayer_username_error">必须为4至20个字符，且仅包含字母、数字、点号、连字符、下划线和空格</string>
     <string name="multiplayer_nickname_invalid">用户名无效，请在系统→网络中检查设置</string>
     <string name="multiplayer_token_error">必须为48个字符，且仅包含小写字母a-z</string>
     <string name="multiplayer_port_error">端口需为1-65535</string>
@@ -437,15 +437,15 @@
     <string name="custom_cpu_ticks_description">设置自定义的CPU时钟值。更高的值可能提高性能，但也可能导致游戏卡顿。建议范围为77-21000。</string>
     <string name="cpu_ticks">时钟</string>
     <string name="memory_layout">内存布局</string>
-    <string name="memory_layout_description">(实验性) 更改模拟内存布局。此设置不会提高性能，但可能有助于通过模组使用高分辨率的游戏。不要在 RAM 为 8GB 或更少的手机上使用。</string>
+    <string name="memory_layout_description">(实验性) 更改模拟内存布局。此项设置并不会提升性能，但可能有助于游戏通过  mods 来利用高分辨率。请不要在内存不大于 8GB 的手机上使用。仅适用于 Dynamic（JIT）后端。</string>
 
     <string name="generate">生成</string>
 
     <!-- Network settings strings -->
     <string name="web_token">网络令牌</string>
-    <string name="web_token_description">用于创建公共房间的网络令牌。它是一个48个字符的字符串，仅包含小写字母a-z。</string>
+    <string name="web_token_description">用于创建公共游戏大厅的 web token。这是一个仅包含小写字母 a-z 的 48 位字符串。</string>
     <string name="web_username">网络用户名</string>
-    <string name="web_username_description">多人游戏房间中显示的用户名。必须为4-20个字符（仅字母数字、连字符、点号、下划线和空格）。</string>
+    <string name="web_username_description">在多人游戏大厅中显示的用户名。用户名必须为4至20个字符，且仅可包含字母、数字、连字符、点号、下划线和空格。</string>
     <string name="network">网络</string>
 
     <!-- Graphics settings strings -->
@@ -453,7 +453,7 @@
     <string name="renderer_vsync">垂直同步模式</string>
     <string name="renderer_scaling_filter">窗口滤镜</string>
     <string name="fsr_sharpness">FSR 锐化度</string>
-    <string name="fsr_sharpness_description">指定使用 FSR 时图像的锐化程度</string>
+    <string name="fsr_sharpness_description">确定使用 FSR 的动态对比度功能时的图像锐化程度</string>
     <string name="renderer_anti_aliasing">抗锯齿方式</string>
 
 
@@ -496,7 +496,7 @@
     <string name="fix_bloom_effects">修复 Bloom 效果</string>
     <string name="fix_bloom_effects_description">减少《塞尔达传说：智慧的再现》（Adreno A6XX - A7XX/ Turnip）中的 bloom 模糊，并移除《Burnout》中的 bloom 效果。警告：可能会导致在其他游戏中出现图形异常。</string>
     <string name="emulate_bgr565">模拟 BGR565</string>
-    <string name="emulate_bgr565_description">修复了游戏中的颜色反转以及出现的异常画面瑕疵或奇怪阴影问题</string>
+    <string name="emulate_bgr565_description">修复游戏中的颜色反转或是异常的画面瑕疵或阴影问题</string>
     <string name="rescale_hack">启用旧版缩放处理</string>
     <string name="rescale_hack_description">启用通过使用快速缩放路径，来为游戏提供缩放配置处理的传统处理方式</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
@@ -508,9 +508,9 @@
     <string name="gpu_unswizzle_texture_size">GPU 还原最大纹理尺寸</string>
     <string name="gpu_unswizzle_texture_size_description">设置基于 GPU 的纹理还原的最大尺寸（单位：MiB）。\n虽然 GPU 在处理中型和大型纹理时速度更快，但对于非常小的纹理，CPU 的效率可能更高。\n调整此设置，以便在 GPU 加速和 CPU 开销之间找到最佳平衡点。</string>
     <string name="gpu_unswizzle_stream_size">GPU 还原流大小</string>
-    <string name="gpu_unswizzle_stream_size_description">设置每帧还原大型纹理的数据限制。较高的数值可以加快纹理加载速度，但代价是增加帧延迟（影响响应速度/平滑度）；较低的数值可以减少 GPU 开销，但可能会导致明显的纹理突然出现（Pop-in）现象。</string>
+    <string name="gpu_unswizzle_stream_size_description">设置用于 unswizzling 大型纹理时的每帧数据限制。较高的数值可以加快纹理的加载速度，但会增加帧延迟。而较低的数值可以降低 GPU 的开销，但可能会导致可见的纹理 闪现。</string>
     <string name="gpu_unswizzle_chunk_size">GPU 还原块大小</string>
-    <string name="gpu_unswizzle_chunk_size_description">定义了 3D 纹理在单个批次（Batch）中处理的深度切片（Depth Slices）数量。增加此数值可以提升强力 GPU 的吞吐效率，但在性能较弱的硬件上可能会引起卡顿或驱动程序超时（Driver Timeouts）。</string>
+    <string name="gpu_unswizzle_chunk_size_description">定义了 3D 纹理每批次处理的深度切片数量。增加此数值可在高性能 GPU 上提升吞吐效率，但在性能较弱的硬件上可能会导致卡顿或驱动超时。</string>
     <string name="gpu_unswizzle_default_button">默认</string>
 
 

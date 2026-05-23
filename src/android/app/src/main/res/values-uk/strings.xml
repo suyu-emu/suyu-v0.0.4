@@ -3,7 +3,7 @@
 
     <string name="app_disclaimer">Цей застосунок запускає ігри для ігрової консолі Nintendo Switch. Він не містить ігор чи ключів.<br /><br />Перш ніж почати, укажіть розташування файлу <![CDATA[<b> prod.keys </b>]]> у пам’яті вашого пристрою.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Дізнатися більше</a>]]></string>
     <string name="notice_notification_channel_name">Сповіщення та помилки</string>
-    <string name="notice_notification_channel_description">Виводить сповіщення у разі виникнення проблем.</string>
+    <string name="notice_notification_channel_description">Показує сповіщення у разі виникнення проблем.</string>
     <string name="notification_permission_not_granted">Дозвіл на сповіщення не надано!</string>
     <string name="app_notification_channel_description">Сповіщення емулятора Switch Eden</string>
     <string name="app_notification_running">Eden працює</string>

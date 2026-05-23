@@ -459,6 +459,9 @@
     <string name="renderer_anti_aliasing">Méthode d\'anticrénelage</string>
 
 
+    <string name="advanced">Avancé</string>
+
+    <string name="renderer_accuracy">Mode GPU</string>
     <string name="dma_accuracy">Précision DMA</string>
     <string name="dma_accuracy_description">Contrôle la précision du DMA. Une précision sûre peut résoudre les problèmes dans certains jeux, mais peut aussi affecter les performances dans certains cas. Si vous n\'êtes pas sûr, laissez ce paramètre sur Par défaut.</string>
     <string name="anisotropic_filtering">Filtrage anisotropique</string>
@@ -474,15 +477,29 @@
     <string name="use_disk_shader_cache_description">Réduire les saccades en stockant et en chargeant localement les shaders générés</string>
     <string name="renderer_force_max_clock">Forcer les fréquences maximales (Adreno uniquement)</string>
     <string name="renderer_force_max_clock_description">Forcer le GPU à fonctionner à ses fréquences maximales possibles (les contraintes thermiques seront toujours appliquées).</string>
+    <string name="renderer_asynchronous_gpu_emulation">Émulation GPU asynchrone </string>
+    <string name="renderer_asynchronous_gpu_emulation_description">Ce contournement peut améliorer les performances en faisant tourner l\'émulation GPU de manière asynchrone au détriment de la fidélité graphique et de la stabilité (plantages plus fréquents) dus à des erreurs de cadence.</string>
     <string name="renderer_reactive_flushing">Utiliser le vidage réactif</string>
     <string name="renderer_reactive_flushing_description">Améliore la précision du rendu dans certains jeux au détriment des performances.</string>
+    <string name="enable_buffer_history">Activer l\'historique du tampon</string>
+    <string name="hacks">Contournements</string>
+
+    <string name="fast_gpu_time">Temps GPU rapide</string>
     <string name="skip_cpu_inner_invalidation">Ignorer l\'invalidation interne du CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Ignore certaines invalidations de cache côté CPU lors des mises à jour mémoire, réduisant l\'utilisation du CPU et améliorant ses performances. Peut causer des bugs ou plantages sur certains jeux.</string>
+    <string name="emulate_bgr565">Emuler BGR565</string>
     <string name="renderer_asynchronous_shaders">Utiliser les shaders asynchrones</string>
     <string name="renderer_asynchronous_shaders_description">Compile les shaders de manière asynchrone. Cela peut réduire les saccades mais peut aussi provoquer des problèmes graphiques.</string>
+    <string name="gpu_unswizzle_disabled">Désactivé</string>
+    <string name="gpu_unswizzle_default_button">Par défaut</string>
+
+
+    <string name="extensions">Extensions</string>
+
     <string name="dyna_state">État dynamique étendu</string>
     <string name="disabled">Désactivé</string>
     <string name="vertex_input_dynamic_state">État dynamique d\'entrée de sommet</string>
+    <string name="sample_shading_fraction">Échantillonnage de shading</string>
     <string name="display">Affichage</string>
 
     <string name="renderer_screen_layout">Orientation</string>
@@ -507,6 +524,21 @@
     <string name="log">Journalisation</string>
     <string name="flush_by_line">Vider les journaux de débogage ligne par ligne</string>
     <string name="flush_by_line_description">Vide les journaux de débogage à chaque ligne écrite, facilitant le débogage en cas de plantage ou de gel.</string>
+
+    <!-- GPU Logging strings -->
+    <string name="gpu_logging_header">Journalisation GPU</string>
+    <string name="gpu_logging_enabled">Activer la journalisation GPU</string>
+    <string name="gpu_log_level">Niveau de journalisation</string>
+    <string name="gpu_log_vulkan_calls">Journaliser les appels API Vulkan</string>
+    <string name="gpu_log_shader_dumps">Extraire les shaders</string>
+    <string name="gpu_log_shader_dumps_description">Sauvegarder le shader SPIR-V complié dans les fichiers</string>
+    <string name="gpu_log_memory_tracking">Monitorer la mémoire GPU</string>
+    <string name="gpu_log_memory_tracking_description">Monitorer les allocations et désallocations de la mémoire GPU</string>
+    <string name="gpu_log_driver_debug">Informations de débogage du pilote</string>
+    <string name="gpu_log_ring_buffer_size_description">Nombre d\'appels Vulkans récents à monitorer (par défaut : 512)</string>
+    <string name="gpu_log_ring_buffer_size_hint">64 à 4096 entrées</string>
+
+    <string name="general">Général</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Moteur de sortie</string>
@@ -590,6 +622,7 @@
 
     <!-- Miscellaneous -->
     <string name="slider_default">Par défaut</string>
+    <string name="default_string">Par défaut</string>
     <string name="loading">Chargement...</string>
     <string name="shutting_down">Extinction en cours...</string>
     <string name="reset_setting_confirmation">Voulez-vous réinitialiser ce paramètre à sa valeur par défaut ?</string>
@@ -628,6 +661,7 @@
     <string name="select_gpu_driver_default">Par défaut</string>
     <string name="select_gpu_driver_error">Pilote non valide sélectionné</string>
     <string name="driver_already_installed">Pilote déjà installé</string>
+    <string name="installed_label">%1$s (Installé)</string>
     <string name="system_gpu_driver">Pilote du GPU du système</string>
     <string name="installing_driver">Installation du pilote...</string>
 
@@ -647,6 +681,7 @@
     <string name="installing">Installation en cours…</string>
     <string name="latest">Dernière</string>
     <string name="recommended_driver">Pilote recommandé :</string>
+    <string name="gpu_model">Modèle GPU</string>
     <string name="unsupported_gpu">GPU non pris en charge</string>
     <string name="unsupported_gpu_warning">Votre GPU ne prend pas en charge l\'injection de pilotes. Il n\'est pas recommandé de définir des pilotes personnalisés.</string>
 
@@ -656,6 +691,9 @@
     <string name="preferences_system_description">Mode TV, région, langue</string>
     <string name="preferences_graphics">Vidéo</string>
     <string name="preferences_graphics_description">Niveau de précision, résolution, cache de shaders</string>
+    <string name="quick_settings">Paramètres rapides</string>
+    <string name="enable_quick_settings">Activer les paramètres rapides</string>
+    <string name="enable_quick_settings_description">Autoriser l\'accès aux paramètres rapides par le balayage de l\'écran et le bouton du menu</string>
     <string name="preferences_audio">Audio</string>
     <string name="preferences_audio_description">Moteur de sortie, volume</string>
     <string name="preferences_controls">Contrôles</string>
@@ -663,6 +701,25 @@
     <string name="preferences_player">Joueur %d</string>
     <string name="preferences_debug">Débogage</string>
     <string name="preferences_debug_description">Débogage CPU/GPU, API graphique, fastmem</string>
+    <string name="preferences_custom_paths">Chemins personnalisés</string>
+    <string name="preferences_custom_paths_description">Sauvegarder le répertoire des données</string>
+
+    <!-- Custom Paths settings -->
+    <string name="custom_save_directory">Sauvegarder le répertoire des données</string>
+    <string name="custom_save_directory_description">Définir un chemin personnalisé pour les sauvegardes</string>
+    <string name="reset_to_nand">Réinitialiser par défaut</string>
+    <string name="migrate_save_data">Migrer les données de sauvegarde</string>
+    <string name="save_migration_complete">Données de sauvegarde supprimées avec succès</string>
+    <string name="save_migration_failed">Échec de la migration des données de sauvegarde</string>
+    <string name="destination_has_saves">La destination contient déjà des données. Voulez-vous les écraser \?</string>
+    <string name="grant_permission">Accorder la permission</string>
+    <string name="custom_nand_directory">Dossier NAND</string>
+    <string name="custom_nand_directory_description">Définir un chemin personnalisé pour le stockage NAND</string>
+    <string name="custom_sdmc_directory">Répertoire de carte SD</string>
+    <string name="custom_sdmc_directory_description">Définir un chemin personnalisé pour le stockage de la carte SD virtuelle</string>
+    <string name="path_set">Chemin défini avec succès</string>
+    <string name="skip_migration">Sauter</string>
+
     <!-- Game properties -->
     <string name="info">Info</string>
     <string name="info_description">ID du programme, développeur, version</string>
@@ -676,6 +733,7 @@
     <string name="copy_details">Copier les détails</string>
     <string name="add_ons">Extensions</string>
     <string name="add_ons_description">Activer les mods, mises à jour et DLC</string>
+    <string name="playtime">Temps de jeu :</string>
     <string name="reset_playtime">Réinitialiser le Temps de Jeu</string>
     <string name="reset_playtime_description">Réinitialiser le temps de jeu du jeu actuel à 0 seconde</string>
     <string name="reset_playtime_warning_description">Cela effacera les données de temps de jeu du jeu actuel. Êtes-vous sûr \?</string>
@@ -683,6 +741,9 @@
     <string name="edit_playtime">Modifier le Temps de Jeu</string>
     <string name="hours">Heures</string>
     <string name="minutes">Minutes</string>
+    <string name="hours_abbr">h</string>
+    <string name="minutes_abbr">m</string>
+    <string name="seconds_abbr">s</string>
     <string name="hours_must_be_between_0_and_9999">Les heures doivent être comprises entre 0 et 9999</string>
     <string name="minutes_must_be_between_0_and_59">Les minutes doivent être comprises entre 0 et 59</string>
     <string name="seconds_must_be_between_0_and_59">Les secondes doivent être comprises entre 0 et 59</string>
@@ -714,6 +775,7 @@
     <string name="confirm_uninstall">Confirmer la désinstallation</string>
     <string name="confirm_uninstall_description">Êtes-vous sûr de vouloir désinstaller cette extension ?</string>
     <string name="verify_integrity">Vérifier l\'intégrité</string>
+    <string name="verifying">Vérification...</string>
     <string name="verify_success">La vérification de l\'intégrité a réussi !</string>
     <string name="verify_failure">La vérification de l\'intégrité a échoué !</string>
     <string name="verify_failure_description">Le contenu d\'un fichier peut être corrompu</string>
@@ -785,6 +847,7 @@
     <string name="emulation_control_opacity">Opacité</string>
     <string name="emulation_touch_overlay_reset">Réinitialiser l\'overlay</string>
     <string name="emulation_touch_overlay_edit">Modifier l\'overlay</string>
+    <string name="emulation_snap_to_grid">Aimanter à la grille</string>
     <string name="emulation_pause">Mettre en pause l\'émulation</string>
     <string name="emulation_unpause">Reprendre l\'émulation</string>
     <string name="emulation_input_overlay">Options de l\'overlay</string>
@@ -838,6 +901,32 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Rapide (2000MHz)</string>
 
+    <!-- GPU overclock factors -->
+    <string name="off">Désactivé</string>
+    <string name="fast_gpu_medium">Moyen (256)</string>
+    <string name="fast_gpu_high">Élevé (512)</string>
+
+    <!-- GPU swizzle texture size -->
+    <string name="gpu_texturesizeswizzle_verysmall">Très petit (16 Mo)</string>
+    <string name="gpu_texturesizeswizzle_small">Petit (32 Mo)</string>
+    <string name="gpu_texturesizeswizzle_normal">Normal (128 Mo)</string>
+    <string name="gpu_texturesizeswizzle_large">Large (256 Mo)</string>
+    <string name="gpu_texturesizeswizzle_verylarge">Très large (512 Mo)</string>
+
+    <!-- GPU swizzle streams -->
+    <string name="gpu_swizzle_verylow">Très faible (4 Mo)</string>
+    <string name="gpu_swizzle_low">Faible (8 Mo)</string>
+    <string name="gpu_swizzle_normal">Normal (16 Mo)</string>
+    <string name="gpu_swizzle_medium">Moyen (32 Mo)</string>
+    <string name="gpu_swizzle_high">Élevé (64 Mo)</string>
+
+    <!-- GPU swizzle chunks -->
+    <string name="gpu_swizzlechunk_verylow">Très faible (32)</string>
+    <string name="gpu_swizzlechunk_low">Faible (64)</string>
+    <string name="gpu_swizzlechunk_normal">Normal (128)</string>
+    <string name="gpu_swizzlechunk_medium">Moyen (256)</string>
+    <string name="gpu_swizzlechunk_high">Élevé (512)</string>
+
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>
@@ -852,6 +941,11 @@
     <string name="memory_exabyte">Eo</string>
 
     <string name="renderer_none">Aucune</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_low">Rapide</string>
+    <string name="renderer_accuracy_medium">Moyen</string>
+    <string name="renderer_accuracy_high">Précis</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Défaut</string>
@@ -886,6 +980,26 @@
     <string name="cpu_accuracy_paranoid">Paranoïaque</string>
     <string name="cpu_accuracy_debugging">Débogage</string>
 
+    <!-- Freedreno Settings -->
+    <string name="freedreno_settings_title">Paramètres de Freedreno</string>
+    <string name="gpu_driver_settings">Paramètres du pilote GPU</string>
+    <string name="freedreno_presets">Préréglages rapides</string>
+    <string name="freedreno_current_settings">Paramètres actuels</string>
+    <string name="freedreno_debug">Paramètres avancés</string>
+    <string name="freedreno_var_value">Valeur de la variable</string>
+    <string name="freedreno_add_variable">Ajouter la variable</string>
+    <string name="freedreno_clear_all">Effacer tout</string>
+    <string name="freedreno_saved">Configuration Freedreno sauvegardée</string>
+    <string name="freedreno_cleared_all">Toutes les variables Freedreno effacées</string>
+    <string name="freedreno_variable_added">Variable %1$s ajouté</string>
+    <string name="freedreno_preset_applied">Préréglage \'%1$s\' appliqué</string>
+    <string name="freedreno_error_empty_name">Le nom de la variable ne peut pas être vide</string>
+    <string name="freedreno_error_setting_variable">Échec de l\'assignation de la variable</string>
+    <string name="freedreno_info_title">À propos de la configuration Freedreno</string>
+    <string name="freedreno_per_game_title">Paramètres de Freedreno</string>
+    <string name="freedreno_per_game_description">Configurer les paramètres du pilote GPU pour ce jeu</string>
+    <string name="freedreno_per_game_saved">Configuration Freedreno sauvegardée</string>
+
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Pavé directionnel</string>
     <string name="gamepad_left_stick">Stick gauche</string>
@@ -902,15 +1016,24 @@
     <string name="theme_material_you">Material You</string>
     <string name="app_settings">Paramètres de l’App</string>
     <string name="theme_and_color">Thème et Couleur</string>
+    <string name="fullscreen_mode">Mode plein écran</string>
     <!-- Theme Modes -->
     <string name="change_theme_mode">Changer le mode de thème</string>
     <string name="theme_mode_follow_system">Automatique</string>
     <string name="theme_mode_light">Lumineux</string>
     <string name="theme_mode_dark">Sombre</string>
 
+    <string name="multiplier_none">Aucun</string>
+
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Arrière-plan noir</string>
     <string name="use_black_backgrounds_description">Lorsque vous utilisez le thème sombre, appliquer un arrière-plan noir.</string>
+
+    <!-- Buttons -->
+    <string name="enable_folder_button">Dossier</string>
+    <string name="enable_folder_button_description">Afficher le bouton pour ajouter les dossiers de jeu</string>
+    <string name="enable_qlaunch_button">QLaunch</string>
+    <string name="enable_qlaunch_button_description">Afficher le bouton pour lancer QLaunch</string>
 
     <!-- App Language -->
     <string name="app_language">Language de l\'application</string>
@@ -918,10 +1041,12 @@
     <string name="app_language_system">Suivre le système</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Couleur du thème</string>
+    <string name="eden_theme">Eden</string>
     <string name="violet">Violet (Par défaut)</string>
     <string name="blue">Bleu</string>
     <string name="cyan">Cyan</string>
     <string name="red">Rouge</string>
+    <string name="green">Vert</string>
     <string name="yellow">Jaune</string>
     <string name="orange">Orange</string>
     <string name="pink">Rose</string>
@@ -940,6 +1065,8 @@
 
     <!-- Applet Modes -->
     <string name="applets_menu">Applets</string>
+    <string name="applets_menu_description">Modifier les frontends et paramètres des applets</string>
+
     <string name="applet_hle">Frontend personnalisé</string>
     <string name="applet_lle">Applet réel</string>
 
@@ -948,7 +1075,39 @@
     <string name="airplane_mode">Mode avion</string>
     <string name="airplane_mode_description">Passe le mode avion au système d\'exploitation Switch</string>
 
+    <string name="enable_overlay">Activer l\'applet d\'overlay</string>
+    <!-- Profile Management -->
+    <string name="profile_manager">Gestionnaire de profil</string>
+    <string name="profile_manager_description">Gérer les profils utilisateurs</string>
+    <string name="profile_add_user">Ajouter un utilisateur</string>
+    <string name="profile_new_user">Nouvel utilisateur</string>
+    <string name="profile_edit_user">Modifier l\'utilisateur</string>
+    <string name="profile_edit">Éditer</string>
+    <string name="profile_delete">Supprimer</string>
+    <string name="profile_username">Nom d\'utilisateur</string>
+    <string name="profile_uuid">ID de l\'utilisateur (UUID)</string>
+    <string name="profile_uuid_description">Il s\'agit de l\'identifiant unique de ce profil utilisateur. Il ne peut pas être changé après sa création.</string>
+    <string name="profile_generate">Générer</string>
+    <string name="profile_avatar">Avatar de l\'utilisateur</string>
+    <string name="profile_select_image">Sélectionner l\'image</string>
+    <string name="profile_firmware_avatars">Avatars du firmware</string>
+    <string name="profile_firmware_avatars_unavailable">Avatars du firmware non disponibles. Veuillez installer le firmware pour utiliser cette fonctionnalité.</string>
+    <string name="profile_revert_image">Restaurer à la valeur par défaut</string>
+    <string name="profile_current_user">Utilisateur actuel</string>
+    <string name="profile_max_users_title">Nombre d\'Utilisateurs Maximum Atteint</string>
+    <string name="profile_max_users_message">Vous ne pouvez pas créer plus du 8 profils utilisateurs. Veuillez supprimer un des profils existants pour en créer un nouveau.</string>
+    <string name="profile_delete_confirm_title">Supprimer le profil \?</string>
+    <string name="profile_create_failed">Échec de la création du profil utilisateur</string>
+    <string name="profile_update_failed">Échec de la mise à jour du profil utilisateur</string>
+    <string name="profile_image_load_error">Échec du chargement de l\'image : %1$s</string>
+    <string name="profile_image_save_error">Échec de la sauvegarde de l\'image : %1$s</string>
+    <string name="error">Erreur</string>
+
     <!-- Licenses screen strings -->
     <string name="licenses">Licences</string>
     <string name="license_fidelityfx_fsr_description">Mise à l\'échelle de haute qualité par AMD.</string>
-    </resources>
+    <string name="external_content">Contenu externe</string>
+    <string name="add_folders">Ajouter un dossier</string>
+    <string name="percent">%1$d%%</string>
+
+</resources>
