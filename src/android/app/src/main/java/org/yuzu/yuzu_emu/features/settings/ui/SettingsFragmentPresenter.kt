@@ -76,18 +76,25 @@ class SettingsFragmentPresenter(
         }
     }
 
-    private fun isFsrScalingFilterSelected(): Boolean {
-        val fsrFilterValue = resolveFsrScalingFilterValue() ?: return false
+    private fun isSharpnessScalingFilterSelected(): Boolean {
         val needsGlobal = getNeedsGlobalForKey(IntSetting.RENDERER_SCALING_FILTER.key)
         val selectedFilter = IntSetting.RENDERER_SCALING_FILTER.getInt(needsGlobal)
-        return selectedFilter == fsrFilterValue
+        return selectedFilter in resolveSharpnessScalingFilterValues()
     }
 
-    private fun resolveFsrScalingFilterValue(): Int? {
+    private fun resolveSharpnessScalingFilterValues(): Set<Int> {
         val names = context.resources.getStringArray(R.array.rendererScalingFilterNames)
         val values = context.resources.getIntArray(R.array.rendererScalingFilterValues)
-        val fsrIndex = names.indexOf(context.getString(R.string.scaling_filter_fsr))
-        return if (fsrIndex in values.indices) values[fsrIndex] else null
+        val sharpnessFilterNames = setOf(
+            context.getString(R.string.scaling_filter_fsr),
+            context.getString(R.string.scaling_filter_sgsr),
+            context.getString(R.string.scaling_filter_sgsr_edge),
+        )
+        return names.asSequence()
+            .mapIndexedNotNull { index, name ->
+                if (name in sharpnessFilterNames && index in values.indices) values[index] else null
+            }
+            .toSet()
     }
 
     // Allows you to show/hide abstract settings based on the paired setting key
@@ -267,7 +274,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_RESOLUTION.key)
             add(IntSetting.RENDERER_VSYNC.key)
             add(IntSetting.RENDERER_SCALING_FILTER.key)
-            if (isFsrScalingFilterSelected()) {
+            if (isSharpnessScalingFilterSelected()) {
                 add(IntSetting.FSR_SHARPENING_SLIDER.key)
             }
             add(IntSetting.RENDERER_ANTI_ALIASING.key)

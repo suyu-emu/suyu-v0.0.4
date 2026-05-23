@@ -240,6 +240,8 @@
         <item>@string/scaling_filter_bspline</item>
         <item>@string/scaling_filter_mitchell</item>
         <item>@string/scaling_filter_spline1</item>
+        <item>@string/scaling_filter_sgsr</item>
+        <item>@string/scaling_filter_sgsr_edge</item>
     </string-array>
 
     <integer-array name="rendererScalingFilterValues">
@@ -256,6 +258,8 @@
         <item>10</item>
         <item>11</item>
         <item>12</item>
+        <item>13</item>
+        <item>14</item>
     </integer-array>
 
     <string-array name="rendererAntiAliasingNames">

@@ -4164,8 +4164,7 @@ void MainWindow::UpdateAPIText() {
 void MainWindow::UpdateFilterText() {
     const auto filter = Settings::values.scaling_filter.GetValue();
     const auto filter_text = ConfigurationShared::scaling_filter_texts_map.find(filter)->second;
-    filter_status_button->setText(filter == Settings::ScalingFilter::Fsr ? tr("FSR")
-                                                                         : filter_text.toUpper());
+    filter_status_button->setText(filter_text.toUpper());
 }
 
 void MainWindow::UpdateAAText() {

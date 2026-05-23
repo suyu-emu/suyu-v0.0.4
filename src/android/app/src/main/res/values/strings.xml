@@ -468,8 +468,8 @@
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>
     <string name="renderer_scaling_filter">Window adapting filter</string>
-    <string name="fsr_sharpness">FSR sharpness</string>
-    <string name="fsr_sharpness_description">Determines how sharpened the image will look while using FSR\'s dynamic contrast</string>
+    <string name="fsr_sharpness">FSR/SGSR sharpness</string>
+    <string name="fsr_sharpness_description">Determines how sharpened the image will look while using FSR or SGSR filters</string>
     <string name="renderer_anti_aliasing">Anti-aliasing method</string>
 
 
@@ -1080,6 +1080,8 @@
     <string name="scaling_filter_bspline" translatable="false">B-Spline</string>
     <string name="scaling_filter_mitchell" translatable="false">Mitchell</string>
     <string name="scaling_filter_mmpx" translatable="false">MMPX</string>
+    <string name="scaling_filter_sgsr" translatable="false">Snapdragon GSR</string>
+    <string name="scaling_filter_sgsr_edge" translatable="false">Snapdragon GSR EdgeDir</string>
 
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">None</string>

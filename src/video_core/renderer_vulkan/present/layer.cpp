@@ -15,6 +15,7 @@
 #include "common/settings.h"
 #include "video_core/framebuffer_config.h"
 #include "video_core/renderer_vulkan/present/fsr.h"
+#include "video_core/renderer_vulkan/present/sgsr.h"
 #include "video_core/renderer_vulkan/present/fxaa.h"
 #include "video_core/renderer_vulkan/present/layer.h"
 #include "video_core/renderer_vulkan/present/present_push_constants.h"
@@ -63,7 +64,11 @@ Layer::Layer(const Device& device_, MemoryAllocator& memory_allocator_, Schedule
     CreateDescriptorPool();
     CreateDescriptorSets(layout);
     if (filters.get_scaling_filter() == Settings::ScalingFilter::Fsr) {
-        fsr.emplace(device, memory_allocator, image_count, output_size);
+        sr_filter.emplace<FSR>(device, memory_allocator, image_count, output_size);
+    } else if (filters.get_scaling_filter() == Settings::ScalingFilter::Sgsr) {
+        sr_filter.emplace<SGSR>(device, memory_allocator, image_count, output_size, false);
+    } else if (filters.get_scaling_filter() == Settings::ScalingFilter::SgsrEdge) {
+        sr_filter.emplace<SGSR>(device, memory_allocator, image_count, output_size, true);
     }
 }
 
@@ -114,8 +119,11 @@ void Layer::ConfigureDraw(PresentPushConstants* out_push_constants,
         .height = scaled_height,
     };
 
-    if (fsr) {
+    if (auto* fsr = std::get_if<FSR>(&sr_filter)) {
         source_image_view = fsr->Draw(scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
+        crop_rect = {0, 0, 1, 1};
+    } else if (auto* sgsr = std::get_if<SGSR>(&sr_filter)) {
+        source_image_view = sgsr->Draw(scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
         crop_rect = {0, 0, 1, 1};
     }
 

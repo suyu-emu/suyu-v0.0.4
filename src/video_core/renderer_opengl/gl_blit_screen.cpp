@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
@@ -115,6 +115,8 @@ void BlitScreen::CreateWindowAdapt() {
         window_adapt = MakeMmpx(device);
         break;
     case Settings::ScalingFilter::Fsr:
+    case Settings::ScalingFilter::Sgsr:
+    case Settings::ScalingFilter::SgsrEdge:
     case Settings::ScalingFilter::Bilinear:
     default:
         window_adapt = MakeBilinear(device);

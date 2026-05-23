@@ -53,6 +53,8 @@ static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map
     {Settings::ScalingFilter::Fsr, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "FSR"))},
     {Settings::ScalingFilter::Area, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Area"))},
     {Settings::ScalingFilter::Mmpx, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "MMPX"))},
+    {Settings::ScalingFilter::Sgsr, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "SGSR"))},
+    {Settings::ScalingFilter::SgsrEdge, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "SGSR EdgeDir"))},
 };
 
 static const std::map<Settings::ConsoleMode, QString> use_docked_mode_texts_map = {
