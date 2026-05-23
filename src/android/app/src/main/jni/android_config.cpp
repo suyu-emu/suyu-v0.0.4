@@ -19,6 +19,9 @@ AndroidConfig::AndroidConfig(const std::string& config_name, ConfigType config_t
 }
 
 void AndroidConfig::ReloadAllValues() {
+    // Ensure the INI file is current before reloading values.
+    SetUpIni();
+
     Reload();
     ReadAndroidValues();
     SaveAndroidValues();

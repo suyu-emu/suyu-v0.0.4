@@ -127,6 +127,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager
 
         super.onCreate(savedInstanceState)
 
+        NativeConfig.reloadGlobalConfig()
+
         InputHandler.updateControllerData()
         val players = NativeConfig.getInputSettings(true)
         var hasConfiguredControllers = false
