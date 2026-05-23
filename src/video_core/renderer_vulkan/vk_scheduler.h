@@ -251,8 +251,6 @@ private:
         bool needs_state_enable_refresh = false;
     };
 
-    void WorkerThread(std::stop_token stop_token);
-
     void AllocateWorkerCommandBuffer();
 
     u64 SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore);

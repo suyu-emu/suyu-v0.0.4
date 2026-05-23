@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -69,10 +72,6 @@ private:
      * Initializing thread, launched at audio_core boot to avoid blocking the main emu boot thread.
      */
     void Init(std::stop_token stop_token);
-    /**
-     * Main OpusDecoder thread, responsible for processing the incoming Opus packets.
-     */
-    void Main(std::stop_token stop_token);
 
     /// Core system
     Core::System& system;

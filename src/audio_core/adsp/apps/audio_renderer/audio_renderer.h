@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -82,11 +82,6 @@ public:
     u64 GetRenderingStartTick(s32 session_id) const noexcept;
 
 private:
-    /**
-     * Main AudioRenderer thread, responsible for processing the command lists.
-     */
-    void Main(std::stop_token stop_token);
-
     /**
      * Creates the streams which will receive the processed samples.
      */
