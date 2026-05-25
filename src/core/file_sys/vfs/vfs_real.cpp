@@ -33,7 +33,7 @@ namespace FS = Common::FS;
 
 namespace {
 
-constexpr size_t MaxOpenFiles = 512;
+constexpr size_t MaxOpenFiles = 8192;
 
 constexpr FS::FileAccessMode ModeFlagsToFileAccessMode(OpenMode mode) {
     switch (mode) {
