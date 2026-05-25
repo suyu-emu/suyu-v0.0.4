@@ -64,22 +64,25 @@ public:
     Result GetServicePort(Kernel::KClientPort** out_client_port, const std::string& name);
 
     template <Common::DerivedFrom<SessionRequestHandler> T>
-    std::shared_ptr<T> GetService(const std::string& service_name, bool block = false) const {
-        auto service = registered_services.find(service_name);
-        if (service == registered_services.end() && !block) {
-            LOG_DEBUG(Service, "Can't find service: {}", service_name);
+    std::shared_ptr<T> GetService(const std::string& name, bool block = false) const {
+        std::unique_lock l{lock};
+        auto it = registered_services.find(name);
+        if (it == registered_services.end() && !block) {
+            LOG_DEBUG(Service, "Can't find service: {}", name);
             return nullptr;
         } else if (block) {
             using namespace std::literals::chrono_literals;
-            while (service == registered_services.end()) {
+            while (it == registered_services.end()) {
+                l.unlock();
                 Kernel::Svc::SleepThread(
                     kernel.System(),
                     std::chrono::duration_cast<std::chrono::nanoseconds>(100ms).count());
-                service = registered_services.find(service_name);
+                l.lock();
+                it = registered_services.find(name);
             }
         }
 
-        return std::static_pointer_cast<T>(service->second());
+        return std::static_pointer_cast<T>(it->second());
     }
 
     void InvokeControlRequest(HLERequestContext& context);
@@ -93,7 +96,7 @@ private:
     std::unique_ptr<Controller> controller_interface;
 
     /// Map of registered services, retrieved using GetServicePort.
-    std::mutex lock;
+    mutable std::mutex lock;
     std::unordered_map<std::string, SessionRequestHandlerFactory> registered_services;
     std::unordered_map<std::string, Kernel::KClientPort*> service_ports;
 

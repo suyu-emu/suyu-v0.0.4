@@ -429,6 +429,10 @@ struct Values {
                                                 Category::RendererAdvanced};
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
                                                    Category::RendererAdvanced};
+    SwitchableSetting<bool> legacy_descriptor_indices{linkage,
+                                                      true,
+                                                      "legacy_descriptor_indices",
+                                                      Category::RendererAdvanced};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",

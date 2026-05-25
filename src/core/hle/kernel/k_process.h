@@ -82,6 +82,7 @@ private:
     KConditionVariable m_cond_var;
     KAddressArbiter m_address_arbiter;
     std::array<u64, 4> m_entropy{};
+    u32 m_pointer_buffer_size = 0x8000;
     bool m_is_signaled{};
     bool m_is_initialized{};
     bool m_is_application{};
@@ -237,6 +238,14 @@ public:
     }
     void SetSuspended(bool suspended) {
         m_is_suspended = suspended;
+    }
+
+    u32 GetPointerBufferSize() const {
+        return m_pointer_buffer_size;
+    }
+
+    void SetPointerBufferSize(u32 size) {
+        m_pointer_buffer_size = size;
     }
 
     Result Terminate();

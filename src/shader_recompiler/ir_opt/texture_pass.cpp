@@ -7,6 +7,7 @@
 
 #include <boost/container/small_vector.hpp>
 
+#include "common/settings.h"
 #include "shader_recompiler/environment.h"
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/breadth_first_search.h"
@@ -39,6 +40,45 @@ using TextureInstVector = boost::container::small_vector<TextureInst, 24>;
 
 constexpr u32 DESCRIPTOR_SIZE = 8;
 constexpr u32 DESCRIPTOR_SIZE_SHIFT = static_cast<u32>(std::countr_zero(DESCRIPTOR_SIZE));
+constexpr u32 DYNAMIC_DESCRIPTOR_CBUF_BYTES = 16 * 1024;
+constexpr u32 MAX_DYNAMIC_DESCRIPTOR_COUNT = 1024;
+
+u32 DynamicDescriptorSizeShift(const IR::U32& dynamic_offset) {
+    const IR::Inst* const inst{dynamic_offset.InstRecursive()};
+    if (!inst || inst->GetOpcode() != IR::Opcode::ShiftLeftLogical32) {
+        return DESCRIPTOR_SIZE_SHIFT;
+    }
+
+    const IR::Value shift{inst->Arg(1)};
+    if (!shift.IsImmediate()) {
+        return DESCRIPTOR_SIZE_SHIFT;
+    }
+
+    const u32 size_shift{shift.U32()};
+    return size_shift >= DESCRIPTOR_SIZE_SHIFT && size_shift < 31 ? size_shift
+                                                                  : DESCRIPTOR_SIZE_SHIFT;
+}
+
+u32 DynamicDescriptorCount(u32 base_offset, u32 size_shift) {
+    if (size_shift >= 31 || base_offset >= DYNAMIC_DESCRIPTOR_CBUF_BYTES) {
+        return 1;
+    }
+
+    const u32 stride{1U << size_shift};
+    const u32 available{DYNAMIC_DESCRIPTOR_CBUF_BYTES - base_offset};
+    if (available < DESCRIPTOR_SIZE) {
+        return 1;
+    }
+
+    const u32 available_count{1U + (available - DESCRIPTOR_SIZE) / stride};
+    return std::min(MAX_DYNAMIC_DESCRIPTOR_COUNT, available_count);
+}
+
+u32 EffectiveDescriptorSizeShift(const IR::U32& dynamic_offset) {
+    return Settings::values.legacy_descriptor_indices.GetValue()
+               ? DESCRIPTOR_SIZE_SHIFT
+               : DynamicDescriptorSizeShift(dynamic_offset);
+}
 
 IR::Opcode IndexedInstruction(const IR::Inst& inst) {
     switch (inst.GetOpcode()) {
@@ -314,6 +354,7 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
     } else {
         return std::nullopt;
     }
+    const u32 size_shift{DynamicDescriptorSizeShift(dynamic_offset)};
     return ConstBufferAddr{
         .index = index.U32(),
         .offset = base_offset,
@@ -322,7 +363,9 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
         .secondary_offset = 0,
         .secondary_shift_left = 0,
         .dynamic_offset = dynamic_offset,
-        .count = 8,
+        .count = Settings::values.legacy_descriptor_indices.GetValue()
+                     ? 8
+                     : DynamicDescriptorCount(base_offset, size_shift),
         .has_secondary = false,
     };
 }
@@ -617,7 +660,8 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .count = cbuf.count,
-                    .size_shift = DESCRIPTOR_SIZE_SHIFT,
+                    .size_shift = cbuf.count > 1 ? EffectiveDescriptorSizeShift(cbuf.dynamic_offset)
+                                                  : DESCRIPTOR_SIZE_SHIFT,
                 });
             } else {
                 index = descriptors.Add(ImageDescriptor{
@@ -629,7 +673,8 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .count = cbuf.count,
-                    .size_shift = DESCRIPTOR_SIZE_SHIFT,
+                    .size_shift = cbuf.count > 1 ? EffectiveDescriptorSizeShift(cbuf.dynamic_offset)
+                                                  : DESCRIPTOR_SIZE_SHIFT,
                 });
             }
             break;
@@ -645,7 +690,8 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                     .secondary_cbuf_offset = cbuf.secondary_offset,
                     .secondary_shift_left = cbuf.secondary_shift_left,
                     .count = cbuf.count,
-                    .size_shift = DESCRIPTOR_SIZE_SHIFT,
+                    .size_shift = cbuf.count > 1 ? EffectiveDescriptorSizeShift(cbuf.dynamic_offset)
+                                                  : DESCRIPTOR_SIZE_SHIFT,
                 });
             } else {
                 index = descriptors.Add(TextureDescriptor{
@@ -660,7 +706,8 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                     .secondary_cbuf_offset = cbuf.secondary_offset,
                     .secondary_shift_left = cbuf.secondary_shift_left,
                     .count = cbuf.count,
-                    .size_shift = DESCRIPTOR_SIZE_SHIFT,
+                    .size_shift = cbuf.count > 1 ? EffectiveDescriptorSizeShift(cbuf.dynamic_offset)
+                                                  : DESCRIPTOR_SIZE_SHIFT,
                 });
             }
             break;
@@ -671,9 +718,10 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
         if (cbuf.count > 1) {
             const auto insert_point{IR::Block::InstructionList::s_iterator_to(*inst)};
             IR::IREmitter ir{*texture_inst.block, insert_point};
-            const IR::U32 shift{ir.Imm32(std::countr_zero(DESCRIPTOR_SIZE))};
-            inst->SetArg(0, ir.UMin(ir.ShiftRightArithmetic(cbuf.dynamic_offset, shift),
-                                    ir.Imm32(DESCRIPTOR_SIZE - 1)));
+            const u32 size_shift{EffectiveDescriptorSizeShift(cbuf.dynamic_offset)};
+            const IR::U32 shift{ir.Imm32(size_shift)};
+            inst->SetArg(0, ir.UMin(ir.ShiftRightLogical(cbuf.dynamic_offset, shift),
+                                    ir.Imm32(cbuf.count - 1)));
         } else {
             inst->SetArg(0, IR::Value{});
         }

@@ -47,6 +47,8 @@ private:
     Result CreateManagedDisplayLayer(Out<u64> out_layer_id);
     Result CreateManagedDisplaySeparableLayer(Out<u64> out_layer_id,
                                               Out<u64> out_recording_layer_id);
+    Result SetManagedDisplayLayerSeparationMode(bool enabled);
+    Result SetRecordingLayerCompositionEnabled(bool enabled);
     Result SetHandlesRequestToDisplay(bool enable);
     Result ApproveToDisplay();
     Result SetMediaPlaybackState(bool state);
@@ -63,6 +65,7 @@ private:
     Result SetAlbumImageTakenNotificationEnabled(bool enabled);
     Result SaveCurrentScreenshot(Capture::AlbumReportOption album_report_option);
     Result SetRecordVolumeMuted(bool muted);
+    Result Unknown230(u32 value, Out<u16> out_value);
 
     Kernel::KProcess* const m_process;
     const std::shared_ptr<Applet> m_applet;

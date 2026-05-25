@@ -43,8 +43,8 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {42, D<&ISelfController::GetSystemSharedLayerHandle>, "GetSystemSharedLayerHandle"},
         {43, D<&ISelfController::GetSystemSharedBufferHandle>, "GetSystemSharedBufferHandle"},
         {44, D<&ISelfController::CreateManagedDisplaySeparableLayer>, "CreateManagedDisplaySeparableLayer"},
-        {45, nullptr, "SetManagedDisplayLayerSeparationMode"},
-        {46, nullptr, "SetRecordingLayerCompositionEnabled"},
+        {45, D<&ISelfController::SetManagedDisplayLayerSeparationMode>, "SetManagedDisplayLayerSeparationMode"},
+        {46, D<&ISelfController::SetRecordingLayerCompositionEnabled>, "SetRecordingLayerCompositionEnabled"},
         {50, D<&ISelfController::SetHandlesRequestToDisplay>, "SetHandlesRequestToDisplay"},
         {51, D<&ISelfController::ApproveToDisplay>, "ApproveToDisplay"},
         {60, D<&ISelfController::OverrideAutoSleepTimeAndDimmingTime>, "OverrideAutoSleepTimeAndDimmingTime"},
@@ -67,6 +67,7 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {110, nullptr, "SetApplicationAlbumUserData"},
         {120, D<&ISelfController::SaveCurrentScreenshot>, "SaveCurrentScreenshot"},
         {130, D<&ISelfController::SetRecordVolumeMuted>, "SetRecordVolumeMuted"},
+        {230, D<&ISelfController::Unknown230>, "Unknown230"},
         {1000, nullptr, "GetDebugStorageChannel"},
     };
     // clang-format on
@@ -263,11 +264,21 @@ Result ISelfController::CreateManagedDisplayLayer(Out<u64> out_layer_id) {
 
 Result ISelfController::CreateManagedDisplaySeparableLayer(Out<u64> out_layer_id,
                                                            Out<u64> out_recording_layer_id) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_INFO(Service_AM, "called");
 
     std::scoped_lock lk{m_applet->lock};
     R_RETURN(m_applet->display_layer_manager.CreateManagedDisplaySeparableLayer(
         out_layer_id, out_recording_layer_id));
+}
+
+Result ISelfController::SetManagedDisplayLayerSeparationMode(bool enabled) {
+    LOG_INFO(Service_AM, "(STUBBED) called, enabled={}", enabled);
+    R_SUCCEED();
+}
+
+Result ISelfController::SetRecordingLayerCompositionEnabled(bool enabled) {
+    LOG_INFO(Service_AM, "(STUBBED) called, enabled={}", enabled);
+    R_SUCCEED();
 }
 
 Result ISelfController::SetHandlesRequestToDisplay(bool enable) {
@@ -401,6 +412,13 @@ Result ISelfController::SetRecordVolumeMuted(bool muted) {
     std::scoped_lock lk{m_applet->lock};
     m_applet->record_volume_muted = muted;
 
+    R_SUCCEED();
+}
+
+Result ISelfController::Unknown230(u32 value, Out<u16> out_value) {
+    LOG_INFO(Service_AM, "(STUBBED) called, value={}", value);
+
+    *out_value = 0;
     R_SUCCEED();
 }
 

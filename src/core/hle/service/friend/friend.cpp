@@ -46,36 +46,53 @@ public:
             {20101, &IFriendService::GetNewlyFriendCount, "GetNewlyFriendCount"},
             {20102, nullptr, "GetFriendDetailedInfo"},
             {20103, nullptr, "SyncFriendList"},
-            {20104, nullptr, "RequestSyncFriendList"},
-            {20110, nullptr, "LoadFriendSetting"},
+            {20104, &IFriendService::RequestSyncFriendList, "RequestSyncFriendList"},
+            {20105, &IFriendService::GetFriendListForViewer, "GetFriendListForViewerV1"},
+            {20106, nullptr, "UpdateFriendInfoForViewerV1"},
+            {20107, nullptr, "GetFriendDetailedInfoV2"},
+            {20108, &IFriendService::GetFriendListForViewer, "GetFriendListForViewerV2"},
+            {20109, nullptr, "UpdateFriendInfoForViewerV2"},
+            {20110, nullptr, "LoadFriendSettingV1"},
+            {20111, nullptr, "LoadFriendSettingV2"},
             {20200, &IFriendService::GetReceivedFriendRequestCount, "GetReceivedFriendRequestCount"},
-            {20201, nullptr, "GetFriendRequestList"},
+            {20201, nullptr, "GetFriendRequestListV1"},
+            {20202, nullptr, "GetFriendRequestListV2"},
+            {20203, nullptr, "GetFriendRequestReceivedNotificationCount"},
             {20300, nullptr, "GetFriendCandidateList"},
             {20301, nullptr, "GetNintendoNetworkIdInfo"},
             {20302, nullptr, "GetSnsAccountLinkage"},
             {20303, nullptr, "GetSnsAccountProfile"},
             {20304, nullptr, "GetSnsAccountFriendList"},
-            {20400, nullptr, "GetBlockedUserList"},
+            {20400, nullptr, "GetBlockedUserListV1"},
             {20401, nullptr, "SyncBlockedUserList"},
-            {20500, nullptr, "GetProfileExtraList"},
+            {20402, nullptr, "GetBlockedUserListV2"},
+            {20500, nullptr, "GetProfileExtraListV1"},
             {20501, nullptr, "GetRelationship"},
+            {20502, nullptr, "GetProfileExtraListV2"},
             {20600, &IFriendService::GetUserPresenceView, "GetUserPresenceView"},
-            {20700, nullptr, "GetPlayHistoryList"},
+            {20700, nullptr, "GetPlayHistoryListV1"},
             {20701, &IFriendService::GetPlayHistoryStatistics, "GetPlayHistoryStatistics"},
+            {20702, nullptr, "GetPlayHistoryListV2"},
             {20800, &IFriendService::LoadUserSetting, "LoadUserSetting"},
             {20801, nullptr, "SyncUserSetting"},
+            {20802, &IFriendService::LoadUserSetting, "LoadUserSettingV2"},
             {20900, nullptr, "RequestListSummaryOverlayNotification"},
             {21000, nullptr, "GetExternalApplicationCatalog"},
-            {22000, nullptr, "GetReceivedFriendInvitationList"},
-            {22001, nullptr, "GetReceivedFriendInvitationDetailedInfo"},
+            {22000, nullptr, "GetReceivedFriendInvitationListV1"},
+            {22001, nullptr, "GetReceivedFriendInvitationDetailedInfoV1"},
+            {22002, nullptr, "GetReceivedFriendInvitationListV2"},
+            {22003, nullptr, "GetReceivedFriendInvitationDetailedInfoV2"},
             {22010, &IFriendService::GetReceivedFriendInvitationCountCache, "GetReceivedFriendInvitationCountCache"},
             {30100, nullptr, "DropFriendNewlyFlags"},
             {30101, nullptr, "DeleteFriend"},
             {30110, nullptr, "DropFriendNewlyFlag"},
             {30120, nullptr, "ChangeFriendFavoriteFlag"},
             {30121, nullptr, "ChangeFriendOnlineNotificationFlag"},
+            {30130, nullptr, "SetFriendNote"},
+            {30131, nullptr, "RequestUploadPendingNote"},
+            {30190, nullptr, "RequestSyncLocalUpdates"},
             {30200, nullptr, "SendFriendRequest"},
-            {30201, nullptr, "SendFriendRequestWithApplicationInfo"},
+            {30201, nullptr, "SendFriendRequestWithApplicationInfoV1"},
             {30202, nullptr, "CancelFriendRequest"},
             {30203, nullptr, "AcceptFriendRequest"},
             {30204, nullptr, "RejectFriendRequest"},
@@ -88,21 +105,27 @@ public:
             {30215, nullptr, "SendFriendRequestWithExternalApplicationCatalogId"},
             {30216, nullptr, "ResendFacedFriendRequest"},
             {30217, nullptr, "SendFriendRequestWithNintendoNetworkIdInfo"},
+            {30218, nullptr, "SendFriendRequestWithApplicationInfoV2"},
             {30300, nullptr, "GetSnsAccountLinkPageUrl"},
             {30301, nullptr, "UnlinkSnsAccount"},
             {30400, nullptr, "BlockUser"},
-            {30401, nullptr, "BlockUserWithApplicationInfo"},
+            {30401, nullptr, "BlockUserWithApplicationInfoV1"},
             {30402, nullptr, "UnblockUser"},
-            {30500, nullptr, "GetProfileExtraFromFriendCode"},
+            {30403, nullptr, "BlockUserWithApplicationInfoV2"},
+            {30500, nullptr, "GetProfileExtraFromFriendCodeV1"},
+            {30501, nullptr, "GetProfileExtraFromFriendCodeV2"},
             {30700, nullptr, "DeletePlayHistory"},
+            {30701, nullptr, "AddPlayHistoryWithApplication"},
             {30810, nullptr, "ChangePresencePermission"},
             {30811, nullptr, "ChangeFriendRequestReception"},
             {30812, nullptr, "ChangePlayLogPermission"},
             {30820, nullptr, "IssueFriendCode"},
             {30830, nullptr, "ClearPlayLog"},
-            {30900, nullptr, "SendFriendInvitation"},
+            {30900, nullptr, "SendFriendInvitationV1"},
+            {30901, nullptr, "SendFriendInvitationV2"},
             {30910, nullptr, "ReadFriendInvitation"},
             {30911, nullptr, "ReadAllFriendInvitations"},
+            {31000, nullptr, "OpenUser"},
             {40100, nullptr, "DeleteFriendListCache"},
             {40400, nullptr, "DeleteBlockedUserListCache"},
             {49900, nullptr, "DeleteNetworkServiceAccountCache"},
@@ -180,6 +203,23 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
         rb.Push(true);
+    }
+
+    void RequestSyncFriendList(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Friend, "(STUBBED) called");
+
+        completion_event->Signal();
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void GetFriendListForViewer(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Friend, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u32>(0);
     }
 
     void GetBlockedUserListIds(HLERequestContext& ctx) {

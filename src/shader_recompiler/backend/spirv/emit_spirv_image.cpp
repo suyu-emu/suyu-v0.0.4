@@ -211,7 +211,9 @@ Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& ind
     } else {
         const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
         if (def.count > 1) {
-            throw NotImplementedException("Indirect texture sample");
+            const Id idx{index.IsImmediate() ? ctx.Const(index.U32()) : ctx.Def(index)};
+            const Id ptr{ctx.OpAccessChain(def.pointer_type, def.id, idx)};
+            return ctx.OpImage(def.image_type, ctx.OpLoad(def.sampled_type, ptr));
         }
         return ctx.OpImage(def.image_type, ctx.OpLoad(def.sampled_type, def.id));
     }

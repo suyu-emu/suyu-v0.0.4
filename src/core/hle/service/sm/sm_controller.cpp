@@ -1,9 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <limits>
+
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_port.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
@@ -68,11 +71,41 @@ void Controller::CloneCurrentObjectEx(HLERequestContext& ctx) {
 }
 
 void Controller::QueryPointerBufferSize(HLERequestContext& ctx) {
-    LOG_WARNING(Service, "(STUBBED) called");
+    LOG_DEBUG(Service, "called");
+
+    auto* process = Kernel::GetCurrentProcessPointer(kernel);
+    ASSERT(process != nullptr);
+
+    u32 buffer_size = process->GetPointerBufferSize();
+    if (buffer_size > (std::numeric_limits<u16>::max)()) {
+        LOG_WARNING(Service, "Pointer buffer size {:#x} exceeds u16 max, clamping", buffer_size);
+        buffer_size = (std::numeric_limits<u16>::max)();
+    }
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u16>(0x8000);
+    rb.Push<u16>(static_cast<u16>(buffer_size));
+}
+
+void Controller::SetPointerBufferSize(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    u32 requested_size = rp.PopRaw<u32>();
+
+    if (requested_size > (std::numeric_limits<u16>::max)()) {
+        LOG_WARNING(Service, "Requested pointer buffer size {:#x} exceeds u16 max, clamping",
+                    requested_size);
+        requested_size = (std::numeric_limits<u16>::max)();
+    }
+
+    auto* process = Kernel::GetCurrentProcessPointer(kernel);
+    ASSERT(process != nullptr);
+    process->SetPointerBufferSize(requested_size);
+
+    LOG_INFO(Service, "Pointer buffer size set to {:#x} bytes for process {}", requested_size,
+             process->GetProcessId());
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 // https://switchbrew.org/wiki/IPC_Marshalling
@@ -83,6 +116,7 @@ Controller::Controller(Core::System& system_) : ServiceFramework{system_, "IpcCo
         {2, &Controller::CloneCurrentObject, "CloneCurrentObject"},
         {3, &Controller::QueryPointerBufferSize, "QueryPointerBufferSize"},
         {4, &Controller::CloneCurrentObjectEx, "CloneCurrentObjectEx"},
+        {5, &Controller::SetPointerBufferSize, "SetPointerBufferSize"},
     };
     RegisterHandlers(functions);
 }

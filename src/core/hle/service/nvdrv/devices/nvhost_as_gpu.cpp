@@ -195,8 +195,13 @@ NvResult nvhost_as_gpu::AllocateSpace(IoctlAllocSpace& params) {
     return NvResult::Success;
 }
 
-void nvhost_as_gpu::FreeMappingLocked(u64 offset) {
-    auto mapping{mapping_map.at(offset)};
+bool nvhost_as_gpu::FreeMappingLocked(u64 offset) noexcept {
+    const auto it = mapping_map.find(offset);
+    if (it == mapping_map.end()) {
+        return false;
+    }
+
+    auto mapping{it->second};
 
     if (!mapping->fixed) {
         auto& allocator{mapping->big_page ? *vm.big_page_allocator : *vm.small_page_allocator};
@@ -219,6 +224,7 @@ void nvhost_as_gpu::FreeMappingLocked(u64 offset) {
     }
 
     mapping_map.erase(offset);
+    return true;
 }
 
 NvResult nvhost_as_gpu::FreeSpace(IoctlFreeSpace& params) {
@@ -231,34 +237,37 @@ NvResult nvhost_as_gpu::FreeSpace(IoctlFreeSpace& params) {
         return NvResult::BadValue;
     }
 
-    try {
-        auto allocation{allocation_map[params.offset]};
-
-        if (allocation.page_size != params.page_size ||
-            allocation.size != (static_cast<u64>(params.pages) * params.page_size)) {
-            return NvResult::BadValue;
-        }
-
-        for (const auto& mapping : allocation.mappings) {
-            FreeMappingLocked(mapping->offset);
-        }
-
-        // Unset sparse flag if required
-        if (allocation.sparse) {
-            gmmu->Unmap(params.offset, allocation.size);
-        }
-
-        auto& allocator{params.page_size == VM::SUYU_PAGESIZE ? *vm.small_page_allocator
-                                                              : *vm.big_page_allocator};
-        u32 page_size_bits{params.page_size == VM::SUYU_PAGESIZE ? VM::PAGE_SIZE_BITS
-                                                                 : vm.big_page_size_bits};
-
-        allocator.Free(static_cast<u32>(params.offset >> page_size_bits),
-                       static_cast<u32>(allocation.size >> page_size_bits));
-        allocation_map.erase(params.offset);
-    } catch (const std::out_of_range&) {
+    const auto allocation_it = allocation_map.find(params.offset);
+    if (allocation_it == allocation_map.end()) {
         return NvResult::BadValue;
     }
+
+    auto allocation{allocation_it->second};
+
+    if (allocation.page_size != params.page_size ||
+        allocation.size != (static_cast<u64>(params.pages) * params.page_size)) {
+        return NvResult::BadValue;
+    }
+
+    for (const auto& mapping : allocation.mappings) {
+        if (!FreeMappingLocked(mapping->offset)) {
+            return NvResult::BadValue;
+        }
+    }
+
+    // Unset sparse flag if required
+    if (allocation.sparse) {
+        gmmu->Unmap(params.offset, allocation.size);
+    }
+
+    auto& allocator{params.page_size == VM::SUYU_PAGESIZE ? *vm.small_page_allocator
+                                                          : *vm.big_page_allocator};
+    u32 page_size_bits{params.page_size == VM::SUYU_PAGESIZE ? VM::PAGE_SIZE_BITS
+                                                             : vm.big_page_size_bits};
+
+    allocator.Free(static_cast<u32>(params.offset >> page_size_bits),
+                   static_cast<u32>(allocation.size >> page_size_bits));
+    allocation_map.erase(allocation_it);
 
     return NvResult::Success;
 }
