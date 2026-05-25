@@ -130,6 +130,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/x64/cpu_detect.h"
 #endif
 #include "common/settings.h"
+#include "core/arm/debug.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/crypto/key_manager.h"
@@ -4925,8 +4926,13 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                 state[QStringLiteral("mode")] = QStringLiteral("unknown");
             }
             state[QStringLiteral("game_running")] =
-                core_manager_ ? core_manager_->IsGameRunning() : false;
+                emulation_running ||
+                (core_manager_ ? core_manager_->IsGameRunning() : false);
             state[QStringLiteral("emu_running")] = emulation_running;
+            state[QStringLiteral("emulation_thread_running")] =
+                emu_thread ? emu_thread->IsRunning() : false;
+            state[QStringLiteral("first_frame_displayed")] =
+                render_window ? render_window->IsLoadingComplete() : false;
             state[QStringLiteral("qt_ssl_available")] = qt_ssl_available_;
             state[QStringLiteral("qt_ssl_build_version")] = qt_ssl_build_version_;
             state[QStringLiteral("qt_ssl_runtime_version")] = qt_ssl_runtime_version_;
@@ -5375,6 +5381,114 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                     return QJsonObject{{QStringLiteral("success"), emulation_running},
                                        {QStringLiteral("path"), path},
                                        {QStringLiteral("emu_running"), emulation_running}};
+                });
+
+            mcp_server_->RegisterTool(
+                QStringLiteral("stop_emulation"),
+                QStringLiteral("Stop the currently running emulation session."),
+                QJsonObject{{QStringLiteral("type"), QStringLiteral("object")},
+                            {QStringLiteral("properties"), QJsonObject{}}},
+                [this](const QJsonObject& /*params*/) -> QJsonObject {
+                    const bool was_running = emulation_running;
+                    if (emulation_running) {
+                        OnStopGame();
+                    }
+                    return QJsonObject{{QStringLiteral("success"), true},
+                                       {QStringLiteral("was_running"), was_running},
+                                       {QStringLiteral("emu_running"), emulation_running}};
+                });
+
+            mcp_server_->RegisterTool(
+                QStringLiteral("get_thread_diagnostics"),
+                QStringLiteral("Return guest thread states, registers, and short backtraces for launch debugging."),
+                QJsonObject{{QStringLiteral("type"), QStringLiteral("object")},
+                            {QStringLiteral("properties"),
+                             QJsonObject{{QStringLiteral("include_backtrace"),
+                                          QJsonObject{{QStringLiteral("type"), QStringLiteral("boolean")},
+                                                      {QStringLiteral("description"),
+                                                       QStringLiteral("Include a short guest callstack for each thread")}}},
+                                         {QStringLiteral("max_backtrace"),
+                                          QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")},
+                                                      {QStringLiteral("description"),
+                                                       QStringLiteral("Maximum backtrace frames per thread")}}}}}},
+                [this](const QJsonObject& params) -> QJsonObject {
+                    QJsonObject result;
+                    result[QStringLiteral("emu_running")] = emulation_running;
+                    result[QStringLiteral("emulation_thread_running")] =
+                        emu_thread ? emu_thread->IsRunning() : false;
+                    result[QStringLiteral("first_frame_displayed")] =
+                        render_window ? render_window->IsLoadingComplete() : false;
+
+                    auto* process = system->ApplicationProcess();
+                    if (!process) {
+                        result[QStringLiteral("error")] =
+                            QStringLiteral("No application process is loaded");
+                        return result;
+                    }
+
+                    const bool include_backtrace =
+                        params[QStringLiteral("include_backtrace")].toBool(true);
+                    const int max_backtrace =
+                        qBound(0, params[QStringLiteral("max_backtrace")].toInt(8), 32);
+
+                    const auto hex64 = [](u64 value) {
+                        return QStringLiteral("0x%1").arg(static_cast<qulonglong>(value), 0, 16);
+                    };
+
+                    QJsonArray threads;
+                    for (const auto* thread : system->GlobalSchedulerContext().GetThreadList()) {
+                        if (!thread || thread->GetThreadType() != Kernel::ThreadType::User ||
+                            thread->GetOwnerProcess() != process) {
+                            continue;
+                        }
+
+                        const auto& ctx = thread->GetContext();
+                        QJsonObject thread_json;
+                        thread_json[QStringLiteral("thread_id")] = hex64(thread->GetThreadId());
+                        thread_json[QStringLiteral("name")] = QString::fromStdString(
+                            Core::GetThreadName(thread).value_or(std::string{}));
+                        thread_json[QStringLiteral("state")] =
+                            QString::fromStdString(Core::GetThreadState(thread));
+                        thread_json[QStringLiteral("wait_reason")] =
+                            QString::fromUtf8(Core::GetThreadWaitReason(thread).data(),
+                                              static_cast<int>(
+                                                  Core::GetThreadWaitReason(thread).size()));
+                        thread_json[QStringLiteral("active_core")] = thread->GetActiveCore();
+                        thread_json[QStringLiteral("priority")] = thread->GetPriority();
+                        thread_json[QStringLiteral("base_priority")] = thread->GetBasePriority();
+                        thread_json[QStringLiteral("last_scheduled_tick")] =
+                            QString::number(thread->GetLastScheduledTick());
+                        thread_json[QStringLiteral("pc")] = hex64(ctx.pc);
+                        thread_json[QStringLiteral("lr")] = hex64(ctx.lr);
+                        thread_json[QStringLiteral("sp")] = hex64(ctx.sp);
+                        thread_json[QStringLiteral("fp")] = hex64(ctx.fp);
+
+                        if (include_backtrace && max_backtrace > 0) {
+                            QJsonArray frames;
+                            const auto backtrace = Core::GetBacktrace(thread);
+                            const int frame_count =
+                                std::min<int>(static_cast<int>(backtrace.size()), max_backtrace);
+                            for (int i = 0; i < frame_count; ++i) {
+                                const auto& frame = backtrace[static_cast<size_t>(i)];
+                                QJsonObject frame_json;
+                                frame_json[QStringLiteral("address")] =
+                                    hex64(frame.original_address);
+                                frame_json[QStringLiteral("module")] =
+                                    QString::fromStdString(frame.module);
+                                frame_json[QStringLiteral("symbol")] =
+                                    QString::fromStdString(frame.name);
+                                frame_json[QStringLiteral("offset")] = hex64(frame.offset);
+                                frames.append(frame_json);
+                            }
+                            thread_json[QStringLiteral("backtrace")] = frames;
+                        }
+
+                        threads.append(thread_json);
+                    }
+
+                    result[QStringLiteral("thread_count")] = threads.size();
+                    result[QStringLiteral("threads")] = threads;
+                    return result;
                 });
 
             mcp_server_->RegisterTool(

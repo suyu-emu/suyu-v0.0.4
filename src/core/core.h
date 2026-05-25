@@ -73,6 +73,7 @@ class ARPManager;
 }
 
 class ServerManager;
+class Event;
 
 namespace SM {
 class ServiceManager;
@@ -476,6 +477,10 @@ public:
      * It is used to transfer data between programs.
      */
     [[nodiscard]] std::deque<std::vector<u8>>& GetUserChannel();
+    [[nodiscard]] std::deque<std::vector<u8>>& GetGeneralChannel();
+    void PushGeneralChannelData(std::vector<u8>&& data);
+    bool TryPopGeneralChannel(std::vector<u8>& out_data);
+    [[nodiscard]] Service::Event& GetGeneralChannelEvent();
 
     /// Type used for the frontend to designate a callback for System to exit the application.
     using ExitCallback = std::function<void()>;

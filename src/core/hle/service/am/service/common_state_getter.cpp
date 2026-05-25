@@ -6,6 +6,7 @@
 #include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/service/common_state_getter.h"
 #include "core/hle/service/am/service/lock_accessor.h"
+#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/apm/apm_interface.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/pm/pm.h"
@@ -30,11 +31,12 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {8, D<&ICommonStateGetter::GetBootMode>, "GetBootMode"},
         {9, D<&ICommonStateGetter::GetCurrentFocusState>, "GetCurrentFocusState"},
         {10, D<&ICommonStateGetter::RequestToAcquireSleepLock>, "RequestToAcquireSleepLock"},
-        {11, nullptr, "ReleaseSleepLock"},
-        {12, nullptr, "ReleaseSleepLockTransiently"},
+        {11, D<&ICommonStateGetter::ReleaseSleepLock>, "ReleaseSleepLock"},
+        {12, D<&ICommonStateGetter::ReleaseSleepLockTransiently>, "ReleaseSleepLockTransiently"},
         {13, D<&ICommonStateGetter::GetAcquiredSleepLockEvent>, "GetAcquiredSleepLockEvent"},
         {14, nullptr, "GetWakeupCount"},
-        {20, nullptr, "PushToGeneralChannel"},
+        {15, nullptr, "Unknown15"},
+        {20, D<&ICommonStateGetter::PushToGeneralChannel>, "PushToGeneralChannel"},
         {30, nullptr, "GetHomeButtonReaderLockAccessor"},
         {31, D<&ICommonStateGetter::GetReaderLockAccessorEx>, "GetReaderLockAccessorEx"},
         {32, D<&ICommonStateGetter::GetWriterLockAccessorEx>, "GetWriterLockAccessorEx"},
@@ -58,7 +60,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {80, D<&ICommonStateGetter::PerformSystemButtonPressingIfInFocus>, "PerformSystemButtonPressingIfInFocus"},
         {90, nullptr, "SetPerformanceConfigurationChangedNotification"},
         {91, nullptr, "GetCurrentPerformanceConfiguration"},
-        {100, nullptr, "SetHandlingHomeButtonShortPressedEnabled"},
+        {100, D<&ICommonStateGetter::SetHandlingHomeButtonShortPressedEnabled>, "SetHandlingHomeButtonShortPressedEnabled"},
         {110, nullptr, "OpenMyGpuErrorHandler"},
         {120, D<&ICommonStateGetter::GetAppletLaunchedHistory>, "GetAppletLaunchedHistory"},
         {200, D<&ICommonStateGetter::GetOperationModeSystemInfo>, "GetOperationModeSystemInfo"},
@@ -69,7 +71,14 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {501, nullptr, "SuppressDisablingSleepTemporarily"},
         {502, nullptr, "IsSleepEnabled"},
         {503, nullptr, "IsDisablingSleepSuppressed"},
+        {600, nullptr, "Unknown600"},
+        {610, D<&ICommonStateGetter::Unknown610>, "Unknown610"},
+        {611, D<&ICommonStateGetter::Unknown611>, "Unknown611"},
         {900, D<&ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled>, "SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled"},
+        {910, nullptr, "GetLaunchRequiredTick"},
+        {1000, nullptr, "BeginVrMode3d"},
+        {1001, nullptr, "EndVrMode3d"},
+        {1002, nullptr, "IsVrModeEnabled3d"},
     };
     // clang-format on
 
@@ -92,6 +101,9 @@ Result ICommonStateGetter::ReceiveMessage(Out<AppletMessage> out_applet_message)
         R_THROW(AM::ResultNoMessages);
     }
 
+    LOG_DEBUG(Service_AM, "called, returning message={} to applet_id={}",
+              static_cast<u32>(*out_applet_message), static_cast<u32>(m_applet->applet_id));
+
     R_SUCCEED();
 }
 
@@ -109,6 +121,20 @@ Result ICommonStateGetter::RequestToAcquireSleepLock() {
 
     // Sleep lock is acquired immediately.
     m_applet->sleep_lock_event.Signal();
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::ReleaseSleepLock() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    m_applet->sleep_lock_event.Clear();
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::ReleaseSleepLockTransiently() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    m_applet->sleep_lock_event.Clear();
     R_SUCCEED();
 }
 
@@ -256,7 +282,39 @@ Result ICommonStateGetter::GetBuiltInDisplayType(Out<s32> out_display_type) {
 }
 
 Result ICommonStateGetter::PerformSystemButtonPressingIfInFocus(SystemButtonType type) {
-    LOG_WARNING(Service_AM, "(STUBBED) called, type={}", type);
+    LOG_DEBUG(Service_AM, "called, type={}", type);
+
+    std::scoped_lock lk{m_applet->lock};
+
+    switch (type) {
+    case SystemButtonType::HomeButtonShortPressing:
+        if (!m_applet->home_button_short_pressed_blocked) {
+            m_applet->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectShortPressingHomeButton);
+        }
+        break;
+    case SystemButtonType::HomeButtonLongPressing:
+        if (!m_applet->home_button_long_pressed_blocked) {
+            m_applet->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectLongPressingHomeButton);
+        }
+        break;
+    case SystemButtonType::CaptureButtonShortPressing:
+        if (m_applet->handling_capture_button_short_pressed_message_enabled_for_applet) {
+            m_applet->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectShortPressingCaptureButton);
+        }
+        break;
+    case SystemButtonType::CaptureButtonLongPressing:
+        if (m_applet->handling_capture_button_long_pressed_message_enabled_for_applet) {
+            m_applet->lifecycle_manager.PushUnorderedMessage(
+                AppletMessage::DetectLongPressingCaptureButton);
+        }
+        break;
+    default:
+        break;
+    }
+
     R_SUCCEED();
 }
 
@@ -295,6 +353,30 @@ Result ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnab
     std::scoped_lock lk{m_applet->lock};
     m_applet->request_exit_to_library_applet_at_execute_next_program_enabled = true;
 
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::PushToGeneralChannel(SharedPointer<IStorage> storage) {
+    LOG_DEBUG(Service_AM, "called");
+    system.PushGeneralChannelData(storage->GetData());
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::SetHandlingHomeButtonShortPressedEnabled(bool enabled) {
+    LOG_DEBUG(Service_AM, "called, enabled={} applet_id={}", enabled, m_applet->applet_id);
+
+    std::scoped_lock lk{m_applet->lock};
+    m_applet->home_button_short_pressed_blocked = !enabled;
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::Unknown610() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    R_SUCCEED();
+}
+
+Result ICommonStateGetter::Unknown611() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
     R_SUCCEED();
 }
 

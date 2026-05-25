@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <array>
+#include <mutex>
 #include <vector>
 
 #include "common/common_funcs.h"
@@ -34,6 +36,11 @@ public:
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 
 private:
+    enum class ZBCTypes : u32 {
+        Color = 1,
+        Depth = 2,
+    };
+
     struct IoctlGpuCharacteristics {
         u32_le arch;                       // 0x120 (NVGPU_GPU_ARCH_GM200)
         u32_le impl;                       // 0xB (NVGPU_GPU_IMPL_GM20B)
@@ -154,6 +161,21 @@ private:
     };
     static_assert(sizeof(IoctlZbcQueryTable) == 52, "IoctlZbcQueryTable is incorrect size");
 
+    struct ZbcColorEntry {
+        std::array<u32, 4> color_ds{};
+        std::array<u32, 4> color_l2{};
+        u32 format{};
+        u32 ref_cnt{};
+    };
+    static_assert(sizeof(ZbcColorEntry) == 40, "ZbcColorEntry is incorrect size");
+
+    struct ZbcDepthEntry {
+        u32 depth{};
+        u32 format{};
+        u32 ref_cnt{};
+    };
+    static_assert(sizeof(ZbcDepthEntry) == 12, "ZbcDepthEntry is incorrect size");
+
     struct IoctlFlushL2 {
         u32_le flush; // l2_flush | l2_invalidate << 1 | fb_flush << 2
         u32_le reserved;
@@ -188,6 +210,11 @@ private:
     // Events
     Kernel::KEvent* error_notifier_event;
     Kernel::KEvent* unknown_event;
+
+    std::mutex zbc_mutex;
+    std::vector<ZbcColorEntry> zbc_colors;
+    std::vector<ZbcDepthEntry> zbc_depths;
+    static constexpr u32 SupportedZbcTypes = 2;
 };
 
 } // namespace Service::Nvidia::Devices

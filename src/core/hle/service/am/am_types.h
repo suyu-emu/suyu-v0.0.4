@@ -146,6 +146,7 @@ enum class AppletMessage : u32 {
     ForceHideApplicationLogo = 57,
     FloatingApplicationDetected = 60,
     DetectShortPressingCaptureButton = 90,
+    DetectLongPressingCaptureButton = 91,
     AlbumScreenShotTaken = 92,
     AlbumRecordingSaved = 93,
 };

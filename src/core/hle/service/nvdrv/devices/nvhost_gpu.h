@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
+#include <optional>
 #include <vector>
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
@@ -54,13 +56,19 @@ public:
 
 private:
     friend class nvhost_as_gpu;
-    enum class CtxObjects : u32_le {
+    enum class CtxClasses : u32_le {
         Ctx2D = 0x902D,
         Ctx3D = 0xB197,
         CtxCompute = 0xB1C0,
         CtxKepler = 0xA140,
         CtxDMA = 0xB0B5,
         CtxChannelGPFIFO = 0xB06F,
+    };
+
+    enum class ChannelPriority : u32 {
+        Low = 0x32,
+        Medium = 0x64,
+        High = 0x96,
     };
 
     struct IoctlSetNvmapFD {
@@ -128,27 +136,13 @@ private:
     static_assert(sizeof(NvFence) == 8, "Fence is incorrect size");
 
     struct IoctlAllocGpfifoEx {
-        u32_le num_entries{};
-        u32_le flags{};
-        u32_le unk0{};
-        u32_le unk1{};
-        u32_le unk2{};
-        u32_le unk3{};
-        u32_le unk4{};
-        u32_le unk5{};
+        u32_le num_entries{}; // in
+        u32_le num_jobs{};    // in
+        u32_le flags{};       // in
+        NvFence fence_out{};  // out
+        std::array<u32_le, 3> reserved{}; // in and ignored for now
     };
     static_assert(sizeof(IoctlAllocGpfifoEx) == 32, "IoctlAllocGpfifoEx is incorrect size");
-
-    struct IoctlAllocGpfifoEx2 {
-        u32_le num_entries{}; // in
-        u32_le flags{};       // in
-        u32_le unk0{};        // in (1 works)
-        NvFence fence_out{};  // out
-        u32_le unk1{};        // in
-        u32_le unk2{};        // in
-        u32_le unk3{};        // in
-    };
-    static_assert(sizeof(IoctlAllocGpfifoEx2) == 32, "IoctlAllocGpfifoEx2 is incorrect size");
 
     struct IoctlAllocObjCtx {
         u32_le class_num{}; // 0x902D=2d, 0xB197=3d, 0xB1C0=compute, 0xA140=kepler, 0xB0B5=DMA,
@@ -183,8 +177,10 @@ private:
     s32_le nvmap_fd{};
     u64_le user_data{};
     IoctlZCullBind zcull_params{};
+    std::array<std::optional<IoctlAllocObjCtx>, 6> ctxObjs{};
     u32_le channel_priority{};
     u32_le channel_timeslice{};
+    u64 submit_count{};
 
     NvResult SetNVMAPfd(IoctlSetNvmapFD& params);
     NvResult SetClientData(IoctlClientData& params);
@@ -192,7 +188,9 @@ private:
     NvResult ZCullBind(IoctlZCullBind& params);
     NvResult SetErrorNotifier(IoctlSetErrorNotifier& params);
     NvResult SetChannelPriority(IoctlChannelSetPriority& params);
-    NvResult AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params, DeviceFD fd);
+    NvResult AllocGPFIFOEx(IoctlAllocGpfifoEx& params, DeviceFD fd);
+    NvResult AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd);
+    s32_le GetObjectContextClassNumberIndex(CtxClasses class_number);
     NvResult AllocateObjectContext(IoctlAllocObjCtx& params);
 
     NvResult SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandList&& entries);

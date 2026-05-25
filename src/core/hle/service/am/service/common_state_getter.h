@@ -18,6 +18,7 @@ namespace Service::AM {
 
 struct Applet;
 class ILockAccessor;
+class IStorage;
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
 public:
@@ -29,6 +30,8 @@ private:
     Result ReceiveMessage(Out<AppletMessage> out_applet_message);
     Result GetCurrentFocusState(Out<FocusState> out_focus_state);
     Result RequestToAcquireSleepLock();
+    Result ReleaseSleepLock();
+    Result ReleaseSleepLockTransiently();
     Result GetAcquiredSleepLockEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetReaderLockAccessorEx(Out<SharedPointer<ILockAccessor>> out_lock_accessor,
                                    u32 button_type);
@@ -56,6 +59,10 @@ private:
                                     OutArray<AppletId, BufferAttr_HipcMapAlias> out_applet_ids);
     Result GetSettingsPlatformRegion(Out<Set::PlatformRegion> out_settings_platform_region);
     Result SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled();
+    Result PushToGeneralChannel(SharedPointer<IStorage> storage);
+    Result SetHandlingHomeButtonShortPressedEnabled(bool enabled);
+    Result Unknown610();
+    Result Unknown611();
 
     void SetCpuBoostMode(HLERequestContext& ctx);
 
