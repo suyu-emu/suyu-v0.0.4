@@ -24,11 +24,8 @@ using namespace Dirty;
 using namespace VideoCommon::Dirty;
 using Tegra::Engines::Maxwell3D;
 using Regs = Maxwell3D::Regs;
-using Tables = Maxwell3D::DirtyState::Tables;
-using Table = Maxwell3D::DirtyState::Table;
-using Flags = Maxwell3D::DirtyState::Flags;
 
-Flags MakeInvalidationFlags() {
+Maxwell3D::DirtyState::Flags MakeInvalidationFlags() {
     static constexpr int INVALIDATION_FLAGS[]{
         Viewports,
         Scissors,
@@ -68,7 +65,7 @@ Flags MakeInvalidationFlags() {
         LineStippleEnable,
         LineStippleParams,
     };
-    Flags flags{};
+    Maxwell3D::DirtyState::Flags flags{};
     for (const int flag : INVALIDATION_FLAGS) {
         flags[flag] = true;
     }
@@ -84,7 +81,7 @@ Flags MakeInvalidationFlags() {
     return flags;
 }
 
-void SetupDirtyViewports(Tables& tables) {
+void SetupDirtyViewports(Maxwell3D::DirtyState::Tables& tables) {
     FillBlock(tables[0], OFF(viewport_transform), NUM(viewport_transform), Viewports);
     FillBlock(tables[0], OFF(viewports), NUM(viewports), Viewports);
     FillBlock(tables[1], OFF(surface_clip), NUM(surface_clip), Viewports);
@@ -92,26 +89,26 @@ void SetupDirtyViewports(Tables& tables) {
     tables[1][OFF(window_origin)] = Viewports;
 }
 
-void SetupDirtyScissors(Tables& tables) {
+void SetupDirtyScissors(Maxwell3D::DirtyState::Tables& tables) {
     FillBlock(tables[0], OFF(scissor_test), NUM(scissor_test), Scissors);
 }
 
-void SetupDirtyDepthBias(Tables& tables) {
+void SetupDirtyDepthBias(Maxwell3D::DirtyState::Tables& tables) {
     auto& table = tables[0];
     table[OFF(depth_bias)] = DepthBias;
     table[OFF(depth_bias_clamp)] = DepthBias;
     table[OFF(slope_scale_depth_bias)] = DepthBias;
 }
 
-void SetupDirtyBlendConstants(Tables& tables) {
+void SetupDirtyBlendConstants(Maxwell3D::DirtyState::Tables& tables) {
     FillBlock(tables[0], OFF(blend_color), NUM(blend_color), BlendConstants);
 }
 
-void SetupDirtyDepthBounds(Tables& tables) {
+void SetupDirtyDepthBounds(Maxwell3D::DirtyState::Tables& tables) {
     FillBlock(tables[0], OFF(depth_bounds), NUM(depth_bounds), DepthBounds);
 }
 
-void SetupDirtyStencilProperties(Tables& tables) {
+void SetupDirtyStencilProperties(Maxwell3D::DirtyState::Tables& tables) {
     const auto setup = [&](size_t position, u8 flag) {
         tables[0][position] = flag;
         tables[1][position] = StencilProperties;
@@ -125,18 +122,18 @@ void SetupDirtyStencilProperties(Tables& tables) {
     setup(OFF(stencil_back_func_mask), StencilCompare);
 }
 
-void SetupDirtyLineWidth(Tables& tables) {
+void SetupDirtyLineWidth(Maxwell3D::DirtyState::Tables& tables) {
     tables[0][OFF(line_width_smooth)] = LineWidth;
     tables[0][OFF(line_width_aliased)] = LineWidth;
 }
 
-void SetupDirtyCullMode(Tables& tables) {
+void SetupDirtyCullMode(Maxwell3D::DirtyState::Tables& tables) {
     auto& table = tables[0];
     table[OFF(gl_cull_face)] = CullMode;
     table[OFF(gl_cull_test_enabled)] = CullMode;
 }
 
-void SetupDirtyStateEnable(Tables& tables) {
+void SetupDirtyStateEnable(Maxwell3D::DirtyState::Tables& tables) {
     const auto setup = [&](size_t position, u8 flag) {
         tables[0][position] = flag;
         tables[1][position] = StateEnable;
@@ -157,17 +154,17 @@ void SetupDirtyStateEnable(Tables& tables) {
     setup(OFF(anti_alias_alpha_control.alpha_to_one), AlphaToOneEnable);
 }
 
-void SetupDirtyDepthCompareOp(Tables& tables) {
+void SetupDirtyDepthCompareOp(Maxwell3D::DirtyState::Tables& tables) {
     tables[0][OFF(depth_test_func)] = DepthCompareOp;
 }
 
-void SetupDirtyFrontFace(Tables& tables) {
+void SetupDirtyFrontFace(Maxwell3D::DirtyState::Tables& tables) {
     auto& table = tables[0];
     table[OFF(gl_front_face)] = FrontFace;
     table[OFF(window_origin)] = FrontFace;
 }
 
-void SetupDirtyStencilOp(Tables& tables) {
+void SetupDirtyStencilOp(Maxwell3D::DirtyState::Tables& tables) {
     auto& table = tables[0];
     table[OFF(stencil_front_op.fail)] = StencilOp;
     table[OFF(stencil_front_op.zfail)] = StencilOp;
@@ -182,7 +179,7 @@ void SetupDirtyStencilOp(Tables& tables) {
     tables[1][OFF(stencil_two_side_enable)] = StencilOp;
 }
 
-void SetupDirtyBlending(Tables& tables) {
+void SetupDirtyBlending(Maxwell3D::DirtyState::Tables& tables) {
     tables[0][OFF(color_mask_common)] = Blending;
     tables[1][OFF(color_mask_common)] = ColorMask;
     tables[0][OFF(blend_per_target_enabled)] = Blending;
@@ -196,11 +193,11 @@ void SetupDirtyBlending(Tables& tables) {
     FillBlock(tables[1], OFF(blend_per_target), NUM(blend_per_target), BlendEquations);
 }
 
-void SetupDirtySpecialOps(Tables& tables) {
+void SetupDirtySpecialOps(Maxwell3D::DirtyState::Tables& tables) {
     tables[0][OFF(logic_op.op)] = LogicOp;
 }
 
-void SetupDirtyViewportSwizzles(Tables& tables) {
+void SetupDirtyViewportSwizzles(Maxwell3D::DirtyState::Tables& tables) {
     static constexpr size_t swizzle_offset = 6;
     for (size_t index = 0; index < Regs::NumViewports; ++index) {
         tables[1][OFF(viewport_transform) + index * NUM(viewport_transform[0]) + swizzle_offset] =
@@ -208,7 +205,7 @@ void SetupDirtyViewportSwizzles(Tables& tables) {
     }
 }
 
-void SetupDirtyVertexAttributes(Tables& tables) {
+void SetupDirtyVertexAttributes(Maxwell3D::DirtyState::Tables& tables) {
     for (size_t i = 0; i < Regs::NumVertexAttributes; ++i) {
         const size_t offset = OFF(vertex_attrib_format) + i * NUM(vertex_attrib_format[0]);
         FillBlock(tables[0], offset, NUM(vertex_attrib_format[0]), VertexAttribute0 + i);
@@ -216,7 +213,7 @@ void SetupDirtyVertexAttributes(Tables& tables) {
     FillBlock(tables[1], OFF(vertex_attrib_format), Regs::NumVertexAttributes, VertexInput);
 }
 
-void SetupDirtyVertexBindings(Tables& tables) {
+void SetupDirtyVertexBindings(Maxwell3D::DirtyState::Tables& tables) {
     // Do NOT include stride here, it's implicit in VertexBuffer
     static constexpr size_t divisor_offset = 3;
     for (size_t i = 0; i < Regs::NumVertexArrays; ++i) {
@@ -228,7 +225,7 @@ void SetupDirtyVertexBindings(Tables& tables) {
     }
 }
 
-void SetupRasterModes(Tables &tables) {
+void SetupRasterModes(Maxwell3D::DirtyState::Tables &tables) {
     auto& table = tables[0];
 
     table[OFF(line_stipple_params)] = LineStippleParams;

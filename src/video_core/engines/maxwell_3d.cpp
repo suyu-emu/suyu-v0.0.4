@@ -270,31 +270,20 @@ u32 Maxwell3D::GetMaxCurrentVertices() {
 size_t Maxwell3D::EstimateIndexBufferSize() {
     GPUVAddr start_address = regs.index_buffer.StartAddress();
     GPUVAddr end_address = regs.index_buffer.EndAddress();
-    static constexpr std::array<size_t, 3> max_sizes = {(std::numeric_limits<u8>::max)(),
-                                                        (std::numeric_limits<u16>::max)(),
-                                                        (std::numeric_limits<u32>::max)()};
-    const size_t byte_size = regs.index_buffer.FormatSizeInBytes();
-    const size_t log2_byte_size = Common::Log2Ceil64(byte_size);
-    const size_t cap{GetMaxCurrentVertices() * 4 * byte_size};
-    const size_t lower_cap =
-        std::min<size_t>(static_cast<size_t>(end_address - start_address), cap);
-    return std::min<size_t>(
-        memory_manager.GetMemoryLayoutSize(start_address, byte_size * max_sizes[log2_byte_size]) /
-            byte_size,
-        lower_cap);
+    auto const byte_size = regs.index_buffer.FormatSizeInBytes();
+    auto const max_size = 1ull << (byte_size * CHAR_BIT);
+    auto const upper_cap = GetMaxCurrentVertices() * 4 * byte_size;
+    auto const lower_cap = std::min<size_t>(size_t(end_address - start_address), upper_cap);
+    return std::min<size_t>(memory_manager.GetMemoryLayoutSize(start_address, byte_size * max_size) / byte_size, lower_cap);
 }
 
 u32 Maxwell3D::ProcessShadowRam(u32 method, u32 argument) {
     // Keep track of the register value in shadow_state when requested.
-    const auto control = shadow_state.shadow_ram_control;
-    if (control == Regs::ShadowRamControl::Track ||
-        control == Regs::ShadowRamControl::TrackWithFilter) {
-        shadow_state.reg_array[method] = argument;
-        return argument;
-    }
-    if (control == Regs::ShadowRamControl::Replay) {
+    auto const c = shadow_state.shadow_ram_control;
+    if (c == Regs::ShadowRamControl::Track || c == Regs::ShadowRamControl::TrackWithFilter)
+        return shadow_state.reg_array[method] = argument;
+    else if (c == Regs::ShadowRamControl::Replay)
         return shadow_state.reg_array[method];
-    }
     return argument;
 }
 
@@ -317,10 +306,8 @@ void Maxwell3D::ConsumeSinkImpl() {
 
 void Maxwell3D::ProcessDirtyRegisters(u32 method, u32 argument) {
     regs.reg_array[method] = argument;
-
-    for (const auto& table : dirty.tables) {
+    for (auto const& table : dirty.tables)
         dirty.flags[table[method]] = true;
-    }
 }
 
 void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call) {

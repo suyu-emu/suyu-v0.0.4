@@ -2215,7 +2215,7 @@ public:
             u32 first;
             u32 count;
 
-            unsigned FormatSizeInBytes() const {
+            size_t FormatSizeInBytes() const {
                 switch (format) {
                 case IndexFormat::UnsignedByte:
                     return 1;
@@ -2224,7 +2224,7 @@ public:
                 case IndexFormat::UnsignedInt:
                     return 4;
                 }
-                ASSERT(false);
+                UNREACHABLE();
                 return 1;
             }
 
@@ -3148,9 +3148,9 @@ public:
     }
 
     struct DirtyState {
-        using Flags = std::bitset<(std::numeric_limits<u8>::max)()>;
+        using Flags = std::bitset<(std::numeric_limits<u8>::max)() + 1>;
         using Table = std::array<u8, Regs::NUM_REGS>;
-        using Tables = std::array<Table, 2>;
+        using Tables = std::array<std::array<u8, Regs::NUM_REGS>, 2>;
 
         Flags flags;
         Tables tables{};

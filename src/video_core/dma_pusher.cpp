@@ -181,12 +181,12 @@ void DmaPusher::CallMethod(u32 argument) const {
         });
     } else {
         auto subchannel = subchannels[dma_state.subchannel];
-        if (!subchannel->execution_mask[dma_state.method]) {
-            subchannel->method_sink.emplace_back(dma_state.method, argument);
-        } else {
+        if (subchannel->execution_mask[dma_state.method]) {
             subchannel->ConsumeSink();
             subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
             subchannel->CallMethod(dma_state.method, argument, dma_state.is_last_call);
+        } else {
+            subchannel->method_sink.emplace_back(dma_state.method, argument);
         }
     }
 }
