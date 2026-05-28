@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <map>
 #include <string>
@@ -10,6 +11,8 @@
 
 #include <QCoreApplication>
 #include <QFileInfo>
+#include <QPainter>
+#include <QPainterPath>
 #include <QObject>
 #include <QStandardItem>
 #include <QString>
@@ -43,6 +46,34 @@ Q_DECLARE_METATYPE(GameListItemType);
 static QPixmap GetDefaultIcon(u32 size) {
     QPixmap icon(size, size);
     icon.fill(Qt::transparent);
+    return icon;
+}
+
+static QPixmap PrepareGameArtwork(const QPixmap& source, u32 size) {
+    if (source.isNull()) {
+        return GetDefaultIcon(size);
+    }
+
+    const QPixmap scaled =
+        source.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+
+    QPixmap icon(size, size);
+    icon.fill(Qt::transparent);
+
+    QPainter painter(&icon);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+    QPainterPath clip_path;
+    const qreal radius = std::max(6.0, static_cast<double>(size) * 0.12);
+    clip_path.addRoundedRect(QRectF(0, 0, size, size), radius, radius);
+    painter.setClipPath(clip_path);
+    painter.drawPixmap((size - scaled.width()) / 2, (size - scaled.height()) / 2, scaled);
+    painter.setClipping(false);
+    painter.setPen(QPen(QColor(255, 255, 255, 28), 1.0));
+    painter.drawRoundedRect(QRectF(0.5, 0.5, size - 1.0, size - 1.0), radius, radius);
+    painter.end();
+
     return icon;
 }
 
@@ -86,7 +117,7 @@ public:
         if (!picture.loadFromData(picture_data.data(), static_cast<u32>(picture_data.size()))) {
             picture = GetDefaultIcon(size);
         }
-        picture = picture.scaled(size, size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        picture = PrepareGameArtwork(picture, size);
 
         setData(picture, Qt::DecorationRole);
     }

@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <thread>
 
 #include <fmt/ranges.h>
@@ -4941,7 +4942,8 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
     }
     if (allow_runtime_mcp && mcp_server_ && !mcp_server_->IsRunning()) {
         if (!mcp_server_->Start(9742)) {
-            LOG_ERROR(Frontend, "MCP Server failed to start on port 9742");
+            LOG_ERROR(Frontend, "MCP Server failed to start on port 9742: {}",
+                      mcp_server_->GetLastErrorString().toStdString());
         } else {
             LOG_INFO(Frontend, "MCP Server started on port 9742");
             const auto install_firmware_from_directory = [this](const QString& firmware_source_location) -> QJsonObject {
@@ -7310,12 +7312,25 @@ int main(int argc, char* argv[]) {
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
 
-    // Show mode selector on first launch or when not remembered
+    const QStringList launch_args = QCoreApplication::arguments();
+    std::optional<AppMode> requested_mode;
+    for (int i = 1; i < launch_args.size(); ++i) {
+        if (launch_args[i] == QStringLiteral("-gamer")) {
+            requested_mode = AppMode::Gamer;
+        } else if (launch_args[i] == QStringLiteral("-hacker")) {
+            requested_mode = AppMode::Hacker;
+        } else if (launch_args[i] == QStringLiteral("-programmer")) {
+            requested_mode = AppMode::Programmer;
+        }
+    }
+
+    // Show mode selector on first launch or when not remembered, unless a mode was requested
+    // explicitly for unattended startup or MCP-driven automation.
     {
-        AppMode active_mode = ModeSelector::LoadSavedMode();
+        AppMode active_mode = requested_mode.value_or(ModeSelector::LoadSavedMode());
         QSettings settings;
         const bool remember = settings.value(QStringLiteral("General/RememberMode"), false).toBool();
-        if (!remember) {
+        if (!requested_mode.has_value() && !remember) {
             ModeSelector selector;
             if (selector.exec() == QDialog::Accepted) {
                 active_mode = selector.SelectedMode();

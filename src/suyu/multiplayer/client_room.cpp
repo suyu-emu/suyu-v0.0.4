@@ -73,7 +73,39 @@ void ClientRoomWindow::RetranslateUi() {
 }
 
 void ClientRoomWindow::OnRoomUpdate(const Network::RoomInformation& info) {
+    const QString room_name = QString::fromStdString(info.name);
+    if (!room_name.isEmpty() && room_name != last_room_name_) {
+        last_room_name_ = room_name;
+        last_announced_program_id_ = 0;
+        auto_launch_attempted_ = false;
+        ui->chat->AppendStatusMessage(tr("Joined room %1. Waiting for room details...").arg(room_name));
+    }
+
+    if (info.preferred_game.id != last_announced_program_id_) {
+        last_announced_program_id_ = info.preferred_game.id;
+        auto_launch_attempted_ = false;
+
+        if (info.preferred_game.id == 0) {
+            ui->chat->AppendStatusMessage(
+                tr("Connected to the room chat. Waiting for the host to advertise a multiplayer game."));
+        } else if (auto* parent = static_cast<MultiplayerState*>(parentWidget())) {
+            const auto preferred_name = QString::fromStdString(info.preferred_game.name);
+            const auto game_name =
+                preferred_name.isEmpty() ? tr("the preferred game") : preferred_name;
+            const auto local_path = parent->FindLocalGamePath(info.preferred_game.id);
+            if (local_path.isEmpty()) {
+                ui->chat->AppendStatusMessage(
+                    tr("Room prefers %1, but no matching local ROM was found in your library.").arg(
+                        game_name));
+            } else {
+                ui->chat->AppendStatusMessage(
+                    tr("Room prefers %1. Launching your local copy automatically.").arg(game_name));
+            }
+        }
+    }
+
     UpdateView();
+    MaybeAutoLaunchPreferredGame(info);
 }
 
 void ClientRoomWindow::OnStateChange(const Network::RoomMember::State& state) {
@@ -82,6 +114,9 @@ void ClientRoomWindow::OnStateChange(const Network::RoomMember::State& state) {
         ui->chat->Clear();
         ui->chat->AppendStatusMessage(tr("Connected"));
         SetModPerms(state == Network::RoomMember::State::Moderator);
+        if (const auto member = room_network.GetRoomMember().lock()) {
+            MaybeAutoLaunchPreferredGame(member->GetRoomInformation());
+        }
     }
     UpdateView();
 }
@@ -147,6 +182,36 @@ void ClientRoomWindow::UpdateView() {
     ui->launch_preferred_game->setEnabled(false);
     // TODO(B3N30): can't get RoomMember*, show error and close window
     close();
+}
+
+void ClientRoomWindow::MaybeAutoLaunchPreferredGame(const Network::RoomInformation& info) {
+    if (auto_launch_attempted_ || info.preferred_game.id == 0) {
+        return;
+    }
+
+    auto* parent = static_cast<MultiplayerState*>(parentWidget());
+    if (parent == nullptr) {
+        return;
+    }
+
+    const auto local_path = parent->FindLocalGamePath(info.preferred_game.id);
+    if (local_path.isEmpty()) {
+        return;
+    }
+
+    auto_launch_attempted_ = true;
+    const auto preferred_name = QString::fromStdString(info.preferred_game.name);
+    const auto game_name = preferred_name.isEmpty() ? tr("the preferred game") : preferred_name;
+
+    if (parent->LaunchLocalGame(info.preferred_game.id)) {
+        ui->chat->AppendStatusMessage(
+            tr("Launched your local copy of %1 to match the room.").arg(game_name));
+    } else {
+        auto_launch_attempted_ = false;
+        ui->chat->AppendStatusMessage(
+            tr("Automatic launch for %1 failed. Use Launch Preferred Game to retry.").arg(
+                game_name));
+    }
 }
 
 void ClientRoomWindow::UpdateIconDisplay() {

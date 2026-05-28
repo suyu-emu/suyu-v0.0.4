@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
 #include <limits>
 #include <unordered_map>
 #include <QBuffer>
@@ -11,6 +12,7 @@
 #include <QIODevice>
 #include <QImage>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPixmap>
 #include <QPropertyAnimation>
 #include <QStyleOption>
@@ -57,6 +59,37 @@ qreal GetLoadingMusicTargetVolume() {
     return std::min(static_cast<qreal>(Settings::values.volume.GetValue()) / 100.0 *
                         LOADING_MUSIC_VOLUME_SCALE,
                     LOADING_MUSIC_VOLUME_CAP);
+}
+
+QPixmap CreateArtworkPixmap(const QPixmap& source, const QSize& target_size, qreal radius) {
+    if (source.isNull() || !target_size.isValid()) {
+        return {};
+    }
+
+    const QPixmap scaled =
+        source.scaled(target_size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    QPixmap framed(target_size);
+    framed.fill(Qt::transparent);
+
+    QPainter painter(&framed);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+    QPainterPath clip_path;
+    clip_path.addRoundedRect(QRectF(QPointF(0, 0), QSizeF(target_size)), radius, radius);
+    painter.setClipPath(clip_path);
+
+    const QPoint offset((target_size.width() - scaled.width()) / 2,
+                        (target_size.height() - scaled.height()) / 2);
+    painter.drawPixmap(offset, scaled);
+    painter.setClipping(false);
+
+    painter.setPen(QPen(QColor(255, 255, 255, 60), 1.5));
+    painter.drawRoundedRect(QRectF(0.75, 0.75, target_size.width() - 1.5, target_size.height() - 1.5),
+                            radius, radius);
+    painter.end();
+
+    return framed;
 }
 
 } // namespace
@@ -160,9 +193,9 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     qRegisterMetaType<VideoCore::LoadCallbackStage>();
 
     stage_translations = {
-        {VideoCore::LoadCallbackStage::Prepare, tr("Preparing game...")},
-        {VideoCore::LoadCallbackStage::Build, tr("Launching...")},
-        {VideoCore::LoadCallbackStage::Complete, tr("Starting emulation...")},
+        {VideoCore::LoadCallbackStage::Prepare, tr("Preparing game assets")},
+        {VideoCore::LoadCallbackStage::Build, tr("Building pipelines and shaders")},
+        {VideoCore::LoadCallbackStage::Complete, tr("Finalizing emulation session")},
     };
     progressbar_style = {
         {VideoCore::LoadCallbackStage::Prepare, PROGRESSBAR_STYLE_PREPARE},
@@ -258,8 +291,7 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
                                      : static_cast<int>(buffer.size());
         map.loadFromData(buffer.data(), buffer_size);
         if (!map.isNull()) {
-            ui->banner->setPixmap(map.scaled(QSize(230, 230), Qt::KeepAspectRatioByExpanding,
-                                             Qt::SmoothTransformation));
+            ui->banner->setPixmap(CreateArtworkPixmap(map, QSize(230, 230), 28.0));
             ui->banner->setVisible(true);
         }
     } else if (loader.ReadBanner(buffer) == Loader::ResultStatus::Success) {
@@ -269,8 +301,7 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
                                      : static_cast<int>(buffer.size());
         map.loadFromData(buffer.data(), buffer_size);
         if (!map.isNull()) {
-            ui->banner->setPixmap(map.scaled(QSize(230, 230), Qt::KeepAspectRatioByExpanding,
-                                             Qt::SmoothTransformation));
+            ui->banner->setPixmap(CreateArtworkPixmap(map, QSize(230, 230), 28.0));
             ui->banner->setVisible(true);
         }
     }
@@ -335,10 +366,11 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
         }
         // only calculate an estimate time after a second has passed since stage change
         const auto diff = duration_cast<milliseconds>(now - slow_shader_start);
-        if (diff > seconds{1}) {
+        const auto progress_delta = value - slow_shader_first_value;
+        if (diff > seconds{1} && progress_delta > 0) {
             const auto eta_mseconds =
                 static_cast<long>(static_cast<double>(total - slow_shader_first_value) /
-                                  (value - slow_shader_first_value) * diff.count());
+                                  progress_delta * diff.count());
             estimate =
                 tr("Estimated Time %1")
                     .arg(QTime(0, 0, 0, 0)
@@ -347,21 +379,55 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
         }
     }
 
-    const auto launch_text = !game_title_.isEmpty() ? tr("Launching <b>%1</b>").arg(game_title_)
-                                                    : stage_translations[stage];
+    QString stage_text;
+    if (game_title_.isEmpty()) {
+        stage_text = stage_translations[stage];
+    } else {
+        switch (stage) {
+        case VideoCore::LoadCallbackStage::Prepare:
+            stage_text = tr("Preparing <b>%1</b>").arg(game_title_);
+            break;
+        case VideoCore::LoadCallbackStage::Build:
+            stage_text = tr("Building pipelines for <b>%1</b>").arg(game_title_);
+            break;
+        case VideoCore::LoadCallbackStage::Complete:
+            stage_text = tr("Starting <b>%1</b>").arg(game_title_);
+            break;
+        }
+    }
+
+    QString detail_text;
+    if (stage == VideoCore::LoadCallbackStage::Build) {
+        detail_text = total > 0 ? tr("Compiling shaders, pipelines, and GPU state: %1 / %2")
+                                      .arg(value)
+                                      .arg(total)
+                                : tr("Preparing GPU pipelines and shader cache");
+    } else if (stage == VideoCore::LoadCallbackStage::Complete) {
+        detail_text =
+            tr("Finalizing renderer, filesystem, input, audio, applets, and networking");
+    } else {
+        detail_text = game_title_.isEmpty()
+                          ? tr("Reading program metadata, icon, patches, firmware, keys, and cache state")
+                          : tr("Reading metadata, icon, patches, firmware, keys, and cache state for %1")
+                                .arg(game_title_);
+    }
+
+    QString progress_value = estimate;
+    if (progress_value.isEmpty()) {
+        if (stage == VideoCore::LoadCallbackStage::Build && total > 0) {
+            const auto percent = static_cast<int>((value * 100) / std::max<std::size_t>(1, total));
+            progress_value = tr("%1% complete").arg(percent);
+        } else if (stage == VideoCore::LoadCallbackStage::Complete) {
+            progress_value = tr("Handing control to the game");
+        } else {
+            progress_value = tr("Collecting launch data");
+        }
+    }
 
     // update labels and progress bar
-    if (stage == VideoCore::LoadCallbackStage::Build) {
-        ui->stage->setText(launch_text);
-        ui->log->setText(tr("Shaders compiled: %1 / %2").arg(value).arg(total));
-    } else if (stage == VideoCore::LoadCallbackStage::Complete) {
-        ui->stage->setText(launch_text);
-        ui->log->setText(tr("Starting emulation session"));
-    } else {
-        ui->stage->setText(launch_text);
-        ui->log->setText(tr("Reading program metadata, icon, keys, and shader cache"));
-    }
-    ui->value->setText(estimate);
+    ui->stage->setText(stage_text);
+    ui->log->setText(detail_text);
+    ui->value->setText(progress_value);
     const int safe_value = value > static_cast<std::size_t>(std::numeric_limits<int>::max())
                                ? std::numeric_limits<int>::max()
                                : static_cast<int>(value);

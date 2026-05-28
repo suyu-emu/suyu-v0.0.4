@@ -48,7 +48,7 @@ std::vector<ExternalToolInfo> ExternalDecryptionTool::KnownTools() {
         {QStringLiteral("eden"),
          QStringLiteral("Eden"),
          QStringLiteral("Eden emulator (git.eden.dev). Point to the eden executable; "
-                        "SuyuEclipse will invoke its CLI for decryption."),
+                        "suyu will invoke its CLI for decryption."),
          {QStringLiteral("eden.exe"), QStringLiteral("eden")}},
         {QStringLiteral("yuzu"),
          QStringLiteral("yuzu (legacy)"),
@@ -59,7 +59,7 @@ std::vector<ExternalToolInfo> ExternalDecryptionTool::KnownTools() {
         {QStringLiteral("suyu_legacy"),
          QStringLiteral("suyu (previous build)"),
          QStringLiteral("An older suyu build. Point to suyu.exe or suyu-cmd.exe. "
-                        "SuyuEclipse will invoke it for decryption support."),
+                        "suyu will invoke it for decryption support."),
          {QStringLiteral("suyu.exe"), QStringLiteral("suyu-cmd.exe"),
           QStringLiteral("suyu"), QStringLiteral("suyu-cmd")}},
         {QStringLiteral("custom"),
@@ -261,9 +261,9 @@ void ExternalDecryptionToolDialog::SetupUi() {
     auto* lbl_intro = new QLabel(this);
     lbl_intro->setWordWrap(true);
     lbl_intro->setText(QStringLiteral(
-        "<p><b>SuyuEclipse does not perform built-in decryption.</b></p>"
+        "<p><b>suyu does not perform built-in decryption.</b></p>"
         "<p>If your games require decryption, you must configure an external tool. "
-        "SuyuEclipse will invoke the tool you select to handle decryption on your behalf.</p>"
+        "suyu will invoke the tool you select to handle decryption on your behalf.</p>"
         "<p>Supported tools: <b>hactool</b>, <b>Ryujinx</b>, <b>Eden</b>, "
         "<b>yuzu</b> (legacy), or a previous <b>suyu</b> build.</p>"));
     main_layout->addWidget(lbl_intro);

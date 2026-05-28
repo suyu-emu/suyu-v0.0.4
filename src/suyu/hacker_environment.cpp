@@ -256,7 +256,7 @@ QWidget* HackerEnvironment::CreateLogConsoleTab() {
         } else if (cmd == QStringLiteral("clear")) {
             log_output_->clear();
         } else if (cmd == QStringLiteral("info")) {
-            AppendLog(QStringLiteral("SuyuEclipse Hacker Console v1.0"));
+            AppendLog(QStringLiteral("suyu Hacker Console v1.0"));
             AppendLog(QStringLiteral("Type 'help' for available commands."));
         } else if (cmd == QStringLiteral("refresh")) {
             Refresh();

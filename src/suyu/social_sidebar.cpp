@@ -35,7 +35,7 @@ void SocialSidebar::SetupUi() {
     cmb_subreddit_ = new QComboBox(this);
     cmb_subreddit_->setEditable(true);
     cmb_subreddit_->addItems({
-        QStringLiteral("r/SuyuEclipse"),
+        QStringLiteral("r/suyu"),
         QStringLiteral("r/NintendoSwitch"),
         QStringLiteral("r/emulation"),
         QStringLiteral("r/SwitchHacks"),
@@ -114,7 +114,7 @@ void SocialSidebar::Refresh() {
 
     QNetworkRequest request(url);
     // Reddit requires a descriptive User-Agent for JSON endpoints
-    request.setRawHeader("User-Agent", "SuyuEclipse/1.0 (emulator; community sidebar)");
+    request.setRawHeader("User-Agent", "suyu/1.0 (emulator; community sidebar)");
     request.setRawHeader("Accept", "application/json");
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
                          QNetworkRequest::NoLessSafeRedirectPolicy);
@@ -176,7 +176,7 @@ bool SocialSidebar::TryLoadWithPowerShell(const QString& subreddit_path) {
     const QString command =
         QStringLiteral("$ProgressPreference='SilentlyContinue';"
                        "$u='%1';"
-                       "$r=Invoke-WebRequest -UseBasicParsing -Headers @{ 'User-Agent'='SuyuEclipse/1.0 (social sidebar fallback)'; 'Accept'='application/json'} -Uri $u;"
+                       "$r=Invoke-WebRequest -UseBasicParsing -Headers @{ 'User-Agent'='suyu/1.0 (social sidebar fallback)'; 'Accept'='application/json'} -Uri $u;"
                        "$r.Content")
             .arg(url);
 

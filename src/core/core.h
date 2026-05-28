@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "core/libretro_wrapper.h"
 #include "core/file_sys/vfs/vfs_types.h"
 
 namespace Core::Frontend {
@@ -140,35 +141,6 @@ enum class SystemResultStatus : u32 {
     ErrorVideoCore,      ///< Error in the video core
     ErrorUnknown,        ///< Any other error
     ErrorLoader,         ///< The base for loader errors (too many to repeat)
-};
-
-#ifndef SUYU_RETRO_GAME_INFO_DEFINED
-#define SUYU_RETRO_GAME_INFO_DEFINED
-struct retro_game_info {
-    const char* path{};
-    const void* data{};
-    std::size_t size{};
-    const char* meta{};
-};
-#endif
-
-class LibretroWrapper {
-public:
-    LibretroWrapper();
-    ~LibretroWrapper();
-
-    bool LoadCore(const std::string& core_path);
-    bool LoadGame(const std::string& game_path);
-    void Run();
-    void Reset();
-    void Unload();
-
-    // Implement other libretro API functions as needed
-
-private:
-    void* core_handle;
-    retro_game_info game_info;
-    // Add other necessary libretro-related members
 };
 
 class System {

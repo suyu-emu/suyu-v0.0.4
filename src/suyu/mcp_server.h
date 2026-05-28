@@ -30,6 +30,9 @@ public:
     /// Returns true if the server is actively listening.
     [[nodiscard]] bool IsRunning() const;
 
+    /// Returns the last socket error reported by the underlying server.
+    [[nodiscard]] QString GetLastErrorString() const;
+
     /// Get the port the server is listening on.
     [[nodiscard]] quint16 Port() const;
 

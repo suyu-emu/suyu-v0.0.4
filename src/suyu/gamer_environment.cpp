@@ -701,7 +701,7 @@ void GamerEnvironment::LoadRedditFeed() {
     const QUrl url(QStringLiteral("https://www.reddit.com/r/suyu/hot.json?raw_json=1&limit=10"));
     QNetworkRequest request(url);
     request.setRawHeader("User-Agent",
-                         QByteArrayLiteral("SuyuEclipse/1.0 (Qt client; +https://suyu-emu.github.io/website/)"));
+                         QByteArrayLiteral("suyu/1.0 (Qt client; +https://suyu-emu.github.io/website/)"));
     request.setRawHeader("Accept", QByteArrayLiteral("application/json"));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
                          QNetworkRequest::NoLessSafeRedirectPolicy);
@@ -1125,7 +1125,7 @@ void GamerEnvironment::RequestCoverArtwork(const QString& game_path, const QStri
 
     QNetworkRequest search_req(search_url);
     search_req.setRawHeader("User-Agent",
-                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SuyuEclipse/1.0");
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) suyu/1.0");
     search_req.setRawHeader("Accept",
                             "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
@@ -1148,7 +1148,7 @@ void GamerEnvironment::RequestCoverArtwork(const QString& game_path, const QStri
 
                 QNetworkRequest img_req{QUrl(image_url)};
                 img_req.setRawHeader("User-Agent",
-                                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SuyuEclipse/1.0");
+                                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) suyu/1.0");
                 QNetworkReply* img_reply = cover_network_manager_->get(img_req);
                 connect(img_reply, &QNetworkReply::finished, this,
                         [this, img_reply, key, game_path, title, cache_path]() {

@@ -367,7 +367,7 @@ bool SteamIntegration::AddGameShortcut(const QString& game_title, const QString&
     new_sc.launch_options = QStringLiteral("-g \"%1\"").arg(rom_path);
     new_sc.allow_desktop_config = true;
     new_sc.allow_overlay = true;
-    new_sc.tags.append(QStringLiteral("SuyuEclipse"));
+    new_sc.tags.append(QStringLiteral("suyu"));
     new_sc.tags.append(QStringLiteral("Nintendo Switch"));
     new_sc.id = GenerateAppId(new_sc.exe, new_sc.app_name);
 

@@ -31,10 +31,14 @@ signals:
 private:
     void Disconnect();
     void LaunchPreferredGame();
+    void MaybeAutoLaunchPreferredGame(const Network::RoomInformation& info);
     void UpdateView();
     void SetModPerms(bool is_mod);
 
     QStandardItemModel* player_list;
     std::unique_ptr<Ui::ClientRoom> ui;
     Network::RoomNetwork& room_network;
+    u64 last_announced_program_id_ = 0;
+    QString last_room_name_;
+    bool auto_launch_attempted_ = false;
 };

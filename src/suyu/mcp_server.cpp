@@ -9,6 +9,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
 #include <QStandardPaths>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -52,13 +53,13 @@ bool McpServer::Start(quint16 port) {
         return true;
     }
 
-    // Bind explicitly to IPv4 loopback so local clients that use 127.0.0.1
-    // can connect reliably on systems where LocalHost prefers IPv6.
-    if (!server_->listen(QHostAddress(QStringLiteral("127.0.0.1")), port)) {
-        return false;
+    if (server_->listen(QHostAddress::LocalHost, port) ||
+        server_->listen(QHostAddress::AnyIPv4, port) ||
+        server_->listen(QHostAddress::Any, port)) {
+        port_ = server_->serverPort();
+        return true;
     }
-    port_ = server_->serverPort();
-    return true;
+    return false;
 }
 
 void McpServer::Stop() {
@@ -70,6 +71,10 @@ void McpServer::Stop() {
 
 bool McpServer::IsRunning() const {
     return server_->isListening();
+}
+
+QString McpServer::GetLastErrorString() const {
+    return server_ ? server_->errorString() : QString();
 }
 
 quint16 McpServer::Port() const {
@@ -235,7 +240,7 @@ void McpServer::RegisterBuiltinTools() {
         MakeSchema({}),
         [](const QJsonObject& /*params*/) -> QJsonObject {
             return QJsonObject{
-                {QStringLiteral("emulator"), QStringLiteral("SuyuEclipse")},
+                {QStringLiteral("emulator"), QStringLiteral("suyu")},
                 {QStringLiteral("qt_version"), QString::fromLatin1(qVersion())},
                 {QStringLiteral("compile_qt_version"),
                  QString::fromLatin1(QT_VERSION_STR)},
@@ -250,7 +255,7 @@ void McpServer::RegisterBuiltinTools() {
     // 6) list_game_directories — list configured ROM scan paths
     RegisterTool(
         QStringLiteral("list_game_directories"),
-        QStringLiteral("List the configured directories where SuyuEclipse scans for games."),
+        QStringLiteral("List the configured directories where suyu scans for games."),
         MakeSchema({}),
         [](const QJsonObject& /*params*/) -> QJsonObject {
             const QString data_dir =
@@ -325,6 +330,48 @@ void McpServer::RegisterBuiltinTools() {
                     "or configure an external decryption tool if you prefer.");
                 return result;
             }
+        });
+
+    RegisterTool(
+        QStringLiteral("get_nintendo_account_state"),
+        QStringLiteral(
+            "Inspect the stored Nintendo Account link state and cached digital library metadata."),
+        MakeSchema({}),
+        [](const QJsonObject& /*params*/) -> QJsonObject {
+            QSettings current(QStringLiteral("suyu"), QStringLiteral("suyu"));
+            QSettings legacy(QStringLiteral("suyu"), QStringLiteral("SuyuEclipse"));
+
+            auto read_group = [](QSettings& settings) {
+                settings.beginGroup(QStringLiteral("NintendoAccount"));
+                QJsonObject result{
+                    {QStringLiteral("linked"), settings.value(QStringLiteral("linked"), false).toBool()},
+                    {QStringLiteral("nickname"), settings.value(QStringLiteral("nickname")).toString()},
+                    {QStringLiteral("user_id"), settings.value(QStringLiteral("user_id")).toString()},
+                    {QStringLiteral("session_token_present"),
+                     !settings.value(QStringLiteral("session_token")).toByteArray().isEmpty()},
+                    {QStringLiteral("library_json"), settings.value(QStringLiteral("library")).toString()},
+                };
+                settings.endGroup();
+                return result;
+            };
+
+            QJsonObject active = read_group(current);
+            const QJsonObject legacy_data = read_group(legacy);
+
+            if (!active.value(QStringLiteral("linked")).toBool() &&
+                legacy_data.value(QStringLiteral("linked")).toBool()) {
+                active = legacy_data;
+                active[QStringLiteral("using_legacy_settings")] = true;
+            } else {
+                active[QStringLiteral("using_legacy_settings")] = false;
+            }
+
+            const QJsonDocument library_doc =
+                QJsonDocument::fromJson(active.value(QStringLiteral("library_json")).toString().toUtf8());
+            active[QStringLiteral("owned_title_count")] =
+                library_doc.isArray() ? library_doc.array().size() : 0;
+            active.remove(QStringLiteral("library_json"));
+            return active;
         });
 
     // 8) get_log_tail — read last N lines from the emulator log
@@ -430,7 +477,7 @@ void McpServer::HandleRequest(const QByteArray& data, QTcpSocket* socket) {
             result[QStringLiteral("capabilities")] = capabilities;
 
             QJsonObject server_info;
-            server_info[QStringLiteral("name")] = QStringLiteral("SuyuEclipse MCP");
+            server_info[QStringLiteral("name")] = QStringLiteral("suyu MCP");
             server_info[QStringLiteral("version")] = QStringLiteral("0.1.0");
             result[QStringLiteral("serverInfo")] = server_info;
 

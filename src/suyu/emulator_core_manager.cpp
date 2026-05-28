@@ -16,7 +16,7 @@ EmulatorCoreManager::EmulatorCoreManager(QObject* parent) : QObject(parent) {
     // Always have the native core available
     CoreInfo native{};
     native.type = CoreType::Native;
-    native.name = QStringLiteral("SuyuEclipse");
+    native.name = QStringLiteral("suyu");
     native.version = QStringLiteral("1.0");
     native.available = true;
     cores_.push_back(native);
@@ -196,7 +196,7 @@ bool EmulatorCoreManager::ConnectTroppical(const QString& endpoint) {
     // Send a handshake message
     QJsonObject handshake;
     handshake[QStringLiteral("type")] = QStringLiteral("handshake");
-    handshake[QStringLiteral("client")] = QStringLiteral("SuyuEclipse");
+    handshake[QStringLiteral("client")] = QStringLiteral("suyu");
     handshake[QStringLiteral("version")] = QStringLiteral("1.0");
     const QByteArray msg = QJsonDocument(handshake).toJson(QJsonDocument::Compact) + "\n";
     troppical_socket_->write(msg);

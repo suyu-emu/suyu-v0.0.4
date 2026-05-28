@@ -79,7 +79,7 @@ void DecryptionFlowWidget::DetectKeys() {
         lbl_instructions_->setText(
             QStringLiteral("<p><b>prod.keys</b> is installed in <b>%1</b>.</p>"
                            "<p>%2</p>"
-                           "<p><i>SuyuEclipse does not provide keys. Dump keys from hardware you own.</i></p>")
+                           "<p><i>suyu does not provide keys. Dump keys from hardware you own.</i></p>")
                 .arg(QDir::toNativeSeparators(keys_dir.absolutePath()),
                      has_title_keys
                          ? QStringLiteral("<b>title.keys</b> is also present.")
@@ -90,7 +90,7 @@ void DecryptionFlowWidget::DetectKeys() {
         lbl_instructions_->setText(
             QStringLiteral("<p>Install <b>prod.keys</b> into <b>%1</b> using <b>Tools -> Install Decryption Keys</b>.</p>"
                            "<p>You can still configure an external decryption tool if that workflow suits you better.</p>"
-                           "<p><i>SuyuEclipse does not provide keys. Dump keys from hardware you own.</i></p>")
+                           "<p><i>suyu does not provide keys. Dump keys from hardware you own.</i></p>")
                 .arg(QDir::toNativeSeparators(keys_dir.absolutePath())));
     }
 

@@ -204,7 +204,7 @@ add_library(core STATIC
     hle/ipc.h
     hle/kernel/board/nintendo/nx/k_memory_layout.cpp
     hle/kernel/board/nintendo/nx/k_memory_layout.h
-    libretro_wrapper_compat.cpp
+    libretro_wrapper.cpp
     hle/kernel/board/nintendo/nx/k_system_control.cpp
     hle/kernel/board/nintendo/nx/k_system_control.h
     hle/kernel/board/nintendo/nx/secure_monitor.h

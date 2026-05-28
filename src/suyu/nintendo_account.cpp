@@ -26,6 +26,50 @@
 
 // XOR key derived from application identity (not cryptographic — obfuscation only)
 static constexpr char kObfuscationKey[] = "SuyuEclipse2024NintendoLink";
+static constexpr auto kSettingsOrganization = "suyu";
+static constexpr auto kSettingsApplication = "suyu";
+static constexpr auto kLegacySettingsApplication = "SuyuEclipse";
+
+void MigrateNintendoAccountSettingsIfNeeded() {
+    static bool migrated = false;
+    if (migrated) {
+        return;
+    }
+
+    migrated = true;
+
+    QSettings current(QString::fromLatin1(kSettingsOrganization),
+                      QString::fromLatin1(kSettingsApplication));
+    QSettings legacy(QString::fromLatin1(kSettingsOrganization),
+                     QString::fromLatin1(kLegacySettingsApplication));
+
+    current.beginGroup(QStringLiteral("NintendoAccount"));
+    const bool has_current_values = !current.allKeys().isEmpty();
+    current.endGroup();
+    if (has_current_values) {
+        return;
+    }
+
+    legacy.beginGroup(QStringLiteral("NintendoAccount"));
+    const QStringList legacy_keys = legacy.allKeys();
+    if (legacy_keys.isEmpty()) {
+        legacy.endGroup();
+        return;
+    }
+
+    current.beginGroup(QStringLiteral("NintendoAccount"));
+    for (const auto& key : legacy_keys) {
+        current.setValue(key, legacy.value(key));
+    }
+    current.endGroup();
+    legacy.endGroup();
+}
+
+QSettings OpenNintendoSettings() {
+    MigrateNintendoAccountSettingsIfNeeded();
+    return QSettings(QString::fromLatin1(kSettingsOrganization),
+                     QString::fromLatin1(kSettingsApplication));
+}
 
 QString ExtractSessionToken(const QString& input) {
     const QString trimmed = input.trimmed();
@@ -103,7 +147,7 @@ std::vector<NintendoOwnedGame> OwnedLibraryFromJson(const QString& json) {
 }
 
 std::vector<NintendoOwnedGame> LoadNintendoOwnedLibrary() {
-    QSettings settings(QStringLiteral("suyu"), QStringLiteral("SuyuEclipse"));
+    QSettings settings = OpenNintendoSettings();
     settings.beginGroup(QStringLiteral("NintendoAccount"));
     const QString json = settings.value(QStringLiteral("library"), QStringLiteral("[]")).toString();
     settings.endGroup();
@@ -111,14 +155,14 @@ std::vector<NintendoOwnedGame> LoadNintendoOwnedLibrary() {
 }
 
 void StoreNintendoOwnedLibrary(const std::vector<NintendoOwnedGame>& library) {
-    QSettings settings(QStringLiteral("suyu"), QStringLiteral("SuyuEclipse"));
+    QSettings settings = OpenNintendoSettings();
     settings.beginGroup(QStringLiteral("NintendoAccount"));
     settings.setValue(QStringLiteral("library"), OwnedLibraryToJson(library));
     settings.endGroup();
 }
 
 void ClearNintendoOwnedLibrary() {
-    QSettings settings(QStringLiteral("suyu"), QStringLiteral("SuyuEclipse"));
+    QSettings settings = OpenNintendoSettings();
     settings.beginGroup(QStringLiteral("NintendoAccount"));
     settings.remove(QStringLiteral("library"));
     settings.endGroup();
@@ -164,7 +208,7 @@ void NintendoAccountDialog::SetupUi() {
     layout->addSpacing(10);
 
     // Browser login button (preferred method)
-    browser_login_button = new QPushButton(tr("Sign in with Browser"), this);
+    browser_login_button = new QPushButton(tr("One-Click Sign In"), this);
     browser_login_button->setStyleSheet(
         QStringLiteral("QPushButton { background-color: #e60012; color: white; font-size: 14px; "
                         "font-weight: bold; padding: 10px 20px; border-radius: 6px; } "
@@ -177,14 +221,16 @@ void NintendoAccountDialog::SetupUi() {
 
     // Instructions
     instructions_label = new QLabel(
-        tr("Click 'Sign in with Browser' to log in directly.\n\n"
+        tr("Click 'One-Click Sign In' to log in directly.\n\n"
+           "This is the fastest path: sign in once and suyu will try to refresh\n"
+           "your Nintendo web purchase history automatically.\n\n"
            "If the embedded browser is unavailable, you can manually\n"
            "paste a session token instead (raw token, full cookie string,\n"
            "or a URL/query containing session_token=...):\n"
            "1. Log in to accounts.nintendo.com in your browser\n"
            "2. Open Developer Tools (F12) > Application > Cookies\n"
            "3. Copy the 'session_token' cookie value\n"
-           "4. Paste it below and click 'Verify & Link'\n\n"
+           "4. Paste it below and click 'Link Saved Session'\n\n"
            "Your token is stored locally with obfuscation. It is never sent\n"
            "to any third-party server."),
         this);
@@ -212,7 +258,7 @@ void NintendoAccountDialog::SetupUi() {
 
     // Button row
     auto* button_row = new QHBoxLayout();
-    link_button = new QPushButton(tr("Verify && Link"), this);
+    link_button = new QPushButton(tr("Link Saved Session"), this);
     verify_button = new QPushButton(tr("Check Status"), this);
     unlink_button = new QPushButton(tr("Unlink"), this);
     button_row->addWidget(link_button);
@@ -246,7 +292,8 @@ void NintendoAccountDialog::RefreshStatus() {
                                             static_cast<int>(owned_library_.size())));
             library_summary_label->setVisible(true);
         } else {
-            library_summary_label->setText(tr("Nintendo library not loaded yet. Click Verify & Link to refresh."));
+            library_summary_label->setText(
+                tr("Nintendo library has not been synced yet. Click Check Status to refresh it."));
             library_summary_label->setVisible(true);
         }
     } else {
@@ -294,7 +341,7 @@ QByteArray NintendoAccountDialog::Obfuscate(const QByteArray& data) {
 
 void NintendoAccountDialog::StoreCredentials(const QString& session_token,
                                               const QString& nickname, const QString& user_id) {
-    QSettings settings(QStringLiteral("suyu"), QStringLiteral("SuyuEclipse"));
+    QSettings settings = OpenNintendoSettings();
     settings.beginGroup(QStringLiteral("NintendoAccount"));
     settings.setValue(QStringLiteral("session_token"),
                      Obfuscate(session_token.toUtf8()).toBase64());
@@ -305,7 +352,7 @@ void NintendoAccountDialog::StoreCredentials(const QString& session_token,
 }
 
 void NintendoAccountDialog::LoadCredentials() {
-    QSettings settings(QStringLiteral("suyu"), QStringLiteral("SuyuEclipse"));
+    QSettings settings = OpenNintendoSettings();
     settings.beginGroup(QStringLiteral("NintendoAccount"));
     linked_ = settings.value(QStringLiteral("linked"), false).toBool();
     if (linked_) {
@@ -319,7 +366,7 @@ void NintendoAccountDialog::LoadCredentials() {
 }
 
 void NintendoAccountDialog::ClearCredentials() {
-    QSettings settings(QStringLiteral("suyu"), QStringLiteral("SuyuEclipse"));
+    QSettings settings = OpenNintendoSettings();
     settings.beginGroup(QStringLiteral("NintendoAccount"));
     settings.remove(QString());
     settings.endGroup();
@@ -554,7 +601,7 @@ void NintendoAccountDialog::OpenBrowserLogin() {
 
     auto* hint = new QLabel(
         tr("Sign in to your Nintendo Account below. The window will close automatically "
-           "once your session token is captured."),
+           "once your session token is captured and your library sync begins."),
         dialog);
     hint->setWordWrap(true);
     hint->setStyleSheet(QStringLiteral("color: #999; font-size: 11px; padding: 4px;"));
@@ -582,7 +629,8 @@ void NintendoAccountDialog::OpenBrowserLogin() {
 #else
     // No WebEngine — open external browser and let user paste token manually
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://accounts.nintendo.com")));
-    status_label->setText(tr("Browser opened — paste session token below after signing in"));
+    status_label->setText(
+        tr("Browser opened — finish sign-in, then paste the session token below"));
     status_label->setStyleSheet(
         QStringLiteral("font-size: 16px; font-weight: bold; color: #ff9800;"));
     token_input->setFocus();
