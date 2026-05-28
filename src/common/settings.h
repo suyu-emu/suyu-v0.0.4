@@ -154,8 +154,8 @@ struct Values {
         linkage, AppletMode::HLE, "player_select_applet_mode", Category::LibraryApplet};
     Setting<AppletMode> swkbd_applet_mode{linkage, AppletMode::LLE, "swkbd_applet_mode",
                                           Category::LibraryApplet};
-    Setting<AppletMode> mii_edit_applet_mode{linkage, AppletMode::LLE, "mii_edit_applet_mode",
-                                             Category::LibraryApplet};
+    Setting<AppletMode> mii_edit_applet_mode{linkage, AppletMode::HLE, "mii_edit_applet_mode",
+                                              Category::LibraryApplet};
     Setting<AppletMode> web_applet_mode{linkage, AppletMode::HLE, "web_applet_mode",
                                         Category::LibraryApplet};
     Setting<AppletMode> shop_applet_mode{linkage, AppletMode::HLE, "shop_applet_mode",
