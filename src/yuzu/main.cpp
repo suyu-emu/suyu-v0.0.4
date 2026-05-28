@@ -107,8 +107,14 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("eden"));
 
 #ifdef _WIN32
-    // Increases the maximum open file limit to 8192
+    // Increases the maximum open file limit.
+    // MSVCRT limits this to 2048 for some inexplicable (and likely arcane) reason,
+    // so we have to account for that as well.
+#ifdef __MSVCRT__
+    _setmaxstdio(2048);
+#else
     _setmaxstdio(8192);
+#endif
 #elif defined(__APPLE__)
     // If you start a bundle (binary) on OSX without the Terminal, the working directory is "/".
     // But since we require the working directory to be the executable path for the location of
