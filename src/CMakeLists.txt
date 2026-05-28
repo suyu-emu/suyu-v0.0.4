@@ -21,19 +21,40 @@ if (YUZU_STATIC_BUILD)
     add_compile_definitions(QT_STATICPLUGIN)
 endif()
 
+# Build identifiers
 if (NIGHTLY_BUILD)
     add_compile_definitions(NIGHTLY_BUILD)
 endif()
 
+# Legacy (android only)
 if (YUZU_LEGACY)
     message(WARNING "Making legacy build. Performance may suffer.")
     add_compile_definitions(YUZU_LEGACY)
 endif()
 
+# Genshin Spoof (android only)
 if (GENSHIN_SPOOF)
     message(WARNING "Making Genshin spoof build")
     add_compile_definitions(GENSHIN_SPOOF)
 endif()
+
+# Build ID (mingw only right now)
+# Pretty much just refers to the CI "target" for this build
+if (NOT BUILD_ID)
+    if (ARCHITECTURE_x86_64)
+        set(BUILD_ID amd64)
+    elseif(ARCHITECTURE_arm64)
+        if (WIN32)
+            set(BUILD_ID arm64)
+        else()
+            set(BUILD_ID aarch64)
+        endif()
+    else()
+        set(BUILD_ID "${ARCHITECTURE}")
+    endif()
+endif()
+
+add_compile_definitions(BUILD_ID="${BUILD_ID}")
 
 # Set compilation flags
 if (MSVC AND NOT CXX_CLANG)

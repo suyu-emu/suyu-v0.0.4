@@ -62,16 +62,20 @@ std::vector<Asset> Release::GetPlatformAssets() const {
 
 #ifdef _WIN32
 #ifdef ARCHITECTURE_x86_64
-    find_asset("Standard", {"amd64-msvc-standard.exe", "amd64-msvc-standard.zip", "mingw-amd64-gcc-standard.exe", "mingw-amd64-gcc-standard.zip"});
-    find_asset("PGO", {"mingw-amd64-clang-pgo.exe", "mingw-amd64-clang-pgo.zip"});
+#ifdef _MSC_VER
+    find_asset("Standard", {"amd64-msvc-standard.exe", "amd64-msvc-standard.zip"});
+#else // _MSC_VER
+    find_asset("Standard", {BUILD_ID "-gcc-standard.exe", BUILD_ID "-gcc-standard.zip"});
+    find_asset("PGO", {BUILD_ID "-clang-pgo.exe", BUILD_ID "-clang-pgo.zip"});
+#endif // _MSC_VER
 #elif defined(ARCHITECTURE_arm64)
-    find_asset("Standard", {"mingw-arm64-clang-standard.exe", "mingw-arm64-clang-standard.zip"});
-    find_asset("PGO", {"mingw-arm64-clang-pgo.exe", "mingw-arm64-clang-pgo.zip"});
-#endif
+    find_asset("Standard", {"arm64-clang-standard.exe", "arm64-clang-standard.zip"});
+    find_asset("PGO", {"arm64-clang-pgo.exe", "arm64-clang-pgo.zip"});
+#endif // ARCHITECTURE_arm64
 #elif defined(__APPLE__)
 #ifdef ARCHITECTURE_arm64
     find_asset("Standard", {".dmg", ".tar.gz"});
-#endif
+#endif // ARCHITECTURE_arm64
 #elif defined(__ANDROID__)
 #ifdef ARCHITECTURE_x86_64
     find_asset("Standard", {"chromeos.apk"});
@@ -82,9 +86,9 @@ std::vector<Asset> Release::GetPlatformAssets() const {
     find_asset("Standard", {"optimized.apk"});
 #else
     find_asset("Standard", {"standard.apk"});
-#endif
-#endif
-#endif
+#endif // GENSHIN_SPOOF
+#endif // ARCHITECTURE_arm64
+#endif // __APPLE__
     return found_assets;
 }
 
