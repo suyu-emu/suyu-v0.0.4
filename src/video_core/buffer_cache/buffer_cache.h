@@ -1619,24 +1619,38 @@ void BufferCache<P>::TouchBuffer(Buffer& buffer, BufferId buffer_id) noexcept {
 template <class P>
 bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 size) {
     upload_copies.clear();
-    u64 total_size_bytes = 0;
+    u64 staging_offset = 0;
     u64 largest_copy = 0;
-    const DAddr buffer_start = buffer.cpu_addr_cached;
-    memory_tracker.ForEachUploadRange(device_addr, size, [&](u64 device_addr_out, u64 range_size) {
-        upload_copies.push_back(BufferCopy{
-            .src_offset = total_size_bytes,
-            .dst_offset = device_addr_out - buffer_start,
-            .size = range_size,
+    DAddr buffer_start = buffer.CpuAddr();
+    auto push = [&](u64 start, u64 end) {
+        if (start >= end) {
+            return;
+        }
+        u64 sz = end - start;
+        upload_copies.push_back({
+            .src_offset = staging_offset,
+            .dst_offset = start - buffer_start,
+            .size = sz
         });
-        total_size_bytes += range_size;
-        largest_copy = (std::max)(largest_copy, range_size);
+        staging_offset += sz;
+        largest_copy = (std::max)(largest_copy, sz);
+    };
+    memory_tracker.ForEachUploadRange(device_addr, size, [&](u64 addr, u64 range_size) {
+        u64 start = addr;
+        u64 end = addr + range_size;
+        gpu_modified_ranges.ForEachInRange(start, range_size, [&](u64 gstart, u64 gsize) {
+            u64 gend = gstart + gsize;
+            push(start, gstart);
+            start = (std::max)(start, gend);
+        });
+        push(start, end);
+        ClearDownload(addr, range_size);
+        gpu_modified_ranges.Subtract(addr, range_size);
     });
-    if (total_size_bytes == 0) {
+    if (upload_copies.empty()) {
         return true;
     }
-    const std::span<BufferCopy> copies_span(upload_copies.data(), upload_copies.size());
-    UploadMemory(buffer, total_size_bytes, largest_copy, copies_span);
-    any_buffer_uploaded = true;
+    UploadMemory(buffer, staging_offset, largest_copy, std::span(upload_copies));
     return false;
 }
 
