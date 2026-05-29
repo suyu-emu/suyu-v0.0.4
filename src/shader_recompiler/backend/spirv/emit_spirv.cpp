@@ -462,6 +462,13 @@ void SetupCapabilities(const Profile& profile, const Info& info, EmitContext& ct
     ctx.AddCapability(spv::Capability::ImageGatherExtended);
     ctx.AddCapability(spv::Capability::ImageQuery);
     ctx.AddCapability(spv::Capability::SampledBuffer);
+    // TODO: this usage needs to be tracked properly
+    if (ctx.profile.support_sampled_image_array_nonuniform_indexing) {
+        if (ctx.profile.supported_spirv < 0x00010400)
+            ctx.AddExtension("SPV_EXT_descriptor_indexing");
+        ctx.AddCapability(spv::Capability::ShaderNonUniform);
+        ctx.AddCapability(spv::Capability::SampledImageArrayNonUniformIndexing);
+    }
 }
 
 void PatchPhiNodes(IR::Program& program, EmitContext& ctx) {

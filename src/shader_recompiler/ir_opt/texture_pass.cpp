@@ -733,9 +733,8 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             break;
         }
         u32 index;
-        const u32 size_shift{cbuf.count > 1 ? DynamicDescriptorSizeShift(cbuf.dynamic_offset)
-                                            : DESCRIPTOR_SIZE_SHIFT};
-        u32 count{cbuf.count};
+        u32 size_shift = cbuf.count > 1 ? DynamicDescriptorSizeShift(cbuf.dynamic_offset) : DESCRIPTOR_SIZE_SHIFT;
+        u32 count = cbuf.count;
         switch (inst->GetOpcode()) {
         case IR::Opcode::ImageRead:
         case IR::Opcode::ImageAtomicIAdd32:
