@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -20,10 +20,14 @@
 namespace Common {
 
 struct SlotId {
+    static constexpr u32 TAGGED_MASK = 0x7fffffff;
+    static constexpr u32 TAGGED_VALUE = 0x80000000;
     static constexpr u32 INVALID_INDEX = (std::numeric_limits<u32>::max)();
 
+    constexpr u32 Value() const noexcept {
+        return index & (~TAGGED_VALUE);
+    }
     constexpr auto operator<=>(const SlotId&) const noexcept = default;
-
     constexpr explicit operator bool() const noexcept {
         return index != INVALID_INDEX;
     }
@@ -47,12 +51,12 @@ public:
         Iterator& operator++() noexcept {
             const u64* const bitset = slot_vector->stored_bitset.data();
             const u32 size = static_cast<u32>(slot_vector->stored_bitset.size()) * 64;
-            if (id.index < size) {
+            if (id.Value() < size) {
                 do {
                     ++id.index;
-                } while (id.index < size && !IsValid(bitset));
-                if (id.index == size) {
-                    id.index = SlotId::INVALID_INDEX;
+                } while (id.Value() < size && !IsValid(bitset));
+                if (id.Value() == size) {
+                    id = SlotId{};
                 }
             }
             return *this;
@@ -85,7 +89,7 @@ public:
             : slot_vector{slot_vector_}, id{id_} {}
 
         bool IsValid(const u64* bitset) const noexcept {
-            return ((bitset[id.index / 64] >> (id.index % 64)) & 1) != 0;
+            return ((bitset[id.Value() / 64] >> (id.Value() % 64)) & 1) != 0;
         }
 
         SlotVector<T>* slot_vector;
@@ -107,12 +111,12 @@ public:
 
     [[nodiscard]] T& operator[](SlotId id) noexcept {
         ValidateIndex(id);
-        return values[id.index].object;
+        return values[id.Value()].object;
     }
 
     [[nodiscard]] const T& operator[](SlotId id) const noexcept {
         ValidateIndex(id);
-        return values[id.index].object;
+        return values[id.Value()].object;
     }
 
     template <typename... Args>
@@ -125,9 +129,9 @@ public:
     }
 
     void erase(SlotId id) noexcept {
-        values[id.index].object.~T();
-        free_list.push_back(id.index);
-        ResetStorageBit(id.index);
+        values[id.Value()].object.~T();
+        free_list.push_back(id.Value());
+        ResetStorageBit(id.Value());
     }
 
     [[nodiscard]] Iterator begin() noexcept {
@@ -141,7 +145,7 @@ public:
     }
 
     [[nodiscard]] Iterator end() noexcept {
-        return Iterator(this, SlotId{SlotId::INVALID_INDEX});
+        return Iterator(this, SlotId{});
     }
 
     [[nodiscard]] size_t size() const noexcept {
@@ -175,8 +179,8 @@ private:
 
     void ValidateIndex(SlotId id) const noexcept {
         DEBUG_ASSERT(id);
-        DEBUG_ASSERT(id.index / 64 < stored_bitset.size());
-        DEBUG_ASSERT(((stored_bitset[id.index / 64] >> (id.index % 64)) & 1) != 0);
+        DEBUG_ASSERT(id.Value() / 64 < stored_bitset.size());
+        DEBUG_ASSERT(((stored_bitset[id.Value() / 64] >> (id.Value() % 64)) & 1) != 0);
     }
 
     [[nodiscard]] u32 FreeValueIndex() noexcept {
@@ -208,9 +212,7 @@ private:
 
         const size_t old_free_size = free_list.size();
         free_list.resize(old_free_size + (new_capacity - values_capacity));
-        std::iota(free_list.begin() + old_free_size, free_list.end(),
-                  static_cast<u32>(values_capacity));
-
+        std::iota(free_list.begin() + old_free_size, free_list.end(), u32(values_capacity));
         delete[] values;
         values = new_values;
         values_capacity = new_capacity;

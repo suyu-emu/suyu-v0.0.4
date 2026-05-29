@@ -283,7 +283,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     size_t views_index{};
     size_t samplers_index{};
 
-    texture_cache.SynchronizeGraphicsDescriptors();
+    texture_cache.SynchronizeDescriptors(false);
 
     buffer_cache.SetUniformBuffersState(enabled_uniform_buffer_masks, &uniform_buffer_sizes);
     buffer_cache.runtime.SetBaseUniformBindings(base_uniform_bindings);
@@ -354,7 +354,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 const auto handle{read_handle(desc, index)};
                 views[views_index++] = {handle.first};
 
-                VideoCommon::SamplerId sampler{texture_cache.GetGraphicsSamplerId(handle.second)};
+                VideoCommon::SamplerId sampler{texture_cache.GetSamplerId(handle.second, false)};
                 samplers[samplers_index++] = sampler;
             }
         }
@@ -379,7 +379,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     if constexpr (Spec::enabled_stages[4]) {
         config_stage(4);
     }
-    texture_cache.FillGraphicsImageViews<Spec::has_images>(std::span(views.data(), views_index));
+    texture_cache.FillImageViews(std::span(views.data(), views_index), false, Spec::has_images);
 
     texture_cache.UpdateRenderTargets(false);
     state_tracker.BindFramebuffer(texture_cache.GetFramebuffer()->Handle());

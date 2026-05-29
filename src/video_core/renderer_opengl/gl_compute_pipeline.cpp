@@ -90,7 +90,7 @@ void ComputePipeline::Configure() {
                                               desc.is_written);
         ++ssbo_index;
     }
-    texture_cache.SynchronizeComputeDescriptors();
+    texture_cache.SynchronizeDescriptors(true);
 
     boost::container::static_vector<VideoCommon::ImageViewInOut, MAX_TEXTURES + MAX_IMAGES> views;
     boost::container::static_vector<VideoCommon::SamplerId, MAX_TEXTURES> samplers;
@@ -148,14 +148,14 @@ void ComputePipeline::Configure() {
             const auto handle{read_handle(desc, index)};
             views.push_back({handle.first});
 
-            VideoCommon::SamplerId sampler = texture_cache.GetComputeSamplerId(handle.second);
+            VideoCommon::SamplerId sampler = texture_cache.GetSamplerId(handle.second, true);
             samplers.push_back(sampler);
         }
     }
     for (const auto& desc : info.image_descriptors) {
         add_image(desc, desc.is_written);
     }
-    texture_cache.FillComputeImageViews(std::span(views.data(), views.size()));
+    texture_cache.FillImageViews(std::span(views.data(), views.size()), true);
 
     if (!is_built) {
         WaitForBuild();

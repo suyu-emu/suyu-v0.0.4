@@ -353,13 +353,13 @@ void RasterizerOpenGL::DrawTexture() {
         gpu.TickWork();
     };
 
-    texture_cache.SynchronizeGraphicsDescriptors();
+    texture_cache.SynchronizeDescriptors(false);
     texture_cache.UpdateRenderTargets(false);
 
     SyncState();
 
     const auto& draw_texture_state = maxwell3d->draw_manager.draw_texture_state;
-    const auto& sampler = texture_cache.GetGraphicsSampler(draw_texture_state.src_sampler);
+    const auto& sampler = texture_cache.GetSampler(draw_texture_state.src_sampler, true);
     const auto& texture = texture_cache.GetImageView(draw_texture_state.src_texture);
 
     const auto Scale = [&](auto dim) -> s32 {
