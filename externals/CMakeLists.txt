@@ -82,6 +82,11 @@ if (ARCHITECTURE_riscv64)
     AddJsonPackage(biscuit)
 endif()
 
+# Lagoon
+if (ARCHITECTURE_loongarch64)
+    AddJsonPackage(lagoon)
+endif()
+
 # Vulkan stuff
 AddDependentPackages(vulkan-headers vulkan-utility-libraries)
 

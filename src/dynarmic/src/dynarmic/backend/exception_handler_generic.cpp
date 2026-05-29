@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -26,6 +26,10 @@ void ExceptionHandler::Register(oaknut::CodeBlock&, std::size_t) {
 }
 #elif defined(ARCHITECTURE_riscv64)
 void ExceptionHandler::Register(RV64::CodeBlock&, std::size_t) {
+    // Do nothing
+}
+#elif defined(ARCHITECTURE_loongarch64)
+void ExceptionHandler::Register(LoongArch64::CodeBlock&, std::size_t) {
     // Do nothing
 }
 #else

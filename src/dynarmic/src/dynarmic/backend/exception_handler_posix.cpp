@@ -6,20 +6,25 @@
  * SPDX-License-Identifier: 0BSD
  */
 
+#include <signal.h>
+
+#include <algorithm>
+#include <bit>
 #include <cstring>
 #include <functional>
-#include <algorithm>
 #include <memory>
 #include <mutex>
-#include <shared_mutex>
 #include <optional>
-#include <bit>
-#include <fmt/format.h>
+#include <shared_mutex>
+
 #include <ankerl/unordered_dense.h>
-#include "dynarmic/backend/exception_handler.h"
+#include <fmt/format.h>
+#include <sys/mman.h>
+
 #include "common/assert.h"
-#include "dynarmic/common/context.h"
 #include "common/common_types.h"
+#include "dynarmic/backend/exception_handler.h"
+#include "dynarmic/common/context.h"
 #if defined(ARCHITECTURE_x86_64)
 #    include "dynarmic/backend/x64/block_of_code.h"
 #elif defined(ARCHITECTURE_arm64)
@@ -27,6 +32,8 @@
 #    include "dynarmic/backend/arm64/abi.h"
 #elif defined(ARCHITECTURE_riscv64)
 #    include "dynarmic/backend/riscv64/code_block.h"
+#elif defined(ARCHITECTURE_loongarch64)
+#    include "dynarmic/backend/loongarch64/code_block.h"
 #else
 #    error "Invalid architecture"
 #endif
@@ -150,6 +157,16 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
         }
     }
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_SEPC);
+#elif defined(ARCHITECTURE_loongarch64)
+    {
+        std::shared_lock guard(sig_handler->code_block_infos_mutex);
+        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC); iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->second.cb(CTX_PC);
+            CTX_PC = fc.call_pc;
+            return;
+        }
+    }
+    fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #else
 #    error "Invalid architecture"
 #endif
@@ -207,6 +224,10 @@ void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
 }
 #elif defined(ARCHITECTURE_riscv64)
 void ExceptionHandler::Register(RV64::CodeBlock& mem, std::size_t size) {
+    impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr<u64>()), size);
+}
+#elif defined(ARCHITECTURE_loongarch64)
+void ExceptionHandler::Register(LoongArch64::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr<u64>()), size);
 }
 #else

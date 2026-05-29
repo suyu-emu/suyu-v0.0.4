@@ -130,6 +130,10 @@ if ("riscv64" IN_LIST ARCHITECTURE)
     find_package(biscuit 0.9.1 REQUIRED)
 endif()
 
+if ("loongarch64" IN_LIST ARCHITECTURE)
+    find_package(lagoon REQUIRED)
+endif()
+
 if ("x86_64" IN_LIST ARCHITECTURE)
     find_package(xbyak 7 CONFIG)
 endif()

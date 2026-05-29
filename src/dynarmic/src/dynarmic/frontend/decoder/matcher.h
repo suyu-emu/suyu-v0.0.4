@@ -9,6 +9,7 @@
 #pragma once
 
 #include <functional>
+#include <tuple>
 
 #include "common/assert.h"
 
@@ -29,6 +30,10 @@ public:
     constexpr Matcher(T mask, T expected) noexcept
         : mask{mask}
         , expected{expected}
+    {}
+
+    constexpr Matcher(std::tuple<T, T> t) noexcept
+        : Matcher(std::get<0>(t), std::get<1>(t))
     {}
 
     /// @brief Gets the mask for this instruction.

@@ -295,6 +295,20 @@ if ("riscv64" IN_LIST ARCHITECTURE)
     message(WARNING "TODO: Incomplete frontend for this host architecture")
 endif()
 
+if ("loongarch64" IN_LIST ARCHITECTURE)
+    target_link_libraries(dynarmic PRIVATE lagoon::lagoon)
+
+    target_sources(dynarmic PRIVATE
+        backend/loongarch64/exclusive_monitor.cpp
+        backend/loongarch64/a32_interface.cpp
+        backend/loongarch64/a64_interface.cpp
+        backend/loongarch64/code_block.h
+
+        common/spin_lock_loongarch64.cpp
+    )
+    message(WARNING "TODO: Incomplete frontend for this host architecture")
+endif()
+
 if (WIN32)
     target_sources(dynarmic PRIVATE backend/exception_handler_windows.cpp)
 elseif (APPLE)
