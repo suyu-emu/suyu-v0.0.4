@@ -254,11 +254,12 @@ std::optional<u64> GenericEnvironment::TryFindSize() {
     static constexpr u64 SELF_BRANCH_A = 0xE2400FFFFF87000FULL;
     static constexpr u64 SELF_BRANCH_B = 0xE2400FFFFF07000FULL;
 
+    code.resize(MAXIMUM_SIZE / INST_SIZE);
+
     GPUVAddr guest_addr{program_base + start_address};
     size_t offset{0};
     size_t size{BLOCK_SIZE};
     while (size <= MAXIMUM_SIZE) {
-        code.resize(size / INST_SIZE);
         u64* const data = code.data() + offset / INST_SIZE;
         gpu_memory->ReadBlock(guest_addr, data, BLOCK_SIZE);
         for (size_t index = 0; index < BLOCK_SIZE; index += INST_SIZE) {

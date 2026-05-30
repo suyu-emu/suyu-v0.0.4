@@ -19,7 +19,7 @@
 
 #include "common/common_types.h"
 #include "common/thread.h"
-#include "common/wall_clock.h"
+#include "common/cpu_features.h"
 
 namespace Core::Timing {
 
@@ -142,37 +142,28 @@ public:
 
     void Reset();
 
-    Common::WallClock clock;
-
+    using heap_t = boost::heap::fibonacci_heap<CoreTiming::Event, boost::heap::compare<std::greater<>>>;
+    heap_t event_queue;
     s64 global_timer = 0;
-
 #ifdef _WIN32
     s64 timer_resolution_ns;
 #endif
-
-    using heap_t =
-        boost::heap::fibonacci_heap<CoreTiming::Event, boost::heap::compare<std::greater<>>>;
-
-    heap_t event_queue;
     u64 event_fifo_id = 0;
-
+    s64 pause_end_time{};
+    /// Cycle timing
+    u64 cpu_ticks{};
+    s64 downcount{};
     Common::Event event{};
     Common::Event pause_event{};
+    std::function<void()> on_thread_init{};
+    std::jthread timer_thread;
     mutable std::mutex basic_lock;
     std::mutex advance_lock;
-    std::jthread timer_thread;
     std::atomic<bool> paused{};
     std::atomic<bool> paused_set{};
     std::atomic<bool> wait_set{};
     std::atomic<bool> has_started{};
-    std::function<void()> on_thread_init{};
-
     bool is_multicore{};
-    s64 pause_end_time{};
-
-    /// Cycle timing
-    u64 cpu_ticks{};
-    s64 downcount{};
 };
 
 /// Creates a core timing event with the given name and callback.

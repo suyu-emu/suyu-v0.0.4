@@ -3,7 +3,7 @@
 
 #include <numeric>
 #include <bit>
-#include "common/wall_clock.h"
+#include "common/cpu_features.h"
 #include "common/alignment.h"
 #include "common/literals.h"
 #include "core/arm/nce/arm_nce.h"

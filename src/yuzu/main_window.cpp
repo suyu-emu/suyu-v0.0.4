@@ -124,7 +124,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/string_util.h"
 
 #ifdef ARCHITECTURE_x86_64
-#include "common/x64/cpu_detect.h"
+#include "common/cpu_features.h"
 #endif
 
 // Core //
@@ -3119,7 +3119,7 @@ void MainWindow::OnMenuReportCompatibility() {
         tr("Compatibility list reporting is currently disabled. Check back later!"));
 
     // #if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
-    //     const auto& caps = Common::GetCPUCaps();
+    //     const auto& caps = g_cpu_caps;
     //     const bool has_fma = caps.fma;
     //     const auto processor_count = std::thread::hardware_concurrency();
     //     const bool has_4threads = processor_count == 0 || processor_count >= 4;

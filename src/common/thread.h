@@ -34,16 +34,10 @@ public:
         is_set = false;
     }
 
-    bool WaitFor(const std::chrono::nanoseconds& time) {
-        std::unique_lock lk{mutex};
-        if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
-            return false;
-        is_set = false;
-        return true;
-    }
+    bool WaitFor(const std::chrono::nanoseconds time);
 
-    template <class Clock, class Duration>
-    bool WaitUntil(const std::chrono::time_point<Clock, Duration>& time) {
+    template<class Clock, class Duration>
+    bool WaitUntil(const std::chrono::time_point<Clock, Duration> time) {
         std::unique_lock lk{mutex};
         if (!condvar.wait_until(lk, time, [this] { return is_set.load(); }))
             return false;
@@ -63,9 +57,9 @@ public:
     }
 
 private:
+    alignas(64) std::atomic<bool> is_set{false};
     std::condition_variable condvar;
     std::mutex mutex;
-    std::atomic_bool is_set{false};
 };
 
 class Barrier {
