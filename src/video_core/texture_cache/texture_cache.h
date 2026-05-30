@@ -313,13 +313,14 @@ SamplerId TextureCache<P>::GetSamplerId(u32 index, bool compute) {
         LOG_DEBUG(HW_GPU, "Invalid sampler index={}", index);
         return NULL_SAMPLER_ID;
     }
+    auto const map_index = index | (compute ? Common::SlotId::TAGGED_VALUE : 0);
     auto const [descriptor, is_new] = table.Read(*gpu_memory, index);
     if (is_new) {
         auto const id = FindSampler(descriptor, compute);
-        channel_state->sampler_ids.insert_or_assign(index | (compute ? Common::SlotId::TAGGED_VALUE : 0), id);
+        channel_state->sampler_ids.insert_or_assign(map_index, id);
         return id;
     }
-    return channel_state->sampler_ids.find(index | (compute ? Common::SlotId::TAGGED_VALUE : 0))->second;
+    return channel_state->sampler_ids.find(map_index)->second;
 }
 
 template <class P>
@@ -542,6 +543,7 @@ ImageViewId TextureCache<P>::VisitImageView(u32 index, bool compute) {
         LOG_DEBUG(HW_GPU, "Invalid image view index={}", index);
         return NULL_IMAGE_VIEW_ID;
     }
+    auto const map_index = index | (compute ? Common::SlotId::TAGGED_VALUE : 0);
     // Is new (on the tegra engine side)?
     auto const [descriptor, is_new] = table.Read(*gpu_memory, index);
     if (is_new) {
@@ -551,14 +553,15 @@ ImageViewId TextureCache<P>::VisitImageView(u32 index, bool compute) {
             if (is_new_tc)
                 pair->second = CreateImageView(descriptor);
             PrepareImageView(pair->second, false, false);
-            channel_state->image_view_ids.insert_or_assign(index | (compute ? Common::SlotId::TAGGED_VALUE : 0), pair->second);
+            channel_state->image_view_ids.insert_or_assign(map_index, pair->second);
             return pair->second;
         }
-        channel_state->image_view_ids.insert_or_assign(index | (compute ? Common::SlotId::TAGGED_VALUE : 0), NULL_IMAGE_VIEW_ID);
+        channel_state->image_view_ids.insert_or_assign(map_index, NULL_IMAGE_VIEW_ID);
         return NULL_IMAGE_VIEW_ID;
     }
-    auto const it = channel_state->image_view_ids.find(index | (compute ? Common::SlotId::TAGGED_VALUE : 0));
-    PrepareImageView(it->second, false, false);
+    auto const it = channel_state->image_view_ids.find(map_index);
+    if (it->second != NULL_IMAGE_VIEW_ID)
+        PrepareImageView(it->second, false, false);
     return it->second;
 }
 
