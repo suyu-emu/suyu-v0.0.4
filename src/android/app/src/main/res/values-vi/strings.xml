@@ -327,8 +327,6 @@
     <string name="renderer_resolution">Độ phân giải (Handheld/Docked)</string>
     <string name="renderer_vsync">Chế độ VSync</string>
     <string name="renderer_scaling_filter">Bộ lọc điều chỉnh cửa sổ</string>
-    <string name="fsr_sharpness">Độ sắc nét FSR</string>
-    <string name="fsr_sharpness_description">Độ sắc nét khi dùng FSR</string>
     <string name="renderer_anti_aliasing">Phương pháp khử răng cưa</string>
 
 

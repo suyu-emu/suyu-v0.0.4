@@ -439,8 +439,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="renderer_resolution">Auflösung (Handheld/Gedockt)</string>
     <string name="renderer_vsync">VSync-Modus</string>
     <string name="renderer_scaling_filter">Skalierungsfilter</string>
-    <string name="fsr_sharpness">FSR-Schärfe</string>
-    <string name="fsr_sharpness_description">Bestimmt die Schärfe bei FSR-Nutzung.</string>
     <string name="renderer_anti_aliasing">Kantenglättung</string>
 
 

@@ -452,8 +452,8 @@
     <string name="renderer_resolution">分辨率 (掌机模式/主机模式)</string>
     <string name="renderer_vsync">垂直同步模式</string>
     <string name="renderer_scaling_filter">窗口滤镜</string>
-    <string name="fsr_sharpness">FSR 锐化度</string>
-    <string name="fsr_sharpness_description">确定使用 FSR 的动态对比度功能时的图像锐化程度</string>
+    <string name="fsr_sharpness">FSR/SGSR 锐度</string>
+    <string name="fsr_sharpness_description">确定在使用 FSR 或 SGSR 过滤器时的图像锐度</string>
     <string name="renderer_anti_aliasing">抗锯齿方式</string>
 
 
@@ -493,6 +493,8 @@
     <string name="fast_gpu_time_description">强制大多数游戏以其最高原生分辨率运行。设置为 256 可获得最佳性能，设置为 512 可获得最佳画面保真度。</string>
     <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
     <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
+    <string name="antiflicker">防闪烁</string>
+    <string name="antiflicker_description">强制 GPU 围栏回调等待已提交的 GPU 任务。配合“快速 GPU 模式”一起使用，以避免画面闪烁现象，仅会牺牲少量性能。</string>
     <string name="fix_bloom_effects">修复 Bloom 效果</string>
     <string name="fix_bloom_effects_description">减少《塞尔达传说：智慧的再现》（Adreno A6XX - A7XX/ Turnip）中的 bloom 模糊，并移除《Burnout》中的 bloom 效果。警告：可能会导致在其他游戏中出现图形异常。</string>
     <string name="emulate_bgr565">模拟 BGR565</string>

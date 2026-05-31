@@ -352,8 +352,6 @@
     <string name="renderer_resolution">Resolução (Portátil/Ancorado)</string>
     <string name="renderer_vsync">Modo VSync</string>
     <string name="renderer_scaling_filter">Filtro de Adaptação da Janela</string>
-    <string name="fsr_sharpness">Nitidez do FSR</string>
-    <string name="fsr_sharpness_description">Determina a nitidez da imagem ao usar contraste dinâmico do FSR</string>
     <string name="renderer_anti_aliasing">Método de Anti-Serrilhado</string>
 
 

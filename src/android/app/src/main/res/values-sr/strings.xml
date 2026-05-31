@@ -351,8 +351,6 @@
     <string name="renderer_resolution">Резолуција (ручно / прикључено)</string>
     <string name="renderer_vsync">Всинц мод</string>
     <string name="renderer_scaling_filter">Филтер прилагођавања прозора</string>
-    <string name="fsr_sharpness">ФСР оштрина</string>
-    <string name="fsr_sharpness_description">Одређује колико ће се слика наоштрен трајати док користи \"ФСР\" динамички контраст</string>
     <string name="renderer_anti_aliasing">Метода против алиасирања</string>
 
 

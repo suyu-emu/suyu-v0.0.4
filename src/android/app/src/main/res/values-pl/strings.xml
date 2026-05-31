@@ -439,8 +439,6 @@
     <string name="renderer_resolution">Rozdzielczość (Handheld/Zadokowany)</string>
     <string name="renderer_vsync">Synchronizacja pionowa VSync</string>
     <string name="renderer_scaling_filter">Filtr adaptacji rozdzielczości</string>
-    <string name="fsr_sharpness">Ostrość FSR</string>
-    <string name="fsr_sharpness_description">Kontroluje ostrość obrazu w FSR.</string>
     <string name="renderer_anti_aliasing">Metoda wygładzania krawędzi</string>
 
 

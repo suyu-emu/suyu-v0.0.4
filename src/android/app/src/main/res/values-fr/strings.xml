@@ -454,8 +454,6 @@
     <string name="renderer_resolution">Résolution (Mode Portable/Mode TV)</string>
     <string name="renderer_vsync">Mode VSync</string>
     <string name="renderer_scaling_filter">Filtre de fenêtre adaptatif</string>
-    <string name="fsr_sharpness">Netteté FSR</string>
-    <string name="fsr_sharpness_description">Détermine à quel point l\'image sera affinée lors de l\'utilisation du contraste dynamique FSR.</string>
     <string name="renderer_anti_aliasing">Méthode d\'anticrénelage</string>
 
 

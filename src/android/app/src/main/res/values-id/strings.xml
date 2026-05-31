@@ -380,8 +380,6 @@
     <string name="renderer_resolution">Resolusi (Handheld/Docked)</string>
     <string name="renderer_vsync">Mode Sinkronisasi Vertikal</string>
     <string name="renderer_scaling_filter">Filter penyesuaian jendela</string>
-    <string name="fsr_sharpness">Ketajaman FSR</string>
-    <string name="fsr_sharpness_description">Menentukan seberapa tajam gambar akan terlihat saat menggunakan kontras dinamis FSR</string>
     <string name="renderer_anti_aliasing">Metode anti-aliasing</string>
 
 

@@ -439,8 +439,6 @@
     <string name="renderer_resolution">Rozlišení (Handheld/V doku)</string>
     <string name="renderer_vsync">Režim VSync</string>
     <string name="renderer_scaling_filter">Škálovací filtr</string>
-    <string name="fsr_sharpness">Ostrost FSR</string>
-    <string name="fsr_sharpness_description">Určuje jak ostře bude obraz vypadat při použití dynamického kontrastu FSR.</string>
     <string name="renderer_anti_aliasing">Metoda anti-aliasingu</string>
 
 

@@ -437,8 +437,6 @@
     <string name="renderer_resolution">解析度 (手提/底座)</string>
     <string name="renderer_vsync">垂直同步</string>
     <string name="renderer_scaling_filter">視窗適應過濾器</string>
-    <string name="fsr_sharpness">FSR 銳化度</string>
-    <string name="fsr_sharpness_description">使用 FSR 時圖片的銳化程度</string>
     <string name="renderer_anti_aliasing">抗鋸齒</string>
 
 

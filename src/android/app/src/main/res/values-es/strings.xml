@@ -376,7 +376,7 @@
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Iniciar aplicaciones desde la pantalla de inicio del sistema</string>
     <string name="applets">Lanzador de Applet</string>
-    <string name="applets_description">Ejecutar applets de sistema usando el firmware instalado</string>
+    <string name="applets_description">Ejecutar applets del sistema usando el firmware instalado</string>
     <string name="applets_error_firmware">El firmware no está instalado</string>
     <string name="applets_error_applet">Applet no disponible</string>
     <string name="applets_error_description"><![CDATA[Por favor, asegúrese de que su archivo <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> y el <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> están instalados e inténtelo de nuevo.]]></string>
@@ -456,8 +456,8 @@
     <string name="renderer_resolution">Resolución (Portátil/Sobremesa)</string>
     <string name="renderer_vsync">Modo de sincronización vertical</string>
     <string name="renderer_scaling_filter">Filtro de adaptación de ventana</string>
-    <string name="fsr_sharpness">Nitidez FSR</string>
-    <string name="fsr_sharpness_description">Ajusta la intensidad del filtro de enfoque al usar el contraste dinámico de FSR.</string>
+    <string name="fsr_sharpness">Nitidez FSR/SGSR</string>
+    <string name="fsr_sharpness_description">Determina el grado de nitidez de la imagen al usar filtros FSR o SGSR</string>
     <string name="renderer_anti_aliasing">Método de suavizado de bordes</string>
 
 
@@ -497,6 +497,8 @@
     <string name="fast_gpu_time_description">Fuerza a la mayoría de los juegos a ejecutarse a su resolución nativa más alta. Usa 256 para un máximo rendimiento y 512 para una fidelidad gráfica óptima.</string>
     <string name="skip_cpu_inner_invalidation">Omitir invalidación interna de la CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Omite ciertas invalidaciones de caché de la CPU durante las actualizaciones de memoria, lo que reduce el uso de la CPU y mejora su rendimiento. Esto puede causar fallos o bloqueos en algunos juegos.</string>
+    <string name="antiflicker">Antiparpadeo</string>
+    <string name="antiflicker_description">Fuerza a las funciones de devolución de llamada de la GPU a esperar a que se envíen las tareas a la GPU.\nÚsalo con el modo de GPU rápida para evitar el parpadeo con un menor impacto en el rendimiento.</string>
     <string name="fix_bloom_effects">Arreglar los efectos de resplandor</string>
     <string name="fix_bloom_effects_description">Reduce el efecto de resplandor en LA/EOW (Adreno A6XX - A7XX/ Turnip), elimina el resplandor en Burnout. Advertencia: puede causar artefactos gráficos en otros juegos.</string>
     <string name="emulate_bgr565">Emular BGR565</string>
@@ -1072,7 +1074,7 @@
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Fondos oscuros</string>
-    <string name="use_black_backgrounds_description">Cuando utilice el modo oscuro, aplique fondos negros.</string>
+    <string name="use_black_backgrounds_description">Cuando se usa el modo oscuro, aplicar fondos de pantalla negros.</string>
 
     <!-- Buttons -->
     <string name="enable_folder_button">Carpeta</string>

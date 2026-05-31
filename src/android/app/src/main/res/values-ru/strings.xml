@@ -458,8 +458,8 @@
     <string name="renderer_resolution">Разрешение (портативное/в док-станции)</string>
     <string name="renderer_vsync">Режим верт. синхронизации</string>
     <string name="renderer_scaling_filter">Фильтр адаптации окна</string>
-    <string name="fsr_sharpness">Резкость FSR</string>
-    <string name="fsr_sharpness_description">Определяет, насколько чётким будет изображение при использовании динамического контраста FSR.</string>
+    <string name="fsr_sharpness">Резкость FSR/SGSR</string>
+    <string name="fsr_sharpness_description">Определяет, насколько чётким будет изображение при использовании динамического контраста FSR или SGSR фильтров</string>
     <string name="renderer_anti_aliasing">Метод сглаживания</string>
 
 
@@ -499,6 +499,8 @@
     <string name="fast_gpu_time_description">Принудительно запускает большинство игр в их максимальном нативном разрешении. Используйте значение 256 для максимальной производительности и 512 для максимального качества графики.</string>
     <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
+    <string name="antiflicker">Анти-мерцание</string>
+    <string name="antiflicker_description">Принудительно заставляет обратные вызовы ГПУ-фильтра ожидать выполнения отправленных задач на ГПУ. Используйте с Быстрым режимом ГПУ, что бы избежать мерцаний с меньшим влиянием на производительность.</string>
     <string name="fix_bloom_effects">Исправить эффекты размытия</string>
     <string name="fix_bloom_effects_description">Частично убирает размытие в LA/EOW (Adreno A6XX - A7XX/ Turnip), полностью отключает его в Burnout. Внимание: может вызывать графические артефакты в других играх.</string>
     <string name="emulate_bgr565">Эмулировать BGR565</string>
