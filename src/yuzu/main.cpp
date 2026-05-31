@@ -15,6 +15,10 @@
 #include "qt_common/gui_settings.h"
 #endif
 
+#ifndef _WIN32
+#include <sys/resource.h>
+#endif
+
 #include "main_window.h"
 
 #ifdef _WIN32
@@ -106,16 +110,27 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setOrganizationName(QStringLiteral("eden"));
     QCoreApplication::setApplicationName(QStringLiteral("eden"));
 
-#ifdef _WIN32
     // Increases the maximum open file limit.
+    // TODO: This should be common to all frontends.
+#ifdef _WIN32
     // MSVCRT limits this to 2048 for some inexplicable (and likely arcane) reason,
     // so we have to account for that as well.
 #ifdef __MSVCRT__
     _setmaxstdio(2048);
 #else
     _setmaxstdio(8192);
-#endif
-#elif defined(__APPLE__)
+#endif // __MSVCRT__
+#elif defined(__unix__) || defined(__APPLE__)
+    // Set the max open file limit to 8192, or the hard limit.
+    // Most sane systems should not hit the hard limit here.
+    struct rlimit rl;
+    if (getrlimit(RLIMIT_NOFILE, &rl) == 0) {
+        rl.rlim_cur = std::min<rlim_t>(8192, rl.rlim_max);
+        setrlimit(RLIMIT_NOFILE, &rl);
+    }
+#endif // _WIN32
+
+#if defined(__APPLE__)
     // If you start a bundle (binary) on OSX without the Terminal, the working directory is "/".
     // But since we require the working directory to be the executable path for the location of
     // the user folder in the Qt Frontend, we need to cd into that working directory
