@@ -17,12 +17,6 @@ namespace mcl {
 template<typename T>
 constexpr std::size_t bitsizeof = CHAR_BIT * sizeof(T);
 }
-namespace mcl::bit {
-template<typename T>
-inline size_t count_ones(T x) {
-    return std::bitset<bitsizeof<T>>(x).count();
-}
-}
 template<size_t N>
 inline consteval std::array<char, N> StringToArray(const char (&str)[N + 1]) {
     std::array<char, N> result{};
@@ -380,7 +374,7 @@ INST(arm_SRS,           "SRS",                 "1111100--1-0110100000101000-----
         };
         // If a matcher has more bits in its mask it is more specific, so it should come first.
         std::stable_sort(list.begin(), list.end(), [](const auto& matcher1, const auto& matcher2) {
-            return mcl::bit::count_ones(matcher1.second) > mcl::bit::count_ones(matcher2.second);
+            return std::popcount(matcher1.second) > std::popcount(matcher2.second);
         });
         for (auto const& e : list)
             printf("%s\n", e.inst_final);
@@ -587,7 +581,7 @@ INST(v8_VLD_single,         "VLD{1-4} (single)",        "111101001D10nnnnddddzzN
         });
         // If a matcher has more bits in its mask it is more specific, so it should come first.
         std::stable_sort(sort_begin, sort_end, [](const auto& a, const auto& b) {
-            return mcl::bit::count_ones(a.second) > mcl::bit::count_ones(b.second);
+            return std::popcount(a.second) > std::popcount(b.second);
         });
         for (auto const& e : table)
             printf("%s\n", e.inst_final);
@@ -1628,7 +1622,7 @@ INST(FNMSUB_float,           "FNMSUB",                                    "00011
         // If a matcher has more bits in its mask it is more specific, so it should come first.
         std::stable_sort(list.begin(), list.end(), [](const auto& a, const auto& b) {
             // If a matcher has more bits in its mask it is more specific, so it should come first.
-            return mcl::bit::count_ones(a.second) > mcl::bit::count_ones(b.second);
+            return std::popcount(a.second) > std::popcount(b.second);
         });
         // Exceptions to the above rule of thumb.
         std::stable_partition(list.begin(), list.end(), [&](const auto& e) {

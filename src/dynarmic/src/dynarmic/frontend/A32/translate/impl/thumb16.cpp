@@ -688,7 +688,7 @@ bool TranslatorVisitor::thumb16_NOP() {
 // IT{<x>{<y>{<z>}}} <cond>
 bool TranslatorVisitor::thumb16_IT(Imm<8> imm8) {
     ASSERT((imm8.Bits<0, 3>() != 0b0000) && "Decode Error");
-    if (imm8.Bits<4, 7>() == 0b1111 || (imm8.Bits<4, 7>() == 0b1110 && mcl::bit::count_ones(imm8.Bits<0, 3>()) != 1)) {
+    if (imm8.Bits<4, 7>() == 0b1111 || (imm8.Bits<4, 7>() == 0b1110 && std::popcount(imm8.Bits<0, 3>()) != 1)) {
         return UnpredictableInstruction();
     }
     if (ir.current_location.IT().IsInITBlock()) {
@@ -738,11 +738,11 @@ bool TranslatorVisitor::thumb16_PUSH(bool M, RegList reg_list) {
     if (M) {
         reg_list |= 1 << 14;
     }
-    if (mcl::bit::count_ones(reg_list) < 1) {
+    if (std::popcount(reg_list) < 1) {
         return UnpredictableInstruction();
     }
 
-    const u32 num_bytes_to_push = static_cast<u32>(4 * mcl::bit::count_ones(reg_list));
+    const u32 num_bytes_to_push = static_cast<u32>(4 * std::popcount(reg_list));
     const auto final_address = ir.Sub(ir.GetRegister(Reg::SP), ir.Imm32(num_bytes_to_push));
     auto address = final_address;
     for (size_t i = 0; i < 16; i++) {
@@ -764,7 +764,7 @@ bool TranslatorVisitor::thumb16_POP(bool P, RegList reg_list) {
     if (P) {
         reg_list |= 1 << 15;
     }
-    if (mcl::bit::count_ones(reg_list) < 1) {
+    if (std::popcount(reg_list) < 1) {
         return UnpredictableInstruction();
     }
 
@@ -851,10 +851,10 @@ bool TranslatorVisitor::thumb16_BKPT(Imm<8> /*imm8*/) {
 
 // STM <Rn>!, <reg_list>
 bool TranslatorVisitor::thumb16_STMIA(Reg n, RegList reg_list) {
-    if (mcl::bit::count_ones(reg_list) == 0) {
+    if (std::popcount(reg_list) == 0) {
         return UnpredictableInstruction();
     }
-    if (mcl::bit::get_bit(static_cast<size_t>(n), reg_list) && n != static_cast<Reg>(mcl::bit::lowest_set_bit(reg_list))) {
+    if (mcl::bit::get_bit(static_cast<size_t>(n), reg_list) && n != static_cast<Reg>(std::countr_zero(reg_list))) {
         return UnpredictableInstruction();
     }
 
@@ -873,7 +873,7 @@ bool TranslatorVisitor::thumb16_STMIA(Reg n, RegList reg_list) {
 
 // LDM <Rn>!, <reg_list>
 bool TranslatorVisitor::thumb16_LDMIA(Reg n, RegList reg_list) {
-    if (mcl::bit::count_ones(reg_list) == 0) {
+    if (std::popcount(reg_list) == 0) {
         return UnpredictableInstruction();
     }
 

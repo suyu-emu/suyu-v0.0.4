@@ -53,7 +53,7 @@ static bool STMHelper(A32::IREmitter& ir, bool W, Reg n, u32 list, const IR::U32
 
 bool TranslatorVisitor::thumb32_LDMDB(bool W, Reg n, Imm<16> reg_list) {
     const auto regs_imm = reg_list.ZeroExtend();
-    const auto num_regs = static_cast<u32>(mcl::bit::count_ones(regs_imm));
+    const auto num_regs = static_cast<u32>(std::popcount(regs_imm));
 
     if (n == Reg::PC || num_regs < 2) {
         return UnpredictableInstruction();
@@ -78,7 +78,7 @@ bool TranslatorVisitor::thumb32_LDMDB(bool W, Reg n, Imm<16> reg_list) {
 
 bool TranslatorVisitor::thumb32_LDMIA(bool W, Reg n, Imm<16> reg_list) {
     const auto regs_imm = reg_list.ZeroExtend();
-    const auto num_regs = static_cast<u32>(mcl::bit::count_ones(regs_imm));
+    const auto num_regs = static_cast<u32>(std::popcount(regs_imm));
 
     if (n == Reg::PC || num_regs < 2) {
         return UnpredictableInstruction();
@@ -111,7 +111,7 @@ bool TranslatorVisitor::thumb32_PUSH(Imm<15> reg_list) {
 
 bool TranslatorVisitor::thumb32_STMIA(bool W, Reg n, Imm<15> reg_list) {
     const auto regs_imm = reg_list.ZeroExtend();
-    const auto num_regs = static_cast<u32>(mcl::bit::count_ones(regs_imm));
+    const auto num_regs = static_cast<u32>(std::popcount(regs_imm));
 
     if (n == Reg::PC || num_regs < 2) {
         return UnpredictableInstruction();
@@ -130,7 +130,7 @@ bool TranslatorVisitor::thumb32_STMIA(bool W, Reg n, Imm<15> reg_list) {
 
 bool TranslatorVisitor::thumb32_STMDB(bool W, Reg n, Imm<15> reg_list) {
     const auto regs_imm = reg_list.ZeroExtend();
-    const auto num_regs = static_cast<u32>(mcl::bit::count_ones(regs_imm));
+    const auto num_regs = static_cast<u32>(std::popcount(regs_imm));
 
     if (n == Reg::PC || num_regs < 2) {
         return UnpredictableInstruction();

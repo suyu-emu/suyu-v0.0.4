@@ -55,7 +55,7 @@ std::optional<TranslatorVisitor::BitMasks> TranslatorVisitor::DecodeBitMasks(boo
     const size_t esize = size_t{1} << len;
     const u64 welem = mcl::bit::ones<u64>(S + 1);
     const u64 telem = mcl::bit::ones<u64>(d + 1);
-    const u64 wmask = mcl::bit::rotate_right(mcl::bit::replicate_element<u64>(esize, welem), R);
+    const u64 wmask = std::rotr(mcl::bit::replicate_element<u64>(esize, welem), R);
     const u64 tmask = mcl::bit::replicate_element<u64>(esize, telem);
 
     return BitMasks{wmask, tmask};

@@ -665,7 +665,7 @@ TEST_CASE("A32: Test thumb IT instruction", "[thumb]") {
         A32::ITState it_state = [&] {
             while (true) {
                 const u16 imm8 = RandInt<u16>(0, 0xFF);
-                if (mcl::bit::get_bits<0, 3>(imm8) == 0b0000 || mcl::bit::get_bits<4, 7>(imm8) == 0b1111 || (mcl::bit::get_bits<4, 7>(imm8) == 0b1110 && mcl::bit::count_ones(mcl::bit::get_bits<0, 3>(imm8)) != 1)) {
+                if (mcl::bit::get_bits<0, 3>(imm8) == 0b0000 || mcl::bit::get_bits<4, 7>(imm8) == 0b1111 || (mcl::bit::get_bits<4, 7>(imm8) == 0b1110 && std::popcount(mcl::bit::get_bits<0, 3>(imm8)) != 1)) {
                     continue;
                 }
                 instructions.push_back(0b1011111100000000 | imm8);

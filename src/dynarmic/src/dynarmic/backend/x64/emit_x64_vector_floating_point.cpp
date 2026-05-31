@@ -1657,20 +1657,10 @@ void EmitFPVectorRoundInt(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
     if constexpr (fsize != 16) {
         if (code.HasHostFeature(HostFeature::SSE41) && rounding != FP::RoundingMode::ToNearest_TieAwayFromZero && !exact) {
-            const u8 round_imm = [&]() -> u8 {
-                switch (rounding) {
-                case FP::RoundingMode::ToNearest_TieEven: return 0b00;
-                case FP::RoundingMode::TowardsPlusInfinity: return 0b10;
-                case FP::RoundingMode::TowardsMinusInfinity: return 0b01;
-                case FP::RoundingMode::TowardsZero: return 0b11;
-                default: UNREACHABLE();
-                }
-            }();
-
+            const auto round_imm = ConvertRoundingModeToX64Immediate(rounding);
             EmitTwoOpVectorOperation<fsize, DefaultIndexer, 3>(code, ctx, inst, [&](const Xbyak::Xmm& result, const Xbyak::Xmm& xmm_a) {
-                FCODE(roundp)(result, xmm_a, round_imm);
+                FCODE(roundp)(result, xmm_a, *round_imm);
             });
-
             return;
         }
     }
@@ -2002,19 +1992,7 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
         const Xbyak::Xmm src = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         MaybeStandardFPSCRValue(code, ctx, fpcr_controlled, [&] {
-            const int round_imm = [&] {
-                switch (rounding) {
-                case FP::RoundingMode::ToNearest_TieEven:
-                default:
-                    return 0b00;
-                case FP::RoundingMode::TowardsPlusInfinity:
-                    return 0b10;
-                case FP::RoundingMode::TowardsMinusInfinity:
-                    return 0b01;
-                case FP::RoundingMode::TowardsZero:
-                    return 0b11;
-                }
-            }();
+            const auto round_imm = ConvertRoundingModeToX64Immediate(rounding);
             const auto perform_conversion = [&code, &ctx](const Xbyak::Xmm& src) {
                 // MSVC doesn't allow us to use a [&] capture, so we have to do this instead.
                 (void)ctx;
@@ -2046,7 +2024,7 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                 FCODE(mulp)(src, GetVectorOf<fsize>(code, scale_factor));
             }
 
-            FCODE(roundp)(src, src, u8(round_imm));
+            FCODE(roundp)(src, src, u8(*round_imm));
             const Xbyak::Xmm nan_mask = xmm0;
             if (code.HasHostFeature(HostFeature::AVX512_OrthoFloat)) {
                 static constexpr u32 nan_to_zero = FixupLUT(FpFixup::PosZero, FpFixup::PosZero);

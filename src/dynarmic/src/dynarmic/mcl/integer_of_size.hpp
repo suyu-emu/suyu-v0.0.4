@@ -17,25 +17,25 @@ struct integer_of_size_impl {};
 template<>
 struct integer_of_size_impl<8> {
     using unsigned_type = u8;
-    using signed_type = s8;
+    using signed_type = std::make_signed_t<unsigned_type>;
 };
 
 template<>
 struct integer_of_size_impl<16> {
     using unsigned_type = u16;
-    using signed_type = s16;
+    using signed_type = std::make_signed_t<unsigned_type>;
 };
 
 template<>
 struct integer_of_size_impl<32> {
     using unsigned_type = u32;
-    using signed_type = s32;
+    using signed_type = std::make_signed_t<unsigned_type>;
 };
 
 template<>
 struct integer_of_size_impl<64> {
     using unsigned_type = u64;
-    using signed_type = s64;
+    using signed_type = std::make_signed_t<unsigned_type>;
 };
 
 }  // namespace detail

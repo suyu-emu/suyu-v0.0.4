@@ -79,7 +79,7 @@ bool TranslatorVisitor::asimd_VDUP_scalar(bool D, Imm<4> imm4, size_t Vd, bool Q
         return UndefinedInstruction();
     }
 
-    const size_t imm4_lsb = mcl::bit::lowest_set_bit(imm4.ZeroExtend());
+    const size_t imm4_lsb = std::countr_zero(imm4.ZeroExtend());
     const size_t esize = 8u << imm4_lsb;
     const size_t index = imm4.ZeroExtend() >> (imm4_lsb + 1);
     const auto d = ToVector(Q, Vd, D);

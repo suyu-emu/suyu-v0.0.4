@@ -38,7 +38,7 @@ void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) 
     Xbyak::Reg addend = ctx.reg_alloc.UseGpr(code, args[1]).changeBit(size);
     Xbyak::Reg overflow = ctx.reg_alloc.ScratchGpr(code).changeBit(size);
 
-    constexpr u64 int_max = static_cast<u64>((std::numeric_limits<mcl::signed_integer_of_size<size>>::max)());
+    constexpr u64 int_max = u64((std::numeric_limits<std::make_signed_t<mcl::unsigned_integer_of_size<size>>>::max)());
     if constexpr (size < 64) {
         code.xor_(overflow.cvt32(), overflow.cvt32());
         code.bt(result.cvt32(), size - 1);

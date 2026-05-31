@@ -52,7 +52,7 @@ struct TranslatorVisitor final {
         u32 imm32 = imm8.ZeroExtend();
         auto carry_out = carry_in;
         if (rotate) {
-            imm32 = mcl::bit::rotate_right<u32>(imm8.ZeroExtend(), rotate * 2);
+            imm32 = std::rotr<u32>(imm8.ZeroExtend(), rotate * 2);
             carry_out = ir.Imm1(mcl::bit::get_bit<31>(imm32));
         }
         return {imm32, carry_out};
@@ -81,7 +81,7 @@ struct TranslatorVisitor final {
             }();
             return {imm32, carry_in};
         }
-        const u32 imm32 = mcl::bit::rotate_right<u32>((1 << 7) | imm12.Bits<0, 6>(), imm12.Bits<7, 11>());
+        const u32 imm32 = std::rotr<u32>((1 << 7) | imm12.Bits<0, 6>(), imm12.Bits<7, 11>());
         return {imm32, ir.Imm1(mcl::bit::get_bit<31>(imm32))};
     }
 

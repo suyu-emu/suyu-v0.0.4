@@ -1532,7 +1532,7 @@ void EmitX64::EmitFPSingleToHalf(EmitContext& ctx, IR::Inst* inst) {
         if (ctx.FPCR().DN()) {
             ForceToDefaultNaN<32>(code, result);
         }
-        code.vcvtps2ph(result, result, static_cast<u8>(*round_imm));
+        code.vcvtps2ph(result, result, u8(*round_imm));
 
         ctx.reg_alloc.DefineValue(code, inst, result);
         return;
@@ -1540,7 +1540,7 @@ void EmitX64::EmitFPSingleToHalf(EmitContext& ctx, IR::Inst* inst) {
 
     ctx.reg_alloc.HostCall(code, inst, args[0]);
     code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
-    code.mov(code.ABI_PARAM3.cvt32(), static_cast<u32>(rounding_mode));
+    code.mov(code.ABI_PARAM3.cvt32(), u32(rounding_mode));
     code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPConvert<u16, u32>);
 }

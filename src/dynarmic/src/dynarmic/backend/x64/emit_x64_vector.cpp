@@ -3553,7 +3553,7 @@ void EmitX64::EmitVectorPopulationCount(EmitContext& ctx, IR::Inst* inst) {
 
     EmitOneArgumentFallback(code, ctx, inst, [](VectorArray<u8>& result, const VectorArray<u8>& a) {
         std::transform(a.begin(), a.end(), result.begin(), [](u8 val) {
-            return static_cast<u8>(mcl::bit::count_ones(val));
+            return static_cast<u8>(std::popcount(val));
         });
     });
 }

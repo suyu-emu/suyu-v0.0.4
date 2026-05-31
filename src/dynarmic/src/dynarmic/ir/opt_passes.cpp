@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <map>
+#include <bit>
 
 #include <ankerl/unordered_dense.h>
 #include "boost/container/small_vector.hpp"
@@ -27,7 +28,6 @@
 #include "dynarmic/ir/opcodes.h"
 #include "dynarmic/ir/opt_passes.h"
 #include "dynarmic/ir/type.h"
-#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/mcl/bit.hpp"
 
 namespace Dynarmic::Optimization {
@@ -1074,12 +1074,12 @@ static void ConstantPropagation(IR::Block& block) {
             break;
         case Op::BitRotateRight32:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, true, mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(inst, true, std::rotr<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::BitRotateRight64:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, false, mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(inst, false, std::rotr<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::LogicalShiftLeftMasked32:
@@ -1114,12 +1114,12 @@ static void ConstantPropagation(IR::Block& block) {
             break;
         case Op::RotateRightMasked32:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, true, mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU32()));
+                ReplaceUsesWith(inst, true, std::rotr<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU32()));
             }
             break;
         case Op::RotateRightMasked64:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, false, mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU64()));
+                ReplaceUsesWith(inst, false, std::rotr<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU64()));
             }
             break;
         case Op::Add32:
