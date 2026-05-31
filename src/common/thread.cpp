@@ -184,7 +184,11 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
             _mm_monitorx(reinterpret_cast<u64*>(std::addressof(is_set)), 0, 0);
             if (!is_set.load()) {
                 // RDTSC may be fenced here due to atomic load
+#ifdef _MSC_VER
+                auto const now = __rdtsc();
+#else
                 auto const now = _rdtsc();
+#endif
                 if (end > now) {
                     u32 const cycles = std::min<u32>((std::numeric_limits<u32>::max)(), s64(end) - s64(now));
                     // See here: https://github.com/torvalds/linux/blob/948a64995aca6820abefd17f1a4258f5835c5ad9/arch/x86/lib/delay.c#L93
@@ -213,8 +217,13 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
                 return true;
         }
     } else {
+#ifdef _MSC_VER
+        while (!is_set.load() && end > __rdtsc())
+            Common::Windows::SleepForOneTick();
+#else
         while (!is_set.load() && end > _rdtsc())
             Common::Windows::SleepForOneTick();
+#endif
         if (is_set.load())
             Reset();
         return true;
