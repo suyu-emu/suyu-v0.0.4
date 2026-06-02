@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,8 +15,8 @@ Result DebugActiveProcess(Core::System& system, Handle* out_handle, uint64_t pro
 }
 
 Result BreakDebugProcess(Core::System& system, Handle debug_handle) {
-    UNIMPLEMENTED();
-    R_THROW(ResultNotImplemented);
+    LOG_WARNING(Service, "(STUBBED) called");
+    R_SUCCEED();
 }
 
 Result TerminateDebugProcess(Core::System& system, Handle debug_handle) {
