@@ -1893,23 +1893,17 @@ Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
         return NULL_BINDING;
     }
 
-    // xbzk: New size logic. Fixes MCI.
-    // If ever the * comment below prove wrong, the 'if' block may be removed.
     const auto size = [&]() {
-        const bool is_nvn_cbuf = cbuf_index == 0;
-        if (is_nvn_cbuf) {
-            // * The NVN driver buffer (index 0) is known to pack the SSBO address followed by its size.
-            const u64 next_qword = gpu_memory->Read<u64>(ssbo_addr + 8);
-            const u32 upper_32 = static_cast<u32>(next_qword >> 32);
-            // Hardware-based detection: GPU addresses have non-zero upper bits
-            if (upper_32 == 0) {
-                // This is a size field, not a GPU address
-                return static_cast<u32>(next_qword);  // Return lower_32
-            }
+        const u32 memory_layout_size =
+            static_cast<u32>(gpu_memory->GetMemoryLayoutSize(gpu_addr));
+        const u64 next_qword = gpu_memory->Read<u64>(ssbo_addr + 8);
+        const u32 packed_size = static_cast<u32>(next_qword);
+        const bool next_qword_is_size = static_cast<u32>(next_qword >> 32) == 0 &&
+                                        packed_size != 0 &&
+                                        packed_size <= memory_layout_size;
+        if (next_qword_is_size) {
+            return packed_size;
         }
-        // Fall through: either not NVN cbuf (Doom Eternal & +), or NVN but ssbo_addr+8 is a GPU address (MCI)
-        const u32 memory_layout_size = static_cast<u32>(gpu_memory->GetMemoryLayoutSize(gpu_addr));
-        // Cap at 8MB to prevent allocator overflow from misinterpreted addresses
         return (std::min)(memory_layout_size, static_cast<u32>(8_MiB));
     }();
 
