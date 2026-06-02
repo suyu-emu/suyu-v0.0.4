@@ -33,10 +33,13 @@ QStringList GetModFolders(const QString& root, const QString& fallbackName) {
             std_path = paths[0];
 
         QString default_name;
-        if (!fallbackName.isEmpty())
-            default_name = fallbackName;
-        else if (!paths.empty())
+
+        // If this is an atmosphere-packed mod, the default name will end up as the game's title ID.
+        // So in this case ignore it and use the zip name instead
+        if (!paths.empty() && std_path.string().find("atmosphere") == std::string::npos)
             default_name = QString::fromStdString(std_path.filename().string());
+        else if (!fallbackName.isEmpty())
+            default_name = fallbackName;
         else
             default_name = root.split(QLatin1Char('/')).last();
 
