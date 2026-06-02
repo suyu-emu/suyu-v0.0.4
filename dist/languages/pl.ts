@@ -4797,57 +4797,57 @@ Obecne wartości to odpowiednio %1% i %2%.</translation>
         <translation>Niektóre ustawienia są dostępne tylko, gdy gra nie jest uruchomiona.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="77"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="78"/>
         <source>Add-Ons</source>
         <translation>Dodatki</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="78"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="79"/>
         <source>System</source>
         <translation>System</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="79"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="80"/>
         <source>CPU</source>
         <translation>CPU</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="80"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="81"/>
         <source>Graphics</source>
         <translation>Grafika</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="81"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="82"/>
         <source>Adv. Graphics</source>
         <translation>Zaaw. Grafika</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="82"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="83"/>
         <source>Ext. Graphics</source>
         <translation>Dodatkowa grafika</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="83"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="84"/>
         <source>Audio</source>
         <translation>Dźwięk</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="84"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="85"/>
         <source>Input Profiles</source>
         <translation>Profil wejściowy</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="85"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="86"/>
         <source>Network</source>
         <translation>Sieć</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="86"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="87"/>
         <source>Applets</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="89"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="90"/>
         <source>Properties</source>
         <translation>Właściwości</translation>
     </message>
@@ -6113,279 +6113,282 @@ Przejdź do sekcji Konfiguracja -&gt; System -&gt; Sieć i dokonaj wyboru.</tran
 <context>
     <name>GameList</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="685"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="380"/>
         <source>&amp;Add New Game Directory</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="719"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="414"/>
         <source>Favorite</source>
         <translation>Ulubione</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="721"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="416"/>
         <source>Start Game</source>
         <translation>Uruchom grę</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="723"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="418"/>
         <source>Start Game without Custom Configuration</source>
         <translation>Uruchom grę bez niestandardowej konfiguracji</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="725"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="420"/>
         <source>Open Save Data Location</source>
         <translation>Otwórz lokalizację zapisów</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="726"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="421"/>
         <source>Open Mod Data Location</source>
         <translation>Otwórz lokalizację modyfikacji</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="728"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="423"/>
         <source>Open Transferable Pipeline Cache</source>
         <translation>Otwórz Transferowalną Pamięć Podręczną Pipeline</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="729"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="424"/>
         <source>Link to Ryujinx</source>
         <translation>Połącz z Ryujinx</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="731"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="426"/>
         <source>Remove</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="732"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="427"/>
         <source>Remove Installed Update</source>
         <translation>Usuń zainstalowaną łatkę</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="733"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="428"/>
         <source>Remove All Installed DLC</source>
         <translation>Usuń wszystkie zainstalowane DLC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="734"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="429"/>
         <source>Remove Custom Configuration</source>
         <translation>Usuń niestandardową konfigurację</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="735"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="430"/>
         <source>Remove Cache Storage</source>
         <translation>Usuń pamięć podręczną</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="736"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="431"/>
         <source>Remove OpenGL Pipeline Cache</source>
         <translation>Usuń Pamięć Podręczną Pipeline OpenGL</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="737"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="432"/>
         <source>Remove Vulkan Pipeline Cache</source>
         <translation>Usuń Pamięć Podręczną Pipeline Vulkan</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="739"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="434"/>
         <source>Remove All Pipeline Caches</source>
         <translation>Usuń całą pamięć podręczną Pipeline</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="740"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="435"/>
         <source>Remove All Installed Contents</source>
         <translation>Usuń całą zainstalowaną zawartość</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="741"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="436"/>
         <source>Manage Play Time</source>
         <translation>Zarządzaj czasem gry</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="742"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="437"/>
         <source>Edit Play Time Data</source>
         <translation>Edytuj dane czasu gry</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="743"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="438"/>
         <source>Remove Play Time Data</source>
         <translation>Usuń dane dotyczące czasu gry</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="744"/>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="745"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="439"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="440"/>
         <source>Dump RomFS</source>
         <translation>Zrzuć RomFS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="746"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="441"/>
         <source>Dump RomFS to SDMC</source>
         <translation>Zrzuć RomFS do SDMC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="747"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="442"/>
         <source>Verify Integrity</source>
         <translation>Sprawdź integralność</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="748"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="443"/>
         <source>Copy Title ID to Clipboard</source>
         <translation>Kopiuj identyfikator gry do schowka</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="749"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="444"/>
         <source>Navigate to GameDB entry</source>
         <translation>Nawiguj do wpisu kompatybilności gry</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="752"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="446"/>
         <source>Create Shortcut</source>
         <translation>Utwórz skrót</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="753"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="447"/>
         <source>Add to Desktop</source>
         <translation>Dodaj do pulpitu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="755"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="449"/>
         <source>Add to Applications Menu</source>
         <translation>Dodaj do menu aplikacji</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="758"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="452"/>
         <source>Configure Game</source>
         <translation>Skonfiguruj grę</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="857"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="552"/>
         <source>Scan Subfolders</source>
         <translation>Skanuj podfoldery</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="858"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="553"/>
         <source>Remove Game Directory</source>
         <translation>Usuń katalog gier</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="877"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="572"/>
         <source>▲ Move Up</source>
         <translation>▲ Przenieś w górę</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="878"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="573"/>
         <source>▼ Move Down</source>
         <translation>▼ Przenieś w dół</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="879"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="574"/>
         <source>Open Directory Location</source>
         <translation>Otwórz lokalizacje katalogu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="925"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="614"/>
         <source>Clear</source>
         <translation>Wyczyść</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="989"/>
-        <source>Name</source>
-        <translation>Nazwa gry</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="990"/>
-        <source>Compatibility</source>
-        <translation>Kompatybilność</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="991"/>
-        <source>Add-ons</source>
-        <translation>Dodatki</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="992"/>
-        <source>File type</source>
-        <translation>Typ pliku</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="993"/>
-        <source>Size</source>
-        <translation>Rozmiar</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="994"/>
-        <source>Play time</source>
-        <translation>Czas gry</translation>
     </message>
 </context>
 <context>
     <name>GameListItemCompat</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="186"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="185"/>
         <source>Ingame</source>
         <translation>W grze</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="186"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="185"/>
         <source>Game starts, but crashes or major glitches prevent it from being completed.</source>
         <translation>Gra uruchamia się, ale awarie lub poważne błędy uniemożliwiają jej ukończenie.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="188"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="187"/>
         <source>Perfect</source>
         <translation>Perfekcyjnie</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="188"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="187"/>
         <source>Game can be played without issues.</source>
         <translation>Można grać bez problemów.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="189"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="188"/>
         <source>Playable</source>
         <translation>Grywalna</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="189"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="188"/>
         <source>Game functions with minor graphical or audio glitches and is playable from start to finish.</source>
         <translation>Gra działa z drobnymi błędami graficznymi lub dźwiękowymi oraz jest grywalna od początku aż do końca.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="192"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="191"/>
         <source>Intro/Menu</source>
         <translation>Intro/Menu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="192"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="191"/>
         <source>Game loads, but is unable to progress past the Start Screen.</source>
         <translation>Gra się ładuje, ale nie może przejść przez ekran początkowy.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="193"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="192"/>
         <source>Won&apos;t Boot</source>
         <translation>Nie uruchamia się</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="193"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="192"/>
         <source>The game crashes when attempting to startup.</source>
         <translation>Ta gra się zawiesza przy próbie startu.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="194"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="193"/>
         <source>Not Tested</source>
         <translation>Nie testowane</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="194"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="193"/>
         <source>The game has not yet been tested.</source>
         <translation>Ta gra nie została jeszcze przetestowana.</translation>
     </message>
 </context>
 <context>
+    <name>GameListModel</name>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="285"/>
+        <source>Name</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="286"/>
+        <source>Compatibility</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="287"/>
+        <source>Add-ons</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="288"/>
+        <source>File type</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="289"/>
+        <source>Size</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="290"/>
+        <source>Play time</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
     <name>GameListPlaceholder</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="1328"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="757"/>
         <source>Double-click to add a new folder to the game list</source>
         <translation>Kliknij podwójnie aby dodać folder do listy gier</translation>
     </message>
@@ -6393,17 +6396,17 @@ Przejdź do sekcji Konfiguracja -&gt; System -&gt; Sieć i dokonaj wyboru.</tran
 <context>
     <name>GameListSearchField</name>
     <message numerus="yes">
-        <location filename="../../src/yuzu/game/game_list.cpp" line="96"/>
+        <location filename="../../src/yuzu/game/search_field.cpp" line="67"/>
         <source>%1 of %n result(s)</source>
         <translation><numerusform>%1 z %n wyniku</numerusform><numerusform>%1 z %n wyników</numerusform><numerusform>%1 z %n wyników</numerusform><numerusform>%1 z %n wyników</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="1006"/>
+        <location filename="../../src/yuzu/game/search_field.cpp" line="122"/>
         <source>Filter:</source>
         <translation>Filter:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="1007"/>
+        <location filename="../../src/yuzu/game/search_field.cpp" line="123"/>
         <source>Enter pattern to filter</source>
         <translation>Wpisz typ do filtra</translation>
     </message>
@@ -9118,47 +9121,47 @@ p, li { white-space: pre-wrap; }
         <translation>%1 gra w %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="88"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="87"/>
         <source>Play Time: %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="91"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="90"/>
         <source>Never Played</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="99"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="98"/>
         <source>Version: %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="101"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="100"/>
         <source>Version: 1.0.0</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="308"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="307"/>
         <source>Installed SD Titles</source>
         <translation>Zainstalowane tytuły SD</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="316"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="315"/>
         <source>Installed NAND Titles</source>
         <translation>Zainstalowane tytuły NAND</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="324"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="323"/>
         <source>System Titles</source>
         <translation>Tytuły systemu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="367"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="366"/>
         <source>Add New Game Directory</source>
         <translation>Dodaj nowy katalog gier</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="390"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="389"/>
         <source>Favorites</source>
         <translation>Ulubione</translation>
     </message>
@@ -9882,55 +9885,55 @@ Czy chcesz ręcznie wybrać folder przenośny do użycia?</translation>
 <context>
     <name>QtCommon::Mod</name>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="44"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="47"/>
         <source>Mod Name</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="44"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="47"/>
         <source>What should this mod be called?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="54"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="57"/>
         <source>RomFS</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="55"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="58"/>
         <source>ExeFS/Patch</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="56"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="59"/>
         <source>Cheat</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="60"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="63"/>
         <source>Mod Type</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="61"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="64"/>
         <source>Could not detect mod type automatically. Please manually specify the type of mod you downloaded.
 
 Most mods are RomFS mods, but patches (.pchtxt) are typically ExeFS mods.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="123"/>
-        <location filename="../../src/qt_common/util/mod.cpp" line="136"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="126"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="139"/>
         <source>Mod Extract Failed</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="124"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="127"/>
         <source>Failed to create temporary directory %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="137"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="140"/>
         <source>Zip file %1 is empty</source>
         <translation type="unfinished"/>
     </message>

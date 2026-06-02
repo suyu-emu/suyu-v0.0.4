@@ -4792,57 +4792,57 @@ Current values are %1% and %2% respectively.</source>
         <translation>일부 설정은 게임이 실행 중이 아닐 때만 사용할 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="77"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="78"/>
         <source>Add-Ons</source>
         <translation>부가 기능</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="78"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="79"/>
         <source>System</source>
         <translation>시스템</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="79"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="80"/>
         <source>CPU</source>
         <translation>CPU</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="80"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="81"/>
         <source>Graphics</source>
         <translation>그래픽</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="81"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="82"/>
         <source>Adv. Graphics</source>
         <translation>고급 그래픽</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="82"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="83"/>
         <source>Ext. Graphics</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="83"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="84"/>
         <source>Audio</source>
         <translation>오디오</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="84"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="85"/>
         <source>Input Profiles</source>
         <translation>입력 프로파일</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="85"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="86"/>
         <source>Network</source>
         <translation>네트워크</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="86"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="87"/>
         <source>Applets</source>
         <translation>애플릿</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="89"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="90"/>
         <source>Properties</source>
         <translation>속성</translation>
     </message>
@@ -6110,279 +6110,282 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameList</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="685"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="380"/>
         <source>&amp;Add New Game Directory</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="719"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="414"/>
         <source>Favorite</source>
         <translation>선호하는 게임</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="721"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="416"/>
         <source>Start Game</source>
         <translation>게임 시작</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="723"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="418"/>
         <source>Start Game without Custom Configuration</source>
         <translation>맞춤 구성 없이 게임 시작</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="725"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="420"/>
         <source>Open Save Data Location</source>
         <translation>세이브 데이터 경로 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="726"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="421"/>
         <source>Open Mod Data Location</source>
         <translation>모드 데이터 위치 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="728"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="423"/>
         <source>Open Transferable Pipeline Cache</source>
         <translation>이동 가능한 파이프라인 캐시 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="729"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="424"/>
         <source>Link to Ryujinx</source>
         <translation>Ryujinx에 연결</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="731"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="426"/>
         <source>Remove</source>
         <translation>제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="732"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="427"/>
         <source>Remove Installed Update</source>
         <translation>설치된 업데이트 삭제</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="733"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="428"/>
         <source>Remove All Installed DLC</source>
         <translation>설치된 모든 DLC 삭제</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="734"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="429"/>
         <source>Remove Custom Configuration</source>
         <translation>사용자 지정 구성 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="735"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="430"/>
         <source>Remove Cache Storage</source>
         <translation>캐시 스토리지 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="736"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="431"/>
         <source>Remove OpenGL Pipeline Cache</source>
         <translation>OpenGL 파이프라인 캐시 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="737"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="432"/>
         <source>Remove Vulkan Pipeline Cache</source>
         <translation>Vulkan 파이프라인 캐시 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="739"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="434"/>
         <source>Remove All Pipeline Caches</source>
         <translation>모든 파이프라인 캐시 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="740"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="435"/>
         <source>Remove All Installed Contents</source>
         <translation>설치된 모든 컨텐츠 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="741"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="436"/>
         <source>Manage Play Time</source>
         <translation>플레이 시간 관리</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="742"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="437"/>
         <source>Edit Play Time Data</source>
         <translation>플레이 시간 데이터 편집</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="743"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="438"/>
         <source>Remove Play Time Data</source>
         <translation>플레이 시간 데이터 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="744"/>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="745"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="439"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="440"/>
         <source>Dump RomFS</source>
         <translation>RomFS를 덤프</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="746"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="441"/>
         <source>Dump RomFS to SDMC</source>
         <translation>RomFS를 SDMC로 덤프</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="747"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="442"/>
         <source>Verify Integrity</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="748"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="443"/>
         <source>Copy Title ID to Clipboard</source>
         <translation>클립보드에 타이틀 ID 복사</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="749"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="444"/>
         <source>Navigate to GameDB entry</source>
         <translation>GameDB 항목으로 이동</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="752"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="446"/>
         <source>Create Shortcut</source>
         <translation>바로가기 만들기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="753"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="447"/>
         <source>Add to Desktop</source>
         <translation>데스크톱에 추가</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="755"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="449"/>
         <source>Add to Applications Menu</source>
         <translation>애플리케이션 메뉴에 추가</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="758"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="452"/>
         <source>Configure Game</source>
         <translation>게임 구성</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="857"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="552"/>
         <source>Scan Subfolders</source>
         <translation>하위 폴더 스캔</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="858"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="553"/>
         <source>Remove Game Directory</source>
         <translation>게임 디렉터리 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="877"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="572"/>
         <source>▲ Move Up</source>
         <translation>▲ 위로 이동</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="878"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="573"/>
         <source>▼ Move Down</source>
         <translation>▼ 아래로 이동</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="879"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="574"/>
         <source>Open Directory Location</source>
         <translation>디렉터리 위치 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="925"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="614"/>
         <source>Clear</source>
         <translation>초기화</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="989"/>
-        <source>Name</source>
-        <translation>이름</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="990"/>
-        <source>Compatibility</source>
-        <translation>호환성</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="991"/>
-        <source>Add-ons</source>
-        <translation>부가 기능</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="992"/>
-        <source>File type</source>
-        <translation>파일 형식</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="993"/>
-        <source>Size</source>
-        <translation>크기</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="994"/>
-        <source>Play time</source>
-        <translation>플레이 시간</translation>
     </message>
 </context>
 <context>
     <name>GameListItemCompat</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="186"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="185"/>
         <source>Ingame</source>
         <translation>게임 내</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="186"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="185"/>
         <source>Game starts, but crashes or major glitches prevent it from being completed.</source>
         <translation>게임이 시작되지만, 충돌이나 주요 결함으로 인해 게임이 완료되지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="188"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="187"/>
         <source>Perfect</source>
         <translation>완벽함</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="188"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="187"/>
         <source>Game can be played without issues.</source>
         <translation>문제 없이 게임 플레이가 가능합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="189"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="188"/>
         <source>Playable</source>
         <translation>플레이 가능</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="189"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="188"/>
         <source>Game functions with minor graphical or audio glitches and is playable from start to finish.</source>
         <translation>약간의 그래픽 또는 오디오 결함이 있는 게임 기능이 있으며 처음부터 끝까지 플레이할 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="192"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="191"/>
         <source>Intro/Menu</source>
         <translation>인트로/메뉴</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="192"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="191"/>
         <source>Game loads, but is unable to progress past the Start Screen.</source>
         <translation>게임이 로드되지만 시작 화면을 지나서 진행할 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="193"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="192"/>
         <source>Won&apos;t Boot</source>
         <translation>실행 불가</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="193"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="192"/>
         <source>The game crashes when attempting to startup.</source>
         <translation>게임 실행 시 크래시가 일어납니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="194"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="193"/>
         <source>Not Tested</source>
         <translation>테스트되지 않음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="194"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="193"/>
         <source>The game has not yet been tested.</source>
         <translation>이 게임은 아직 테스트되지 않았습니다.</translation>
     </message>
 </context>
 <context>
+    <name>GameListModel</name>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="285"/>
+        <source>Name</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="286"/>
+        <source>Compatibility</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="287"/>
+        <source>Add-ons</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="288"/>
+        <source>File type</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="289"/>
+        <source>Size</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="290"/>
+        <source>Play time</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
     <name>GameListPlaceholder</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="1328"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="757"/>
         <source>Double-click to add a new folder to the game list</source>
         <translation>더블 클릭하여 게임 목록에 새 폴더 추가</translation>
     </message>
@@ -6390,17 +6393,17 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameListSearchField</name>
     <message numerus="yes">
-        <location filename="../../src/yuzu/game/game_list.cpp" line="96"/>
+        <location filename="../../src/yuzu/game/search_field.cpp" line="67"/>
         <source>%1 of %n result(s)</source>
         <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="1006"/>
+        <location filename="../../src/yuzu/game/search_field.cpp" line="122"/>
         <source>Filter:</source>
         <translation>필터:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="1007"/>
+        <location filename="../../src/yuzu/game/search_field.cpp" line="123"/>
         <source>Enter pattern to filter</source>
         <translation>검색 필터 입력</translation>
     </message>
@@ -9105,47 +9108,47 @@ p, li { white-space: pre-wrap; }
         <translation>%1이(가) %2을(를) 플레이 중입니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="88"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="87"/>
         <source>Play Time: %1</source>
         <translation>플레이 시간: %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="91"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="90"/>
         <source>Never Played</source>
         <translation>플레이한 적 없음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="99"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="98"/>
         <source>Version: %1</source>
         <translation>버전: %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="101"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="100"/>
         <source>Version: 1.0.0</source>
         <translation>버전: 1.0.0</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="308"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="307"/>
         <source>Installed SD Titles</source>
         <translation>설치된 SD 타이틀</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="316"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="315"/>
         <source>Installed NAND Titles</source>
         <translation>설치된 NAND 타이틀</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="324"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="323"/>
         <source>System Titles</source>
         <translation>시스템 타이틀</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="367"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="366"/>
         <source>Add New Game Directory</source>
         <translation>새 게임 디렉터리 추가</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list_p.h" line="390"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="389"/>
         <source>Favorites</source>
         <translation>선호하는 게임</translation>
     </message>
@@ -9869,37 +9872,37 @@ Would you like to manually select a portable folder to use?</source>
 <context>
     <name>QtCommon::Mod</name>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="44"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="47"/>
         <source>Mod Name</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="44"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="47"/>
         <source>What should this mod be called?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="54"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="57"/>
         <source>RomFS</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="55"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="58"/>
         <source>ExeFS/Patch</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="56"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="59"/>
         <source>Cheat</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="60"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="63"/>
         <source>Mod Type</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="61"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="64"/>
         <source>Could not detect mod type automatically. Please manually specify the type of mod you downloaded.
 
 Most mods are RomFS mods, but patches (.pchtxt) are typically ExeFS mods.</source>
@@ -9908,18 +9911,18 @@ Most mods are RomFS mods, but patches (.pchtxt) are typically ExeFS mods.</sourc
 대부분의 모드는 RomFS 모드이지만, 패치 파일(.pchtxt)은 일반적으로 ExeFS 모드입니다.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="123"/>
-        <location filename="../../src/qt_common/util/mod.cpp" line="136"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="126"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="139"/>
         <source>Mod Extract Failed</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="124"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="127"/>
         <source>Failed to create temporary directory %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/util/mod.cpp" line="137"/>
+        <location filename="../../src/qt_common/util/mod.cpp" line="140"/>
         <source>Zip file %1 is empty</source>
         <translation type="unfinished"/>
     </message>
