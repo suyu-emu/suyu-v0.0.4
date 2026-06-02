@@ -383,13 +383,20 @@ find_package(RenderDoc MODULE)
 # openssl funniness
 if (YUZU_USE_BUNDLED_OPENSSL)
     set(BUILD_SHARED_LIBS OFF)
+    AddJsonPackage(openssl-ci)
+else()
     AddJsonPackage(openssl)
+    set(OPENSSL_BUILD_VERBOSE ON)
+    set(OPENSSL_CONFIGURE_VERBOSE ON)
+
     if (OpenSSL_ADDED)
-        add_compile_definitions(YUZU_BUNDLED_OPENSSL)
+        AddJsonPackage(openssl-cmake)
     endif()
 endif()
 
-find_package(OpenSSL 3 REQUIRED)
+if (OpenSSL_ADDED)
+    add_compile_definitions(YUZU_BUNDLED_OPENSSL)
+endif()
 
 message(STATUS "Fetching needed dependencies with CPM")
 

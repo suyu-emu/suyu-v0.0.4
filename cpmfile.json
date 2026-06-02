@@ -1,11 +1,38 @@
 {
-    "openssl": {
+    "openssl-ci": {
         "ci": true,
         "package": "OpenSSL",
         "name": "openssl",
         "repo": "crueter-ci/OpenSSL",
         "version": "3.6.0-1cb0d36b39",
         "min_version": "3"
+    },
+    "openssl-cmake": {
+        "repo": "jimmy-park/openssl-cmake",
+        "hash": "2cc185c924fd70e7d886257ca0caa42b3b8f7f712f2052b4f94dde74759e27022de76178460e18c9bdfc57c366583999e198fbb6052d4e7d91c099d15a0ca63e",
+        "git_version": "3.6.2",
+        "tag": "%VERSION%",
+        "bundled": true,
+        "options": [
+            "OPENSSL_CONFIGURE_OPTIONS threads"
+        ],
+        "patches": [
+            "0001-cpmutil-compat.patch",
+            "0002-use-ccache.patch",
+            "0003-use-cmake-compiler-flags.patch"
+        ]
+    },
+    "openssl": {
+        "repo": "openssl/openssl",
+        "package": "OpenSSL",
+        "min_version": "3",
+        "version": "3",
+        "hash": "29002ce50cb95a4f4f1d0e9d3f684401fbd4eac34203dc2eef3b6334af5d44aa46bf788b63a6f5c139c383eafb7269ae87a58a9a3ad5912903b9773e545ccc0a",
+        "git_version": "3.6.2",
+        "tag": "openssl-%VERSION%",
+        "patches": [
+            "0001-add-bundled-cert.patch"
+        ]
     },
     "boost": {
         "package": "Boost",
