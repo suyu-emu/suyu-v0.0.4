@@ -17,14 +17,13 @@
 #include <QRegularExpression>
 #include <QStandardItem>
 #include <QString>
-#include <QWidget>
 
 #include "common/common_types.h"
 #include "common/logging.h"
 #include "common/string_util.h"
 #include "frontend_common/play_time_manager.h"
 #include "qt_common/config/uisettings.h"
-#include "yuzu/util/util.h"
+#include "qt_common/qt_common.h"
 
 enum class GameListItemType {
     Game = QStandardItem::UserType + 1,
@@ -204,7 +203,7 @@ public:
         setData(compatibility, CompatNumberRole);
         setText(tr(status.text));
         setToolTip(tr(status.tooltip));
-        setData(CreateCirclePixmapFromColor(status.color), Qt::DecorationRole);
+        setData(QtCommon::CreateCirclePixmapFromColor(status.color), Qt::DecorationRole);
     }
 
     int type() const override {
@@ -237,7 +236,7 @@ public:
         // representations of the data are always accurate and in the correct format.
         if (role == SizeRole) {
             qulonglong size_bytes = value.toULongLong();
-            GameListItem::setData(ReadableByteSize(size_bytes), Qt::DisplayRole);
+            GameListItem::setData(QtCommon::ReadableByteSize(size_bytes), Qt::DisplayRole);
             GameListItem::setData(value, SizeRole);
         } else {
             GameListItem::setData(value, role);
@@ -397,50 +396,4 @@ public:
     bool operator<(const QStandardItem& other) const override {
         return false;
     }
-};
-
-class GameList;
-class QHBoxLayout;
-class QTreeView;
-class QLabel;
-class QLineEdit;
-class QToolButton;
-
-class GameListSearchField : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit GameListSearchField(GameList* parent = nullptr);
-
-    QString filterText() const;
-    void setFilterResult(int visible_, int total_);
-
-    void clear();
-    void setFocus();
-
-private:
-    void changeEvent(QEvent*) override;
-    void RetranslateUI();
-
-    class KeyReleaseEater : public QObject {
-    public:
-        explicit KeyReleaseEater(GameList* gamelist_, QObject* parent = nullptr);
-
-    private:
-        GameList* gamelist = nullptr;
-        QString edit_filter_text_old;
-
-    protected:
-        // EventFilter in order to process systemkeys while editing the searchfield
-        bool eventFilter(QObject* obj, QEvent* event) override;
-    };
-    int visible;
-    int total;
-
-    QHBoxLayout* layout_filter = nullptr;
-    QTreeView* tree_view = nullptr;
-    QLabel* label_filter = nullptr;
-    QLineEdit* edit_filter = nullptr;
-    QLabel* label_filter_result = nullptr;
-    QToolButton* button_filter_close = nullptr;
 };

@@ -26,8 +26,8 @@ namespace Core {
 class System;
 }
 
-class GameList;
 class GameListDir;
+class GameListModel;
 class QStandardItem;
 
 namespace FileSys {
@@ -58,11 +58,11 @@ public:
     /**
      * Synchronously processes any events queued by the worker.
      *
-     * AddDirEntry is called on the game list for every discovered directory.
-     * AddEntry is called on the game list for every discovered program.
-     * DonePopulating is called on the game list when processing completes.
+     * AddDirEntry is called on the model for every discovered directory.
+     * AddEntry is called on the model for every discovered program.
+     * DonePopulating is called on the model when processing completes.
      */
-    void ProcessEvents(GameList* game_list);
+    void ProcessEvents(GameListModel* model);
 
 signals:
     void DataAvailable();
@@ -92,7 +92,7 @@ private:
 
     std::mutex lock;
     std::condition_variable cv;
-    std::deque<std::function<void(GameList*)>> queued_events;
+    std::deque<std::function<void(GameListModel*)>> queued_events;
     std::atomic_bool stop_requested = false;
     Common::Event processing_completed;
 

@@ -15,7 +15,7 @@
 #include "network/network.h"
 #include "qt_common/config/uisettings.h"
 #include "ui_lobby.h"
-#include "yuzu/game/game_list_p.h"
+#include "qt_common/game_list/game_list_p.h"
 #include "yuzu/main_window.h"
 #include "yuzu/multiplayer/client_room.h"
 #include "yuzu/multiplayer/lobby.h"

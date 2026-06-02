@@ -156,13 +156,12 @@ add_executable(yuzu
     debugger/controller.cpp
     debugger/controller.h
 
-    game/game_list.cpp
-    game/game_list.h
-    game/game_list_p.h
-    game/game_list_worker.cpp
-    game/game_list_worker.h
-    game/game_card.h
-    game/game_card.cpp
+    game/game_list.cpp game/game_list.h
+    game/game_grid.cpp game/game_grid.h
+
+    game/game_tree.h game/game_tree.cpp
+    game/game_card.h game/game_card.cpp
+    game/search_field.h game/search_field.cpp
 
     hotkeys.cpp
     hotkeys.h
@@ -219,18 +218,16 @@ add_executable(yuzu
     util/util.h
     compatdb.cpp
     compatdb.h
-    user_data_migration.cpp
-    user_data_migration.h
+
+    user_data_migration.h user_data_migration.cpp
 
     yuzu.qrc
     yuzu.rc
     migration_dialog.h migration_dialog.cpp
-    migration_worker.h
-    migration_worker.cpp
+    migration_worker.h migration_worker.cpp
+    libqt_common.h libqt_common.cpp
 
-    deps_dialog.cpp
-    deps_dialog.h
-    deps_dialog.ui
+    deps_dialog.cpp deps_dialog.h deps_dialog.ui
 
     data_dialog.h data_dialog.cpp data_dialog.ui
     data_widget.ui
@@ -242,7 +239,6 @@ add_executable(yuzu
     configuration/addon/mod_select_dialog.h configuration/addon/mod_select_dialog.cpp configuration/addon/mod_select_dialog.ui
 
     render/performance_overlay.h render/performance_overlay.cpp render/performance_overlay.ui
-    libqt_common.h libqt_common.cpp
     updater/update_dialog.h updater/update_dialog.cpp updater/update_dialog.ui)
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")

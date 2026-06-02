@@ -5,6 +5,7 @@
 
 #include "common/memory_detect.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "frontend_common/data_manager.h"
 #include "hid_core/hid_core.h"
 #include "network/network.h"
 #include "qt_common.h"
@@ -27,6 +28,7 @@
 
 #include <thread>
 #include <JlCompress.h>
+#include <QPainter>
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <qpa/qplatformnativeinterface.h>
@@ -305,6 +307,21 @@ void SetupContentProviders() {
 
 void SetupHID() {
     system->HIDCore().ReloadInputDevices();
+}
+
+QString ReadableByteSize(qulonglong size) {
+    return QString::fromStdString(FrontendCommon::DataManager::ReadableBytesSize(size));
+}
+
+QPixmap CreateCirclePixmapFromColor(const QColor& color) {
+    QPixmap circle_pixmap(16, 16);
+    circle_pixmap.fill(Qt::transparent);
+    QPainter painter(&circle_pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(color);
+    painter.setBrush(color);
+    painter.drawEllipse({circle_pixmap.width() / 2.0, circle_pixmap.height() / 2.0}, 7.0, 7.0);
+    return circle_pixmap;
 }
 
 } // namespace QtCommon

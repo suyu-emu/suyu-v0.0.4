@@ -30,6 +30,7 @@
 #include "core/loader/loader.h"
 #include "frontend_common/config.h"
 #include "qt_common/config/uisettings.h"
+#include "qt_common/qt_common.h"
 #include "qt_common/util/vk.h"
 #include "ui_configure_per_game.h"
 #include "yuzu/configuration/configuration_shared.h"
@@ -205,6 +206,6 @@ void ConfigurePerGame::LoadConfiguration() {
     ui->display_format->setText(
         QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())));
 
-    const auto valueText = ReadableByteSize(file->GetSize());
+    const auto valueText = QtCommon::ReadableByteSize(file->GetSize());
     ui->display_size->setText(valueText);
 }

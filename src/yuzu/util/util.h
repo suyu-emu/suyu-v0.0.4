@@ -13,16 +13,6 @@
 /// Returns a QFont object appropriate to use as a monospace font for debugging widgets, etc.
 [[nodiscard]] QFont GetMonospaceFont();
 
-/// Convert a size in bytes into a readable format (KiB, MiB, etc.)
-[[nodiscard]] QString ReadableByteSize(qulonglong size);
-
-/**
- * Creates a circle pixmap from a specified color
- * @param color The color the pixmap shall have
- * @return QPixmap circle pixmap
- */
-[[nodiscard]] QPixmap CreateCirclePixmapFromColor(const QColor& color);
-
 /**
  * Prompt the user for a profile ID. If there is only one valid profile, returns that profile.
  * @return The selected profile, or an std::nullopt if none were selected

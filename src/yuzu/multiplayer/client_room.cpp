@@ -14,7 +14,7 @@
 #include "common/logging.h"
 #include "network/announce_multiplayer_session.h"
 #include "ui_client_room.h"
-#include "yuzu/game/game_list_p.h"
+#include "qt_common/game_list/game_list_p.h"
 #include "yuzu/multiplayer/client_room.h"
 #include "yuzu/multiplayer/message.h"
 #include "yuzu/multiplayer/moderation_dialog.h"

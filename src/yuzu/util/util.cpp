@@ -4,14 +4,11 @@
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cmath>
 #include <QPainter>
 
 #include "applets/qt_profile_select.h"
-#include "common/logging.h"
 #include "core/frontend/applets/profile_select.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "frontend_common/data_manager.h"
 #include "qt_common/qt_common.h"
 #include "yuzu/util/util.h"
 
@@ -26,21 +23,6 @@ QFont GetMonospaceFont() {
     font.setStyleHint(QFont::Monospace);
     font.setFixedPitch(true);
     return font;
-}
-
-QString ReadableByteSize(qulonglong size) {
-    return QString::fromStdString(FrontendCommon::DataManager::ReadableBytesSize(size));
-}
-
-QPixmap CreateCirclePixmapFromColor(const QColor& color) {
-    QPixmap circle_pixmap(16, 16);
-    circle_pixmap.fill(Qt::transparent);
-    QPainter painter(&circle_pixmap);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(color);
-    painter.setBrush(color);
-    painter.drawEllipse({circle_pixmap.width() / 2.0, circle_pixmap.height() / 2.0}, 7.0, 7.0);
-    return circle_pixmap;
 }
 
 const std::optional<Common::UUID> GetProfileID() {

@@ -6,14 +6,12 @@
 
 #pragma once
 
-#include <QFileSystemWatcher>
 #include <QLabel>
 #include <QLineEdit>
 #include <QList>
 #include <QPushButton>
 #include <QStandardItemModel>
 #include <QString>
-#include <QTreeView>
 #include <QVBoxLayout>
 #include <QVector>
 #include <QWidget>
@@ -28,20 +26,21 @@
 
 class QVariantAnimation;
 
-class QListView;
-
 class GameCard;
-namespace Core {
-class System;
-}
-
+class GameListModel;
+class GameTree;
+class GameGrid;
+class GameListSearchField;
 class ControllerNavigation;
 class GameListWorker;
-class GameListSearchField;
 class GameListDir;
 class MainWindow;
 enum class AmLaunchType;
 enum class StartGameType;
+
+namespace Core {
+class System;
+}
 
 namespace FileSys {
 class ManualContentProvider;
@@ -62,16 +61,6 @@ class GameList : public QWidget {
     Q_OBJECT
 
 public:
-    enum {
-        COLUMN_NAME,
-        COLUMN_FILE_TYPE,
-        COLUMN_SIZE,
-        COLUMN_PLAY_TIME,
-        COLUMN_ADD_ONS,
-        COLUMN_COMPATIBILITY,
-        COLUMN_COUNT, // Number of columns
-    };
-
     explicit GameList(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
                       FileSys::ManualContentProvider* provider_,
                       PlayTime::PlayTimeManager& play_time_manager_, Core::System& system_,
@@ -95,13 +84,11 @@ public:
     /// Disables events from the emulated controller
     void UnloadController();
 
-    bool IsTreeMode();
     void ResetViewMode();
 
 public slots:
     void RefreshGameDirectory();
     void RefreshExternalContent();
-    void ResetExternalWatcher();
 
 signals:
     void BootGame(const QString& game_path, StartGameType type);
@@ -130,27 +117,20 @@ signals:
     void SaveConfig();
 
 private slots:
-    void OnItemExpanded(const QModelIndex& item);
     void OnTextChanged(const QString& new_text);
     void OnFilterCloseClicked();
     void OnUpdateThemedIcons();
-
-    void UpdateIconSize();
-
-private:
-    friend class GameListWorker;
-    void WorkerEvent();
-
-    void AddDirEntry(GameListDir* entry_items);
-    void AddEntry(const QList<QStandardItem*>& entry_items, GameListDir* parent);
-    void DonePopulating(const QStringList& watch_list);
+    void OnPopulatingCompleted(const QStringList& watch_list);
 
 private:
+    void SetupViews();
+    void SetupScrollAnimation();
+    bool eventFilter(QObject* obj, QEvent* event) override;
+    void changeEvent(QEvent*) override;
+
     void ValidateEntry(const QModelIndex& item);
 
     void ToggleFavorite(u64 program_id);
-    void AddFavorite(u64 program_id);
-    void RemoveFavorite(u64 program_id);
 
     void PopupContextMenu(const QPoint& menu_location);
     void AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path);
@@ -158,41 +138,32 @@ private:
     void AddPermDirPopup(QMenu& context_menu, QModelIndex selected);
     void AddFavoritesPopup(QMenu& context_menu);
 
-    void changeEvent(QEvent*) override;
     void RetranslateUI();
+
+    friend class GameListSearchField;
 
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
     FileSys::ManualContentProvider* provider;
-    GameListSearchField* search_field;
+    GameListSearchField* search_field = nullptr;
     MainWindow* main_window = nullptr;
     QVBoxLayout* layout = nullptr;
 
-    QTreeView* tree_view = nullptr;
-    QListView* list_view = nullptr;
-    GameCard* m_gameCard = nullptr;
+    GameTree* tree_view = nullptr;
+    GameGrid* grid_view = nullptr;
+    GameListModel* item_model = nullptr;
 
-    QStandardItemModel* item_model = nullptr;
-    std::unique_ptr<GameListWorker> current_worker;
-    QFileSystemWatcher* watcher = nullptr;
-    QFileSystemWatcher* external_watcher = nullptr;
     ControllerNavigation* controller_navigation = nullptr;
-    CompatibilityList compatibility_list;
 
     QVariantAnimation* vertical_scroll = nullptr;
     QVariantAnimation* horizontal_scroll = nullptr;
     int vertical_scroll_target = 0;
     int horizontal_scroll_target = 0;
 
-    void SetupScrollAnimation();
-    bool eventFilter(QObject* obj, QEvent* event) override;
-
-    friend class GameListSearchField;
-
     const PlayTime::PlayTimeManager& play_time_manager;
     Core::System& system;
 
     bool m_isTreeMode = true;
-    QAbstractItemView* m_currentView = tree_view;
+    QAbstractItemView* m_currentView = nullptr;
 };
 
 class GameListPlaceholder : public QWidget {

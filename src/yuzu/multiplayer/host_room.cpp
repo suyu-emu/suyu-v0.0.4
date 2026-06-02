@@ -20,7 +20,7 @@
 #include "network/announce_multiplayer_session.h"
 #include "qt_common/config/uisettings.h"
 #include "ui_host_room.h"
-#include "yuzu/game/game_list_p.h"
+#include "qt_common/game_list/game_list_p.h"
 #include "yuzu/main_window.h"
 #include "yuzu/multiplayer/host_room.h"
 #include "yuzu/multiplayer/message.h"

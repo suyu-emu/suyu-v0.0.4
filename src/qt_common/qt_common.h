@@ -46,6 +46,20 @@ void SetupHID();
 const QString tr(const char* str);
 const QString tr(const std::string& str);
 
+// TODO: Find a better place for these
+
+/// Convert a size in bytes into a readable format (KiB, MiB, etc.)
+[[nodiscard]] QString ReadableByteSize(qulonglong size);
+
+/**
+ * Creates a circle pixmap from a specified color
+ * @param color The color the pixmap shall have
+ * @return QPixmap circle pixmap
+ */
+[[nodiscard]] QPixmap CreateCirclePixmapFromColor(const QColor& color);
+
+
+
 std::filesystem::path GetEdenCommand();
 } // namespace QtCommon
 #endif

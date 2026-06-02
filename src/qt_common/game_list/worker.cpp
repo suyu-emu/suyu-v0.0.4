@@ -33,9 +33,10 @@
 #include "qt_common/qt_common.h"
 
 #include "yuzu/compatibility_list.h"
-#include "yuzu/game/game_list.h"
-#include "yuzu/game/game_list_p.h"
-#include "yuzu/game/game_list_worker.h"
+#include "qt_common/game_list/game_list_p.h"
+
+#include "qt_common/game_list/worker.h"
+#include "qt_common/game_list/model.h"
 
 namespace {
 
@@ -250,9 +251,9 @@ GameListWorker::~GameListWorker() {
     processing_completed.Wait();
 }
 
-void GameListWorker::ProcessEvents(GameList* game_list) {
+void GameListWorker::ProcessEvents(GameListModel* model) {
     while (true) {
-        std::function<void(GameList*)> func;
+        std::function<void(GameListModel*)> func;
         {
             // Lock queue to protect concurrent modification.
             std::scoped_lock lk(lock);
@@ -268,7 +269,7 @@ void GameListWorker::ProcessEvents(GameList* game_list) {
         }
 
         // Run the function.
-        func(game_list);
+        func(model);
     }
 }
 
@@ -335,7 +336,7 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
 
         auto entry = MakeGameListEntry(file->GetFullPath(), name, file->GetSize(), icon, *loader,
                                        program_id, compatibility_list, play_time_manager, patch);
-        RecordEvent([=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
+        RecordEvent([=](GameListModel* model) { model->AddEntry(entry, parent_dir); });
     }
 }
 
@@ -417,7 +418,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                             id, compatibility_list, play_time_manager, patch);
 
                         RecordEvent(
-                            [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
+                            [=](GameListModel* model) { model->AddEntry(entry, parent_dir); });
                     }
                 } else {
                     std::vector<u8> icon;
@@ -434,7 +435,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                         program_id, compatibility_list, play_time_manager, patch);
 
                     RecordEvent(
-                        [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
+                        [=](GameListModel* model) { model->AddEntry(entry, parent_dir); });
                 }
             }
         } else if (is_dir) {
@@ -457,7 +458,7 @@ void GameListWorker::run() {
     provider->ClearAllEntries();
 
     const auto DirEntryReady = [&](GameListDir* game_list_dir) {
-        RecordEvent([=](GameList* game_list) { game_list->AddDirEntry(game_list_dir); });
+        RecordEvent([=](GameListModel* model) { model->AddDirEntry(game_list_dir); });
     };
 
     for (UISettings::GameDir& game_dir : game_dirs) {
@@ -491,6 +492,6 @@ void GameListWorker::run() {
         }
     }
 
-    RecordEvent([this](GameList* game_list) { game_list->DonePopulating(watch_list); });
+    RecordEvent([this](GameListModel* model) { model->DonePopulating(watch_list); });
     processing_completed.Set();
 }
