@@ -19,7 +19,8 @@
         "patches": [
             "0001-cpmutil-compat.patch",
             "0002-use-ccache.patch",
-            "0003-use-cmake-compiler-flags.patch"
+            "0003-use-cmake-compiler-flags.patch",
+            "0004-use-shell-wrapper.patch"
         ]
     },
     "openssl": {
