@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -31,11 +31,18 @@ constexpr VkDeviceSize MAX_ALIGNMENT = 256;
 constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 128_MiB;
 
 size_t GetStreamBufferSize(const Device& device) {
+    if (!device.HasDebuggingToolAttached()) {
+        return MAX_STREAM_BUFFER_SIZE;
+    }
+
     VkDeviceSize size{0};
-    if (device.HasDebuggingToolAttached()) {
-        ForEachDeviceLocalHostVisibleHeap(device, [&size](size_t index, VkMemoryHeap& heap) {
-            size = (std::max)(size, heap.size);
-        });
+    bool has_device_local_host_visible_heap{};
+    ForEachDeviceLocalHostVisibleHeap(device, [&size, &has_device_local_host_visible_heap](
+                                                  size_t index, VkMemoryHeap& heap) {
+        has_device_local_host_visible_heap = true;
+        size = (std::max)(size, heap.size);
+    });
+    if (has_device_local_host_visible_heap) {
         // If rebar is not supported, cut the max heap size to 40%. This will allow 2 captures to be
         // loaded at the same time in RenderDoc. If rebar is supported, this shouldn't be an issue
         // as the heap will be much larger.

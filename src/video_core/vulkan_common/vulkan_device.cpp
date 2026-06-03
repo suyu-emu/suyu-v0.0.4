@@ -1481,6 +1481,12 @@ void Device::CollectToolingInfo() {
         has_nsight_graphics = has_nsight_graphics || name == "NVIDIA Nsight Graphics";
         has_radeon_gpu_profiler = has_radeon_gpu_profiler || name == "Radeon GPU Profiler";
     }
+#ifdef _WIN32
+    if (has_renderdoc) {
+        LOG_INFO(Render_Vulkan,
+                 "Windows default RenderDoc output folder: %LOCALAPPDATA%\\Temp\\RenderDoc");
+    }
+#endif
 }
 
 std::vector<VkDeviceQueueCreateInfo> Device::GetDeviceQueueCreateInfos() const {
