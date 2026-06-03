@@ -2587,11 +2587,11 @@ TEST_CASE("A64: Manual Vector Min/Max U64 (Optimizer Test)", "[a64]") {
 
     // MaxU64 pattern: (a > b) ? a : b
     code.CMHI(V2.D2(), V0.D2(), V1.D2());   // V2 = Mask (A > B)
-    code.BSL(V2.B16(), V0.B16(), V1.B16()); // V2 = Resul
+    code.BSL(V2.B16(), V0.B16(), V1.B16()); // V2 = Result
 
     // MinU64 pattern: (a > b) ? b : a
     code.CMHI(V3.D2(), V0.D2(), V1.D2());   // V3 = Mask (A > B)
-    code.BSL(V3.B16(), V1.B16(), V0.B16()); // V3 = Resul
+    code.BSL(V3.B16(), V1.B16(), V0.B16()); // V3 = Result
 
     jit.SetPC(0);
     jit.SetVector(0, {100, 20});
@@ -2602,4 +2602,33 @@ TEST_CASE("A64: Manual Vector Min/Max U64 (Optimizer Test)", "[a64]") {
 
     CHECK(jit.GetVector(2) == Vector{100, 200});
     CHECK(jit.GetVector(3) == Vector{50, 20});
+}
+
+TEST_CASE("A64: Rounding", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &env;
+    A64::Jit jit{jit_user_config};
+
+    oaknut::VectorCodeGenerator code{env.code_mem, nullptr};
+
+    code.FRINTN(V1.S4(), V0.S4()); // ToNearest_TieEven
+    code.FRINTM(V2.S4(), V0.S4()); // TowardsMinusInfinity
+    code.FRINTP(V3.S4(), V0.S4()); // TowardsPlusInfinity
+    code.FRINTZ(V4.S4(), V0.S4()); // TowardsZero
+    code.FRINTA(V5.S4(), V0.S4()); // ToNearest_TieAwayFromZero
+    code.FRINTX(V6.S4(), V0.S4()); // ToNearest_TieAwayFromZero
+
+    jit.SetPC(0);
+    jit.SetVector(0, {0x4001e17c4001e17c, 0x4001e17c4001e17c});
+    env.ticks_left = env.code_mem.size();
+    CheckedRun([&]() { jit.Run(); });
+
+    CHECK(jit.GetVector(0) == Vector{0x4001e17c4001e17c, 0x4001e17c4001e17c});
+    CHECK(jit.GetVector(1) == Vector{0x4000000040000000, 0x4000000040000000});
+    CHECK(jit.GetVector(2) == Vector{0x4000000040000000, 0x4000000040000000});
+    CHECK(jit.GetVector(3) == Vector{0x4040000040400000, 0x4040000040400000});
+    CHECK(jit.GetVector(4) == Vector{0x4000000040000000, 0x4000000040000000});
+    CHECK(jit.GetVector(5) == Vector{0x4000000040000000, 0x4000000040000000});
+    CHECK(jit.GetVector(6) == Vector{0x4000000040000000, 0x4000000040000000});
 }

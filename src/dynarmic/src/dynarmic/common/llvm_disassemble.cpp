@@ -7,7 +7,6 @@
  */
 
 #include <string>
-
 #include <fmt/format.h>
 
 #ifdef DYNARMIC_USE_LLVM
@@ -16,7 +15,6 @@
 #endif
 
 #include "common/assert.h"
-#include <bit>
 #include "common/common_types.h"
 
 #include "dynarmic/common/llvm_disassemble.h"

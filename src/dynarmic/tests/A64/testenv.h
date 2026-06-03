@@ -17,24 +17,19 @@ using Vector = Dynarmic::A64::Vector;
 
 class A64TestEnv : public Dynarmic::A64::UserCallbacks {
 public:
-    u64 ticks_left = 0;
-
-    bool code_mem_modified_by_guest = false;
-    u64 code_mem_start_address = 0;
-    std::vector<u32> code_mem;
-
     ankerl::unordered_dense::map<u64, u8> modified_memory;
-    std::vector<std::string> interrupts;
+    std::vector<u32> code_mem;
+    u64 ticks_left = 0;
+    u64 code_mem_start_address = 0;
+    bool code_mem_modified_by_guest = false;
 
     bool IsInCodeMem(u64 vaddr) const {
         return vaddr >= code_mem_start_address && vaddr < code_mem_start_address + code_mem.size() * 4;
     }
 
     std::optional<std::uint32_t> MemoryReadCode(u64 vaddr) override {
-        if (!IsInCodeMem(vaddr)) {
+        if (!IsInCodeMem(vaddr))
             return 0x14000000;  // B .
-        }
-
         const size_t index = (vaddr - code_mem_start_address) / 4;
         return code_mem[index];
     }
@@ -43,10 +38,9 @@ public:
         if (IsInCodeMem(vaddr)) {
             return reinterpret_cast<u8*>(code_mem.data())[vaddr - code_mem_start_address];
         }
-        if (auto iter = modified_memory.find(vaddr); iter != modified_memory.end()) {
-            return iter->second;
-        }
-        return static_cast<u8>(vaddr);
+        if (auto const it = modified_memory.find(vaddr); it != modified_memory.end())
+            return it->second;
+        return u8(vaddr);
     }
     std::uint16_t MemoryRead16(u64 vaddr) override {
         return u16(MemoryRead8(vaddr)) | u16(MemoryRead8(vaddr + 1)) << 8;
@@ -68,16 +62,16 @@ public:
         modified_memory[vaddr] = value;
     }
     void MemoryWrite16(u64 vaddr, std::uint16_t value) override {
-        MemoryWrite8(vaddr, static_cast<u8>(value));
-        MemoryWrite8(vaddr + 1, static_cast<u8>(value >> 8));
+        MemoryWrite8(vaddr, u8(value));
+        MemoryWrite8(vaddr + 1, u8(value >> 8));
     }
     void MemoryWrite32(u64 vaddr, std::uint32_t value) override {
-        MemoryWrite16(vaddr, static_cast<u16>(value));
-        MemoryWrite16(vaddr + 2, static_cast<u16>(value >> 16));
+        MemoryWrite16(vaddr, u16(value));
+        MemoryWrite16(vaddr + 2, u16(value >> 16));
     }
     void MemoryWrite64(u64 vaddr, std::uint64_t value) override {
-        MemoryWrite32(vaddr, static_cast<u32>(value));
-        MemoryWrite32(vaddr + 4, static_cast<u32>(value >> 32));
+        MemoryWrite32(vaddr, u32(value));
+        MemoryWrite32(vaddr + 4, u32(value >> 32));
     }
     void MemoryWrite128(u64 vaddr, Vector value) override {
         MemoryWrite64(vaddr, value[0]);
@@ -139,12 +133,12 @@ public:
     template<typename T>
     T read(u64 vaddr) {
         T value;
-        memcpy(&value, backing_memory + vaddr, sizeof(T));
+        std::memcpy(&value, backing_memory + vaddr, sizeof(T));
         return value;
     }
     template<typename T>
     void write(u64 vaddr, const T& value) {
-        memcpy(backing_memory + vaddr, &value, sizeof(T));
+        std::memcpy(backing_memory + vaddr, &value, sizeof(T));
     }
 
     std::optional<std::uint32_t> MemoryReadCode(u64 vaddr) override {

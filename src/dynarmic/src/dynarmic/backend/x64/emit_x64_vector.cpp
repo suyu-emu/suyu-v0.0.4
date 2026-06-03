@@ -2103,36 +2103,57 @@ void EmitX64::EmitVectorMaxU64(EmitContext& ctx, IR::Inst* inst) {
     } else if (code.HasHostFeature(HostFeature::AVX)) {
         auto const x = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         auto const y = ctx.reg_alloc.UseXmm(code, args[1]);
-        auto const tmp = ctx.reg_alloc.ScratchXmm(code);
-        code.vmovdqa(xmm0, code.Const(xword, 0x8000000000000000, 0x8000000000000000));
-        code.vpsubq(tmp, y, xmm0);
-        code.vpsubq(xmm0, x, xmm0);
-        code.vpcmpgtq(xmm0, tmp, xmm0);
-        code.pblendvb(x, y);
+        auto const tmp0 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp1 = ctx.reg_alloc.ScratchXmm(code, HostLoc::XMM0);
+        code.vmovdqa(tmp1, code.Const(xword, 0x8000000000000000, 0x8000000000000000));
+        code.vpsubq(tmp0, y, tmp1);
+        code.vpsubq(tmp1, x, tmp1);
+        code.vpcmpgtq(tmp1, tmp0, tmp1);
+        code.pblendvb(x, y); // XMM0 is implicit
         ctx.reg_alloc.DefineValue(code, inst, x);
+    } else if (code.HasHostFeature(HostFeature::SSE41)) {
+        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const tmp1 = ctx.reg_alloc.UseXmm(code, args[1]);
+        auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tax = ctx.reg_alloc.ScratchGpr(code);
+        auto const tdx = ctx.reg_alloc.ScratchGpr(code);
+        code.movq(tdx, tmp1);
+        code.movq(tax, tmp0);
+        code.movhlps(tmp3, tmp0);
+        code.cmp(tdx, tax);
+        code.movhlps(tmp2, tmp1);
+        code.cmovnb(tax, tdx);
+        code.movq(tdx, tmp2);
+        code.pinsrq(tmp4, tax, 0);
+        code.movq(tax, tmp3);
+        code.cmp(tdx, tax);
+        code.cmovnb(tax, tdx);
+        code.pinsrq(tmp4, tax, 1);
+        ctx.reg_alloc.DefineValue(code, inst, tmp4);
     } else {
         auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         auto const tmp1 = ctx.reg_alloc.UseXmm(code, args[1]);
         auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
         auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
         auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp5 = ctx.reg_alloc.ScratchXmm(code);
-        code.movdqa(tmp2, code.Const(xword, 0x8000000080000000, 0x8000000080000000));
-        code.movdqa(tmp3, tmp1);
-        code.pxor(tmp3, tmp2);
-        code.pxor(tmp2, tmp0);
-        code.movdqa(tmp4, tmp2);
-        code.pcmpeqd(tmp2, tmp3);
-        code.pcmpgtd(tmp4, tmp3);
-        code.pshufd(tmp2, tmp2, 245);
-        code.pshufd(tmp5, tmp4, 160);
-        code.pshufd(tmp3, tmp4, 245);
-        code.pand(tmp2, tmp5);
-        code.por(tmp3, tmp2);
-        code.pand(tmp0, tmp3);
-        code.pandn(tmp3, tmp1);
-        code.por(tmp0, tmp3);
-        ctx.reg_alloc.DefineValue(code, inst, tmp0);
+        auto const tax = ctx.reg_alloc.ScratchGpr(code);
+        auto const tdx = ctx.reg_alloc.ScratchGpr(code);
+        code.movq(tdx, tmp1);
+        code.movq(tax, tmp0);
+        code.movhlps(tmp3, tmp0);
+        code.cmp(tdx, tax);
+        code.movhlps(tmp2, tmp1);
+        code.cmovnb(tax, tdx);
+        code.movq(tdx, tmp2);
+        code.movq(tmp4, tax);
+        code.movq(tax, tmp3);
+        code.cmp(tdx, tax);
+        code.cmovnb(tax, tdx);
+        code.movq(tmp3, tax);
+        code.punpcklqdq(tmp4, tmp3);
+        ctx.reg_alloc.DefineValue(code, inst, tmp4);
     }
 }
 
@@ -2247,37 +2268,57 @@ void EmitX64::EmitVectorMinU64(EmitContext& ctx, IR::Inst* inst) {
     } else if (code.HasHostFeature(HostFeature::AVX)) {
         auto const x = ctx.reg_alloc.UseXmm(code, args[0]);
         auto const y = ctx.reg_alloc.UseScratchXmm(code, args[1]);
-        auto const tmp = ctx.reg_alloc.ScratchXmm(code);
-        code.vmovdqa(xmm0, code.Const(xword, 0x8000000000000000, 0x8000000000000000));
-        code.vpsubq(tmp, y, xmm0);
-        code.vpsubq(xmm0, x, xmm0);
-        code.vpcmpgtq(xmm0, tmp, xmm0);
+        auto const tmp0 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp1 = ctx.reg_alloc.ScratchXmm(code, HostLoc::XMM0);
+        code.vmovdqa(tmp1, code.Const(xword, 0x8000000000000000, 0x8000000000000000));
+        code.vpsubq(tmp0, y, tmp1);
+        code.vpsubq(tmp1, x, tmp1);
+        code.vpcmpgtq(tmp1, tmp0, tmp1);
         code.pblendvb(y, x);
         ctx.reg_alloc.DefineValue(code, inst, y);
+    } else if (code.HasHostFeature(HostFeature::SSE41)) {
+        auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const tmp1 = ctx.reg_alloc.UseXmm(code, args[1]);
+        auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
+        auto const tax = ctx.reg_alloc.ScratchGpr(code);
+        auto const tdx = ctx.reg_alloc.ScratchGpr(code);
+        code.movq(tdx, tmp1);
+        code.movq(tax, tmp0);
+        code.movhlps(tmp3, tmp0);
+        code.cmp(tdx, tax);
+        code.movhlps(tmp2, tmp1);
+        code.cmovbe(tax, tdx);
+        code.movq(tdx, tmp2);
+        code.pinsrq(tmp4, tax, 0);
+        code.movq(tax, tmp3);
+        code.cmp(tdx, tax);
+        code.cmovbe(tax, tdx);
+        code.pinsrq(tmp4, tax, 1);
+        ctx.reg_alloc.DefineValue(code, inst, tmp4);
     } else {
         auto const tmp0 = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         auto const tmp1 = ctx.reg_alloc.UseXmm(code, args[1]);
         auto const tmp2 = ctx.reg_alloc.ScratchXmm(code);
         auto const tmp3 = ctx.reg_alloc.ScratchXmm(code);
         auto const tmp4 = ctx.reg_alloc.ScratchXmm(code);
-        auto const tmp5 = ctx.reg_alloc.ScratchXmm(code);
-        code.movdqa(tmp2, code.Const(xword, 0x8000000080000000, 0x8000000080000000));
-        code.movdqa(tmp3, tmp1);
-        code.pxor(tmp3, tmp2);
-        code.pxor(tmp2, tmp0);
-        code.movdqa(tmp4, tmp2);
-        code.pcmpeqd(tmp2, tmp3);
-        code.pcmpgtd(tmp4, tmp3);
-        code.pshufd(tmp3, tmp2, 245);
-        code.pshufd(tmp5, tmp4, 160);
-        code.pshufd(tmp2, tmp4, 245);
-        code.pand(tmp3, tmp5);
-        code.por(tmp2, tmp3);
-        code.pand(tmp1, tmp2);
-        code.pandn(tmp2, tmp0);
-        code.por(tmp2, tmp1);
-        //code.movdqa(tmp0, tmp2);
-        ctx.reg_alloc.DefineValue(code, inst, tmp2);
+        auto const tax = ctx.reg_alloc.ScratchGpr(code);
+        auto const tdx = ctx.reg_alloc.ScratchGpr(code);
+        code.movq(tdx, tmp1);
+        code.movq(tax, tmp0);
+        code.movhlps(tmp3, tmp0);
+        code.cmp(tdx, tax);
+        code.movhlps(tmp2, tmp1);
+        code.cmovbe(tax, tdx);
+        code.movq(tdx, tmp2);
+        code.movq(tmp4, tax);
+        code.movq(tax, tmp3);
+        code.cmp(tdx, tax);
+        code.cmovbe(tax, tdx);
+        code.movq(tmp3, tax);
+        code.punpcklqdq(tmp4, tmp3);
+        ctx.reg_alloc.DefineValue(code, inst, tmp4);
     }
 }
 
@@ -2471,13 +2512,11 @@ void EmitX64::EmitVectorNarrow64(EmitContext& ctx, IR::Inst* inst) {
 
         ctx.reg_alloc.DefineValue(code, inst, result);
     } else {
-    auto const a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-    auto const zeros = ctx.reg_alloc.ScratchXmm(code);
-
-    code.pxor(zeros, zeros);
-    code.shufps(a, zeros, 0b00001000);
-
-    ctx.reg_alloc.DefineValue(code, inst, a);
+        auto const a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const zeros = ctx.reg_alloc.ScratchXmm(code);
+        code.pxor(zeros, zeros);
+        code.shufps(a, zeros, 0b00001000);
+        ctx.reg_alloc.DefineValue(code, inst, a);
     }
 }
 
@@ -2490,11 +2529,11 @@ void EmitX64::EmitVectorNot(EmitContext& ctx, IR::Inst* inst) {
         code.vpternlogq(result, operand, operand, u8(~Tern::c));
         ctx.reg_alloc.DefineValue(code, inst, result);
     } else {
-    auto const xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
-    auto const xmm_b = ctx.reg_alloc.ScratchXmm(code);
-    code.pcmpeqw(xmm_b, xmm_b);
-    code.pxor(xmm_a, xmm_b);
-    ctx.reg_alloc.DefineValue(code, inst, xmm_a);
+        auto const xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+        auto const xmm_b = ctx.reg_alloc.ScratchXmm(code);
+        code.pcmpeqw(xmm_b, xmm_b);
+        code.pxor(xmm_a, xmm_b);
+        ctx.reg_alloc.DefineValue(code, inst, xmm_a);
     }
 }
 
@@ -2504,11 +2543,9 @@ void EmitX64::EmitVectorOr(EmitContext& ctx, IR::Inst* inst) {
 
 void EmitX64::EmitVectorPairedAddLower8(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-
     auto const xmm_a = ctx.reg_alloc.UseScratchXmm(code, args[0]);
     auto const xmm_b = ctx.reg_alloc.UseXmm(code, args[1]);
     auto const tmp = ctx.reg_alloc.ScratchXmm(code);
-
     code.punpcklqdq(xmm_a, xmm_b);
     code.movdqa(tmp, xmm_a);
     code.psllw(xmm_a, 8);
@@ -2516,7 +2553,6 @@ void EmitX64::EmitVectorPairedAddLower8(EmitContext& ctx, IR::Inst* inst) {
     code.pxor(tmp, tmp);
     code.psrlw(xmm_a, 8);
     code.packuswb(xmm_a, tmp);
-
     ctx.reg_alloc.DefineValue(code, inst, xmm_a);
 }
 

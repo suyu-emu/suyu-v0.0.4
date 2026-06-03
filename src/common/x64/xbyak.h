@@ -262,20 +262,16 @@ enum {
     CMP_ORD = 7,
 };
 
-constexpr bool IsWithin2G(uintptr_t ref, uintptr_t target) {
-    const u64 distance = target - (ref + 5);
-    return !(distance >= 0x8000'0000ULL && distance <= ~0x8000'0000ULL);
-}
-
-inline bool IsWithin2G(const Xbyak::CodeGenerator& code, uintptr_t target) {
-    return IsWithin2G(reinterpret_cast<uintptr_t>(code.getCurr()), target);
+constexpr bool IsWithin2G(uintptr_t ref, uintptr_t target) noexcept {
+    u64 const distance = target - (ref + 5);
+    return (distance & 0xffff'ffff) == distance;
 }
 
 template <typename T>
 inline void CallFarFunction(Xbyak::CodeGenerator& code, const T f) {
     static_assert(std::is_pointer_v<T>, "Argument must be a (function) pointer.");
-    size_t addr = reinterpret_cast<size_t>(f);
-    if (IsWithin2G(code, addr)) {
+    uintptr_t addr = uintptr_t(f);
+    if (IsWithin2G(uintptr_t(code.getCurr()), addr)) {
         code.call(f);
     } else {
         // ABI_RETURN is a safe temp register to use before a call
