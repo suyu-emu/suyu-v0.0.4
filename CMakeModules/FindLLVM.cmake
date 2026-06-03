@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2023 Alexandre Bouvier <contact@amb.tf>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -13,7 +16,8 @@ endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(LLVM HANDLE_COMPONENTS CONFIG_MODE)
 
-if (LLVM_FOUND AND LLVM_Demangle_FOUND AND NOT TARGET LLVM::Demangle)
+# Demangle only for Windows targets
+if (WIN32 AND LLVM_FOUND AND LLVM_Demangle_FOUND AND NOT TARGET LLVM::Demangle)
     add_library(LLVM::Demangle INTERFACE IMPORTED)
     target_compile_definitions(LLVM::Demangle INTERFACE ${LLVM_DEFINITIONS})
     target_include_directories(LLVM::Demangle INTERFACE ${LLVM_INCLUDE_DIRS})

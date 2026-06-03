@@ -243,7 +243,12 @@ if (lz4_ADDED)
 endif()
 
 target_link_libraries(common PUBLIC fmt::fmt stb::headers Threads::Threads unordered_dense::unordered_dense)
-target_link_libraries(common PRIVATE lz4::lz4 LLVM::Demangle zstd::zstd)
+target_link_libraries(common PRIVATE lz4::lz4 zstd::zstd)
+
+# Please refer to src/common/demangle.cpp
+if (WIN32)
+    target_link_libraries(common PRIVATE LLVM::Demangle)
+endif()
 
 if(ANDROID)
     # For ASharedMemory_create

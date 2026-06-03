@@ -49,8 +49,8 @@ if (NOT TARGET stb::headers)
     add_library(stb::headers ALIAS stb)
 endif()
 
-# ItaniumDemangle
-if (NOT TARGET LLVM::Demangle)
+# ItaniumDemangle (Windows only)
+if (WIN32 AND NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
     target_include_directories(demangle PUBLIC ./demangle)
     if (NOT MSVC)
