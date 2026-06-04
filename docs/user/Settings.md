@@ -30,7 +30,6 @@ Before touching the settings, please see the game boots with stock options. We t
 
 ## CPU
 
-- `CPU/Virtual table bouncing`: Some games have the tendency to crash on loading due to an indirect bad jump (Pokemon ZA being the worst offender); this option lies to the game and tells it to just pretend it never executed a given function. This is fine for most casual users, but developers of switch applications **must** disable this. This temporary "hack" should hopefully be gone in 6-7 months from now on.
 - `Fastmem`, aka. `CPU/Enable Host MMU`: Enables "fastmem"; a detailed description of fastmem can be found [here](../dynarmic/Design.md#fast-memory-fastmem).
 - `CPU/Unsafe FMA`: Enables deliberate innacurate FMA behaviour which may affect how FMA returns any given operation - this may introduce tiny floating point errors which can cascade in sensitive code (i.e FFmpeg).
 - `CPU/Faster FRSQRTE and FRECPE`: Introduces accuracy errors on square root and reciprocals in exchange for less checks - this introduces inaccuracies with some cases but it's mostly safe.

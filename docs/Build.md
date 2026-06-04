@@ -136,6 +136,16 @@ cmake -S . -B build -G "<GENERATOR>" -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COM
 <img src="https://user-images.githubusercontent.com/42481638/216899275-d514ec6a-e563-470e-81e2-3e04f0429b68.png" width="500">
 </details>
 
+#### Option D: Visual Studio with clang-cl
+
+<details>
+1. Install `"x64 Native Tools Command Prompt"` for VS from the installer and also install `cmake-gui`.
+2. Open `"x64 Native Tools Command Prompt"` and type `cmake-gui`.
+3. Click configure choose ninja generator > specify native compilers.
+4. Put `"C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe"` as your C/C++ compiler path.
+5. Open `Visual studio > Open project` or Solution > Change to search for the CMake project file (`CMakeList.txt`) file on the cloned directory, and then build.
+</details>
+
 ## Troubleshooting
 
 If your initial configure failed:
