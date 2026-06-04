@@ -320,7 +320,7 @@ struct DebuggerBackend final : public Backend {
     void Flush() noexcept override {}
 };
 #endif
-#ifdef ANDROID
+#ifdef __ANDROID__
 /// @brief Backend that writes to the Android logcat
 struct LogcatBackend : public Backend {
     explicit LogcatBackend() noexcept = default;
@@ -359,7 +359,7 @@ struct Impl {
 #ifdef _WIN32
         lambda(static_cast<Backend&>(debugger_backend));
 #endif
-#ifdef ANDROID
+#ifdef __ANDROID__
         lambda(static_cast<Backend&>(lc_backend));
 #endif
     }
@@ -372,7 +372,7 @@ struct Impl {
 #ifdef _WIN32
     DebuggerBackend debugger_backend{};
 #endif
-#ifdef ANDROID
+#ifdef __ANDROID__
     LogcatBackend lc_backend{};
 #endif
     std::chrono::steady_clock::time_point time_origin{std::chrono::steady_clock::now()};

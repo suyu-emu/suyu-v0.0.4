@@ -453,7 +453,7 @@ public:
         return handle != Type{};
     }
 
-#ifndef ANDROID
+#ifndef __ANDROID__
     /**
      * Releases ownership of the managed handle.
      * The caller is responsible for managing the lifetime of the returned handle.
@@ -535,7 +535,7 @@ public:
         return handle != Type{};
     }
 
-#ifndef ANDROID
+#ifndef __ANDROID__
     /**
      * Releases ownership of the managed handle.
      * The caller is responsible for managing the lifetime of the returned handle.

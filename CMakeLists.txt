@@ -306,7 +306,7 @@ if (YUZU_ROOM)
     add_compile_definitions(YUZU_ROOM)
 endif()
 
-if ((ANDROID OR APPLE OR UNIX) AND (NOT PLATFORM_LINUX OR ANDROID) AND NOT WIN32)
+if (UNIX AND NOT (PLATFORM_LINUX OR WIN32))
     if(CXX_APPLE OR CXX_CLANG)
         # libc++ has stop_token and jthread as experimental
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
@@ -524,6 +524,8 @@ elseif (WIN32)
         # PSAPI is the Process Status API
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version crypt32 rpcrt4 gdi32 wldap32 mswsock)
     endif()
+elseif (PLATFORM_MANAGARM)
+    set(PLATFORM_LIBRARIES iconv intl)
 elseif (PLATFORM_HAIKU)
     # Haiku is so special :)
     set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)

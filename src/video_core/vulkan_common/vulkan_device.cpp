@@ -26,7 +26,7 @@
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "video_core/gpu_logging/gpu_logging.h"
 
-#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+#if defined(__ANDROID__) && defined(ARCHITECTURE_arm64)
 #include <adrenotools/bcenabler.h>
 #include <android/api-level.h>
 #endif
@@ -294,7 +294,7 @@ ankerl::unordered_dense::map<VkFormat, VkFormatProperties> GetFormatProperties(v
     return format_properties;
 }
 
-#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+#if defined(__ANDROID__) && defined(ARCHITECTURE_arm64)
 void OverrideBcnFormats(ankerl::unordered_dense::map<VkFormat, VkFormatProperties>& format_properties) {
     // These properties are extracted from Adreno driver 512.687.0
     constexpr VkFormatFeatureFlags tiling_features{VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
@@ -504,7 +504,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
 
-#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+#if defined(__ANDROID__) && defined(ARCHITECTURE_arm64)
         // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
         const auto major = (properties.properties.driverVersion >> 24) << 2;
         const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;

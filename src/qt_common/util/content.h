@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef QT_CONTENT_UTIL_H
-#define QT_CONTENT_UTIL_H
+#pragma once
 
 #include <QObject>
 #include "common/common_types.h"
@@ -63,4 +62,3 @@ void configureFilesystemProvider(const std::string& filepath);
 // Profiles //
 void FixProfiles();
 } // namespace QtCommon::Content
-#endif // QT_CONTENT_UTIL_H

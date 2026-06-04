@@ -13,7 +13,7 @@
 #include "core/crypto/key_manager.h"
 #include "frontend_common/content_manager.h"
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include <jni.h>
 #include <common/android/id_cache.h>
 #include <common/android/android_common.h>
@@ -25,7 +25,7 @@ FirmwareManager::InstallKeys(std::string location, std::string extension) {
 
     const auto keys_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir);
 
-#ifdef ANDROID
+#ifdef __ANDROID__
     JNIEnv *env = Common::Android::GetEnvForThread();
 
     jstring jsrc = Common::Android::ToJString(env, location);

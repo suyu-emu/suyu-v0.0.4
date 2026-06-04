@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef MIGRATION_DIALOG_H
-#define MIGRATION_DIALOG_H
+#pragma once
 
 #include <QHBoxLayout>
 #include <QMessageBox>
@@ -29,5 +28,3 @@ private:
 
     QAbstractButton* m_clickedButton;
 };
-
-#endif // MIGRATION_DIALOG_H

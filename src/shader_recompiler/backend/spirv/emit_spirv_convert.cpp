@@ -151,7 +151,7 @@ Id EmitConvertU32U64(EmitContext& ctx, Id value) {
 }
 
 Id EmitConvertF16F32(EmitContext& ctx, Id value) {
-#ifdef ANDROID
+#ifdef __ANDROID__
     return ctx.OpFConvert(ctx.F16[1], value);
 #else
     const auto result = ctx.OpFConvert(ctx.F16[1], value);

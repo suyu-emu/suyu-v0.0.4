@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -30,7 +33,7 @@ std::string NativeErrorToString(int e) {
     return ret;
 #else
     char err_str[255];
-#if defined(ANDROID) ||                                                                            \
+#if defined(__ANDROID__) ||                                                                            \
     (defined(__GLIBC__) && (_GNU_SOURCE || (_POSIX_C_SOURCE < 200112L && _XOPEN_SOURCE < 600)))
     // Thread safe (GNU-specific)
     const char* str = strerror_r(e, err_str, sizeof(err_str));

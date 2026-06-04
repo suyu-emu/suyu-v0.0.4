@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef MIGRATION_WORKER_H
-#define MIGRATION_WORKER_H
+#pragma once
 
 #include <QObject>
 #include "common/fs/path_util.h"
@@ -73,5 +72,3 @@ private:
     MigrationStrategy strategy;
     QString success_text = tr("Data was migrated successfully.");
 };
-
-#endif // MIGRATION_WORKER_H

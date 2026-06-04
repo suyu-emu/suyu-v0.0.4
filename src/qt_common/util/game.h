@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef QT_GAME_UTIL_H
-#define QT_GAME_UTIL_H
+#pragma once
 
 #include <QObject>
 #include <QStandardPaths>
@@ -78,5 +77,3 @@ void CreateHomeMenuShortcut(ShortcutTarget target);
 [[nodiscard]] bool SaveIconToFile(const std::filesystem::path& icon_path, const QImage& image);
 
 } // namespace QtCommon::Game
-
-#endif // QT_GAME_UTIL_H

@@ -288,7 +288,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-#ifdef ANDROID
+#ifdef __ANDROID__
         // On Android, do not allow surface rotation to deviate from the frontend.
         .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
 #else
@@ -313,7 +313,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         swapchain_ci.imageFormat,  // Base format MUST be first
         VK_FORMAT_B8G8R8A8_UNORM,
         VK_FORMAT_B8G8R8A8_SRGB,
-#ifdef ANDROID
+#ifdef __ANDROID__
         VK_FORMAT_R8G8B8A8_UNORM,  // Android may use RGBA
         VK_FORMAT_R8G8B8A8_SRGB,
 #endif
@@ -338,7 +338,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
 
     images = swapchain.GetImages();
     image_count = static_cast<u32>(images.size());
-#ifdef ANDROID
+#ifdef __ANDROID__
     // Android is already ordered the same as Switch.
     image_view_format = VK_FORMAT_R8G8B8A8_UNORM;
 #else

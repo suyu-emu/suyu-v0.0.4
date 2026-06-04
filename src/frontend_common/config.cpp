@@ -1009,7 +1009,7 @@ std::string Config::AdjustOutputString(const std::string& string) {
 
     // Windows requires that two forward slashes are used at the start of a path for unmapped
     // network drives so we have to watch for that here
-#ifndef ANDROID
+#ifndef __ANDROID__
     if (string.substr(0, 2) == "//") {
         boost::replace_all(adjusted_string, "//", "/");
         adjusted_string.insert(0, "/");

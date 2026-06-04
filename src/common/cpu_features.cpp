@@ -303,7 +303,7 @@ namespace {
 }
 [[nodiscard]] s64 GetHostCNTFRQ() noexcept {
     u64 cntfrq_el0 = 0;
-#ifdef ANDROID
+#ifdef __ANDROID__
     std::string_view board{""};
     char buffer[PROP_VALUE_MAX];
     int len{__system_property_get("ro.product.board", buffer)};

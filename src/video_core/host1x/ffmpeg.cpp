@@ -28,7 +28,7 @@ namespace {
 constexpr AVPixelFormat PreferredGpuFormat = AV_PIX_FMT_NV12;
 constexpr AVPixelFormat PreferredCpuFormat = AV_PIX_FMT_YUV420P;
 constexpr std::array PreferredGpuDecoders = {
-#if defined (_WIN32)
+#if defined(_WIN32)
     AV_HWDEVICE_TYPE_CUDA,
     AV_HWDEVICE_TYPE_D3D11VA,
     AV_HWDEVICE_TYPE_DXVA2,
@@ -39,7 +39,7 @@ constexpr std::array PreferredGpuDecoders = {
     AV_HWDEVICE_TYPE_DRM,
 #elif defined(__APPLE__)
     AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
-#elif defined(ANDROID)
+#elif defined(__ANDROID__)
     AV_HWDEVICE_TYPE_MEDIACODEC,
 #elif defined(__unix__)
     AV_HWDEVICE_TYPE_CUDA,

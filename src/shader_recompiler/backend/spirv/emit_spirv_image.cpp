@@ -506,7 +506,7 @@ Id EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst* inst, const IR::Value&
     Id result = Emit(&EmitContext::OpImageSparseSampleExplicitLod,
                      &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
                      Texture(ctx, info, index), coords, operands.Mask(), operands.Span());
-#ifdef ANDROID
+#ifdef __ANDROID__
     if (Settings::values.fix_bloom_effects.GetValue()) {
         result = ctx.OpVectorTimesScalar(ctx.F32[4], result, ctx.Const(0.98f));
     }

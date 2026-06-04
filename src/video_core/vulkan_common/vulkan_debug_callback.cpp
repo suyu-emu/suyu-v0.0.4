@@ -27,7 +27,7 @@ VkBool32 DebugUtilCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                            [[maybe_unused]] void* user_data) {
     // Skip logging known false-positive validation errors
     switch (static_cast<u32>(data->messageIdNumber)) {
-#ifdef ANDROID
+#ifdef __ANDROID__
     case 0xbf9cf353u: // VUID-vkCmdBindVertexBuffers2-pBuffers-04111
     // The below are due to incorrect reporting of extendedDynamicState
     case 0x1093bebbu: // VUID-vkCmdSetCullMode-None-03384

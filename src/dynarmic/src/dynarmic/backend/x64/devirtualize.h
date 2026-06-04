@@ -75,7 +75,7 @@ ArgCallback DevirtualizeItanium(mcl::class_type<decltype(mfp)>* this_) {
 
 template<auto mfp>
 ArgCallback Devirtualize(mcl::class_type<decltype(mfp)>* this_) {
-#if defined(__APPLE__) || defined(linux) || defined(__linux) || defined(__linux__)
+#if defined(__APPLE__) || defined(__linux__)
     return DevirtualizeItanium<mfp>(this_);
 #elif defined(__MINGW64__)
     return DevirtualizeItanium<mfp>(this_);

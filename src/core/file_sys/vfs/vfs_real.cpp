@@ -23,7 +23,7 @@
 #define stat _stat64
 #endif
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "common/fs/fs_android.h"
 #endif
 
@@ -288,7 +288,7 @@ RealVfsFile::~RealVfsFile() {
 }
 
 std::string RealVfsFile::GetName() const {
-#ifdef ANDROID
+#ifdef __ANDROID__
     if (path[0] != '/') {
         return FS::Android::GetFilename(path);
     }

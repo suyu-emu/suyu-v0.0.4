@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef FRONTEND_H
-#define FRONTEND_H
+#pragma once
 
 #include <QGuiApplication>
 #include "qt_common/qt_common.h"
@@ -114,4 +113,3 @@ const QString GetTextInput(const QString& title = QString(), const QString& capt
                            const QString& defaultText = QString());
 
 } // namespace QtCommon::Frontend
-#endif // FRONTEND_H

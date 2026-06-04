@@ -1,8 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef FIRMWARE_MANAGER_H
-#define FIRMWARE_MANAGER_H
+#pragma once
 
 #include "common/common_types.h"
 #include "core/core.h"
@@ -107,5 +106,3 @@ inline std::pair<Service::Set::FirmwareVersionFormat, Result> GetFirmwareVersion
 
 // TODO(crueter): GET AS STRING
 }
-
-#endif

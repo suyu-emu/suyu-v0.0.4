@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 
 #include "video_core/gpu_logging/freedreno_debug.h"
 #include "common/logging.h"
@@ -49,4 +49,4 @@ std::string FreedrenoDebugger::GetBreadcrumbs() {
 
 } // namespace GPU::Logging::Freedreno
 
-#endif // ANDROID
+#endif // __ANDROID__

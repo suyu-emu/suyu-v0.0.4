@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef DATA_DIALOG_H
-#define DATA_DIALOG_H
+#pragma once
 
 #include <QDialog>
 #include "frontend_common/data_manager.h"
@@ -47,5 +46,3 @@ private:
 
     std::optional<std::string> selectProfile();
 };
-
-#endif // DATA_DIALOG_H

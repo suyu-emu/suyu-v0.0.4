@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#pragma once
+
 #include <filesystem>
 #include <optional>
 #include "common/common_types.h"
-
-#pragma once
 
 namespace QtCommon::FS {
 

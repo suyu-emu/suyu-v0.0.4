@@ -11,7 +11,7 @@
 
 #include "common/assert.h"
 #include "common/fs/fs.h"
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "common/fs/fs_android.h"
 #endif
 #include "common/fs/fs_paths.h"
@@ -126,7 +126,7 @@ public:
         LEGACY_PATH(Yuzu, YUZU)
         LEGACY_PATH(Suyu, SUYU)
 #undef LEGACY_PATH
-#elif ANDROID
+#elif __ANDROID__
         ASSERT(!eden_path.empty());
         eden_path_cache = eden_path / CACHE_DIR;
         eden_path_config = eden_path / CONFIG_DIR;
@@ -447,11 +447,11 @@ std::vector<std::string> SplitPathComponentsCopy(std::string_view filename) {
 
 std::string SanitizePath(std::string_view path_, DirectorySeparator directory_separator) {
     std::string path(path_);
-#ifdef ANDROID
+#ifdef __ANDROID__
     if (Android::IsContentUri(path)) {
         return path;
     }
-#endif // ANDROID
+#endif // __ANDROID__
 
     char type1 = directory_separator == DirectorySeparator::BackwardSlash ? '/' : '\\';
     char type2 = directory_separator == DirectorySeparator::BackwardSlash ? '\\' : '/';
@@ -482,7 +482,7 @@ std::string GetParentPath(std::string_view path) {
         return std::string(path);
     }
 
-#ifdef ANDROID
+#ifdef __ANDROID__
     if (path[0] != '/') {
         std::string path_string{path};
         return FS::Android::GetParentDirectory(path_string);

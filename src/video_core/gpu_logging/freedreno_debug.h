@@ -3,7 +3,7 @@
 
 #pragma once
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 
 #include <string>
 
@@ -29,4 +29,4 @@ private:
 
 } // namespace GPU::Logging::Freedreno
 
-#endif // ANDROID
+#endif // __ANDROID__

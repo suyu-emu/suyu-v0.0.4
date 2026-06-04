@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
@@ -18,7 +18,7 @@
 #include <windows.h>
 #endif
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include <common/fs/fs_android.h>
 #endif
 
@@ -45,7 +45,7 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
     if (full_path.empty())
         return false;
 
-#ifdef ANDROID
+#ifdef __ANDROID__
     if (full_path[0] != '/') {
         *_pPath = Common::FS::Android::GetParentDirectory(full_path);
         *_pFilename = Common::FS::Android::GetFilename(full_path);

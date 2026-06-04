@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef RYUJINX_DIALOG_H
-#define RYUJINX_DIALOG_H
+#pragma once
 
 #include <filesystem>
 #include <QDialog>
@@ -28,5 +27,3 @@ private:
     std::filesystem::path m_eden;
     std::filesystem::path m_ryu;
 };
-
-#endif // RYUJINX_DIALOG_H

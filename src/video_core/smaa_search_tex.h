@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2013 Jorge Jimenez (jorge@iryoku.com)
 // SPDX-FileCopyrightText: 2013 Jose I. Echevarria (joseignacioechevarria@gmail.com)
 // SPDX-FileCopyrightText: 2013 Belen Masia (bmasia@unizar.es)
@@ -5,8 +8,7 @@
 // SPDX-FileCopyrightText: 2013 Diego Gutierrez (diegog@unizar.es)
 // SPDX-License-Identifier: MIT
 
-#ifndef SEARCHTEX_H
-#define SEARCHTEX_H
+#pragma once
 
 #define SEARCHTEX_WIDTH 64
 #define SEARCHTEX_HEIGHT 16
@@ -84,5 +86,3 @@ static const unsigned char searchTexBytes[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
-
-#endif

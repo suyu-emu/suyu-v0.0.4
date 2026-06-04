@@ -1,8 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef DATA_MANAGER_H
-#define DATA_MANAGER_H
+#pragma once
 
 #include "common/common_types.h"
 #include <string>
@@ -21,5 +20,3 @@ std::string ReadableBytesSize(u64 size) noexcept;
 u64 DataDirSize(DataDir dir);
 
 }; // namespace FrontendCommon::DataManager
-
-#endif // DATA_MANAGER_H

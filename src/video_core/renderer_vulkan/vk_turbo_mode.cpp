@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+#if defined(__ANDROID__) && defined(ARCHITECTURE_arm64)
 #include <adrenotools/driver.h>
 #endif
 
@@ -20,7 +20,7 @@ namespace Vulkan {
 using namespace Common::Literals;
 
 TurboMode::TurboMode(const vk::Instance& instance, const vk::InstanceDispatch& dld)
-#ifndef ANDROID
+#ifndef __ANDROID__
     : m_device{CreateDevice(instance, dld, VK_NULL_HANDLE)}, m_allocator{m_device}
 #endif
 {
@@ -40,7 +40,7 @@ void TurboMode::QueueSubmitted() {
 }
 
 void TurboMode::Run(std::stop_token stop_token) {
-#ifndef ANDROID
+#ifndef __ANDROID__
     auto& dld = m_device.GetLogical();
 
     // Allocate buffer. 2MiB should be sufficient.
@@ -154,7 +154,7 @@ void TurboMode::Run(std::stop_token stop_token) {
 #endif
 
     while (!stop_token.stop_requested()) {
-#ifdef ANDROID
+#ifdef __ANDROID__
 #ifdef ARCHITECTURE_arm64
         adrenotools_set_turbo(true);
 #endif
@@ -232,7 +232,7 @@ void TurboMode::Run(std::stop_token stop_token) {
                    std::chrono::milliseconds{100};
         });
     }
-#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+#if defined(__ANDROID__) && defined(ARCHITECTURE_arm64)
     adrenotools_set_turbo(false);
 #endif
 }
