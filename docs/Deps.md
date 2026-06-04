@@ -16,7 +16,7 @@ To build Eden, you MUST have a C++ compiler.
 
 The following additional tools are also required:
 
-* **[CMake](https://www.cmake.org/)** 3.22+ - already included with the Android SDK
+* **[CMake](https://www.cmake.org/)** 3.31+ - already included with the Android SDK
 * **[Git](https://git-scm.com/)** for version control
   * **[Windows installer](https://gitforwindows.org)**
 * **[Python3](https://www.python.org/downloads/)** 3.10+ - necessary to download external repositories
