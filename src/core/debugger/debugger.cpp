@@ -247,17 +247,19 @@ private:
             case DebuggerAction::Continue:
                 MarkResumed([&] { ResumeEmulation(); });
                 break;
-            case DebuggerAction::StepThreadUnlocked:
-                MarkResumed([&] {
-                    state->active_thread->SetStepState(Kernel::StepState::StepPending);
-                    state->active_thread->Resume(Kernel::SuspendType::Debug);
-                    ResumeEmulation(state->active_thread.GetPointerUnsafe());
+            case DebuggerAction::ContinueThreads: {
+                auto* gdb = static_cast<GDBStub*>(frontend.get());
+                MarkResumed([this, threads = std::move(gdb->resume_threads)] {
+                    ResumeThreads(threads);
                 });
                 break;
-            case DebuggerAction::StepThreadLocked: {
-                MarkResumed([&] {
+            }
+            case DebuggerAction::StepThread: {
+                auto* gdb = static_cast<GDBStub*>(frontend.get());
+                MarkResumed([this, threads = std::move(gdb->resume_threads)] {
                     state->active_thread->SetStepState(Kernel::StepState::StepPending);
                     state->active_thread->Resume(Kernel::SuspendType::Debug);
+                    ResumeThreads(threads, state->active_thread.GetPointerUnsafe());
                 });
                 break;
             }
@@ -295,6 +297,22 @@ private:
 
             thread.SetStepState(Kernel::StepState::NotStepping);
             thread.Resume(Kernel::SuspendType::Debug);
+        }
+    }
+
+    void ResumeThreads(const std::vector<Kernel::KThread*>& threads,
+                       Kernel::KThread* except = nullptr) {
+        Kernel::KScopedLightLock ll{debug_process->GetListLock()};
+        Kernel::KScopedSchedulerLock sl{system.Kernel()};
+
+        // Wake up only the specified threads.
+        for (auto* thread : threads) {
+            if (!thread || thread == except) {
+                continue;
+            }
+
+            thread->SetStepState(Kernel::StepState::NotStepping);
+            thread->Resume(Kernel::SuspendType::Debug);
         }
     }
 

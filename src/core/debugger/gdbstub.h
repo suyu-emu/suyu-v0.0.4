@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -52,6 +52,7 @@ struct GDBStub : public DebuggerFrontend {
     std::unique_ptr<GDBStubArch> arch;
     std::vector<char> current_command;
     std::map<VAddr, u32> replaced_instructions;
+    std::vector<Kernel::KThread*> resume_threads;
     bool no_ack{};
 };
 

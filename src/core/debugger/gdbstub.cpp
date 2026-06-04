@@ -4,14 +4,14 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <codecvt>
 #include <locale>
 #include <numeric>
 #include <optional>
 #include <thread>
-
-#include <boost/algorithm/string.hpp>
 
 #include "common/hex_util.h"
 #include "common/logging.h"
@@ -273,10 +273,12 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
         break;
     }
     case 's':
-        actions.push_back(DebuggerAction::StepThreadLocked);
+        resume_threads.clear();
+        actions.push_back(DebuggerAction::StepThread);
         break;
     case 'C':
     case 'c':
+        resume_threads.clear();
         actions.push_back(DebuggerAction::Continue);
         break;
     case 'Z':
@@ -467,29 +469,142 @@ void GDBStub::HandleQuery(std::string_view sv) {
 }
 
 void GDBStub::HandleVCont(std::string_view sv, std::vector<DebuggerAction>& actions) {
-    // Continuing and stepping are supported (signal is ignored, but required for GDB to use vCont)
+    // Continuing and stepping are supported (signal is ignored, but required for GDB to use vCont).
+    // Reference: https://sourceware.org/gdb/current/onlinedocs/gdb.html/Packets.html#vCont-packet
     if (sv == "?") {
         SendReply("vCont;c;C;s;S");
-    } else {
-        Kernel::KThread* stepped_thread = nullptr;
-        bool lock_execution = true;
-        std::vector<std::string> entries;
-        boost::split(entries, sv.substr(1), boost::is_any_of(";"));
-        for (auto const& thread_action : entries) {
-            std::vector<std::string> parts;
-            boost::split(parts, thread_action, boost::is_any_of(":"));
-            if (parts.size() == 1 && (parts[0] == "c" || parts[0].starts_with("C")))
-                lock_execution = false;
-            if (parts.size() == 2 && (parts[0] == "s" || parts[0].starts_with("S")))
-                stepped_thread = GetThreadByID(strtoll(parts[1].data(), nullptr, 16));
+        return;
+    }
+    if (sv.empty() || sv.front() != ';') {
+        SendReply(GDB_STUB_REPLY_ERR);
+        return;
+    }
+
+    enum class VContAction {
+        Continue,
+        Step,
+    };
+    struct VContDirective {
+        VContAction action;
+        Kernel::KThread* thread{};
+        bool all_threads{};
+
+        bool Matches(Kernel::KThread* candidate) const {
+            return all_threads || thread == candidate;
+        }
+    };
+
+    const auto is_hex_byte = [](std::string_view value) {
+        return value.size() == 2 && std::isxdigit(static_cast<unsigned char>(value[0])) &&
+               std::isxdigit(static_cast<unsigned char>(value[1]));
+    };
+    const auto is_hex_string = [](std::string_view value) {
+        return std::ranges::all_of(value, [](auto const c) { return std::isxdigit(int(c)); });
+    };
+
+    resume_threads.clear();
+
+    std::vector<VContDirective> directives;
+    std::string_view remaining = sv.substr(1);
+    while (!remaining.empty()) {
+        const auto entry_end = remaining.find(';');
+        const auto entry = remaining.substr(0, entry_end);
+        remaining = entry_end == std::string_view::npos ? std::string_view{} : remaining.substr(entry_end + 1);
+
+        if (entry.empty()) {
+            SendReply(GDB_STUB_REPLY_ERR);
+            return;
         }
 
-        if (stepped_thread) {
-            backend.SetActiveThread(stepped_thread);
-            actions.push_back(lock_execution ? DebuggerAction::StepThreadLocked : DebuggerAction::StepThreadUnlocked);
-        } else {
-            actions.push_back(DebuggerAction::Continue);
+        const auto thread_sep = entry.find(':');
+        const auto action_token = entry.substr(0, thread_sep);
+        const auto thread_token = thread_sep == std::string_view::npos ? std::string_view{} : entry.substr(thread_sep + 1);
+
+        if (action_token.empty()) {
+            SendReply(GDB_STUB_REPLY_ERR);
+            return;
         }
+
+        VContDirective directive;
+        if (action_token == "c") {
+            directive.action = VContAction::Continue;
+        } else if (action_token.front() == 'C' && is_hex_byte(action_token.substr(1))) {
+            directive.action = VContAction::Continue;
+        } else if (action_token == "s") {
+            directive.action = VContAction::Step;
+        } else if (action_token.front() == 'S' && is_hex_byte(action_token.substr(1))) {
+            directive.action = VContAction::Step;
+        } else {
+            SendReply(GDB_STUB_REPLY_ERR);
+            return;
+        }
+
+        if (thread_sep == std::string_view::npos || thread_token == "-1") {
+            directive.all_threads = true;
+        } else if (thread_token == "0") {
+            // A thread-id of 0 selects an arbitrary thread. While stopped, use the
+            // current active thread as that arbitrary choice.
+            directive.thread = backend.GetActiveThread();
+        } else if (thread_token.starts_with('p')) {
+            // We do not currently support multiprocess thread selectors.
+            SendReply(GDB_STUB_REPLY_ERR);
+            return;
+        } else if (is_hex_string(thread_token)) {
+            directive.thread = GetThreadByID(strtoull(std::string(thread_token).c_str(), nullptr, 16));
+        } else {
+            SendReply(GDB_STUB_REPLY_ERR);
+            return;
+        }
+
+        directives.push_back(directive);
+    }
+
+    if (directives.empty()) {
+        SendReply(GDB_STUB_REPLY_ERR);
+        return;
+    }
+
+    // Resolve the packet exactly as specified by the protocol: for each thread,
+    // the leftmost action with a matching thread-id wins.
+    Kernel::KThread* stepped_thread = nullptr;
+    std::vector<Kernel::KThread*> continue_threads;
+    auto& thread_list = debug_process->GetThreadList();
+    for (auto& thread : thread_list) {
+        const auto directive = std::find_if(directives.begin(), directives.end(),
+                                            [&](const VContDirective& candidate) {
+                                                return candidate.Matches(std::addressof(thread));
+                                            });
+        if (directive == directives.end()) {
+            continue;
+        }
+
+        switch (directive->action) {
+        case VContAction::Continue:
+            continue_threads.push_back(std::addressof(thread));
+            break;
+        case VContAction::Step:
+            if (stepped_thread) {
+                // The core can step at most one thread at a time.
+                SendReply(GDB_STUB_REPLY_ERR);
+                return;
+            }
+            stepped_thread = std::addressof(thread);
+            break;
+        }
+    }
+
+    if (stepped_thread) {
+        backend.SetActiveThread(stepped_thread);
+        resume_threads = std::move(continue_threads);
+        actions.push_back(DebuggerAction::StepThread);
+    } else if (continue_threads.size() == thread_list.size()) {
+        actions.push_back(DebuggerAction::Continue);
+    } else if (!continue_threads.empty()) {
+        resume_threads = std::move(continue_threads);
+        actions.push_back(DebuggerAction::ContinueThreads);
+    } else {
+        // A resume packet that leaves all threads stopped is not useful to execute.
+        SendReply(GDB_STUB_REPLY_ERR);
     }
 }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -20,11 +20,11 @@ struct DebugWatchpoint;
 namespace Core {
 
 enum class DebuggerAction {
-    Interrupt,          ///< Stop emulation as soon as possible.
-    Continue,           ///< Resume emulation.
-    StepThreadLocked,   ///< Step the currently-active thread without resuming others.
-    StepThreadUnlocked, ///< Step the currently-active thread and resume others.
-    ShutdownEmulation,  ///< Shut down the emulator.
+    Interrupt,         ///< Stop emulation as soon as possible.
+    Continue,          ///< Resume emulation.
+    ContinueThreads,   ///< Resume only specific threads (listed in frontend).
+    StepThread,        ///< Step the active thread and resume only threads listed in frontend.
+    ShutdownEmulation, ///< Shut down the emulator.
 };
 
 class DebuggerBackend {
