@@ -1144,7 +1144,11 @@ NPad::NpadControllerData& NPad::GetControllerFromNpadIdType(u64 aruid,
         npad_id = Core::HID::NpadIdType::Player1;
     }
     const auto npad_index = NpadIdTypeToIndex(npad_id);
-    const auto aruid_index = applet_resource_holder.applet_resource->GetIndexFromAruid(aruid);
+    auto aruid_index = applet_resource_holder.applet_resource->GetIndexFromAruid(aruid);
+    if (aruid_index >= AruidIndexMax) {
+        LOG_ERROR(Service_HID, "Invalid aruid:{:016X}", aruid);
+        aruid_index = 0;
+    }
     return controller_data[aruid_index][npad_index];
 }
 
@@ -1155,7 +1159,11 @@ const NPad::NpadControllerData& NPad::GetControllerFromNpadIdType(
         npad_id = Core::HID::NpadIdType::Player1;
     }
     const auto npad_index = NpadIdTypeToIndex(npad_id);
-    const auto aruid_index = applet_resource_holder.applet_resource->GetIndexFromAruid(aruid);
+    auto aruid_index = applet_resource_holder.applet_resource->GetIndexFromAruid(aruid);
+    if (aruid_index >= AruidIndexMax) {
+        LOG_ERROR(Service_HID, "Invalid aruid:{:016X}", aruid);
+        aruid_index = 0;
+    }
     return controller_data[aruid_index][npad_index];
 }
 
