@@ -36,6 +36,14 @@ inline void And(volatile u32* ptr, u32 value) {
 #endif
 }
 
+inline u32 Exchange(volatile u32* ptr, u32 value) {
+#ifdef _MSC_VER
+    return static_cast<u32>(_InterlockedExchange(reinterpret_cast<volatile long*>(ptr), value));
+#else
+    return __atomic_exchange_n(ptr, value, __ATOMIC_SEQ_CST);
+#endif
+}
+
 inline void Barrier() {
 #ifdef _MSC_VER
     _ReadWriteBarrier();

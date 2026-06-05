@@ -1,101 +1,134 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <array>
 #include <memory>
-#include <string>
-#include <utility>
+#include <mutex>
 
+#include <boost/icl/interval_set.hpp>
 #include "common/assert.h"
 #include "common/common_types.h"
+
+#include "dynarmic/backend/loongarch64/a32_address_space.h"
+#include "dynarmic/backend/loongarch64/a32_jitstate.h"
+#include "dynarmic/common/atomic.h"
+#include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/interface/A32/a32.h"
 
 namespace Dynarmic::A32 {
 
+using namespace Backend::LoongArch64;
+
 struct Jit::Impl final {
-    explicit Impl(UserConfig conf_) : conf(std::move(conf_)) {}
+    Impl(Jit* jit_interface, A32::UserConfig conf)
+            : jit_interface(jit_interface)
+            , conf(conf)
+            , current_address_space(conf) {}
 
     HaltReason Run() {
-        UNIMPLEMENTED();
-        return halt_reason;
+        ASSERT(!jit_interface->is_executing);
+        jit_interface->is_executing = true;
+
+        const auto location_descriptor = current_state.GetLocationDescriptor();
+        const auto entry_point = current_address_space.GetOrEmit(location_descriptor);
+        current_address_space.prelude_info.run_code(entry_point, &current_state, &halt_reason);
+
+        HaltReason hr = static_cast<HaltReason>(Atomic::Exchange(&halt_reason, 0));
+        jit_interface->is_executing = false;
+        return hr;
     }
 
     HaltReason Step() {
-        UNIMPLEMENTED();
-        return halt_reason | HaltReason::Step;
+        ASSERT(!jit_interface->is_executing);
+        jit_interface->is_executing = true;
+
+        const auto location_descriptor = A32::LocationDescriptor{current_state.GetLocationDescriptor()}.SetSingleStepping(true);
+        const auto entry_point = current_address_space.GetOrEmit(location_descriptor);
+        current_address_space.prelude_info.run_code(entry_point, &current_state, &halt_reason);
+
+        HaltReason hr = static_cast<HaltReason>(Atomic::Exchange(&halt_reason, 0));
+        jit_interface->is_executing = false;
+        return hr;
     }
 
     void ClearCache() {
+        std::unique_lock lock{invalidation_mutex};
+        invalidate_entire_cache = true;
         HaltExecution(HaltReason::CacheInvalidation);
     }
 
-    void InvalidateCacheRange(u32, std::size_t) {
+    void InvalidateCacheRange(u32 start_address, size_t length) {
+        std::unique_lock lock{invalidation_mutex};
+        invalid_cache_ranges.add(boost::icl::discrete_interval<u32>::closed(start_address, static_cast<u32>(start_address + length - 1)));
         HaltExecution(HaltReason::CacheInvalidation);
     }
 
     void Reset() {
-        regs = {};
-        ext_regs = {};
-        cpsr = 0;
-        fpscr = 0;
-        halt_reason = {};
+        current_state = {};
     }
 
     void HaltExecution(HaltReason hr) {
-        halt_reason |= hr;
+        Atomic::Or(&halt_reason, static_cast<u32>(hr));
     }
 
     void ClearHalt(HaltReason hr) {
-        halt_reason &= ~hr;
+        Atomic::And(&halt_reason, ~static_cast<u32>(hr));
     }
 
     std::array<u32, 16>& Regs() {
-        return regs;
+        return current_state.regs;
     }
 
     const std::array<u32, 16>& Regs() const {
-        return regs;
+        return current_state.regs;
     }
 
     std::array<u32, 64>& ExtRegs() {
-        return ext_regs;
+        return current_state.ext_regs;
     }
 
     const std::array<u32, 64>& ExtRegs() const {
-        return ext_regs;
+        return current_state.ext_regs;
     }
 
     u32 Cpsr() const {
-        return cpsr;
+        return current_state.Cpsr();
     }
 
     void SetCpsr(u32 value) {
-        cpsr = value;
+        current_state.SetCpsr(value);
     }
 
     u32 Fpscr() const {
-        return fpscr;
+        return current_state.Fpscr();
     }
 
     void SetFpscr(u32 value) {
-        fpscr = value;
+        current_state.SetFpscr(value);
     }
 
-    void ClearExclusiveState() {}
+    void ClearExclusiveState() {
+        current_state.exclusive_state = false;
+    }
 
     std::string Disassemble() const {
         return {};
     }
 
-    UserConfig conf;
-    std::array<u32, 16> regs{};
-    std::array<u32, 64> ext_regs{};
-    u32 cpsr = 0;
-    u32 fpscr = 0;
-    HaltReason halt_reason{};
+private:
+    Jit* jit_interface;
+    A32::UserConfig conf;
+    A32JitState current_state{};
+    A32AddressSpace current_address_space;
+
+    volatile u32 halt_reason = 0;
+
+    std::mutex invalidation_mutex;
+    boost::icl::interval_set<u32> invalid_cache_ranges;
+    bool invalidate_entire_cache = false;
 };
 
-Jit::Jit(UserConfig conf) : impl(std::make_unique<Impl>(std::move(conf))) {}
+Jit::Jit(UserConfig conf)
+        : impl(std::make_unique<Impl>(this, conf)) {}
 
 Jit::~Jit() = default;
 
@@ -111,7 +144,7 @@ void Jit::ClearCache() {
     impl->ClearCache();
 }
 
-void Jit::InvalidateCacheRange(u32 start_address, std::size_t length) {
+void Jit::InvalidateCacheRange(u32 start_address, size_t length) {
     impl->InvalidateCacheRange(start_address, length);
 }
 
