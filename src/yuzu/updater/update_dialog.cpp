@@ -46,6 +46,7 @@ UpdateDialog::UpdateDialog(const Common::Net::Release& release, QWidget* parent)
             QDesktopServices::openUrl(QUrl{QString::fromStdString(release.html_url)});
         });
     } else if (assets.size() == 1) {
+        ui->groupBox->setHidden(true);
         m_asset = assets[0];
 
         connect(this, &QDialog::accepted, this, &UpdateDialog::Download);

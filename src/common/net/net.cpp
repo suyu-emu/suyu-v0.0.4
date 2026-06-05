@@ -74,7 +74,8 @@ std::vector<Asset> Release::GetPlatformAssets() const {
 #endif // ARCHITECTURE_arm64
 #elif defined(__APPLE__)
 #ifdef ARCHITECTURE_arm64
-    find_asset("Standard", {".dmg", ".tar.gz"});
+    find_asset("Standard", {"standard.dmg", "standard.tar.gz", ".dmg", ".tar.gz"});
+    find_asset("PGO", {"pgo.dmg", "pgo.tar.gz"});
 #endif // ARCHITECTURE_arm64
 #elif defined(__ANDROID__)
 #ifdef ARCHITECTURE_x86_64
