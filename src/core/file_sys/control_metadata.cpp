@@ -128,25 +128,32 @@ const LanguageEntry& NACP::GetLanguageEntry() const {
         case Settings::Language::Russian: return Language::Russian;
         case Settings::Language::Spanish: return Language::Spanish;
         case Settings::Language::SpanishLatin: return Language::LatinAmericanSpanish;
-        case Settings::Language::Taiwanese: return Language::SimplifiedChinese;
+        case Settings::Language::Taiwanese: return Language::TraditionalChinese;
         case Settings::Language::Thai: return Language::Thai;
         case Settings::Language::Polish: return Language::Polish;
         default: return Language::AmericanEnglish;
         }
     }();
 
-    u32 index = u32(language);
+    const auto index = static_cast<size_t>(language);
 
-    if (index < language_entries.size() && !language_entries[index].GetApplicationName().empty()) {
+    if (index < language_entries.size() &&
+        !language_entries[index].GetApplicationName().empty()) {
         return language_entries[index];
     }
 
     for (const auto& entry : language_entries) {
-        if (!entry.GetApplicationName().empty())
-          return entry;
+        if (!entry.GetApplicationName().empty()) {
+            return entry;
+        }
     }
 
-    return language_entries.at(static_cast<u8>(Language::AmericanEnglish));
+    if (!language_entries.empty()) {
+        return language_entries.front();
+    }
+
+    static const LanguageEntry empty_entry{};
+    return empty_entry;
 }
 
 std::vector<std::string> NACP::GetApplicationNames() const {
