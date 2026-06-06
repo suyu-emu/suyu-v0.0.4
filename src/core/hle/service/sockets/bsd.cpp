@@ -11,6 +11,7 @@
 
 #include <fmt/ranges.h>
 
+#include "common/logging.h"
 #include "common/socket_types.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_thread.h"
@@ -630,6 +631,11 @@ Errno BSD::BindImpl(s32 fd, std::span<const u8> addr) {
         return Errno::BADF;
     }
     ASSERT(addr.size() >= 16);
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return Errno::BADF;
+    }
+
     auto addr_in = GetValue<SockAddrIn>(addr);
 
     return Translate(file_descriptors[fd]->socket->Bind(Translate(addr_in)));
@@ -641,6 +647,11 @@ Errno BSD::ConnectImpl(s32 fd, std::span<const u8> addr) {
     }
 
     ASSERT(addr.size() >= 16);
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return Errno::BADF;
+    }
+
     auto addr_in = GetValue<SockAddrIn>(addr);
 
     const Errno result = Translate(file_descriptors[fd]->socket->Connect(Translate(addr_in)));
@@ -655,6 +666,11 @@ Errno BSD::ConnectImpl(s32 fd, std::span<const u8> addr) {
 
 Errno BSD::GetPeerNameImpl(s32 fd, std::vector<u8>& write_buffer) {
     if (!IsFileDescriptorValid(fd)) {
+        return Errno::BADF;
+    }
+
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return Errno::BADF;
     }
 
@@ -675,6 +691,11 @@ Errno BSD::GetSockNameImpl(s32 fd, std::vector<u8>& write_buffer) {
         return Errno::BADF;
     }
 
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return Errno::BADF;
+    }
+
     const auto [addr_in, bsd_errno] = file_descriptors[fd]->socket->GetSockName();
     if (bsd_errno != Network::Errno::SUCCESS) {
         return Translate(bsd_errno);
@@ -691,11 +712,19 @@ Errno BSD::ListenImpl(s32 fd, s32 backlog) {
     if (!IsFileDescriptorValid(fd)) {
         return Errno::BADF;
     }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return Errno::BADF;
+    }
     return Translate(file_descriptors[fd]->socket->Listen(backlog));
 }
 
 std::pair<s32, Errno> BSD::FcntlImpl(s32 fd, FcntlCmd cmd, s32 arg) {
     if (!IsFileDescriptorValid(fd)) {
+        return {-1, Errno::BADF};
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return {-1, Errno::BADF};
     }
 
@@ -722,6 +751,10 @@ std::pair<s32, Errno> BSD::FcntlImpl(s32 fd, FcntlCmd cmd, s32 arg) {
 
 Errno BSD::GetSockOptImpl(s32 fd, u32 level, OptName optname, std::vector<u8>& optval) {
     if (!IsFileDescriptorValid(fd)) {
+        return Errno::BADF;
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return Errno::BADF;
     }
 
@@ -753,6 +786,10 @@ Errno BSD::GetSockOptImpl(s32 fd, u32 level, OptName optname, std::vector<u8>& o
 
 Errno BSD::SetSockOptImpl(s32 fd, u32 level, OptName optname, std::span<const u8> optval) {
     if (!IsFileDescriptorValid(fd)) {
+        return Errno::BADF;
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return Errno::BADF;
     }
 
@@ -803,6 +840,10 @@ Errno BSD::SetSockOptImpl(s32 fd, u32 level, OptName optname, std::span<const u8
 
 Errno BSD::ShutdownImpl(s32 fd, s32 how) {
     if (!IsFileDescriptorValid(fd)) {
+        return Errno::BADF;
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return Errno::BADF;
     }
     const Network::ShutdownHow host_how = Translate(static_cast<ShutdownHow>(how));
@@ -887,12 +928,20 @@ std::pair<s32, Errno> BSD::SendImpl(s32 fd, u32 flags, std::span<const u8> messa
     if (!IsFileDescriptorValid(fd)) {
         return {-1, Errno::BADF};
     }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return {-1, Errno::BADF};
+    }
     return Translate(file_descriptors[fd]->socket->Send(message, flags));
 }
 
 std::pair<s32, Errno> BSD::SendToImpl(s32 fd, u32 flags, std::span<const u8> message,
                                       std::span<const u8> addr) {
     if (!IsFileDescriptorValid(fd)) {
+        return {-1, Errno::BADF};
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return {-1, Errno::BADF};
     }
 
@@ -910,6 +959,10 @@ std::pair<s32, Errno> BSD::SendToImpl(s32 fd, u32 flags, std::span<const u8> mes
 
 Errno BSD::CloseImpl(s32 fd) {
     if (!IsFileDescriptorValid(fd)) {
+        return Errno::BADF;
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return Errno::BADF;
     }
 
@@ -945,6 +998,10 @@ Expected<s32, Errno> BSD::DuplicateSocketImpl(s32 fd) {
 
 std::optional<std::shared_ptr<Network::SocketBase>> BSD::GetSocket(s32 fd) {
     if (!IsFileDescriptorValid(fd)) {
+        return std::nullopt;
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return std::nullopt;
     }
     return file_descriptors[fd]->socket;
