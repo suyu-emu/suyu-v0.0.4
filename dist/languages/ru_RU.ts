@@ -8279,7 +8279,7 @@ If you wish to clean up the files which were left in the old data location, you 
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
+        <location filename="../../src/yuzu/migration_worker.h" line="73"/>
         <source>Data was migrated successfully.</source>
         <translation>Данные успешно перенесены.</translation>
     </message>
@@ -10656,66 +10656,66 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
         <translation>%1 доступна для загрузки.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="78"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="79"/>
         <source>New Version Location</source>
         <translation>Местоположение новой версии</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="80"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="81"/>
         <source>All Files (*.*)</source>
         <translation>Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="88"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="128"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="143"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
         <source>Failed to save file</source>
         <translation>Не удалось сохранить файл</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="90"/>
         <source>Could not open file %1 for writing.</source>
         <translation>Не удалось открыть файл %1 для записи.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Downloading...</source>
         <translation>Загрузка...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="130"/>
         <source>Could not write to file %1.</source>
         <translation>Не удалось записать в файл %1.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="145"/>
         <source>Could not commit to file %1.</source>
         <translation>Не удалось сохранить файл %1.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="156"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
         <source>Failed to download file</source>
         <translation>Не удалось загрузить файл</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="158"/>
         <source>Could not download from %1%2
 Error code: %3</source>
         <translation>Не удалось загрузить из %1%2
 Код ошибки: %3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="170"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
         <source>Download Complete</source>
         <translation>Загрузка завершена</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="172"/>
         <source>Successfully downloaded %1. Would you like to open it?</source>
         <translation>%1 был успешно загружен. Хотите открыть?</translation>
     </message>

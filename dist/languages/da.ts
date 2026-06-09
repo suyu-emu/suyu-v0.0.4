@@ -8162,7 +8162,7 @@ If you wish to clean up the files which were left in the old data location, you 
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
+        <location filename="../../src/yuzu/migration_worker.h" line="73"/>
         <source>Data was migrated successfully.</source>
         <translation type="unfinished"/>
     </message>
@@ -10500,65 +10500,65 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="78"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="79"/>
         <source>New Version Location</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="80"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="81"/>
         <source>All Files (*.*)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="88"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="128"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="143"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
         <source>Failed to save file</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="90"/>
         <source>Could not open file %1 for writing.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Downloading...</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Cancel</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="130"/>
         <source>Could not write to file %1.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="145"/>
         <source>Could not commit to file %1.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="156"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
         <source>Failed to download file</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="158"/>
         <source>Could not download from %1%2
 Error code: %3</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="170"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
         <source>Download Complete</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="172"/>
         <source>Successfully downloaded %1. Would you like to open it?</source>
         <translation type="unfinished"/>
     </message>

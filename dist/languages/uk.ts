@@ -6375,32 +6375,32 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="285"/>
         <source>Name</source>
-        <translation type="unfinished"/>
+        <translation>Назва</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="286"/>
         <source>Compatibility</source>
-        <translation type="unfinished"/>
+        <translation>Сумісність</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="287"/>
         <source>Add-ons</source>
-        <translation type="unfinished"/>
+        <translation>Додатки</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="288"/>
         <source>File type</source>
-        <translation type="unfinished"/>
+        <translation>Тип файлу</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="289"/>
         <source>Size</source>
-        <translation type="unfinished"/>
+        <translation>Розмір</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="290"/>
         <source>Play time</source>
-        <translation type="unfinished"/>
+        <translation>Награний час</translation>
     </message>
 </context>
 <context>
@@ -8282,7 +8282,7 @@ If you wish to clean up the files which were left in the old data location, you 
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
+        <location filename="../../src/yuzu/migration_worker.h" line="73"/>
         <source>Data was migrated successfully.</source>
         <translation>Дані перенесено успішно.</translation>
     </message>
@@ -10658,66 +10658,66 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
         <translation>%1 доступно для завантаження.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="78"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="79"/>
         <source>New Version Location</source>
         <translation>Розташування нової версії</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="80"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="81"/>
         <source>All Files (*.*)</source>
         <translation>Усі файли (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="88"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="128"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="143"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
         <source>Failed to save file</source>
         <translation>Не вдалося зберегти файл</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="90"/>
         <source>Could not open file %1 for writing.</source>
         <translation>Не вдалося відкрити файл «%1» для запису.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Downloading...</source>
         <translation>Завантаження...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Cancel</source>
         <translation>Скасувати</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="130"/>
         <source>Could not write to file %1.</source>
         <translation>Не вдалося записати до файлу «%1».</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="145"/>
         <source>Could not commit to file %1.</source>
         <translation>Не вдалося вкласти до файлу «%1».</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="156"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
         <source>Failed to download file</source>
         <translation>Не вдалося завантажити файл</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="158"/>
         <source>Could not download from %1%2
 Error code: %3</source>
         <translation>Не вдалося завантажити з %1%2
 Код помилки: %3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="170"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
         <source>Download Complete</source>
         <translation>Завантажено</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="172"/>
         <source>Successfully downloaded %1. Would you like to open it?</source>
         <translation>%1 успішно завантажено. Хочете відкрити?</translation>
     </message>

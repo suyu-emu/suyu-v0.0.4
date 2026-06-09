@@ -496,7 +496,7 @@
     <string name="antiflicker">防闪烁</string>
     <string name="antiflicker_description">强制 GPU 围栏回调等待已提交的 GPU 任务。配合“快速 GPU 模式”一起使用，以避免画面闪烁现象，仅会牺牲少量性能。</string>
     <string name="fix_bloom_effects">修复 Bloom 效果</string>
-    <string name="fix_bloom_effects_description">减少《塞尔达传说：智慧的再现》（Adreno A6XX - A7XX/ Turnip）中的 bloom 模糊，并移除《Burnout》中的 bloom 效果。警告：可能会导致在其他游戏中出现图形异常。</string>
+    <string name="fix_bloom_effects_description">减少《智慧的再现》和《众神的三角力量2》（Adreno A6XX - A7XX/ Turnip）中的 bloom 模糊，并移除《Burnout》中的 bloom 效果。警告：可能会导致在其他游戏中出现图形异常。</string>
     <string name="emulate_bgr565">模拟 BGR565</string>
     <string name="emulate_bgr565_description">修复游戏中的颜色反转或是异常的画面瑕疵或阴影问题</string>
     <string name="rescale_hack">启用旧版缩放处理</string>

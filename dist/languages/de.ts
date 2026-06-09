@@ -26,17 +26,24 @@ li.unchecked::marker { content: &quot;\2610&quot;; }
 li.checked::marker { content: &quot;\2612&quot;; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Noto Sans'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:12pt;&quot;&gt;Eden is an experimental open-source emulator for the Nintendo Switch licensed under GPLv3.0+ which is based on the yuzu emulator which ended development back in March 2024. &lt;br /&gt;&lt;br /&gt;This software should not be used to play games you have not legally obtained.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;!DOCTYPE HTML PUBLIC „-//W3C//DTD HTML 4.0//EN“ „http://www.w3.org/TR/REC-html40/strict.dtd“&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: „\2610“; }
+li.checked::marker { content: „\2612“; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:‚Noto Sans‘; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:‚MS Shell Dlg 2‘; font-size:12pt;&quot;&gt;Eden ist ein experimenteller, quelloffener Emulator für die Nintendo Switch, der unter der GPLv3.0+ lizenziert ist und auf dem Emulator yuzu basiert, dessen Entwicklung im März 2024 eingestellt wurde. &lt;br /&gt;&lt;br /&gt;Diese Software sollte nicht zum Spielen von Spielen verwendet werden, die du nicht legal erworben hast.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="131"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://eden-emulator.github.io/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Website&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://git.eden-emu.dev&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Source Code&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://git.eden-emu.dev/eden-emu/eden/activity/contributors&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Contributors&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://discord.gg/HstXbPch7X&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Discord&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://stt.gg/qKgFEAbH&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Stoat&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://nitter.poast.org/edenemuofficial&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Twitter&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://git.eden-emu.dev/eden-emu/eden/src/branch/master/LICENSE.txt&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;License&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://eden-emulator.github.io/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Webseite&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://git.eden-emu.dev&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Quell-Code&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://git.eden-emu.dev/eden-emu/eden/activity/contributors&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Mitwirkende&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://discord.gg/HstXbPch7X&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Discord&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://stt.gg/qKgFEAbH&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Hermelin&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://nitter.poast.org/edenemuofficial&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Twitter&lt;/span&gt;&lt;/a&gt; | &lt;a href=&quot;https://git.eden-emu.dev/eden-emu/eden/src/branch/master/LICENSE.txt&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#039be5;&quot;&gt;Lizenz&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/aboutdialog.ui" line="147"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:7pt;&quot;&gt;&amp;quot;Nintendo Switch&amp;quot; is a trademark of Nintendo. Eden is not affiliated with Nintendo in any way.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:7pt;&quot;&gt;„Nintendo Switch“ ist eine Marke von Nintendo. Eden steht in keinerlei Verbindung zu Nintendo.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -231,7 +238,7 @@ Dies würde deren Forum-Benutzernamen und deren IP-Adresse sperren.</translation
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="36"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href=&quot;https://eden-emulator.github.io/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;eden Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Which version of eden you are running&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The connected eden account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Solltest du dich dazu entscheiden, einen Testfall an die &lt;/span&gt;&lt;a href=&quot;https://eden-emulator.github.io/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;eden-Kompatibilitätsliste&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt; zu übermitteln, werden die folgenden Informationen erfasst und auf der Webseite angezeigt:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardware-Informationen (CPU / GPU / Betriebssystem)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Welche Version von eden du ausführst&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Das verknüpfte eden-Konto&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="77"/>
@@ -256,7 +263,7 @@ Dies würde deren Forum-Benutzernamen und deren IP-Adresse sperren.</translation
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="131"/>
         <source>No    The game crashes or freezes while loading or using the menu</source>
-        <translation>Nein das Spiel stürzt ab oder friert ein während des Ladens des Menüs.</translation>
+        <translation>Nein    Das Spiel stürzt ab oder friert ein, während es geladen wird oder das Menü aufgerufen wird</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="143"/>
@@ -266,12 +273,12 @@ Dies würde deren Forum-Benutzernamen und deren IP-Adresse sperren.</translation
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="176"/>
         <source>Yes   The game works without crashes</source>
-        <translation>Ja Das Spiel funktioniert ohne Abstürze.</translation>
+        <translation>Ja   Das Spiel läuft ohne Abstürze</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="183"/>
         <source>No    The game crashes or freezes during gameplay</source>
-        <translation>Nein Das Spiel stürzt ab oder freezed während des spielen.</translation>
+        <translation>Nein    Das Spiel stürzt während des Spielens ab oder friert ein</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="195"/>
@@ -281,12 +288,12 @@ Dies würde deren Forum-Benutzernamen und deren IP-Adresse sperren.</translation
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="228"/>
         <source>Yes   The game can be finished without any workarounds</source>
-        <translation>Ja Das Spiel kann ohne Workarounds abgeschlossen werden.</translation>
+        <translation>Ja   Das Spiel lässt sich ohne Umwege durchspielen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="235"/>
         <source>No    The game can&apos;t progress past a certain area</source>
-        <translation>Nein Spezielle Bereiche des Spieles können nicht abgeschlossen werden.</translation>
+        <translation>Nein    Das Spiel kommt ab einem bestimmten Punkt nicht mehr weiter</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="247"/>
@@ -351,7 +358,7 @@ Dies würde deren Forum-Benutzernamen und deren IP-Adresse sperren.</translation
     <message>
         <location filename="../../src/yuzu/compatdb.cpp" line="192"/>
         <source>An error occurred while sending the Testcase</source>
-        <translation>Beim Senden des Berichtes ist ein Fehler aufgetreten.</translation>
+        <translation>Beim Senden des Testfalls ist ein Fehler aufgetreten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.cpp" line="194"/>
@@ -379,7 +386,7 @@ Dies würde deren Forum-Benutzernamen und deren IP-Adresse sperren.</translation
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="36"/>
         <source>Data erase</source>
-        <translation type="unfinished"/>
+        <translation>Datenlöschung</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="37"/>
@@ -389,12 +396,12 @@ Dies würde deren Forum-Benutzernamen und deren IP-Adresse sperren.</translation
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="38"/>
         <source>Net connect</source>
-        <translation type="unfinished"/>
+        <translation>Netzwerkverbindung</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="39"/>
         <source>Player select</source>
-        <translation type="unfinished"/>
+        <translation>Spielerauswahl</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="40"/>
@@ -404,52 +411,52 @@ Dies würde deren Forum-Benutzernamen und deren IP-Adresse sperren.</translation
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="41"/>
         <source>Mii Edit</source>
-        <translation type="unfinished"/>
+        <translation>Mii bearbeiten</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="42"/>
         <source>Online web</source>
-        <translation type="unfinished"/>
+        <translation>Online-Web</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="43"/>
         <source>Shop</source>
-        <translation type="unfinished"/>
+        <translation>Geschäft</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="44"/>
         <source>Photo viewer</source>
-        <translation type="unfinished"/>
+        <translation>Fotobetrachter</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="45"/>
         <source>Offline web</source>
-        <translation type="unfinished"/>
+        <translation>Offline-Web</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="46"/>
         <source>Login share</source>
-        <translation type="unfinished"/>
+        <translation>Anmelden Teilen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="47"/>
         <source>Wifi web auth</source>
-        <translation type="unfinished"/>
+        <translation>WLAN-Web-Authentifizierung</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="48"/>
         <source>My page</source>
-        <translation type="unfinished"/>
+        <translation>Meine Seite</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="49"/>
         <source>Enable Overlay Applet</source>
-        <translation type="unfinished"/>
+        <translation>Überlagerungs-Applet aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="50"/>
         <source>Enables Horizon&apos;s built-in overlay applet. Press and hold the home button for 1 second to show it.</source>
-        <translation type="unfinished"/>
+        <translation>Aktiviert das in Horizon integrierte Überlagerungs-Applet. Halte die Home-Taste 1 Sekunde lang gedrückt, um es anzuzeigen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="54"/>
@@ -502,7 +509,8 @@ Dies ist vor allem eine Debug-Option und sollte nicht deaktiviert werden.</trans
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="67"/>
         <source>Increases the amount of emulated RAM.
 Doesn&apos;t affect performance/stability but may allow HD texture mods to load.</source>
-        <translation type="unfinished"/>
+        <translation>Erhöht die Menge des emulierten Arbeitsspeichers.
+Hat keinen Einfluss auf Leistung oder Stabilität, ermöglicht jedoch möglicherweise das Laden von HD-Textur-Mods.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="72"/>
@@ -548,7 +556,8 @@ Deaktivieren bedeutet das keine Wiederholratenbegrenzung stattfindet.</translati
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="86"/>
         <source>Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).
 Can help reduce stuttering at lower framerates.</source>
-        <translation type="unfinished"/>
+        <translation>Synchronisiert die Taktfrequenz der CPU-Kerne mit der maximalen Rendering-Geschwindigkeit des Spiels, um die BpS zu steigern, ohne die Spielgeschwindigkeit (Animationen, Physik usw.) zu beeinträchtigen.
+Kann dazu beitragen, Ruckler bei niedrigeren Bildraten zu reduzieren.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="91"/>
@@ -581,12 +590,12 @@ Verwende Boost (1700MHz), um mit der höchsten nativen Taktrate der Switch zu la
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="103"/>
         <source>Custom CPU Ticks</source>
-        <translation type="unfinished"/>
+        <translation>Benutzerdefinierte CPU-Ticks</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="104"/>
         <source>Set a custom value of CPU ticks. Higher values can increase performance, but may cause deadlocks. A range of 77-21000 is recommended.</source>
-        <translation type="unfinished"/>
+        <translation>Lege einen benutzerdefinierten Wert für die CPU-Ticks fest. Höhere Werte können die Leistung steigern, jedoch auch zu Verklemmungen führen. Es wird ein Bereich von 77 bis 21000 empfohlen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="112"/>
@@ -639,7 +648,8 @@ Disabling this forces all memory accesses to use Software MMU Emulation.</source
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="130"/>
         <source>This option improves speed by removing NaN checking.
 Please note this also reduces accuracy of certain floating-point instructions.</source>
-        <translation type="unfinished"/>
+        <translation>Diese Option verbessert die Geschwindigkeit durch Wegfall der NaN-Prüfung.
+Bitte beachte, dass dies auch die Genauigkeit bestimmter Gleitkommaoperationen verringert.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="132"/>
@@ -650,7 +660,8 @@ Please note this also reduces accuracy of certain floating-point instructions.</
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="133"/>
         <source>This option improves speed by eliminating a safety check before every memory operation.
 Disabling it may allow arbitrary code execution.</source>
-        <translation type="unfinished"/>
+        <translation>Diese Option verbessert die Geschwindigkeit, indem sie eine Sicherheitsprüfung vor jedem Speicherzugriff überspringt.
+Wird sie deaktiviert, kann dies zur Ausführung von beliebigem Code führen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="136"/>
@@ -661,7 +672,8 @@ Disabling it may allow arbitrary code execution.</source>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="137"/>
         <source>This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions.
 Please note this may result in deadlocks and other race conditions.</source>
-        <translation type="unfinished"/>
+        <translation>Diese Option erhöht die Geschwindigkeit, indem sie sich ausschließlich auf die Semantik von `cmpxchg` stützt, um die Sicherheit von Befehlen für exklusiven Zugriff zu gewährleisten.
+Bitte beachte, dass dies zu Verklemmungen und anderen Race Conditions führen kann.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="142"/>
@@ -672,7 +684,8 @@ Please note this may result in deadlocks and other race conditions.</source>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="143"/>
         <source>Changes the output graphics API.
 Vulkan is recommended.</source>
-        <translation type="unfinished"/>
+        <translation>Ändert die Ausgabe-Grafik-API.
+Vulkan wird empfohlen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="144"/>
@@ -694,7 +707,9 @@ Vulkan is recommended.</source>
         <source>Forces to render at a different resolution.
 Higher resolutions require more VRAM and bandwidth.
 Options lower than 1X can cause artifacts.</source>
-        <translation type="unfinished"/>
+        <translation>Erzwingt das Rendern in einer anderen Auflösung.
+Höhere Auflösungen erfordern mehr VRAM und Bandbreite.
+Optionen unter 1x können Artefakte verursachen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="150"/>
@@ -704,12 +719,12 @@ Options lower than 1X can cause artifacts.</source>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="151"/>
         <source>FSR Sharpness:</source>
-        <translation>FSR-Schärfe</translation>
+        <translation>FSR-Schärfe:</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="152"/>
         <source>Determines how sharpened the image will look using FSR&apos;s or SGSR&apos;s dynamic contrast.</source>
-        <translation type="unfinished"/>
+        <translation>Legt fest, wie scharf das Bild mithilfe des dynamischen Kontrasts von FSR oder SGSR dargestellt wird.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="153"/>
@@ -721,7 +736,9 @@ Options lower than 1X can cause artifacts.</source>
         <source>The anti-aliasing method to use.
 SMAA offers the best quality.
 FXAA can produce a more stable picture in lower resolutions.</source>
-        <translation type="unfinished"/>
+        <translation>Die zu verwendende Anti-Aliasing-Methode.
+SMAA bietet die beste Bildqualität.
+FXAA liefert bei niedrigeren Auflösungen ein stabileres Bild.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="156"/>
@@ -733,7 +750,9 @@ FXAA can produce a more stable picture in lower resolutions.</source>
         <source>The method used to render the window in fullscreen.
 Borderless offers the best compatibility with the on-screen keyboard that some games request for input.
 Exclusive fullscreen may offer better performance and better Freesync/Gsync support.</source>
-        <translation type="unfinished"/>
+        <translation>Die Methode, mit der das Fenster im Vollbildmodus dargestellt wird.
+Der randlose Modus bietet die beste Kompatibilität mit der Bildschirmtastatur, die manche Spiele für die Eingabe erfordern.
+Der exklusive Vollbildmodus bietet möglicherweise eine bessere Leistung und eine bessere Freesync-/G-Sync-Unterstützung.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="161"/>
@@ -745,29 +764,33 @@ Exclusive fullscreen may offer better performance and better Freesync/Gsync supp
         <source>Stretches the renderer to fit the specified aspect ratio.
 Most games only support 16:9, so modifications are required to get other ratios.
 Also controls the aspect ratio of captured screenshots.</source>
-        <translation type="unfinished"/>
+        <translation>Dehnt den Renderer so, dass er dem angegebenen Seitenverhältnis entspricht.
+Die meisten Spiele unterstützen nur das Seitenverhältnis 16:9, sodass Anpassungen erforderlich sind, um andere Seitenverhältnisse zu erhalten.
+Steuert außerdem das Seitenverhältnis der aufgenommenen Bildschirmfotos.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="165"/>
         <source>Use persistent pipeline cache</source>
-        <translation type="unfinished"/>
+        <translation>Persistenten Rohrleitungs-Cache verwenden</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="166"/>
         <source>Allows saving shaders to storage for faster loading on following game boots.
 Disabling it is only intended for debugging.</source>
-        <translation type="unfinished"/>
+        <translation>Ermöglicht das Speichern von Schattierern, um sie beim nächsten Spielstart schneller laden zu können.
+Die Deaktivierung ist ausschließlich für Fehlerbehebungszwecke vorgesehen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="169"/>
         <source>Use asynchronous GPU emulation</source>
-        <translation type="unfinished"/>
+        <translation>Asynchrone GPU-Emulation verwenden</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="170"/>
         <source>Uses an extra CPU thread for rendering.
 This option should always remain enabled.</source>
-        <translation type="unfinished"/>
+        <translation>Verwendet einen zusätzlichen CPU-Thread für das Rendern.
+Diese Option sollte immer aktiviert bleiben.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="171"/>
@@ -779,7 +802,9 @@ This option should always remain enabled.</source>
         <source>Specifies how videos should be decoded.
 It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos).
 In most cases, GPU decoding provides the best performance.</source>
-        <translation type="unfinished"/>
+        <translation>Legt fest, wie Videos decodiert werden sollen.
+Dabei kann entweder die CPU oder die GPU für die Dekodierung verwendet werden, oder es findet überhaupt keine Dekodierung statt (schwarzer Bildschirm bei Videos).
+In den meisten Fällen bietet die GPU-Dekodierung die beste Leistung.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="175"/>
@@ -793,7 +818,11 @@ CPU: Use the CPU for decoding.
 GPU: Use the GPU's compute shaders to decode ASTC textures (recommended).
 CPU Asynchronously: Use the CPU to decode ASTC textures on demand. EliminatesASTC decoding
 stuttering but may present artifacts.</source>
-        <translation type="unfinished"/>
+        <translation>Diese Option legt fest, wie ASTC-Texturen dekodiert werden sollen.
+CPU: Die Dekodierung erfolgt über die CPU.
+GPU: Die Dekodierung von ASTC-Texturen erfolgt über die Berechnungs-Schattierer der GPU (empfohlen).
+CPU asynchron: Die Dekodierung von ASTC-Texturen erfolgt bei Bedarf über die CPU. Dies verhindert Ruckeln bei der ASTC-Dekodierung,
+kann jedoch zu Artefakten führen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="181"/>
@@ -805,17 +834,19 @@ stuttering but may present artifacts.</source>
         <source>Most GPUs lack support for ASTC textures and must decompress to anintermediate format: RGBA8.
 BC1/BC3: The intermediate format will be recompressed to BC1 or BC3 format,
  saving VRAM but degrading image quality.</source>
-        <translation type="unfinished"/>
+        <translation>Die meisten GPUs unterstützen keine ASTC-Texturen und müssen diese daher in ein Zwischenformat dekomprimieren: RGBA8.
+BC1/BC3: Das Zwischenformat wird wieder in das BC1- oder BC3-Format komprimiert,
+was VRAM spart, jedoch zu Einbußen bei der Bildqualität führt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="186"/>
         <source>Frame Pacing Mode (Vulkan only)</source>
-        <translation type="unfinished"/>
+        <translation>Frame-Pacing-Modus (nur Vulkan)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="187"/>
         <source>Controls how the emulator manages frame pacing to reduce stuttering and make the frame rate smoother and more consistent.</source>
-        <translation type="unfinished"/>
+        <translation>Steuert, wie der Emulator das Frame-Pacing verwaltet, um Ruckeln zu reduzieren und die Bildrate flüssiger und gleichmäßiger zu gestalten.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="189"/>
@@ -826,7 +857,8 @@ BC1/BC3: The intermediate format will be recompressed to BC1 or BC3 format,
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="190"/>
         <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
 Aggressive mode may impact performance of other applications such as recording software.</source>
-        <translation type="unfinished"/>
+        <translation>Legt fest, ob der Emulator vorrangig Speicherplatz sparen oder den verfügbaren Grafikspeicher zur Leistungsoptimierung maximal ausnutzen soll.
+Der aggressive Modus kann die Leistung anderer Anwendungen, wie z. B. Aufnahmesoftware, beeinträchtigen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="193"/>
@@ -841,13 +873,14 @@ Aggressive mode may impact performance of other applications such as recording s
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="196"/>
         <source>Anti-Flicker</source>
-        <translation type="unfinished"/>
+        <translation>Anti-Flackern</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="197"/>
         <source>Forces GPU fence callbacks to wait for submitted GPU work.
 Use with Fast GPU mode, to avoid flicker with lower performance impact.</source>
-        <translation type="unfinished"/>
+        <translation>Erzwingt, dass GPU-Zaun-Rückrufe auf übermittelte GPU-Arbeit warten.
+In Verbindung mit dem „Schnelle GPU“-Modus verwenden, um Flackern bei geringeren Leistungseinbußen zu vermeiden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="199"/>
@@ -860,7 +893,10 @@ Use with Fast GPU mode, to avoid flicker with lower performance impact.</source>
 FIFO Relaxed allows tearing as it recovers from a slow down.
 Mailbox can have lower latency than FIFO and does not tear but may drop frames.
 Immediate (no synchronization) presents whatever is available and can exhibit tearing.</source>
-        <translation type="unfinished"/>
+        <translation>FIFO (VSync) lässt keine Frames ausfallen und verursacht kein Tearing, ist jedoch durch die Bildwiederholfrequenz des Bildschirms begrenzt.
+FIFO Relaxed lässt Tearing zu, während es sich von einer Verlangsamung erholt.
+Postkasten kann eine geringere Latenz als FIFO aufweisen und verursacht kein Tearing, lässt jedoch möglicherweise Bilder ausfallen.
+Sofort (ohne Synchronisation) zeigt alles an, was verfügbar ist, und kann Tearing verursachen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="212"/>
@@ -872,7 +908,9 @@ Immediate (no synchronization) presents whatever is available and can exhibit te
         <source>Ensures data consistency between compute and memory operations.
 This option fixes issues in games, but may degrade performance.
 Unreal Engine 4 games often see the most significant changes thereof.</source>
-        <translation type="unfinished"/>
+        <translation>Gewährleistet die Datenkonsistenz zwischen Rechen- und Speicheroperationen.
+Diese Option behebt Probleme in Spielen, kann jedoch zu Leistungseinbußen führen.
+Bei Spielen mit Unreal Engine 4 sind die Auswirkungen oft am deutlichsten spürbar.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="216"/>
@@ -882,7 +920,7 @@ Unreal Engine 4 games often see the most significant changes thereof.</source>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="217"/>
         <source>Slightly improves performance by moving presentation to a separate CPU thread.</source>
-        <translation type="unfinished"/>
+        <translation>Verbessert die Leistung geringfügig, indem die Darstellung auf einen separaten CPU-Thread verlagert wird.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="219"/>
@@ -903,7 +941,8 @@ Unreal Engine 4 games often see the most significant changes thereof.</source>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="223"/>
         <source>Controls the quality of texture rendering at oblique angles.
 Safe to set at 16x on most GPUs.</source>
-        <translation type="unfinished"/>
+        <translation>Steuert die Qualität der Texturwiedergabe bei schrägen Blickwinkeln.
+Bei den meisten Grafikkarten kann dieser Wert bedenkenlos auf 16x eingestellt werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="225"/>
@@ -925,7 +964,7 @@ Particles tend to only render correctly with Accurate mode.</source>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="230"/>
         <source>Controls the DMA precision accuracy. Safe precision fixes issues in some games but may degrade performance.</source>
-        <translation type="unfinished"/>
+        <translation>Steuert die Genauigkeit der DMA-Präzision. Die „Sichere“-Präzision behebt Probleme in einigen Spielen, kann jedoch zu Leistungseinbußen führen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="232"/>
@@ -935,7 +974,7 @@ Particles tend to only render correctly with Accurate mode.</source>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="233"/>
         <source>May reduce shader stutter.</source>
-        <translation>Reduziert vielleicht Shader stottern.</translation>
+        <translation>Kann Schattierer-Ruckler reduzieren.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="234"/>
@@ -946,7 +985,8 @@ Particles tend to only render correctly with Accurate mode.</source>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="235"/>
         <source>Overclocks the emulated GPU to increase dynamic resolution and render distance.
 Use 256 for maximal performance and 512 for maximal graphics fidelity.</source>
-        <translation type="unfinished"/>
+        <translation>Übertaktet die emulierte GPU, um die dynamische Auflösung und die Darstellungsentfernung zu erhöhen.
+Verwende den Wert 256 für maximale Leistung und 512 für maximale Grafikqualität.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="237"/>
@@ -957,7 +997,8 @@ Use 256 for maximal performance and 512 for maximal graphics fidelity.</source>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="238"/>
         <source>Accelerates BCn 3D texture decoding using GPU compute.
 Disable if experiencing crashes or graphical glitches.</source>
-        <translation type="unfinished"/>
+        <translation>Beschleunigt die Dekodierung von BCn-3D-Texturen mithilfe von GPU-Rechenleistung.
+Deaktiviere diese Option, falls Abstürze oder Grafikfehler auftreten.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="240"/>
@@ -982,7 +1023,8 @@ Passen Sie diesen Wert an, um das Gleichgewicht zwischen GPU-Beschleunigung und 
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="246"/>
         <source>Sets the maximum amount of texture data (in MiB) processed per frame.
 Higher values can reduce stutter during texture loading but may impact frame consistency.</source>
-        <translation type="unfinished"/>
+        <translation>Legt die maximale Menge an Texturdaten (in MiB) fest, die pro Bild verarbeitet wird.
+Höhere Werte können Ruckeln beim Laden von Texturen verringern, können sich jedoch auf die Bildrate auswirken.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="249"/>
@@ -993,7 +1035,8 @@ Higher values can reduce stutter during texture loading but may impact frame con
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="250"/>
         <source>Determines the number of depth slices processed in a single dispatch.
 Increasing this can improve throughput on high-end GPUs but may cause TDR or driver timeouts on weaker hardware.</source>
-        <translation type="unfinished"/>
+        <translation>Legt die Anzahl der Tiefenschnitte fest, die in einem einzelnen Durchlauf verarbeitet werden.
+Eine Erhöhung dieses Werts kann den Durchsatz auf High-End-GPUs verbessern, bei schwächerer Hardware jedoch zu TDR- oder Treiber-Auszeiten führen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="254"/>
@@ -1004,7 +1047,8 @@ Increasing this can improve throughput on high-end GPUs but may cause TDR or dri
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="255"/>
         <source>Enables GPU vendor-specific pipeline cache.
 This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</source>
-        <translation type="unfinished"/>
+        <translation>Aktiviert den herstellerspezifischen Rohrleitungs-Cache der GPU.
+Diese Option kann die Ladezeit von Schattierern erheblich verkürzen, wenn der Vulkan-Treiber die Rohrleitungs-Cache-Dateien nicht intern speichert.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="258"/>
@@ -1017,8 +1061,8 @@ This option can improve shader loading time significantly in cases where the Vul
 This setting only exists for Intel proprietary drivers and may crash if enabled.
 Compute pipelines are always enabled on all other drivers.</source>
         <translation>Wird von einigen Spielen benötigt.
-Diese Einstellung ist nur für proprietäre Intel-Treiber und kann bei Aktivierung zu Abstürzen führen.
-Bei allen anderen Treibern sind Compute-Pipelines immer aktiviert</translation>
+Diese Einstellung ist nur bei proprietären Intel-Treibern vorhanden und kann bei Aktivierung zu einem Absturz führen.
+Bei allen anderen Treibern sind die Rechen-Rohrleitungen immer aktiviert.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="263"/>
@@ -1038,12 +1082,12 @@ Bei allen anderen Treibern sind Compute-Pipelines immer aktiviert</translation>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="267"/>
         <source>Run the game at normal speed during video playback, even when the framerate is unlocked.</source>
-        <translation>Lasse das Spiel in der normalen Geschwindigkeit abspielen, trotz freigeschalteter Bildrate (FPS)</translation>
+        <translation>Lasse das Spiel in der normalen Geschwindigkeit abspielen, trotz freigeschalteter Bildrate</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="269"/>
         <source>Barrier feedback loops</source>
-        <translation>Barrier-Feedback-Loops</translation>
+        <translation>Barrier-Feedback-Schleifen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="270"/>
@@ -1053,18 +1097,19 @@ Bei allen anderen Treibern sind Compute-Pipelines immer aktiviert</translation>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="271"/>
         <source>Enable buffer history</source>
-        <translation>Aktiviere Puffer Verlauf</translation>
+        <translation>Puffer-Verlauf aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="272"/>
         <source>Enables access to previous buffer states.
 This option may improve rendering quality and performance consistency in some games.</source>
-        <translation type="unfinished"/>
+        <translation>Ermöglicht den Zugriff auf frühere Pufferzustände.
+Diese Option kann in manchen Spielen die Darstellungsqualität und die Leistungsstabilität verbessern.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="274"/>
         <source>Fix bloom effects</source>
-        <translation>Behebt Boomeffekte</translation>
+        <translation>Bloom-Effekte beheben</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="274"/>
@@ -1074,56 +1119,60 @@ This option may improve rendering quality and performance consistency in some ga
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="276"/>
         <source>Enable Legacy Rescale Pass</source>
-        <translation type="unfinished"/>
+        <translation>„Legacy Rescale Pass“ aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="277"/>
         <source>May fix rescale issues in some games by relying on behavior from the previous implementation.
 Legacy behavior workaround that fixes line artifacts on AMD and Intel GPUs, and grey texture flicker on Nvidia GPUs in Luigis Mansion 3.</source>
-        <translation type="unfinished"/>
+        <translation>Behebt möglicherweise Probleme mit der Skalierung in einigen Spielen, indem auf das Verhalten der vorherigen Implementierung zurückgegriffen wird.
+Eine Umgehungslösung für das alte Verhalten, die Linienartefakte auf AMD- und Intel-GPUs sowie graues Texturflackern auf Nvidia-GPUs in „Luigi’s Mansion 3“ behebt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="283"/>
         <source>Extended Dynamic State</source>
-        <translation type="unfinished"/>
+        <translation>Erweiterter dynamischer Zustand</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="284"/>
         <source>Controls the number of features that can be used in Extended Dynamic State.
 Higher states allow for more features and can increase performance, but may cause additional graphical issues.</source>
-        <translation type="unfinished"/>
+        <translation>Legt die Anzahl der Funktionen fest, die im erweiterten dynamischen Modus verwendet werden können.
+Höhere Stufen ermöglichen mehr Funktionen und können die Leistung steigern, können jedoch zusätzliche grafische Probleme verursachen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="288"/>
         <source>Vertex Input Dynamic State</source>
-        <translation type="unfinished"/>
+        <translation>Dynamischer Zustand der Scheitelpunkteingabe</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="289"/>
         <source>Enables vertex input dynamic state feature for better quality and performance.</source>
-        <translation type="unfinished"/>
+        <translation>Aktiviert die Funktion für den dynamischen Status der Scheitelpunkteingabe, um eine bessere Qualität und Leistung zu erzielen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="292"/>
         <source>Sample Shading</source>
-        <translation type="unfinished"/>
+        <translation>Probe-Schattierung</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="293"/>
         <source>Allows the fragment shader to execute per sample in a multi-sampled fragment instead of once per fragment. Improves graphics quality at the cost of performance.
 Higher values improve quality but degrade performance.</source>
-        <translation type="unfinished"/>
+        <translation>Ermöglicht es dem Fragment-Schattierer, pro Abtastwert in einem mehrfach abgetasteten Fragment ausgeführt zu werden, anstatt nur einmal pro Fragment. Verbessert die Grafikqualität auf Kosten der Leistung.
+Höhere Werte verbessern die Qualität, beeinträchtigen jedoch die Leistung.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="300"/>
         <source>RNG Seed</source>
-        <translation>RNG-Seed</translation>
+        <translation>Startwert für den Zufallszahlengenerator</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="301"/>
         <source>Controls the seed of the random number generator.
 Mainly used for speedrunning.</source>
-        <translation type="unfinished"/>
+        <translation>Steuert den Startwert des Zufallszahlengenerators.
+Wird hauptsächlich für Schnelldurchläufe verwendet.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="303"/>
@@ -1150,7 +1199,7 @@ Kann benutzt werden um Zeit in Spielen zu manipulieren.</translation>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="309"/>
         <source>The number of seconds from the current unix time</source>
-        <translation type="unfinished"/>
+        <translation>Die Anzahl der Sekunden seit dem aktuellen Unix-Zeitstempel</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="310"/>
@@ -1160,7 +1209,7 @@ Kann benutzt werden um Zeit in Spielen zu manipulieren.</translation>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="311"/>
         <source>This option can be overridden when region setting is auto-select</source>
-        <translation>Diese Einstellung kann überschrieben werden, falls deine Region auf Automatisch eingestellt ist.</translation>
+        <translation>Diese Option kann überschrieben werden, wenn die Regionseinstellung auf „Automatische Auswahl“ steht</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="312"/>
@@ -1197,27 +1246,29 @@ Kann benutzt werden um Zeit in Spielen zu manipulieren.</translation>
         <source>Selects if the console is in Docked or Handheld mode.
 Games will change their resolution, details and supported controllers and depending on this setting.
 Setting to Handheld can help improve performance for low end systems.</source>
-        <translation type="unfinished"/>
+        <translation>Legt fest, ob sich die Konsole im Dock- oder Handgerät-Modus befindet.
+Je nach dieser Einstellung ändern sich bei Spielen die Auflösung, die Detailstufe und die unterstützten Controller.
+Die Einstellung auf „Handgerät“ kann dazu beitragen, die Leistung auf Systemen mit geringerer Leistung zu verbessern.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="336"/>
         <source>Prompt for user profile on boot</source>
-        <translation>Beim Start nach Nutzer fragen</translation>
+        <translation>Beim Systemstart nach dem Benutzerprofil fragen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="337"/>
         <source>Useful if multiple people use the same PC.</source>
-        <translation>Nützlich falls mehrere Personen den gleichen Computer benutzen.</translation>
+        <translation>Nützlich, wenn mehrere Personen denselben PC nutzen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="338"/>
         <source>Pause when not in focus</source>
-        <translation>Pausiere falls nicht im Fokus</translation>
+        <translation>Pausieren, wenn nicht im Fokus</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="339"/>
         <source>Pauses emulation when focusing on other windows.</source>
-        <translation>Pausiere Emulation falls andere Fenster im Fokus/Vordergrund sind.</translation>
+        <translation>Pausiert die Emulation, wenn der Fokus auf andere Fenster wechselt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="340"/>
@@ -1228,53 +1279,55 @@ Setting to Handheld can help improve performance for low end systems.</source>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="341"/>
         <source>Overrides prompts asking to confirm stopping the emulation.
 Enabling it bypasses such prompts and directly exits the emulation.</source>
-        <translation type="unfinished"/>
+        <translation>Überschreibt die Abfragen zur Bestätigung des Beendens der Emulation.
+Wenn diese Option aktiviert ist, werden solche Abfragen umgangen und die Emulation wird direkt beendet.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="343"/>
         <source>Hide mouse on inactivity</source>
-        <translation>Mauszeiger verstecken</translation>
+        <translation>Mauszeiger verbergen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="344"/>
         <source>Hides the mouse after 2.5s of inactivity.</source>
-        <translation>Den Mauszeiger nach 2,5 Sekunden Inaktivität verstecken. </translation>
+        <translation>Verbirgt den Mauszeiger nach 2,5 Sekunden Inaktivität.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="345"/>
         <source>Disable controller applet</source>
-        <translation>Deaktiviere Controller-Applet</translation>
+        <translation>Controller-Applet deaktivieren</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="346"/>
         <source>Forcibly disables the use of the controller applet in emulated programs.
 When a program attempts to open the controller applet, it is immediately closed.</source>
-        <translation type="unfinished"/>
+        <translation>Deaktiviert die Verwendung des Controller-Applets in emulierten Programmen zwangsweise.
+Wenn ein Programm versucht, das Controller-Applet zu öffnen, wird es sofort geschlossen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="348"/>
         <source>Check for updates</source>
-        <translation>Auf Updates überprüfen</translation>
+        <translation>Auf Aktualisierungen überprüfen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="349"/>
         <source>Whether or not to check for updates upon startup.</source>
-        <translation>Ob nach Updates während des Startens gesucht werden soll.</translation>
+        <translation>Ob nach Aktualisierungen während des Startens gesucht werden soll.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="352"/>
         <source>Enable Gamemode</source>
-        <translation>GameMode aktivieren</translation>
+        <translation>Spielmodus aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="354"/>
         <source>Force X11 as Graphics Backend</source>
-        <translation type="unfinished"/>
+        <translation>X11 als Grafik-Backend erzwingen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="381"/>
         <source>Custom frontend</source>
-        <translation>Benutzerdefinierte Frontend</translation>
+        <translation>Benutzerdefiniertes Frontend</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="382"/>
@@ -1335,22 +1388,22 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="407"/>
         <source>30 FPS</source>
-        <translation>30 FPS</translation>
+        <translation>30 BpS</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="408"/>
         <source>60 FPS</source>
-        <translation>60 FPS</translation>
+        <translation>60 BpS</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="409"/>
         <source>90 FPS</source>
-        <translation>90 FPS</translation>
+        <translation>90 BpS</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="410"/>
         <source>120 FPS</source>
-        <translation>120 FPS</translation>
+        <translation>120 BpS</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="414"/>
@@ -1370,17 +1423,17 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="421"/>
         <source>OpenGL GLSL</source>
-        <translation type="unfinished"/>
+        <translation>OpenGL GLSL</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="422"/>
         <source>OpenGL GLASM (Assembly Shaders, NVIDIA Only)</source>
-        <translation type="unfinished"/>
+        <translation>OpenGL GLASM (Assembler-Schattierer, nur NVIDIA)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="423"/>
         <source>OpenGL SPIR-V (Experimental, AMD/Mesa Only)</source>
-        <translation type="unfinished"/>
+        <translation>OpenGL SPIR-V (experimentell, nur AMD/Mesa)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="425"/>
@@ -1407,7 +1460,7 @@ When a program attempts to open the controller applet, it is immediately closed.
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="434"/>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="515"/>
         <source>Default</source>
-        <translation>Standard</translation>
+        <translation>Vorgabe</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="435"/>
@@ -1432,7 +1485,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="445"/>
         <source>Debugging</source>
-        <translation>Debugging</translation>
+        <translation>Fehlerbehebung</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="449"/>
@@ -1557,7 +1610,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="486"/>
         <source>Lanczos</source>
-        <translation type="unfinished"/>
+        <translation>Lanczos</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="487"/>
@@ -1567,47 +1620,47 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="488"/>
         <source>AMD FidelityFX Super Resolution</source>
-        <translation type="unfinished"/>
+        <translation>AMD FidelityFX Super-Auflösung</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="489"/>
         <source>Area</source>
-        <translation type="unfinished"/>
+        <translation>Bereich</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="490"/>
         <source>MMPX</source>
-        <translation type="unfinished"/>
+        <translation>MMPX</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="491"/>
         <source>Zero-Tangent</source>
-        <translation type="unfinished"/>
+        <translation>Nulltangente</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="492"/>
         <source>B-Spline</source>
-        <translation type="unfinished"/>
+        <translation>B-Spline</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="493"/>
         <source>Mitchell</source>
-        <translation type="unfinished"/>
+        <translation>Mitchell</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="494"/>
         <source>Spline-1</source>
-        <translation type="unfinished"/>
+        <translation>Spline-1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="495"/>
         <source>Snapdragon Game Super Resolution</source>
-        <translation type="unfinished"/>
+        <translation>Snapdragon Spiel-Superauflösung</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="496"/>
         <source>Snapdragon Game Super Resolution EdgeDir</source>
-        <translation type="unfinished"/>
+        <translation>Snapdragon Spiel-Superauflösung EdgeDir</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="500"/>
@@ -1628,22 +1681,22 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="506"/>
         <source>Default (16:9)</source>
-        <translation>Standard (16:9)</translation>
+        <translation>Vorgabe (16:9)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="507"/>
         <source>Force 4:3</source>
-        <translation>Erzwinge 4:3 </translation>
+        <translation>4:3 erzwingen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="508"/>
         <source>Force 21:9</source>
-        <translation>Erzwinge 21:9</translation>
+        <translation>21:9 erzwingen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="509"/>
         <source>Force 16:10</source>
-        <translation>Erzwinge 16:10</translation>
+        <translation>16:10 erzwingen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="510"/>
@@ -1678,12 +1731,12 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="520"/>
         <source>32x</source>
-        <translation type="unfinished"/>
+        <translation>32x</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="521"/>
         <source>64x</source>
-        <translation type="unfinished"/>
+        <translation>64x</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="527"/>
@@ -1778,12 +1831,12 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="545"/>
         <source>Polish (polska)</source>
-        <translation type="unfinished"/>
+        <translation>Polnisch (Polen)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="546"/>
         <source>Thai (แบบไทย)</source>
-        <translation type="unfinished"/>
+        <translation>Thailändisch (Thailändische Version)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="550"/>
@@ -2066,7 +2119,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="621"/>
         <source>4GB DRAM (Default)</source>
-        <translation>4GB DRAM (Standard)</translation>
+        <translation>4GB DRAM (Vorgabe)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="622"/>
@@ -2091,12 +2144,12 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="629"/>
         <source>Docked</source>
-        <translation>Im Dock</translation>
+        <translation>Angedockt</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="630"/>
         <source>Handheld</source>
-        <translation>Handheld</translation>
+        <translation>Handgerät</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="634"/>
@@ -2107,7 +2160,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="635"/>
         <source>Boost (1700MHz)</source>
-        <translation>Boost (1700MHz)</translation>
+        <translation>Schub (1700MHz)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="636"/>
@@ -2117,7 +2170,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="641"/>
         <source>Always ask (Default)</source>
-        <translation>Immer fragen (Standard)</translation>
+        <translation>Immer fragen (Vorgabe)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="642"/>
@@ -2214,27 +2267,27 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="679"/>
         <source>ExtendedDynamicState 1</source>
-        <translation type="unfinished"/>
+        <translation>ErweiterterDynamischerZustand 1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="680"/>
         <source>ExtendedDynamicState 2</source>
-        <translation type="unfinished"/>
+        <translation>ErweiterterDynamischerZustand 2</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="681"/>
         <source>ExtendedDynamicState 3</source>
-        <translation type="unfinished"/>
+        <translation>ErweiterterDynamischerZustand 3</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="686"/>
         <source>Tree View</source>
-        <translation>Baum Ansicht</translation>
+        <translation>Baumansicht</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="687"/>
         <source>Grid View</source>
-        <translation>Raster Ansicht</translation>
+        <translation>Rasteransicht</translation>
     </message>
 </context>
 <context>
@@ -2252,7 +2305,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_applets.ui" line="25"/>
         <source>Applet mode preference</source>
-        <translation type="unfinished"/>
+        <translation>Einstellung für den Applet-Modus</translation>
     </message>
 </context>
 <context>
@@ -2279,7 +2332,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.ui" line="52"/>
         <source>Camera Image Source:</source>
-        <translation>Kamera Bildquelle:</translation>
+        <translation>Bildquelle der Kamera:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.ui" line="71"/>
@@ -2304,7 +2357,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.ui" line="140"/>
         <source>Restore Defaults</source>
-        <translation>Standardwerte wiederherstellen</translation>
+        <translation>Vorgabewerte wiederherstellen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.cpp" line="135"/>
@@ -2332,7 +2385,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="52"/>
         <source>We recommend setting accuracy to &quot;Auto&quot;.</source>
-        <translation>Wir empfehlen die Genauigkeit auf &quot;Auto&quot; zu setzen.</translation>
+        <translation>Wir empfehlen, die Genauigkeit auf „Autom.“ einzustellen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="68"/>
@@ -2388,7 +2441,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="48"/>
         <source>Enable inline page tables</source>
-        <translation>Enable inline page tables</translation>
+        <translation>Inline-Seitentabellen aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="55"/>
@@ -2396,13 +2449,13 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div&gt;This optimization avoids dispatcher lookups by allowing emitted basic blocks to jump directly to other basic blocks if the destination PC is static.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;This optimization avoids dispatcher lookups by allowing emitted basic blocks to jump directly to other basic blocks if the destination PC is static.&lt;/div&gt;
+            &lt;div&gt;Diese Optimierung vermeidet Disponent-Nachschlagungen, indem sie es den ausgegebenen Basisblöcken ermöglicht, direkt zu anderen Basisblöcken zu springen, wenn der Ziel-PC statisch ist.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="60"/>
         <source>Enable block linking</source>
-        <translation>Enable block linking</translation>
+        <translation>Blockverknüpfung aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="67"/>
@@ -2410,13 +2463,13 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div&gt;This optimization avoids dispatcher lookups by keeping track potential return addresses of BL instructions. This approximates what happens with a return stack buffer on a real CPU.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;This optimization avoids dispatcher lookups by keeping track potential return addresses of BL instructions. This approximates what happens with a return stack buffer on a real CPU.&lt;/div&gt;
+            &lt;div&gt;Diese Optimierung vermeidet Disponent-Nachschlagungen, indem sie potenzielle Rücksprungadressen von BL-Befehlen nachverfolgt. Dies entspricht in etwa dem, was bei einem Rücksprungstapelpuffer auf einer echten CPU geschieht.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="72"/>
         <source>Enable return stack buffer</source>
-        <translation>Return stack buffer aktivieren</translation>
+        <translation>Rückgabestapelpuffer aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="79"/>
@@ -2424,13 +2477,13 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div&gt;Enable a two-tiered dispatch system. A faster dispatcher written in assembly has a small MRU cache of jump destinations is used first. If that fails, dispatch falls back to the slower C++ dispatcher.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Enable a two-tiered dispatch system. A faster dispatcher written in assembly has a small MRU cache of jump destinations is used first. If that fails, dispatch falls back to the slower C++ dispatcher.&lt;/div&gt;
+            &lt;div&gt;Ein zweistufiges Dispositionssystem aktivieren. Zunächst wird ein schnellerer, in Assembler geschriebener Dispatcher mit einem kleinen MRU-Cache für Sprungziele verwendet. Wenn dieser versagt, greift das Dispositionssystem auf den langsameren C++-Disponenten zurück.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="84"/>
         <source>Enable fast dispatcher</source>
-        <translation>Enable fast dispatcher</translation>
+        <translation>Schnellen Disponenten aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="91"/>
@@ -2438,13 +2491,13 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div&gt;Enables an IR optimization that reduces unnecessary accesses to the CPU context structure.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Enables an IR optimization that reduces unnecessary accesses to the CPU context structure.&lt;/div&gt;
+            &lt;div&gt;Aktiviert eine IR-Optimierung, die unnötige Zugriffe auf die CPU-Kontextstruktur reduziert.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="96"/>
         <source>Enable context elimination</source>
-        <translation>Enable context elimination</translation>
+        <translation>Kontexteliminierung aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="103"/>
@@ -2452,13 +2505,13 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div&gt;Enables IR optimizations that involve constant propagation.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Enables IR optimizations that involve constant propagation.&lt;/div&gt;
+            &lt;div&gt;Aktiviert IR-Optimierungen, die die Konstantenausbreitung beinhalten.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="108"/>
         <source>Enable constant propagation</source>
-        <translation>Enable constant propagation</translation>
+        <translation>Konstanten-Propagation aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="115"/>
@@ -2466,13 +2519,13 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div&gt;Enables miscellaneous IR optimizations.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Enables miscellaneous IR optimizations.&lt;/div&gt;
+            &lt;div&gt;Aktiviert verschiedene IR-Optimierungen.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="120"/>
         <source>Enable miscellaneous optimizations</source>
-        <translation>Enable miscellaneous optimizations</translation>
+        <translation>Verschiedene Optimierungen aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="127"/>
@@ -2481,14 +2534,14 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div style=&quot;white-space: nowrap&quot;&gt;When disabled, a misalignment is triggered on all misaligned accesses.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div style=&quot;white-space: nowrap&quot;&gt;When enabled, a misalignment is only triggered when an access crosses a page boundary.&lt;/div&gt;
-            &lt;div style=&quot;white-space: nowrap&quot;&gt;When disabled, a misalignment is triggered on all misaligned accesses.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Bei Aktivierung wird eine Fehlausrichtung nur ausgelöst, wenn ein Zugriff eine Seitengrenze überschreitet.&lt;/div&gt;&lt;\div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Bei Deaktivierung wird eine Fehlausrichtung bei allen fehlausgerichteten Zugriffen ausgelöst.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="133"/>
         <source>Enable misalignment check reduction</source>
-        <translation>Enable misalignment check reduction</translation>
+        <translation>Reduzierung der Fehlausrichtungsprüfung aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="140"/>
@@ -2498,13 +2551,15 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Disabling this forces all memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </source>
         <translation>
-          &lt;div style=&quot;white-space: nowrap&quot;&gt;Diese Optimierung verschnellert Zugriff auf den Speicher durch ein Gast programm.&lt;/div&gt;
-           &lt;div style=&quot;white-space: nowrap&quot;&gt;</translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Diese Optimierung beschleunigt die Speicherzugriffe durch das Gastprogramm.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Wenn diese Option aktiviert ist, erfolgen Lese- und Schreibvorgänge im Gastspeicher direkt im Speicher und nutzen die MMU des Hosts.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Wenn Sie diese Option deaktivieren, werden alle Speicherzugriffe zwingend über die Software-MMU-Emulation abgewickelt.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="147"/>
         <source>Enable Host MMU Emulation (general memory instructions)</source>
-        <translation>Aktiviert Host MMU Emulation (Generale Speicher Anweisung)</translation>
+        <translation>Host-MMU-Emulation aktivieren (allgemeine Speicherinstruktionen)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="154"/>
@@ -2514,15 +2569,15 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Disabling this forces all exclusive memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </source>
         <translation>
-&lt;div style=&quot;white-space: nowrap&quot;&gt; Diese Optimierung beschleunigt exklusive Speicherzugriffe durch das Gastprogramm.&lt;/div&gt;
-&lt;div style=&quot;white-space: nowrap&quot;&gt; Die Aktivierung führt dazu, dass gastexklusive Speicherlese- und -schreibvorgänge direkt im Speicher erfolgen und die MMU des Hosts verwendet wird.&lt;/div&gt;
-&lt;div style=&quot;white-space: nowrap&quot;&gt; Die Deaktivierung dieser Funktion zwingt alle exklusiven Speicherzugriffe zur Verwendung der Software-MMU-Emulation.&lt;/div&gt;
-</translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Diese Optimierung beschleunigt exklusive Speicherzugriffe durch das Gastprogramm.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Wenn diese Option aktiviert ist, werden exklusive Lese- und Schreibzugriffe des Gastes direkt im Speicher ausgeführt und nutzen die MMU des Hosts.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Durch Deaktivieren dieser Option werden alle exklusiven Speicherzugriffe gezwungen, die Software-MMU-Emulation zu verwenden.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="161"/>
         <source>Enable Host MMU Emulation (exclusive memory instructions)</source>
-        <translation>Aktiviere Host MMU Emulation (exlusive memory instructions).</translation>
+        <translation>Host-MMU-Emulation aktivieren (exklusive Speicherinstruktionen)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="168"/>
@@ -2531,14 +2586,14 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it reduces the overhead of fastmem failure of exclusive memory accesses.&lt;/div&gt;
            </source>
         <translation>
-&lt;div style=&quot;white-space: nowrap&quot;&gt; Diese Optimierung beschleunigt exklusive Speicherzugriffe durch das Gastprogramm.&lt;/div&gt;
-&lt;div style=&quot;white-space: nowrap&quot;&gt; Durch die Aktivierung wird der Overhead von Fastmem-Fehlern bei exklusiven Speicherzugriffen reduziert.&lt;/div&gt;
-</translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Diese Optimierung beschleunigt exklusive Speicherzugriffe durch das Gastprogramm.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Durch ihre Aktivierung wird der Overhead bei Fastmem-Fehlern bei exklusiven Speicherzugriffen reduziert.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="174"/>
         <source>Enable recompilation of exclusive memory instructions</source>
-        <translation>Neukompilierung von Anweisungen mit exklusivem Speicher aktivieren</translation>
+        <translation>Neukompilierung exklusiver Speicherinstruktionen aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="181"/>
@@ -2547,14 +2602,14 @@ When a program attempts to open the controller applet, it is immediately closed.
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it reduces the overhead of all memory accesses and has no impact on programs that don't access invalid memory.&lt;/div&gt;
            </source>
         <translation>
-&lt;div style=&quot;white-space: nowrap&quot;&gt; Diese Optimierung beschleunigt die Speicherzugriffe, indem sie ungültige Speicherzugriffe zulässt.&lt;/div&gt;
-&lt;div style=&quot;white-space: nowrap&quot;&gt; Die Aktivierung reduziert den Overhead aller Speicherzugriffe und hat keine Auswirkungen auf Programme, die nicht auf ungültigen Speicher zugreifen.&lt;/div&gt;
-</translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Diese Optimierung beschleunigt Speicherzugriffe, indem sie ungültige Speicherzugriffe zulässt.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Die Aktivierung dieser Option verringert den Overhead aller Speicherzugriffe und hat keine Auswirkungen auf Programme, die nicht auf ungültigen Speicher zugreifen.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="187"/>
         <source>Enable fallbacks for invalid memory accesses</source>
-        <translation>Fallbacks für ungültige Speicherzugriffe einschalten</translation>
+        <translation>Rückfälle für ungültige Speicherzugriffe aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="212"/>
@@ -2567,7 +2622,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="40"/>
         <source>Debugger</source>
-        <translation>Debugger</translation>
+        <translation>Fehlerbeheber</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="85"/>
@@ -2582,32 +2637,32 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="157"/>
         <source>Logging</source>
-        <translation>Logging</translation>
+        <translation>Protokollierung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="190"/>
         <source>Global Log Filter</source>
-        <translation>Globaler Log-Filter</translation>
+        <translation>Globaler Protokoll-Filter</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="206"/>
         <source>When checked, the max size of the log increases from 100 MB to 1 GB</source>
-        <translation>Wenn diese Option aktiviert ist, erhöht sich die maximale Größe des Logs von 100 MB auf 1 GB</translation>
+        <translation>Wenn diese Option aktiviert ist, erhöht sich die maximale Größe des Protokolls von 100 MB auf 1 GB</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="209"/>
         <source>Enable Extended Logging**</source>
-        <translation>Erweitertes Logging aktivieren**</translation>
+        <translation>Erweiterte Protokollierung aktivieren**</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="216"/>
         <source>Show Log in Console</source>
-        <translation>Log in der Konsole zeigen</translation>
+        <translation>Protokoll in der Konsole zeigen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="223"/>
         <source>Open Log Location</source>
-        <translation>Log-Verzeichnis öffnen</translation>
+        <translation>Protokoll-Verzeichnis öffnen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="235"/>
@@ -2617,7 +2672,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="243"/>
         <source>Arguments String</source>
-        <translation>String-Argumente</translation>
+        <translation>Argument-Zeichenkette</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="260"/>
@@ -2627,12 +2682,12 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="266"/>
         <source>When checked, it executes shaders without loop logic changes</source>
-        <translation>Wenn diese Option aktiviert ist, werden Shader ohne Änderungen der looplogik ausgeführt.</translation>
+        <translation>Wenn aktiviert, führt es Schattierer ohne Änderungen an der Schleifenlogik aus</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="269"/>
         <source>Disable Loop safety checks</source>
-        <translation>Loop-safety-checks deaktivieren</translation>
+        <translation>Sicherheitsprüfungen für Schleifen deaktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="279"/>
@@ -2642,12 +2697,12 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="282"/>
         <source>Dump Maxwell Macros</source>
-        <translation>Maxwell-Macros dumpen</translation>
+        <translation>Maxwell-Macros auslesen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="289"/>
         <source>When checked, it enables Nsight Aftermath crash dumps</source>
-        <translation>Wenn diese Option aktiviert ist, werden Nsight Aftermath-Crash-Dumps zugelassen.</translation>
+        <translation>Wenn aktiviert, werden Nsight.-Nachwirkungsabsturz-Speicherauszüge aktiviert</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="292"/>
@@ -2662,17 +2717,17 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="305"/>
         <source>Dump Game Shaders</source>
-        <translation>Spiele-Shader dumpen</translation>
+        <translation>Spiele-Schattierer auslesen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="312"/>
         <source>Enable Renderdoc Hotkey</source>
-        <translation>Renderdoc-Hotkey aktivieren</translation>
+        <translation>Renderdoc-Tastenkürzel aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="322"/>
         <source>When checked, it disables the macro Just In Time compiler. Enabling this makes games run slower</source>
-        <translation>Diese Option deaktiviert den Macro-JIT-Compiler. Dies wird die Geschwindigkeit verringern.</translation>
+        <translation>Wenn aktiviert, wird der Gerade-noch-rechtzeitig-Kompilierer (JIT) für Makros deaktiviert. Dies führt dazu, dass Spiele langsamer laufen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="325"/>
@@ -2682,7 +2737,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="335"/>
         <source>When checked, it disables the macro HLE functions. Enabling this makes games run slower</source>
-        <translation> When checked, it disables the macro HLE functions. Enabling this makes games run slower</translation>
+        <translation>Wenn aktiviert, werden die HLE-Funktionen des Makros deaktiviert. Durch die Aktivierung dieser Option laufen Spiele langsamer.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="338"/>
@@ -2692,22 +2747,22 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="348"/>
         <source>When checked, the graphics API enters a slower debugging mode</source>
-        <translation>Wenn diese Option aktiviert ist, wechselt die Grafik-API in einen langsameren Debug-Modus</translation>
+        <translation>Wenn diese Option aktiviert ist, wechselt die Grafik-API in einen langsameren Fehlerbehebungs-Modus</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="351"/>
         <source>Enable Graphics Debugging</source>
-        <translation>Grafik-Debugging aktivieren</translation>
+        <translation>Grafik-Fehlerbehebung aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="374"/>
         <source>When checked, yuzu will log statistics about the compiled pipeline cache</source>
-        <translation>Wenn ausgewählt wird yuzu Log Statistiken über den kompilierte Pipeline Chache sammeln.</translation>
+        <translation>Wenn aktiviert, protokolliert Yuzu Statistiken zum kompilierten Rohrleitungs-Cache</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="377"/>
         <source>Enable Shader Feedback</source>
-        <translation>Shader-Feedback aktivieren</translation>
+        <translation>Schattierer-Rückmeldung aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="384"/>
@@ -2717,7 +2772,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="387"/>
         <source>Disable Buffer Reorder</source>
-        <translation>Deaktiviere Buffer-Reorder</translation>
+        <translation>Puffer-Neuanordnung deaktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="397"/>
@@ -2737,17 +2792,17 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="413"/>
         <source>Disable Web Applet</source>
-        <translation>Deaktiviere die Web Applikation</translation>
+        <translation>Web-Applet deaktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="420"/>
         <source>Enable All Controller Types</source>
-        <translation>Aktiviere alle Arten von Controllern</translation>
+        <translation>Alle Controller-Typen aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="427"/>
         <source>Enable Auto-Stub</source>
-        <translation type="unfinished"/>
+        <translation>„Auto-Stub“ aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="434"/>
@@ -2757,87 +2812,87 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="441"/>
         <source>Use dev.keys</source>
-        <translation type="unfinished"/>
+        <translation>dev.keys verwenden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="448"/>
         <source>Enable Debug Asserts</source>
-        <translation>aktiviere Debug-Meldungen</translation>
+        <translation>Fehlerbehebungs-Meldungen aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="474"/>
         <source>Debugging</source>
-        <translation>Debugging</translation>
+        <translation>Fehlerbehebung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="507"/>
         <source>Battery Serial:</source>
-        <translation type="unfinished"/>
+        <translation>Batterie-Seriennummer:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="526"/>
         <source>Bitmask for quick development toggles</source>
-        <translation type="unfinished"/>
+        <translation>Bitmaske für schnelle Entwicklungs-Umschalter</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="529"/>
         <source>Set debug knobs (bitmask)</source>
-        <translation type="unfinished"/>
+        <translation>Fehlerbehebungs-Regler einstellen (Bitmaske)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="532"/>
         <source>16-bit debug knob set for quick development toggles</source>
-        <translation type="unfinished"/>
+        <translation>16-Bit-Fehlerbehebungs-Regler für schnelle Entwicklungs-Umschalter</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="535"/>
         <source> (bitmask)</source>
-        <translation type="unfinished"/>
+        <translation> (Bitmaske)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="538"/>
         <source>Debug Knobs: </source>
-        <translation type="unfinished"/>
+        <translation>Fehlerbehebungs-Regler: </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="572"/>
         <source>Unit Serial:</source>
-        <translation type="unfinished"/>
+        <translation>Seriennummer des Geräts:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="601"/>
         <source>Enable this to output the latest generated audio command list to the console. Only affects games using the audio renderer.</source>
-        <translation>Aktivieren Sie diese Option, um den zuletzt generierten Audio-Log auf der Konsole auszugeben. Betrifft nur Spiele, die den Audio-Renderer verwenden.</translation>
+        <translation>Aktiviere diese Option, um das zuletzt generierte Audio-Protokoll auf der Konsole auszugeben. Betrifft nur Spiele, die den Audio-Renderer verwenden.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="604"/>
         <source>Dump Audio Commands To Console**</source>
-        <translation> Audio-Befehle auf die Konsole als Dump abspeichern**</translation>
+        <translation>Audiobefehle in die Konsole als Speicherauszug ausgeben**</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="611"/>
         <source>Flush log output on each line</source>
-        <translation type="unfinished"/>
+        <translation>Protokollausgabe nach jeder Zeile leeren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="618"/>
         <source>Enable FS Access Log</source>
-        <translation>FS-Zugriffslog aktivieren</translation>
+        <translation>FS-Zugriffsprotokoll aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="625"/>
         <source>Enable Verbose Reporting Services**</source>
-        <translation> Ausführliche Berichtsdienste aktivieren**</translation>
+        <translation>Ausführliche Berichtsdienste aktivieren**</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="632"/>
         <source>Censor username in logs</source>
-        <translation type="unfinished"/>
+        <translation>Benutzernamen in Protokollen zensieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="668"/>
         <source>**This will be reset automatically when Eden closes.</source>
-        <translation type="unfinished"/>
+        <translation>**Dies wird automatisch zurückgesetzt, wenn Eden geschlossen wird.</translation>
     </message>
 </context>
 <context>
@@ -2845,7 +2900,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_controller.ui" line="14"/>
         <source>Configure Debug Controller</source>
-        <translation>Debug-Controller einrichten</translation>
+        <translation>Fehlerbehebungs-Controller konfigurieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_controller.ui" line="40"/>
@@ -2855,7 +2910,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_controller.ui" line="47"/>
         <source>Defaults</source>
-        <translation>Standardwerte</translation>
+        <translation>Vorgabewerte</translation>
     </message>
 </context>
 <context>
@@ -2869,7 +2924,7 @@ When a program attempts to open the controller applet, it is immediately closed.
         <location filename="../../src/yuzu/configuration/configure_debug_tab.ui" line="17"/>
         <location filename="../../src/yuzu/configuration/configure_debug_tab.cpp" line="16"/>
         <source>Debug</source>
-        <translation>Debug</translation>
+        <translation>Fehlerbehebung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_tab.cpp" line="17"/>
@@ -2882,7 +2937,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure.ui" line="20"/>
         <source>Eden Configuration</source>
-        <translation>Eden Konfiguration</translation>
+        <translation>Eden-Konfiguration</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure.ui" line="67"/>
@@ -2909,7 +2964,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="72"/>
         <source>Debug</source>
-        <translation>Debug</translation>
+        <translation>Fehlerbehebung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="73"/>
@@ -2931,7 +2986,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="76"/>
         <source>GraphicsAdvanced</source>
-        <translation>GraphicsAdvanced</translation>
+        <translation>GraphikFortgeschritten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="77"/>
@@ -2941,7 +2996,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="78"/>
         <source>Hotkeys</source>
-        <translation>Hotkeys</translation>
+        <translation>Tastenkürzel</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="79"/>
@@ -3021,7 +3076,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="101"/>
         <source>Gamecard</source>
-        <translation>Gamecard</translation>
+        <translation>Spielkarte</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="107"/>
@@ -3041,17 +3096,17 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="141"/>
         <source>Patch Manager</source>
-        <translation>Patchmanager</translation>
+        <translation>Patch-Verwalter</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="169"/>
         <source>Dump Decompressed NSOs</source>
-        <translation>Dekomprimierte NSOs dumpen</translation>
+        <translation>Dekomprimierte NSOs auslesen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="176"/>
         <source>Dump ExeFS</source>
-        <translation>ExeFS dumpen</translation>
+        <translation>ExeFS auslesen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="185"/>
@@ -3061,17 +3116,17 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="192"/>
         <source>Dump Root</source>
-        <translation>Root dumpen</translation>
+        <translation>Root auslesen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="218"/>
         <source>Caching</source>
-        <translation>Caching</translation>
+        <translation>Zwischenspeicherung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="226"/>
         <source>Cache Game List Metadata</source>
-        <translation>Metadaten der Spieleliste cachen</translation>
+        <translation>Metadaten der Spieleliste zwischenspeichern</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="233"/>
@@ -3097,7 +3152,7 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="114"/>
         <source>Select Gamecard Path...</source>
-        <translation>Gamecard-Pfad auswählen...</translation>
+        <translation>Spielkarten-Pfad auswählen...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="117"/>
@@ -3117,17 +3172,17 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="149"/>
         <source>Choose an action for the save data directory:</source>
-        <translation type="unfinished"/>
+        <translation>Wähle eine Aktion für das Speicherdatenverzeichnis:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="151"/>
         <source>Set Custom Path</source>
-        <translation>Lege einen Benutzerdefinierter Pfad fest</translation>
+        <translation>Benutzerdefinierten Pfad festlegen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="152"/>
         <source>Reset to NAND</source>
-        <translation type="unfinished"/>
+        <translation>Auf NAND zurücksetzen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="208"/>
@@ -3138,7 +3193,13 @@ New: %2
 
 Would you like to migrate saves from the old location?
 WARNING: This will overwrite any conflicting saves in the new location!</source>
-        <translation type="unfinished"/>
+        <translation>Speicherdaten sind sowohl am alten als auch am neuen Speicherort vorhanden.
+
+Alt: %1
+Neu: %2
+
+Möchtest du die Speicherdaten vom alten Speicherort übertragen?
+WARNUNG: Dadurch werden alle Speicherdaten am neuen Speicherort überschrieben, die mit den vorhandenen Daten in Konflikt stehen!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="216"/>
@@ -3146,7 +3207,10 @@ WARNING: This will overwrite any conflicting saves in the new location!</source>
 
 From: %1
 To: %2</source>
-        <translation type="unfinished"/>
+        <translation>Möchtest du deine Speicherdaten an den neuen Speicherort übertragen?
+
+Von: %1
+Nach: %2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="224"/>
@@ -3172,7 +3236,7 @@ To: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="240"/>
         <source>Failed to create destination directory.</source>
-        <translation type="unfinished"/>
+        <translation>Zielverzeichnis konnte nicht erstellt werden.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="253"/>
@@ -3191,7 +3255,9 @@ To: %2</source>
         <source>Save data has been migrated successfully.
 
 Would you like to delete the old save data?</source>
-        <translation type="unfinished"/>
+        <translation>Die Speicherdaten wurden erfolgreich übertragen.
+
+Möchtest du die alten Speicherdaten löschen?</translation>
     </message>
 </context>
 <context>
@@ -3215,7 +3281,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="58"/>
         <source>Add directories to scan for DLCs and Updates without installing to NAND</source>
-        <translation type="unfinished"/>
+        <translation>Verzeichnisse hinzufügen, in denen nach DLCs und Aktualisierungen gesucht werden soll, ohne diese auf dem NAND zu installieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="77"/>
@@ -3235,7 +3301,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="101"/>
         <source>Eden</source>
-        <translation type="unfinished"/>
+        <translation>Eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="102"/>
@@ -3245,7 +3311,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="140"/>
         <source>Select External Content Directory...</source>
-        <translation type="unfinished"/>
+        <translation>Externes Inhaltsverzeichnis auswählen...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="153"/>
@@ -3255,7 +3321,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="154"/>
         <source>This directory is already in the list.</source>
-        <translation type="unfinished"/>
+        <translation>Dieses Verzeichnis ist bereits in der Liste enthalten.</translation>
     </message>
 </context>
 <context>
@@ -3289,7 +3355,7 @@ Would you like to delete the old save data?</source>
         <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="224"/>
         <source>%</source>
         <comment>FSR/SGSR sharpening percentage (e.g. 50%)</comment>
-        <translation type="unfinished"/>
+        <translation>%</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="361"/>
@@ -3332,7 +3398,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="23"/>
         <source>Advanced Graphics Settings</source>
-        <translation>Erweiterte Grafik-Einstellungen</translation>
+        <translation>Erweiterte Grafikeinstellungen</translation>
     </message>
 </context>
 <context>
@@ -3355,12 +3421,12 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="29"/>
         <source>Changing these options from their default may cause issues. Novitii cavete!</source>
-        <translation type="unfinished"/>
+        <translation>Das Ändern dieser Vorgabe-Einstellungen kann zu Problemen führen. Anfänger seien gewarnt!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.ui" line="62"/>
         <source>Vulkan Extensions</source>
-        <translation>Vulkan Erweiterungen</translation>
+        <translation>Vulkan-Erweiterungen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.cpp" line="49"/>
@@ -3371,7 +3437,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_extensions.cpp" line="68"/>
         <source>Extended Dynamic State is disabled on macOS due to MoltenVK compatibility issues that cause black screens.</source>
-        <translation type="unfinished"/>
+        <translation>„Erweiterter Dynamischer Zustand“ ist unter macOS deaktiviert, da es aufgrund von Kompatibilitätsproblemen mit MoltenVK zu schwarzen Bildschirmen kommt.</translation>
     </message>
 </context>
 <context>
@@ -3379,12 +3445,12 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="14"/>
         <source>Hotkey Settings</source>
-        <translation>Hotkey-Einstellungen</translation>
+        <translation>Tastenkürzel-Einstellungen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="17"/>
         <source>Hotkeys</source>
-        <translation>Hotkeys</translation>
+        <translation>Tastenkürzel</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="25"/>
@@ -3399,7 +3465,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="52"/>
         <source>Restore Defaults</source>
-        <translation>Standardwerte wiederherstellen</translation>
+        <translation>Vorgabewerte wiederherstellen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="115"/>
@@ -3409,12 +3475,12 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="115"/>
         <source>Hotkey</source>
-        <translation>Hotkey</translation>
+        <translation>Tastenkürzel</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="115"/>
         <source>Controller Hotkey</source>
-        <translation>Controller-Hotkey</translation>
+        <translation>Controller-Tastenkürzel</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="155"/>
@@ -3427,7 +3493,7 @@ Would you like to delete the old save data?</source>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="156"/>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="182"/>
         <source>The entered key sequence is already assigned to: %1</source>
-        <translation>Die eingegebene Sequenz ist bereits vergeben an: %1</translation>
+        <translation>Die eingegebene Sequenz ist bereits zugewiesen zu: %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="194"/>
@@ -3442,7 +3508,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="343"/>
         <source>Invalid hotkey settings</source>
-        <translation>Ungültige Hotkey-Einstellungen</translation>
+        <translation>Ungültige Tastenkürzel-Einstellungen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="344"/>
@@ -3452,7 +3518,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="384"/>
         <source>Restore Default</source>
-        <translation>Standardwerte wiederherstellen</translation>
+        <translation>Vorgabewerte wiederherstellen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="385"/>
@@ -3467,12 +3533,12 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="407"/>
         <source>The default button sequence is already assigned to: %1</source>
-        <translation>Die Standard Tastenfolge ist bereits belegt von: %1</translation>
+        <translation>Die Vorgabe-Tastenfolge ist bereits zugewiesen zu: %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="422"/>
         <source>The default key sequence is already assigned to: %1</source>
-        <translation>Die Standard-Sequenz ist bereits vergeben an: %1</translation>
+        <translation>Die Vorgabe-Sequenz ist bereits zugewiesen zu: %1</translation>
     </message>
 </context>
 <context>
@@ -3549,7 +3615,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="169"/>
         <source>Handheld</source>
-        <translation>Handheld</translation>
+        <translation>Handgerät</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="179"/>
@@ -3620,7 +3686,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="494"/>
         <source>Defaults</source>
-        <translation>Standardwerte</translation>
+        <translation>Vorgabewerte</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="537"/>
@@ -3638,7 +3704,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="74"/>
         <source>Joycon Colors</source>
-        <translation>Joyconfarben</translation>
+        <translation>Joycon-Farben</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="125"/>
@@ -3746,7 +3812,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2565"/>
         <source>Touchscreen</source>
-        <translation>Touchscreen</translation>
+        <translation>Berührungsbildschirm</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2588"/>
@@ -3791,12 +3857,12 @@ Would you like to delete the old save data?</source>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2701"/>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2717"/>
         <source>Requires restarting Eden</source>
-        <translation>Erfordert einen Neustart Edens</translation>
+        <translation>Erfordert einen Neustart von Eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2668"/>
         <source>Enable XInput 8 player support (disables web applet)</source>
-        <translation>Unterstützung für XInput 8-Player aktivieren (deaktiviert das Web-Applet)</translation>
+        <translation>Unterstützung für XInput-8-Spieler aktivieren (deaktiviert das Web-Applet)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2681"/>
@@ -3811,12 +3877,12 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2710"/>
         <source>Enable direct JoyCon driver</source>
-        <translation>Aktiviere direkten JoyCon-Treiber</translation>
+        <translation>Direkten JoyCon-Treiber aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2726"/>
         <source>Enable direct Pro Controller driver [EXPERIMENTAL]</source>
-        <translation>Aktiviere direkten Pro Controller-Treiber [EXPERIMENTELL]</translation>
+        <translation>Direkten Pro-Controller-Treiber aktivieren [EXPERIMENTELL]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2733"/>
@@ -3831,7 +3897,7 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2749"/>
         <source>Motion / Touch</source>
-        <translation>Bewegung / Touch</translation>
+        <translation>Bewegung / Berührung</translation>
     </message>
 </context>
 <context>
@@ -3849,57 +3915,57 @@ Would you like to delete the old save data?</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="28"/>
         <source>Input Profiles</source>
-        <translation>Eingabe-Profile</translation>
+        <translation>Eingabeprofile</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="49"/>
         <source>Player 1 Profile</source>
-        <translation>Profil Spieler 1</translation>
+        <translation>Profil von Spieler 1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="84"/>
         <source>Player 2 Profile</source>
-        <translation>Profil Spieler 2</translation>
+        <translation>Profil von Spieler 2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="119"/>
         <source>Player 3 Profile</source>
-        <translation>Profil Spieler 3</translation>
+        <translation>Profil von Spieler 3</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="154"/>
         <source>Player 4 Profile</source>
-        <translation>Profil Spieler 4</translation>
+        <translation>Profil von Spieler 4</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="189"/>
         <source>Player 5 Profile</source>
-        <translation>Profil Spieler 5</translation>
+        <translation>Profil von Spieler 5</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="224"/>
         <source>Player 6 Profile</source>
-        <translation>Profil Spieler 6</translation>
+        <translation>Profil von Spieler 6</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="259"/>
         <source>Player 7 Profile</source>
-        <translation>Profil Spieler 7</translation>
+        <translation>Profil von Spieler 7</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="294"/>
         <source>Player 8 Profile</source>
-        <translation>Profil Spieler 8</translation>
+        <translation>Profil von Spieler 8</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.cpp" line="35"/>
         <source>Use global input configuration</source>
-        <translation>Verwende globale Eingabe-Konfiguration</translation>
+        <translation>Globale Eingabekonfiguration verwenden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.cpp" line="47"/>
         <source>Player %1 profile</source>
-        <translation>Profil Spieler %1</translation>
+        <translation>Profil von Spieler %1</translation>
     </message>
 </context>
 <context>
@@ -4019,7 +4085,7 @@ Would you like to delete the old save data?</source>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="698"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2772"/>
         <source>Deadzone: 0%</source>
-        <translation>Deadzone: 0%</translation>
+        <translation>Totzone: 0 %</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="722"/>
@@ -4110,7 +4176,7 @@ Would you like to delete the old save data?</source>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1997"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2036"/>
         <source>Home</source>
-        <translation>Home</translation>
+        <translation>Heim</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2075"/>
@@ -4279,7 +4345,7 @@ Um die Achsen umzukehren, bewege den Joystick zuerst vertikal und dann horizonta
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1114"/>
         <source>Handheld</source>
-        <translation>Handheld</translation>
+        <translation>Handgerät</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1118"/>
@@ -4413,7 +4479,7 @@ Um die Achsen umzukehren, bewege den Joystick zuerst vertikal und dann horizonta
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_profile_dialog.ui" line="47"/>
         <source>Defaults</source>
-        <translation>Standardwerte</translation>
+        <translation>Vorgabewerte</translation>
     </message>
 </context>
 <context>
@@ -4421,12 +4487,12 @@ Um die Achsen umzukehren, bewege den Joystick zuerst vertikal und dann horizonta
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="6"/>
         <source>Configure Motion / Touch</source>
-        <translation>Bewegung / Touch einrichten</translation>
+        <translation>Bewegung / Berührung einrichten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="15"/>
         <source>Touch</source>
-        <translation>Touch</translation>
+        <translation>Berührung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="23"/>
@@ -4453,7 +4519,7 @@ Um die Achsen umzukehren, bewege den Joystick zuerst vertikal und dann horizonta
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="85"/>
         <source>CemuhookUDP Config</source>
-        <translation>CemuhookUDP Konfiguration</translation>
+        <translation>CemuhookUDP-Konfiguration</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="91"/>
@@ -4499,7 +4565,7 @@ Um die Achsen umzukehren, bewege den Joystick zuerst vertikal und dann horizonta
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="187"/>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="281"/>
         <source>Eden</source>
-        <translation type="unfinished"/>
+        <translation>Eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="167"/>
@@ -4567,12 +4633,12 @@ Um die Achsen umzukehren, bewege den Joystick zuerst vertikal und dann horizonta
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="6"/>
         <source>Configure mouse panning</source>
-        <translation>Mausschwenk konfigurieren</translation>
+        <translation>Mausschwenken konfigurieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="12"/>
         <source>Enable mouse panning</source>
-        <translation>Maus-Panning aktivieren</translation>
+        <translation>Mausschwenken aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="15"/>
@@ -4606,7 +4672,7 @@ Um die Achsen umzukehren, bewege den Joystick zuerst vertikal und dann horizonta
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="85"/>
         <source>Deadzone counterweight</source>
-        <translation>Deadzone-Gegengewicht</translation>
+        <translation>Totzonen-Gegengewicht</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="88"/>
@@ -4616,12 +4682,12 @@ Um die Achsen umzukehren, bewege den Joystick zuerst vertikal und dann horizonta
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="94"/>
         <source>Deadzone</source>
-        <translation>Deadzone</translation>
+        <translation>Totzone</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="123"/>
         <source>Stick decay</source>
-        <translation>Stick-Abklingzeit</translation>
+        <translation>Stick-Verfall</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="129"/>
@@ -4636,7 +4702,7 @@ Um die Achsen umzukehren, bewege den Joystick zuerst vertikal und dann horizonta
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="195"/>
         <source>Default</source>
-        <translation>Standard</translation>
+        <translation>Vorgabe</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.cpp" line="43"/>
@@ -4709,7 +4775,7 @@ Aktuell liegen die Werte bei %1% bzw. %2%.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.ui" line="100"/>
         <source>Title ID</source>
-        <translation>Titel ID</translation>
+        <translation>Titel-ID</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.ui" line="137"/>
@@ -4769,7 +4835,7 @@ Aktuell liegen die Werte bei %1% bzw. %2%.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="83"/>
         <source>Ext. Graphics</source>
-        <translation type="unfinished"/>
+        <translation>Ext. Grafiken</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="84"/>
@@ -4789,7 +4855,7 @@ Aktuell liegen die Werte bei %1% bzw. %2%.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="87"/>
         <source>Applets</source>
-        <translation type="unfinished"/>
+        <translation>Applets</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="90"/>
@@ -4861,60 +4927,63 @@ Kontrolliere die Logs für Details.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="194"/>
         <source>Zipped Mod Location</source>
-        <translation type="unfinished"/>
+        <translation>Speicherort der gezippten Mod</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="196"/>
         <source>Zipped Archives (*.zip)</source>
-        <translation type="unfinished"/>
+        <translation>ZIP-Archive (*.zip)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="214"/>
         <source>Invalid Selection</source>
-        <translation type="unfinished"/>
+        <translation>Ungültige Auswahl</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="215"/>
         <source>Only mods, cheats, and patches can be deleted.
 To delete NAND-installed updates, right-click the game in the game list and click Remove -&gt; Remove Installed Update.</source>
-        <translation type="unfinished"/>
+        <translation>Es können nur Mods, Cheats und Patches gelöscht werden.
+Um auf dem NAND installierte Aktualisierungen zu löschen, klicke mit der rechten Maustaste auf das Spiel in der Spieleliste und wähle „Entfernen“ -&gt; „Installierte Aktualisierung entfernen“.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="221"/>
         <source>You are about to delete the following installed mods:
 </source>
-        <translation type="unfinished"/>
+        <translation>Du bist dabei, die folgenden installierten Mods zu löschen:
+</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="227"/>
         <source>
 Once deleted, these can NOT be recovered. Are you 100% sure you want to delete them?</source>
-        <translation type="unfinished"/>
+        <translation>
+Einmal gelöscht, können diese nicht wiederhergestellt werden. Bist du dir zu 100 % sicher, dass du sie löschen möchtest?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="232"/>
         <source>Delete add-on(s)?</source>
-        <translation type="unfinished"/>
+        <translation>Add-ons löschen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="243"/>
         <source>Successfully deleted</source>
-        <translation type="unfinished"/>
+        <translation>Erfolgreich gelöscht</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="244"/>
         <source>Successfully deleted all selected mods.</source>
-        <translation type="unfinished"/>
+        <translation>Alle ausgewählten Mods wurden erfolgreich gelöscht.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="267"/>
         <source>&amp;Delete</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Löschen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="274"/>
         <source>&amp;Open in File Manager</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Im Dateimanager öffnen</translation>
     </message>
 </context>
 <context>
@@ -4975,7 +5044,7 @@ Once deleted, these can NOT be recovered. Are you 100% sure you want to delete t
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="195"/>
         <source>Error occurred attempting to overwrite previous image at: %1.</source>
-        <translation>Fehler beim Überschreiben des vorherigen Bildes bei: %1</translation>
+        <translation>Beim Versuch, das vorherige Bild unter %1 zu überschreiben, ist ein Fehler aufgetreten.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="203"/>
@@ -5075,7 +5144,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="206"/>
         <source>Deadzone: 0%</source>
-        <translation>Deadzone: 0%</translation>
+        <translation>Totzone: 0%</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="233"/>
@@ -5091,12 +5160,12 @@ UUID: %2</translation>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="300"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="320"/>
         <source>Enable</source>
-        <translation>Aktiviere</translation>
+        <translation>Aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="307"/>
         <source>Ring Sensor Value</source>
-        <translation> Ringsensor-Wert</translation>
+        <translation>Ringsensor-Wert</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="314"/>
@@ -5107,7 +5176,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="344"/>
         <source>Restore Defaults</source>
-        <translation>Standardwerte wiederherstellen</translation>
+        <translation>Vorgabewerte wiederherstellen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="171"/>
@@ -5133,7 +5202,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="282"/>
         <source>Error enabling ring input</source>
-        <translation> Fehler beim Aktivieren des Ring-Inputs</translation>
+        <translation>Fehler beim Aktivieren des Ring-Eingangs</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="288"/>
@@ -5192,7 +5261,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_system.cpp" line="71"/>
         <source>Warning: &quot;%1&quot; is not a valid language for region &quot;%2&quot;</source>
-        <translation>Achtung: &quot;%1&quot; ist keine valide Sprache für die Region &quot;%2&quot;</translation>
+        <translation>WARNUNG: &quot;%1&quot; ist keine valide Sprache für die Region &quot;%2&quot;</translation>
     </message>
 </context>
 <context>
@@ -5205,17 +5274,17 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="17"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation, please consult the user handbook.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Liest Controller-Eingaben aus Skripten im gleichen Format wie TAS-nx-Skripte ein.&lt;br/&gt;Eine ausführlichere Erläuterung findest du im Benutzerhandbuch.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="27"/>
         <source>To check which hotkeys control the playback/recording, please refer to the Hotkey settings (Configure -&gt; General -&gt; Hotkeys).</source>
-        <translation>Um zu überprüfen, welche Hotkeys die Wiedergabe/Aufnahme steuern, sehen Sie bitte in den Hotkey-Einstellungen nach (Konfigurieren -&gt; Allgemein -&gt; Hotkeys).</translation>
+        <translation>Um zu überprüfen, welche Tastenkürzel die Wiedergabe/Aufnahme steuern, sieh bitte in den Tastenkürzel-Einstellungen nach (Konfigurieren -&gt; Allgemein -&gt; Tastenkürzel).</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="37"/>
         <source>WARNING: This is an experimental feature.&lt;br/&gt;It will not play back scripts frame perfectly with the current, imperfect syncing method.</source>
-        <translation>ACHTUNG: Dies ist ein experimentes Feature.&lt;br/&gt;Es wird scripts nicht perfekt mit der momentanen, unperfekten Synchronisationsmethode abspielen. </translation>
+        <translation>WARNUNG: Dies ist eine experimentelle Funktion.&lt;br/&gt;Mit der derzeitigen, unvollkommenen Synchronisationsmethode werden Skripte nicht frame-genau wiedergegeben.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="54"/>
@@ -5230,7 +5299,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="67"/>
         <source>Loop script</source>
-        <translation>Script loopen</translation>
+        <translation>Schleifen-Skript</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="77"/>
@@ -5240,12 +5309,12 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="84"/>
         <source>Show recording dialog</source>
-        <translation type="unfinished"/>
+        <translation>Aufnahmedialog anzeigen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="98"/>
         <source>Script Directory</source>
-        <translation>Skript-Verzeichnis</translation>
+        <translation>Skriptverzeichnis</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="104"/>
@@ -5268,7 +5337,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.cpp" line="55"/>
         <source>Select TAS Load Directory...</source>
-        <translation>TAS-Lade-Verzeichnis auswählen...</translation>
+        <translation>TAS-Ladeverzeichnis auswählen...</translation>
     </message>
 </context>
 <context>
@@ -5276,7 +5345,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.ui" line="14"/>
         <source>Configure Touchscreen Mappings</source>
-        <translation>Touchscreen-Belegung einrichten</translation>
+        <translation>Berührungsbildschirm-Belegung konfigurieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.ui" line="22"/>
@@ -5302,8 +5371,8 @@ UUID: %2</translation>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.ui" line="92"/>
         <source>Click the bottom area to add a point, then press a button to bind.
 Drag points to change position, or double-click table cells to edit values.</source>
-        <translation>Klicke das untere Feld um einen Punkt hinzuzufügen und drücke dann eine Taste, die diesen Punkt auslösen soll.
-Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf die Tabelle, um die Belegung des Punktes zu ändern.</translation>
+        <translation>Klicke auf den unteren Bereich, um einen Punkt hinzuzufügen, und drücke dann eine Taste, um die Zuordnung festzulegen.
+Ziehe die Punkte, um ihre Position zu ändern, oder doppelklicke auf Tabellenzellen, um die Werte zu bearbeiten.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.ui" line="116"/>
@@ -5368,12 +5437,12 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="14"/>
         <source>Configure Touchscreen</source>
-        <translation>Touchscreen einrichten:</translation>
+        <translation>Berührungsbildschirm konfigurieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="26"/>
         <source>Warning: The settings in this page affect the inner workings of Eden&apos;s emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</source>
-        <translation type="unfinished"/>
+        <translation>Warnung: Die Einstellungen auf dieser Seite beeinflussen die interne Funktionsweise des emulierten Berührungsbildschirms von Eden. Änderungen daran können zu unerwünschtem Verhalten führen – beispielsweise dazu, dass der Berührungsbildschirm nur teilweise oder gar nicht mehr funktioniert. Du solltest diese Seite nur verwenden, wenn du genau weist, was du tust.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="52"/>
@@ -5475,7 +5544,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="57"/>
         <source>Theme:</source>
-        <translation>Theme:</translation>
+        <translation>Thema:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="74"/>
@@ -5525,7 +5594,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="164"/>
         <source>Screenshots</source>
-        <translation>Screenshots</translation>
+        <translation>Bildschirmfotos</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="172"/>
@@ -5535,7 +5604,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="181"/>
         <source>Screenshots Path: </source>
-        <translation>Screenshotpfad</translation>
+        <translation>Bildschirmfotos-Pfad: </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="191"/>
@@ -5545,7 +5614,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="207"/>
         <source>TextLabel</source>
-        <translation>TextLabel</translation>
+        <translation>Textetikett</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="226"/>
@@ -5555,7 +5624,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="133"/>
         <source>Select Screenshots Path...</source>
-        <translation>Screenshotpfad auswählen...</translation>
+        <translation>Bildschirmfotos-Pfad auswählen...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="230"/>
@@ -5579,12 +5648,12 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/configuration/configure_vibration.ui" line="14"/>
         <source>Configure Vibration</source>
-        <translation>Stelle die Vibration ein</translation>
+        <translation>Vibration konfigurieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_vibration.ui" line="23"/>
         <source>Press any controller button to vibrate the controller.</source>
-        <translation>Drücke einen Knopf um den Controller vibrieren zu lassen.</translation>
+        <translation>Drücke einen Knopf, um den Controller vibrieren zu lassen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_vibration.ui" line="30"/>
@@ -5669,7 +5738,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="25"/>
         <source>Eden Web Service</source>
-        <translation type="unfinished"/>
+        <translation>Eden-Web-Dienst</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="33"/>
@@ -5749,17 +5818,17 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/data_dialog.cpp" line="31"/>
         <source>Shaders</source>
-        <translation type="unfinished"/>
+        <translation>Schattierer</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_dialog.cpp" line="32"/>
         <source>User NAND</source>
-        <translation type="unfinished"/>
+        <translation>Nutzer-NAND</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_dialog.cpp" line="33"/>
         <source>System NAND</source>
-        <translation type="unfinished"/>
+        <translation>System-NAND</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_dialog.cpp" line="34"/>
@@ -5782,27 +5851,27 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/data_widget.ui" line="22"/>
         <source>Tooltip</source>
-        <translation type="unfinished"/>
+        <translation>Kurzinfo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_widget.ui" line="70"/>
         <source>Open with your system file manager</source>
-        <translation>Mit deinem System eigenen Dateimanager öffnen </translation>
+        <translation>Mit deinem System-Dateiverwalter öffnen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_widget.ui" line="106"/>
         <source>Delete all data in this directory. THIS IS 100% IRREVERSABLE!</source>
-        <translation type="unfinished"/>
+        <translation>Alle Daten in diesem Verzeichnis löschen. DIES IST ZU 100 % UNUMKEHRBAR!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_widget.ui" line="142"/>
         <source>Export all data in this directory. This may take a while!</source>
-        <translation type="unfinished"/>
+        <translation>Alle Daten in diesem Verzeichnis exportieren. Das kann eine Weile dauern!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_widget.ui" line="178"/>
         <source>Import data for this directory. This may take a while, and will delete ALL EXISTING DATA!</source>
-        <translation type="unfinished"/>
+        <translation>Daten für dieses Verzeichnis importieren. Dies kann eine Weile dauern und löscht ALLE BESTEHENDEN DATEN!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_dialog.cpp" line="95"/>
@@ -5848,12 +5917,12 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="47"/>
         <source>Server Address</source>
-        <translation>Serveradresse</translation>
+        <translation>Server-Adresse</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="54"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server address of the host&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Serveradresse des Hosts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server-Adresse des Hosts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="64"/>
@@ -5868,7 +5937,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="97"/>
         <source>Nickname</source>
-        <translation>Nickname</translation>
+        <translation>Spitzname</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="111"/>
@@ -5904,7 +5973,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="13"/>
         <source>Room name is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation>Raumname ist ungültig. Muss aus 4 bis 20 alphanumerischen Zeichen bestehen. </translation>
+        <translation>Der Raumname ist ungültig. Er muss aus 4 bis 20 alphanumerischen Zeichen bestehen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="15"/>
@@ -5914,7 +5983,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="17"/>
         <source>IP is not a valid IPv4 address.</source>
-        <translation type="unfinished"/>
+        <translation>Die IP ist keine gültige IPv4-Adresse.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="19"/>
@@ -5924,7 +5993,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="20"/>
         <source>You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</source>
-        <translation type="unfinished"/>
+        <translation>Du musst ein bevorzugtes Spiel auswählen, um einen Raum zu erstellen. Wenn du noch keine Spiele in deiner Spieleliste hast, füge einen Spielordner hinzu, indem du auf das Plus-Symbol in der Spieleliste klickst.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="24"/>
@@ -5934,7 +6003,7 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="26"/>
         <source>Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</source>
-        <translation type="unfinished"/>
+        <translation>Es kann keine Verbindung zum Host hergestellt werden. Überprüfe, ob die Verbindungseinstellungen korrekt sind. Wenn die Verbindung weiterhin nicht hergestellt werden kann, wende dich an den Host des Raums und vergewissere dich, dass dieser ordnungsgemäß konfiguriert ist und die Portweiterleitung eingerichtet ist.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="30"/>
@@ -5949,12 +6018,12 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="34"/>
         <source>The host of the room has banned you. Speak with the host to unban you or try a different room.</source>
-        <translation type="unfinished"/>
+        <translation>Der Host des Raums hat dich gesperrt. Sprich mit dem Host, um die Sperre aufzuheben, oder versuche es in einem anderen Raum.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="37"/>
         <source>Version mismatch! Please update to the latest version of Eden. If the problem persists, contact the room host and ask them to update the server.</source>
-        <translation type="unfinished"/>
+        <translation>Versionskonflikt! Bitte aktualisiere auf die neueste Version von Eden. Sollte das Problem weiterhin bestehen, wende dich bitte an den Raumhost und bitte ihn, den Server zu aktualisieren.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="39"/>
@@ -5964,22 +6033,22 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="40"/>
         <source>An unknown error occurred. If this error continues to occur, please open an issue</source>
-        <translation>Ein unbekannter Fehler ist aufgetreten. Sollte der Fehler weiterhin auftreten, erstelle bitte eine Fehlermeldung.</translation>
+        <translation>Es ist ein unbekannter Fehler aufgetreten. Sollte dieser Fehler weiterhin auftreten, öffne bitte ein Problem.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="43"/>
         <source>Connection to room lost. Try to reconnect.</source>
-        <translation type="unfinished"/>
+        <translation>Die Verbindung zum Raum wurde unterbrochen. Versuche, die Verbindung erneut herzustellen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="45"/>
         <source>You have been kicked by the room host.</source>
-        <translation type="unfinished"/>
+        <translation>Du wurdest vom Raumhost rausgeworfen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="47"/>
         <source>IP address is already in use. Please choose another.</source>
-        <translation>IP-Addresse wird bereits genutzt. Bitte wählen Sie eine andere. </translation>
+        <translation>IP-Adresse wird bereits genutzt. Bitte wähleeine andere.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="49"/>
@@ -5990,13 +6059,15 @@ Ziehe die Punkte mit deiner Maus, um ihre Position zu ändern. Doppelklicke auf 
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="50"/>
         <source>The user you are trying to kick/ban could not be found.
 They may have left the room.</source>
-        <translation type="unfinished"/>
+        <translation>Der Nutzer, den du entfernen/sperren möchtest, konnte nicht gefunden werden.
+Möglicherweise hat er den Raum bereits verlassen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="52"/>
         <source>No valid network interface is selected.
 Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
-        <translation type="unfinished"/>
+        <translation>Es ist keine gültige Netzwerkschnittstelle ausgewählt.
+Bitte gehe zu „Konfigurieren“ -&gt; „System“ -&gt; „Netzwerk“ und triff eine Auswahl.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="63"/>
@@ -6020,7 +6091,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="863"/>
         <source>Eden has not been compiled with OpenGL support.</source>
-        <translation type="unfinished"/>
+        <translation>Eden wurde nicht mit OpenGL-Unterstützung kompiliert.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="887"/>
@@ -6052,7 +6123,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="916"/>
         <source>This build doesn&apos;t have OpenGL support.</source>
-        <translation type="unfinished"/>
+        <translation>Diese Version bietet keine OpenGL-Unterstützung.</translation>
     </message>
 </context>
 <context>
@@ -6090,12 +6161,12 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="423"/>
         <source>Open Transferable Pipeline Cache</source>
-        <translation>Transferierbaren Pipeline-Cache öffnen</translation>
+        <translation>Transferierbaren Rohrleitungs-Cache öffnen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="424"/>
         <source>Link to Ryujinx</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfung zu Ryujinx</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="426"/>
@@ -6105,7 +6176,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="427"/>
         <source>Remove Installed Update</source>
-        <translation>Installiertes Update entfernen</translation>
+        <translation>Installierte Aktualisierung entfernen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="428"/>
@@ -6115,7 +6186,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="429"/>
         <source>Remove Custom Configuration</source>
-        <translation>Spiel-Einstellungen entfernen</translation>
+        <translation>Benutzerdefinierte Konfiguration entfernen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="430"/>
@@ -6125,17 +6196,17 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="431"/>
         <source>Remove OpenGL Pipeline Cache</source>
-        <translation>OpenGL-Pipeline-Cache entfernen</translation>
+        <translation>OpenGL-Rohrleitungs-Cache entfernen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="432"/>
         <source>Remove Vulkan Pipeline Cache</source>
-        <translation>Vulkan-Pipeline-Cache entfernen</translation>
+        <translation>Vulkan-Rohrleitungs-Cache entfernen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="434"/>
         <source>Remove All Pipeline Caches</source>
-        <translation>Alle Pipeline-Caches entfernen</translation>
+        <translation>Alle Rohrleitungs-Caches entfernen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="435"/>
@@ -6166,7 +6237,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="441"/>
         <source>Dump RomFS to SDMC</source>
-        <translation>RomFS nach SDMC dumpen</translation>
+        <translation>RomFS nach SDMC auslesen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="442"/>
@@ -6302,32 +6373,32 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="285"/>
         <source>Name</source>
-        <translation type="unfinished"/>
+        <translation>Name</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="286"/>
         <source>Compatibility</source>
-        <translation type="unfinished"/>
+        <translation>Kompatibilität</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="287"/>
         <source>Add-ons</source>
-        <translation type="unfinished"/>
+        <translation>Add-ons</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="288"/>
         <source>File type</source>
-        <translation type="unfinished"/>
+        <translation>Dateityp</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="289"/>
         <source>Size</source>
-        <translation type="unfinished"/>
+        <translation>Größe</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="290"/>
         <source>Play time</source>
-        <translation type="unfinished"/>
+        <translation>Spielzeit</translation>
     </message>
 </context>
 <context>
@@ -6406,7 +6477,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/multiplayer/host_room.ui" line="153"/>
         <source>Load Previous Ban List</source>
-        <translation>Vorherige Bann-Liste laden</translation>
+        <translation>Vorherige Bannliste laden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/host_room.ui" line="184"/>
@@ -6435,7 +6506,8 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
         <location filename="../../src/yuzu/multiplayer/host_room.cpp" line="187"/>
         <source>Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid Eden account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
 Debug Message: </source>
-        <translation type="unfinished"/>
+        <translation>Der Raum konnte nicht in der öffentlichen Lobby angekündigt werden. Um einen Raum öffentlich zu hosten, muss in „Emulation -&gt; Konfigurieren -&gt; Web“ ein gültiges Eden-Konto eingerichtet sein. Wenn du einen Raum nicht in der öffentlichen Lobby veröffentlichen möchtest, wähle stattdessen „Nicht gelistet“.
+Fehlerbehebungs-Meldung: </translation>
     </message>
 </context>
 <context>
@@ -6535,7 +6607,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/qt_common/config/uisettings.cpp" line="45"/>
         <source>Exit Eden</source>
-        <translation>Verlasse Eden</translation>
+        <translation>Eden verlassen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/uisettings.cpp" line="46"/>
@@ -6680,12 +6752,12 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/loading_screen.ui" line="84"/>
         <source>Loading Shaders 387 / 1628</source>
-        <translation>Shader 387 / 1628 wird geladen...</translation>
+        <translation>Schattierer werden geladen 387 / 1628</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/loading_screen.ui" line="121"/>
         <source>Loading Shaders %v out of %m</source>
-        <translation>Shader %v / %m wird geladen...</translation>
+        <translation>Schattierer werden geladen: %v von %m</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/loading_screen.ui" line="135"/>
@@ -6700,7 +6772,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/loading_screen.cpp" line="87"/>
         <source>Loading Shaders %1 / %2</source>
-        <translation>Shader %1 / %2 wird geladen...</translation>
+        <translation>Schattierer werden geladen %1 / %2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/loading_screen.cpp" line="88"/>
@@ -6724,7 +6796,7 @@ Debug Message: </source>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="32"/>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="39"/>
         <source>Nickname</source>
-        <translation>Nickname</translation>
+        <translation>Spitzname</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="59"/>
@@ -6739,7 +6811,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="76"/>
         <source>Games I Own</source>
-        <translation>Spiele die ich besitze</translation>
+        <translation>Spiele, die ich besitze</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="83"/>
@@ -6759,7 +6831,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="122"/>
         <source>Password Required to Join</source>
-        <translation>Passwort zum Joinen benötigt</translation>
+        <translation>Passwort zum Beitreten erforderlich</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="122"/>
@@ -6837,17 +6909,17 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main.ui" line="105"/>
         <source>&amp;Debugging</source>
-        <translation>&amp;Debugging</translation>
+        <translation>&amp;Fehlerbehebung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="110"/>
         <source>&amp;Game List Mode</source>
-        <translation>&amp;Spieleliste Modus</translation>
+        <translation>&amp;Spielelisten-Modus</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="117"/>
         <source>Game &amp;Icon Size</source>
-        <translation type="unfinished"/>
+        <translation>Spielsymbolgröße</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="122"/>
@@ -6892,12 +6964,12 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main.ui" line="177"/>
         <source>Am&amp;iibo</source>
-        <translation type="unfinished"/>
+        <translation>Am&amp;iibo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="186"/>
         <source>Launch &amp;Applet</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Applet starten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="195"/>
@@ -6907,12 +6979,12 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main.ui" line="205"/>
         <source>&amp;Create Home Menu Shortcut</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Startmenü-Verknüpfung erstellen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="212"/>
         <source>Install &amp;Firmware</source>
-        <translation type="unfinished"/>
+        <translation>Installieren &amp;Firmware</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="231"/>
@@ -6968,17 +7040,17 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main.ui" line="307"/>
         <source>Con&amp;figure...</source>
-        <translation>Kon&amp;figurieren</translation>
+        <translation>Kon&amp;figurieren...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="310"/>
         <source>Ctrl+,</source>
-        <translation>Strg+</translation>
+        <translation>Strg+,</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="321"/>
         <source>Enable Overlay Display Applet</source>
-        <translation type="unfinished"/>
+        <translation>Applet für die Überlagerungsanzeige aktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="329"/>
@@ -7063,7 +7135,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main.ui" line="440"/>
         <source>&amp;Album</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Album</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="445"/>
@@ -7088,7 +7160,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main.ui" line="465"/>
         <source>&amp;Mii Editor</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Mii-Editor</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="470"/>
@@ -7125,99 +7197,99 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main.ui" line="518"/>
         <source>Install Decryption &amp;Keys</source>
-        <translation type="unfinished"/>
+        <translation>Entschlüsselungsschlüssel installieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="523"/>
         <source>&amp;Home Menu</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Startmenü</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="528"/>
         <source>&amp;Desktop</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Desktop</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="533"/>
         <source>&amp;Application Menu</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Anwendungsmenü</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="538"/>
         <source>&amp;Root Data Folder</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Stammdatenordner</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="543"/>
         <source>&amp;NAND Folder</source>
-        <translation type="unfinished"/>
+        <translation>&amp;NAND-Ordner</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="548"/>
         <source>&amp;SDMC Folder</source>
-        <translation type="unfinished"/>
+        <translation>&amp;SDMC-Ordner</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="553"/>
         <source>&amp;Mod Folder</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Mod-Ordner</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="558"/>
         <source>&amp;Log Folder</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Protokoll-Ordner</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="563"/>
         <source>From Folder</source>
-        <translation type="unfinished"/>
+        <translation>Aus Ordner</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="568"/>
         <source>From ZIP</source>
-        <translation type="unfinished"/>
+        <translation>Aus ZIP</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="573"/>
         <source>&amp;Eden Dependencies</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Eden-Abhängigkeiten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="578"/>
         <source>&amp;Data Manager</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Datenverwalter</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="586"/>
         <source>&amp;Tree View</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Baumansicht</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="594"/>
         <source>&amp;Grid View</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Rasteransicht</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="599"/>
         <source>Game Icon Size</source>
-        <translation type="unfinished"/>
+        <translation>Spielsymbolgröße</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="604"/>
         <location filename="../../src/yuzu/main_window.cpp" line="324"/>
         <location filename="../../src/qt_common/config/shared_translation.h" line="31"/>
         <source>None</source>
-        <translation type="unfinished"/>
+        <translation>Keine</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="612"/>
         <source>Show Game &amp;Name</source>
-        <translation type="unfinished"/>
+        <translation>Spiel&amp;name anzeigen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="620"/>
         <source>Show &amp;Performance Overlay</source>
-        <translation type="unfinished"/>
+        <translation>Leistungsüberlagerung anzeigen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="325"/>
@@ -7247,7 +7319,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="472"/>
         <source>Vulkan initialization failed during boot.</source>
-        <translation type="unfinished"/>
+        <translation>Initialisierung von Vulkan ist beim Systemstart fehlgeschlagen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="493"/>
@@ -7258,49 +7330,50 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="824"/>
         <source>Loading Web Applet...</source>
-        <translation type="unfinished"/>
+        <translation>Web-Applet wird geladen...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="874"/>
         <location filename="../../src/yuzu/main_window.cpp" line="877"/>
         <source>Disable Web Applet</source>
-        <translation type="unfinished"/>
+        <translation>Web-Applet deaktivieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="878"/>
         <source>Disabling the web applet can lead to undefined behavior and should only be used with Super Mario 3D All-Stars. Are you sure you want to disable the web applet?
 (This can be re-enabled in the Debug settings.)</source>
-        <translation type="unfinished"/>
+        <translation>Das Deaktivieren des Web-Applets kann zu unvorhersehbarem Verhalten führen und sollte nur bei „Super Mario 3D All-Stars“ verwendet werden. Möchtest du das Web-Applet wirklich deaktivieren?
+(Dies kann in den Fehlerbehebungs-Einstellungen wieder aktiviert werden.)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="995"/>
         <source>The amount of shaders currently being built</source>
-        <translation type="unfinished"/>
+        <translation>Die Anzahl der Schattierer, die derzeit erstellt werden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="997"/>
         <source>The current selected resolution scaling multiplier.</source>
-        <translation type="unfinished"/>
+        <translation>Der aktuell ausgewählte Skalierungsfaktor für die Auflösung.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1000"/>
         <source>Current emulation speed. Values higher or lower than 100% indicate emulation is running faster or slower than a Switch.</source>
-        <translation type="unfinished"/>
+        <translation>Aktuelle Emulationsgeschwindigkeit. Werte über oder unter 100 % bedeuten, dass die Emulation schneller oder langsamer läuft als auf einer Switch.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1003"/>
         <source>How many frames per second the game is currently displaying. This will vary from game to game and scene to scene.</source>
-        <translation type="unfinished"/>
+        <translation>Wie viele Bilder pro Sekunde das Spiel derzeit anzeigt. Dies variiert von Spiel zu Spiel und von Szene zu Szene.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1007"/>
         <source>Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For full-speed emulation this should be at most 16.67 ms.</source>
-        <translation type="unfinished"/>
+        <translation>Die Zeit, die für die Emulation eines Switch-Frames benötigt wird, ohne Berücksichtigung von Framelimiting oder V-Sync. Bei einer Emulation mit voller Geschwindigkeit sollte dieser Wert höchstens 16,67 ms betragen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1068"/>
         <source>Unmute</source>
-        <translation>Ton aktivieren</translation>
+        <translation>Stummschaltung aufheben</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1068"/>
@@ -7315,621 +7388,629 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1249"/>
         <source>&amp;Clear Recent Files</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Zuletzt verwendete Dateien löschen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1663"/>
         <source>&amp;Continue</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Fortfahren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1825"/>
         <source>Warning: Outdated Game Format</source>
-        <translation type="unfinished"/>
+        <translation>Warnung: Veraltetes Spielformat</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1826"/>
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;For an explanation of the various Switch formats Eden supports, out our user handbook. This message will not be shown again.</source>
-        <translation type="unfinished"/>
+        <translation>Du verwendest für dieses Spiel das dekontruierte ROM-Verzeichnisformat - ein veraltetes Format, das durch andere Formate wie NCA, NAX, XCI oder NSP abgelöst wurde. Dekonstruierten ROM-Verzeichnissen fehlen Symbole, Metadaten und die Unterstützung für Aktualisierungen. &lt;br&gt;Eine Erläuterung der verschiedenen Switch-Formate, die Eden unterstützt, findest du in unserem Benutzerhandbuch. Diese Meldung wird nicht erneut angezeigt.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1837"/>
         <location filename="../../src/yuzu/main_window.cpp" line="1869"/>
         <source>Error while loading ROM!</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Laden des ROMs!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1838"/>
         <source>The ROM format is not supported.</source>
-        <translation type="unfinished"/>
+        <translation>Das ROM-Format wird nicht unterstützt.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1842"/>
         <source>An error occurred initializing the video core.</source>
-        <translation type="unfinished"/>
+        <translation>Beim Initialisieren des Videokerns ist ein Fehler aufgetreten.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1843"/>
         <source>Eden has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
-        <translation type="unfinished"/>
+        <translation>Bei der Ausführung des Videokerns ist bei Eden ein Fehler aufgetreten. Dies wird in der Regel durch veraltete GPU-Treiber verursacht, einschließlich integrierter Treiber. Weitere Details findest du im Protokoll. Informationen zum Abrufen des Protokolls findest du auf der folgenden Seite: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;So lädst du die Protokolldatei hoch&lt;/a&gt;. </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1858"/>
         <source>Error while loading ROM! %1</source>
         <comment>%1 signifies a numeric error code.</comment>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Laden des ROMs! %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1861"/>
         <source>%1&lt;br&gt;Please redump your files or ask on Discord/Stoat for help.</source>
         <comment>%1 signifies an error string.</comment>
-        <translation type="unfinished"/>
+        <translation>%1&lt;br&gt;Bitte erstelle deine Dateien erneut oder bitte auf Discord/Stoat um Hilfe.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1870"/>
         <source>An unknown error occurred. Please see the log for more details.</source>
-        <translation type="unfinished"/>
+        <translation>Es ist ein unbekannter Fehler aufgetreten. Weitere Informationen findest du im Protokoll.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2019"/>
         <source>(64-bit)</source>
-        <translation type="unfinished"/>
+        <translation>(64-bit)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2019"/>
         <source>(32-bit)</source>
-        <translation type="unfinished"/>
+        <translation>(32-bit)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2020"/>
         <source>%1 %2</source>
         <comment>%1 is the title name. %2 indicates if the title is 64-bit or 32-bit</comment>
-        <translation type="unfinished"/>
+        <translation>%1 %2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2098"/>
         <source>Closing software...</source>
-        <translation type="unfinished"/>
+        <translation>Software wird geschlossen...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2264"/>
         <source>Save Data</source>
-        <translation type="unfinished"/>
+        <translation>Speicherdaten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2295"/>
         <source>Mod Data</source>
-        <translation type="unfinished"/>
+        <translation>Mod-Daten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2308"/>
         <source>Error Opening %1 Folder</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Öffnen des Ordners %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2309"/>
         <location filename="../../src/yuzu/main_window.cpp" line="2657"/>
         <source>Folder does not exist!</source>
-        <translation type="unfinished"/>
+        <translation>Der Ordner existiert nicht!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2387"/>
         <source>Remove Installed Game Contents?</source>
-        <translation type="unfinished"/>
+        <translation>Installierte Spielinhalte entfernen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2389"/>
         <source>Remove Installed Game Update?</source>
-        <translation type="unfinished"/>
+        <translation>Installierte Spielaktualisierung entfernen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2391"/>
         <source>Remove Installed Game DLC?</source>
-        <translation type="unfinished"/>
+        <translation>Installiertes Spiel-DLC entfernen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2397"/>
         <source>Remove Entry</source>
-        <translation type="unfinished"/>
+        <translation>Eintrag entfernen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2427"/>
         <source>Delete OpenGL Transferable Shader Cache?</source>
-        <translation type="unfinished"/>
+        <translation>Den übertragbaren Schattierer-Cache von OpenGL löschen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2429"/>
         <source>Delete Vulkan Transferable Shader Cache?</source>
-        <translation type="unfinished"/>
+        <translation>Den übertragbaren Schattierer-Cache von Vulkan löschen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2431"/>
         <source>Delete All Transferable Shader Caches?</source>
-        <translation type="unfinished"/>
+        <translation>Alle übertragbaren Schattierer-Caches löschen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2433"/>
         <source>Remove Custom Game Configuration?</source>
-        <translation type="unfinished"/>
+        <translation>Benutzerdefinierte Spielkonfiguration entfernen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2435"/>
         <source>Remove Cache Storage?</source>
-        <translation type="unfinished"/>
+        <translation>Cache-Speicher löschen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2441"/>
         <source>Remove File</source>
-        <translation type="unfinished"/>
+        <translation>Datei entfernen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2478"/>
         <source>Remove Play Time Data</source>
-        <translation type="unfinished"/>
+        <translation>Wiedergabezeitdaten löschen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2478"/>
         <source>Reset play time?</source>
-        <translation type="unfinished"/>
+        <translation>Spielzeit zurücksetzen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2491"/>
         <location filename="../../src/yuzu/main_window.cpp" line="2576"/>
         <source>RomFS Extraction Failed!</source>
-        <translation type="unfinished"/>
+        <translation>RomFS-Extraktion fehlgeschlagen!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2492"/>
         <source>There was an error copying the RomFS files or the user cancelled the operation.</source>
-        <translation type="unfinished"/>
+        <translation>Beim Kopieren der RomFS-Dateien ist ein Fehler aufgetreten oder der Benutzer hat den Vorgang abgebrochen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2551"/>
         <source>Full</source>
-        <translation type="unfinished"/>
+        <translation>Vollständig</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2551"/>
         <source>Skeleton</source>
-        <translation type="unfinished"/>
+        <translation>Skelett</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2553"/>
         <source>Select RomFS Dump Mode</source>
-        <translation type="unfinished"/>
+        <translation>RomFS-Auslesemodus auswählen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2554"/>
         <source>Please select the how you would like the RomFS dumped.&lt;br&gt;Full will copy all of the files into the new directory while &lt;br&gt;skeleton will only create the directory structure.</source>
-        <translation type="unfinished"/>
+        <translation>Bitte wähle aus, wie das RomFS kopiert werden soll. &lt;br&gt;Vollständig kopiert alle Dateien in das neue Verzeichnis, während &lt;br&gt;Skelett lediglich die Verzeichnisstruktur erstellt.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2577"/>
         <source>There is not enough free space at %1 to extract the RomFS. Please free up space or select a different dump directory at Emulation &gt; Configure &gt; System &gt; Filesystem &gt; Dump Root</source>
-        <translation type="unfinished"/>
+        <translation>Unter %1 ist nicht genügend Speicherplatz vorhanden, um das RomFS zu extrahieren. Bitte schaffe Speicherplatz oder wähle unter „Emulation &gt; Konfigurieren &gt; System &gt; Dateisystem &gt; Dump-Stammverzeichnis“ ein anderes Dump-Verzeichnis aus.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2584"/>
         <source>Extracting RomFS...</source>
-        <translation type="unfinished"/>
+        <translation>RomFS wird extrahiert...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2584"/>
         <location filename="../../src/yuzu/main_window.cpp" line="2841"/>
         <source>Cancel</source>
-        <translation type="unfinished"/>
+        <translation>Abbrechen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2594"/>
         <source>RomFS Extraction Succeeded!</source>
-        <translation type="unfinished"/>
+        <translation>RomFS wurde erfolgreich extrahiert!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2595"/>
         <source>The operation completed successfully.</source>
-        <translation type="unfinished"/>
+        <translation>Der Vorgang wurde erfolgreich abgeschlossen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2656"/>
         <source>Error Opening %1</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Öffnen von %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2665"/>
         <source>Select Directory</source>
-        <translation type="unfinished"/>
+        <translation>Verzeichnis auswählen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2694"/>
         <source>Properties</source>
-        <translation type="unfinished"/>
+        <translation>Eigenschaften</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2695"/>
         <source>The game properties could not be loaded.</source>
-        <translation type="unfinished"/>
+        <translation>Die Spieleigenschaften konnten nicht geladen werden.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2757"/>
         <source>Switch Executable (%1);;All Files (*.*)</source>
         <comment>%1 is an identifier for the Switch executable file extensions.</comment>
-        <translation type="unfinished"/>
+        <translation>Switch-Ausführungsdatei (%1);;Alle Dateien (*.*)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2761"/>
         <source>Load File</source>
-        <translation type="unfinished"/>
+        <translation>Datei laden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2774"/>
         <source>Open Extracted ROM Directory</source>
-        <translation type="unfinished"/>
+        <translation>Verzeichnis mit dem extrahierten ROM öffnen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2785"/>
         <source>Invalid Directory Selected</source>
-        <translation type="unfinished"/>
+        <translation>Ungültiges Verzeichnis ausgewählt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2786"/>
         <source>The directory you have selected does not contain a &apos;main&apos; file.</source>
-        <translation type="unfinished"/>
+        <translation>Das von dir ausgewählte Verzeichnis enthält keine „main“-Datei.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2796"/>
         <source>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</source>
-        <translation type="unfinished"/>
+        <translation>Installierbare Switch-Dateien (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX-Kassetten-Image (*.xci)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2801"/>
         <source>Install Files</source>
-        <translation type="unfinished"/>
+        <translation>Dateien installieren</translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/yuzu/main_window.cpp" line="2848"/>
         <source>%n file(s) remaining</source>
-        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
+        <translation><numerusform>%n Datei(en) verbleiben</numerusform><numerusform>%n Datei(en) verbleiben</numerusform></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2850"/>
         <source>Installing file &quot;%1&quot;...</source>
-        <translation type="unfinished"/>
+        <translation>Datei „%1“ wird installiert...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2904"/>
         <location filename="../../src/yuzu/main_window.cpp" line="2918"/>
         <source>Install Results</source>
-        <translation type="unfinished"/>
+        <translation>Installationsergebnisse</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2905"/>
         <source>To avoid possible conflicts, we discourage users from installing base games to the NAND.
 Please, only use this feature to install updates and DLC.</source>
-        <translation type="unfinished"/>
+        <translation>Um mögliche Konflikte zu vermeiden, raten wir davon ab, Basisspiele auf dem NAND-Speicher zu installieren.
+Bitte nutze diese Funktion ausschließlich zur Installation von Aktualisierungen und DLCs.</translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/yuzu/main_window.cpp" line="2911"/>
         <source>%n file(s) were newly installed
 </source>
-        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
+        <translation><numerusform>%n Datei(en) wurden neu installiert
+</numerusform><numerusform>%n Datei(en) wurden neu installiert
+</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/yuzu/main_window.cpp" line="2914"/>
         <source>%n file(s) were overwritten
 </source>
-        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
+        <translation><numerusform>%n Datei(en) wurden überschrieben
+</numerusform><numerusform>%n Datei(en) wurden überschrieben
+</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/yuzu/main_window.cpp" line="2916"/>
         <source>%n file(s) failed to install
 </source>
-        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
+        <translation><numerusform>%n Datei(en) konnten nicht installiert werden
+</numerusform><numerusform>%n Datei(en) konnten nicht installiert werden
+</numerusform></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2926"/>
         <source>System Application</source>
-        <translation type="unfinished"/>
+        <translation>Systemanwendung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2927"/>
         <source>System Archive</source>
-        <translation type="unfinished"/>
+        <translation>Systemarchiv</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2928"/>
         <source>System Application Update</source>
-        <translation type="unfinished"/>
+        <translation>System-Anwendungsaktualisierung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2929"/>
         <source>Firmware Package (Type A)</source>
-        <translation type="unfinished"/>
+        <translation>Firmware-Paket (Typ A)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2930"/>
         <source>Firmware Package (Type B)</source>
-        <translation type="unfinished"/>
+        <translation>Firmware-Paket (Typ B)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2931"/>
         <source>Game</source>
-        <translation type="unfinished"/>
+        <translation>Spiel</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2932"/>
         <source>Game Update</source>
-        <translation type="unfinished"/>
+        <translation>Spielaktualisierung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2933"/>
         <source>Game DLC</source>
-        <translation type="unfinished"/>
+        <translation>Spiel-DLC</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2934"/>
         <source>Delta Title</source>
-        <translation type="unfinished"/>
+        <translation>Delta-Titel</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2937"/>
         <source>Select NCA Install Type...</source>
-        <translation type="unfinished"/>
+        <translation>NCA-Installationstyp auswählen...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2938"/>
         <source>Please select the type of title you would like to install this NCA as:
 (In most instances, the default &apos;Game&apos; is fine.)</source>
-        <translation type="unfinished"/>
+        <translation>Bitte wähle den Titeltyp aus, unter dem du diese NCA installieren möchtest:
+(In den meisten Fällen ist die Vorgabe „Spiel“ ausreichend.)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2944"/>
         <source>Failed to Install</source>
-        <translation type="unfinished"/>
+        <translation>Installation fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2945"/>
         <source>The title type you selected for the NCA is invalid.</source>
-        <translation type="unfinished"/>
+        <translation>Der von dir für die NCA ausgewählte Titel ist ungültig.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2980"/>
         <source>File not found</source>
-        <translation type="unfinished"/>
+        <translation>Datei nicht gefunden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="2981"/>
         <source>File &quot;%1&quot; not found</source>
-        <translation type="unfinished"/>
+        <translation>Datei „%1“ nicht gefunden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3100"/>
         <source>OK</source>
-        <translation type="unfinished"/>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3118"/>
         <source>Function Disabled</source>
-        <translation type="unfinished"/>
+        <translation>Funktion deaktiviert</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3119"/>
         <source>Compatibility list reporting is currently disabled. Check back later!</source>
-        <translation type="unfinished"/>
+        <translation>Die Anzeige der Kompatibilitätsliste ist derzeit deaktiviert. Schaue später noch einmal vorbei!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3161"/>
         <source>Error opening URL</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Öffnen der URL</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3162"/>
         <source>Unable to open the URL &quot;%1&quot;.</source>
-        <translation type="unfinished"/>
+        <translation>Die URL „%1“ kann nicht geöffnet werden.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3535"/>
         <source>TAS Recording</source>
-        <translation type="unfinished"/>
+        <translation>TAS-Aufnahme</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3535"/>
         <source>Overwrite file of player 1?</source>
-        <translation type="unfinished"/>
+        <translation>Datei von Spieler 1 überschreiben?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3559"/>
         <source>Invalid config detected</source>
-        <translation type="unfinished"/>
+        <translation>Ungültige Konfiguration erkannt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3560"/>
         <source>Handheld controller can&apos;t be used on docked mode. Pro controller will be selected.</source>
-        <translation type="unfinished"/>
+        <translation>Der Handgerät-Controller kann im angedockten Modus nicht verwendet werden. Es wird der Pro-Controller ausgewählt.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3715"/>
         <location filename="../../src/yuzu/main_window.cpp" line="3766"/>
         <source>Amiibo</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3715"/>
         <location filename="../../src/yuzu/main_window.cpp" line="3766"/>
         <source>The current amiibo has been removed</source>
-        <translation type="unfinished"/>
+        <translation>Das aktuelle amiibo wurde entfernt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3720"/>
         <source>Error</source>
-        <translation type="unfinished"/>
+        <translation>Fehler</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3720"/>
         <location filename="../../src/yuzu/main_window.cpp" line="3778"/>
         <source>The current game is not looking for amiibos</source>
-        <translation type="unfinished"/>
+        <translation>Das aktuelle Spiel sucht nicht nach Amiibos</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3726"/>
         <source>Amiibo File (%1);; All Files (*.*)</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo-Datei (%1);; Alle Dateien (*.*)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3727"/>
         <source>Load Amiibo</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo laden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3762"/>
         <source>Error loading Amiibo data</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Laden der Amiibo-Daten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3772"/>
         <source>The selected file is not a valid amiibo</source>
-        <translation type="unfinished"/>
+        <translation>Die ausgewählte Datei ist kein gültiges amiibo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3775"/>
         <source>The selected file is already on use</source>
-        <translation type="unfinished"/>
+        <translation>Die ausgewählte Datei wird bereits verwendet</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3781"/>
         <source>An unknown error occurred</source>
-        <translation type="unfinished"/>
+        <translation>Ein unbekannter Fehler ist aufgetreten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3883"/>
         <source>No firmware available</source>
-        <translation type="unfinished"/>
+        <translation>Keine Firmware verfügbar</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3887"/>
         <source>Firmware Corrupted</source>
-        <translation type="unfinished"/>
+        <translation>Firmware beschädigt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3953"/>
         <source>Unknown applet</source>
-        <translation type="unfinished"/>
+        <translation>Unbekanntes Applet</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3954"/>
         <source>Applet doesn&apos;t map to a known value.</source>
-        <translation type="unfinished"/>
+        <translation>„Applet“ lässt sich keinem bekannten Wert zuordnen.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3957"/>
         <source>Record not found</source>
-        <translation type="unfinished"/>
+        <translation>Aufnahme nicht gefunden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3958"/>
         <source>Applet not found. Please reinstall firmware.</source>
-        <translation type="unfinished"/>
+        <translation>Applet nicht gefunden. Bitte installiere die Firmware neu.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3990"/>
         <source>Capture Screenshot</source>
-        <translation type="unfinished"/>
+        <translation>Bildschirmfoto aufnehmen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="3991"/>
         <source>PNG Image (*.png)</source>
-        <translation type="unfinished"/>
+        <translation>PNG-Bild (*.png)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4058"/>
         <source>TAS state: Running %1/%2</source>
-        <translation type="unfinished"/>
+        <translation>TAS-Status: %1/%2 läuft</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4062"/>
         <source>TAS state: Recording %1</source>
-        <translation type="unfinished"/>
+        <translation>TAS-Status: %1 wird aufgenommen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4064"/>
         <source>TAS state: Idle %1/%2</source>
-        <translation type="unfinished"/>
+        <translation>TAS-Status: Leerlauf %1/%2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4068"/>
         <source>TAS State: Invalid</source>
-        <translation type="unfinished"/>
+        <translation>TAS-Status: Ungültig</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4082"/>
         <source>&amp;Stop Running</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Ausführung beenden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4083"/>
         <source>Stop R&amp;ecording</source>
-        <translation type="unfinished"/>
+        <translation>Aufnahme beenden</translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/yuzu/main_window.cpp" line="4108"/>
         <source>Building: %n shader(s)</source>
-        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
+        <translation><numerusform>Erstellung: %n Schattierer</numerusform><numerusform>Erstellung: %n Schattierer</numerusform></translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4117"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
-        <translation type="unfinished"/>
+        <translation>Maßstab: 1:1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4120"/>
         <source>Speed: %1% / %2%</source>
-        <translation type="unfinished"/>
+        <translation>Geschwindigkeit: %1% / %2%</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4124"/>
         <source>Speed: %1%</source>
-        <translation type="unfinished"/>
+        <translation>Geschwindigkeit: %1%</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4127"/>
         <source>Game: %1 FPS</source>
-        <translation type="unfinished"/>
+        <translation>Spiel: %1 FPS</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4133"/>
         <source>Frame: %1 ms</source>
-        <translation type="unfinished"/>
+        <translation>Frame: %1 ms</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4174"/>
         <source>NO AA</source>
-        <translation type="unfinished"/>
+        <translation>Kein AA</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4183"/>
         <source>VOLUME: MUTE</source>
-        <translation type="unfinished"/>
+        <translation>LAUTSTÄRKE: STUMM</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4186"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
-        <translation type="unfinished"/>
+        <translation>LAUTSTÄRKE: %1%</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4249"/>
         <source>Derivation Components Missing</source>
-        <translation type="unfinished"/>
+        <translation>Ableitungskomponenten fehlen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4250"/>
         <source>Decryption keys are missing. Install them now?</source>
-        <translation type="unfinished"/>
+        <translation>Entschlüsselungsschlüssel fehlen. Möchtest du diese jetzt installieren?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4280"/>
         <source>Wayland Detected!</source>
-        <translation type="unfinished"/>
+        <translation>Wayland erkannt!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4282"/>
@@ -7937,216 +8018,221 @@ Please, only use this feature to install updates and DLC.</source>
 It's recommended to use X11 instead.
 
 Would you like to force it for future launches?</source>
-        <translation type="unfinished"/>
+        <translation>Wayland ist bekannt für erhebliche Leistungsprobleme und mysteriöse Fehler.
+Es wird empfohlen, stattdessen X11 zu verwenden.
+
+Möchtest du dies für zukünftige Starts erzwingen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4287"/>
         <source>Use X11</source>
-        <translation type="unfinished"/>
+        <translation>X11 verwenden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4288"/>
         <source>Continue with Wayland</source>
-        <translation type="unfinished"/>
+        <translation>Mit Wayland fortfahren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4291"/>
         <source>Don&apos;t show again</source>
-        <translation type="unfinished"/>
+        <translation>Nicht mehr anzeigen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4305"/>
         <source>Restart Required</source>
-        <translation type="unfinished"/>
+        <translation>Neustart erforderlich</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4306"/>
         <source>Restart Eden to apply the X11 backend.</source>
-        <translation type="unfinished"/>
+        <translation>Starte Eden neu, um das X11-Backend zu aktivieren.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4344"/>
         <source>Slow</source>
-        <translation type="unfinished"/>
+        <translation>Langsam</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4347"/>
         <source>Turbo</source>
-        <translation type="unfinished"/>
+        <translation>Turbo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4351"/>
         <source>Unlocked</source>
-        <translation type="unfinished"/>
+        <translation>Entsperrt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4401"/>
         <source>Select RomFS Dump Target</source>
-        <translation type="unfinished"/>
+        <translation>RomFS-Ausleseziel auswählen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4402"/>
         <source>Please select which RomFS you would like to dump.</source>
-        <translation type="unfinished"/>
+        <translation>Bitte wähle aus, welches RomFS du auslesen möchtest.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4425"/>
         <source>Are you sure you want to close Eden?</source>
-        <translation type="unfinished"/>
+        <translation>Möchtest du Eden wirklich schließen?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4426"/>
         <location filename="../../src/yuzu/main_window.cpp" line="4514"/>
         <location filename="../../src/yuzu/main_window.cpp" line="4526"/>
         <source>Eden</source>
-        <translation type="unfinished"/>
+        <translation>Eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4515"/>
         <source>Are you sure you want to stop the emulation? Any unsaved progress will be lost.</source>
-        <translation type="unfinished"/>
+        <translation>Möchtest du die Emulation wirklich beenden? Alle nicht gespeicherten Fortschritte gehen dabei verloren.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="4523"/>
         <source>The currently running application has requested Eden to not exit.
 
 Would you like to bypass this and exit anyway?</source>
-        <translation type="unfinished"/>
+        <translation>Die derzeit ausgeführte Anwendung hat Eden angewiesen, nicht beendet zu werden.
+
+Möchtest du diese Anweisung ignorieren und das Programm trotzdem beenden?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="32"/>
         <source>FXAA</source>
-        <translation type="unfinished"/>
+        <translation>FXAA</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="33"/>
         <source>SMAA</source>
-        <translation type="unfinished"/>
+        <translation>SMAA</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="38"/>
         <source>Nearest</source>
-        <translation type="unfinished"/>
+        <translation>Nächstgelegen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="40"/>
         <source>Bilinear</source>
-        <translation type="unfinished"/>
+        <translation>Bilinear</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="41"/>
         <source>Bicubic</source>
-        <translation type="unfinished"/>
+        <translation>Bikubisch</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="43"/>
         <source>Zero-Tangent</source>
-        <translation type="unfinished"/>
+        <translation>Nulltangente</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="44"/>
         <source>B-Spline</source>
-        <translation type="unfinished"/>
+        <translation>B-Spline</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="46"/>
         <source>Mitchell</source>
-        <translation type="unfinished"/>
+        <translation>Mitchell</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="47"/>
         <source>Spline-1</source>
-        <translation type="unfinished"/>
+        <translation>Spline-1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="49"/>
         <source>Gaussian</source>
-        <translation type="unfinished"/>
+        <translation>Gauß</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="50"/>
         <source>Lanczos</source>
-        <translation type="unfinished"/>
+        <translation>Lanczos</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="52"/>
         <source>ScaleForce</source>
-        <translation type="unfinished"/>
+        <translation>ScaleForce</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="53"/>
         <source>FSR</source>
-        <translation type="unfinished"/>
+        <translation>FSR</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="54"/>
         <source>Area</source>
-        <translation type="unfinished"/>
+        <translation>Bereich</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="55"/>
         <source>MMPX</source>
-        <translation type="unfinished"/>
+        <translation>MMPX</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="56"/>
         <source>SGSR</source>
-        <translation type="unfinished"/>
+        <translation>SGSR</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="57"/>
         <source>SGSR EdgeDir</source>
-        <translation type="unfinished"/>
+        <translation>SGSR EdgeDir</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="61"/>
         <source>Docked</source>
-        <translation type="unfinished"/>
+        <translation>Angedockt</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="62"/>
         <source>Handheld</source>
-        <translation type="unfinished"/>
+        <translation>Handgerät</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="66"/>
         <source>Fast</source>
-        <translation type="unfinished"/>
+        <translation>Schnell</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="67"/>
         <source>Balanced</source>
-        <translation type="unfinished"/>
+        <translation>Ausgewogen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="68"/>
         <source>Accurate</source>
-        <translation type="unfinished"/>
+        <translation>Genau</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="72"/>
         <source>Vulkan</source>
-        <translation type="unfinished"/>
+        <translation>Vulkan</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="74"/>
         <source>OpenGL GLSL</source>
-        <translation type="unfinished"/>
+        <translation>OpenGL GLSL</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="76"/>
         <source>OpenGL SPIRV</source>
-        <translation type="unfinished"/>
+        <translation>OpenGL SPIRV</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="78"/>
         <source>OpenGL GLASM</source>
-        <translation type="unfinished"/>
+        <translation>OpenGL GLASM</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="79"/>
         <source>Null</source>
-        <translation type="unfinished"/>
+        <translation>Null</translation>
     </message>
 </context>
 <context>
@@ -8155,7 +8241,8 @@ Would you like to bypass this and exit anyway?</source>
         <location filename="../../src/yuzu/migration_worker.cpp" line="52"/>
         <source>Linking the old directory failed. You may need to re-run with administrative privileges on Windows.
 OS gave error: %1</source>
-        <translation type="unfinished"/>
+        <translation>Das Verknüpfen des alten Verzeichnisses ist fehlgeschlagen. Unter Windows musst du den Vorgang möglicherweise mit Administratorrechten erneut ausführen.
+Das Betriebssystem hat folgenden Fehler gemeldet: %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/migration_worker.cpp" line="70"/>
@@ -8166,7 +8253,13 @@ If this is not desirable, delete the following files:
 %2
 %3
 %4</source>
-        <translation type="unfinished"/>
+        <translation>
+
+Bitte beachte, dass deine Konfiguration und deine Daten mit %1 geteilt werden.
+Solltest du dies nicht wünschen, lösche bitte die folgenden Dateien:
+%2
+%3
+%4</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/migration_worker.cpp" line="110"/>
@@ -8174,12 +8267,15 @@ If this is not desirable, delete the following files:
 
 If you wish to clean up the files which were left in the old data location, you can do so by deleting the following directory:
 %1</source>
-        <translation type="unfinished"/>
+        <translation>
+
+Wenn du die Dateien bereinigen möchtest, die am alten Speicherort zurückgeblieben sind, kannst du dies tun, indem du das folgende Verzeichnis löschst:
+%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
+        <location filename="../../src/yuzu/migration_worker.h" line="73"/>
         <source>Data was migrated successfully.</source>
-        <translation type="unfinished"/>
+        <translation>Die Daten wurden erfolgreich migriert.</translation>
     </message>
 </context>
 <context>
@@ -8187,12 +8283,12 @@ If you wish to clean up the files which were left in the old data location, you 
     <message>
         <location filename="../../src/yuzu/configuration/addon/mod_select_dialog.ui" line="14"/>
         <source>Import Mods</source>
-        <translation type="unfinished"/>
+        <translation>Mods importieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/addon/mod_select_dialog.ui" line="20"/>
         <source>The specified folder or archive contains the following mods. Select which ones to install.</source>
-        <translation type="unfinished"/>
+        <translation>Der angegebene Ordner oder das angegebene Archiv enthält die folgenden Mods. Wähle aus, welche installiert werden sollen.</translation>
     </message>
 </context>
 <context>
@@ -8236,7 +8332,7 @@ If you wish to clean up the files which were left in the old data location, you 
     <message>
         <location filename="../../src/yuzu/multiplayer/moderation_dialog.cpp" line="90"/>
         <source>IP Address</source>
-        <translation>IP-Addresse</translation>
+        <translation>IP-Adresse</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/moderation_dialog.cpp" line="97"/>
@@ -8280,8 +8376,8 @@ If you wish to clean up the files which were left in the old data location, you 
         <location filename="../../src/yuzu/multiplayer/state.cpp" line="210"/>
         <source>Failed to update the room information. Please check your Internet connection and try hosting the room again.
 Debug Message: </source>
-        <translation>Aktualisieren der Rauminformationen fehlgeschlagen. Überprüfe deine Internetverbindung und versuche erneut einen Raum zu erstellen.
-Debug Message:</translation>
+        <translation>Die Rauminformationen konnten nicht aktualisiert werden. Bitte überprüfe deine Internetverbindung und versuche erneut, den Raum zu hosten.
+Fehlerbehebungs-Meldung: </translation>
     </message>
 </context>
 <context>
@@ -8305,7 +8401,7 @@ Proceed anyway?</source>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="76"/>
         <source>You are about to close the room. Any network connections will be closed.</source>
-        <translation>Du bist dabei den Raum zu schließen. Jede Verbindung zum Netzwerk wird geschlossen.</translation>
+        <translation>Du bist dabei, den Raum zu schließen. Alle Netzwerkverbindungen werden getrennt.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="81"/>
@@ -8315,7 +8411,7 @@ Proceed anyway?</source>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="82"/>
         <source>You are about to leave the room. Any network connections will be closed.</source>
-        <translation>Du bist dabei den Raum zu verlassen. Jede Verbindung zum Netzwerk wird geschlossen.</translation>
+        <translation>Du bist dabei, den Raum zu verlassen. Alle Netzwerkverbindungen werden geschlossen.</translation>
     </message>
 </context>
 <context>
@@ -8324,127 +8420,127 @@ Proceed anyway?</source>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="14"/>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="61"/>
         <source>New User</source>
-        <translation type="unfinished"/>
+        <translation>Neuer Benutzer</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="30"/>
         <source>Change Avatar</source>
-        <translation type="unfinished"/>
+        <translation>Avatar ändern</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="37"/>
         <source>Set Image</source>
-        <translation type="unfinished"/>
+        <translation>Bild festlegen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="53"/>
         <source>UUID</source>
-        <translation type="unfinished"/>
+        <translation>UUID</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="60"/>
         <source>Eden</source>
-        <translation type="unfinished"/>
+        <translation>Eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="70"/>
         <source>Username</source>
-        <translation type="unfinished"/>
+        <translation>Benutzername</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="82"/>
         <source>UUID must be 32 hex characters (0-9, A-F)</source>
-        <translation type="unfinished"/>
+        <translation>Die UUID muss aus 32 Hexadezimalzeichen bestehen (0–9, A–F)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.ui" line="89"/>
         <source>Generate</source>
-        <translation type="unfinished"/>
+        <translation>Generieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="138"/>
         <source>Select User Image</source>
-        <translation type="unfinished"/>
+        <translation>Benutzerbild auswählen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="139"/>
         <source>Image Formats (*.jpg *.jpeg *.png *.bmp)</source>
-        <translation type="unfinished"/>
+        <translation>Bildformate (*.jpg *.jpeg *.png *.bmp)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="171"/>
         <source>No firmware available</source>
-        <translation type="unfinished"/>
+        <translation>Keine Firmware verfügbar</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="172"/>
         <source>Please install the firmware to use firmware avatars.</source>
-        <translation type="unfinished"/>
+        <translation>Installiere die Firmware, um Firmware-Avatare nutzen zu können.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="177"/>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="184"/>
         <source>Error loading archive</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Laden des Archivs</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="178"/>
         <source>Archive is not available. Please install/reinstall firmware.</source>
-        <translation type="unfinished"/>
+        <translation>Das Archiv ist nicht verfügbar. Bitte installiere oder aktualisiere die Firmware.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="185"/>
         <source>Could not locate RomFS. Your file or decryption keys may be corrupted.</source>
-        <translation type="unfinished"/>
+        <translation>RomFS konnte nicht gefunden werden. Deine Datei oder deine Entschlüsselungsschlüssel sind möglicherweise beschädigt.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="191"/>
         <source>Error extracting archive</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Entpacken des Archivs</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="192"/>
         <source>Could not extract RomFS. Your file or decryption keys may be corrupted.</source>
-        <translation type="unfinished"/>
+        <translation>RomFS konnte nicht extrahiert werden. Deine Datei oder deine Entschlüsselungsschlüssel sind möglicherweise beschädigt.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="197"/>
         <source>Error finding image directory</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Finden des Bildverzeichnisses</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="198"/>
         <source>Failed to find image directory in the archive.</source>
-        <translation type="unfinished"/>
+        <translation>Das Bildverzeichnis im Archiv konnte nicht gefunden werden.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="218"/>
         <source>No images found</source>
-        <translation type="unfinished"/>
+        <translation>Keine Bilder gefunden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="219"/>
         <source>No avatar images were found in the archive.</source>
-        <translation type="unfinished"/>
+        <translation>Im Archiv wurden keine Avatar-Bilder gefunden.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="338"/>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="346"/>
         <source>All Good</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"/>
+        <translation>Alles bestens</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="341"/>
         <source>Must be 32 hex characters (0-9, a-f)</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"/>
+        <translation>Muss aus 32 Hexadezimalzeichen bestehen (0–9, a–f)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/new_user_dialog.cpp" line="349"/>
         <source>Must be between 1 and 32 characters</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"/>
+        <translation>Muss zwischen 1 und 32 Zeichen lang sein</translation>
     </message>
 </context>
 <context>
@@ -8485,73 +8581,73 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Formular</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="32"/>
         <source>Frametime</source>
-        <translation type="unfinished"/>
+        <translation>Frame-Zeit</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="45"/>
         <source>0 ms</source>
-        <translation type="unfinished"/>
+        <translation>0 ms</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="63"/>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="143"/>
         <source>Min: 0</source>
-        <translation type="unfinished"/>
+        <translation>Min: 0</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="77"/>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="157"/>
         <source>Max: 0</source>
-        <translation type="unfinished"/>
+        <translation>Max: 0</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="91"/>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="171"/>
         <source>Avg: 0</source>
-        <translation type="unfinished"/>
+        <translation>Durchschnitt: 0</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="112"/>
         <source>FPS</source>
-        <translation type="unfinished"/>
+        <translation>BpS</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.ui" line="125"/>
         <source>0 fps</source>
-        <translation type="unfinished"/>
+        <translation>0 BpS</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.cpp" line="103"/>
         <source>%1 fps</source>
-        <translation type="unfinished"/>
+        <translation>%1 BpS</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.cpp" line="124"/>
         <location filename="../../src/yuzu/render/performance_overlay.cpp" line="174"/>
         <source>Avg: %1</source>
-        <translation type="unfinished"/>
+        <translation>Durchschnitt: %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.cpp" line="133"/>
         <location filename="../../src/yuzu/render/performance_overlay.cpp" line="163"/>
         <source>Min: %1</source>
-        <translation type="unfinished"/>
+        <translation>Min: %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.cpp" line="134"/>
         <location filename="../../src/yuzu/render/performance_overlay.cpp" line="164"/>
         <source>Max: %1</source>
-        <translation type="unfinished"/>
+        <translation>Max: %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/render/performance_overlay.cpp" line="151"/>
         <source>%1 ms</source>
-        <translation type="unfinished"/>
+        <translation>%1 ms</translation>
     </message>
 </context>
 <context>
@@ -8567,22 +8663,22 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/configuration/system/profile_avatar_dialog.cpp" line="18"/>
         <source>Select</source>
-        <translation type="unfinished"/>
+        <translation>Auswählen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/profile_avatar_dialog.cpp" line="19"/>
         <source>Cancel</source>
-        <translation type="unfinished"/>
+        <translation>Abbrechen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/profile_avatar_dialog.cpp" line="20"/>
         <source>Background Color</source>
-        <translation type="unfinished"/>
+        <translation>Hintergrundfarbe</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/system/profile_avatar_dialog.cpp" line="41"/>
         <source>Select Firmware Avatar</source>
-        <translation type="unfinished"/>
+        <translation>Firmware-Avatar auswählen</translation>
     </message>
 </context>
 <context>
@@ -8592,56 +8688,59 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/user_data_migration.cpp" line="121"/>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="148"/>
         <source>Migration</source>
-        <translation type="unfinished"/>
+        <translation>Migration</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="57"/>
         <source>Clear Shader Cache</source>
-        <translation type="unfinished"/>
+        <translation>Schattierer-Cache leeren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="66"/>
         <source>Keep Old Data</source>
-        <translation type="unfinished"/>
+        <translation>Alte Daten behalten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="67"/>
         <source>Clear Old Data</source>
-        <translation type="unfinished"/>
+        <translation>Alte Daten löschen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="68"/>
         <source>Link Old Directory</source>
-        <translation type="unfinished"/>
+        <translation>Altes Verzeichnis verknüpfen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="98"/>
         <source>
 
 </source>
-        <translation type="unfinished"/>
+        <translation>
+
+</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="102"/>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="108"/>
         <source>No</source>
-        <translation type="unfinished"/>
+        <translation>Nein</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="122"/>
         <source>You can manually re-trigger this prompt by deleting the new config directory:
 %1</source>
-        <translation type="unfinished"/>
+        <translation>Du kannst diese Aufforderung manuell erneut auslösen, indem du das neue Konfigurationsverzeichnis löschst:
+%1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="133"/>
         <source>Migrating</source>
-        <translation type="unfinished"/>
+        <translation>Migrieren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/user_data_migration.cpp" line="134"/>
         <source>Migrating, this may take a while...</source>
-        <translation type="unfinished"/>
+        <translation>Die Migration läuft, das kann eine Weile dauern...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="21"/>
@@ -8964,7 +9063,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="130"/>
         <source>Touch</source>
-        <translation>Touch</translation>
+        <translation>Berühren</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="132"/>
@@ -9033,22 +9132,22 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/qt_common/game_list/game_list_p.h" line="87"/>
         <source>Play Time: %1</source>
-        <translation type="unfinished"/>
+        <translation>Spielzeit: %1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/game_list_p.h" line="90"/>
         <source>Never Played</source>
-        <translation type="unfinished"/>
+        <translation>Noch nie gespielt</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/game_list_p.h" line="98"/>
         <source>Version: %1</source>
-        <translation type="unfinished"/>
+        <translation>Version: %1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/game_list_p.h" line="100"/>
         <source>Version: 1.0.0</source>
-        <translation type="unfinished"/>
+        <translation>Version: 1.0.0</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/game_list_p.h" line="307"/>
@@ -9136,7 +9235,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="331"/>
         <source>dd/MM/yyyy </source>
-        <translation>TT/MM/JJJJ</translation>
+        <translation>TT/MM/JJJJ </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="349"/>
@@ -9194,17 +9293,17 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="30"/>
         <source>Game Requires Firmware</source>
-        <translation type="unfinished"/>
+        <translation>Für das Spiel ist eine Firmware erforderlich</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="31"/>
         <source>The game you are trying to launch requires firmware to boot or to get past the opening menu. Please &lt;a href=&apos;https://yuzu-mirror.github.io/help/quickstart&apos;&gt;dump and install firmware&lt;/a&gt;, or press &quot;OK&quot; to launch anyways.</source>
-        <translation type="unfinished"/>
+        <translation>Das Spiel, das du starten möchtest, benötigt Firmware, um zu booten oder das Startmenü zu verlassen. Bitte &lt;a href=&apos;https://yuzu-mirror.github.io/help/quickstart&apos;&gt;lade die Firmware herunter und installiere sie&lt;/a&gt;, oder klicke auf „OK“, um das Spiel trotzdem zu starten.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="45"/>
         <source>Installing Firmware...</source>
-        <translation type="unfinished"/>
+        <translation>Firmware wird installiert...</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="45"/>
@@ -9213,22 +9312,22 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/qt_common/util/content.cpp" line="381"/>
         <location filename="../../src/qt_common/util/content.cpp" line="444"/>
         <source>Cancel</source>
-        <translation type="unfinished"/>
+        <translation>Abbrechen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="57"/>
         <source>Firmware Install Failed</source>
-        <translation type="unfinished"/>
+        <translation>Firmware-Installation fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="58"/>
         <source>Firmware Install Succeeded</source>
-        <translation type="unfinished"/>
+        <translation>Firmware-Installation erfolgreich</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="166"/>
         <source>Firmware integrity verification failed!</source>
-        <translation type="unfinished"/>
+        <translation>Überprüfung der Firmware-Integrität fehlgeschlagen!</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="167"/>
@@ -9236,241 +9335,246 @@ p, li { white-space: pre-wrap; }
         <source>Verification failed for the following files:
 
 %1</source>
-        <translation type="unfinished"/>
+        <translation>Die Überprüfung der folgenden Dateien ist fehlgeschlagen:
+
+%1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="208"/>
         <location filename="../../src/qt_common/util/content.cpp" line="264"/>
         <source>Verifying integrity...</source>
-        <translation type="unfinished"/>
+        <translation>Integrität wird überprüft...</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="223"/>
         <location filename="../../src/qt_common/util/content.cpp" line="282"/>
         <source>Integrity verification succeeded!</source>
-        <translation type="unfinished"/>
+        <translation>Die Integritätsprüfung war erfolgreich!</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="224"/>
         <location filename="../../src/qt_common/util/content.cpp" line="283"/>
         <source>The operation completed successfully.</source>
-        <translation type="unfinished"/>
+        <translation>Der Vorgang wurde erfolgreich abgeschlossen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="227"/>
         <location filename="../../src/qt_common/util/content.cpp" line="288"/>
         <source>Integrity verification failed!</source>
-        <translation type="unfinished"/>
+        <translation>Die Integritätsprüfung ist fehlgeschlagen!</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="228"/>
         <source>File contents may be corrupt or missing.</source>
-        <translation type="unfinished"/>
+        <translation>Der Inhalt der Datei ist möglicherweise beschädigt oder fehlt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="232"/>
         <source>Integrity verification couldn&apos;t be performed</source>
-        <translation type="unfinished"/>
+        <translation>Die Integritätsprüfung konnte nicht durchgeführt werden</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="233"/>
         <source>Firmware installation cancelled, firmware may be in a bad state or corrupted. File contents could not be checked for validity.</source>
-        <translation type="unfinished"/>
+        <translation>Die Firmware-Installation wurde abgebrochen. Die Firmware ist möglicherweise fehlerhaft oder beschädigt. Der Inhalt der Datei konnte nicht auf Gültigkeit überprüft werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="240"/>
         <source>Select Dumped Keys Location</source>
-        <translation type="unfinished"/>
+        <translation>Speicherort der ausgelesenen Schlüssel auswählen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="253"/>
         <source>Decryption Keys install succeeded</source>
-        <translation type="unfinished"/>
+        <translation>Installation der Entschlüsselungsschlüssel erfolgreich</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="256"/>
         <source>Decryption Keys install failed</source>
-        <translation type="unfinished"/>
+        <translation>Installation der Entschlüsselungsschlüssel fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="328"/>
         <source>Orphaned Profiles Detected!</source>
-        <translation type="unfinished"/>
+        <translation>Verwaiste Profile erkannt!</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="329"/>
         <source>UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON&apos;T READ THIS!&lt;br&gt;Eden has detected the following save directories with no attached profile:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;The following profiles are valid:&lt;br&gt;%2&lt;br&gt;&lt;br&gt;Click &quot;OK&quot; to open your save folder and fix up your profiles.&lt;br&gt;Hint: copy the contents of the largest or last-modified folder elsewhere, delete all orphaned profiles, and move your copied contents to the good profile.&lt;br&gt;&lt;br&gt;Still confused? See the &lt;a href=&apos;https://git.eden-emu.dev/eden-emu/eden/src/branch/master/docs/user/Orphaned.md&apos;&gt;help page&lt;/a&gt;.&lt;br&gt;</source>
-        <translation type="unfinished"/>
+        <translation>UNERWARTETE PROBLEME KÖNNTEN AUFTRETEN, WENN DU DIES NICHT LIEST!&lt;br&gt;Eden hat die folgenden Speicherverzeichnisse ohne zugeordnetes Profil erkannt:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Die folgenden Profile sind gültig:&lt;br&gt;%2&lt;br&gt;&lt;br&gt;Klicke auf „OK“, um deinen Speicherordner zu öffnen und deine Profile zu korrigieren.&lt;br&gt;Tipp: Kopiere den Inhalt des größten oder zuletzt geänderten Ordners an einen anderen Ort, lösche alle verwaisten Profile und verschiebe die kopierten Inhalte in das intakte Profil.&lt;br&gt;&lt;br&gt;Immer noch unsicher? Lies auf der &lt;a href=&apos;https://git.eden-emu.dev/eden-emu/eden/src/branch/master/docs/user/Orphaned.md&apos;&gt;Hilfeseite&lt;/a&gt; nach.&lt;br&gt;</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="348"/>
         <source>Really clear data?</source>
-        <translation type="unfinished"/>
+        <translation>Daten wirklich löschen?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="348"/>
         <source>Important data may be lost!</source>
-        <translation type="unfinished"/>
+        <translation>Wichtige Daten könnten verloren gehen!</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="353"/>
         <source>Are you REALLY sure?</source>
-        <translation type="unfinished"/>
+        <translation>Bist du dir WIRKLICH sicher?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="354"/>
         <source>Once deleted, your data will NOT come back!
 Only do this if you&apos;re 100% sure you want to delete this data.</source>
-        <translation type="unfinished"/>
+        <translation>Sobald deine Daten gelöscht sind, können sie NICHT wiederhergestellt werden!
+Führe diesen Vorgang nur durch, wenn du dir zu 100 % sicher bist, dass du diese Daten löschen möchtest.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="361"/>
         <source>Clearing...</source>
-        <translation type="unfinished"/>
+        <translation>Säuberung...</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="375"/>
         <source>Select Export Location</source>
-        <translation type="unfinished"/>
+        <translation>Exportziel auswählen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="375"/>
         <source>%1.zip</source>
-        <translation type="unfinished"/>
+        <translation>%1.zip</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="375"/>
         <location filename="../../src/qt_common/util/content.cpp" line="429"/>
         <location filename="../../src/qt_common/util/content.cpp" line="525"/>
         <source>Zipped Archives (*.zip)</source>
-        <translation type="unfinished"/>
+        <translation>ZIP-Archive (*.zip)</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="381"/>
         <source>Exporting data. This may take a while...</source>
-        <translation type="unfinished"/>
+        <translation>Daten werden exportiert. Das kann eine Weile dauern...</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="383"/>
         <source>Exporting</source>
-        <translation type="unfinished"/>
+        <translation>Exportieren</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="404"/>
         <source>Exported Successfully</source>
-        <translation type="unfinished"/>
+        <translation>Erfolgreich exportiert</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="404"/>
         <source>Data was exported successfully.</source>
-        <translation type="unfinished"/>
+        <translation>Die Daten wurden erfolgreich exportiert.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="406"/>
         <source>Export Cancelled</source>
-        <translation type="unfinished"/>
+        <translation>Export abgebrochen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="406"/>
         <source>Export was cancelled by the user.</source>
-        <translation type="unfinished"/>
+        <translation>Der Export wurde vom Benutzer abgebrochen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="409"/>
         <source>Export Failed</source>
-        <translation type="unfinished"/>
+        <translation>Export fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="410"/>
         <source>Ensure you have write permissions on the targeted directory and try again.</source>
-        <translation type="unfinished"/>
+        <translation>Stelle sicher, dass du Schreibrechte für das Zielverzeichnis hast, und versuche es erneut.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="429"/>
         <source>Select Import Location</source>
-        <translation type="unfinished"/>
+        <translation>Importziel auswählen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="435"/>
         <source>Import Warning</source>
-        <translation type="unfinished"/>
+        <translation>Importwarnung</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="436"/>
         <source>All previous data in this directory will be deleted. Are you sure you wish to proceed?</source>
-        <translation type="unfinished"/>
+        <translation>Alle bisherigen Daten in diesem Verzeichnis werden gelöscht. Möchtest du wirklich fortfahren?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="444"/>
         <source>Importing data. This may take a while...</source>
-        <translation type="unfinished"/>
+        <translation>Daten werden importiert. Das kann eine Weile dauern...</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="446"/>
         <source>Importing</source>
-        <translation type="unfinished"/>
+        <translation>Importieren</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="479"/>
         <source>Imported Successfully</source>
-        <translation type="unfinished"/>
+        <translation>Erfolgreich importiert</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="479"/>
         <source>Data was imported successfully.</source>
-        <translation type="unfinished"/>
+        <translation>Die Daten wurden erfolgreich importiert.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="481"/>
         <source>Import Cancelled</source>
-        <translation type="unfinished"/>
+        <translation>Import abgebrochen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="481"/>
         <source>Import was cancelled by the user.</source>
-        <translation type="unfinished"/>
+        <translation>Der Import wurde vom Benutzer abgebrochen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="483"/>
         <source>Import Failed</source>
-        <translation type="unfinished"/>
+        <translation>Import fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="484"/>
         <source>Ensure you have read permissions on the targeted directory and try again.</source>
-        <translation type="unfinished"/>
+        <translation>Stelle sicher, dass du Lesezugriff auf das Zielverzeichnis hast, und versuche es erneut.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="501"/>
         <source>Keys not installed</source>
-        <translation type="unfinished"/>
+        <translation>Schlüssel nicht installiert</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="502"/>
         <source>Install decryption keys and restart Eden before attempting to install firmware.</source>
-        <translation type="unfinished"/>
+        <translation>Installiere die Entschlüsselungsschlüssel und starte Eden neu, bevor du versuchst, die Firmware zu installieren.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="514"/>
         <source>Select Dumped Firmware Source Location</source>
-        <translation type="unfinished"/>
+        <translation>Speicherort der ausgelesenen Firmware auswählen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="525"/>
         <source>Select Dumped Firmware ZIP</source>
-        <translation type="unfinished"/>
+        <translation>ZIP-Datei der ausgelesenen Firmware auswählen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="542"/>
         <source>Firmware cleanup failed</source>
-        <translation type="unfinished"/>
+        <translation>Firmware-Bereinigung ist fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="543"/>
         <source>Failed to clean up extracted firmware cache.
 Check write permissions in the system temp directory and try again.
 OS reported error: %1</source>
-        <translation type="unfinished"/>
+        <translation>Der Cache für die extrahierte Firmware konnte nicht bereinigt werden.
+Überprüfe die Schreibrechte im temporären Systemverzeichnis und versuche es erneut.
+Vom Betriebssystem gemeldeter Fehler: %1</translation>
     </message>
 </context>
 <context>
@@ -9478,17 +9582,17 @@ OS reported error: %1</source>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="23"/>
         <source>Linked Save Data</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfte Speicherdaten</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="23"/>
         <source>Save data has been linked.</source>
-        <translation type="unfinished"/>
+        <translation>Die Speicherdaten wurden verknüpft.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="26"/>
         <source>Failed to link save data</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfung der Speicherdaten fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="27"/>
@@ -9496,76 +9600,81 @@ OS reported error: %1</source>
 	%1
 To:
 	%2</source>
-        <translation type="unfinished"/>
+        <translation>Verzeichnis konnte nicht verknüpft werden:
+	%1
+Nach:
+	%2</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="40"/>
         <source>Already Linked</source>
-        <translation type="unfinished"/>
+        <translation>Bereits verknüpft</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="41"/>
         <source>This title is already linked to Ryujinx. Would you like to unlink it?</source>
-        <translation type="unfinished"/>
+        <translation>Dieser Titel ist bereits mit Ryujinx verknüpft. Möchtest du die Verknüpfung aufheben?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="68"/>
         <source>Failed to unlink old directory</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Löschen des alten Verzeichnisses</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="69"/>
         <location filename="../../src/qt_common/util/fs.cpp" line="79"/>
         <source>OS returned error: %1</source>
-        <translation type="unfinished"/>
+        <translation>Das Betriebssystem hat folgenden Fehler zurückgegeben: %1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="78"/>
         <source>Failed to copy save data</source>
-        <translation type="unfinished"/>
+        <translation>Speicherdaten konnten nicht kopiert werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="83"/>
         <source>Unlink Successful</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfung erfolgreich aufgehoben</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="84"/>
         <source>Successfully unlinked Ryujinx save data. Save data has been kept intact.</source>
-        <translation type="unfinished"/>
+        <translation>Ryujinx-Speicherdaten erfolgreich entknüpft. Die Speicherdaten blieben intakt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="97"/>
         <source>Could not find Ryujinx installation</source>
-        <translation type="unfinished"/>
+        <translation>Ryujinx-Installation konnte nicht gefunden werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="98"/>
         <source>Could not find a valid Ryujinx installation. This may typically occur if you are using Ryujinx in portable mode.
 
 Would you like to manually select a portable folder to use?</source>
-        <translation type="unfinished"/>
+        <translation>Es konnte keine gültige Ryujinx-Installation gefunden werden. Dies tritt in der Regel auf, wenn du Ryujinx im portablen Modus verwendest.
+
+Möchtest du manuell einen portablen Ordner auswählen?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="105"/>
         <source>Ryujinx Portable Location</source>
-        <translation type="unfinished"/>
+        <translation>Standort von Ryujinx-Portabel</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="122"/>
         <source>Not a valid Ryujinx directory</source>
-        <translation type="unfinished"/>
+        <translation>Kein gültiges Ryujinx-Verzeichnis</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="123"/>
         <source>The specified directory does not contain valid Ryujinx data.</source>
-        <translation type="unfinished"/>
+        <translation>Das angegebene Verzeichnis enthält keine gültigen Ryujinx-Daten.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/fs.cpp" line="141"/>
         <location filename="../../src/qt_common/util/fs.cpp" line="145"/>
         <source>Could not find Ryujinx save data</source>
-        <translation type="unfinished"/>
+        <translation>Ryujinx-Speicherdaten konnten nicht gefunden werden.</translation>
     </message>
 </context>
 <context>
@@ -9573,17 +9682,17 @@ Would you like to manually select a portable folder to use?</source>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="192"/>
         <source>Error Removing Contents</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Entfernen der Inhalte</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="194"/>
         <source>Error Removing Update</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Entfernen der Aktualisierung</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="196"/>
         <source>Error Removing DLC</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Entfernen des DLC</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="207"/>
@@ -9593,196 +9702,196 @@ Would you like to manually select a portable folder to use?</source>
         <location filename="../../src/qt_common/util/game.cpp" line="297"/>
         <location filename="../../src/qt_common/util/game.cpp" line="322"/>
         <source>Successfully Removed</source>
-        <translation type="unfinished"/>
+        <translation>Erfolgreich entfernt</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="208"/>
         <source>Successfully removed the installed base game.</source>
-        <translation type="unfinished"/>
+        <translation>Das installierte Basisspiel wurde erfolgreich entfernt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="213"/>
         <source>The base game is not installed in the NAND and cannot be removed.</source>
-        <translation type="unfinished"/>
+        <translation>Das Basisspiel ist nicht im NAND installiert und kann nicht entfernt werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="221"/>
         <source>Successfully removed the installed update.</source>
-        <translation type="unfinished"/>
+        <translation>Die installierte Aktualisierung wurde erfolgreich entfernt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="224"/>
         <source>There is no update installed for this title.</source>
-        <translation type="unfinished"/>
+        <translation>Für diesen Titel ist keine Aktualisierung installiert.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="232"/>
         <source>There are no DLCs installed for this title.</source>
-        <translation type="unfinished"/>
+        <translation>Für diesen Titel sind keine DLCs installiert.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="237"/>
         <source>Successfully removed %1 installed DLC.</source>
-        <translation type="unfinished"/>
+        <translation>Der installierte DLC %1 wurde erfolgreich entfernt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="258"/>
         <location filename="../../src/qt_common/util/game.cpp" line="266"/>
         <source>Error Removing Transferable Shader Cache</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Entfernen des übertragbaren Schattierer-Caches</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="259"/>
         <location filename="../../src/qt_common/util/game.cpp" line="293"/>
         <source>A shader cache for this title does not exist.</source>
-        <translation type="unfinished"/>
+        <translation>Für diesen Titel gibt es keinen Schattierer-Cache.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="264"/>
         <source>Successfully removed the transferable shader cache.</source>
-        <translation type="unfinished"/>
+        <translation>Der übertragbare Schattierer-Cache wurde erfolgreich entfernt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="267"/>
         <source>Failed to remove the transferable shader cache.</source>
-        <translation type="unfinished"/>
+        <translation>Der übertragbare Schattierer-Cache konnte nicht entfernt werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="282"/>
         <source>Error Removing Vulkan Driver Pipeline Cache</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Entfernen des Vulkan-Treiber-Rohrleitungs-Caches</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="283"/>
         <source>Failed to remove the driver pipeline cache.</source>
-        <translation type="unfinished"/>
+        <translation>Der Treiber-Rohrleitungs-Cache konnte nicht gelöscht werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="292"/>
         <location filename="../../src/qt_common/util/game.cpp" line="302"/>
         <source>Error Removing Transferable Shader Caches</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Entfernen übertragbarer Schattierer-Caches</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="298"/>
         <source>Successfully removed the transferable shader caches.</source>
-        <translation type="unfinished"/>
+        <translation>Die übertragbaren Schattierer-Caches wurden erfolgreich entfernt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="303"/>
         <source>Failed to remove the transferable shader cache directory.</source>
-        <translation type="unfinished"/>
+        <translation>Das Verzeichnis des übertragbaren Schattierer-Caches konnte nicht entfernt werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="316"/>
         <location filename="../../src/qt_common/util/game.cpp" line="325"/>
         <source>Error Removing Custom Configuration</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Entfernen der benutzerdefinierten Konfiguration</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="317"/>
         <source>A custom configuration for this title does not exist.</source>
-        <translation type="unfinished"/>
+        <translation>Für diesen Titel gibt es keine benutzerdefinierte Konfiguration.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="323"/>
         <source>Successfully removed the custom game configuration.</source>
-        <translation type="unfinished"/>
+        <translation>Die benutzerdefinierte Spielkonfiguration wurde erfolgreich entfernt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="326"/>
         <source>Failed to remove the custom game configuration.</source>
-        <translation type="unfinished"/>
+        <translation>Die benutzerdefinierte Spielkonfiguration konnte nicht entfernt werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="347"/>
         <source>Reset Metadata Cache</source>
-        <translation type="unfinished"/>
+        <translation>Metadaten-Cache zurücksetzen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="353"/>
         <source>The metadata cache is already empty.</source>
-        <translation type="unfinished"/>
+        <translation>Der Metadaten-Cache ist bereits leer.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="358"/>
         <source>The operation completed successfully.</source>
-        <translation type="unfinished"/>
+        <translation>Der Vorgang wurde erfolgreich abgeschlossen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="364"/>
         <source>The metadata cache couldn&apos;t be deleted. It might be in use or non-existent.</source>
-        <translation type="unfinished"/>
+        <translation>Der Metadaten-Cache konnte nicht gelöscht werden. Möglicherweise wird er gerade verwendet oder ist nicht vorhanden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="381"/>
         <source>Create Shortcut</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfung erstellen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="381"/>
         <source>Do you want to launch the game in fullscreen?</source>
-        <translation type="unfinished"/>
+        <translation>Möchtest du das Spiel im Vollbildmodus starten?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="385"/>
         <source>Shortcut Created</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfung erstellt</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="385"/>
         <source>Successfully created a shortcut to %1</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfung zu %1 erfolgreich erstellt.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="390"/>
         <source>Shortcut may be Volatile!</source>
-        <translation type="unfinished"/>
+        <translation>Die Verknüpfung kann unzuverlässig sein!</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="391"/>
         <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
-        <translation type="unfinished"/>
+        <translation>Dadurch wird eine Verknüpfung zum aktuellen AppImage erstellt. Nach einer Aktualisierung funktioniert dies möglicherweise nicht mehr einwandfrei. Möchtest du fortfahren?</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="397"/>
         <source>Failed to Create Shortcut</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfung konnte nicht erstellt werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="398"/>
         <source>Failed to create a shortcut to %1</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfung zu %1 konnte nicht erstellt werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="464"/>
         <source>Create Icon</source>
-        <translation type="unfinished"/>
+        <translation>Symbol erstellen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="465"/>
         <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
-        <translation type="unfinished"/>
+        <translation>Die Icon-Datei kann nicht erstellt werden. Der Pfad „%1“ existiert nicht und kann nicht erstellt werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="518"/>
         <source>No firmware available</source>
-        <translation type="unfinished"/>
+        <translation>Keine Firmware verfügbar</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="519"/>
         <source>Please install firmware to use the home menu.</source>
-        <translation type="unfinished"/>
+        <translation>Bitte installiere die Firmware, um das Startmenü nutzen zu können.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="525"/>
         <source>Home Menu Applet</source>
-        <translation type="unfinished"/>
+        <translation>Startseiten-Menü-Applet</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/game.cpp" line="526"/>
         <source>Home Menu is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"/>
+        <translation>Das Startmenü ist nicht verfügbar. Bitte installiere die Firmware neu.</translation>
     </message>
 </context>
 <context>
@@ -9790,7 +9899,7 @@ Would you like to manually select a portable folder to use?</source>
     <message>
         <location filename="../../src/qt_common/util/mod.cpp" line="47"/>
         <source>Mod Name</source>
-        <translation type="unfinished"/>
+        <translation>Mod-Name</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/mod.cpp" line="47"/>
@@ -9800,17 +9909,17 @@ Would you like to manually select a portable folder to use?</source>
     <message>
         <location filename="../../src/qt_common/util/mod.cpp" line="57"/>
         <source>RomFS</source>
-        <translation type="unfinished"/>
+        <translation>RomFS</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/mod.cpp" line="58"/>
         <source>ExeFS/Patch</source>
-        <translation type="unfinished"/>
+        <translation>ExeFS/Patch</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/mod.cpp" line="59"/>
         <source>Cheat</source>
-        <translation type="unfinished"/>
+        <translation>Cheat</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/mod.cpp" line="63"/>
@@ -9822,23 +9931,25 @@ Would you like to manually select a portable folder to use?</source>
         <source>Could not detect mod type automatically. Please manually specify the type of mod you downloaded.
 
 Most mods are RomFS mods, but patches (.pchtxt) are typically ExeFS mods.</source>
-        <translation type="unfinished"/>
+        <translation>Der Mod-Typ konnte nicht automatisch erkannt werden. Bitte gib den Typ des heruntergeladenen Mods manuell an.
+
+Die meisten Mods sind RomFS-Mods, während Patches (.pchtxt) in der Regel ExeFS-Mods sind.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/mod.cpp" line="126"/>
         <location filename="../../src/qt_common/util/mod.cpp" line="139"/>
         <source>Mod Extract Failed</source>
-        <translation type="unfinished"/>
+        <translation>Mod-Extraktion fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/mod.cpp" line="127"/>
         <source>Failed to create temporary directory %1</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Erstellen des temporären Verzeichnisses %1</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/mod.cpp" line="140"/>
         <source>Zip file %1 is empty</source>
-        <translation type="unfinished"/>
+        <translation>ZIP-Datei %1 ist leer</translation>
     </message>
 </context>
 <context>
@@ -9846,12 +9957,12 @@ Most mods are RomFS mods, but patches (.pchtxt) are typically ExeFS mods.</sourc
     <message>
         <location filename="../../src/qt_common/util/path.cpp" line="19"/>
         <source>Error Opening Shader Cache</source>
-        <translation type="unfinished"/>
+        <translation>Fehler beim Öffnen des Schattierer-Caches</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/path.cpp" line="20"/>
         <source>Failed to create or open shader cache for this title, ensure your app data directory has write permissions.</source>
-        <translation type="unfinished"/>
+        <translation>Der Schattierer-Cache für diesen Titel konnte nicht erstellt oder geöffnet werden. Stelle sicher, dass dein App-Datenverzeichnis über Schreibrechte verfügt.</translation>
     </message>
 </context>
 <context>
@@ -9859,153 +9970,159 @@ Most mods are RomFS mods, but patches (.pchtxt) are typically ExeFS mods.</sourc
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="70"/>
         <source>Contains game save data. DO NOT REMOVE UNLESS YOU KNOW WHAT YOU&apos;RE DOING!</source>
-        <translation type="unfinished"/>
+        <translation>Enthält Spielspeicherdaten. NICHT ENTFERNEN, ES SEI DENN, DU WEIßT, WAS DU TUST!</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="72"/>
         <source>Contains Vulkan and OpenGL pipeline caches. Generally safe to remove.</source>
-        <translation type="unfinished"/>
+        <translation>Enthält Vulkan- und OpenGL-Rohrleitungs-Caches. Kann in der Regel bedenkenlos entfernt werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="73"/>
         <source>Contains updates and DLC for games.</source>
-        <translation type="unfinished"/>
+        <translation>Enthält Aktualisierungen und DLCs für Spiele.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="74"/>
         <source>Contains firmware and applet data.</source>
-        <translation type="unfinished"/>
+        <translation>Enthält Firmware- und Applet-Daten.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="75"/>
         <source>Contains game mods, patches, and cheats.</source>
-        <translation type="unfinished"/>
+        <translation>Enthält Spiel-Mods, Patches und Cheats.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="79"/>
         <source>Decryption Keys were successfully installed</source>
-        <translation type="unfinished"/>
+        <translation>Entschlüsselungsschlüssel wurden erfolgreich installiert</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="80"/>
         <source>Unable to read key directory, aborting</source>
-        <translation type="unfinished"/>
+        <translation>Schlüsselverzeichnis kann nicht gelesen werden – Abbruch.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="81"/>
         <source>One or more keys failed to copy.</source>
-        <translation type="unfinished"/>
+        <translation>Ein oder mehrere Schlüssel konnten nicht kopiert werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="83"/>
         <source>Verify your keys file has a .keys extension and try again.</source>
-        <translation type="unfinished"/>
+        <translation>Überprüfe, ob deine Schlüsseldatei die Erweiterung .keys hat, und versuche es erneut.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="85"/>
         <source>Decryption Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</source>
-        <translation type="unfinished"/>
+        <translation>Die Entschlüsselungsschlüssel konnten nicht initialisiert werden. Überprüfe, ob deine Auslesewerkzeuge auf dem neuesten Stand sind, und lies die Schlüssel erneut aus.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="91"/>
         <source>Successfully installed firmware version %1</source>
-        <translation type="unfinished"/>
+        <translation>Firmware-Version %1 erfolgreich installiert</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="92"/>
         <source>Unable to locate potential firmware NCA files</source>
-        <translation type="unfinished"/>
+        <translation>Potenzielle NCA-Dateien für die Firmware konnten nicht gefunden werden</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="93"/>
         <source>Failed to delete one or more firmware files.</source>
-        <translation type="unfinished"/>
+        <translation>Das Löschen einer oder mehrerer Firmware-Dateien ist fehlgeschlagen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="94"/>
         <source>One or more firmware files failed to copy into NAND.</source>
-        <translation type="unfinished"/>
+        <translation>Eine oder mehrere Firmware-Dateien konnten nicht in den NAND kopiert werden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="96"/>
         <source>Firmware installation cancelled, firmware may be in a bad state or corrupted. Restart Eden or re-install firmware.</source>
-        <translation type="unfinished"/>
+        <translation>Die Firmware-Installation wurde abgebrochen. Die Firmware ist möglicherweise fehlerhaft oder beschädigt. Starte Eden neu oder installiere die Firmware erneut.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="101"/>
         <source>Firmware missing. Firmware is required to run certain games and use the Home Menu.</source>
-        <translation type="unfinished"/>
+        <translation>Firmware fehlt. Für die Ausführung bestimmter Spiele und die Nutzung des Startmenüs ist Firmware erforderlich.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="104"/>
         <source>Firmware reported as present, but was unable to be read. Check for decryption keys and redump firmware if necessary.</source>
-        <translation type="unfinished"/>
+        <translation>Die Firmware wurde als vorhanden gemeldet, konnte jedoch nicht gelesen werden. Überprüfe die Entschlüsselungsschlüssel und speichere die Firmware gegebenenfalls erneut.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="110"/>
         <source>Eden has detected user data for the following emulators:</source>
-        <translation type="unfinished"/>
+        <translation>Eden hat Benutzerdaten für die folgenden Emulatoren erkannt:</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="112"/>
         <source>Would you like to migrate your data for use in Eden?
 Select the corresponding button to migrate data from that emulator.
 This may take a while.</source>
-        <translation type="unfinished"/>
+        <translation>Möchtest du deine Daten für die Verwendung in Eden migrieren?
+Klicke auf die entsprechende Schaltfläche, um Daten aus diesem Emulator zu migrieren.
+Dies kann eine Weile dauern.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="115"/>
         <source>Clearing shader cache is recommended for all users.
 Do not uncheck unless you know what you&apos;re doing.</source>
-        <translation type="unfinished"/>
+        <translation>Das Leeren des Schattierer-Caches wird allen Nutzern empfohlen.
+Deaktiviere diese Option nur, wenn du genau weißt, was du tust.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="119"/>
         <source>Keeps the old data directory. This is recommended if you aren't
 space-constrained and want to keep separate data for the old emulator.</source>
-        <translation type="unfinished"/>
+        <translation>Behält das alte Datenverzeichnis bei. Dies wird empfohlen, wenn du nicht unter Platzmangel leidest
+und die Daten für den alten Emulator separat aufbewahren möchtest.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="121"/>
         <source>Deletes the old data directory.
 This is recommended on devices with space constraints.</source>
-        <translation type="unfinished"/>
+        <translation>Löscht das alte Datenverzeichnis.
+Dies wird auf Geräten mit begrenztem Speicherplatz empfohlen.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="124"/>
         <source>Creates a filesystem link between the old directory and Eden directory.
 This is recommended if you want to share data between emulators.</source>
-        <translation type="unfinished"/>
+        <translation>Erstellt eine Dateisystemverknüpfung zwischen dem alten Verzeichnis und dem Eden-Verzeichnis.
+Dies wird empfohlen, wenn du Daten zwischen Emulatoren austauschen möchtest.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="129"/>
         <source>Ryujinx title database does not exist.</source>
-        <translation type="unfinished"/>
+        <translation>Ryujinx-Titeldatenbank existiert nicht.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="130"/>
         <source>Invalid header on Ryujinx title database.</source>
-        <translation type="unfinished"/>
+        <translation>Ungültiger Header in der Ryujinx-Titeldatenbank.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="131"/>
         <source>Invalid magic header on Ryujinx title database.</source>
-        <translation type="unfinished"/>
+        <translation>Ungültiger Magic-Header in der Ryujinx-Titeldatenbank.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="132"/>
         <source>Invalid byte alignment on Ryujinx title database.</source>
-        <translation type="unfinished"/>
+        <translation>Ungültige Byte-Ausrichtung in der Ryujinx-Titeldatenbank.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="133"/>
         <source>No items found in Ryujinx title database.</source>
-        <translation type="unfinished"/>
+        <translation>In der Ryujinx-Titel-Datenbank wurden keine Einträge gefunden.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/qt_string_lookup.h" line="134"/>
         <source>Title %1 not found in Ryujinx title database.</source>
-        <translation type="unfinished"/>
+        <translation>Der Titel %1 wurde in der Ryujinx-Titeldatenbank nicht gefunden.</translation>
     </message>
 </context>
 <context>
@@ -10114,7 +10231,7 @@ This is recommended if you want to share data between emulators.</source>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2303"/>
         <location filename="../../src/yuzu/applets/qt_controller.cpp" line="486"/>
         <source>Handheld</source>
-        <translation>Handheld</translation>
+        <translation>Handgerät</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1126"/>
@@ -10429,24 +10546,26 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/ryujinx_dialog.ui" line="14"/>
         <source>Ryujinx Link</source>
-        <translation type="unfinished"/>
+        <translation>Ryujinx-Verknüpfung</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/ryujinx_dialog.ui" line="26"/>
         <source>Linking save data to Ryujinx lets both Ryujinx and Eden reference the same save files for your games.
 
 By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be deleted, and vice versa for &quot;From Ryujinx&quot;.</source>
-        <translation type="unfinished"/>
+        <translation>Wenn du deine Speicherdaten mit Ryujinx verknüpfst, können sowohl Ryujinx als auch Eden auf dieselben Speicherdateien für deine Spiele zugreifen.
+
+Wenn du „Von Eden“ auswählst, werden die zuvor in Ryujinx gespeicherten Daten gelöscht, und umgekehrt, wenn du „Von Ryujinx“ wählst.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/ryujinx_dialog.ui" line="40"/>
         <source>From Eden</source>
-        <translation type="unfinished"/>
+        <translation>Von Eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/ryujinx_dialog.ui" line="47"/>
         <source>From Ryujinx</source>
-        <translation type="unfinished"/>
+        <translation>Von Ryujinx</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/ryujinx_dialog.ui" line="54"/>
@@ -10456,12 +10575,12 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
     <message>
         <location filename="../../src/yuzu/ryujinx_dialog.cpp" line="37"/>
         <source>Failed to link save data</source>
-        <translation type="unfinished"/>
+        <translation>Verknüpfen der Speicherdaten fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/ryujinx_dialog.cpp" line="38"/>
         <source>OS returned error: %1</source>
-        <translation type="unfinished"/>
+        <translation>Betriebssystem hat folgenden Fehler zurückgegeben: %1</translation>
     </message>
 </context>
 <context>
@@ -10477,7 +10596,7 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
     <message>
         <location filename="../../src/yuzu/set_play_time_dialog.ui" line="14"/>
         <source>Set Play Time Data</source>
-        <translation type="unfinished"/>
+        <translation>Spielzeitdaten festlegen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/set_play_time_dialog.ui" line="25"/>
@@ -10497,7 +10616,7 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
     <message>
         <location filename="../../src/yuzu/set_play_time_dialog.cpp" line="49"/>
         <source>Total play time reached maximum.</source>
-        <translation type="unfinished"/>
+        <translation>Die maximale Spielzeit wurde erreicht.</translation>
     </message>
 </context>
 <context>
@@ -10505,92 +10624,93 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
     <message>
         <location filename="../../src/yuzu/updater/update_dialog.ui" line="14"/>
         <source>Update Available</source>
-        <translation type="unfinished"/>
+        <translation>Aktualisierung verfügbar</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/updater/update_dialog.ui" line="20"/>
         <location filename="../../src/yuzu/updater/update_dialog.cpp" line="31"/>
         <source>&lt;a href=&quot;%1&quot;&gt;View on Forgejo&lt;/a&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;a href=&quot;%1&quot;&gt;Auf Forgejo ansehen&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/updater/update_dialog.ui" line="33"/>
         <source>Would you like to install this update?</source>
-        <translation type="unfinished"/>
+        <translation>Möchtest du diese Aktualisierung installieren?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/updater/update_dialog.ui" line="50"/>
         <source>Available Versions</source>
-        <translation type="unfinished"/>
+        <translation>Verfügbare Versionen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/updater/update_dialog.ui" line="58"/>
         <location filename="../../src/yuzu/updater/update_dialog.cpp" line="29"/>
         <source>%1 is available for download.</source>
-        <translation type="unfinished"/>
+        <translation>%1 steht zum Herunterladen bereit.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="78"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="79"/>
         <source>New Version Location</source>
-        <translation type="unfinished"/>
+        <translation>Speicherort der neuen Version</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="80"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="81"/>
         <source>All Files (*.*)</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="88"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="128"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="143"/>
-        <source>Failed to save file</source>
-        <translation type="unfinished"/>
+        <translation>Alle Dateien (*.*)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
-        <source>Could not open file %1 for writing.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
-        <source>Downloading...</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
-        <source>Cancel</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
         <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
-        <source>Could not write to file %1.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
         <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
-        <source>Could not commit to file %1.</source>
-        <translation type="unfinished"/>
+        <source>Failed to save file</source>
+        <translation>Speichern der Datei fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="156"/>
-        <source>Failed to download file</source>
-        <translation type="unfinished"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="90"/>
+        <source>Could not open file %1 for writing.</source>
+        <translation>Datei %1 konnte nicht zum Schreiben geöffnet werden.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
+        <source>Downloading...</source>
+        <translation>Wird heruntergeladen...</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="130"/>
+        <source>Could not write to file %1.</source>
+        <translation>Es konnte nicht in die Datei %1 geschrieben werden.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="145"/>
+        <source>Could not commit to file %1.</source>
+        <translation>Änderungen konnten nicht für Datei %1 übernommen werden.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
-        <source>Could not download from %1%2
-Error code: %3</source>
-        <translation type="unfinished"/>
+        <source>Failed to download file</source>
+        <translation>Herunterladen der Datei fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="170"/>
-        <source>Download Complete</source>
-        <translation type="unfinished"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="158"/>
+        <source>Could not download from %1%2
+Error code: %3</source>
+        <translation>Das Herunterladen von %1%2 konnte nicht durchgeführt werden
+Fehler-Code: %3</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
+        <source>Download Complete</source>
+        <translation>Download abgeschlossen</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="172"/>
         <source>Successfully downloaded %1. Would you like to open it?</source>
-        <translation type="unfinished"/>
+        <translation>%1 wurde erfolgreich heruntergeladen. Möchtest du die Datei öffnen?</translation>
     </message>
 </context>
 </TS>

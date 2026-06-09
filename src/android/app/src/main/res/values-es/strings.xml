@@ -805,7 +805,7 @@
     <string name="select_content_type">Tipo de contenido</string>
     <string name="updates_and_dlc">Actualizaciones y contenido descargable</string>
     <string name="mods_and_cheats">Mods y trucos</string>
-    <string name="addon_notice">Aviso importante de complementos</string>
+    <string name="addon_notice">Aviso importante sobre los complementos</string>
     <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">Para instalar mods y trucos, debe seleccionar una carpeta que contenga los directorios cheats/, romfs/, o exefs/ . ¡No podemos confirmar si éstos serán compatibles con su juego, así que tenga cuidado!</string>
     <string name="invalid_directory">Directorio no válido</string>
@@ -816,7 +816,7 @@
     <string name="content_install_notice">Aviso importante de contenido</string>
     <string name="content_install_notice_description">El contenido seleccionado no es de este juego.\n¿Instalar aun que\?</string>
     <string name="confirm_uninstall">Confirmar desinstalación</string>
-    <string name="confirm_uninstall_description">¿Está seguro de que quiere desinstalar este complemento\?</string>
+    <string name="confirm_uninstall_description">¿Estás seguro de que quieres desinstalar este complemento\?</string>
     <string name="verify_integrity">Verificar integridad</string>
     <string name="verifying">Verificando...</string>
     <string name="verify_success">¡La verificación de integridad ha sido un éxito!</string>

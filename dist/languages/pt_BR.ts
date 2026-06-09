@@ -723,7 +723,7 @@ Resoluções mais altas exigem mais VRAM e largura de banda.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="152"/>
         <source>Determines how sharpened the image will look using FSR&apos;s or SGSR&apos;s dynamic contrast.</source>
-        <translation type="unfinished"/>
+        <translation>Determina o quão nítida a imagem ficará usando o contraste dinâmico do FSR ou do SGSR.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="153"/>
@@ -870,13 +870,14 @@ O modo agressivo pode impactar a performance de outros aplicativos, como softwar
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="196"/>
         <source>Anti-Flicker</source>
-        <translation type="unfinished"/>
+        <translation>Anti-Cintilação</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="197"/>
         <source>Forces GPU fence callbacks to wait for submitted GPU work.
 Use with Fast GPU mode, to avoid flicker with lower performance impact.</source>
-        <translation type="unfinished"/>
+        <translation>Força os callbacks de GPU fence a aguardarem o trabalho enviado da GPU.
+Use com o modo Fast GPU para evitar tremores com menor impacto no desempenho.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="199"/>
@@ -6364,32 +6365,32 @@ Por favor vá para Configuração -&gt; Sistema -&gt; Rede e selecione.</transla
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="285"/>
         <source>Name</source>
-        <translation type="unfinished"/>
+        <translation>Nome</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="286"/>
         <source>Compatibility</source>
-        <translation type="unfinished"/>
+        <translation>Compatibilidade</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="287"/>
         <source>Add-ons</source>
-        <translation type="unfinished"/>
+        <translation>Complementos</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="288"/>
         <source>File type</source>
-        <translation type="unfinished"/>
+        <translation>Tipo de arquivo</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="289"/>
         <source>Size</source>
-        <translation type="unfinished"/>
+        <translation>Tamanho</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="290"/>
         <source>Play time</source>
-        <translation type="unfinished"/>
+        <translation>Tempo de jogo</translation>
     </message>
 </context>
 <context>
@@ -7350,12 +7351,12 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1000"/>
         <source>Current emulation speed. Values higher or lower than 100% indicate emulation is running faster or slower than a Switch.</source>
-        <translation type="unfinished"/>
+        <translation>Velocidade atual da emulação. Valores altos ou mais baixo que 100% indicam que o emulador está rodando mais rápido ou mais lento que um Switch.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1003"/>
         <source>How many frames per second the game is currently displaying. This will vary from game to game and scene to scene.</source>
-        <translation type="unfinished"/>
+        <translation>Quantos quadros por segundo o jogo está mostrando atualmente. Isto varia de jogo para jogo e de cena a cena.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1007"/>
@@ -8242,7 +8243,7 @@ If you wish to clean up the files which were left in the old data location, you 
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
+        <location filename="../../src/yuzu/migration_worker.h" line="73"/>
         <source>Data was migrated successfully.</source>
         <translation type="unfinished"/>
     </message>
@@ -10602,65 +10603,65 @@ Ao selecionar &quot;Do Eden&quot;, os dados salvos anteriores armazenados no Ryu
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="78"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="79"/>
         <source>New Version Location</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="80"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="81"/>
         <source>All Files (*.*)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="88"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="128"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="143"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
         <source>Failed to save file</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="90"/>
         <source>Could not open file %1 for writing.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Downloading...</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Cancel</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="130"/>
         <source>Could not write to file %1.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="145"/>
         <source>Could not commit to file %1.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="156"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
         <source>Failed to download file</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="158"/>
         <source>Could not download from %1%2
 Error code: %3</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="170"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
         <source>Download Complete</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="172"/>
         <source>Successfully downloaded %1. Would you like to open it?</source>
         <translation type="unfinished"/>
     </message>

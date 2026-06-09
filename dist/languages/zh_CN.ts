@@ -729,7 +729,7 @@ Options lower than 1X can cause artifacts.</source>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="152"/>
         <source>Determines how sharpened the image will look using FSR&apos;s or SGSR&apos;s dynamic contrast.</source>
-        <translation type="unfinished"/>
+        <translation>确定使用 FSR 或 SGSR 的动态对比度时图像看起来有多锐利。</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="153"/>
@@ -878,13 +878,14 @@ Aggressive mode may impact performance of other applications such as recording s
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="196"/>
         <source>Anti-Flicker</source>
-        <translation type="unfinished"/>
+        <translation>防闪烁</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="197"/>
         <source>Forces GPU fence callbacks to wait for submitted GPU work.
 Use with Fast GPU mode, to avoid flicker with lower performance impact.</source>
-        <translation type="unfinished"/>
+        <translation>强制 GPU fence 回调等待已提交的 GPU 工作。
+与快速 GPU 模式一起使用,以避免较低性能影响下的闪烁。</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="199"/>
@@ -1656,12 +1657,12 @@ When a program attempts to open the controller applet, it is immediately closed.
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="495"/>
         <source>Snapdragon Game Super Resolution</source>
-        <translation type="unfinished"/>
+        <translation>骁龙游戏超级分辨率</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="496"/>
         <source>Snapdragon Game Super Resolution EdgeDir</source>
-        <translation type="unfinished"/>
+        <translation>骁龙游戏超级分辨率 EdgeDir</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="500"/>
@@ -3344,7 +3345,7 @@ Would you like to delete the old save data?</source>
         <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="224"/>
         <source>%</source>
         <comment>FSR/SGSR sharpening percentage (e.g. 50%)</comment>
-        <translation type="unfinished"/>
+        <translation>%</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="361"/>
@@ -6110,7 +6111,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="916"/>
         <source>This build doesn&apos;t have OpenGL support.</source>
-        <translation type="unfinished"/>
+        <translation>此版本不支持 OpenGL。</translation>
     </message>
 </context>
 <context>
@@ -6360,32 +6361,32 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="285"/>
         <source>Name</source>
-        <translation type="unfinished"/>
+        <translation>名称</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="286"/>
         <source>Compatibility</source>
-        <translation type="unfinished"/>
+        <translation>兼容性</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="287"/>
         <source>Add-ons</source>
-        <translation type="unfinished"/>
+        <translation>附加内容</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="288"/>
         <source>File type</source>
-        <translation type="unfinished"/>
+        <translation>文件类型</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="289"/>
         <source>Size</source>
-        <translation type="unfinished"/>
+        <translation>大小</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/game_list/model.cpp" line="290"/>
         <source>Play time</source>
-        <translation type="unfinished"/>
+        <translation>游戏时间</translation>
     </message>
 </context>
 <context>
@@ -8160,12 +8161,12 @@ Would you like to bypass this and exit anyway?</source>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="56"/>
         <source>SGSR</source>
-        <translation type="unfinished"/>
+        <translation>SGSR</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="57"/>
         <source>SGSR EdgeDir</source>
-        <translation type="unfinished"/>
+        <translation>SGSR EdgeDir</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.h" line="61"/>
@@ -8256,7 +8257,7 @@ If you wish to clean up the files which were left in the old data location, you 
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
+        <location filename="../../src/yuzu/migration_worker.h" line="73"/>
         <source>Data was migrated successfully.</source>
         <translation>数据已成功迁移。</translation>
     </message>
@@ -9529,34 +9530,36 @@ Only do this if you&apos;re 100% sure you want to delete this data.</source>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="501"/>
         <source>Keys not installed</source>
-        <translation type="unfinished"/>
+        <translation>未安装密钥</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="502"/>
         <source>Install decryption keys and restart Eden before attempting to install firmware.</source>
-        <translation type="unfinished"/>
+        <translation>在尝试安装固件之前先安装解密密钥并重启 Eden。</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="514"/>
         <source>Select Dumped Firmware Source Location</source>
-        <translation type="unfinished"/>
+        <translation>选择已转储的固件源位置</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="525"/>
         <source>Select Dumped Firmware ZIP</source>
-        <translation type="unfinished"/>
+        <translation>选择已转储的固件 ZIP</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="542"/>
         <source>Firmware cleanup failed</source>
-        <translation type="unfinished"/>
+        <translation>清理固件失败</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/util/content.cpp" line="543"/>
         <source>Failed to clean up extracted firmware cache.
 Check write permissions in the system temp directory and try again.
 OS reported error: %1</source>
-        <translation type="unfinished"/>
+        <translation>清理提取的固件缓存失败。
+请检查系统临时目录的写入权限然后重试。
+OS 报告的错误: %1</translation>
     </message>
 </context>
 <context>
@@ -10629,66 +10632,66 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
         <translation>%1 可用于下载。</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="78"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="79"/>
         <source>New Version Location</source>
         <translation>新版本位置</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="80"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="81"/>
         <source>All Files (*.*)</source>
         <translation>所有文件 (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="88"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="128"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="143"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
         <source>Failed to save file</source>
         <translation>保存文件失败</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="90"/>
         <source>Could not open file %1 for writing.</source>
         <translation>无法打开要写入的 %1 文件。</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Downloading...</source>
         <translation>正在下载...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="130"/>
         <source>Could not write to file %1.</source>
         <translation>无法写入到文件 %1。</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="145"/>
         <source>Could not commit to file %1.</source>
         <translation>无法提交到文件 %1。</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="156"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
         <source>Failed to download file</source>
         <translation>下载文件失败</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="158"/>
         <source>Could not download from %1%2
 Error code: %3</source>
         <translation>无法从 %1%2 下载
 错误代码: %3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="170"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
         <source>Download Complete</source>
         <translation>下载完成</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="172"/>
         <source>Successfully downloaded %1. Would you like to open it?</source>
         <translation>已成功下载 %1。您要打开它吗?</translation>
     </message>
