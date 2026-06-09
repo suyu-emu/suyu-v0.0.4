@@ -3,7 +3,7 @@
 
 set(CPM_SOURCE_CACHE "${PROJECT_SOURCE_DIR}/.cache/cpm" CACHE STRING "" FORCE)
 
-if(MSVC OR ANDROID)
+if(MSVC OR ANDROID OR IOS)
     set(BUNDLED_DEFAULT ON)
 else()
     set(BUNDLED_DEFAULT OFF)
@@ -247,7 +247,9 @@ function(AddJsonPackage)
 
     set(multiValueArgs OPTIONS)
 
-    cmake_parse_arguments(JSON "" "${oneValueArgs}" "${multiValueArgs}"
+    set(options MODULE)
+
+    cmake_parse_arguments(JSON "${options}" "${oneValueArgs}" "${multiValueArgs}"
         "${ARGN}")
 
     list(LENGTH ARGN argnLength)
@@ -277,6 +279,10 @@ function(AddJsonPackage)
     parse_object(${object})
 
     if(ci)
+        if (JSON_MODULE)
+            set(EXTRA_ARGS MODULE)
+        endif()
+
         AddCIPackage(
             VERSION ${version}
             NAME ${name}
@@ -284,8 +290,8 @@ function(AddJsonPackage)
             PACKAGE ${package}
             EXTENSION ${extension}
             MIN_VERSION ${min_version}
-            DISABLED_PLATFORMS ${disabled_platforms})
-
+            DISABLED_PLATFORMS ${disabled_platforms}
+            ${EXTRA_ARGS})
     else()
         if (NOT DEFINED JSON_FORCE_BUNDLED_PACKAGE)
             set(JSON_FORCE_BUNDLED_PACKAGE OFF)
@@ -690,8 +696,10 @@ function(AddCIPackage)
         set(pkgname linux-amd64)
     elseif(PLATFORM_LINUX AND ARCHITECTURE_arm64)
         set(pkgname linux-aarch64)
-    elseif(APPLE)
+    elseif(APPLE AND NOT IOS)
         set(pkgname macos-universal)
+    elseif(IOS AND ARCHITECTURE_arm64)
+        set(pkgname ios-aarch64)
     endif()
 
     if (DEFINED pkgname AND NOT "${pkgname}" IN_LIST DISABLED_PLATFORMS)
@@ -724,7 +732,11 @@ function(AddCIPackage)
 endfunction()
 
 # Utility function for Qt
-function(AddQt version)
+function(AddQt repo version)
+    if (NOT DEFINED repo)
+        message(FATAL_ERROR "[CPMUtil] AddQt: repo is required")
+    endif()
+
     if (NOT DEFINED version)
         message(FATAL_ERROR "[CPMUtil] AddQt: version is required")
     endif()
@@ -734,7 +746,7 @@ function(AddQt version)
         PACKAGE Qt6
         VERSION ${version}
         MIN_VERSION 6
-        REPO crueter-ci/Qt
+        REPO ${repo}
         DISABLED_PLATFORMS
             android-x86_64 android-aarch64
             freebsd-amd64 solaris-amd64 openbsd-amd64

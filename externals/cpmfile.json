@@ -28,12 +28,11 @@
     "httplib": {
         "repo": "yhirose/cpp-httplib",
         "tag": "v%VERSION%",
-        "hash": "5efa8140aadffe105dcf39935b732476e95755f6c7473ada3d0b64df2bc02c557633ae3948a25b45e1cf67e89a3ff6329fb30362e4ac033b9a1d1e453aa2eded",
-        "git_version": "0.37.0",
+        "hash": "159ed94965018f2a371d45a3bfc1961e5fb1549e501ded70a6b4532d7fe99d0579c18b5195aff6e35f96f399b426cea2650ec9fb75ef80d4c9edeccb51f2e6c9",
+        "git_version": "0.46.0",
         "find_args": "MODULE GLOBAL",
         "patches": [
-            "0001-mingw.patch",
-            "0002-fix-zstd.patch"
+            "0001-mingw.patch"
         ],
         "options": [
             "HTTPLIB_REQUIRE_OPENSSL ON",

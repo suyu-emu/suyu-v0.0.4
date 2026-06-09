@@ -83,7 +83,7 @@ ci_package() {
 		android-aarch64 android-x86_64 \
 		solaris-amd64 freebsd-amd64 openbsd-amd64 \
 		linux-amd64 linux-aarch64 \
-		macos-universal; do
+		macos-universal ios-aarch64; do
 		echo "-- * platform $platform"
 
 		case $DISABLED in

@@ -61,7 +61,8 @@ In order: OpenSSL CI, Boost (tag + artifact), Opus (options + find_args), discor
         "version": "3.6.0",
         "min_version": "1.1.1",
         "disabled_platforms": [
-            "macos-universal"
+            "macos-universal",
+            "ios-aarch64"
         ]
     },
     "boost": {

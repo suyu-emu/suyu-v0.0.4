@@ -4,7 +4,7 @@
         "package": "OpenSSL",
         "name": "openssl",
         "repo": "crueter-ci/OpenSSL",
-        "version": "3.6.0-1cb0d36b39",
+        "version": "4.0.0-11b7b6ea3b",
         "min_version": "3"
     },
     "openssl-cmake": {

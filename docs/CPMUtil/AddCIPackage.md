@@ -18,3 +18,4 @@
   - `linux-amd64`
   - `linux-aarch64`
   - `macos-universal`
+  - `ios-aarch64`

@@ -33,3 +33,5 @@ if (ENABLE_UPDATE_CHECKER)
 endif()
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} yuzu-android)
+
+target_link_options(yuzu-android PRIVATE "-Wl,-Bsymbolic")
