@@ -9,7 +9,7 @@
     },
     "sirit": {
         "repo": "eden-emulator/sirit",
-        "git_version": "1.0.4",
+        "git_version": "1.0.5",
         "tag": "v%VERSION%",
         "artifact": "sirit-source-%VERSION%.tar.zst",
         "hash_suffix": "sha512sum",
@@ -23,7 +23,7 @@
         "package": "sirit",
         "name": "sirit",
         "repo": "eden-emulator/sirit",
-        "version": "1.0.4"
+        "version": "1.0.5"
     },
     "httplib": {
         "repo": "yhirose/cpp-httplib",
