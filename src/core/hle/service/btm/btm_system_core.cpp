@@ -29,7 +29,7 @@ IBtmSystemCore::IBtmSystemCore(Core::System& system_)
         {10, nullptr, "StartAudioDeviceDiscovery"},
         {11, nullptr, "StopAudioDeviceDiscovery"},
         {12, nullptr, "IsDiscoveryingAudioDevice"},
-        {13, nullptr, "GetDiscoveredAudioDevice"},
+        {13, C<&IBtmSystemCore::GetDiscoveredAudioDevice>, "GetDiscoveredAudioDevice"},
         {14, C<&IBtmSystemCore::AcquireAudioDeviceConnectionEvent>, "AcquireAudioDeviceConnectionEvent"},
         {15, nullptr, "ConnectAudioDevice"},
         {16, nullptr, "IsConnectingAudioDevice"},
@@ -90,6 +90,11 @@ Result IBtmSystemCore::AcquireRadioEvent(Out<bool> out_is_valid,
 
     *out_is_valid = true;
     *out_event = &radio_event->GetReadableEvent();
+    R_SUCCEED();
+}
+
+Result IBtmSystemCore::GetDiscoveredAudioDevice(OutArray<std::array<u8, 0xFF>, BufferAttr_HipcPointer> out_audio_devices, s32 count, Out<s32> out_total) {
+    LOG_WARNING(Service_BTM, "(STUBBED) called");
     R_SUCCEED();
 }
 

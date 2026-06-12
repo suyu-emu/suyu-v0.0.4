@@ -47,6 +47,8 @@ NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8>
             return WrapFixed(this, &nvhost_ctrl_gpu::FlushL2, input, output);
         case 0x14:
             return WrapFixed(this, &nvhost_ctrl_gpu::GetActiveSlotMask, input, output);
+        case 0x15:
+            return WrapFixed(this, &nvhost_ctrl_gpu::PmuGetGpuLoad, input, output);
         case 0x1c:
             return WrapFixed(this, &nvhost_ctrl_gpu::GetGpuTime, input, output);
         default:
@@ -231,6 +233,12 @@ NvResult nvhost_ctrl_gpu::GetActiveSlotMask(IoctlActiveSlotMask& params) {
 
     params.slot = 0x07;
     params.mask = 0x01;
+    return NvResult::Success;
+}
+
+NvResult nvhost_ctrl_gpu::PmuGetGpuLoad(IoctlPmuGetLoad& params) {
+    LOG_WARNING(Service_NVDRV, "(stubbed) called");
+    params.pmu_gpu_load = 100;
     return NvResult::Success;
 }
 

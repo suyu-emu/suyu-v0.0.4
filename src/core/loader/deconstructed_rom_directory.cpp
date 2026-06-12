@@ -71,9 +71,10 @@ struct PatchCollection {
     std::array<s32, 13> module_patcher_indices{};
 };
 
-AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile file_,
-                                                                         bool override_update_)
-    : AppLoader(std::move(file_)), override_update(override_update_), is_hbl(false) {
+AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile file_, bool override_update_)
+    : AppLoader(std::move(file_))
+    , override_update(override_update_)
+{
     const auto file_dir = file->GetContainingDirectory();
 
     // Title ID
@@ -124,9 +125,11 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys
 }
 
 AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(
-    FileSys::VirtualDir directory, bool override_update_, bool is_hbl_)
-    : AppLoader(directory->GetFile("main")), dir(std::move(directory)),
-      override_update(override_update_), is_hbl(is_hbl_) {}
+    FileSys::VirtualDir directory, bool override_update_)
+    : AppLoader(directory->GetFile("main"))
+    , dir(std::move(directory))
+    , override_update(override_update_)
+{}
 
 FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::VirtualFile& dir_file) {
     if (FileSys::IsDirectoryExeFS(dir_file->GetContainingDirectory())) {
@@ -232,7 +235,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         ? ::Settings::values.rng_seed.GetValue() : Common::Random::Random64(0)) << 12) & 0xfff000;
 
     // Setup the process code layout
-    if (process.LoadFromMetadata(metadata, code_size, fastmem_base, aslr_offset, is_hbl).IsError()) {
+    if (process.LoadFromMetadata(metadata, code_size, fastmem_base, aslr_offset).IsError()) {
         return {ResultStatus::ErrorUnableToParseKernelMetadata, {}};
     }
 

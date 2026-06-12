@@ -1174,8 +1174,7 @@ KProcess::KProcess(KernelCore& kernel)
 
 KProcess::~KProcess() = default;
 
-Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
-    KProcessAddress aslr_space_start, size_t aslr_space_offset, bool is_hbl) {
+Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size, KProcessAddress aslr_space_start, size_t aslr_space_offset) {
     // Create a resource limit for the process.
     const auto pool = static_cast<KMemoryManager::Pool>(metadata.GetPoolPartition());
     const auto physical_memory_size = m_kernel.MemoryManager().GetSize(pool);
@@ -1247,7 +1246,6 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
                            aslr_space_start));
 
     // Assign remaining properties.
-    m_is_hbl = is_hbl;
     m_ideal_core_id = metadata.GetMainThreadCore();
 
     // Set up emulation context.

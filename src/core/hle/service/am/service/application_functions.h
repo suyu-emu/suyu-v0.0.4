@@ -53,6 +53,7 @@ private:
     Result IsGamePlayRecordingSupported(Out<bool> out_is_game_play_recording_supported);
     Result InitializeGamePlayRecording(
         u64 transfer_memory_size, InCopyHandle<Kernel::KTransferMemory> transfer_memory_handle);
+    Result SetMediaPlaybackStateForApplication(bool enabled);
     Result SetGamePlayRecordingState(GamePlayRecordingState game_play_recording_state);
     Result EnableApplicationCrashReport(bool enabled);
     Result InitializeApplicationCopyrightFrameBuffer(

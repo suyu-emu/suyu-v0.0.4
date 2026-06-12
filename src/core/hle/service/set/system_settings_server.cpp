@@ -142,10 +142,10 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {22, C<&ISystemSettingsServer::SetEulaVersions>, "SetEulaVersions"},
         {23, C<&ISystemSettingsServer::GetColorSetId>, "GetColorSetId"},
         {24, C<&ISystemSettingsServer::SetColorSetId>, "SetColorSetId"},
-        {25, nullptr, "GetConsoleInformationUploadFlag"},
-        {26, nullptr, "SetConsoleInformationUploadFlag"},
-        {27, nullptr, "GetAutomaticApplicationDownloadFlag"},
-        {28, nullptr, "SetAutomaticApplicationDownloadFlag"},
+        {25, C<&ISystemSettingsServer::GetConsoleInformationUploadFlag>, "GetConsoleInformationUploadFlag"},
+        {26, C<&ISystemSettingsServer::SetConsoleInformationUploadFlag>, "SetConsoleInformationUploadFlag"},
+        {27, C<&ISystemSettingsServer::GetAutomaticApplicationDownloadFlag>, "GetAutomaticApplicationDownloadFlag"},
+        {28, C<&ISystemSettingsServer::SetAutomaticApplicationDownloadFlag>, "SetAutomaticApplicationDownloadFlag"},
         {29, C<&ISystemSettingsServer::GetNotificationSettings>, "GetNotificationSettings"},
         {30, C<&ISystemSettingsServer::SetNotificationSettings>, "SetNotificationSettings"},
         {31, C<&ISystemSettingsServer::GetAccountNotificationSettings>, "GetAccountNotificationSettings"},
@@ -160,8 +160,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {42, nullptr, "SetEdid"},
         {43, C<&ISystemSettingsServer::GetAudioOutputMode>, "GetAudioOutputMode"},
         {44, C<&ISystemSettingsServer::SetAudioOutputMode>, "SetAudioOutputMode"},
-        {45, C<&ISystemSettingsServer::GetSpeakerAutoMuteFlag> , "GetSpeakerAutoMuteFlag"},
-        {46, C<&ISystemSettingsServer::SetSpeakerAutoMuteFlag> , "SetSpeakerAutoMuteFlag"},
+        {45, C<&ISystemSettingsServer::GetSpeakerAutoMuteFlag>, "GetSpeakerAutoMuteFlag"},
+        {46, C<&ISystemSettingsServer::SetSpeakerAutoMuteFlag>, "SetSpeakerAutoMuteFlag"},
         {47, C<&ISystemSettingsServer::GetQuestFlag>, "GetQuestFlag"},
         {48, C<&ISystemSettingsServer::SetQuestFlag>, "SetQuestFlag"},
         {49, nullptr, "GetDataDeletionSettings"},
@@ -180,8 +180,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {62, C<&ISystemSettingsServer::GetDebugModeFlag>, "GetDebugModeFlag"},
         {63, C<&ISystemSettingsServer::GetPrimaryAlbumStorage>, "GetPrimaryAlbumStorage"},
         {64, C<&ISystemSettingsServer::SetPrimaryAlbumStorage>, "SetPrimaryAlbumStorage"},
-        {65, nullptr, "GetUsb30EnableFlag"},
-        {66, nullptr, "SetUsb30EnableFlag"},
+        {65, C<&ISystemSettingsServer::GetUsb30EnableFlag>, "GetUsb30EnableFlag"},
+        {66, C<&ISystemSettingsServer::SetUsb30EnableFlag>, "SetUsb30EnableFlag"},
         {67, C<&ISystemSettingsServer::GetBatteryLot>, "GetBatteryLot"},
         {68, C<&ISystemSettingsServer::GetSerialNumber>, "GetSerialNumber"},
         {69, C<&ISystemSettingsServer::GetNfcEnableFlag>, "GetNfcEnableFlag"},
@@ -1070,6 +1070,45 @@ Result ISystemSettingsServer::SetNfcEnableFlag(bool nfc_enable_flag) {
     LOG_INFO(Service_SET, "called, nfc_enable_flag={}", nfc_enable_flag);
 
     m_system_settings.nfc_enable_flag = nfc_enable_flag;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetConsoleInformationUploadFlag(Out<bool> out_flag) {
+    LOG_INFO(Service_SET, "called {}", m_system_settings.console_information_upload_flag);
+    *out_flag = m_system_settings.console_information_upload_flag;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetConsoleInformationUploadFlag(bool flag) {
+    LOG_INFO(Service_SET, "called {}", flag);
+    m_system_settings.usb_30_enable_flag = flag;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetAutomaticApplicationDownloadFlag(Out<bool> out_flag) {
+    LOG_INFO(Service_SET, "called {}", m_system_settings.usb_30_enable_flag);
+    *out_flag = m_system_settings.automatic_application_download_flag;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetAutomaticApplicationDownloadFlag(bool flag) {
+    LOG_INFO(Service_SET, "called {}", flag);
+    m_system_settings.automatic_application_download_flag = flag;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetUsb30EnableFlag(Out<bool> out_usb30_enable_flag) {
+    LOG_INFO(Service_SET, "called, usb30_enable_flag={}", m_system_settings.usb_30_enable_flag);
+    *out_usb30_enable_flag = m_system_settings.usb_30_enable_flag;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetUsb30EnableFlag(bool usb30_enable_flag) {
+    LOG_INFO(Service_SET, "called, usb30_enable_flag={}", usb30_enable_flag);
+    m_system_settings.usb_30_enable_flag = usb30_enable_flag;
     SetSaveNeeded();
     R_SUCCEED();
 }

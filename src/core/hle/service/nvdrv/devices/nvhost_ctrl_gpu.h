@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -184,6 +184,11 @@ private:
     };
     static_assert(sizeof(IoctlGetCpuTimeCorrelationInfo) == 264);
 
+    struct IoctlPmuGetLoad {
+        u32 pmu_gpu_load;
+    };
+    static_assert(sizeof(IoctlPmuGetLoad) == 4);
+
     NvResult GetCharacteristics1(IoctlCharacteristics& params);
     NvResult GetCharacteristics3(IoctlCharacteristics& params,
                                  std::span<IoctlGpuCharacteristics> gpu_characteristics);
@@ -192,6 +197,7 @@ private:
     NvResult GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u32> tpc_mask);
 
     NvResult GetActiveSlotMask(IoctlActiveSlotMask& params);
+    NvResult PmuGetGpuLoad(IoctlPmuGetLoad& params);
     NvResult ZCullGetCtxSize(IoctlZcullGetCtxSize& params);
     NvResult ZCullGetInfo(IoctlNvgpuGpuZcullGetInfoArgs& params);
     NvResult ZBCSetTable(IoctlZbcSetTable& params);

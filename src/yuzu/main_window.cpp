@@ -581,7 +581,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
         } else if (should_launch_hlaunch) {
             std::filesystem::path const sd_dir = Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir);
             auto const hbl_path = (sd_dir / "atmosphere" / "hbl.nsp").string();
-            BootGame(QString::fromStdString(hbl_path), ApplicationAppletParameters());
+            BootGame(QString::fromStdString(hbl_path), LibraryAppletParameters(0x010000000000100Dull, Service::AM::AppletId::QLaunch));
         }
     }
 }

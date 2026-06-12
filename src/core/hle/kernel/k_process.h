@@ -133,7 +133,6 @@ private:
     bool m_is_initialized : 1 = false;
     bool m_is_application : 1 = false;
     bool m_is_default_application_system_resource : 1 = false;
-    bool m_is_hbl : 1 = false;
     bool m_is_suspended : 1 = false;
     bool m_is_immortal : 1 = false;
     bool m_is_handle_table_initialized : 1 = false;
@@ -275,10 +274,6 @@ public:
 
     bool CanForceDebug() const {
         return m_capabilities.CanForceDebug();
-    }
-
-    bool IsHbl() const {
-        return m_is_hbl;
     }
 
     u32 GetAllocateOption() const {
@@ -514,8 +509,7 @@ public:
     }
 
 public:
-    Result LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
-        KProcessAddress aslr_space_start, size_t aslr_space_offset, bool is_hbl);
+    Result LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size, KProcessAddress aslr_space_start, size_t aslr_space_offset);
 
     void LoadModule(CodeSet code_set, KProcessAddress base_addr);
 

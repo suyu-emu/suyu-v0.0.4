@@ -168,6 +168,13 @@ NvResult nvhost_nvdec_common::SetSubmitTimeout(u32 timeout) {
     return NvResult::Success;
 }
 
+NvResult nvhost_nvdec_common::GetClkRate(IoctlGetClkRate& params) {
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    params.clk_rate = 614400000;
+    params.module_id = 0;
+    return NvResult::Success;
+}
+
 Kernel::KEvent* nvhost_nvdec_common::QueryEvent(u32 event_id) {
     LOG_CRITICAL(Service_NVDRV, "Unknown HOSTX1 Event {}", event_id);
     return nullptr;

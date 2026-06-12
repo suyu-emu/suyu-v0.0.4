@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -25,8 +25,10 @@
 #include "core/hle/service/friend/friend.h"
 #include "core/hle/service/glue/glue.h"
 #include "core/hle/service/grc/grc.h"
+#include "core/hle/service/gpio/gpio.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/i2c/i2c.h"
 #include "core/hle/service/jit/jit.h"
 #include "core/hle/service/lbl/lbl.h"
 #include "core/hle/service/ldn/ldn.h"
@@ -144,7 +146,9 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
         {"ro",         &RO::LoopProcess},
         {"spl",        &SPL::LoopProcess},
         {"ssl",        &SSL::LoopProcess},
-        {"usb",        &USB::LoopProcess}
+        {"usb",        &USB::LoopProcess},
+        {"i2c",        &I2C::LoopProcess},
+        {"gpio",        &GPIO::LoopProcess},
     })
         kernel.RunOnGuestCoreProcess(std::string(e.first), [&system, f = e.second] { f(system); });
 }

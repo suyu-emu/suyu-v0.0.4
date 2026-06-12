@@ -1121,6 +1121,10 @@ add_library(core STATIC
     hle/service/vi/vi_types.h
     hle/service/vi/vsync_manager.cpp
     hle/service/vi/vsync_manager.h
+    hle/service/gpio/gpio.cpp
+    hle/service/gpio/gpio.h
+    hle/service/i2c/i2c.cpp
+    hle/service/i2c/i2c.h
     internal_network/emu_net_state.cpp
     internal_network/emu_net_state.h
     internal_network/network.cpp

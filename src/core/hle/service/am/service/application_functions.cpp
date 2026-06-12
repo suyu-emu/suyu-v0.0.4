@@ -11,6 +11,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/kernel/k_transfer_memory.h"
+#include "core/hle/result.h"
 #include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/service/application_functions.h"
@@ -56,7 +57,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {37, nullptr, "GetLimitedApplicationLicenseUpgradableEvent"},
         {40, D<&IApplicationFunctions::NotifyRunning>, "NotifyRunning"},
         {50, D<&IApplicationFunctions::GetPseudoDeviceId>, "GetPseudoDeviceId"},
-        {60, nullptr, "SetMediaPlaybackStateForApplication"},
+        {60, D<&IApplicationFunctions::SetMediaPlaybackStateForApplication>, "SetMediaPlaybackStateForApplication"},
         {65, D<&IApplicationFunctions::IsGamePlayRecordingSupported>, "IsGamePlayRecordingSupported"},
         {66, D<&IApplicationFunctions::InitializeGamePlayRecording>, "InitializeGamePlayRecording"},
         {67, D<&IApplicationFunctions::SetGamePlayRecordingState>, "SetGamePlayRecordingState"},
@@ -361,6 +362,13 @@ Result IApplicationFunctions::IsGamePlayRecordingSupported(
 Result IApplicationFunctions::InitializeGamePlayRecording(
     u64 transfer_memory_size, InCopyHandle<Kernel::KTransferMemory> transfer_memory_handle) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+    R_SUCCEED();
+}
+
+Result IApplicationFunctions::SetMediaPlaybackStateForApplication(bool enabled) {
+    LOG_WARNING(Service_AM, "(stubbed) {}", enabled);
+    std::scoped_lock lk{m_applet->lock};
+    m_applet->media_playback_state = enabled;
     R_SUCCEED();
 }
 

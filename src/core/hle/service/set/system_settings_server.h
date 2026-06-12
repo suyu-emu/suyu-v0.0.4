@@ -109,6 +109,12 @@ public:
     Result SetPrimaryAlbumStorage(PrimaryAlbumStorage primary_album_storage);
     Result GetBatteryLot(Out<BatteryLot> out_battery_lot);
     Result GetSerialNumber(Out<SerialNumber> out_console_serial);
+    Result GetConsoleInformationUploadFlag(Out<bool> out_flag);
+    Result SetConsoleInformationUploadFlag(bool flag);
+    Result GetAutomaticApplicationDownloadFlag(Out<bool> out_flag);
+    Result SetAutomaticApplicationDownloadFlag(bool flag);
+    Result GetUsb30EnableFlag(Out<bool> out_usb30_enable_flag);
+    Result SetUsb30EnableFlag(bool usb30_enable_flag);
     Result GetNfcEnableFlag(Out<bool> out_nfc_enable_flag);
     Result SetNfcEnableFlag(bool nfc_enable_flag);
     Result GetSleepSettings(Out<SleepSettings> out_sleep_settings);
