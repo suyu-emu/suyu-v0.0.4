@@ -90,7 +90,7 @@ public:
 
     void CreateEdenPaths() {
         std::for_each(eden_paths.begin(), eden_paths.end(), [](auto &path) {
-            void(FS::CreateDir(path.second));
+            void(FS::CreateDirs(path.second));
         });
     }
 
