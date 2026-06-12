@@ -1644,8 +1644,6 @@ bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 si
             start = (std::max)(start, gend);
         });
         push(start, end);
-        ClearDownload(addr, range_size);
-        gpu_modified_ranges.Subtract(addr, range_size);
     });
     if (upload_copies.empty()) {
         return true;
