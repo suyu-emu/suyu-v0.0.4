@@ -15,7 +15,7 @@ class QPushButton;
 class QGroupBox;
 class QProcess;
 
-/// Represents a known external decryption tool that SuyuEclipse can hook into.
+/// Represents a known external decryption tool that suyu can hook into.
 struct ExternalToolInfo {
     QString id;           // e.g. "hactool", "ryujinx", "eden", "yuzu", "suyu"
     QString display_name; // e.g. "hactool (SciresM)"
@@ -25,9 +25,9 @@ struct ExternalToolInfo {
 };
 
 /// Manages configuration and invocation of external decryption tools.
-/// SuyuEclipse does NOT perform any built-in decryption. When a game requires
+/// suyu does NOT perform any built-in decryption. When a game requires
 /// decryption, the user must configure an external tool (hactool, Ryujinx,
-/// Eden, yuzu, or any previous suyu build) and SuyuEclipse will invoke it.
+/// Eden, yuzu, or any previous suyu build) and suyu will invoke it.
 class ExternalDecryptionTool : public QObject {
     Q_OBJECT
 

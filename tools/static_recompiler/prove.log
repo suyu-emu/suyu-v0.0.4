@@ -1,0 +1,20 @@
+=== craft test AArch64 program: movz x0,#5; movz x1,#7; add x2,x0,x1; svc #0 ===
+=== run static recompiler ===
+suyu_recomp: 1 blocks, 4 instructions -> C:\Users\charl\Documents\SuyuEclipse\tools\static_recompiler\out (buildable project)
+recomp_exit=0
+=== generated files ===
+CMakeLists.txt
+main.c
+recompiled.c
+recomp_runtime.c
+recomp_runtime.h
+=== compile generated native project ===
+main.c
+recompiled.c
+recomp_runtime.c
+Generating Code...
+cl_exit=0
+=== RUN recompiled native executable ===
+[recomp] SVC #0  x0=5 x1=7 x2=12 x3=0
+[recomp] halted at pc=0x1010
+run_exit=0

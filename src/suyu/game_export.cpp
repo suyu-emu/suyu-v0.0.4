@@ -69,6 +69,7 @@
 #include "core/file_sys/vfs/vfs.h"
 #include "core/file_sys/vfs/vfs_real.h"
 #include "core/loader/nso.h"
+#include "core/recompiler/arm64_to_c.h"
 
 // ---------------------------------------------------------------------------
 // Filesystem helpers
@@ -873,6 +874,49 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         SerializeTranslatedBlocks(mod, ir_dir, code_dir, &total_ir_blocks, &total_ir_failures);
     }
 
+    // Static recompilation: lift each module's AArch64 .text into a buildable, cross-platform C
+    // project (Windows .exe / Linux+BSD ELF / macOS Mach-O), plus the recompiled PC source itself.
+    // This is the real "recompile" path — it emits native-compilable code, not a repackaged frontend.
+    const QString recomp_root = cache_dir + QDir::separator() + QStringLiteral("recompiled");
+    QDir().mkpath(recomp_root);
+    u64 recomp_total_blocks = 0;
+    for (const auto& mod : module_results) {
+        if (mod.text_bytes.empty()) {
+            continue;
+        }
+        const QString mod_dir = recomp_root + QDir::separator() + mod.name;
+        QDir().mkpath(mod_dir);
+        const auto stats = suyu::recomp::EmitProject(
+            mod.name.toStdString(), mod.text_bytes.data(), mod.text_bytes.size(), mod.text_vaddr,
+            mod_dir.toStdString(), /*source_only=*/false);
+        recomp_total_blocks += stats.blocks;
+    }
+    // One-command native build scripts (the user can run these to produce the actual executable).
+    {
+        QFile bw(recomp_root + QDir::separator() + QStringLiteral("build_native_windows.cmd"));
+        if (bw.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream o(&bw);
+            o << "@echo off\r\n"
+                 "rem Build every recompiled module into a native .exe (needs cmake + a C compiler).\r\n"
+                 "for /d %%M in (*) do (\r\n"
+                 "  if exist \"%%M\\CMakeLists.txt\" (\r\n"
+                 "    cmake -S \"%%M\" -B \"%%M\\build\" && cmake --build \"%%M\\build\" --config Release\r\n"
+                 "  )\r\n"
+                 ")\r\n";
+            bw.close();
+        }
+        QFile bs(recomp_root + QDir::separator() + QStringLiteral("build_native_unix.sh"));
+        if (bs.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream o(&bs);
+            o << "#!/bin/sh\n"
+                 "# Build every recompiled module into a native binary (ELF on Linux/BSD, Mach-O on macOS).\n"
+                 "for m in */ ; do\n"
+                 "  [ -f \"$m/CMakeLists.txt\" ] && cmake -S \"$m\" -B \"$m/build\" && cmake --build \"$m/build\"\n"
+                 "done\n";
+            bs.close();
+        }
+    }
+
     // Write block map files for each module (binary format for runtime consumption)
     // Format per entry: [u32 vaddr][u32 size][u32 instruction_count][u32 flags]
     for (const auto& mod : module_results) {
@@ -915,7 +959,10 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         out << "  \"ir_blocks_serialized\": " << total_ir_blocks << ",\n";
         out << "  \"ir_translation_failures\": " << total_ir_failures << ",\n";
         out << "  \"host_machine_code_blocks\": 0,\n";
-        out << "  \"requires_runtime_codegen\": true,\n";
+        out << "  \"recompiled_c_blocks\": " << recomp_total_blocks << ",\n";
+        out << "  \"recompiled_project\": \"recompiled/<module>/ (buildable C, cross-platform CMake)\",\n";
+        out << "  \"native_build_scripts\": [\"recompiled/build_native_windows.cmd\", \"recompiled/build_native_unix.sh\"],\n";
+        out << "  \"requires_runtime_codegen\": false,\n";
         out << "  \"modules\": [\n";
         for (size_t i = 0; i < module_results.size(); ++i) {
             const auto& mod = module_results[i];

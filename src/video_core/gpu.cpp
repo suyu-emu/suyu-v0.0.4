@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -200,7 +201,10 @@ struct GPU::Impl {
         u64 gpu_tick = system.CoreTiming().GetGPUTicks();
 
         if (Settings::values.use_fast_gpu_time.GetValue()) {
-            gpu_tick /= 256;
+            // Configurable divisor (Eden). Guarded by the setting's min (8) so this never divides
+            // by zero; default 256 matches the historical hardcoded value.
+            const u64 divisor = std::max<u64>(1, Settings::values.fast_gpu_time.GetValue());
+            gpu_tick /= divisor;
         }
 
         return gpu_tick;

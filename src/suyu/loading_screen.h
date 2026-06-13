@@ -65,6 +65,10 @@ public:
     // See https://wiki.qt.io/How_to_Change_the_Background_Color_of_QWidget
     void hideEvent(QHideEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
+    void showEvent(QShowEvent* event) override;
+    // Watches the parent widget so the loading screen always fills it, even if the parent is
+    // resized/laid out after the loading screen is first shown (fixes the "half covered" race).
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 signals:
     void LoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
@@ -73,6 +77,7 @@ signals:
     void Hidden();
 
 private:
+    void FitToParent();
     void StartLoadingMusic();
     void FadeLoadingMusicTo(qreal target_volume, int duration_ms, bool stop_after_fade);
     void StopLoadingMusic(bool immediate = true);
@@ -103,6 +108,10 @@ private:
     std::unique_ptr<QPropertyAnimation> fadeout_animation;
     QTimer* spinner_timer_ = nullptr;
     QTimer* background_timer_ = nullptr;
+    // Safety net: if the emulated game never presents its first frame (FirstFrameDisplayed never
+    // fires), this watchdog dismisses the overlay anyway so it does not stay up forever.
+    QTimer* complete_watchdog_ = nullptr;
+    bool complete_watchdog_armed_ = false;
     qreal logo_angle_ = 0.0;
     int background_offset_ = 0;
     QPixmap spinner_pixmap_;

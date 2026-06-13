@@ -5230,17 +5230,36 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
 
                     multiplayer_state->OnViewLobby();
 
+                    // Wait for the async room list fetch to complete (up to 15s)
                     QWidget* lobby_window = nullptr;
-                    const auto top_level_widgets = QApplication::topLevelWidgets();
-                    for (QWidget* widget : top_level_widgets) {
-                        if (!widget) {
-                            continue;
+                    for (int attempt = 0; attempt < 30; ++attempt) {
+                        QThread::msleep(500);
+                        QCoreApplication::processEvents();
+
+                        const auto top_level_widgets = QApplication::topLevelWidgets();
+                        for (QWidget* widget : top_level_widgets) {
+                            if (!widget) continue;
+                            if (widget->objectName() == QStringLiteral("Lobby") ||
+                                widget->windowTitle().contains(QStringLiteral("Public Room Browser"),
+                                                               Qt::CaseInsensitive)) {
+                                lobby_window = widget;
+                                break;
+                            }
                         }
-                        if (widget->objectName() == QStringLiteral("Lobby") ||
-                            widget->windowTitle().contains(QStringLiteral("Public Room Browser"),
-                                                           Qt::CaseInsensitive)) {
-                            lobby_window = widget;
-                            break;
+                        if (!lobby_window) continue;
+
+                        auto* room_list =
+                            lobby_window->findChild<QTreeView*>(QStringLiteral("room_list"));
+                        if (room_list && room_list->model()) {
+                            int unfiltered = 0;
+                            if (const auto* proxy =
+                                    qobject_cast<const QSortFilterProxyModel*>(room_list->model())) {
+                                if (proxy->sourceModel())
+                                    unfiltered = proxy->sourceModel()->rowCount();
+                            } else {
+                                unfiltered = room_list->model()->rowCount();
+                            }
+                            if (unfiltered > 0) break;
                         }
                     }
 

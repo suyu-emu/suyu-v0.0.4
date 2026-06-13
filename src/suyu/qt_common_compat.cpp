@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 SuyuEclipse Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "qt_common/qt_common.h"

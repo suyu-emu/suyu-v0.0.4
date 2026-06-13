@@ -6,9 +6,7 @@
 
 #pragma once
 
-#include <condition_variable>
 #include <memory>
-#include <mutex>
 
 #include "common/common_funcs.h"
 #include "core/hle/service/nvdrv/nvdata.h"
@@ -81,10 +79,6 @@ private:
     std::shared_ptr<BufferQueueCore> core;
     BufferQueueDefs::SlotsType& slots;
     u32 sticky_transform{};
-    std::mutex callback_mutex;
-    s32 next_callback_ticket{};
-    s32 current_callback_ticket{};
-    std::condition_variable_any callback_condition;
 
     Service::Nvidia::NvCore::NvMap& nvmap;
 };

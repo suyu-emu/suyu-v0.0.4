@@ -56,7 +56,7 @@ To verify the improvements are working:
 
 ### Linux/macOS
 ```bash
-cd /workspaces/SuyuEclipse
+cd /workspaces/suyu
 mkdir -p build && cd build
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 ninja
@@ -64,7 +64,7 @@ ninja
 
 ### Windows (MSVC)
 ```bash
-cd /workspaces/SuyuEclipse
+cd /workspaces/suyu
 mkdir build && cd build
 cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release ..
 ninja

@@ -18,7 +18,8 @@ public:
     ~ISystemDisplayService() override;
 
 private:
-    Result SetLayerZ(u32 z_value, u64 layer_id);
+    Result GetLayerZ(Out<u64> out_z_value, u64 layer_id);
+    Result SetLayerZ(u64 layer_id, u64 z_value);
     Result SetLayerVisibility(bool visible, u64 layer_id);
     Result ListDisplayModes(Out<u64> out_count, u64 display_id,
                             OutArray<DisplayMode, BufferAttr_HipcMapAlias> out_display_modes);

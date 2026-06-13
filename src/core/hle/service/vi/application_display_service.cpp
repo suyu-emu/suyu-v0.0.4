@@ -60,32 +60,32 @@ IApplicationDisplayService::~IApplicationDisplayService() {
 
 Result IApplicationDisplayService::GetRelayService(
     Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_relay_service) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
+    LOG_DEBUG(Service_VI, "called");
     R_RETURN(m_container->GetBinderDriver(out_relay_service));
 }
 
 Result IApplicationDisplayService::GetSystemDisplayService(
     Out<SharedPointer<ISystemDisplayService>> out_system_display_service) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
+    LOG_DEBUG(Service_VI, "called");
     *out_system_display_service = std::make_shared<ISystemDisplayService>(system, m_container);
     R_SUCCEED();
 }
 
 Result IApplicationDisplayService::GetManagerDisplayService(
     Out<SharedPointer<IManagerDisplayService>> out_manager_display_service) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
+    LOG_DEBUG(Service_VI, "called");
     *out_manager_display_service = std::make_shared<IManagerDisplayService>(system, m_container);
     R_SUCCEED();
 }
 
 Result IApplicationDisplayService::GetIndirectDisplayTransactionService(
     Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_indirect_display_transaction_service) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
+    LOG_DEBUG(Service_VI, "called");
     R_RETURN(m_container->GetBinderDriver(out_indirect_display_transaction_service));
 }
 
 Result IApplicationDisplayService::OpenDisplay(Out<u64> out_display_id, DisplayName display_name) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
+    LOG_DEBUG(Service_VI, "called");
 
     display_name[display_name.size() - 1] = '\0';
     ASSERT_MSG(strcmp(display_name.data(), "Default") == 0,
@@ -142,7 +142,7 @@ Result IApplicationDisplayService::SetLayerScalingMode(NintendoScaleMode scale_m
 
 Result IApplicationDisplayService::ListDisplays(
     Out<u64> out_count, OutArray<DisplayInfo, BufferAttr_HipcMapAlias> out_displays) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
+    LOG_DEBUG(Service_VI, "called");
 
     if (out_displays.size() > 0) {
         out_displays[0] = DisplayInfo{};
@@ -220,7 +220,7 @@ Result IApplicationDisplayService::CreateStrayLayer(
 }
 
 Result IApplicationDisplayService::DestroyStrayLayer(u64 layer_id) {
-    LOG_WARNING(Service_VI, "(STUBBED) called. layer_id={}", layer_id);
+    LOG_DEBUG(Service_VI, "called. layer_id={}", layer_id);
 
     {
         std::scoped_lock lk{m_lock};

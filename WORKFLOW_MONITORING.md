@@ -46,19 +46,19 @@ The following workflows can be manually triggered:
 ### Check Workflow Status
 ```bash
 # List recent workflow runs
-gh run list --repo suyu-emu/SuyuEclipse --limit 5
+gh run list --repo suyu-emu/suyu --limit 5
 
 # Check specific run
-gh run view 22035013707 --repo suyu-emu/SuyuEclipse
+gh run view 22035013707 --repo suyu-emu/suyu
 
 # Watch a run in real-time
-gh run watch 22035013707 --repo suyu-emu/SuyuEclipse
+gh run watch 22035013707 --repo suyu-emu/suyu
 ```
 
 ### Trigger Manual Workflow
 ```bash
 # Trigger a workflow_dispatch workflow
-gh workflow run "CMake on multiple platforms" --repo suyu-emu/SuyuEclipse --ref dev
+gh workflow run "CMake on multiple platforms" --repo suyu-emu/suyu --ref dev
 ```
 
 ## Build Monitoring - vcpkg Overlay Fix

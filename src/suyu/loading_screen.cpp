@@ -8,8 +8,10 @@
 #include <QByteArray>
 #include <QFile>
 #include <QGraphicsOpacityEffect>
+#include <QEvent>
 #include <QHideEvent>
 #include <QIODevice>
+#include <QShowEvent>
 #include <QImage>
 #include <QPainter>
 #include <QPainterPath>
@@ -136,6 +138,14 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     setAttribute(Qt::WA_OpaquePaintEvent, true);
     setAutoFillBackground(false);
 
+    // Keep the loading screen locked to the full size of its parent. Setting the geometry only
+    // once (when first shown) races against the parent's layout pass, which left the loading
+    // screen mis-sized ("half covered by the menu") when the emulation page had not yet been
+    // resized to its final dimensions. Watching the parent keeps it correct on every resize.
+    if (parent) {
+        parent->installEventFilter(this);
+    }
+
     ui->fade_parent->setAttribute(Qt::WA_TranslucentBackground, true);
     ui->fade_parent->setStyleSheet(QStringLiteral("background: transparent;"));
     ui->contentLayout->setAlignment(ui->progressLayout, Qt::AlignVCenter);
@@ -168,6 +178,23 @@ LoadingScreen::LoadingScreen(QWidget* parent)
         update();
     });
     background_timer_->start();
+
+    // Watchdog: the loading screen is normally dismissed when the render window presents its first
+    // frame (GMainWindow::OnLoadComplete via FirstFrameDisplayed). If a game stalls before its first
+    // frame, that signal never arrives and the overlay would hang forever. Once we reach the Complete
+    // stage we arm this single-shot timer to dismiss the overlay regardless, so control is handed to
+    // the game (showing its own black/boot screen) instead of leaving suyu's overlay stuck.
+    complete_watchdog_ = new QTimer(this);
+    complete_watchdog_->setSingleShot(true);
+    complete_watchdog_->setInterval(12000);
+    connect(complete_watchdog_, &QTimer::timeout, this, [this] {
+        if (isVisible()) {
+            LOG_WARNING(Frontend,
+                        "First frame not presented within watchdog window; dismissing loading "
+                        "overlay so the game can take over.");
+            OnLoadComplete();
+        }
+    });
 
     // Create a fade out effect to hide this loading screen widget.
     // When fading opacity, it will fade to the parent widgets background color, which is why we
@@ -312,11 +339,19 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
     ui->logo->setScaledContents(true);
 
     slow_shader_compile_start = false;
+    complete_watchdog_armed_ = false;
+    if (complete_watchdog_) {
+        complete_watchdog_->stop();
+    }
     OnLoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
     StartLoadingMusic();
 }
 
 void LoadingScreen::OnLoadComplete() {
+    if (complete_watchdog_) {
+        complete_watchdog_->stop();
+    }
+    complete_watchdog_armed_ = false;
     FadeLoadingMusicTo(0.0, fadeout_animation->duration(), true);
     fadeout_animation->start(QPropertyAnimation::KeepWhenStopped);
 }
@@ -324,6 +359,28 @@ void LoadingScreen::OnLoadComplete() {
 void LoadingScreen::hideEvent(QHideEvent* event) {
     FadeLoadingMusicTo(0.0, LOADING_MUSIC_FADE_OUT_MS, true);
     QWidget::hideEvent(event);
+}
+
+void LoadingScreen::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+    // Always cover the full parent and sit above sibling widgets (e.g. side menus/overlays) the
+    // moment we become visible, rather than relying on a single setGeometry() call from the caller.
+    FitToParent();
+    raise();
+}
+
+bool LoadingScreen::eventFilter(QObject* watched, QEvent* event) {
+    if (watched == parent() && event->type() == QEvent::Resize && isVisible()) {
+        FitToParent();
+        raise();
+    }
+    return QWidget::eventFilter(watched, event);
+}
+
+void LoadingScreen::FitToParent() {
+    if (auto* parent_widget = qobject_cast<QWidget*>(parent())) {
+        setGeometry(parent_widget->rect());
+    }
 }
 
 void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
@@ -342,6 +399,13 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
         previous_stage = stage;
         // reset back to fast shader compiling since the stage changed
         slow_shader_compile_start = false;
+
+        // Arm the first-frame watchdog the moment we hand off to the game.
+        if (stage == VideoCore::LoadCallbackStage::Complete && complete_watchdog_ &&
+            !complete_watchdog_armed_) {
+            complete_watchdog_armed_ = true;
+            complete_watchdog_->start();
+        }
     }
     // update the max of the progress bar if the number of shaders change
     if (total != previous_total) {

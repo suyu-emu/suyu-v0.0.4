@@ -1,7 +1,7 @@
 # Additional Eden Improvements Analysis
 
 ## Overview
-This document catalogs additional Eden emulator improvements discovered during analysis that are recommended for future migration to SuyuEclipse.
+This document catalogs additional Eden emulator improvements discovered during analysis that are recommended for future migration to suyu.
 
 ## Priority Classification
 - **P0 (Critical)**: Already migrated in current PR
@@ -283,7 +283,7 @@ if (auto room_member = Network::GetRoomMember().lock()) {
 - Performance debugging becomes harder
 
 **Decision Needed:**
-Does SuyuEclipse need built-in profiling? Options:
+Does suyu need built-in profiling? Options:
 1. Keep microprofile (current state)
 2. Remove like Eden (cleaner but lose profiling)
 3. Replace with alternative (Tracy, etc.)
@@ -304,7 +304,7 @@ Eden reverted many `SUYU_*` constants back to `YUZU_*`:
 
 **Reason:** Eden is poorly rebranded
 
-**SuyuEclipse Policy:**
+**suyu Policy:**
 - Keep SUYU branding
 - Don't blindly copy Eden's YUZU references
 - Maintain project identity
@@ -395,4 +395,4 @@ Eden has made valuable improvements beyond the already-migrated changes. Highest
 
 The configurable GPU timing in particular could help users with performance issues, while the logging improvements aid debugging.
 
-Continue selective migration using this document as a guide, always prioritizing stability and SuyuEclipse's unique identity.
+Continue selective migration using this document as a guide, always prioritizing stability and suyu's unique identity.

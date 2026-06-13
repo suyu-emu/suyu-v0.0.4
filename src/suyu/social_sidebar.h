@@ -21,7 +21,7 @@ public:
     explicit SocialSidebar(QWidget* parent = nullptr);
     ~SocialSidebar() override;
 
-    /// Set the subreddit to display (e.g. "r/SuyuEclipse").
+    /// Set the subreddit to display (e.g. "r/suyu").
     void SetSubreddit(const QString& subreddit);
 
     /// Refresh the feed content by fetching from the Reddit JSON API.

@@ -134,7 +134,7 @@ To modify the schedule, edit `.github/workflows/clone-issues.yml` and change the
 2. **Set environment variables:**
    ```bash
    export FORGEJO_URL="https://git.suyu.dev/api/v1/repos/suyu/suyu/issues"
-   export GITHUB_REPOSITORY="suyu-emu/SuyuEclipse"
+   export GITHUB_REPOSITORY="suyu-emu/suyu"
    export GITHUB_TOKEN="your_github_token_here"
    # Optional: export FORGEJO_TOKEN="your_forgejo_token_here"
    ```

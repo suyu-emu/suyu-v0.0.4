@@ -1,7 +1,7 @@
-# Eden Migration Analysis for SuyuEclipse
+# Eden Migration Analysis for suyu
 
 ## Overview
-This document analyzes the Eden emulator improvements and provides recommendations for selective migration to SuyuEclipse.
+This document analyzes the Eden emulator improvements and provides recommendations for selective migration to suyu.
 
 ## Key Eden Improvements Identified
 
@@ -12,7 +12,7 @@ This document analyzes the Eden emulator improvements and provides recommendatio
 - Per-game settings adjustments
 - Platform-specific workarounds
 
-**Status:** ✓ Migrated to SuyuEclipse in this PR
+**Status:** ✓ Migrated to suyu in this PR
 - Added `program_id` member to System::Impl
 - Added `LoadOverrides()` function with examples for PC and Android
 - Integrated call to LoadOverrides after program ID is read
@@ -78,7 +78,7 @@ Based on `eden_conflicts_20251103_153257.txt`, these file categories have signif
 
 ### Long-term
 1. **Continuous Eden monitoring** - Set up automated diffing to track new Eden improvements
-2. **Establish merge strategy** - Define which Eden changes align with SuyuEclipse goals
+2. **Establish merge strategy** - Define which Eden changes align with suyu goals
 3. **Automated testing** - Ensure game compatibility doesn't regress
 
 ## Migration Strategy
@@ -91,7 +91,7 @@ Based on `eden_conflicts_20251103_153257.txt`, these file categories have signif
 
 ### Red Flags to Avoid
 - Don't migrate branding changes (Eden uses "YUZU" internally)
-- Don't break existing custom SuyuEclipse features
+- Don't break existing custom suyu features
 - Don't migrate without understanding the change
 - Don't skip testing on target platforms (Windows primarily)
 
@@ -130,7 +130,7 @@ This initial migration focused on safe, high-value improvements from Eden:
 1. Game-specific override capability
 2. Windows build safety fixes
 
-Further Eden integration should be done incrementally with thorough testing to ensure SuyuEclipse maintains its stability and unique features while benefiting from Eden's bug fixes.
+Further Eden integration should be done incrementally with thorough testing to ensure suyu maintains its stability and unique features while benefiting from Eden's bug fixes.
 
 ## Eden Source Folders
 
@@ -148,6 +148,6 @@ For future Eden comparisons, clone the repository directly from https://git.eden
 Before merging any Eden improvements:
 - [ ] Code compiles on Windows x64
 - [ ] No regression in game compatibility
-- [ ] Custom SuyuEclipse features still work
+- [ ] Custom suyu features still work
 - [ ] CI/CD pipeline passes
 - [ ] No new compiler warnings introduced

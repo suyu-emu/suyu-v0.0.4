@@ -414,8 +414,21 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
     SwitchableSetting<bool> use_fast_gpu_time{
-        linkage, true, "use_fast_gpu_time", Category::RendererAdvanced, Specialization::Default,
+        linkage, true, "use_fast_gpu_time", Category::RendererAdvanced, Specialization::Paired,
         true,    true};
+    // Configurable fast-GPU-time divisor (ported from Eden). Higher divisor = the emulated GPU
+    // reports time elapsing faster, which raises dynamic resolution / render distance at the cost
+    // of pacing accuracy. 256 reproduces the historical hardcoded behaviour.
+    SwitchableSetting<u16, true> fast_gpu_time{linkage,
+                                               256,
+                                               8,
+                                               1024,
+                                               "fast_gpu_time",
+                                               Category::RendererAdvanced,
+                                               Specialization::Countable,
+                                               true,
+                                               true,
+                                               &use_fast_gpu_time};
     SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{linkage,
                                                              true,
                                                              "use_vulkan_driver_pipeline_cache",

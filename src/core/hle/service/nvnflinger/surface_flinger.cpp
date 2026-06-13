@@ -101,6 +101,28 @@ void SurfaceFlinger::SetLayerBlending(s32 consumer_binder_id, LayerBlending blen
     }
 }
 
+void SurfaceFlinger::SetLayerIsOverlay(s32 consumer_binder_id, bool is_overlay) {
+    if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
+        layer->is_overlay = is_overlay;
+        return;
+    }
+}
+
+void SurfaceFlinger::SetLayerZIndex(s32 consumer_binder_id, s32 z_index) {
+    if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
+        layer->z_index = z_index;
+        return;
+    }
+}
+
+bool SurfaceFlinger::GetLayerZIndex(s32 consumer_binder_id, s32* out_z_index) {
+    if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
+        *out_z_index = layer->z_index;
+        return true;
+    }
+    return false;
+}
+
 Display* SurfaceFlinger::FindDisplay(u64 display_id) {
     for (auto& display : m_displays) {
         if (display.id == display_id) {

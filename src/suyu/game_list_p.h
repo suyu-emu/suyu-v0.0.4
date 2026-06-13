@@ -5,15 +5,18 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <map>
 #include <string>
 #include <utility>
 
 #include <QCoreApplication>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QPainter>
 #include <QPainterPath>
 #include <QObject>
+#include <QScreen>
 #include <QStandardItem>
 #include <QString>
 #include <QWidget>
@@ -54,10 +57,18 @@ static QPixmap PrepareGameArtwork(const QPixmap& source, u32 size) {
         return GetDefaultIcon(size);
     }
 
-    const QPixmap scaled =
-        source.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    // Render at the screen's device pixel ratio so the artwork stays crisp on HiDPI displays
+    // (Windows 125-200% scaling). Without this the icon is generated at 1x and then upscaled by
+    // the view, which is what made the launcher artwork look compressed/low-res. The Switch
+    // control icon source is 256x256, so there is plenty of detail to downscale from.
+    const qreal dpr =
+        QGuiApplication::primaryScreen() ? QGuiApplication::primaryScreen()->devicePixelRatio() : 1.0;
+    const int px = std::max(1, static_cast<int>(std::lround(static_cast<double>(size) * dpr)));
 
-    QPixmap icon(size, size);
+    const QPixmap scaled =
+        source.scaled(px, px, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+
+    QPixmap icon(px, px);
     icon.fill(Qt::transparent);
 
     QPainter painter(&icon);
@@ -65,15 +76,18 @@ static QPixmap PrepareGameArtwork(const QPixmap& source, u32 size) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
     QPainterPath clip_path;
-    const qreal radius = std::max(6.0, static_cast<double>(size) * 0.12);
-    clip_path.addRoundedRect(QRectF(0, 0, size, size), radius, radius);
+    const qreal radius = std::max(6.0, static_cast<double>(px) * 0.12);
+    clip_path.addRoundedRect(QRectF(0, 0, px, px), radius, radius);
     painter.setClipPath(clip_path);
-    painter.drawPixmap((size - scaled.width()) / 2, (size - scaled.height()) / 2, scaled);
+    painter.drawPixmap((px - scaled.width()) / 2, (px - scaled.height()) / 2, scaled);
     painter.setClipping(false);
     painter.setPen(QPen(QColor(255, 255, 255, 28), 1.0));
-    painter.drawRoundedRect(QRectF(0.5, 0.5, size - 1.0, size - 1.0), radius, radius);
+    painter.drawRoundedRect(QRectF(0.5, 0.5, px - 1.0, px - 1.0), radius, radius);
     painter.end();
 
+    // Tag the pixmap with its DPR so Qt treats it as a `size`-logical-pixel image rendered at native
+    // resolution, rather than upscaling a 1x bitmap.
+    icon.setDevicePixelRatio(dpr);
     return icon;
 }
 

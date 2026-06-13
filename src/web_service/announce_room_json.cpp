@@ -125,33 +125,56 @@ void RoomJson::ClearPlayers() {
 AnnounceMultiplayerRoom::RoomList RoomJson::GetRoomList() {
     auto result = client.GetJson("/lobby", true);
     if (result.result_code != WebService::WebResult::Code::Success || result.returned_data.empty()) {
-        // Compatibility fallback for alternate room-list endpoints.
+        LOG_WARNING(WebService, "GetRoomList /lobby failed (code={}), trying /lobbies",
+                    static_cast<int>(result.result_code));
         result = client.GetJson("/lobbies", true);
     }
 
     if (result.result_code != WebService::WebResult::Code::Success || result.returned_data.empty()) {
+        LOG_ERROR(WebService, "GetRoomList failed: code={}, data_empty={}",
+                  static_cast<int>(result.result_code), result.returned_data.empty());
         return {};
     }
+
+    LOG_INFO(WebService, "GetRoomList received {} bytes", result.returned_data.size());
 
     const auto payload = nlohmann::json::parse(result.returned_data, nullptr, false);
     if (payload.is_discarded()) {
+        LOG_ERROR(WebService, "GetRoomList JSON parse failed");
         return {};
     }
 
-    if (payload.is_array()) {
-        return payload.get<AnnounceMultiplayerRoom::RoomList>();
-    }
-
-    if (payload.is_object()) {
-        if (payload.contains("rooms")) {
-            return payload.at("rooms").get<AnnounceMultiplayerRoom::RoomList>();
+    try {
+        nlohmann::json room_array;
+        if (payload.is_array()) {
+            room_array = payload;
+        } else if (payload.is_object()) {
+            if (payload.contains("rooms")) {
+                room_array = payload.at("rooms");
+            } else if (payload.contains("lobbies")) {
+                room_array = payload.at("lobbies");
+            }
         }
-        if (payload.contains("lobbies")) {
-            return payload.at("lobbies").get<AnnounceMultiplayerRoom::RoomList>();
-        }
-    }
 
-    return {};
+        if (room_array.is_null() || !room_array.is_array()) {
+            LOG_ERROR(WebService, "GetRoomList: no room array found in response");
+            return {};
+        }
+
+        AnnounceMultiplayerRoom::RoomList room_list;
+        for (std::size_t i = 0; i < room_array.size(); ++i) {
+            try {
+                room_list.push_back(room_array[i].get<AnnounceMultiplayerRoom::Room>());
+            } catch (const std::exception& e) {
+                LOG_WARNING(WebService, "GetRoomList: skipping room {}: {}", i, e.what());
+            }
+        }
+        LOG_INFO(WebService, "GetRoomList parsed {} rooms successfully", room_list.size());
+        return room_list;
+    } catch (const std::exception& e) {
+        LOG_ERROR(WebService, "GetRoomList parse exception: {}", e.what());
+        return {};
+    }
 }
 
 void RoomJson::Delete() {

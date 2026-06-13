@@ -36,6 +36,7 @@ public:
 signals:
     void ToolInvoked(const QString& tool_name, const QString& args);
     void MemoryAddressSelected(quint64 address);
+    void ExportRecompiledSource(const QString& output_dir);
 
 private:
     void SetupUI();
@@ -44,6 +45,7 @@ private:
     QWidget* CreateLogConsoleTab();
     QWidget* CreateMcpToolsTab();
     QWidget* CreateSystemInfoTab();
+    QWidget* CreateRecompileTab();
 
     void RefreshProcesses();
     void RefreshMemory();
@@ -72,4 +74,10 @@ private:
 
     // System info
     QTreeWidget* system_tree_{};
+
+    // Recompile export
+    QTextEdit* recomp_output_{};
+    QLineEdit* recomp_path_input_{};
+    QComboBox* recomp_platform_{};
+    QComboBox* recomp_mode_{};
 };

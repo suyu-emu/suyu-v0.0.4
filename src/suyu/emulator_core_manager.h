@@ -17,7 +17,7 @@ class EmulatorCoreManager : public QObject {
 
 public:
     enum class CoreType {
-        Native,   ///< Built-in SuyuEclipse core
+        Native,   ///< Built-in suyu core
         Libretro, ///< libretro-compatible core loaded as shared library
         Troppical ///< Troppical app bridge
     };

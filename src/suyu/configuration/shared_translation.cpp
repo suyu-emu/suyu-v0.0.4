@@ -226,6 +226,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, use_fast_gpu_time, tr("Use Fast GPU Time (Hack)"),
            tr("Enables Fast GPU Time. This option will force most games to run at their highest "
               "native resolution."));
+    INSERT(Settings, fast_gpu_time, tr("Fast GPU Time divisor (Hack)"),
+           tr("Overclocks the emulated GPU to increase dynamic resolution and render distance.\n"
+              "Use 128 for maximal performance and 512 for maximal graphics fidelity (default 256)."));
     INSERT(Settings, use_vulkan_driver_pipeline_cache, tr("Use Vulkan pipeline cache"),
            tr("Enables GPU vendor-specific pipeline cache.\nThis option can improve shader loading "
               "time significantly in cases where the Vulkan driver does not store pipeline cache "

@@ -119,10 +119,12 @@ struct Client::Impl {
         request.headers = params;
         request.body = data;
 
+        LOG_INFO(WebService, "Sending {} to {}{}", method, host, path);
         httplib::Result result = cli->send(request);
 
         if (!result) {
-            LOG_ERROR(WebService, "{} to {} returned null", method, host + path);
+            LOG_ERROR(WebService, "{} to {} returned null (httplib error={})", method, host + path,
+                      httplib::to_string(result.error()));
             return WebResult{WebResult::Code::LibError, "Null response", ""};
         }
 

@@ -17,6 +17,8 @@
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
+#include <QFileDialog>
+
 #include "common/fs/path_util.h"
 
 #ifdef _WIN32
@@ -50,6 +52,7 @@ void HackerEnvironment::SetupUI() {
     tab_widget_->addTab(CreateLogConsoleTab(), QStringLiteral("Log Console"));
     tab_widget_->addTab(CreateMcpToolsTab(), QStringLiteral("MCP Tools"));
     tab_widget_->addTab(CreateSystemInfoTab(), QStringLiteral("System Info"));
+    tab_widget_->addTab(CreateRecompileTab(), QStringLiteral("Recompile"));
 
     layout->addWidget(tab_widget_);
     setLayout(layout);
@@ -457,6 +460,105 @@ void HackerEnvironment::RefreshSystemInfo() {
                         {QStringLiteral("NAND Dir"),
                          QString::fromStdString(
                              Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir).string())});
+}
+
+// ---------------------------------------------------------------------------
+// Recompile Export
+// ---------------------------------------------------------------------------
+
+QWidget* HackerEnvironment::CreateRecompileTab() {
+    auto* widget = new QWidget();
+    auto* layout = new QVBoxLayout(widget);
+    layout->setContentsMargins(4, 4, 4, 4);
+
+    auto* title = new QLabel(QStringLiteral("Static Recompiler — AArch64 to Native"));
+    title->setStyleSheet(QStringLiteral("font-weight:bold; font-size:12px;"));
+    layout->addWidget(title);
+
+    auto* desc = new QLabel(QStringLiteral(
+        "Export the loaded game's code as portable C source that compiles to a native "
+        "executable (Windows .exe, Linux ELF, macOS Mach-O) or as raw source for inspection."));
+    desc->setWordWrap(true);
+    desc->setStyleSheet(QStringLiteral("color: #aaa; font-size:11px; margin-bottom: 6px;"));
+    layout->addWidget(desc);
+
+    auto* form = new QHBoxLayout();
+
+    form->addWidget(new QLabel(QStringLiteral("Output:")));
+    recomp_path_input_ = new QLineEdit();
+    recomp_path_input_->setPlaceholderText(QStringLiteral("C:/output/recompiled"));
+    recomp_path_input_->setText(
+        QString::fromStdString(
+            Common::FS::GetSuyuPath(Common::FS::SuyuPath::SuyuDir).string()) +
+        QStringLiteral("/recompiled"));
+    form->addWidget(recomp_path_input_, 1);
+
+    auto* btn_browse = new QPushButton(QStringLiteral("Browse..."));
+    connect(btn_browse, &QPushButton::clicked, this, [this]() {
+        const QString dir = QFileDialog::getExistingDirectory(
+            this, QStringLiteral("Recompile Output Directory"),
+            recomp_path_input_->text());
+        if (!dir.isEmpty()) {
+            recomp_path_input_->setText(dir);
+        }
+    });
+    form->addWidget(btn_browse);
+
+    form->addWidget(new QLabel(QStringLiteral("Platform:")));
+    recomp_platform_ = new QComboBox();
+    recomp_platform_->addItems({QStringLiteral("Windows (.exe)"),
+                                 QStringLiteral("Linux/BSD (ELF)"),
+                                 QStringLiteral("macOS (Mach-O)"),
+                                 QStringLiteral("All Platforms")});
+    form->addWidget(recomp_platform_);
+
+    form->addWidget(new QLabel(QStringLiteral("Mode:")));
+    recomp_mode_ = new QComboBox();
+    recomp_mode_->addItems({QStringLiteral("Source + Build Scripts"),
+                             QStringLiteral("Source Only (no build)")});
+    form->addWidget(recomp_mode_);
+
+    layout->addLayout(form);
+
+    auto* btn_layout = new QHBoxLayout();
+    btn_layout->addStretch();
+
+    auto* btn_export = new QPushButton(QStringLiteral("Export Recompiled Source"));
+    btn_export->setStyleSheet(QStringLiteral(
+        "QPushButton { background: #2a6; color: white; padding: 6px 16px; "
+        "border-radius: 4px; font-weight: bold; }"
+        "QPushButton:hover { background: #3b7; }"));
+    connect(btn_export, &QPushButton::clicked, this, [this]() {
+        const QString output_dir = recomp_path_input_->text().trimmed();
+        if (output_dir.isEmpty()) {
+            if (recomp_output_) {
+                recomp_output_->append(QStringLiteral("[ERROR] No output directory specified."));
+            }
+            return;
+        }
+        const bool source_only = recomp_mode_ && recomp_mode_->currentIndex() == 1;
+        if (recomp_output_) {
+            recomp_output_->append(
+                QStringLiteral("[INFO] Starting recompile export to: %1 (source_only=%2)")
+                    .arg(output_dir)
+                    .arg(source_only ? QStringLiteral("true") : QStringLiteral("false")));
+        }
+        emit ExportRecompiledSource(output_dir);
+    });
+    btn_layout->addWidget(btn_export);
+    layout->addLayout(btn_layout);
+
+    recomp_output_ = new QTextEdit();
+    recomp_output_->setReadOnly(true);
+    recomp_output_->setFont(QFont(QStringLiteral("Courier New"), 9));
+    recomp_output_->setStyleSheet(
+        QStringLiteral("background-color:#1e1e1e; color:#dcdcdc;"));
+    recomp_output_->setPlaceholderText(
+        QStringLiteral("Recompile output will appear here..."));
+    layout->addWidget(recomp_output_, 1);
+
+    widget->setLayout(layout);
+    return widget;
 }
 
 void HackerEnvironment::Refresh() {

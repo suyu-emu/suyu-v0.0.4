@@ -118,6 +118,11 @@ AppLoader_NRO::AppLoader_NRO(FileSys::VirtualFile file_) : AppLoader(std::move(f
 AppLoader_NRO::~AppLoader_NRO() = default;
 
 FileType AppLoader_NRO::IdentifyType(const FileSys::VirtualFile& nro_file) {
+    // Guard against a null file (e.g. when a directory path is probed): dereferencing it would
+    // access-violate. A missing/unreadable file is simply "not an NRO".
+    if (!nro_file) {
+        return FileType::Error;
+    }
     // Read NSO header
     NroHeader nro_header{};
     if (sizeof(NroHeader) != nro_file->ReadObject(&nro_header)) {

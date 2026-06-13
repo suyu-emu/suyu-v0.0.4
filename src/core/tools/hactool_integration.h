@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 SuyuEclipse Project
+// SPDX-FileCopyrightText: Copyright 2025 suyu Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once

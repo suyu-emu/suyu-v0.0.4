@@ -44,6 +44,9 @@ public:
 
     void SetLayerVisibility(s32 consumer_binder_id, bool visible);
     void SetLayerBlending(s32 consumer_binder_id, LayerBlending blending);
+    void SetLayerIsOverlay(s32 consumer_binder_id, bool is_overlay);
+    void SetLayerZIndex(s32 consumer_binder_id, s32 z_index);
+    bool GetLayerZIndex(s32 consumer_binder_id, s32* out_z_index);
 
 private:
     Display* FindDisplay(u64 display_id);
