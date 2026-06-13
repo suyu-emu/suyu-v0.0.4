@@ -29,8 +29,8 @@
     <string name="overlay_auto_hide">触控叠加层自动隐藏</string>
     <string name="overlay_auto_hide_description">在指定时间内未进行任何操作后，自动隐藏触控叠加层。</string>
     <string name="enable_input_overlay_auto_hide">启用触控叠加层自动隐藏</string>
-    <string name="hide_overlay_on_controller_input">使用控制器时隐藏触控叠加层</string>
-    <string name="hide_overlay_on_controller_input_description">在使用实体控制器时自动隐藏触控叠加层，而当控制器断开时触控叠加层则会重新显现。</string>
+    <string name="hide_overlay_on_controller_input">当使用控制器控制输入时隐藏触控叠加层</string>
+    <string name="hide_overlay_on_controller_input_description">在使用实体控制器时自动隐藏触控叠加层，而当控制器断开连接时，触控叠加层则会重新显现。</string>
     <string name="invert_confirm_back_controller_buttons">切换“确认/返回”控制器按钮功能</string>
     <string name="invert_confirm_back_controller_buttons_description">在与本应用的界面交互时，交换 Android 的“确认”与“返回”按钮的处理方式，以匹配 Switch 和 Xbox 的风格。</string>
 
@@ -432,7 +432,7 @@
 
     <!-- CPU -->
     <string name="fast_cpu_time">CPU 超频</string>
-    <string name="fast_cpu_time_description">强制模拟的 CPU 以更高的时钟频率运行，从而解除某些 FPS 限制器。使用 Boost (1700MHz) 可让游戏以 Switch 的最高原生时钟运行，或使用 Fast (2000MHz) 以 2 倍时钟运行。</string>
+    <string name="fast_cpu_time_description">强制模拟的 CPU 以更高的时钟频率运行，从而消除某些帧率限制。使用“升频”（1700MHz）以在 Switch 的最高原生时钟频率运行，或使用“快速”（2000MHz）以 2 倍时钟频率运行。</string>
     <string name="custom_cpu_ticks">自定义CPU时钟</string>
     <string name="custom_cpu_ticks_description">设置自定义的CPU时钟值。更高的值可能提高性能，但也可能导致游戏卡顿。建议范围为77-21000。</string>
     <string name="cpu_ticks">时钟</string>
@@ -460,15 +460,15 @@
     <string name="advanced">高级</string>
 
     <string name="renderer_accuracy">GPU 模式</string>
-    <string name="renderer_accuracy_description">控制 GPU 模拟的精确度。大部分游戏在性能或平衡模式下可以正常渲染，但部分游戏需要设置为精确。粒子效果通常只有在精确模式下才能正确显示。</string>
+    <string name="renderer_accuracy_description">控制 GPU 模拟模式。大多数游戏在“快速”或“平衡”模式下都能正常渲染，但有些游戏仍需使用“精确”模式。粒子效果通常只有在“精确”模式下才能正确渲染。</string>
     <string name="dma_accuracy">DMA 精度</string>
-    <string name="dma_accuracy_description">控制 DMA 精度。安全精度可以修复某些游戏中的问题，但在某些情况下也可能影响性能。如果不确定，请保留为“默认”。</string>
+    <string name="dma_accuracy_description">控制 DMA 的精准度。安全精度可以修复存在于某些游戏中的问题，但在某些情况下也会对性能造成影响。如不确定，请保持“默认”。</string>
     <string name="anisotropic_filtering">各向异性过滤</string>
     <string name="anisotropic_filtering_description">提高斜角的纹理质量</string>
     <string name="vram_usage_mode">显存使用模式</string>
     <string name="vram_usage_mode_description">控制显存分配策略</string>
     <string name="accelerate_astc">ASTC解码方式</string>
-    <string name="accelerate_astc_description">选择ASTC压缩纹理的解码方式：CPU（慢速、安全）、GPU（快速、推荐）或CPU异步（无卡顿，可能导致问题）</string>
+    <string name="accelerate_astc_description">选择渲染时使用的 ASTC 压缩纹理解码方式：CPU（缓慢，安全），GPU（快速，推荐），或 CPU 异步（无卡顿，但可能导致问题）</string>
 
     <string name="sync_memory_operations">同步内存操作</string>
     <string name="sync_memory_operations_description">确保计算和内存操作之间的数据一致性。 此选项应能修复某些游戏中的问题，但在某些情况下可能会降低性能。 使用Unreal Engine 4的游戏似乎受影响最大。</string>
@@ -477,11 +477,11 @@
     <string name="renderer_force_max_clock">强制最大时钟 (仅限 Adreno)</string>
     <string name="renderer_force_max_clock_description">强制 GPU 以最大时钟运行 (温控依然生效)。</string>
     <string name="renderer_asynchronous_gpu_emulation">GPU 异步模拟</string>
-    <string name="renderer_asynchronous_gpu_emulation_description">此技巧可通过异步运行 GPU 模拟来提升性能，但在执行与时序相关的操作时，可能引入图形问题和增加崩溃概率。</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">此技巧可通过异步运行 GPU 模拟来提升性能，但在执行与时序相关的操作时，可能带来图形显示问题以及增加崩溃概率。</string>
     <string name="renderer_async_presentation">异步呈现</string>
-    <string name="renderer_async_presentation_description">此技巧通过将图形呈现移至独立的 CPU 线程来提升性能，但可能会引入图形显示问题。</string>
+    <string name="renderer_async_presentation_description">此技巧通过将图形呈现移至独立的 CPU 线程来提升性能，但可能会带来图形显示问题。</string>
     <string name="renderer_reactive_flushing">启用反应性刷新</string>
-    <string name="renderer_reactive_flushing_description">通过牺牲性能来提高某些游戏的渲染精度。</string>
+    <string name="renderer_reactive_flushing_description">通过牺牲性能来提升某些游戏的渲染精度。</string>
     <string name="enable_buffer_history">启用缓冲区历史</string>
     <string name="enable_buffer_history_description">启用对先前缓冲区状态的访问。此选项可在某些游戏中提升渲染质量并保持性能的一致性。</string>
     <string name="use_optimized_vertex_buffers">优化顶点缓冲区</string>
@@ -489,10 +489,10 @@
 
     <string name="hacks">Hacks</string>
 
-    <string name="fast_gpu_time">GPU 超频频率</string>
+    <string name="fast_gpu_time">快速 GPU 时间</string>
     <string name="fast_gpu_time_description">强制大多数游戏以其最高原生分辨率运行。设置为 256 可获得最佳性能，设置为 512 可获得最佳画面保真度。</string>
     <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
-    <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
+    <string name="skip_cpu_inner_invalidation_description">在更新内存时跳过某些 CPU 端的缓存失效操作，从而降低 CPU 占用率并提升性能。可能会在某些游戏中引发故障点或崩溃。</string>
     <string name="antiflicker">防闪烁</string>
     <string name="antiflicker_description">强制 GPU 围栏回调等待已提交的 GPU 任务。配合“快速 GPU 模式”一起使用，以避免画面闪烁现象，仅会牺牲少量性能。</string>
     <string name="fix_bloom_effects">修复 Bloom 效果</string>
@@ -502,16 +502,16 @@
     <string name="rescale_hack">启用旧版缩放处理</string>
     <string name="rescale_hack_description">启用通过使用快速缩放路径，来为游戏提供缩放配置处理的传统处理方式</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
-    <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
-    <string name="gpu_unswizzle_settings">GPU 还原设置</string>
-    <string name="gpu_unswizzle_settings_description">配置基于 GPU 的纹理还原参数，或将其完全禁用。调整这些设置以平衡性能与纹理加载质量。</string>
-    <string name="gpu_unswizzle_enable">启用 GPU 还原</string>
+    <string name="renderer_asynchronous_shaders_description">以异步方式编译着色器。采用此方式或可减少卡顿，但也可能引入故障点。</string>
+    <string name="gpu_unswizzle_settings">GPU Unswizzle 设置</string>
+    <string name="gpu_unswizzle_settings_description">配置基于 GPU 的纹理 unswizzling 参数，或完全禁用该功能。通过调整这些设置，以尝试在性能与纹理加载质量之间取得平衡。</string>
+    <string name="gpu_unswizzle_enable">启用 GPU Unswizzle</string>
     <string name="gpu_unswizzle_disabled">禁用</string>
-    <string name="gpu_unswizzle_texture_size">GPU 还原最大纹理尺寸</string>
-    <string name="gpu_unswizzle_texture_size_description">设置基于 GPU 的纹理还原的最大尺寸（单位：MiB）。\n虽然 GPU 在处理中型和大型纹理时速度更快，但对于非常小的纹理，CPU 的效率可能更高。\n调整此设置，以便在 GPU 加速和 CPU 开销之间找到最佳平衡点。</string>
-    <string name="gpu_unswizzle_stream_size">GPU 还原流大小</string>
-    <string name="gpu_unswizzle_stream_size_description">设置用于 unswizzling 大型纹理时的每帧数据限制。较高的数值可以加快纹理的加载速度，但会增加帧延迟。而较低的数值可以降低 GPU 的开销，但可能会导致可见的纹理 闪现。</string>
-    <string name="gpu_unswizzle_chunk_size">GPU 还原块大小</string>
+    <string name="gpu_unswizzle_texture_size">GPU Unswizzle 最大纹理尺寸</string>
+    <string name="gpu_unswizzle_texture_size_description">设置基于 GPU 的纹理 unswizzling 的最大尺寸（MB）。虽然 GPU 处理中等和大型纹理的速度更快，但对于非常小的纹理，CPU 可能更为高效。通过调节此项设置，以尝试在 GPU 加速与 CPU 开销之间找到平衡。</string>
+    <string name="gpu_unswizzle_stream_size">GPU Unswizzle 流大小</string>
+    <string name="gpu_unswizzle_stream_size_description">设置用于 unswizzling 大型纹理时的每帧数据限制。较高的数值可以加速纹理的加载过程，但会带来更高的帧延迟。而较低的数值则可以降低 GPU 的开销，但也可能会导致可见的纹理闪现。</string>
+    <string name="gpu_unswizzle_chunk_size">GPU Unswizzle 块大小</string>
     <string name="gpu_unswizzle_chunk_size_description">定义了 3D 纹理每批次处理的深度切片数量。增加此数值可在高性能 GPU 上提升吞吐效率，但在性能较弱的硬件上可能会导致卡顿或驱动超时。</string>
     <string name="gpu_unswizzle_default_button">默认</string>
 
@@ -524,7 +524,7 @@
     <string name="vertex_input_dynamic_state">顶点输入动态状态</string>
     <string name="vertex_input_dynamic_state_description">启用此功能可实现更灵活的顶点输入处理，可能减少顶点/缓冲区的管线编译时间。</string>
     <string name="sample_shading_fraction">采样着色</string>
-    <string name="sample_shading_fraction_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。</string>
+    <string name="sample_shading_fraction_description">允许片段着色器在多采样片段中对每个采样点执行一次操作，而非对每个片段执行一次。在提升图形显示质量的同时，会牺牲一部分性能。</string>
 
 
     <string name="display">显示</string>
@@ -548,7 +548,7 @@
     <string name="renderer_debug_description">将图形 API 设置为较慢的调试模式。</string>
     <string name="patch_old_qcom_drivers">BCn 纹理补丁</string>
     <string name="patch_old_qcom_drivers_description">在 Adreno GPU 上覆盖自动 BCn 纹理格式检测。通常根据 Android 版本自动检测（在 API 28 及以上启用）。</string>
-    <string name="fastmem">Fastmem 内存访问</string>
+    <string name="fastmem">Fastmem</string>
 
     <string name="log">日志记录</string>
     <string name="flush_by_line">按行刷新调试日志</string>
@@ -615,7 +615,7 @@
     <string name="unused">未使用</string>
     <string name="input_mapping_filter">输入映射过滤器</string>
     <string name="input_mapping_filter_description">选择一个设备过滤输入映射</string>
-    <string name="auto_map">控制器自动映射</string>
+    <string name="auto_map">自动映射控制器键位</string>
     <string name="auto_map_description">选择一个设备以尝试自动映射</string>
     <string name="attempted_auto_map">尝试为 %1$s 自动映射</string>
     <string name="controller_type">控制器类型</string>
@@ -731,10 +731,10 @@
     <string name="preferences_audio">声音</string>
     <string name="preferences_audio_description">输出引擎及音量</string>
     <string name="preferences_controls">控制</string>
-    <string name="preferences_controls_description">使用控制器来映射输入</string>
+    <string name="preferences_controls_description">映射控制器键位输入</string>
     <string name="preferences_player">玩家 %d</string>
     <string name="preferences_debug">调试</string>
-    <string name="preferences_debug_description">CPU/GPU 调试、图形 API 及 fastmem 内存访问</string>
+    <string name="preferences_debug_description">CPU/GPU 调试、图形 API 以及 fastmem</string>
     <string name="preferences_custom_paths">自定义路径</string>
     <string name="preferences_custom_paths_description">存档目录</string>
 
@@ -878,15 +878,15 @@
     <string name="emulation_rel_stick_center">相对摇杆中心</string>
     <string name="emulation_dpad_slide">十字方向键滑动</string>
     <string name="emulation_haptics">触觉反馈</string>
-    <string name="emulation_show_overlay">显示控制器</string>
-    <string name="emulation_hide_overlay">隐藏控制器</string>
+    <string name="emulation_show_overlay">显示触控叠加层</string>
+    <string name="emulation_hide_overlay">隐藏触控叠加层</string>
     <string name="emulation_toggle_all">全部切换</string>
     <string name="emulation_control_adjust">调整触控叠加层</string>
     <string name="emulation_control_scale">缩放</string>
     <string name="emulation_control_opacity">不透明度</string>
     <string name="emulation_touch_overlay_reset">重置触控叠加层</string>
     <string name="emulation_touch_overlay_edit">编辑触控叠加层</string>
-    <string name="emulation_snap_to_grid">截图到网格</string>
+    <string name="emulation_snap_to_grid">对齐到网格</string>
     <string name="emulation_pause">暂停模拟</string>
     <string name="emulation_unpause">继续模拟</string>
     <string name="emulation_input_overlay">触控叠加层选项</string>
@@ -982,7 +982,7 @@
     <string name="renderer_none">无</string>
 
     <!-- Renderer Accuracy -->
-    <string name="renderer_accuracy_low">性能</string>
+    <string name="renderer_accuracy_low">快速</string>
     <string name="renderer_accuracy_medium">平衡</string>
     <string name="renderer_accuracy_high">精确</string>
 
