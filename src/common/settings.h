@@ -336,7 +336,7 @@ struct Values {
         RendererBackend::Vulkan,
 #endif
         "backend", Category::Renderer};
-    SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer, Specialization::RuntimeList};
+    SwitchableSetting<u32> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer, Specialization::RuntimeList};
 
     // Graphics Settings
     ResolutionScalingInfo resolution_info{};
@@ -661,8 +661,8 @@ struct Values {
                                       false,   true, &custom_rtc_enabled};
     SwitchableSetting<s64, true> custom_rtc_offset{linkage,
                                                    0,
-                                                   (std::numeric_limits<int>::min)(),
-                                                   (std::numeric_limits<int>::max)(),
+                                                   (std::numeric_limits<s64>::min)(),
+                                                   (std::numeric_limits<s64>::max)(),
                                                    "custom_rtc_offset",
                                                    Category::System,
                                                    Specialization::Countable,
@@ -751,7 +751,7 @@ struct Values {
 
     Setting<std::string> touch_device{linkage, "min_x:100,min_y:50,max_x:1800,max_y:850",
                                       "touch_device", Category::Controls};
-    Setting<int> touch_from_button_map_index{linkage, 0, "touch_from_button_map",
+    Setting<u32> touch_from_button_map_index{linkage, 0, "touch_from_button_map",
                                              Category::Controls};
     std::vector<TouchFromButtonMap> touch_from_button_maps;
 

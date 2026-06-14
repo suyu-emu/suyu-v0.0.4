@@ -89,11 +89,10 @@ std::string BuildCommaSeparatedExtensions(
 
 } // Anonymous namespace
 
-Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dld,
-                    VkSurfaceKHR surface) {
+Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dld, VkSurfaceKHR surface) {
     const std::vector<VkPhysicalDevice> devices = instance.EnumeratePhysicalDevices();
-    const s32 device_index = Settings::values.vulkan_device.GetValue();
-    if (device_index < 0 || device_index >= static_cast<s32>(devices.size())) {
+    const u32 device_index = Settings::values.vulkan_device.GetValue();
+    if (device_index >= u32(devices.size())) {
         LOG_ERROR(Render_Vulkan, "Invalid device index {}!", device_index);
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }

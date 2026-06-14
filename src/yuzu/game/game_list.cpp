@@ -183,7 +183,7 @@ void GameList::ResetViewMode() {
         tree_view->setVisible(false);
         break;
     default:
-        break;
+        UNREACHABLE();
     }
 
     auto view = m_currentView->viewport();
@@ -196,10 +196,8 @@ void GameList::ResetViewMode() {
 
     auto scroller = QScroller::scroller(view);
     QScrollerProperties props;
-    props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy,
-                          QScrollerProperties::OvershootAlwaysOff);
-    props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy,
-                          QScrollerProperties::OvershootAlwaysOff);
+    props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy, QScrollerProperties::OvershootAlwaysOff);
+    props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy, QScrollerProperties::OvershootAlwaysOff);
     scroller->setScrollerProperties(props);
 
     if (m_isTreeMode != newTreeMode) {

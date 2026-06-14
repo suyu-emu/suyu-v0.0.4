@@ -1088,10 +1088,9 @@ void MainWindow::InitializeWidgets() {
     aa_status_button->setFocusPolicy(Qt::NoFocus);
     connect(aa_status_button, &QPushButton::clicked, [&] {
         auto aa_mode = Settings::values.anti_aliasing.GetValue();
-        aa_mode = static_cast<Settings::AntiAliasing>(static_cast<u32>(aa_mode) + 1);
-        if (aa_mode == Settings::AntiAliasing::MaxEnum) {
-            aa_mode = Settings::AntiAliasing::None;
-        }
+        aa_mode = Settings::AntiAliasing(u32(aa_mode) + 1);
+        if (u32(aa_mode) > u32(Settings::EnumMetadata<Settings::AntiAliasing>::GetLast()))
+            aa_mode = Settings::EnumMetadata<Settings::AntiAliasing>::GetFirst();
         Settings::values.anti_aliasing.SetValue(aa_mode);
         aa_status_button->setChecked(true);
         UpdateAAText();
@@ -3623,10 +3622,9 @@ void MainWindow::OnIncreaseVolume() {
 
 void MainWindow::OnToggleAdaptingFilter() {
     auto filter = Settings::values.scaling_filter.GetValue();
-    filter = static_cast<Settings::ScalingFilter>(static_cast<u32>(filter) + 1);
-    if (filter == Settings::ScalingFilter::MaxEnum) {
-        filter = Settings::ScalingFilter::NearestNeighbor;
-    }
+    filter = Settings::ScalingFilter(u32(filter) + 1);
+    if (u32(filter) > u32(Settings::EnumMetadata<Settings::ScalingFilter>::GetLast()))
+        filter = Settings::EnumMetadata<Settings::ScalingFilter>::GetFirst();
     Settings::values.scaling_filter.SetValue(filter);
     filter_status_button->setChecked(true);
     UpdateFilterText();

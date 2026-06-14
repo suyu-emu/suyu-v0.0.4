@@ -238,33 +238,27 @@ void Config::ReadControlValues() {
 void Config::ReadMotionTouchValues() {
     Settings::values.touch_from_button_maps.clear();
     int num_touch_from_button_maps = BeginArray(std::string("touch_from_button_maps"));
-
     if (num_touch_from_button_maps > 0) {
         for (int i = 0; i < num_touch_from_button_maps; ++i) {
             SetArrayIndex(i);
-
             Settings::TouchFromButtonMap map;
             map.name = ReadStringSetting(std::string("name"), std::string("default"));
-
-            const int num_touch_maps = BeginArray(std::string("entries"));
-            map.buttons.reserve(num_touch_maps);
+            int const num_touch_maps = BeginArray(std::string("entries"));
+            map.buttons.resize(num_touch_maps);
             for (int j = 0; j < num_touch_maps; j++) {
                 SetArrayIndex(j);
-                std::string touch_mapping = ReadStringSetting(std::string("bind"));
-                map.buttons.emplace_back(std::move(touch_mapping));
+                map.buttons[j] = ReadStringSetting(std::string("bind"));
             }
             EndArray(); // entries
             Settings::values.touch_from_button_maps.emplace_back(std::move(map));
         }
     } else {
-        Settings::values.touch_from_button_maps.emplace_back(
-            Settings::TouchFromButtonMap{"default", {}});
+        Settings::values.touch_from_button_maps.emplace_back(Settings::TouchFromButtonMap{"default", {}});
         num_touch_from_button_maps = 1;
     }
     EndArray(); // touch_from_button_maps
 
-    Settings::values.touch_from_button_map_index = std::clamp(
-        Settings::values.touch_from_button_map_index.GetValue(), 0, num_touch_from_button_maps - 1);
+    Settings::values.touch_from_button_map_index = (std::min)(Settings::values.touch_from_button_map_index.GetValue(), u32(num_touch_from_button_maps - 1));
 }
 
 void Config::ReadCoreValues() {
@@ -501,15 +495,12 @@ void Config::SaveMotionTouchValues() {
     BeginArray(std::string("touch_from_button_maps"));
     for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {
         SetArrayIndex(int(p));
-        WriteStringSetting(std::string("name"), Settings::values.touch_from_button_maps[p].name,
-                           std::make_optional(std::string("default")));
-
+        WriteStringSetting(std::string("name"), Settings::values.touch_from_button_maps[p].name, std::make_optional(std::string("default")));
         BeginArray(std::string("entries"));
         for (std::size_t q = 0; q < Settings::values.touch_from_button_maps[p].buttons.size();
              ++q) {
             SetArrayIndex(int(q));
-            WriteStringSetting(std::string("bind"),
-                               Settings::values.touch_from_button_maps[p].buttons[q]);
+            WriteStringSetting(std::string("bind"), Settings::values.touch_from_button_maps[p].buttons[q]);
         }
         EndArray(); // entries
     }
@@ -638,8 +629,7 @@ void Config::SaveDisabledAddOnValues() {
         BeginArray(std::string("disabled"));
         for (std::size_t j = 0; j < elem.second.size(); ++j) {
             SetArrayIndex(int(j));
-            WriteStringSetting(std::string("d"), elem.second[j],
-                               std::make_optional(std::string("")));
+            WriteStringSetting(std::string("d"), elem.second[j], std::make_optional(std::string("")));
         }
         EndArray(); // disabled
         ++i;
@@ -733,21 +723,18 @@ s64 Config::ReadIntegerSetting(const std::string& key, const std::optional<s64> 
     std::string full_key = GetFullKey(key, false);
     if (!default_value.has_value()) {
         try {
-            return std::stoll(
-                std::string(config->GetValue(GetSection().c_str(), full_key.c_str(), "0")));
+            return std::stoll(std::string(config->GetValue(GetSection().c_str(), full_key.c_str(), "0")));
         } catch (...) {
             return 0;
         }
     }
 
     s64 result = 0;
-    if (config->GetBoolValue(GetSection().c_str(),
-                             std::string(full_key).append("\\default").c_str(), true)) {
+    if (config->GetBoolValue(GetSection().c_str(), std::string(full_key).append("\\default").c_str(), true)) {
         result = default_value.value();
     } else {
         try {
-            result = std::stoll(std::string(config->GetValue(
-                GetSection().c_str(), full_key.c_str(), ToString(default_value.value()).c_str())));
+            result = std::stoll(std::string(config->GetValue(GetSection().c_str(), full_key.c_str(), ToString(default_value.value()).c_str())));
         } catch (...) {
             result = default_value.value();
         }
@@ -919,14 +906,12 @@ void Config::ReadSettingGeneric(Settings::BasicSetting* const setting) {
 
     bool use_global = true;
     if (setting->Switchable() && !global) {
-        use_global =
-            ReadBooleanSetting(std::string(key).append("\\use_global"), std::make_optional(true));
+        use_global = ReadBooleanSetting(std::string(key).append("\\use_global"), std::make_optional(true));
         setting->SetGlobal(use_global);
     }
 
     if (global || !use_global) {
-        const bool is_default =
-            ReadBooleanSetting(std::string(key).append("\\default"), std::make_optional(true));
+        const bool is_default = ReadBooleanSetting(std::string(key).append("\\default"), std::make_optional(true));
         if (!is_default) {
             setting->LoadString(ReadStringSetting(key, default_value));
         } else {
@@ -1050,10 +1035,9 @@ std::string Config::GetFullKey(const std::string& key, bool skipArrayIndex) {
 
 int Config::BeginArray(const std::string& array) {
     array_stack.push_back(ConfigArray{AdjustKey(array), 0, 0});
-    const int size = config->GetLongValue(GetSection().c_str(),
-                                          GetFullKey(std::string("size"), true).c_str(), 0);
-    array_stack.back().size = size;
-    return size;
+    const int size = config->GetLongValue(GetSection().c_str(), GetFullKey(std::string("size"), true).c_str(), 0);
+    array_stack.back().size = (std::max)(0, size);
+    return array_stack.back().size;
 }
 
 void Config::EndArray() {
@@ -1071,7 +1055,7 @@ void Config::EndArray() {
         // Edge-case where the first array created doesn't have a name
         config->SetValue(GetSection().c_str(), std::string("size").c_str(), ToString(size).c_str());
     } else {
-        const auto key = GetFullKey(std::string("size"), true);
+        auto const key = GetFullKey(std::string("size"), true);
         config->SetValue(GetSection().c_str(), key.c_str(), ToString(size).c_str());
     }
 

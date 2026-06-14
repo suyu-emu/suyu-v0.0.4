@@ -31,8 +31,10 @@ public:
     using clock = std::chrono::system_clock;
 
     explicit Socket(const std::string& host, u16 port, SocketCallback callback_)
-        : callback(std::move(callback_)), timer(io_context),
-          socket(io_context, udp::endpoint(udp::v4(), 0)), client_id(Common::Random::Random32(0)) {
+        : callback(std::move(callback_)), timer(io_context)
+        , socket(io_context, udp::endpoint(udp::v4(), 0))
+        , client_id(Common::Random::Random32(0))
+    {
         boost::system::error_code ec{};
         auto ipv4 = boost::asio::ip::make_address_v4(host, ec);
         if (ec.value() != boost::system::errc::success) {
@@ -353,8 +355,13 @@ PadIdentifier UDPClient::GetPadIdentifier(std::size_t pad_index) const {
 }
 
 Common::UUID UDPClient::GetHostUUID(const std::string& host) const {
-    const auto ip = boost::asio::ip::make_address_v4(host);
-    const auto hex_host = fmt::format("00000000-0000-0000-0000-0000{:06x}", ip.to_uint());
+    boost::system::error_code ec{};
+    auto ip = boost::asio::ip::make_address_v4(host, ec);
+    if (ec.value() != boost::system::errc::success) {
+        LOG_ERROR(Input, "Invalid IPv4 address \"{}\" provided", host);
+        ip = boost::asio::ip::address_v4{};
+    }
+    auto const hex_host = fmt::format("00000000-0000-0000-0000-0000{:06x}", ip.to_uint());
     return Common::UUID{hex_host};
 }
 

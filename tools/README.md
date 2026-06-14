@@ -28,6 +28,8 @@ Tools for Eden and other subprojects. When adding new scripts please use `#!/bin
 - `clang-format.sh`: Runs `clang-format` on the entire codebase.
     * Requires: clang
 - `find-unused-strings.sh`: Find any unused strings in the Android app (XML -> Kotlin).
+- `cpp-lint.sh`: Homemade dumb C++ linter.
+- `fuzzsettings.cpp`: Fuzz settings files.
 
 ## Android
 It's recommended to run these scritps after almost any Android change, as they are relatively fast and important both for APK bloat and CI.
