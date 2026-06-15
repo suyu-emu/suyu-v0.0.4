@@ -238,7 +238,11 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
           .ignore_nan_fp_comparisons = true,
           .gl_max_compute_smem_size = device.GetMaxComputeSharedMemorySize(),
           .min_ssbo_alignment = device.GetShaderStorageBufferAlignment(),
-          .max_user_clip_distances = 8,
+          // Use the host limit, but never more than the guest can produce. Maxwell exposes 8 clip
+          // distances and the SPIR-V output array is sized for at most 8, so clamping here keeps a
+          // host that reports a different count from under- or over-running that array.
+          .max_user_clip_distances =
+              std::min<u32>(device.GetMaxUserClipDistances(), Maxwell::Regs::NumClipDistances),
       },
       host_info{
           .support_float64 = true,
