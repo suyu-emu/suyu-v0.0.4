@@ -409,107 +409,62 @@ bool RenameDir(const fs::path& old_path, const fs::path& new_path) {
     return true;
 }
 
-void IterateDirEntries(const std::filesystem::path& path, const DirEntryCallable& callback,
-                       DirEntryFilter filter) {
+void IterateDirEntries(const std::filesystem::path& path, const DirEntryCallable& callback, DirEntryFilter filter) {
     if (!ValidatePath(path)) {
         LOG_ERROR(Common_Filesystem, "Input path is not valid, path={}", PathToUTF8String(path));
         return;
     }
-
     if (!Exists(path)) {
-        LOG_ERROR(Common_Filesystem, "Filesystem object at path={} does not exist",
-                  PathToUTF8String(path));
+        LOG_ERROR(Common_Filesystem, "Filesystem object at path={} does not exist", PathToUTF8String(path));
         return;
     }
-
     if (!IsDir(path)) {
-        LOG_ERROR(Common_Filesystem, "Filesystem object at path={} is not a directory",
-                  PathToUTF8String(path));
+        LOG_ERROR(Common_Filesystem, "Filesystem object at path={} is not a directory", PathToUTF8String(path));
         return;
     }
-
-    bool callback_error = false;
 
     std::error_code ec;
-
-    for (const auto& entry : fs::directory_iterator(path, ec)) {
-        if (ec) {
-            break;
-        }
-
-        if (True(filter & DirEntryFilter::File) &&
-            entry.status().type() == fs::file_type::regular) {
+    bool callback_error = false;
+    for (auto const& entry : fs::directory_iterator(path, ec)) {
+        if ((True(filter & DirEntryFilter::File) && entry.status().type() == fs::file_type::regular)
+        || (True(filter & DirEntryFilter::Directory) && entry.status().type() == fs::file_type::directory)) {
             if (!callback(entry)) {
                 callback_error = true;
-                break;
-            }
-        }
-
-        if (True(filter & DirEntryFilter::Directory) &&
-            entry.status().type() == fs::file_type::directory) {
-            if (!callback(entry)) {
-                callback_error = true;
-                break;
             }
         }
     }
 
     if (callback_error || ec) {
-        LOG_ERROR(Common_Filesystem,
-                  "Failed to visit all the directory entries of path={}, ec_message={}",
-                  PathToUTF8String(path), ec.message());
-        return;
+        LOG_ERROR(Common_Filesystem, "Failed to visit all the directory entries of path={}, ec_message={}, callback_error={}", PathToUTF8String(path), ec.message(), callback_error);
+    } else {
+        LOG_DEBUG(Common_Filesystem, "Visited all the directory entries of path={}", PathToUTF8String(path));
     }
-
-    LOG_DEBUG(Common_Filesystem, "Successfully visited all the directory entries of path={}",
-              PathToUTF8String(path));
 }
 
-void IterateDirEntriesRecursively(const std::filesystem::path& path,
-                                  const DirEntryCallable& callback, DirEntryFilter filter) {
+void IterateDirEntriesRecursively(const std::filesystem::path& path, const DirEntryCallable& callback, DirEntryFilter filter) {
     if (!ValidatePath(path)) {
         LOG_ERROR(Common_Filesystem, "Input path is not valid, path={}", PathToUTF8String(path));
         return;
     }
-
     if (!Exists(path)) {
-        LOG_ERROR(Common_Filesystem, "Filesystem object at path={} does not exist",
-                  PathToUTF8String(path));
+        LOG_ERROR(Common_Filesystem, "Filesystem object at path={} does not exist", PathToUTF8String(path));
         return;
     }
-
     if (!IsDir(path)) {
-        LOG_ERROR(Common_Filesystem, "Filesystem object at path={} is not a directory",
-                  PathToUTF8String(path));
+        LOG_ERROR(Common_Filesystem, "Filesystem object at path={} is not a directory", PathToUTF8String(path));
         return;
     }
-
-    bool callback_error = false;
-
-    std::error_code ec;
 
     // TODO (Morph): Replace this with recursive_directory_iterator once it's fixed in MSVC.
+    std::error_code ec;
+    bool callback_error = false;
     for (const auto& entry : fs::directory_iterator(path, ec)) {
-        if (ec) {
-            break;
-        }
-
-        if (True(filter & DirEntryFilter::File) &&
-            entry.status().type() == fs::file_type::regular) {
+        if ((True(filter & DirEntryFilter::File) && entry.status().type() == fs::file_type::regular)
+        || (True(filter & DirEntryFilter::Directory) && entry.status().type() == fs::file_type::directory)) {
             if (!callback(entry)) {
                 callback_error = true;
-                break;
             }
         }
-
-        if (True(filter & DirEntryFilter::Directory) &&
-            entry.status().type() == fs::file_type::directory) {
-            if (!callback(entry)) {
-                callback_error = true;
-                break;
-            }
-        }
-
         // TODO (Morph): Remove this when MSVC fixes recursive_directory_iterator.
         // recursive_directory_iterator throws an exception despite passing in a std::error_code.
         if (entry.status().type() == fs::file_type::directory) {
@@ -518,14 +473,10 @@ void IterateDirEntriesRecursively(const std::filesystem::path& path,
     }
 
     if (callback_error || ec) {
-        LOG_ERROR(Common_Filesystem,
-                  "Failed to visit all the directory entries of path={}, ec_message={}",
-                  PathToUTF8String(path), ec.message());
-        return;
+        LOG_ERROR(Common_Filesystem, "Failed to visit all the directory entries of path={}, ec_message={}, callback_error={}", PathToUTF8String(path), ec.message(), callback_error);
+    } else {
+        LOG_DEBUG(Common_Filesystem, "Visited all the directory entries of path={}", PathToUTF8String(path));
     }
-
-    LOG_DEBUG(Common_Filesystem, "Successfully visited all the directory entries of path={}",
-              PathToUTF8String(path));
 }
 
 // Generic Filesystem Operations
