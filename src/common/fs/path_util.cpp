@@ -149,10 +149,9 @@ public:
         LEGACY_PATH(Suyu, SUYU)
 #undef LEGACY_PATH
 #endif
+        // data
         GenerateEdenPath(EdenPath::EdenDir, eden_path);
         GenerateEdenPath(EdenPath::AmiiboDir, eden_path / AMIIBO_DIR);
-        GenerateEdenPath(EdenPath::CacheDir, eden_path_cache);
-        GenerateEdenPath(EdenPath::ConfigDir, eden_path_config);
         GenerateEdenPath(EdenPath::CrashDumpsDir, eden_path / CRASH_DUMPS_DIR);
         GenerateEdenPath(EdenPath::DumpDir, eden_path / DUMP_DIR);
         GenerateEdenPath(EdenPath::KeysDir, eden_path / KEYS_DIR);
@@ -163,10 +162,13 @@ public:
         GenerateEdenPath(EdenPath::SaveDir, eden_path / NAND_DIR);
         GenerateEdenPath(EdenPath::ScreenshotsDir, eden_path / SCREENSHOTS_DIR);
         GenerateEdenPath(EdenPath::SDMCDir, eden_path / SDMC_DIR);
-        GenerateEdenPath(EdenPath::ShaderDir, eden_path / SHADER_DIR);
         GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
         GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
-
+        // config
+        GenerateEdenPath(EdenPath::ConfigDir, eden_path_config);
+        // cache
+        GenerateEdenPath(EdenPath::CacheDir, eden_path_cache);
+        GenerateEdenPath(EdenPath::ShaderDir, eden_path_cache / SHADER_DIR);
 #ifdef _WIN32
         GenerateLegacyPath(EmuPath::RyujinxDir, GetAppDataRoamingDirectory() / RYUJINX_DIR);
 #else
