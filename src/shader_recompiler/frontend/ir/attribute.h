@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -238,6 +238,14 @@ constexpr size_t NUM_FIXEDFNCTEXTURE = 10;
 
 [[nodiscard]] inline bool IsGeneric(Attribute attribute) noexcept {
     return attribute >= Attribute::Generic0X && attribute <= Attribute::Generic31X;
+}
+
+[[nodiscard]] inline bool IsLegacyAttribute(Attribute attribute) noexcept {
+    return (attribute >= Attribute::ColorFrontDiffuseR &&
+            attribute <= Attribute::ColorBackSpecularA) ||
+           attribute == Attribute::FogCoordinate ||
+           (attribute >= Attribute::FixedFncTexture0S &&
+            attribute <= Attribute::FixedFncTexture9Q);
 }
 
 [[nodiscard]] inline u32 GenericAttributeIndex(Attribute attribute) {

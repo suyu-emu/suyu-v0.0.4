@@ -132,13 +132,7 @@ void AddNVNStorageBuffers(IR::Program& program) {
     }
 }
 
-bool IsLegacyAttribute(IR::Attribute attribute) {
-    return (attribute >= IR::Attribute::ColorFrontDiffuseR &&
-            attribute <= IR::Attribute::ColorBackSpecularA) ||
-           attribute == IR::Attribute::FogCoordinate ||
-           (attribute >= IR::Attribute::FixedFncTexture0S &&
-            attribute <= IR::Attribute::FixedFncTexture9Q);
-}
+using IR::IsLegacyAttribute; //rescoped to attribute.h to make it visible in load_store_attribute.cpp IPA
 
 std::map<IR::Attribute, IR::Attribute> GenerateLegacyToGenericMappings(
     const VaryingState& state, std::queue<IR::Attribute> unused_generics,

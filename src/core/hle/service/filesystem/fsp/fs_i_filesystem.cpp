@@ -151,7 +151,7 @@ Result IFileSystem::GetTotalSpaceSize(
 Result IFileSystem::GetFileTimeStampRaw(
     Out<FileSys::FileTimeStampRaw> out_timestamp,
     const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path) {
-    LOG_WARNING(Service_FS, "(Partial Implementation) called. file={}", path->str);
+    LOG_DEBUG(Service_FS, "(Partial Implementation) called. file={}", path->str);
 
     FileSys::FileTimeStampRaw vfs_timestamp{};
     R_TRY(backend->GetFileTimeStampRaw(&vfs_timestamp, FileSys::Path(path->str)));

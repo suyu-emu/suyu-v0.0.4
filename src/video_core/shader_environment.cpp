@@ -254,6 +254,9 @@ std::optional<u64> GenericEnvironment::TryFindSize() {
     static constexpr u64 SELF_BRANCH_A = 0xE2400FFFFF87000FULL;
     static constexpr u64 SELF_BRANCH_B = 0xE2400FFFFF07000FULL;
 
+    static constexpr u64 MESA_EXIT_MASK = 0xFFF00000000F001FULL;
+    static constexpr u64 MESA_EXIT_VALUE = (0xE30ULL << 52) | (0x7ULL << 16) | 0xFULL;
+
     code.resize(MAXIMUM_SIZE / INST_SIZE);
 
     GPUVAddr guest_addr{program_base + start_address};
@@ -266,6 +269,9 @@ std::optional<u64> GenericEnvironment::TryFindSize() {
             const u64 inst = data[index / INST_SIZE];
             if (inst == SELF_BRANCH_A || inst == SELF_BRANCH_B) {
                 return offset + index;
+            }
+            if ((inst & MESA_EXIT_MASK) == MESA_EXIT_VALUE) {
+                return offset + index + INST_SIZE;
             }
         }
         guest_addr += BLOCK_SIZE;
