@@ -1117,6 +1117,8 @@ void MacroJITx64Impl::Optimizer_ScanFlags() {
 }
 
 void MacroJITx64Impl::Compile() {
+    // Matching PROTECT_RE needed for W^X systems
+    setProtectMode(Xbyak::CodeArray::ProtectMode::PROTECT_RW);
     labels.fill(Xbyak::Label());
 
     Common::X64::ABI_PushRegistersAndAdjustStack(*this, Common::X64::ABI_ALL_CALLEE_SAVED, 8);
@@ -1164,6 +1166,7 @@ void MacroJITx64Impl::Compile() {
     Common::X64::ABI_PopRegistersAndAdjustStack(*this, Common::X64::ABI_ALL_CALLEE_SAVED, 8);
     ret();
     ready();
+    setProtectMode(Xbyak::CodeArray::ProtectMode::PROTECT_RE);
     program = getCode<ProgramType>();
 }
 
