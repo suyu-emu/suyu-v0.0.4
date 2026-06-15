@@ -36,8 +36,8 @@ namespace {
 }
 
 [[nodiscard]] std::vector<const char*> RequiredExtensions(
-    const vk::InstanceDispatch& dld, Core::Frontend::WindowSystemType window_type,
-    bool enable_validation) {
+    const vk::InstanceDispatch& dld, std::vector<VkExtensionProperties> const& properties,
+    Core::Frontend::WindowSystemType window_type, bool enable_validation) {
     std::vector<const char*> extensions;
     extensions.reserve(6);
     switch (window_type) {
@@ -74,14 +74,14 @@ namespace {
     if (window_type != Core::Frontend::WindowSystemType::Headless) {
         extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     }
-    if (auto const properties = vk::EnumerateInstanceExtensionProperties(dld); properties) {
+    // Probe optional extensions against the same snapshot the caller verifies against, so the
+    // check here and the verification in CreateInstance can never disagree (see TOCTOU note below).
 #ifdef __APPLE__
-        if (AreExtensionsSupported(dld, *properties, std::array{VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME}))
-            extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    if (AreExtensionsSupported(dld, properties, std::array{VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME}))
+        extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 #endif
-        if (enable_validation && AreExtensionsSupported(dld, *properties, std::array{VK_EXT_DEBUG_UTILS_EXTENSION_NAME}))
-            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    }
+    if (enable_validation && AreExtensionsSupported(dld, properties, std::array{VK_EXT_DEBUG_UTILS_EXTENSION_NAME}))
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     return extensions;
 }
 
@@ -128,9 +128,19 @@ vk::Instance CreateInstance(const Common::DynamicLibrary& library, vk::InstanceD
         LOG_ERROR(Render_Vulkan, "Failed to load Vulkan function pointers");
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
-    std::vector<const char*> const extensions = RequiredExtensions(dld, window_type, enable_validation);
+    // Enumerate instance extensions exactly once. RequiredExtensions() used to enumerate a second
+    // time internally; if the driver returned a different set between the two calls (a real TOCTOU
+    // seen on some AMD iGPU drivers), an extension added to the list could be missing from the
+    // verification snapshot, throwing EXTENSION_NOT_PRESENT on an otherwise valid launch. Sharing
+    // one snapshot for both the optional-extension probe and the final check removes that window.
     auto const properties = vk::EnumerateInstanceExtensionProperties(dld);
-    if (!properties || !AreExtensionsSupported(dld, *properties, extensions))
+    if (!properties) {
+        LOG_ERROR(Render_Vulkan, "Failed to query instance extension properties");
+        throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
+    }
+    std::vector<const char*> const extensions =
+        RequiredExtensions(dld, *properties, window_type, enable_validation);
+    if (!AreExtensionsSupported(dld, *properties, extensions))
         throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
     std::vector<const char*> layers = Layers(enable_validation);
     RemoveUnavailableLayers(dld, layers);
