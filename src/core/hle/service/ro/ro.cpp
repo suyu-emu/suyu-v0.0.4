@@ -21,10 +21,13 @@ namespace Service::RO {
 
 namespace {
 
-// Convenience definitions.
-constexpr size_t MaxSessions = 0x3;
-constexpr size_t MaxNrrInfos = 0x40;
-constexpr size_t MaxNroInfos = 0x40;
+// Atmosphere defines as follows:
+// Sessions = 0x03, NrrInfos = 0x40, NroInfos = 0x40
+// This may not be enough for some mods (plugin.nro dependant games) like SSBU
+// Suppose someone loads like 64 plugins of these, now what?
+constexpr size_t MaxSessions = 0x03; // No change
+constexpr size_t MaxNrrInfos = 0x100; // Up to 256 NRRs
+constexpr size_t MaxNroInfos = 0x100; // Up to 256 NROs
 
 constexpr u64 InvalidProcessId = 0xffffffffffffffffULL;
 constexpr u64 InvalidContextId = 0xffffffffffffffffULL;
