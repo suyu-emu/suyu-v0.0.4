@@ -4,9 +4,15 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <array>
+#include <cstddef>
+#include <cstring>
+#include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include "common/alignment.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/logging.h"
@@ -23,7 +29,6 @@
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/nro.h"
-#include "core/loader/nso.h"
 #include "core/memory.h"
 
 #ifdef HAS_NCE
@@ -174,19 +179,6 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
         codeset.segments[i].size = PageAlignSize(nro_header.segments[i].size);
     }
 
-    if (!Settings::values.program_args.GetValue().empty()) {
-        const auto arg_data = Settings::values.program_args.GetValue();
-        codeset.DataSegment().size += NSO_ARGUMENT_DATA_ALLOCATION_SIZE;
-        NSOArgumentHeader args_header{
-            NSO_ARGUMENT_DATA_ALLOCATION_SIZE, static_cast<u32_le>(arg_data.size()), {}};
-        const auto end_offset = program_image.size();
-        program_image.resize(static_cast<u32>(program_image.size()) +
-                             NSO_ARGUMENT_DATA_ALLOCATION_SIZE);
-        std::memcpy(program_image.data() + end_offset, &args_header, sizeof(NSOArgumentHeader));
-        std::memcpy(program_image.data() + end_offset + sizeof(NSOArgumentHeader), arg_data.data(),
-                    arg_data.size());
-    }
-
     // Default .bss to NRO header bss size if MOD0 section doesn't exist
     u32 bss_size{PageAlignSize(nro_header.bss_size)};
 
@@ -203,6 +195,47 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
 
     codeset.DataSegment().size += bss_size;
     program_image.resize(static_cast<u32>(program_image.size()) + bss_size);
+    struct ConfigEntry {
+        u32_le key;
+        u32_le flags;
+        u64_le value[2];
+    };
+    static_assert(sizeof(ConfigEntry) == 0x18);
+    // AArch64 encoding for svc #0x7 (ExitProcess).
+    constexpr u32 kSvcExitProcessInstruction = 0xD40000E1;
+    constexpr size_t kNumEntries = 4; // MainThreadHandle, AppletType, Argv, EndOfList
+    constexpr size_t kConfigTableSize = kNumEntries * sizeof(ConfigEntry);
+    std::string argv_string;
+    size_t args_offset_in_image = 0;
+    std::optional<size_t> exit_process_offset_in_image;
+    const auto& program_args = Settings::values.program_args.GetValue();
+    if (!program_args.empty()) {
+        argv_string = "homebrew ";
+        argv_string += program_args;
+        argv_string.push_back('\0');
+
+        const auto& code = codeset.CodeSegment();
+        const size_t code_end = (std::min)(program_image.size(), code.offset + code.size);
+        for (size_t offset = code.offset; offset + sizeof(u32) <= code_end; offset += sizeof(u32)) {
+            u32 instruction{};
+            std::memcpy(&instruction, program_image.data() + offset, sizeof(instruction));
+            if (instruction == kSvcExitProcessInstruction) {
+                exit_process_offset_in_image = offset;
+                break;
+            }
+        }
+        if (!exit_process_offset_in_image) {
+            LOG_WARNING(Loader,
+                        "Unable to find svcExitProcess in NRO; returning from main may fault");
+        }
+
+        const size_t entries_and_argv =
+            Common::AlignUp(kConfigTableSize + argv_string.size(), Core::Memory::YUZU_PAGESIZE);
+
+        args_offset_in_image = program_image.size();
+        codeset.DataSegment().size += static_cast<u32>(entries_and_argv);
+        program_image.resize(args_offset_in_image + entries_and_argv);
+    }
     size_t image_size = program_image.size();
 
 #ifdef HAS_NCE
@@ -264,6 +297,37 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
     // Load codeset for current process
     codeset.memory = std::move(program_image);
     process.LoadModule(std::move(codeset), process.GetEntryPoint());
+    if (!argv_string.empty()) {
+        constexpr u32 kEntryEndOfList = 0;
+        constexpr u32 kEntryMainThreadHandle = 1;
+        constexpr u32 kEntryArgv = 5;
+        constexpr u32 kEntryAppletType = 7;
+        constexpr u32 kAppletTypeApplication = 0;
+
+        const u64 base = GetInteger(process.GetEntryPoint());
+        const u64 config_addr = base + args_offset_in_image;
+        const u64 argv_addr = config_addr + kConfigTableSize;
+
+        const ConfigEntry entries[kNumEntries] = {
+            {kEntryMainThreadHandle, 0, {0, 0}}, // Value[0] patched in Run()
+            {kEntryAppletType,       0, {kAppletTypeApplication, 0}},
+            {kEntryArgv,             0, {0, argv_addr}},
+            {kEntryEndOfList,        0, {0, 0}},
+        };
+        process.GetMemory().WriteBlock(Common::ProcessAddress{config_addr}, entries,
+                                       sizeof(entries));
+        process.GetMemory().WriteBlock(Common::ProcessAddress{argv_addr},
+                                       argv_string.data(), argv_string.size());
+
+        constexpr size_t kMainThreadHandleValueOffset = offsetof(ConfigEntry, value);
+        process.SetArgPointer(Kernel::KProcessAddress{config_addr});
+        if (exit_process_offset_in_image) {
+            process.SetArgReturnAddress(
+                Kernel::KProcessAddress{base + *exit_process_offset_in_image});
+        }
+        process.SetMainThreadHandleAddr(
+            Kernel::KProcessAddress{config_addr + kMainThreadHandleValueOffset});
+    }
 
     return true;
 }

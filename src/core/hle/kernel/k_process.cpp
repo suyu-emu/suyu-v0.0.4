@@ -211,6 +211,9 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params, KResource
     m_version = params.version;
     m_program_id = params.program_id;
     m_code_address = params.code_address;
+    m_arg_pointer = 0;
+    m_arg_return_address = 0;
+    m_main_thread_handle_addr = 0;
     m_code_size = params.code_num_pages * PageSize;
     m_is_application = True(params.flags & Svc::CreateProcessFlag::IsApplication);
 
@@ -995,9 +998,27 @@ Result KProcess::Run(s32 priority, size_t stack_size) {
     Handle thread_handle;
     R_TRY(m_handle_table.Add(std::addressof(thread_handle), main_thread));
 
-    // Set the thread arguments.
-    main_thread->GetContext().r[0] = 0;
-    main_thread->GetContext().r[1] = thread_handle;
+    // Set the thread arguments. Two distinct entry conventions:
+    //  * Kernel/NSO entry  (no homebrew ABI):  x0 = 0,                x1 = thread_handle
+    //  * Homebrew/NRO ABI  (loader set arg ptr): x0 = ConfigEntry ptr, x1 = -1ULL
+    // libnx's switch_crt0.s tests `x0==0 || x1==0xFFFFFFFFFFFFFFFF` to take
+    // its normal init path; any other combination is interpreted as a user
+    // exception handler entry.
+    if (GetInteger(m_arg_pointer) != 0) {
+        main_thread->GetContext().r[0] = GetInteger(m_arg_pointer);
+        main_thread->GetContext().r[1] = UINT64_MAX;
+        main_thread->GetContext().lr = GetInteger(m_arg_return_address);
+        // Patch the MainThreadHandle entry in the ConfigEntry table now that
+        // the actual handle exists. libnx stores this verbatim and uses it
+        // for thread-control SVCs later; a pseudo-handle wouldn't survive
+        // svcCloseHandle on exit.
+        if (GetInteger(m_main_thread_handle_addr) != 0) {
+            this->GetMemory().Write32(m_main_thread_handle_addr, thread_handle);
+        }
+    } else {
+        main_thread->GetContext().r[0] = 0;
+        main_thread->GetContext().r[1] = thread_handle;
+    }
 
     // Pass the thread handle to the thread local region.
     this->GetMemory().Write32(GetInteger(main_thread->GetTlsAddress()) + 0x110, thread_handle);

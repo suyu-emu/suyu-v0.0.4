@@ -434,6 +434,9 @@
     <string name="cpu_accuracy">CPU accuracy</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <string name="program_args">Homebrew Args</string>
+    <string name="program_args_description">Command-line arguments passed to homebrew at launch (e.g. -noglsl).</string>
+
     <!-- System settings strings -->
     <string name="device_name">Device name</string>
     <string name="use_docked_mode">Docked Mode</string>

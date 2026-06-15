@@ -126,6 +126,13 @@ abstract class SettingsItem(
         val settingsItems = HashMap<String, SettingsItem>().apply {
             put(StringInputSetting(StringSetting.DEVICE_NAME, titleId = R.string.device_name))
             put(
+                StringInputSetting(
+                    StringSetting.PROGRAM_ARGS,
+                    titleId = R.string.program_args,
+                    descriptionId = R.string.program_args_description
+                )
+            )
+            put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_USE_SPEED_LIMIT,
                     titleId = R.string.frame_limit_enable,

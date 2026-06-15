@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -11,6 +11,7 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 enum class StringSetting(override val key: String) : AbstractStringSetting {
     DRIVER_PATH("driver_path"),
     DEVICE_NAME("device_name"),
+    PROGRAM_ARGS("program_args"),
 
     WEB_TOKEN("eden_token"),
     WEB_USERNAME("eden_username")

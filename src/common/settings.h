@@ -779,7 +779,13 @@ struct Values {
     bool record_frame_times;
     Setting<bool> use_gdbstub{linkage, false, "use_gdbstub", Category::Debugging};
     Setting<u16> gdbstub_port{linkage, 6543, "gdbstub_port", Category::Debugging};
-    Setting<std::string> program_args{linkage, std::string(), "program_args", Category::Debugging};
+    SwitchableSetting<std::string> program_args{linkage,
+                                                std::string(),
+                                                "program_args",
+                                                Category::System,
+                                                Specialization::Default,
+                                                true,    // save_ — persist in config file
+                                                false};  // runtime_modifiable_ — startup-only
     Setting<bool> dump_exefs{linkage, false, "dump_exefs", Category::Debugging};
     Setting<bool> dump_nso{linkage, false, "dump_nso", Category::Debugging};
     Setting<bool> dump_shaders{

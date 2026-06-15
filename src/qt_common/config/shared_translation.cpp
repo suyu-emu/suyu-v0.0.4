@@ -301,6 +301,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
            tr("Controls the seed of the random number generator.\nMainly used for speedrunning."));
     INSERT(Settings, rng_seed_enabled, QString(), QString());
     INSERT(Settings, device_name, tr("Device Name"), tr("The name of the console."));
+    INSERT(Settings, program_args, tr("Homebrew Args"),
+           tr("Command-line arguments passed to homebrew at launch (e.g. -noglsl)."));
     INSERT(Settings, custom_rtc, tr("Custom RTC Date:"),
            tr("This option allows to change the clock of the console.\n"
               "Can be used to manipulate time in games."));

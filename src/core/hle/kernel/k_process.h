@@ -84,6 +84,9 @@ private:
     Core::Memory::Memory m_memory;
     KCapabilities m_capabilities{};
     KProcessAddress m_code_address{};
+    KProcessAddress m_arg_pointer{};
+    KProcessAddress m_arg_return_address{};
+    KProcessAddress m_main_thread_handle_addr{};
     KHandleTable m_handle_table;
     KProcessAddress m_plr_address{};
     ThreadList m_thread_list{};
@@ -217,6 +220,16 @@ public:
 
     KProcessAddress GetEntryPoint() const {
         return m_code_address;
+    }
+
+    void SetArgPointer(KProcessAddress addr) {
+        m_arg_pointer = addr;
+    }
+    void SetArgReturnAddress(KProcessAddress addr) {
+        m_arg_return_address = addr;
+    }
+    void SetMainThreadHandleAddr(KProcessAddress addr) {
+        m_main_thread_handle_addr = addr;
     }
 
     size_t GetMainStackSize() const {
