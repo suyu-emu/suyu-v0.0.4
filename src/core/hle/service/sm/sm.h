@@ -47,6 +47,7 @@ private:
     void RegisterServiceCmif(HLERequestContext& ctx);
     void RegisterServiceTipc(HLERequestContext& ctx);
     void UnregisterService(HLERequestContext& ctx);
+    void AtmosphereHasService(HLERequestContext& ctx);
 
     Result GetServiceImpl(Kernel::KClientSession** out_client_session, HLERequestContext& ctx);
     void RegisterServiceImpl(HLERequestContext& ctx, std::string name, u32 max_session_count,

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,6 +14,7 @@
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_server_port.h"
 #include "core/hle/result.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/sm/sm.h"
@@ -250,15 +254,37 @@ void SM::UnregisterService(HLERequestContext& ctx) {
     rb.Push(service_manager.UnregisterService(name));
 }
 
+void SM::AtmosphereHasService(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    std::string name(PopServiceName(rp));
+    LOG_WARNING(Service_SM, "(stubbed) called with name={}", name);
+    IPC::ResponseBuilder rb{ctx, 3};
+    Kernel::KClientPort* out_client_port = nullptr;
+    rb.Push(ResultSuccess);
+    rb.Push<bool>(service_manager.GetServicePort(&out_client_port, name) == ResultSuccess);
+}
+
 SM::SM(ServiceManager& service_manager_, Core::System& system_)
-    : ServiceFramework{system_, "sm:", 4},
-      service_manager{service_manager_}, kernel{system_.Kernel()} {
+    : ServiceFramework{system_, "sm:", 4}
+    , service_manager{service_manager_}
+    , kernel{system_.Kernel()}
+{
     RegisterHandlers({
         {0, &SM::Initialize, "Initialize"},
         {1, &SM::GetServiceCmif, "GetService"},
         {2, &SM::RegisterServiceCmif, "RegisterService"},
         {3, &SM::UnregisterService, "UnregisterService"},
         {4, nullptr, "DetachClient"},
+        // TODO: are these non-TIPC as well?
+        {65000, nullptr, "AtmosphereInstallMitm"},
+        {65001, nullptr, "AtmosphereUninstallMitm"},
+        {65002, nullptr, "Deprecated_AtmosphereAssociatePidTidForMitm"},
+        {65003, nullptr, "AtmosphereAcknowledgeMitmSession"},
+        {65004, nullptr, "AtmosphereHasMitm"},
+        {65005, nullptr, "AtmosphereWaitMitm"},
+        {65006, nullptr, "AtmosphereDeclareFutureMitm"},
+        {65100, &SM::AtmosphereHasService, "AtmosphereHasService"},
+        {65101, nullptr, "AtmosphereWaitService"},
     });
     RegisterHandlersTipc({
         {0, &SM::Initialize, "Initialize"},
@@ -266,6 +292,15 @@ SM::SM(ServiceManager& service_manager_, Core::System& system_)
         {2, &SM::RegisterServiceTipc, "RegisterService"},
         {3, &SM::UnregisterService, "UnregisterService"},
         {4, nullptr, "DetachClient"},
+        {65000, nullptr, "AtmosphereInstallMitm"},
+        {65001, nullptr, "AtmosphereUninstallMitm"},
+        {65002, nullptr, "Deprecated_AtmosphereAssociatePidTidForMitm"},
+        {65003, nullptr, "AtmosphereAcknowledgeMitmSession"},
+        {65004, nullptr, "AtmosphereHasMitm"},
+        {65005, nullptr, "AtmosphereWaitMitm"},
+        {65006, nullptr, "AtmosphereDeclareFutureMitm"},
+        {65100, &SM::AtmosphereHasService, "AtmosphereHasService"},
+        {65101, nullptr, "AtmosphereWaitService"},
     });
 }
 
