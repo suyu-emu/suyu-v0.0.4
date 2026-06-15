@@ -284,9 +284,17 @@ Result FSP_SRV::OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
         id = FileSys::StorageId::NandSystem;
         break;
     case FileSys::SaveDataSpaceId::Temporary:
+        // ok this is definitely wrong. ASSERT(false) here just kills the whole game the first
+        // time it opens cache storage, and plenty of games do that (TOTK for one). there is
+        // user-space scratch storage so it belongs on user nand. map it, do not crash.
+        id = FileSys::StorageId::NandUser;
+        break;
     case FileSys::SaveDataSpaceId::ProperSystem:
     case FileSys::SaveDataSpaceId::SafeMode:
-        ASSERT(false);
+        // same deal for these two. they are system-level spaces so they go on system nand.
+        // way better than nuking the title over a save-space id we just did not list out.
+        id = FileSys::StorageId::NandSystem;
+        break;
     }
 
     *out_interface =
@@ -324,9 +332,15 @@ Result FSP_SRV::OpenSaveDataFileSystemBySystemSaveDataId(OutInterface<IFileSyste
         id = FileSys::StorageId::NandSystem;
         break;
     case FileSys::SaveDataSpaceId::Temporary:
+        // same broken switch as OpenSaveDataFileSystem above. do not ASSERT(false) and kill the
+        // game over a save-space id, just map Temporary to user nand like it should be.
+        id = FileSys::StorageId::NandUser;
+        break;
     case FileSys::SaveDataSpaceId::ProperSystem:
     case FileSys::SaveDataSpaceId::SafeMode:
-        ASSERT(false);
+        // system spaces -> system nand. handled, not crashed.
+        id = FileSys::StorageId::NandSystem;
+        break;
     }
 
     *out_interface =
