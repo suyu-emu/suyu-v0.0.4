@@ -257,30 +257,47 @@ void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
 
     // Clear out the old directories to watch for changes and add the new ones
     auto* watcher = item_model->GetWatcher();
-    auto watch_dirs = watcher->directories();
-    if (!watch_dirs.isEmpty()) {
-        watcher->removePaths(watch_dirs);
-    }
+    const QStringList current_watch = watcher->directories();
 
     constexpr int LIMIT_WATCH_DIRECTORIES = 5000;
     constexpr int SLICE_SIZE = 25;
-    int len = (std::min)(static_cast<int>(watch_list.size()), LIMIT_WATCH_DIRECTORIES);
 
-#ifdef __APPLE__
-    const bool old_signals_blocked = watcher->blockSignals(true);
-#endif
-
-    for (int i = 0; i < len; i += SLICE_SIZE) {
-        auto chunk = watch_list.mid(i, SLICE_SIZE);
-        if (!chunk.isEmpty()) {
-            watcher->addPaths(chunk);
-        }
-        QCoreApplication::processEvents();
+    QStringList desired_watch = watch_list;
+    if (desired_watch.size() > LIMIT_WATCH_DIRECTORIES) {
+        desired_watch = desired_watch.mid(0, LIMIT_WATCH_DIRECTORIES);
     }
 
+    // Only re-arm the watcher when the set of directories actually changed. Re-adding the same
+    // paths makes the macOS QFileSystemWatcher re-emit directoryChanged (the FSEvent arrives
+    // asynchronously, so the blockSignals guard below does not catch it), which retriggers a full
+    // refresh and loops forever, making the game list visibly flash. Comparing the sets breaks
+    // that loop: at steady state we leave the watcher untouched and no spurious event is produced.
+    QStringList sorted_current = current_watch;
+    QStringList sorted_desired = desired_watch;
+    sorted_current.sort();
+    sorted_desired.sort();
+
+    if (sorted_current != sorted_desired) {
+        if (!current_watch.isEmpty()) {
+            watcher->removePaths(current_watch);
+        }
+
 #ifdef __APPLE__
-    watcher->blockSignals(old_signals_blocked);
+        const bool old_signals_blocked = watcher->blockSignals(true);
 #endif
+
+        for (int i = 0; i < desired_watch.size(); i += SLICE_SIZE) {
+            auto chunk = desired_watch.mid(i, SLICE_SIZE);
+            if (!chunk.isEmpty()) {
+                watcher->addPaths(chunk);
+            }
+            QCoreApplication::processEvents();
+        }
+
+#ifdef __APPLE__
+        watcher->blockSignals(old_signals_blocked);
+#endif
+    }
 
     m_currentView->setEnabled(true);
 
@@ -304,6 +321,7 @@ void GameList::RefreshGameDirectory() {
 
     if (!UISettings::values.game_dirs.empty()) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
+        item_model->StopWorker();
         QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
         PopulateAsync(UISettings::values.game_dirs);
     }
@@ -312,6 +330,7 @@ void GameList::RefreshGameDirectory() {
 void GameList::RefreshExternalContent() {
     if (!UISettings::values.game_dirs.empty()) {
         LOG_INFO(Frontend, "External content directory changed. Clearing metadata cache.");
+        item_model->StopWorker();
         QtCommon::Game::ResetMetadata(false);
         QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
         PopulateAsync(UISettings::values.game_dirs);

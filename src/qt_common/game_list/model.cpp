@@ -57,6 +57,12 @@ void GameListModel::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     QThreadPool::globalInstance()->start(current_worker.get());
 }
 
+void GameListModel::StopWorker() {
+    // ~GameListWorker sets stop_requested and blocks until run() finishes, so this returns only
+    // once the worker is no longer touching the content providers.
+    current_worker.reset();
+}
+
 void GameListModel::WorkerEvent() {
     current_worker->ProcessEvents(this);
 }
@@ -202,6 +208,7 @@ void GameListModel::RefreshGameDirectory() {
 
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
+        StopWorker();
         QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
         PopulateAsync(UISettings::values.game_dirs);
     }
@@ -210,6 +217,7 @@ void GameListModel::RefreshGameDirectory() {
 void GameListModel::RefreshExternalContent() {
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "External content directory changed. Clearing metadata cache.");
+        StopWorker();
         QtCommon::Game::ResetMetadata(false);
         QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
         PopulateAsync(UISettings::values.game_dirs);

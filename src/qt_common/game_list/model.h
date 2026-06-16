@@ -52,6 +52,10 @@ public:
     void DonePopulating(const QStringList& watch_list);
 
     void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
+    // Stops and joins the running populate worker, if any. Must be called before rebuilding the
+    // content providers (CreateFactories), otherwise the worker keeps scanning a cache that is
+    // being torn down underneath it.
+    void StopWorker();
     void WorkerEvent();
 
     bool IsEmpty() const;
