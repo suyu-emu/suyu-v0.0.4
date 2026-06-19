@@ -19,8 +19,8 @@
 #include "qt_common/util/game.h"
 
 #include "qt_common/game_list/game_list_p.h"
-#include "qt_common/game_list/worker.h"
 #include "qt_common/game_list/model.h"
+#include "qt_common/game_list/worker.h"
 
 GameListModel::GameListModel(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
                              FileSys::ManualContentProvider* provider_,
@@ -36,6 +36,8 @@ GameListModel::GameListModel(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
     connect(external_watcher, &QFileSystemWatcher::directoryChanged, this,
             &GameListModel::RefreshExternalContent);
 
+    ResetExternalWatcher();
+
     insertColumns(0, COLUMN_COUNT);
     RetranslateUI();
 
@@ -45,6 +47,8 @@ GameListModel::GameListModel(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
 GameListModel::~GameListModel() = default;
 
 void GameListModel::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
+    emit PopulatingStarted();
+
     current_worker.reset();
     removeRows(0, rowCount());
 
@@ -55,12 +59,6 @@ void GameListModel::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
             Qt::QueuedConnection);
 
     QThreadPool::globalInstance()->start(current_worker.get());
-}
-
-void GameListModel::StopWorker() {
-    // ~GameListWorker sets stop_requested and blocks until run() finishes, so this returns only
-    // once the worker is no longer touching the content providers.
-    current_worker.reset();
 }
 
 void GameListModel::WorkerEvent() {
@@ -203,24 +201,25 @@ void GameListModel::LoadCompatibilityList() {
     }
 }
 
+void GameListModel::Repopulate() {
+    current_worker.reset();
+    QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
+    PopulateAsync(UISettings::values.game_dirs);
+}
+
 void GameListModel::RefreshGameDirectory() {
     ResetExternalWatcher();
-
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
-        StopWorker();
-        QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
-        PopulateAsync(UISettings::values.game_dirs);
+        Repopulate();
     }
 }
 
 void GameListModel::RefreshExternalContent() {
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "External content directory changed. Clearing metadata cache.");
-        StopWorker();
         QtCommon::Game::ResetMetadata(false);
-        QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
-        PopulateAsync(UISettings::values.game_dirs);
+        Repopulate();
     }
 }
 
@@ -232,60 +231,6 @@ void GameListModel::ResetExternalWatcher() {
 
     for (const std::string& dir : Settings::values.external_content_dirs) {
         external_watcher->addPath(QString::fromStdString(dir));
-    }
-}
-
-void GameListModel::OnUpdateThemedIcons() {
-    for (int i = 0; i < invisibleRootItem()->rowCount(); i++) {
-        QStandardItem* child = invisibleRootItem()->child(i);
-
-        const int icon_size = UISettings::values.folder_icon_size.GetValue();
-
-        switch (child->data(GameListItem::TypeRole).value<GameListItemType>()) {
-        case GameListItemType::SdmcDir:
-            child->setData(
-                QIcon::fromTheme(QStringLiteral("sd_card"))
-                    .pixmap(icon_size)
-                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        case GameListItemType::UserNandDir:
-        case GameListItemType::SysNandDir:
-            child->setData(
-                QIcon::fromTheme(QStringLiteral("chip"))
-                    .pixmap(icon_size)
-                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        case GameListItemType::CustomDir: {
-            const UISettings::GameDir& game_dir =
-                UISettings::values.game_dirs[child->data(GameListDir::GameDirRole).toInt()];
-            const QString icon_name = QFileInfo::exists(QString::fromStdString(game_dir.path))
-                                          ? QStringLiteral("folder")
-                                          : QStringLiteral("bad_folder");
-            child->setData(
-                QIcon::fromTheme(icon_name).pixmap(icon_size).scaled(
-                    icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        }
-        case GameListItemType::AddDir:
-            child->setData(
-                QIcon::fromTheme(QStringLiteral("list-add"))
-                    .pixmap(icon_size)
-                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        case GameListItemType::Favorites:
-            child->setData(
-                QIcon::fromTheme(QStringLiteral("star"))
-                    .pixmap(icon_size)
-                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        default:
-            break;
-        }
     }
 }
 

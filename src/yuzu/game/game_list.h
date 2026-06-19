@@ -89,6 +89,8 @@ public:
 public slots:
     void RefreshGameDirectory();
     void RefreshExternalContent();
+    void UpdateIconSizes();
+    void OnPopulate();
 
 signals:
     void BootGame(const QString& game_path, StartGameType type);
@@ -119,7 +121,6 @@ signals:
 private slots:
     void OnTextChanged(const QString& new_text);
     void OnFilterCloseClicked();
-    void OnUpdateThemedIcons();
     void OnPopulatingCompleted(const QStringList& watch_list);
 
 private:
@@ -174,9 +175,6 @@ public:
 
 signals:
     void AddDirectory();
-
-private slots:
-    void onUpdateThemedIcons();
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent* event) override;

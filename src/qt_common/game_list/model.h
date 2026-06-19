@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include <memory>
 #include <QFileSystemWatcher>
 #include <QStandardItemModel>
 #include <QStringList>
 #include <QVector>
-#include <memory>
 
 #include "common/common_types.h"
 #include "frontend_common/play_time_manager.h"
@@ -52,10 +52,6 @@ public:
     void DonePopulating(const QStringList& watch_list);
 
     void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
-    // Stops and joins the running populate worker, if any. Must be called before rebuilding the
-    // content providers (CreateFactories), otherwise the worker keeps scanning a cache that is
-    // being torn down underneath it.
-    void StopWorker();
     void WorkerEvent();
 
     bool IsEmpty() const;
@@ -68,7 +64,6 @@ public:
 
     void LoadCompatibilityList();
 
-    void OnUpdateThemedIcons();
     void RetranslateUI();
 
     QFileSystemWatcher* GetWatcher() const;
@@ -80,6 +75,7 @@ public:
 signals:
     void ShowList(bool show);
     void PopulatingCompleted(const QStringList& watch_list);
+    void PopulatingStarted();
     void SaveConfig();
 
 private:
@@ -87,6 +83,7 @@ private:
 
     void AddFavorite(u64 program_id);
     void RemoveFavorite(u64 program_id);
+    void Repopulate();
 
     bool m_flat = false;
 
