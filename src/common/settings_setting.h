@@ -6,15 +6,13 @@
 
 #pragma once
 
+#include <algorithm>
 #include <limits>
-#include <map>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
-#include <typeindex>
-#include <typeinfo>
-#include <fmt/core.h>
+#include <fmt/ranges.h>
 #include "common/common_types.h"
 #include "common/settings_common.h"
 #include "common/settings_enums.h"
