@@ -128,7 +128,8 @@ function(AddDependentPackages)
         message(FATAL_ERROR "Partial dependency installation detected "
             "for the following packages:\n${package_names}\n"
             "You can solve this in one of two ways:\n"
-            "1. Install the following packages to your system if available:"
+            "1. Install or upgrade the following packages "
+            "to your system if available:"
             "\n\t${bundled_names}\n"
             "2. Set the following variables to ON:"
             "\n\t${system_names}\n"
@@ -241,15 +242,14 @@ function(AddJsonPackage)
 
         # these are overrides that can be generated at runtime,
         # so can be defined separately from the json
-        DOWNLOAD_ONLY
         BUNDLED_PACKAGE
         FORCE_BUNDLED_PACKAGE)
 
     set(multiValueArgs OPTIONS)
 
-    set(options MODULE)
+    set(optionArgs MODULE_PATH DOWNLOAD_ONLY)
 
-    cmake_parse_arguments(JSON "${options}" "${oneValueArgs}" "${multiValueArgs}"
+    cmake_parse_arguments(JSON "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}"
         "${ARGN}")
 
     list(LENGTH ARGN argnLength)
@@ -278,11 +278,15 @@ function(AddJsonPackage)
 
     parse_object(${object})
 
-    if(ci)
-        if (JSON_MODULE)
-            set(EXTRA_ARGS MODULE)
-        endif()
+    if (JSON_MODULE_PATH)
+        list(APPEND EXTRA_ARGS MODULE_PATH)
+    endif()
 
+    if (JSON_DOWNLOAD_ONLY)
+        list(APPEND EXTRA_ARGS DOWNLOAD_ONLY)
+    endif()
+
+    if(ci)
         AddCIPackage(
             VERSION ${version}
             NAME ${name}
@@ -313,40 +317,25 @@ function(AddJsonPackage)
             FORCE_BUNDLED_PACKAGE "${JSON_FORCE_BUNDLED_PACKAGE}"
             SOURCE_SUBDIR "${source_subdir}"
 
-            GIT_VERSION ${git_version}
-            GIT_HOST ${git_host}
+            GIT_VERSION "${git_version}"
+            GIT_HOST "${git_host}"
 
-            ARTIFACT ${artifact}
-            TAG ${tag})
+            ARTIFACT "${artifact}"
+            TAG "${tag}"
+            ${EXTRA_ARGS})
     endif()
 
     # pass stuff to parent scope
     Propagate(${package}_ADDED)
     Propagate(${package}_SOURCE_DIR)
     Propagate(${package}_BINARY_DIR)
+    Propagate(CMAKE_PREFIX_PATH)
 endfunction()
 
 function(AddPackage)
     cpm_set_policies()
+    set(EXTRA_ARGS "")
 
-    # TODO(crueter): git clone?
-
-    #[[
-        URL configurations, descending order of precedence:
-        - URL [+ GIT_URL] -> bare URL fetch
-        - REPO + TAG + ARTIFACT -> github release artifact
-        - REPO + TAG -> github release archive
-        - REPO + SHA -> github commit archive
-        - REPO + BRANCH -> github branch
-
-        Hash configurations, descending order of precedence:
-        - HASH -> bare sha512sum
-        - HASH_SUFFIX -> hash grabbed from the URL + this suffix
-        - HASH_URL -> hash grabbed from a URL
-          * technically this is unsafe since a hacker can attack that url
-
-        NOTE: hash algo defaults to sha512
-    #]]
     set(oneValueArgs
         NAME
         VERSION
@@ -366,6 +355,7 @@ function(AddPackage)
 
         URL
         GIT_URL
+        SOURCE_SUBDIR
 
         KEY
         BUNDLED_PACKAGE
@@ -374,7 +364,9 @@ function(AddPackage)
 
     set(multiValueArgs OPTIONS PATCHES)
 
-    cmake_parse_arguments(PKG_ARGS "" "${oneValueArgs}" "${multiValueArgs}"
+    set(optionArgs MODULE_PATH DOWNLOAD_ONLY)
+
+    cmake_parse_arguments(PKG_ARGS "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}"
         "${ARGN}")
 
     if(NOT DEFINED PKG_ARGS_NAME)
@@ -558,16 +550,36 @@ function(AddPackage)
             VERSION ${PKG_ARGS_VERSION})
     endif()
 
-    CPMAddPackage(
-        NAME ${PKG_ARGS_NAME}
-        URL ${pkg_url}
-        URL_HASH ${pkg_hash}
-        CUSTOM_CACHE_KEY ${pkg_key}
-        DOWNLOAD_ONLY ${PKG_ARGS_DOWNLOAD_ONLY}
-        FIND_PACKAGE_ARGUMENTS ${PKG_ARGS_FIND_PACKAGE_ARGUMENTS}
+    if (PKG_ARGS_FIND_PACKAGE_ARGUMENTS)
+        list(APPEND EXTRA_ARGS
+            FIND_PACKAGE_ARGUMENTS "${PKG_ARGS_FIND_PACKAGE_ARGUMENTS}")
+    endif()
 
-        OPTIONS ${PKG_ARGS_OPTIONS}
-        PATCHES ${PKG_ARGS_PATCHES}
+    if (PKG_ARGS_PATCHES)
+        list(APPEND EXTRA_ARGS
+            PATCHES "${PKG_ARGS_PATCHES}")
+    endif()
+
+    if (PKG_ARGS_OPTIONS)
+        list(APPEND EXTRA_ARGS
+            OPTIONS "${PKG_ARGS_OPTIONS}")
+    endif()
+
+    if (PKG_ARGS_SOURCE_SUBDIR)
+        list(APPEND EXTRA_ARGS
+            SOURCE_SUBDIR "${PKG_ARGS_SOURCE_SUBDIR}")
+    endif()
+
+    if (PKG_ARGS_DOWNLOAD_ONLY OR PKG_ARGS_MODULE_PATH)
+        list(APPEND EXTRA_ARGS DOWNLOAD_ONLY ON)
+    endif()
+
+    CPMAddPackage(
+        NAME "${PKG_ARGS_NAME}"
+        URL "${pkg_url}"
+        URL_HASH "${pkg_hash}"
+        CUSTOM_CACHE_KEY "${pkg_key}"
+
         EXCLUDE_FROM_ALL ON
 
         ${EXTRA_ARGS}
@@ -607,13 +619,14 @@ function(AddPackage)
     endif()
 
     # pass stuff to parent scope
-    set(${PKG_ARGS_NAME}_ADDED "${${PKG_ARGS_NAME}_ADDED}"
-        PARENT_SCOPE)
-    set(${PKG_ARGS_NAME}_SOURCE_DIR "${${PKG_ARGS_NAME}_SOURCE_DIR}"
-        PARENT_SCOPE)
-    set(${PKG_ARGS_NAME}_BINARY_DIR "${${PKG_ARGS_NAME}_BINARY_DIR}"
-        PARENT_SCOPE)
+    Propagate(${PKG_ARGS_NAME}_ADDED)
+    Propagate(${PKG_ARGS_NAME}_SOURCE_DIR)
+    Propagate(${PKG_ARGS_NAME}_BINARY_DIR)
 
+    if (PKG_ARGS_MODULE_PATH)
+        list(PREPEND CMAKE_PREFIX_PATH "${${ARTIFACT_PACKAGE}_SOURCE_DIR}")
+        Propagate(CMAKE_PREFIX_PATH)
+    endif()
 endfunction()
 
 # TODO(crueter): we could do an AddMultiArchPackage, multiplatformpackage?
@@ -629,7 +642,7 @@ function(AddCIPackage)
 
     set(multiValueArgs DISABLED_PLATFORMS)
 
-    set(optionArgs MODULE)
+    set(optionArgs MODULE_PATH)
 
     cmake_parse_arguments(PKG_ARGS
         "${optionArgs}"
@@ -706,6 +719,10 @@ function(AddCIPackage)
         set(ARTIFACT
             "${ARTIFACT_NAME}-${pkgname}-${ARTIFACT_VERSION}.${ARTIFACT_EXT}")
 
+        if (PKG_ARGS_MODULE_PATH)
+            list(APPEND EXTRA_ARGS MODULE_PATH)
+        endif()
+
         AddPackage(
             NAME ${ARTIFACT_PACKAGE}
             REPO ${ARTIFACT_REPO}
@@ -716,16 +733,11 @@ function(AddCIPackage)
             KEY "${pkgname}-${ARTIFACT_VERSION}"
             HASH_SUFFIX sha512sum
             FORCE_BUNDLED_PACKAGE ON
-            DOWNLOAD_ONLY ${PKG_ARGS_MODULE})
+            ${EXTRA_ARGS})
 
         set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
-        set(${ARTIFACT_PACKAGE}_SOURCE_DIR
-            "${${ARTIFACT_PACKAGE}_SOURCE_DIR}" PARENT_SCOPE)
-
-        if (PKG_ARGS_MODULE)
-            list(PREPEND CMAKE_PREFIX_PATH "${${ARTIFACT_PACKAGE}_SOURCE_DIR}")
-            Propagate(CMAKE_PREFIX_PATH)
-        endif()
+        Propagate(${ARTIFACT_PACKAGE}_SOURCE_DIR)
+        Propagate(CMAKE_PREFIX_PATH)
     else()
         find_package(${ARTIFACT_PACKAGE} ${ARTIFACT_MIN_VERSION} REQUIRED)
     endif()
@@ -750,7 +762,7 @@ function(AddQt repo version)
         DISABLED_PLATFORMS
             android-x86_64 android-aarch64
             freebsd-amd64 solaris-amd64 openbsd-amd64
-        MODULE)
+        MODULE_PATH)
 
     find_package(Qt6 REQUIRED PATHS ${Qt6_SOURCE_DIR} NO_DEFAULT_PATH)
 

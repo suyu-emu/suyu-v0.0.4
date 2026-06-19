@@ -52,7 +52,7 @@ jobs:
           }
           EOF
 
-          curl -X 'POST' \
+          curl -XPOST \
             'https://git.eden-emu.dev/api/v1/repos/eden-emu/eden/pulls' \
             -H 'accept: application/json' \
             -H 'Authorization: Bearer ${{ secrets.CI_FJ_TOKEN }}' \

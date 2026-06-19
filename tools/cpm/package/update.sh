@@ -83,8 +83,13 @@ for pkg in $packages; do
 	echo "-- Package $PACKAGE"
 
 	# TODO(crueter): Support for Forgejo updates w/ forgejo_token
-	# Use gh-cli to avoid ratelimits lmao
-	TAGS=$(gh api --method GET "/repos/$REPO/tags")
+	# Use gh-cli to avoid ratelimits, if available
+	endpoint="/repos/$REPO/tags"
+	if command -v gh >/dev/null 2>&1; then
+		TAGS=$(gh api --method GET "$endpoint")
+	else
+		TAGS=$(curl -sfL "https://api.github.com$endpoint")
+	fi
 
 	# filter out some commonly known annoyances
 	# TODO add more
@@ -104,6 +109,12 @@ for pkg in $packages; do
 	filter_out alpha
 	filter_out beta
 	filter_out rc
+
+	# openssl
+	if [ "$PACKAGE" = openssl ]; then
+		filter_out rsaref
+		filter_in "openssl-"
+	fi
 
 	# Add package-specific overrides here, e.g. here for fmt:
 	[ "$PACKAGE" != fmt ] || filter_out v0.11
