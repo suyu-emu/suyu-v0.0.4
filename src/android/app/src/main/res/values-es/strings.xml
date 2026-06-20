@@ -422,6 +422,9 @@
     <string name="cpu_accuracy">Precisión de la CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <string name="program_args">Argumentos Homebrew</string>
+    <string name="program_args_description">Argumentos en la línea de comandos pasados al homebrew al ser lanzado (p.e. -noglsl).</string>
+
     <!-- System settings strings -->
     <string name="device_name">Nombre del dispositivo</string>
     <string name="use_docked_mode">Modo sobremesa</string>

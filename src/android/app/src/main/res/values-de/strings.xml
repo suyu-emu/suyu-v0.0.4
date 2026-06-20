@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Diese Software führt Spiele für die Nintendo Switch-Konsole aus. Es sind keine Spiele oder Keys enthalten. Suche bevor du beginnst deine <![CDATA[<b> prod.keys </b>]]>-Datei auf deinem Gerät.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Mehr Erfahren</a>]]></string>
+    <string name="app_disclaimer">Diese Software führt Spiele für die Nintendo Switch-Konsole aus. Es sind keine Spiele oder Schlüssel enthalten. Suche, bevor du beginnst, deine <![CDATA[<b> prod.keys </b>]]>-Datei auf deinem Gerät.<br /><br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Mehr Erfahren</a>]]></string>
     <string name="notice_notification_channel_name">Hinweise und Fehler</string>
     <string name="notice_notification_channel_description">Zeigt Benachrichtigungen an, wenn etwas schief läuft.</string>
     <string name="notification_permission_not_granted">Berechtigung für Benachrichtigungen nicht zugelassen!</string>
@@ -16,22 +16,27 @@
     <string name="value_too_high">Wert darf höchstens %1$d betragen</string>
     <string name="invalid_value">Ungültiger Wert</string>
 
+    <string name="using_per_game_config">Verwendung spielspezifischer Konfigurationen</string>
+
     <!-- Input Overlay -->
-    <string name="show_input_overlay">Eingabe-Overlay anzeigen</string>
+    <string name="show_input_overlay">Eingabeüberlagerung anzeigen</string>
     <string name="show_input_overlay_description">Touch-Bedienelemente während der Emulation anzeigen</string>
     <string name="overlay_snap_to_grid">Am Raster ausrichten</string>
-    <string name="overlay_snap_to_grid_description">Beim Bearbeiten die Overlay-Bedienelemente am Raster ausrichten</string>
+    <string name="overlay_snap_to_grid_description">Überlagerungs-Steuerelemente beim Bearbeiten an einem Raster ausrichten</string>
     <string name="overlay_grid_size">Rastergröße</string>
-    <string name="overlay_grid_size_description">Rastergröße in Pixeln</string>
+    <string name="overlay_grid_size_description">Größe der Rasterzellen in Pixeln</string>
     <string name="input_overlay_behavior">Verhalten</string>
-    <string name="overlay_auto_hide">Automatisches Ausblenden des Overlays</string>
-    <string name="overlay_auto_hide_description">Blende die Touch-Bedienelemente nach Ablauf der angegebenen Inaktivitätszeit automatisch aus</string>
-    <string name="enable_input_overlay_auto_hide">Automatisches Ausblenden des Overlays aktivieren</string>
-    <string name="hide_overlay_on_controller_input">Overlay bei Controller-Eingabe ausblenden</string>
-    <string name="hide_overlay_on_controller_input_description">Blende die Touch-Bedienelemente automatisch aus wenn ein physischer Controller benutzt wird. Das Overlay wird wieder eingeblendet, wenn die Verbindung zum Controller getrennt wird.</string>
-    <string name="input_overlay_options">Eingabe-Overlay</string>
+    <string name="overlay_auto_hide">Automatisches Ausblenden der Überlagerung</string>
+    <string name="overlay_auto_hide_description">Überlagerung der Touch-Bedienelementen automatisch nach der festgelegten Zeit der Inaktivität ausblenden.</string>
+    <string name="enable_input_overlay_auto_hide">Automatisches Ausblenden der Überlagerung aktivieren</string>
+    <string name="hide_overlay_on_controller_input">Überlagerung bei Controller-Eingabe ausblenden</string>
+    <string name="hide_overlay_on_controller_input_description">Touch-Bedienelemente automatisch ausblenden, wenn ein physischer Controller benutzt wird. Die Überlagerung wird wieder eingeblendet, wenn die Verbindung zum Controller getrennt wird.</string>
+    <string name="invert_confirm_back_controller_buttons">Controller-Tasten für Bestätigen/Zurück vertauschen</string>
+    <string name="invert_confirm_back_controller_buttons_description">Belegung der Android-Tasten „Bestätigen“ und „Zurück“ so tauschen, dass sie bei der Nutzung der App-Benutzeroberfläche sowohl dem Switch- als auch dem Xbox-Schema entsprechen.</string>
+
+    <string name="input_overlay_options">Eingabeüberlagerung</string>
     <string name="input_overlay_options_description">Bedienelemente auf dem Bildschirm konfigurieren</string>
-    <string name="edit_overlay_layout">Overlay-Layout bearbeiten</string>
+    <string name="edit_overlay_layout">Überlagerungs-Layout bearbeiten</string>
     <string name="edit_overlay_layout_description">Position und Skalierung der Bedienelemente auf dem Bildschirm anpassen</string>
 
 
@@ -45,12 +50,12 @@
     <string name="show_stats_overlay">Leistungsstatistik Overlay anzeigen</string>
     <string name="stats_overlay_customization">Anpassung</string>
     <string name="stats_overlay_items">Sichtbarkeit</string>
-    <string name="stats_overlay_options">Leistungs Overlay</string>
-    <string name="enable_stats_overlay_">Leistungsstatistik Overlay aktivieren</string>
-    <string name="stats_overlay_options_description">Konfiguriere angezeigte Informationen im Overlay</string>
-    <string name="show_fps">FPS anzeigen</string>
+    <string name="stats_overlay_options">Leistungsüberlagerung</string>
+    <string name="enable_stats_overlay_">Leistungsstatistik-Überlagerung aktivieren</string>
+    <string name="stats_overlay_options_description">Angezeigte Informationen in der Überlagerung konfigurieren</string>
+    <string name="show_fps">BpS anzeigen</string>
     <string name="show_fps_description">Aktuelle Bilder pro Sekunde</string>
-    <string name="show_frametime">Frametime anzeigen</string>
+    <string name="show_frametime">Frame-Zeit anzeigen</string>
     <string name="show_app_ram_usage">App-RAM-Nutzung anzeigen</string>
     <string name="show_app_ram_usage_description">Zeigt den RAM-Verbrauch des Emulators an</string>
     <string name="show_system_ram_usage">System-RAM-Nutzung anzeigen</string>
@@ -59,25 +64,28 @@
     <string name="bat_temperature_unit">Batterietemperatur-Einheiten</string>
     <string name="show_power_info">Batterieinfo anzeigen</string>
     <string name="show_power_info_description">Aktuellen Stromverbrauch und verbleibende Kapazität der Batterie anzeigen</string>
-    <string name="show_shaders_building">Shader-Bau anzeigen</string>
-    <string name="show_shaders_building_description">Aktuelle Anzahl der erstellten Shader anzeigen</string>
-    <string name="overlay_position">Overlay-Position</string>
-    <string name="overlay_position_description">Position des Overlays auf dem Bildschirm</string>
+    <string name="show_shaders_building">Schattierer-Erstellung anzeigen</string>
+    <string name="show_shaders_building_description">Aktuelle Anzahl der erstellten Schattierer anzeigen</string>
+    <string name="pipeline_worker_cores_description">Lege die Anzahl der Kerne fest, die für die Erstellung von Vulkan-Rohrleitungen verwendet werden sollen. Ein höherer Wert verbessert die Kompilierungsleistung der Rohrleitung, führt jedoch auch zu einem Anstieg der Temperaturen.</string>
+    <string name="overlay_position">Überlagerungs-Position</string>
+    <string name="overlay_position_description">Wähle aus, wo die Überlagerung auf dem Bildschirm angezeigt wird</string>
     <string name="overlay_position_top_left">Oben links</string>
     <string name="overlay_position_top_right">Oben rechts</string>
     <string name="overlay_position_bottom_left">Unten links</string>
     <string name="overlay_position_bottom_right">Unten rechts</string>
     <string name="overlay_position_center_top">Mitte oben</string>
     <string name="overlay_position_center_bottom">Mitte unten</string>
-    <string name="perf_overlay_background">Overlay-Hintergrund</string>
+    <string name="perf_overlay_background">Überlagerungs-Hintergrund</string>
     <string name="perf_overlay_background_description">Hintergrund für bessere Lesbarkeit</string>
 
     <!-- Device Overlay settings -->
-    <string name="show_soc_overlay">Geräteinfo-Overlay anzeigen</string>
-    <string name="enable_soc_overlay">Geräte-Overlay aktivieren</string>
-    <string name="soc_overlay_options">Geräte-Overlay</string>
-    <string name="soc_overlay_options_description">Konfigurieren Sie, welche Informationen im Geräte-Overlay angezeigt werden</string>
+    <string name="show_soc_overlay">Geräteinfo-Überlagerung anzeigen</string>
+    <string name="enable_soc_overlay">Geräteüberlagerung aktivieren</string>
+    <string name="soc_overlay_options">Geräteüberlagerung</string>
+    <string name="soc_overlay_options_description">Konfiguriere, welche Informationen in der Geräteüberlagerung angezeigt werden</string>
 
+    <string name="show_build_id">Build-ID anzeigen</string>
+    <string name="show_driver_version">Treiberversion anzeigen</string>
     <string name="show_device_model">Gerätemodell anzeigen</string>
     <string name="show_gpu_model">GPU-Modell anzeigen</string>
     <string name="show_soc_model">SoC-Modell anzeigen</string>
@@ -85,19 +93,19 @@
 
     <!-- Eden\'s Veil -->
     <string name="buffer_reorder_disable">Puffer-Neuanordnung deaktivieren</string>
-    <string name="buffer_reorder_disable_description">Wenn aktiviert, wird die Neuanordnung von gemappten Speicher-Uploads deaktiviert, was die Zuordnung von Uploads zu bestimmten Zeichenvorgängen ermöglicht. Kann in einigen Fällen die Leistung verringern.</string>
+    <string name="buffer_reorder_disable_description">Wenn aktiviert, wird die Neuanordnung von zugeordneten Speicher-Uploads deaktiviert, wodurch Uploads bestimmten Abrufen zugeordnet werden können. Dies kann in einigen Fällen zu Leistungseinbußen führen.</string>
 
     <string name="use_sync_core">Kern-Geschwindigkeit synchronisieren</string>
     <string name="use_sync_core_description">Synchronisiert die Taktrate des Kerns mit der maximalen Geschwindigkeit, um die Leistung zu verbessern, ohne die tatsächliche Spielgeschwindigkeit zu verändern.</string>
     <string name="cpuopt_unsafe_host_mmu">Host-MMU-Emulation aktivieren</string>
     <string name="cpuopt_unsafe_host_mmu_description">Diese Optimierung beschleunigt Speicherzugriffe durch das Gastprogramm. Wenn aktiviert, erfolgen Speicherlese- und -schreibvorgänge des Gastes direkt im Speicher und nutzen die MMU des Hosts. Das Deaktivieren erzwingt die Verwendung der Software-MMU-Emulation für alle Speicherzugriffe.</string>
-    <string name="debug_knobs">Debug-Regler</string>
+    <string name="debug_knobs">Fehlerbehebungs-Regler</string>
     <string name="debug_knobs_description">Nur für Entwicklungszwecke</string>
     <string name="debug_knobs_hint">0 bis 65535</string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC-Emulation</string>
-    <string name="nvdec_emulation_description">Methode zur Videodekodierung</string>
+    <string name="nvdec_emulation_description">Wähle aus, wie die Videodekodierung (NVDEC) während Zwischensequenzen und Intros gehandhabt wird.</string>
     <string name="nvdec_emulation_none">Keine</string>
 
     <!-- Optimize SPIRV output -->
@@ -126,7 +134,7 @@
     <string name="multiplayer_wrong_password">Falsches Passwort</string>
     <string name="multiplayer_could_not_connect">Verbindung fehlgeschlagen</string>
     <string name="multiplayer_room_is_full">Raum ist voll</string>
-    <string name="multiplayer_host_banned">Sie sind von diesem Raum gebannt</string>
+    <string name="multiplayer_host_banned">Du bist von diesem Raum gebannt</string>
     <string name="multiplayer_permission_denied">Zugriff verweigert</string>
     <string name="multiplayer_no_such_user">Benutzer existiert nicht</string>
     <string name="multiplayer_already_in_room">Bereits im Raum</string>
@@ -139,7 +147,7 @@
     <string name="multiplayer_room_joined">Raum beigetreten</string>
     <string name="multiplayer_room_moderator">Raum-Moderator</string>
     <string name="multiplayer_member_join">%1$s ist beigetreten</string>
-    <string name="multiplayer_member_leave">%1$s hat verlassen</string>
+    <string name="multiplayer_member_leave">%1$s ist gegangen</string>
     <string name="multiplayer_member_kicked">%1$s wurde entfernt</string>
     <string name="multiplayer_member_banned">%1$s wurde gebannt</string>
     <string name="multiplayer_address_unbanned">Adresse entbannt</string>
@@ -157,11 +165,11 @@
     <string name="send_message">Nachricht senden</string>
     <string name="multiplayer_moderation">Moderation</string>
     <string name="multiplayer_moderation_title">Bannliste</string>
-    <string name="multiplayer_no_bans">Keine gebannten Benutzer</string>
-    <string name="multiplayer_unban_title">Entbannen</string>
+    <string name="multiplayer_no_bans">Keine gebannten Nutzer</string>
+    <string name="multiplayer_unban_title">Nutzer entbannen</string>
     <string name="multiplayer_unban">Entbannen</string>
     <string name="multiplayer_unban_message">%1$s wirklich entbannen?</string>
-    <string name="multiplayer_ban">Benutzer bannen</string>
+    <string name="multiplayer_ban">Nutzer bannen</string>
     <string name="multiplayer_room_browser">Öffentliche Räume</string>
     <string name="multiplayer_no_rooms_found">Keine öffentlichen Räume gefunden</string>
     <string name="multiplayer_password_required">Passwort erforderlich</string>
@@ -172,15 +180,15 @@
     <string name="multiplayer_hide_full_rooms">Volle Räume ausblenden</string>
     <string name="multiplayer_hide_empty_rooms">Leere Räume ausblenden</string>
     <string name="multiplayer_tap_refresh_to_check_again">Zum Aktualisieren tippen</string>
-    <string name="multiplayer_search_public_lobbies">Räume suchen…</string>
+    <string name="multiplayer_search_public_lobbies">Lobbys suchen…</string>
     <string name="multiplayer_preferred_game_name">Bevorzugtes Spiel</string>
     <string name="multiplayer_lobby_type">Lobby-Typ</string>
     <string name="multiplayer_room_name_error">Muss 3-20 Zeichen lang sein</string>
     <string name="multiplayer_required">Erforderlich</string>
-    <string name="multiplayer_token_required">Web-Token erforderlich, gehen Sie zu Erweiterte Einstellungen -> System -> Netzwerk</string>
+    <string name="multiplayer_token_required">Web-Token erforderlich, gehe zu Erweiterte Einstellungen -&gt; System -&gt; Netzwerk</string>
     <string name="multiplayer_ip_error">Ungültiges IP-Format</string>
     <string name="multiplayer_username_error">Muss zwischen 4–20 Zeichen lang sein und nur alphanumerische Zeichen, Punkte, Bindestriche, Unterstriche und Leerzeichen enthalten</string>
-    <string name="multiplayer_nickname_invalid">Ungültiger Benutzername, stellen Sie sicher, dass er in System → Netzwerk korrekt eingestellt ist</string>
+    <string name="multiplayer_nickname_invalid">Ungültiger Benutzername; stelle sicher, dass er unter System -&gt; Netzwerk korrekt konfiguriert ist.</string>
     <string name="multiplayer_token_error">Muss 48 Zeichen lang sein und nur Kleinbuchstaben a-z enthalten</string>
     <string name="multiplayer_port_error">Muss zwischen 1-65535 liegen</string>
     <string name="cancel">Abbrechen</string>
@@ -188,20 +196,20 @@
     <string name="refresh">Aktualisieren</string>
     <string name="room_list">Raumliste</string>
     <string name="multiplayer_public_visibility">Öffentlich</string>
-    <string name="multiplayer_unlisted_visibility">Unlisted</string>
+    <string name="multiplayer_unlisted_visibility">Nicht gelistet</string>
 
     <!-- Setup strings -->
     <string name="welcome">Willkommen!</string>
-    <string name="welcome_description">Erfahre wie man &lt;b>Eden&lt;/b> einrichtet und beginne mit der Emulation.</string>
+    <string name="welcome_description">Erfahre, wie du Eden einrichtest, und tauche in die Welt der Emulation ein.</string>
     <string name="get_started">Erste Schritte</string>
     <string name="keys">Schlüssel</string>
-    <string name="keys_description">Wähle deine &lt;b>prod.keys&lt;/b> Datei mit dem Button unten aus.</string>
+    <string name="keys_description">Wähle deine <b>prod.keys</b> -Datei über die untenstehende Schaltfläche aus.</string>
     <string name="firmware">Firmware</string>
-    <string name="firmware_description">Wähle deine <b>firmware.zip</b>-Datei mit dem Button unten aus</string>
+    <string name="firmware_description">Wähle deine <b>firmware.zip</b>-Datei über die untenstehende Schaltfläche aus.</string>
     <string name="games">Spiele</string>
-    <string name="games_description">Wähle mit dem Knopf unten den &lt;b>Spiele&lt;/b>-Ordner aus.</string>
+    <string name="games_description">Wähle deinen <b>Spiele</b>-Ordner mit der untenstehenden Schaltfläche aus.</string>
     <string name="done">Fertig</string>
-    <string name="done_description">Du bist start klar.\nViel Spaß mit deinen Spielen!</string>
+    <string name="done_description">Alles bereit.\nViel Spaß beim Spielen!</string>
     <string name="next">Weiter</string>
     <string name="back">Zurück</string>
     <string name="add_games">Spiele hinzufügen</string>
@@ -214,23 +222,23 @@
     <string name="view_grid">Raster</string>
     <string name="view_grid_compact">Kompaktes Gitter</string>
     <string name="view_carousel">Karussell</string>
-    <string name="game_image_desc">Scrennshot für %1$s</string>
+    <string name="game_image_desc">Bildschirmfoto für %1$s</string>
     <string name="folder">Ordner</string>
     <string name="dont_show_again">Nicht mehr anzeigen</string>
     <string name="add_directory_success">Neues Spieleverzeichnis erfolgreich hinzugefügt.</string>
-    <string name="enable_update_checks">Auf Updates überprüfen</string>
-    <string name="enable_update_checks_description">Beim Start auf Updates überprüfen und optional das neue Update herunterladen und installieren</string>
-    <string name="update_available">Update verfügbar</string>
-    <string name="update_available_description">Eine Version ist verfügbar: %1$s\n\nWillst du sie herunterladen\?</string>
-    <string name="downloading_update">Update wird heruntergeladen</string>
-    <string name="update_download_failed">Herunterladen des Updates fehlgeschlagen</string>
-    <string name="update_installed_successfully">Update erfolgreich installiert</string>
-    <string name="update_install_failed">Installieren des Updates fehlgeschlagen: %1$s</string>
+    <string name="enable_update_checks">Auf Aktualisierungen prüfen</string>
+    <string name="enable_update_checks_description">Beim Start auf Aktualisierungen prüfen und optional die neue Aktualisierung herunterladen und installieren</string>
+    <string name="update_available">Aktualisierung verfügbar</string>
+    <string name="update_available_description">Eine neue Version ist verfügbar: %1$s\n\nWillst du sie herunterladen\?</string>
+    <string name="downloading_update">Aktualisierung wird heruntergeladen</string>
+    <string name="update_download_failed">Herunterladen der Aktualisierung fehlgeschlagen</string>
+    <string name="update_installed_successfully">Aktualisierung erfolgreich installiert</string>
+    <string name="update_install_failed">Installieren der Aktualisierung fehlgeschlagen: %1$s</string>
     <string name="home_search">Suche</string>
     <string name="home_settings">Einstellungen</string>
     <string name="empty_gamelist">Es wurden keine Dateien gefunden oder es wurde noch kein Spielverzeichnis ausgewählt.</string>
-    <string name="manage_game_folders">Spiele-Ordner verwalten</string>
-    <string name="select_games_folder_description">Erlaubt Eden die Spieleliste zu füllen</string>
+    <string name="manage_game_folders">Spielordner verwalten</string>
+    <string name="select_games_folder_description">Ermöglicht es Eden, die Spieleliste zu füllen.</string>
     <string name="add_games_warning">Auswahl des Spieleverzeichnisses überspringen?</string>
     <string name="add_games_warning_description">Spiele werden in der Spieleliste nicht angezeigt, wenn kein Ordner ausgewählt ist.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -241,33 +249,33 @@
     <string name="install_prod_keys_warning">Hinzufügen der Schlüssel überspringen?</string>
     <string name="install_prod_keys_warning_description">Für die Emulation von Spielen sind gültige Schlüssel erforderlich. Wenn du fortfährst, funktionieren nur Homebrew-Anwendungen.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
-    <string name="install_firmware_warning">Firmware nicht hinzufügen?</string>
+    <string name="install_firmware_warning">Das Hinzufügen der Firmware überspringen\?</string>
     <string name="emulator_data">Emulatordaten einrichten</string>
     <string name="emulator_data_description">Für die Funktion des Emulators werden Schlüssel benötigt, und Firmware ist empfohlen und für die Verwendung des QLaunch-Applets erforderlich.</string>
-    <string name="permissions">Berechtigung erteilen</string>
-    <string name="permissions_description">Optionale Berechtigungen erteilen um bestimmte Features des Emulators zu nutzen</string>
+    <string name="permissions">Berechtigungen erteilen</string>
+    <string name="permissions_description">Erteile optionale Berechtigungen zur Nutzung bestimmter Funktionen des Emulators.</string>
     <string name="install_firmware_warning_description">Viele Spiele benötigen Zugriff auf die Firmware, um richtig zu funktionieren.</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Benachrichtigungen</string>
-    <string name="notifications_description">Erteile mit dem Knopf unten die Berechtigung, Benachrichtigungen zu senden.</string>
+    <string name="notifications_description">Erteile die Berechtigung für Benachrichtigungen über die untenstehende Schaltfläche.</string>
     <string name="permission_denied">Zugriff verweigert</string>
     <string name="permission_denied_description">Du hast diese Berechtigung zu oft verweigert und musst sie nun manuell in den Systemeinstellungen erteilen.</string>
     <string name="about">Über</string>
-    <string name="about_description">Build-Version, Credits und mehr</string>
+    <string name="about_description">Build-Version, Mitwirkende und mehr</string>
     <string name="system_information">Systeminformationen</string>
     <string name="system_information_description">Detaillierte Systeminformationen anzeigen</string>
     <string name="device_manufacturer">Hersteller</string>
     <string name="device_model">Modell</string>
     <string name="product">Produkt</string>
     <string name="android_version">Android-Version</string>
-    <string name="android_security_patch">Sicherheitspatch</string>
+    <string name="android_security_patch">Sicherheits-Patch</string>
     <string name="build_id">Build-ID</string>
     <string name="general_information">Allgemeine Informationen</string>
     <string name="hardware">Hardware</string>
     <string name="supported_abis">Unterstützte ABIs</string>
     <string name="cpu_info">CPU-Informationen</string>
     <string name="gpu_information">GPU-Informationen</string>
-    <string name="vulkan_driver_version">Vulkan Treiberversion</string>
+    <string name="vulkan_driver_version">Vulkan-Treiberversion</string>
     <string name="error_getting_emulator_info">Fehler beim Abrufen der Emulatorinformationen</string>
     <string name="memory_info">Speicherinformation</string>
     <string name="total_memory">Gesamtspeicher</string>
@@ -278,7 +286,7 @@
     <string name="warning_skip">Überspringen</string>
     <string name="warning_cancel">Abbrechen</string>
     <string name="install_amiibo_keys">Amiibo-Schlüssel installieren</string>
-    <string name="install_amiibo_keys_description">Benötigt um Amiibos im Spiel zu verwenden</string>
+    <string name="install_amiibo_keys_description">Benötigt, um Amiibos im Spiel zu verwenden</string>
     <string name="gpu_driver_fetcher">GPU-Treiber-Hersteller</string>
     <string name="gpu_driver_manager">GPU-Treiber Verwaltung</string>
     <string name="install_gpu_driver_description">Alternative Treiber für eventuell bessere Leistung oder Genauigkeit installieren</string>
@@ -289,36 +297,39 @@
     <string name="open_user_folder">Eden-Ordner öffnen</string>
     <string name="open_user_folder_description">Eden\'s interne Dateien verwalten</string>
     <string name="app_settings_description">Verhalten und Aussehen der App verändern</string>
-    <string name="no_file_manager">Kein Dateimanager gefunden</string>
+    <string name="no_file_manager">Kein Datei-Manager gefunden</string>
     <string name="notification_no_directory_link">Eden-Verzeichnis konnte nicht geöffnet werden</string>
-    <string name="notification_no_directory_link_description">Bitte suche den Benutzerordner manuell über die Seitenleiste des Dateimanagers.</string>
+    <string name="notification_no_directory_link_description">Bitte suche den Benutzerordner manuell über die Seitenleiste des Datei-Managers.</string>
     <string name="manage_save_data">Speicherdaten verwalten</string>
     <string name="manage_save_data_description">Speicherdaten gefunden. Bitte wähle unten eine Option aus.</string>
     <string name="import_save_warning">Speicherdaten importieren</string>
     <string name="import_save_warning_description">Das überschreibt alle existierenden Speicherdaten für dieses Spiel mit der ausgewählten Datei.
 Wirklich fortfahren?</string>
-    <string name="save_files_importing">Importiere Speicherdaten...</string>
-    <string name="save_files_exporting">Exportiere Speicherdaten...</string>
+    <string name="save_files_importing">Speicherstände werden importiert...</string>
+    <string name="save_files_exporting">Speicherstände werden exportiert...</string>
     <string name="save_file_imported_success">Erfolgreich importiert</string>
     <string name="save_file_invalid_zip_structure">Ungültige Speicherverzeichnisstruktur</string>
     <string name="save_file_invalid_zip_structure_description">Der erste Unterordnername muss die Titel-ID des Spiels sein.</string>
     <string name="install_firmware">Firmware installieren</string>
-    <string name="install_firmware_description">Die Firmware muss in einem ZIP-Archiv vorliegen und wird zum Booten einiger Spiele benötigt</string>
+    <string name="install_firmware_description">Die Firmware muss in einem ZIP-Archiv vorliegen und wird zum Starten einiger Spiele benötigt</string>
     <string name="firmware_installing">Firmware wird installiert</string>
-    <string name="firmware_installed_failure">Bei der Firmware installation ist etwas fehlgeschlagen.</string>
-    <string name="firmware_installed_failure_description">Stellen Sie sicher, dass sich die Firmware-NCA-Dateien im Stammverzeichnis der ZIP-Datei befinden, und versuchen Sie es erneut.</string>
-    <string name="firmware_uninstalled_failure">Die Deinstallation der Firmware ist fehlgeschlagen</string>
-    <string name="share_log">Debug-Logs teilen</string>
-    <string name="share_log_description">Debug-Logs an Eden zur Untersuchung absenden</string>
-    <string name="share_log_missing">Keine Log-Datei gefunden</string>
+    <string name="firmware_installed_failure">Firmware-Installation fehlgeschlagen</string>
+    <string name="firmware_installed_failure_description">Stelle sicher, dass sich die Firmware-NCA-Dateien im Stammverzeichnis der ZIP-Datei befinden, und versuche es erneut.</string>
+    <string name="firmware_uninstalled_failure">Deinstallation der Firmware fehlgeschlagen</string>
+    <string name="share_log">Fehlerbehebungs-Protokolle teilen</string>
+    <string name="share_log_description">Fehlerbehebungs-Protokolle an Eden zur Fehlerbehebung absenden</string>
+    <string name="share_log_missing">Keine Protokolldatei gefunden</string>
+    <string name="share_gpu_log">GPU-Protokolle teilen</string>
+    <string name="share_gpu_log_description">Teile Edens GPU-Protokolldatei, um Grafikprobleme zu beheben</string>
+    <string name="share_gpu_log_missing">Keine GPU-Protokolldatei gefunden</string>
     <string name="install_game_content">Spiel installieren</string>
-    <string name="install_game_content_description">Spiel-Updates oder DLCs installieren</string>
-    <string name="installing_game_content">Installiere...</string>
+    <string name="install_game_content_description">Spielaktualisierungen oder DLCs installieren</string>
+    <string name="installing_game_content">Inhalt wird installiert...</string>
     <string name="install_game_content_failure">Fehler beim Installieren der Datei(en) auf NAND</string>
-    <string name="install_game_content_failure_description">Bitte stellen Sie sicher, dass der/die Inhalt(e) gültig sind und dass die Datei prod.keys installiert ist.</string>
+    <string name="install_game_content_failure_description">Bitte stelle sicher, dass der/die Inhalt(e) gültig sind und dass die Datei prod.keys installiert ist.</string>
     <string name="install_game_content_failure_base">Um mögliche Konflikte zu vermeiden, ist die Installation von Basisspielen nicht gestattet.</string>
     <string name="install_game_content_failed_count">%1$d Installationsfehler</string>
-    <string name="install_game_content_success">Game content(s) installed successfully</string>
+    <string name="install_game_content_success">Spielinhalt(e) erfolgreich installiert</string>
     <string name="install_game_content_success_install">%1$d erfolgreich installiert</string>
     <string name="install_game_content_success_overwrite">%1$d erfolgreich überschrieben</string>
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
@@ -326,20 +337,20 @@ Wirklich fortfahren?</string>
     <string name="custom_driver_not_supported_description">Das Laden von benutzerdefinierten Treibern wird für dieses Gerät momentan nicht unterstützt.\nSchau später einfach nochmal nach, ob die Unterstützung hinzugefügt wurde!</string>
     <string name="manage_yuzu_data">Eden-Daten verwalten</string>
     <string name="manage_yuzu_data_description">Importieren/Exportieren Sie Firmware, Schlüssel, Benutzerdaten und mehr!</string>
-    <string name="game_folders">Spiele-Ordner</string>
+    <string name="game_folders">Spielordner</string>
     <string name="deep_scan">Tiefer Scan</string>
-    <string name="add_game_folder">Spiele-Ordner hinzufügen</string>
+    <string name="add_game_folder">Spielordner hinzufügen</string>
     <string name="folder_already_added">Ordner bereits vorhanden</string>
     <string name="game_folder_properties">Ordner-Eigenschaften</string>
     <plurals name="saves_import_failed">
         <item quantity="one">%d Spielstand konnte nicht importiert werden</item>
-        <item quantity="other">%d Spielstände konnten nicht importiert werden</item>
+        <item quantity="other">%d-Spielstände konnten nicht importiert werden</item>
     </plurals>
     <plurals name="saves_import_success">
         <item quantity="one">%d Spielstand erfolgreich importiert</item>
-        <item quantity="other">%d Spielstände erfolgreich importiert</item>
+        <item quantity="other">%d -Spielstände erfolgreich importiert</item>
     </plurals>
-    <string name="no_save_data_found">Keine Spielstände gefunden</string>
+    <string name="no_save_data_found">Keine Speicherdaten gefunden</string>
     <string name="verify_installed_content">Inhalt überprüfen</string>
     <string name="verify_installed_content_description">Überprüft installierte Inhalte auf Fehler</string>
 
@@ -356,14 +367,15 @@ Wirklich fortfahren?</string>
     <string name="keys_failed">Schlüsselinstallation fehlgeschlagen</string>
     <string name="keys_install_success">Schlüssel erfolgreich installiert</string>
     <string name="error_keys_copy_failed">Ein oder mehrere Schlüssel konnten nicht kopiert werden.</string>
-    <string name="error_keys_invalid_filename">Stellen Sie sicher, dass Ihre Schlüsseldatei die Erweiterung .keys hat, und versuchen Sie es erneut.</string>
-    <string name="error_keys_failed_init">Schlüssel konnten nicht initialisiert werden. Stellen Sie sicher, dass Ihre Dumping-Tools auf dem neuesten Stand sind, und dumpen Sie die Schlüssel erneut.</string>
+    <string name="error_keys_invalid_filename">Stelle sicher, dass deine Schlüsseldatei die Erweiterung .keys hat, und versuche es erneut.</string>
+    <string name="error_keys_failed_init">Schlüssel konnten nicht initialisiert werden. Stelle sicher, dass deine Auslese-Werkzeuge auf dem neuesten Stand sind, und lies dann die Schlüssel erneut aus.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Anwendungen vom Systemstartbildschirm aus starten</string>
     <string name="applets">Applet-Launcher</string>
     <string name="applets_description">System-Applets mit Firmware starten</string>
+    <string name="applets_error_firmware">Firmware nicht installiert</string>
     <string name="applets_error_applet">Applet nicht verfügbar</string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Bilder im Screenshot-Ordner anzeigen</string>

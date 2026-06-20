@@ -1188,63 +1188,73 @@ Mainly used for speedrunning.</source>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="304"/>
+        <source>Homebrew Args</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="305"/>
+        <source>Command-line arguments passed to homebrew at launch (e.g. -noglsl).</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="306"/>
         <source>Custom RTC Date:</source>
         <translation>사용자 지정 RTC 날짜:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="305"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="307"/>
         <source>This option allows to change the clock of the console.
 Can be used to manipulate time in games.</source>
         <translation>이 옵션을 사용하면 콘솔의 시간을 변경할 수 있습니다.
 게임 내 시간을 조작하는 데 사용할 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="309"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="311"/>
         <source>The number of seconds from the current unix time</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="310"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="312"/>
         <source>Language:</source>
         <translation>언어:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="311"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="313"/>
         <source>This option can be overridden when region setting is auto-select</source>
         <translation>이 옵션은 지역 설정이 자동 선택으로 되어 있을 경우 번복될 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="312"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="314"/>
         <source>Region:</source>
         <translation>지역:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="312"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="314"/>
         <source>The region of the console.</source>
         <translation>콘솔의 지역</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="313"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="315"/>
         <source>Time Zone:</source>
         <translation>시간대:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="313"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="315"/>
         <source>The time zone of the console.</source>
         <translation>콘솔의 시간대</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="314"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="316"/>
         <source>Sound Output Mode:</source>
         <translation>소리 출력 모드:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="315"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="317"/>
         <source>Console Mode:</source>
         <translation>콘솔 모드:</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="316"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="318"/>
         <source>Selects if the console is in Docked or Handheld mode.
 Games will change their resolution, details and supported controllers and depending on this setting.
 Setting to Handheld can help improve performance for low end systems.</source>
@@ -1253,1041 +1263,1041 @@ Setting to Handheld can help improve performance for low end systems.</source>
 휴대 모드로 설정하면 저사양 시스템의 성능을 향상시키는 데 도움이 될 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="336"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="338"/>
         <source>Prompt for user profile on boot</source>
         <translation>부팅 시 유저 프로필 입력 요청</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="337"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="339"/>
         <source>Useful if multiple people use the same PC.</source>
         <translation>여러 사람이 같은 PC를 사용할 때 유용합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="338"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="340"/>
         <source>Pause when not in focus</source>
         <translation>초점이 맞지 않을 때 일시 중지</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="339"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="341"/>
         <source>Pauses emulation when focusing on other windows.</source>
         <translation>다른 창에 초점을 맞출 때 에뮬레이션을 일시 중지합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="340"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="342"/>
         <source>Confirm before stopping emulation</source>
         <translation>에뮬레이션을 중지하기 전에 확인</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="341"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="343"/>
         <source>Overrides prompts asking to confirm stopping the emulation.
 Enabling it bypasses such prompts and directly exits the emulation.</source>
         <translation>에뮬레이션 중지를 확인하는 메시지를 무시합니다.
 이 옵션을 활성화하면 이러한 메시지를 건너뛰고 에뮬레이션을 바로 종료합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="343"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="345"/>
         <source>Hide mouse on inactivity</source>
         <translation>마우스 커서가 비활동 상태일 때 숨기기</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="344"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="346"/>
         <source>Hides the mouse after 2.5s of inactivity.</source>
         <translation>마우스 커서가 2.5초 동안 활동이 없으면 숨깁니다.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="345"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="347"/>
         <source>Disable controller applet</source>
         <translation>컨트롤러 애플릿 비활성화</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="346"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="348"/>
         <source>Forcibly disables the use of the controller applet in emulated programs.
 When a program attempts to open the controller applet, it is immediately closed.</source>
         <translation>에뮬레이션된 프로그램에서 컨트롤러 애플릿 사용을 강제적으로 비활성화합니다.
 프로그램이 컨트롤러 애플릿을 열려고 하면 즉시 닫힙니다.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="348"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="350"/>
         <source>Check for updates</source>
         <translation>업데이트 확인</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="349"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="351"/>
         <source>Whether or not to check for updates upon startup.</source>
         <translation>시작 시 업데이트를 확인할지 여부.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="352"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="354"/>
         <source>Enable Gamemode</source>
         <translation>게임 모드 활성화</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="354"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="356"/>
         <source>Force X11 as Graphics Backend</source>
         <translation>X11을 그래픽 백엔드로 강제 설정</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="381"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="383"/>
         <source>Custom frontend</source>
         <translation>사용자 정의 프론트엔드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="382"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="384"/>
         <source>Real applet</source>
         <translation>실제 애플릿</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="387"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="389"/>
         <source>Never</source>
         <translation>안 함</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="388"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="390"/>
         <source>On Load</source>
         <translation>로드 시</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="389"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="391"/>
         <source>Always</source>
         <translation>항상</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="393"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="395"/>
         <source>CPU</source>
         <translation>CPU</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="394"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="396"/>
         <source>GPU</source>
         <translation>GPU</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="395"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="397"/>
         <source>CPU Asynchronous</source>
         <translation>비동기 CPU</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="400"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="402"/>
         <source>Uncompressed (Best quality)</source>
         <translation>비압축(최고 품질)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="401"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="403"/>
         <source>BC1 (Low quality)</source>
         <translation>BC1(저품질)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="402"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="404"/>
         <source>BC3 (Medium quality)</source>
         <translation>BC3(중간 품질)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="406"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="441"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="408"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="443"/>
         <source>Auto</source>
         <translation>자동</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="407"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="409"/>
         <source>30 FPS</source>
         <translation>30 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="408"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="410"/>
         <source>60 FPS</source>
         <translation>60 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="409"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="411"/>
         <source>90 FPS</source>
         <translation>90 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="410"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="412"/>
         <source>120 FPS</source>
         <translation>120 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="414"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="416"/>
         <source>Conservative</source>
         <translation>소극적</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="415"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="417"/>
         <source>Aggressive</source>
         <translation>적극적</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="419"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="421"/>
         <source>Vulkan</source>
         <translation>Vulkan</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="421"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="423"/>
         <source>OpenGL GLSL</source>
         <translation>OpenGL GLSL</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="422"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="424"/>
         <source>OpenGL GLASM (Assembly Shaders, NVIDIA Only)</source>
         <translation>OpenGL GLASM(어셈블리 셰이더, NVIDIA 전용)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="423"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="425"/>
         <source>OpenGL SPIR-V (Experimental, AMD/Mesa Only)</source>
         <translation>OpenGL SPIR-V(실험적, AMD/Mesa 전용)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="425"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="427"/>
         <source>Null</source>
         <translation>Null</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="428"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="430"/>
         <source>Fast</source>
         <translation>고속</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="429"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="431"/>
         <source>Balanced</source>
         <translation>균형</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="430"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="442"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="432"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="444"/>
         <source>Accurate</source>
         <translation>정확</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="434"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="515"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="436"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="517"/>
         <source>Default</source>
         <translation>기본값</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="435"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="437"/>
         <source>Unsafe (fast)</source>
         <translation>불안전(빠름)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="436"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="438"/>
         <source>Safe (stable)</source>
         <translation>안전(안정적)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="443"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="445"/>
         <source>Unsafe</source>
         <translation>불안전</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="444"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="446"/>
         <source>Paranoid (disables most optimizations)</source>
         <translation>편집증적(대부분의 최적화 비활성화)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="445"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="447"/>
         <source>Debugging</source>
         <translation>디버깅</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="449"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="451"/>
         <source>Dynarmic</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="450"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="452"/>
         <source>NCE</source>
         <translation>NCE</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="454"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="456"/>
         <source>Borderless Windowed</source>
         <translation>경계 없는 창 모드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="455"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="457"/>
         <source>Exclusive Fullscreen</source>
         <translation>독점 전체화면 모드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="459"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="461"/>
         <source>No Video Output</source>
         <translation>비디오 출력 없음</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="460"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="462"/>
         <source>CPU Video Decoding</source>
         <translation>CPU 비디오 디코딩</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="461"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="463"/>
         <source>GPU Video Decoding (Default)</source>
         <translation>GPU 비디오 디코딩(기본값)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="466"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="468"/>
         <source>0.25X (180p/270p) [EXPERIMENTAL]</source>
         <translation>0.25X (180p/270p) [실험적]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="467"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="469"/>
         <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
         <translation>0.5X (360p/540p) [실험적]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="468"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="470"/>
         <source>0.75X (540p/810p) [EXPERIMENTAL]</source>
         <translation>0.75X (540p/810p) [실험적]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="469"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="471"/>
         <source>1X (720p/1080p)</source>
         <translation>1X (720p/1080p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="470"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="472"/>
         <source>1.25X (900p/1350p) [EXPERIMENTAL]</source>
         <translation>1.25X (900p/1350p) [실험적]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="471"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="473"/>
         <source>1.5X (1080p/1620p) [EXPERIMENTAL]</source>
         <translation>1.5X (1080p/1620p) [실험적]</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="472"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="474"/>
         <source>2X (1440p/2160p)</source>
         <translation>2X (1440p/2160p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="473"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="475"/>
         <source>3X (2160p/3240p)</source>
         <translation>3X (2160p/3240p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="474"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="476"/>
         <source>4X (2880p/4320p)</source>
         <translation>4X (2880p/4320p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="475"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="477"/>
         <source>5X (3600p/5400p)</source>
         <translation>5X (3600p/5400p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="476"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="478"/>
         <source>6X (4320p/6480p)</source>
         <translation>6X (4320p/6480p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="477"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="479"/>
         <source>7X (5040p/7560p)</source>
         <translation>7X (5040p/7560p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="478"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="480"/>
         <source>8X (5760p/8640p)</source>
         <translation>8X (5760p/8640p)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="482"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="484"/>
         <source>Nearest Neighbor</source>
         <translation>최근접 보간</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="483"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="485"/>
         <source>Bilinear</source>
         <translation>Bilinear</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="484"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="486"/>
         <source>Bicubic</source>
         <translation>Bicubic</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="485"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="487"/>
         <source>Gaussian</source>
         <translation>가우시안</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="486"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="488"/>
         <source>Lanczos</source>
         <translation>란초스</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="487"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="489"/>
         <source>ScaleForce</source>
         <translation>ScaleForce</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="488"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="490"/>
         <source>AMD FidelityFX Super Resolution</source>
         <translation>AMD FidelityFX Super Resolution</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="489"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="491"/>
         <source>Area</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="490"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="492"/>
         <source>MMPX</source>
         <translation>MMPX</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="491"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="493"/>
         <source>Zero-Tangent</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="492"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="494"/>
         <source>B-Spline</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="493"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="495"/>
         <source>Mitchell</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="494"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="496"/>
         <source>Spline-1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="495"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="497"/>
         <source>Snapdragon Game Super Resolution</source>
         <translation>Snapdragon Game Super Resolution</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="496"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="498"/>
         <source>Snapdragon Game Super Resolution EdgeDir</source>
-        <translation type="unfinished"/>
+        <translation>Snapdragon Game Super Resolution EdgeDir</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="500"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="522"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="502"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="524"/>
         <source>None</source>
         <translation>없음</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="501"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="503"/>
         <source>FXAA</source>
         <translation>FXAA</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="502"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="504"/>
         <source>SMAA</source>
         <translation>SMAA</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="506"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="508"/>
         <source>Default (16:9)</source>
         <translation>기본 (16:9)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="507"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="509"/>
         <source>Force 4:3</source>
         <translation>강제 4:3</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="508"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="510"/>
         <source>Force 21:9</source>
         <translation>강제 21:9</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="509"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="511"/>
         <source>Force 16:10</source>
         <translation>강제 16:10</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="510"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="512"/>
         <source>Stretch to Window</source>
         <translation>창에 맞게 늘림</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="514"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="516"/>
         <source>Automatic</source>
         <translation>자동</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="516"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="518"/>
         <source>2x</source>
         <translation>2x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="517"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="519"/>
         <source>4x</source>
         <translation>4x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="518"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="520"/>
         <source>8x</source>
         <translation>8x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="519"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="521"/>
         <source>16x</source>
         <translation>16x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="520"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="522"/>
         <source>32x</source>
         <translation>32x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="521"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="523"/>
         <source>64x</source>
         <translation>64x</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="527"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="529"/>
         <source>Japanese (日本語)</source>
         <translation>일본어 (日本語)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="528"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="530"/>
         <source>American English</source>
-        <translation>미국 영어</translation>
+        <translation>미국식 영어</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="529"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="531"/>
         <source>French (français)</source>
         <translation>프랑스어(français)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="530"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="532"/>
         <source>German (Deutsch)</source>
         <translation>독일어(Deutsch)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="531"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="533"/>
         <source>Italian (italiano)</source>
         <translation>이탈리아어(italiano)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="532"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="534"/>
         <source>Spanish (español)</source>
         <translation>스페인어(español)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="533"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="535"/>
         <source>Chinese</source>
         <translation>중국어</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="534"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="536"/>
         <source>Korean (한국어)</source>
         <translation>한국어 (Korean)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="535"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="537"/>
         <source>Dutch (Nederlands)</source>
         <translation>네덜란드어 (Nederlands)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="536"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="538"/>
         <source>Portuguese (português)</source>
         <translation>포르투갈어(português)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="537"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="539"/>
         <source>Russian (Русский)</source>
         <translation>러시아어 (Русский)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="538"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="540"/>
         <source>Taiwanese</source>
         <translation>대만어</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="539"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="541"/>
         <source>British English</source>
-        <translation>영어 (British English)</translation>
+        <translation>영국식 영어</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="540"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="542"/>
         <source>Canadian French</source>
         <translation>캐나다 프랑스어</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="541"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="543"/>
         <source>Latin American Spanish</source>
-        <translation>라틴 아메리카 스페인어</translation>
+        <translation>라틴아메리카 스페인어</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="542"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="544"/>
         <source>Simplified Chinese</source>
         <translation>중국어 간체</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="543"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="545"/>
         <source>Traditional Chinese (正體中文)</source>
         <translation>중국어 번체 (正體中文)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="544"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="546"/>
         <source>Brazilian Portuguese (português do Brasil)</source>
         <translation>브라질 포르투갈어(português do Brasil)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="545"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="547"/>
         <source>Polish (polska)</source>
-        <translation type="unfinished"/>
+        <translation>폴란드어(polska)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="546"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="548"/>
         <source>Thai (แบบไทย)</source>
-        <translation type="unfinished"/>
+        <translation>태국어 (แบบไทย)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="550"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="589"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="552"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="591"/>
         <source>Japan</source>
         <translation>일본</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="551"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="553"/>
         <source>USA</source>
         <translation>미국</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="552"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="554"/>
         <source>Europe</source>
         <translation>유럽</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="553"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="555"/>
         <source>Australia</source>
         <translation>호주</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="554"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="556"/>
         <source>China</source>
         <translation>중국</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="555"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="557"/>
         <source>Korea</source>
         <translation>대한민국</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="556"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="558"/>
         <source>Taiwan</source>
         <translation>대만</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="562"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="564"/>
         <source>Auto (%1)</source>
         <comment>Auto select time zone</comment>
         <translation>자동 (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="566"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="568"/>
         <source>Default (%1)</source>
         <comment>Default time zone</comment>
         <translation>기본 (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="568"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="570"/>
         <source>CET</source>
-        <translation>중앙유럽 표준시(CET)</translation>
+        <translation>CET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="569"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="571"/>
         <source>CST6CDT</source>
         <translation>CST6CDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="570"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="572"/>
         <source>Cuba</source>
         <translation>쿠바</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="571"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="573"/>
         <source>EET</source>
-        <translation>동유럽 표준시(EET)</translation>
+        <translation>EET</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="572"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="574"/>
         <source>Egypt</source>
         <translation>이집트</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="573"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="575"/>
         <source>Eire</source>
-        <translation>Eire</translation>
+        <translation>아일랜드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="574"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="576"/>
         <source>EST</source>
         <translation>EST</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="575"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="577"/>
         <source>EST5EDT</source>
         <translation>EST5EDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="576"/>
-        <source>GB</source>
-        <translation>영국 하계 표준시(GB)</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="577"/>
-        <source>GB-Eire</source>
-        <translation>GB-Eire</translation>
-    </message>
-    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="578"/>
-        <source>GMT</source>
-        <translation>그리니치 표준시(GMT)</translation>
+        <source>GB</source>
+        <translation>영국</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="579"/>
+        <source>GB-Eire</source>
+        <translation>영국-아일랜드</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="580"/>
+        <source>GMT</source>
+        <translation>GMT</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="581"/>
         <source>GMT+0</source>
         <translation>GMT+0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="580"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="582"/>
         <source>GMT-0</source>
         <translation>GMT-0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="581"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="583"/>
         <source>GMT0</source>
         <translation>GMT0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="582"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="584"/>
         <source>Greenwich</source>
         <translation>그리니치</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="583"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="585"/>
         <source>Hongkong</source>
         <translation>홍콩</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="584"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="586"/>
         <source>HST</source>
-        <translation>하와이-알류샨 표준시(HST)</translation>
+        <translation>HST</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="585"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="587"/>
         <source>Iceland</source>
         <translation>아이슬란드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="586"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="588"/>
         <source>Iran</source>
         <translation>이란</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="587"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="589"/>
         <source>Israel</source>
         <translation>이스라엘</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="588"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="590"/>
         <source>Jamaica</source>
         <translation>자메이카</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="590"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="592"/>
         <source>Kwajalein</source>
-        <translation>크와잘린</translation>
+        <translation>콰잘린</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="591"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="593"/>
         <source>Libya</source>
         <translation>리비아</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="592"/>
-        <source>MET</source>
-        <translation>중앙유럽 표준시(MET)</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="593"/>
-        <source>MST</source>
-        <translation>산악 표준시(MST)</translation>
-    </message>
-    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="594"/>
+        <source>MET</source>
+        <translation>MET</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="595"/>
+        <source>MST</source>
+        <translation>MST</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="596"/>
         <source>MST7MDT</source>
         <translation>MST7MDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="595"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="597"/>
         <source>Navajo</source>
         <translation>나바호</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="596"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="598"/>
         <source>NZ</source>
-        <translation>뉴질랜드 표준시(NZ)</translation>
+        <translation>뉴질랜드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="597"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="599"/>
         <source>NZ-CHAT</source>
         <translation>채텀 표준시(NZ-CHAT)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="598"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="600"/>
         <source>Poland</source>
         <translation>폴란드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="599"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="601"/>
         <source>Portugal</source>
         <translation>포르투갈</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="600"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="602"/>
         <source>PRC</source>
-        <translation>PRC</translation>
+        <translation>중국</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="601"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="603"/>
         <source>PST8PDT</source>
         <translation>PST8PDT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="602"/>
-        <source>ROC</source>
-        <translation>ROC</translation>
-    </message>
-    <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="603"/>
-        <source>ROK</source>
-        <translation>북한 표준시(ROK)</translation>
-    </message>
-    <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="604"/>
+        <source>ROC</source>
+        <translation>대만</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="605"/>
+        <source>ROK</source>
+        <translation>대한민국</translation>
+    </message>
+    <message>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="606"/>
         <source>Singapore</source>
         <translation>싱가포르</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="605"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="607"/>
         <source>Turkey</source>
         <translation>터키</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="606"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="608"/>
         <source>UCT</source>
         <translation>UCT</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="607"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="609"/>
         <source>Universal</source>
         <translation>Universal</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="608"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="610"/>
         <source>UTC</source>
         <translation>협정 세계시(UTC)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="609"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="611"/>
         <source>W-SU</source>
         <translation>유럽/모스크바(W-SU)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="610"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="612"/>
         <source>WET</source>
         <translation>서유럽</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="611"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="613"/>
         <source>Zulu</source>
         <translation>줄루</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="615"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="617"/>
         <source>Mono</source>
         <translation>모노</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="616"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="618"/>
         <source>Stereo</source>
         <translation>스테레오</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="617"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="619"/>
         <source>Surround</source>
         <translation>서라운드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="621"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="623"/>
         <source>4GB DRAM (Default)</source>
         <translation>4GB DRAM(기본값)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="622"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="624"/>
         <source>6GB DRAM (Unsafe)</source>
-        <translation>6GB DRAM (불안전)</translation>
+        <translation>6GB DRAM(불안전)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="623"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="625"/>
         <source>8GB DRAM</source>
         <translation>8GB DRAM</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="624"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="626"/>
         <source>10GB DRAM (Unsafe)</source>
-        <translation>10GB DRAM (불안전)</translation>
+        <translation>10GB DRAM(불안전)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="625"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="627"/>
         <source>12GB DRAM (Unsafe)</source>
-        <translation>12GB DRAM (불안전)</translation>
+        <translation>12GB DRAM(불안전)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="629"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="631"/>
         <source>Docked</source>
         <translation>독 모드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="630"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="632"/>
         <source>Handheld</source>
         <translation>휴대 모드</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="634"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="647"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="636"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="649"/>
         <source>Off</source>
         <translation>끔</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="635"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="637"/>
         <source>Boost (1700MHz)</source>
         <translation>부스트(1700MHz)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="636"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="638"/>
         <source>Fast (2000MHz)</source>
         <translation>고속(2000MHz)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="641"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="643"/>
         <source>Always ask (Default)</source>
         <translation>항상 묻기(기본값)</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="642"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="644"/>
         <source>Only if game specifies not to stop</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="643"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="645"/>
         <source>Never ask</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="648"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="672"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="650"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="674"/>
         <source>Medium (256)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="649"/>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="673"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="651"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="675"/>
         <source>High (512)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="653"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="655"/>
         <source>Very Small (16 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="654"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="656"/>
         <source>Small (32 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="655"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="657"/>
         <source>Normal (128 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="656"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="658"/>
         <source>Large (256 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="657"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="659"/>
         <source>Very Large (512 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="661"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="663"/>
         <source>Very Low (4 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="662"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="664"/>
         <source>Low (8 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="663"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="665"/>
         <source>Normal (16 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="664"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="666"/>
         <source>Medium (32 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="665"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="667"/>
         <source>High (64 MB)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="669"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="671"/>
         <source>Very Low (32)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="670"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="672"/>
         <source>Low (64)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="671"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="673"/>
         <source>Normal (128)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="678"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="680"/>
         <source>Disabled</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="679"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="681"/>
         <source>ExtendedDynamicState 1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="680"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="682"/>
         <source>ExtendedDynamicState 2</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="681"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="683"/>
         <source>ExtendedDynamicState 3</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="686"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="688"/>
         <source>Tree View</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/qt_common/config/shared_translation.cpp" line="687"/>
+        <location filename="../../src/qt_common/config/shared_translation.cpp" line="689"/>
         <source>Grid View</source>
         <translation type="unfinished"/>
     </message>
@@ -4505,7 +4515,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="46"/>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="73"/>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="236"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="235"/>
         <source>Configure</source>
         <translation>구성</translation>
     </message>
@@ -4536,7 +4546,7 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="194"/>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="259"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="258"/>
         <source>Test</source>
         <translation>테스트</translation>
     </message>
@@ -4551,77 +4561,77 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
         <translation>원격 서버</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="162"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="161"/>
         <source>%1:%2</source>
         <translation>%1:%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="167"/>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="171"/>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="175"/>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="181"/>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="187"/>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="281"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="166"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="170"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="174"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="180"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="186"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="280"/>
         <source>Eden</source>
         <translation>Eden</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="167"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="166"/>
         <source>Port number has invalid characters</source>
         <translation>포트 번호에 유효하지 않은 글자가 있습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="171"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="170"/>
         <source>Port has to be in range 0 and 65353</source>
         <translation>포트 번호는 0부터 65353까지이어야 합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="175"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="174"/>
         <source>IP address is not valid</source>
         <translation>IP 주소가 유효하지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="181"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="180"/>
         <source>This UDP server already exists</source>
         <translation>해당 UDP 서버는 이미 존재합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="187"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="186"/>
         <source>Unable to add more than 8 servers</source>
         <translation>8개보다 많은 서버를 추가하실 수는 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="203"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="202"/>
         <source>Testing</source>
         <translation>테스트 중</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="219"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="218"/>
         <source>Configuring</source>
         <translation>구성 중</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="250"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="249"/>
         <source>Test Successful</source>
         <translation>테스트 성공</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="251"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="250"/>
         <source>Successfully received data from the server.</source>
         <translation>서버에서 성공적으로 데이터를 받았습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="253"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="252"/>
         <source>Test Failed</source>
         <translation>테스트 실패</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="254"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="253"/>
         <source>Could not receive valid data from the server.&lt;br&gt;Please verify that the server is set up correctly and the address and port are correct.</source>
         <translation>서버에서 유효한 데이터를 수신할 수 없습니다.&lt;br&gt;서버 설정이 올바르게 되어 있는지, 주소와 포트가 정확한지 확인해 주세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="282"/>
+        <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="281"/>
         <source>UDP Test or calibration configuration is in progress.&lt;br&gt;Please wait for them to finish.</source>
         <translation>UDP 테스트 또는 보정 구성이 진행 중입니다.&lt;br&gt;완료될 때까지 기다려 주세요.</translation>
     </message>
@@ -6123,178 +6133,178 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameList</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="380"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="378"/>
         <source>&amp;Add New Game Directory</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="414"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="412"/>
         <source>Favorite</source>
         <translation>선호하는 게임</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="416"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="414"/>
         <source>Start Game</source>
         <translation>게임 시작</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="418"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="416"/>
         <source>Start Game without Custom Configuration</source>
         <translation>맞춤 구성 없이 게임 시작</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="420"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="418"/>
         <source>Open Save Data Location</source>
         <translation>세이브 데이터 경로 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="421"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="419"/>
         <source>Open Mod Data Location</source>
         <translation>모드 데이터 위치 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="423"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="421"/>
         <source>Open Transferable Pipeline Cache</source>
         <translation>이동 가능한 파이프라인 캐시 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="424"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="422"/>
         <source>Link to Ryujinx</source>
         <translation>Ryujinx에 연결</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="426"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="424"/>
         <source>Remove</source>
         <translation>제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="427"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="425"/>
         <source>Remove Installed Update</source>
         <translation>설치된 업데이트 삭제</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="428"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="426"/>
         <source>Remove All Installed DLC</source>
         <translation>설치된 모든 DLC 삭제</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="429"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="427"/>
         <source>Remove Custom Configuration</source>
         <translation>사용자 지정 구성 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="430"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="428"/>
         <source>Remove Cache Storage</source>
         <translation>캐시 스토리지 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="431"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="429"/>
         <source>Remove OpenGL Pipeline Cache</source>
         <translation>OpenGL 파이프라인 캐시 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="432"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="430"/>
         <source>Remove Vulkan Pipeline Cache</source>
         <translation>Vulkan 파이프라인 캐시 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="434"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="432"/>
         <source>Remove All Pipeline Caches</source>
         <translation>모든 파이프라인 캐시 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="435"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="433"/>
         <source>Remove All Installed Contents</source>
         <translation>설치된 모든 컨텐츠 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="436"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="434"/>
         <source>Manage Play Time</source>
         <translation>플레이 시간 관리</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="437"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="435"/>
         <source>Edit Play Time Data</source>
         <translation>플레이 시간 데이터 편집</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="438"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="436"/>
         <source>Remove Play Time Data</source>
         <translation>플레이 시간 데이터 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="439"/>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="440"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="437"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="438"/>
         <source>Dump RomFS</source>
         <translation>RomFS를 덤프</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="441"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="439"/>
         <source>Dump RomFS to SDMC</source>
         <translation>RomFS를 SDMC로 덤프</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="442"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="440"/>
         <source>Verify Integrity</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="443"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="441"/>
         <source>Copy Title ID to Clipboard</source>
         <translation>클립보드에 타이틀 ID 복사</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="444"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="442"/>
         <source>Navigate to GameDB entry</source>
         <translation>GameDB 항목으로 이동</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="446"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="444"/>
         <source>Create Shortcut</source>
         <translation>바로가기 만들기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="447"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="445"/>
         <source>Add to Desktop</source>
         <translation>데스크톱에 추가</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="449"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="447"/>
         <source>Add to Applications Menu</source>
         <translation>애플리케이션 메뉴에 추가</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="452"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="450"/>
         <source>Configure Game</source>
         <translation>게임 구성</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="552"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="550"/>
         <source>Scan Subfolders</source>
         <translation>하위 폴더 스캔</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="553"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="551"/>
         <source>Remove Game Directory</source>
         <translation>게임 디렉터리 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="572"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="570"/>
         <source>▲ Move Up</source>
         <translation>▲ 위로 이동</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="573"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="571"/>
         <source>▼ Move Down</source>
         <translation>▼ 아래로 이동</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="574"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="572"/>
         <source>Open Directory Location</source>
         <translation>디렉터리 위치 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="614"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="612"/>
         <source>Clear</source>
         <translation>초기화</translation>
     </message>
@@ -6398,7 +6408,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameListPlaceholder</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="757"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="755"/>
         <source>Double-click to add a new folder to the game list</source>
         <translation>더블 클릭하여 게임 목록에 새 폴더 추가</translation>
     </message>
@@ -7008,7 +7018,7 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="276"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="1665"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1664"/>
         <source>&amp;Pause</source>
         <translation>일시중지(&amp;P)</translation>
     </message>
@@ -7169,7 +7179,7 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="492"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4082"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4080"/>
         <source>&amp;Start</source>
         <translation>시작(&amp;S)</translation>
     </message>
@@ -7180,7 +7190,7 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="508"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4083"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4081"/>
         <source>R&amp;ecord</source>
         <translation>레코드(&amp;e)</translation>
     </message>
@@ -7380,631 +7390,631 @@ Debug Message: </source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1249"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1248"/>
         <source>&amp;Clear Recent Files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1663"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1662"/>
         <source>&amp;Continue</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1825"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1824"/>
         <source>Warning: Outdated Game Format</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1826"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1825"/>
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;For an explanation of the various Switch formats Eden supports, out our user handbook. This message will not be shown again.</source>
         <translation>현재 이 게임에 대해 구형 형식인 분해된 ROM 디렉터리 형식을 사용하고 있습니다. 이 형식은 NCA, NAX, XCI 또는 NSP와 같은 다른 형식으로 대체되었습니다. 분해된 ROM 디렉터리에는 아이콘, 메타데이터 및 업데이트 지원 기능이 없습니다.&lt;br&gt;Eden에서 지원하는 다양한 스위치 형식에 대한 자세한 내용은 사용자 설명서를 참조해 주세요. 이 메시지는 다시 표시되지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1837"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="1869"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1836"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1868"/>
         <source>Error while loading ROM!</source>
         <translation>ROM 불러오는 중 오류 발생!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1838"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1837"/>
         <source>The ROM format is not supported.</source>
         <translation>해당 ROM 형식은 지원되지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1842"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1841"/>
         <source>An error occurred initializing the video core.</source>
         <translation>비디오 코어 초기화 중 오류가 발생했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1843"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1842"/>
         <source>Eden has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
         <translation>Eden에서 비디오 코어 실행 중 오류가 발생했습니다. 이는 일반적으로 내장 그래픽 드라이버를 포함한 GPU 드라이버가 최신 버전이 아니기 때문에 발생합니다. 자세한 내용은 로그 파일을 참조하십시오. 로그 파일 접근 방법에 대한 자세한 내용은 다음 페이지: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;로그 파일 업로드 방법&lt;/a&gt;을 참조해 주세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1858"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1857"/>
         <source>Error while loading ROM! %1</source>
         <comment>%1 signifies a numeric error code.</comment>
         <translation>ROM 불러오는 중 오류 발생! %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1861"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1860"/>
         <source>%1&lt;br&gt;Please redump your files or ask on Discord/Stoat for help.</source>
         <comment>%1 signifies an error string.</comment>
         <translation>%1&lt;br&gt;파일을 리덤프하거나 디스코드/Stoat에서 도움을 요청해 주세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1870"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1869"/>
         <source>An unknown error occurred. Please see the log for more details.</source>
         <translation>알 수 없는 오류가 발생했습니다. 자세한 내용은 로그를 참조해 주세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2019"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2018"/>
         <source>(64-bit)</source>
         <translation>(64비트)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2019"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2018"/>
         <source>(32-bit)</source>
         <translation>(32비트)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2020"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2019"/>
         <source>%1 %2</source>
         <comment>%1 is the title name. %2 indicates if the title is 64-bit or 32-bit</comment>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2098"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2097"/>
         <source>Closing software...</source>
         <translation>소프트웨어 닫는 중...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2264"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2263"/>
         <source>Save Data</source>
         <translation>저장 데이터</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2295"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2294"/>
         <source>Mod Data</source>
         <translation>모드 데이터</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2308"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2307"/>
         <source>Error Opening %1 Folder</source>
         <translation>%1 폴더 여는 중 오류 발생</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2309"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2657"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2308"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2656"/>
         <source>Folder does not exist!</source>
         <translation>폴더가 존재하지 않습니다!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2387"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2386"/>
         <source>Remove Installed Game Contents?</source>
         <translation>설치된 게임 콘텐츠를 제거하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2389"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2388"/>
         <source>Remove Installed Game Update?</source>
         <translation>설치된 게임 업데이트를 제거하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2391"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2390"/>
         <source>Remove Installed Game DLC?</source>
         <translation>설치된 게임 DLC를 제거하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2397"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2396"/>
         <source>Remove Entry</source>
         <translation>항목 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2427"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2426"/>
         <source>Delete OpenGL Transferable Shader Cache?</source>
         <translation>OpenGL 이동 가능한 셰이더 캐시를 삭제하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2429"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2428"/>
         <source>Delete Vulkan Transferable Shader Cache?</source>
         <translation>Vulkan 이동 가능한 셰이더 캐시를 삭제하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2431"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2430"/>
         <source>Delete All Transferable Shader Caches?</source>
         <translation>이동 가능한 셰이더 캐시를 모두 삭제하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2433"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2432"/>
         <source>Remove Custom Game Configuration?</source>
         <translation>사용자 지정 게임 구성을 제거하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2435"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2434"/>
         <source>Remove Cache Storage?</source>
         <translation>캐시 저장소를 제거하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2441"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2440"/>
         <source>Remove File</source>
         <translation>파일 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2478"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2477"/>
         <source>Remove Play Time Data</source>
         <translation>플레이 시간 데이터 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2478"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2477"/>
         <source>Reset play time?</source>
         <translation>플레이 시간을 재설정하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2491"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2576"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2490"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2575"/>
         <source>RomFS Extraction Failed!</source>
         <translation>RomFS 추출 실패!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2492"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2491"/>
         <source>There was an error copying the RomFS files or the user cancelled the operation.</source>
         <translation>RomFS 파일을 복사하는 중에 오류가 발생했거나 사용자가 작업을 취소했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2551"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2550"/>
         <source>Full</source>
         <translation>전체</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2551"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2550"/>
         <source>Skeleton</source>
         <translation>뼈대</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2553"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2552"/>
         <source>Select RomFS Dump Mode</source>
         <translation>RomFS 덤프 모드 선택</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2554"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2553"/>
         <source>Please select the how you would like the RomFS dumped.&lt;br&gt;Full will copy all of the files into the new directory while &lt;br&gt;skeleton will only create the directory structure.</source>
         <translation>RomFS 덤프 방식을 선택해 주세요. 전체를 선택하면 모든 파일이 새 디렉터리로 복사되고, 뼈대를 선택하면 디렉터리 구조만 생성됩니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2577"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2576"/>
         <source>There is not enough free space at %1 to extract the RomFS. Please free up space or select a different dump directory at Emulation &gt; Configure &gt; System &gt; Filesystem &gt; Dump Root</source>
         <translation>%1 위치에 RomFS를 추출할 수 있는 여유 공간이 부족합니다. 공간을 확보하거나 에뮬레이션 &gt; 구성 &gt; 시스템 &gt; 파일 시스템 &gt; 덤프 경로에서 다른 덤프 디렉토리를 선택해 주세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2584"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2583"/>
         <source>Extracting RomFS...</source>
         <translation>RomFS 추출 중...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2584"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2841"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2583"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2840"/>
         <source>Cancel</source>
         <translation>취소</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2594"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2593"/>
         <source>RomFS Extraction Succeeded!</source>
         <translation>RomFS 추출 성공!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2595"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2594"/>
         <source>The operation completed successfully.</source>
         <translation>작업이 성공적으로 완료되었습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2656"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2655"/>
         <source>Error Opening %1</source>
         <translation>%1 여는 중 오류 발생</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2665"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2664"/>
         <source>Select Directory</source>
         <translation>디렉터리 선택</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2694"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2693"/>
         <source>Properties</source>
         <translation>속성</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2695"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2694"/>
         <source>The game properties could not be loaded.</source>
         <translation>게임 속성을 불러올 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2757"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2756"/>
         <source>Switch Executable (%1);;All Files (*.*)</source>
         <comment>%1 is an identifier for the Switch executable file extensions.</comment>
         <translation>스위치 실행 파일(%1);;모든 파일(*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2761"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2760"/>
         <source>Load File</source>
         <translation>파일 불러오기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2774"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2773"/>
         <source>Open Extracted ROM Directory</source>
         <translation>추출된 ROM 디렉터리 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2785"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2784"/>
         <source>Invalid Directory Selected</source>
         <translation>유효하지 않은 디렉터리 선택됨</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2786"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2785"/>
         <source>The directory you have selected does not contain a &apos;main&apos; file.</source>
         <translation>선택한 디렉터리에는 &apos;main&apos; 파일이 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2796"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2795"/>
         <source>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</source>
         <translation>설치 가능한 스위치 파일(*.nca, *.nsp, *.xci);;닌텐도 콘텐츠 아카이브(*.nca);;닌텐도 제출 패키지(*.nsp);;NX 카트리지 이미지(*.xci)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2801"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2800"/>
         <source>Install Files</source>
         <translation>파일 설치</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2848"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2847"/>
         <source>%n file(s) remaining</source>
         <translation><numerusform>%n개 파일 남음</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2850"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2849"/>
         <source>Installing file &quot;%1&quot;...</source>
         <translation>파일 &quot;%1&quot; 설치 중...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2904"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2918"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2903"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2917"/>
         <source>Install Results</source>
         <translation>설치 결과</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2905"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2904"/>
         <source>To avoid possible conflicts, we discourage users from installing base games to the NAND.
 Please, only use this feature to install updates and DLC.</source>
         <translation>잠재적인 충돌을 방지하기 위해 저희는 사용자가 기본 게임을 NAND에 설치하는 것은 권장하지 않습니다.
 이 기능은 업데이트 및 DLC 설치에만 사용해 주세요.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2911"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2910"/>
         <source>%n file(s) were newly installed
 </source>
         <translation><numerusform>%n개 파일이 새로 설치됨
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2914"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2913"/>
         <source>%n file(s) were overwritten
 </source>
         <translation><numerusform>%n개 파일이 덮어쓰기됨
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2916"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2915"/>
         <source>%n file(s) failed to install
 </source>
         <translation><numerusform>%n개 파일 설치 실패
 </numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2926"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2925"/>
         <source>System Application</source>
         <translation>시스템 애플리케이션</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2927"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2926"/>
         <source>System Archive</source>
         <translation>시스템 아카이브</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2928"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2927"/>
         <source>System Application Update</source>
         <translation>시스템 애플리케이션 업데이트</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2929"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2928"/>
         <source>Firmware Package (Type A)</source>
         <translation>펌웨어 패키지 (A타입)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2930"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2929"/>
         <source>Firmware Package (Type B)</source>
         <translation>펌웨어 패키지 (B타입)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2931"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2930"/>
         <source>Game</source>
         <translation>게임</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2932"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2931"/>
         <source>Game Update</source>
         <translation>게임 업데이트</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2933"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2932"/>
         <source>Game DLC</source>
         <translation>게임 DLC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2934"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2933"/>
         <source>Delta Title</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2937"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2936"/>
         <source>Select NCA Install Type...</source>
         <translation>NCA 설치 유형 선택...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2938"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2937"/>
         <source>Please select the type of title you would like to install this NCA as:
 (In most instances, the default &apos;Game&apos; is fine.)</source>
         <translation>이 NCA를 설치할 게임 유형을 선택해 주세요:
 (대부분의 경우 기본값인 &apos;게임&apos;을 선택하면 됩니다.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2944"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2943"/>
         <source>Failed to Install</source>
         <translation>설치 실패</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2945"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2944"/>
         <source>The title type you selected for the NCA is invalid.</source>
         <translation>NCA에 대해 선택한 게임 유형이 유효하지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2980"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2979"/>
         <source>File not found</source>
         <translation>파일을 찾을 수 없음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2981"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2980"/>
         <source>File &quot;%1&quot; not found</source>
         <translation>&quot;%1&quot; 파일을 찾을 수 없음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3100"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3099"/>
         <source>OK</source>
         <translation>확인</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3118"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3117"/>
         <source>Function Disabled</source>
         <translation>기능 비활성화됨</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3119"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3118"/>
         <source>Compatibility list reporting is currently disabled. Check back later!</source>
         <translation>호환성 목록 보고 옵션이 현재 비활성화되어 있습니다. 나중에 다시 확인해 주세요!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3161"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3160"/>
         <source>Error opening URL</source>
         <translation>URL 여는 중 오류 발생</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3162"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3161"/>
         <source>Unable to open the URL &quot;%1&quot;.</source>
         <translation>&quot;%1&quot; URL을 열 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3535"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3534"/>
         <source>TAS Recording</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3535"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3534"/>
         <source>Overwrite file of player 1?</source>
         <translation>플레이어 1의 파일을 덮어쓰겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3559"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3558"/>
         <source>Invalid config detected</source>
         <translation>유효하지 않은 구성 발견</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3560"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3559"/>
         <source>Handheld controller can&apos;t be used on docked mode. Pro controller will be selected.</source>
         <translation>휴대 모드 컨트롤러는 독 모드에서 사용할 수 없습니다. 프로 컨트롤러로 선택됩니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3715"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3766"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3713"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3764"/>
         <source>Amiibo</source>
         <translation>Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3715"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3766"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3713"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3764"/>
         <source>The current amiibo has been removed</source>
         <translation>현재 amiibo가 제거됨</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3720"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3718"/>
         <source>Error</source>
         <translation>오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3720"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3778"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3718"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3776"/>
         <source>The current game is not looking for amiibos</source>
         <translation>현재 게임은 amiibo를 찾고 있지 않습니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3726"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3724"/>
         <source>Amiibo File (%1);; All Files (*.*)</source>
         <translation>Amiibo 파일(%1);; 모든 파일(*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3727"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3725"/>
         <source>Load Amiibo</source>
         <translation>Amiibo 불러오기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3762"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3760"/>
         <source>Error loading Amiibo data</source>
         <translation>Amiibo 데이터 불러오는 중 오류 발생</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3772"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3770"/>
         <source>The selected file is not a valid amiibo</source>
         <translation>선택한 파일은 유효한 amiibo가 아닙니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3775"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3773"/>
         <source>The selected file is already on use</source>
         <translation>선택한 파일은 이미 사용 중입니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3781"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3779"/>
         <source>An unknown error occurred</source>
         <translation>알 수 없는 오류 발생</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3883"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3881"/>
         <source>No firmware available</source>
         <translation>사용 가능한 펌웨어 없음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3887"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3885"/>
         <source>Firmware Corrupted</source>
         <translation>펌웨어 손상됨</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3953"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3951"/>
         <source>Unknown applet</source>
         <translation>알 수 없는 애플릿</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3954"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3952"/>
         <source>Applet doesn&apos;t map to a known value.</source>
         <translation>애플릿이 알려진 값에 매핑되지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3957"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3955"/>
         <source>Record not found</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3958"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3956"/>
         <source>Applet not found. Please reinstall firmware.</source>
         <translation>애플릿을 찾을 수 없습니다. 펌웨어를 다시 설치해 주세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3990"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3988"/>
         <source>Capture Screenshot</source>
         <translation>스크린샷 캡처</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3991"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3989"/>
         <source>PNG Image (*.png)</source>
         <translation>PNG 이미지 (*.png)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4058"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4056"/>
         <source>TAS state: Running %1/%2</source>
         <translation>TAS 상태: %1/%2 실행 중</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4062"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4060"/>
         <source>TAS state: Recording %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4064"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4062"/>
         <source>TAS state: Idle %1/%2</source>
         <translation>TAS 상태: %1/%2 유휴</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4068"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4066"/>
         <source>TAS State: Invalid</source>
         <translation>TAS 상태: 무효</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4082"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4080"/>
         <source>&amp;Stop Running</source>
         <translation>실행 중지(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4083"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4081"/>
         <source>Stop R&amp;ecording</source>
         <translation type="unfinished"/>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="4108"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4106"/>
         <source>Building: %n shader(s)</source>
         <translation><numerusform>구축 중: %n개 셰이더</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4117"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4115"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
         <translation>크기: %1x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4120"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4118"/>
         <source>Speed: %1% / %2%</source>
         <translation>속도: %1% / %2%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4124"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4122"/>
         <source>Speed: %1%</source>
         <translation>속도: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4127"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4125"/>
         <source>Game: %1 FPS</source>
         <translation>게임: %1 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4133"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4131"/>
         <source>Frame: %1 ms</source>
         <translation>프레임: %1 밀리초</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4174"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4172"/>
         <source>NO AA</source>
         <translation>AA 없음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4183"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4181"/>
         <source>VOLUME: MUTE</source>
         <translation>볼륨: 음소거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4186"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4184"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
         <translation>볼륨: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4249"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4247"/>
         <source>Derivation Components Missing</source>
         <translation>파생 구성 요소 누락</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4250"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4248"/>
         <source>Decryption keys are missing. Install them now?</source>
         <translation>복호화 키가 없습니다. 지금 설치하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4280"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4278"/>
         <source>Wayland Detected!</source>
         <translation>Wayland 발견!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4282"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4280"/>
         <source>Wayland is known to have significant performance issues and mysterious bugs.
 It's recommended to use X11 instead.
 
@@ -8015,74 +8025,74 @@ Would you like to force it for future launches?</source>
 향후 출시를 위해 Wayland 사용을 강제하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4287"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4285"/>
         <source>Use X11</source>
         <translation>X11 사용</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4288"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4286"/>
         <source>Continue with Wayland</source>
         <translation>Wayland와 계속</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4291"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4289"/>
         <source>Don&apos;t show again</source>
         <translation>다시 보지 않기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4305"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4303"/>
         <source>Restart Required</source>
         <translation>재시작이 필요함</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4306"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4304"/>
         <source>Restart Eden to apply the X11 backend.</source>
         <translation>X11 백엔드를 적용하려면 Eden을 다시 시작하세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4344"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4342"/>
         <source>Slow</source>
         <translation>저속</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4347"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4345"/>
         <source>Turbo</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4351"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4349"/>
         <source>Unlocked</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4401"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4399"/>
         <source>Select RomFS Dump Target</source>
         <translation>RomFS 덤프 대상 선택</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4402"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4400"/>
         <source>Please select which RomFS you would like to dump.</source>
         <translation>덤프할 RomFS를 선택하세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4425"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4423"/>
         <source>Are you sure you want to close Eden?</source>
         <translation>정말 Eden을 닫겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4426"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4514"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4526"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4424"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4512"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4524"/>
         <source>Eden</source>
         <translation>Eden</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4515"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4513"/>
         <source>Are you sure you want to stop the emulation? Any unsaved progress will be lost.</source>
         <translation>정말 에뮬레이션을 중지하겠습니까? 저장되지 않은 진행 상황은 모두 손실됩니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4523"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4521"/>
         <source>The currently running application has requested Eden to not exit.
 
 Would you like to bypass this and exit anyway?</source>

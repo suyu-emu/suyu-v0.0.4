@@ -428,6 +428,9 @@
     <string name="cpu_accuracy">دقة وحدة المعالجة المركزية</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <string name="program_args">وسائط Homebrew</string>
+    <string name="program_args_description">سطر الأوامر الوسائط المُمررة إلى Homebrew عند التشغيل (مثل -noglsl).</string>
+
     <!-- System settings strings -->
     <string name="device_name">اسم الجهاز</string>
     <string name="use_docked_mode">وضع الإرساء</string>

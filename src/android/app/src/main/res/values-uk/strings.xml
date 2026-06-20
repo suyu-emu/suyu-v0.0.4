@@ -424,6 +424,9 @@
     <string name="cpu_accuracy">Точність CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <string name="program_args">Параметри запуску Homebrew</string>
+    <string name="program_args_description">Параметри командного рядка, що передаються Homebrew при запуску (як-от noglsl).</string>
+
     <!-- System settings strings -->
     <string name="device_name">Назва пристрою</string>
     <string name="use_docked_mode">Режим док-станції</string>
