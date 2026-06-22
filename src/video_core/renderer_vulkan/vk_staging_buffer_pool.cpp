@@ -28,7 +28,7 @@ using namespace Common::Literals;
 // Maximum potential alignment of a Vulkan buffer
 constexpr VkDeviceSize MAX_ALIGNMENT = 256;
 // Stream buffer size in bytes
-constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 128_MiB;
+constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 256_MiB;
 
 size_t GetStreamBufferSize(const Device& device) {
     if (!device.HasDebuggingToolAttached()) {
@@ -46,13 +46,13 @@ size_t GetStreamBufferSize(const Device& device) {
         // If rebar is not supported, cut the max heap size to 40%. This will allow 2 captures to be
         // loaded at the same time in RenderDoc. If rebar is supported, this shouldn't be an issue
         // as the heap will be much larger.
-        if (size <= 256_MiB) {
+        if (size <= MAX_STREAM_BUFFER_SIZE) {
             size = size * 40 / 100;
         }
     } else {
         size = MAX_STREAM_BUFFER_SIZE;
     }
-    return (std::min)(Common::AlignUp(size, MAX_ALIGNMENT), MAX_STREAM_BUFFER_SIZE);
+    return Common::AlignUp(size, MAX_ALIGNMENT);
 }
 } // Anonymous namespace
 
