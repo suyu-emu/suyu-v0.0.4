@@ -27,6 +27,7 @@
 
 namespace Vulkan {
 
+constexpr u64 MAX_PENDING_FLUSHES = 5;
 
 void Scheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
                                          vk::CommandBuffer upload_cmdbuf) {
@@ -115,7 +116,18 @@ Scheduler::Scheduler(const Device& device_, StateTracker& state_tracker_)
 Scheduler::~Scheduler() = default;
 
 u64 Scheduler::Flush(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore) {
-    // When flushing, we only send data to the worker thread; no waiting is necessary.
+    // Prevent the CPU from getting too far ahead of the GPU by limiting pending flushes.
+    const bool should_throttle = Settings::IsGPULevelHigh();
+    if (should_throttle) {
+        const u64 current_tick = master_semaphore->CurrentTick();
+        const u64 gap = current_tick > last_submitted_tick ? current_tick - last_submitted_tick : 0;
+        const u64 step = (std::min)(MAX_PENDING_FLUSHES, gap);
+        const u64 new_tick = last_submitted_tick + step;
+        if (new_tick < current_tick) {
+            last_submitted_tick = new_tick;
+            master_semaphore->Wait(last_submitted_tick);
+        }
+    }
     const u64 signal_value = SubmitExecution(signal_semaphore, wait_semaphore);
     AllocateNewContext();
     return signal_value;
