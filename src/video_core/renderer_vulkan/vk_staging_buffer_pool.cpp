@@ -27,8 +27,17 @@ using namespace Common::Literals;
 
 // Maximum potential alignment of a Vulkan buffer
 constexpr VkDeviceSize MAX_ALIGNMENT = 256;
+
 // Stream buffer size in bytes
+// *NIX drivers are more sensitive to increased buffers for streaming.
+// Windows ones however, can intake bigger buffers and generally do not OOM.
+// - GTX 960 on Windows will not OOM with 256mib
+// - GT 1030 on ^NIX will OOM with 256mib
+#ifdef _WIN32
 constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 256_MiB;
+#else
+constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 128_MiB;
+#endif
 
 size_t GetStreamBufferSize(const Device& device) {
     if (!device.HasDebuggingToolAttached()) {
