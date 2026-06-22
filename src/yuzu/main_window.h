@@ -410,6 +410,7 @@ private slots:
     void SetGameListMode(Settings::GameListMode mode);
     void SetGridView();
     void SetTreeView();
+    void SetCarouselView();
 
     void CheckIconSize();
     void ToggleShowGameName();

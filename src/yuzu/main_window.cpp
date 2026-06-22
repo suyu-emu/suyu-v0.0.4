@@ -1529,6 +1529,7 @@ void MainWindow::ConnectMenuEvents() {
 
     connect_menu(ui->action_Grid_View, &MainWindow::SetGridView);
     connect_menu(ui->action_Tree_View, &MainWindow::SetTreeView);
+    connect_menu(ui->action_Carousel_View, &MainWindow::SetCarouselView);
 
     game_size_actions = new QActionGroup(this);
     game_size_actions->setExclusive(true);
@@ -3317,9 +3318,10 @@ void MainWindow::ResetWindowSize1080() {
 void MainWindow::SetGameListMode(Settings::GameListMode mode) {
     ui->action_Grid_View->setChecked(mode == Settings::GameListMode::GridView);
     ui->action_Tree_View->setChecked(mode == Settings::GameListMode::TreeView);
+    ui->action_Carousel_View->setChecked(mode == Settings::GameListMode::CarouselView);
 
     UISettings::values.game_list_mode = mode;
-    ui->action_Show_Game_Name->setEnabled(mode == Settings::GameListMode::GridView);
+    ui->action_Show_Game_Name->setEnabled(mode != Settings::GameListMode::TreeView);
 
     CheckIconSize();
     game_list->ResetViewMode();
@@ -3333,11 +3335,15 @@ void MainWindow::SetTreeView() {
     SetGameListMode(Settings::GameListMode::TreeView);
 }
 
+void MainWindow::SetCarouselView() {
+    SetGameListMode(Settings::GameListMode::CarouselView);
+}
+
 void MainWindow::CheckIconSize() {
-    // When in grid view mode, with text off
-    // there is no point in having icons turned off..
+    // When in grid/carousel view mode, with text off
+    // there is no point in having icons turned off
     auto actions = game_size_actions->actions();
-    if (UISettings::values.game_list_mode.GetValue() == Settings::GameListMode::GridView &&
+    if (UISettings::values.game_list_mode.GetValue() != Settings::GameListMode::TreeView &&
         !UISettings::values.show_game_name.GetValue()) {
         u32 newSize = UISettings::values.game_icon_size.GetValue();
         if (newSize == 0) {

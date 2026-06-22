@@ -1,23 +1,21 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <QScroller>
-#include <QScrollerProperties>
-
 #include "qt_common/config/uisettings.h"
 #include "qt_common/game_list/model.h"
 #include "yuzu/game/common.h"
 #include "yuzu/game/game_card.h"
-#include "yuzu/game/game_grid.h"
+#include "yuzu/game/carousel.h"
 
-GameGrid::GameGrid(QWidget* parent) : QListView{parent} {
+GameCarousel::GameCarousel(QWidget* parent) : QListView{parent} {
     m_gameCard = new GameCard(this);
     setItemDelegate(m_gameCard);
 
-    setViewMode(QListView::ListMode);
-    setResizeMode(QListView::Fixed);
+    setViewMode(QListView::IconMode);
+    setMovement(QListView::Static);
     setUniformItemSizes(true);
     setSelectionMode(QAbstractItemView::SingleSelection);
+
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
@@ -30,15 +28,15 @@ GameGrid::GameGrid(QWidget* parent) : QListView{parent} {
     setWordWrap(true);
     setTextElideMode(Qt::ElideRight);
     setFlow(QListView::LeftToRight);
-    setWrapping(true);
+    setWrapping(false);
 }
 
-void GameGrid::SetModel(GameListModel* model) {
+void GameCarousel::SetModel(GameListModel* model) {
     QListView::setModel(model);
     UpdateIconSize();
 }
 
-void GameGrid::ApplyFilter(const QString& edit_filter_text, GameListModel* model) {
+void GameCarousel::ApplyFilter(const QString& edit_filter_text, GameListModel* model) {
     int row_count = model->rowCount();
 
     for (int i = 0; i < row_count; ++i) {
@@ -54,12 +52,13 @@ void GameGrid::ApplyFilter(const QString& edit_filter_text, GameListModel* model
     }
 }
 
-void GameGrid::UpdateIconSize() {
+void GameCarousel::UpdateIconSize() {
     const u32 icon_size = UISettings::values.game_icon_size.GetValue();
 
     int heightMargin = 0;
     int widthMargin = 80;
 
+    // TODO(crueter): get rid of this nonsense
     if (UISettings::values.show_game_name) {
         switch (icon_size) {
         case 128:
@@ -82,26 +81,23 @@ void GameGrid::UpdateIconSize() {
         heightMargin = 24;
     }
 
-    const int view_width = viewport()->width();
-
-    const double spacing = 0.01;
     const int min_item_width = icon_size + widthMargin;
+    const int min_item_height = icon_size + heightMargin;
+    const int grid_height = std::max(min_item_height, viewport()->height());
 
-    int columns = std::max(1, (view_width - 16) / min_item_width);
-    int stretched_width = ((view_width) - (spacing * (columns - 1))) / columns;
-
-    QSize grid_size(stretched_width, icon_size + heightMargin);
+    QSize content_size(min_item_width, min_item_height);
+    QSize grid_size(min_item_width, grid_height);
     if (gridSize() != grid_size) {
         setUpdatesEnabled(false);
 
         setGridSize(grid_size);
-        m_gameCard->setSize(grid_size, grid_size, stretched_width - min_item_width, columns);
+        m_gameCard->setSize(grid_size, content_size, 0, 0);
 
         setUpdatesEnabled(true);
     }
 }
 
-QModelIndex GameGrid::indexAt(const QPoint& point) const {
+QModelIndex GameCarousel::indexAt(const QPoint& point) const {
     QModelIndex index = QListView::indexAt(point);
     if (!index.isValid())
         return {};

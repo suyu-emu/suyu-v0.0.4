@@ -165,6 +165,7 @@ public:
                 return QStringLiteral("%1\n    %2").arg(row1, row2);
             }
             case Settings::GameListMode::GridView:
+            case Settings::GameListMode::CarouselView:
                 return row1;
             default:
                 break;

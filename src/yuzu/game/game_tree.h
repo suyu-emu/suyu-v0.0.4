@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <QHeaderView>
-#include <QString>
 #include <QTreeView>
 
 class GameListModel;

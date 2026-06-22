@@ -20,6 +20,7 @@
 #include <QScrollerProperties>
 #include <QToolButton>
 #include <QVariantAnimation>
+#include <qlayoutitem.h>
 
 #include "common/common_types.h"
 #include "core/core.h"
@@ -31,6 +32,7 @@
 #include "qt_common/qt_common.h"
 #include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
+#include "yuzu/game/carousel.h"
 #include "yuzu/game/game_grid.h"
 #include "yuzu/game/game_list.h"
 #include "yuzu/game/game_tree.h"
@@ -67,6 +69,9 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     connect(grid_view, &QListView::activated, this, &GameList::ValidateEntry);
     connect(grid_view, &QListView::customContextMenuRequested, this, &GameList::PopupContextMenu);
 
+    connect(carousel_view, &QListView::activated, this, &GameList::ValidateEntry);
+    connect(carousel_view, &QListView::customContextMenuRequested, this, &GameList::PopupContextMenu);
+
     connect(controller_navigation, &ControllerNavigation::TriggerKeyboardEvent, this,
             [this](Qt::Key key) {
                 if (system.IsPoweredOn()) {
@@ -86,6 +91,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     connect(item_model, &GameListModel::SaveConfig, this, &GameList::SaveConfig);
     connect(item_model, &GameListModel::PopulatingStarted, this, &GameList::OnPopulate);
 
+    // TODO: impl on grid/carousel
     connect(tree_view, &GameTree::FilterResultReady, search_field,
             [this](int visible, int total) { search_field->setFilterResult(visible, total); });
 
@@ -101,12 +107,11 @@ GameList::~GameList() {
 void GameList::SetupViews() {
     tree_view = new GameTree(this);
     grid_view = new GameGrid(this);
+    carousel_view = new GameCarousel(this);
 
     tree_view->SetModel(item_model);
     grid_view->SetModel(item_model);
-
-    layout->addWidget(tree_view);
-    layout->addWidget(grid_view);
+    carousel_view->SetModel(item_model);
 }
 
 QString GameList::GetLastFilterResultItem() const {
@@ -138,10 +143,16 @@ void GameList::LoadCompatibilityList() {
 void GameList::OnPopulate() {
     m_currentView->setEnabled(false);
 
-    if (m_isTreeMode) {
-        grid_view->UpdateIconSize();
-    } else {
+    switch (game_list_mode) {
+    case Settings::GameListMode::TreeView:
         tree_view->UpdateColumnVisibility(item_model);
+        break;
+    case Settings::GameListMode::GridView:
+        grid_view->UpdateIconSize();
+        break;
+    case Settings::GameListMode::CarouselView:
+        carousel_view->UpdateIconSize();
+        break;
     }
 }
 
@@ -166,25 +177,45 @@ void GameList::UnloadController() {
 }
 
 void GameList::ResetViewMode() {
-    auto& setting = UISettings::values.game_list_mode;
+    const auto mode = UISettings::values.game_list_mode.GetValue();
+    game_list_mode = mode;
+
+    if (m_currentView)
+        layout->removeWidget(m_currentView);
+
     bool newTreeMode = false;
 
-    switch (setting.GetValue()) {
+    switch (mode) {
     case Settings::GameListMode::TreeView:
         m_currentView = tree_view;
         newTreeMode = true;
-        tree_view->setVisible(true);
-        grid_view->setVisible(false);
+
         break;
     case Settings::GameListMode::GridView:
         m_currentView = grid_view;
         newTreeMode = false;
-        grid_view->setVisible(true);
-        tree_view->setVisible(false);
+
+        break;
+    case Settings::GameListMode::CarouselView:
+        m_currentView = carousel_view;
+        newTreeMode = false;
+
         break;
     default:
         UNREACHABLE();
     }
+
+    tree_view->setVisible(false);
+    grid_view->setVisible(false);
+    carousel_view->setVisible(false);
+
+    tree_view->setEnabled(false);
+    grid_view->setEnabled(false);
+    carousel_view->setEnabled(false);
+
+    m_currentView->setVisible(true);
+    m_currentView->setEnabled(true);
+    layout->insertWidget(0, m_currentView);
 
     auto view = m_currentView->viewport();
     view->installEventFilter(this);
@@ -297,11 +328,13 @@ void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
     for (int i = 1; i < item_model->rowCount() - 1; ++i) {
         children_total += item_model->item(i, 0)->rowCount();
     }
+
     search_field->setFilterResult(children_total, children_total);
     if (children_total > 0) {
         search_field->setFocus();
     }
 
+    // TODO: carousel/grid impl.
     item_model->sort(tree_view->header()->sortIndicatorSection(),
                      tree_view->header()->sortIndicatorOrder());
 
@@ -317,8 +350,15 @@ void GameList::RefreshExternalContent() {
 }
 
 void GameList::UpdateIconSizes() {
-    if (!m_isTreeMode) {
+    switch (game_list_mode) {
+    case Settings::GameListMode::GridView:
         grid_view->UpdateIconSize();
+        break;
+    case Settings::GameListMode::CarouselView:
+        carousel_view->UpdateIconSize();
+        break;
+    case Settings::GameListMode::TreeView:
+        break;
     }
 }
 
@@ -709,6 +749,11 @@ bool GameList::eventFilter(QObject* obj, QEvent* event) {
 
     if (obj == grid_view->viewport() && event->type() == QEvent::Resize) {
         grid_view->UpdateIconSize();
+        return true;
+    }
+
+    if (obj == carousel_view->viewport() && event->type() == QEvent::Resize) {
+        carousel_view->UpdateIconSize();
         return true;
     }
 

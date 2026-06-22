@@ -17,11 +17,19 @@ public:
     void paint(QPainter* painter, const QStyleOptionViewItem& option,
                const QModelIndex& index) const override;
 
+    QRect getCardRect(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+    bool hitTest(const QPoint& point, const QModelIndex& index,
+                 const QWidget* widget, const QRect& cellRect) const;
+
     QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
-    void setSize(const QSize& newSize, const int padding, const int columns);
+    void setSize(const QSize& newSize, const QSize& contentSize, const int padding, const int columns);
 
 private:
+    static constexpr int cardMargin = 8;
+
     QSize m_size;
+    QSize m_contentSize;
     int m_padding;
     int m_columns;
 };

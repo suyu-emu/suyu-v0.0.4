@@ -8,12 +8,13 @@
 
 class GameCard;
 class GameListModel;
+class QResizeEvent;
 
-class GameGrid : public QListView {
+class GameCarousel : public QListView {
     Q_OBJECT
 
 public:
-    explicit GameGrid(QWidget* parent = nullptr);
+    explicit GameCarousel(QWidget* parent = nullptr);
 
     void SetModel(GameListModel* model);
     void ApplyFilter(const QString& edit_filter_text, GameListModel* model);
