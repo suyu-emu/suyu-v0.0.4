@@ -126,16 +126,14 @@ public:
         current_query = nullptr;
         amend_value = 0;
         accumulation_value = 0;
-        queries_prefix_scan_pass = std::make_unique<QueriesPrefixScanPass>(
-            device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+        queries_prefix_scan_pass.emplace(device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
 
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = 8,
-            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
@@ -592,8 +590,7 @@ private:
     VideoCommon::HostQueryBase* current_query;
     bool has_started{};
     std::mutex flush_guard;
-
-    std::unique_ptr<QueriesPrefixScanPass> queries_prefix_scan_pass;
+    std::optional<QueriesPrefixScanPass> queries_prefix_scan_pass;
 };
 
 // Transform feedback queries
@@ -1266,41 +1263,23 @@ private:
 } // namespace
 
 struct QueryCacheRuntimeImpl {
-    QueryCacheRuntimeImpl(QueryCacheRuntime& runtime, VideoCore::RasterizerInterface* rasterizer_,
-                          Tegra::MaxwellDeviceMemoryManager& device_memory_,
-                          Vulkan::BufferCache& buffer_cache_, const Device& device_,
-                          const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
-                          StagingBufferPool& staging_pool_,
-                          ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                          DescriptorPool& descriptor_pool, TextureCache& texture_cache_)
-        : rasterizer{rasterizer_}, device_memory{device_memory_}, buffer_cache{buffer_cache_},
-          device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_},
-          staging_pool{staging_pool_}, guest_streamer(0, runtime),
-          sample_streamer(static_cast<size_t>(QueryType::ZPassPixelCount64), runtime, rasterizer,
-                          texture_cache_, device, scheduler, memory_allocator,
-                          compute_pass_descriptor_queue, descriptor_pool),
-          tfb_streamer(static_cast<size_t>(QueryType::StreamingByteCount), runtime, device,
-                       scheduler, memory_allocator, staging_pool),
-          primitives_succeeded_streamer(
-              static_cast<size_t>(QueryType::StreamingPrimitivesSucceeded), runtime, tfb_streamer,
-              device_memory_),
-          primitives_needed_minus_succeeded_streamer(
-              static_cast<size_t>(QueryType::StreamingPrimitivesNeededMinusSucceeded), runtime, 0u),
-          hcr_setup{}, hcr_is_set{}, is_hcr_running{}, maxwell3d{} {
+    QueryCacheRuntimeImpl(QueryCacheRuntime& runtime, VideoCore::RasterizerInterface* rasterizer_, Tegra::MaxwellDeviceMemoryManager& device_memory_, Vulkan::BufferCache& buffer_cache_, const Device& device_, const MemoryAllocator& memory_allocator_, Scheduler& scheduler_, StagingBufferPool& staging_pool_, ComputePassDescriptorQueue& compute_pass_descriptor_queue, DescriptorPool& descriptor_pool, TextureCache& texture_cache_)
+        : rasterizer{rasterizer_}, device_memory{device_memory_}, buffer_cache{buffer_cache_}
+        , device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_}
+        , staging_pool{staging_pool_}, guest_streamer(0, runtime)
+        , sample_streamer(size_t(QueryType::ZPassPixelCount64), runtime, rasterizer, texture_cache_, device, scheduler, memory_allocator, compute_pass_descriptor_queue, descriptor_pool)
+        , tfb_streamer(size_t(QueryType::StreamingByteCount), runtime, device, scheduler, memory_allocator, staging_pool)
+        , primitives_succeeded_streamer(size_t(QueryType::StreamingPrimitivesSucceeded), runtime, tfb_streamer, device_memory_)
+        , primitives_needed_minus_succeeded_streamer(size_t(QueryType::StreamingPrimitivesNeededMinusSucceeded), runtime, 0u)
+        , hcr_setup{}, hcr_is_set{}, is_hcr_running{}, maxwell3d{} {
 
         hcr_setup.sType = VK_STRUCTURE_TYPE_CONDITIONAL_RENDERING_BEGIN_INFO_EXT;
         hcr_setup.pNext = nullptr;
         hcr_setup.flags = 0;
 
-        const bool has_conditional_rendering = device.IsExtConditionalRendering();
-        if (has_conditional_rendering) {
-            conditional_resolve_pass = std::make_unique<ConditionalRenderingResolvePass>(
-                device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
-        }
-
-        VkBufferUsageFlags hcr_buffer_usage =
-            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-        if (has_conditional_rendering) {
+        VkBufferUsageFlags hcr_buffer_usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        if (device.IsExtConditionalRendering()) {
+            conditional_resolve_pass.emplace(device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
             hcr_buffer_usage |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
         }
 
@@ -1339,7 +1318,7 @@ struct QueryCacheRuntimeImpl {
     std::vector<std::vector<VkBufferCopy>> copies_setup;
 
     // Host conditional rendering data
-    std::unique_ptr<ConditionalRenderingResolvePass> conditional_resolve_pass;
+    std::optional<ConditionalRenderingResolvePass> conditional_resolve_pass;
     vk::Buffer hcr_resolve_buffer;
     VkConditionalRenderingBeginInfoEXT hcr_setup;
     VkBuffer hcr_buffer;
@@ -1351,13 +1330,7 @@ struct QueryCacheRuntimeImpl {
     Maxwell3D* maxwell3d;
 };
 
-QueryCacheRuntime::QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer,
-                                     Tegra::MaxwellDeviceMemoryManager& device_memory_,
-                                     Vulkan::BufferCache& buffer_cache_, const Device& device_,
-                                     const MemoryAllocator& memory_allocator_,
-                                     Scheduler& scheduler_, StagingBufferPool& staging_pool_,
-                                     ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                                     DescriptorPool& descriptor_pool, TextureCache& texture_cache_) {
+QueryCacheRuntime::QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer, Tegra::MaxwellDeviceMemoryManager& device_memory_, Vulkan::BufferCache& buffer_cache_, const Device& device_, const MemoryAllocator& memory_allocator_, Scheduler& scheduler_, StagingBufferPool& staging_pool_, ComputePassDescriptorQueue& compute_pass_descriptor_queue, DescriptorPool& descriptor_pool, TextureCache& texture_cache_) {
     impl = std::make_unique<QueryCacheRuntimeImpl>(
         *this, rasterizer, device_memory_, buffer_cache_, device_, memory_allocator_, scheduler_,
         staging_pool_, compute_pass_descriptor_queue, descriptor_pool, texture_cache_);
@@ -1686,8 +1659,7 @@ void QueryCacheRuntime::SyncValues(std::span<SyncValuesType> values, VkBuffer ba
     }
 
     impl->scheduler.RequestOutsideRenderPassOperationContext();
-    impl->scheduler.Record([src_buffer, dst_buffers = std::move(impl->buffers_to_upload_to),
-                            vk_copies = std::move(impl->copies_setup)](vk::CommandBuffer cmdbuf) {
+    impl->scheduler.Record([src_buffer, dst_buffers = std::move(impl->buffers_to_upload_to), vk_copies = std::move(impl->copies_setup)](vk::CommandBuffer cmdbuf) {
         size_t size = dst_buffers.size();
         for (size_t i = 0; i < size; i++) {
             cmdbuf.CopyBuffer(src_buffer, dst_buffers[i].first, vk_copies[i]);

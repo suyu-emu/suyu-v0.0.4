@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,7 +23,7 @@ ILockAccessor::ILockAccessor(Core::System& system_)
 
     RegisterHandlers(functions);
 
-    m_event.Signal();
+    m_event.Signal(system.Kernel());
 }
 
 ILockAccessor::~ILockAccessor() = default;
@@ -55,7 +58,7 @@ Result ILockAccessor::Unlock() {
         m_is_locked = false;
     }
 
-    m_event.Signal();
+    m_event.Signal(system.Kernel());
     R_SUCCEED();
 }
 

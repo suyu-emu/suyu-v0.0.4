@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -39,7 +39,7 @@ IAudioRenderer::IAudioRenderer(Core::System& system_, Manager& manager_,
     // clang-format on
     RegisterHandlers(functions);
 
-    process_handle->Open();
+    process_handle->Open(system_.Kernel());
     impl->Initialize(params, transfer_memory, transfer_memory_size, process_handle,
                      applet_resource_user_id, session_id);
 }
@@ -47,7 +47,7 @@ IAudioRenderer::IAudioRenderer(Core::System& system_, Manager& manager_,
 IAudioRenderer::~IAudioRenderer() {
     impl->Finalize();
     service_context.CloseEvent(rendered_event);
-    process_handle->Close();
+    process_handle->Close(system.Kernel());
 }
 
 Result IAudioRenderer::GetSampleRate(Out<u32> out_sample_rate) {

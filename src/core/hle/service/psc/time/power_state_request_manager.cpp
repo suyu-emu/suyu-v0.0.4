@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -35,7 +35,7 @@ void PowerStateRequestManager::SignalPowerStateRequestAvailability() {
         }
         m_has_pending_request = false;
         m_available_request_priority = m_pending_request_priority;
-        m_event->Signal();
+        m_event->Signal(m_system.Kernel());
     }
 }
 
@@ -45,7 +45,7 @@ bool PowerStateRequestManager::GetAndClearPowerStateRequest(u32& out_priority) {
     if (m_has_available_request) {
         out_priority = m_available_request_priority;
         m_has_available_request = false;
-        m_event->Clear();
+        m_event->Clear(m_system.Kernel());
     }
     return had_request;
 }

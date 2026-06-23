@@ -57,7 +57,7 @@ struct NrrInfo {
 struct ProcessContext {
     constexpr ProcessContext() = default;
 
-    void Initialize(Kernel::KProcess* process, u64 process_id) {
+    void Initialize(Kernel::KernelCore& kernel, Kernel::KProcess* process, u64 process_id) {
         ASSERT(!m_in_use);
 
         m_nro_in_use = {};
@@ -70,15 +70,15 @@ struct ProcessContext {
         m_in_use = true;
 
         if (m_process) {
-            m_process->Open();
+            m_process->Open(kernel);
         }
     }
 
-    void Finalize() {
+    void Finalize(Kernel::KernelCore& kernel) {
         ASSERT(m_in_use);
 
         if (m_process) {
-            m_process->Close();
+            m_process->Close(kernel);
         }
 
         m_nro_in_use = {};
@@ -307,7 +307,7 @@ class RoContext {
 public:
     explicit RoContext() = default;
 
-    Result RegisterProcess(size_t* out_context_id, Kernel::KProcess* process, u64 process_id) {
+    Result RegisterProcess(Kernel::KernelCore& kernel, size_t* out_context_id, Kernel::KProcess* process, u64 process_id) {
         // Validate process id.
         R_UNLESS(process->GetProcessId() == process_id, RO::ResultInvalidProcess);
 
@@ -315,7 +315,7 @@ public:
         R_UNLESS(this->GetContextByProcessId(process_id) == nullptr, RO::ResultInvalidSession);
 
         // Allocate a context to manage the process handle.
-        *out_context_id = this->AllocateContext(process, process_id);
+        *out_context_id = this->AllocateContext(kernel, process, process_id);
 
         R_SUCCEED();
     }
@@ -327,8 +327,8 @@ public:
         R_SUCCEED();
     }
 
-    void UnregisterProcess(size_t context_id) {
-        this->FreeContext(context_id);
+    void UnregisterProcess(Kernel::KernelCore& kernel, size_t context_id) {
+        this->FreeContext(kernel, context_id);
     }
 
     Result RegisterModuleInfo(size_t context_id, u64 nrr_address, u64 nrr_size, NrrKind nrr_kind,
@@ -481,13 +481,13 @@ private:
         return nullptr;
     }
 
-    size_t AllocateContext(Kernel::KProcess* process, u64 process_id) {
+    size_t AllocateContext(Kernel::KernelCore& kernel, Kernel::KProcess* process, u64 process_id) {
         // Find a free process context.
         for (size_t i = 0; i < MaxSessions; i++) {
             ProcessContext* context = std::addressof(process_contexts[i]);
 
             if (context->IsFree()) {
-                context->Initialize(process, process_id);
+                context->Initialize(kernel, process, process_id);
                 return i;
             }
         }
@@ -496,9 +496,9 @@ private:
         UNREACHABLE();
     }
 
-    void FreeContext(size_t context_id) {
+    void FreeContext(Kernel::KernelCore& kernel, size_t context_id) {
         if (ProcessContext* context = GetContextById(context_id); context != nullptr) {
-            context->Finalize();
+            context->Finalize(kernel);
         }
     }
 };
@@ -525,7 +525,7 @@ public:
     }
 
     ~RoInterface() {
-        m_ro->UnregisterProcess(m_context_id);
+        m_ro->UnregisterProcess(system.Kernel(), m_context_id);
     }
 
     Result MapManualLoadModuleMemory(Out<u64> out_load_address, ClientProcessId client_pid,
@@ -551,20 +551,16 @@ public:
         R_RETURN(m_ro->UnregisterModuleInfo(m_context_id, nrr_address));
     }
 
-    Result RegisterProcessHandle(ClientProcessId client_pid,
-                                 InCopyHandle<Kernel::KProcess> process) {
+    Result RegisterProcessHandle(ClientProcessId client_pid, InCopyHandle<Kernel::KProcess> process) {
         // Register the process.
-        R_RETURN(m_ro->RegisterProcess(std::addressof(m_context_id), process.Get(), *client_pid));
+        R_RETURN(m_ro->RegisterProcess(system.Kernel(), std::addressof(m_context_id), process.Get(), *client_pid));
     }
 
-    Result RegisterProcessModuleInfo(ClientProcessId client_pid, u64 nrr_address, u64 nrr_size,
-                                     InCopyHandle<Kernel::KProcess> process) {
+    Result RegisterProcessModuleInfo(ClientProcessId client_pid, u64 nrr_address, u64 nrr_size, InCopyHandle<Kernel::KProcess> process) {
         // Validate the process.
         R_TRY(m_ro->ValidateProcess(m_context_id, *client_pid));
-
         // Register the module.
-        R_RETURN(m_ro->RegisterModuleInfo(m_context_id, nrr_address, nrr_size, m_nrr_kind,
-                                          m_nrr_kind == NrrKind::JitPlugin));
+        R_RETURN(m_ro->RegisterModuleInfo(m_context_id, nrr_address, nrr_size, m_nrr_kind, m_nrr_kind == NrrKind::JitPlugin));
     }
 
 private:

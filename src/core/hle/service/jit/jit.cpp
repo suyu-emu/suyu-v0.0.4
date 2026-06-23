@@ -30,12 +30,13 @@ static_assert(sizeof(Struct32) == 32, "Struct32 has wrong size");
 
 class IJitEnvironment final : public ServiceFramework<IJitEnvironment> {
 public:
-    explicit IJitEnvironment(Core::System& system_,
-                             Kernel::KScopedAutoObject<Kernel::KProcess> process_,
-                             CodeMemory&& user_rx_, CodeMemory&& user_ro_)
-        : ServiceFramework{system_, "IJitEnvironment"}, process{std::move(process_)},
-          user_rx{std::move(user_rx_)}, user_ro{std::move(user_ro_)},
-          context{system_.ApplicationMemory()} {
+    explicit IJitEnvironment(Core::System& system_, Kernel::KProcess* process_, CodeMemory&& user_rx_, CodeMemory&& user_ro_)
+        : ServiceFramework{system_, "IJitEnvironment"}
+        , process{kernel, process_}
+        , user_rx{std::move(user_rx_)}
+        , user_ro{std::move(user_ro_)}
+        , context{system_.ApplicationMemory()}
+    {
 
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -56,6 +57,11 @@ public:
 
         configuration.sys_rx_memory = configuration.user_rx_memory;
         configuration.sys_ro_memory = configuration.user_ro_memory;
+    }
+
+    ~IJitEnvironment() {
+        user_rx.Finalize(system.Kernel());
+        user_ro.Finalize(system.Kernel());
     }
 
     Result GenerateCode(Out<s32> out_return_value, Out<CodeRange> out_range0,
@@ -281,14 +287,9 @@ private:
         }
 
         CodeMemory rx, ro;
-
-        R_TRY(rx.Initialize(*process, *rx_mem, rx_size, Kernel::Svc::MemoryPermission::ReadExecute,
-                            generate_random));
-        R_TRY(ro.Initialize(*process, *ro_mem, ro_size, Kernel::Svc::MemoryPermission::Read,
-                            generate_random));
-
-        *out_jit_environment =
-            std::make_shared<IJitEnvironment>(system, process.Get(), std::move(rx), std::move(ro));
+        R_TRY(rx.Initialize(system.Kernel(), *process, *rx_mem, rx_size, Kernel::Svc::MemoryPermission::ReadExecute, generate_random));
+        R_TRY(ro.Initialize(system.Kernel(), *process, *ro_mem, ro_size, Kernel::Svc::MemoryPermission::Read, generate_random));
+        *out_jit_environment = std::make_shared<IJitEnvironment>(system, process.Get(), std::move(rx), std::move(ro));
         R_SUCCEED();
     }
 

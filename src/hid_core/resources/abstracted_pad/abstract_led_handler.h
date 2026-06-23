@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -7,6 +10,10 @@
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
 
+namespace Kernel {
+class KernelCore;
+}
+
 namespace Service::HID {
 struct AppletResourceHolder;
 class NpadAbstractedPadHolder;
@@ -15,7 +22,7 @@ class NpadAbstractPropertiesHandler;
 /// Handles Npad request from HID interfaces
 class NpadAbstractLedHandler final {
 public:
-    explicit NpadAbstractLedHandler();
+    explicit NpadAbstractLedHandler(Kernel::KernelCore& kernel_);
     ~NpadAbstractLedHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -39,5 +46,6 @@ private:
     Core::HID::LedPattern left_pattern{0, 0, 0, 0};
     Core::HID::LedPattern right_pattern{0, 0, 0, 0};
     u64 led_interval{};
+    Kernel::KernelCore& kernel;
 };
 } // namespace Service::HID

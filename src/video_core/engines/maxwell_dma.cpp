@@ -21,8 +21,9 @@ namespace Tegra::Engines {
 
 using namespace Texture;
 
-MaxwellDMA::MaxwellDMA(Core::System& system_, MemoryManager& memory_manager_)
-    : system{system_}, memory_manager{memory_manager_} {
+MaxwellDMA::MaxwellDMA(MemoryManager& memory_manager_)
+    : memory_manager{memory_manager_}
+{
     execution_mask.reset();
     execution_mask[offsetof(Regs, launch_dma) / sizeof(u32)] = true;
 }
@@ -33,14 +34,14 @@ void MaxwellDMA::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
     rasterizer = rasterizer_;
 }
 
-void MaxwellDMA::ConsumeSinkImpl() {
+void MaxwellDMA::ConsumeSinkImpl(Core::System& system) {
     for (auto [method, value] : method_sink) {
         regs.reg_array[method] = value;
     }
     method_sink.clear();
 }
 
-void MaxwellDMA::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
+void MaxwellDMA::CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) {
     ASSERT_MSG(method < NUM_REGS, "Invalid MaxwellDMA register");
 
     regs.reg_array[method] = method_argument;
@@ -50,16 +51,14 @@ void MaxwellDMA::CallMethod(u32 method, u32 method_argument, bool is_last_call) 
     }
 }
 
-void MaxwellDMA::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
-                                 u32 methods_pending) {
+void MaxwellDMA::CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) {
     for (u32 i = 0; i < amount; ++i) {
-        CallMethod(method, base_start[i], methods_pending - i <= 1);
+        CallMethod(system, method, base_start[i], methods_pending - i <= 1);
     }
 }
 
 void MaxwellDMA::Launch() {
-    LOG_TRACE(Render_OpenGL, "DMA copy 0x{:x} -> 0x{:x}", static_cast<GPUVAddr>(regs.offset_in),
-              static_cast<GPUVAddr>(regs.offset_out));
+    LOG_TRACE(Render_OpenGL, "DMA copy 0x{:x} -> 0x{:x}", static_cast<GPUVAddr>(regs.offset_in), GPUVAddr(regs.offset_out));
 
     // TODO(Subv): Perform more research and implement all features of this engine.
     const LaunchDMA& launch = regs.launch_dma;

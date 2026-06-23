@@ -502,9 +502,9 @@ BlitImageHelper::BlitImageHelper(const Device& device_, Scheduler& scheduler_,
       two_textures_set_layout(device.GetLogical().CreateDescriptorSetLayout(
           TWO_TEXTURES_DESCRIPTOR_SET_LAYOUT_CREATE_INFO)),
       one_texture_descriptor_allocator{
-          descriptor_pool.Allocator(*one_texture_set_layout, TEXTURE_DESCRIPTOR_BANK_INFO<1>)},
+          descriptor_pool.Allocator(device_, scheduler_, *one_texture_set_layout, TEXTURE_DESCRIPTOR_BANK_INFO<1>)},
       two_textures_descriptor_allocator{
-          descriptor_pool.Allocator(*two_textures_set_layout, TEXTURE_DESCRIPTOR_BANK_INFO<2>)},
+          descriptor_pool.Allocator(device_, scheduler_, *two_textures_set_layout, TEXTURE_DESCRIPTOR_BANK_INFO<2>)},
       one_texture_pipeline_layout(device.GetLogical().CreatePipelineLayout(PipelineLayoutCreateInfo(
           one_texture_set_layout.address(),
           PUSH_CONSTANT_RANGE<VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstants)>))),

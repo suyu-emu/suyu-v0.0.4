@@ -494,7 +494,7 @@ void TouchResource::ReadTouchInput() {
             has_moved |= (delta_x > 1 || delta_y > 1);
         }
         if (has_moved) {
-            input_event->Signal();
+            input_event->Signal(system.Kernel());
         }
     }
 }

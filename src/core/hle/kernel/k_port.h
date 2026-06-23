@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -23,11 +26,11 @@ public:
     explicit KPort(KernelCore& kernel);
     ~KPort() override;
 
-    static void PostDestroy(uintptr_t arg) {}
+    static void PostDestroy(KernelCore& kernel, uintptr_t arg) {}
 
-    void Initialize(s32 max_sessions, bool is_light, uintptr_t name);
-    void OnClientClosed();
-    void OnServerClosed();
+    void Initialize(KernelCore& kernel, s32 max_sessions, bool is_light, uintptr_t name);
+    void OnClientClosed(KernelCore& kernel);
+    void OnServerClosed(KernelCore& kernel);
 
     uintptr_t GetName() const {
         return m_name;
@@ -36,10 +39,10 @@ public:
         return m_is_light;
     }
 
-    bool IsServerClosed() const;
+    bool IsServerClosed(KernelCore& kernel) const;
 
-    Result EnqueueSession(KServerSession* session);
-    Result EnqueueSession(KLightServerSession* session);
+    Result EnqueueSession(KernelCore& kernel, KServerSession* session);
+    Result EnqueueSession(KernelCore& kernel, KLightServerSession* session);
 
     KClientPort& GetClientPort() {
         return m_client;

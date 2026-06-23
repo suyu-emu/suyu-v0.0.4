@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <memory>
+#include <optional>
 
 namespace Core {
 class System;
@@ -20,8 +24,6 @@ class GPU;
 namespace VideoCore {
 
 class RendererBase;
-
-/// Creates an emulated GPU instance using the given system context.
-std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Core::System& system);
+void CreateGPU(std::optional<Tegra::GPU>& gpu, Core::Frontend::EmuWindow& emu_window, Core::System& system);
 
 } // namespace VideoCore

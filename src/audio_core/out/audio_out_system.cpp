@@ -121,7 +121,7 @@ Result System::Stop() {
         session->SetVolume(0.0f);
         session->ClearBuffers();
         if (buffers.ReleaseBuffers(system.CoreTiming(), *session, true)) {
-            buffer_event->Signal();
+            buffer_event->Signal(system.Kernel());
         }
         state = State::Stopped;
     }
@@ -162,7 +162,7 @@ void System::ReleaseBuffers() {
     bool signal{buffers.ReleaseBuffers(system.CoreTiming(), *session, false)};
     if (signal) {
         // Signal if any buffer was released, or if none are registered, we need more.
-        buffer_event->Signal();
+        buffer_event->Signal(system.Kernel());
     }
 }
 
@@ -179,7 +179,7 @@ bool System::FlushAudioOutBuffers() {
     buffers.FlushBuffers(buffers_released);
 
     if (buffers_released > 0) {
-        buffer_event->Signal();
+        buffer_event->Signal(system.Kernel());
     }
     return true;
 }

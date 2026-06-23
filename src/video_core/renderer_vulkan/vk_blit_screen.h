@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -52,23 +55,22 @@ public:
                         Scheduler& scheduler, const PresentFilters& filters);
     ~BlitScreen();
 
-    void DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
+    void DrawToFrame(const Device& device, RasterizerVulkan& rasterizer, Frame* frame,
                      std::span<const Tegra::FramebufferConfig> framebuffers,
                      const Layout::FramebufferLayout& layout, size_t current_swapchain_image_count,
                      VkFormat current_swapchain_view_format);
 
-    [[nodiscard]] vk::Framebuffer CreateFramebuffer(const Layout::FramebufferLayout& layout,
+    [[nodiscard]] vk::Framebuffer CreateFramebuffer(const Device& device, const Layout::FramebufferLayout& layout,
                                                     VkImageView image_view,
                                                     VkFormat current_view_format);
 
 private:
-    void WaitIdle();
-    void SetWindowAdaptPass();
-    vk::Framebuffer CreateFramebuffer(const VkImageView& image_view, VkExtent2D extent,
+    void WaitIdle(const Device& device);
+    void SetWindowAdaptPass(const Device& device);
+    vk::Framebuffer CreateFramebuffer(const Device& device, const VkImageView& image_view, VkExtent2D extent,
                                       VkRenderPass render_pass);
 
     Tegra::MaxwellDeviceMemoryManager& device_memory;
-    const Device& device;
     MemoryAllocator& memory_allocator;
     PresentManager& present_manager;
     Scheduler& scheduler;

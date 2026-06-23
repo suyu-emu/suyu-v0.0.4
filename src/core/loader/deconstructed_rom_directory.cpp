@@ -235,7 +235,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         ? ::Settings::values.rng_seed.GetValue() : Common::Random::Random64(0)) << 12) & 0xfff000;
 
     // Setup the process code layout
-    if (process.LoadFromMetadata(metadata, code_size, fastmem_base, aslr_offset).IsError()) {
+    if (process.LoadFromMetadata(system.Kernel(), metadata, code_size, fastmem_base, aslr_offset).IsError()) {
         return {ResultStatus::ErrorUnableToParseKernelMetadata, {}};
     }
 

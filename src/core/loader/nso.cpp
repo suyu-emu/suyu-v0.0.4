@@ -217,7 +217,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
     }
 
     // Load codeset for current process
-    process.LoadModule(std::move(codeset), load_base);
+    process.LoadModule(system.Kernel(), std::move(codeset), load_base);
     return load_base + image_size;
 }
 

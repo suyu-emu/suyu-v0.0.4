@@ -438,7 +438,6 @@ public:
     /// Applies any changes to settings to this core instance.
     void ApplySettings();
 
-private:
     struct Impl;
     std::unique_ptr<Impl> impl;
 };

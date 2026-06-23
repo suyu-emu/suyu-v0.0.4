@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,10 +18,7 @@ class System;
 
 namespace AudioCore {
 
-class AudioManager;
-/**
- * Main audio class, stored inside the core, and holding the audio manager, all sinks, and the ADSP.
- */
+/// @brief Main audio class, stored inside the core, and holding the audio manager, all sinks, and the ADSP.
 class AudioCore {
 public:
     explicit AudioCore(Core::System& system);
@@ -50,27 +50,22 @@ public:
      */
     Sink::Sink& GetInputSink();
 
-    /**
-     * Get the ADSP.
-     *
-     * @return Ref to the ADSP.
-     */
+    /// @brief Get the ADSP.
+    /// @return Ref to the ADSP.
     ADSP::ADSP& ADSP();
 
 private:
-    /**
-     * Create the sinks on startup.
-     */
+    /// @brief Create the sinks on startup.
     void CreateSinks();
 
     /// Main audio manager for audio in/out
-    std::unique_ptr<AudioManager> audio_manager;
+    std::optional<AudioManager> audio_manager;
     /// Sink used for audio renderer and audio out
     std::unique_ptr<Sink::Sink> output_sink;
     /// Sink used for audio input
     std::unique_ptr<Sink::Sink> input_sink;
     /// The ADSP in the sysmodule
-    std::unique_ptr<ADSP::ADSP> adsp;
+    std::optional<ADSP::ADSP> adsp;
 };
 
 } // namespace AudioCore

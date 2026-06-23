@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -281,7 +284,7 @@ void KPageBufferSlabHeap::Initialize(Core::System& system) {
 
     // Reserve memory from the system resource limit.
     ASSERT(
-        kernel.GetSystemResourceLimit()->Reserve(LimitableResource::PhysicalMemoryMax, slab_size));
+        kernel.GetSystemResourceLimit()->Reserve(kernel, LimitableResource::PhysicalMemoryMax, slab_size));
 
     // Allocate memory for the slab.
     constexpr auto AllocateOption = KMemoryManager::EncodeOption(

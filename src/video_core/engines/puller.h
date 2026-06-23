@@ -70,32 +70,13 @@ public:
         BitField<8, 24, u32> syncpoint_id;
     };
 
-    explicit Puller(GPU& gpu_, MemoryManager& memory_manager_, DmaPusher& dma_pusher,
-                    Control::ChannelState& channel_state);
-    ~Puller();
-
-    void CallMethod(const MethodCall& method_call);
-
-    void CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
-                         u32 methods_pending);
-
-    void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
-
-    void CallPullerMethod(const MethodCall& method_call);
-
-    void CallEngineMethod(const MethodCall& method_call);
-
-    void CallEngineMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
-                               u32 methods_pending);
-
+    void CallMethod(DmaPusher& dma_pusher, const MethodCall& method_call);
+    void CallMultiMethod(DmaPusher& dma_pusher, u32 method, u32 subchannel, const u32* base_start, u32 amount, u32 methods_pending);
+    void BindRasterizer(DmaPusher& dma_pusher, VideoCore::RasterizerInterface* rasterizer);
+    void CallPullerMethod(DmaPusher& dma_pusher, const MethodCall& method_call);
+    void CallEngineMethod(DmaPusher& dma_pusher, const MethodCall& method_call);
+    void CallEngineMultiMethod(DmaPusher& dma_pusher, u32 method, u32 subchannel, const u32* base_start, u32 amount, u32 methods_pending);
 private:
-    Tegra::GPU& gpu;
-
-    MemoryManager& memory_manager;
-    DmaPusher& dma_pusher;
-    Control::ChannelState& channel_state;
-    VideoCore::RasterizerInterface* rasterizer = nullptr;
-
     static constexpr std::size_t NUM_REGS = 0x800;
     struct Regs {
         static constexpr size_t NUM_REGS = 0x40;
@@ -139,12 +120,12 @@ private:
         };
     } regs{};
 
-    void ProcessBindMethod(const MethodCall& method_call);
-    void ProcessFenceActionMethod();
-    void ProcessSemaphoreAcquire();
-    void ProcessSemaphoreRelease();
-    void ProcessSemaphoreTriggerMethod();
-    [[nodiscard]] bool ExecuteMethodOnEngine(u32 method);
+    void ProcessBindMethod(DmaPusher& dma_pusher, const MethodCall& method_call);
+    void ProcessFenceActionMethod(DmaPusher& dma_pusher);
+    void ProcessSemaphoreAcquire(DmaPusher& dma_pusher);
+    void ProcessSemaphoreRelease(DmaPusher& dma_pusher);
+    void ProcessSemaphoreTriggerMethod(DmaPusher& dma_pusher);
+    [[nodiscard]] bool ExecuteMethodOnEngine(DmaPusher& dma_pusher, u32 method);
 
     /// Mapping of command subchannels to their bound engine ids
     std::array<EngineID, 8> bound_engines{};
@@ -157,8 +138,7 @@ private:
     };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
-    static_assert(offsetof(Regs, field_name) == position * 4,                                      \
-                  "Field " #field_name " has invalid position")
+    static_assert(offsetof(Regs, field_name) == position * 4, "Field " #field_name " has invalid position")
 
     ASSERT_REG_POSITION(semaphore_address, 0x4);
     ASSERT_REG_POSITION(semaphore_sequence, 0x6);

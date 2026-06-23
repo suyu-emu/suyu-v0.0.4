@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
-
+#include <variant>
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
@@ -12,20 +15,15 @@ namespace Vulkan {
 class Device;
 class Scheduler;
 
-struct DescriptorUpdateEntry {
-    struct Empty {};
-
+union DescriptorUpdateEntry {
     DescriptorUpdateEntry() = default;
     DescriptorUpdateEntry(VkDescriptorImageInfo image_) : image{image_} {}
     DescriptorUpdateEntry(VkDescriptorBufferInfo buffer_) : buffer{buffer_} {}
     DescriptorUpdateEntry(VkBufferView texel_buffer_) : texel_buffer{texel_buffer_} {}
-
-    union {
-        Empty empty{};
-        VkDescriptorImageInfo image;
-        VkDescriptorBufferInfo buffer;
-        VkBufferView texel_buffer;
-    };
+    std::monostate empty{};
+    VkDescriptorImageInfo image;
+    VkDescriptorBufferInfo buffer;
+    VkBufferView texel_buffer;
 };
 
 class UpdateDescriptorQueue final {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,14 +11,14 @@ namespace Kernel {
 KObjectNameGlobalData::KObjectNameGlobalData(KernelCore& kernel) : m_object_list_lock{kernel} {}
 KObjectNameGlobalData::~KObjectNameGlobalData() = default;
 
-void KObjectName::Initialize(KAutoObject* obj, const char* name) {
+void KObjectName::Initialize(KernelCore& kernel, KAutoObject* obj, const char* name) {
     // Set member variables.
     m_object = obj;
     std::strncpy(m_name.data(), name, sizeof(m_name) - 1);
     m_name[sizeof(m_name) - 1] = '\x00';
 
     // Open a reference to the object we hold.
-    m_object->Open();
+    m_object->Open(kernel);
 }
 
 bool KObjectName::MatchesName(const char* name) const {
@@ -28,7 +31,7 @@ Result KObjectName::NewFromName(KernelCore& kernel, KAutoObject* obj, const char
     R_UNLESS(new_name != nullptr, ResultOutOfResource);
 
     // Initialize the new name.
-    new_name->Initialize(obj, name);
+    new_name->Initialize(kernel, obj, name);
 
     // Check if there's an existing name.
     {
@@ -47,7 +50,7 @@ Result KObjectName::NewFromName(KernelCore& kernel, KAutoObject* obj, const char
     }
 
     // The object already exists, which is an error condition. Perform cleanup.
-    obj->Close();
+    obj->Close(kernel);
     KObjectName::Free(kernel, new_name);
     R_THROW(ResultInvalidState);
 }
@@ -63,7 +66,7 @@ Result KObjectName::Delete(KernelCore& kernel, KAutoObject* obj, const char* com
     for (auto& name : gd.GetObjectList()) {
         if (name.MatchesName(compare_name) && obj == name.GetObject()) {
             // We found a match, clean up its resources.
-            obj->Close();
+            obj->Close(kernel);
             gd.GetObjectList().erase(gd.GetObjectList().iterator_to(name));
             KObjectName::Free(kernel, std::addressof(name));
             R_SUCCEED();
@@ -89,14 +92,12 @@ KScopedAutoObject<KAutoObject> KObjectName::FindImpl(KernelCore& kernel, const c
     KObjectNameGlobalData& gd{kernel.ObjectNameGlobalData()};
 
     // Try to find a matching object in the global list.
-    for (const auto& name : gd.GetObjectList()) {
-        if (name.MatchesName(compare_name)) {
-            return name.GetObject();
-        }
-    }
+    for (const auto& name : gd.GetObjectList())
+        if (name.MatchesName(compare_name))
+            return {kernel, name.GetObject()};
 
     // There's no matching entry in the list.
-    return nullptr;
+    return {kernel, nullptr};
 }
 
 } // namespace Kernel

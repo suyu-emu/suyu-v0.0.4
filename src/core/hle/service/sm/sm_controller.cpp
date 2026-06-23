@@ -37,8 +37,7 @@ void Controller::CloneCurrentObject(HLERequestContext& ctx) {
     // once this is a proper process
 
     // Reserve a new session from the process resource limit.
-    Kernel::KScopedResourceReservation session_reservation(
-        Kernel::GetCurrentProcessPointer(kernel), Kernel::LimitableResource::SessionCountMax);
+    Kernel::KScopedResourceReservation session_reservation(system.Kernel(), Kernel::GetCurrentProcessPointer(kernel), Kernel::LimitableResource::SessionCountMax);
     ASSERT(session_reservation.Succeeded());
 
     // Create the session.
@@ -46,7 +45,7 @@ void Controller::CloneCurrentObject(HLERequestContext& ctx) {
     ASSERT(session != nullptr);
 
     // Initialize the session.
-    session->Initialize(nullptr, 0);
+    session->Initialize(kernel, nullptr, 0);
 
     // Commit the session reservation.
     session_reservation.Commit();

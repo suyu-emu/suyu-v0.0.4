@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -48,7 +48,7 @@ Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u
 
     // Get the process from its handle.
     KScopedAutoObject process =
-        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(process_handle);
+        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(system.Kernel(), process_handle);
     R_UNLESS(process.IsNotNull(), ResultInvalidHandle);
 
     // Validate that the address is in range.
@@ -76,7 +76,7 @@ Result MapProcessMemory(Core::System& system, u64 dst_address, Handle process_ha
     // Get the processes.
     KProcess* dst_process = GetCurrentProcessPointer(system.Kernel());
     KScopedAutoObject src_process =
-        dst_process->GetHandleTable().GetObjectWithoutPseudoHandle<KProcess>(process_handle);
+        dst_process->GetHandleTable().GetObjectWithoutPseudoHandle<KProcess>(system.Kernel(), process_handle);
     R_UNLESS(src_process.IsNotNull(), ResultInvalidHandle);
 
     // Get the page tables.
@@ -117,7 +117,7 @@ Result UnmapProcessMemory(Core::System& system, u64 dst_address, Handle process_
     // Get the processes.
     KProcess* dst_process = GetCurrentProcessPointer(system.Kernel());
     KScopedAutoObject src_process =
-        dst_process->GetHandleTable().GetObjectWithoutPseudoHandle<KProcess>(process_handle);
+        dst_process->GetHandleTable().GetObjectWithoutPseudoHandle<KProcess>(system.Kernel(), process_handle);
     R_UNLESS(src_process.IsNotNull(), ResultInvalidHandle);
 
     // Get the page tables.
@@ -174,7 +174,7 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
     }
 
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
@@ -234,7 +234,7 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
     }
 
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);

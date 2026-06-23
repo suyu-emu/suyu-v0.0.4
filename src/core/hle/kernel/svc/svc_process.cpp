@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -27,8 +27,8 @@ Result GetProcessId(Core::System& system, u64* out_process_id, Handle handle) {
 
     // Get the object from the handle table.
     KScopedAutoObject obj = GetCurrentProcess(system.Kernel())
-                                .GetHandleTable()
-                                .GetObject<KAutoObject>(static_cast<Handle>(handle));
+        .GetHandleTable()
+        .GetObject<KAutoObject>(system.Kernel(), Handle(handle));
     R_UNLESS(obj.IsNotNull(), ResultInvalidHandle);
 
     // Get the process from the object.
@@ -98,7 +98,7 @@ Result GetProcessInfo(Core::System& system, s64* out, Handle process_handle,
     LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, type={:#X}", process_handle, info_type);
 
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);

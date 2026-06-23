@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -15,8 +15,8 @@ KAutoObject* KAutoObject::Create(KAutoObject* obj) {
     return obj;
 }
 
-void KAutoObject::RegisterWithKernel() {
-    m_kernel.RegisterKernelObject(this);
+void KAutoObject::RegisterWithKernel(KernelCore& kernel) {
+    kernel.RegisterKernelObject(this);
 }
 
 void KAutoObject::UnregisterWithKernel(KernelCore& kernel, KAutoObject* self) {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -171,7 +174,7 @@ Result StaticService::SetStandardUserSystemClockAutomaticCorrectionEnabled(
     R_TRY(m_time->m_standard_steady_clock.GetCurrentTimePoint(time_point));
 
     m_user_system_clock.SetTimePointAndSignal(time_point);
-    m_user_system_clock.GetEvent().Signal();
+    m_user_system_clock.GetEvent().Signal(system.Kernel());
     R_SUCCEED();
 }
 

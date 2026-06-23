@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -87,21 +87,21 @@ private:
     KERNEL_AUTOOBJECT_TRAITS_IMPL(KAutoObject, KAutoObject, const);
 
 public:
-    explicit KAutoObject(KernelCore& kernel) : m_kernel(kernel) {
+    explicit KAutoObject(KernelCore& kernel) {
         m_class_token = GetStaticTypeObj().GetClassToken();
-        RegisterWithKernel();
+        RegisterWithKernel(kernel);
     }
     virtual ~KAutoObject() = default;
 
     static KAutoObject* Create(KAutoObject* ptr);
 
     // Destroy is responsible for destroying the auto object's resources when ref_count hits zero.
-    virtual void Destroy() {
+    virtual void Destroy(KernelCore& kernel) {
         UNIMPLEMENTED();
     }
 
     // Finalize is responsible for cleaning up resource, but does not destroy the object.
-    virtual void Finalize() {}
+    virtual void Finalize(KernelCore& kernel) {}
 
     virtual KProcess* GetOwner() const {
         return nullptr;
@@ -123,67 +123,50 @@ public:
     Derived DynamicCast() {
         static_assert(std::is_pointer_v<Derived>);
         using DerivedType = std::remove_pointer_t<Derived>;
-
-        if (this->IsDerivedFrom(DerivedType::GetStaticTypeObj())) {
-            return static_cast<Derived>(this);
-        } else {
-            return nullptr;
-        }
+        if (this->IsDerivedFrom(DerivedType::GetStaticTypeObj()))
+            return Derived(this);
+        return nullptr;
     }
 
     template <typename Derived>
     const Derived DynamicCast() const {
         static_assert(std::is_pointer_v<Derived>);
         using DerivedType = std::remove_pointer_t<Derived>;
-
-        if (this->IsDerivedFrom(DerivedType::GetStaticTypeObj())) {
-            return static_cast<Derived>(this);
-        } else {
-            return nullptr;
-        }
+        if (this->IsDerivedFrom(DerivedType::GetStaticTypeObj()))
+            return Derived(this);
+        return nullptr;
     }
 
-    bool Open() {
+    bool Open(KernelCore& kernel) {
         // Atomically increment the reference count, only if it's positive.
         u32 cur_ref_count = m_ref_count.load(std::memory_order_acquire);
         do {
-            if (cur_ref_count == 0) {
+            if (cur_ref_count == 0)
                 return false;
-            }
             ASSERT(cur_ref_count < cur_ref_count + 1);
-        } while (!m_ref_count.compare_exchange_weak(cur_ref_count, cur_ref_count + 1,
-                                                    std::memory_order_relaxed));
-
+        } while (!m_ref_count.compare_exchange_weak(cur_ref_count, cur_ref_count + 1, std::memory_order_relaxed));
         return true;
     }
 
-    void Close() {
+    void Close(KernelCore& kernel) {
         // Atomically decrement the reference count, not allowing it to become negative.
         u32 cur_ref_count = m_ref_count.load(std::memory_order_acquire);
         do {
-            if (cur_ref_count == 0) {
+            if (cur_ref_count == 0)
                 return;
-            }
             ASSERT(cur_ref_count > 0);
-        } while (!m_ref_count.compare_exchange_weak(cur_ref_count, cur_ref_count - 1,
-                                                    std::memory_order_acq_rel));
-
+        } while (!m_ref_count.compare_exchange_weak(cur_ref_count, cur_ref_count - 1, std::memory_order_acq_rel));
         // If ref count hits 1, destroy the object.
         if (cur_ref_count == 1) {
-            KernelCore& kernel = m_kernel;
-            this->Destroy();
+            this->Destroy(kernel);
             KAutoObject::UnregisterWithKernel(kernel, this);
         }
     }
 
 private:
-    void RegisterWithKernel();
+    void RegisterWithKernel(KernelCore& kernel);
     static void UnregisterWithKernel(KernelCore& kernel, KAutoObject* self);
 
-protected:
-    KernelCore& m_kernel;
-
-private:
     std::atomic<u32> m_ref_count{};
     ClassTokenType m_class_token{};
 };
@@ -225,17 +208,22 @@ class KScopedAutoObject {
 public:
     YUZU_NON_COPYABLE(KScopedAutoObject);
 
-    constexpr KScopedAutoObject() = default;
+    constexpr KScopedAutoObject(KernelCore& kernel_)
+        : kernel{kernel_}
+    {}
 
-    constexpr KScopedAutoObject(T* o) : m_obj(o) {
+    constexpr KScopedAutoObject(KernelCore& kernel_, T* o)
+        : kernel{kernel_}
+        , m_obj(o)
+    {
         if (m_obj != nullptr) {
-            m_obj->Open();
+            m_obj->Open(kernel);
         }
     }
 
     ~KScopedAutoObject() {
         if (m_obj != nullptr) {
-            m_obj->Close();
+            m_obj->Close(kernel);
         }
         m_obj = nullptr;
     }
@@ -253,7 +241,7 @@ public:
             if (rhs.m_obj != nullptr) {
                 derived = rhs.m_obj->template DynamicCast<T*>();
                 if (derived == nullptr) {
-                    rhs.m_obj->Close();
+                    rhs.m_obj->Close(rhs.kernel);
                 }
             }
 
@@ -274,8 +262,16 @@ public:
         return *m_obj;
     }
 
+    constexpr void SetObject(T* o) {
+        if (m_obj)
+            m_obj->Close(kernel);
+        m_obj = o;
+        if (m_obj)
+            m_obj->Open(kernel);
+    }
+
     constexpr void Reset(T* o) {
-        KScopedAutoObject(o).Swap(*this);
+        KScopedAutoObject(kernel, o).Swap(*this);
     }
 
     constexpr T* GetPointerUnsafe() {
@@ -304,6 +300,7 @@ private:
     friend class KScopedAutoObject;
 
 private:
+    KernelCore& kernel;
     T* m_obj{};
 
 private:

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -181,21 +181,17 @@ public:
         return m_thread_id;
     }
 
-    void ContinueIfHasKernelWaiters() {
+    void ContinueIfHasKernelWaiters(KernelCore& kernel) {
         if (GetNumKernelWaiters() > 0) {
-            Continue();
+            Continue(kernel);
         }
     }
 
-    void SetBasePriority(s32 value);
-
-    Result Run();
-
-    void Exit();
-
-    Result Terminate();
-
-    ThreadState RequestTerminate();
+    void SetBasePriority(KernelCore& kernel, s32 value);
+    Result Run(KernelCore& kernel);
+    void Exit(KernelCore& kernel);
+    Result Terminate(KernelCore& kernel);
+    ThreadState RequestTerminate(KernelCore& kernel);
 
     u32 GetSuspendFlags() const {
         return m_suspend_allowed_flags & m_suspend_request_flags;
@@ -215,15 +211,11 @@ public:
         return m_suspend_request_flags != 0;
     }
 
-    void RequestSuspend(SuspendType type);
-
-    void Resume(SuspendType type);
-
-    void TrySuspend();
-
-    void UpdateState();
-
-    void Continue();
+    void RequestSuspend(KernelCore& kernel, SuspendType type);
+    void Resume(KernelCore& kernel, SuspendType type);
+    void TrySuspend(KernelCore& kernel);
+    void UpdateState(KernelCore& kernel);
+    void Continue(KernelCore& kernel);
 
     constexpr void SetSyncedIndex(s32 index) {
         m_synced_index = index;
@@ -262,7 +254,7 @@ public:
         m_thread_context.tpidr = value;
     }
 
-    void CloneFpuStatus();
+    void CloneFpuStatus(KernelCore& kernel);
 
     Svc::ThreadContext& GetContext() {
         return m_thread_context;
@@ -282,7 +274,7 @@ public:
         return m_thread_state.load(std::memory_order_relaxed);
     }
 
-    void SetState(ThreadState state);
+    void SetState(KernelCore& kernel, ThreadState state);
 
     StepState GetStepState() const {
         return m_step_state;
@@ -342,27 +334,27 @@ public:
                 Svc::ArgumentHandleCountMax};
     }
 
-    u16 GetUserDisableCount() const;
-    void SetInterruptFlag();
-    void ClearInterruptFlag();
+    u16 GetUserDisableCount(KernelCore& kernel) const;
+    void SetInterruptFlag(KernelCore& kernel);
+    void ClearInterruptFlag(KernelCore& kernel);
 
-    void UpdateTlsThreadCpuTime(s64 switch_tick);
+    void UpdateTlsThreadCpuTime(KernelCore& kernel, s64 switch_tick);
 
-    KThread* GetLockOwner() const;
+    KThread* GetLockOwner(KernelCore& kernel) const;
 
     const KAffinityMask& GetAffinityMask() const {
         return m_physical_affinity_mask;
     }
 
-    Result GetCoreMask(s32* out_ideal_core, u64* out_affinity_mask);
+    Result GetCoreMask(KernelCore& kernel, s32* out_ideal_core, u64* out_affinity_mask);
 
-    Result GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_mask);
+    Result GetPhysicalCoreMask(KernelCore& kernel, s32* out_ideal_core, u64* out_affinity_mask);
 
-    Result SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask);
+    Result SetCoreMask(KernelCore& kernel, s32 cpu_core_id, u64 v_affinity_mask);
 
-    Result SetActivity(Svc::ThreadActivity activity);
+    Result SetActivity(KernelCore& kernel, Svc::ThreadActivity activity);
 
-    Result Sleep(s64 timeout);
+    Result Sleep(KernelCore& kernel, s64 timeout);
 
     s64 GetYieldScheduleCount() const {
         return m_schedule_count;
@@ -372,7 +364,7 @@ public:
         m_schedule_count = count;
     }
 
-    void WaitCancel();
+    void WaitCancel(KernelCore& kernel);
 
     bool IsWaitCancelled() const {
         return m_wait_cancelled;
@@ -417,17 +409,17 @@ public:
         return reinterpret_cast<uintptr_t>(m_parent) | (m_resource_limit_release_hint ? 1 : 0);
     }
 
-    void Finalize() override;
+    void Finalize(KernelCore& kernel) override;
 
-    bool IsSignaled() const override;
+    bool IsSignaled(KernelCore& kernel) const override;
 
-    void OnTimer();
+    void OnTimer(KernelCore& kernel);
 
-    void DoWorkerTaskImpl();
+    void DoWorkerTaskImpl(KernelCore& kernel);
 
-    static void PostDestroy(uintptr_t arg);
+    static void PostDestroy(KernelCore& kernel, uintptr_t arg);
 
-    static Result InitializeDummyThread(KThread* thread, KProcess* owner);
+    static Result InitializeDummyThread(Core::System& system, KThread* thread, KProcess* owner);
 
     static Result InitializeMainThread(Core::System& system, KThread* thread, s32 virt_core);
 
@@ -514,19 +506,18 @@ public:
         return this->GetStackParameters().disable_count;
     }
 
-    void DisableDispatch() {
-        ASSERT(GetCurrentThread(m_kernel).GetDisableDispatchCount() >= 0);
+    void DisableDispatch(KernelCore& kernel) {
+        ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() >= 0);
         this->GetStackParameters().disable_count++;
     }
 
-    void EnableDispatch() {
-        ASSERT(GetCurrentThread(m_kernel).GetDisableDispatchCount() > 0);
+    void EnableDispatch(KernelCore& kernel) {
+        ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() > 0);
         this->GetStackParameters().disable_count--;
     }
 
-    void Pin(s32 current_core);
-
-    void Unpin();
+    void Pin(KernelCore& kernel, s32 current_core);
+    void Unpin(KernelCore& kernel);
 
     void SetInExceptionHandler() {
         this->GetStackParameters().is_in_exception_handler = true;
@@ -592,18 +583,18 @@ public:
         return this->GetThreadType() == ThreadType::Dummy;
     }
 
-    void AddWaiter(KThread* thread);
+    void AddWaiter(KernelCore& kernel, KThread* thread);
 
-    void RemoveWaiter(KThread* thread);
+    void RemoveWaiter(KernelCore& kernel, KThread* thread);
 
-    Result GetThreadContext3(Svc::ThreadContext* out);
+    Result GetThreadContext3(KernelCore& kernel, Svc::ThreadContext* out);
 
-    KThread* RemoveUserWaiterByKey(bool* out_has_waiters, KProcessAddress key) {
-        return this->RemoveWaiterByKey(out_has_waiters, key, false);
+    KThread* RemoveUserWaiterByKey(KernelCore& kernel, bool* out_has_waiters, KProcessAddress key) {
+        return this->RemoveWaiterByKey(kernel, out_has_waiters, key, false);
     }
 
-    KThread* RemoveKernelWaiterByKey(bool* out_has_waiters, KProcessAddress key) {
-        return this->RemoveWaiterByKey(out_has_waiters, key, true);
+    KThread* RemoveKernelWaiterByKey(KernelCore& kernel, bool* out_has_waiters, KProcessAddress key) {
+        return this->RemoveWaiterByKey(kernel, out_has_waiters, key, true);
     }
 
     KProcessAddress GetAddressKey() const {
@@ -641,10 +632,10 @@ public:
         m_wait_queue = nullptr;
     }
 
-    void BeginWait(KThreadQueue* queue);
-    void NotifyAvailable(KSynchronizationObject* signaled_object, Result wait_result);
-    void EndWait(Result wait_result);
-    void CancelWait(Result wait_result, bool cancel_timer_task);
+    void BeginWait(KernelCore& kernel, KThreadQueue* queue);
+    void NotifyAvailable(KernelCore& kernel, KSynchronizationObject* signaled_object, Result wait_result);
+    void EndWait(KernelCore& kernel, Result wait_result);
+    void CancelWait(KernelCore& kernel, Result wait_result, bool cancel_timer_task);
 
     s32 GetNumKernelWaiters() const {
         return m_num_kernel_waiters;
@@ -662,9 +653,9 @@ public:
     // therefore will not block on guest kernel synchronization primitives. These methods handle
     // blocking as needed.
 
-    void RequestDummyThreadWait();
-    void DummyThreadBeginWait();
-    void DummyThreadEndWait();
+    void RequestDummyThreadWait(KernelCore& kernel);
+    void DummyThreadBeginWait(KernelCore& kernel);
+    void DummyThreadEndWait(KernelCore& kernel);
 
     uintptr_t GetArgument() const {
         return m_argument;
@@ -690,8 +681,7 @@ public:
     }
 
 private:
-    KThread* RemoveWaiterByKey(bool* out_has_waiters, KProcessAddress key,
-                               bool is_kernel_address_key);
+    KThread* RemoveWaiterByKey(KernelCore& kernel, bool* out_has_waiters, KProcessAddress key, bool is_kernel_address_key);
 
     static constexpr size_t PriorityInheritanceCountMax = 10;
     union SyncObjectBuffer {
@@ -735,19 +725,19 @@ private:
         }
     };
 
-    void AddWaiterImpl(KThread* thread);
-    void RemoveWaiterImpl(KThread* thread);
+    void AddWaiterImpl(KernelCore& kernel, KThread* thread);
+    void RemoveWaiterImpl(KernelCore& kernel, KThread* thread);
     static void RestorePriority(KernelCore& kernel, KThread* thread);
 
-    void StartTermination();
-    void FinishTermination();
+    void StartTermination(KernelCore& kernel);
+    void FinishTermination(KernelCore& kernel);
 
-    void IncreaseBasePriority(s32 priority);
+    void IncreaseBasePriority(KernelCore& kernel, s32 priority);
 
-    Result Initialize(KThreadFunction func, uintptr_t arg, KProcessAddress user_stack_top, s32 prio,
+    Result Initialize(KernelCore& kernel, KThreadFunction func, uintptr_t arg, KProcessAddress user_stack_top, s32 prio,
                       s32 virt_core, KProcess* owner, ThreadType type);
 
-    static Result InitializeThread(KThread* thread, KThreadFunction func, uintptr_t arg,
+    static Result InitializeThread(KernelCore& kernel, KThread* thread, KThreadFunction func, uintptr_t arg,
                                    KProcessAddress user_stack_top, s32 prio, s32 core,
                                    KProcess* owner, ThreadType type,
                                    std::function<void()>&& init_func);
@@ -878,9 +868,8 @@ public:
         return m_waiting_lock_info;
     }
 
-    void AddHeldLock(LockWithPriorityInheritanceInfo* lock_info);
-    LockWithPriorityInheritanceInfo* FindHeldLock(KProcessAddress address_key,
-                                                  bool is_kernel_address_key);
+    void AddHeldLock(KernelCore& kernel, LockWithPriorityInheritanceInfo* lock_info);
+    LockWithPriorityInheritanceInfo* FindHeldLock(KernelCore& kernel, KProcessAddress address_key, bool is_kernel_address_key);
 
 private:
     using LockWithPriorityInheritanceInfoList =
@@ -996,7 +985,7 @@ public:
         if (m_kernel.IsShuttingDown()) {
             return;
         }
-        GetCurrentThread(kernel).DisableDispatch();
+        GetCurrentThread(kernel).DisableDispatch(kernel);
     }
 
     ~KScopedDisableDispatch();
@@ -1005,8 +994,8 @@ private:
     KernelCore& m_kernel;
 };
 
-inline void KTimerTask::OnTimer() {
-    static_cast<KThread*>(this)->OnTimer();
+inline void KTimerTask::OnTimer(KernelCore& kernel) {
+    static_cast<KThread*>(this)->OnTimer(kernel);
 }
 
 } // namespace Kernel

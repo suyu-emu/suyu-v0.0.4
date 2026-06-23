@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -6,6 +9,11 @@
 #include "common/common_types.h"
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
+#include "hid_core/resources/shared_memory_format.h"
+
+namespace Kernel {
+class KernelCore;
+}
 
 namespace Service::HID {
 class SixAxisResource;
@@ -17,7 +25,7 @@ struct NpadSixAxisSensorLifo;
 /// Handles Npad request from HID interfaces
 class NpadAbstractSixAxisHandler final {
 public:
-    explicit NpadAbstractSixAxisHandler();
+    explicit NpadAbstractSixAxisHandler(Kernel::KernelCore& kernel_);
     ~NpadAbstractSixAxisHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -56,6 +64,7 @@ private:
     SixAxisResource* six_axis_resource{nullptr};
 
     s32 ref_counter{};
+    Kernel::KernelCore& kernel;
 };
 
 } // namespace Service::HID

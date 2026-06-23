@@ -25,74 +25,74 @@ using namespace FSR;
 
 using PushConstants = std::array<u32, 4 * 4>;
 
-FSR::FSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count,
-         VkExtent2D extent)
-    : m_device{device}, m_memory_allocator{memory_allocator},
-      m_image_count{image_count}, m_extent{extent} {
-
-    CreateImages();
-    CreateRenderPasses();
-    CreateSampler();
-    CreateShaders();
-    CreateDescriptorPool();
-    CreateDescriptorSetLayout();
-    CreateDescriptorSets();
-    CreatePipelineLayouts();
-    CreatePipelines();
+FSR::FSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count, VkExtent2D extent)
+    : m_memory_allocator{memory_allocator}
+    , m_image_count{image_count}
+    , m_extent{extent}
+{
+    CreateImages(device);
+    CreateRenderPasses(device);
+    CreateSampler(device);
+    CreateShaders(device);
+    CreateDescriptorPool(device);
+    CreateDescriptorSetLayout(device);
+    CreateDescriptorSets(device);
+    CreatePipelineLayouts(device);
+    CreatePipelines(device);
 }
 
-void FSR::CreateImages() {
+void FSR::CreateImages(const Device& device) {
     m_dynamic_images.resize(m_image_count);
     for (auto& images : m_dynamic_images) {
         images.images[Easu] = CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
         images.images[Rcas] = CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
-        images.image_views[Easu] = CreateWrappedImageView(m_device, images.images[Easu], VK_FORMAT_R16G16B16A16_SFLOAT);
-        images.image_views[Rcas] = CreateWrappedImageView(m_device, images.images[Rcas], VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.image_views[Easu] = CreateWrappedImageView(device, images.images[Easu], VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.image_views[Rcas] = CreateWrappedImageView(device, images.images[Rcas], VK_FORMAT_R16G16B16A16_SFLOAT);
     }
 }
 
-void FSR::CreateRenderPasses() {
-    m_renderpass = CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16B16A16_SFLOAT);
+void FSR::CreateRenderPasses(const Device& device) {
+    m_renderpass = CreateWrappedRenderPass(device, VK_FORMAT_R16G16B16A16_SFLOAT);
     for (auto& images : m_dynamic_images) {
-        images.framebuffers[Easu] = CreateWrappedFramebuffer(m_device, m_renderpass, images.image_views[Easu], m_extent);
-        images.framebuffers[Rcas] = CreateWrappedFramebuffer(m_device, m_renderpass, images.image_views[Rcas], m_extent);
+        images.framebuffers[Easu] = CreateWrappedFramebuffer(device, m_renderpass, images.image_views[Easu], m_extent);
+        images.framebuffers[Rcas] = CreateWrappedFramebuffer(device, m_renderpass, images.image_views[Rcas], m_extent);
     }
 }
 
-void FSR::CreateSampler() {
-    m_sampler = CreateBilinearSampler(m_device);
+void FSR::CreateSampler(const Device& device) {
+    m_sampler = CreateBilinearSampler(device);
 }
 
-void FSR::CreateShaders() {
-    m_vert_shader = BuildShader(m_device, VULKAN_FIDELITYFX_FSR_VERT_SPV);
+void FSR::CreateShaders(const Device& device) {
+    m_vert_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_VERT_SPV);
 
-    if (m_device.IsFloat16Supported()) {
-        m_easu_shader = BuildShader(m_device, VULKAN_FIDELITYFX_FSR_EASU_FP16_FRAG_SPV);
-        m_rcas_shader = BuildShader(m_device, VULKAN_FIDELITYFX_FSR_RCAS_FP16_FRAG_SPV);
+    if (device.IsFloat16Supported()) {
+        m_easu_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_EASU_FP16_FRAG_SPV);
+        m_rcas_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_RCAS_FP16_FRAG_SPV);
     } else {
-        m_easu_shader = BuildShader(m_device, VULKAN_FIDELITYFX_FSR_EASU_FP32_FRAG_SPV);
-        m_rcas_shader = BuildShader(m_device, VULKAN_FIDELITYFX_FSR_RCAS_FP32_FRAG_SPV);
+        m_easu_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_EASU_FP32_FRAG_SPV);
+        m_rcas_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_RCAS_FP32_FRAG_SPV);
     }
 }
 
-void FSR::CreateDescriptorPool() {
+void FSR::CreateDescriptorPool(const Device& device) {
     // EASU: 1 descriptor
     // RCAS: 1 descriptor
     // 2 descriptors, 2 descriptor sets per invocation
-    m_descriptor_pool = CreateWrappedDescriptorPool(m_device, 2 * m_image_count, 2 * m_image_count);
+    m_descriptor_pool = CreateWrappedDescriptorPool(device, 2 * m_image_count, 2 * m_image_count);
 }
 
-void FSR::CreateDescriptorSetLayout() {
-    m_descriptor_set_layout = CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
+void FSR::CreateDescriptorSetLayout(const Device& device) {
+    m_descriptor_set_layout = CreateWrappedDescriptorSetLayout(device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 }
 
-void FSR::CreateDescriptorSets() {
+void FSR::CreateDescriptorSets(const Device& device) {
     std::vector<VkDescriptorSetLayout> layouts(MaxFsrStage, *m_descriptor_set_layout);
     for (auto& images : m_dynamic_images)
         images.descriptor_sets = CreateWrappedDescriptorSets(m_descriptor_pool, layouts);
 }
 
-void FSR::CreatePipelineLayouts() {
+void FSR::CreatePipelineLayouts(const Device& device) {
     const VkPushConstantRange range{
         .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
         .offset = 0,
@@ -108,17 +108,17 @@ void FSR::CreatePipelineLayouts() {
         .pPushConstantRanges = &range,
     };
 
-    m_pipeline_layout = m_device.GetLogical().CreatePipelineLayout(ci);
+    m_pipeline_layout = device.GetLogical().CreatePipelineLayout(ci);
 }
 
-void FSR::CreatePipelines() {
-    m_easu_pipeline = CreateWrappedPipeline(m_device, m_renderpass, m_pipeline_layout,
+void FSR::CreatePipelines(const Device& device) {
+    m_easu_pipeline = CreateWrappedPipeline(device, m_renderpass, m_pipeline_layout,
                                             std::tie(m_vert_shader, m_easu_shader));
-    m_rcas_pipeline = CreateWrappedPipeline(m_device, m_renderpass, m_pipeline_layout,
+    m_rcas_pipeline = CreateWrappedPipeline(device, m_renderpass, m_pipeline_layout,
                                             std::tie(m_vert_shader, m_rcas_shader));
 }
 
-void FSR::UpdateDescriptorSets(VkImageView image_view, size_t image_index) {
+void FSR::UpdateDescriptorSets(const Device& device, VkImageView image_view, size_t image_index) {
     Images& images = m_dynamic_images[image_index];
     std::vector<VkDescriptorImageInfo> image_infos;
     image_infos.reserve(2);
@@ -126,10 +126,10 @@ void FSR::UpdateDescriptorSets(VkImageView image_view, size_t image_index) {
         CreateWriteDescriptorSet(image_infos, *m_sampler, image_view, images.descriptor_sets[Easu], 0),
         CreateWriteDescriptorSet(image_infos, *m_sampler, *images.image_views[Easu], images.descriptor_sets[Rcas], 0)
     };
-    m_device.GetLogical().UpdateDescriptorSets(updates, {});
+    device.GetLogical().UpdateDescriptorSets(updates, {});
 }
 
-void FSR::UploadImages(Scheduler& scheduler) {
+void FSR::UploadImages(const Device& device, Scheduler& scheduler) {
     if (!m_images_ready) {
         m_images_ready = true;
         scheduler.Record([&](vk::CommandBuffer cmdbuf) {
@@ -142,7 +142,7 @@ void FSR::UploadImages(Scheduler& scheduler) {
     }
 }
 
-VkImageView FSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
+VkImageView FSR::Draw(const Device& device, Scheduler& scheduler, size_t image_index, VkImage source_image,
                       VkImageView source_image_view, VkExtent2D input_image_extent,
                       const Common::Rectangle<f32>& crop_rect) {
     Images& images = m_dynamic_images[image_index];
@@ -179,8 +179,8 @@ VkImageView FSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_i
         static_cast<float>(Settings::values.fsr_sharpening_slider.GetValue()) / 100.0f;
     FsrRcasCon(rcas_con.data(), sharpening);
 
-    UploadImages(scheduler);
-    UpdateDescriptorSets(source_image_view, image_index);
+    UploadImages(device, scheduler);
+    UpdateDescriptorSets(device, source_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([=](vk::CommandBuffer cmdbuf) {

@@ -21,8 +21,7 @@ namespace Service::AM {
 
 namespace {
 
-Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_application_accessor,
-                              Core::System& system, WindowSystem& window_system, u64 program_id) {
+Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_application_accessor, Core::System& system, WindowSystem& window_system, u64 program_id) {
     FileSys::VirtualFile nca_raw{};
 
     // Get the program NCA from storage.
@@ -35,11 +34,10 @@ Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_applicati
     std::vector<u8> control;
     std::unique_ptr<Loader::AppLoader> loader;
     Loader::ResultStatus result;
-    auto process =
-        CreateApplicationProcess(control, loader, result, system, nca_raw, program_id, 0);
-    R_UNLESS(process != nullptr, ResultUnknown);
+    auto process = CreateApplicationProcess(control, loader, result, system, nca_raw, program_id, 0);
+    R_UNLESS(process != std::nullopt, ResultUnknown);
 
-    const auto applet = std::make_shared<Applet>(system, std::move(process), true);
+    const auto applet = std::make_shared<Applet>(system, std::make_unique<Service::Process>(*std::move(process)), true);
     applet->program_id = program_id;
     applet->applet_id = AppletId::Application;
     applet->type = AppletType::Application;
@@ -47,8 +45,7 @@ Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_applicati
 
     window_system.TrackApplet(applet, true);
 
-    *out_application_accessor =
-        std::make_shared<IApplicationAccessor>(system, applet, window_system);
+    *out_application_accessor = std::make_shared<IApplicationAccessor>(system, applet, window_system);
     R_SUCCEED();
 }
 
@@ -90,12 +87,10 @@ Result IApplicationCreator::CreateSystemApplication(
 
     std::vector<u8> control;
     std::unique_ptr<Loader::AppLoader> loader;
+    auto process = CreateProcess(system, application_id, 1, 22);
+    R_UNLESS(process != std::nullopt, ResultUnknown);
 
-    auto process =
-        CreateProcess(system, application_id, 1, 22);
-    R_UNLESS(process != nullptr, ResultUnknown);
-
-    const auto applet = std::make_shared<Applet>(system, std::move(process), true);
+    const auto applet = std::make_shared<Applet>(system, std::make_unique<Service::Process>(*std::move(process)), true);
     applet->program_id = application_id;
     applet->applet_id = AppletId::Starter;
     applet->type = AppletType::LibraryApplet;
@@ -103,8 +98,7 @@ Result IApplicationCreator::CreateSystemApplication(
 
     m_window_system.TrackApplet(applet, true);
 
-    *out_application_accessor =
-        std::make_shared<IApplicationAccessor>(system, applet, m_window_system);
+    *out_application_accessor = std::make_shared<IApplicationAccessor>(system, applet, m_window_system);
     Core::LaunchTimestampCache::SaveLaunchTimestamp(application_id);
     R_SUCCEED();
 }

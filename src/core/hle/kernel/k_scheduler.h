@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -41,15 +44,15 @@ public:
     explicit KScheduler(KernelCore& kernel);
     ~KScheduler();
 
-    void Initialize(KThread* main_thread, KThread* idle_thread, s32 core_id);
-    void Activate();
-    void OnThreadStart();
-    void Unload(KThread* thread);
-    void Reload(KThread* thread);
+    void Initialize(KernelCore& kernel, KThread* main_thread, KThread* idle_thread, s32 core_id);
+    void Activate(KernelCore& kernel);
+    void OnThreadStart(KernelCore& kernel);
+    void Unload(KernelCore& kernel, KThread* thread);
+    void Reload(KernelCore& kernel, KThread* thread);
 
-    void SetInterruptTaskRunnable();
-    void RequestScheduleOnInterrupt();
-    void PreemptSingleCore();
+    void SetInterruptTaskRunnable(KernelCore& kernel);
+    void RequestScheduleOnInterrupt(KernelCore& kernel);
+    void PreemptSingleCore(KernelCore& kernel);
 
     u64 GetIdleCount() {
         return m_state.idle_count;
@@ -122,18 +125,18 @@ private:
     static void RescheduleCurrentHLEThread(KernelCore& kernel);
 
     // Instanced private API.
-    void ScheduleImpl();
-    void ScheduleImplFiber();
-    void SwitchThread(KThread* next_thread);
+    void ScheduleImpl(KernelCore& kernel);
+    void ScheduleImplFiber(KernelCore& kernel);
+    void SwitchThread(KernelCore& kernel, KThread* next_thread);
 
-    void Schedule();
-    void ScheduleOnInterrupt();
+    void Schedule(KernelCore& kernel);
+    void ScheduleOnInterrupt(KernelCore& kernel);
 
-    void RescheduleOtherCores(u64 cores_needing_scheduling);
-    void RescheduleCurrentCore();
-    void RescheduleCurrentCoreImpl();
+    void RescheduleOtherCores(KernelCore& kernel, u64 cores_needing_scheduling);
+    void RescheduleCurrentCore(KernelCore& kernel);
+    void RescheduleCurrentCoreImpl(KernelCore& kernel);
 
-    u64 UpdateHighestPriorityThread(KThread* thread);
+    u64 UpdateHighestPriorityThread(KernelCore& kernel, KThread* thread);
 
 private:
     friend class KScopedDisableDispatch;
@@ -149,14 +152,12 @@ private:
         KInterruptTaskManager* interrupt_task_manager{nullptr};
     };
 
-    KernelCore& m_kernel;
     SchedulingState m_state;
     bool m_is_active{false};
     s32 m_core_id{0};
     s64 m_last_context_switch_time{0};
     KThread* m_idle_thread{nullptr};
     std::atomic<KThread*> m_current_thread{nullptr};
-
     std::shared_ptr<Common::Fiber> m_switch_fiber{};
     KThread* m_switch_cur_thread{};
     KThread* m_switch_highest_priority_thread{};

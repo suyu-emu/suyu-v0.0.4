@@ -123,7 +123,7 @@ Result ILibraryAppletAccessor::RequestExit() {
     LOG_DEBUG(Service_AM, "called");
     {
         std::scoped_lock lk{m_applet->lock};
-        m_applet->lifecycle_manager.RequestExit();
+        m_applet->lifecycle_manager.RequestExit(system.Kernel());
     }
     FrontendRequestExit();
     R_SUCCEED();
@@ -157,7 +157,7 @@ Result ILibraryAppletAccessor::PushInData(SharedPointer<IStorage> storage) {
         }
     }
 
-    m_broker->GetInData().Push(storage);
+    m_broker->GetInData().Push(system.Kernel(), storage);
     R_SUCCEED();
 }
 
@@ -165,13 +165,13 @@ Result ILibraryAppletAccessor::PopOutData(Out<SharedPointer<IStorage>> out_stora
     LOG_DEBUG(Service_AM, "called");
 
     if (auto caller_applet = m_applet->caller_applet.lock(); caller_applet) {
-        caller_applet->lifecycle_manager.GetSystemEvent().Signal();
+        caller_applet->lifecycle_manager.GetSystemEvent().Signal(system.Kernel());
         caller_applet->lifecycle_manager.RequestResumeNotification();
-        caller_applet->lifecycle_manager.GetSystemEvent().Clear();
+        caller_applet->lifecycle_manager.GetSystemEvent().Clear(system.Kernel());
         caller_applet->lifecycle_manager.UpdateRequestedFocusState();
     }
 
-    R_TRY(m_broker->GetOutData().Pop(out_storage.Get()));
+    R_TRY(m_broker->GetOutData().Pop(system.Kernel(), out_storage.Get()));
 
     if (m_applet->applet_id == AppletId::ProfileSelect && *out_storage) {
         auto impl = (*out_storage)->GetImpl();
@@ -186,14 +186,14 @@ Result ILibraryAppletAccessor::PopOutData(Out<SharedPointer<IStorage>> out_stora
 
 Result ILibraryAppletAccessor::PushInteractiveInData(SharedPointer<IStorage> storage) {
     LOG_DEBUG(Service_AM, "called");
-    m_broker->GetInteractiveInData().Push(storage);
+    m_broker->GetInteractiveInData().Push(system.Kernel(), storage);
     FrontendExecuteInteractive();
     R_SUCCEED();
 }
 
 Result ILibraryAppletAccessor::PopInteractiveOutData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_DEBUG(Service_AM, "called");
-    R_RETURN(m_broker->GetInteractiveOutData().Pop(out_storage.Get()));
+    R_RETURN(m_broker->GetInteractiveOutData().Pop(system.Kernel(), out_storage.Get()));
 }
 
 Result ILibraryAppletAccessor::GetPopOutDataEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {

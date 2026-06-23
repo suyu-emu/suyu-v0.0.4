@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -20,19 +20,17 @@ namespace Kernel::Svc {
 
 namespace {
 
-Result SendSyncRequestImpl(KernelCore& kernel, uintptr_t message, size_t buffer_size,
-                           Handle session_handle) {
+Result SendSyncRequestImpl(KernelCore& kernel, uintptr_t message, size_t buffer_size, Handle session_handle) {
     // Get the client session.
-    KScopedAutoObject session =
-        GetCurrentProcess(kernel).GetHandleTable().GetObject<KClientSession>(session_handle);
+    KScopedAutoObject session = GetCurrentProcess(kernel).GetHandleTable().GetObject<KClientSession>(kernel, session_handle);
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Get the parent, and persist a reference to it until we're done.
-    KScopedAutoObject parent = session->GetParent();
+    KScopedAutoObject parent = {kernel, session->GetParent()};
     ASSERT(parent.IsNotNull());
 
     // Send the request.
-    R_RETURN(session->SendSyncRequest(message, buffer_size));
+    R_RETURN(session->SendSyncRequest(kernel, message, buffer_size));
 }
 
 Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t message,
@@ -41,8 +39,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
                            int64_t timeout_ns) {
     // Reply to the target, if one is specified.
     if (reply_target != InvalidHandle) {
-        KScopedAutoObject session =
-            GetCurrentProcess(kernel).GetHandleTable().GetObject<KServerSession>(reply_target);
+        KScopedAutoObject session = GetCurrentProcess(kernel).GetHandleTable().GetObject<KServerSession>(kernel, reply_target);
         R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
         // If we fail to reply, we want to set the output index to -1.
@@ -51,7 +48,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
         };
 
         // Send the reply.
-        R_TRY(session->SendReply(message, buffer_size, message_paddr));
+        R_TRY(session->SendReply(kernel, message, buffer_size, message_paddr));
     }
 
     // Receive a message.
@@ -77,8 +74,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
         while (true) {
             // Wait for an object.
             s32 index;
-            Result result = KSynchronizationObject::Wait(kernel, std::addressof(index), objs,
-                                                         num_objects, timeout);
+            Result result = KSynchronizationObject::Wait(kernel, std::addressof(index), objs, num_objects, timeout);
             if (ResultTimedOut == result) {
                 R_THROW(result);
             }
@@ -87,7 +83,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
             if (R_SUCCEEDED(result)) {
                 KServerSession* session = objs[index]->DynamicCast<KServerSession*>();
                 if (session != nullptr) {
-                    result = session->ReceiveRequest(message, buffer_size, message_paddr);
+                    result = session->ReceiveRequest(kernel, message, buffer_size, message_paddr);
                     if (ResultNotFound == result) {
                         continue;
                     }
@@ -127,14 +123,14 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
 
         // Convert the handles to objects.
         R_UNLESS(
-            handle_table.GetMultipleObjects<KSynchronizationObject>(objs, handles, num_handles),
+            handle_table.GetMultipleObjects<KSynchronizationObject>(kernel, objs, handles, num_handles),
             ResultInvalidHandle);
     }
 
     // Ensure handles are closed when we're done.
     SCOPE_EXIT {
         for (auto i = 0; i < num_handles; ++i) {
-            objs[i]->Close();
+            objs[i]->Close(kernel);
         }
     };
 
@@ -188,16 +184,15 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
     auto& handle_table = process.GetHandleTable();
 
     // Reserve a new event from the process resource limit.
-    KScopedResourceReservation event_reservation(std::addressof(process),
-                                                 Svc::LimitableResource::EventCountMax);
+    KScopedResourceReservation event_reservation(system.Kernel(), std::addressof(process), Svc::LimitableResource::EventCountMax);
     R_UNLESS(event_reservation.Succeeded(), ResultLimitReached);
 
     // Get the client session.
-    KScopedAutoObject session = process.GetHandleTable().GetObject<KClientSession>(session_handle);
+    KScopedAutoObject session = process.GetHandleTable().GetObject<KClientSession>(system.Kernel(), session_handle);
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Get the parent, and persist a reference to it until we're done.
-    KScopedAutoObject parent = session->GetParent();
+    KScopedAutoObject parent = {system.Kernel(), session->GetParent()};
     ASSERT(parent.IsNotNull());
 
     // Create a new event.
@@ -205,30 +200,30 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
     R_UNLESS(event != nullptr, ResultOutOfResource);
 
     // Initialize the event.
-    event->Initialize(std::addressof(process));
+    event->Initialize(system.Kernel(), std::addressof(process));
 
     // Commit our reservation.
     event_reservation.Commit();
 
     // At end of scope, kill the standing references to the sub events.
     SCOPE_EXIT {
-        event->GetReadableEvent().Close();
-        event->Close();
+        event->GetReadableEvent().Close(system.Kernel());
+        event->Close(system.Kernel());
     };
 
     // Register the event.
     KEvent::Register(system.Kernel(), event);
 
     // Add the readable event to the handle table.
-    R_TRY(handle_table.Add(out_event_handle, std::addressof(event->GetReadableEvent())));
+    R_TRY(handle_table.Add(system.Kernel(), out_event_handle, std::addressof(event->GetReadableEvent())));
 
     // Ensure that if we fail to send the request, we close the readable handle.
     ON_RESULT_FAILURE {
-        handle_table.Remove(*out_event_handle);
+        handle_table.Remove(system.Kernel(), *out_event_handle);
     };
 
     // Send the async request.
-    R_RETURN(session->SendAsyncRequest(event, message, buffer_size));
+    R_RETURN(session->SendAsyncRequest(system.Kernel(), event, message, buffer_size));
 }
 
 Result ReplyAndReceive(Core::System& system, s32* out_index, uint64_t handles, s32 num_handles,

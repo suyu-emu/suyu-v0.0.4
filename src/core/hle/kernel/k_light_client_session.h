@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -22,15 +25,15 @@ public:
         m_parent = parent;
     }
 
-    virtual void Destroy() override;
+    virtual void Destroy(KernelCore& kernel) override;
 
     const KLightSession* GetParent() const {
         return m_parent;
     }
 
-    Result SendSyncRequest(u32* data);
+    Result SendSyncRequest(KernelCore& kernel, u32* data);
 
-    void OnServerClosed();
+    void OnServerClosed(KernelCore& kernel);
 
 private:
     KLightSession* m_parent;

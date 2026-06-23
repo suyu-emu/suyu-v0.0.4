@@ -32,7 +32,7 @@ INativeHandleHolder::~INativeHandleHolder() {
 Result INativeHandleHolder::GetNativeHandle(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_OLSC, "(STUBBED) called");
     if (event) {
-        event->Signal();
+        event->Signal(system.Kernel());
         *out_event = std::addressof(event->GetReadableEvent());
     } else {
         *out_event = nullptr;

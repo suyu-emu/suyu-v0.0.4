@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -30,31 +30,23 @@ class ButtonPoller {
 public:
     explicit ButtonPoller(Core::System& system, WindowSystem& window_system);
     ~ButtonPoller();
+    void OnButtonStateChanged(WindowSystem& window_system);
 
 private:
-    void OnButtonStateChanged();
-    void ThreadLoop();
-
-private:
-    WindowSystem& m_window_system;
-
-    Core::HID::EmulatedController* m_handheld{};
-    int m_handheld_key{};
-    Core::HID::EmulatedController* m_player1{};
-    int m_player1_key{};
-
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
+    std::jthread m_thread;
     std::optional<std::chrono::steady_clock::time_point> m_home_button_press_start{};
     std::optional<std::chrono::steady_clock::time_point> m_capture_button_press_start{};
     std::optional<std::chrono::steady_clock::time_point> m_power_button_press_start{};
 
-    bool m_home_button_long_sent{};
-    bool m_capture_button_long_sent{};
-    bool m_power_button_long_sent{};
-
-    std::thread m_thread;
-    std::atomic<bool> m_stop{false};
-    std::condition_variable m_cv;
-    std::mutex m_mutex;
+    Core::HID::EmulatedController* m_handheld{};
+    Core::HID::EmulatedController* m_player1{};
+    int32_t m_handheld_key{};
+    int32_t m_player1_key{};
+    bool m_home_button_long_sent : 1 = false;
+    bool m_capture_button_long_sent : 1 = false;
+    bool m_power_button_long_sent : 1 = false;
 };
 
 } // namespace Service::AM

@@ -11,12 +11,12 @@
 namespace Vulkan {
 
 class Scheduler;
+class Device;
 
 class AntiAliasPass {
 public:
     virtual ~AntiAliasPass() = default;
-    virtual void Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
-                      VkImageView* inout_image_view) = 0;
+    virtual void Draw(const Device& device, Scheduler& scheduler, size_t image_index, VkImage* inout_image, VkImageView* inout_image_view) = 0;
 };
 
 } // namespace Vulkan

@@ -33,11 +33,11 @@ ServiceManager::ServiceManager(Kernel::KernelCore& kernel_) : kernel{kernel_} {
 
 ServiceManager::~ServiceManager() {
     for (auto& [name, port] : service_ports) {
-        port->Close();
+        port->Close(kernel);
     }
 
     if (deferral_event) {
-        deferral_event->Close();
+        deferral_event->Close(kernel);
     }
 }
 
@@ -64,7 +64,7 @@ Result ServiceManager::RegisterService(Kernel::KServerPort** out_server_port, st
     }
 
     auto* port = Kernel::KPort::Create(kernel);
-    port->Initialize(ServerSessionCountMax, false, 0);
+    port->Initialize(kernel, ServerSessionCountMax, false, 0);
 
     // Register the port.
     Kernel::KPort::Register(kernel, port);
@@ -72,7 +72,7 @@ Result ServiceManager::RegisterService(Kernel::KServerPort** out_server_port, st
     service_ports.emplace(name, std::addressof(port->GetClientPort()));
     registered_services.emplace(name, handler);
     if (deferral_event) {
-        deferral_event->Signal();
+        deferral_event->Signal(kernel);
     }
 
     // Set our output.
@@ -195,7 +195,7 @@ Result SM::GetServiceImpl(Kernel::KClientSession** out_client_session, HLEReques
 
     // Create a new session.
     Kernel::KClientSession* session{};
-    if (const auto result = client_port->CreateSession(&session); result.IsError()) {
+    if (const auto result = client_port->CreateSession(kernel, &session); result.IsError()) {
         LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, result.raw);
         return result;
     }

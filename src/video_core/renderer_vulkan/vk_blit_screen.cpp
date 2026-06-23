@@ -18,23 +18,26 @@
 
 namespace Vulkan {
 
-BlitScreen::BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device_,
-                       MemoryAllocator& memory_allocator_, PresentManager& present_manager_,
-                       Scheduler& scheduler_, const PresentFilters& filters_)
-    : device_memory{device_memory_}, device{device_}, memory_allocator{memory_allocator_},
-      present_manager{present_manager_}, scheduler{scheduler_}, filters{filters_},
-      image_count{1}, image_index{0},
-      swapchain_view_format{VK_FORMAT_B8G8R8A8_UNORM} {}
+BlitScreen::BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device_, MemoryAllocator& memory_allocator_, PresentManager& present_manager_, Scheduler& scheduler_, const PresentFilters& filters_)
+    : device_memory{device_memory_}
+    , memory_allocator{memory_allocator_}
+    , present_manager{present_manager_}
+    , scheduler{scheduler_}
+    , filters{filters_}
+    , image_count{1}
+    , image_index{0}
+    , swapchain_view_format{VK_FORMAT_B8G8R8A8_UNORM}
+{}
 
 BlitScreen::~BlitScreen() = default;
 
-void BlitScreen::WaitIdle() {
+void BlitScreen::WaitIdle(const Device& device) {
     present_manager.WaitPresent();
     scheduler.Finish();
     device.GetLogical().WaitIdle();
 }
 
-void BlitScreen::SetWindowAdaptPass() {
+void BlitScreen::SetWindowAdaptPass(const Device& device) {
     layers.clear();
     scaling_filter = filters.get_scaling_filter();
 
@@ -82,7 +85,7 @@ void BlitScreen::SetWindowAdaptPass() {
     }
 }
 
-void BlitScreen::DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
+void BlitScreen::DrawToFrame(const Device& device, RasterizerVulkan& rasterizer, Frame* frame,
                              std::span<const Tegra::FramebufferConfig> framebuffers,
                              const Layout::FramebufferLayout& layout,
                              size_t current_swapchain_image_count,
@@ -107,8 +110,8 @@ void BlitScreen::DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
     }
 
     if (resource_update_required) {
-        WaitIdle();
-        SetWindowAdaptPass();
+        WaitIdle(device);
+        SetWindowAdaptPass(device);
 
         if (presentation_recreate_required) {
             present_manager.RecreateFrame(frame, layout.width, layout.height, swapchain_view_format,
@@ -131,22 +134,22 @@ void BlitScreen::DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
         }
     }
 
-    window_adapt->Draw(rasterizer, scheduler, image_index, layers, framebuffers, layout, frame);
+    window_adapt->Draw(device, rasterizer, scheduler, image_index, layers, framebuffers, layout, frame);
 
     if (++image_index >= image_count) {
         image_index = 0;
     }
 }
 
-vk::Framebuffer BlitScreen::CreateFramebuffer(const Layout::FramebufferLayout& layout,
+vk::Framebuffer BlitScreen::CreateFramebuffer(const Device& device, const Layout::FramebufferLayout& layout,
                                               VkImageView image_view,
                                               VkFormat current_view_format) {
     bool format_updated = swapchain_view_format != current_view_format;
     swapchain_view_format = current_view_format;
 
     if (!window_adapt || scaling_filter != filters.get_scaling_filter() || format_updated) {
-        WaitIdle();
-        SetWindowAdaptPass();
+        WaitIdle(device);
+        SetWindowAdaptPass(device);
         image_index = 0;
     }
 
@@ -155,10 +158,10 @@ vk::Framebuffer BlitScreen::CreateFramebuffer(const Layout::FramebufferLayout& l
         .height = layout.height,
     };
 
-    return CreateFramebuffer(image_view, extent, window_adapt->GetRenderPass());
+    return CreateFramebuffer(device, image_view, extent, window_adapt->GetRenderPass());
 }
 
-vk::Framebuffer BlitScreen::CreateFramebuffer(const VkImageView& image_view, VkExtent2D extent,
+vk::Framebuffer BlitScreen::CreateFramebuffer(const Device& device, const VkImageView& image_view, VkExtent2D extent,
                                               VkRenderPass render_pass) {
     return device.GetLogical().CreateFramebuffer(VkFramebufferCreateInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,

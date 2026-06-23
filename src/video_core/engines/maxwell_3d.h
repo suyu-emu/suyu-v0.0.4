@@ -55,7 +55,7 @@ namespace Tegra::Engines {
 
 class Maxwell3D final : public EngineInterface {
 public:
-    explicit Maxwell3D(Core::System& system, MemoryManager& memory_manager);
+    explicit Maxwell3D(MemoryManager& memory_manager);
     ~Maxwell3D();
 
     /// Binds a rasterizer to this engine.
@@ -3129,11 +3129,10 @@ public:
     u32 GetRegisterValue(u32 method) const;
 
     /// Write the value to the register identified by method.
-    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
+    void CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
-                         u32 methods_pending) override;
+    void CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) override;
 
     bool ShouldExecute() const {
         return execute_on;
@@ -3190,13 +3189,13 @@ public:
 private:
     void InitializeRegisterDefaults();
 
-    void ProcessMacro(u32 method, const u32* base_start, u32 amount, bool is_last_call);
+    void ProcessMacro(Core::System& system, u32 method, const u32* base_start, u32 amount, bool is_last_call);
 
     u32 ProcessShadowRam(u32 method, u32 argument);
 
     void ProcessDirtyRegisters(u32 method, u32 argument);
 
-    void ConsumeSinkImpl() override;
+    void ConsumeSinkImpl(Core::System& system) override;
 
     void ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call);
 
@@ -3212,7 +3211,7 @@ private:
      * @param method Method to call
      * @param parameters Arguments to the method call
      */
-    void CallMacroMethod(u32 method, const std::vector<u32>& parameters);
+    void CallMacroMethod(Core::System& system, u32 method, const std::vector<u32>& parameters);
 
     /// Handles writes to the macro uploading register.
     void ProcessMacroUpload(u32 data);
@@ -3227,7 +3226,7 @@ private:
     void ProcessQueryGet();
 
     /// Writes the query result accordingly.
-    void StampQueryResult(u64 payload, bool long_query);
+    void StampQueryResult(Core::System& system, u64 payload, bool long_query);
 
     /// Handles conditional rendering.
     void ProcessQueryCondition();
@@ -3242,7 +3241,6 @@ private:
 
     bool IsMethodExecutable(u32 method);
 
-    Core::System& system;
     MemoryManager& memory_manager;
 
     VideoCore::RasterizerInterface* rasterizer = nullptr;

@@ -121,14 +121,14 @@ struct KernelCore::Impl {
     void TerminateAllProcesses() {
         std::scoped_lock lk{process_list_lock};
         for (auto& process : process_list) {
-            process->Terminate();
-            process->Close();
+            process->Terminate(system.Kernel());
+            process->Close(system.Kernel());
             process = nullptr;
         }
         process_list.clear();
     }
 
-    void Shutdown() {
+    void Shutdown(KernelCore& kernel) {
         is_shutting_down.store(true, std::memory_order_relaxed);
         SCOPE_EXIT {
             is_shutting_down.store(false, std::memory_order_relaxed);
@@ -137,7 +137,7 @@ struct KernelCore::Impl {
         CloseServices();
 
         if (application_process) {
-            application_process->Close();
+            application_process->Close(system.Kernel());
             application_process = nullptr;
         }
 
@@ -149,9 +149,9 @@ struct KernelCore::Impl {
         preemption_event = nullptr;
 
         // Cleanup persistent kernel objects
-        auto CleanupObject = [](KAutoObject* obj) {
+        auto CleanupObject = [&kernel](KAutoObject* obj) {
             if (obj) {
-                obj->Close();
+                obj->Close(kernel);
                 obj = nullptr;
             }
         };
@@ -163,7 +163,7 @@ struct KernelCore::Impl {
 
         for (u32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
             if (shutdown_threads[core_id]) {
-                shutdown_threads[core_id]->Close();
+                shutdown_threads[core_id]->Close(kernel);
                 shutdown_threads[core_id] = nullptr;
             }
 
@@ -178,7 +178,7 @@ struct KernelCore::Impl {
             std::scoped_lock lk{registered_in_use_objects_lock};
             if (registered_in_use_objects.size()) {
                 for (auto& object : registered_in_use_objects) {
-                    object->Close();
+                    object->Close(kernel);
                 }
                 registered_in_use_objects.clear();
             }
@@ -226,7 +226,7 @@ struct KernelCore::Impl {
             ASSERT(Kernel::KThread::InitializeIdleThread(system, idle_thread, core).IsSuccess());
             KThread::Register(system.Kernel(), idle_thread);
 
-            schedulers[i]->Initialize(main_thread, idle_thread, core);
+            schedulers[i]->Initialize(system.Kernel(), main_thread, idle_thread, core);
         }
     }
 
@@ -247,19 +247,18 @@ struct KernelCore::Impl {
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::EventCountMax, 900).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::TransferMemoryCountMax, 200).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::SessionCountMax, 1133).IsSuccess());
-        system_resource_limit->Reserve(LimitableResource::PhysicalMemoryMax, kernel_size);
+        system_resource_limit->Reserve(kernel, LimitableResource::PhysicalMemoryMax, kernel_size);
 
         // Reserve secure applet memory, introduced in firmware 5.0.0
         constexpr u64 secure_applet_memory_size{4_MiB};
-        ASSERT(system_resource_limit->Reserve(LimitableResource::PhysicalMemoryMax,
-                                              secure_applet_memory_size));
+        ASSERT(system_resource_limit->Reserve(kernel, LimitableResource::PhysicalMemoryMax, secure_applet_memory_size));
     }
 
     void InitializePreemption(KernelCore& kernel) {
         preemption_event = Core::Timing::CreateEvent("PreemptionCallback", [this, &kernel](s64 time, std::chrono::nanoseconds) -> std::optional<std::chrono::nanoseconds> {
             {
                 KScopedSchedulerLock lock(kernel);
-                global_scheduler_context->PreemptThreads();
+                global_scheduler_context->PreemptThreads(kernel);
             }
             return std::nullopt;
         });
@@ -350,9 +349,9 @@ struct KernelCore::Impl {
         object_name_global_data.emplace(kernel);
     }
 
-    void MakeApplicationProcess(KProcess* process) {
+    void MakeApplicationProcess(KernelCore& kernel, KProcess* process) {
         application_process = process;
-        application_process->Open();
+        application_process->Open(kernel);
     }
 
     /// Sets the host thread ID for the caller.
@@ -374,10 +373,10 @@ struct KernelCore::Impl {
     // Gets the dummy KThread for the caller, allocating a new one if this is the first time
     KThread* GetHostDummyThread(ThreadLocalData& t, KThread* existing_thread) {
         if (t.thread == nullptr) {
-            auto const initialize{[](KThread* thread) {
-                ASSERT(KThread::InitializeDummyThread(thread, nullptr).IsSuccess());
+            auto const initialize = [this](KThread* thread) {
+                ASSERT(KThread::InitializeDummyThread(system, thread, nullptr).IsSuccess());
                 return thread;
-            }};
+            };
             t.raw_thread.emplace(system.Kernel());
             t.thread = existing_thread ? existing_thread : initialize(&*t.raw_thread);
             ASSERT(t.thread != nullptr);
@@ -418,8 +417,7 @@ struct KernelCore::Impl {
         return is_shutting_down.load(std::memory_order_relaxed);
     }
 
-    KThread* GetCurrentEmuThread() {
-        auto& t = tls_data;
+    KThread* GetCurrentEmuThread(ThreadLocalData& t) {
         return t.current_thread ? t.current_thread : (t.current_thread = GetHostDummyThread(t, nullptr));
     }
 
@@ -742,19 +740,19 @@ struct KernelCore::Impl {
         time_shared_mem = KSharedMemory::Create(system.Kernel());
         hidbus_shared_mem = KSharedMemory::Create(system.Kernel());
 
-        font_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
+        font_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                     Svc::MemoryPermission::Read, font_size);
         KSharedMemory::Register(kernel, font_shared_mem);
 
-        irs_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
+        irs_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                    Svc::MemoryPermission::Read, irs_size);
         KSharedMemory::Register(kernel, irs_shared_mem);
 
-        time_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
+        time_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                     Svc::MemoryPermission::Read, time_size);
         KSharedMemory::Register(kernel, time_shared_mem);
 
-        hidbus_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
+        hidbus_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                       Svc::MemoryPermission::Read, hidbus_size);
         KSharedMemory::Register(kernel, hidbus_shared_mem);
     }
@@ -852,7 +850,7 @@ void KernelCore::Initialize() {
 }
 
 void KernelCore::Shutdown() {
-    impl->Shutdown();
+    impl->Shutdown(*this);
 }
 
 void KernelCore::CloseServices() {
@@ -868,7 +866,7 @@ KResourceLimit* KernelCore::GetSystemResourceLimit() {
 }
 
 void KernelCore::AppendNewProcess(KProcess* process) {
-    process->Open();
+    process->Open(*this);
 
     std::scoped_lock lk{impl->process_list_lock};
     impl->process_list.push_back(process);
@@ -877,12 +875,12 @@ void KernelCore::AppendNewProcess(KProcess* process) {
 void KernelCore::RemoveProcess(KProcess* process) {
     std::scoped_lock lk{impl->process_list_lock};
     if (std::erase(impl->process_list, process)) {
-        process->Close();
+        process->Close(*this);
     }
 }
 
 void KernelCore::MakeApplicationProcess(KProcess* process) {
-    impl->MakeApplicationProcess(process);
+    impl->MakeApplicationProcess(*this, process);
 }
 
 KProcess* KernelCore::ApplicationProcess() {
@@ -896,11 +894,8 @@ const KProcess* KernelCore::ApplicationProcess() const {
 std::list<KScopedAutoObject<KProcess>> KernelCore::GetProcessList() {
     std::list<KScopedAutoObject<KProcess>> processes;
     std::scoped_lock lk{impl->process_list_lock};
-
-    for (auto* const process : impl->process_list) {
-        processes.emplace_back(process);
-    }
-
+    for (auto* const process : impl->process_list)
+        processes.emplace_back(*this, process);
     return processes;
 }
 
@@ -1029,15 +1024,14 @@ void KernelCore::RegisterHostThread(KThread* existing_thread) {
     }
 }
 
-static std::jthread RunHostThreadFunc(KernelCore& kernel, KProcess* process,
-                                      std::string&& thread_name, std::function<void()>&& func) {
+static std::jthread RunHostThreadFunc(KernelCore& kernel, KProcess* process, std::string&& thread_name, std::function<void()>&& func) {
     // Reserve a new thread from the process resource limit.
-    KScopedResourceReservation thread_reservation(process, LimitableResource::ThreadCountMax);
+    KScopedResourceReservation thread_reservation(kernel, process, LimitableResource::ThreadCountMax);
     ASSERT(thread_reservation.Succeeded());
 
     // Initialize the thread.
     KThread* thread = KThread::Create(kernel);
-    ASSERT(R_SUCCEEDED(KThread::InitializeDummyThread(thread, process)));
+    ASSERT(R_SUCCEEDED(KThread::InitializeDummyThread(kernel.System(), thread, process)));
 
     // Commit the thread reservation.
     thread_reservation.Commit();
@@ -1057,7 +1051,7 @@ static std::jthread RunHostThreadFunc(KernelCore& kernel, KProcess* process,
 
         // Close the thread.
         // This will free the process if it is the last reference.
-        thread->Close();
+        thread->Close(kernel);
     });
 }
 
@@ -1066,11 +1060,11 @@ std::jthread KernelCore::RunOnHostCoreProcess(std::string&& process_name,
     // Make a new process.
     KProcess* process = KProcess::Create(*this);
     ASSERT(R_SUCCEEDED(
-        process->Initialize(Svc::CreateProcessParameter{}, GetSystemResourceLimit(), false)));
+        process->Initialize(*this, Svc::CreateProcessParameter{}, GetSystemResourceLimit(), false)));
 
     // Ensure that we don't hold onto any extra references.
     SCOPE_EXIT {
-        process->Close();
+        process->Close(*this);
     };
 
     // Register the new process.
@@ -1096,18 +1090,18 @@ void KernelCore::RunOnGuestCoreProcess(std::string&& process_name, std::function
     // Make a new process.
     KProcess* process = KProcess::Create(*this);
     ASSERT(R_SUCCEEDED(
-        process->Initialize(Svc::CreateProcessParameter{}, GetSystemResourceLimit(), false)));
+        process->Initialize(*this, Svc::CreateProcessParameter{}, GetSystemResourceLimit(), false)));
 
     // Ensure that we don't hold onto any extra references.
     SCOPE_EXIT {
-        process->Close();
+        process->Close(*this);
     };
 
     // Register the new process.
     KProcess::Register(*this, process);
 
     // Reserve a new thread from the process resource limit.
-    KScopedResourceReservation thread_reservation(process, LimitableResource::ThreadCountMax);
+    KScopedResourceReservation thread_reservation(*this, process, LimitableResource::ThreadCountMax);
     ASSERT(thread_reservation.Succeeded());
 
     // Initialize the thread.
@@ -1122,7 +1116,7 @@ void KernelCore::RunOnGuestCoreProcess(std::string&& process_name, std::function
     KThread::Register(*this, thread);
 
     // Begin running the thread.
-    ASSERT(R_SUCCEEDED(thread->Run()));
+    ASSERT(R_SUCCEEDED(thread->Run(*this)));
 }
 
 u32 KernelCore::GetCurrentHostThreadID() const {
@@ -1130,7 +1124,7 @@ u32 KernelCore::GetCurrentHostThreadID() const {
 }
 
 KThread* KernelCore::GetCurrentEmuThread() const {
-    return impl->GetCurrentEmuThread();
+    return impl->GetCurrentEmuThread(Impl::tls_data);
 }
 
 void KernelCore::SetCurrentEmuThread(KThread* thread) {
@@ -1206,9 +1200,9 @@ void KernelCore::SuspendEmulation(bool suspended) {
 
         for (auto& thread : process->GetThreadList()) {
             if (should_suspend) {
-                thread.RequestSuspend(SuspendType::System);
+                thread.RequestSuspend(*this, SuspendType::System);
             } else {
-                thread.Resume(SuspendType::System);
+                thread.Resume(*this, SuspendType::System);
             }
         }
     }
@@ -1244,12 +1238,9 @@ void KernelCore::SuspendEmulation(bool suspended) {
 
 void KernelCore::ShutdownCores() {
     impl->TerminateAllProcesses();
-
     KScopedSchedulerLock lk{*this};
-
-    for (auto* thread : impl->shutdown_threads) {
-        void(thread->Run());
-    }
+    for (auto* thread : impl->shutdown_threads)
+        void(thread->Run(*this));
 }
 
 bool KernelCore::IsMulticore() const {

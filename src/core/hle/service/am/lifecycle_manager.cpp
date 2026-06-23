@@ -28,9 +28,9 @@ Event& LifecycleManager::GetHDCPStateChangedEvent() {
     return m_hdcp_state_changed_event;
 }
 
-void LifecycleManager::PushUnorderedMessage(AppletMessage message) {
+void LifecycleManager::PushUnorderedMessage(Kernel::KernelCore& kernel, AppletMessage message) {
     m_unordered_messages.push_back(message);
-    this->SignalSystemEventIfNeeded();
+    this->SignalSystemEventIfNeeded(kernel);
 }
 
 AppletMessage LifecycleManager::PopMessageInOrderOfPriority() {
@@ -144,36 +144,36 @@ bool LifecycleManager::ShouldSignalSystemEvent() {
            m_has_album_screen_shot_taken || m_has_album_recording_saved;
 }
 
-void LifecycleManager::OnOperationAndPerformanceModeChanged() {
+void LifecycleManager::OnOperationAndPerformanceModeChanged(Kernel::KernelCore& kernel) {
     if (m_operation_mode_changed_notification_enabled) {
         m_has_operation_mode_changed = true;
     }
     if (m_performance_mode_changed_notification_enabled) {
         m_has_performance_mode_changed = true;
     }
-    m_operation_mode_changed_system_event.Signal();
-    this->SignalSystemEventIfNeeded();
+    m_operation_mode_changed_system_event.Signal(kernel);
+    this->SignalSystemEventIfNeeded(kernel);
 }
 
-void LifecycleManager::SignalSystemEventIfNeeded() {
+void LifecycleManager::SignalSystemEventIfNeeded(Kernel::KernelCore& kernel) {
     // Check our cached value for the system event.
     const bool applet_message_available = m_applet_message_available;
 
     // If it's not current, we need to do an update, either clearing or signaling.
     if (applet_message_available != this->ShouldSignalSystemEvent()) {
         if (!applet_message_available) {
-            m_system_event.Signal();
+            m_system_event.Signal(kernel);
             m_applet_message_available = true;
         } else {
-            m_system_event.Clear();
+            m_system_event.Clear(kernel);
             m_applet_message_available = false;
         }
     }
 }
 
-bool LifecycleManager::PopMessage(AppletMessage* out_message) {
+bool LifecycleManager::PopMessage(Kernel::KernelCore& kernel, AppletMessage* out_message) {
     const auto message = this->PopMessageInOrderOfPriority();
-    this->SignalSystemEventIfNeeded();
+    this->SignalSystemEventIfNeeded(kernel);
 
     *out_message = message;
     return message != AppletMessage::None;

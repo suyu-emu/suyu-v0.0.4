@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -39,7 +42,7 @@ Result DeviceSession::Initialize(std::string_view name_, SampleFormat sample_for
     channel_count = channel_count_;
     session_id = session_id_;
     handle = handle_;
-    handle->Open();
+    handle->Open(system.Kernel());
     applet_resource_user_id = applet_resource_user_id_;
 
     if (type == Sink::StreamType::In) {
@@ -60,7 +63,7 @@ void DeviceSession::Finalize() {
     }
 
     if (handle) {
-        handle->Close();
+        handle->Close(system.Kernel());
         handle = nullptr;
     }
 }

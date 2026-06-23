@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -31,18 +34,18 @@ class KCodeMemory final
 public:
     explicit KCodeMemory(KernelCore& kernel);
 
-    Result Initialize(Core::DeviceMemory& device_memory, KProcessAddress address, size_t size);
-    void Finalize() override;
+    Result Initialize(KernelCore& kernel, Core::DeviceMemory& device_memory, KProcessAddress address, size_t size);
+    void Finalize(KernelCore& kernel) override;
 
-    Result Map(KProcessAddress address, size_t size);
-    Result Unmap(KProcessAddress address, size_t size);
-    Result MapToOwner(KProcessAddress address, size_t size, Svc::MemoryPermission perm);
-    Result UnmapFromOwner(KProcessAddress address, size_t size);
+    Result Map(KernelCore& kernel, KProcessAddress address, size_t size);
+    Result Unmap(KernelCore& kernel, KProcessAddress address, size_t size);
+    Result MapToOwner(KernelCore& kernel, KProcessAddress address, size_t size, Svc::MemoryPermission perm);
+    Result UnmapFromOwner(KernelCore& kernel, KProcessAddress address, size_t size);
 
     bool IsInitialized() const override {
         return m_is_initialized;
     }
-    static void PostDestroy(uintptr_t arg) {}
+    static void PostDestroy(KernelCore& kernel, uintptr_t arg) {}
 
     KProcess* GetOwner() const override {
         return m_owner;

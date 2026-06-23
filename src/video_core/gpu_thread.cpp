@@ -19,8 +19,9 @@
 
 namespace VideoCommon::GPUThread {
 
-ThreadManager::ThreadManager(Core::System& system_, bool is_async_)
-    : system{system_}, is_async{is_async_} {}
+ThreadManager::ThreadManager(Core::System& system_)
+    : system{system_}
+{}
 
 ThreadManager::~ThreadManager() = default;
 
@@ -39,7 +40,7 @@ void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Core::Fronten
                 break;
             }
             if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
-                scheduler.Push(submit_list->channel, std::move(submit_list->entries));
+                scheduler.Push(system.GPU(), submit_list->channel, std::move(submit_list->entries));
             } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
                 system.GPU().TickWork();
             } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
@@ -60,41 +61,40 @@ void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Core::Fronten
     });
 }
 
-void ThreadManager::SubmitList(s32 channel, Tegra::CommandList&& entries) {
-    PushCommand(SubmitListCommand(channel, std::move(entries)));
+void ThreadManager::SubmitList(s32 channel, Tegra::CommandList&& entries, bool is_async) {
+    PushCommand(SubmitListCommand(channel, std::move(entries)), false, is_async);
 }
 
-void ThreadManager::FlushRegion(DAddr addr, u64 size) {
+void ThreadManager::FlushRegion(DAddr addr, u64 size, bool is_async) {
     if (!is_async) {
         // Always flush with synchronous GPU mode
-        PushCommand(FlushRegionCommand(addr, size));
+        PushCommand(FlushRegionCommand(addr, size), false, is_async);
     }
-    return;
 }
 
-void ThreadManager::TickGPU() {
-    PushCommand(GPUTickCommand());
+void ThreadManager::TickGPU(bool is_async) {
+    PushCommand(GPUTickCommand(), false, is_async);
 }
 
 void ThreadManager::InvalidateRegion(DAddr addr, u64 size) {
     rasterizer->OnCacheInvalidation(addr, size);
 }
 
-void ThreadManager::FlushAndInvalidateRegion(DAddr addr, u64 size) {
+void ThreadManager::FlushAndInvalidateRegion(DAddr addr, u64 size, bool is_async) {
     if (Settings::IsGPULevelHigh()) {
         if (!is_async) {
-            PushCommand(FlushRegionCommand(addr, size));
+            PushCommand(FlushRegionCommand(addr, size), false, is_async);
         } else {
             auto& gpu = system.GPU();
             const u64 fence = gpu.RequestFlush(addr, size);
-            TickGPU();
+            TickGPU(is_async);
             gpu.WaitForSyncOperation(fence);
         }
     }
     rasterizer->OnCacheInvalidation(addr, size);
 }
 
-u64 ThreadManager::PushCommand(CommandData&& command_data, bool block) {
+u64 ThreadManager::PushCommand(CommandData&& command_data, bool block, bool is_async) {
     if (!is_async) {
         // In synchronous GPU mode, block the caller until the command has executed
         block = true;

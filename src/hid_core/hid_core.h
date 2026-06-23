@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,6 +10,10 @@
 
 #include "common/common_funcs.h"
 #include "hid_core/hid_types.h"
+
+namespace Kernel {
+class KernelCore;
+}
 
 namespace Core::HID {
 class EmulatedConsole;
@@ -18,7 +25,7 @@ namespace Core::HID {
 
 class HIDCore {
 public:
-    explicit HIDCore();
+    explicit HIDCore(Kernel::KernelCore& kernel);
     ~HIDCore();
 
     YUZU_NON_COPYABLE(HIDCore);
@@ -69,7 +76,6 @@ public:
     /// Number of emulated controllers
     static constexpr std::size_t available_controllers{10};
 
-private:
     std::unique_ptr<EmulatedController> player_1;
     std::unique_ptr<EmulatedController> player_2;
     std::unique_ptr<EmulatedController> player_3;
@@ -82,6 +88,7 @@ private:
     std::unique_ptr<EmulatedController> handheld;
     std::unique_ptr<EmulatedConsole> console;
     std::unique_ptr<EmulatedDevices> devices;
+    Kernel::KernelCore& kernel;
     NpadStyleTag supported_style_tag{NpadStyleSet::All};
     NpadIdType last_active_controller{NpadIdType::Handheld};
 };

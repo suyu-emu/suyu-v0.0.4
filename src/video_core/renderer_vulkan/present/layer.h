@@ -52,33 +52,31 @@ public:
                    const PresentFilters& filters);
     ~Layer();
 
-    void ConfigureDraw(PresentPushConstants* out_push_constants,
+    void ConfigureDraw(const Device& device, PresentPushConstants* out_push_constants,
                        VkDescriptorSet* out_descriptor_set, RasterizerVulkan& rasterizer,
                        VkSampler sampler, size_t image_index,
                        const Tegra::FramebufferConfig& framebuffer,
                        const Layout::FramebufferLayout& layout);
 
 private:
-    void CreateDescriptorPool();
-    void CreateDescriptorSets(VkDescriptorSetLayout layout);
-    void CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer);
-    void CreateRawImages(const Tegra::FramebufferConfig& framebuffer);
+    void CreateDescriptorPool(const Device& device);
+    void CreateDescriptorSets(const Device& device, VkDescriptorSetLayout layout);
+    void CreateStagingBuffer(const Device& device, const Tegra::FramebufferConfig& framebuffer);
+    void CreateRawImages(const Device& device, const Tegra::FramebufferConfig& framebuffer);
 
-    void RefreshResources(const Tegra::FramebufferConfig& framebuffer);
-    void SetAntiAliasPass();
+    void RefreshResources(const Device& device, const Tegra::FramebufferConfig& framebuffer);
+    void SetAntiAliasPass(const Device& device);
     void ReleaseRawImages();
 
     u64 CalculateBufferSize(const Tegra::FramebufferConfig& framebuffer) const;
     u64 GetRawImageOffset(const Tegra::FramebufferConfig& framebuffer, size_t image_index) const;
 
-    void SetMatrixData(PresentPushConstants& data, const Layout::FramebufferLayout& layout) const;
-    void SetVertexData(PresentPushConstants& data, const Layout::FramebufferLayout& layout,
-                       const Common::Rectangle<f32>& crop) const;
-    void UpdateDescriptorSet(VkImageView image_view, VkSampler sampler, size_t image_index);
+    void SetMatrixData(const Device& device, PresentPushConstants& data, const Layout::FramebufferLayout& layout) const;
+    void SetVertexData(const Device& device, PresentPushConstants& data, const Layout::FramebufferLayout& layout, const Common::Rectangle<f32>& crop) const;
+    void UpdateDescriptorSet(const Device& device, VkImageView image_view, VkSampler sampler, size_t image_index);
     void UpdateRawImage(const Tegra::FramebufferConfig& framebuffer, size_t image_index);
 
 private:
-    const Device& device;
     MemoryAllocator& memory_allocator;
     Scheduler& scheduler;
     Tegra::MaxwellDeviceMemoryManager& device_memory;

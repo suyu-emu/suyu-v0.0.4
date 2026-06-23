@@ -280,7 +280,7 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
 
     // Setup the process code layout
     if (process
-            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), image_size, fastmem_base, aslr_offset)
+            .LoadFromMetadata(system.Kernel(), FileSys::ProgramMetadata::GetDefault(), image_size, fastmem_base, aslr_offset)
             .IsError()) {
         return false;
     }
@@ -296,7 +296,7 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
 
     // Load codeset for current process
     codeset.memory = std::move(program_image);
-    process.LoadModule(std::move(codeset), process.GetEntryPoint());
+    process.LoadModule(system.Kernel(), std::move(codeset), process.GetEntryPoint());
     if (!argv_string.empty()) {
         constexpr u32 kEntryEndOfList = 0;
         constexpr u32 kEntryMainThreadHandle = 1;
@@ -314,19 +314,14 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
             {kEntryArgv,             0, {0, argv_addr}},
             {kEntryEndOfList,        0, {0, 0}},
         };
-        process.GetMemory().WriteBlock(Common::ProcessAddress{config_addr}, entries,
-                                       sizeof(entries));
-        process.GetMemory().WriteBlock(Common::ProcessAddress{argv_addr},
-                                       argv_string.data(), argv_string.size());
-
+        process.GetMemory().WriteBlock(Common::ProcessAddress{config_addr}, entries, sizeof(entries));
+        process.GetMemory().WriteBlock(Common::ProcessAddress{argv_addr}, argv_string.data(), argv_string.size());
         constexpr size_t kMainThreadHandleValueOffset = offsetof(ConfigEntry, value);
         process.SetArgPointer(Kernel::KProcessAddress{config_addr});
         if (exit_process_offset_in_image) {
-            process.SetArgReturnAddress(
-                Kernel::KProcessAddress{base + *exit_process_offset_in_image});
+            process.SetArgReturnAddress(Kernel::KProcessAddress{base + *exit_process_offset_in_image});
         }
-        process.SetMainThreadHandleAddr(
-            Kernel::KProcessAddress{config_addr + kMainThreadHandleValueOffset});
+        process.SetMainThreadHandleAddr(Kernel::KProcessAddress{config_addr + kMainThreadHandleValueOffset});
     }
 
     return true;

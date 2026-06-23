@@ -275,7 +275,7 @@ private:
         }
 
         state.store(State::Processing);
-        evt_processing->Signal();
+        evt_processing->Signal(system.Kernel());
 
         worker = std::thread([this]() {
             using namespace std::chrono_literals;
@@ -321,7 +321,7 @@ private:
     void Finish(Result rc) {
         worker_result.store(rc);
         state.store(State::Finished);
-        evt_scan_complete->Signal();
+        evt_scan_complete->Signal(system.Kernel());
     }
 
     KernelHelpers::ServiceContext svc_ctx;
@@ -486,7 +486,7 @@ private:
     void UpdateState(RequestState new_state) {
         LOG_DEBUG(Service_NIFM, "(STUBBED) called");
         state = new_state;
-        event1->Signal();
+        event1->Signal(system.Kernel());
     }
 
     KernelHelpers::ServiceContext service_context;

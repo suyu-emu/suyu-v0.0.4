@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -66,17 +69,17 @@ public:
         return m_acknowledged_focus_state;
     }
 
-    void SetFocusState(FocusState state) {
+    void SetFocusState(Kernel::KernelCore& kernel, FocusState state) {
         if (m_requested_focus_state != state) {
             m_has_focus_state_changed = true;
         }
         m_requested_focus_state = state;
-        this->SignalSystemEventIfNeeded();
+        this->SignalSystemEventIfNeeded(kernel);
     }
 
-    void RequestExit() {
+    void RequestExit(Kernel::KernelCore& kernel) {
         m_has_requested_exit = true;
-        this->SignalSystemEventIfNeeded();
+        this->SignalSystemEventIfNeeded(kernel);
     }
 
     void RequestResumeNotification() {
@@ -89,22 +92,22 @@ public:
         }
     }
 
-    void OnOperationAndPerformanceModeChanged();
+    void OnOperationAndPerformanceModeChanged(Kernel::KernelCore& kernel);
 
 public:
-    void SetFocusStateChangedNotificationEnabled(bool enabled) {
+    void SetFocusStateChangedNotificationEnabled(Kernel::KernelCore& kernel, bool enabled) {
         m_focus_state_changed_notification_enabled = enabled;
-        this->SignalSystemEventIfNeeded();
+        this->SignalSystemEventIfNeeded(kernel);
     }
 
-    void SetOperationModeChangedNotificationEnabled(bool enabled) {
+    void SetOperationModeChangedNotificationEnabled(Kernel::KernelCore& kernel, bool enabled) {
         m_operation_mode_changed_notification_enabled = enabled;
-        this->SignalSystemEventIfNeeded();
+        this->SignalSystemEventIfNeeded(kernel);
     }
 
-    void SetPerformanceModeChangedNotificationEnabled(bool enabled) {
+    void SetPerformanceModeChangedNotificationEnabled(Kernel::KernelCore& kernel, bool enabled) {
         m_performance_mode_changed_notification_enabled = enabled;
-        this->SignalSystemEventIfNeeded();
+        this->SignalSystemEventIfNeeded(kernel);
     }
 
     void SetResumeNotificationEnabled(bool enabled) {
@@ -129,11 +132,11 @@ public:
     void RemoveForceResumeIfPossible();
     bool IsRunnable() const;
     bool UpdateRequestedFocusState();
-    void SignalSystemEventIfNeeded();
+    void SignalSystemEventIfNeeded(Kernel::KernelCore& kernel);
 
 public:
-    void PushUnorderedMessage(AppletMessage message);
-    bool PopMessage(AppletMessage* out_message);
+    void PushUnorderedMessage(Kernel::KernelCore& kernel, AppletMessage message);
+    bool PopMessage(Kernel::KernelCore& kernel, AppletMessage* out_message);
 
 private:
     FocusState GetFocusStateWhileForegroundObscured() const;

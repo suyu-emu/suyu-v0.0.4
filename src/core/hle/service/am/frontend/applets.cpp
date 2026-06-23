@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cstring>
@@ -52,22 +52,22 @@ void FrontendApplet::Initialize() {
 
 std::shared_ptr<IStorage> FrontendApplet::PopInData() {
     std::shared_ptr<IStorage> ret;
-    applet.lock()->caller_applet_broker->GetInData().Pop(&ret);
+    applet.lock()->caller_applet_broker->GetInData().Pop(system.Kernel(), &ret);
     return ret;
 }
 
 std::shared_ptr<IStorage> FrontendApplet::PopInteractiveInData() {
     std::shared_ptr<IStorage> ret;
-    applet.lock()->caller_applet_broker->GetInteractiveInData().Pop(&ret);
+    applet.lock()->caller_applet_broker->GetInteractiveInData().Pop(system.Kernel(), &ret);
     return ret;
 }
 
 void FrontendApplet::PushOutData(std::shared_ptr<IStorage> storage) {
-    applet.lock()->caller_applet_broker->GetOutData().Push(storage);
+    applet.lock()->caller_applet_broker->GetOutData().Push(system.Kernel(), storage);
 }
 
 void FrontendApplet::PushInteractiveOutData(std::shared_ptr<IStorage> storage) {
-    applet.lock()->caller_applet_broker->GetInteractiveOutData().Push(storage);
+    applet.lock()->caller_applet_broker->GetInteractiveOutData().Push(system.Kernel(), storage);
 }
 
 void FrontendApplet::Exit() {
@@ -75,7 +75,7 @@ void FrontendApplet::Exit() {
 
     std::scoped_lock lk{applet_->lock};
     applet_->is_completed = true;
-    applet_->state_changed_event.Signal();
+    applet_->state_changed_event.Signal(system.Kernel());
 }
 
 FrontendAppletSet::FrontendAppletSet() = default;

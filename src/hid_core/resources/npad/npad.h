@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -61,37 +64,31 @@ public:
     void FreeAppletResourceId(u64 aruid);
 
     // When the controller is requesting an update for the shared memory
-    void OnUpdate(const Core::Timing::CoreTiming& core_timing);
+    void OnUpdate(Kernel::KernelCore& kernel, const Core::Timing::CoreTiming& core_timing);
 
-    Result SetSupportedNpadStyleSet(u64 aruid, Core::HID::NpadStyleSet supported_style_set);
-    Result GetSupportedNpadStyleSet(u64 aruid,
-                                    Core::HID::NpadStyleSet& out_supported_style_set) const;
-    Result GetMaskedSupportedNpadStyleSet(u64 aruid,
-                                          Core::HID::NpadStyleSet& out_supported_style_set) const;
-
-    Result SetSupportedNpadIdType(u64 aruid,
-                                  std::span<const Core::HID::NpadIdType> supported_npad_list);
+    Result SetSupportedNpadStyleSet(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadStyleSet supported_style_set);
+    Result GetSupportedNpadStyleSet(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadStyleSet& out_supported_style_set) const;
+    Result GetMaskedSupportedNpadStyleSet(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadStyleSet& out_supported_style_set) const;
+    Result SetSupportedNpadIdType(Kernel::KernelCore& kernel, u64 aruid, std::span<const Core::HID::NpadIdType> supported_npad_list);
 
     Result SetNpadJoyHoldType(u64 aruid, NpadJoyHoldType hold_type);
     Result GetNpadJoyHoldType(u64 aruid, NpadJoyHoldType& out_hold_type) const;
 
-    Result SetNpadHandheldActivationMode(u64 aruid, NpadHandheldActivationMode mode);
-    Result GetNpadHandheldActivationMode(u64 aruid, NpadHandheldActivationMode& out_mode) const;
+    Result SetNpadHandheldActivationMode(Kernel::KernelCore& kernel, u64 aruid, NpadHandheldActivationMode mode);
+    Result GetNpadHandheldActivationMode(Kernel::KernelCore& kernel, u64 aruid, NpadHandheldActivationMode& out_mode) const;
 
-    bool SetNpadMode(u64 aruid, Core::HID::NpadIdType& new_npad_id, Core::HID::NpadIdType npad_id,
+    bool SetNpadMode(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadIdType& new_npad_id, Core::HID::NpadIdType npad_id,
                      NpadJoyDeviceType npad_device_type, NpadJoyAssignmentMode assignment_mode);
 
-    Result AcquireNpadStyleSetUpdateEventHandle(u64 aruid, Kernel::KReadableEvent** out_event,
+    Result AcquireNpadStyleSetUpdateEventHandle(Kernel::KernelCore& kernel, u64 aruid, Kernel::KReadableEvent** out_event,
                                                 Core::HID::NpadIdType npad_id);
 
     // Adds a new controller at an index.
-    void AddNewControllerAt(u64 aruid, Core::HID::NpadStyleIndex controller,
-                            Core::HID::NpadIdType npad_id);
+    void AddNewControllerAt(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadStyleIndex controller, Core::HID::NpadIdType npad_id);
     // Adds a new controller at an index with connection status.
-    void UpdateControllerAt(u64 aruid, Core::HID::NpadStyleIndex controller,
-                            Core::HID::NpadIdType npad_id, bool connected);
+    void UpdateControllerAt(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadStyleIndex controller, Core::HID::NpadIdType npad_id, bool connected);
 
-    Result DisconnectNpad(u64 aruid, Core::HID::NpadIdType npad_id);
+    Result DisconnectNpad(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadIdType npad_id);
 
     Result IsFirmwareUpdateAvailableForSixAxisSensor(
         u64 aruid, const Core::HID::SixAxisSensorHandle& sixaxis_handle,
@@ -110,20 +107,18 @@ public:
     void ConnectAllDisconnectedControllers();
     void ClearAllControllers();
 
-    Result MergeSingleJoyAsDualJoy(u64 aruid, Core::HID::NpadIdType npad_id_1,
-                                   Core::HID::NpadIdType npad_id_2);
+    Result MergeSingleJoyAsDualJoy(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadIdType npad_id_1, Core::HID::NpadIdType npad_id_2);
     Result StartLrAssignmentMode(u64 aruid);
     Result StopLrAssignmentMode(u64 aruid);
-    Result SwapNpadAssignment(u64 aruid, Core::HID::NpadIdType npad_id_1,
-                              Core::HID::NpadIdType npad_id_2);
+    Result SwapNpadAssignment(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadIdType npad_id_1, Core::HID::NpadIdType npad_id_2);
 
     // Logical OR for all buttons presses on all controllers
     // Specifically for cheat engine and other features.
     Core::HID::NpadButton GetAndResetPressState();
 
-    Result ApplyNpadSystemCommonPolicy(u64 aruid);
-    Result ApplyNpadSystemCommonPolicyFull(u64 aruid);
-    Result ClearNpadSystemCommonPolicy(u64 aruid);
+    Result ApplyNpadSystemCommonPolicy(Kernel::KernelCore& kernel, u64 aruid);
+    Result ApplyNpadSystemCommonPolicyFull(Kernel::KernelCore& kernel, u64 aruid);
+    Result ClearNpadSystemCommonPolicy(Kernel::KernelCore& kernel, u64 aruid);
 
     void SetRevision(u64 aruid, NpadRevision revision);
     NpadRevision GetRevision(u64 aruid);
@@ -180,9 +175,9 @@ private:
         int callback_key{};
     };
 
-    void ControllerUpdate(Core::HID::ControllerTriggerType type, std::size_t controller_idx);
-    void InitNewlyAddedController(u64 aruid, Core::HID::NpadIdType npad_id);
-    void RequestPadStateUpdate(u64 aruid, Core::HID::NpadIdType npad_id);
+    void ControllerUpdate(Kernel::KernelCore& kernel, Core::HID::ControllerTriggerType type, std::size_t controller_idx);
+    void InitNewlyAddedController(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadIdType npad_id);
+    void RequestPadStateUpdate(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadIdType npad_id);
     void WriteEmptyEntry(NpadInternalState* npad);
 
     NpadControllerData& GetControllerFromHandle(
@@ -209,7 +204,6 @@ private:
     NpadVibration vibration_handler{};
 
     std::atomic<u64> press_state{};
-    std::array<std::array<NpadControllerData, MaxSupportedNpadIdTypes>, AruidIndexMax>
-        controller_data{};
+    std::array<std::array<NpadControllerData, MaxSupportedNpadIdTypes>, AruidIndexMax> controller_data{};
 };
 } // namespace Service::HID

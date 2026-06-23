@@ -45,23 +45,23 @@ std::unique_ptr<VideoCore::RendererBase> CreateRenderer(Core::System& system, Co
 
 namespace VideoCore {
 
-std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Core::System& system) {
+/// @brief Creates an emulated GPU instance using the given system context.
+void CreateGPU(std::optional<Tegra::GPU>& gpu, Core::Frontend::EmuWindow& emu_window, Core::System& system) {
     Settings::UpdateRescalingInfo();
 
     const auto nvdec_value = Settings::values.nvdec_emulation.GetValue();
     const bool use_nvdec = nvdec_value != Settings::NvdecEmulation::Off;
     const bool use_async = Settings::values.use_asynchronous_gpu_emulation.GetValue();
-    auto gpu = std::make_unique<Tegra::GPU>(system, use_async, use_nvdec);
+    gpu.emplace(system, use_async, use_nvdec);
     auto context = emu_window.CreateSharedContext();
     auto scope = context->Acquire();
     try {
         auto renderer = CreateRenderer(system, emu_window, *gpu, std::move(context));
         gpu->BindRenderer(std::move(renderer));
-        return gpu;
     } catch (const std::runtime_error& exception) {
         scope.Cancel();
         LOG_ERROR(HW_GPU, "Failed to initialize GPU: {}", exception.what());
-        return nullptr;
+        gpu.reset();
     }
 }
 

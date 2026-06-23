@@ -323,13 +323,13 @@ void GDBStub::HandleBreakpointInsert(std::string_view command) {
         success = true;
         break;
     case BreakpointType::WriteWatch:
-        success = debug_process->InsertWatchpoint(addr, size, Kernel::DebugWatchpointType::Write);
+        success = debug_process->InsertWatchpoint(system.Kernel(), addr, size, Kernel::DebugWatchpointType::Write);
         break;
     case BreakpointType::ReadWatch:
-        success = debug_process->InsertWatchpoint(addr, size, Kernel::DebugWatchpointType::Read);
+        success = debug_process->InsertWatchpoint(system.Kernel(), addr, size, Kernel::DebugWatchpointType::Read);
         break;
     case BreakpointType::AccessWatch:
-        success = debug_process->InsertWatchpoint(addr, size, Kernel::DebugWatchpointType::ReadOrWrite);
+        success = debug_process->InsertWatchpoint(system.Kernel(), addr, size, Kernel::DebugWatchpointType::ReadOrWrite);
         break;
     case BreakpointType::Hardware:
     default:
@@ -368,13 +368,13 @@ void GDBStub::HandleBreakpointRemove(std::string_view sv) {
         break;
     }
     case BreakpointType::WriteWatch:
-        success = debug_process->RemoveWatchpoint(addr, size, Kernel::DebugWatchpointType::Write);
+        success = debug_process->RemoveWatchpoint(system.Kernel(), addr, size, Kernel::DebugWatchpointType::Write);
         break;
     case BreakpointType::ReadWatch:
-        success = debug_process->RemoveWatchpoint(addr, size, Kernel::DebugWatchpointType::Read);
+        success = debug_process->RemoveWatchpoint(system.Kernel(), addr, size, Kernel::DebugWatchpointType::Read);
         break;
     case BreakpointType::AccessWatch:
-        success = debug_process->RemoveWatchpoint(addr, size, Kernel::DebugWatchpointType::ReadOrWrite);
+        success = debug_process->RemoveWatchpoint(system.Kernel(), addr, size, Kernel::DebugWatchpointType::ReadOrWrite);
         break;
     case BreakpointType::Hardware:
     default:

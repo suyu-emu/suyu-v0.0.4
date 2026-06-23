@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -26,7 +29,6 @@ public:
 
     void CloseEvent(Kernel::KEvent* event);
 
-private:
     Kernel::KernelCore& kernel;
     Kernel::KProcess* process{};
     bool process_created{false};

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -43,20 +46,20 @@ public:
     explicit KLightSession(KernelCore& kernel);
     ~KLightSession();
 
-    void Initialize(KClientPort* client_port, uintptr_t name);
-    void Finalize() override;
+    void Initialize(KernelCore& kernel, KClientPort* client_port, uintptr_t name);
+    void Finalize(KernelCore& kernel) override;
 
     bool IsInitialized() const override {
         return m_initialized;
     }
     uintptr_t GetPostDestroyArgument() const override {
-        return reinterpret_cast<uintptr_t>(m_process);
+        return uintptr_t(m_process);
     }
 
-    static void PostDestroy(uintptr_t arg);
+    static void PostDestroy(KernelCore& kernel, uintptr_t arg);
 
-    void OnServerClosed();
-    void OnClientClosed();
+    void OnServerClosed(KernelCore& kernel);
+    void OnClientClosed(KernelCore& kernel);
 
     bool IsServerClosed() const {
         return m_state != State::Normal;
@@ -65,8 +68,8 @@ public:
         return m_state != State::Normal;
     }
 
-    Result OnRequest(KThread* request_thread) {
-        R_RETURN(m_server.OnRequest(request_thread));
+    Result OnRequest(KernelCore& kernel, KThread* request_thread) {
+        R_RETURN(m_server.OnRequest(kernel, request_thread));
     }
 
     KLightClientSession& GetClientSession() {

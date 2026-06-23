@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,29 +10,16 @@
 
 #include "core/hle/kernel/k_code_memory.h"
 
+namespace Kernel {
+class KernelCore;
+}
+
 namespace Service::JIT {
 
 class CodeMemory {
 public:
-    YUZU_NON_COPYABLE(CodeMemory);
-
-    explicit CodeMemory() = default;
-
-    CodeMemory(CodeMemory&& rhs) {
-        std::swap(m_code_memory, rhs.m_code_memory);
-        std::swap(m_size, rhs.m_size);
-        std::swap(m_address, rhs.m_address);
-        std::swap(m_perm, rhs.m_perm);
-    }
-
-    ~CodeMemory() {
-        this->Finalize();
-    }
-
-public:
-    Result Initialize(Kernel::KProcess& process, Kernel::KCodeMemory& code_memory, size_t size,
-                      Kernel::Svc::MemoryPermission perm, std::mt19937_64& generate_random);
-    void Finalize();
+    Result Initialize(Kernel::KernelCore& kernel, Kernel::KProcess& process, Kernel::KCodeMemory& code_memory, size_t size, Kernel::Svc::MemoryPermission perm, std::mt19937_64& generate_random);
+    void Finalize(Kernel::KernelCore& kernel);
 
     size_t GetSize() const {
         return m_size;
@@ -39,7 +29,6 @@ public:
         return m_address;
     }
 
-private:
     Kernel::KCodeMemory* m_code_memory{};
     size_t m_size{};
     u64 m_address{};

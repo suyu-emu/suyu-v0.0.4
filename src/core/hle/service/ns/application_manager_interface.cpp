@@ -610,7 +610,7 @@ Result IApplicationManagerInterface::GetApplicationRecordUpdateSystemEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_NS, "(STUBBED) called");
 
-    record_update_system_event.Signal();
+    record_update_system_event.Signal(system.Kernel());
     *out_event = record_update_system_event.GetHandle();
 
     R_SUCCEED();
@@ -820,14 +820,14 @@ Result IApplicationManagerInterface::RequestDownloadApplicationControlDataInBack
     LOG_INFO(Service_NS, "called, control_source={} app={:016X}",
              control_source, application_id);
 
-    unknown_event.Signal();
+    unknown_event.Signal(system.Kernel());
     R_SUCCEED();
 }
 
 Result IApplicationManagerInterface::Unknown4022(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_NS, "(STUBBED) called");
-    unknown_event.Signal();
+    unknown_event.Signal(system.Kernel());
     *out_event = unknown_event.GetHandle();
     R_SUCCEED();
 }

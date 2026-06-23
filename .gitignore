@@ -7,7 +7,6 @@
 # Build directory
 /[Bb]uild*/
 doc-build/
-out/
 AppDir/
 uruntime
 

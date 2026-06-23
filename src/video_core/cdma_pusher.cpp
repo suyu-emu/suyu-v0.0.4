@@ -20,8 +20,7 @@
 namespace Tegra {
 
 CDmaPusher::CDmaPusher(Host1x::Host1x& host1x_, s32 id)
-    : host_processor(host1x_)
-    , host1x{host1x_}
+    : host1x{host1x_}
     , current_class{ChClassId(id)}
 {
     thread = std::jthread([this](std::stop_token stop_token) {
@@ -99,7 +98,7 @@ void CDmaPusher::ExecuteCommand(u32 method, u32 arg) {
     switch (current_class) {
     case ChClassId::Control:
         LOG_TRACE(Service_NVDRV, "Class {} method {:#X} arg 0x{:X}", u32(current_class), method, arg);
-        host_processor.ProcessMethod(Host1x::Control::Method(method), arg);
+        host_processor.ProcessMethod(host1x, Host1x::Control::Method(method), arg);
         break;
     default:
         thi_regs.reg_array[method] = arg;

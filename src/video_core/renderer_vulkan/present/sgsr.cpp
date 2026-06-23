@@ -20,8 +20,7 @@ namespace Vulkan {
 using PushConstants = std::array<u32, 4 + 2 + 1>;
 
 SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count, VkExtent2D extent, bool edge_dir)
-    : m_device{device}
-    , m_memory_allocator{memory_allocator}
+    : m_memory_allocator{memory_allocator}
     , m_image_count{image_count}
     , m_extent{extent}
     , m_edge_dir{edge_dir}
@@ -30,21 +29,21 @@ SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image
     m_dynamic_images.resize(m_image_count);
     for (auto& images : m_dynamic_images) {
         images.image = CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
-        images.image_view = CreateWrappedImageView(m_device, images.image, VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.image_view = CreateWrappedImageView(device, images.image, VK_FORMAT_R16G16B16A16_SFLOAT);
     }
 
-    m_renderpass = CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16B16A16_SFLOAT);
+    m_renderpass = CreateWrappedRenderPass(device, VK_FORMAT_R16G16B16A16_SFLOAT);
     for (auto& images : m_dynamic_images)
-        images.framebuffer = CreateWrappedFramebuffer(m_device, m_renderpass, images.image_view, m_extent);
+        images.framebuffer = CreateWrappedFramebuffer(device, m_renderpass, images.image_view, m_extent);
 
-    m_sampler = CreateBilinearSampler(m_device);
-    m_vert_shader = BuildShader(m_device, SGSR1_SHADER_VERT_SPV);
+    m_sampler = CreateBilinearSampler(device);
+    m_vert_shader = BuildShader(device, SGSR1_SHADER_VERT_SPV);
     m_stage_shader = m_edge_dir
-        ? BuildShader(m_device, SGSR1_SHADER_MOBILE_EDGE_DIRECTION_FRAG_SPV)
-        : BuildShader(m_device, SGSR1_SHADER_MOBILE_FRAG_SPV);
+        ? BuildShader(device, SGSR1_SHADER_MOBILE_EDGE_DIRECTION_FRAG_SPV)
+        : BuildShader(device, SGSR1_SHADER_MOBILE_FRAG_SPV);
     // 2 descriptors, 2 descriptor sets per invocation
-    m_descriptor_pool = CreateWrappedDescriptorPool(m_device,  m_image_count, m_image_count);
-    m_descriptor_set_layout = CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
+    m_descriptor_pool = CreateWrappedDescriptorPool(device,  m_image_count, m_image_count);
+    m_descriptor_set_layout = CreateWrappedDescriptorSetLayout(device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 
     VkDescriptorSetLayout layout = *m_descriptor_set_layout;
     for (auto& images : m_dynamic_images)
@@ -64,20 +63,20 @@ SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image
         .pushConstantRangeCount = 1,
         .pPushConstantRanges = &range,
     };
-    m_pipeline_layout = m_device.GetLogical().CreatePipelineLayout(ci);
-    m_stage_pipeline = CreateWrappedPipeline(m_device, m_renderpass, m_pipeline_layout, std::tie(m_vert_shader, m_stage_shader));
+    m_pipeline_layout = device.GetLogical().CreatePipelineLayout(ci);
+    m_stage_pipeline = CreateWrappedPipeline(device, m_renderpass, m_pipeline_layout, std::tie(m_vert_shader, m_stage_shader));
 }
 
-void SGSR::UpdateDescriptorSets(VkImageView image_view, size_t image_index) {
+void SGSR::UpdateDescriptorSets(const Device& device, VkImageView image_view, size_t image_index) {
     Images& images = m_dynamic_images[image_index];
     std::vector<VkDescriptorImageInfo> image_infos;
     std::vector<VkWriteDescriptorSet> updates;
     image_infos.reserve(1);
     updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, image_view, images.descriptor_sets[0], 0));
-    m_device.GetLogical().UpdateDescriptorSets(updates, {});
+    device.GetLogical().UpdateDescriptorSets(updates, {});
 }
 
-void SGSR::UploadImages(Scheduler& scheduler) {
+void SGSR::UploadImages(const Device& device, Scheduler& scheduler) {
     if (!m_images_ready) {
         scheduler.Record([&](vk::CommandBuffer cmdbuf) {
             for (auto& image : m_dynamic_images)
@@ -88,7 +87,7 @@ void SGSR::UploadImages(Scheduler& scheduler) {
     }
 }
 
-VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_image, VkImageView source_image_view, VkExtent2D input_image_extent, const Common::Rectangle<f32>& crop_rect) {
+VkImageView SGSR::Draw(const Device& device, Scheduler& scheduler, size_t image_index, VkImage source_image, VkImageView source_image_view, VkExtent2D input_image_extent, const Common::Rectangle<f32>& crop_rect) {
     Images& images = m_dynamic_images[image_index];
     auto const output_image = *images.image;
     auto const descriptor_set = images.descriptor_sets[0];
@@ -122,8 +121,8 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     viewport_con[5] = std::bit_cast<u32>(viewport_height / input_image_height);
     viewport_con[6] = std::bit_cast<u32>(sharpening);
 
-    UploadImages(scheduler);
-    UpdateDescriptorSets(source_image_view, image_index);
+    UploadImages(device, scheduler);
+    UpdateDescriptorSets(device, source_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([=](vk::CommandBuffer cmdbuf) {

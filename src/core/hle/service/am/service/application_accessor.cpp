@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -69,7 +69,7 @@ Result IApplicationAccessor::RequestExit() {
 
     std::scoped_lock lk{m_applet->lock};
     if (m_applet->exit_locked) {
-        m_applet->lifecycle_manager.RequestExit();
+        m_applet->lifecycle_manager.RequestExit(system.Kernel());
         m_applet->UpdateSuspensionStateLocked(true);
     } else {
         m_applet->process->Terminate();

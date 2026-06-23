@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -70,7 +70,7 @@ Result IBcatService::RequestSyncDeliveryCache(
     LOG_DEBUG(Service_BCAT, "called");
 
     auto& progress_backend{GetProgressBackend(SyncType::Normal)};
-    backend.Synchronize({system.GetApplicationProcessProgramID(),
+    backend.Synchronize(system.Kernel(), {system.GetApplicationProcessProgramID(),
                          GetCurrentBuildID(system.GetApplicationProcessBuildID())},
                         GetProgressBackend(SyncType::Normal));
 
@@ -86,7 +86,7 @@ Result IBcatService::RequestSyncDeliveryCacheWithDirectoryName(
     LOG_DEBUG(Service_BCAT, "called, name={}", name);
 
     auto& progress_backend{GetProgressBackend(SyncType::Directory)};
-    backend.SynchronizeDirectory({system.GetApplicationProcessProgramID(),
+    backend.SynchronizeDirectory(system.Kernel(), {system.GetApplicationProcessProgramID(),
                                   GetCurrentBuildID(system.GetApplicationProcessBuildID())},
                                  name, progress_backend);
 
@@ -107,7 +107,7 @@ Result IBcatService::SetPassphrase(u64 application_id,
     std::memcpy(passphrase.data(), passphrase_buffer.data(),
                 (std::min)(passphrase.size(), passphrase_buffer.size()));
 
-    backend.SetPassphrase(application_id, passphrase);
+    backend.SetPassphrase(system.Kernel(), application_id, passphrase);
     R_SUCCEED();
 }
 
@@ -120,7 +120,7 @@ Result IBcatService::ClearDeliveryCacheStorage(u64 application_id) {
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}", application_id);
 
     R_UNLESS(application_id != 0, ResultInvalidArgument);
-    R_UNLESS(backend.Clear(application_id), FileSys::ResultPermissionDenied);
+    R_UNLESS(backend.Clear(system.Kernel(), application_id), FileSys::ResultPermissionDenied);
     R_SUCCEED();
 }
 

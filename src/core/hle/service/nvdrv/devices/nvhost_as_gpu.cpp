@@ -138,8 +138,7 @@ NvResult nvhost_as_gpu::AllocAsEx(IoctlAllocAsEx& params) {
         static_cast<u32>((vm.va_range_end - vm.va_range_split) >> vm.big_page_size_bits)};
     vm.big_page_allocator.emplace(start_big_pages, end_big_pages);
 
-    gmmu = std::make_shared<Tegra::MemoryManager>(system, max_big_page_bits, vm.va_range_split,
-                                                  vm.big_page_size_bits, VM::PAGE_SIZE_BITS);
+    gmmu = std::make_unique<Tegra::MemoryManager>(system, max_big_page_bits, vm.va_range_split, vm.big_page_size_bits, VM::PAGE_SIZE_BITS);
     system.GPU().InitAddressSpace(*gmmu);
     vm.initialised = true;
 
@@ -416,7 +415,7 @@ NvResult nvhost_as_gpu::BindChannel(IoctlBindChannel& params) {
     LOG_DEBUG(Service_NVDRV, "called, fd={:X}", params.fd);
 
     auto gpu_channel_device = module.GetDevice<nvhost_gpu>(params.fd);
-    gpu_channel_device->channel_state->memory_manager = gmmu;
+    gpu_channel_device->channel_state->memory_manager = gmmu.get();
     return NvResult::Success;
 }
 

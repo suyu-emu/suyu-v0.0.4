@@ -14,8 +14,9 @@
 
 namespace Tegra::Engines {
 
-KeplerMemory::KeplerMemory(Core::System& system_, MemoryManager& memory_manager)
-    : system{system_}, upload_state{memory_manager, regs.upload} {}
+KeplerMemory::KeplerMemory(MemoryManager& memory_manager)
+    : upload_state{memory_manager, regs.upload}
+{}
 
 KeplerMemory::~KeplerMemory() = default;
 
@@ -27,16 +28,15 @@ void KeplerMemory::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
     execution_mask[KEPLERMEMORY_REG_INDEX(data)] = true;
 }
 
-void KeplerMemory::ConsumeSinkImpl() {
+void KeplerMemory::ConsumeSinkImpl(Core::System& system) {
     for (auto [method, value] : method_sink) {
         regs.reg_array[method] = value;
     }
     method_sink.clear();
 }
 
-void KeplerMemory::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
-    ASSERT_MSG(method < Regs::NUM_REGS,
-               "Invalid KeplerMemory register, increase the size of the Regs structure");
+void KeplerMemory::CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) {
+    ASSERT_MSG(method < Regs::NUM_REGS, "Invalid KeplerMemory register, increase the size of the Regs structure");
 
     regs.reg_array[method] = method_argument;
 
@@ -52,15 +52,14 @@ void KeplerMemory::CallMethod(u32 method, u32 method_argument, bool is_last_call
     }
 }
 
-void KeplerMemory::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
-                                   u32 methods_pending) {
+void KeplerMemory::CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) {
     switch (method) {
     case KEPLERMEMORY_REG_INDEX(data):
         upload_state.ProcessData(base_start, amount);
         return;
     default:
         for (u32 i = 0; i < amount; i++) {
-            CallMethod(method, base_start[i], methods_pending - i <= 1);
+            CallMethod(system, method, base_start[i], methods_pending - i <= 1);
         }
         break;
     }

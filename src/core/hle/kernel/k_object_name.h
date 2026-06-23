@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -41,7 +44,7 @@ public:
         R_UNLESS(derived != nullptr, ResultNotFound);
 
         // Check that the object is closed.
-        R_UNLESS(derived->IsServerClosed(), ResultInvalidState);
+        R_UNLESS(derived->IsServerClosed(kernel), ResultInvalidState);
 
         R_RETURN(Delete(kernel, obj.GetPointerUnsafe(), name));
     }
@@ -49,13 +52,13 @@ public:
     template <typename Derived>
         requires(std::derived_from<Derived, KAutoObject>)
     static KScopedAutoObject<Derived> Find(KernelCore& kernel, const char* name) {
-        return Find(kernel, name);
+        return {kernel, static_cast<Derived*>(Find(kernel, name).GetPointerUnsafe())};
     }
 
 private:
     static KScopedAutoObject<KAutoObject> FindImpl(KernelCore& kernel, const char* name);
 
-    void Initialize(KAutoObject* obj, const char* name);
+    void Initialize(KernelCore& kernel, KAutoObject* obj, const char* name);
 
     bool MatchesName(const char* name) const;
     KAutoObject* GetObject() const {

@@ -30,7 +30,7 @@ using Shader::ImageBufferDescriptor;
 using Shader::Backend::SPIRV::RESCALING_LAYOUT_WORDS_OFFSET;
 using Tegra::Texture::TexturePair;
 
-ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipeline_cache_,
+ComputePipeline::ComputePipeline(const Device& device_, Scheduler& scheduler, vk::PipelineCache& pipeline_cache_,
                                  DescriptorPool& descriptor_pool,
                                  GuestDescriptorQueue& guest_descriptor_queue_,
                                  Common::ThreadWorker* thread_worker,
@@ -46,7 +46,7 @@ ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipel
     std::copy_n(info.constant_buffer_used_sizes.begin(), uniform_buffer_sizes.size(),
                 uniform_buffer_sizes.begin());
 
-    auto func{[this, &descriptor_pool, shader_notify, pipeline_statistics] {
+    auto func{[this, &scheduler, &descriptor_pool, shader_notify, pipeline_statistics] {
         DescriptorLayoutBuilder builder{device};
         builder.Add(info, VK_SHADER_STAGE_COMPUTE_BIT);
 
@@ -56,7 +56,7 @@ ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipel
         descriptor_update_template =
             builder.CreateTemplate(*descriptor_set_layout, *pipeline_layout, uses_push_descriptor);
         if (!uses_push_descriptor) {
-            descriptor_allocator = descriptor_pool.Allocator(*descriptor_set_layout, info);
+            descriptor_allocator = descriptor_pool.Allocator(device, scheduler, *descriptor_set_layout, info);
         }
         const VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT,
@@ -94,7 +94,7 @@ ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipel
         }
 
         if (pipeline_statistics) {
-            pipeline_statistics->Collect(*pipeline);
+            pipeline_statistics->Collect(device, *pipeline);
         }
         std::scoped_lock lock{build_mutex};
         is_built = true;

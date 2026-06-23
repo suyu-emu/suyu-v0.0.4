@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -56,7 +59,7 @@ public:
         };
 
     public:
-        explicit SessionMappings(KernelCore& kernel) : m_kernel(kernel) {}
+        explicit SessionMappings(KernelCore& kernel_) : kernel(kernel_) {}
 
         void Initialize() {}
         void Finalize();
@@ -155,7 +158,7 @@ public:
         }
 
     private:
-        KernelCore& m_kernel;
+        KernelCore& kernel;
         std::array<Mapping, NumStaticMappings> m_static_mappings{};
         Mapping* m_mappings{};
         u8 m_num_send{};
@@ -174,26 +177,26 @@ public:
         return req;
     }
 
-    void Destroy() override {
-        this->Finalize();
-        KSessionRequest::Free(m_kernel, this);
+    void Destroy(KernelCore& kernel) override {
+        this->Finalize(kernel);
+        KSessionRequest::Free(kernel, this);
     }
 
-    void Initialize(KEvent* event, uintptr_t address, size_t size) {
+    void Initialize(KernelCore& kernel, KEvent* event, uintptr_t address, size_t size) {
         m_mappings.Initialize();
 
-        m_thread = GetCurrentThreadPointer(m_kernel);
+        m_thread = GetCurrentThreadPointer(kernel);
         m_event = event;
         m_address = address;
         m_size = size;
 
-        m_thread->Open();
+        m_thread->Open(kernel);
         if (m_event != nullptr) {
-            m_event->Open();
+            m_event->Open(kernel);
         }
     }
 
-    static void PostDestroy(uintptr_t arg) {}
+    static void PostDestroy(KernelCore& kernel, uintptr_t arg) {}
 
     KThread* GetThread() const {
         return m_thread;
@@ -211,9 +214,9 @@ public:
         return m_server;
     }
 
-    void SetServerProcess(KProcess* process) {
+    void SetServerProcess(KernelCore& kernel, KProcess* process) {
         m_server = process;
-        m_server->Open();
+        m_server->Open(kernel);
     }
 
     void ClearThread() {
@@ -289,17 +292,16 @@ public:
 
 private:
     // NOTE: This is public and virtual in Nintendo's kernel.
-    void Finalize() override {
+    void Finalize(KernelCore& kernel) override {
         m_mappings.Finalize();
-
         if (m_thread) {
-            m_thread->Close();
+            m_thread->Close(kernel);
         }
         if (m_event) {
-            m_event->Close();
+            m_event->Close(kernel);
         }
         if (m_server) {
-            m_server->Close();
+            m_server->Close(kernel);
         }
     }
 

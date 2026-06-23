@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,14 +27,13 @@ public:
         KThread* thread{};
     };
 
-    static Result Wait(KernelCore& kernel, s32* out_index, KSynchronizationObject** objects,
-                       const s32 num_objects, s64 timeout);
+    static Result Wait(KernelCore& kernel, s32* out_index, KSynchronizationObject** objects, const s32 num_objects, s64 timeout);
 
-    void Finalize() override;
+    void Finalize(KernelCore& kernel) override;
 
-    virtual bool IsSignaled() const = 0;
+    virtual bool IsSignaled(KernelCore& kernel) const = 0;
 
-    std::vector<KThread*> GetWaitingThreadsForDebugging() const;
+    std::vector<KThread*> GetWaitingThreadsForDebugging(KernelCore& kernel) const;
 
     void LinkNode(ThreadListNode* node_) {
         // Link the node to the list.
@@ -71,9 +73,9 @@ protected:
 
     virtual void OnFinalizeSynchronizationObject() {}
 
-    void NotifyAvailable(Result result);
-    void NotifyAvailable() {
-        return this->NotifyAvailable(ResultSuccess);
+    void NotifyAvailable(KernelCore& kernel, Result result);
+    void NotifyAvailable(KernelCore& kernel) {
+        return this->NotifyAvailable(kernel, ResultSuccess);
     }
 
 private:

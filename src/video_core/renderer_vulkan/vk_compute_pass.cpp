@@ -234,7 +234,7 @@ struct ConditionalRenderingResolvePushConstants {
 };
 } // Anonymous namespace
 
-ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
+ComputePass::ComputePass(const Device& device_, Scheduler& scheduler, DescriptorPool& descriptor_pool,
                          vk::Span<VkDescriptorSetLayoutBinding> bindings,
                          vk::Span<VkDescriptorUpdateTemplateEntry> templates,
                          const DescriptorBankInfo& bank_info,
@@ -270,7 +270,7 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
             .pipelineLayout = *layout,
             .set = 0,
         });
-        descriptor_allocator = descriptor_pool.Allocator(*descriptor_set_layout, bank_info);
+        descriptor_allocator = descriptor_pool.Allocator(device, scheduler, *descriptor_set_layout, bank_info);
     }
     if (code.empty()) {
         return;
@@ -313,7 +313,7 @@ ComputePass::~ComputePass() = default;
 Uint8Pass::Uint8Pass(const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool,
                      StagingBufferPool& staging_buffer_pool_,
                      ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
-    : ComputePass(device_, descriptor_pool, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
+    : ComputePass(device_, scheduler_, descriptor_pool, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
                   INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO, {},
                   VULKAN_UINT8_COMP_SPV),
       scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
@@ -355,7 +355,7 @@ QuadIndexedPass::QuadIndexedPass(const Device& device_, Scheduler& scheduler_,
                                  DescriptorPool& descriptor_pool_,
                                  StagingBufferPool& staging_buffer_pool_,
                                  ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
-    : ComputePass(device_, descriptor_pool_, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
+    : ComputePass(device_, scheduler_, descriptor_pool_, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
                   INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO,
                   COMPUTE_PUSH_CONSTANT_RANGE<sizeof(u32) * 3>, VULKAN_QUAD_INDEXED_COMP_SPV),
       scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
@@ -416,7 +416,7 @@ std::pair<VkBuffer, VkDeviceSize> QuadIndexedPass::Assemble(
 ConditionalRenderingResolvePass::ConditionalRenderingResolvePass(
     const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
     ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
-    : ComputePass(device_, descriptor_pool_, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
+    : ComputePass(device_, scheduler_, descriptor_pool_, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
                   INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO,
                   COMPUTE_PUSH_CONSTANT_RANGE<sizeof(ConditionalRenderingResolvePushConstants)>,
                   RESOLVE_CONDITIONAL_RENDER_COMP_SPV),
@@ -470,7 +470,7 @@ QueriesPrefixScanPass::QueriesPrefixScanPass(
     const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
     ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
     : ComputePass(
-          device_, descriptor_pool_, QUERIES_SCAN_DESCRIPTOR_SET_BINDINGS,
+          device_, scheduler_, descriptor_pool_, QUERIES_SCAN_DESCRIPTOR_SET_BINDINGS,
           QUERIES_SCAN_DESCRIPTOR_UPDATE_TEMPLATE, QUERIES_SCAN_BANK_INFO,
           COMPUTE_PUSH_CONSTANT_RANGE<sizeof(QueriesPrefixScanPushConstants)>,
           device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_BASIC_BIT) &&
@@ -547,7 +547,7 @@ ASTCDecoderPass::ASTCDecoderPass(const Device& device_, Scheduler& scheduler_,
                                  StagingBufferPool& staging_buffer_pool_,
                                  ComputePassDescriptorQueue& compute_pass_descriptor_queue_,
                                  MemoryAllocator& memory_allocator_)
-    : ComputePass(device_, descriptor_pool_, ASTC_DESCRIPTOR_SET_BINDINGS,
+    : ComputePass(device_, scheduler_, descriptor_pool_, ASTC_DESCRIPTOR_SET_BINDINGS,
                   ASTC_PASS_DESCRIPTOR_UPDATE_TEMPLATE_ENTRY, ASTC_BANK_INFO,
                   COMPUTE_PUSH_CONSTANT_RANGE<sizeof(AstcPushConstants)>, ASTC_DECODER_COMP_SPV),
       scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
@@ -746,7 +746,7 @@ BlockLinearUnswizzle3DPass::BlockLinearUnswizzle3DPass(
     StagingBufferPool& staging_buffer_pool_,
     ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
     : ComputePass(
-          device_, descriptor_pool_,
+          device_, scheduler_, descriptor_pool_,
           BL3D_DESCRIPTOR_SET_BINDINGS,
           BL3D_DESCRIPTOR_UPDATE_TEMPLATE_ENTRY,
           BL3D_BANK_INFO,
@@ -941,7 +941,7 @@ MSAACopyPass::MSAACopyPass(const Device& device_, Scheduler& scheduler_,
                            DescriptorPool& descriptor_pool_,
                            StagingBufferPool& staging_buffer_pool_,
                            ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
-    : ComputePass(device_, descriptor_pool_, MSAA_DESCRIPTOR_SET_BINDINGS,
+    : ComputePass(device_, scheduler_, descriptor_pool_, MSAA_DESCRIPTOR_SET_BINDINGS,
                   MSAA_DESCRIPTOR_UPDATE_TEMPLATE, MSAA_BANK_INFO, {},
                   CONVERT_NON_MSAA_TO_MSAA_COMP_SPV),
       scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},

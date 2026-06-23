@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -17,7 +17,8 @@
 namespace Kernel {
 
 GlobalSchedulerContext::GlobalSchedulerContext(KernelCore& kernel)
-    : m_kernel{kernel}, m_scheduler_lock{kernel} {}
+    : m_scheduler_lock{kernel}
+{}
 
 GlobalSchedulerContext::~GlobalSchedulerContext() = default;
 
@@ -37,7 +38,7 @@ void GlobalSchedulerContext::RemoveThread(KThread* thread) noexcept {
 ///  and then does some core rebalancing. Preemption priorities can be found
 /// in the array 'preemption_priorities'.
 /// @note This operation happens every 10ms.
-void GlobalSchedulerContext::PreemptThreads() noexcept {
+void GlobalSchedulerContext::PreemptThreads(KernelCore& kernel) noexcept {
     // The priority levels at which the global scheduler preempts threads every 10 ms. They are
     // ordered from Core 0 to Core 3.
     static constexpr std::array<u32, Core::Hardware::NUM_CPU_CORES> per_core{
@@ -46,9 +47,9 @@ void GlobalSchedulerContext::PreemptThreads() noexcept {
         59,
         63,
     };
-    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
+    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
     for (u32 core_id = 0; core_id < per_core.size(); core_id++)
-        KScheduler::RotateScheduledQueue(m_kernel, core_id, per_core[core_id]);
+        KScheduler::RotateScheduledQueue(kernel, core_id, per_core[core_id]);
 }
 
 /// @brief Returns true if the global scheduler lock is acquired
@@ -69,11 +70,11 @@ void GlobalSchedulerContext::UnregisterDummyThreadForWakeup(KThread* thread) noe
     }
 }
 
-void GlobalSchedulerContext::WakeupWaitingDummyThreads() noexcept {
+void GlobalSchedulerContext::WakeupWaitingDummyThreads(KernelCore& kernel) noexcept {
     ASSERT(this->IsLocked());
     if (m_woken_dummy_threads.size() > 0) {
         for (auto* thread : m_woken_dummy_threads)
-            thread->DummyThreadEndWait();
+            thread->DummyThreadEndWait(kernel);
         m_woken_dummy_threads.clear();
     }
 }

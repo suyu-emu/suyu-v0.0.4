@@ -183,7 +183,7 @@ private:
         auto& readable_event = completion_event->GetReadableEvent();
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(readable_event.Signal());
+        rb.Push(readable_event.Signal(system.Kernel()));
         rb.PushCopyObjects(readable_event);
     }
 

@@ -91,7 +91,7 @@ ResourceManager::~ResourceManager() {
     system.CoreTiming().UnscheduleEvent(mouse_keyboard_update_event);
     system.CoreTiming().UnscheduleEvent(motion_update_event);
     system.CoreTiming().UnscheduleEvent(touch_update_event);
-    input_event->Finalize();
+    input_event->Finalize(system.Kernel());
 };
 
 void ResourceManager::Initialize() {
@@ -486,7 +486,7 @@ void ResourceManager::UpdateControllers(std::chrono::nanoseconds ns_late) {
 
 void ResourceManager::UpdateNpad(std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
-    npad->OnUpdate(core_timing);
+    npad->OnUpdate(system.Kernel(), core_timing);
 }
 
 void ResourceManager::UpdateMouseKeyboard(std::chrono::nanoseconds ns_late) {

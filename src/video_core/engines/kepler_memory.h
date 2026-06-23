@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -36,18 +39,17 @@ namespace Tegra::Engines {
 
 class KeplerMemory final : public EngineInterface {
 public:
-    explicit KeplerMemory(Core::System& system_, MemoryManager& memory_manager);
+    explicit KeplerMemory(MemoryManager& memory_manager);
     ~KeplerMemory() override;
 
     /// Binds a rasterizer to this engine.
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
     /// Write the value to the register identified by method.
-    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
+    void CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
-                         u32 methods_pending) override;
+    void CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) override;
 
     struct Regs {
         static constexpr size_t NUM_REGS = 0x7F;
@@ -73,9 +75,7 @@ public:
     } regs{};
 
 private:
-    void ConsumeSinkImpl() override;
-
-    Core::System& system;
+    void ConsumeSinkImpl(Core::System& system) override;
     Upload::State upload_state;
 };
 

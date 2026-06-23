@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,18 +13,20 @@
 
 namespace Core::HID {
 
-HIDCore::HIDCore()
-    : player_1{std::make_unique<EmulatedController>(NpadIdType::Player1)},
-      player_2{std::make_unique<EmulatedController>(NpadIdType::Player2)},
-      player_3{std::make_unique<EmulatedController>(NpadIdType::Player3)},
-      player_4{std::make_unique<EmulatedController>(NpadIdType::Player4)},
-      player_5{std::make_unique<EmulatedController>(NpadIdType::Player5)},
-      player_6{std::make_unique<EmulatedController>(NpadIdType::Player6)},
-      player_7{std::make_unique<EmulatedController>(NpadIdType::Player7)},
-      player_8{std::make_unique<EmulatedController>(NpadIdType::Player8)},
-      other{std::make_unique<EmulatedController>(NpadIdType::Other)},
-      handheld{std::make_unique<EmulatedController>(NpadIdType::Handheld)},
-      console{std::make_unique<EmulatedConsole>()}, devices{std::make_unique<EmulatedDevices>()} {}
+HIDCore::HIDCore(Kernel::KernelCore& kernel_)
+    : player_1{std::make_unique<EmulatedController>(NpadIdType::Player1)}
+    , player_2{std::make_unique<EmulatedController>(NpadIdType::Player2)}
+    , player_3{std::make_unique<EmulatedController>(NpadIdType::Player3)}
+    , player_4{std::make_unique<EmulatedController>(NpadIdType::Player4)}
+    , player_5{std::make_unique<EmulatedController>(NpadIdType::Player5)}
+    , player_6{std::make_unique<EmulatedController>(NpadIdType::Player6)}
+    , player_7{std::make_unique<EmulatedController>(NpadIdType::Player7)}
+    , player_8{std::make_unique<EmulatedController>(NpadIdType::Player8)}
+    , other{std::make_unique<EmulatedController>(NpadIdType::Other)}
+    , handheld{std::make_unique<EmulatedController>(NpadIdType::Handheld)}
+    , console{std::make_unique<EmulatedConsole>()}, devices{std::make_unique<EmulatedDevices>()}
+    , kernel{kernel_}
+{}
 
 HIDCore::~HIDCore() = default;
 

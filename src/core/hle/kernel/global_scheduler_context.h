@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -50,17 +50,16 @@ public:
     }
     void AddThread(KThread* thread) noexcept;
     void RemoveThread(KThread* thread) noexcept;
-    void PreemptThreads() noexcept;
+    void PreemptThreads(KernelCore& kernel) noexcept;
     bool IsLocked() const noexcept;
     void UnregisterDummyThreadForWakeup(KThread* thread) noexcept;
     void RegisterDummyThreadForWakeup(KThread* thread) noexcept;
-    void WakeupWaitingDummyThreads() noexcept;
+    void WakeupWaitingDummyThreads(KernelCore& kernel) noexcept;
 
 private:
     friend class KScopedSchedulerLock;
     friend class KScopedSchedulerLockAndSleep;
 
-    KernelCore& m_kernel;
     std::atomic_bool m_scheduler_update_needed{};
     KSchedulerPriorityQueue m_priority_queue;
     LockType m_scheduler_lock;

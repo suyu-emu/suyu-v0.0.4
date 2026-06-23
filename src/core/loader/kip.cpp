@@ -93,11 +93,11 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
         ? ::Settings::values.rng_seed.GetValue() : Common::Random::Random64(0)) << 12) & 0xfff000;
 
     // Setup the process code layout
-    if (process.LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), codeset.memory.size(), 0, aslr_offset).IsError()) {
+    if (process.LoadFromMetadata(system.Kernel(), FileSys::ProgramMetadata::GetDefault(), codeset.memory.size(), 0, aslr_offset).IsError()) {
         return {ResultStatus::ErrorNotInitialized, {}};
     }
     const VAddr base_address = GetInteger(process.GetEntryPoint());
-    process.LoadModule(std::move(codeset), base_address);
+    process.LoadModule(system.Kernel(), std::move(codeset), base_address);
 
     LOG_DEBUG(Loader, "loaded module {} @ {:#X}", kip->GetName(), base_address);
 

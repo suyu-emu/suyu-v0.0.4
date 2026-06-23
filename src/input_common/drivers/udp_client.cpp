@@ -13,6 +13,7 @@
 #include "common/param_package.h"
 #include "common/random.h"
 #include "common/settings.h"
+#include "common/thread.h"
 #include "input_common/drivers/udp_client.h"
 #include "input_common/helpers/udp_protocol.h"
 
@@ -133,6 +134,7 @@ private:
 };
 
 static void SocketLoop(Socket* socket) {
+    Common::SetCurrentThreadName("cemuhookWorker");
     socket->StartReceive();
     socket->StartSend(Socket::clock::now());
     socket->Loop();
@@ -328,9 +330,11 @@ void UDPClient::OnPadData(Response::PadData data, std::size_t client) {
 }
 
 void UDPClient::StartCommunication(std::size_t client, const std::string& host, u16 port) {
-    SocketCallback callback{[this](Response::Version version) { OnVersion(version); },
-                            [this](Response::PortInfo info) { OnPortInfo(info); },
-                            [this, client](Response::PadData data) { OnPadData(data, client); }};
+    SocketCallback callback{
+        [this](Response::Version version) { OnVersion(version); },
+        [this](Response::PortInfo info) { OnPortInfo(info); },
+        [this, client](Response::PadData data) { OnPadData(data, client); }
+    };
     LOG_INFO(Input, "Starting communication with UDP input server on {}:{}", host, port);
     clients[client].uuid = GetHostUUID(host);
     clients[client].host = host;
@@ -573,9 +577,7 @@ bool UDPClient::IsStickInverted(const Common::ParamPackage& params) {
     return true;
 }
 
-void TestCommunication(const std::string& host, u16 port,
-                       const std::function<void()>& success_callback,
-                       const std::function<void()>& failure_callback) {
+void TestCommunication(const std::string& host, u16 port, const std::function<void()>& success_callback, const std::function<void()>& failure_callback) {
     std::thread([=] {
         Common::Event success_event;
         SocketCallback callback{
@@ -608,40 +610,38 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
         u16 max_y{};
 
         Status current_status{Status::Initialized};
-        SocketCallback callback{[](Response::Version) {}, [](Response::PortInfo) {},
-                                [&](Response::PadData data) {
-                                    constexpr u16 CALIBRATION_THRESHOLD = 100;
+        SocketCallback callback{[](Response::Version) {}, [](Response::PortInfo) {}, [&](Response::PadData data) {
+            constexpr u16 CALIBRATION_THRESHOLD = 100;
 
-                                    if (current_status == Status::Initialized) {
-                                        // Receiving data means the communication is ready now
-                                        current_status = Status::Ready;
-                                        status_callback(current_status);
-                                    }
-                                    if (data.touch[0].is_active == 0) {
-                                        return;
-                                    }
-                                    LOG_DEBUG(Input, "Current touch: {} {}", data.touch[0].x,
-                                              data.touch[0].y);
-                                    min_x = (std::min)(min_x, static_cast<u16>(data.touch[0].x));
-                                    min_y = (std::min)(min_y, static_cast<u16>(data.touch[0].y));
-                                    if (current_status == Status::Ready) {
-                                        // First touch - min data (min_x/min_y)
-                                        current_status = Status::Stage1Completed;
-                                        status_callback(current_status);
-                                    }
-                                    if (data.touch[0].x - min_x > CALIBRATION_THRESHOLD &&
-                                        data.touch[0].y - min_y > CALIBRATION_THRESHOLD) {
-                                        // Set the current position as max value and finishes
-                                        // configuration
-                                        max_x = data.touch[0].x;
-                                        max_y = data.touch[0].y;
-                                        current_status = Status::Completed;
-                                        data_callback(min_x, min_y, max_x, max_y);
-                                        status_callback(current_status);
+            if (current_status == Status::Initialized) {
+                // Receiving data means the communication is ready now
+                current_status = Status::Ready;
+                status_callback(current_status);
+            }
+            if (data.touch[0].is_active == 0) {
+                return;
+            }
+            LOG_DEBUG(Input, "Current touch: {} {}", data.touch[0].x, data.touch[0].y);
+            min_x = (std::min)(min_x, u16(data.touch[0].x));
+            min_y = (std::min)(min_y, u16(data.touch[0].y));
+            if (current_status == Status::Ready) {
+                // First touch - min data (min_x/min_y)
+                current_status = Status::Stage1Completed;
+                status_callback(current_status);
+            }
+            if (data.touch[0].x - min_x > CALIBRATION_THRESHOLD &&
+                data.touch[0].y - min_y > CALIBRATION_THRESHOLD) {
+                // Set the current position as max value and finishes
+                // configuration
+                max_x = data.touch[0].x;
+                max_y = data.touch[0].y;
+                current_status = Status::Completed;
+                data_callback(min_x, min_y, max_x, max_y);
+                status_callback(current_status);
 
-                                        complete_event.Set();
-                                    }
-                                }};
+                complete_event.Set();
+            }
+        }};
         Socket socket{host, port, std::move(callback)};
         std::thread worker_thread{SocketLoop, &socket};
         complete_event.Wait();

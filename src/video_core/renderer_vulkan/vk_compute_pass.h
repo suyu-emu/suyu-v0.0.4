@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -35,7 +35,7 @@ struct StagingBufferRef;
 
 class ComputePass {
 public:
-    explicit ComputePass(const Device& device, DescriptorPool& descriptor_pool,
+    explicit ComputePass(const Device& device, Scheduler& scheduler, DescriptorPool& descriptor_pool,
                          vk::Span<VkDescriptorSetLayoutBinding> bindings,
                          vk::Span<VkDescriptorUpdateTemplateEntry> templates,
                          const DescriptorBankInfo& bank_info,

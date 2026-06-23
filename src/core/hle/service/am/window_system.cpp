@@ -154,7 +154,7 @@ void WindowSystem::OnOperationModeChanged() {
 
     for (const auto& [aruid, applet] : m_applets) {
         std::scoped_lock lk2{applet->lock};
-        applet->lifecycle_manager.OnOperationAndPerformanceModeChanged();
+        applet->lifecycle_manager.OnOperationAndPerformanceModeChanged(m_system.Kernel());
     }
 }
 
@@ -163,22 +163,22 @@ void WindowSystem::OnExitRequested() {
 
     for (const auto& [aruid, applet] : m_applets) {
         std::scoped_lock lk2{applet->lock};
-        applet->lifecycle_manager.RequestExit();
+        applet->lifecycle_manager.RequestExit(m_system.Kernel());
     }
 }
 
 void WindowSystem::SendButtonAppletMessageLocked(AppletMessage message) {
     if (m_home_menu) {
         std::scoped_lock lk_home{m_home_menu->lock};
-        m_home_menu->lifecycle_manager.PushUnorderedMessage(message);
+        m_home_menu->lifecycle_manager.PushUnorderedMessage(m_system.Kernel(), message);
     }
     if (m_overlay_display) {
         std::scoped_lock lk_overlay{m_overlay_display->lock};
-        m_overlay_display->lifecycle_manager.PushUnorderedMessage(message);
+        m_overlay_display->lifecycle_manager.PushUnorderedMessage(m_system.Kernel(), message);
     }
     if (m_application) {
         std::scoped_lock lk_application{m_application->lock};
-        m_application->lifecycle_manager.PushUnorderedMessage(message);
+        m_application->lifecycle_manager.PushUnorderedMessage(m_system.Kernel(), message);
     }
     if (m_event_observer) {
         m_event_observer->RequestUpdate();
@@ -277,8 +277,7 @@ void WindowSystem::PruneTerminatedAppletsLocked() {
 
             // If we have a home menu, send it the application exited message.
             if (m_home_menu) {
-                m_home_menu->lifecycle_manager.PushUnorderedMessage(
-                    AppletMessage::ApplicationExited);
+                m_home_menu->lifecycle_manager.PushUnorderedMessage(m_system.Kernel(), AppletMessage::ApplicationExited);
             }
         }
 

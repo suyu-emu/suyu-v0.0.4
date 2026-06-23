@@ -89,7 +89,7 @@ Result TimeZoneService::SetDeviceLocationName(
 
     std::scoped_lock m{m_list_mutex};
     for (auto& operation_event : m_list_nodes) {
-        operation_event.m_event->Signal();
+        operation_event.m_event->Signal(m_system.Kernel());
     }
     R_SUCCEED();
 }

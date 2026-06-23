@@ -16,8 +16,10 @@
 
 namespace Tegra::Engines {
 
-KeplerCompute::KeplerCompute(Core::System& system_, MemoryManager& memory_manager_)
-    : system{system_}, memory_manager{memory_manager_}, upload_state{memory_manager, regs.upload} {
+KeplerCompute::KeplerCompute(MemoryManager& memory_manager_)
+    : memory_manager{memory_manager_}
+    , upload_state{memory_manager, regs.upload}
+{
     execution_mask.reset();
     execution_mask[KEPLER_COMPUTE_REG_INDEX(exec_upload)] = true;
     execution_mask[KEPLER_COMPUTE_REG_INDEX(data_upload)] = true;
@@ -31,16 +33,15 @@ void KeplerCompute::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) 
     upload_state.BindRasterizer(rasterizer);
 }
 
-void KeplerCompute::ConsumeSinkImpl() {
+void KeplerCompute::ConsumeSinkImpl(Core::System& system) {
     for (auto [method, value] : method_sink) {
         regs.reg_array[method] = value;
     }
     method_sink.clear();
 }
 
-void KeplerCompute::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
-    ASSERT_MSG(method < Regs::NUM_REGS,
-               "Invalid KeplerCompute register, increase the size of the Regs structure");
+void KeplerCompute::CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) {
+    ASSERT_MSG(method < Regs::NUM_REGS, "Invalid KeplerCompute register, increase the size of the Regs structure");
 
     regs.reg_array[method] = method_argument;
 
@@ -78,8 +79,7 @@ void KeplerCompute::CallMethod(u32 method, u32 method_argument, bool is_last_cal
     }
 }
 
-void KeplerCompute::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
-                                    u32 methods_pending) {
+void KeplerCompute::CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) {
     switch (method) {
     case KEPLER_COMPUTE_REG_INDEX(data_upload):
         upload_address = current_dma_segment;
@@ -87,7 +87,7 @@ void KeplerCompute::CallMultiMethod(u32 method, const u32* base_start, u32 amoun
         return;
     default:
         for (u32 i = 0; i < amount; i++) {
-            CallMethod(method, base_start[i], methods_pending - i <= 1);
+            CallMethod(system, method, base_start[i], methods_pending - i <= 1);
         }
         break;
     }

@@ -43,19 +43,19 @@ public:
 
     void SignalChargerTypeChanged() {
         if (should_signal && should_signal_charger_type) {
-            state_change_event->Signal();
+            state_change_event->Signal(system.Kernel());
         }
     }
 
     void SignalPowerSupplyChanged() {
         if (should_signal && should_signal_power_supply) {
-            state_change_event->Signal();
+            state_change_event->Signal(system.Kernel());
         }
     }
 
     void SignalBatteryVoltageStateChanged() {
         if (should_signal && should_signal_battery_voltage) {
-            state_change_event->Signal();
+            state_change_event->Signal(system.Kernel());
         }
     }
 

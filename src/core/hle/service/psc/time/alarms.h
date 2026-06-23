@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -48,8 +51,8 @@ struct Alarm : public Common::IntrusiveListBaseNode<Alarm> {
         return m_priority;
     }
 
-    void Signal() {
-        m_event->Signal();
+    void Signal(Kernel::KernelCore& kernel) {
+        m_event->Signal(kernel);
     }
 
     Result Lock() {
@@ -83,15 +86,15 @@ public:
         return m_steady_clock.GetRawTime();
     }
 
-    Result Enable(Alarm& alarm, s64 time);
-    void Disable(Alarm& alarm);
-    void CheckAndSignal();
+    Result Enable(Kernel::KernelCore& kernel, Alarm& alarm, s64 time);
+    void Disable(Kernel::KernelCore& kernel, Alarm& alarm);
+    void CheckAndSignal(Kernel::KernelCore& kernel);
     bool GetClosestAlarm(Alarm** out_alarm);
 
 private:
-    void Insert(Alarm& alarm);
-    void Erase(Alarm& alarm);
-    Result UpdateClosestAndSignal();
+    void Insert(Kernel::KernelCore& kernel, Alarm& alarm);
+    void Erase(Kernel::KernelCore& kernel, Alarm& alarm);
+    Result UpdateClosestAndSignal(Kernel::KernelCore& kernel);
 
     Core::System& m_system;
     KernelHelpers::ServiceContext m_ctx;

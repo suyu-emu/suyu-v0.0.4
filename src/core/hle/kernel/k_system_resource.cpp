@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,8 +10,7 @@
 
 namespace Kernel {
 
-Result KSecureSystemResource::Initialize(size_t size, KResourceLimit* resource_limit,
-                                         KMemoryManager::Pool pool) {
+Result KSecureSystemResource::Initialize(KernelCore& kernel, size_t size, KResourceLimit* resource_limit, KMemoryManager::Pool pool) {
     // Set members.
     m_resource_limit = resource_limit;
     m_resource_size = size;
@@ -18,18 +20,17 @@ Result KSecureSystemResource::Initialize(size_t size, KResourceLimit* resource_l
     const size_t secure_size = this->CalculateRequiredSecureMemorySize();
 
     // Reserve memory for our secure resource.
-    KScopedResourceReservation memory_reservation(
-        m_resource_limit, Svc::LimitableResource::PhysicalMemoryMax, secure_size);
+    KScopedResourceReservation memory_reservation(kernel, m_resource_limit, Svc::LimitableResource::PhysicalMemoryMax, secure_size);
     R_UNLESS(memory_reservation.Succeeded(), ResultLimitReached);
 
     // Allocate secure memory.
-    R_TRY(KSystemControl::AllocateSecureMemory(m_kernel, std::addressof(m_resource_address),
+    R_TRY(KSystemControl::AllocateSecureMemory(kernel, std::addressof(m_resource_address),
                                                m_resource_size, static_cast<u32>(m_resource_pool)));
     ASSERT(m_resource_address != 0);
 
     // Ensure we clean up the secure memory, if we fail past this point.
     ON_RESULT_FAILURE {
-        KSystemControl::FreeSecureMemory(m_kernel, m_resource_address, m_resource_size,
+        KSystemControl::FreeSecureMemory(kernel, m_resource_address, m_resource_size,
                                          static_cast<u32>(m_resource_pool));
     };
 
@@ -40,9 +41,9 @@ Result KSecureSystemResource::Initialize(size_t size, KResourceLimit* resource_l
 
     // Get resource pointer.
     KPhysicalAddress resource_paddr =
-        KPageTable::GetHeapPhysicalAddress(m_kernel, m_resource_address);
+        KPageTable::GetHeapPhysicalAddress(kernel, m_resource_address);
     auto* resource =
-        m_kernel.System().DeviceMemory().GetPointer<KPageTableManager::RefCount>(resource_paddr);
+        kernel.System().DeviceMemory().GetPointer<KPageTableManager::RefCount>(resource_paddr);
 
     // Initialize slab heaps.
     m_dynamic_page_manager.Initialize(m_resource_address + rc_size, m_resource_size - rc_size,
@@ -66,7 +67,7 @@ Result KSecureSystemResource::Initialize(size_t size, KResourceLimit* resource_l
     memory_reservation.Commit();
 
     // Open reference to our resource limit.
-    m_resource_limit->Open();
+    m_resource_limit->Open(kernel);
 
     // Set ourselves as initialized.
     m_is_initialized = true;
@@ -74,26 +75,25 @@ Result KSecureSystemResource::Initialize(size_t size, KResourceLimit* resource_l
     R_SUCCEED();
 }
 
-void KSecureSystemResource::Finalize() {
+void KSecureSystemResource::Finalize(KernelCore& kernel) {
     // Check that we have no outstanding allocations.
     ASSERT(m_memory_block_slab_manager.GetUsed() == 0);
     ASSERT(m_block_info_manager.GetUsed() == 0);
     ASSERT(m_page_table_manager.GetUsed() == 0);
 
     // Free our secure memory.
-    KSystemControl::FreeSecureMemory(m_kernel, m_resource_address, m_resource_size,
+    KSystemControl::FreeSecureMemory(kernel, m_resource_address, m_resource_size,
                                      static_cast<u32>(m_resource_pool));
 
     // Release the memory reservation.
-    m_resource_limit->Release(Svc::LimitableResource::PhysicalMemoryMax,
+    m_resource_limit->Release(kernel, Svc::LimitableResource::PhysicalMemoryMax,
                               this->CalculateRequiredSecureMemorySize());
 
     // Close reference to our resource limit.
-    m_resource_limit->Close();
+    m_resource_limit->Close(kernel);
 }
 
-size_t KSecureSystemResource::CalculateRequiredSecureMemorySize(size_t size,
-                                                                KMemoryManager::Pool pool) {
+size_t KSecureSystemResource::CalculateRequiredSecureMemorySize(size_t size, KMemoryManager::Pool pool) {
     return KSystemControl::CalculateRequiredSecureMemorySize(size, static_cast<u32>(pool));
 }
 

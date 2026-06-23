@@ -151,7 +151,7 @@ Result ISelfController::GetLibraryAppletLaunchableEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    m_applet->library_applet_launchable_event.Signal();
+    m_applet->library_applet_launchable_event.Signal(system.Kernel());
     *out_event = m_applet->library_applet_launchable_event.GetHandle();
 
     R_SUCCEED();
@@ -170,7 +170,7 @@ Result ISelfController::SetOperationModeChangedNotification(bool enabled) {
     LOG_INFO(Service_AM, "called, enabled={}", enabled);
 
     std::scoped_lock lk{m_applet->lock};
-    m_applet->lifecycle_manager.SetOperationModeChangedNotificationEnabled(enabled);
+    m_applet->lifecycle_manager.SetOperationModeChangedNotificationEnabled(system.Kernel(), enabled);
 
     R_SUCCEED();
 }
@@ -179,7 +179,7 @@ Result ISelfController::SetPerformanceModeChangedNotification(bool enabled) {
     LOG_INFO(Service_AM, "called, enabled={}", enabled);
 
     std::scoped_lock lk{m_applet->lock};
-    m_applet->lifecycle_manager.SetPerformanceModeChangedNotificationEnabled(enabled);
+    m_applet->lifecycle_manager.SetPerformanceModeChangedNotificationEnabled(system.Kernel(), enabled);
 
     R_SUCCEED();
 }
@@ -188,7 +188,7 @@ Result ISelfController::SetFocusHandlingMode(bool notify, bool background, bool 
     LOG_INFO(Service_AM, "called, notify={} background={} suspend={}", notify, background, suspend);
 
     std::scoped_lock lk{m_applet->lock};
-    m_applet->lifecycle_manager.SetFocusStateChangedNotificationEnabled(notify);
+    m_applet->lifecycle_manager.SetFocusStateChangedNotificationEnabled(system.Kernel(), notify);
     m_applet->lifecycle_manager.SetFocusHandlingMode(suspend);
     m_applet->UpdateSuspensionStateLocked(true);
 

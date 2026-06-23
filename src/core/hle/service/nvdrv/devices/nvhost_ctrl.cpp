@@ -203,7 +203,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_a
             auto& event_ = events[slot];
             if (event_.status.exchange(EventState::Signalling, std::memory_order_acq_rel) ==
                 EventState::Waiting) {
-                event_.kevent->Signal();
+                event_.kevent->Signal(system.Kernel());
             }
             event_.status.store(EventState::Signalled, std::memory_order_release);
         });
@@ -292,7 +292,7 @@ NvResult nvhost_ctrl::IocCtrlClearEventWait(IocCtrlEventClearParams& params) {
     }
     event.fails++;
     event.status.store(EventState::Cancelled, std::memory_order_release);
-    event.kevent->Clear();
+    event.kevent->Clear(system.Kernel());
 
     return NvResult::Success;
 }

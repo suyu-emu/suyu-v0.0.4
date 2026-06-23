@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,13 +31,15 @@ enum class UserDataTag {
 
 class Port : public MultiWaitHolder, public Common::IntrusiveListBaseNode<Port> {
 public:
-    explicit Port(Kernel::KServerPort* server_port, SessionRequestHandlerFactory&& handler_factory)
-        : MultiWaitHolder(server_port), m_handler_factory(std::move(handler_factory)) {
+    explicit Port(Kernel::KernelCore& kernel, Kernel::KServerPort* server_port, SessionRequestHandlerFactory&& handler_factory)
+        : MultiWaitHolder(server_port), m_handler_factory(std::move(handler_factory))
+        , m_kernel{kernel}
+    {
         this->SetUserData(static_cast<uintptr_t>(UserDataTag::Port));
     }
 
     ~Port() {
-        this->GetNativeHandle()->Close();
+        this->GetNativeHandle()->Close(m_kernel);
     }
 
     SessionRequestHandlerPtr CreateHandler() {
@@ -43,18 +48,20 @@ public:
 
 private:
     const SessionRequestHandlerFactory m_handler_factory;
+    Kernel::KernelCore& m_kernel;
 };
 
 class Session : public MultiWaitHolder, public Common::IntrusiveListBaseNode<Session> {
 public:
-    explicit Session(Kernel::KServerSession* server_session,
-                     std::shared_ptr<SessionRequestManager>&& manager)
-        : MultiWaitHolder(server_session), m_manager(std::move(manager)) {
+    explicit Session(Kernel::KernelCore& kernel, Kernel::KServerSession* server_session, std::shared_ptr<SessionRequestManager>&& manager)
+        : MultiWaitHolder(server_session), m_manager(std::move(manager))
+        , m_kernel{kernel}
+    {
         this->SetUserData(static_cast<uintptr_t>(UserDataTag::Session));
     }
 
     ~Session() {
-        this->GetNativeHandle()->Close();
+        this->GetNativeHandle()->Close(m_kernel);
     }
 
     std::shared_ptr<SessionRequestManager>& GetManager() {
@@ -68,12 +75,16 @@ public:
 private:
     std::shared_ptr<SessionRequestManager> m_manager;
     std::shared_ptr<HLERequestContext> m_context;
+    Kernel::KernelCore& m_kernel;
 };
 
-ServerManager::ServerManager(Core::System& system) : m_system{system}, m_selection_mutex{system} {
+ServerManager::ServerManager(Core::System& system)
+    : m_system{system}
+    , m_selection_mutex{system}
+{
     // Initialize event.
     m_wakeup_event = Kernel::KEvent::Create(system.Kernel());
-    m_wakeup_event->Initialize(nullptr);
+    m_wakeup_event->Initialize(m_system.Kernel(), nullptr);
 
     // Register event.
     Kernel::KEvent::Register(system.Kernel(), m_wakeup_event);
@@ -86,7 +97,7 @@ ServerManager::ServerManager(Core::System& system) : m_system{system}, m_selecti
 ServerManager::~ServerManager() {
     // Signal stop.
     m_stop_source.request_stop();
-    m_wakeup_event->Signal();
+    m_wakeup_event->Signal(m_system.Kernel());
 
     // Wait for processing to stop.
     m_stopped.Wait();
@@ -109,11 +120,11 @@ ServerManager::~ServerManager() {
     }
 
     // Close wakeup event.
-    m_wakeup_event->GetReadableEvent().Close();
-    m_wakeup_event->Close();
+    m_wakeup_event->GetReadableEvent().Close(m_system.Kernel());
+    m_wakeup_event->Close(m_system.Kernel());
 
     if (m_deferral_event) {
-        m_deferral_event->GetReadableEvent().Close();
+        m_deferral_event->GetReadableEvent().Close(m_system.Kernel());
         // Write event is owned by ServiceManager
     }
 }
@@ -125,7 +136,7 @@ void ServerManager::RunServer(std::unique_ptr<ServerManager>&& server_manager) {
 Result ServerManager::RegisterSession(Kernel::KServerSession* server_session,
                                       std::shared_ptr<SessionRequestManager> manager) {
     // We are taking ownership of the server session, so don't open it.
-    auto* session = new Session(server_session, std::move(manager));
+    auto* session = new Session(m_system.Kernel(), server_session, std::move(manager));
 
     // Begin tracking the server session.
     {
@@ -148,7 +159,7 @@ Result ServerManager::RegisterNamedService(const std::string& service_name,
                                                        max_sessions, handler_factory));
 
     // We are taking ownership of the server port, so don't open it.
-    auto* server = new Port(server_port, std::move(handler_factory));
+    auto* server = new Port(m_system.Kernel(), server_port, std::move(handler_factory));
 
     // Begin tracking the server port.
     {
@@ -177,15 +188,15 @@ Result ServerManager::ManageNamedPort(const std::string& service_name,
                                       u32 max_sessions) {
     // Create a new port.
     auto* port = Kernel::KPort::Create(m_system.Kernel());
-    port->Initialize(max_sessions, false, 0);
+    port->Initialize(m_system.Kernel(), max_sessions, false, 0);
 
     // Register the port.
     Kernel::KPort::Register(m_system.Kernel(), port);
 
     // Ensure that our reference to the port is closed if we fail to register it.
     SCOPE_EXIT {
-        port->GetClientPort().Close();
-        port->GetServerPort().Close();
+        port->GetClientPort().Close(m_system.Kernel());
+        port->GetServerPort().Close(m_system.Kernel());
     };
 
     // Register the object name with the kernel.
@@ -193,10 +204,10 @@ Result ServerManager::ManageNamedPort(const std::string& service_name,
                                            service_name.c_str()));
 
     // Open a new reference to the server port.
-    port->GetServerPort().Open();
+    port->GetServerPort().Open(m_system.Kernel());
 
     // Transfer ownership into a new port object.
-    auto* server = new Port(std::addressof(port->GetServerPort()), std::move(handler_factory));
+    auto* server = new Port(m_system.Kernel(), std::addressof(port->GetServerPort()), std::move(handler_factory));
 
     // Begin tracking the port.
     {
@@ -217,7 +228,7 @@ Result ServerManager::ManageDeferral(Kernel::KEvent** out_event) {
     ASSERT(m_deferral_event != nullptr);
 
     // Initialize the event.
-    m_deferral_event->Initialize(nullptr);
+    m_deferral_event->Initialize(m_system.Kernel(), nullptr);
 
     // Register the event.
     Kernel::KEvent::Register(m_system.Kernel(), m_deferral_event);
@@ -258,7 +269,7 @@ void ServerManager::LinkToDeferredList(MultiWaitHolder* holder) {
     }
 
     // Signal the wakeup event.
-    m_wakeup_event->Signal();
+    m_wakeup_event->Signal(m_system.Kernel());
 }
 
 void ServerManager::LinkDeferred() {
@@ -281,7 +292,7 @@ MultiWaitHolder* ServerManager::WaitSignaled() {
         auto* selected = m_multi_wait.WaitAny(m_system.Kernel());
         if (selected == std::addressof(*m_wakeup_holder)) {
             // Clear and restart if we were woken up.
-            m_wakeup_event->Clear();
+            m_wakeup_event->Clear(m_system.Kernel());
         } else {
             // Unlink and handle the event.
             selected->UnlinkFromMultiWait();
@@ -323,7 +334,7 @@ Result ServerManager::LoopProcessImpl() {
 Result ServerManager::OnPortEvent(Port* server) {
     // Accept a new server session.
     auto* server_port = static_cast<Kernel::KServerPort*>(server->GetNativeHandle());
-    Kernel::KServerSession* server_session = server_port->AcceptSession();
+    Kernel::KServerSession* server_session = server_port->AcceptSession(m_system.Kernel());
     ASSERT(server_session != nullptr);
 
     // Create the session manager and install the handler.
@@ -345,7 +356,7 @@ Result ServerManager::OnSessionEvent(Session* session) {
 
     // Try to receive a message.
     auto* server_session = static_cast<Kernel::KServerSession*>(session->GetNativeHandle());
-    res = server_session->ReceiveRequestHLE(&session->GetContext(), session->GetManager());
+    res = server_session->ReceiveRequestHLE(m_system.Kernel(), &session->GetContext(), session->GetManager());
 
     // If the session has been closed, we're done.
     if (res == Kernel::ResultSessionClosed) {
@@ -382,7 +393,7 @@ Result ServerManager::CompleteSyncRequest(Session* session) {
     }
 
     // Send the reply.
-    res = server_session->SendReplyHLE();
+    res = server_session->SendReplyHLE(m_system.Kernel());
 
     // If the session has been closed, we're done.
     if (res == Kernel::ResultSessionClosed || service_res == IPC::ResultSessionClosed) {
@@ -401,7 +412,7 @@ Result ServerManager::CompleteSyncRequest(Session* session) {
 
 Result ServerManager::OnDeferralEvent() {
     // Clear event before grabbing the list.
-    m_deferral_event->Clear();
+    m_deferral_event->Clear(m_system.Kernel());
 
     // Get and clear list.
     const auto deferrals = [&] {

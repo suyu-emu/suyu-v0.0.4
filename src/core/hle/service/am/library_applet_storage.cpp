@@ -1,7 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/kernel/k_transfer_memory.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/library_applet_storage.h"
 #include "core/memory.h"
@@ -55,15 +59,18 @@ private:
 
 class TransferMemoryLibraryAppletStorage : public LibraryAppletStorage {
 public:
-    explicit TransferMemoryLibraryAppletStorage(Core::Memory::Memory& memory,
-                                                Kernel::KTransferMemory* trmem, bool is_writable,
-                                                s64 size)
-        : m_memory(memory), m_trmem(trmem), m_is_writable(is_writable), m_size(size) {
-        m_trmem->Open();
+    explicit TransferMemoryLibraryAppletStorage(Kernel::KernelCore& kernel, Core::Memory::Memory& memory, Kernel::KTransferMemory* trmem, bool is_writable, s64 size)
+        : m_kernel{kernel}
+        , m_memory(memory)
+        , m_trmem(trmem)
+        , m_is_writable(is_writable)
+        , m_size(size)
+    {
+        m_trmem->Open(m_kernel);
     }
 
     ~TransferMemoryLibraryAppletStorage() {
-        m_trmem->Close();
+        m_trmem->Close(m_kernel);
         m_trmem = nullptr;
     }
 
@@ -93,6 +100,7 @@ public:
     }
 
 protected:
+    Kernel::KernelCore& m_kernel;
     Core::Memory::Memory& m_memory;
     Kernel::KTransferMemory* m_trmem;
     bool m_is_writable;
@@ -101,9 +109,9 @@ protected:
 
 class HandleLibraryAppletStorage : public TransferMemoryLibraryAppletStorage {
 public:
-    explicit HandleLibraryAppletStorage(Core::Memory::Memory& memory,
-                                        Kernel::KTransferMemory* trmem, s64 size)
-        : TransferMemoryLibraryAppletStorage(memory, trmem, true, size) {}
+    explicit HandleLibraryAppletStorage(Kernel::KernelCore& kernel, Core::Memory::Memory& memory, Kernel::KTransferMemory* trmem, s64 size)
+        : TransferMemoryLibraryAppletStorage(kernel, memory, trmem, true, size)
+    {}
     ~HandleLibraryAppletStorage() = default;
 
     Kernel::KTransferMemory* GetHandle() override {
@@ -125,16 +133,12 @@ std::shared_ptr<LibraryAppletStorage> CreateStorage(std::vector<u8>&& data) {
     return std::make_shared<BufferLibraryAppletStorage>(std::move(data));
 }
 
-std::shared_ptr<LibraryAppletStorage> CreateTransferMemoryStorage(Core::Memory::Memory& memory,
-                                                                  Kernel::KTransferMemory* trmem,
-                                                                  bool is_writable, s64 size) {
-    return std::make_shared<TransferMemoryLibraryAppletStorage>(memory, trmem, is_writable, size);
+std::shared_ptr<LibraryAppletStorage> CreateTransferMemoryStorage(Kernel::KernelCore& kernel, Core::Memory::Memory& memory, Kernel::KTransferMemory* trmem, bool is_writable, s64 size) {
+    return std::make_shared<TransferMemoryLibraryAppletStorage>(kernel, memory, trmem, is_writable, size);
 }
 
-std::shared_ptr<LibraryAppletStorage> CreateHandleStorage(Core::Memory::Memory& memory,
-                                                          Kernel::KTransferMemory* trmem,
-                                                          s64 size) {
-    return std::make_shared<HandleLibraryAppletStorage>(memory, trmem, size);
+std::shared_ptr<LibraryAppletStorage> CreateHandleStorage(Kernel::KernelCore& kernel, Core::Memory::Memory& memory, Kernel::KTransferMemory* trmem, s64 size) {
+    return std::make_shared<HandleLibraryAppletStorage>(kernel, memory, trmem, size);
 }
 
 } // namespace Service::AM

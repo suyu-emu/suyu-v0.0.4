@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -64,7 +67,7 @@ void IAsyncContext::GetResult(HLERequestContext& ctx) {
 
 void IAsyncContext::MarkComplete() {
     is_complete.store(true);
-    completion_event->Signal();
+    completion_event->Signal(system.Kernel());
 }
 
 } // namespace Service::Account

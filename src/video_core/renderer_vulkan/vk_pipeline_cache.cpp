@@ -915,7 +915,7 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
         spv_module.SetObjectNameEXT(name.c_str());
     }
     Common::ThreadWorker* const thread_worker{build_in_parallel ? &workers : nullptr};
-    return std::make_unique<ComputePipeline>(device, vulkan_pipeline_cache, descriptor_pool,
+    return std::make_unique<ComputePipeline>(device, scheduler, vulkan_pipeline_cache, descriptor_pool,
                                              guest_descriptor_queue, thread_worker, statistics,
                                              &shader_notify, program.info, std::move(spv_module));
 

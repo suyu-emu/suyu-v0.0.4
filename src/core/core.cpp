@@ -108,7 +108,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, hid_core{}, cpu_manager{system},
+        : kernel{system}, fs_controller{system}, hid_core{system.Kernel()}, cpu_manager{system},
           reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
 
     u64 program_id;
@@ -271,7 +271,7 @@ struct System::Impl {
 
     SystemResultStatus SetupForApplicationProcess(System& system, Frontend::EmuWindow& emu_window) {
         host1x_core.emplace(system);
-        gpu_core = VideoCore::CreateGPU(emu_window, system);
+        VideoCore::CreateGPU(gpu_core, emu_window, system);
         if (!gpu_core)
             return SystemResultStatus::ErrorVideoCore;
 
@@ -347,7 +347,7 @@ struct System::Impl {
 
         // Register with applet manager
         // All threads are started, begin main process execution, now that we're in the clear
-        applet_manager.CreateAndInsertByFrontendAppletParameters(std::move(process), params);
+        applet_manager.CreateAndInsertByFrontendAppletParameters(std::make_unique<Service::Process>(*std::move(process)), params);
 
         if (Settings::values.gamecard_inserted) {
             if (Settings::values.gamecard_current_game) {
@@ -391,10 +391,8 @@ struct System::Impl {
         is_powered_on = false;
         exit_locked = false;
         exit_requested = false;
-
-        if (gpu_core != nullptr) {
+        if (gpu_core)
             gpu_core->NotifyShutdown();
-        }
 
         stop_event.request_stop();
         core_timing.SyncPause(false);
@@ -478,6 +476,7 @@ struct System::Impl {
     std::optional<Memory::CheatEngine> cheat_engine;
     std::optional<Tools::Freezer> memory_freezer;
     std::optional<Tools::RenderdocAPI> renderdoc_api;
+    std::optional<Tegra::GPU> gpu_core;
 
     std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES> gpu_dirty_memory_managers;
     std::vector<std::vector<u8>> user_channel;
@@ -492,7 +491,6 @@ struct System::Impl {
     std::unique_ptr<FileSys::ContentProviderUnion> content_provider;
     /// AppLoader used to load the current executing application
     std::unique_ptr<Loader::AppLoader> app_loader;
-    std::unique_ptr<Tegra::GPU> gpu_core;
     std::stop_source stop_event;
 
     mutable std::mutex suspend_guard;
@@ -925,7 +923,7 @@ void System::PushGeneralChannelData(std::vector<u8>&& data) {
     const bool was_empty = impl->general_channel.empty();
     impl->general_channel.push_back(std::move(data));
     if (was_empty) {
-        impl->general_channel_event->Signal();
+        impl->general_channel_event->Signal(impl->kernel);
     }
 }
 
@@ -937,7 +935,7 @@ bool System::TryPopGeneralChannel(std::vector<u8>& out_data) {
     out_data = std::move(impl->general_channel.back());
     impl->general_channel.pop_back();
     if (impl->general_channel.empty()) {
-        impl->general_channel_event->Clear();
+        impl->general_channel_event->Clear(impl->kernel);
     }
     return true;
 }

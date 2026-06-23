@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -35,9 +35,6 @@ constexpr bool IsValidUnmapFromOwnerCodeMemoryPermission(MemoryPermission perm) 
 Result CreateCodeMemory(Core::System& system, Handle* out, u64 address, uint64_t size) {
     LOG_TRACE(Kernel_SVC, "called, address={:#X}, size=0x{:X}", address, size);
 
-    // Get kernel instance.
-    auto& kernel = system.Kernel();
-
     // Validate address / size.
     R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
     R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
@@ -46,24 +43,23 @@ Result CreateCodeMemory(Core::System& system, Handle* out, u64 address, uint64_t
 
     // Create the code memory.
 
-    KCodeMemory* code_mem = KCodeMemory::Create(kernel);
+    KCodeMemory* code_mem = KCodeMemory::Create(system.Kernel());
     R_UNLESS(code_mem != nullptr, ResultOutOfResource);
     SCOPE_EXIT {
-        code_mem->Close();
+        code_mem->Close(system.Kernel());
     };
 
     // Verify that the region is in range.
-    R_UNLESS(GetCurrentProcess(system.Kernel()).GetPageTable().Contains(address, size),
-             ResultInvalidCurrentMemory);
+    R_UNLESS(GetCurrentProcess(system.Kernel()).GetPageTable().Contains(address, size), ResultInvalidCurrentMemory);
 
     // Initialize the code memory.
-    R_TRY(code_mem->Initialize(system.DeviceMemory(), address, size));
+    R_TRY(code_mem->Initialize(system.Kernel(), system.DeviceMemory(), address, size));
 
     // Register the code memory.
-    KCodeMemory::Register(kernel, code_mem);
+    KCodeMemory::Register(system.Kernel(), code_mem);
 
     // Add the code memory to the handle table.
-    R_TRY(GetCurrentProcess(system.Kernel()).GetHandleTable().Add(out, code_mem));
+    R_TRY(GetCurrentProcess(system.Kernel()).GetHandleTable().Add(system.Kernel(), out, code_mem));
 
     R_SUCCEED();
 }
@@ -85,8 +81,8 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
 
     // Get the code memory from its handle.
     KScopedAutoObject code_mem = GetCurrentProcess(system.Kernel())
-                                     .GetHandleTable()
-                                     .GetObject<KCodeMemory>(code_memory_handle);
+        .GetHandleTable()
+        .GetObject<KCodeMemory>(system.Kernel(), code_memory_handle);
     R_UNLESS(code_mem.IsNotNull(), ResultInvalidHandle);
 
     // NOTE: Here, Atmosphere extends the SVC to allow code memory operations on one's own process.
@@ -96,29 +92,23 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
     switch (operation) {
     case CodeMemoryOperation::Map: {
         // Check that the region is in range.
-        R_UNLESS(GetCurrentProcess(system.Kernel())
-                     .GetPageTable()
-                     .CanContain(address, size, KMemoryState::CodeOut),
-                 ResultInvalidMemoryRegion);
+        R_UNLESS(GetCurrentProcess(system.Kernel()).GetPageTable().CanContain(address, size, KMemoryState::CodeOut), ResultInvalidMemoryRegion);
 
         // Check the memory permission.
         R_UNLESS(IsValidMapCodeMemoryPermission(perm), ResultInvalidNewMemoryPermission);
 
         // Map the memory.
-        R_TRY(code_mem->Map(address, size));
+        R_TRY(code_mem->Map(system.Kernel(), address, size));
     } break;
     case CodeMemoryOperation::Unmap: {
         // Check that the region is in range.
-        R_UNLESS(GetCurrentProcess(system.Kernel())
-                     .GetPageTable()
-                     .CanContain(address, size, KMemoryState::CodeOut),
-                 ResultInvalidMemoryRegion);
+        R_UNLESS(GetCurrentProcess(system.Kernel()).GetPageTable().CanContain(address, size, KMemoryState::CodeOut), ResultInvalidMemoryRegion);
 
         // Check the memory permission.
         R_UNLESS(IsValidUnmapCodeMemoryPermission(perm), ResultInvalidNewMemoryPermission);
 
         // Unmap the memory.
-        R_TRY(code_mem->Unmap(address, size));
+        R_TRY(code_mem->Unmap(system.Kernel(), address, size));
     } break;
     case CodeMemoryOperation::MapToOwner: {
         // Check that the region is in range.
@@ -130,7 +120,7 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
         R_UNLESS(IsValidMapToOwnerCodeMemoryPermission(perm), ResultInvalidNewMemoryPermission);
 
         // Map the memory to its owner.
-        R_TRY(code_mem->MapToOwner(address, size, perm));
+        R_TRY(code_mem->MapToOwner(system.Kernel(), address, size, perm));
     } break;
     case CodeMemoryOperation::UnmapFromOwner: {
         // Check that the region is in range.
@@ -142,7 +132,7 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
         R_UNLESS(IsValidUnmapFromOwnerCodeMemoryPermission(perm), ResultInvalidNewMemoryPermission);
 
         // Unmap the memory from its owner.
-        R_TRY(code_mem->UnmapFromOwner(address, size));
+        R_TRY(code_mem->UnmapFromOwner(system.Kernel(), address, size));
     } break;
     default:
         R_THROW(ResultInvalidEnumValue);

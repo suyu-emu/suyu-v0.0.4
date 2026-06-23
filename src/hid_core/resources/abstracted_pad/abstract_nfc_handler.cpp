@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -14,7 +14,9 @@
 
 namespace Service::HID {
 
-NpadAbstractNfcHandler::NpadAbstractNfcHandler() {}
+NpadAbstractNfcHandler::NpadAbstractNfcHandler(Kernel::KernelCore& kernel_)
+    : kernel{kernel_}
+{}
 
 NpadAbstractNfcHandler::~NpadAbstractNfcHandler() = default;
 
@@ -48,13 +50,13 @@ void NpadAbstractNfcHandler::UpdateNfcState() {
 
     if (count == 0) {
         if (sensor_state == NpadNfcState::Active) {
-            nfc_activate_event->Signal();
+            nfc_activate_event->Signal(kernel);
         }
         if (sensor_state == NpadNfcState::Unavailable) {
             return;
         }
         sensor_state = NpadNfcState::Unavailable;
-        input_event->Signal();
+        input_event->Signal(kernel);
         return;
     }
 
@@ -79,19 +81,18 @@ void NpadAbstractNfcHandler::UpdateNfcState() {
             return;
         }
         sensor_state = NpadNfcState::Available;
-        input_event->Signal();
+        input_event->Signal(kernel);
         return;
     }
 
     if (sensor_state == NpadNfcState::Active) {
-        nfc_activate_event->Signal();
+        nfc_activate_event->Signal(kernel);
     }
     if (sensor_state == NpadNfcState::Unavailable) {
         return;
     }
     sensor_state = NpadNfcState::Unavailable;
-    input_event->Signal();
-    return;
+    input_event->Signal(kernel);
 }
 
 bool NpadAbstractNfcHandler::HasNfcSensor() {
@@ -123,7 +124,7 @@ Result NpadAbstractNfcHandler::ActivateNfc(bool is_enabled) {
     }
     if (sensor_state != new_state) {
         sensor_state = new_state;
-        nfc_activate_event->Signal();
+        nfc_activate_event->Signal(kernel);
     }
     return ResultSuccess;
 }

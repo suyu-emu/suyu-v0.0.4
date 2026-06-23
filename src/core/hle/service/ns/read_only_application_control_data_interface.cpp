@@ -87,7 +87,7 @@ public:
         RegisterHandlers(functions);
 
         completion_event = service_context.CreateEvent("IAsyncValue:Completion");
-        completion_event->GetReadableEvent().Signal();
+        completion_event->GetReadableEvent().Signal(system.Kernel());
     }
 
     ~IAsyncValueForListApplicationTitle() override {

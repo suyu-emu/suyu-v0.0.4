@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -68,17 +71,12 @@ public:
     DescriptorPool& operator=(const DescriptorPool&) = delete;
     DescriptorPool(const DescriptorPool&) = delete;
 
-    DescriptorAllocator Allocator(VkDescriptorSetLayout layout,
-                                  std::span<const Shader::Info> infos);
-    DescriptorAllocator Allocator(VkDescriptorSetLayout layout, const Shader::Info& info);
-    DescriptorAllocator Allocator(VkDescriptorSetLayout layout, const DescriptorBankInfo& info);
+    DescriptorAllocator Allocator(const Device& device, Scheduler& scheduler, VkDescriptorSetLayout layout, std::span<const Shader::Info> infos);
+    DescriptorAllocator Allocator(const Device& device, Scheduler& scheduler, VkDescriptorSetLayout layout, const Shader::Info& info);
+    DescriptorAllocator Allocator(const Device& device, Scheduler& scheduler, VkDescriptorSetLayout layout, const DescriptorBankInfo& info);
 
 private:
-    DescriptorBank& Bank(const DescriptorBankInfo& reqs);
-
-    const Device& device;
-    MasterSemaphore& master_semaphore;
-
+    DescriptorBank& Bank(const Device& device, const DescriptorBankInfo& reqs);
     std::shared_mutex banks_mutex;
     std::vector<DescriptorBankInfo> bank_infos;
     std::vector<std::unique_ptr<DescriptorBank>> banks;

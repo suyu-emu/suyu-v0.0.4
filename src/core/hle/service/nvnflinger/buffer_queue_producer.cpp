@@ -111,7 +111,7 @@ Status BufferQueueProducer::SetBufferCount(s32 buffer_count) {
 
         core->override_max_buffer_count = buffer_count;
         core->SignalDequeueCondition();
-        buffer_wait_event->Signal();
+        buffer_wait_event->Signal(service_context.kernel);
         listener = core->consumer_listener;
     }
 
@@ -576,7 +576,7 @@ void BufferQueueProducer::CancelBuffer(s32 slot, const Fence& fence) {
     slots[slot].fence = fence;
 
     core->SignalDequeueCondition();
-    buffer_wait_event->Signal();
+    buffer_wait_event->Signal(service_context.kernel);
 }
 
 Status BufferQueueProducer::Query(NativeWindow what, s32* out_value) {
@@ -714,7 +714,7 @@ Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
                 core->connected_producer_listener = nullptr;
                 core->connected_api = NativeWindowApi::NoConnectedApi;
                 core->SignalDequeueCondition();
-                buffer_wait_event->Signal();
+                buffer_wait_event->Signal(service_context.kernel);
                 listener = core->consumer_listener;
             } else {
                 LOG_ERROR(Service_Nvnflinger,
@@ -764,7 +764,7 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     }
 
     core->SignalDequeueCondition();
-    buffer_wait_event->Signal();
+    buffer_wait_event->Signal(service_context.kernel);
 
     return Status::NoError;
 }

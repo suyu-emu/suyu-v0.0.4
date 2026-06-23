@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,27 +17,25 @@ class Scheduler;
 
 class FSR {
 public:
-    explicit FSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count,
-                 VkExtent2D extent);
-    VkImageView Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
+    explicit FSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count, VkExtent2D extent);
+    VkImageView Draw(const Device& device, Scheduler& scheduler, size_t image_index, VkImage source_image,
                      VkImageView source_image_view, VkExtent2D input_image_extent,
                      const Common::Rectangle<f32>& crop_rect);
 
 private:
-    void CreateImages();
-    void CreateRenderPasses();
-    void CreateSampler();
-    void CreateShaders();
-    void CreateDescriptorPool();
-    void CreateDescriptorSetLayout();
-    void CreateDescriptorSets();
-    void CreatePipelineLayouts();
-    void CreatePipelines();
+    void CreateImages(const Device& device);
+    void CreateRenderPasses(const Device& device);
+    void CreateSampler(const Device& device);
+    void CreateShaders(const Device& device);
+    void CreateDescriptorPool(const Device& device);
+    void CreateDescriptorSetLayout(const Device& device);
+    void CreateDescriptorSets(const Device& device);
+    void CreatePipelineLayouts(const Device& device);
+    void CreatePipelines(const Device& device);
 
-    void UploadImages(Scheduler& scheduler);
-    void UpdateDescriptorSets(VkImageView image_view, size_t image_index);
+    void UploadImages(const Device& device, Scheduler& scheduler);
+    void UpdateDescriptorSets(const Device& device, VkImageView image_view, size_t image_index);
 
-    const Device& m_device;
     MemoryAllocator& m_memory_allocator;
     const size_t m_image_count;
     const VkExtent2D m_extent;

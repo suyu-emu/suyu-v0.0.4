@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -204,7 +207,7 @@ void SetupDirtyMisc(Tables& tables) {
 } // Anonymous namespace
 
 void StateTracker::SetupTables(Tegra::Control::ChannelState& channel_state) {
-    auto& tables{channel_state.maxwell_3d->dirty.tables};
+    auto& tables{channel_state.payload->maxwell_3d.dirty.tables};
     SetupDirtyFlags(tables);
     SetupDirtyColorMasks(tables);
     SetupDirtyViewports(tables);
@@ -231,7 +234,7 @@ void StateTracker::SetupTables(Tegra::Control::ChannelState& channel_state) {
 }
 
 void StateTracker::ChangeChannel(Tegra::Control::ChannelState& channel_state) {
-    flags = &channel_state.maxwell_3d->dirty.flags;
+    flags = &channel_state.payload->maxwell_3d.dirty.flags;
 }
 
 void StateTracker::InvalidateState() {

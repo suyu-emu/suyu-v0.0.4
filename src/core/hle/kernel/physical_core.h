@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,7 +33,7 @@ public:
     YUZU_NON_MOVEABLE(PhysicalCore);
 
     // Execute guest code running on the given thread.
-    void RunThread(KThread* thread);
+    void RunThread(KernelCore& kernel, KThread* thread);
 
     // Copy context from thread to current core.
     void LoadContext(const KThread* thread);
@@ -44,7 +47,7 @@ public:
     void CloneFpuStatus(KThread* dst) const;
 
     // Log backtrace of current processor state.
-    void LogBacktrace();
+    void LogBacktrace(KernelCore& kernel);
 
     // Wait for an interrupt.
     void Idle();
@@ -63,9 +66,7 @@ public:
     }
 
 private:
-    KernelCore& m_kernel;
     const std::size_t m_core_index;
-
     std::mutex m_guard;
     std::condition_variable m_on_interrupt;
     Core::ArmInterface* m_arm_interface{};

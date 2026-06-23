@@ -71,13 +71,13 @@ NfcDevice::~NfcDevice() {
 void NfcDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
     if (type == Core::HID::ControllerTriggerType::Connected) {
         Initialize();
-        availability_change_event->Signal();
+        availability_change_event->Signal(system.Kernel());
         return;
     }
 
     if (type == Core::HID::ControllerTriggerType::Disconnected) {
         Finalize();
-        availability_change_event->Signal();
+        availability_change_event->Signal(system.Kernel());
         return;
     }
 
@@ -138,8 +138,8 @@ bool NfcDevice::LoadNfcTag(u8 protocol, u8 tag_type, u8 uuid_length, UniqueSeria
     };
 
     device_state = DeviceState::TagFound;
-    deactivate_event->GetReadableEvent().Clear();
-    activate_event->Signal();
+    deactivate_event->GetReadableEvent().Clear(system.Kernel());
+    activate_event->Signal(system.Kernel());
     return true;
 }
 
@@ -192,8 +192,8 @@ void NfcDevice::CloseNfcTag() {
     device_state = DeviceState::TagRemoved;
     encrypted_tag_data = {};
     tag_data = {};
-    activate_event->GetReadableEvent().Clear();
-    deactivate_event->Signal();
+    activate_event->GetReadableEvent().Clear(system.Kernel());
+    deactivate_event->Signal(system.Kernel());
 }
 
 Kernel::KReadableEvent& NfcDevice::GetActivateEvent() const {

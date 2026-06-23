@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -8,6 +11,10 @@
 #include "common/common_types.h"
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
+
+namespace Kernel {
+class KernelCore;
+}
 
 namespace Core::HID {
 class HIDCore;
@@ -25,7 +32,7 @@ class NpadVibration;
 /// Keeps track of battery levels and updates npad battery shared memory values
 class NpadAbstractVibrationHandler final {
 public:
-    explicit NpadAbstractVibrationHandler();
+    explicit NpadAbstractVibrationHandler(Kernel::KernelCore& kernel_);
     ~NpadAbstractVibrationHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -55,5 +62,6 @@ private:
     NpadGcVibrationDevice* gc_vibration_device{nullptr};
     NpadVibration* vibration_handler{nullptr};
     s32 ref_counter{};
+    Kernel::KernelCore& kernel;
 };
 } // namespace Service::HID

@@ -93,23 +93,23 @@ ILibraryAppletSelfAccessor::~ILibraryAppletSelfAccessor() = default;
 
 Result ILibraryAppletSelfAccessor::PopInData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_INFO(Service_AM, "called");
-    R_RETURN(m_broker->GetInData().Pop(out_storage));
+    R_RETURN(m_broker->GetInData().Pop(system.Kernel(), out_storage));
 }
 
 Result ILibraryAppletSelfAccessor::PushOutData(SharedPointer<IStorage> storage) {
     LOG_INFO(Service_AM, "called");
-    m_broker->GetOutData().Push(storage);
+    m_broker->GetOutData().Push(system.Kernel(), storage);
     R_SUCCEED();
 }
 
 Result ILibraryAppletSelfAccessor::PopInteractiveInData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_INFO(Service_AM, "called");
-    R_RETURN(m_broker->GetInteractiveInData().Pop(out_storage));
+    R_RETURN(m_broker->GetInteractiveInData().Pop(system.Kernel(), out_storage));
 }
 
 Result ILibraryAppletSelfAccessor::PushInteractiveOutData(SharedPointer<IStorage> storage) {
     LOG_INFO(Service_AM, "called");
-    m_broker->GetInteractiveOutData().Push(storage);
+    m_broker->GetInteractiveOutData().Push(system.Kernel(), storage);
     R_SUCCEED();
 }
 

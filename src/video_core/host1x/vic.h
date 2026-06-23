@@ -6,16 +6,12 @@
 
 #pragma once
 
-#include <condition_variable>
-#include <functional>
 #include <memory>
-#include <mutex>
-#include <thread>
 
 #include "common/common_types.h"
 #include "common/scratch_buffer.h"
 #include "video_core/cdma_pusher.h"
-#include "video_core/host1x/host1x.h"
+#include "video_core/host1x/ffmpeg.h"
 
 namespace Tegra::Host1x {
 class Host1x;
@@ -138,52 +134,53 @@ enum SurfaceIndex : u32 {
     CombinedMotion = 7,
 };
 
-enum class DXVAHD_ALPHA_FILL_MODE : u32 {
-    OPAQUE = 0,
-    BACKGROUND = 1,
-    DESTINATION = 2,
-    SOURCE_STREAM = 3,
-    COMPOSITED = 4,
-    SOURCE_ALPHA = 5,
+// Note: these will inevitably collide with Win32 defines if you use their UPPER_SNAKE_CASE naming
+enum class DxvhadAlphaFillMode : u32 {
+    Opaque = 0,
+    Background = 1,
+    Destination = 2,
+    SourceStream = 3,
+    Composited = 4,
+    SourceAlpha = 5,
 };
 
-enum class DXVAHD_FRAME_FORMAT : u64 {
-    PROGRESSIVE = 0,
-    INTERLACED_TOP_FIELD_FIRST = 1,
-    INTERLACED_BOTTOM_FIELD_FIRST = 2,
-    TOP_FIELD = 3,
-    BOTTOM_FIELD = 4,
-    SUBPIC_PROGRESSIVE = 5,
-    SUBPIC_INTERLACED_TOP_FIELD_FIRST = 6,
-    SUBPIC_INTERLACED_BOTTOM_FIELD_FIRST = 7,
-    SUBPIC_TOP_FIELD = 8,
-    SUBPIC_BOTTOM_FIELD = 9,
-    TOP_FIELD_CHROMA_BOTTOM = 10,
-    BOTTOM_FIELD_CHROMA_TOP = 11,
-    SUBPIC_TOP_FIELD_CHROMA_BOTTOM = 12,
-    SUBPIC_BOTTOM_FIELD_CHROMA_TOP = 13,
+enum class DxvhadFrameFormat : u64 {
+    Progressive = 0,
+    InterlacedTopFieldFirst = 1,
+    InterlacedBottomFieldFirst = 2,
+    TopField = 3,
+    BottomField = 4,
+    SubpicProgressive = 5,
+    SubpicInterlacedTopFieldFirst = 6,
+    SubpicInterlacedBottomFieldFirst = 7,
+    SubpicTopField = 8,
+    SubpicBottomField = 9,
+    TopFieldChromaBottom = 10,
+    BottomFieldChromaTop = 11,
+    SubpicTopFieldChromaBottom = 12,
+    SubpicBottomFieldChromaTop = 13,
 };
 
-enum class DXVAHD_DEINTERLACE_MODE_PRIVATE : u64 {
-    WEAVE = 0,
-    BOB_FIELD = 1,
-    BOB = 2,
-    NEWBOB = 3,
-    DISI1 = 4,
-    WEAVE_LUMA_BOB_FIELD_CHROMA = 5,
-    MAX = 0xF,
+enum class DxvhadDeinterlaceModePrivate : u64 {
+    Weave = 0,
+    BobField = 1,
+    Bob = 2,
+    Newbob = 3,
+    Disi1 = 4,
+    WeaveLumaBobFieldChroma = 5,
+    Max = 0xF,
 };
 
-enum class BLK_KIND {
-    PITCH = 0,
-    GENERIC_16Bx2 = 1,
+enum class BlkKind {
+    Pitch = 0,
+    Generic_16Bx2 = 1,
     // These are unsupported in the vic
-    BL_NAIVE = 2,
-    BL_KEPLER_XBAR_RAW = 3,
-    VP2_TILED = 15,
+    BlNaive = 2,
+    BlKeplerXbarRaw = 3,
+    Vp2Tiled = 15,
 };
 
-enum class BLEND_SRCFACTC : u32 {
+enum class BlendSrcFactC : u32 {
     K1 = 0,
     K1_TIMES_DST = 1,
     NEG_K1_TIMES_DST = 2,
@@ -191,7 +188,7 @@ enum class BLEND_SRCFACTC : u32 {
     ZERO = 4,
 };
 
-enum class BLEND_DSTFACTC : u32 {
+enum class BlendDstFactC : u32 {
     K1 = 0,
     K2 = 1,
     K1_TIMES_DST = 2,
@@ -201,7 +198,7 @@ enum class BLEND_DSTFACTC : u32 {
     ONE = 6,
 };
 
-enum class BLEND_SRCFACTA : u32 {
+enum class BlendSrcFactA : u32 {
     K1 = 0,
     K2 = 1,
     NEG_K1_TIMES_DST = 2,
@@ -209,7 +206,7 @@ enum class BLEND_SRCFACTA : u32 {
     MAX = 7,
 };
 
-enum class BLEND_DSTFACTA : u32 {
+enum class BlendDstFactA : u32 {
     K2 = 0,
     NEG_K1_TIMES_SRC = 1,
     ZERO = 2,
@@ -232,7 +229,7 @@ static_assert(sizeof(PipeConfig) == 0x10, "PipeConfig has the wrong size!");
 
 struct OutputConfig {
     union {
-        BitField<0, 3, DXVAHD_ALPHA_FILL_MODE> alpha_fill_mode;
+        BitField<0, 3, DxvhadAlphaFillMode> alpha_fill_mode;
         BitField<3, 3, u64> alpha_fill_slot;
         BitField<6, 10, u64> background_a;
         BitField<16, 10, u64> background_r;
@@ -265,7 +262,7 @@ struct OutputSurfaceConfig {
         BitField<0, 7, VideoPixelFormat> out_pixel_format;
         BitField<7, 2, u32> out_chroma_loc_horiz;
         BitField<9, 2, u32> out_chroma_loc_vert;
-        BitField<11, 4, BLK_KIND> out_block_kind;
+        BitField<11, 4, BlkKind> out_block_kind;
         BitField<15, 4, u32> out_block_height; // in gobs, log2
         BitField<19, 3, u32> reserved0;
         BitField<22, 10, u32> reserved1;
@@ -365,7 +362,7 @@ struct SlotConfig {
         BitField<14, 1, u64> prev_prev_motion_field_enable;
         BitField<15, 1, u64> combined_motion_field_enable;
 
-        BitField<16, 4, DXVAHD_FRAME_FORMAT> frame_format;
+        BitField<16, 4, DxvhadFrameFormat> frame_format;
         BitField<20, 2, u64> filter_length_y; // 0: 1-tap, 1: 2-tap, 2: 5-tap, 3: 10-tap
         BitField<22, 2, u64> filter_length_x;
         BitField<24, 12, u64> panoramic;
@@ -377,7 +374,7 @@ struct SlotConfig {
         BitField<10, 10, u64> filter_detail;
         BitField<20, 10, u64> chroma_noise;
         BitField<30, 10, u64> chroma_detail;
-        BitField<40, 4, DXVAHD_DEINTERLACE_MODE_PRIVATE> deinterlace_mode;
+        BitField<40, 4, DxvhadDeinterlaceModePrivate> deinterlace_mode;
         BitField<44, 3, u64> motion_accumulation_weight;
         BitField<47, 11, u64> noise_iir;
         BitField<58, 4, u64> light_level;
@@ -484,13 +481,13 @@ struct BlendingSlotStruct {
         BitField<26, 6, u32> reserved1;
     };
     union {
-        BitField<0, 3, BLEND_SRCFACTC> src_factor_color_match_select;
+        BitField<0, 3, BlendSrcFactC> src_factor_color_match_select;
         BitField<3, 1, u32> reserved2;
-        BitField<4, 3, BLEND_DSTFACTC> dst_factor_color_match_select;
+        BitField<4, 3, BlendDstFactC> dst_factor_color_match_select;
         BitField<7, 1, u32> reserved3;
-        BitField<8, 3, BLEND_SRCFACTA> src_factor_a_match_select;
+        BitField<8, 3, BlendSrcFactA> src_factor_a_match_select;
         BitField<11, 1, u32> reserved4;
-        BitField<12, 3, BLEND_DSTFACTA> dst_factor_a_match_select;
+        BitField<12, 3, BlendDstFactA> dst_factor_a_match_select;
         BitField<15, 1, u32> reserved5;
         BitField<16, 4, u32> reserved6;
         BitField<20, 4, u32> reserved7;
@@ -624,8 +621,8 @@ private:
     VicRegisters regs{};
 
     Common::ScratchBuffer<u8> swizzle_scratch;
-    Common::ScratchBuffer<Pixel> output_surface;
-    Common::ScratchBuffer<Pixel> slot_surface;
+    Common::ScratchBuffer<Tegra::Host1x::Pixel> output_surface;
+    Common::ScratchBuffer<Tegra::Host1x::Pixel> slot_surface;
     Common::ScratchBuffer<u8> luma_scratch;
     Common::ScratchBuffer<u8> chroma_scratch;
 

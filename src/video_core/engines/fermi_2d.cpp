@@ -36,9 +36,8 @@ void Fermi2D::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
     rasterizer = rasterizer_;
 }
 
-void Fermi2D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
-    ASSERT_MSG(method < Regs::NUM_REGS,
-               "Invalid Fermi2D register, increase the size of the Regs structure");
+void Fermi2D::CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) {
+    ASSERT_MSG(method < Regs::NUM_REGS, "Invalid Fermi2D register, increase the size of the Regs structure");
     regs.reg_array[method] = method_argument;
 
     if (method == FERMI2D_REG_INDEX(pixels_from_memory.src_y0) + 1) {
@@ -46,13 +45,13 @@ void Fermi2D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
     }
 }
 
-void Fermi2D::CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending) {
+void Fermi2D::CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) {
     for (u32 i = 0; i < amount; ++i) {
-        CallMethod(method, base_start[i], methods_pending - i <= 1);
+        CallMethod(system, method, base_start[i], methods_pending - i <= 1);
     }
 }
 
-void Fermi2D::ConsumeSinkImpl() {
+void Fermi2D::ConsumeSinkImpl(Core::System& system) {
     for (auto [method, value] : method_sink) {
         regs.reg_array[method] = value;
     }
@@ -60,8 +59,7 @@ void Fermi2D::ConsumeSinkImpl() {
 }
 
 void Fermi2D::Blit() {
-    LOG_DEBUG(HW_GPU, "called. source address=0x{:x}, destination address=0x{:x}",
-              regs.src.Address(), regs.dst.Address());
+    LOG_DEBUG(HW_GPU, "called. source address=0x{:x}, destination address=0x{:x}", regs.src.Address(), regs.dst.Address());
 
     UNIMPLEMENTED_IF_MSG(regs.operation != Operation::SrcCopy, "Operation is not copy");
     UNIMPLEMENTED_IF_MSG(regs.src.layer != 0, "Source layer is not zero");

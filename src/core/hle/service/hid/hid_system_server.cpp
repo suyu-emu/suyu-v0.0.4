@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -281,7 +281,7 @@ void IHidSystemServer::ApplyNpadSystemCommonPolicy(HLERequestContext& ctx) {
 
     LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicy(applet_resource_user_id);
+    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicy(system.Kernel(), applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -328,7 +328,7 @@ void IHidSystemServer::ApplyNpadSystemCommonPolicyFull(HLERequestContext& ctx) {
 
     LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicyFull(applet_resource_user_id);
+    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicyFull(system.Kernel(), applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -358,9 +358,8 @@ void IHidSystemServer::GetMaskedSupportedNpadStyleSet(HLERequestContext& ctx) {
     LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     Core::HID::NpadStyleSet supported_styleset{};
-    const auto& npad = GetResourceManager()->GetNpad();
-    const Result result =
-        npad->GetMaskedSupportedNpadStyleSet(applet_resource_user_id, supported_styleset);
+    const auto npad = GetResourceManager()->GetNpad();
+    const Result result = npad->GetMaskedSupportedNpadStyleSet(system.Kernel(), applet_resource_user_id, supported_styleset);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(result);
@@ -373,9 +372,8 @@ void IHidSystemServer::SetSupportedNpadStyleSetAll(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    const auto& npad = GetResourceManager()->GetNpad();
-    const auto result =
-        npad->SetSupportedNpadStyleSet(applet_resource_user_id, Core::HID::NpadStyleSet::All);
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result = npad->SetSupportedNpadStyleSet(system.Kernel(), applet_resource_user_id, Core::HID::NpadStyleSet::All);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
