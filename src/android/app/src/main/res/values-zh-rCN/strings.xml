@@ -97,7 +97,7 @@
     <string name="buffer_reorder_disable_description">勾选时，禁用映射内存上传的重排序功能，允许将上传与特定绘制关联。在某些情况下可能会降低性能。</string>
 
     <string name="use_sync_core">同步核心速度</string>
-    <string name="use_sync_core_description">将核心速度与最大速度百分比同步，在不改变游戏实际速度的情况下提高性能。</string>
+    <string name="use_sync_core_description">将核心时钟周期速度与最大速度百分比同步，从而在不改变游戏实际速度的情况下提升性能。</string>
     <string name="cpuopt_unsafe_host_mmu">启用主机 MMU 模拟</string>
     <string name="cpuopt_unsafe_host_mmu_description">此优化可加速来宾程序的内存访问。启用后，来宾内存读取/写入将直接在内存中执行并利用主机的 MMU。禁用此功能将强制所有内存访问使用软件 MMU 模拟。</string>
     <string name="debug_knobs">调试开关</string>
@@ -291,7 +291,7 @@
     <string name="gpu_driver_fetcher">GPU驱动获取器</string>
     <string name="gpu_driver_manager">GPU 驱动管理器</string>
     <string name="install_gpu_driver_description">安装替代的驱动程序以获得更好的性能和精度</string>
-    <string name="advanced_settings">高级选项</string>
+    <string name="advanced_settings">高级设置</string>
     <string name="settings_description">更改模拟器设置</string>
     <string name="search_recently_played">最近游玩</string>
     <string name="search_recently_added">最近添加</string>
@@ -433,9 +433,9 @@
     <!-- CPU -->
     <string name="fast_cpu_time">CPU 超频</string>
     <string name="fast_cpu_time_description">强制模拟的 CPU 以更高的时钟频率运行，从而消除某些帧率限制。使用“升频”（1700MHz）以在 Switch 的最高原生时钟频率运行，或使用“快速”（2000MHz）以 2 倍时钟频率运行。</string>
-    <string name="custom_cpu_ticks">自定义CPU时钟</string>
-    <string name="custom_cpu_ticks_description">设置自定义的CPU时钟值。更高的值可能提高性能，但也可能导致游戏卡顿。建议范围为77-21000。</string>
-    <string name="cpu_ticks">时钟</string>
+    <string name="custom_cpu_ticks">自定义 CPU 时钟周期</string>
+    <string name="custom_cpu_ticks_description">设定自定义的 CPU 时钟周期值。更高的值可以提升性能，但也可能导致游戏冻结卡死。建议的赋值范围为77-21000。</string>
+    <string name="cpu_ticks">时钟周期</string>
     <string name="memory_layout">内存布局</string>
     <string name="memory_layout_description">(实验性) 更改模拟内存布局。此项设置并不会提升性能，但可能有助于游戏通过  mods 来利用高分辨率。请不要在内存不大于 8GB 的手机上使用。仅适用于 Dynamic（JIT）后端。</string>
 
@@ -466,7 +466,7 @@
     <string name="anisotropic_filtering">各向异性过滤</string>
     <string name="anisotropic_filtering_description">提高斜角的纹理质量</string>
     <string name="vram_usage_mode">显存使用模式</string>
-    <string name="vram_usage_mode_description">控制显存分配策略</string>
+    <string name="vram_usage_mode_description">控制显存分配与释放策略</string>
     <string name="accelerate_astc">ASTC解码方式</string>
     <string name="accelerate_astc_description">选择渲染时使用的 ASTC 压缩纹理解码方式：CPU（缓慢，安全），GPU（快速，推荐），或 CPU 异步（无卡顿，但可能导致问题）</string>
 
@@ -494,7 +494,7 @@
     <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
     <string name="skip_cpu_inner_invalidation_description">在更新内存时跳过某些 CPU 端的缓存失效操作，从而降低 CPU 占用率并提升性能。可能会在某些游戏中引发故障点或崩溃。</string>
     <string name="antiflicker">防闪烁</string>
-    <string name="antiflicker_description">强制 GPU 围栏回调等待已提交的 GPU 任务。配合“快速 GPU 模式”一起使用，以避免画面闪烁现象，仅会牺牲少量性能。</string>
+    <string name="antiflicker_description">强制 GPU 围栏回调等待已提交的 GPU 任务。配合“快速 GPU 模式”一起使用，以牺牲少量性能为代价来避免画面闪烁现象。</string>
     <string name="fix_bloom_effects">修复 Bloom 效果</string>
     <string name="fix_bloom_effects_description">减少《智慧的再现》和《众神的三角力量2》（Adreno A6XX - A7XX/ Turnip）中的 bloom 模糊，并移除《Burnout》中的 bloom 效果。警告：可能会导致在其他游戏中出现图形异常。</string>
     <string name="emulate_bgr565">模拟 BGR565</string>
@@ -539,8 +539,8 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="use_auto_stub">使用自动存根</string>
-    <string name="use_auto_stub_description">自动补全缺失的服务和功能。可提高兼容性但可能导致崩溃和稳定性问题。</string>
+    <string name="use_auto_stub">使用自动占位处理</string>
+    <string name="use_auto_stub_description">自动为缺失的服务和功能生成占位代码。这可能会提高兼容性，但也可能导致崩溃和稳定性问题</string>
 
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
@@ -661,9 +661,9 @@
     <string name="shutting_down">正在关闭…</string>
     <string name="reset_setting_confirmation">您要将此设定重置为默认值吗？</string>
     <string name="reset_to_default">恢复默认</string>
-    <string name="reset_to_default_description">重置所有高级选项</string>
+    <string name="reset_to_default_description">重置所有高级设置</string>
     <string name="reset_all_settings">重置所有设置项？</string>
-    <string name="reset_all_settings_description">所有高级选项都将被重置，此动作无法还原。</string>
+    <string name="reset_all_settings_description">所有高级设置都将重置为默认。此操作无法撤销。</string>
     <string name="settings_reset">重置设置项</string>
     <string name="close">关闭</string>
     <string name="learn_more">了解更多</string>
@@ -790,7 +790,7 @@
     <string name="clear_shader_cache_warning_description">由于着色器缓存需要重新生成，您将遇到更多卡顿</string>
     <string name="cleared_shaders_successfully">着色器缓存清除成功</string>
     <string name="driver_shader_wipe_dialog_title">已清理着色器</string>
-    <string name="driver_shader_wipe_dialog_message">Eden 已自动清除所有着色器缓存以维护 Vulkan 管线验证。这在切换 GPU 驱动程序时是必需的,以防止崩溃和图形损坏。在着色器重建期间您可能会遇到一些卡顿。</string>
+    <string name="driver_shader_wipe_dialog_message">Eden 已自动清空所有着色器缓存，以维持 Vulkan 管线验证流程。在切换 GPU 驱动程序时，此操作是必要的，可防止崩溃和画面异常。在着色器重构期间，您可能会感受到些许卡顿。</string>
     <string name="addons_game">附加项: %1$s</string>
     <string name="save_data">保存数据</string>
     <string name="save_data_description">管理此游戏的保存数据</string>
@@ -991,8 +991,8 @@
     <string name="dma_accuracy_unsafe">不安全</string>
     <string name="dma_accuracy_safe">安全</string>
 
-    <string name="vram_usage_conservative">保守模式</string>
-    <string name="vram_usage_aggressive">激进模式</string>
+    <string name="vram_usage_conservative">保守式</string>
+    <string name="vram_usage_aggressive">主动式</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">即时 (关闭)</string>
@@ -1014,9 +1014,9 @@
     <string name="ratio_stretch">拉伸窗口</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_accurate">高精度</string>
-    <string name="cpu_accuracy_unsafe">低精度</string>
-    <string name="cpu_accuracy_paranoid">偏执模式</string>
+    <string name="cpu_accuracy_accurate">精准</string>
+    <string name="cpu_accuracy_unsafe">不安全</string>
+    <string name="cpu_accuracy_paranoid">极致</string>
     <string name="cpu_accuracy_debugging">调试</string>
 
     <!-- Freedreno Settings -->

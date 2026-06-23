@@ -6121,178 +6121,178 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameList</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="378"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="382"/>
         <source>&amp;Add New Game Directory</source>
         <translation>&amp;إضافة مجلد ألعاب جديد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="412"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="416"/>
         <source>Favorite</source>
         <translation>مفضلة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="414"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="418"/>
         <source>Start Game</source>
         <translation>بدء اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="416"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="420"/>
         <source>Start Game without Custom Configuration</source>
         <translation>بدء اللعبة بدون الإعدادات المخصصة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="418"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="422"/>
         <source>Open Save Data Location</source>
         <translation>فتح موقع بيانات الحفظ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="419"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="423"/>
         <source>Open Mod Data Location</source>
         <translation>فتح موقع بيانات التعديلات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="421"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="425"/>
         <source>Open Transferable Pipeline Cache</source>
         <translation>ذاكرة التخزين المؤقتة المفتوحة القابلة للتحويل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="422"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="426"/>
         <source>Link to Ryujinx</source>
         <translation>Ryujinx ربط بـ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="424"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="428"/>
         <source>Remove</source>
         <translation>إزالة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="425"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="429"/>
         <source>Remove Installed Update</source>
         <translation>إزالة التحديث المثبت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="426"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="430"/>
         <source>Remove All Installed DLC</source>
         <translation>إزالة جميع المحتويات القابلة للتنزيل المثبتة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="427"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="431"/>
         <source>Remove Custom Configuration</source>
         <translation>إزالة الإعدادات المخصصة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="428"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="432"/>
         <source>Remove Cache Storage</source>
         <translation>إزالة تخزين ذاكرة التخزين المؤقتة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="429"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="433"/>
         <source>Remove OpenGL Pipeline Cache</source>
         <translation>OpenGL إزالة ذاكرة التخزين المؤقتة لخط أنابيب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="430"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="434"/>
         <source>Remove Vulkan Pipeline Cache</source>
         <translation>Vulkan إزالة ذاكرة التخزين المؤقتة لخط أنابيب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="432"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="436"/>
         <source>Remove All Pipeline Caches</source>
         <translation>إزالة جميع ذاكرات التخزين المؤقتة لخط الأنابيب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="433"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="437"/>
         <source>Remove All Installed Contents</source>
         <translation>إزالة كافة المحتويات المثبتة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="434"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="438"/>
         <source>Manage Play Time</source>
         <translation>إدارة زمن اللعب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="435"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="439"/>
         <source>Edit Play Time Data</source>
         <translation>تعديل بيانات زمن التشغيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="436"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="440"/>
         <source>Remove Play Time Data</source>
         <translation>إزالة بيانات زمن اللعب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="437"/>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="438"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="441"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="442"/>
         <source>Dump RomFS</source>
         <translation>RomFS تفريغ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="439"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="443"/>
         <source>Dump RomFS to SDMC</source>
         <translation>SDMC إلى RomFS تفريغ </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="440"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="444"/>
         <source>Verify Integrity</source>
         <translation>التحقق من السلامة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="441"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="445"/>
         <source>Copy Title ID to Clipboard</source>
         <translation>نسخ معرف العنوان إلى الحافظة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="442"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="446"/>
         <source>Navigate to GameDB entry</source>
         <translation>انتقل إلى إدخال قاعدة بيانات الألعاب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="444"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="448"/>
         <source>Create Shortcut</source>
         <translation>إنشاء إختصار</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="445"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="449"/>
         <source>Add to Desktop</source>
         <translation>إضافة إلى سطح المكتب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="447"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="451"/>
         <source>Add to Applications Menu</source>
         <translation>إضافة إلى قائمة التطبيقات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="450"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="454"/>
         <source>Configure Game</source>
         <translation>إعدادات اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="550"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="553"/>
         <source>Scan Subfolders</source>
         <translation>مسح الملفات الداخلية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="551"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="554"/>
         <source>Remove Game Directory</source>
         <translation>إزالة مجلد اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="570"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="573"/>
         <source>▲ Move Up</source>
         <translation>▲ نقل للأعلى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="571"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="574"/>
         <source>▼ Move Down</source>
         <translation>▼ نقل للأسفل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="572"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="575"/>
         <source>Open Directory Location</source>
         <translation>فتح موقع المجلد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="612"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="615"/>
         <source>Clear</source>
         <translation>مسح</translation>
     </message>
@@ -6300,62 +6300,62 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameListItemCompat</name>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="185"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="193"/>
         <source>Ingame</source>
         <translation>في اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="185"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="193"/>
         <source>Game starts, but crashes or major glitches prevent it from being completed.</source>
         <translation>تبدأ اللعبة، لكن الأعطال أو الأخطاء الرئيسية تمنعها من الاكتمال.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="187"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="195"/>
         <source>Perfect</source>
         <translation>مثالي</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="187"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="195"/>
         <source>Game can be played without issues.</source>
         <translation>يمكن لعب اللعبة بدون مشاكل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="188"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="196"/>
         <source>Playable</source>
         <translation>قابل للعب</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="188"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="196"/>
         <source>Game functions with minor graphical or audio glitches and is playable from start to finish.</source>
         <translation>تحتوي وظائف اللعبة على بعض الأخطاء الرسومية أو الصوتية البسيطة ويمكن تشغيلها من البداية إلى النهاية.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="191"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="199"/>
         <source>Intro/Menu</source>
         <translation>مقدمة/القائمة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="191"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="199"/>
         <source>Game loads, but is unable to progress past the Start Screen.</source>
         <translation>يتم تحميل اللعبة، ولكنها غير قادرة على التقدم بعد شاشة البدء.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="192"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="200"/>
         <source>Won&apos;t Boot</source>
         <translation>لا تشتغل</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="192"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="200"/>
         <source>The game crashes when attempting to startup.</source>
         <translation>تعطل اللعبة عند محاولة بدء التشغيل.</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="193"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="201"/>
         <source>Not Tested</source>
         <translation>لم تختبر</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="193"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="201"/>
         <source>The game has not yet been tested.</source>
         <translation>لم يتم اختبار اللعبة بعد.</translation>
     </message>
@@ -6363,32 +6363,32 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameListModel</name>
     <message>
-        <location filename="../../src/qt_common/game_list/model.cpp" line="285"/>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="238"/>
         <source>Name</source>
         <translation>الاسم</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/model.cpp" line="286"/>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="239"/>
         <source>Compatibility</source>
         <translation>التوافق</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/model.cpp" line="287"/>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="240"/>
         <source>Add-ons</source>
         <translation>الإضافات</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/model.cpp" line="288"/>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="241"/>
         <source>File type</source>
         <translation>نوع الملف</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/model.cpp" line="289"/>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="242"/>
         <source>Size</source>
         <translation>الحجم</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/model.cpp" line="290"/>
+        <location filename="../../src/qt_common/game_list/model.cpp" line="243"/>
         <source>Play time</source>
         <translation>زمن اللعب</translation>
     </message>
@@ -6396,7 +6396,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GameListPlaceholder</name>
     <message>
-        <location filename="../../src/yuzu/game/game_list.cpp" line="755"/>
+        <location filename="../../src/yuzu/game/game_list.cpp" line="752"/>
         <source>Double-click to add a new folder to the game list</source>
         <translation>انقر نقرًا مزدوجًا لإضافة مجلد جديد إلى قائمة الألعاب</translation>
     </message>
@@ -7006,7 +7006,7 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="276"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="1664"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1669"/>
         <source>&amp;Pause</source>
         <translation>&amp;إيقاف مؤقت</translation>
     </message>
@@ -7167,7 +7167,7 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="492"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4080"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4087"/>
         <source>&amp;Start</source>
         <translation>&amp;بدء</translation>
     </message>
@@ -7178,7 +7178,7 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="508"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4081"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4088"/>
         <source>R&amp;ecord</source>
         <translation>ت&amp;سجيل</translation>
     </message>
@@ -7321,361 +7321,361 @@ Debug Message: </source>
         <translation>تشغيل لعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="824"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="827"/>
         <source>Loading Web Applet...</source>
         <translation>جارٍ تحميل تطبيق الويب...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="874"/>
         <location filename="../../src/yuzu/main_window.cpp" line="877"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="880"/>
         <source>Disable Web Applet</source>
         <translation>تعطيل تطبيق الويب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="878"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="881"/>
         <source>Disabling the web applet can lead to undefined behavior and should only be used with Super Mario 3D All-Stars. Are you sure you want to disable the web applet?
 (This can be re-enabled in the Debug settings.)</source>
         <translation>قد يؤدي تعطيل أداة الويب إلى سلوك غير محدد، ويجب استخدامه فقط مع لعبة Super Mario 3D All-Stars. هل أنت متأكد من رغبتك في تعطيل أداة الويب؟
 (يمكن إعادة تفعيلها في إعدادات التصحيح.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="995"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="998"/>
         <source>The amount of shaders currently being built</source>
         <translation>كمية التظليلات التي يتم بناؤها حاليًا</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="997"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1000"/>
         <source>The current selected resolution scaling multiplier.</source>
         <translation>مضاعف قياس الدقة المحددة حالياً.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1000"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1003"/>
         <source>Current emulation speed. Values higher or lower than 100% indicate emulation is running faster or slower than a Switch.</source>
         <translation>Switch سرعة المحاكاة الحالية. تشير القيم الأعلى أو الأقل من 100٪ إلى أن المحاكاة تعمل بشكل أسرع أو أبطأ من.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1003"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1006"/>
         <source>How many frames per second the game is currently displaying. This will vary from game to game and scene to scene.</source>
         <translation>عدد الإطارات في الثانية التي تعرضها اللعبة حاليًا. يختلف هذا العدد من لعبة إلى أخرى ومن مشهد إلى آخر.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1007"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1010"/>
         <source>Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For full-speed emulation this should be at most 16.67 ms.</source>
         <translation>الوقت المستغرق لمحاكاة إطار على جهاز سويتش، بدون احتساب تحديد الإطارات أو المزامنة العمودية. لمحاكاة بسرعة كاملة، يجب أن يكون هذا في حدود 16.67 مللي ثانية كحد أقصى.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1068"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1071"/>
         <source>Unmute</source>
         <translation>إلغاء كتم الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1068"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1071"/>
         <source>Mute</source>
         <translation>كتم الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1073"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1076"/>
         <source>Reset Volume</source>
         <translation>إعادة تعيين مستوى الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1248"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1251"/>
         <source>&amp;Clear Recent Files</source>
         <translation>&amp;مسح الملفات الحديثة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1662"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1667"/>
         <source>&amp;Continue</source>
         <translation>&amp;متابعة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1824"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1829"/>
         <source>Warning: Outdated Game Format</source>
         <translation>تحذير: تنسيق اللعبة قديم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1825"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1830"/>
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;For an explanation of the various Switch formats Eden supports, out our user handbook. This message will not be shown again.</source>
         <translation>أنت تستخدم تنسيق مجلد ROM المُفكك لهذه اللعبة، وهو تنسيق قديم استُبدل بآخر مثل NCA وNAX وXCI وNSP. تفتقر مجلدات ROM المُفككة إلى الأيقونات والبيانات الوصفية ودعم التحديثات. &lt;br&gt;لتوضيح تنسيقات Switch المختلفة التي يدعمها Eden، يُرجى مراجعة دليل المستخدم. لن تظهر هذه الرسالة مرة أخرى.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1836"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="1868"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1841"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1873"/>
         <source>Error while loading ROM!</source>
         <translation>ROM خطأ أثناء تحميل  </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1837"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1842"/>
         <source>The ROM format is not supported.</source>
         <translation>غير مدعوم ROM تنسيق.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1841"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1846"/>
         <source>An error occurred initializing the video core.</source>
         <translation>حدث خطأ أثناء تهيئة نواة الفيديو.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1842"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1847"/>
         <source>Eden has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
         <translation>واجه إيدن خطأً أثناء تشغيل نواة الفيديو. عادةً ما يكون السبب هو برامج تشغيل وحدة معالجة الرسومات القديمة، بما في ذلك المدمجة منها. يُرجى مراجعة السجل لمزيد من التفاصيل. لمزيد من المعلومات حول الوصول إلى السجل، يُرجى زيارة الصفحة التالية: &lt;a href=&apos;https://yuzu-mirror.github.io/help/reference/log-files/&apos;&gt;كيفيه رفع سجلات الإخطاء&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1857"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1862"/>
         <source>Error while loading ROM! %1</source>
         <comment>%1 signifies a numeric error code.</comment>
         <translation>حدث خطأ أثناء تحميل ROM! %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1860"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1865"/>
         <source>%1&lt;br&gt;Please redump your files or ask on Discord/Stoat for help.</source>
         <comment>%1 signifies an error string.</comment>
         <translation>%1&lt;br&gt;Discord/Stoat يرجى إعادة تحميل ملفاتك أو طلب المساعدة على</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="1869"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="1874"/>
         <source>An unknown error occurred. Please see the log for more details.</source>
         <translation>حدث خطأ غير معروف. يرجى الاطلاع على السجل لمزيد من التفاصيل.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2018"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2023"/>
         <source>(64-bit)</source>
         <translation>(64-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2018"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2023"/>
         <source>(32-bit)</source>
         <translation>(32-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2019"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2024"/>
         <source>%1 %2</source>
         <comment>%1 is the title name. %2 indicates if the title is 64-bit or 32-bit</comment>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2097"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2102"/>
         <source>Closing software...</source>
         <translation>جارٍ إغلاق البرنامج...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2263"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2268"/>
         <source>Save Data</source>
         <translation>بيانات الحفظ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2294"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2299"/>
         <source>Mod Data</source>
         <translation>بيانات التعديل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2307"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2312"/>
         <source>Error Opening %1 Folder</source>
         <translation>خطأ في فتح المجلد %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2308"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2656"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2313"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2661"/>
         <source>Folder does not exist!</source>
         <translation>المجلد غير موجود!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2386"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2391"/>
         <source>Remove Installed Game Contents?</source>
         <translation>إزالة محتويات اللعبة المثبتة؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2388"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2393"/>
         <source>Remove Installed Game Update?</source>
         <translation>إزالة تحديث اللعبة المثبت؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2390"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2395"/>
         <source>Remove Installed Game DLC?</source>
         <translation>إزالة المحتوى القابل للتنزيل المثبت للعبة؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2396"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2401"/>
         <source>Remove Entry</source>
         <translation>إزالة الإدخال</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2426"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2431"/>
         <source>Delete OpenGL Transferable Shader Cache?</source>
         <translation>OpenGL Shader حذف ذاكرة التخزين المؤقتة القابلة للنقل لـ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2428"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2433"/>
         <source>Delete Vulkan Transferable Shader Cache?</source>
         <translation>Vulkan Shader حذف ذاكرة التخزين المؤقتة القابلة للنقل لـ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2430"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2435"/>
         <source>Delete All Transferable Shader Caches?</source>
         <translation>حذف جميع مخازن ذاكرة التظليل القابلة للنقل؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2432"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2437"/>
         <source>Remove Custom Game Configuration?</source>
         <translation>إزالة إعدادات اللعبة المخصص؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2434"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2439"/>
         <source>Remove Cache Storage?</source>
         <translation>إزالة ذاكرة التخزين المؤقتة؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2440"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2445"/>
         <source>Remove File</source>
         <translation>إزالة الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2477"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2482"/>
         <source>Remove Play Time Data</source>
         <translation>إزالة بيانات زمن اللعب</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2477"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2482"/>
         <source>Reset play time?</source>
         <translation>إعادة تعيين زمن اللعب؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2490"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2575"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2495"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2580"/>
         <source>RomFS Extraction Failed!</source>
         <translation>RomFS فشل استخراج</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2491"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2496"/>
         <source>There was an error copying the RomFS files or the user cancelled the operation.</source>
         <translation>أو قام المستخدم بإلغاء العملية RomFS حدث خطأ أثناء نسخ ملفات</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2550"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2555"/>
         <source>Full</source>
         <translation>كامل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2550"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2555"/>
         <source>Skeleton</source>
         <translation>Skeleton</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2552"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2557"/>
         <source>Select RomFS Dump Mode</source>
         <translation>RomFS حدد وضع تفريغ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2553"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2558"/>
         <source>Please select the how you would like the RomFS dumped.&lt;br&gt;Full will copy all of the files into the new directory while &lt;br&gt;skeleton will only create the directory structure.</source>
         <translation>الرجاء تحديد الطريقة التي تريد بها تفريغ RomFS. &lt;br&gt;سيتم نسخ جميع الملفات إلى المجلد الجديد في أثناء &lt;br&gt;قيام الهيكل العظمي بإنشاء بنية المجلد فقط.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2576"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2581"/>
         <source>There is not enough free space at %1 to extract the RomFS. Please free up space or select a different dump directory at Emulation &gt; Configure &gt; System &gt; Filesystem &gt; Dump Root</source>
         <translation>لا توجد مساحة فارغة كافية في %1 لاستخراج نظام الملفات RomFS. يُرجى تحرير مساحة أو اختيار مجلد تفريغ آخر من: المحاكاة &gt; التكوين &gt; النظام &gt; نظام الملفات &gt; تفريغ الجذر.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2583"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2588"/>
         <source>Extracting RomFS...</source>
         <translation>RomFS استخراج...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2583"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2840"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2588"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2845"/>
         <source>Cancel</source>
         <translation>إلغاء</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2593"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2598"/>
         <source>RomFS Extraction Succeeded!</source>
         <translation>بنجاح RomFS تم استخراج!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2594"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2599"/>
         <source>The operation completed successfully.</source>
         <translation>تمت العملية بنجاح.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2655"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2660"/>
         <source>Error Opening %1</source>
         <translation>خطأ في فتح %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2664"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2669"/>
         <source>Select Directory</source>
         <translation>حدد المجلد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2693"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2698"/>
         <source>Properties</source>
         <translation>خصائص</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2694"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2699"/>
         <source>The game properties could not be loaded.</source>
         <translation>تعذر تحميل خصائص اللعبة.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2756"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2761"/>
         <source>Switch Executable (%1);;All Files (*.*)</source>
         <comment>%1 is an identifier for the Switch executable file extensions.</comment>
         <translation>تشغيل الملف القابل للتنفيذ (%1)؛؛جميع الملفات (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2760"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2765"/>
         <source>Load File</source>
         <translation>تحميل الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2773"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2778"/>
         <source>Open Extracted ROM Directory</source>
         <translation>المستخرج ROM فتح ملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2784"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2789"/>
         <source>Invalid Directory Selected</source>
         <translation>تم تحديد مجلد غير صالح</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2785"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2790"/>
         <source>The directory you have selected does not contain a &apos;main&apos; file.</source>
         <translation>لا يحتوي المجلد الذي حددته على ملف رئيسي</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2795"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2800"/>
         <source>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</source>
         <translation>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2800"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2805"/>
         <source>Install Files</source>
         <translation>تثبيت الملفات</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2847"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2852"/>
         <source>%n file(s) remaining</source>
         <translation><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform><numerusform>%n ملف (ملفات) متبقية</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2849"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2854"/>
         <source>Installing file &quot;%1&quot;...</source>
         <translation>تثبيت الملف ”%1“...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2903"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="2917"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2908"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2922"/>
         <source>Install Results</source>
         <translation>نتائج التثبيت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2904"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2909"/>
         <source>To avoid possible conflicts, we discourage users from installing base games to the NAND.
 Please, only use this feature to install updates and DLC.</source>
         <translation>لتجنب أي تعارضات محتملة، ننصح المستخدمين بعدم تثبيت الألعاب الأساسية على الذاكرة الداخلية.
 يرجى استخدام هذه الميزة فقط لتثبيت التحديثات والمحتوى القابل للتنزيل.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2910"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2915"/>
         <source>%n file(s) were newly installed
 </source>
         <translation><numerusform>%n تم تثبيت ملف (ملفات) جديدة
@@ -7687,7 +7687,7 @@ Please, only use this feature to install updates and DLC.</source>
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2913"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2918"/>
         <source>%n file(s) were overwritten
 </source>
         <translation><numerusform>%n تم استبدال ملف (ملفات)
@@ -7699,7 +7699,7 @@ Please, only use this feature to install updates and DLC.</source>
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="2915"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2920"/>
         <source>%n file(s) failed to install
 </source>
         <translation><numerusform>%n فشل تثبيت ملف (ملفات)
@@ -7711,314 +7711,314 @@ Please, only use this feature to install updates and DLC.</source>
 </numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2925"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2930"/>
         <source>System Application</source>
         <translation>تطبيق النظام</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2926"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2931"/>
         <source>System Archive</source>
         <translation>أرشيف النظام</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2927"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2932"/>
         <source>System Application Update</source>
         <translation>تحديث تطبيق النظام</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2928"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2933"/>
         <source>Firmware Package (Type A)</source>
         <translation>حزمة الفيرموير (النوع أ)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2929"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2934"/>
         <source>Firmware Package (Type B)</source>
         <translation>حزمة الفيرموير (النوع ب)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2930"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2935"/>
         <source>Game</source>
         <translation>لعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2931"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2936"/>
         <source>Game Update</source>
         <translation>تحديث اللعبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2932"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2937"/>
         <source>Game DLC</source>
         <translation>الخاص باللعبة DLC الـ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2933"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2938"/>
         <source>Delta Title</source>
         <translation>Delta عنوان</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2936"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2941"/>
         <source>Select NCA Install Type...</source>
         <translation>NCA حدد نوع تثبيت...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2937"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2942"/>
         <source>Please select the type of title you would like to install this NCA as:
 (In most instances, the default &apos;Game&apos; is fine.)</source>
         <translation>يرجى تحديد نوع اللعبة التي ترغب في تثبيت NCA عليها:
 (في معظم الحالات، يكون الإعداد الافتراضي &quot;لعبة&quot; مناسبًا.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2943"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2948"/>
         <source>Failed to Install</source>
         <translation>فشل التثبيت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2944"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2949"/>
         <source>The title type you selected for the NCA is invalid.</source>
         <translation>غير صالح NCA نوع العنوان الذي حددته لـ.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2979"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2984"/>
         <source>File not found</source>
         <translation>لم يتم العثور على الملف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="2980"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="2985"/>
         <source>File &quot;%1&quot; not found</source>
         <translation>لم يتم العثور على الملف &quot;%1&quot;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3099"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3104"/>
         <source>OK</source>
         <translation>موافق</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3117"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3122"/>
         <source>Function Disabled</source>
         <translation>الوظيفة معطلة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3118"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3123"/>
         <source>Compatibility list reporting is currently disabled. Check back later!</source>
         <translation>تقارير قائمة التوافق معطلة حاليًا. يرجى التحقق لاحقًا!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3160"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3165"/>
         <source>Error opening URL</source>
         <translation>خطأ في فتح الرابط</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3161"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3166"/>
         <source>Unable to open the URL &quot;%1&quot;.</source>
         <translation>تعذر فتح الرابط ”%1“</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3534"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3540"/>
         <source>TAS Recording</source>
         <translation>TAS تسجيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3534"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3540"/>
         <source>Overwrite file of player 1?</source>
         <translation>الكتابة فوق ملف اللاعب 1؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3558"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3564"/>
         <source>Invalid config detected</source>
         <translation>تم اكتشاف إعدادات غير صالح</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3559"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3565"/>
         <source>Handheld controller can&apos;t be used on docked mode. Pro controller will be selected.</source>
         <translation>لا يمكن استخدام وحدة التحكم المحمولة في وضع الإرساء. سيتم اختيار وحدة تحكم احترافية.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3713"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3764"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3719"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3770"/>
         <source>Amiibo</source>
         <translation>أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3713"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3764"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3719"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3770"/>
         <source>The current amiibo has been removed</source>
         <translation>تمت إزالة أميبو الحالي.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3718"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3724"/>
         <source>Error</source>
         <translation>خطأ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3718"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="3776"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3724"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3782"/>
         <source>The current game is not looking for amiibos</source>
         <translation>اللعبة الحالية لا تبحث عن أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3724"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3730"/>
         <source>Amiibo File (%1);; All Files (*.*)</source>
         <translation>جميع الملفات (%1)؛؛ ملف أميبو (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3725"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3731"/>
         <source>Load Amiibo</source>
         <translation>تحميل أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3760"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3766"/>
         <source>Error loading Amiibo data</source>
         <translation>خطأ أثناء تحميل بيانات أميبو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3770"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3776"/>
         <source>The selected file is not a valid amiibo</source>
         <translation>الملف المحدد ليس أميبو صالح</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3773"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3779"/>
         <source>The selected file is already on use</source>
         <translation>الملف المحدد قيد الاستخدام بالفعل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3779"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3785"/>
         <source>An unknown error occurred</source>
         <translation>حدث خطأ غير معروف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3881"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3888"/>
         <source>No firmware available</source>
         <translation>لا يوجد فيرموير متوفر</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3885"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3892"/>
         <source>Firmware Corrupted</source>
         <translation>الفيرموير تالف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3951"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3958"/>
         <source>Unknown applet</source>
         <translation>تطبيق غير معروف</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3952"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3959"/>
         <source>Applet doesn&apos;t map to a known value.</source>
         <translation>لا يرتبط التطبيق المصغر بقيمة معروفة.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3955"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3962"/>
         <source>Record not found</source>
         <translation>لم يتم العثور على السجل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3956"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3963"/>
         <source>Applet not found. Please reinstall firmware.</source>
         <translation>لم يتم العثور على التطبيق المصغر. يرجى إعادة تثبيت الفيرموير.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3988"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3995"/>
         <source>Capture Screenshot</source>
         <translation>التقاط لقطة شاشة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="3989"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="3996"/>
         <source>PNG Image (*.png)</source>
         <translation>PNG Image (*.png)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4056"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4063"/>
         <source>TAS state: Running %1/%2</source>
         <translation>حالة TAS: تشغيل %1/%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4060"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4067"/>
         <source>TAS state: Recording %1</source>
         <translation>حالة TAS: تسجيل %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4062"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4069"/>
         <source>TAS state: Idle %1/%2</source>
         <translation>حالة TAS: خامل %1/%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4066"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4073"/>
         <source>TAS State: Invalid</source>
         <translation>حالة TAS: غير صالحة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4080"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4087"/>
         <source>&amp;Stop Running</source>
         <translation>&amp;إيقاف التشغيل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4081"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4088"/>
         <source>Stop R&amp;ecording</source>
         <translation>إيقاف ال&amp;تسجيل</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main_window.cpp" line="4106"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4113"/>
         <source>Building: %n shader(s)</source>
         <translation><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform><numerusform>بناء: %n تظليل(ات)</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4115"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4122"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
         <translation>الدقة: %1x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4118"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4125"/>
         <source>Speed: %1% / %2%</source>
         <translation>السرعة: %1% / %2%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4122"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4129"/>
         <source>Speed: %1%</source>
         <translation>السرعة: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4125"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4132"/>
         <source>Game: %1 FPS</source>
         <translation>اللعبة: %1 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4131"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4138"/>
         <source>Frame: %1 ms</source>
         <translation>الإطار: %1 ms</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4172"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4179"/>
         <source>NO AA</source>
         <translation>NO AA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4181"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4188"/>
         <source>VOLUME: MUTE</source>
         <translation>الصوت: كتم الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4184"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4191"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
         <translation>%1% :الصوت</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4247"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4254"/>
         <source>Derivation Components Missing</source>
         <translation>مكونات الاشتقاق مفقودة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4248"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4255"/>
         <source>Decryption keys are missing. Install them now?</source>
         <translation>مفاتيح فك التشفير مفقودة. هل تريد تثبيتها الآن؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4278"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4285"/>
         <source>Wayland Detected!</source>
         <translation>Wayland تم الكشف عن</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4280"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4287"/>
         <source>Wayland is known to have significant performance issues and mysterious bugs.
 It's recommended to use X11 instead.
 
@@ -8029,74 +8029,74 @@ Would you like to force it for future launches?</source>
 هل ترغب في فرض استخدامه في عمليات التشغيل المستقبلية؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4285"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4292"/>
         <source>Use X11</source>
         <translation>X11 استخدم</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4286"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4293"/>
         <source>Continue with Wayland</source>
         <translation>Wayland متابعة مع</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4289"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4296"/>
         <source>Don&apos;t show again</source>
         <translation>لا تعرض مرة أخرى</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4303"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4310"/>
         <source>Restart Required</source>
         <translation>إعادة التشغيل مطلوبة</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4304"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4311"/>
         <source>Restart Eden to apply the X11 backend.</source>
         <translation>X11 أعد تشغيل إيدن لتطبيق الخلفية</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4342"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4349"/>
         <source>Slow</source>
         <translation>بطيء</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4345"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4352"/>
         <source>Turbo</source>
         <translation>تيربو</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4349"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4356"/>
         <source>Unlocked</source>
         <translation>إلغاء القفل</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4399"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4406"/>
         <source>Select RomFS Dump Target</source>
         <translation>RomFS حدد هدف تفريغ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4400"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4407"/>
         <source>Please select which RomFS you would like to dump.</source>
         <translation>الذي تريد تفريغه RomFS الرجاء تحديد</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4423"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4430"/>
         <source>Are you sure you want to close Eden?</source>
         <translation>هل أنت متأكد من أنك تريد إغلاق إيدن؟</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4424"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4512"/>
-        <location filename="../../src/yuzu/main_window.cpp" line="4524"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4431"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4519"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4531"/>
         <source>Eden</source>
         <translation>إيدن</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4513"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4520"/>
         <source>Are you sure you want to stop the emulation? Any unsaved progress will be lost.</source>
         <translation>هل أنت متأكد من أنك تريد إيقاف المحاكاة؟ سيتم فقدان أي تقدم لم يتم حفظه.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main_window.cpp" line="4521"/>
+        <location filename="../../src/yuzu/main_window.cpp" line="4528"/>
         <source>The currently running application has requested Eden to not exit.
 
 Would you like to bypass this and exit anyway?</source>
@@ -9136,47 +9136,47 @@ p, li { white-space: pre-wrap; }
         <translation>%1 يلعب %2</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="87"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="95"/>
         <source>Play Time: %1</source>
         <translation>زمن اللعب: %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="90"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="98"/>
         <source>Never Played</source>
         <translation>لم تُلعب قط</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="98"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="106"/>
         <source>Version: %1</source>
         <translation>الإصدار: %1</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="100"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="108"/>
         <source>Version: 1.0.0</source>
         <translation>الإصدار: 1.0.0</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="307"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="312"/>
         <source>Installed SD Titles</source>
         <translation>عناوين المثبتة على بطاقة الذاكرة</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="315"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="316"/>
         <source>Installed NAND Titles</source>
         <translation>عناوين المثبتة على الذاكرة الداخلية</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="323"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="320"/>
         <source>System Titles</source>
         <translation>عناوين النظام</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="366"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="357"/>
         <source>Add New Game Directory</source>
         <translation>إضافة مجلد ألعاب جديد</translation>
     </message>
     <message>
-        <location filename="../../src/qt_common/game_list/game_list_p.h" line="389"/>
+        <location filename="../../src/qt_common/game_list/game_list_p.h" line="375"/>
         <source>Favorites</source>
         <translation>المفضلة</translation>
     </message>
