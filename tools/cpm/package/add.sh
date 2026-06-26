@@ -7,31 +7,20 @@ RETURN=0
 
 usage() {
 	cat <<EOF
-Usage: cpmutil.sh package add [-s|--sha] [-t|--tag]
-           [-c|--cpmfile CPMFILE] [package name]
+Usage: cpmutil.sh package add [package name]
 
 Add a new package to a cpmfile.
-
-Options:
-    -t, --tag            	Use tag versioning, instead of the default,
-                           	commit sha versioning.
-    -c, --cpmfile <CPMFILE>	Use the specified cpmfile instead of the root cpmfile
 
 Note that you are still responsible for integrating this into your CMake.
 
 EOF
 
-	exit $RETURN
+	exit "$RETURN"
 }
 
 die() {
 	echo "-- $*" >&2
-	exit 1
-}
-
-_cpmfile() {
-	[ -n "$1" ] || die "You must specify a valid cpmfile."
-	CPMFILE="$1"
+	RETURN=1 usage
 }
 
 while :; do
@@ -44,20 +33,10 @@ while :; do
 			opt=$(echo "$opt" | cut -c2-)
 
 			case "$char" in
-			t) TAG=1 ;;
-			c)
-				_cpmfile "$2"
-				shift
-				;;
 			h) usage ;;
 			*) die "Invalid option -$char" ;;
 			esac
 		done
-		;;
-	--tag) TAG=1 ;;
-	--cpmfile)
-		_cpmfile "$2"
-		shift
 		;;
 	--help) usage ;;
 	"$0") break ;;
@@ -68,12 +47,8 @@ while :; do
 	shift
 done
 
-: "${CPMFILE:=$PWD/cpmfile.json}"
-
 [ -n "$PKG" ] || die "You must specify a package name."
 
 export PKG
-export CPMFILE
-export TAG
 
 "$SCRIPTS"/util/interactive.sh

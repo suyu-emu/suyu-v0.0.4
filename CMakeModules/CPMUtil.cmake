@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-set(CPM_SOURCE_CACHE "${PROJECT_SOURCE_DIR}/.cache/cpm" CACHE STRING "" FORCE)
+cmake_minimum_required(VERSION 3.31)
 
 if(MSVC OR ANDROID OR IOS)
     set(BUNDLED_DEFAULT ON)
@@ -9,14 +9,39 @@ else()
     set(BUNDLED_DEFAULT OFF)
 endif()
 
+set(CPM_SOURCE_CACHE "${PROJECT_SOURCE_DIR}/.cache/cpm" CACHE STRING "" FORCE)
+
 option(CPMUTIL_FORCE_BUNDLED
     "Force bundled packages for all CPM depdendencies" ${BUNDLED_DEFAULT})
 
 option(CPMUTIL_FORCE_SYSTEM
-    "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
+    "Force system packages for all CPM dependencies" OFF)
 
-cmake_minimum_required(VERSION 3.22)
+set(CPMUTIL_PATCH_DIR "${PROJECT_SOURCE_DIR}/.patch" CACHE STRING
+    "Directory containing patches for packages")
+
 include(CPM)
+
+# Rudimentary target architecture detection
+if (NOT DEFINED ARCHITECTURE)
+    string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} processor)
+    if (processor MATCHES "x86|amd64")
+        set(CPMUTIL_AMD64 ON)
+    elseif(processor MATCHES "^aarch64|^arm64|^armv8\.*")
+        set(CPMUTIL_ARM64 ON)
+    elseif(processor MATCHES "riscv")
+        set(CPMUTIL_RISCV64 ON)
+    endif()
+else()
+    # This block exists for compatibility with my own DetectArchitecture.cmake.
+    if (ARCHITECTURE_x86_64)
+        set(CPMUTIL_AMD64 ON)
+    elseif(ARCHITECTURE_arm64)
+        set(CPMUTIL_ARM64 ON)
+    elseif(ARCHITECTURE_riscv64)
+        set(CPMUTIL_RISCV64 ON)
+    endif()
+endif()
 
 # cpmfile parsing
 set(CPMUTIL_JSON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json")
@@ -70,7 +95,6 @@ function(get_json_element object out member default)
 
     if(out_type STREQUAL "ARRAY")
         string(JSON _len LENGTH "${object}" ${member})
-        # array_to_list("${outvar}" ${_len} outvar)
         set("${out}_LENGTH" "${_len}" PARENT_SCOPE)
     endif()
 
@@ -148,11 +172,12 @@ macro(parse_object object)
     get_json_element("${object}" repo repo "")
     get_json_element("${object}" ci ci OFF)
     get_json_element("${object}" version version "")
+    get_json_element("${object}" min_version min_version "")
+    get_json_element("${object}" git_host git_host "github.com")
 
     if(ci)
         get_json_element("${object}" name name "${JSON_NAME}")
         get_json_element("${object}" extension extension "tar.zst")
-        get_json_element("${object}" min_version min_version "")
         get_json_element("${object}" raw_disabled disabled_platforms "")
 
         if(raw_disabled)
@@ -163,14 +188,10 @@ macro(parse_object object)
         endif()
     else()
         get_json_element("${object}" hash hash "")
-        get_json_element("${object}" hash_suffix hash_suffix "")
         get_json_element("${object}" sha sha "")
         get_json_element("${object}" url url "")
-        get_json_element("${object}" key key "")
         get_json_element("${object}" tag tag "")
         get_json_element("${object}" artifact artifact "")
-        get_json_element("${object}" git_version git_version "")
-        get_json_element("${object}" git_host git_host "")
         get_json_element("${object}" source_subdir source_subdir "")
         get_json_element("${object}" bundled bundled "unset")
         get_json_element("${object}" find_args find_args "")
@@ -178,23 +199,17 @@ macro(parse_object object)
 
         # okay here comes the fun part: REPLACEMENTS!
         # first: tag gets %VERSION% replaced if applicable,
-        #   with either git_version (preferred) or version
+        #   with version
         # second: artifact gets %VERSION% and %TAG% replaced
         #   accordingly (same rules for VERSION)
 
-        if(git_version)
-            set(version_replace ${git_version})
-        else()
-            set(version_replace ${version})
-        endif()
-
         # TODO(crueter): fmt module for cmake
         if(tag)
-            string(REPLACE "%VERSION%" "${version_replace}" tag ${tag})
+            string(REPLACE "%VERSION%" "${version}" tag ${tag})
         endif()
 
         if(artifact)
-            string(REPLACE "%VERSION%" "${version_replace}"
+            string(REPLACE "%VERSION%" "${version}"
                 artifact ${artifact})
             string(REPLACE "%TAG%" "${tag}" artifact ${artifact})
         endif()
@@ -207,7 +222,7 @@ macro(parse_object object)
                 string(JSON _patch GET "${raw_patches}" "${IDX}")
 
                 set(full_patch
-                    "${PROJECT_SOURCE_DIR}/.patch/${JSON_NAME}/${_patch}")
+                    "${CPMUTIL_PATCH_DIR}/${JSON_NAME}/${_patch}")
                 if(NOT EXISTS ${full_patch})
                     cpm_utils_message(FATAL_ERROR ${JSON_NAME}
                         "specifies patch ${full_patch} which does not exist")
@@ -242,14 +257,16 @@ function(AddJsonPackage)
 
         # these are overrides that can be generated at runtime,
         # so can be defined separately from the json
-        BUNDLED_PACKAGE
         FORCE_BUNDLED_PACKAGE)
 
     set(multiValueArgs OPTIONS)
 
     set(optionArgs MODULE_PATH DOWNLOAD_ONLY)
 
-    cmake_parse_arguments(JSON "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}"
+    cmake_parse_arguments(JSON
+        "${optionArgs}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         "${ARGN}")
 
     list(LENGTH ARGN argnLength)
@@ -260,8 +277,8 @@ function(AddJsonPackage)
     endif()
 
     if(NOT DEFINED CPMFILE_CONTENT)
-        cpm_utils_message(WARNING ${name}
-            "No cpmfile, AddJsonPackage is a no-op")
+        cpm_utils_message(FATAL_ERROR ${name}
+            "No cpmfile present")
         return()
     endif()
 
@@ -288,13 +305,16 @@ function(AddJsonPackage)
 
     if(ci)
         AddCIPackage(
-            VERSION ${version}
-            NAME ${name}
-            REPO ${repo}
-            PACKAGE ${package}
-            EXTENSION ${extension}
-            MIN_VERSION ${min_version}
-            DISABLED_PLATFORMS ${disabled_platforms}
+            VERSION "${version}"
+            NAME "${name}"
+            REPO "${repo}"
+            PACKAGE "${package}"
+            EXTENSION "${extension}"
+            MIN_VERSION "${min_version}"
+            DISABLED_PLATFORMS "${disabled_platforms}"
+
+            GIT_HOST "${git_host}"
+
             ${EXTRA_ARGS})
     else()
         if (NOT DEFINED JSON_FORCE_BUNDLED_PACKAGE)
@@ -304,12 +324,11 @@ function(AddJsonPackage)
         AddPackage(
             NAME "${package}"
             VERSION "${version}"
+            MIN_VERSION "${min_version}"
             URL "${url}"
             HASH "${hash}"
-            HASH_SUFFIX "${hash_suffix}"
             SHA "${sha}"
             REPO "${repo}"
-            KEY "${key}"
             PATCHES "${patches}"
             OPTIONS "${options}"
             FIND_PACKAGE_ARGUMENTS "${find_args}"
@@ -317,11 +336,11 @@ function(AddJsonPackage)
             FORCE_BUNDLED_PACKAGE "${JSON_FORCE_BUNDLED_PACKAGE}"
             SOURCE_SUBDIR "${source_subdir}"
 
-            GIT_VERSION "${git_version}"
             GIT_HOST "${git_host}"
 
             ARTIFACT "${artifact}"
             TAG "${tag}"
+
             ${EXTRA_ARGS})
     endif()
 
@@ -339,25 +358,19 @@ function(AddPackage)
     set(oneValueArgs
         NAME
         VERSION
-        GIT_VERSION
+        MIN_VERSION
         GIT_HOST
 
         REPO
         TAG
         ARTIFACT
         SHA
-        BRANCH
 
         HASH
-        HASH_SUFFIX
-        HASH_URL
-        HASH_ALGO
 
         URL
-        GIT_URL
-        SOURCE_SUBDIR
 
-        KEY
+        SOURCE_SUBDIR
         BUNDLED_PACKAGE
         FORCE_BUNDLED_PACKAGE
         FIND_PACKAGE_ARGUMENTS)
@@ -366,7 +379,10 @@ function(AddPackage)
 
     set(optionArgs MODULE_PATH DOWNLOAD_ONLY)
 
-    cmake_parse_arguments(PKG_ARGS "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}"
+    cmake_parse_arguments(PKG_ARGS
+        "${optionArgs}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         "${ARGN}")
 
     if(NOT DEFINED PKG_ARGS_NAME)
@@ -385,6 +401,7 @@ function(AddPackage)
         set(CPM_${PKG_ARGS_NAME}_SOURCE ${${PKG_ARGS_NAME}_CUSTOM_DIR})
     endif()
 
+    # TODO: See if this can be delegated to subshells
     if(NOT DEFINED PKG_ARGS_GIT_HOST)
         set(git_host github.com)
     else()
@@ -393,42 +410,22 @@ function(AddPackage)
 
     if(DEFINED PKG_ARGS_URL)
         set(pkg_url ${PKG_ARGS_URL})
-
-        if(DEFINED PKG_ARGS_REPO)
-            set(pkg_git_url https://${git_host}/${PKG_ARGS_REPO})
-        else()
-            if(DEFINED PKG_ARGS_GIT_URL)
-                set(pkg_git_url ${PKG_ARGS_GIT_URL})
-            else()
-                set(pkg_git_url ${pkg_url})
-            endif()
-        endif()
+        set(pkg_git_url ${pkg_url})
     elseif(DEFINED PKG_ARGS_REPO)
         set(pkg_git_url https://${git_host}/${PKG_ARGS_REPO})
 
-        if(DEFINED PKG_ARGS_TAG)
-            set(pkg_key ${PKG_ARGS_TAG})
-
-            if(DEFINED PKG_ARGS_ARTIFACT)
-                set(pkg_url
-                    "${pkg_git_url}/releases/download/${PKG_ARGS_TAG}/${PKG_ARGS_ARTIFACT}")
-            else()
-                set(pkg_url
-                    ${pkg_git_url}/archive/refs/tags/${PKG_ARGS_TAG}.tar.gz)
-            endif()
-        elseif(DEFINED PKG_ARGS_SHA)
+        if(DEFINED PKG_ARGS_SHA)
             set(pkg_url "${pkg_git_url}/archive/${PKG_ARGS_SHA}.tar.gz")
-        else()
-            if(DEFINED PKG_ARGS_BRANCH)
-                set(PKG_BRANCH ${PKG_ARGS_BRANCH})
+        elseif(DEFINED PKG_ARGS_TAG)
+            set(tag "${PKG_ARGS_TAG}")
+            if(DEFINED PKG_ARGS_ARTIFACT)
+                set(artifact "${PKG_ARGS_ARTIFACT}")
+                set(pkg_url
+                    "${pkg_git_url}/releases/download/${tag}/${artifact}")
             else()
-                cpm_utils_message(WARNING ${PKG_ARGS_NAME}
-                    "REPO defined but no TAG, SHA, BRANCH, or URL"
-                    "specified, defaulting to master")
-                set(PKG_BRANCH master)
+                set(pkg_url
+                    "${pkg_git_url}/archive/refs/tags/${tag}.tar.gz")
             endif()
-
-            set(pkg_url ${pkg_git_url}/archive/refs/heads/${PKG_BRANCH}.tar.gz)
         endif()
     else()
         cpm_utils_message(FATAL_ERROR ${PKG_ARGS_NAME}
@@ -437,75 +434,24 @@ function(AddPackage)
 
     cpm_utils_message(DEBUG ${PKG_ARGS_NAME} "Download URL is ${pkg_url}")
 
-    if(NOT DEFINED PKG_ARGS_KEY)
-        if(DEFINED PKG_ARGS_SHA)
-            string(SUBSTRING ${PKG_ARGS_SHA} 0 4 pkg_key)
-            cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
-                "No custom key defined, using ${pkg_key} from sha")
-        elseif(DEFINED PKG_ARGS_GIT_VERSION)
-            set(pkg_key ${PKG_ARGS_GIT_VERSION})
-            cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
-                "No custom key defined, using ${pkg_key}")
-        elseif(DEFINED PKG_ARGS_TAG)
-            set(pkg_key ${PKG_ARGS_TAG})
-            cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
-                "No custom key defined, using ${pkg_key}")
-        elseif(DEFINED PKG_ARGS_VERSION)
-            set(pkg_key ${PKG_ARGS_VERSION})
-            cpm_utils_message(DEBUG ${PKG_ARGS_NAME}
-                "No custom key defined, using ${pkg_key}")
-        else()
-            cpm_utils_message(WARNING ${PKG_ARGS_NAME}
-                "Could not determine cache key, using CPM defaults")
-        endif()
+    if(DEFINED PKG_ARGS_SHA)
+        string(SUBSTRING ${PKG_ARGS_SHA} 0 4 pkg_key)
+    elseif(DEFINED PKG_ARGS_VERSION)
+        set(pkg_key ${PKG_ARGS_VERSION})
+    elseif(DEFINED PKG_ARGS_TAG)
+        set(pkg_key ${PKG_ARGS_TAG})
+    elseif(DEFINED PKG_ARGS_MIN_VERSION)
+        set(pkg_key ${PKG_ARGS_MIN_VERSION})
     else()
-        set(pkg_key ${PKG_ARGS_KEY})
-    endif()
-
-    if(DEFINED PKG_ARGS_HASH_ALGO)
-        set(hash_algo ${PKG_ARGS_HASH_ALGO})
-    else()
-        set(hash_algo SHA512)
+        cpm_utils_message(FATAL_ERROR ${PKG_ARGS_NAME}
+            "Could not determine cache key")
     endif()
 
     if(DEFINED PKG_ARGS_HASH)
-        set(pkg_hash "${hash_algo}=${PKG_ARGS_HASH}")
-    elseif(DEFINED PKG_ARGS_HASH_SUFFIX)
-        # funny sanity check
-        string(TOLOWER ${hash_algo} hash_algo_lower)
-        string(TOLOWER ${PKG_ARGS_HASH_SUFFIX} suffix_lower)
-        if(NOT ${suffix_lower} MATCHES ${hash_algo_lower})
-            cpm_utils_message(WARNING
-                "Hash algorithm and hash suffix do not match, errors may occur")
-        endif()
-
-        set(hash_url ${pkg_url}.${PKG_ARGS_HASH_SUFFIX})
-    elseif(DEFINED PKG_ARGS_HASH_URL)
-        set(hash_url ${PKG_ARGS_HASH_URL})
+        set(pkg_hash "SHA512=${PKG_ARGS_HASH}")
     else()
-        cpm_utils_message(WARNING ${PKG_ARGS_NAME}
-            "No hash or hash URL found")
-    endif()
-
-    if(DEFINED hash_url)
-        set(outfile ${CMAKE_CURRENT_BINARY_DIR}/${PKG_ARGS_NAME}.hash)
-
-        # TODO(crueter): This is kind of a bad solution
-        # because "technically" the hash is invalidated each week
-        # but it works for now kjsdnfkjdnfjksdn
-        string(TOLOWER ${PKG_ARGS_NAME} lowername)
-        if(NOT EXISTS ${outfile} AND NOT EXISTS
-            ${CPM_SOURCE_CACHE}/${lowername}/${pkg_key})
-            file(DOWNLOAD ${hash_url} ${outfile})
-        endif()
-
-        if(EXISTS ${outfile})
-            file(READ ${outfile} pkg_hash_tmp)
-        endif()
-
-        if(DEFINED ${pkg_hash_tmp})
-            set(pkg_hash "${hash_algo}=${pkg_hash_tmp}")
-        endif()
+        cpm_utils_message(FATAL_ERROR ${PKG_ARGS_NAME}
+            "No hash defined")
     endif()
 
     macro(set_precedence local force)
@@ -545,9 +491,9 @@ function(AddPackage)
         set_precedence(ON OFF)
     endif()
 
-    if(DEFINED PKG_ARGS_VERSION)
+    if(DEFINED PKG_ARGS_MIN_VERSION)
         list(APPEND EXTRA_ARGS
-            VERSION ${PKG_ARGS_VERSION})
+            VERSION ${PKG_ARGS_MIN_VERSION})
     endif()
 
     if (PKG_ARGS_FIND_PACKAGE_ARGUMENTS)
@@ -575,10 +521,10 @@ function(AddPackage)
     endif()
 
     CPMAddPackage(
-        NAME "${PKG_ARGS_NAME}"
-        URL "${pkg_url}"
-        URL_HASH "${pkg_hash}"
-        CUSTOM_CACHE_KEY "${pkg_key}"
+        NAME ${PKG_ARGS_NAME}
+        URL ${pkg_url}
+        URL_HASH ${pkg_hash}
+        CUSTOM_CACHE_KEY ${pkg_key}
 
         EXCLUDE_FROM_ALL ON
 
@@ -593,15 +539,15 @@ function(AddPackage)
         if(DEFINED PKG_ARGS_SHA)
             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
                 ${PKG_ARGS_SHA})
-        elseif(DEFINED PKG_ARGS_GIT_VERSION)
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                ${PKG_ARGS_GIT_VERSION})
-        elseif(DEFINED PKG_ARGS_TAG)
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                ${PKG_ARGS_TAG})
         elseif(DEFINED PKG_ARGS_VERSION)
             set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
                 ${PKG_ARGS_VERSION})
+        elseif(DEFINED PKG_ARGS_TAG)
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
+                ${PKG_ARGS_TAG})
+        elseif(DEFINED PKG_ARGS_MIN_VERSION)
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
+                ${PKG_ARGS_MIN_VERSION})
         else()
             cpm_utils_message(WARNING ${PKG_ARGS_NAME}
                 "Package has no specified sha, tag, or version")
@@ -638,7 +584,8 @@ function(AddCIPackage)
         REPO
         PACKAGE
         EXTENSION
-        MIN_VERSION)
+        MIN_VERSION
+        GIT_HOST)
 
     set(multiValueArgs DISABLED_PLATFORMS)
 
@@ -650,6 +597,7 @@ function(AddCIPackage)
         "${multiValueArgs}"
         ${ARGN})
 
+    # TODO: use cpm_utils_message
     if(NOT DEFINED PKG_ARGS_VERSION)
         message(FATAL_ERROR "[CPMUtil] VERSION is required")
     endif()
@@ -675,6 +623,12 @@ function(AddCIPackage)
         set(ARTIFACT_EXT ${PKG_ARGS_EXTENSION})
     endif()
 
+    if (NOT DEFINED PKG_ARGS_GIT_HOST)
+        set(ARTIFACT_GIT_HOST "github.com")
+    else()
+        set(ARTIFACT_GIT_HOST "${PKG_ARGS_GIT_HOST}")
+    endif()
+
     if(DEFINED PKG_ARGS_MIN_VERSION)
         set(ARTIFACT_MIN_VERSION ${PKG_ARGS_MIN_VERSION})
     endif()
@@ -689,49 +643,81 @@ function(AddCIPackage)
     set(ARTIFACT_REPO ${PKG_ARGS_REPO})
     set(ARTIFACT_PACKAGE ${PKG_ARGS_PACKAGE})
 
-    if(MSVC AND ARCHITECTURE_x86_64)
-        set(pkgname windows-amd64)
-    elseif(MSVC AND ARCHITECTURE_arm64)
-        set(pkgname windows-arm64)
-    elseif(MINGW AND ARCHITECTURE_x86_64)
-        set(pkgname mingw-amd64)
-    elseif(MINGW AND ARCHITECTURE_arm64)
-        set(pkgname mingw-arm64)
-    elseif(ANDROID AND ARCHITECTURE_x86_64)
-        set(pkgname android-x86_64)
-    elseif(ANDROID AND ARCHITECTURE_arm64)
-        set(pkgname android-aarch64)
-    elseif(PLATFORM_SUN)
-        set(pkgname solaris-amd64)
-    elseif(PLATFORM_FREEBSD)
-        set(pkgname freebsd-amd64)
-    elseif(PLATFORM_LINUX AND ARCHITECTURE_x86_64)
-        set(pkgname linux-amd64)
-    elseif(PLATFORM_LINUX AND ARCHITECTURE_arm64)
-        set(pkgname linux-aarch64)
-    elseif(APPLE AND NOT IOS)
-        set(pkgname macos-universal)
-    elseif(IOS AND ARCHITECTURE_arm64)
-        set(pkgname ios-aarch64)
+    # TODO: Use amd64/aarch64 naming for everything.
+    # Also drop macos universal
+
+    if (MSVC)
+        set(platname windows)
+    elseif(MINGW)
+        set(platname mingw)
+    elseif(ANDROID)
+        set(platname android)
+    elseif(LINUX)
+        set(platname linux)
+    elseif(IOS)
+        set(platname ios)
+    elseif(APPLE)
+        set(platname macos)
+    else()
+        cpm_utils_message(WARNING ${PKG_ARGS_NAME}
+            "Unsupported platform ${CMAKE_SYSTEM_NAME} for CI packages")
     endif()
 
-    if (DEFINED pkgname AND NOT "${pkgname}" IN_LIST DISABLED_PLATFORMS)
+    if (APPLE AND NOT IOS)
+        set(archname universal)
+    elseif((WIN32 OR LINUX) AND CPMUTIL_AMD64)
+        set(archname amd64)
+    elseif(WIN32 AND CPMUTIL_ARM64)
+        set(archname arm64)
+    elseif((IOS OR LINUX OR ANDROID) AND CPMUTIL_ARM64)
+        set(archname aarch64)
+    elseif(ANDROID AND CPMUTIL_AMD64)
+        set(archname x86_64)
+    else()
+        cpm_utils_message(WARNING ${PKG_ARGS_NAME}
+            "Unsupported platform/arch combo for CI packages")
+    endif()
+
+    if (DEFINED platname AND DEFINED archname)
+        set(pkgname ${platname}-${archname})
+    endif()
+
+    if (DEFINED pkgname
+        AND NOT "${pkgname}" IN_LIST DISABLED_PLATFORMS)
         set(ARTIFACT
             "${ARTIFACT_NAME}-${pkgname}-${ARTIFACT_VERSION}.${ARTIFACT_EXT}")
 
         if (PKG_ARGS_MODULE_PATH)
-            list(APPEND EXTRA_ARGS MODULE_PATH)
+            set(EXTRA_ARGS MODULE_PATH)
         endif()
+
+        # download sha512sum file
+        # TODO:
+        set(sha512sum_url
+            "https://${ARTIFACT_GIT_HOST}/${ARTIFACT_REPO}/releases/download/v${ARTIFACT_VERSION}/${ARTIFACT}.sha512sum")
+        set(sha512sum_file
+            "${CMAKE_CURRENT_BINARY_DIR}/.cpmutil_${ARTIFACT}_sha512sum")
+
+        file(DOWNLOAD "${sha512sum_url}" "${sha512sum_file}"
+            STATUS sha512sum_status)
+        list(GET sha512sum_status 0 sha512sum_error)
+
+        if(sha512sum_error)
+            message(FATAL_ERROR "[CPMUtil] Failed to download sha512sum "
+                "for ${ARTIFACT_NAME} from ${sha512sum_url}")
+        endif()
+
+        file(READ "${sha512sum_file}" sha512sum_hash)
+        string(STRIP "${sha512sum_hash}" sha512sum_hash)
+        file(REMOVE "${sha512sum_file}")
 
         AddPackage(
             NAME ${ARTIFACT_PACKAGE}
             REPO ${ARTIFACT_REPO}
             TAG "v${ARTIFACT_VERSION}"
-            GIT_VERSION ${ARTIFACT_VERSION}
+            MIN_VERSION ${ARTIFACT_VERSION}
             ARTIFACT ${ARTIFACT}
-
-            KEY "${pkgname}-${ARTIFACT_VERSION}"
-            HASH_SUFFIX sha512sum
+            HASH ${sha512sum_hash}
             FORCE_BUNDLED_PACKAGE ON
             ${EXTRA_ARGS})
 
@@ -761,7 +747,6 @@ function(AddQt repo version)
         REPO ${repo}
         DISABLED_PLATFORMS
             android-x86_64 android-aarch64
-            freebsd-amd64 solaris-amd64 openbsd-amd64
         MODULE_PATH)
 
     find_package(Qt6 REQUIRED PATHS ${Qt6_SOURCE_DIR} NO_DEFAULT_PATH)

@@ -59,8 +59,33 @@ done
 export UPDATE
 
 for pkg in $packages; do
+	unset JSON
 	echo "-- Package $pkg"
-	"$SCRIPTS"/util/fix-hash.sh "$pkg" || RETURN=1
+
+	export PACKAGE="$pkg"
+
+	# shellcheck disable=SC1091
+	. "$SCRIPTS"/vars.sh
+
+	[ "$CI" = null ] || continue
+
+	ACTUAL=$("$SCRIPTS"/util/url-hash.sh "$DOWNLOAD")
+
+	if [ "$ACTUAL" != "$HASH" ] && [ "$QUIET" != true ]; then
+		echo "-- * Expected $HASH"
+		echo "-- * Got      $ACTUAL"
+
+		if [ "$UPDATE" != "true" ]; then
+			RETURN=1
+			continue
+		fi
+	fi
+
+	if [ "$UPDATE" = "true" ] && [ "$ACTUAL" != "$HASH" ]; then
+		NEW_JSON=$(echo "$JSON" | jq ".hash = \"$ACTUAL\"")
+
+		"$SCRIPTS"/util/replace.sh "$PACKAGE" "$NEW_JSON"
+	fi
 done
 
 exit $RETURN

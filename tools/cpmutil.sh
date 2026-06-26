@@ -25,9 +25,8 @@ General command-line utility for CPMUtil operations.
 
 Commands:
     package Run operations on a package or packages
-    format  Format all cpmfiles
+    format  Format cpmfile
     update  Update CPMUtil and its tooling
-    ls      List all cpmfiles
     migrate Convert submodules to a basic cpmfile
 
 Package commands:
@@ -37,8 +36,11 @@ Package commands:
     add     	Add a new package
     rm      	Remove a package
     version 	Change the version of a package
-    which   	Find which cpmfile a package is defined in
+    which   	Check if a package is defined
     download 	Get the download URL for a package
+    dir     	Get the local directory for a package
+    reset   	Reset a fetched package to its original state
+    patch   	Create an in-tree patch based on local modifications
 
 EOF
 
@@ -49,10 +51,6 @@ export ROOTDIR
 
 while :; do
 	case "$1" in
-	ls)
-		echo "$CPMFILES" | tr ' ' '\n'
-		break
-		;;
 	format | update | migrate)
 		"$SCRIPTS/$1".sh
 		break

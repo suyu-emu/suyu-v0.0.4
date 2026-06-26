@@ -86,6 +86,18 @@ optional "Additional find_package arguments, space-separated" \
 
 FIND_ARGS="$reply"
 
+optional "Git host (default: github.com)" \
+	"The hostname of the Git server, if not GitHub (e.g. codeberg.org, git.crueter.xyz)"
+
+GIT_HOST="$reply"
+
+required "Numeric version of the bundled package" \
+	"The semantic version of the bundled package. This is only used for package identification,
+and if you use tag/artifact fetching. Do not input the entire tag here; for example, if you're using
+tag v1.3.0, then set this to 1.3.0 and set the tag to v%VERSION%."
+
+VERSION="$reply"
+
 optional "Is this a CI package? [y/N]" \
 	"Yes if the package is a prebuilt binary distribution (e.g. crueter-ci),
 no if the package is built from source if it's bundled."
@@ -96,27 +108,31 @@ case "$reply" in
 esac
 
 if [ "$CI" = "false" ]; then
-	optional "Git host (default: github.com)" \
-		"The hostname of the Git server, if not GitHub (e.g. codeberg.org, git.crueter.xyz)"
+	while :; do
+		required "Use tag or commit sha versioning? [tag/sha]" \
+			"Tag versioning is compatible with auto-updating.
+Use sha versioning for projects with improper tagging practices"
 
-	GIT_HOST="$reply"
+		if [ "$reply" = "tag" ]; then
+			TAG=1
+			break
+		elif [ "$reply" = "sha" ]; then
+			SHA=1
+			break
+		else
+			echo "-- Invalid choice $reply"
+		fi
+	done
 
 	if [ "$TAG" = "1" ]; then
-		required "Numeric version of the bundled package" \
-			"The semantic version of the bundled package. This is only used for package identification,
-and if you use tag/artifact fetching. Do not input the entire tag here; for example, if you're using
-tag v1.3.0, then set this to 1.3.0 and set the tag to v%VERSION%."
-
-		GIT_VERSION="$reply"
-
-		optional "Name of the upstream tag. %VERSION% is replaced by the numeric version (default: %VERSION%)" \
+		optional "Name of the upstream tag. %VERSION% is replaced by the numeric version ($VERSION) (default: %VERSION%)" \
 			"Most commonly this will be something like v%VERSION% or release-%VERSION%, or just %VERSION%."
 
 		TAGNAME="$reply"
 		[ -n "$TAGNAME" ] || TAGNAME="%VERSION%"
 
 		optional "Name of the release artifact to download, if applicable.
--- %VERSION% is replaced by the numeric version and %TAG% is replaced by the tag name" \
+-- %VERSION% is replaced by the numeric version ($VERSION) and %TAG% is replaced by the tag name" \
 			"Download the specified artifact from the release with the previously specified tag.
 If unspecified, the source code at the specified tag will be used instead."
 
@@ -134,11 +150,6 @@ should be set in CMake with AddJsonPackage's OPTIONS parameter."
 
 	OPTIONS="$reply"
 else
-	required "Version of the CI package (e.g. 3.6.0-9eff87adb1)" \
-		"CI artifacts are stored as <name>-<platform>-<version>.tar.zst. This option controls the version."
-
-	VERSION="$reply"
-
 	required "Name of the CI artifact" \
 		"CI artifacts are stored as <name>-<platform>-<version>.tar.zst. This option controls the name."
 
@@ -149,7 +160,6 @@ else
 windows-amd64 windows-arm64
 mingw-amd64 mingw-arm64
 android-aarch64 android-x86_64
-solaris-amd64 freebsd-amd64 openbsd-amd64
 linux-amd64 linux-aarch64
 macos-universal ios-aarch64"
 
@@ -163,11 +173,15 @@ jq_input='{repo: "'"$REPO"'"}'
 [ -z "$PACKAGE" ] || jq_input="$jq_input + {package: \"$PACKAGE\"}"
 [ -z "$MIN_VERSION" ] || jq_input="$jq_input + {min_version: \"$MIN_VERSION\"}"
 [ -z "$FIND_ARGS" ] || jq_input="$jq_input + {find_args: \"$FIND_ARGS\"}"
+jq_input="$jq_input + {version: \"$VERSION\"}"
+
+if [ -n "$GIT_HOST" ] && [ "$GIT_HOST" != "github.com" ]; then
+	jq_input="$jq_input + {git_host: \"$GIT_HOST\"}"
+fi
 
 if [ "$CI" = "true" ]; then
 	jq_input="$jq_input + {
         ci: true,
-        version: \"$VERSION\",
         artifact: \"$ARTIFACT\"
     }"
 
@@ -186,32 +200,29 @@ else
 		jq_input="$jq_input + {options: $options_json}"
 	fi
 
-	# Git host
-	if [ -n "$GIT_HOST" ] && [ "$GIT_HOST" != "github.com" ]; then
-		jq_input="$jq_input + {git_host: \"$GIT_HOST\"}"
-	fi
-
 	# versioning stuff
-	if [ -n "$GIT_VERSION" ]; then
-		jq_input="$jq_input + {git_version: \"$GIT_VERSION\"}"
-		[ -z "$TAGNAME" ] || jq_input="$jq_input + {tag: \"$TAGNAME\"}"
+	if [ "$TAG" = 1 ]; then
+		jq_input="$jq_input + {tag: \"$TAGNAME\"}"
 		[ -z "$ARTIFACT" ] || jq_input="$jq_input + {artifact: \"$ARTIFACT\"}"
 	else
 		jq_input="$jq_input + {sha: \"$SHA\"}"
 	fi
 fi
 
-new_json=$(jq -n "$jq_input")
+JSON=$(jq -n "$jq_input")
 
-jq --arg key "$PKG" --argjson new "$new_json" \
-	'.[$key] = $new' "$CPMFILE" --indent 4 >"${CPMFILE}.tmp" &&
-	mv "${CPMFILE}.tmp" "$CPMFILE"
+# shellcheck disable=SC1091
+. "$SCRIPTS"/vars.sh
 
-# now correct the hash
 if [ "$CI" != true ]; then
-	# shellcheck disable=SC1091
-	. "$ROOTDIR"/common.sh
-	QUIET=true UPDATE=true "$SCRIPTS"/util/fix-hash.sh "$PKG"
+	HASH=$("$SCRIPTS"/util/url-hash.sh "$DOWNLOAD")
+	JSON=$(echo "$JSON" | jq ".hash = \"$HASH\"")
 fi
 
-echo "Added package $PKG to $CPMFILE. Include it in your project with AddJsonPackage($PKG)"
+jq --arg key "$PKG" --argjson new "$JSON" \
+	'.[$key] = $new' "cpmfile.json" --indent 4 >"cpmfile.json.tmp" &&
+	mv "cpmfile.json.tmp" cpmfile.json
+
+"$SCRIPTS"/format.sh
+
+echo "Added package $PKG to cpmfile.json. Include it in your project with AddJsonPackage($PKG)"

@@ -33,7 +33,7 @@ for i in $SUBMODULES; do
 		'{
         ($name): {
             sha: $sha,
-            git_version: $ver,
+            version: $ver,
             repo: $repo
         } + (if $host != "" then {git_host: $host} else {} end)
         }')

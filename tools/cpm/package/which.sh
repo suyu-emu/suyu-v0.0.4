@@ -3,10 +3,6 @@
 # SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-# check which file a package is in
+# check if a package is defined
 
-JSON=$(echo "$CPMFILES" | xargs grep -l "\"$1\"")
-
-[ -n "$JSON" ] || { echo "!! No cpmfile definition for $1" >&2 && exit 1; }
-
-echo "$JSON"
+echo "$LIBS" | grep "$1" >/dev/null 2>&1

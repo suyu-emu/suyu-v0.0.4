@@ -9,7 +9,7 @@ usage() {
 	cat <<EOF
 Usage: cpmutil.sh package rm [PACKAGE]...
 
-Delete a package or packages' cpmfile definition(s).
+Delete a package or packages' cpmfile definition.
 
 EOF
 
@@ -19,12 +19,12 @@ EOF
 [ $# -ge 1 ] || usage
 
 for pkg in "$@"; do
-	JSON=$("$SCRIPTS"/which.sh "$pkg") || {
+	"$SCRIPTS"/which.sh "$pkg" || {
 		echo "!! No cpmfile definition for $pkg"
 		continue
 	}
 
-	jq --indent 4 "del(.\"$pkg\")" "$JSON" >"$JSON".tmp
-	mv "$JSON".tmp "$JSON"
-	echo "-- Removed $pkg from $JSON" || :
+	jq --indent 4 "del(.\"$pkg\")" cpmfile.json >cpmfile.json.new
+	mv cpmfile.json.new cpmfile.json
+	echo "-- Removed $pkg"
 done

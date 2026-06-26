@@ -34,27 +34,29 @@ if [ "$HAS_REPLACE" = "true" ]; then
 	VERSION_PREFIX=$(echo "$ORIGINAL_TAG" | cut -d"%" -f1)
 
 	# then we strip out the prefix from the new tag, and make that our new git_version
-	if [ -z "$VERSION_PREFIX" ]; then
-		NEW_GIT_VERSION="$NEW_VERSION"
-	else
-		NEW_GIT_VERSION=$(echo "$NEW_VERSION" | sed "s/$VERSION_PREFIX//g")
+	if [ -n "$VERSION_PREFIX" ]; then
+		NEW_VERSION=$(echo "$NEW_VERSION" | sed "s/$VERSION_PREFIX//g")
 	fi
 fi
 
 if [ "$SHA" != null ]; then
-	NEW_JSON=$(echo "$JSON" | jq ".sha = \"$NEW_VERSION\"")
-elif [ "$CI" = "true" ]; then
-	NEW_JSON=$(echo "$JSON" | jq ".version = \"$NEW_VERSION\"")
-elif [ "$HAS_REPLACE" = "true" ]; then
-	NEW_JSON=$(echo "$JSON" | jq ".git_version = \"$NEW_GIT_VERSION\"")
+	JSON=$(echo "$JSON" | jq ".sha = \"$NEW_VERSION\"")
+elif [ "$CI" = "true" ] || [ "$HAS_REPLACE" = "true" ]; then
+	JSON=$(echo "$JSON" | jq ".version = \"$NEW_VERSION\"")
 else
-	NEW_JSON=$(echo "$JSON" | jq ".tag = \"$NEW_VERSION\"")
+	JSON=$(echo "$JSON" | jq ".tag = \"$NEW_VERSION\"")
 fi
 
-echo "-- * -- Updating $PACKAGE to version $NEW_VERSION"
-"$SCRIPTS"/util/replace.sh "$PACKAGE" "$NEW_JSON"
+echo "-- * Updating $PACKAGE to version $NEW_VERSION"
 
-[ "$CI" != "true" ] || exit 0
-echo "-- * -- Fixing hash"
-. "$ROOTDIR"/common.sh
-UPDATE=true QUIET=true "$SCRIPTS"/util/fix-hash.sh
+# TODO: ci hash thing please
+if [ "$CI" != true ]; then
+	echo "-- * -- Updating hash"
+
+	# shellcheck disable=SC1091
+	. "$SCRIPTS"/vars.sh
+	HASH=$("$SCRIPTS"/util/url-hash.sh "$DOWNLOAD")
+	JSON=$(echo "$JSON" | jq ".hash = \"$HASH\"")
+fi
+
+"$SCRIPTS"/util/replace.sh "$PACKAGE" "$JSON"

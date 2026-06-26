@@ -3,11 +3,14 @@
 # SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+# shellcheck disable=SC1091
+. "$SCRIPTS"/../common.sh
+
 usage() {
 	cat <<EOF
-Usage: cpmutil.sh package download [-a|--all] [PACKAGE]...
+Usage: cpmutil.sh package dir [-a|--all] [PACKAGE]...
 
-Get the download URL for the specified packages.
+Get the local directory for the specified packages.
 
 Options:
     -a, --all       Operate on all packages in this project.
@@ -39,9 +42,16 @@ for pkg in $packages; do
 	# shellcheck disable=SC1091
 	. "$SCRIPTS"/vars.sh
 
-	if [ "$CI" = "true" ]; then
-		echo "-- $PACKAGE: https://$GIT_HOST/$REPO"
+	# TODO: common get dir func
+	if [ "$CI" = true ]; then
+		dir="${CPM_SOURCE_CACHE}/${LOWER_PACKAGE}"
 	else
-		echo -- "$PACKAGE: $DOWNLOAD"
+		dir="${CPM_SOURCE_CACHE}/${LOWER_PACKAGE}/${KEY}"
+	fi
+
+	echo "-- $pkg: $dir"
+
+	if [ ! -d "$dir" ]; then
+		echo "-- * Warning: directory does not exist. Use fetch or reset to create it"
 	fi
 done

@@ -4,14 +4,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 # shellcheck disable=SC1091
-. "$SCRIPTS/util/fetch.sh"
+. "$SCRIPTS"/../common.sh
 
 usage() {
 	cat <<EOF
-Usage: cpmutil.sh package fetch [a|--all] [PACKAGE]...
+Usage: cpmutil.sh package reset [a|--all] [PACKAGE]...
 
-Fetch the specified package or packages from their defined download locations.
-If the package is already cached, it will not be re-fetched.
+Reset a locally fetched package to its original state.
+This is most useful for dropping any changes you've made.
 
 EOF
 
@@ -39,6 +39,18 @@ for PACKAGE in $packages; do
 
 	# shellcheck disable=SC1091
 	. "$SCRIPTS"/vars.sh
+
+	if [ "$CI" = true ]; then
+		dir="${CPM_SOURCE_CACHE}/${LOWER_PACKAGE}"
+	else
+		dir="${CPM_SOURCE_CACHE}/${LOWER_PACKAGE}/${KEY}"
+	fi
+
+	echo "-- Removing $dir"
+	rm -rf "$dir"
+
+	# shellcheck disable=SC1091
+	. "$SCRIPTS"/util/fetch.sh
 
 	fetch_package
 done

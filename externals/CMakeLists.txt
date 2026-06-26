@@ -6,8 +6,7 @@
 
 # TODO(crueter): A lot of this should be moved to the root.
 # otherwise we have to do weird shenanigans with library linking and stuff
-
-include(CPMUtil)
+# Or just add a CPMUtil thing to propagate packages
 
 # Explicitly declare this option here to propagate to the oaknut CPM call
 option(DYNARMIC_TESTS "Build tests" ${BUILD_TESTING})
