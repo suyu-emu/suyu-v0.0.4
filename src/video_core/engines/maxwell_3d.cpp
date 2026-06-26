@@ -208,9 +208,6 @@ void Maxwell3D::ProcessMacro(Core::System& system, u32 method, const u32* base_s
     }
 
     macro_params.insert(macro_params.end(), base_start, base_start + amount);
-    for (size_t i = 0; i < amount; i++) {
-        macro_addresses.push_back(current_dma_segment + i * sizeof(u32));
-    }
     macro_segments.emplace_back(current_dma_segment, amount);
     current_macro_dirty |= current_dirty;
     current_dirty = false;
@@ -220,7 +217,6 @@ void Maxwell3D::ProcessMacro(Core::System& system, u32 method, const u32* base_s
         ConsumeSink(system);
         CallMacroMethod(system, executing_macro, macro_params);
         macro_params.clear();
-        macro_addresses.clear();
         macro_segments.clear();
         current_macro_dirty = false;
     }

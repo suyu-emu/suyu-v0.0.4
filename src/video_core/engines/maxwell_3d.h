@@ -3158,7 +3158,14 @@ public:
     DrawManager draw_manager;
 
     GPUVAddr GetMacroAddress(size_t index) const {
-        return macro_addresses[index];
+        size_t base = 0;
+        for (const auto& [addr, count] : macro_segments) {
+            if (index < base + count) {
+                return addr + (index - base) * sizeof(u32);
+            }
+            base += count;
+        }
+        return 0;
     }
 
     void RefreshParameters() {
@@ -3261,7 +3268,6 @@ private:
     bool execute_on{true};
 
     std::vector<std::pair<GPUVAddr, size_t>> macro_segments;
-    std::vector<GPUVAddr> macro_addresses;
     bool current_macro_dirty{};
 };
 

@@ -1356,33 +1356,33 @@ static void Dump(u64 hash, std::span<const u32> code, bool decompiled = false) {
 void MacroEngine::Execute(Core::System& system, Engines::Maxwell3D& maxwell3d, u32 method, std::span<const u32> parameters) {
     auto const execute_variant = [&system, &maxwell3d, &parameters, method](AnyCachedMacro& acm) {
         if (auto a = std::get_if<HLE_DrawArraysIndirect>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_DrawIndexedIndirect>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_MultiDrawIndexedIndirectCount>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_MultiLayerClear>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_C713C83D8F63CCF3>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_D7333D26E0A93EDE>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_BindShader>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_SetRasterBoundingBox>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_ClearConstBuffer>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_ClearMemory>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_TransformFeedbackSetup>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<HLE_DrawIndirectByteCount>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<MacroInterpreterImpl>(&acm))
-            a->Execute(system, maxwell3d, parameters, method);
+            return a->Execute(system, maxwell3d, parameters, method);
         if (auto a = std::get_if<std::unique_ptr<DynamicCachedMacro>>(&acm))
-            a->get()->Execute(system, maxwell3d, parameters, method);
+            return a->get()->Execute(system, maxwell3d, parameters, method);
     };
     if (auto const it = macro_cache.find(method); it != macro_cache.end()) {
         auto& ci = it->second;
