@@ -2332,7 +2332,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     if (has_custom_border_colors) {
         pnext = &border_ci;
         // Log extension usage for custom border color
-        if (Settings::values.gpu_logging_enabled.GetValue()) {
+        if (GPU::Logging::IsActive()) {
             GPU::Logging::GPULogger::GetInstance().LogExtensionUsage(
                 "VK_EXT_custom_border_color", "Sampler::Sampler");
         }

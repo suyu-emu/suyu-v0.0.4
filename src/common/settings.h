@@ -788,8 +788,8 @@ struct Values {
                                                 false};  // runtime_modifiable_ — startup-only
     Setting<bool> dump_exefs{linkage, false, "dump_exefs", Category::Debugging};
     Setting<bool> dump_nso{linkage, false, "dump_nso", Category::Debugging};
-    Setting<bool> dump_shaders{
-                               linkage, false, "dump_shaders", Category::DebuggingGraphics, Specialization::Default,
+    Setting<bool> dump_guest_shaders{
+                               linkage, false, "dump_guest_shaders", Category::DebuggingGraphics, Specialization::Default,
                                false};
     Setting<bool> dump_macros{
                               linkage, false, "dump_macros", Category::DebuggingGraphics, Specialization::Default, false};
@@ -813,9 +813,8 @@ struct Values {
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Debugging};
 
     // GPU Logging
-    Setting<bool> gpu_logging_enabled{linkage, false, "gpu_logging_enabled", Category::Debugging};
-    SwitchableSetting<GpuLogLevel> gpu_log_level{linkage, GpuLogLevel::Standard, "gpu_log_level",
-                                                   Category::Debugging};
+    Setting<GpuLogLevel> gpu_log_level{linkage, GpuLogLevel::Off, "gpu_log_level",
+                                       Category::Debugging};
     Setting<bool> gpu_log_vulkan_calls{linkage, true, "gpu_log_vulkan_calls", Category::Debugging};
     Setting<bool> gpu_log_shader_dumps{linkage, false, "gpu_log_shader_dumps", Category::Debugging};
     Setting<bool> gpu_log_memory_tracking{linkage, true, "gpu_log_memory_tracking",
@@ -875,6 +874,9 @@ bool IsDMALevelSafe();
 bool IsFastmemEnabled();
 void SetNceEnabled(bool is_64bit);
 bool IsNceEnabled();
+
+void SetCurrentProgramID(u64 program_id);
+u64 GetCurrentProgramID();
 
 bool IsOpenGL();
 

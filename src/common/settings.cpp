@@ -54,7 +54,6 @@ SWITCHABLE(CpuBackend, true);
 SWITCHABLE(CpuAccuracy, true);
 SWITCHABLE(FullscreenMode, true);
 SWITCHABLE(GpuAccuracy, true);
-SWITCHABLE(GpuLogLevel, true);
 SWITCHABLE(Language, true);
 SWITCHABLE(MemoryLayout, true);
 SWITCHABLE(NvdecEmulation, false);
@@ -211,6 +210,16 @@ void SetNceEnabled(bool is_39bit) {
 
 bool IsNceEnabled() {
     return is_nce_enabled;
+}
+
+static u64 current_program_id = 0;
+
+void SetCurrentProgramID(u64 program_id) {
+    current_program_id = program_id;
+}
+
+u64 GetCurrentProgramID() {
+    return current_program_id;
 }
 
 bool IsDockedMode() {

@@ -76,7 +76,7 @@ VkBool32 DebugUtilCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     }
 
     // Route to GPU logger for tracking Vulkan validation messages
-    if (Settings::values.gpu_logging_enabled.GetValue() &&
+    if (GPU::Logging::IsActive() &&
         Settings::values.gpu_log_vulkan_calls.GetValue()) {
         // Convert severity to result code for logging (negative = error)
         int result_code = 0;

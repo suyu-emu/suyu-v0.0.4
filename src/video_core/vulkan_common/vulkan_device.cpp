@@ -1518,7 +1518,10 @@ std::vector<VkDeviceQueueCreateInfo> Device::GetDeviceQueueCreateInfos() const {
 }
 
 void Device::InitializeGPULogging() {
-    if (!Settings::values.gpu_logging_enabled.GetValue()) {
+    // Get log level from settings — Off is the disable.
+    const auto log_level = static_cast<GPU::Logging::LogLevel>(
+        static_cast<u32>(Settings::values.gpu_log_level.GetValue()));
+    if (log_level == GPU::Logging::LogLevel::Off) {
         return;
     }
 
@@ -1532,18 +1535,12 @@ void Device::InitializeGPULogging() {
         detected_driver = GPU::Logging::DriverType::Qualcomm;
     }
 
-    // Get log level from settings
-    const auto log_level = static_cast<GPU::Logging::LogLevel>(
-        static_cast<u32>(Settings::values.gpu_log_level.GetValue()));
-
     // Initialize GPU logger
     GPU::Logging::GPULogger::GetInstance().Initialize(log_level, detected_driver);
 
     // Configure feature flags
     GPU::Logging::GPULogger::GetInstance().EnableVulkanCallTracking(
         Settings::values.gpu_log_vulkan_calls.GetValue());
-    GPU::Logging::GPULogger::GetInstance().EnableShaderDumps(
-        Settings::values.gpu_log_shader_dumps.GetValue());
     GPU::Logging::GPULogger::GetInstance().EnableMemoryTracking(
         Settings::values.gpu_log_memory_tracking.GetValue());
     GPU::Logging::GPULogger::GetInstance().EnableDriverDebugInfo(

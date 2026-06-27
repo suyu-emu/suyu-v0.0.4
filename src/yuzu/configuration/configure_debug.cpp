@@ -81,8 +81,8 @@ void ConfigureDebug::SetConfiguration() {
     ui->enable_shader_feedback->setChecked(Settings::values.renderer_shader_feedback.GetValue());
     ui->enable_nsight_aftermath->setEnabled(runtime_lock);
     ui->enable_nsight_aftermath->setChecked(Settings::values.enable_nsight_aftermath.GetValue());
-    ui->dump_shaders->setEnabled(runtime_lock);
-    ui->dump_shaders->setChecked(Settings::values.dump_shaders.GetValue());
+    ui->dump_guest_shaders->setEnabled(runtime_lock);
+    ui->dump_guest_shaders->setChecked(Settings::values.dump_guest_shaders.GetValue());
     ui->dump_macros->setEnabled(runtime_lock);
     ui->dump_macros->setChecked(Settings::values.dump_macros.GetValue());
     ui->disable_macro_jit->setEnabled(runtime_lock);
@@ -94,6 +94,12 @@ void ConfigureDebug::SetConfiguration() {
         Settings::values.disable_shader_loop_safety_checks.GetValue());
     ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
     ui->debug_knobs_spinbox->setValue(Settings::values.debug_knobs.GetValue());
+
+    ui->gpu_log_level->setEnabled(runtime_lock);
+    ui->gpu_log_level->setCurrentIndex(
+        static_cast<int>(Settings::values.gpu_log_level.GetValue()));
+    ui->gpu_log_shader_dumps->setEnabled(runtime_lock);
+    ui->gpu_log_shader_dumps->setChecked(Settings::values.gpu_log_shader_dumps.GetValue());
 #ifdef YUZU_USE_QT_WEB_ENGINE
     ui->disable_web_applet->setChecked(Settings::values.disable_web_applet.GetValue());
 #else
@@ -123,7 +129,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.disable_buffer_reorder = ui->disable_buffer_reorder->isChecked();
     Settings::values.renderer_shader_feedback = ui->enable_shader_feedback->isChecked();
     Settings::values.enable_nsight_aftermath = ui->enable_nsight_aftermath->isChecked();
-    Settings::values.dump_shaders = ui->dump_shaders->isChecked();
+    Settings::values.dump_guest_shaders = ui->dump_guest_shaders->isChecked();
     Settings::values.dump_macros = ui->dump_macros->isChecked();
     Settings::values.disable_shader_loop_safety_checks =
         ui->disable_loop_safety_checks->isChecked();
@@ -135,6 +141,9 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.serial_battery = ui->serial_battery_edit->text().toUInt();
     Settings::values.serial_unit = ui->serial_board_edit->text().toUInt();
     Settings::values.debug_knobs = ui->debug_knobs_spinbox->value();
+    Settings::values.gpu_log_level =
+        static_cast<Settings::GpuLogLevel>(ui->gpu_log_level->currentIndex());
+    Settings::values.gpu_log_shader_dumps = ui->gpu_log_shader_dumps->isChecked();
     Debugger::ToggleConsole();
     Common::Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter.GetValue());

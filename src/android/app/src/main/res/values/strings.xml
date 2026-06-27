@@ -575,14 +575,16 @@
 
     <!-- GPU Logging strings -->
     <string name="gpu_logging_header">GPU Logging</string>
-    <string name="gpu_logging_enabled">Enable GPU Logging</string>
-    <string name="gpu_logging_enabled_description">Log GPU operations to eden_gpu.log for debugging Adreno drivers</string>
     <string name="gpu_log_level">Log Level</string>
     <string name="gpu_log_level_description">Detail level for GPU logs (higher = more detail, more overhead)</string>
     <string name="gpu_log_vulkan_calls">Log Vulkan API Calls</string>
     <string name="gpu_log_vulkan_calls_description">Track all Vulkan API calls in ring buffer</string>
-    <string name="gpu_log_shader_dumps">Dump Shaders</string>
-    <string name="gpu_log_shader_dumps_description">Save compiled shader SPIR-V to files</string>
+    <string name="gpu_log_shader_dumps">Dump SPIR-V Shaders</string>
+    <string name="gpu_log_shader_dumps_description">Save recompiled SPIR-V binaries (.spv) to dump folder. Inspect with spirv-dis/spirv-cross/spirv-val.</string>
+    <string name="dump_guest_shaders">Dump Guest (Maxwell) Shaders</string>
+    <string name="dump_guest_shaders_description">Save Maxwell guest shader bytecode files (*.ash) to dump folder. Inspect with nvdisasm.</string>
+    <string name="dump_macros">Dump Maxwell Macros</string>
+    <string name="dump_macros_description">Save Maxwell macro program files (*.macro) to dump folder. Inspect with envydis.</string>
     <string name="gpu_log_memory_tracking">Track GPU Memory</string>
     <string name="gpu_log_memory_tracking_description">Monitor GPU memory allocations and deallocations</string>
     <string name="gpu_log_driver_debug">Driver Debug Info</string>

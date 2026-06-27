@@ -563,8 +563,6 @@
 
     <!-- GPU Logging strings -->
     <string name="gpu_logging_header">Registros de la GPU</string>
-    <string name="gpu_logging_enabled">Activar los registros de la GPU</string>
-    <string name="gpu_logging_enabled_description">Registra las operaciones de la GPU en eden_gpu.log para la depuración de los controladores de Adreno</string>
     <string name="gpu_log_level">Nivel de registros</string>
     <string name="gpu_log_level_description">Nivel de detalle de los registros de la GPU (más alto = más detalles, más sobrecarga)</string>
     <string name="gpu_log_vulkan_calls">Registros de llamadas del API de Vulkan</string>

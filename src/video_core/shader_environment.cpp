@@ -18,6 +18,7 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging.h"
+#include "common/settings.h"
 #include <ranges>
 #include "shader_recompiler/environment.h"
 #include "video_core/engines/kepler_compute.h"
@@ -73,36 +74,36 @@ static Shader::TexturePixelFormat ConvertTexturePixelFormat(const Tegra::Texture
 static std::string_view StageToPrefix(Shader::Stage stage) {
     switch (stage) {
     case Shader::Stage::VertexB:
-        return "VB";
+        return "vs";
     case Shader::Stage::TessellationControl:
-        return "TC";
+        return "tc";
     case Shader::Stage::TessellationEval:
-        return "TE";
+        return "te";
     case Shader::Stage::Geometry:
-        return "GS";
+        return "gs";
     case Shader::Stage::Fragment:
-        return "FS";
+        return "fs";
     case Shader::Stage::Compute:
-        return "CS";
+        return "cs";
     case Shader::Stage::VertexA:
-        return "VA";
+        return "va";
     default:
-        return "UK";
+        return "uk";
     }
 }
 
-static void DumpImpl(u64 pipeline_hash, u64 shader_hash, std::span<const u64> code,
+static void DumpImpl(u64 /*pipeline_hash*/, u64 shader_hash, std::span<const u64> code,
                      [[maybe_unused]] u32 read_highest, [[maybe_unused]] u32 read_lowest,
                      u32 initial_offset, Shader::Stage stage) {
-    const auto shader_dir{Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)};
-    const auto base_dir{shader_dir / "shaders"};
-    if (!Common::FS::CreateDir(shader_dir) || !Common::FS::CreateDir(base_dir)) {
-        LOG_ERROR(Common_Filesystem, "Failed to create shader dump directories");
+    const auto dump_dir{Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)};
+    if (!Common::FS::CreateDir(dump_dir)) {
+        LOG_ERROR(Common_Filesystem, "Failed to create dump directory");
         return;
     }
     const auto prefix = StageToPrefix(stage);
-    const auto name{base_dir /
-                    fmt::format("{:016x}_{}_{:016x}.ash", pipeline_hash, prefix, shader_hash)};
+    const auto name{dump_dir /
+                    fmt::format("{:016x}_{:016x}_{}.ash",
+                                Settings::GetCurrentProgramID(), shader_hash, prefix)};
     std::fstream shader_file(name, std::ios::out | std::ios::binary);
     ASSERT(initial_offset % sizeof(u64) == 0);
     const size_t jump_index = initial_offset / sizeof(u64);

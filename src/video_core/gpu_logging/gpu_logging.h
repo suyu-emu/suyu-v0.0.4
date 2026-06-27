@@ -87,8 +87,7 @@ public:
     void LogVulkanCall(const std::string& call_name, const std::string& params, int result);
     void LogMemoryAllocation(uintptr_t memory, u64 size, u32 memory_flags);
     void LogMemoryDeallocation(uintptr_t memory);
-    void LogShaderCompilation(const std::string& shader_name, const std::string& shader_info,
-                              std::span<const u32> spirv_code = {});
+    void LogShaderCompilation(const std::string& shader_name, const std::string& shader_info);
     void LogPipelineStateChange(const std::string& state_info);
     void LogDriverDebugInfo(const std::string& debug_info);
 
@@ -121,7 +120,6 @@ public:
     // Settings
     void SetLogLevel(LogLevel level);
     void EnableVulkanCallTracking(bool enabled);
-    void EnableShaderDumps(bool enabled);
     void EnableMemoryTracking(bool enabled);
     void EnableDriverDebugInfo(bool enabled);
     void SetRingBufferSize(size_t entries);
@@ -171,7 +169,6 @@ private:
 
     // Feature flags
     bool track_vulkan_calls = true;
-    bool dump_shaders = false;
     bool track_memory = false;
     bool capture_driver_debug = false;
 
@@ -179,14 +176,15 @@ private:
     std::set<std::string> used_extensions;
     mutable std::mutex extension_mutex;
 
-    // Shader dump directory (created on demand)
-    bool shader_dump_dir_created = false;
-
     // Stored state for crash dumps
     std::string stored_driver_debug_info;
     std::string stored_pipeline_state;
     mutable std::mutex state_mutex;
 };
+
+[[nodiscard]] bool IsActive() noexcept;
+
+void DumpSpirvShader(u64 shader_hash, std::span<const u32> spirv_code);
 
 // Helper to get stage name from index
 inline const char* GetShaderStageName(size_t stage_index) {

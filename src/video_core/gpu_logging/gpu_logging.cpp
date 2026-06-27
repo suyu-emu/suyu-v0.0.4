@@ -4,6 +4,7 @@
 #include "video_core/gpu_logging/gpu_logging.h"
 
 #include <fmt/format.h>
+#include <mutex>
 #include <thread>
 
 #include "common/fs/file.h"
@@ -280,13 +281,12 @@ void GPULogger::LogMemoryDeallocation(uintptr_t memory) {
 }
 
 void GPULogger::LogShaderCompilation(const std::string& shader_name,
-                                     const std::string& shader_info,
-                                     std::span<const u32> spirv_code) {
+                                     const std::string& shader_info) {
     if (!initialized || current_level == LogLevel::Off) {
         return;
     }
 
-    if (!dump_shaders && current_level < LogLevel::Verbose) {
+    if (current_level < LogLevel::Verbose) {
         return;
     }
 
@@ -294,38 +294,36 @@ void GPULogger::LogShaderCompilation(const std::string& shader_name,
         std::chrono::steady_clock::now().time_since_epoch());
 
     const auto log_entry = fmt::format("[{}] [Shader] Compiled: {} ({})\n",
-                                      FormatTimestamp(timestamp), shader_name, shader_info);
+                                       FormatTimestamp(timestamp), shader_name, shader_info);
     WriteToLog(log_entry);
+}
 
-    // Dump SPIR-V binary if enabled and we have data
-    if (dump_shaders && !spirv_code.empty()) {
-        using namespace Common::FS;
-        const auto& log_dir = GetEdenPath(EdenPath::LogDir);
-        const auto shaders_dir = log_dir / "shaders";
+bool IsActive() noexcept {
+    return Settings::values.gpu_log_level.GetValue() != Settings::GpuLogLevel::Off;
+}
 
-        // Create directory on first dump
-        if (!shader_dump_dir_created) {
-            [[maybe_unused]] const bool created = CreateDir(shaders_dir);
-            shader_dump_dir_created = true;
-        }
-
-        // Write SPIR-V binary file
-        const auto shader_path = shaders_dir / fmt::format("{}.spv", shader_name);
-        auto shader_file = std::make_unique<Common::FS::IOFile>(
-            shader_path, FileAccessMode::Write, FileType::BinaryFile);
-
-        if (shader_file->IsOpen()) {
-            const size_t bytes_to_write = spirv_code.size() * sizeof(u32);
-            static_cast<void>(shader_file->WriteSpan(spirv_code));
-            shader_file->Close();
-
-            const auto dump_log = fmt::format("[{}] [Shader] Dumped SPIR-V: {} ({} bytes)\n",
-                FormatTimestamp(timestamp), shader_path.string(), bytes_to_write);
-            WriteToLog(dump_log);
-        } else {
-            LOG_WARNING(Render_Vulkan, "[GPU Logging] Failed to dump shader: {}", shader_path.string());
-        }
+void DumpSpirvShader(u64 shader_hash, std::span<const u32> spirv_code) {
+    if (spirv_code.empty()) {
+        return;
     }
+
+    using namespace Common::FS;
+    const auto& dump_dir = GetEdenPath(EdenPath::DumpDir);
+
+    // Ensure DumpDir exists once. CreateDir is idempotent, so guarded to skip the syscall.
+    static std::once_flag dump_dir_flag;
+    std::call_once(dump_dir_flag, [&dump_dir]() {
+        [[maybe_unused]] const bool created = CreateDir(dump_dir);
+    });
+
+    const auto shader_path = dump_dir / fmt::format("{:016x}_{:016x}.spv",
+                                                    Settings::GetCurrentProgramID(), shader_hash);
+    Common::FS::IOFile shader_file(shader_path, FileAccessMode::Write, FileType::BinaryFile);
+    if (!shader_file.IsOpen()) {
+        LOG_WARNING(Render_Vulkan, "[Shader Dump] Failed to open {}", shader_path.string());
+        return;
+    }
+    static_cast<void>(shader_file.WriteSpan(spirv_code));
 }
 
 void GPULogger::LogPipelineStateChange(const std::string& state_info) {
@@ -655,10 +653,6 @@ void GPULogger::SetLogLevel(LogLevel level) {
 
 void GPULogger::EnableVulkanCallTracking(bool enabled) {
     track_vulkan_calls = enabled;
-}
-
-void GPULogger::EnableShaderDumps(bool enabled) {
-    dump_shaders = enabled;
 }
 
 void GPULogger::EnableMemoryTracking(bool enabled) {

@@ -559,8 +559,6 @@
 
     <!-- GPU Logging strings -->
     <string name="gpu_logging_header">GPU 日志</string>
-    <string name="gpu_logging_enabled">启用 GPU 日志</string>
-    <string name="gpu_logging_enabled_description">将 GPU 操作记录至 eden_gpu.log 以供调试 Adreno 驱动</string>
     <string name="gpu_log_level">日志等级</string>
     <string name="gpu_log_level_description">GPU 日志的详细级别(数值越高 = 细节越多,开销越大)</string>
     <string name="gpu_log_vulkan_calls">记录 Vulkan API 调用</string>

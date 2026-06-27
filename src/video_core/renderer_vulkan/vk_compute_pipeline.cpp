@@ -87,7 +87,7 @@ ComputePipeline::ComputePipeline(const Device& device_, Scheduler& scheduler, vk
         }, *pipeline_cache);
 
         // Log compute pipeline creation
-        if (Settings::values.gpu_logging_enabled.GetValue()) {
+        if (GPU::Logging::IsActive()) {
             GPU::Logging::GPULogger::GetInstance().LogPipelineStateChange(
                 "ComputePipeline created"
             );
@@ -223,7 +223,7 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
     }
 
     // Log compute pipeline binding
-    if (Settings::values.gpu_logging_enabled.GetValue() &&
+    if (GPU::Logging::IsActive() &&
         Settings::values.gpu_log_vulkan_calls.GetValue()) {
         GPU::Logging::GPULogger::GetInstance().LogPipelineBind(true, "compute pipeline");
     }

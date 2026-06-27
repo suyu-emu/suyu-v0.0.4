@@ -569,8 +569,6 @@
 
     <!-- GPU Logging strings -->
     <string name="gpu_logging_header">تسجيل وحدة معالجة الرسومات</string>
-    <string name="gpu_logging_enabled">تمكين تسجيل وحدة معالجة الرسومات</string>
-    <string name="gpu_logging_enabled_description">تسجيل عمليات وحدة معالجة الرسومات في ملف eden_gpu.log لتصحيح أخطاء برامج تشغيل Adreno</string>
     <string name="gpu_log_level">مستوى السجل</string>
     <string name="gpu_log_level_description">مستوى التفاصيل لسجلات وحدة معالجة الرسومات (كلما زاد المستوى، زادت التفاصيل وزادت التكاليف الإضافية)</string>
     <string name="gpu_log_vulkan_calls">تسجيل استدعاءات واجهة برمجة تطبيقات Vulkan</string>

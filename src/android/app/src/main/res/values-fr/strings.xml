@@ -525,7 +525,6 @@
 
     <!-- GPU Logging strings -->
     <string name="gpu_logging_header">Journalisation GPU</string>
-    <string name="gpu_logging_enabled">Activer la journalisation GPU</string>
     <string name="gpu_log_level">Niveau de journalisation</string>
     <string name="gpu_log_vulkan_calls">Journaliser les appels API Vulkan</string>
     <string name="gpu_log_shader_dumps">Extraire les shaders</string>

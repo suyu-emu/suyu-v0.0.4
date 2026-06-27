@@ -326,6 +326,9 @@ struct System::Impl {
 
         LOG_INFO(Core, "Loading {} ({:016X}) ...", name, params.program_id);
 
+        // Expose program id to dump sites and other global readers.
+        Settings::SetCurrentProgramID(params.program_id);
+
         // Track launch time for frontend launches
         LaunchTimestampCache::SaveLaunchTimestamp(params.program_id);
 

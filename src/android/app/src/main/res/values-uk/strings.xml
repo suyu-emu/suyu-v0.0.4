@@ -565,8 +565,6 @@
 
     <!-- GPU Logging strings -->
     <string name="gpu_logging_header">Журналювання ГП</string>
-    <string name="gpu_logging_enabled">Увімкнути журналювання ГП</string>
-    <string name="gpu_logging_enabled_description">Журналювати операції ГП до eden_gpu.log для зневадження драйверів Adreno</string>
     <string name="gpu_log_level">Рівень журналювання</string>
     <string name="gpu_log_level_description">Рівень подробиць у журналі ГП (вищий = більше подробиць, більший вплив на швидкодію)</string>
     <string name="gpu_log_vulkan_calls">Записувати виклики API Vulkan</string>

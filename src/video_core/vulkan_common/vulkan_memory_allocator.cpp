@@ -111,7 +111,7 @@ namespace Vulkan {
             : allocator{alloc}, allocation{a}, memory{info.deviceMemory},
               offset{info.offset}, size{info.size}, mapped_ptr{info.pMappedData} {
         // Log GPU memory allocation
-        if (Settings::values.gpu_logging_enabled.GetValue() &&
+        if (GPU::Logging::IsActive() &&
             Settings::values.gpu_log_memory_tracking.GetValue()) {
             GPU::Logging::GPULogger::GetInstance().LogMemoryAllocation(
                 reinterpret_cast<uintptr_t>(memory),
@@ -179,7 +179,7 @@ namespace Vulkan {
     void MemoryCommit::Release() {
         if (allocation && allocator) {
             // Log GPU memory deallocation
-            if (Settings::values.gpu_logging_enabled.GetValue() &&
+            if (GPU::Logging::IsActive() &&
                 Settings::values.gpu_log_memory_tracking.GetValue() &&
                 memory != VK_NULL_HANDLE) {
                 GPU::Logging::GPULogger::GetInstance().LogMemoryDeallocation(
@@ -243,7 +243,7 @@ namespace Vulkan {
         vk::Check(vmaCreateImage(allocator, &ci, &alloc_ci, &handle, &allocation, &alloc_info));
 
         // Log GPU memory allocation for images
-        if (Settings::values.gpu_logging_enabled.GetValue() &&
+        if (GPU::Logging::IsActive() &&
             Settings::values.gpu_log_memory_tracking.GetValue()) {
             GPU::Logging::GPULogger::GetInstance().LogMemoryAllocation(
                 reinterpret_cast<uintptr_t>(alloc_info.deviceMemory),
@@ -281,7 +281,7 @@ namespace Vulkan {
         vmaGetAllocationMemoryProperties(allocator, allocation, &property_flags);
 
         // Log GPU memory allocation for buffers
-        if (Settings::values.gpu_logging_enabled.GetValue() &&
+        if (GPU::Logging::IsActive() &&
             Settings::values.gpu_log_memory_tracking.GetValue()) {
             GPU::Logging::GPULogger::GetInstance().LogMemoryAllocation(
                 reinterpret_cast<uintptr_t>(alloc_info.deviceMemory),

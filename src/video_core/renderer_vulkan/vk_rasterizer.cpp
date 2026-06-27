@@ -270,7 +270,7 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
         });
 
         // Log draw call
-        if (Settings::values.gpu_logging_enabled.GetValue() &&
+        if (GPU::Logging::IsActive() &&
             Settings::values.gpu_log_vulkan_calls.GetValue()) {
             const std::string params = is_indexed ?
                 fmt::format("vertices={}, instances={}, firstIndex={}, baseVertex={}, baseInstance={}",
@@ -331,7 +331,7 @@ void RasterizerVulkan::DrawIndirect() {
         });
 
         // Log indirect draw call
-        if (Settings::values.gpu_logging_enabled.GetValue() &&
+        if (GPU::Logging::IsActive() &&
             Settings::values.gpu_log_vulkan_calls.GetValue()) {
             const std::string log_params = fmt::format("drawCount={}, stride={}",
                 params.max_draw_counts, params.stride);
@@ -585,7 +585,7 @@ void RasterizerVulkan::DispatchCompute() {
     scheduler.Record([dim](vk::CommandBuffer cmdbuf) { cmdbuf.Dispatch(dim[0], dim[1], dim[2]); });
 
     // Log compute dispatch
-    if (Settings::values.gpu_logging_enabled.GetValue() &&
+    if (GPU::Logging::IsActive() &&
         Settings::values.gpu_log_vulkan_calls.GetValue()) {
         const std::string params = fmt::format("groupCountX={}, groupCountY={}, groupCountZ={}",
             dim[0], dim[1], dim[2]);
@@ -1110,7 +1110,7 @@ void RasterizerVulkan::HandleTransformFeedback() {
                               regs.transform_feedback_enabled);
     if (regs.transform_feedback_enabled != 0) {
         // Log extension usage for transform feedback
-        if (Settings::values.gpu_logging_enabled.GetValue()) {
+        if (GPU::Logging::IsActive()) {
             GPU::Logging::GPULogger::GetInstance().LogExtensionUsage(
                 "VK_EXT_transform_feedback", "HandleTransformFeedback");
         }

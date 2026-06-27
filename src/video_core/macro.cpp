@@ -1328,22 +1328,14 @@ Macro::Opcode MacroJITx64Impl::GetOpCode() const {
 #endif
 
 static void Dump(u64 hash, std::span<const u32> code, bool decompiled = false) {
-    const auto base_dir{Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)};
-    const auto macro_dir{base_dir / "macros"};
-    if (!Common::FS::CreateDir(base_dir) || !Common::FS::CreateDir(macro_dir)) {
-        LOG_ERROR(Common_Filesystem, "Failed to create macro dump directories");
+    const auto dump_dir{Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)};
+    if (!Common::FS::CreateDir(dump_dir)) {
+        LOG_ERROR(Common_Filesystem, "Failed to create dump directory");
         return;
     }
-    auto name{macro_dir / fmt::format("{:016x}.macro", hash)};
-
-    if (decompiled) {
-        auto new_name{macro_dir / fmt::format("decompiled_{:016x}.macro", hash)};
-        if (Common::FS::Exists(name)) {
-            (void)Common::FS::RenameFile(name, new_name);
-            return;
-        }
-        name = new_name;
-    }
+    const char* const variant_suffix = decompiled ? "jit" : "raw";
+    const auto name{dump_dir / fmt::format("{:016x}_{:016x}_{}.macro",
+                                           Settings::GetCurrentProgramID(), hash, variant_suffix)};
 
     std::fstream macro_file(name, std::ios::out | std::ios::binary);
     if (!macro_file) {
