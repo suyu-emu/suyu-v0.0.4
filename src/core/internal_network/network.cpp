@@ -28,7 +28,6 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "common/expected.h"
 #include "common/logging.h"
 #include "common/settings.h"
 #include "core/internal_network/network.h"
@@ -733,15 +732,14 @@ u32 IPv4AddressToInteger(IPv4Address ip_addr) {
            static_cast<u32>(ip_addr[2]) << 8 | static_cast<u32>(ip_addr[3]);
 }
 
-Common::Expected<std::vector<AddrInfo>, GetAddrInfoError> GetAddressInfo(
+std::variant<std::vector<AddrInfo>, GetAddrInfoError> GetAddressInfo(
     const std::string& host, const std::optional<std::string>& service) {
     addrinfo hints{};
     hints.ai_family = AF_INET; // Switch only supports IPv4.
     addrinfo* addrinfo;
-    s32 gai_err = getaddrinfo(host.c_str(), service.has_value() ? service->c_str() : nullptr,
-                              &hints, &addrinfo);
+    s32 gai_err = getaddrinfo(host.c_str(), service.has_value() ? service->c_str() : nullptr, &hints, &addrinfo);
     if (gai_err != 0) {
-        return Common::Unexpected(TranslateGetAddrInfoErrorFromNative(gai_err));
+        return TranslateGetAddrInfoErrorFromNative(gai_err);
     }
     std::vector<AddrInfo> ret;
     for (auto* current = addrinfo; current; current = current->ai_next) {

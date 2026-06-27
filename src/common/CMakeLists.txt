@@ -50,7 +50,6 @@ add_library(
     elf.h
     error.cpp
     error.h
-    expected.h
     fiber.cpp
     fiber.h
     fixed_point.h

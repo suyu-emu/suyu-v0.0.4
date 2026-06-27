@@ -208,16 +208,15 @@ static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestConte
         return {0, GetAddrInfoError::AGAIN};
     }
 
-    auto res = Network::GetAddressInfo(host, /*service*/ std::nullopt);
-    if (!res.has_value()) {
-        return {0, Translate(res.error())};
+    auto res_v = Network::GetAddressInfo(host, /*service*/ std::nullopt);
+    if (auto* res = std::get_if<std::vector<Network::AddrInfo>>(&res_v)) {
+        const std::vector<u8> data = SerializeAddrInfoAsHostEnt(*res, host);
+        const u32 data_size = u32(data.size());
+        ctx.WriteBuffer(data, 0);
+        return {data_size, GetAddrInfoError::SUCCESS};
     }
-
-    const std::vector<u8> data = SerializeAddrInfoAsHostEnt(res.value(), host);
-    const u32 data_size = static_cast<u32>(data.size());
-    ctx.WriteBuffer(data, 0);
-
-    return {data_size, GetAddrInfoError::SUCCESS};
+    auto* err = std::get_if<Network::GetAddrInfoError>(&res_v);
+    return {0, Translate(*err)};
 }
 
 void SFDNSRES::GetHostByNameRequest(HLERequestContext& ctx) {
@@ -333,16 +332,15 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
 
     // Serialized hints are also passed in a buffer, but are ignored for now.
 
-    auto res = Network::GetAddressInfo(host, service);
-    if (!res.has_value()) {
-        return {0, Translate(res.error())};
+    auto res_v = Network::GetAddressInfo(host, service);
+    if (auto* res = std::get_if<std::vector<Network::AddrInfo>>(&res_v)) {
+        const std::vector<u8> data = SerializeAddrInfo(*res, host);
+        const u32 data_size = u32(data.size());
+        ctx.WriteBuffer(data, 0);
+        return {data_size, GetAddrInfoError::SUCCESS};
     }
-
-    const std::vector<u8> data = SerializeAddrInfo(res.value(), host);
-    const u32 data_size = static_cast<u32>(data.size());
-    ctx.WriteBuffer(data, 0);
-
-    return {data_size, GetAddrInfoError::SUCCESS};
+    auto* err = std::get_if<Network::GetAddrInfoError>(&res_v);
+    return {0, Translate(*err)};
 }
 
 void SFDNSRES::GetAddrInfoRequest(HLERequestContext& ctx) {

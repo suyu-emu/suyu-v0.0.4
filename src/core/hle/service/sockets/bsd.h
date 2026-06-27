@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -8,9 +8,9 @@
 #include <memory>
 #include <span>
 #include <vector>
+#include <variant>
 
 #include "common/common_types.h"
-#include "common/expected.h"
 #include "common/socket_types.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sockets/sockets.h"
@@ -35,7 +35,7 @@ public:
     // These methods are called from SSL; the first two are also called from
     // this class for the corresponding IPC methods.
     // On the real device, the SSL service makes IPC calls to this service.
-    Common::Expected<s32, Errno> DuplicateSocketImpl(s32 fd);
+    std::variant<s32, Errno> DuplicateSocketImpl(s32 fd);
     Errno CloseImpl(s32 fd);
     std::optional<std::shared_ptr<Network::SocketBase>> GetSocket(s32 fd);
 

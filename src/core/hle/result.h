@@ -10,7 +10,6 @@
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/expected.h"
 
 // All the constants in this file come from <https://switchbrew.org/wiki/Error_codes>
 

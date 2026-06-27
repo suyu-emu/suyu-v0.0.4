@@ -160,29 +160,26 @@ private:
         auto bsd = system.ServiceManager().GetService<Service::Sockets::BSD>("bsd:u");
         ASSERT_OR_EXECUTE(bsd, { return ResultInternalError; });
 
-        auto res = bsd->DuplicateSocketImpl(fd);
-        if (!res.has_value()) {
-            LOG_ERROR(Service_SSL, "Failed to duplicate socket with fd {}", fd);
-            return ResultInvalidSocket;
+        auto const res_v = bsd->DuplicateSocketImpl(fd);
+        if (auto *res = std::get_if<s32>(&res_v)) {
+            const s32 duplicated_fd = *res;
+            if (do_not_close_socket) {
+                *out_fd = duplicated_fd;
+            } else {
+                *out_fd = -1;
+                fd_to_close = duplicated_fd;
+            }
+            std::optional<std::shared_ptr<Network::SocketBase>> sock = bsd->GetSocket(duplicated_fd);
+            if (!sock.has_value()) {
+                LOG_ERROR(Service_SSL, "invalid socket fd {} after duplication", duplicated_fd);
+                return ResultInvalidSocket;
+            }
+            socket = std::move(*sock);
+            backend->SetSocket(socket);
+            return ResultSuccess;
         }
-
-        const s32 duplicated_fd = *res;
-
-        if (do_not_close_socket) {
-            *out_fd = duplicated_fd;
-        } else {
-            *out_fd = -1;
-            fd_to_close = duplicated_fd;
-        }
-
-        std::optional<std::shared_ptr<Network::SocketBase>> sock = bsd->GetSocket(duplicated_fd);
-        if (!sock.has_value()) {
-            LOG_ERROR(Service_SSL, "invalid socket fd {} after duplication", duplicated_fd);
-            return ResultInvalidSocket;
-        }
-        socket = std::move(*sock);
-        backend->SetSocket(socket);
-        return ResultSuccess;
+        LOG_ERROR(Service_SSL, "Failed to duplicate socket with fd {}", fd);
+        return ResultInvalidSocket;
     }
 
     Result SetHostNameImpl(const std::string& hostname) {

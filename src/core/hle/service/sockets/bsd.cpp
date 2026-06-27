@@ -24,9 +24,6 @@
 #include "network/network.h"
 #include <common/settings.h>
 
-using Common::Expected;
-using Common::Unexpected;
-
 namespace Service::Sockets {
 
 namespace {
@@ -464,13 +461,22 @@ void BSD::DuplicateSocket(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     auto input = rp.PopRaw<InputParameters>();
 
-    Expected<s32, Errno> res = DuplicateSocketImpl(input.fd);
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.PushRaw(OutputParameters{
-        .ret = res.value_or(0),
-        .bsd_errno = res ? Errno::SUCCESS : res.error(),
-    });
+
+    auto const res_v = DuplicateSocketImpl(input.fd);
+    if (auto* res = std::get_if<s32>(&res_v)) {
+        rb.PushRaw(OutputParameters{
+            .ret = *res,
+            .bsd_errno = Errno::SUCCESS,
+        });
+    } else {
+        auto* err = std::get_if<Errno>(&res_v);
+        rb.PushRaw(OutputParameters{
+            .ret = 0,
+            .bsd_errno = *err,
+        });
+    }
 }
 
 void BSD::EventFd(HLERequestContext& ctx) {
@@ -977,15 +983,15 @@ Errno BSD::CloseImpl(s32 fd) {
     return bsd_errno;
 }
 
-Expected<s32, Errno> BSD::DuplicateSocketImpl(s32 fd) {
+std::variant<s32, Errno> BSD::DuplicateSocketImpl(s32 fd) {
     if (!IsFileDescriptorValid(fd)) {
-        return Unexpected(Errno::BADF);
+        return Errno::BADF;
     }
 
     const s32 new_fd = FindFreeFileDescriptorHandle();
     if (new_fd < 0) {
         LOG_ERROR(Service, "No more file descriptors available");
-        return Unexpected(Errno::MFILE);
+        return Errno::MFILE;
     }
 
     file_descriptors[new_fd] = FileDescriptor{
