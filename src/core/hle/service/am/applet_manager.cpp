@@ -267,7 +267,7 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
 
     if (Settings::values.enable_overlay && m_window_system->GetOverlayDisplayApplet() == nullptr) {
         if (auto overlay_process = CreateProcess(m_system, static_cast<u64>(AppletProgramId::OverlayDisplay), 0, 0)) {
-            auto overlay_applet = std::make_shared<Applet>(m_system, std::make_unique<Service::Process>(*std::move(overlay_process)), false);
+            auto overlay_applet = std::make_shared<Applet>(m_system, std::move(overlay_process), false);
             overlay_applet->program_id = static_cast<u64>(AppletProgramId::OverlayDisplay);
             overlay_applet->applet_id = AppletId::OverlayDisplay;
             overlay_applet->type = AppletType::OverlayApplet;

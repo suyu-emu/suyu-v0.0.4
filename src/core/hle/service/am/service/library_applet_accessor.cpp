@@ -75,7 +75,7 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
         {105, D<&ILibraryAppletAccessor::GetPopOutDataEvent>, "GetPopOutDataEvent"},
         {106, D<&ILibraryAppletAccessor::GetPopInteractiveOutDataEvent>, "GetPopInteractiveOutDataEvent"},
         {110, nullptr, "NeedsToExitProcess"},
-        {120, nullptr, "GetLibraryAppletInfo"},
+        {120, D<&ILibraryAppletAccessor::GetLibraryAppletInfo>, "GetLibraryAppletInfo"},
         {150, nullptr, "RequestForAppletToGetForeground"},
         {160, D<&ILibraryAppletAccessor::GetIndirectLayerConsumerHandle>, "GetIndirectLayerConsumerHandle"}, //2.0.0+
         {170, D<&ILibraryAppletAccessor::Unknown170>, "Unknown170"}, //22.0.0+
@@ -215,6 +215,16 @@ Result ILibraryAppletAccessor::GetIndirectLayerConsumerHandle(Out<u64> out_handl
     // We require a non-zero handle to be valid. Using 0xdeadbeef allows us to trace if this is
     // actually used anywhere
     *out_handle = 0xdeadbeef;
+    R_SUCCEED();
+}
+
+Result ILibraryAppletAccessor::GetLibraryAppletInfo(
+    Out<LibraryAppletInfo> out_library_applet_info) {
+    LOG_INFO(Service_AM, "called");
+    *out_library_applet_info = {
+        .applet_id = m_applet->applet_id,
+        .library_applet_mode = m_applet->library_applet_mode,
+    };
     R_SUCCEED();
 }
 

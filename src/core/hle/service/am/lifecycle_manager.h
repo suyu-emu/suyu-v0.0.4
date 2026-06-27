@@ -138,6 +138,8 @@ public:
     void PushUnorderedMessage(Kernel::KernelCore& kernel, AppletMessage message);
     bool PopMessage(Kernel::KernelCore& kernel, AppletMessage* out_message);
 
+    void ResetForRelaunch();
+
 private:
     FocusState GetFocusStateWhileForegroundObscured() const;
     FocusState GetFocusStateWhileBackground(bool is_obscured) const;

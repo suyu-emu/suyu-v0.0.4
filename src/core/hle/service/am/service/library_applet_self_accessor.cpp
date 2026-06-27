@@ -233,8 +233,9 @@ Result ILibraryAppletSelfAccessor::ReportVisibleErrorWithErrorContext(
     R_SUCCEED();
 }
 
-Result ILibraryAppletSelfAccessor::UnpopInData() {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+Result ILibraryAppletSelfAccessor::UnpopInData(SharedPointer<IStorage> storage) {
+    LOG_INFO(Service_AM, "called");
+    m_broker->GetInData().Unpop(system.Kernel(), storage);
     R_SUCCEED();
 }
 

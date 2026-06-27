@@ -26,6 +26,7 @@ public:
     ~AppletStorageChannel();
 
     void Push(Kernel::KernelCore& kernel, std::shared_ptr<IStorage> storage);
+    void Unpop(Kernel::KernelCore& kernel, std::shared_ptr<IStorage> storage);
     Result Pop(Kernel::KernelCore& kernel, std::shared_ptr<IStorage>* out_storage);
     Kernel::KReadableEvent* GetEvent();
 

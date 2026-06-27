@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +15,10 @@ namespace Service::AM {
 
 HidRegistration::HidRegistration(Core::System& system, Process& process) : m_process(process) {
     m_hid_server = system.ServiceManager().GetService<HID::IHidServer>("hid", true);
+    this->RegisterCurrentProcess();
+}
 
+void HidRegistration::RegisterCurrentProcess() {
     if (m_process.IsInitialized()) {
         m_hid_server->GetResourceManager()->RegisterAppletResourceUserId(m_process.GetProcessId(),
                                                                          true);

@@ -9,6 +9,7 @@
 #include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/event_observer.h"
+#include "core/hle/service/am/process_creation.h"
 #include "core/hle/service/am/window_system.h"
 
 namespace Service::AM {
@@ -240,6 +241,37 @@ void WindowSystem::PruneTerminatedAppletsLocked() {
             continue;
         }
 
+        // A winding applet has had its own process killed but is kept alive as a transparent slot
+        // while the reserved applet running in its place finishes (see WindAndDoReserved()).
+        if (applet->is_winding) {
+            if (!applet->child_applets.empty()) {
+                it = std::next(it);
+                continue;
+            }
+
+            const bool unwind = applet->unwind_after_reserved;
+            applet->is_winding = false;
+            applet->unwind_after_reserved = false;
+
+            if (unwind && this->RestartAppletProcessLocked(applet.get())) {
+                const u64 new_aruid = applet->aruid.pid;
+                const auto next = std::next(it);
+
+                if (new_aruid != aruid) {
+                    auto node = m_applets.extract(it);
+                    node.key() = new_aruid;
+                    m_applets.insert(std::move(node));
+                }
+
+                applet->process->Run();
+                m_event_observer->RequestUpdate();
+                it = next;
+                continue;
+            }
+
+            applet->reserved_applet.reset();
+        }
+
         // Terminated, so ensure all child applets are terminated.
         if (!applet->child_applets.empty()) {
             this->TerminateChildAppletsLocked(applet.get());
@@ -301,6 +333,28 @@ void WindowSystem::PruneTerminatedAppletsLocked() {
     }
 }
 
+bool WindowSystem::RestartAppletProcessLocked(Applet* applet) {
+    if (!ReinitializeProcess(m_system, *applet->process, applet->program_id)) {
+        LOG_ERROR(Service_AM, "Failed to restart winding applet_id={}",
+                  static_cast<u32>(applet->applet_id));
+        return false;
+    }
+
+    applet->aruid.pid = applet->process->GetProcessId();
+    applet->is_process_running = false;
+    applet->is_completed = false;
+
+    applet->hid_registration.RegisterCurrentProcess();
+
+    applet->lifecycle_manager.ResetForRelaunch();
+    applet->is_activity_runnable = false;
+
+    applet->launch_reason.flag = 1;
+
+    m_event_observer->TrackAppletProcess(*applet);
+    return true;
+}
+
 bool WindowSystem::LockHomeMenuIntoForegroundLocked() {
     // If the home menu is not locked into foreground, then there's nothing to do.
     if (m_home_menu == nullptr || !m_home_menu_foreground_locked) {
@@ -352,6 +406,9 @@ void WindowSystem::UpdateAppletStateLocked(Applet* applet, bool is_foreground, b
     const bool has_obscuring_child_applets = [&] {
         for (const auto& child_applet : applet->child_applets) {
             std::scoped_lock lk2{child_applet->lock};
+            if (child_applet->is_winding) {
+                return true;
+            }
             const auto mode = child_applet->library_applet_mode;
             if (child_applet->is_process_running && child_applet->window_visible &&
                 (mode == LibraryAppletMode::AllForeground ||

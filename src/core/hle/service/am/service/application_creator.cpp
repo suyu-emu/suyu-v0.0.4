@@ -35,9 +35,9 @@ Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_applicati
     std::unique_ptr<Loader::AppLoader> loader;
     Loader::ResultStatus result;
     auto process = CreateApplicationProcess(control, loader, result, system, nca_raw, program_id, 0);
-    R_UNLESS(process != std::nullopt, ResultUnknown);
+    R_UNLESS(process != nullptr, ResultUnknown);
 
-    const auto applet = std::make_shared<Applet>(system, std::make_unique<Service::Process>(*std::move(process)), true);
+    const auto applet = std::make_shared<Applet>(system, std::move(process), true);
     applet->program_id = program_id;
     applet->applet_id = AppletId::Application;
     applet->type = AppletType::Application;
@@ -88,9 +88,9 @@ Result IApplicationCreator::CreateSystemApplication(
     std::vector<u8> control;
     std::unique_ptr<Loader::AppLoader> loader;
     auto process = CreateProcess(system, application_id, 1, 22);
-    R_UNLESS(process != std::nullopt, ResultUnknown);
+    R_UNLESS(process != nullptr, ResultUnknown);
 
-    const auto applet = std::make_shared<Applet>(system, std::make_unique<Service::Process>(*std::move(process)), true);
+    const auto applet = std::make_shared<Applet>(system, std::move(process), true);
     applet->program_id = application_id;
     applet->applet_id = AppletId::Starter;
     applet->type = AppletType::LibraryApplet;

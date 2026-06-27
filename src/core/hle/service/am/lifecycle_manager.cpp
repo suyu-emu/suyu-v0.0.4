@@ -171,6 +171,18 @@ void LifecycleManager::SignalSystemEventIfNeeded(Kernel::KernelCore& kernel) {
     }
 }
 
+void LifecycleManager::ResetForRelaunch() {
+    m_unordered_messages.clear();
+
+    m_activity_state = ActivityState::BackgroundVisible;
+    m_requested_focus_state = FocusState{};
+    m_acknowledged_focus_state = FocusState{};
+    m_has_focus_state_changed = true;
+
+    m_suspend_mode = SuspendMode::NoOverride;
+    m_forced_suspend = false;
+}
+
 bool LifecycleManager::PopMessage(Kernel::KernelCore& kernel, AppletMessage* out_message) {
     const auto message = this->PopMessageInOrderOfPriority();
     this->SignalSystemEventIfNeeded(kernel);

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "core/hle/service/am/service/library_applet_self_accessor.h"
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
@@ -20,6 +21,10 @@ public:
     explicit ILibraryAppletAccessor(Core::System& system_, std::shared_ptr<AppletDataBroker> broker,
                                     std::shared_ptr<Applet> applet);
     ~ILibraryAppletAccessor();
+
+    std::shared_ptr<Applet> GetApplet() const {
+        return m_applet;
+    }
 
 private:
     Result GetAppletStateChangedEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
@@ -37,6 +42,7 @@ private:
     Result GetPopOutDataEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetPopInteractiveOutDataEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetIndirectLayerConsumerHandle(Out<u64> out_handle);
+    Result GetLibraryAppletInfo(Out<LibraryAppletInfo> out_library_applet_info);
     Result Unknown170(OutCopyHandle<Kernel::KReadableEvent> out_event);
 
     void FrontendExecute();

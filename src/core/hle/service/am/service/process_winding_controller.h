@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -29,8 +29,9 @@ private:
     Result PopContext(Out<SharedPointer<IStorage>> out_context);
     Result CancelWindingReservation();
     Result WindAndDoReserved();
-    Result ReserveToStartAndWaitAndUnwindThis();
-    Result ReserveToStartAndWait();
+    Result ReserveToStartAndWaitAndUnwindThis(
+        SharedPointer<ILibraryAppletAccessor> reserved_applet_accessor);
+    Result ReserveToStartAndWait(SharedPointer<ILibraryAppletAccessor> reserved_applet_accessor);
 
     const std::shared_ptr<Applet> m_applet;
 };

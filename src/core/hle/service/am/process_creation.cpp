@@ -40,23 +40,23 @@ namespace {
     }
 }
 
-[[nodiscard]] inline std::optional<Process> CreateProcessImpl(std::unique_ptr<Loader::AppLoader>& out_loader, Loader::ResultStatus& out_load_result, Core::System& system, FileSys::VirtualFile file, u64 program_id, u64 program_index) {
+[[nodiscard]] inline std::unique_ptr<Process> CreateProcessImpl(std::unique_ptr<Loader::AppLoader>& out_loader, Loader::ResultStatus& out_load_result, Core::System& system, FileSys::VirtualFile file, u64 program_id, u64 program_index) {
     // Get the appropriate loader to parse this NCA.
     out_loader = Loader::GetLoader(system, file, program_id, program_index);
     // Ensure we have a loader which can parse the NCA.
     if (out_loader) {
         // Try to load the process.
-        auto process = std::make_optional<Process>(system);
+        auto process = std::make_unique<Process>(system);
         if (process->Initialize(*out_loader, out_load_result)) {
             return process;
         }
     }
-    return std::nullopt;
+    return nullptr;
 }
 
 } // Anonymous namespace
 
-std::optional<Process> CreateProcess(Core::System& system, u64 program_id, u8 minimum_key_generation, u8 maximum_key_generation) {
+std::unique_ptr<Process> CreateProcess(Core::System& system, u64 program_id, u8 minimum_key_generation, u8 maximum_key_generation) {
     // Attempt to load program NCA.
     FileSys::VirtualFile nca_raw{};
 
@@ -66,7 +66,7 @@ std::optional<Process> CreateProcess(Core::System& system, u64 program_id, u8 mi
 
     // Ensure we retrieved a program NCA.
     if (!nca_raw) {
-        return std::nullopt;
+        return nullptr;
     }
 
     // Ensure we have a suitable version.
@@ -76,7 +76,7 @@ std::optional<Process> CreateProcess(Core::System& system, u64 program_id, u8 mi
             (nca.GetKeyGeneration() < minimum_key_generation ||
              nca.GetKeyGeneration() > maximum_key_generation)) {
             LOG_WARNING(Service_LDR, "Skipping program {:016X} with generation {}", program_id, nca.GetKeyGeneration());
-            return std::nullopt;
+            return nullptr;
         }
     }
 
@@ -85,7 +85,7 @@ std::optional<Process> CreateProcess(Core::System& system, u64 program_id, u8 mi
     return CreateProcessImpl(loader, status, system, nca_raw, program_id, 0);
 }
 
-std::optional<Process> CreateApplicationProcess(std::vector<u8>& out_control, std::unique_ptr<Loader::AppLoader>& out_loader, Loader::ResultStatus& out_load_result, Core::System& system, FileSys::VirtualFile file, u64 program_id, u64 program_index) {
+std::unique_ptr<Process> CreateApplicationProcess(std::vector<u8>& out_control, std::unique_ptr<Loader::AppLoader>& out_loader, Loader::ResultStatus& out_load_result, Core::System& system, FileSys::VirtualFile file, u64 program_id, u64 program_index) {
     if (auto process = CreateProcessImpl(out_loader, out_load_result, system, file, program_id, program_index); process) {
         FileSys::NACP nacp;
         if (out_loader->ReadControlData(nacp) == Loader::ResultStatus::Success) {
@@ -110,7 +110,23 @@ std::optional<Process> CreateApplicationProcess(std::vector<u8>& out_control, st
         system.GetARPManager().Register(launch.title_id, launch, out_control);
         return process;
     }
-    return std::nullopt;
+    return nullptr;
+}
+
+bool ReinitializeProcess(Core::System& system, Process& process, u64 program_id) {
+    auto& storage = system.GetContentProviderUnion();
+    const auto nca_raw = storage.GetEntryRaw(program_id, FileSys::ContentRecordType::Program);
+    if (!nca_raw) {
+        return false;
+    }
+
+    auto loader = Loader::GetLoader(system, nca_raw, program_id, 0);
+    if (!loader) {
+        return false;
+    }
+
+    Loader::ResultStatus status{};
+    return process.Initialize(*loader, status);
 }
 
 } // namespace Service::AM

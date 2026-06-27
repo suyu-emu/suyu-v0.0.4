@@ -109,6 +109,10 @@ struct Applet {
     std::list<std::shared_ptr<Applet>> child_applets{};
     bool is_completed{};
 
+    std::shared_ptr<Applet> reserved_applet{};
+    bool unwind_after_reserved{};
+    bool is_winding{};
+
     // Self state
     bool exit_locked{};
     s32 fatal_section_count{};
