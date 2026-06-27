@@ -3077,6 +3077,7 @@ public:
         void DrawArrayIndirect(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology);
         void DrawIndexedIndirect(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology, u32 index_first, u32 index_count);
         void SetInlineIndexBuffer(Maxwell3D& maxwell3d, u32 index);
+        void SetInlineIndexBuffer(Maxwell3D& maxwell3d, u32 method, const u32* base_start, u32 amount);
         void DrawBegin(Maxwell3D& maxwell3d);
         void DrawEnd(Maxwell3D& maxwell3d, u32 instance_count = 1, bool force_draw = false);
         void DrawIndexSmall(Maxwell3D& maxwell3d, u32 argument);
@@ -3192,6 +3193,8 @@ public:
     /// Handles a write to the CB_DATA[i] register.
     void ProcessCBData(u32 value);
     void ProcessCBMultiData(const u32* start_base, u32 amount);
+
+    void ProcessInlineIndexMultiData(u32 method, const u32* start_base, u32 amount);
 
 private:
     void InitializeRegisterDefaults();

@@ -4,6 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cstring>
+
 #include "common/settings.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -127,6 +129,44 @@ void Maxwell3D::DrawManager::SetInlineIndexBuffer(Maxwell3D& maxwell3d, u32 inde
     draw_state.inline_index_draw_indexes.push_back(u8((index & 0x0000ff00) >> 8));
     draw_state.inline_index_draw_indexes.push_back(u8((index & 0x00ff0000) >> 16));
     draw_state.inline_index_draw_indexes.push_back(u8((index & 0xff000000) >> 24));
+    draw_state.draw_mode = DrawMode::InlineIndex;
+}
+
+void Maxwell3D::DrawManager::SetInlineIndexBuffer(Maxwell3D& maxwell3d, u32 method,
+                                                  const u32* base_start, u32 amount) {
+    auto& index_buffer = draw_state.inline_index_draw_indexes;
+    switch (method) {
+    case MAXWELL3D_REG_INDEX(draw_inline_index): {
+        const auto* const bytes = reinterpret_cast<const u8*>(base_start);
+        index_buffer.insert(index_buffer.end(), bytes, bytes + size_t(amount) * sizeof(u32));
+        break;
+    }
+    case MAXWELL3D_REG_INDEX(inline_index_2x16.even): {
+        const size_t offset = index_buffer.size();
+        index_buffer.resize(offset + size_t(amount) * 2 * sizeof(u32));
+        u8* dst = index_buffer.data() + offset;
+        for (u32 i = 0; i < amount; ++i) {
+            const u32 word = base_start[i];
+            const u32 indexes[2]{word & 0xFFFF, word >> 16};
+            std::memcpy(dst, indexes, sizeof(indexes));
+            dst += sizeof(indexes);
+        }
+        break;
+    }
+    case MAXWELL3D_REG_INDEX(inline_index_4x8.index0): {
+        const size_t offset = index_buffer.size();
+        index_buffer.resize(offset + size_t(amount) * 4 * sizeof(u32));
+        u8* dst = index_buffer.data() + offset;
+        for (u32 i = 0; i < amount; ++i) {
+            const u32 word = base_start[i];
+            const u32 indexes[4]{word & 0xFF, (word >> 8) & 0xFF, (word >> 16) & 0xFF,
+                                 word >> 24};
+            std::memcpy(dst, indexes, sizeof(indexes));
+            dst += sizeof(indexes);
+        }
+        break;
+    }
+    }
     draw_state.draw_mode = DrawMode::InlineIndex;
 }
 

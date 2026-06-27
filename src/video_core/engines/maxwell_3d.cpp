@@ -436,6 +436,14 @@ void Maxwell3D::CallMultiMethod(Core::System& system, u32 method, const u32* bas
         upload_state.ProcessData(base_start, amount);
         return;
     }
+    case MAXWELL3D_REG_INDEX(draw_inline_index):
+    case MAXWELL3D_REG_INDEX(inline_index_2x16.even):
+    case MAXWELL3D_REG_INDEX(inline_index_4x8.index0):
+        if (shadow_state.shadow_ram_control != Regs::ShadowRamControl::Replay) {
+            ProcessInlineIndexMultiData(method, base_start, amount);
+            break;
+        }
+        [[fallthrough]];
     default:
         for (u32 i = 0; i < amount; i++) {
             CallMethod(system, method, base_start[i], methods_pending - i <= 1);
@@ -620,6 +628,15 @@ void Maxwell3D::ProcessCBMultiData(const u32* start_base, u32 amount) {
 
 void Maxwell3D::ProcessCBData(u32 value) {
     ProcessCBMultiData(&value, 1);
+}
+
+void Maxwell3D::ProcessInlineIndexMultiData(u32 method, const u32* start_base, u32 amount) {
+    if (amount == 0) {
+        return;
+    }
+    const u32 argument = ProcessShadowRam(method, start_base[amount - 1]);
+    ProcessDirtyRegisters(method, argument);
+    draw_manager.SetInlineIndexBuffer(*this, method, start_base, amount);
 }
 
 Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
