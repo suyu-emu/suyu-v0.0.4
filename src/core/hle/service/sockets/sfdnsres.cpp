@@ -88,11 +88,12 @@ static const constexpr std::array blockedDomains = {
     "sun.hac.lp1.d4c.nintendo.net",
     "phoenix-api.wbagora.com", //hogwarts legacy
     "battle.net",
-    "microsoft.com", //minecraft dungeons + other games
+    "microsoft.com", // Minecraft dungeons + other games
     "mojang.com",
     "xboxlive.com",
     "api.epicgames.dev", // marvel cosmic invasion +?
-    "minecraftservices.com"
+    "minecraftservices.com",
+    "508223012e5a5ff19f30a391b2bdadc0.my.2k.com", // Civilization 5
 };
 
 static bool IsBlockedHost(const std::string& host) {

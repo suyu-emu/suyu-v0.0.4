@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "applet_web_browser_types.h"
 #include "common/assert.h"
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
@@ -370,16 +371,13 @@ void WebBrowser::ExtractOfflineRomFS() {
 
 void WebBrowser::WebBrowserExit(WebExitReason exit_reason, std::string last_url) {
     const bool use_tlv_output =
-        (web_arg_header.shim_kind == ShimKind::Share &&
-         web_applet_version >= WebAppletVersion::Version196608) ||
-        (web_arg_header.shim_kind == ShimKind::Web &&
-         web_applet_version >= WebAppletVersion::Version524288) ||
-        (web_arg_header.shim_kind == ShimKind::Lhub);
+        (web_arg_header.shim_kind == ShimKind::Share && web_applet_version >= WebAppletVersion::Version196608)
+        || (web_arg_header.shim_kind == ShimKind::Web && web_applet_version >= WebAppletVersion::Version524288)
+        || (web_arg_header.shim_kind == ShimKind::Lhub);
 
     // https://switchbrew.org/wiki/Internet_Browser#TLVs
     if (use_tlv_output) {
-        LOG_DEBUG(Service_AM, "Using TLV output: exit_reason={}, last_url={}, last_url_size={}",
-                  exit_reason, last_url, last_url.size());
+        LOG_DEBUG(Service_AM, "Using TLV output: exit_reason={}, last_url={}, last_url_size={}", exit_reason, last_url, last_url.size());
 
         // storage size for TLVs is 0x2000 bytes (as per switchbrew documentation)
         constexpr size_t TLV_STORAGE_SIZE = 0x2000;
@@ -600,11 +598,14 @@ void WebBrowser::ExecuteShare() {
 
 void WebBrowser::ExecuteWeb() {
     LOG_INFO(Service_AM, "Opening external URL at {}", external_url);
-
-    frontend.OpenExternalWebPage(external_url,
-                                 [this](WebExitReason exit_reason, std::string last_url) {
-                                     WebBrowserExit(exit_reason, last_url);
-                                 });
+    frontend.OpenExternalWebPage(external_url, [this](WebExitReason exit_reason, std::string last_url) {
+        // Offline and web applets must be explicitly exited from because they respect exit state
+        // Unlike the other web stuffs
+        if (exit_reason == WebExitReason::ExitRequested || exit_reason == WebExitReason::EndButtonPressed)
+            exit_reason = (web_arg_header.shim_kind == ShimKind::Web || web_arg_header.shim_kind == ShimKind::Offline)
+                ? WebExitReason::ExitRequested : WebExitReason::EndButtonPressed;
+        WebBrowserExit(exit_reason, last_url);
+    });
 }
 
 void WebBrowser::ExecuteWifi() {
