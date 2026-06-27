@@ -87,7 +87,7 @@ NvResult nvhost_ctrl::NvOsGetConfigU32(IocGetConfigParams& params) {
 }
 
 NvResult nvhost_ctrl::IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_allocation) {
-    LOG_DEBUG(Service_NVDRV, "syncpt_id={}, threshold={}, timeout={}, is_allocation={}",
+    LOG_DEBUG(Service_NVDRV, "EventWait syncpt_id={}, threshold={}, timeout={}, is_allocation={}",
               params.fence.id, params.fence.value, params.timeout, is_allocation);
 
     bool must_unmark_fail = !is_allocation;
@@ -184,6 +184,8 @@ NvResult nvhost_ctrl::IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_a
 
     params.value.raw = 0;
 
+    LOG_DEBUG(Service_NVDRV, "EventWait BLOCKING on syncpt_id={}, target_value={}, slot={}",
+              fence_id, target_value, slot);
     event.status.store(EventState::Waiting, std::memory_order_release);
     event.assigned_syncpt = fence_id;
     event.assigned_value = target_value;

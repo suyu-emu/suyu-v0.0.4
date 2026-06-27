@@ -9,7 +9,6 @@
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_results.h"
-
 namespace Kernel::Svc {
 
 /// Close a handle

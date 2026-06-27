@@ -38,13 +38,13 @@ Result AllocateSharedBufferMemory(std::unique_ptr<Kernel::KPageGroup>* out_page_
         Kernel::KMemoryManager::EncodeOption(Kernel::KMemoryManager::Pool::Secure,
                                              Kernel::KMemoryManager::Direction::FromBack)));
 
-    // Fill the output data with red.
+    // Initialize to fully transparent black to avoid covering content before first present.
     for (auto& block : *pg) {
         u32* start = system.DeviceMemory().GetPointer<u32>(block.GetAddress());
         u32* end = system.DeviceMemory().GetPointer<u32>(block.GetAddress() + block.GetSize());
 
         for (; start < end; start++) {
-            *start = 0xFF0000FF;
+            *start = 0;
         }
     }
 

@@ -4,8 +4,7 @@
 #pragma once
 
 #include <atomic>
-#include <set>
-#include <vector>
+#include <boost/container/small_vector.hpp>
 
 #include "common/common_types.h"
 #include "core/hardware_properties.h"
@@ -36,25 +35,13 @@ public:
     explicit GlobalSchedulerContext(KernelCore& kernel);
     ~GlobalSchedulerContext();
 
-    /// Adds a new thread to the scheduler
     void AddThread(KThread* thread);
-
-    /// Removes a thread from the scheduler
     void RemoveThread(KThread* thread);
 
-    /// Returns a list of all threads managed by the scheduler
-    /// This is only safe to iterate while holding the scheduler lock
-    const std::vector<KThread*>& GetThreadList() const {
+    const boost::container::small_vector<KThread*, 256>& GetThreadList() const {
         return m_thread_list;
     }
 
-    /**
-     * Rotates the scheduling queues of threads at a preemption priority and then does
-     * some core rebalancing. Preemption priorities can be found in the array
-     * 'preemption_priorities'.
-     *
-     * @note This operation happens every 10ms.
-     */
     void PreemptThreads();
 
     /// Returns true if the global scheduler lock is acquired
@@ -78,11 +65,8 @@ private:
     KSchedulerPriorityQueue m_priority_queue;
     LockType m_scheduler_lock;
 
-    /// Lists dummy threads pending wakeup on lock release
-    std::set<KThread*> m_woken_dummy_threads;
-
-    /// Lists all thread ids that aren't deleted/etc.
-    std::vector<KThread*> m_thread_list;
+    boost::container::small_vector<KThread*, 256> m_woken_dummy_threads;
+    boost::container::small_vector<KThread*, 256> m_thread_list;
     std::mutex m_global_list_guard;
 };
 

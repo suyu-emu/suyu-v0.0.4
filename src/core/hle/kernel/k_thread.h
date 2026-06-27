@@ -300,6 +300,8 @@ public:
         return m_cpu_time;
     }
 
+    void UpdateTlsThreadCpuTime(s64 switch_tick);
+
     s32 GetActiveCore() const {
         return m_core_id;
     }
@@ -539,7 +541,7 @@ public:
     }
 
     void ClearDpc(DpcFlag flag) {
-        this->GetStackParameters().dpc_flags &= ~static_cast<u8>(flag);
+        this->GetStackParameters().dpc_flags &= static_cast<u8>(~static_cast<u8>(flag));
     }
 
     u8 GetDpc() const {

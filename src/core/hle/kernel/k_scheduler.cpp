@@ -381,6 +381,9 @@ void KScheduler::SwitchThread(KThread* next_thread) {
 
     // Set the new Thread Local region.
     // cpu::SwitchThreadLocalRegion(GetInteger(next_thread->GetThreadLocalRegionAddress()));
+
+    // Update the thread's cpu time differential in TLS, if relevant.
+    next_thread->UpdateTlsThreadCpuTime(cur_tick);
 }
 
 void KScheduler::ScheduleImpl() {

@@ -85,11 +85,23 @@ Result IApplicationDisplayService::GetIndirectDisplayTransactionService(
 }
 
 Result IApplicationDisplayService::OpenDisplay(Out<u64> out_display_id, DisplayName display_name) {
-    LOG_DEBUG(Service_VI, "called");
+    LOG_DEBUG(Service_VI, "called with display_name={}", display_name.data());
 
     display_name[display_name.size() - 1] = '\0';
-    ASSERT_MSG(strcmp(display_name.data(), "Default") == 0,
-               "Non-default displays aren't supported yet");
+
+    const std::array<std::string_view, 5> valid_names = {
+        "Default", "External", "Edid", "Internal", "Null"
+    };
+
+    bool valid_name = false;
+    for (const auto& name : valid_names) {
+        if (name == display_name.data()) {
+            valid_name = true;
+            break;
+        }
+    }
+
+    R_UNLESS(valid_name, VI::ResultOperationFailed);
 
     R_RETURN(m_container->OpenDisplay(out_display_id, display_name));
 }
@@ -160,7 +172,8 @@ Result IApplicationDisplayService::OpenLayer(Out<u64> out_size,
                                              ClientAppletResourceUserId aruid) {
     display_name[display_name.size() - 1] = '\0';
 
-    LOG_DEBUG(Service_VI, "called. layer_id={}, aruid={:#x}", layer_id, aruid.pid);
+    LOG_INFO(Service_VI, "OpenLayer called. layer_id={}, aruid={:#x}, display={}",
+             layer_id, aruid.pid, display_name.data());
 
     u64 display_id;
     R_TRY(m_container->OpenDisplay(&display_id, display_name));

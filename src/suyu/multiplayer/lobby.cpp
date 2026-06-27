@@ -94,6 +94,9 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
     ui->games_owned->setChecked(UISettings::values.multiplayer_filter_games_owned.GetValue());
     ui->hide_empty->setChecked(UISettings::values.multiplayer_filter_hide_empty.GetValue());
     ui->hide_full->setChecked(UISettings::values.multiplayer_filter_hide_full.GetValue());
+
+    // Auto-refresh on open so users don't see an empty list
+    RefreshLobby();
 }
 
 Lobby::~Lobby() = default;

@@ -56,7 +56,8 @@ void NVDRV::Ioctl1(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto fd = rp.Pop<DeviceFD>();
     const auto command = rp.PopRaw<Ioctl>();
-    LOG_DEBUG(Service_NVDRV, "called fd={}, ioctl=0x{:08X}", fd, command.raw);
+    LOG_DEBUG(Service_NVDRV, "Ioctl1 fd={}, ioctl=0x{:08X} group={} cmd={}", fd, command.raw,
+              command.group, command.cmd);
 
     if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
@@ -82,7 +83,8 @@ void NVDRV::Ioctl2(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto fd = rp.Pop<DeviceFD>();
     const auto command = rp.PopRaw<Ioctl>();
-    LOG_DEBUG(Service_NVDRV, "called fd={}, ioctl=0x{:08X}", fd, command.raw);
+    LOG_DEBUG(Service_NVDRV, "Ioctl2 fd={}, ioctl=0x{:08X} group={} cmd={}", fd, command.raw,
+              command.group, command.cmd);
 
     if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
@@ -109,7 +111,8 @@ void NVDRV::Ioctl3(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto fd = rp.Pop<DeviceFD>();
     const auto command = rp.PopRaw<Ioctl>();
-    LOG_DEBUG(Service_NVDRV, "called fd={}, ioctl=0x{:08X}", fd, command.raw);
+    LOG_DEBUG(Service_NVDRV, "Ioctl3 fd={}, ioctl=0x{:08X} group={} cmd={}", fd, command.raw,
+              command.group, command.cmd);
 
     if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
@@ -152,7 +155,7 @@ void NVDRV::Close(HLERequestContext& ctx) {
 }
 
 void NVDRV::Initialize(HLERequestContext& ctx) {
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    LOG_DEBUG(Service_NVDRV, "called");
     IPC::ResponseBuilder rb{ctx, 3};
     SCOPE_EXIT {
         rb.Push(ResultSuccess);

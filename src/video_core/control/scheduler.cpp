@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "video_core/control/channel_state.h"
 #include "video_core/control/scheduler.h"
 #include "video_core/gpu.h"
@@ -14,11 +15,14 @@ Scheduler::Scheduler(GPU& gpu_) : gpu{gpu_} {}
 Scheduler::~Scheduler() = default;
 
 void Scheduler::Push(s32 channel, CommandList&& entries) {
-    std::unique_lock lk(scheduling_guard);
-    auto it = channels.find(channel);
-    ASSERT(it != channels.end());
-    auto channel_state = it->second;
-    gpu.BindChannel(channel_state->bind_id);
+    std::shared_ptr<ChannelState> channel_state;
+    {
+        std::unique_lock lk(scheduling_guard);
+        auto it = channels.find(channel);
+        ASSERT(it != channels.end());
+        channel_state = it->second;
+        gpu.BindChannel(channel_state->bind_id);
+    }
     channel_state->dma_pusher->Push(std::move(entries));
     channel_state->dma_pusher->DispatchCalls();
 }

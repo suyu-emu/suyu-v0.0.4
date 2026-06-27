@@ -77,8 +77,6 @@ void ConfigureWeb::SetConfiguration() {
         QString::fromStdString(Settings::values.eden_token.GetValue()));
     ui->edit_web_api_url->setText(
         QString::fromStdString(Settings::values.web_api_url.GetValue()));
-    ui->edit_multiplayer_announce_url->setText(
-        QString::fromStdString(Settings::values.multiplayer_announce_url.GetValue()));
 
     VerifyLogin();
 
@@ -103,8 +101,6 @@ void ConfigureWeb::ApplyConfiguration() {
     Settings::values.eden_username = ui->edit_username->text().toStdString();
     Settings::values.eden_token = ui->edit_token->text().toStdString();
     Settings::values.web_api_url = ui->edit_web_api_url->text().toStdString();
-    Settings::values.multiplayer_announce_url =
-        ui->edit_multiplayer_announce_url->text().toStdString();
 }
 
 void ConfigureWeb::VerifyLogin() {

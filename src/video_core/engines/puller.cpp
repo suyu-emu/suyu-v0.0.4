@@ -60,10 +60,11 @@ void Puller::ProcessBindMethod(const MethodCall& method_call) {
 }
 
 void Puller::ProcessFenceActionMethod() {
+    LOG_DEBUG(HW_GPU, "FenceAction op={} syncpoint_id={} fence_value={}",
+              regs.fence_action.op.Value(), regs.fence_action.syncpoint_id.Value(),
+              regs.fence_value);
     switch (regs.fence_action.op) {
     case Puller::FenceOperation::Acquire:
-        // UNIMPLEMENTED_MSG("Channel Scheduling pending.");
-        // WaitFence(regs.fence_action.syncpoint_id, regs.fence_value);
         rasterizer->ReleaseFences();
         break;
     case Puller::FenceOperation::Increment:
@@ -79,6 +80,9 @@ void Puller::ProcessSemaphoreTriggerMethod() {
     const auto semaphoreOperationMask = 0xF;
     const auto op =
         static_cast<GpuSemaphoreOperation>(regs.semaphore_trigger & semaphoreOperationMask);
+    LOG_DEBUG(HW_GPU, "SemaphoreTrigger op={} addr={:X} sequence={}",
+              static_cast<u32>(op), regs.semaphore_address.SemaphoreAddress(),
+              regs.semaphore_sequence);
     if (op == GpuSemaphoreOperation::WriteLong) {
         const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
         const u32 payload = regs.semaphore_sequence;
@@ -118,6 +122,7 @@ void Puller::ProcessSemaphoreTriggerMethod() {
 void Puller::ProcessSemaphoreRelease() {
     const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
     const u32 payload = regs.semaphore_release;
+    LOG_DEBUG(HW_GPU, "SemaphoreRelease addr={:X} payload={}", sequence_address, payload);
     rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload,
                       VideoCommon::QueryPropertiesFlags::IsAFence, payload, 0);
 }
@@ -129,10 +134,8 @@ void Puller::ProcessSemaphoreAcquire() {
         regs.acquire_active = true;
         regs.acquire_value = value;
         rasterizer->ReleaseFences();
-        word = memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
-        // TODO(kemathe73) figure out how to do the acquire_timeout
-        regs.acquire_mode = false;
-        regs.acquire_source = false;
+        ProcessSemaphoreTriggerMethod();
+        break;
     }
 }
 
@@ -157,6 +160,7 @@ void Puller::CallPullerMethod(const MethodCall& method_call) {
         rasterizer->SignalReference();
         break;
     case BufferMethods::SyncpointOperation:
+        LOG_DEBUG(HW_GPU, "Puller: SyncpointOperation");
         ProcessFenceActionMethod();
         break;
     case BufferMethods::WaitForIdle:

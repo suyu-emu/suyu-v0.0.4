@@ -203,10 +203,8 @@ void HostRoomWindow::Host() {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
         if (is_public) {
-            const auto announce_url = Settings::values.multiplayer_announce_url.GetValue().empty()
-                                          ? Settings::values.web_api_url.GetValue()
-                                          : Settings::values.multiplayer_announce_url.GetValue();
-            WebService::Client client(announce_url, Settings::values.eden_username.GetValue(),
+            WebService::Client client(Settings::values.web_api_url.GetValue(),
+                                      Settings::values.eden_username.GetValue(),
                                       Settings::values.eden_token.GetValue());
             if (auto room = room_network.GetRoom().lock()) {
                 token = client.GetExternalJWT(room->GetVerifyUID()).returned_data;

@@ -87,7 +87,7 @@ std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList(
     Core::System& system) {
     std::vector<std::unique_ptr<WaitTreeThread>> item_list;
     std::size_t row = 0;
-    auto add_threads = [&](const std::vector<Kernel::KThread*>& threads) {
+    auto add_threads = [&](const auto& threads) {
         for (std::size_t i = 0; i < threads.size(); ++i) {
             if (threads[i]->GetThreadType() == Kernel::ThreadType::User) {
                 item_list.push_back(std::make_unique<WaitTreeThread>(*threads[i], system));

@@ -72,7 +72,15 @@ struct ThreadLocalRegion {
     std::array<u32, MessageBufferSize / sizeof(u32)> message_buffer;
     std::atomic_uint16_t disable_count;
     std::atomic_uint16_t interrupt_flag;
+    std::atomic_uint8_t cache_maintenance_flag;
+    std::atomic_int64_t thread_cpu_time;
+    std::atomic_uint32_t current_thread_handle;
 };
+static_assert(offsetof(ThreadLocalRegion, disable_count) == 0x100);
+static_assert(offsetof(ThreadLocalRegion, interrupt_flag) == 0x102);
+static_assert(offsetof(ThreadLocalRegion, cache_maintenance_flag) == 0x104);
+static_assert(offsetof(ThreadLocalRegion, thread_cpu_time) == 0x108);
+static_assert(offsetof(ThreadLocalRegion, current_thread_handle) == 0x110);
 
 class ThreadQueueImplForKThreadSleep final : public KThreadQueueWithoutEndWait {
 public:
@@ -577,6 +585,20 @@ void KThread::ClearInterruptFlag() {
 
     auto& memory = this->GetOwnerProcess()->GetMemory();
     memory.Write16(m_tls_address + offsetof(ThreadLocalRegion, interrupt_flag), 0);
+}
+
+void KThread::UpdateTlsThreadCpuTime(s64 switch_tick) {
+    if (!this->IsUserThread()) {
+        return;
+    }
+    if (m_tls_address == 0) {
+        return;
+    }
+
+    const s64 value = this->GetCpuTime() - switch_tick;
+    auto& memory = this->GetOwnerProcess()->GetMemory();
+    memory.Write64(m_tls_address + offsetof(ThreadLocalRegion, thread_cpu_time),
+                   static_cast<u64>(value));
 }
 
 Result KThread::GetCoreMask(s32* out_ideal_core, u64* out_affinity_mask) {

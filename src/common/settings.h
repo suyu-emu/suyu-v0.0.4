@@ -411,7 +411,7 @@ struct Values {
 #endif
                                                   "use_reactive_flushing",
                                                   Category::RendererAdvanced};
-    SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
+    SwitchableSetting<bool> use_asynchronous_shaders{linkage, true, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
     SwitchableSetting<bool> use_fast_gpu_time{
         linkage, true, "use_fast_gpu_time", Category::RendererAdvanced, Specialization::Paired,
@@ -633,9 +633,7 @@ struct Values {
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> multiplayer_announce_url{
-        linkage, std::string(), "multiplayer_announce_url", Category::WebService};
-    Setting<std::string> eden_username{linkage, std::string(), "eden_username",
+    Setting<std::string> eden_username{linkage, "Eden", "eden_username",
                                        Category::WebService};
     Setting<std::string> eden_token{linkage, std::string(), "eden_token", Category::WebService};
 

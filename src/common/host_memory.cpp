@@ -147,7 +147,32 @@ public:
     void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms) {
         std::unique_lock lock{placeholder_mutex};
         if (!IsNiechePlaceholder(virtual_offset, length)) {
-            Split(virtual_offset, length);
+            // Find the free region base (end of the previous mapped placeholder, or 0).
+            // VirtualFreeEx with MEM_PRESERVE_PLACEHOLDER requires splitting from a
+            // placeholder's base address, so we may need two sequential splits.
+            size_t free_region_start = 0;
+            for (const auto& interval : placeholders) {
+                if (interval.upper() <= virtual_offset) {
+                    free_region_start = interval.upper();
+                } else {
+                    break;
+                }
+            }
+            if (virtual_offset > free_region_start) {
+                Split(free_region_start, virtual_offset - free_region_start);
+            }
+            const size_t virtual_end = virtual_offset + length;
+            // Find end of the free region (start of the next mapped placeholder, or virtual_size)
+            size_t free_region_end = virtual_size;
+            for (const auto& interval : placeholders) {
+                if (interval.lower() >= virtual_end) {
+                    free_region_end = interval.lower();
+                    break;
+                }
+            }
+            if (virtual_end < free_region_end) {
+                Split(virtual_offset, length);
+            }
         }
         ASSERT(placeholders.find({virtual_offset, virtual_offset + length}) == placeholders.end());
         TrackPlaceholder(virtual_offset, host_offset, length);
@@ -212,7 +237,8 @@ private:
             for (const auto& placeholder : placeholders) {
                 if (!pfn_UnmapViewOfFile2(process, virtual_base + placeholder.lower(),
                                           MEM_PRESERVE_PLACEHOLDER)) {
-                    LOG_CRITICAL(HW_Memory, "Failed to unmap virtual memory placeholder");
+                    LOG_CRITICAL(HW_Memory, "Failed to unmap virtual memory placeholder err={}",
+                                 GetLastError());
                 }
             }
             Coalesce(0, virtual_size);
@@ -260,14 +286,20 @@ private:
 
         if (!pfn_UnmapViewOfFile2(process, virtual_base + placeholder_begin,
                                   MEM_PRESERVE_PLACEHOLDER)) {
-            LOG_CRITICAL(HW_Memory, "Failed to unmap placeholder");
+            LOG_CRITICAL(HW_Memory, "Failed to unmap placeholder offset=0x{:X} err={}",
+                         placeholder_begin, GetLastError());
         }
         // If we have to remap memory regions due to partial unmaps, we are in a data race as
         // Windows doesn't support remapping memory without unmapping first. Avoid adding any extra
         // logic within the panic region described below.
 
         // Panic region, we are in a data race right now
-        if (split_left || split_right) {
+        // VirtualFreeEx with MEM_PRESERVE_PLACEHOLDER requires the address to be the
+        // base of a placeholder. Split sequentially so each call operates on a valid base.
+        if (split_left) {
+            Split(placeholder_begin, unmap_begin - placeholder_begin);
+        }
+        if (split_right) {
             Split(unmap_begin, unmap_end - unmap_begin);
         }
         if (split_left) {
@@ -311,21 +343,28 @@ private:
     void MapView(size_t virtual_offset, size_t host_offset, size_t length) {
         if (!pfn_MapViewOfFile3(backing_handle, process, virtual_base + virtual_offset, host_offset,
                                 length, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0)) {
-            LOG_CRITICAL(HW_Memory, "Failed to map placeholder");
+            LOG_CRITICAL(HW_Memory,
+                         "Failed to map placeholder offset=0x{:X} host=0x{:X} length=0x{:X} "
+                         "err={}",
+                         virtual_offset, host_offset, length, GetLastError());
         }
     }
 
     void Split(size_t virtual_offset, size_t length) {
         if (!VirtualFreeEx(process, reinterpret_cast<LPVOID>(virtual_base + virtual_offset), length,
                            MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
-            LOG_CRITICAL(HW_Memory, "Failed to split placeholder");
+            LOG_CRITICAL(HW_Memory,
+                         "Failed to split placeholder offset=0x{:X} length=0x{:X} err={}",
+                         virtual_offset, length, GetLastError());
         }
     }
 
     void Coalesce(size_t virtual_offset, size_t length) {
         if (!VirtualFreeEx(process, reinterpret_cast<LPVOID>(virtual_base + virtual_offset), length,
                            MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS)) {
-            LOG_CRITICAL(HW_Memory, "Failed to coalesce placeholders");
+            LOG_CRITICAL(HW_Memory,
+                         "Failed to coalesce placeholders offset=0x{:X} length=0x{:X} err={}",
+                         virtual_offset, length, GetLastError());
         }
     }
 

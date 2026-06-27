@@ -9,7 +9,6 @@
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/svc_types.h"
-
 namespace Kernel::Svc {
 namespace {
 

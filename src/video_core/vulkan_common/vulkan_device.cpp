@@ -796,7 +796,7 @@ void Device::ReportLoss() const {
     LOG_CRITICAL(Render_Vulkan, "Device loss occurred!");
 
     // Wait for the log to flush and for Nsight Aftermath to dump the results
-    std::this_thread::sleep_for(std::chrono::seconds{15});
+    std::this_thread::sleep_for(std::chrono::seconds{3});
 }
 
 void Device::SaveShader(std::span<const u32> spirv) const {

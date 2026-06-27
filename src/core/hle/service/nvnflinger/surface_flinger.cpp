@@ -12,6 +12,7 @@
 #include "core/hle/service/nvnflinger/buffer_queue_consumer.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
+#include "common/logging/log.h"
 
 namespace Service::Nvnflinger {
 
@@ -68,6 +69,9 @@ void SurfaceFlinger::DestroyLayer(s32 consumer_binder_id) {
 void SurfaceFlinger::AddLayerToDisplayStack(u64 display_id, s32 consumer_binder_id) {
     auto* const display = this->FindDisplay(display_id);
     auto layer = this->FindLayer(consumer_binder_id);
+
+    LOG_INFO(Service_Nvnflinger, "AddLayerToDisplayStack display={} binder={} found_display={} found_layer={}",
+             display_id, consumer_binder_id, display != nullptr, layer != nullptr);
 
     if (!display || !layer) {
         return;

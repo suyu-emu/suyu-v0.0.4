@@ -490,6 +490,8 @@ void Maxwell3D::ProcessFirmwareCall4() {
 
 void Maxwell3D::StampQueryResult(u64 payload, bool long_query) {
     const GPUVAddr sequence_address{regs.report_semaphore.Address()};
+    LOG_INFO(HW_GPU, "StampQueryResult addr={:X} payload={} long={}", sequence_address, payload,
+             long_query);
     if (long_query) {
         memory_manager.Write<u64>(sequence_address + sizeof(u64), system.GPU().GetTicks());
         memory_manager.Write<u64>(sequence_address, payload);
@@ -508,6 +510,10 @@ void Maxwell3D::ProcessQueryGet() {
         static_cast<VideoCommon::QueryType>(regs.report_semaphore.query.report.Value());
     const u32 payload = regs.report_semaphore.payload;
     const u32 subreport = regs.report_semaphore.query.sub_report;
+    LOG_DEBUG(HW_GPU, "ProcessQueryGet op={} addr={:X} payload={} type={} short={}",
+              static_cast<u32>(regs.report_semaphore.query.operation.Value()),
+              sequence_address, payload, static_cast<u32>(query_type),
+              regs.report_semaphore.query.short_query.Value());
     switch (regs.report_semaphore.query.operation) {
     case Regs::ReportSemaphore::Operation::Release:
         if (regs.report_semaphore.query.short_query != 0) {
@@ -516,8 +522,6 @@ void Maxwell3D::ProcessQueryGet() {
         rasterizer->Query(sequence_address, query_type, flags, payload, subreport);
         break;
     case Regs::ReportSemaphore::Operation::Acquire:
-        // TODO(Blinkhawk): Under this operation, the GPU waits for the CPU to write a value that
-        // matches the current payload.
         UNIMPLEMENTED_MSG("Unimplemented query operation ACQUIRE");
         break;
     case Regs::ReportSemaphore::Operation::ReportOnly:

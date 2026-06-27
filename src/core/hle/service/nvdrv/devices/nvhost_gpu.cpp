@@ -346,17 +346,8 @@ static boost::container::small_vector<Tegra::CommandHeader, 512> BuildIncrementW
 }
 
 NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandList&& entries) {
-    ++submit_count;
-    if (submit_count <= 16 || (submit_count % 256) == 0) {
-        LOG_INFO(Service_NVDRV,
-                 "SubmitGPFIFO #{} gpfifo={:X}, num_entries={:X}, flags={:X}, fence_id={}, "
-                 "fence_value={}",
-                 submit_count, params.address, params.num_entries, params.flags.raw,
-                 params.fence.id, params.fence.value);
-    } else {
-        LOG_TRACE(Service_NVDRV, "called, gpfifo={:X}, num_entries={:X}, flags={:X}",
-                  params.address, params.num_entries, params.flags.raw);
-    }
+    LOG_DEBUG(Service_NVDRV, "SubmitGPFIFO gpfifo={:X}, num_entries={:X}, flags={:X}",
+              params.address, params.num_entries, params.flags.raw);
 
     auto& gpu = system.GPU();
 

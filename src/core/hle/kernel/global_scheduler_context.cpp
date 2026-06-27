@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <mutex>
+#include <ranges>
 
 #include "common/assert.h"
 #include "core/core.h"
@@ -24,7 +25,7 @@ void GlobalSchedulerContext::AddThread(KThread* thread) {
 
 void GlobalSchedulerContext::RemoveThread(KThread* thread) {
     std::scoped_lock lock{m_global_list_guard};
-    std::erase(m_thread_list, thread);
+    m_thread_list.erase(std::ranges::find(m_thread_list, thread));
 }
 
 void GlobalSchedulerContext::PreemptThreads() {
@@ -50,24 +51,26 @@ bool GlobalSchedulerContext::IsLocked() const {
 
 void GlobalSchedulerContext::RegisterDummyThreadForWakeup(KThread* thread) {
     ASSERT(this->IsLocked());
-
-    m_woken_dummy_threads.insert(thread);
+    m_woken_dummy_threads.push_back(thread);
 }
 
 void GlobalSchedulerContext::UnregisterDummyThreadForWakeup(KThread* thread) {
     ASSERT(this->IsLocked());
-
-    m_woken_dummy_threads.erase(thread);
+    if (auto it = std::ranges::find(m_woken_dummy_threads, thread);
+        it != m_woken_dummy_threads.end()) {
+        *it = m_woken_dummy_threads.back();
+        m_woken_dummy_threads.pop_back();
+    }
 }
 
 void GlobalSchedulerContext::WakeupWaitingDummyThreads() {
     ASSERT(this->IsLocked());
-
-    for (auto* thread : m_woken_dummy_threads) {
-        thread->DummyThreadEndWait();
+    if (!m_woken_dummy_threads.empty()) {
+        for (auto* thread : m_woken_dummy_threads) {
+            thread->DummyThreadEndWait();
+        }
+        m_woken_dummy_threads.clear();
     }
-
-    m_woken_dummy_threads.clear();
 }
 
 } // namespace Kernel

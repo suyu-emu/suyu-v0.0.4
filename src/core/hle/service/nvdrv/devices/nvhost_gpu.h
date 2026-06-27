@@ -180,7 +180,6 @@ private:
     std::array<std::optional<IoctlAllocObjCtx>, 6> ctxObjs{};
     u32_le channel_priority{};
     u32_le channel_timeslice{};
-    u64 submit_count{};
 
     NvResult SetNVMAPfd(IoctlSetNvmapFD& params);
     NvResult SetClientData(IoctlClientData& params);

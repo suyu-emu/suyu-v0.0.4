@@ -48,7 +48,7 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {1, C<&IHidServer::ActivateDebugPad>, "ActivateDebugPad"},
         {11, C<&IHidServer::ActivateTouchScreen>, "ActivateTouchScreen"},
         {21, C<&IHidServer::ActivateMouse>, "ActivateMouse"},
-        {26, nullptr, "ActivateDebugMouse"},
+        {26, C<&IHidServer::ActivateDebugMouse>, "ActivateDebugMouse"},
         {31, C<&IHidServer::ActivateKeyboard>, "ActivateKeyboard"},
         {32, C<&IHidServer::SendKeyboardLockKeyEvent>, "SendKeyboardLockKeyEvent"},
         {40, C<&IHidServer::AcquireXpadIdEventHandle>, "AcquireXpadIdEventHandle"},
@@ -140,6 +140,8 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {308, nullptr, "SetSevenSixAxisSensorFusionStrength"},
         {309, nullptr, "GetSevenSixAxisSensorFusionStrength"},
         {310, C<&IHidServer::ResetSevenSixAxisSensorTimestamp>, "ResetSevenSixAxisSensorTimestamp"},
+        {320, nullptr, "EnableNpadImu"},
+        {321, nullptr, "DisableNpadImu"},
         {400, C<&IHidServer::IsUsbFullKeyControllerEnabled>, "IsUsbFullKeyControllerEnabled"},
         {401, nullptr, "EnableUsbFullKeyController"},
         {402, nullptr, "IsUsbFullKeyControllerConnected"},
@@ -184,7 +186,50 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {1002, C<&IHidServer::SetTouchScreenConfiguration>, "SetTouchScreenConfiguration"},
         {1003, C<&IHidServer::IsFirmwareUpdateNeededForNotification>, "IsFirmwareUpdateNeededForNotification"},
         {1004, C<&IHidServer::SetTouchScreenResolution>, "SetTouchScreenResolution"},
+        {1270, nullptr, "DeleteButtonConfigStorageRight"},
+        {1271, nullptr, "IsUsingCustomButtonConfig"},
+        {1272, nullptr, "IsAnyCustomButtonConfigEnabled"},
+        {1273, nullptr, "SetAllCustomButtonConfigEnabled"},
+        {1274, nullptr, "SetDefaultButtonConfig"},
+        {1275, nullptr, "SetAllDefaultButtonConfig"},
+        {1276, nullptr, "SetHidButtonConfigEmbedded"},
+        {1277, nullptr, "SetHidButtonConfigFull"},
+        {1278, nullptr, "SetHidButtonConfigLeft"},
+        {1279, nullptr, "SetHidButtonConfigRight"},
+        {1280, nullptr, "GetHidButtonConfigEmbedded"},
+        {1281, nullptr, "GetHidButtonConfigFull"},
+        {1282, nullptr, "GetHidButtonConfigLeft"},
+        {1283, nullptr, "GetHidButtonConfigRight"},
+        {1284, nullptr, "GetButtonConfigStorageEmbedded"},
+        {1285, nullptr, "GetButtonConfigStorageFull"},
+        {1286, nullptr, "GetButtonConfigStorageLeft"},
+        {1287, nullptr, "GetButtonConfigStorageRight"},
+        {1288, nullptr, "SetButtonConfigStorageEmbedded"},
+        {1289, nullptr, "SetButtonConfigStorageFull"},
+        {1290, nullptr, "SetButtonConfigStorageLeft"},
+        {1291, nullptr, "SetButtonConfigStorageRight"},
+        {1308, nullptr, "SetButtonConfigVisible"},
+        {1309, nullptr, "IsButtonConfigVisible"},
+        {1320, nullptr, "WakeTouchScreenUp"},
+        {1321, nullptr, "PutTouchScreenToSleep"},
+        {1322, nullptr, "AcquireTouchScreenAsyncWakeCompletedEvent"},
+        {1323, nullptr, "StartTouchScreenAutoTuneForSystemSettings"},
+        {1324, nullptr, "AcquireTouchScreenAutoTuneCompletedEvent"},
+        {1325, nullptr, "IsTouchScreenAutoTuneRequiredForRepairProviderReplacement"},
+        {1420, nullptr, "GetAppletResourceProperty"},
         {2000, nullptr, "ActivateDigitizer"},
+        {3000, nullptr, "GetDebugPadGenericPadMap"},
+        {3001, nullptr, "SetDebugPadGenericPadMap"},
+        {3002, nullptr, "ResetDebugPadGenericPadMap"},
+        {3003, nullptr, "GetDebugPadKeyboardMap"},
+        {3004, nullptr, "SetDebugPadKeyboardMap"},
+        {3005, nullptr, "ResetDebugPadKeyboardMap"},
+        {3006, nullptr, "GetFullKeyGenericPadMap"},
+        {3007, nullptr, "SetFullKeyGenericPadMap"},
+        {3008, nullptr, "ResetFullKeyGenericPadMap"},
+        {3009, nullptr, "GetFullKeyKeyboardMap"},
+        {3010, nullptr, "SetFullKeyKeyboardMap"},
+        {3011, nullptr, "ResetFullKeyKeyboardMap"},
     };
     // clang-format on
 
@@ -232,6 +277,11 @@ Result IHidServer::ActivateMouse(ClientAppletResourceUserId aruid) {
     }
 
     R_RETURN(GetResourceManager()->GetMouse()->Activate(aruid.pid));
+}
+
+Result IHidServer::ActivateDebugMouse(ClientAppletResourceUserId aruid) {
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}", aruid.pid);
+    R_SUCCEED();
 }
 
 Result IHidServer::ActivateKeyboard(ClientAppletResourceUserId aruid) {

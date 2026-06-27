@@ -776,6 +776,8 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
     InputParcel parcel_in{parcel_data};
     OutputParcel parcel_out{};
 
+    LOG_DEBUG(Service_Nvnflinger, "Transact code={}", code);
+
     switch (static_cast<TransactionId>(code)) {
     case TransactionId::Connect: {
         const auto enable_listener = parcel_in.Read<bool>();
@@ -810,6 +812,8 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         Fence fence{};
 
         status = DequeueBuffer(&slot, &fence, is_async, width, height, pixel_format, usage);
+        LOG_INFO(Service_Nvnflinger, "DequeueBuffer slot={} status={} w={} h={}",
+                 slot, static_cast<s32>(status), width, height);
 
         parcel_out.Write(slot);
         parcel_out.WriteFlattenedObject(&fence);
@@ -832,6 +836,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         QueueBufferOutput output;
 
         status = QueueBuffer(slot, input, &output);
+        LOG_INFO(Service_Nvnflinger, "QueueBuffer slot={} status={}", slot, static_cast<s32>(status));
 
         parcel_out.Write(output);
         break;
