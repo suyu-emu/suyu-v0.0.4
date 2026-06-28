@@ -808,6 +808,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.ENABLE_GPU_BUFFER_READBACK,
+                    titleId = R.string.enable_gpu_buffer_readback,
+                    descriptionId = R.string.enable_gpu_buffer_readback_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.USE_OPTIMIZED_VERTEX_BUFFERS,
                     titleId = R.string.use_optimized_vertex_buffers,
                     descriptionId = R.string.use_optimized_vertex_buffers_description
