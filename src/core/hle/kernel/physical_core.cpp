@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <chrono>
+#include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/core.h"
@@ -133,7 +135,6 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
 
         // Handle system calls.
         if (supervisor_call) {
-            // Perform call.
             Svc::Call(system, interface->GetSvcNumber());
             return;
         }

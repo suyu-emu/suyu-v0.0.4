@@ -50,9 +50,9 @@ public:
     bool IsHovered() const;
 
     // Size management
-    static constexpr int CARD_WIDTH = 200;
-    static constexpr int CARD_HEIGHT = 280;
-    static constexpr int ICON_SIZE = 128;
+    static constexpr int CARD_WIDTH = 220;
+    static constexpr int CARD_HEIGHT = 310;
+    static constexpr int ICON_SIZE = 180;
 
 signals:
     void GameSelected(const QString& file_path);

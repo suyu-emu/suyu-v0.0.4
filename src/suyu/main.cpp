@@ -4869,8 +4869,12 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
         game_list->hide();
         game_list_placeholder->hide();
         if (programmer_env_) programmer_env_->hide();
-        gamer_env_->show();
-        gamer_env_->RefreshGameGrid();
+        if (!emulation_running) {
+            gamer_env_->show();
+            gamer_env_->RefreshGameGrid();
+        } else {
+            gamer_env_->hide();
+        }
     } else {
         if (gamer_env_) gamer_env_->hide();
     }
@@ -4883,7 +4887,11 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
         }
         game_list->hide();
         game_list_placeholder->hide();
-        programmer_env_->show();
+        if (!emulation_running) {
+            programmer_env_->show();
+        } else {
+            programmer_env_->hide();
+        }
     } else {
         if (programmer_env_ && mode != AppMode::Gamer)
             programmer_env_->hide();
@@ -5739,8 +5747,8 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
         core_manager_->ScanCores();
     }
 
-    // --- Debug panels (Hacker mode only) ---
-    const bool show_debug = (mode == AppMode::Hacker);
+    // --- Debug panels (Hacker mode only, and not during emulation) ---
+    const bool show_debug = (mode == AppMode::Hacker) && !emulation_running;
     const bool show_partial_debug = false;
 
     if (microProfileDialog)

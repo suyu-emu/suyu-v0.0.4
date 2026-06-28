@@ -58,6 +58,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
             break;
         }
     }
+
     if (!any_visible) {
         *out_speed_scale = 1.0f;
         return 1;

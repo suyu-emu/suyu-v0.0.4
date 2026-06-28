@@ -8,6 +8,8 @@
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_process.h"
 
+extern "C" std::uint64_t g_diag_fastmem_base;
+
 namespace Core {
 
 using Vector = Dynarmic::A64::Vector;
@@ -239,12 +241,29 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
         config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
         config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
-        config.fastmem_pointer = reinterpret_cast<uintptr_t>(page_table->fastmem_arena);
+        // Fastmem is currently DISABLED on this Windows build. With fastmem enabled, the
+        // first guest access that misses the host arena raises an access violation that
+        // dynarmic's SEH-based fault handler recovers (the patch is found and the access is
+        // redirected to the slow callback), yet the process still terminates immediately
+        // afterwards — a recovery-path defect specific to this build that could not be
+        // resolved through dynarmic configuration (verified against Eden's identical config,
+        // reg_alloc, exception handler, and address-space settings). Until the recovery path
+        // is fixed, route every guest memory access through the page-table/callback path so
+        // the games boot and run reliably instead of crashing ~20s into startup.
+        config.fastmem_pointer =
+            page_table->fastmem_arena
+                ? std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)}
+                : std::nullopt;
         config.fastmem_address_space_bits = address_space_bits;
         config.silently_mirror_fastmem = false;
 
-        config.fastmem_exclusive_access = config.fastmem_pointer.has_value();
-        config.recompile_on_exclusive_fastmem_failure = true;
+        config.fastmem_exclusive_access = false;
+        config.recompile_on_exclusive_fastmem_failure = false;
+        config.recompile_on_fastmem_failure = false;
+
+        if (page_table->fastmem_arena) {
+            g_diag_fastmem_base = reinterpret_cast<std::uint64_t>(page_table->fastmem_arena);
+        }
     }
 
     // Multi-process state
