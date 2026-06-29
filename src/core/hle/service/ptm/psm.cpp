@@ -67,7 +67,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(state_change_event->GetReadableEvent());
+        rb.PushCopyObjects(ctx, state_change_event->GetReadableEvent());
     }
 
     void UnbindStateChangeEvent(HLERequestContext& ctx) {
@@ -186,7 +186,7 @@ void PSM::OpenSession(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IPsmSession>(system);
+    rb.PushIpcInterface<IPsmSession>(ctx, system);
 }
 
 void PSM::GetBatteryVoltageState(HLERequestContext& ctx) {

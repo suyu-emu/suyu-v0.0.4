@@ -353,7 +353,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ILogger>(system);
+        rb.PushIpcInterface<ILogger>(ctx, system);
     }
 };
 

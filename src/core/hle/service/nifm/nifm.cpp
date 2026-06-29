@@ -307,7 +307,7 @@ private:
     void GetSystemEventReadableHandle(HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 2};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(evt_scan_complete->GetReadableEvent(),
+        rb.PushCopyObjects(ctx, evt_scan_complete->GetReadableEvent(),
                            evt_processing->GetReadableEvent());
     }
 
@@ -452,7 +452,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 2};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(event1->GetReadableEvent(), event2->GetReadableEvent());
+        rb.PushCopyObjects(ctx, event1->GetReadableEvent(), event2->GetReadableEvent());
     }
 
     void Cancel(HLERequestContext& ctx) {
@@ -528,7 +528,7 @@ void IGeneralService::CreateScanRequest(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IScanRequest>(system);
+    rb.PushIpcInterface<IScanRequest>(ctx, system);
 }
 
 void IGeneralService::CreateRequest(HLERequestContext& ctx) {
@@ -537,7 +537,7 @@ void IGeneralService::CreateRequest(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IRequest>(system);
+    rb.PushIpcInterface<IRequest>(ctx, system);
 }
 
 void IGeneralService::GetCurrentNetworkProfile(HLERequestContext& ctx) {
@@ -716,7 +716,7 @@ void IGeneralService::GetNetworkProfile(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<INetworkProfile>(system);
+    rb.PushIpcInterface<INetworkProfile>(ctx, system);
 }
 
 void IGeneralService::SetNetworkProfile(HLERequestContext& ctx) {
@@ -869,7 +869,7 @@ void IGeneralService::CreateTemporaryNetworkProfile(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 6, 0, 1};
 
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<INetworkProfile>(system);
+    rb.PushIpcInterface<INetworkProfile>(ctx, system);
     rb.PushRaw<u128>(uuid);
 }
 
@@ -1124,7 +1124,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IGeneralService>(system);
+        rb.PushIpcInterface<IGeneralService>(ctx, system);
     }
 
     void CreateGeneralService(HLERequestContext& ctx) {
@@ -1132,7 +1132,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IGeneralService>(system);
+        rb.PushIpcInterface<IGeneralService>(ctx, system);
     }
 };
 

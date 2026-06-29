@@ -143,7 +143,7 @@ void NfcInterface::AttachAvailabilityChangeEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(GetManager()->AttachAvailabilityChangeEvent());
+    rb.PushCopyObjects(ctx, GetManager()->AttachAvailabilityChangeEvent());
 }
 
 void NfcInterface::StartDetection(HLERequestContext& ctx) {
@@ -203,7 +203,7 @@ void NfcInterface::AttachActivateEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(result);
-    rb.PushCopyObjects(out_event);
+    rb.PushCopyObjects(ctx, out_event);
 }
 
 void NfcInterface::AttachDeactivateEvent(HLERequestContext& ctx) {
@@ -217,7 +217,7 @@ void NfcInterface::AttachDeactivateEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(result);
-    rb.PushCopyObjects(out_event);
+    rb.PushCopyObjects(ctx, out_event);
 }
 
 void NfcInterface::SetNfcEnabled(HLERequestContext& ctx) {

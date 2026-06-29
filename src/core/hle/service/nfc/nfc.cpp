@@ -151,7 +151,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IAm>(system);
+        rb.PushIpcInterface<IAm>(ctx, system);
     }
 };
 
@@ -173,7 +173,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<MFIUser>(system);
+        rb.PushIpcInterface<MFIUser>(ctx, system);
     }
 };
 
@@ -195,7 +195,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IUser>(system);
+        rb.PushIpcInterface<IUser>(ctx, system);
     }
 };
 
@@ -217,7 +217,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ISystem>(system);
+        rb.PushIpcInterface<ISystem>(ctx, system);
     }
 };
 

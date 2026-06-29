@@ -359,8 +359,8 @@ void IReadOnlyApplicationControlDataInterface::ListApplicationTitle(HLERequestCo
 
     IPC::ResponseBuilder rb{ctx, 2, 1, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(async_value->ReadableEvent());
-    rb.PushIpcInterface(std::move(async_value));
+    rb.PushCopyObjects(ctx, async_value->ReadableEvent());
+    rb.PushIpcInterface(ctx, std::move(async_value));
 }
 
 Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData3(

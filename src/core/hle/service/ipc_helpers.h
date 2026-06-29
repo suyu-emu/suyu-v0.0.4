@@ -24,45 +24,7 @@ namespace IPC {
 
 constexpr Result ResultSessionClosed{ErrorModule::HIPC, 301};
 
-class RequestHelperBase {
-protected:
-    Service::HLERequestContext* context = nullptr;
-    u32* cmdbuf;
-    u32 index = 0;
-
-public:
-    explicit RequestHelperBase(u32* command_buffer) : cmdbuf(command_buffer) {}
-
-    explicit RequestHelperBase(Service::HLERequestContext& ctx)
-        : context(&ctx), cmdbuf(ctx.CommandBuffer()) {}
-
-    void Skip(u32 size_in_words, bool set_to_null) {
-        if (set_to_null) {
-            memset(cmdbuf + index, 0, size_in_words * sizeof(u32));
-        }
-        index += size_in_words;
-    }
-
-    /**
-     * Aligns the current position forward to a 16-byte boundary, padding with zeros.
-     */
-    void AlignWithPadding() {
-        if (index & 3) {
-            Skip(static_cast<u32>(4 - (index & 3)), true);
-        }
-    }
-
-    u32 GetCurrentOffset() const {
-        return index;
-    }
-
-    void SetCurrentOffset(u32 offset) {
-        index = offset;
-    }
-};
-
-class ResponseBuilder : public RequestHelperBase {
-public:
+struct ResponseBuilder {
     /// Flags used for customizing the behavior of ResponseBuilder
     enum class Flags : u32 {
         None = 0,
@@ -71,14 +33,13 @@ public:
         AlwaysMoveHandles = 1,
     };
 
-    explicit ResponseBuilder(Service::HLERequestContext& ctx, u32 normal_params_size_,
-                             u32 num_handles_to_copy_ = 0, u32 num_objects_to_move_ = 0,
-                             Flags flags = Flags::None)
-        : RequestHelperBase(ctx), normal_params_size(normal_params_size_),
-          num_handles_to_copy(num_handles_to_copy_),
-          num_objects_to_move(num_objects_to_move_), kernel{ctx.kernel} {
-
-        memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
+    inline explicit ResponseBuilder(Service::HLERequestContext& ctx, u32 normal_params_size_, u32 num_handles_to_copy_ = 0, u32 num_objects_to_move_ = 0, Flags flags = Flags::None)
+        : cmdbuf(ctx.CommandBuffer())
+        , normal_params_size(normal_params_size_)
+        , num_handles_to_copy(num_handles_to_copy_)
+        , num_objects_to_move(num_objects_to_move_)
+    {
+        std::memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
 
         IPC::CommandHeader header{};
         auto const mgr = ctx.GetManager().get();
@@ -117,9 +78,7 @@ public:
             handle_descriptor_header.num_handles_to_copy.Assign(num_handles_to_copy_);
             handle_descriptor_header.num_handles_to_move.Assign(num_handles_to_move);
             PushRaw(handle_descriptor_header);
-
             ctx.handles_offset = index;
-
             Skip(num_handles_to_copy + num_handles_to_move, true);
         }
 
@@ -131,7 +90,6 @@ public:
                 domain_header.num_objects = num_domain_objects;
                 PushRaw(domain_header);
             }
-
             IPC::DataPayloadHeader data_payload_header{};
             data_payload_header.magic = Common::MakeMagic('S', 'F', 'C', 'O');
             PushRaw(data_payload_header);
@@ -141,34 +99,39 @@ public:
 
         ctx.data_payload_offset = index;
         ctx.write_size += index;
-        ctx.domain_offset = static_cast<u32>(index + raw_data_size / sizeof(u32));
+        ctx.domain_offset = u32(index + raw_data_size / sizeof(u32));
     }
 
-    template <class T>
-    void PushIpcInterface(std::shared_ptr<T> iface) {
-        auto manager{context->GetManager()};
+    inline void Skip(u32 size_in_words, bool set_to_null) {
+        if (set_to_null) std::memset(cmdbuf + index, 0, size_in_words * sizeof(u32));
+        index += size_in_words;
+    }
+    /// @brief Aligns the current position forward to a 16-byte boundary, padding with zeros.
+    inline void AlignWithPadding() { if (index & 3) Skip(u32(4 - (index & 3)), true); }
+    inline u32 GetCurrentOffset() const { return index; }
+    inline void SetCurrentOffset(u32 offset) { index = offset; }
 
+    template <class T> inline void PushIpcInterface(Service::HLERequestContext& ctx, std::shared_ptr<T> iface) {
+        auto manager = ctx.GetManager();
         if (manager->IsDomain()) {
-            context->AddDomainObject(std::move(iface));
+            ctx.AddDomainObject(std::move(iface));
         } else {
-            ASSERT(Kernel::GetCurrentProcess(kernel).GetResourceLimit()->Reserve(kernel, Kernel::LimitableResource::SessionCountMax, 1));
+            ASSERT(Kernel::GetCurrentProcess(ctx.kernel).GetResourceLimit()->Reserve(ctx.kernel, Kernel::LimitableResource::SessionCountMax, 1));
 
-            auto* session = Kernel::KSession::Create(kernel);
-            session->Initialize(kernel, nullptr, 0);
-            Kernel::KSession::Register(kernel, session);
+            auto* session = Kernel::KSession::Create(ctx.kernel);
+            session->Initialize(ctx.kernel, nullptr, 0);
+            Kernel::KSession::Register(ctx.kernel, session);
 
-            auto next_manager = std::make_shared<Service::SessionRequestManager>(
-                kernel, manager->GetServerManager());
+            auto next_manager = std::make_shared<Service::SessionRequestManager>(ctx.kernel, manager->GetServerManager());
             next_manager->SetSessionHandler(iface);
             manager->GetServerManager().RegisterSession(&session->GetServerSession(), next_manager);
 
-            context->AddMoveObject(&session->GetClientSession());
+            ctx.AddMoveObject(&session->GetClientSession());
         }
     }
 
-    template <class T, class... Args>
-    void PushIpcInterface(Args&&... args) {
-        PushIpcInterface<T>(std::make_shared<T>(std::forward<Args>(args)...));
+    template <class T, class... Args> inline void PushIpcInterface(Service::HLERequestContext& ctx, Args&&... args) {
+        PushIpcInterface<T>(ctx, std::make_shared<T>(std::forward<Args>(args)...));
     }
 
     void PushImpl(s8 value);
@@ -184,59 +147,38 @@ public:
     void PushImpl(bool value);
     void PushImpl(Result value);
 
-    template <typename T>
-    void Push(T value) {
+    template <typename T> inline void Push(T value) {
         return PushImpl(value);
     }
 
     template <typename First, typename... Other>
     void Push(const First& first_value, const Other&... other_values);
 
-    /**
-     * Helper function for pushing strongly-typed enumeration values.
-     *
-     * @tparam Enum The enumeration type to be pushed
-     *
-     * @param value The value to push.
-     *
-     * @note The underlying size of the enumeration type is the size of the
-     *       data that gets pushed. e.g. "enum class SomeEnum : u16" will
-     *       push a u16-sized amount of data.
-     */
-    template <typename Enum>
-    void PushEnum(Enum value) {
+    /// @brief Helper function for pushing strongly-typed enumeration values.
+    /// @tparam Enum The enumeration type to be pushed
+    /// @param value The value to push.
+    /// @note The underlying size of the enumeration type is the size of the data that gets pushed.
+    /// e.g. "enum class SomeEnum : u16" will push a u16-sized amount of data.
+    template <typename Enum> inline void PushEnum(Enum value) {
         static_assert(std::is_enum_v<Enum>, "T must be an enum type within a PushEnum call.");
-        static_assert(!std::is_convertible_v<Enum, int>,
-                      "enum type in PushEnum must be a strongly typed enum.");
+        static_assert(!std::is_convertible_v<Enum, int>, "enum type in PushEnum must be a strongly typed enum.");
         Push(static_cast<std::underlying_type_t<Enum>>(value));
     }
 
-    /**
-     * @brief Copies the content of the given trivially copyable class to the buffer as a normal
-     * param
-     * @note: The input class must be correctly packed/padded to fit hardware layout.
-     */
-    template <typename T>
-    void PushRaw(const T& value);
+    /// @brief Copies the content of the given trivially copyable class to the buffer as a normal param
+    /// @note: The input class must be correctly packed/padded to fit hardware layout.
+    template <typename T> void PushRaw(const T& value);
+    template <typename... O> void PushMoveObjects(Service::HLERequestContext& ctx, O*... pointers);
+    template <typename... O> void PushMoveObjects(Service::HLERequestContext& ctx, O&... pointers);
+    template <typename... O> void PushCopyObjects(Service::HLERequestContext& ctx, O*... pointers);
+    template <typename... O> void PushCopyObjects(Service::HLERequestContext& ctx, O&... pointers);
 
-    template <typename... O>
-    void PushMoveObjects(O*... pointers);
-
-    template <typename... O>
-    void PushMoveObjects(O&... pointers);
-
-    template <typename... O>
-    void PushCopyObjects(O*... pointers);
-
-    template <typename... O>
-    void PushCopyObjects(O&... pointers);
-
-private:
+    u32* cmdbuf;
+    u32 index = 0;
     u32 normal_params_size{};
     u32 num_handles_to_copy{};
     u32 num_objects_to_move{}; ///< Domain objects or move handles, context dependent
     u32 data_payload_index{};
-    Kernel::KernelCore& kernel;
 };
 
 /// Push ///
@@ -251,8 +193,7 @@ inline void ResponseBuilder::PushImpl(u32 value) {
 
 template <typename T>
 void ResponseBuilder::PushRaw(const T& value) {
-    static_assert(std::is_trivially_copyable_v<T>,
-                  "It's undefined behavior to use memcpy with non-trivially copyable objects");
+    static_assert(std::is_trivially_copyable_v<T>, "It's undefined behavior to use memcpy with non-trivially copyable objects");
     std::memcpy(cmdbuf + index, &value, sizeof(T));
     index += (sizeof(T) + 3) / 4; // round up to word length
 }
@@ -272,8 +213,8 @@ inline void ResponseBuilder::PushImpl(s16 value) {
 }
 
 inline void ResponseBuilder::PushImpl(s64 value) {
-    PushImpl(static_cast<u32>(value));
-    PushImpl(static_cast<u32>(value >> 32));
+    PushImpl(u32(value));
+    PushImpl(u32(value >> 32));
 }
 
 inline void ResponseBuilder::PushImpl(u8 value) {
@@ -285,8 +226,8 @@ inline void ResponseBuilder::PushImpl(u16 value) {
 }
 
 inline void ResponseBuilder::PushImpl(u64 value) {
-    PushImpl(static_cast<u32>(value));
-    PushImpl(static_cast<u32>(value >> 32));
+    PushImpl(u32(value));
+    PushImpl(u32(value >> 32));
 }
 
 inline void ResponseBuilder::PushImpl(float value) {
@@ -312,90 +253,88 @@ void ResponseBuilder::Push(const First& first_value, const Other&... other_value
 }
 
 template <typename... O>
-inline void ResponseBuilder::PushCopyObjects(O*... pointers) {
+inline void ResponseBuilder::PushCopyObjects(Service::HLERequestContext& ctx, O*... pointers) {
     auto objects = {pointers...};
     for (auto& object : objects) {
-        context->AddCopyObject(object);
+        ctx.AddCopyObject(object);
     }
 }
 
 template <typename... O>
-inline void ResponseBuilder::PushCopyObjects(O&... pointers) {
+inline void ResponseBuilder::PushCopyObjects(Service::HLERequestContext& ctx, O&... pointers) {
     auto objects = {&pointers...};
     for (auto& object : objects) {
-        context->AddCopyObject(object);
+        ctx.AddCopyObject(object);
     }
 }
 
 template <typename... O>
-inline void ResponseBuilder::PushMoveObjects(O*... pointers) {
+inline void ResponseBuilder::PushMoveObjects(Service::HLERequestContext& ctx, O*... pointers) {
     auto objects = {pointers...};
     for (auto& object : objects) {
-        context->AddMoveObject(object);
+        ctx.AddMoveObject(object);
     }
 }
 
 template <typename... O>
-inline void ResponseBuilder::PushMoveObjects(O&... pointers) {
+inline void ResponseBuilder::PushMoveObjects(Service::HLERequestContext& ctx, O&... pointers) {
     auto objects = {&pointers...};
     for (auto& object : objects) {
-        context->AddMoveObject(object);
+        ctx.AddMoveObject(object);
     }
 }
 
-class RequestParser : public RequestHelperBase {
-public:
-    explicit RequestParser(u32* command_buffer) : RequestHelperBase(command_buffer) {}
-
-    explicit RequestParser(Service::HLERequestContext& ctx) : RequestHelperBase(ctx) {
+struct RequestParser {
+    inline explicit RequestParser(u32* command_buffer) : cmdbuf(command_buffer) {}
+    inline explicit RequestParser(Service::HLERequestContext& ctx)
+        : cmdbuf(ctx.CommandBuffer())
+    {
         // TIPC does not have data payload offset
         if (!ctx.IsTipc()) {
             ASSERT_MSG(ctx.GetDataPayloadOffset(), "context is incomplete");
             Skip(ctx.GetDataPayloadOffset(), false);
         }
-
         // Skip the u64 command id, it's already stored in the context
         static constexpr u32 CommandIdSize = 2;
         Skip(CommandIdSize, false);
     }
 
-    template <typename T>
-    T Pop();
+    inline void Skip(u32 size_in_words, bool set_to_null) {
+        if (set_to_null) std::memset(cmdbuf + index, 0, size_in_words * sizeof(u32));
+        index += size_in_words;
+    }
+    /// @brief Aligns the current position forward to a 16-byte boundary, padding with zeros.
+    inline void AlignWithPadding() { if (index & 3) Skip(u32(4 - (index & 3)), true); }
+    inline u32 GetCurrentOffset() const { return index; }
+    inline void SetCurrentOffset(u32 offset) { index = offset; }
 
-    template <typename T>
-    void Pop(T& value);
-
-    template <typename First, typename... Other>
-    void Pop(First& first_value, Other&... other_values);
+    template <typename T> T Pop();
+    template <typename T> void Pop(T& value);
+    template <typename First, typename... Other> void Pop(First& first_value, Other&... other_values);
 
     template <typename T>
     T PopEnum() {
         static_assert(std::is_enum_v<T>, "T must be an enum type within a PopEnum call.");
-        static_assert(!std::is_convertible_v<T, int>,
-                      "enum type in PopEnum must be a strongly typed enum.");
-        return static_cast<T>(Pop<std::underlying_type_t<T>>());
+        static_assert(!std::is_convertible_v<T, int>, "enum type in PopEnum must be a strongly typed enum.");
+        return T(Pop<std::underlying_type_t<T>>());
     }
 
-    /**
-     * @brief Reads the next normal parameters as a struct, by copying it
-     * @note: The output class must be correctly packed/padded to fit hardware layout.
-     */
-    template <typename T>
-    void PopRaw(T& value);
+    /// @brief Reads the next normal parameters as a struct, by copying it
+    /// @note: The output class must be correctly packed/padded to fit hardware layout.
+    template <typename T> void PopRaw(T& value);
 
-    /**
-     * @brief Reads the next normal parameters as a struct, by copying it into a new value
-     * @note: The output class must be correctly packed/padded to fit hardware layout.
-     */
-    template <typename T>
-    T PopRaw();
+    /// @brief Reads the next normal parameters as a struct, by copying it into a new value
+    /// @note: The output class must be correctly packed/padded to fit hardware layout.
+    template <typename T> T PopRaw();
 
-    template <class T>
-    std::weak_ptr<T> PopIpcInterface() {
-        ASSERT(context->GetManager()->IsDomain());
-        ASSERT(context->GetDomainMessageHeader().input_object_count > 0);
-        return context->GetDomainHandler<T>(Pop<u32>() - 1);
+    template <class T> [[nodiscard]] std::weak_ptr<T> PopIpcInterface(Service::HLERequestContext& ctx) {
+        ASSERT(ctx.GetManager()->IsDomain());
+        ASSERT(ctx.GetDomainMessageHeader().input_object_count > 0);
+        return ctx.GetDomainHandler<T>(Pop<u32>() - 1);
     }
+
+    u32* cmdbuf;
+    u32 index = 0;
 };
 
 /// Pop ///
@@ -407,7 +346,7 @@ inline u32 RequestParser::Pop() {
 
 template <>
 inline s32 RequestParser::Pop() {
-    return static_cast<s32>(Pop<u32>());
+    return s32(Pop<u32>());
 }
 
 // Ignore the -Wclass-memaccess warning on memcpy for non-trivially default constructible objects.
@@ -417,8 +356,7 @@ inline s32 RequestParser::Pop() {
 #endif
 template <typename T>
 void RequestParser::PopRaw(T& value) {
-    static_assert(std::is_trivially_copyable_v<T>,
-                  "It's undefined behavior to use memcpy with non-trivially copyable objects");
+    static_assert(std::is_trivially_copyable_v<T>, "It's undefined behavior to use memcpy with non-trivially copyable objects");
     std::memcpy(&value, cmdbuf + index, sizeof(T));
     index += (sizeof(T) + 3) / 4; // round up to word length
 }

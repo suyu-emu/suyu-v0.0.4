@@ -729,7 +729,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface(ensure_token_id);
+        rb.PushIpcInterface(ctx, ensure_token_id);
     }
 
     void LoadIdTokenCacheDeprecated(HLERequestContext& ctx) {
@@ -921,7 +921,7 @@ void Module::Interface::GetProfile(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IProfile>(system, user_id, *profile_manager);
+    rb.PushIpcInterface<IProfile>(ctx, system, user_id, *profile_manager);
 }
 
 void Module::Interface::IsUserRegistrationRequestPermitted(HLERequestContext& ctx) {
@@ -993,7 +993,7 @@ void Module::Interface::GetBaasAccountManagerForApplication(HLERequestContext& c
     LOG_DEBUG(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IManagerForApplication>(system, profile_manager);
+    rb.PushIpcInterface<IManagerForApplication>(ctx, system, profile_manager);
 }
 
 void Module::Interface::IsUserAccountSwitchLocked(HLERequestContext& ctx) {
@@ -1089,7 +1089,7 @@ void Module::Interface::GetProfileEditor(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IProfileEditor>(system, user_id, *profile_manager);
+    rb.PushIpcInterface<IProfileEditor>(ctx, system, user_id, *profile_manager);
 }
 
 void Module::Interface::GetBaasAccountAdministrator(HLERequestContext &ctx) {
@@ -1100,7 +1100,7 @@ void Module::Interface::GetBaasAccountAdministrator(HLERequestContext &ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IAdministrator>(system, uuid);
+    rb.PushIpcInterface<IAdministrator>(ctx, system, uuid);
 }
 
 void Module::Interface::ListQualifiedUsers(HLERequestContext& ctx) {
@@ -1143,7 +1143,7 @@ void Module::Interface::GetBaasAccountManagerForSystemService(HLERequestContext&
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IManagerForSystemService>(system, uuid);
+    rb.PushIpcInterface<IManagerForSystemService>(ctx, system, uuid);
 }
 
 void Module::Interface::StoreSaveDataThumbnailSystem(HLERequestContext& ctx) {

@@ -53,7 +53,7 @@ private:
         LOG_WARNING(Service_NIM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IShopServiceAsync>(system);
+        rb.PushIpcInterface<IShopServiceAsync>(ctx, system);
     }
 };
 
@@ -75,7 +75,7 @@ private:
         LOG_WARNING(Service_NIM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IShopServiceAccessor>(system);
+        rb.PushIpcInterface<IShopServiceAccessor>(ctx, system);
     }
 };
 
@@ -336,7 +336,7 @@ private:
         LOG_DEBUG(Service_NIM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IShopServiceAccessServer>(system);
+        rb.PushIpcInterface<IShopServiceAccessServer>(ctx, system);
     }
 
     void IsLargeResourceAvailable(HLERequestContext& ctx) {
@@ -356,7 +356,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IShopServiceAccessServer>(system);
+        rb.PushIpcInterface<IShopServiceAccessServer>(ctx, system);
     }
 };
 
@@ -439,7 +439,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(finished_event->GetReadableEvent());
+        rb.PushCopyObjects(ctx, finished_event->GetReadableEvent());
     }
 
     void GetResult(HLERequestContext& ctx) {
@@ -500,7 +500,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IEnsureNetworkClockAvailabilityService>(system);
+        rb.PushIpcInterface<IEnsureNetworkClockAvailabilityService>(ctx, system);
     }
 
     // TODO(ogniK): Do we need these?

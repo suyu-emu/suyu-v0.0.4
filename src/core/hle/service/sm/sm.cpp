@@ -140,7 +140,7 @@ void SM::GetServiceCmif(HLERequestContext& ctx) {
     if (result == ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
         rb.Push(result);
-        rb.PushMoveObjects(client_session);
+        rb.PushMoveObjects(ctx, client_session);
     } else {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
@@ -157,7 +157,7 @@ void SM::GetServiceTipc(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(result);
-    rb.PushMoveObjects(result == ResultSuccess ? client_session : nullptr);
+    rb.PushMoveObjects(ctx, result == ResultSuccess ? client_session : nullptr);
 }
 
 static std::string PopServiceName(IPC::RequestParser& rp) {
@@ -230,8 +230,7 @@ void SM::RegisterServiceImpl(HLERequestContext& ctx, std::string name, u32 max_s
               max_session_count, is_light);
 
     Kernel::KServerPort* server_port{};
-    if (const auto result = service_manager.RegisterService(std::addressof(server_port), name,
-                                                            max_session_count, nullptr);
+    if (const auto result = service_manager.RegisterService(std::addressof(server_port), name, max_session_count, nullptr);
         result.IsError()) {
         LOG_ERROR(Service_SM, "failed to register service with error_code={:08X}", result.raw);
         IPC::ResponseBuilder rb{ctx, 2};
@@ -241,7 +240,7 @@ void SM::RegisterServiceImpl(HLERequestContext& ctx, std::string name, u32 max_s
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(ResultSuccess);
-    rb.PushMoveObjects(server_port);
+    rb.PushMoveObjects(ctx, server_port);
 }
 
 void SM::UnregisterService(HLERequestContext& ctx) {

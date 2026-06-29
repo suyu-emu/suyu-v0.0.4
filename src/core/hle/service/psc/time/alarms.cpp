@@ -147,7 +147,7 @@ void IAlarmService::CreateWakeupAlarm(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ISteadyClockAlarm>(system, m_alarms, AlarmType::WakeupAlarm);
+    rb.PushIpcInterface<ISteadyClockAlarm>(ctx, system, m_alarms, AlarmType::WakeupAlarm);
 }
 
 void IAlarmService::CreateBackgroundTaskAlarm(HLERequestContext& ctx) {
@@ -155,7 +155,7 @@ void IAlarmService::CreateBackgroundTaskAlarm(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ISteadyClockAlarm>(system, m_alarms, AlarmType::BackgroundTaskAlarm);
+    rb.PushIpcInterface<ISteadyClockAlarm>(ctx, system, m_alarms, AlarmType::BackgroundTaskAlarm);
 }
 
 ISteadyClockAlarm::ISteadyClockAlarm(Core::System& system_, Alarms& alarms, AlarmType type)
@@ -179,7 +179,7 @@ void ISteadyClockAlarm::GetAlarmEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(m_alarm.GetEventHandle());
+    rb.PushCopyObjects(ctx, m_alarm.GetEventHandle());
 }
 
 void ISteadyClockAlarm::Enable(HLERequestContext& ctx) {

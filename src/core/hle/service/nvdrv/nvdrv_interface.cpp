@@ -199,7 +199,7 @@ void NVDRV::QueryEvent(HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3, 1};
         rb.Push(ResultSuccess);
         auto& readable_event = event->GetReadableEvent();
-        rb.PushCopyObjects(readable_event);
+        rb.PushCopyObjects(ctx, readable_event);
         rb.PushEnum(NvResult::Success);
     } else {
         LOG_ERROR(Service_NVDRV, "Invalid event request!");

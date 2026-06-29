@@ -60,7 +60,7 @@ void Controller::CloneCurrentObject(HLERequestContext& ctx) {
     // We succeeded.
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(ResultSuccess);
-    rb.PushMoveObjects(session->GetClientSession());
+    rb.PushMoveObjects(ctx, session->GetClientSession());
 }
 
 void Controller::CloneCurrentObjectEx(HLERequestContext& ctx) {

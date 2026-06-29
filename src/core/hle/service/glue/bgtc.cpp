@@ -28,7 +28,7 @@ void BGTC_T::OpenTaskService(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ITaskService>(system);
+    rb.PushIpcInterface<ITaskService>(ctx, system);
 }
 
 ITaskService::ITaskService(Core::System& system_) : ServiceFramework{system_, "ITaskService"} {

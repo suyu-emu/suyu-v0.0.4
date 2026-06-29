@@ -35,7 +35,7 @@ void IAsyncContext::GetSystemEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(completion_event->GetReadableEvent());
+    rb.PushCopyObjects(ctx, completion_event->GetReadableEvent());
 }
 
 void IAsyncContext::Cancel(HLERequestContext& ctx) {

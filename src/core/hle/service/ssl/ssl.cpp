@@ -543,8 +543,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(res);
         if (res == ResultSuccess) {
-            rb.PushIpcInterface<ISslConnection>(system, ssl_version, shared_data,
-                                                std::move(backend));
+            rb.PushIpcInterface<ISslConnection>(ctx, system, ssl_version, shared_data, std::move(backend));
         }
     }
 
@@ -624,12 +623,11 @@ private:
         IPC::RequestParser rp{ctx};
         const auto parameters = rp.PopRaw<Parameters>();
 
-        LOG_WARNING(Service_SSL, "(STUBBED) called, api_version={}, pid_placeholder={}",
-                    parameters.ssl_version.api_version, parameters.pid_placeholder);
+        LOG_WARNING(Service_SSL, "(STUBBED) called, api_version={}, pid_placeholder={}", parameters.ssl_version.api_version, parameters.pid_placeholder);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ISslContext>(system, parameters.ssl_version);
+        rb.PushIpcInterface<ISslContext>(ctx, system, parameters.ssl_version);
     }
 
     void SetInterfaceVersion(HLERequestContext& ctx) {

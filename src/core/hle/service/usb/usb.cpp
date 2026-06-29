@@ -155,7 +155,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IPdSession>(system);
+        rb.PushIpcInterface<IPdSession>(ctx, system);
     }
 };
 
@@ -199,7 +199,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IPdCradleSession>(system);
+        rb.PushIpcInterface<IPdCradleSession>(ctx, system);
     }
 };
 
