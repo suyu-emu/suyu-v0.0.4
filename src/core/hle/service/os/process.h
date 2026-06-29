@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "common/common_types.h"
 
 namespace Core {
@@ -27,6 +29,15 @@ class Process {
 public:
     inline explicit Process(Core::System& system) noexcept : m_system(system) {}
     inline ~Process() { this->Finalize(); }
+
+    Process(const Process&) = delete;
+    Process& operator=(const Process&) = delete;
+    Process& operator=(Process&&) = delete;
+    inline Process(Process&& other) noexcept
+        : m_system(other.m_system), m_process(std::exchange(other.m_process, nullptr)),
+          m_main_thread_stack_size(std::exchange(other.m_main_thread_stack_size, 0)),
+          m_main_thread_priority(std::exchange(other.m_main_thread_priority, 0)),
+          m_process_started(std::exchange(other.m_process_started, false)) {}
 
     bool Initialize(Loader::AppLoader& loader, Loader::ResultStatus& out_load_result);
     void Finalize();
