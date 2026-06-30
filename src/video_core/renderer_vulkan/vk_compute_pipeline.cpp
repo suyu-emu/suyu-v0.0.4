@@ -45,6 +45,7 @@ ComputePipeline::ComputePipeline(const Device& device_, Scheduler& scheduler, vk
     }
     std::copy_n(info.constant_buffer_used_sizes.begin(), uniform_buffer_sizes.size(),
                 uniform_buffer_sizes.begin());
+    num_descriptor_entries = NumDescriptorEntries(info);
 
     auto func{[this, &scheduler, &descriptor_pool, shader_notify, pipeline_statistics] {
         DescriptorLayoutBuilder builder{device};
@@ -113,7 +114,7 @@ ComputePipeline::ComputePipeline(const Device& device_, Scheduler& scheduler, vk
 void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
                                 Tegra::MemoryManager& gpu_memory, Scheduler& scheduler,
                                 BufferCache& buffer_cache, TextureCache& texture_cache) {
-    guest_descriptor_queue.Acquire();
+    guest_descriptor_queue.Acquire(scheduler, num_descriptor_entries);
 
     buffer_cache.SetComputeUniformBufferState(info.constant_buffer_mask, &uniform_buffer_sizes);
     buffer_cache.UnbindComputeStorageBuffers();

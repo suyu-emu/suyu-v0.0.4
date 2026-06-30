@@ -321,32 +321,23 @@ public:
         return properties.properties.limits.maxPushConstantsSize;
     }
 
-    /// Returns the maximum size for shared memory.
-    u32 GetMaxComputeSharedMemorySize() const {
-        return properties.properties.limits.maxComputeSharedMemorySize;
-    }
-
-    /// Returns the maximum number of dynamic storage buffer descriptors per set.
-    u32 GetMaxDescriptorSetStorageBuffersDynamic() const {
-        return properties.properties.limits.maxDescriptorSetStorageBuffersDynamic;
-    }
-
-    /// Returns the maximum number of dynamic uniform buffer descriptors per set.
-    u32 GetMaxDescriptorSetUniformBuffersDynamic() const {
-        return properties.properties.limits.maxDescriptorSetUniformBuffersDynamic;
-    }
-
-    u32 GetMaxPerStageDescriptorSampledImages() const {
-        return properties.properties.limits.maxPerStageDescriptorSampledImages;
-    }
-
-    u32 GetMaxPerStageResources() const {
-        return properties.properties.limits.maxPerStageResources;
-    }
-
-    u32 GetMaxDescriptorSetSampledImages() const {
-        return properties.properties.limits.maxDescriptorSetSampledImages;
-    }
+#define FN_MAX_LIMIT_LIST \
+    FN_MAX_LIMIT_ELEM(ComputeSharedMemorySize) \
+    FN_MAX_LIMIT_ELEM(PerStageDescriptorSampledImages) \
+    FN_MAX_LIMIT_ELEM(PerStageResources) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetSamplers) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetUniformBuffers) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetUniformBuffersDynamic) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetStorageBuffers) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetStorageBuffersDynamic) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetSampledImages) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetStorageImages) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetInputAttachments)
+#define FN_MAX_LIMIT_ELEM(name) \
+    u32 GetMax##name() const { return properties.properties.limits.max##name; }
+FN_MAX_LIMIT_LIST
+#undef FN_MAX_LIMIT_ELEM
+#undef FN_MAX_LIMIT_LIST
 
     /// Returns float control properties of the device.
     const VkPhysicalDeviceFloatControlsPropertiesKHR& FloatControlProperties() const {

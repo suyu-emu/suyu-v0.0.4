@@ -268,6 +268,7 @@ GraphicsPipeline::GraphicsPipeline(
         num_textures += Shader::NumDescriptors(info->texture_descriptors);
         num_image_elements += Shader::NumDescriptors(info->texture_descriptors);
         num_image_elements += Shader::NumDescriptors(info->image_descriptors);
+        num_descriptor_entries += NumDescriptorEntries(*info);
     }
     fragment_has_color0_output = stage_infos[NUM_STAGES - 1].stores_frag_color[0];
     auto func{[this, shader_notify, &render_pass_cache, &descriptor_pool, pipeline_statistics] {
@@ -473,7 +474,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
     buffer_cache.BindHostGeometryBuffers(is_indexed);
 
-    guest_descriptor_queue.Acquire();
+    guest_descriptor_queue.Acquire(scheduler, num_descriptor_entries);
 
     RescalingPushConstant rescaling;
     RenderAreaPushConstant render_area;

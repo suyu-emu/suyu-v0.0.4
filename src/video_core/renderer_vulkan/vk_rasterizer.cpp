@@ -203,7 +203,7 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
     : gpu{gpu_}, device_memory{device_memory_}, device{device_},
       memory_allocator{memory_allocator_}, state_tracker{state_tracker_}, scheduler{scheduler_},
       staging_pool(device, memory_allocator, scheduler), descriptor_pool(device, scheduler),
-      guest_descriptor_queue(device, scheduler), compute_pass_descriptor_queue(device, scheduler),
+      guest_descriptor_queue(device), compute_pass_descriptor_queue(device),
       blit_image(device, scheduler, state_tracker, descriptor_pool), render_pass_cache(device),
       texture_cache_runtime{
           device,     scheduler,         memory_allocator, staging_pool,

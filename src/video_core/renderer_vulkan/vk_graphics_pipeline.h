@@ -159,6 +159,7 @@ private:
     std::array<Shader::Info, NUM_STAGES> stage_infos;
     std::array<u32, 5> enabled_uniform_buffer_masks{};
     VideoCommon::UniformBufferSizes uniform_buffer_sizes{};
+    u32 num_descriptor_entries{};
     size_t num_image_elements{};
     u32 num_textures{};
     bool fragment_has_color0_output{};

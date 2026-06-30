@@ -326,7 +326,7 @@ std::pair<VkBuffer, VkDeviceSize> Uint8Pass::Assemble(u32 num_vertices, VkBuffer
     const u32 staging_size = static_cast<u32>(num_vertices * sizeof(u16));
     const auto staging = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
 
-    compute_pass_descriptor_queue.Acquire();
+    compute_pass_descriptor_queue.Acquire(scheduler, 2);
     compute_pass_descriptor_queue.AddBuffer(src_buffer, src_offset, num_vertices);
     compute_pass_descriptor_queue.AddBuffer(staging.buffer, staging.offset, staging_size);
     const void* const descriptor_data{compute_pass_descriptor_queue.UpdateData()};
@@ -384,7 +384,7 @@ std::pair<VkBuffer, VkDeviceSize> QuadIndexedPass::Assemble(
     const std::size_t staging_size = num_tri_vertices * sizeof(u32);
     const auto staging = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
 
-    compute_pass_descriptor_queue.Acquire();
+    compute_pass_descriptor_queue.Acquire(scheduler, 2);
     compute_pass_descriptor_queue.AddBuffer(src_buffer, src_offset, input_size);
     compute_pass_descriptor_queue.AddBuffer(staging.buffer, staging.offset, staging_size);
     const void* const descriptor_data{compute_pass_descriptor_queue.UpdateData()};
@@ -429,7 +429,7 @@ void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_
     }
     const size_t compare_size = compare_to_zero ? 8 : 24;
 
-    compute_pass_descriptor_queue.Acquire();
+    compute_pass_descriptor_queue.Acquire(scheduler, 2);
     compute_pass_descriptor_queue.AddBuffer(src_buffer, src_offset, compare_size);
     compute_pass_descriptor_queue.AddBuffer(dst_buffer, 0, sizeof(u32));
     const void* const descriptor_data{compute_pass_descriptor_queue.UpdateData()};
@@ -498,7 +498,7 @@ void QueriesPrefixScanPass::Run(VkBuffer accumulation_buffer, VkBuffer dst_buffe
         static constexpr size_t DISPATCH_SIZE = 2048U;
         size_t runs_to_do = std::min<size_t>(current_runs, DISPATCH_SIZE);
         current_runs -= runs_to_do;
-        compute_pass_descriptor_queue.Acquire();
+        compute_pass_descriptor_queue.Acquire(scheduler, 3);
         compute_pass_descriptor_queue.AddBuffer(src_buffer, 0, number_of_sums * sizeof(u64));
         compute_pass_descriptor_queue.AddBuffer(dst_buffer, 0, number_of_sums * sizeof(u64));
         compute_pass_descriptor_queue.AddBuffer(accumulation_buffer, 0, sizeof(u64));
@@ -600,7 +600,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         const u32 num_dispatches_y = Common::DivCeil(swizzle.num_tiles.height, 8U);
         const u32 num_dispatches_z = image.info.resources.layers;
 
-        compute_pass_descriptor_queue.Acquire();
+        compute_pass_descriptor_queue.Acquire(scheduler, 2);
         compute_pass_descriptor_queue.AddBuffer(map.buffer, input_offset,
                                                 image.guest_size_bytes - swizzle.buffer_offset);
         compute_pass_descriptor_queue.AddImage(image.StorageImageView(swizzle.level));
@@ -821,7 +821,7 @@ void BlockLinearUnswizzle3DPass::UnswizzleChunk(
     pc.blocks_dim[1] = blocks_y;
     pc.blocks_dim[2] = z_count; // Only process the count
 
-    compute_pass_descriptor_queue.Acquire();
+    compute_pass_descriptor_queue.Acquire(scheduler, 3);
     compute_pass_descriptor_queue.AddBuffer(*image.runtime->swizzle_table_buffer, 0,
                                            image.runtime->swizzle_table_size);
     compute_pass_descriptor_queue.AddBuffer(swizzled.buffer,
@@ -989,7 +989,7 @@ void MSAACopyPass::CopyImage(Image& dst_image, Image& src_image,
         ASSERT(copy.dst_subresource.base_layer == 0);
         ASSERT(copy.dst_subresource.num_layers == 1);
 
-        compute_pass_descriptor_queue.Acquire();
+        compute_pass_descriptor_queue.Acquire(scheduler, 2);
         compute_pass_descriptor_queue.AddImage(
             src_image.StorageImageView(copy.src_subresource.base_level));
         compute_pass_descriptor_queue.AddImage(

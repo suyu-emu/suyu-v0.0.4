@@ -22,6 +22,15 @@ namespace Vulkan {
 
 using Shader::Backend::SPIRV::NUM_TEXTURE_AND_IMAGE_SCALING_WORDS;
 
+[[nodiscard]] inline u32 NumDescriptorEntries(const Shader::Info& info) {
+    return Shader::NumDescriptors(info.constant_buffer_descriptors) +
+           Shader::NumDescriptors(info.storage_buffers_descriptors) +
+           Shader::NumDescriptors(info.texture_buffer_descriptors) +
+           Shader::NumDescriptors(info.image_buffer_descriptors) +
+           Shader::NumDescriptors(info.texture_descriptors) +
+           Shader::NumDescriptors(info.image_descriptors);
+}
+
 class DescriptorLayoutBuilder {
 public:
     DescriptorLayoutBuilder(const Device& device_) : device{&device_} {}

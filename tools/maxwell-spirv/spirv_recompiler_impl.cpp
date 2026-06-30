@@ -52,6 +52,7 @@ int SpirvShaderRecompilerImpl(int argc, char *argv[]) {
     host_info.support_geometry_shader_passthrough = true;
     host_info.support_conditional_barrier = true;
     host_info.min_ssbo_alignment = 0;
+    host_info.ApplyDescriptorLimitPolicy();
     auto program = Shader::Maxwell::TranslateProgram(inst_pool, block_pool, env, cfg, host_info);
 
     // IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Block>& block_pool,

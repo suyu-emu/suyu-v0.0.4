@@ -50,8 +50,8 @@ NPad::NPad(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service
             auto& controller = controller_data[aruid_index][i];
             controller.device = hid_core.GetEmulatedControllerByIndex(i);
             Core::HID::ControllerUpdateCallback engine_callback{
-                .on_change = [this, i](Core::HID::ControllerTriggerType type) {
-                    ControllerUpdate(hid_core.kernel, type, i);
+                .on_change = [this, i, kernel = &hid_core.kernel](Core::HID::ControllerTriggerType type) {
+                    ControllerUpdate(*kernel, type, i);
                 },
                 .is_npad_service = true,
             };

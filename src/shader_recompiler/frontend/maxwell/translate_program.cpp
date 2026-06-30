@@ -236,8 +236,11 @@ void LowerGeometryPassthrough(const IR::Program& program, const HostTranslateInf
 
 IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Block>& block_pool,
                              Environment& env, Flow::CFG& cfg, const HostTranslateInfo& host_info) {
+    HostTranslateInfo normalized_host_info{host_info};
+    normalized_host_info.ApplyDescriptorLimitPolicy();
+
     IR::Program program;
-    program.syntax_list = BuildASL(inst_pool, block_pool, env, cfg, host_info);
+    program.syntax_list = BuildASL(inst_pool, block_pool, env, cfg, normalized_host_info);
     program.blocks = GenerateBlocks(program.syntax_list);
     program.post_order_blocks = PostOrder(program.syntax_list.front());
     program.stage = env.ShaderStage();
@@ -260,9 +263,9 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
                 program.info.passthrough.mask[i] = ((mask[i / 32] >> (i % 32)) & 1) == 0;
             }
 
-            if (!host_info.support_geometry_shader_passthrough) {
+            if (!normalized_host_info.support_geometry_shader_passthrough) {
                 program.output_vertices = GetOutputTopologyVertices(program.output_topology);
-                LowerGeometryPassthrough(program, host_info);
+                LowerGeometryPassthrough(program, normalized_host_info);
             }
         }
         break;
@@ -277,16 +280,16 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
     RemoveUnreachableBlocks(program);
 
     // Replace instructions before the SSA rewrite
-    if (!host_info.support_float64) {
+    if (!normalized_host_info.support_float64) {
         Optimization::LowerFp64ToFp32(program);
     }
-    if (!host_info.support_float16) {
+    if (!normalized_host_info.support_float16) {
         Optimization::LowerFp16ToFp32(program);
     }
-    if (!host_info.support_int64) {
+    if (!normalized_host_info.support_int64) {
         Optimization::LowerInt64ToInt32(program);
     }
-    if (!host_info.support_conditional_barrier) {
+    if (!normalized_host_info.support_conditional_barrier) {
         Optimization::ConditionalBarrierPass(program);
     }
     Optimization::SsaRewritePass(program);
@@ -295,8 +298,8 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
 
     Optimization::PositionPass(env, program);
 
-    Optimization::GlobalMemoryToStorageBufferPass(program, host_info);
-    Optimization::TexturePass(env, program, host_info);
+    Optimization::GlobalMemoryToStorageBufferPass(program, normalized_host_info);
+    Optimization::TexturePass(env, program, normalized_host_info);
 
     if (Settings::values.resolution_info.active || Settings::values.rescale_hack.GetValue()) {
         Optimization::RescalingPass(program);
@@ -306,7 +309,7 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
         Optimization::VerificationPass(program);
     }
     Optimization::CollectShaderInfoPass(env, program);
-    Optimization::LayerPass(program, host_info);
+    Optimization::LayerPass(program, normalized_host_info);
     Optimization::VendorWorkaroundPass(program);
 
     CollectInterpolationInfo(env, program);

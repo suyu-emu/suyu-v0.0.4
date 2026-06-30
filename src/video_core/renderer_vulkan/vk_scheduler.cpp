@@ -155,15 +155,14 @@ void Scheduler::WaitWorker() {
 }
 
 void Scheduler::DispatchWork() {
-    if (chunk->Empty()) {
-        return;
+    if (chunk && !chunk->Empty()) {
+        {
+            std::scoped_lock ql{queue_mutex};
+            work_queue.push(std::move(chunk));
+        }
+        event_cv.notify_all();
+        AcquireNewChunk();
     }
-    {
-        std::scoped_lock ql{queue_mutex};
-        work_queue.push(std::move(chunk));
-    }
-    event_cv.notify_all();
-    AcquireNewChunk();
 }
 
 void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -545,7 +548,7 @@ void GlobalMemoryToStorageBufferPass(IR::Program& program, const HostTranslateIn
         IR::Block* const block{storage_inst.block};
         IR::Inst* const inst{storage_inst.inst};
         const IR::U32 offset{
-            StorageOffset(*block, *inst, storage_buffer, host_info.min_ssbo_alignment)};
+            StorageOffset(*block, *inst, storage_buffer, u32(host_info.min_ssbo_alignment))};
         Replace(*block, *inst, index, offset);
     }
 }

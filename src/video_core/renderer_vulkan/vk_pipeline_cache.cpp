@@ -439,10 +439,21 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .has_broken_robust =
             device.IsNvidia() && device.GetNvidiaArch() <= NvidiaArchitecture::Arch_Pascal,
         .min_ssbo_alignment = device.GetStorageBufferAlignment(),
-        .max_user_clip_distances = device.GetMaxUserClipDistances(),
+        .max_user_clip_distances = device.GetMaxUserClipDistances()
     };
 
     host_info = Shader::HostTranslateInfo{
+        .min_ssbo_alignment = device.GetStorageBufferAlignment(),
+        .max_per_stage_descriptor_sampled_images = device.GetMaxPerStageDescriptorSampledImages(),
+        .max_per_stage_resources = device.GetMaxPerStageResources(),
+        .max_descriptor_set_samplers = device.GetMaxDescriptorSetSamplers(),
+        .max_descriptor_set_uniform_buffers = device.GetMaxDescriptorSetUniformBuffers(),
+        .max_descriptor_set_uniform_buffers_dynamic = device.GetMaxDescriptorSetUniformBuffersDynamic(),
+        .max_descriptor_set_storage_buffers = device.GetMaxDescriptorSetStorageBuffers(),
+        .max_descriptor_set_storage_buffers_dynamic = device.GetMaxDescriptorSetStorageBuffersDynamic(),
+        .max_descriptor_set_sampled_images = device.GetMaxDescriptorSetSampledImages(),
+        .max_descriptor_set_storage_images = device.GetMaxDescriptorSetStorageImages(),
+        .max_descriptor_set_input_attachements = device.GetMaxDescriptorSetInputAttachments(),
         .support_float64 = device.IsFloat64Supported(),
         .support_float16 = device.IsFloat16Supported(),
         .support_int64 = device.IsShaderInt64Supported(),
@@ -451,13 +462,10 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                                 driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY,
         .support_snorm_render_buffer = true,
         .support_viewport_index_layer = device.IsExtShaderViewportIndexLayerSupported(),
-        .min_ssbo_alignment = static_cast<u32>(device.GetStorageBufferAlignment()),
-        .max_per_stage_descriptor_sampled_images = device.GetMaxPerStageDescriptorSampledImages(),
-        .max_per_stage_resources = device.GetMaxPerStageResources(),
-        .max_descriptor_set_sampled_images = device.GetMaxDescriptorSetSampledImages(),
         .support_geometry_shader_passthrough = device.IsNvGeometryShaderPassthroughSupported(),
         .support_conditional_barrier = device.SupportsConditionalBarriers(),
     };
+    host_info.ApplyDescriptorLimitPolicy();
 
     if (device.GetMaxVertexInputAttributes() < Maxwell::NumVertexAttributes) {
         LOG_WARNING(Render_Vulkan, "maxVertexInputAttributes is too low: {} < {}",

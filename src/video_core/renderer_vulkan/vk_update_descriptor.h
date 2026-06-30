@@ -34,12 +34,11 @@ class UpdateDescriptorQueue final {
     static constexpr size_t PAYLOAD_SIZE = FRAME_PAYLOAD_SIZE * FRAMES_IN_FLIGHT;
 
 public:
-    explicit UpdateDescriptorQueue(const Device& device_, Scheduler& scheduler_);
+    explicit UpdateDescriptorQueue(const Device& device_);
     ~UpdateDescriptorQueue();
 
     void TickFrame();
-
-    void Acquire();
+    void Acquire(Scheduler& scheduler, size_t required_entries = 0);
 
     const DescriptorUpdateEntry* UpdateData() const noexcept {
         return upload_start;
@@ -75,8 +74,6 @@ public:
 
 private:
     const Device& device;
-    Scheduler& scheduler;
-
     size_t frame_index{0};
     DescriptorUpdateEntry* payload_cursor = nullptr;
     DescriptorUpdateEntry* payload_start = nullptr;

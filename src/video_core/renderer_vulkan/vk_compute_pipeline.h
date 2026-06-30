@@ -53,6 +53,7 @@ private:
     vk::PipelineCache& pipeline_cache;
     GuestDescriptorQueue& guest_descriptor_queue;
     Shader::Info info;
+    u32 num_descriptor_entries{};
 
     VideoCommon::ComputeUniformBufferSizes uniform_buffer_sizes{};
 
