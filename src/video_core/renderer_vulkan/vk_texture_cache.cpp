@@ -909,40 +909,6 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
         bl3d_unswizzle_pass.emplace(device, scheduler, descriptor_pool,
                                    staging_buffer_pool, compute_pass_descriptor_queue);
     }
-
-    // --- Create swizzle table buffer ---
-    {
-        auto table = Tegra::Texture::MakeSwizzleTable();
-
-        swizzle_table_size = static_cast<VkDeviceSize>(table.size() * sizeof(table[0]));
-
-        auto staging = staging_buffer_pool.Request(swizzle_table_size, MemoryUsage::Upload);
-        std::memcpy(staging.mapped_span.data(), table.data(), static_cast<size_t>(swizzle_table_size));
-
-        VkBufferCreateInfo ci{
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size = swizzle_table_size,
-            .usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                     VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        };
-        swizzle_table_buffer = memory_allocator.CreateBuffer(ci, MemoryUsage::DeviceLocal);
-
-        scheduler.RequestOutsideRenderPassOperationContext();
-        scheduler.Record([staging_buf = staging.buffer,
-                          dst_buf = *swizzle_table_buffer,
-                          size = swizzle_table_size,
-                          src_off = staging.offset](vk::CommandBuffer cmdbuf) {
-
-            const VkBufferCopy region{
-                .srcOffset = src_off,
-                .dstOffset = 0,
-                .size = size,
-            };
-            cmdbuf.CopyBuffer(staging_buf, dst_buf, region);
-        });
-    }
 }
 
 void TextureCacheRuntime::Finish() {
@@ -2484,18 +2450,13 @@ void TextureCacheRuntime::AccelerateImageUpload(
 
     if (!Settings::values.gpu_unswizzle_enabled.GetValue() || !bl3d_unswizzle_pass) {
         if (IsPixelFormatBCn(image.info.format) && image.info.type == ImageType::e3D) {
-            ASSERT_MSG(false, "GPU unswizzle is disabled for BCn 3D texture");
+            ASSERT(false && "GPU unswizzle is disabled for BCn 3D texture");
         }
         ASSERT(false);
         return;
     }
 
-    if (bl3d_unswizzle_pass &&
-        IsPixelFormatBCn(image.info.format) &&
-        image.info.type == ImageType::e3D &&
-        image.info.resources.levels == 1 &&
-        image.info.resources.layers == 1) {
-
+    if (bl3d_unswizzle_pass && IsPixelFormatBCn(image.info.format) && image.info.type == ImageType::e3D && image.info.resources.levels == 1 && image.info.resources.layers == 1) {
         return bl3d_unswizzle_pass->Unswizzle(image, map, swizzles, z_start, z_count);
     }
 

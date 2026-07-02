@@ -10,9 +10,8 @@
     #define BEGIN_PUSH_CONSTANTS layout(push_constant) uniform PushConstants {
     #define END_PUSH_CONSTANTS };
     #define UNIFORM(n)
-    #define BINDING_SWIZZLE_BUFFER 0
-    #define BINDING_INPUT_BUFFER   1
-    #define BINDING_OUTPUT_BUFFER  2
+    #define BINDING_INPUT_BUFFER   0
+    #define BINDING_OUTPUT_BUFFER  1
 #else
     #extension GL_NV_gpu_shader5 : enable
     #ifdef GL_NV_gpu_shader5
@@ -23,7 +22,6 @@
     #define BEGIN_PUSH_CONSTANTS
     #define END_PUSH_CONSTANTS
     #define UNIFORM(n) layout(location = n) uniform
-    #define BINDING_SWIZZLE_BUFFER 0
     #define BINDING_INPUT_BUFFER   1
     #define BINDING_OUTPUT_BUFFER  0
 #endif
@@ -66,13 +64,9 @@ END_PUSH_CONSTANTS
 #endif
 
 // --- Buffers ---
-layout(binding = BINDING_SWIZZLE_BUFFER, std430) readonly buffer SwizzleTable {
-    uint swizzle_table[];
-};
-
 #if HAS_EXTENDED_TYPES
-    layout(binding = BINDING_INPUT_BUFFER, std430) buffer InputBufferU8   { uint8_t  u8data[];  };
-    layout(binding = BINDING_INPUT_BUFFER, std430) buffer InputBufferU16  { uint16_t u16data[]; };
+layout(binding = BINDING_INPUT_BUFFER, std430) buffer InputBufferU8   { uint8_t  u8data[];  };
+layout(binding = BINDING_INPUT_BUFFER, std430) buffer InputBufferU16  { uint16_t u16data[]; };
 #endif
 layout(binding = BINDING_INPUT_BUFFER, std430) buffer InputBufferU32  { uint   u32data[];  };
 layout(binding = BINDING_INPUT_BUFFER, std430) buffer InputBufferU64  { uvec2  u64data[];  };
@@ -96,10 +90,20 @@ const uint GOB_SIZE_Z_SHIFT = 0;
 const uint GOB_SIZE_SHIFT   = GOB_SIZE_X_SHIFT + GOB_SIZE_Y_SHIFT + GOB_SIZE_Z_SHIFT;
 const uvec2 SWIZZLE_MASK = uvec2(GOB_SIZE_X - 1u, GOB_SIZE_Y - 1u);
 
+uint SwizzleTable(uint pos) {
+    const uint t[8] = uint[](
+        0x12100200, 0x13110301, 0x16140604, 0x17150705,
+        0x1a180a08, 0x1b190b09, 0x1e1c0e0c, 0x1f1d0f0d
+    );
+    const uint i = pos >> 4;
+    const uint h = (t[i / 4] >> ((i % 4) * 8)) & 0xff;
+    return (h << 4) | (pos & 0xf);
+}
+
 // --- Helpers ---
 uint SwizzleOffset(uvec2 pos) {
     pos &= SWIZZLE_MASK;
-    return swizzle_table[pos.y * 64u + pos.x];
+    return SwizzleTable(pos.y * 64u + pos.x);
 }
 
 uvec4 ReadTexel(uint offset) {

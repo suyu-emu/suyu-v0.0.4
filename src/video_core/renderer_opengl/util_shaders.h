@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -45,9 +48,6 @@ public:
 
 private:
     ProgramManager& program_manager;
-
-    OGLBuffer swizzle_table_buffer;
-
     OGLProgram astc_decoder_program;
     OGLProgram block_linear_unswizzle_2d_program;
     OGLProgram block_linear_unswizzle_3d_program;
