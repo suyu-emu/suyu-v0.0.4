@@ -217,10 +217,14 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 
     return true;
 }
-#ifndef ANDROID
-// Nasty but allows linux builds to pass.
-// Requires double checks when FFMPEG gets updated.
-// Hopefully a future FFMPEG update will all and expose a solution in the public API.
+#if 0
+// REMOVED: this vendored copy of FFmpeg's PRIVATE FFCodec struct was used to call
+// codec->cb.decode directly (bypassing the public API) for software H264. The internal
+// struct layout changes between FFmpeg releases, and against FFmpeg 8 DLLs the layout
+// mismatch made decode silently produce zero frames ("Failed to receive a frame!"),
+// which rendered every video cutscene as a solid green/black screen. Decoding now goes
+// exclusively through the public avcodec_send_packet/avcodec_receive_frame API (as Eden
+// does), which is stable across FFmpeg versions.
 namespace {
 
 typedef struct FFCodecDefault {
@@ -379,23 +383,6 @@ static av_always_inline const FFCodec* ffcodec(const AVCodec* codec) {
 #endif
 bool DecoderContext::SendPacket(const Packet& packet) {
     m_temp_frame = std::make_shared<Frame>();
-    m_got_frame = 0;
-
-// Android can randomly crash when calling decode directly, so skip.
-// TODO update ffmpeg and hope that fixes it.
-#ifndef ANDROID
-    if (!m_codec_context->hw_device_ctx && m_codec_context->codec_id == AV_CODEC_ID_H264) {
-        m_decode_order = true;
-        auto* codec{ffcodec(m_decoder.GetCodec())};
-        if (const int ret = codec->cb.decode(m_codec_context, m_temp_frame->GetFrame(),
-                                             &m_got_frame, packet.GetPacket());
-            ret < 0) {
-            LOG_DEBUG(Service_NVDRV, "avcodec_send_packet error {}", AVError(ret));
-            return false;
-        }
-        return true;
-    }
-#endif
 
     if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket());
         ret < 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) {
@@ -407,29 +394,6 @@ bool DecoderContext::SendPacket(const Packet& packet) {
 }
 
 std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
-    // Android can randomly crash when calling decode directly, so skip.
-    // TODO update ffmpeg and hope that fixes it.
-#ifndef ANDROID
-    if (!m_codec_context->hw_device_ctx && m_codec_context->codec_id == AV_CODEC_ID_H264) {
-        m_decode_order = true;
-        auto* codec{ffcodec(m_decoder.GetCodec())};
-        int ret{0};
-
-        if (m_got_frame == 0) {
-            Packet packet{{}};
-            auto* pkt = packet.GetPacket();
-            pkt->data = nullptr;
-            pkt->size = 0;
-            ret = codec->cb.decode(m_codec_context, m_temp_frame->GetFrame(), &m_got_frame, pkt);
-            m_codec_context->has_b_frames = 0;
-        }
-
-        if (m_got_frame == 0 || ret < 0) {
-            LOG_ERROR(Service_NVDRV, "Failed to receive a frame! error {}", ret);
-            return {};
-        }
-    } else
-#endif
     {
 
         const auto ReceiveImpl = [&](AVFrame* frame) {

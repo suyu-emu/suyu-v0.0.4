@@ -8,8 +8,6 @@
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_process.h"
 
-extern "C" std::uint64_t g_diag_fastmem_base;
-
 namespace Core {
 
 using Vector = Dynarmic::A64::Vector;
@@ -241,15 +239,13 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
         config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
         config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
-        // Fastmem is currently DISABLED on this Windows build. With fastmem enabled, the
-        // first guest access that misses the host arena raises an access violation that
-        // dynarmic's SEH-based fault handler recovers (the patch is found and the access is
-        // redirected to the slow callback), yet the process still terminates immediately
-        // afterwards — a recovery-path defect specific to this build that could not be
-        // resolved through dynarmic configuration (verified against Eden's identical config,
-        // reg_alloc, exception handler, and address-space settings). Until the recovery path
-        // is fixed, route every guest memory access through the page-table/callback path so
-        // the games boot and run reliably instead of crashing ~20s into startup.
+        // Fastmem is enabled. NOTE (Windows): fastmem fault recovery is performed by a
+        // process-wide vectored exception handler inside dynarmic
+        // (backend/x64/exception_handler_windows.cpp). The stock SEH language-handler
+        // recovery is broken on recent Windows 11 builds — after the handler rewrote the
+        // dispatch context, ntdll would call through a stack address and terminate the
+        // process (execute-AV at fault_rsp-0x700, ~20s after boot). Do not revert dynarmic
+        // to SEH-based recovery without re-testing on Windows 11 26xxx.
         config.fastmem_pointer =
             page_table->fastmem_arena
                 ? std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)}
@@ -257,13 +253,13 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
         config.fastmem_address_space_bits = address_space_bits;
         config.silently_mirror_fastmem = false;
 
-        config.fastmem_exclusive_access = false;
-        config.recompile_on_exclusive_fastmem_failure = false;
-        config.recompile_on_fastmem_failure = false;
-
-        if (page_table->fastmem_arena) {
-            g_diag_fastmem_base = reinterpret_cast<std::uint64_t>(page_table->fastmem_arena);
-        }
+        // Match Eden/upstream: exclusive-access fastmem on, and recompile blocks whose
+        // fastmem accesses fault so a faulting access is patched to the slow path once
+        // instead of round-tripping through the exception handler on every execution.
+        // Both are recovered by the VEH above, which is proven working on this OS.
+        config.fastmem_exclusive_access = config.fastmem_pointer.has_value();
+        config.recompile_on_exclusive_fastmem_failure = true;
+        config.recompile_on_fastmem_failure = true;
     }
 
     // Multi-process state

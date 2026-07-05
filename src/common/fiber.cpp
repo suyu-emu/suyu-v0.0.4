@@ -11,7 +11,14 @@
 
 namespace Common {
 
-constexpr std::size_t default_stack_size = 512 * 1024;
+// 4 MiB. Guest code runs on these fiber stacks, and with fastmem enabled a guest memory
+// miss raises a host access violation ON this stack: Windows exception dispatch then has
+// to write a CONTEXT/EXCEPTION_RECORD (~1-2 KiB, more with XSAVE state) below the current
+// rsp. At 512 KiB the deepest guest call chains left under a page of headroom, so dispatch
+// ran off the end of the committed buffer into unmapped memory and terminated the process
+// with an unrecoverable ACCESS_VIOLATION at rsp-0x700 (observed with Smash Bros ~22s after
+// boot). Do not shrink this without re-testing fastmem on Windows.
+constexpr std::size_t default_stack_size = 4 * 1024 * 1024;
 
 struct Fiber::FiberImpl {
     FiberImpl() : stack{default_stack_size}, rewind_stack{default_stack_size} {}

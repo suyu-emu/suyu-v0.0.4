@@ -777,6 +777,11 @@ endif()
 
 add_subdirectory(src)
 
+if(ENABLE_NXOPTIMIZER AND TARGET suyu AND TARGET nx-optimizer)
+    add_dependencies(suyu nx-optimizer)
+    target_compile_definitions(suyu PRIVATE SUYU_ENABLE_NXOPTIMIZER=1)
+endif()
+
 # Set suyu project or suyu-cmd project as default StartUp Project in Visual Studio depending on whether QT is enabled or not
 if(ENABLE_QT)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT suyu)
