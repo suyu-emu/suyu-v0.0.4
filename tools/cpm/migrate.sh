@@ -6,14 +6,22 @@
 SUBMODULES="$(git submodule status --recursive | cut -c2-)"
 : "${SUBMODULES:?No submodules defined!}"
 
-tmp=$(mktemp)
-printf '{}' >"$tmp"
-
 IFS="
 "
 for i in $SUBMODULES; do
-	sha=$(echo "$i" | cut -d" " -f1 | cut -c1-10)
-	ver=$(echo "$i" | cut -d" " -f3 | tr -d '()')
+	commit=$(echo "$i" -d" " -f1 | cut -c1-10)
+	short_commit=$(echo "$i" -d" " -f1 | cut -c1-7)
+
+	ref=$(echo "$i" | cut -d" " -f3 | tr -d '()')
+
+	case "$ref" in
+	# ref == commit, use commit versioning
+	"$short_commit") version="$commit" ;;
+	# ref is a branch, use commit versioning
+	heads/*) version="$commit" ;;
+	# ref is (probably) a tag, use tag versioning
+	*) version="$ref" ;;
+	esac
 
 	path=$(echo "$i" | cut -d" " -f2)
 	name=$(echo "$path" | awk -F/ '{print $NF}')
@@ -21,26 +29,9 @@ for i in $SUBMODULES; do
 	remote=$(git -C "$path" remote get-url origin)
 
 	host=$(echo "$remote" | cut -d"/" -f3)
-	[ "$host" != github.com ] || host=
 
 	repo=$(echo "$remote" | cut -d"/" -f4-5 | cut -d'.' -f1)
 
-	entry=$(jq -n --arg name "$name" \
-		--arg sha "$sha" \
-		--arg ver "$ver" \
-		--arg repo "$repo" \
-		--arg host "$host" \
-		'{
-        ($name): {
-            sha: $sha,
-            version: $ver,
-            repo: $repo
-        } + (if $host != "" then {git_host: $host} else {} end)
-        }')
-
-	jq --argjson new "$entry" '. + $new' "$tmp" >"${tmp}.new"
-	mv "$tmp.new" "$tmp"
+	cmake -DKEY="$name" -DVERSION="$version" -DREPO="$repo" -DGIT_HOST="$host" \
+		-P "$CMAKE/package/add.cmake"
 done
-
-jq '.' "$tmp" >cpmfile.json
-rm -f "$tmp"

@@ -8,6 +8,7 @@ CPMUtil is a wrapper around CPM that aims to reduce boilerplate and add useful u
   - [Common Properties](#common-properties)
   - [Standard Packages](#standard-packages)
     - [Versioning](#versioning)
+    - [Artifact Naming Errata](#artifact-naming-errata)
     - [Patches](#patches)
   - [Pre-built CI Packages](#pre-built-ci-packages)
   - [Usage](#usage)
@@ -22,12 +23,18 @@ CPMUtil is a wrapper around CPM that aims to reduce boilerplate and add useful u
   - [Addendum: Module Path Packages](#addendum-module-path-packages)
     - [Example: OpenSSL](#example-openssl)
   - [Addendum: Adding Qt](#addendum-adding-qt)
+  - [Addendum: Package-Specific Overrides](#addendum-package-specific-overrides)
+  - [Addendum: Supply-Chain Security](#addendum-supply-chain-security)
+    - [Checksumming](#checksumming)
+    - [Caching](#caching)
+    - [Immutable Commit Hashes](#immutable-commit-hashes)
 
 ## Global Options
 
-- `CPMUTIL_FORCE_SYSTEM` (default `OFF`): Require all CPM dependencies to use system packages. NOT RECOMMENDED!
-  - You may optionally override this (section)
+- `CPMUTIL_FORCE_SYSTEM` (default `OFF`): Require all CPM dependencies to use system packages.
+  - You may optionally override this for each package: [Package-Specific Overrides](#addendum-package-specific-overrides)
 - `CPMUTIL_FORCE_BUNDLED` (default `ON` on MSVC and Android, `OFF` elsewhere): Require all CPM dependencies to use bundled packages.
+  - You may optionally override this for each package: [Package-Specific Overrides](#addendum-package-specific-overrides)
 - `CPMUTIL_PATCH_DIR` (default `${PROJECT_SOURCE_DIR}/.patch`): Path to patches used in packages. Stored as `<PATCH DIR>/json-package-name/0001-patch-name.patch`, etc.
 - `CPM_SOURCE_CACHE` (default `${PROJECT_SOURCE_DIR}/.cache/cpm`): Where downloaded dependencies get stored.
 
@@ -50,23 +57,25 @@ And may optionally define other properties like:
 For instance:
 
 ```json
-"fmt": {
-    "repo": "fmtlib/fmt",
-    "tag": "12.1.0",
-    "hash": "f0da82c545b01692e9fd30fdfb613dbb8dd9716983dcd0ff19ac2a8d36f74beb5540ef38072fdecc1e34191b3682a8542ecbf3a61ef287dbba0a2679d4e023f2",
-    "min_version": "8",
-    "options": [
-      "FMT_TEST ON"
-    ],
-    "patches": [
-      "0001-disable-reference-copy.patch"
-    ]
+{
+  "fmt": {
+      "repo": "fmtlib/fmt",
+      "version": "12.1.0",
+      "hash": "f0da8...23f2",
+      "min_version": "8",
+      "options": [
+          "FMT_TEST ON"
+      ],
+      "patches": [
+         "0001-disable-reference-copy.patch"
+      ]
+  }
 }
 ```
 
 Calling `AddJsonPackage(fmt)`:
 
-- Searches for a system package named `fmt` of version 8 or higher
+- Searches for a system package named `fmt` of version 8 or higher (`find_package(fmt 8)`)
 - If found, uses the system package and caches it for future use
 - If not found:
   - Downloads fmt 12.1.0 from the GitHub Archive into `.cache/cpm/fmt/12.1.0`
@@ -85,63 +94,82 @@ These JSON properties are used by standard and CI packages alike.
 - `package`: The package name used by `find_package` to check for the existence of a system package.
   - If unset, defaults to the JSON key
 - `repo`: The Git repository the package is stored in, if applicable.
-- `version`: The version of the package to download. This is required.
-- `min_version`: The minimum required version of the package, if a system package is desired.
+- `version`: The version of the package. This is required.
+  - Generally, this should be a 10-wide Git commit hash or Git tag.
+  - Tags must be fully qualified and include prefixes and suffixes, e.g. `boost-1.88.0`
 - `git_host`: The Git host the package is stored in, if applicable. Defaults to `github.com`.
 
 ## Standard Packages
 
 Normal packages, like the prior `fmt` example, *must* also define:
 
-- `hash`: The SHA512 hash of the downloaded artifact. CPMUtil generally computes this for you.
-- A valid version/URL identifier:
-  - `url`: Download from a raw URL.
-  - `sha`: A short or fully-qualified Git commit sha. CPMUtil recommends using 10-character wide shas.
-  - `tag`: A Git tag. See [Versioning](#versioning) for its relation to `version`.
-  - `artifact`: A GitHub/Forgejo/Gitea release artifact (requires `tag`). See [Versioning](#versioning) for its relation to `tag` and `version`.
+- `hash`: The SHA512 hash of the downloaded artifact. CPMUtil generally computes this for you--if not, use `tools/cpmutil.sh package hash <JSON key>`
+- `min_version`: The minimum required version of the package, if a system package is desired.
+
+And may optionally define:
+
+- `url`: Download from a raw URL.
+- `artifact`: A GitHub/Forgejo/Gitea release artifact. Requires `repo` to be set and valid.
+- `numeric_version`: Replaces `%NUMERIC_VERSION%` in artifact and version definitions; see [Artifact Naming Errata](#artifact-naming-errata).
+
+See [Versioning](#versioning) for version/artifact information.
 
 The following are optional to define:
 
 - `source_subdir`: A subdirectory containing the `CMakeLists.txt` to configure a project. Useful for projects like `zstd`.
-- `bundled`: Force the usage of a bundled package. Useful for packages where the system package is broken or nonexistent; e.g. including external fragment shaders.
+- `bundled`: Force the usage of a bundled package. Useful for packages where the system package is broken or nonexistent; e.g. external fragment shaders or data archives.
+  - Note that this will conflict with `CPMUTIL_FORCE_SYSTEM`; for this reason, when using non-library archives, it may be best to allow the user to download and extract the archive manually and specify a local directory to it.
 - `find_args`: Additional arguments passed to `find_package`, e.g. `MODULE`
 - `patches`: Array of in-tree patches to apply to the downloaded source code. See [#Patches](TODO).
 - `options`: Array of CMake options to apply before configuring the package, e.g. `"FMT_TEST ON"`.
 
 ### Versioning
 
-When using tags or artifacts, it may be cumbersome to repeat the version multiple times; especially if it's constantly changing. For this purpose, `tag` and `artifact` both support basic version text replacement.
+When fetching from a Git repository, there are generally three methods of versioning:
 
-`tag` can use `%VERSION%` to have its version replaced with the `version` defined for the package, e.g. for OpenSSL; when downloading, `tag` will evaluate to `openssl-3.6.2`:
+- Commit hashes
+- Git tags
+- Release artifacts
 
-```json
-"openssl": {
-    "repo": "openssl/openssl",
-    "version": "3.6.2",
-    "tag": "openssl-%VERSION%"
-}
-```
+When `repo` is set, `version` field can be set to any commitish value, including commit hashes or Git tags. In the case of artifacts, `version` must be a Git tag, and `artifact` must be set to a release artifact attached to that tag. Many repositories intentionally version the filenames of their release artifacts; for this purpose, CPMUtil allows you to implant the version number into the artifact name. To do so, add `%VERSION%` to the artifact name; CPMUtil will then automatically replace `%VERSION%` with the `version` field. This means that when changing versions, you only need to update the version, not the artifact!
 
-`artifact` also supports `%VERSION%` replacement, and can also use `%TAG%` to be replaced by the computed tag. Take this Boost definition:
+Take Boost as an example. The artifact for Boost 1.90.0 is `boost-1.90.0-cmake.tar.xz`, and the tag is `boost-1.90.0`. Thus, we can set the artifact to `%VERSION%-cmake.tar.xz`:
 
 ```json
 "boost": {
     "repo": "boostorg/boost",
-    "tag": "boost-%VERSION%",
-    "version": "1.90.0"
+    "version": "boost-1.90.0",
+    "artifact": "%VERSION%-cmake.tar.xz"
 }
 ```
 
-Boost's artifact for this version is stored in `boost-1.90.0-cmake.tar.xz`. Notice that the computed tag,`boost-1.90.0`, is in the name of the artifact! Thus, `artifact` can be either:
+The artifact will then evaluate as `boost-1.90.0-cmake.tar.xz`.
 
-- `boost-%VERSION%-cmake.tar.xz`
-- Or, even simpler: `%TAG%-cmake.tar.xz`
+### Artifact Naming Errata
 
-Future updates need only change the `version` identifier, and the artifact and tag will automatically be updated!
+While `%VERSION%` replacement is generally good enough for well-packaged projects, occasionally there may be some problematic packages. Take, for instance, Vulkan Validation Layers:
+
+- Tag (`version`): `vulkan-sdk-1.4.341.0`
+- Artifact: `android-binaries-1.4.341.0.zip`
+
+Attempting to add version replacement to the artifact definition **would not work here!** In this case, you must utilize the `numeric_version` field described earlier; we would set `numeric_version` to `1.4.341.0` and add `%NUMERIC_VERSION%` replacements into our artifact and version fields:
+
+```json
+"vulkan-validation-layers": {
+    "artifact": "android-binaries-%NUMERIC_VERSION%.zip",
+    "repo": "KhronosGroup/Vulkan-ValidationLayers",
+    "version": "vulkan-sdk-%NUMERIC_VERSION%",
+    "numeric_version": "1.4.341.0"
+},
+```
+
+`artifact` will thus evaluate to `android-binaries-1.4.341.0.zip`, and `version` to `vulkan-sdk-1.4.341.0`. CPMUtil's auto-updater will also account for this and only update `numeric_version`!
 
 ### Patches
 
-CPMUtil is able to apply in-place source tree patches to downloaded packages. These are defined in JSON as an array of names, preferably using `git-format-patch`'s scheme of `<4 digit number>-patch-name.patch`. These are stored in `<CPMUTIL_PATCH_DIR>/<json-key>` (remember that `CPMUTIL_PATCH_DIR` defaults to `$ROOT/.patch`); e.g. `boost` patches would be in `.patch/boost`. Let's say we've made three patches and want to add them; in the Boost JSON definition, we would add:
+CPMUtil is able to apply in-place source tree patches to downloaded packages. These are defined in JSON as an array of names, preferably using `git-format-patch`'s scheme of `<4 digit number>-patch-name.patch`.
+
+They are stored in `<CPMUTIL_PATCH_DIR>/<json-key>` (remember that `CPMUTIL_PATCH_DIR` defaults to `$ROOT/.patch`); e.g. `boost` patches would be in `.patch/boost`. Let's say we've made three patches and want to add them; in the Boost JSON definition, we would add:
 
 ```json
 "patches": [
@@ -151,7 +179,7 @@ CPMUtil is able to apply in-place source tree patches to downloaded packages. Th
 ]
 ```
 
-Then, when Boost is downloaded, it will apply these patches in order to the source tree.
+Then, when Boost is downloaded, it will apply these patches to the source tree in the order they are defined (compound/dependent patches are okay!). Note that when you add, remove, or modify patches, CPMUtil will invalidate your downloaded cache and re-fetch the source.
 
 To learn how to make patches, see [Addendum: Making Patches](#addendum-making-patches).
 
@@ -199,12 +227,9 @@ If you're only concerned with basic usage, you can stop reading. For more advanc
 
 CPMUtil stores downloaded packages within `.cache/cpm` by default (see `CPM_SOURCE_CACHE`). Subdirectories stored within are lowercase representations of the `find_package` name for the package; for instance, a `vulkan-headers` definition with `package: "VulkanHeaders"` would be stored in `.cache/cpm/vulkanheaders`.
 
-Within these subdirectories, additional directories are created for each individual version:
+Within these subdirectories, additional directories are created for each individual version, corresponding directly to their `version` field. CI packages use `<platform>-<architecture>-<version>` unconditionally.
 
-- A four-character shorthand of `sha`, if defined
-- If `sha` is not defined, the fully qualified `version` is used
-
-CI packages use `<platform>-<architecture>-<version>` unconditionally.
+To see the cache directory for a given package, use `tools/cpmutil.sh package dir <JSON key>`.
 
 ## Addendum: Making Patches
 
@@ -242,7 +267,7 @@ If you are packaging a project that uses CPMUtil, read this!
 
 For sandboxed environments (e.g. Gentoo, nixOS) you must install all dependencies to the system beforehand and set `-DCPMUTIL_FORCE_SYSTEM=ON`. If a dependency is missing, get creating!
 
-Alternatively, if CPMUtil pulls in a package that has no suitable way to install or use a system version, download it separately and pass `-DPackageName_DIR=/path/to/downloaded/dir` (e.g. shaders)
+Alternatively, if CPMUtil pulls in a package that has no suitable way to install or use a system version, download it separately and pass `-D<PackageName>_CUSTOM_DIR=/path/to/downloaded/dir`.
 
 ### Unsandboxed
 
@@ -263,14 +288,12 @@ Using the prior Vulkan example:
     "repo": "KhronosGroup/Vulkan-Headers",
     "package": "VulkanHeaders",
     "min_version": "1.4.317",
-    "version": "1.4.342",
-    "tag": "v%VERSION%"
+    "version": "v1.4.342"
 },
 "vulkan-utility-libraries": {
     "repo": "KhronosGroup/Vulkan-Utility-Libraries",
     "package": "VulkanUtilityLibraries",
-    "version": "1.4.342",
-    "tag": "v%VERSION%"
+    "version": "v1.4.342"
 }
 ```
 
@@ -318,3 +341,32 @@ AddQt(QDash-CI/Qt 6.11.1)
 ```
 
 Then, call `find_package(Qt6 ...)` and it will pull Qt from your downloaded source.
+
+## Addendum: Package-Specific Overrides
+
+There are three variables that CPMUtil defines for each package; these can be overriden by the user or in your CMake. `package` refers either to the `package` value in the JSON, or the package's JSON key if unset (see `package` in [Common Properties](#common-properties)):
+
+- `<package>_FORCE_BUNDLED`: Forcefully bundle the package. This has the same effect as `CPMUTIL_FORCE_BUNDLED`, but only for this package.
+- `<package>_FORCE_BUNDLED`: Forcefully use the system package, failing if it can't be found. This has the same effect as `SYSTEM`, but only for this package.
+- `<package>_CUSTOM_DIR`: Path to an extracted copy of the package. CPMUtil will not attempt to download the package and will instead use the custom directory.
+  - For an example, see [CPMUtil's test case](https://git.crueter.xyz/CMake/CPMUtil/src/branch/master/tests/dir/CMakeLists.txt)
+
+Additionally, in CMake, you can add `FORCE_BUNDLED_PACKAGE ON` to your `AddJsonPackage` command--note that you will have to use the `NAME <key>` syntax as described in [Module Path Packages](#addendum-module-path-packages). This will overrule *all* other overrides, including `CPMUTIL_FORCE_SYSTEM` and `<package>_FORCE_SYSTEM`--use with caution!
+
+## Addendum: Supply-Chain Security
+
+Many package managers suffer from the issue of supply chain security, specifically in regards to silent overwrites of existing packages or archives, e.g. tag sliding and artifact overwriting. CPMUtil has three methods to protect against this.
+
+### Checksumming
+
+CPMUtil *requires* SHA512 checksums for standard packages, and soon will for CI packages as well. If an attacker or compromised account slides a tag, overwrites a release artifact, or otherwise attempts to compromise anything that CPMUtil may fetch, **CPMUtil will not allow the download to continue!** This means that consumers of your build system can **only** download an artifact if the contents of the artifact are *exactly* indentical to what it was when it was configured--any changes at all will be rejected by CPMUtil.
+
+### Caching
+
+CPMUtil uses a mutable cache system, stored by default in `.cache/cpm`. Dependencies are downloaded and extracted here, and can be reused infinitely. This means that, for instance, if a package is compromised but you already have a cached local copy, you won't have to worry at all!
+
+### Immutable Commit Hashes
+
+CPMUtil is capable of using immutable Git commit hashes for its artifacts. These are (barring SHA1 collisions) completely immune to supply chain attacks--that is, unless the entire root server gets compromised to serve infected artifacts/source code; at which point there are much larger issues to worry about. This means that once you set a package to use a Git commit hash for its version, **it will stay the same forever**. This is useful if you want to ensure that consumers are never faced with download failures stemming from hash mismatches in case of compromised artifacts.
+
+Do note, however, that this will render the package incompatible with CPMUtil's built-in auto-updater, so you will have to manually update the package.

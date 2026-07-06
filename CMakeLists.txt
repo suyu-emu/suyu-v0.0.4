@@ -270,7 +270,7 @@ if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
     set(abi ${CMAKE_ANDROID_ARCH_ABI})
 
     set(vvl_lib_path "${CMAKE_CURRENT_SOURCE_DIR}/src/android/app/src/main/jniLibs/${abi}/")
-    file(COPY "${VVL_SOURCE_DIR}/${abi}/libVkLayer_khronos_validation.so"
+    file(COPY "${vulkan-validation-layers_SOURCE_DIR}/${abi}/libVkLayer_khronos_validation.so"
         DESTINATION "${vvl_lib_path}")
 endif()
 
