@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -48,22 +48,10 @@ static s64 GetSystemTimeNS() {
 
 SteadyClock::time_point SteadyClock::Now() noexcept {
 #if defined(_WIN32)
-    static const auto freq = WindowsQueryPerformanceFrequency();
+    static const auto timer_freq = WindowsQueryPerformanceFrequency();
     const auto counter = WindowsQueryPerformanceCounter();
-
-    // 10 MHz is a very common QPC frequency on modern PCs.
-    // Optimizing for this specific frequency can double the performance of
-    // this function by avoiding the expensive frequency conversion path.
-    static constexpr s64 TenMHz = 10'000'000;
-
-    if (freq == TenMHz) [[likely]] {
-        static_assert(period::den % TenMHz == 0);
-        static constexpr s64 Multiplier = period::den / TenMHz;
-        return time_point{duration{counter * Multiplier}};
-    }
-
-    const auto whole = (counter / freq) * period::den;
-    const auto part = (counter % freq) * period::den / freq;
+    const auto whole = (counter / timer_freq) * period::den;
+    const auto part = (counter % timer_freq) * period::den / timer_freq;
     return time_point{duration{whole + part}};
 #elif defined(__APPLE__)
     return time_point{duration{clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW)}};
