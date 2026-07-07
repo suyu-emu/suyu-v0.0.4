@@ -261,21 +261,25 @@ bool IsTextureInstruction(const IR::Inst& inst) {
 
 static inline u32 ReadCbufCached(Environment& env, u32 index, u32 offset) {
     const CbufWordKey k{index, offset};
-    if (auto it = env.cbuf_word_cache.find(k); it != env.cbuf_word_cache.end()) return it->second;
+    if (auto it = env.cbuf_word_cache.find(k); it != env.cbuf_word_cache.end())
+        return it->second;
     const u32 v = env.ReadCbufValue(index, offset);
     env.cbuf_word_cache.emplace(k, v);
     return v;
 }
 
 static inline u32 GetTextureHandleCached(Environment& env, const ConstBufferAddr& cbuf) {
-    const u32 sec_idx  = cbuf.has_secondary ? cbuf.secondary_index  : cbuf.index;
-    const u32 sec_off  = cbuf.has_secondary ? cbuf.secondary_offset : cbuf.offset;
-    const HandleKey hk{cbuf.index, cbuf.offset, cbuf.shift_left,
-                        sec_idx, sec_off, cbuf.secondary_shift_left, cbuf.has_secondary};
-    if (auto it = env.handle_cache.find(hk); it != env.handle_cache.end()) return it->second;
-
+    // Must all be uniquely different variables
+    // If has secondary, then it will be cbuf.secondary_{index|offset}, else its 0.
+    // So we can just hand it out the raw variable without using sec_idx or sec_off
+    // because comparing 0 against 0 will yield true.
+    const HandleKey hk{cbuf.index, cbuf.offset, cbuf.shift_left, cbuf.secondary_index, cbuf.secondary_offset, cbuf.secondary_shift_left, cbuf.count, cbuf.has_secondary};
+    if (auto it = env.handle_cache.find(hk); it != env.handle_cache.end())
+        return it->second;
+    const u32 sec_idx = cbuf.has_secondary ? cbuf.secondary_index  : cbuf.index;
+    const u32 sec_off = cbuf.has_secondary ? cbuf.secondary_offset : cbuf.offset;
     const u32 lhs = ReadCbufCached(env, cbuf.index, cbuf.offset) << cbuf.shift_left;
-    const u32 rhs = ReadCbufCached(env, sec_idx,   sec_off)      << cbuf.secondary_shift_left;
+    const u32 rhs = ReadCbufCached(env, sec_idx, sec_off) << cbuf.secondary_shift_left;
     const u32 handle = lhs | rhs;
     env.handle_cache.emplace(hk, handle);
     return handle;

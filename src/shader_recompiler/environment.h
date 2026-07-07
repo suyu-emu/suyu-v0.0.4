@@ -38,10 +38,11 @@ struct CbufWordKeyHash {
 struct HandleKey {
     u32 index, offset, shift_left;
     u32 sec_index, sec_offset, sec_shift_left;
+    u32 count;
     bool has_secondary;
     constexpr bool operator==(const HandleKey& o) const noexcept {
-        return std::tie(index, offset, shift_left, sec_index, sec_offset, sec_shift_left, has_secondary)
-            == std::tie(o.index, o.offset, o.shift_left, o.sec_index, o.sec_offset, o.sec_shift_left, o.has_secondary);
+        return std::tie(index, offset, shift_left, sec_index, sec_offset, sec_shift_left, count, has_secondary)
+            == std::tie(o.index, o.offset, o.shift_left, o.sec_index, o.sec_offset, o.sec_shift_left, o.count, o.has_secondary);
     }
 };
 struct HandleKeyHash {
@@ -50,8 +51,8 @@ struct HandleKeyHash {
         h ^= (size_t(k.shift_left) << 1);
         h ^= (size_t(k.sec_index) << 33) ^ (size_t(k.sec_offset) << 2);
         h ^= (size_t(k.sec_shift_left) << 3);
-        h ^= k.has_secondary ? 0x9e3779b97f4a7c15ULL : 0ULL;
-        return h;
+        h ^= (size_t(k.count) << 7);
+        return h ^ (k.has_secondary ? 0x9e3779b97f4a7c15ULL : 0ULL);
     }
 };
 
