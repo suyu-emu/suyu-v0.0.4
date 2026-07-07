@@ -1612,7 +1612,7 @@ void PlayerControlPreview::DrawGCBody(QPainter& p, const QPointF center) {
     std::array<QPointF, gc_body.size()> qbody;
     std::array<QPointF, 8> left_hex;
     std::array<QPointF, 8> right_hex;
-    constexpr float angle = 2 * 3.1415f / 8;
+    constexpr float angle = 2.f * float(M_PI) / 8.f;
 
     for (std::size_t point = 0; point < gc_left_body.size() / 2; ++point) {
         const float body_x = gc_left_body[point * 2 + 0];

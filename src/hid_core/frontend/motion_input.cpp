@@ -1,7 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cmath>
+#include <numbers>
 
 #include "common/math_util.h"
 #include "hid_core/frontend/motion_input.h"
@@ -145,7 +149,7 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
     }
 
     const auto normal_accel = accel.Normalized();
-    auto rad_gyro = gyro * Common::PI * 2;
+    auto rad_gyro = gyro * std::numbers::pi_v<float> * 2.f;
     const f32 swap = rad_gyro.x;
     rad_gyro.x = rad_gyro.y;
     rad_gyro.y = -swap;
@@ -272,7 +276,7 @@ Common::Vec3f MotionInput::GetEulerAngles() const {
 
     return {
         std::atan2(sinr_cosp, cosr_cosp),
-        2 * std::atan2(sinp, cosp) - Common::PI / 2,
+        2 * std::atan2(sinp, cosp) - float(std::numbers::pi_v<float>) / 2,
         std::atan2(siny_cosp, cosy_cosp),
     };
 }

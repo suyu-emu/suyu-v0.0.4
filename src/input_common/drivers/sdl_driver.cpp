@@ -3,6 +3,8 @@
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <array>
+#include <numbers>
 #include "common/logging.h"
 #include "common/math_util.h"
 #include "common/param_package.h"
@@ -146,9 +148,9 @@ public:
             break;
         }
         case SDL_SENSOR_GYRO: {
-            motion.gyro_x = event.data[0] / (Common::PI * 2);
-            motion.gyro_y = -event.data[2] / (Common::PI * 2);
-            motion.gyro_z = event.data[1] / (Common::PI * 2);
+            motion.gyro_x = event.data[0] / (f32(std::numbers::pi_v<float>) * 2);
+            motion.gyro_y = -event.data[2] / (f32(std::numbers::pi_v<float>) * 2);
+            motion.gyro_z = event.data[1] / (f32(std::numbers::pi_v<float>) * 2);
             break;
         }
         }
