@@ -140,19 +140,19 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
               "src_address=0x{:016X}, size=0x{:016X}",
               process_handle, dst_address, src_address, size);
 
-    if (!Common::Is4KBAligned(src_address)) {
+    if (!Common::IsAligned(src_address, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
                   src_address);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (!Common::Is4KBAligned(dst_address)) {
+    if (!Common::IsAligned(dst_address, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
                   dst_address);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
+    if (size == 0 || !Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X})", size);
         R_THROW(ResultInvalidSize);
     }
@@ -190,6 +190,7 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
         R_THROW(ResultInvalidCurrentMemory);
     }
 
+    R_UNLESS(page_table.CanContain(dst_address, size, KMemoryState::AliasCode), ResultInvalidCurrentMemory);
     R_RETURN(page_table.MapCodeMemory(dst_address, src_address, size));
 }
 
@@ -200,19 +201,19 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
               "size=0x{:016X}",
               process_handle, dst_address, src_address, size);
 
-    if (!Common::Is4KBAligned(dst_address)) {
+    if (!Common::IsAligned(dst_address, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
                   dst_address);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (!Common::Is4KBAligned(src_address)) {
+    if (!Common::IsAligned(src_address, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
                   src_address);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
+    if (size == 0 || !Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X}).", size);
         R_THROW(ResultInvalidSize);
     }
@@ -250,6 +251,7 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
         R_THROW(ResultInvalidCurrentMemory);
     }
 
+    R_UNLESS(page_table.CanContain(dst_address, size, KMemoryState::AliasCode), ResultInvalidCurrentMemory);
     R_RETURN(page_table.UnmapCodeMemory(dst_address, src_address, size));
 }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -33,12 +33,12 @@ Result SetHeapSize(Core::System& system, u64* out_address, u64 size) {
 Result MapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
     LOG_DEBUG(Kernel_SVC, "called, addr=0x{:016X}, size={:#X}", addr, size);
 
-    if (!Common::Is4KBAligned(addr)) {
+    if (!Common::IsAligned(addr, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, 0x{:016X}", addr);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (!Common::Is4KBAligned(size)) {
+    if (!Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, {:#X}", size);
         R_THROW(ResultInvalidSize);
     }
@@ -82,12 +82,12 @@ Result MapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
 Result UnmapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
     LOG_DEBUG(Kernel_SVC, "called, addr=0x{:016X}, size={:#X}", addr, size);
 
-    if (!Common::Is4KBAligned(addr)) {
+    if (!Common::IsAligned(addr, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, 0x{:016X}", addr);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (!Common::Is4KBAligned(size)) {
+    if (!Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, {:#X}", size);
         R_THROW(ResultInvalidSize);
     }

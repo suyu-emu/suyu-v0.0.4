@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Jannik Vogel <email@jannikvogel.de>
 // SPDX-License-Identifier: CC0-1.0
 
@@ -36,21 +39,15 @@ template <typename T>
 
 template <typename T>
     requires std::is_unsigned_v<T>
-[[nodiscard]] constexpr bool Is4KBAligned(T value) {
-    return (value & 0xFFF) == 0;
-}
-
-template <typename T>
-    requires std::is_unsigned_v<T>
 [[nodiscard]] constexpr bool IsWordAligned(T value) {
     return (value & 0b11) == 0;
 }
 
 template <typename T>
     requires std::is_integral_v<T>
-[[nodiscard]] constexpr bool IsAligned(T value, size_t alignment) {
+[[nodiscard]] constexpr bool IsAligned(T value, size_t alignment) noexcept {
     using U = typename std::make_unsigned_t<T>;
-    const U mask = static_cast<U>(alignment - 1);
+    const U mask = U(alignment - 1);
     return (value & mask) == 0;
 }
 

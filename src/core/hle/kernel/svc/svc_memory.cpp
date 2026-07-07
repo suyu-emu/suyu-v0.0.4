@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -32,14 +32,13 @@ constexpr bool IsValidAddressRange(u64 address, u64 size) {
 // Helper function that performs the common sanity checks for svcMapMemory
 // and svcUnmapMemory. This is doable, as both functions perform their sanitizing
 // in the same order.
-Result MapUnmapMemorySanityChecks(const KProcessPageTable& manager, u64 dst_addr, u64 src_addr,
-                                  u64 size) {
-    if (!Common::Is4KBAligned(dst_addr)) {
+Result MapUnmapMemorySanityChecks(const KProcessPageTable& manager, u64 dst_addr, u64 src_addr, u64 size) {
+    if (!Common::IsAligned(dst_addr, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Destination address is not aligned to 4KB, 0x{:016X}", dst_addr);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (!Common::Is4KBAligned(src_addr)) {
+    if (!Common::IsAligned(src_addr, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Source address is not aligned to 4KB, 0x{:016X}", src_addr);
         R_THROW(ResultInvalidSize);
     }
@@ -49,7 +48,7 @@ Result MapUnmapMemorySanityChecks(const KProcessPageTable& manager, u64 dst_addr
         R_THROW(ResultInvalidSize);
     }
 
-    if (!Common::Is4KBAligned(size)) {
+    if (!Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, 0x{:016X}", size);
         R_THROW(ResultInvalidSize);
     }
