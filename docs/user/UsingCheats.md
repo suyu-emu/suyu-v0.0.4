@@ -58,24 +58,24 @@ Community Member [Ninjistix](https://github.com/Ninjistix) created a utility (Wi
 ```
 [Super Mario Bros. Wonder - Various] <- Optional
 
-[♯ 1. Always Star Power]
+[# 1. Always Star Power]
 040E0000 00880580 52800035
 
-[♯ 2. Star Power + Bubble Mode (Invincible)]
+[# 2. Star Power + Bubble Mode (Invincible)]
 040E0000 00880580 52800075
 
-[♯ 3. Can Fast Travel to Any Course and World]
+[# 3. Can Fast Travel to Any Course and World]
 040E0000 00935E10 52800036
 040E0000 0048A528 52800028
 040E0000 005D9F58 52800028
 
-[♯ 4. Got All Top of Flag Poles]
+[# 4. Got All Top of Flag Poles]
 040E0000 0048A818 52800028
 ```
 
 ### Step 3: Enabling/Disabling Cheats
 
-Cheats are enabled by default, but can be disabled so they don’t affect gameplay fairly easily using the game properties.
+Cheats are enabled by default, but can be disabled so they don't affect gameplay fairly easily using the game properties.
 
 1. Open Eden and press and hold the game you want to apply the cheat to.
 2. Scroll down on the properties until you see **Add-ons**, select this option.
@@ -130,24 +130,24 @@ Community Member [Ninjistix](https://github.com/Ninjistix) created a utility (Wi
 ```
 [Super Mario Bros. Wonder - Various] <- Optional
 
-[♯ 1. Always Star Power]
+[# 1. Always Star Power]
 040E0000 00880580 52800035
 
-[♯ 2. Star Power + Bubble Mode (Invincible)]
+[# 2. Star Power + Bubble Mode (Invincible)]
 040E0000 00880580 52800075
 
-[♯ 3. Can Fast Travel to Any Course and World]
+[# 3. Can Fast Travel to Any Course and World]
 040E0000 00935E10 52800036
 040E0000 0048A528 52800028
 040E0000 005D9F58 52800028
 
-[♯ 4. Got All Top of Flag Poles]
+[# 4. Got All Top of Flag Poles]
 040E0000 0048A818 52800028
 ```
 
 ### Step 3: Enabling/Disabling Cheats
 
-Cheats are enabled by default, but can be disabled so they don’t affect gameplay fairly easily using the game properties.
+Cheats are enabled by default, but can be disabled so they don't affect gameplay fairly easily using the game properties.
 
 1. *Right-Click* the game and select *Configure Game*.
 2. In the **Add-Ons** section, locate the cheat you wish to enable.

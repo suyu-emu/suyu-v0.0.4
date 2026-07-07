@@ -20,7 +20,7 @@ Use this when you want to import the Eden AppImage into your Steam Library along
 
 #### Initial Setup
 
-1. Press the **STEAM** button and then go to *Power → Switch to Desktop* to enter the Desktop mode.
+1. Press the **STEAM** button and then go to *Power > Switch to Desktop* to enter the Desktop mode.
 
 2. Install ***Steam ROM Manager*** (if needed), there are 2 ways you can accomplish this, either manually or through [*EmuDeck*](https://www.emudeck.com/#downloads).
 
@@ -53,8 +53,8 @@ Use this when you want to import the Eden AppImage into your Steam Library along
 
 EmuDeck will automatically create an *Emulators - Emulators* parser for ***Steam ROM Manager*** that uses shell scripts to launch them.  We will follow this convention.
 
-1. In the file explorer go to your **EmuDeck installation folder → tools → launchers**
-2. Right-Click some empty space and hit **Create New → Text File,** call this new file ***eden.sh*** instead of ***Text File.txt***
+1. In the file explorer go to your **EmuDeck installation folder > tools > launchers**
+2. Right-Click some empty space and hit **Create New > Text File,** call this new file ***eden.sh*** instead of ***Text File.txt***
 3. Right-Click the ***eden.sh*** file you created and hit ***Open with Kate***.
 4. Paste the following code into the contents of the file, save and close the file.
     
@@ -103,7 +103,7 @@ We will need to create a new parser for the Emulators.  Unlike with the EmuDeck 
     
     <aside>
         
-    ***TIP***: You may need to go to **Settings → Theme** and set it to *Classic* to view this option.
+    ***TIP***: You may need to go to **Settings > Theme** and set it to *Classic* to view this option.
     
     </aside>
 
@@ -119,7 +119,7 @@ We will need to create a new parser for the Emulators.  Unlike with the EmuDeck 
     2. Parser Specific Configuration
         1. **Search Glob**: *${title}@(.AppImage|.APPIMAGE|.appimage)*
     3. Executable Configuration
-        1. **Executable Modifier**: *"${exePath}”*
+        1. **Executable Modifier**: *"${exePath}"*
     4. Title Modification Configuration
         1. **Title Modifier**: *${fuzzyTitle}*
     
@@ -181,7 +181,7 @@ Use this when you want to import your games inside Eden into Steam to launch wit
 
 ### Steps
 
-1. Press the **STEAM** button and then go to *Power → Switch to Desktop* to enter the Desktop mode.
+1. Press the **STEAM** button and then go to *Power > Switch to Desktop* to enter the Desktop mode.
 
 1. Install ***Steam ROM Manager***, there are 2 ways you can accomplish this, either manually or through [*EmuDeck*](https://www.emudeck.com/#downloads).
 
@@ -215,7 +215,7 @@ Use this when you want to import your games inside Eden into Steam to launch wit
     
     <aside>
     
-    ***TIP***: Your layout may look different depending on how you installed *Steam ROM Manager*.  You may need to go to **Settings → Theme** and change it to *Classic* to follow along.
+    ***TIP***: Your layout may look different depending on how you installed *Steam ROM Manager*.  You may need to go to **Settings > Theme** and change it to *Classic* to follow along.
     
     </aside>
     
@@ -229,13 +229,13 @@ Use this when you want to import your games inside Eden into Steam to launch wit
     2. Change the **Parser title** from *Nintendo Switch - Yuzu* to *Nintendo Switch - Eden.*
     3. Hit the **Browse** option under the *ROMs directory* section.  Select the directory containing your Switch ROMs.
     4. Under *Steam collections*, you can add a Steam category name.  This just organizes the games under a common category in your Steam Library, this is optional but recommended.
-    5. Scroll down slightly to the **Executable Configuration → Executable**, select **Browse** and select the Eden AppImage.
+    5. Scroll down slightly to the **Executable Configuration > Executable**, select **Browse** and select the Eden AppImage.
     6. Leave everything else the same and hit **Save** to save the parser.
     ---
     
 4. Click the Eden parser to view the options on the right, select **Test** at the bottom of the screen to ensure that *Steam ROM Manager* detects your games correctly.
 1. *Steam ROM Manager* will start to scan the specified ROMs directory and match them to games.  Look over the results to ensure they are accurate.  If you do not see any entries - check your parsers ROMs directory field.
-1. When you are happy with the results, click the **Add Games** → **Parse** to start the actual Parsing.
+1. When you are happy with the results, click the **Add Games** > **Parse** to start the actual Parsing.
 1. The program will now identify the games and pull artwork from [*SteamGridDB*](https://www.steamgriddb.com/).
 2. Review the game matches and ensure everything is there.
     

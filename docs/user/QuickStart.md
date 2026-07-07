@@ -33,12 +33,12 @@ Use this guide to get starting using the Eden emulator.
     
     <aside>
 
-    ***INFO***: You may get a “*Windows protected your PC”* SmartScreen message that appears.  This is just Windows Defender saying it did not recognize the application and did not run it - Eden is completely safe.  Click **More info** and then **Run anyway** to dismiss this message.
+    ***INFO***: You may get a "*Windows protected your PC"* SmartScreen message that appears.  This is just Windows Defender saying it did not recognize the application and did not run it - Eden is completely safe.  Click **More info** and then **Run anyway** to dismiss this message.
     
     </aside>
 4. Eden will now launch and notify you about missing Decryption keys. Close the dialog box by hitting **OK**.
-5. Navigate to **Tools → Install Decryption Keys**, navigate to the folder containing your key files and select the file, you should only be able to select one.
-6. Navigate to **Tools → Install Firmware**, *Select **From Folder*** or ***From ZIP*** - depending on how your firmware is stored, navigate to where it is stored and select it.    
+5. Navigate to **Tools > Install Decryption Keys**, navigate to the folder containing your key files and select the file, you should only be able to select one.
+6. Navigate to **Tools > Install Firmware**, *Select **From Folder*** or ***From ZIP*** - depending on how your firmware is stored, navigate to where it is stored and select it.    
 7. Double-Click the main window to add the folder containing your games.
 8. Go to *Emulation > Configure > Input* and set up your controller of choice. Click **OK** to close the dialog window.
 9. Double-Click a game to run it.
@@ -72,8 +72,8 @@ Use this guide to get starting using the Eden emulator.
     
 4. If you have had a different Switch emulator installed, it will detect and ask if you want to import those settings.  Make your selection to close the screen.
 5. Eden will now launch and notify you about missing Encryption keys. Close the dialog box by hitting **OK**.
-6. Navigate to **Tools → Install Decryption Keys**, navigate to the folder containing your ***prod.keys*** file and select the file and hit **Open**.
-7. Navigate to **Tools → Install Firmware →** *Select **From Folder*** or ***From ZIP*** - depending on how your firmware is stored, navigate to where it is stored and select it.
+6. Navigate to **Tools > Install Decryption Keys**, navigate to the folder containing your ***prod.keys*** file and select the file and hit **Open**.
+7. Navigate to **Tools > Install Firmware >** *Select **From Folder*** or ***From ZIP*** - depending on how your firmware is stored, navigate to where it is stored and select it.
 8. Double-Click the main window to add the folder containing your games.
 9. Go to *Emulation > Configure > Input* and set up your controller. Click **OK** to close the dialog window.
 10. Double-Click a game to run it.

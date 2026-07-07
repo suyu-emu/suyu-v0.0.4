@@ -155,7 +155,7 @@ void SinkStream::ProcessAudioIn(std::span<const s16> input_buffer, std::size_t n
         std::memcpy(&last_frame[0], &input_buffer[(frames_written - 1) * frame_size], frame_size_bytes);
     }
 
-    // update sample counts für audio-ins
+    // update sample counts fuer audio-ins
     {
         std::scoped_lock lk{sample_count_lock};
         last_sample_count_update_time = system.CoreTiming().GetGlobalTimeNs();

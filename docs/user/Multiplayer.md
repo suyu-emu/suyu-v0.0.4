@@ -10,7 +10,7 @@ This FAQ will serve as a general quick question and answer simple questions.
 No - The only emulator that has this kind of functionality is *Ryujinx* and it's forks.  This solution requires loading a custom module on a modded switch console to work.
 
 ### Can I Play Online Games?
-No - This would require hijacking requests to Nintendo's official servers to a custom server infrastructure built to emulate that functionality.  This is how services like [*Pretendo*](https://pretendo.network/) operate.  As such, you would not be able to play “Online”, you can however play multiplayer games.
+No - This would require hijacking requests to Nintendo's official servers to a custom server infrastructure built to emulate that functionality.  This is how services like [*Pretendo*](https://pretendo.network/) operate.  As such, you would not be able to play "Online", you can however play multiplayer games.
 
 ### What's the Difference Between Online and Multiplayer?
 I have chosen the wording carefully here for a reason.  
@@ -21,7 +21,7 @@ I have chosen the wording carefully here for a reason.
 The rule of thumb here is simple: If a game supports the ability to communicate without a server (Local Wireless, LAN, etc.) you will be able to play with other users.  If it requires a server to function - it will not.  You will need to look up if your title support Local Wireless/LAN play as an option.
 
 ### How Does Multiplayer Work on Eden Exactly?
-Eden's multiplayer works by emulating the Switch's local wireless (LDN) system, then tunneling that traffic over the internet through “rooms” that act like lobbies. Each player runs their own instance of the emulator, and as long as everyone joins the same room and the game supports local wireless multiplayer, the emulated consoles see each other as if they were on the same local network. This design avoids typical one-save netplay issues because every user keeps an independent save and console state while only the in-game wireless packets are forwarded through the room server.  In practice, you pick or host a room, configure your network interface/port forwarding if needed, then launch any LDN-capable game; from the game's perspective it is just doing standard local wireless, while the emulator handles discovery and communication over the internet or LAN.
+Eden's multiplayer works by emulating the Switch's local wireless (LDN) system, then tunneling that traffic over the internet through "rooms" that act like lobbies. Each player runs their own instance of the emulator, and as long as everyone joins the same room and the game supports local wireless multiplayer, the emulated consoles see each other as if they were on the same local network. This design avoids typical one-save netplay issues because every user keeps an independent save and console state while only the in-game wireless packets are forwarded through the room server.  In practice, you pick or host a room, configure your network interface/port forwarding if needed, then launch any LDN-capable game; from the game's perspective it is just doing standard local wireless, while the emulator handles discovery and communication over the internet or LAN.
 
 ### What Do I Need to Do?
 That depends entirely on what your goal is and your level of technical ability, you have a 2 options on how to proceed.  
@@ -71,7 +71,7 @@ There are 2 primary methods that you can use to connect to an existing room, dep
 </aside>
 
 ## Joining a Public Lobby
-1. Open Eden and navigate to *Multiplayer → Browse Public Game Lobby*.
+1. Open Eden and navigate to *Multiplayer > Browse Public Game Lobby*.
 2. The **Public Room Browser** will now open and display a list of publicly accessible rooms.  Find one you want to connect to and double click it.
     
     <aside>
@@ -84,7 +84,7 @@ There are 2 primary methods that you can use to connect to an existing room, dep
 ### Direct Connecting to a Room
 If the hoster has not made the lobby public, or you don't want to find it in the public game browser - use this option to connect.
 
-1. Open Eden and navigate to *Multiplayer → Direct Connect*.
+1. Open Eden and navigate to *Multiplayer > Direct Connect*.
 2. Enter the *Server Address, Port*, *Nickname* (what your user will be called in the room), and a *Password* (if the hoster set one, otherwise leave it blank) and hit **Connect.**
 3. You will now see a window showing everyone on the lobby, or an error message.
 
@@ -101,7 +101,7 @@ Use this guide for when you want to host a multiplayer lobby to play with others
 - Ability to allow programs through the firewall on your device.
 
 ### Steps
-1. Open Eden and navigate to *Emulation → Multiplayer → Create Room.*    
+1. Open Eden and navigate to *Emulation > Multiplayer > Create Room.*    
 2. Fill out the following information in the popup dialog box.
     
     
@@ -144,7 +144,7 @@ Quite often the person with whom you want to play is located off of your interna
 
 Port forwarding is a networking technique that directs incoming traffic arriving at a specific port on a router or firewall to a designated device and port inside a private local network. When an external client contacts the public IP address of the router on that port, the router rewrites the packet's destination information (IP address and sometimes port number) and forwards it to the internal host that is listening on the corresponding service. This allows services such as web servers, game servers, or remote desktop sessions hosted behind NAT (Network Address Translation) to be reachable from the wider Internet despite the devices themselves having non-routable private addresses.
 
-The process works by creating a static mapping—often called a “port-forward rule”—in the router's configuration. The rule specifies three pieces of data: the external (public) port, the internal (private) IP address of the target machine, and the internal port on which that machine expects the traffic. When a packet arrives, the router checks its NAT table, matches the external port to a rule, and then translates the packet's destination to the internal address before sending it onward. Responses from the internal host are similarly rewritten so they appear to come from the router's public IP, completing the bidirectional communication loop. This mechanism enables seamless access to services inside a protected LAN without exposing the entire network. 
+The process works by creating a static mapping-often called a "port-forward rule"-in the router's configuration. The rule specifies three pieces of data: the external (public) port, the internal (private) IP address of the target machine, and the internal port on which that machine expects the traffic. When a packet arrives, the router checks its NAT table, matches the external port to a rule, and then translates the packet's destination to the internal address before sending it onward. Responses from the internal host are similarly rewritten so they appear to come from the router's public IP, completing the bidirectional communication loop. This mechanism enables seamless access to services inside a protected LAN without exposing the entire network. 
 
 For our purposes we would pick the port we want to expose (*e.g. 24872*) and we would access our router's configuration and create a port-forward rule to send the traffic from an external connection to your local machine over our specified port (*24872)*.  The exact way to do so, varies greatly by router manufacturer - and sometimes require contacting your ISP to do so depending on your agreement.  You can look up your router on [*portforward.com*](https://portforward.com/router.htm) which may have instructions on how to do so for your specific equipment.  If it is not there, you will have to use Google/ChatGPT to determine the steps for your equipment.
 
@@ -160,7 +160,7 @@ Remember you can't have one port open for multiple devices at the same time - yo
     </aside>
     
 
-Using a Tunnelling service may be the solution to avoid port forward, but also avoid worrying about your users setup. A tunnelling service works by having a lightweight client run on the machine that hosts the game server. That client immediately opens an **outbound** encrypted connection (typically over TLS/QUIC) to a relay node operated by the tunnel provider's cloud infrastructure. Because outbound traffic is almost always allowed through NAT routers and ISP firewalls, the tunnel can be established even when the host sits behind carrier-grade NAT or a strict firewall. The tunnel provider then assigns a public address (e.g., `mygame.playit.gg:12345`). When a remote player connects to that address, the traffic reaches the the tunnel provider relay, which forwards it through the already-established tunnel back to the client on the private network, and finally onto the local game server's port. In effect, the server appears to the Internet as if it were listening on the public address, while the host never needs to configure port-forwarding rules or expose its own IP directly.
+Using a Tunnelling service may be the solution to avoid port forward, but also avoid worrying about your users setup. A tunnelling service works by having a lightweight client run on the machine that hosts the game server. That client immediately opens an **outbound** encrypted connection (typically over TLS/QUIC) to a relay node operated by the tunnel provider's cloud infrastructure. Because outbound traffic is almost always allowed through NAT routers and ISP firewalls, the tunnel can be established even when the host sits behind carrier-grade NAT or a strict firewall. The tunnel provider then assigns a public address (e.g., `mygame.playit.gg:12345`). When a remote player connects to that address, the traffic reaches the the tunnel provider relay, which forwards it through the already-established tunnel back to the client on the private network, and finally onto the local game server's port. In effect, the server appears to the Internet as if it were listening on the public address, while the host never needs to configure port-forwarding rules or expose its own IP directly.
 
 For our purposes we would spawn the listener for the port that way chose when hosting our room.  The user would connect to our assigned public address/port combination, and it would be routed to our machine.  The tunnel must remain active for as long as you want the connection to remain open.  Closing the terminal will kill the tunnel and disconnect the users.
 
@@ -204,7 +204,7 @@ Use this guide when you need to determine the connection information for the Pub
 ### Method 1: Grabbing the Address from the Log File
 1. Open Eden and Connect to the room you want to identify.
     1. See the *Joining a Multiplayer Room* section for instructions on how to do so if you need them.
-2. Go to *File → Open Eden Folder*, then open the **config** folder.
+2. Go to *File > Open Eden Folder*, then open the **config** folder.
 3. Open the the **qt-config.ini** file in a text editor.
 4. Search for the following keys: 
     1. `Multiplayer\ip=` 
@@ -286,7 +286,7 @@ This guide will assume you are the one hosting the game and go over things *Pars
     2. If you are joining a game, you will have to send a connection request the host will have to accept.
 3. Verify that the remote player can see the screen and that there is no issues with the connection.
 4. Launch Eden.
-5. Navigate to *Emulation → Configure*.
+5. Navigate to *Emulation > Configure*.
 6. Select the **Controls** tab.
 7. Set up your controller, if necessary.
 8. Select the **Player 2** tab and select the **Connect Controller** checkbox.  This enables inputs from another device to be seen as a second controller.

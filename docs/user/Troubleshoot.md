@@ -68,7 +68,7 @@ Faulting package-relative application ID:
 2. Confirm there are no logs created in the log directory.
     1. See the [How to Access Logs](./HowToAccessLogs.md) page for the log location if you need it.
     2. If there are any entries in here since you tried step 1, this is likely not your issue.
-3. Navigate to your *Windows Event Viewer* (Start Menu → **eventvwr.msc)**. 
+3. Navigate to your *Windows Event Viewer* (Start Menu > **eventvwr.msc)**. 
 4. Expand **Windows Logs** and select **Application.**
     
 5. Look for an entry with the Level of Error, and look for a message similar to the following

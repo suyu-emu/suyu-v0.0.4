@@ -791,8 +791,8 @@ struct Values {
                                                 "program_args",
                                                 Category::System,
                                                 Specialization::Default,
-                                                true,    // save_ — persist in config file
-                                                false};  // runtime_modifiable_ — startup-only
+                                                true,    // save_ - persist in config file
+                                                false};  // runtime_modifiable_ - startup-only
     Setting<bool> dump_exefs{linkage, false, "dump_exefs", Category::Debugging};
     Setting<bool> dump_nso{linkage, false, "dump_nso", Category::Debugging};
     Setting<bool> dump_guest_shaders{

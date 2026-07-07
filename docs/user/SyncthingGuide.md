@@ -30,15 +30,15 @@ Use this guide for when you want to configure automated backup/syncing of your E
 
 ## Overview
 
-Rather than giving a breakdown of all the platforms and configurations, those will be in the platform’s specific guides - this will serve as a general overview of Syncthing.
+Rather than giving a breakdown of all the platforms and configurations, those will be in the platform's specific guides - this will serve as a general overview of Syncthing.
 
 ### What is Syncthing Anyway?
 
-Syncthing is a continuous file synchronization program (in the layman’s - make sure 2 or more systems with the same files are always up to date).  This is perfect for game saves where we would want to play on 1 device, save our game, and then continue playing it on another device.  This technology is what Epic/Steam/etc. use to allow you to do this on games run through their respective services.  Syncthing is an open source implementation of this technology that you control, rather than relying on a 3rd party.  This has a few key benefits, most notably - better security, privacy, and speed (when on your LAN).
+Syncthing is a continuous file synchronization program (in the layman's - make sure 2 or more systems with the same files are always up to date).  This is perfect for game saves where we would want to play on 1 device, save our game, and then continue playing it on another device.  This technology is what Epic/Steam/etc. use to allow you to do this on games run through their respective services.  Syncthing is an open source implementation of this technology that you control, rather than relying on a 3rd party.  This has a few key benefits, most notably - better security, privacy, and speed (when on your LAN).
 
 ### What are some common issues?
 
-Syncthing is fairly robust and doesn’t have many issues luckily, but there are some things you should watch out for (almost all of them a user issue).
+Syncthing is fairly robust and doesn't have many issues luckily, but there are some things you should watch out for (almost all of them a user issue).
 
 - Sync conflicts
     - If for whatever reason you update the same file on 2 different machines, the system does not know which updated file is considered the one to sync across.  This results in a ***sync conflict*** where it may not sync the files as you would expect.  Worst case scenario, this can result in your save progress being lost if you are not careful.  When one of these occurs, it will create a copy of the file and store it with a specific name, like this example, *Paper Mario.sync-conflict-20251102-072925-TZBBN6S.srm.* To resolve this, you must remove the other files and remove the *.sync-conflict-<TIMESTAMP>-<Syncthing Device ID>* from the file name of the file you want to keep.
@@ -86,7 +86,7 @@ Use this when you want to set this machine as the initial source of truth (push 
 
 1. Right-Click the *Syncthing* Tray icon in your taskbar and select **Open Syncthing.**
 2. You will now have a browser window open up to a web GUI to configure *Syncthing*.  You will get a pop up about allowing anonymous usage and setting a password, make your selections to close them.
-3. We’ll start by adding the folder with our save files that we want to sync by Pressing **+ Add Folder**.
+3. We'll start by adding the folder with our save files that we want to sync by Pressing **+ Add Folder**.
 4. A pop-up window will appear, fill in the Folder label field with whatever you want to call it, like Switch Saves.
 5. Enter the Full folder path to where your save files are stored on this machine.
     
@@ -105,7 +105,7 @@ Use this when you want to set this machine as the initial source of truth (push 
 
 Use this when you want to set this machine up as a child (pull files from the other devices).  Afterwards they will all be equal partners, not a parent/child relationship, this just helps with initial setup.
 
-1. Install Syncthing Tray on the client device following the section above.  Copy the child’s ID and store it so it is accessible to the Parent.
+1. Install Syncthing Tray on the client device following the section above.  Copy the child's ID and store it so it is accessible to the Parent.
 2. ***ON THE PARENT***: Right-Click the *Syncthing* Tray icon in your taskbar and select **Open Syncthing** if it is not open already**.**
 3. You will now have a browser window open up to a web GUI to configure *Syncthing*.  You will get a pop up about allowing anonymous usage and setting a password, make your selections to close them.
 4. Navigate down to **+ Add Remote Device**, we are going to add our Child device, so I hope you have its ID handy.  If not, go back and get it.
@@ -126,7 +126,7 @@ Use this when you want to set this machine up as a child (pull files from the ot
     
     </aside>
 
-13. *Syncthing* will now pull all the files from the Parent and store them in your local save directory.  At this point the files are in sync and alterations to one will affect the other and both can be considered “*Parents*” for other devices you want to add.  Repeat these steps for as many devices you want.
+13. *Syncthing* will now pull all the files from the Parent and store them in your local save directory.  At this point the files are in sync and alterations to one will affect the other and both can be considered "*Parents*" for other devices you want to add.  Repeat these steps for as many devices you want.
 
 ## Linux
 
@@ -166,9 +166,9 @@ Use this when you want to set this machine up as a child (pull files from the ot
 Use this when you want to set this machine as the initial source of truth (push files out to all the other devices).  Afterwards they will all be equal partners, not a parent/child relationship, this just helps with initial setup.
 
 1. Right-Click the *Syncthing* Tray icon in your taskbar and select **Open Syncthing.** 
-    1. If you don’t have a taskbar in your distro, you can also reach it directly by opening a web browser to: *http://127.0.0.1:8384/.*    
+    1. If you don't have a taskbar in your distro, you can also reach it directly by opening a web browser to: *http://127.0.0.1:8384/.*    
 2. You will now have a browser window open up to a web GUI to configure *Syncthing*.  You will get a pop up about allowing anonymous usage and setting a password, make your selections to close them.
-3. We’ll start by adding the folder with our save files that we want to sync by Pressing **+ Add Folder**.
+3. We'll start by adding the folder with our save files that we want to sync by Pressing **+ Add Folder**.
 4. A pop-up window will appear, fill in the Folder label field with whatever you want to call it, like Switch Saves.
 5. Enter the Full folder path to where your save files are stored on this machine.
     
@@ -187,7 +187,7 @@ Use this when you want to set this machine as the initial source of truth (push 
 
 Use this when you want to set this machine up as a child (pull files from the other devices).  Afterwards they will all be equal partners, not a parent/child relationship, this just helps with initial setup.
 
-1. Install Syncthing Tray on the client device following the section above.  Copy the child’s ID and store it so it is accessible to the Parent.
+1. Install Syncthing Tray on the client device following the section above.  Copy the child's ID and store it so it is accessible to the Parent.
 2. ***ON THE PARENT***: Right-Click the *Syncthing* Tray icon in your taskbar and select **Open Syncthing** if it is not open already**.** 
 3. You will now have a browser window open up to a web GUI to configure *Syncthing*.  You will get a pop up about allowing anonymous usage and setting a password, make your selections to close them.
 4. Navigate down to **+ Add Remote Device**, we are going to add our Child device, so I hope you have its ID handy.  If not, go back and get it.
@@ -208,4 +208,4 @@ Use this when you want to set this machine up as a child (pull files from the ot
     
     </aside>
     
-13. *Syncthing* will now pull all the files from the Parent and store them in your local save directory.  At this point the files are in sync and alterations to one will affect the other and both can be considered “*Parents*” for other devices you want to add.  Repeat these steps for as many devices you want.
+13. *Syncthing* will now pull all the files from the Parent and store them in your local save directory.  At this point the files are in sync and alterations to one will affect the other and both can be considered "*Parents*" for other devices you want to add.  Repeat these steps for as many devices you want.

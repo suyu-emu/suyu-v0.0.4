@@ -22,7 +22,7 @@ Use this guide when you need to allow Eden to run on a Mac system, but are being
 
 ### Why am I Seeing This?
 
-Recent versions of MacOS (Catalina & newer) introduced the **Gatekeeper** security functionality, requiring software to be signed by Apple or a trusted (aka - paying) developer.  If the signature isn’t on the list of trusted ones, it will stop the program from executing and display the message above.
+Recent versions of MacOS (Catalina & newer) introduced the **Gatekeeper** security functionality, requiring software to be signed by Apple or a trusted (aka - paying) developer.  If the signature isn't on the list of trusted ones, it will stop the program from executing and display the message above.
 
 ---
 

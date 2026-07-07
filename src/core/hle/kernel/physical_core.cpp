@@ -106,7 +106,7 @@ void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
         }
 
         // Determine why we stopped.
-        // If a step completed successfully, skip other halt reason handlers —
+        // If a step completed successfully, skip other halt reason handlers
         // the step takes priority (e.g. step may also set InstructionBreakpoint
         // if the next instruction happens to be a breakpoint).
         const bool step_completed = True(hr & Core::HaltReason::StepThread)
